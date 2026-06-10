@@ -1,0 +1,151 @@
+import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect } from 'react'
+import { courseReactions, courseReactionInterval } from '../data/mockData'
+import { getWidgetSizing } from '../lib/widgetSizing'
+import { useDashboard } from '../store/dashboardStore'
+
+type Props = {
+  /** true while this widget is the visible one — pauses rotation otherwise */
+  active: boolean
+  /** how many widget blocks share the row — shrinks the tile + type when >1 */
+  columns?: number
+}
+
+export default function ReactionsWidget({ active, columns = 1 }: Props) {
+  const [index, setIndex] = useState(0)
+  const openLessonForReaction = useDashboard(s => s.openLessonForReaction)
+
+  const reaction = courseReactions[index]
+  const sz = getWidgetSizing(columns)
+  const openLesson = () => openLessonForReaction(reaction.id)
+
+  const goTo = (i: number) => {
+    setIndex(((i % courseReactions.length) + courseReactions.length) % courseReactions.length)
+  }
+
+  // Auto-advance to the next reaction every `courseReactionInterval` seconds.
+  // Pauses while the widget is swiped off-screen; restarts on manual nav.
+  useEffect(() => {
+    if (!active) return
+    const id = setTimeout(() => goTo(index + 1), courseReactionInterval * 1000)
+    return () => clearTimeout(id)
+  }, [active, index])
+
+  return (
+    <div
+      className="flex h-full w-full overflow-hidden rounded-[24px]"
+      style={{
+        background: 'rgba(255,255,255,0.9)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255,255,255,0.62)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+      }}
+    >
+      {/* Emoji tile — also a click target, opens the lesson with the reaction's
+         paragraph highlighted. */}
+      <div
+        role="button"
+        aria-label={`Открыть урок «${reaction.lesson}»`}
+        onClick={openLesson}
+        className="relative flex-shrink-0 cursor-pointer"
+        style={{
+          width: sz.mediaWidth,
+          minWidth: sz.mediaMin,
+          maxWidth: sz.mediaMax,
+          padding: 8,
+        }}
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={reaction.id}
+            initial={{ opacity: 0, scale: 1.04 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute flex items-center justify-center"
+            style={{ inset: 8, background: reaction.gradient, borderRadius: 18, overflow: 'hidden' }}
+          >
+            {/* readability scrim */}
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(120deg, rgba(0,0,0,0.04), rgba(0,0,0,0.24))' }} />
+            <motion.span
+              key={`${reaction.id}-emoji`}
+              initial={{ scale: 0.6, rotate: -10, opacity: 0 }}
+              animate={{ scale: 1, rotate: 0, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 16, delay: 0.05 }}
+              style={{ fontSize: 60 * sz.scale, lineHeight: 1, filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.3))' }}
+            >
+              {reaction.emoji}
+            </motion.span>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Content */}
+      <div className="flex min-w-0 flex-1 flex-col" style={{ padding: `${sz.padY}px ${sz.padX}px` }}>
+        <div className="mb-2 flex items-center gap-3">
+          <span
+            style={{
+              fontSize: 12 * sz.scale, fontWeight: 650, lineHeight: 1, padding: '5px 12px', borderRadius: 999,
+              color: '#1F6FB8', background: '#DCEEFB',
+            }}
+          >
+            Химия · реакция курса
+          </span>
+        </div>
+
+        <div
+          role="button"
+          aria-label={`Открыть урок «${reaction.lesson}»`}
+          onClick={openLesson}
+          className="flex flex-1 flex-col justify-center cursor-pointer"
+          style={{ gap: 6 }}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={reaction.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <p
+                style={{
+                  fontSize: 21 * sz.scale, fontWeight: 700, lineHeight: 1.25, color: '#0B0B0D',
+                  fontVariantNumeric: 'tabular-nums', letterSpacing: '0.01em',
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                }}
+              >
+                {reaction.equation}
+              </p>
+              <p style={{ fontSize: 13 * sz.scale, fontWeight: 500, color: '#6F6F76', marginTop: 4 }}>
+                {reaction.name} · <span
+                  style={{ color: '#7B61FF', fontWeight: 600, textDecoration: 'underline', textDecorationColor: 'rgba(123,97,255,0.4)', textUnderlineOffset: 3 }}
+                >Урок «{reaction.lesson}»</span>
+              </p>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Reaction dots */}
+        <div className="mt-2 flex items-center gap-2">
+          {courseReactions.map((r, i) => (
+            <button
+              key={r.id}
+              onClick={() => goTo(i)}
+              aria-label={`Реакция ${i + 1}`}
+              className="cursor-pointer"
+              style={{
+                width: i === index ? 28 : 10,
+                height: 10,
+                borderRadius: 999,
+                background: i === index ? '#7B61FF' : '#D4D4D8',
+                transition: 'width 0.3s ease, background 0.3s ease',
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,275 @@
+import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect, useCallback } from 'react'
+import { Clock, X } from 'lucide-react'
+import { dailyQuiz, student } from '../data/mockData'
+import { useDashboard } from '../store/dashboardStore'
+import SpoilerText from './SpoilerText'
+
+const stats = [
+  { label: 'Успеваемость', value: `${student.stats.performance}%`, sub: 'Уровень успеваемости\nпо программе' },
+  { label: 'Задания', value: `${student.stats.completedTasks}/${student.stats.totalTasks}`, sub: 'Выполнено заданий' },
+  { label: 'Средний балл', value: `${student.stats.avgScore}`, sub: 'За месяц' },
+  { label: 'Серия', value: `${student.stats.streak} дн.`, sub: 'Подряд' },
+]
+
+type QuizState = 'preview' | 'active' | 'answered' | 'timeout' | 'done'
+
+export default function StatsQuizRow() {
+  const { quizDismissed, dismissQuiz } = useDashboard()
+  const [quizState, setQuizState] = useState<QuizState>('preview')
+  const [timeLeft, setTimeLeft] = useState(dailyQuiz.timeLimit)
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (quizState !== 'active') return
+    if (timeLeft <= 0) {
+      setQuizState('timeout')
+      setTimeout(() => setQuizState('done'), 2000)
+      return
+    }
+    const id = setTimeout(() => setTimeLeft(t => t - 1), 1000)
+    return () => clearTimeout(id)
+  }, [quizState, timeLeft])
+
+  const handleStart = () => {
+    setQuizState('active')
+    setTimeLeft(dailyQuiz.timeLimit)
+  }
+
+  const handleAnswer = useCallback((answerId: string) => {
+    if (quizState !== 'active') return
+    setSelectedAnswer(answerId)
+    setQuizState('answered')
+    setTimeout(() => setQuizState('done'), 2000)
+  }, [quizState])
+
+  const showQuiz = !quizDismissed && quizState !== 'done'
+  const timerPct = (timeLeft / dailyQuiz.timeLimit) * 100
+  const selectedAnswerText = dailyQuiz.answers.find(a => a.id === selectedAnswer)?.text
+
+  return (
+    <div
+      className="stats-quiz-row relative"
+      data-quiz-open={showQuiz}
+      data-quiz-state={quizState}
+      data-testid="stats-quiz-row"
+    >
+      <motion.div
+        className="grid grid-cols-2 lg:grid-cols-4 h-full"
+        data-testid="stats-grid"
+        animate={{
+          opacity: showQuiz ? 0.58 : 1,
+          filter: showQuiz ? 'blur(1px)' : 'blur(0px)',
+          scale: showQuiz ? 0.992 : 1,
+        }}
+        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        style={{ gap: 16 }}
+      >
+        {stats.map(s => (
+          <div
+            key={s.label}
+            className="flex flex-col justify-center rounded-[24px]"
+            style={{
+              padding: '18px 22px',
+              background: 'rgba(255,255,255,0.88)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.62)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+            }}
+          >
+            <span style={{ fontSize: 10, fontWeight: 600, color: '#6F6F76', textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1 }}>
+              {s.sub.split('\n')[0]}
+            </span>
+            <span style={{ fontSize: 28, fontWeight: 650, color: '#0B0B0D', lineHeight: 1.1 }}>
+              {s.value}
+            </span>
+            <span style={{ fontSize: 11, fontWeight: 500, color: '#6F6F76' }}>
+              {s.label}
+            </span>
+          </div>
+        ))}
+      </motion.div>
+
+      <AnimatePresence>
+        {showQuiz && (
+          <>
+            <motion.div
+              key="quiz-scrim"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.24 }}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 10,
+                borderRadius: 28,
+                background: 'rgba(245,245,246,0.62)',
+                backdropFilter: 'blur(4px)',
+                WebkitBackdropFilter: 'blur(4px)',
+                pointerEvents: 'none',
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                pointerEvents: 'none',
+              }}
+            >
+              <motion.div
+                key="quiz"
+                data-testid="daily-quiz-overlay"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className="rounded-[28px]"
+                style={{
+                  width: '100%',
+                  minHeight: quizState === 'preview' ? '100%' : 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  padding: quizState === 'active' ? '28px 28px 28px 28px' : '26px 34px 26px 26px',
+                  background: 'rgba(255,255,255,0.98)',
+                  backdropFilter: 'blur(28px)',
+                  WebkitBackdropFilter: 'blur(28px)',
+                  border: '1px solid rgba(255,255,255,0.88)',
+                  boxShadow: '0 18px 54px rgba(21,18,31,0.16), 0 2px 10px rgba(21,18,31,0.08)',
+                  pointerEvents: 'auto',
+                }}
+              >
+                <div className="mb-4 flex items-start justify-between gap-4">
+                  <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
+                    <span
+                      className="flex-shrink-0"
+                      style={{ fontSize: 12, fontWeight: 650, color: '#7B3FCC', background: '#EEDBFF', padding: '5px 12px', borderRadius: 999, lineHeight: 1 }}
+                    >
+                      Викторина дня
+                    </span>
+                    <h3 style={{ fontSize: 24, fontWeight: 700, color: '#0B0B0D', lineHeight: 1.12 }}>
+                      <SpoilerText revealed={quizState !== 'preview'}>
+                        {dailyQuiz.title}
+                      </SpoilerText>
+                    </h3>
+                  </div>
+                  {quizState === 'preview' && (
+                    <motion.button
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={dismissQuiz}
+                      className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center cursor-pointer"
+                      style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F0F0F2', color: '#6F6F76', borderRadius: 999 }}
+                      aria-label="Закрыть викторину"
+                    >
+                      <X size={16} />
+                    </motion.button>
+                  )}
+                  {quizState === 'active' && (
+                    <div className="flex-shrink-0 flex items-center gap-2">
+                      <Clock size={16} style={{ color: timerPct < 30 ? '#F48B91' : '#6F6F76' }} />
+                      <span style={{ fontSize: 14, fontWeight: 650, color: timerPct < 30 ? '#F48B91' : '#6F6F76', minWidth: 46 }}>
+                        {timeLeft} сек
+                      </span>
+                      <div style={{ width: 112, height: 6, background: '#E8E8EA', borderRadius: 999, overflow: 'hidden' }}>
+                        <motion.div
+                          style={{ height: '100%', borderRadius: 999, background: timerPct < 30 ? '#F48B91' : '#6EE7A0' }}
+                          animate={{ width: `${timerPct}%` }}
+                          transition={{ duration: 0.5, ease: 'linear' }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {quizState === 'preview' && (
+                  <div className="flex items-center gap-3 flex-wrap" style={{ marginTop: 'auto' }}>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleStart}
+                      className="px-6 py-3 rounded-2xl text-white font-semibold cursor-pointer flex-shrink-0"
+                      style={{
+                        minHeight: 44,
+                        padding: '0 24px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: 'linear-gradient(135deg, #C58BFF, #7B61FF)',
+                        borderRadius: 16,
+                        color: '#FFFFFF',
+                        fontSize: 15,
+                        fontWeight: 650,
+                        lineHeight: 1,
+                      }}
+                    >
+                      Начать
+                    </motion.button>
+                    <span style={{ fontSize: 14, color: '#6F6F76' }}>20 секунд на ответ</span>
+                  </div>
+                )}
+
+                {quizState === 'active' && (
+                  <div className="grid grid-cols-2 gap-3" style={{ marginTop: 28 }}>
+                    {dailyQuiz.answers.map(ans => (
+                      <motion.button
+                        key={ans.id}
+                        whileHover={{ scale: 1.015 }}
+                        whileTap={{ scale: 0.985 }}
+                        onClick={() => handleAnswer(ans.id)}
+                        className="py-3 px-4 rounded-2xl text-left cursor-pointer"
+                        style={{
+                          padding: '12px 16px',
+                          fontSize: 14,
+                          fontWeight: 500,
+                          background: '#F5F5F6',
+                          color: '#0B0B0D',
+                          border: '1.5px solid #E8E8EA',
+                          minHeight: 54,
+                          lineHeight: 1.25,
+                        }}
+                      >
+                        {ans.text}
+                      </motion.button>
+                    ))}
+                  </div>
+                )}
+
+                {quizState === 'answered' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-3 px-5 py-3 rounded-2xl"
+                    style={{ padding: '12px 20px', background: '#DFF8D6', borderRadius: 16 }}
+                  >
+                    <span style={{ fontSize: 18, color: '#1A5C38' }}>✓</span>
+                    <p className="truncate" style={{ fontSize: 15, fontWeight: 650, color: '#1A5C38' }}>
+                      Ответ принят{selectedAnswerText ? `: ${selectedAnswerText}` : ''}
+                    </p>
+                  </motion.div>
+                )}
+
+                {quizState === 'timeout' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-3 px-5 py-3 rounded-2xl"
+                    style={{ padding: '12px 20px', background: '#FFE1E4', borderRadius: 16 }}
+                  >
+                    <span style={{ fontSize: 18, color: '#A8282D' }}>⏱</span>
+                    <p style={{ fontSize: 15, fontWeight: 650, color: '#A8282D' }}>Время вышло</p>
+                  </motion.div>
+                )}
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}

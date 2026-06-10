@@ -1,0 +1,288 @@
+@import "tailwindcss";
+
+:root {
+  --radius-card: 24px;
+  --radius-large: 32px;
+  --radius-pill: 999px;
+  --space-card: 24px;
+  --space-large: 32px;
+  --space-capsule-x: 40px;
+  --color-bg: #F5F5F6;
+  --color-surface: rgba(255,255,255,0.92);
+  --color-text: #0B0B0D;
+  --color-muted: #6F6F76;
+  --color-green: #6EE7A0;
+  --color-green-soft: #DFF8D6;
+  --color-yellow: #F8EF8C;
+  --color-yellow-soft: #FFF9CC;
+  --color-red: #F48B91;
+  --color-red-soft: #FFE1E4;
+  --color-peach: #F8C991;
+  --color-peach-soft: #FFE4BD;
+  --color-purple: #C58BFF;
+  --color-purple-soft: #EEDBFF;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+/* Always reserve the vertical scrollbar's gutter so the page doesn't jump
+   sideways the moment a scrollbar appears on short windows. */
+html {
+  scrollbar-gutter: stable;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.16);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.28);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.16) transparent;
+}
+
+/* Focus visible */
+*:focus-visible {
+  outline: 2px solid rgba(197,139,255,0.7);
+  outline-offset: 3px;
+}
+
+/* Dashboard layout — fills the screen with no scroll when the viewport is tall
+   enough, but falls back to scrolling instead of clipping on short windows. */
+.dashboard-root {
+  height: 100vh;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #F5F5F6;
+  overflow: hidden;
+  position: relative;
+  /* Reserve the topbar's height. The bar itself is taken out of flow (absolute,
+     below) so it floats as glass over the content — content scrolls UNDER it
+     behind the full-width progressive-blur strip. */
+  padding-top: 100px;
+}
+
+.topbar-row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 90;
+  display: flex;
+  justify-content: center;
+  padding: 20px 32px 20px;
+  background: transparent;
+  /* Let clicks fall through the empty bar area so the docked lesson back/title
+     pills below (z:80) remain clickable. Interactive children (the sidebar pill,
+     compact widget pill) keep their default pointer-events:auto and still work. */
+  pointer-events: none;
+}
+
+/* Full-width progressive blur+fade pinned to the top of the viewport, behind
+   the floating topbar pill (z:90 > 40). Single layer: uniform backdrop-blur +
+   a background gradient that fades the page colour in toward the top + a
+   mask gradient that tapers the whole strip (and its blur) to nothing by the
+   bottom edge — giving the "progressive" blur look. pointer-events:none so it
+   never blocks clicks. */
+.edge-progressive-blur--top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  z-index: 40;
+  pointer-events: none;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: linear-gradient(
+    to bottom,
+    rgba(245, 245, 246, 0.72) 0%,
+    rgba(245, 245, 246, 0.44) 34%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 22%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 22%, transparent 100%);
+}
+
+.dashboard-schedule {
+  flex-shrink: 0;
+  min-width: 0;
+  padding: 0 32px 0;
+}
+
+.dashboard-main {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 20px 32px 32px;
+  /* No overflow:hidden here — quiz overlay must extend freely. */
+  overflow: visible;
+}
+
+.widget-carousel {
+  height: 280px;
+  /* Inset the cards so the edge arrows sit in this gutter beside the content
+     instead of on top of it — i.e. the whole widget block is a touch narrower. */
+  padding: 0 32px;
+  transition: height 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Frosted-glass carousel arrows — original size/position, glass material. They
+   peek over the gutter created by the carousel's side padding, so the 40px disc
+   clears the inset card content. */
+.carousel-nav {
+  position: absolute;
+  /* Pinned to the centre of the widgets' RESTING height (not 50% of the
+     carousel) so the arrows hold still when the quiz grows the row. */
+  top: 120px;
+  z-index: 30;
+  /* Vertical centering is handled by framer-motion's `y: '-50%'` so the hover
+     scale composes with it instead of overriding it (which made the disc jump). */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: #3A3A40;
+  background: rgba(255, 255, 255, 0.5);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  backdrop-filter: blur(14px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 6px 18px rgba(21, 18, 31, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+.carousel-nav--left { left: -14px; }
+.carousel-nav--right { right: -14px; }
+
+/* Glass pill indicator: keep the center fairly readable, but let the rim bend
+   the backdrop more aggressively so text briefly refracts when the capsule edge
+   glides across neighboring labels. */
+/* All widgets share one resting height in every quiz state — the active quiz
+   compacts itself to fit instead of growing the row. */
+
+@media (min-width: 1024px) {
+  .widget-carousel {
+    height: 180px;
+  }
+
+  /* Desktop resting height is 180px → arrows centre at 90px. */
+  .carousel-nav {
+    top: 90px;
+  }
+}
+
+/* Stats mini-cards: one row of four when the widget block is wide enough for
+   the labels, 2×2 with smaller type in narrow blocks (3-per-row desktop,
+   phones). The StatsWidget root is the @container. */
+.stats-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.stat-card { padding: 18px 24px; }
+.stat-value { font-size: 34px; }
+.stat-label { font-size: 13px; }
+/* Narrow card (3-per-row desktop ≈ 420px, phones): two cards on top,
+   "Общий балл" spans the full width below — pyramid layout. */
+@container (max-width: 479px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr) minmax(0, auto);
+    gap: 10px;
+  }
+  .stats-grid > *:last-child {
+    grid-column: 1 / -1;
+  }
+  .stat-card { padding: 10px 16px; }
+  .stat-value { font-size: 22px; }
+  .stat-label { font-size: 11px; }
+}
+
+/* Quiz answer options: 2×2 when the quiz card is wide enough for readable
+   half-width options, a single column of four rows otherwise (narrow cards —
+   phones, or 3-per-row desktop never gets below ~420px so it keeps 2×2).
+   The card (daily-quiz-overlay) is the @container. */
+.quiz-answers {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+}
+@container (max-width: 379px) {
+  .quiz-answers {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Fade masks */
+.horizontal-fade {
+  mask-image: linear-gradient(to right, transparent, black 32px, black calc(100% - 32px), transparent);
+}
+.vertical-fade {
+  mask-image: linear-gradient(to bottom, transparent, black 24px, black calc(100% - 24px), transparent);
+}
+
+/* Flash highlight ring around a course node — fired briefly when a user clicks
+   the lesson link in the reactions widget to "find" the lesson on the track.
+   Rendered as a sibling overlay so it doesn't clash with framer-motion's inline
+   transform/boxShadow on the node button itself. */
+@keyframes courseNodeFlashRing {
+  0%   { box-shadow: 0 0 0 0 rgba(123,97,255,0.0), 0 0 0 0 rgba(123,97,255,0.0); opacity: 0; transform: scale(0.9); }
+  15%  { box-shadow: 0 0 0 10px rgba(123,97,255,0.45), 0 0 0 22px rgba(123,97,255,0.18); opacity: 1; transform: scale(1.15); }
+  50%  { box-shadow: 0 0 0  8px rgba(123,97,255,0.30), 0 0 0 18px rgba(123,97,255,0.12); opacity: 1; transform: scale(1.05); }
+  80%  { box-shadow: 0 0 0 10px rgba(123,97,255,0.40), 0 0 0 22px rgba(123,97,255,0.16); opacity: 0.9; transform: scale(1.12); }
+  100% { box-shadow: 0 0 0 0 rgba(123,97,255,0.0), 0 0 0 0 rgba(123,97,255,0.0); opacity: 0; transform: scale(1); }
+}
+.course-node-flash-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 5;
+  animation: courseNodeFlashRing 2s ease-in-out;
+}
+
+@keyframes shimmer-bar {
+  0%   { transform: translateX(-120%); }
+  60%  { transform: translateX(220%); }
+  100% { transform: translateX(220%); }
+}

@@ -1,0 +1,123 @@
+import { motion, AnimatePresence } from 'framer-motion'
+import { useState } from 'react'
+import { Check, Sparkles } from 'lucide-react'
+import { quizQuestions } from '../data/mockData'
+
+type Props = {
+  /** carousel passes this; unused here (no timer/rotation) */
+  active?: boolean
+  /** how many widget blocks share the row — scales the type down when >1 */
+  columns?: number
+}
+
+// One question per calendar day, picked deterministically so it stays stable
+// through the day and differs from the multi-question «Викторина дня» on Stats.
+function questionOfDay() {
+  const day = new Date().getDate()
+  return quizQuestions[day % quizQuestions.length]
+}
+
+export default function QuestionOfDayWidget({ columns = 1 }: Props) {
+  const [revealed, setRevealed] = useState(false)
+  const q = questionOfDay()
+  const correct = q.answers.find(a => a.correct)
+
+  const scale = columns >= 3 ? 0.82 : columns >= 2 ? 0.9 : 1
+  const padX = 22 * scale
+  const padY = 18 * scale
+
+  return (
+    <div
+      className="flex h-full w-full flex-col rounded-[24px]"
+      style={{
+        padding: `${padY}px ${padX}px`,
+        background: 'rgba(255,255,255,0.9)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255,255,255,0.62)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+      }}
+    >
+      {/* Header */}
+      <div className="flex items-center gap-2" style={{ marginBottom: 10 * scale }}>
+        <span
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            fontSize: 12 * scale, fontWeight: 650, lineHeight: 1,
+            padding: '5px 12px', borderRadius: 999,
+            color: '#0E7A6F', background: '#CFF3EE',
+          }}
+        >
+          <Sparkles size={12 * scale} strokeWidth={2.2} />
+          Вопрос дня
+        </span>
+        <span style={{ fontSize: 12 * scale, fontWeight: 500, color: '#9A9AA0' }}>{q.subject}</span>
+      </div>
+
+      {/* Question */}
+      <div className="flex flex-1 items-center" style={{ minHeight: 0 }}>
+        <h3 style={{ fontSize: 21 * scale, fontWeight: 700, lineHeight: 1.2, color: '#0B0B0D' }}>
+          {q.title}
+        </h3>
+      </div>
+
+      {/* Footer: reveal button → correct answer. Fixed height so the centered
+          question above doesn't jump when the two states swap. */}
+      <div style={{ marginTop: 10 * scale, minHeight: 44 * scale, display: 'flex', alignItems: 'center' }}>
+        <AnimatePresence mode="wait" initial={false}>
+          {!revealed ? (
+            <motion.button
+              key="reveal"
+              whileHover={{ scale: 1.015 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setRevealed(true)}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.18 }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                height: 44 * scale, padding: `0 ${22 * scale}px`, borderRadius: 16,
+                border: 'none', cursor: 'pointer',
+                background: 'linear-gradient(135deg, #5AD4C5, #14A695)',
+                color: '#fff', fontSize: 14 * scale, fontWeight: 650,
+              }}
+            >
+              Показать ответ
+            </motion.button>
+          ) : (
+            <motion.div
+              key="answer"
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.2 }}
+              className="flex items-center gap-2"
+            >
+              <div
+                className="flex items-center gap-2"
+                style={{
+                  padding: `${8 * scale}px ${14 * scale}px`, borderRadius: 14,
+                  background: '#DFF8D6', color: '#1A5C38',
+                  fontSize: 14 * scale, fontWeight: 650, lineHeight: 1.2,
+                }}
+              >
+                <Check size={15 * scale} strokeWidth={2.6} style={{ flexShrink: 0 }} />
+                <span>{correct?.text}</span>
+              </div>
+              <button
+                onClick={() => setRevealed(false)}
+                style={{
+                  flexShrink: 0, border: 'none', cursor: 'pointer', background: 'none',
+                  color: '#9A9AA0', fontSize: 13 * scale, fontWeight: 600,
+                }}
+              >
+                Скрыть
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}

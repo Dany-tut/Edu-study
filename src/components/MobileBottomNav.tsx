@@ -1,0 +1,85 @@
+import { motion } from 'framer-motion'
+import { Home, BookOpen, Dumbbell, User } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { scheduleTodayIndex } from '../data/mockData'
+import { playTransitionDrop } from '../lib/sound'
+import { useDashboard } from '../store/dashboardStore'
+
+const items = [
+  { id: 'home', label: 'Главная', icon: Home },
+  { id: 'courses', label: 'Курсы', icon: BookOpen },
+  { id: 'trainer', label: 'Тренажер', icon: Dumbbell },
+  { id: 'profile', label: 'Профиль', icon: User },
+]
+
+export default function MobileBottomNav() {
+  const [active, setActive] = useState('home')
+  const setScheduleIndex = useDashboard(state => state.setScheduleIndex)
+  const activePage = useDashboard(state => state.activePage)
+  const setActivePage = useDashboard(state => state.setActivePage)
+  const openCourses = useDashboard(state => state.openCourses)
+
+  // Sync highlight when the page is changed from elsewhere.
+  useEffect(() => { setActive(activePage) }, [activePage])
+
+  const handleClick = (id: string) => {
+    if (id === activePage) return
+    playTransitionDrop()
+    setActive(id)
+    if (id === 'home') {
+      // "Главная" returns to the dashboard and jumps the schedule back to today.
+      setActivePage('home')
+      setScheduleIndex(scheduleTodayIndex)
+    } else if (id === 'courses') {
+      openCourses()
+    }
+  }
+
+  return (
+    <div
+      className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}
+    >
+      <div
+        className="mx-4 mb-4 flex items-center justify-around px-2 py-3"
+        style={{
+          borderRadius: '28px',
+          background: 'rgba(255,255,255,0.92)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: '1px solid rgba(255,255,255,0.65)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
+          height: 72,
+        }}
+      >
+        {items.map(item => {
+          const Icon = item.icon
+          const isActive = active === item.id
+          return (
+            <motion.button
+              key={item.id}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => handleClick(item.id)}
+              className="flex flex-col items-center gap-1 cursor-pointer px-4 py-2"
+              style={{ minWidth: 56, minHeight: 44 }}
+              aria-label={item.label}
+            >
+              <Icon
+                size={22}
+                strokeWidth={isActive ? 2.5 : 1.8}
+                style={{ color: isActive ? '#7B3FCC' : '#6F6F76' }}
+              />
+              <span style={{
+                fontSize: 10,
+                fontWeight: isActive ? 600 : 500,
+                color: isActive ? '#7B3FCC' : '#6F6F76',
+              }}>
+                {item.label}
+              </span>
+            </motion.button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}

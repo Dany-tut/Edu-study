@@ -1,0 +1,238 @@
+import { motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
+import { CalendarX2, Video } from 'lucide-react'
+import { resolveScheduleLesson, type ScheduleDay, type ScheduleLesson } from '../data/mockData'
+import { IconMissedLesson } from './icons'
+import { useDashboard } from '../store/dashboardStore'
+import { PURPLE, subjectTheme } from '../lib/theme'
+import { useNow, lessonTimeState } from '../lib/useNow'
+
+interface Props {
+  day: ScheduleDay
+  isCenter: boolean
+  distance: number
+  onClick: () => void
+}
+
+export default function ScheduleCard({ day, isCenter, distance, onClick }: Props) {
+  const openLesson = useDashboard(s => s.openLesson)
+  const openCourses = useDashboard(s => s.openCourses)
+  const setActiveSubject = useDashboard(s => s.setActiveSubject)
+  const previewScheduleLesson = useDashboard(s => s.previewScheduleLesson)
+  const clearTrackHighlight = useDashboard(s => s.clearTrackHighlight)
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null)
+  // Tick every second while any lesson is within an hour (the pill shows a
+  // seconds countdown there); otherwise the default 30s is plenty.
+  const anySoon = day.lessons.some(l => {
+    const st = lessonTimeState(day.date, l.time, new Date())
+    return !st.passed && st.secondsUntil <= 3600
+  })
+  const now = useNow(anySoon ? 1000 : 30_000)
+
+  // Resolve each lesson's live time state once and pick the soonest future one
+  // as the "upcoming" highlight — derived from real time, not stored on data.
+  const states = day.lessons.map(l => ({ id: l.id, ...lessonTimeState(day.date, l.time, now) }))
+  const upcomingId = states
+    .filter(s => !s.passed)
+    .sort((a, b) => a.minutesUntil - b.minutesUntil)[0]?.id
+
+  // Reset selection whenever this card stops being the centered (active) day,
+  // and drop any track highlight we set while selected.
+  useEffect(() => {
+    if (!isCenter) {
+      setSelectedLessonId(null)
+      clearTrackHighlight()
+    }
+  }, [isCenter, clearTrackHighlight])
+
+  // Clear the track highlight when this card unmounts (e.g. carousel swap).
+  useEffect(() => () => { clearTrackHighlight() }, [clearTrackHighlight])
+
+  // Open the scheduled lesson directly on the lesson page. If we can't resolve an
+  // exact lesson, fall back to the catalogue scoped to the right subject.
+  const openScheduledLesson = (lesson: ScheduleLesson) => {
+    const { subjectId, lesson: match } = resolveScheduleLesson(lesson)
+    if (match) {
+      openLesson(match.id)
+    } else {
+      if (subjectId) setActiveSubject(subjectId)
+      openCourses()
+    }
+  }
+
+  // The countdown is a clock ("через 40:20") and only appears within the final
+  // hour before the lesson (see the badge gate below), so it's always M:SS.
+  const formatUntil = (st: { secondsUntil: number }) => {
+    const s = Math.max(0, st.secondsUntil)
+    const m = Math.floor(s / 60)
+    const sec = s % 60
+    return `через ${m}:${String(sec).padStart(2, '0')}`
+  }
+
+  const scale = isCenter ? 1 : distance === 1 ? 0.90 : distance === 2 ? 0.82 : 0.74
+  const opacity = isCenter ? 1 : distance === 1 ? 0.72 : distance === 2 ? 0.48 : 0.3
+  const missedPalette = { text: '#A8282D', soft: '#FFE1E4', accent: '#A8282D', onAccent: '#FFFFFF', ring: 'rgba(168,40,45,0.12)' }
+
+  return (
+    <motion.div
+      layout
+      animate={{ scale, opacity }}
+      whileHover={isCenter ? undefined : { scale: scale * 1.04, opacity: Math.min(1, opacity + 0.18) }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      onClick={onClick}
+      className="flex-shrink-0 cursor-pointer h-full"
+      style={{ width: isCenter ? 480 : distance === 1 ? 160 : distance === 2 ? 130 : 110 }}
+    >
+      <div
+        className="w-full h-full rounded-[28px]"
+        style={{
+          // Equal inset on all four sides so the content is framed symmetrically.
+          padding: isCenter ? '16px' : '14px 16px',
+          background: isCenter ? 'rgba(255,255,255,0.97)' : 'rgba(255,255,255,0.80)',
+          backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255,255,255,0.7)',
+          boxShadow: isCenter
+            ? '0 8px 40px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.04)'
+            : '0 2px 12px rgba(0,0,0,0.06)',
+        }}
+      >
+        {/* Date header */}
+        <div
+          className="flex items-center justify-between"
+          style={{ marginBottom: isCenter ? 10 : 8 }}
+        >
+          <span style={{ fontSize: isCenter ? 13 : 11, fontWeight: 600, color: day.isToday ? PURPLE.text : '#6F6F76' }}>
+            {day.label}
+          </span>
+          {day.isToday && isCenter && (
+            <span style={{ fontSize: 11, fontWeight: 600, color: PURPLE.text, background: PURPLE.soft, padding: '2px 8px', borderRadius: 999 }}>
+              Сегодня
+            </span>
+          )}
+        </div>
+
+        {/* Lessons */}
+        {isCenter ? (
+          <div className="flex flex-col" style={{ gap: 10 }}>
+            {day.lessons.length > 0 ? (
+              day.lessons.map(lesson => {
+                const isSelected = selectedLessonId === lesson.id
+                const st = states.find(s => s.id === lesson.id)!
+                const isUpcoming = lesson.id === upcomingId
+                const isPassed = st.passed
+                const isMissed = day.isToday && isPassed
+                const pal = isMissed
+                  ? missedPalette
+                  : lesson.subject === 'Биология'
+                  ? subjectTheme(lesson.subject)
+                  : { text: PURPLE.text, soft: PURPLE.soft, accent: PURPLE.text, onAccent: '#FFFFFF', ring: PURPLE.ring }
+                return (
+                <motion.div
+                  key={lesson.id}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (isSelected) openScheduledLesson(lesson)
+                    else {
+                      setSelectedLessonId(lesson.id)
+                      // Sync the course track below: switch subject + module and
+                      // highlight the matching lesson node so the student can see
+                      // which lesson this row points to on their track.
+                      previewScheduleLesson(lesson)
+                    }
+                  }}
+                  className="rounded-2xl flex items-center cursor-pointer"
+                  style={{
+                    minHeight: 58,
+                    padding: '9px 12px 9px 14px',
+                    gap: 14,
+                    background: (isUpcoming || isMissed) ? pal.soft : 'rgba(0,0,0,0.025)',
+                    opacity: isMissed ? 1 : isPassed ? 0.55 : 1,
+                    outline: isSelected ? `2px solid ${pal.accent}` : '2px solid transparent',
+                    outlineOffset: isSelected ? 2 : 0,
+                    transition: 'outline-color 160ms ease, outline-offset 160ms ease',
+                  }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5" style={{ marginBottom: 4 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: (isUpcoming || isMissed) ? pal.text : '#6F6F76', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {lesson.subject}
+                      </span>
+                      {isMissed && (
+                        <span style={{ fontSize: 10, fontWeight: 700, color: pal.onAccent, background: pal.accent, padding: '2px 7px', borderRadius: 999 }}>
+                          Пропущен
+                        </span>
+                      )}
+                      {!isPassed && st.secondsUntil > 0 && st.secondsUntil <= 3600 && (
+                        isUpcoming ? (
+                          <span style={{ fontSize: 10, fontWeight: 700, color: pal.onAccent, background: pal.accent, padding: '2px 7px', borderRadius: 999 }}>
+                            {formatUntil(st)}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 10, fontWeight: 600, color: '#6F6F76', background: 'rgba(0,0,0,0.06)', padding: '1px 6px', borderRadius: 999 }}>
+                            {formatUntil(st)}
+                          </span>
+                        )
+                      )}
+                    </div>
+                    <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: '#0B0B0D' }}>
+                      Занятие #{lesson.lessonNumber} {lesson.lessonTitle}
+                    </p>
+                  </div>
+                  <div className="flex-shrink-0 flex items-center" style={{ gap: 10 }}>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: (isUpcoming || isMissed) ? pal.text : '#0B0B0D', lineHeight: 1, minWidth: 54, textAlign: 'right' }}>
+                      {lesson.time}
+                    </span>
+                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: (isUpcoming || isMissed) ? pal.ring : 'rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {isMissed
+                        ? <IconMissedLesson size={11} color={pal.text} />
+                        : <Video size={11} color={isUpcoming ? pal.text : '#6F6F76'} />
+                      }
+                    </div>
+                  </div>
+                </motion.div>
+                )
+              })
+            ) : (
+              <div
+                className="rounded-2xl flex flex-col items-center justify-center text-center"
+                style={{
+                  minHeight: 116,
+                  padding: '18px 24px',
+                  background: 'rgba(0,0,0,0.025)',
+                  color: '#6F6F76',
+                }}
+              >
+                <CalendarX2 size={20} style={{ marginBottom: 8 }} />
+                <p style={{ fontSize: 14, fontWeight: 650, color: '#0B0B0D' }}>Пока нет данных</p>
+                <p style={{ fontSize: 12, marginTop: 3 }}>Преподаватель еще не проставил уроки</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {day.lessons.length > 0 ? (
+              day.lessons.slice(0, 2).map(lesson => (
+                <div key={lesson.id}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: '#6F6F76', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    {lesson.subject}
+                  </p>
+                  <p className="truncate" style={{ fontSize: 12, fontWeight: 500, color: '#0B0B0D' }}>
+                    {lesson.lessonTitle}
+                  </p>
+                  <p style={{ fontSize: 11, color: '#6F6F76' }}>{lesson.time}</p>
+                </div>
+              ))
+            ) : (
+              <div style={{ minHeight: 70, display: 'flex', flexDirection: 'column', justifyContent: 'center', color: '#6F6F76' }}>
+                <p style={{ fontSize: 12, fontWeight: 650, color: '#0B0B0D' }}>Пока нет данных</p>
+                <p style={{ fontSize: 11, marginTop: 3 }}>Уроки еще не проставлены</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  )
+}
