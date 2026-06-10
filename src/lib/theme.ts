@@ -24,11 +24,11 @@ const BIOLOGY: SubjectPalette = {
 }
 
 const CHEMISTRY: SubjectPalette = {
-  text: '#1F6FB8',
-  soft: '#DCEEFB',
-  accent: '#1F6FB8',
+  text: '#7B3FCC',
+  soft: '#EEDBFF',
+  accent: '#7B3FCC',
   onAccent: '#FFFFFF',
-  ring: 'rgba(31,111,184,0.16)',
+  ring: 'rgba(123,63,204,0.16)',
 }
 
 // Accept either the Russian display name or the English id used in mock data.

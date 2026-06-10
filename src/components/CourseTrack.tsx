@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle2, RotateCcw, AlertCircle, Upload, Lock, Play } from 'lucide-react'
+import { CheckCircle2, RotateCcw, AlertCircle, Upload, Lock, Play, Star, Clock } from 'lucide-react'
 import { subjects, type Subject, type Lesson, type LessonStatus } from '../data/mockData'
+import { HARD_STYLE } from './CourseNode'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
 import { useNow } from '../lib/useNow'
 import { useDashboard } from '../store/dashboardStore'
@@ -12,7 +13,8 @@ import { EMOJI_STEPS } from './HomeworkFlow'
 import HardStarLottie from './HardStarLottie'
 
 const NODE_SIZE = 56
-const DETAIL_CARD_WIDTH = 460
+const DETAIL_CARD_WIDTH = 340
+const HARD_CARD_WIDTH = 320
 const TRACK_SIDE_PADDING = 36
 // Vertical breathing room above the row so the selected node's glow ring isn't clipped.
 const GLOW_PAD = 24
@@ -37,15 +39,16 @@ const detailStyles: Record<LessonStatus, { bg: string; badgeBg: string; badgeTex
 function TrackForSubject({ subject }: { subject: Subject }) {
   const { activeModuleId, setActiveModule, setTrackPopoverOpen, openLesson, openHomeworkForLesson, highlightLessonId, lessonAssessments } = useDashboard()
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null)
+  const [selectedHardLessonId, setSelectedHardLessonId] = useState<string | null>(null)
   const now = useNow()
   const modulePill = useFloatingPill(activeModuleId)
 
   // Mirror popover open state to the store so the layout can lift the track
   // above the quiz overlay (otherwise the quiz card's shadow covers the popover).
   useEffect(() => {
-    setTrackPopoverOpen(selectedLessonId != null)
+    setTrackPopoverOpen(selectedLessonId != null || selectedHardLessonId != null)
     return () => setTrackPopoverOpen(false)
-  }, [selectedLessonId, setTrackPopoverOpen])
+  }, [selectedLessonId, selectedHardLessonId, setTrackPopoverOpen])
   const scrollRef = useRef<HTMLDivElement>(null)
   const trackAreaRef = useRef<HTMLDivElement>(null)
   const [viewW, setViewW] = useState(0)
@@ -65,17 +68,18 @@ function TrackForSubject({ subject }: { subject: Subject }) {
   // Dismiss the detail popover when clicking anywhere outside the track area.
   // Node clicks live inside trackAreaRef, so they toggle selection as usual.
   useEffect(() => {
-    if (!selectedLessonId) return
+    if (!selectedLessonId && !selectedHardLessonId) return
     const onPointerDown = (e: PointerEvent) => {
       if (!trackAreaRef.current?.contains(e.target as Node)) {
         setSelectedLessonId(null)
+        setSelectedHardLessonId(null)
       }
     }
     // Capture phase: some cards (e.g. the quiz panel) stopPropagation on
     // pointerdown, so a bubble-phase listener would never see those clicks.
     document.addEventListener('pointerdown', onPointerDown, true)
     return () => document.removeEventListener('pointerdown', onPointerDown, true)
-  }, [selectedLessonId])
+  }, [selectedLessonId, selectedHardLessonId])
 
   // Scope the track to the active module — clicking a module tab reveals how
   // much of *that* module is completed ("закрыто").
@@ -96,14 +100,25 @@ function TrackForSubject({ subject }: { subject: Subject }) {
   const span = Math.max(0, containerW - padCenter * 2)         // distance between first & last node centers
   const nodeCenter = (i: number) => nodeCount <= 1 ? padCenter : padCenter + (span * i) / (nodeCount - 1)
 
+  const selectedHardLesson = allLessons.find(lesson => lesson.id === selectedHardLessonId) ?? null
+
   const selectedIndex = selectedLesson ? allLessons.findIndex(lesson => lesson.id === selectedLesson.id) : -1
   const selectedCenter = selectedIndex >= 0 ? nodeCenter(selectedIndex) : 0
-  const detailCardWidth = Math.min(DETAIL_CARD_WIDTH, Math.max(300, containerW - 24))
+  const detailCardWidth = Math.min(DETAIL_CARD_WIDTH, Math.max(240, containerW - 24))
   const detailLeft = Math.max(0, Math.min(selectedCenter - detailCardWidth / 2, Math.max(0, containerW - detailCardWidth)))
   const arrowX = Math.max(16, Math.min(selectedCenter - detailLeft, detailCardWidth - 16))
   const selectedLessonStatus = selectedLesson ? getDisplayLessonStatus(selectedLesson, now) : null
   const selectedDetail = selectedLessonStatus ? detailStyles[selectedLessonStatus] : null
   const DetailIcon = selectedDetail?.icon
+
+  const hardIndex = selectedHardLesson ? allLessons.findIndex(l => l.id === selectedHardLesson.id) : -1
+  const hardCenter = hardIndex >= 0 ? nodeCenter(hardIndex) : 0
+  const hardCardWidth = Math.min(HARD_CARD_WIDTH, Math.max(240, containerW - 24))
+  const hardDetailLeft = Math.max(0, Math.min(hardCenter - hardCardWidth / 2, Math.max(0, containerW - hardCardWidth)))
+  const hardArrowX = Math.max(16, Math.min(hardCenter - hardDetailLeft, hardCardWidth - 16))
+  const hardAssessment = selectedHardLesson ? lessonAssessments[selectedHardLesson.id] : null
+  const hardStatus = (hardAssessment?.hardStatus as 'submitted' | 'returned' | 'completed' | undefined) ?? 'available'
+  const hardStyleData = HARD_STYLE[hardStatus]
 
   return (
     <div className="flex-1 min-h-0 flex flex-col" style={{ padding: '8px 0 0' }}>
@@ -210,7 +225,8 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                 style={{
                   position: 'relative',
                   width: '100%',
-                  height: NODE_SIZE + 34,
+                  height: NODE_SIZE + 50,
+                  overflow: 'visible',
                 }}
               >
                 {/* Base track line — spans the full width between first & last node */}
@@ -256,9 +272,14 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                       index={i}
                       isSelected={selectedLesson?.id === lesson.id}
                       isHighlighted={highlightLessonId === lesson.id}
-                      onSelect={(clickedLesson) =>
+                      onSelect={(clickedLesson) => {
+                        setSelectedHardLessonId(null)
                         setSelectedLessonId(prev => prev === clickedLesson.id ? null : clickedLesson.id)
-                      }
+                      }}
+                      onHardSelect={(clickedLesson) => {
+                        setSelectedLessonId(null)
+                        setSelectedHardLessonId(prev => prev === clickedLesson.id ? null : clickedLesson.id)
+                      }}
                     />
                   </div>
                 ))}
@@ -299,13 +320,15 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     boxShadow: '0 6px 18px rgba(21,18,31,0.10), inset 0 1px 1px rgba(255,255,255,0.65)',
                     padding: 16,
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: 16,
+                    flexDirection: 'column',
+                    gap: 12,
                     transformOrigin: `${arrowX}px bottom`,
                     zIndex: 30,
                   }}
                 >
-                  <div className="flex flex-col flex-1 min-w-0" style={{ gap: 12 }}>
+                  {/* Top row: content + points */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+                    <div className="flex flex-col flex-1 min-w-0" style={{ gap: 12 }}>
                         <div
                           className="inline-flex items-center gap-1.5"
                           style={{
@@ -316,6 +339,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                             color: selectedDetail.badgeText,
                             padding: '5px 12px',
                             width: 'fit-content',
+                            border: `1px solid ${withAlpha(selectedDetail.badgeBg, 0.6)}`,
                           }}
                         >
                           <DetailIcon size={14} />
@@ -323,20 +347,25 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                             {selectedDetail.badgeLabel}
                           </span>
                         </div>
-                        <span
-                          style={{
-                            fontSize: 15,
-                            fontWeight: 600,
-                            color: selectedDetail.textColor,
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            lineHeight: 1.25,
-                          }}
-                        >
-                          Занятие #{selectedLesson.number} {selectedLesson.title}
-                        </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <span style={{ fontSize: 12, fontWeight: 500, color: selectedDetail.badgeText, lineHeight: 1 }}>
+                            Занятие #{selectedLesson.number}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: 15,
+                              fontWeight: 600,
+                              color: selectedDetail.textColor,
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              lineHeight: 1.25,
+                            }}
+                          >
+                            {selectedLesson.title}
+                          </span>
+                        </div>
                         {lessonAssessments[selectedLesson.id] && (() => {
                           const a = lessonAssessments[selectedLesson.id]
                           return (
@@ -347,77 +376,8 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                             </div>
                           )
                         })()}
-                        {selectedLesson.status === 'locked' ? (
-                          <span
-                            style={{
-                              fontSize: 13,
-                              fontWeight: 600,
-                              color: '#9A9A9A',
-                              background: 'rgba(255,255,255,0.5)',
-                              borderRadius: 12,
-                              padding: '9px 18px',
-                              whiteSpace: 'nowrap',
-                              cursor: 'not-allowed',
-                              width: 'fit-content',
-                            }}
-                          >
-                            Недоступно
-                          </span>
-                        ) : (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                            <motion.button
-                              whileHover={{ scale: 1.04 }}
-                              whileTap={{ scale: 0.96 }}
-                              onClick={() => { setSelectedLessonId(null); openLesson(selectedLesson.id) }}
-                              style={{
-                                fontSize: 13,
-                                fontWeight: 600,
-                                color: '#fff',
-                                background: '#0B0B0D',
-                                borderRadius: 12,
-                                padding: '9px 18px',
-                                whiteSpace: 'nowrap',
-                                cursor: 'pointer',
-                                width: 'fit-content',
-                              }}
-                            >
-                              Открыть урок
-                            </motion.button>
-                            {(() => {
-                              const a = lessonAssessments[selectedLesson.id]
-                              const hardAvailable = a?.hardAvailable || (a?.score != null && a.score >= 80)
-                              if (!hardAvailable || a?.hardCompleted) return null
-                              return (
-                                <motion.button
-                                  whileHover={{ scale: 1.03, y: -1 }}
-                                  whileTap={{ scale: 0.97 }}
-                                  onClick={() => { setSelectedLessonId(null); openHomeworkForLesson(selectedLesson.id) }}
-                                  style={{
-                                    fontSize: 13,
-                                    fontWeight: 750,
-                                    color: '#fff',
-                                    background: 'linear-gradient(135deg, #9B5FE8 0%, #7B3FCC 100%)',
-                                    border: 'none',
-                                    borderRadius: 14,
-                                    padding: '8px 16px 8px 8px',
-                                    whiteSpace: 'nowrap',
-                                    cursor: 'pointer',
-                                    width: 'fit-content',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 4,
-                                    boxShadow: '0 6px 20px rgba(123,63,204,0.38), inset 0 1px 0 rgba(255,255,255,0.18)',
-                                  }}
-                                >
-                                  <HardStarLottie size={26} />
-                                  Хард-уровень
-                                </motion.button>
-                              )
-                            })()}
-                          </div>
-                        )}
                       </div>
-                      <div className="flex-shrink-0" style={{ marginRight: 12 }}>
+                      <div className="flex-shrink-0">
                         {selectedLesson.points != null ? (
                           <div className="flex flex-col items-end">
                             <span style={{ fontSize: 40, fontWeight: 700, lineHeight: 1, color: selectedDetail.textColor }}>
@@ -433,9 +393,198 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                           </span>
                         )}
                       </div>
+                    </div>
+                  {/* Bottom row: full-width buttons */}
+                  {selectedLesson.status === 'locked' ? (
+                    <span
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: '#9A9A9A',
+                        background: 'rgba(255,255,255,0.5)',
+                        borderRadius: 12,
+                        padding: '9px 18px',
+                        whiteSpace: 'nowrap',
+                        cursor: 'not-allowed',
+                        width: 'fit-content',
+                      }}
+                    >
+                      Недоступно
+                    </span>
+                  ) : (
+                    <div style={{ display: 'flex', flexWrap: 'nowrap', gap: 8, width: '100%' }}>
+                      <motion.button
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.96 }}
+                        onClick={() => { setSelectedLessonId(null); openLesson(selectedLesson.id) }}
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: '#fff',
+                          background: '#0B0B0D',
+                          borderRadius: 12,
+                          padding: '9px 18px',
+                          whiteSpace: 'nowrap',
+                          cursor: 'pointer',
+                          flex: 1,
+                        }}
+                      >
+                        Открыть урок
+                      </motion.button>
+                      {(() => {
+                        const a = lessonAssessments[selectedLesson.id]
+                        const hardAvailable = a?.hardAvailable || (a?.score != null && a.score >= 80)
+                        if (!hardAvailable || a?.hardCompleted || a?.hardStatus) return null
+                        return (
+                          <motion.button
+                            whileHover={{ scale: 1.03, y: -1 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => { setSelectedLessonId(null); openHomeworkForLesson(selectedLesson.id) }}
+                            style={{
+                              fontSize: 13,
+                              fontWeight: 750,
+                              color: '#fff',
+                              background: 'linear-gradient(135deg, #9B5FE8 0%, #7B3FCC 100%)',
+                              border: 'none',
+                              borderRadius: 14,
+                              padding: '8px 16px 8px 8px',
+                              whiteSpace: 'nowrap',
+                              cursor: 'pointer',
+                              flex: 1,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: 4,
+                              boxShadow: '0 6px 20px rgba(123,63,204,0.38), inset 0 1px 0 rgba(255,255,255,0.18)',
+                            }}
+                          >
+                            <HardStarLottie size={26} />
+                            Хард-уровень
+                          </motion.button>
+                        )
+                      })()}
+                    </div>
+                  )}
                     </motion.div>
                   )}
                 </AnimatePresence>
+
+            {/* ── Hard star popover — same glass-card style as main popover ── */}
+            <AnimatePresence>
+              {selectedHardLesson && hardStyleData && (
+                <motion.div
+                  key={`hard-${selectedHardLesson.id}`}
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0 }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 420,
+                    damping: 26,
+                    mass: 0.7,
+                    opacity: { duration: 0.15 },
+                  }}
+                  style={{
+                    position: 'absolute',
+                    bottom: `calc(100% - ${GLOW_PAD - 14}px)`,
+                    left: hardDetailLeft,
+                    width: hardCardWidth,
+                    borderRadius: 20,
+                    background: `linear-gradient(to bottom, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.22) 55%, rgba(243,234,255,0.32) 100%)`,
+                    backdropFilter: 'blur(8px) saturate(150%)',
+                    WebkitBackdropFilter: 'blur(8px) saturate(150%)',
+                    border: '1px solid rgba(255,255,255,0.55)',
+                    boxShadow: '0 6px 18px rgba(21,18,31,0.10), inset 0 1px 1px rgba(255,255,255,0.65)',
+                    padding: 16,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 16,
+                    transformOrigin: `${hardArrowX}px bottom`,
+                    zIndex: 30,
+                  }}
+                >
+                  <div className="flex flex-col flex-1 min-w-0" style={{ gap: 12 }}>
+                    {/* Status badge */}
+                    <div
+                      className="inline-flex items-center gap-1.5"
+                      style={{
+                        borderRadius: 999,
+                        background: `${hardStyleData.bg}88`,
+                        backdropFilter: 'blur(6px) saturate(140%)',
+                        WebkitBackdropFilter: 'blur(6px) saturate(140%)',
+                        color: hardStyleData.iconColor,
+                        padding: '5px 12px',
+                        width: 'fit-content',
+                        border: `1px solid ${hardStyleData.border}66`,
+                      }}
+                    >
+                      {hardStatus === 'completed' ? <Star size={14} fill="currentColor" /> :
+                       hardStatus === 'returned'  ? <RotateCcw size={14} /> :
+                       hardStatus === 'submitted' ? <Clock size={14} /> :
+                                                    <HardStarLottie size={20} />}
+                      <span style={{ fontSize: 13, fontWeight: 500, lineHeight: 1, whiteSpace: 'nowrap' }}>
+                        {hardStyleData.label}
+                      </span>
+                    </div>
+
+                    {/* Title */}
+                    <span
+                      style={{
+                        fontSize: 15,
+                        fontWeight: 600,
+                        color: '#0B0B0D',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        lineHeight: 1.25,
+                      }}
+                    >
+                      Сложный уровень · {selectedHardLesson.title}
+                    </span>
+
+                    {/* Score row if available */}
+                    {hardAssessment && hardStatus !== 'available' && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 18 }}>{EMOJI_STEPS[hardAssessment.emojiIndex].emoji}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#7B3FCC' }}>{hardAssessment.score} баллов</span>
+                        <span style={{ fontSize: 12, color: '#9090A0' }}>· {EMOJI_STEPS[hardAssessment.emojiIndex].label}</span>
+                        {hardStatus === 'completed' && <span style={{ marginLeft: 4, fontSize: 16 }}>🌟</span>}
+                      </div>
+                    )}
+
+                    {/* Description */}
+                    <span style={{ fontSize: 12, color: '#6F6F76', lineHeight: 1.5 }}>
+                      {hardStatus === 'available' && 'Ты набрал достаточно баллов, чтобы попробовать сложный уровень. Это необязательное задание, но оно принесёт тебе звезду.'}
+                      {hardStatus === 'submitted' && 'Работа отправлена на проверку. Преподаватель проверит её и даст обратную связь.'}
+                      {hardStatus === 'returned' && 'Преподаватель вернул работу на доработку. Открой урок, чтобы прочитать комментарии и исправить ошибки.'}
+                      {hardStatus === 'completed' && 'Сложный уровень принят! Ты отлично справился с заданием повышенной сложности.'}
+                    </span>
+
+                    {/* Action button */}
+                    <motion.button
+                      whileHover={{ scale: 1.04 }}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => { setSelectedHardLessonId(null); openLesson(selectedHardLesson.id) }}
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: '#fff',
+                        background: 'linear-gradient(135deg, #9B5FE8 0%, #7B3FCC 100%)',
+                        borderRadius: 12,
+                        padding: '9px 18px',
+                        whiteSpace: 'nowrap',
+                        cursor: 'pointer',
+                        width: '100%',
+                        boxShadow: '0 4px 14px rgba(123,63,204,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
+                      }}
+                    >
+                      Открыть урок
+                    </motion.button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>

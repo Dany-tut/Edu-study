@@ -340,7 +340,7 @@ function ResultModal({
             : passed
               ? 'linear-gradient(135deg, #F1ECFF, #E4D6FF)'
               : 'linear-gradient(135deg, #FFF6DB, #FDECC5)',
-          display: 'flex', alignItems: 'flex-start', gap: 16,
+          display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: 16,
         }}>
           {passed ? (
             <div style={{ flexShrink: 0, marginTop: -6, marginBottom: -6 }}>
@@ -358,7 +358,7 @@ function ResultModal({
               {context === 'hard' ? <Send size={24} /> : <CircleAlert size={24} />}
             </div>
           )}
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{
               fontSize: 12, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase',
               color: context === 'hard' ? '#2A7D4F' : passed ? '#7B3FCC' : '#9A6000',
@@ -370,18 +370,18 @@ function ResultModal({
               {context === 'hard'
                 ? 'Отправлено на проверку!'
                 : passed
-                  ? `Отлично, ${score} из 100! 🎉`
+                  ? `Отлично, ${score} из 100!`
                   : `Пока ${score} из 100 баллов`
               }
             </h2>
-            <p style={{ fontSize: 13, lineHeight: 1.5, color: '#50505A' }}>
-              {context === 'hard'
-                ? 'Преподаватель посмотрит твою работу и даст обратную связь. Обычно это занимает до 24 часов.'
-                : passed
-                  ? `База закрыта уверенно. Открылся необязательный хард-уровень с разбором от преподавателя.`
+            {!(passed && context === 'basic') && (
+              <p style={{ fontSize: 13, lineHeight: 1.5, color: '#50505A' }}>
+                {context === 'hard'
+                  ? 'Преподаватель посмотрит твою работу и даст обратную связь. Обычно это занимает до 24 часов.'
                   : `До открытия сложного уровня нужно ${recommendationScore}+. Можно вернуться к конспекту и попробовать снова.`
-              }
-            </p>
+                }
+              </p>
+            )}
           </div>
           {context === 'basic' && score !== undefined && (
             <div style={{ flexShrink: 0, textAlign: 'right' }}>
@@ -391,6 +391,11 @@ function ResultModal({
               }}>{score}</span>
               <p style={{ fontSize: 11, fontWeight: 700, color: '#9898A0', marginTop: 2 }}>баллов</p>
             </div>
+          )}
+          {passed && context === 'basic' && (
+            <p style={{ fontSize: 13, lineHeight: 1.5, color: '#50505A', width: '100%', marginTop: -8 }}>
+              База закрыта уверенно. Открылся необязательный хард-уровень с разбором от преподавателя.
+            </p>
           )}
         </div>
 
@@ -814,16 +819,16 @@ export default function HomeworkFlow({
         <aside
           className="flex flex-col"
           style={{
-            padding: 24,
-            gap: 18,
+            padding: 16,
+            gap: 16,
             borderRight: '1px solid rgba(0,0,0,0.06)',
             background: 'linear-gradient(180deg, rgba(250,250,252,0.98), rgba(245,245,247,0.98))',
           }}
         >
           <div
             style={{
-              padding: 18,
-              borderRadius: 24,
+              padding: 16,
+              borderRadius: 16,
               background: PURPLE.gradient,
               color: '#fff',
               boxShadow: '0 18px 44px rgba(123, 63, 204, 0.24)',
@@ -844,8 +849,8 @@ export default function HomeworkFlow({
           <div
             className="flex flex-col"
             style={{
-              padding: 18,
-              borderRadius: 22,
+              padding: 16,
+              borderRadius: 16,
               background: 'rgba(255,255,255,0.94)',
               border: '1px solid rgba(0,0,0,0.06)',
               boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
@@ -867,8 +872,8 @@ export default function HomeworkFlow({
           <div
             className="flex flex-col"
             style={{
-              padding: 18,
-              borderRadius: 22,
+              padding: 16,
+              borderRadius: 16,
               background: 'rgba(255,255,255,0.94)',
               border: '1px solid rgba(0,0,0,0.06)',
               gap: 12,
@@ -888,6 +893,39 @@ export default function HomeworkFlow({
             </p>
           </div>
 
+          {selectedLevel === 'hard' && hardLevel.teacherTask?.acceptedFormats && (
+            <div
+              style={{
+                padding: 16,
+                borderRadius: 16,
+                background: '#F1ECFF',
+                border: '1px solid rgba(123,63,204,0.14)',
+                gap: 10,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#7B3FCC' }}>Что можно приложить</p>
+              <div className="flex flex-wrap" style={{ gap: 8 }}>
+                {hardLevel.teacherTask.acceptedFormats.map(item => (
+                  <span
+                    key={item}
+                    style={{
+                      padding: '9px 12px',
+                      borderRadius: 999,
+                      background: 'rgba(255,255,255,0.82)',
+                      color: '#4C2E71',
+                      fontSize: 13,
+                      fontWeight: 650,
+                    }}
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
         </aside>
 
         <main
@@ -900,35 +938,6 @@ export default function HomeworkFlow({
         >
           {selectedLevel === 'basic' ? (
             <div className="flex flex-col" style={{ gap: 18 }}>
-              <div
-                className="flex flex-wrap items-center justify-between"
-                style={{
-                  gap: 12,
-                  padding: 20,
-                  borderRadius: 24,
-                  background: 'rgba(255,255,255,0.94)',
-                  border: '1px solid rgba(0,0,0,0.06)',
-                }}
-              >
-                <div>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: palette.text, marginBottom: 6 }}>
-                    Базовый уровень
-                  </p>
-                  <h3 style={{ fontSize: 22, fontWeight: 760, color: '#0B0B0D', marginBottom: 8 }}>
-                    Короткий тест по теме
-                  </h3>
-                  <p style={{ fontSize: 14, lineHeight: 1.55, color: '#5D5D66', maxWidth: 620 }}>
-                    Ответь на все вопросы. После проверки сразу увидишь, где попал в точку, а где стоит повторить теорию.
-                  </p>
-                </div>
-
-                <div className="flex items-center" style={{ gap: 10 }}>
-                  <MetricPill label="Время" value={formatEstimatedTime(basicLevel.estimatedMinutes)} />
-                  <MetricPill label="Вопросов" value={`${basicQuestions.length}`} />
-                  <MetricPill label="Заполнено" value={`${answeredCount}/${basicQuestions.length}`} />
-                  {answeredCount > 0 && <MetricPill label="Баллы" value={`${basicScore}`} accent />}
-                </div>
-              </div>
 
               {basicCompleted && (
                 <div
@@ -1160,52 +1169,6 @@ export default function HomeworkFlow({
             </div>
           ) : (
             <div className="flex flex-col" style={{ gap: 18 }}>
-              <div
-                className="flex flex-wrap items-center justify-between"
-                style={{
-                  gap: 12,
-                  padding: 20,
-                  borderRadius: 24,
-                  background: 'rgba(255,255,255,0.94)',
-                  border: '1px solid rgba(0,0,0,0.06)',
-                }}
-              >
-                <div>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: palette.text, marginBottom: 6 }}>
-                    Уровень 2
-                  </p>
-                  <h3 style={{ fontSize: 22, fontWeight: 760, color: '#0B0B0D', marginBottom: 8 }}>
-                    {hardLevel.optional ? 'Хард-уровень по желанию' : 'Продвинутый уровень'}
-                  </h3>
-                  <p style={{ fontSize: 14, lineHeight: 1.55, color: '#5D5D66', maxWidth: 620 }}>
-                    {hardLevel.motivation}
-                  </p>
-                </div>
-
-                {!hardUnlocked && (
-                  <div
-                    className="flex items-center"
-                    style={{
-                      gap: 8,
-                      padding: '10px 14px',
-                      borderRadius: 999,
-                      background: '#F0F0F3',
-                      color: '#8B8B94',
-                      fontSize: 13,
-                      fontWeight: 700,
-                    }}
-                  >
-                    <Lock size={14} />
-                    Откроется после {homework.recommendationScore}+ баллов на базе
-                  </div>
-                )}
-                {hardUnlocked && (
-                  <div className="flex items-center" style={{ gap: 10 }}>
-                    <MetricPill label="Время" value={formatEstimatedTime(hardLevel.estimatedMinutes)} />
-                    <MetricPill label="Формат" value="Проверка" />
-                  </div>
-                )}
-              </div>
 
               {!hardUnlocked ? (
                 <section
@@ -1326,55 +1289,23 @@ export default function HomeworkFlow({
                     border: '1px solid rgba(0,0,0,0.06)',
                   }}
                 >
-                  <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr]" style={{ gap: 18 }}>
-                    <div
-                      style={{
-                        padding: 20,
-                        borderRadius: 24,
-                        background: '#F9F9FB',
-                        border: '1px solid rgba(0,0,0,0.05)',
-                      }}
-                    >
-                      <p style={{ fontSize: 12, fontWeight: 700, color: palette.text, marginBottom: 8 }}>
-                        {hardLevel.teacherTask?.topic}
-                      </p>
-                      <h4 style={{ fontSize: 20, lineHeight: 1.35, fontWeight: 760, color: '#0B0B0D', marginBottom: 12 }}>
-                        {hardLevel.teacherTask?.prompt}
-                      </h4>
-                      <p style={{ fontSize: 14, lineHeight: 1.55, color: '#5D5D66' }}>
-                        {hardLevel.teacherTask?.teacherNote}
-                      </p>
-                    </div>
-
-                    <div
-                      style={{
-                        padding: 20,
-                        borderRadius: 24,
-                        background: '#F1ECFF',
-                        border: '1px solid rgba(123,63,204,0.14)',
-                      }}
-                    >
-                      <p style={{ fontSize: 13, fontWeight: 700, color: '#7B3FCC', marginBottom: 10 }}>
-                        Что можно приложить
-                      </p>
-                      <div className="flex flex-wrap" style={{ gap: 8 }}>
-                        {hardLevel.teacherTask?.acceptedFormats.map(item => (
-                          <span
-                            key={item}
-                            style={{
-                              padding: '9px 12px',
-                              borderRadius: 999,
-                              background: 'rgba(255,255,255,0.82)',
-                              color: '#4C2E71',
-                              fontSize: 13,
-                              fontWeight: 650,
-                            }}
-                          >
-                            {item}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
+                  <div
+                    style={{
+                      padding: 20,
+                      borderRadius: 24,
+                      background: '#F9F9FB',
+                      border: '1px solid rgba(0,0,0,0.05)',
+                    }}
+                  >
+                    <p style={{ fontSize: 12, fontWeight: 700, color: palette.text, marginBottom: 8 }}>
+                      {hardLevel.teacherTask?.topic}
+                    </p>
+                    <h4 style={{ fontSize: 20, lineHeight: 1.35, fontWeight: 760, color: '#0B0B0D', marginBottom: 12 }}>
+                      {hardLevel.teacherTask?.prompt}
+                    </h4>
+                    <p style={{ fontSize: 14, lineHeight: 1.55, color: '#5D5D66' }}>
+                      {hardLevel.teacherTask?.teacherNote}
+                    </p>
                   </div>
 
                   <textarea

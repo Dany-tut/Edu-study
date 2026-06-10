@@ -8,6 +8,7 @@ import {
 import { useDashboard } from '../store/dashboardStore'
 import { courseReactions } from '../data/mockData'
 import { findLessonById, getLessonDetail, type LessonMaterial, type LessonHomework } from '../data/lessonContent'
+import { EMOJI_STEPS } from '../components/HomeworkFlow'
 
 type Tint = 'bw' | 'color'
 
@@ -317,6 +318,7 @@ function readBasicProgress(lessonId: string, homework: LessonHomework): { unlock
 
 function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homework: LessonHomework; onOpen: () => void }) {
   const [{ unlocked, score }, setProgress] = useState(() => readBasicProgress(lessonId, homework))
+  const assessment = useDashboard(s => s.lessonAssessments[lessonId])
   // Which row is hovered, if any. The hovered row becomes the highlighted white
   // card and the other collapses to a purple strip.
   const [hovered, setHovered] = useState<'base' | 'hard' | null>(null)
@@ -331,14 +333,32 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
   // becomes available (unlocked) after 80+, but never auto-steals the highlight.
   // Hovering an openable row promotes it to the white card, except hovering a
   // locked hard row leaves the homework highlight untouched.
-  const active: 'base' | 'hard' =
-    hovered && !(hovered === 'hard' && !unlocked) ? hovered : 'base'
+  const basicSubmitted = !!assessment
+  const hardUnlocked = unlocked || (assessment?.score != null && assessment.score >= 80) || !!assessment?.hardAvailable
+
+  const defaultActive: 'base' | 'hard' | null = basicSubmitted
+    ? (hardUnlocked ? 'hard' : null)
+    : 'base'
+  const active: 'base' | 'hard' | null =
+    hovered && !(hovered === 'hard' && !hardUnlocked) ? hovered : defaultActive
+  const hardStatus = assessment?.hardStatus
+
+  const hardIcon = hardStatus === 'completed' ? CheckCircle2
+    : hardStatus ? GraduationCap
+    : hardUnlocked ? GraduationCap : Lock
+  const hardIconSize = (!hardUnlocked && !hardStatus) ? 18 : 20
 
   const rows = [
     { id: 'base' as const, icon: GraduationCap, iconSize: 20, title: 'Домашка' },
-    { id: 'hard' as const, icon: unlocked ? GraduationCap : Lock, iconSize: unlocked ? 20 : 18, title: 'Сложный уровень' },
+    ...(hardUnlocked || hardStatus ? [{ id: 'hard' as const, icon: hardIcon, iconSize: hardIconSize, title: 'Сложный уровень' }] : []),
   ]
   const basicEstimatedTime = homework.levels.find(level => level.id === 'basic')?.estimatedMinutes
+
+  const hardStatusLabel =
+    hardStatus === 'submitted' ? { emoji: '🔶', text: 'На проверке', color: '#8A4A00' } :
+    hardStatus === 'returned'  ? { emoji: '🔁', text: 'Возвращён',  color: '#7A6A00' } :
+    hardStatus === 'completed' ? { emoji: '🌟', text: 'Сдан',       color: '#166534' } :
+    null
 
   return (
     <div
@@ -355,13 +375,10 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
     >
       {rows.map(({ id, icon: Icon, iconSize, title }) => {
         const isActive = active === id
-        // The hard level can't be opened until the basic homework is passed —
-        // hovering it only previews the row and surfaces the info popup below.
-        const locked = id === 'hard' && !unlocked
-        // A locked row never turns into a full white card; hovering it only adds
-        // a faint white wash, leaving the homework's highlight untouched.
+        const locked = id === 'hard' && !hardUnlocked && !hardStatus
         const solidWhite = isActive && !locked
-        const faintWash = (locked && hovered === id) || (id === 'base' && unlocked && hovered === 'base')
+        const faintWash = (locked && hovered === id) || (id === 'base' && (unlocked || basicSubmitted) && hovered === 'base')
+        const hasExtra = (id === 'base' && basicSubmitted) || (id === 'hard' && !!hardStatusLabel)
         return (
           <motion.button
             key={id}
@@ -371,7 +388,7 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
             onMouseLeave={() => setHovered(null)}
             className="flex items-center w-full"
             style={{
-              height: isActive ? 46 : 24,
+              height: isActive ? 46 : hasExtra ? 40 : 24,
               flexShrink: 0,
               gap: 12,
               padding: '0 16px',
@@ -382,14 +399,14 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
               background: solidWhite ? '#fff' : faintWash ? 'rgba(255,255,255,0.12)' : 'transparent',
               color: solidWhite ? '#0B0B0D' : '#fff',
               boxShadow: solidWhite ? '0 2px 12px rgba(0,0,0,0.10)' : 'none',
-              transition: 'background 0.22s ease, box-shadow 0.22s ease, color 0.22s ease',
+              transition: 'background 0.22s ease, box-shadow 0.22s ease, color 0.22s ease, height 0.22s ease',
             }}
           >
             <Icon size={iconSize} strokeWidth={1.9} style={{ flexShrink: 0 }} />
             <span className="flex-1 min-w-0" style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.2 }}>
               {title}
             </span>
-            {id === 'base' && basicEstimatedTime != null && solidWhite && (
+            {id === 'base' && basicSubmitted && (
               <span
                 className="inline-flex items-center"
                 style={{
@@ -397,15 +414,44 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
                   flexShrink: 0,
                   fontSize: 12,
                   fontWeight: 700,
-                  color: '#7B3FCC',
+                  color: solidWhite ? '#7B3FCC' : 'rgba(255,255,255,0.92)',
+                  background: solidWhite ? 'rgba(123,63,204,0.10)' : 'rgba(255,255,255,0.18)',
+                  borderRadius: 8,
+                  padding: '2px 7px',
                 }}
+              >
+                {assessment.score}
+              </span>
+            )}
+            {id === 'base' && !basicSubmitted && basicEstimatedTime != null && solidWhite && (
+              <span
+                className="inline-flex items-center"
+                style={{ gap: 4, flexShrink: 0, fontSize: 12, fontWeight: 700, color: '#7B3FCC' }}
               >
                 <Clock size={13} />
                 ~{basicEstimatedTime} мин
               </span>
             )}
-            {id === 'base' && unlocked && !isActive && (
+            {id === 'base' && !basicSubmitted && (unlocked || basicSubmitted) && !isActive && (
               <CheckCircle2 size={16} strokeWidth={2} style={{ flexShrink: 0, opacity: 0.85 }} />
+            )}
+            {id === 'hard' && hardStatusLabel && (
+              <span
+                className="inline-flex items-center"
+                style={{
+                  gap: 4,
+                  flexShrink: 0,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: solidWhite ? hardStatusLabel.color : 'rgba(255,255,255,0.92)',
+                  background: solidWhite ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.18)',
+                  borderRadius: 8,
+                  padding: '2px 7px',
+                }}
+              >
+                <span style={{ fontSize: 13 }}>{hardStatusLabel.emoji}</span>
+                {hardStatusLabel.text}
+              </span>
             )}
             {isActive && !locked && <ChevronRight size={20} style={{ flexShrink: 0 }} />}
           </motion.button>

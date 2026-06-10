@@ -7,6 +7,7 @@ import MobileBottomNav from '../components/MobileBottomNav'
 import LessonStatusCard from '../components/LessonStatusCard'
 import CoursesPage from './CoursesPage'
 import LessonPage from './LessonPage'
+import TaskBankPage from './TaskBankPage'
 import HomeworkFlow from '../components/HomeworkFlow'
 import AnswerFlightLayer from '../components/AnswerFlightLayer'
 import { useDashboard } from '../store/dashboardStore'
@@ -14,7 +15,19 @@ import { LayoutGroup, motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { findLessonById, getLessonDetail } from '../data/lessonContent'
 
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024)
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)')
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return isDesktop
+}
+
 export default function DashboardPage() {
+  const isDesktop = useIsDesktop()
   const trackPopoverOpen = useDashboard(s => s.trackPopoverOpen)
   const activePage = useDashboard(s => s.activePage)
   const currentLessonId = useDashboard(s => s.currentLessonId)
@@ -59,7 +72,7 @@ export default function DashboardPage() {
       <AnswerFlightLayer />
       {/* Desktop no-scroll layout */}
       <LayoutGroup>
-      <div className="dashboard-root hidden lg:flex">
+      <div className="dashboard-root" style={{ display: isDesktop ? 'flex' : 'none' }}>
         {/* Full-width progressive blur+fade strip pinned to the top, behind the
             floating topbar pill — content scrolls up under a soft blurred band. */}
         <div aria-hidden className="edge-progressive-blur--top" />
@@ -165,6 +178,14 @@ export default function DashboardPage() {
               onBack={closeHomework}
             />
           </main>
+        ) : activePage === 'trainer' ? (
+          <main
+            className="dashboard-main"
+            onScroll={e => setLessonScrolled((e.currentTarget as HTMLElement).scrollTop > 64)}
+            style={{ overflowY: 'auto', minHeight: 0, marginTop: -100, paddingTop: 100, scrollbarGutter: 'stable' }}
+          >
+            <TaskBankPage />
+          </main>
         ) : (
           /* Courses catalogue (screen 3) */
           <main className="dashboard-main">
@@ -175,7 +196,7 @@ export default function DashboardPage() {
       </LayoutGroup>
 
       {/* Mobile layout (separate, scrollable) */}
-      <div className="lg:hidden min-h-screen" style={{ background: '#F5F5F6', padding: '24px 24px 100px' }}>
+      <div style={{ display: isDesktop ? 'none' : 'block', minHeight: '100vh', background: '#F5F5F6', padding: '24px 24px 100px' }}>
         {activePage === 'home' ? (
           <div className="flex flex-col gap-6">
             <ScheduleCarousel />

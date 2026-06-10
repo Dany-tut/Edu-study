@@ -86,6 +86,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
   }, [quizState, current, setQuizResumeIndex])
 
   const handleStart = () => {
+    setSpoilerRevealed(true)
     if (quizResumeIndex === 0) setResults(Array(TOTAL).fill(undefined))
     setCurrent(quizResumeIndex)
     setSelectedAnswer(null)
@@ -96,6 +97,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
   const handleStop = useCallback(() => {
     setQuizResumeIndex(current)
     setSelectedAnswer(null)
+    setSpoilerRevealed(false)
     setQuizState('preview')
   }, [current, setQuizResumeIndex])
 
@@ -124,8 +126,11 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
     setCurrent(0)
     setSelectedAnswer(null)
     setTimeLeft(quizTimeLimit)
+    setSpoilerRevealed(false)
     setQuizState('preview')
   }
+
+  const [spoilerRevealed, setSpoilerRevealed] = useState(false)
 
   const timerPct = (timeLeft / quizTimeLimit) * 100
   const compact = quizState !== 'preview'
@@ -203,25 +208,23 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
               Викторина дня
             </span>
           )}
-          <h3
-            style={{
-              fontSize: compact ? 15 : 20,
-              fontWeight: 700,
-              color: '#0B0B0D',
-              lineHeight: 1.2,
-              ...(compact && {
+          {compact && (
+            <h3
+              style={{
+                fontSize: 15,
+                fontWeight: 700,
+                color: '#0B0B0D',
+                lineHeight: 1.2,
                 display: '-webkit-box',
                 WebkitBoxOrient: 'vertical' as const,
                 WebkitLineClamp: 3,
                 maxHeight: '3.6em',
                 overflow: 'hidden',
-              }),
-            }}
-          >
-            {compact ? question.title : (
-              <SpoilerText revealed={false}>{question.title}</SpoilerText>
-            )}
-          </h3>
+              }}
+            >
+              {question.title}
+            </h3>
+          )}
         </div>
 
         {quizState === 'active' && (
@@ -243,9 +246,21 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
         )}
       </div>
 
+      {/* Centered spoiler — preview only */}
+      {quizState === 'preview' && (
+        <div className="flex flex-1 items-center justify-center">
+          <SpoilerText
+            revealed={spoilerRevealed}
+            style={{ fontSize: 20 * scale, fontWeight: 700, lineHeight: 1.25, color: '#0B0B0D', textAlign: 'center' }}
+          >
+            {question.title}
+          </SpoilerText>
+        </div>
+      )}
+
       {/* Preview: start */}
       {quizState === 'preview' && (
-        <div className="flex items-center gap-3 flex-wrap" style={{ marginTop: 'auto' }}>
+        <div className="flex items-center gap-3 flex-wrap" style={{ flexShrink: 0 }}>
           <motion.button
             whileHover={{ scale: 1.015 }}
             whileTap={{ scale: 0.98 }}

@@ -8,6 +8,50 @@ import { cn } from '../lib/utils'
 
 type QuizState = 'preview' | 'active' | 'answered' | 'timeout' | 'done'
 
+function SpoilerQuestion({ text }: { text: string }) {
+  const [revealed, setRevealed] = useState(false)
+  return (
+    <div
+      className="flex items-center justify-center my-5 px-2 py-4 rounded-2xl cursor-pointer select-none"
+      style={{ minHeight: 64, background: '#F7F0FF', position: 'relative', overflow: 'hidden' }}
+      onClick={() => setRevealed(r => !r)}
+      title={revealed ? 'Скрыть' : 'Показать вопрос'}
+    >
+      <p
+        style={{
+          fontSize: 18,
+          fontWeight: 650,
+          color: '#0B0B0D',
+          lineHeight: 1.3,
+          textAlign: 'center',
+          transition: 'filter 0.25s ease, opacity 0.25s ease',
+          filter: revealed ? 'none' : 'blur(7px)',
+          opacity: revealed ? 1 : 0.55,
+          userSelect: revealed ? 'text' : 'none',
+        }}
+      >
+        {text}
+      </p>
+      {!revealed && (
+        <span
+          style={{
+            position: 'absolute',
+            fontSize: 12,
+            fontWeight: 600,
+            color: '#7B3FCC',
+            background: '#EEDBFF',
+            borderRadius: 999,
+            padding: '3px 10px',
+            pointerEvents: 'none',
+          }}
+        >
+          спойлер
+        </span>
+      )}
+    </div>
+  )
+}
+
 export default function DailyQuiz() {
   const { quizDismissed, dismissQuiz } = useDashboard()
   const [quizState, setQuizState] = useState<QuizState>('preview')
@@ -62,17 +106,14 @@ export default function DailyQuiz() {
         }}
       >
         {/* Header */}
-        <div className="flex items-start justify-between mb-6">
+        <div className="flex items-start justify-between mb-4">
           <div>
             <span
-              className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-2"
+              className="inline-block px-3 py-1 rounded-full text-xs font-semibold"
               style={{ background: '#EEDBFF', color: '#7B3FCC', fontSize: 12, fontWeight: 600 }}
             >
               Викторина дня
             </span>
-            <h2 style={{ fontSize: 22, fontWeight: 650, color: '#0B0B0D', lineHeight: 1.3 }}>
-              {dailyQuiz.title}
-            </h2>
           </div>
           {quizState === 'preview' && (
             <motion.button
@@ -87,6 +128,14 @@ export default function DailyQuiz() {
             </motion.button>
           )}
         </div>
+
+        {/* Question — spoiler in preview, plain in active/answered/timeout */}
+        {quizState === 'preview'
+          ? <SpoilerQuestion text={dailyQuiz.title} />
+          : <h2 style={{ fontSize: 22, fontWeight: 650, color: '#0B0B0D', lineHeight: 1.3, marginBottom: 20 }}>
+              {dailyQuiz.title}
+            </h2>
+        }
 
         {/* Timer bar (active only) */}
         {quizState === 'active' && (
@@ -119,7 +168,7 @@ export default function DailyQuiz() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleStart}
-              className="px-6 py-3 rounded-2xl text-white font-semibold cursor-pointer"
+              className="px-6 py-3 rounded-[32px] text-white font-semibold cursor-pointer"
               style={{ background: 'linear-gradient(135deg, #C58BFF, #7B61FF)', fontSize: 15 }}
             >
               Начать

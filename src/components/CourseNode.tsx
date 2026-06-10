@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { CheckCircle2, Lock, Play, Upload } from 'lucide-react'
+import { CheckCircle2, Lock, Play, Upload, Star, RotateCcw } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import type { ElementType, ReactElement } from 'react'
 import { IconMissedLesson, IconReturned, IconLessonRecording, IconTest } from './icons'
@@ -11,6 +11,7 @@ import { TRACK_STATUS } from '../lib/theme'
 import { useNow } from '../lib/useNow'
 import { useDashboard } from '../store/dashboardStore'
 import { EMOJI_STEPS } from './HomeworkFlow'
+import HardSatelliteLottie from './HardSatelliteLottie'
 
 type IconProps = { color?: string; size?: number }
 type CustomIcon = (props: IconProps) => ReactElement
@@ -34,23 +35,35 @@ function getShapeClass(_shape: LessonShape, _isSquare: boolean): string {
   return ''
 }
 
+type HardStatus = 'submitted' | 'returned' | 'completed'
+
+export const HARD_STYLE: Record<HardStatus | 'available', { bg: string; border: string; iconColor: string; label: string }> = {
+  available:  { bg: '#F3EAFF', border: '#C58BFF', iconColor: '#7B3FCC', label: 'Доступен хард' },
+  submitted:  { bg: '#FFE4BD', border: '#F8A84B', iconColor: '#8A4A00', label: 'На проверке' },
+  returned:   { bg: '#FFF3CC', border: '#F0D060', iconColor: '#7A6000', label: 'Возвращён' },
+  completed:  { bg: '#FFF3C4', border: '#F5C842', iconColor: '#7A5800', label: 'Сдан' },
+}
+
 interface Props {
   lesson: Lesson
   index: number
   isSelected?: boolean
   isHighlighted?: boolean
   onSelect?: (lesson: Lesson) => void
+  onHardSelect?: (lesson: Lesson) => void
 }
 
-export default function CourseNode({ lesson, index, isSelected = false, isHighlighted = false, onSelect }: Props) {
+export default function CourseNode({ lesson, index, isSelected = false, isHighlighted = false, onSelect, onHardSelect }: Props) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const now = useNow()
   const assessment = useDashboard(s => s.lessonAssessments[lesson.id])
+
   useEffect(() => {
     if (isHighlighted) {
       wrapperRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' })
     }
   }, [isHighlighted])
+
   const displayStatus = getDisplayLessonStatus(lesson, now)
   const isMissedCurrentLesson = lesson.status === 'current' && displayStatus === 'unviewed'
   const style = statusStyle[displayStatus]
@@ -61,15 +74,17 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
   const isCustom = (displayStatus === 'unviewed' && isTestShape) || style.custom
   const size = 56
 
-  const isGold = displayStatus === 'completed' && !!assessment?.hardAvailable
+  const hardStatus = assessment?.hardStatus as HardStatus | undefined
+  const hardAvailable = assessment?.hardAvailable || (assessment?.score != null && assessment.score >= 80)
+  // Show satellite if hard task is available (even before submitting) or has a status
+  const showHardSatellite = !!(hardStatus || hardAvailable)
+  const effectiveHardStatus: HardStatus | 'available' = hardStatus ?? 'available'
+  const hardStyle = HARD_STYLE[effectiveHardStatus]
 
   const isDiamond = lesson.shape === 'diamond'
   const isSquare = lesson.shape === 'square'
 
   return (
-    // Wrapper sized to the node. The shape (and its selection ring) rotates and
-    // scales inside; the number label lives OUTSIDE it so the ring never covers
-    // it and it stays upright for diamond/square shapes.
     <div ref={wrapperRef} className="relative flex-shrink-0" style={{ width: size, height: size }}>
       {isHighlighted && (
         <div
@@ -77,6 +92,8 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
           style={{ borderRadius: isDiamond ? 12 : isSquare ? 16 : 999 }}
         />
       )}
+
+      {/* Main lesson node */}
       <motion.button
         initial={{ opacity: 0, scale: 0.7 }}
         whileHover={displayStatus !== 'locked' ? { scale: 1.1 } : { scale: 1.04 }}
@@ -90,23 +107,19 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
           scale: isSelected ? 1.06 : 1,
           boxShadow: isSelected
             ? `0 0 0 6px rgba(255,255,255,0.7), 0 0 0 10px ${style.border}26, 0 10px 28px ${style.border}4d`
-            : isGold
-              ? '0 4px 14px rgba(200,140,20,0.38), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.55)'
-              : displayStatus === 'current'
-                ? `0 0 0 4px rgba(197,139,255,0.18), 0 4px 20px rgba(197,139,255,0.22)`
-                : '0 2px 8px rgba(0,0,0,0.06)',
+            : displayStatus === 'current'
+              ? `0 0 0 4px rgba(197,139,255,0.18), 0 4px 20px rgba(197,139,255,0.22)`
+              : '0 2px 8px rgba(0,0,0,0.06)',
         }}
         transition={{
           boxShadow: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
           scale: { type: 'spring', stiffness: 320, damping: 22 },
           opacity: { duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: index * 0.04 },
         }}
-        className={cn('absolute inset-0 flex items-center justify-center cursor-pointer focus-visible:outline-none')}
+        className="absolute inset-0 flex items-center justify-center cursor-pointer focus-visible:outline-none"
         style={{
-          background: isGold
-            ? 'linear-gradient(145deg, #FFE066 0%, #F5C000 40%, #D49800 100%)'
-            : style.bg,
-          border: isGold ? '2px solid #E8B000' : `2px solid ${style.border}`,
+          background: style.bg,
+          border: `2px solid ${style.border}`,
           borderRadius: isDiamond ? 12 : isSquare ? 16 : 999,
           rotate: isDiamond ? '45deg' : '0deg',
         }}
@@ -114,28 +127,58 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
       >
         <div style={{ rotate: isDiamond ? '-45deg' : '0deg' }}>
           {isCustom || isMissedCurrentLesson
-            ? <Icon color={isGold ? '#7A5000' : style.iconColor} size={20} />
-            : <Icon size={20} style={{ color: isGold ? '#7A5000' : style.iconColor }} strokeWidth={displayStatus === 'current' ? 2.5 : 2} />
+            ? <Icon color={style.iconColor} size={20} />
+            : <Icon size={20} style={{ color: style.iconColor }} strokeWidth={displayStatus === 'current' ? 2.5 : 2} />
           }
         </div>
       </motion.button>
+
+      {/* Hard satellite circle — appears half-overlapping from the right */}
+      {showHardSatellite && (
+        <motion.button
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 24, delay: index * 0.04 + 0.1 }}
+          whileHover={{ scale: 1.15 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={e => { e.stopPropagation(); playClick(); onHardSelect?.(lesson) }}
+          className={cn(
+            'absolute flex items-center justify-center cursor-pointer focus-visible:outline-none',
+            effectiveHardStatus === 'completed' && 'hard-done-node',
+          )}
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: 999,
+            background: hardStyle.bg,
+            border: `2px solid ${hardStyle.border}`,
+            right: -12,
+            bottom: -6,
+            zIndex: 10,
+            boxShadow: `0 2px 8px ${hardStyle.border}66`,
+          }}
+          aria-label="Сложный уровень"
+        >
+          {effectiveHardStatus === 'returned' ? (
+            <RotateCcw size={13} color={hardStyle.iconColor} strokeWidth={2.5} />
+          ) : effectiveHardStatus === 'completed' ? (
+            <HardSatelliteLottie size={20} />
+          ) : (
+            <Star size={13} color={hardStyle.iconColor} fill={effectiveHardStatus === 'submitted' ? 'none' : 'none'} strokeWidth={2} />
+          )}
+        </motion.button>
+      )}
+
+      {/* Below label — lesson number */}
       <div
         className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none"
-        style={{ top: 'calc(100% + 7px)', gap: 2 }}
+        style={{ top: 'calc(100% + 7px)' }}
       >
         <span style={{ fontSize: 10, fontWeight: 600, color: '#6F6F76', whiteSpace: 'nowrap' }}>
           #{lesson.number}
         </span>
-        {assessment && (
-          <div className="flex items-center" style={{ gap: 3 }}>
-            <span style={{ fontSize: 11, lineHeight: 1 }}>{EMOJI_STEPS[assessment.emojiIndex].emoji}</span>
-            <span style={{ fontSize: 9, fontWeight: 700, color: '#7B3FCC', whiteSpace: 'nowrap' }}>{assessment.score}</span>
-            {assessment.hardCompleted && (
-              <span style={{ fontSize: 10, lineHeight: 1 }} title="Хард сдан">🌟</span>
-            )}
-          </div>
-        )}
       </div>
+
     </div>
   )
 }

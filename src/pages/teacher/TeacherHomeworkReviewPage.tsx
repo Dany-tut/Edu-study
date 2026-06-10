@@ -1,0 +1,604 @@
+import { useState, useMemo, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  ChevronLeft, ChevronRight, Check, RotateCcw, Send,
+  ClipboardCheck, TrendingUp, Clock, Award, FileText, Paperclip,
+  CheckCircle2, Star,
+} from 'lucide-react'
+import {
+  allHomework, groups, getSubmitters,
+  type Student, type Group, type HomeworkItem,
+} from '../../data/teacherMockData'
+import { useTeacher, type HwReview } from '../../store/teacherStore'
+
+// ─── Mock student submission text ───────────────────────────────────────────
+// There's no backend, so we synthesise a plausible "answer" per student from
+// the homework topic. Deterministic so re-renders don't reshuffle the text.
+function submissionFor(hw: HomeworkItem, student: Student): string {
+  const seed = student.name.length + hw.title.length
+  const intros = [
+    'Решение задания:',
+    'Мой ответ:',
+    'Привожу разбор:',
+    'Вот что получилось:',
+  ]
+  const bodies = [
+    'Составил уравнение реакции, расставил коэффициенты методом электронного баланса. В первом пункте получил соль и воду, среда раствора слабокислая.',
+    'Определил тип гидролиза по силе кислоты и основания. Для соли слабого основания и сильной кислоты реакция среды кислая, pH < 7.',
+    'Записал схему процесса, отметил окислитель и восстановитель, посчитал число отданных и принятых электронов. Баланс сошёлся.',
+    'Построил схему по этапам, подписал продукты на каждой стадии и пояснил, где выделяется энергия.',
+  ]
+  return `${intros[seed % intros.length]}\n\n${bodies[seed % bodies.length]}\n\nЕсли где-то ошибся — поправьте, пожалуйста, буду благодарен за разбор.`
+}
+
+function initials(name: string) {
+  return name.split(' ').map(p => p[0]).join('').slice(0, 2)
+}
+
+// ─── Student summary card (left rail) ───────────────────────────────────────
+function StudentSummary({ student, group }: { student: Student; group: Group }) {
+  return (
+    <div className="flex flex-col" style={{ gap: 16 }}>
+      {/* Identity */}
+      <div
+        style={{
+          padding: 18, borderRadius: 24,
+          background: group.colorSoft,
+          border: `1px solid ${group.color}33`,
+        }}
+      >
+        <div className="flex items-center" style={{ gap: 12, marginBottom: 6 }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 16, flexShrink: 0,
+            background: group.color, color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 18, fontWeight: 700,
+          }}>
+            {initials(student.name)}
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 16, fontWeight: 750, color: '#0B0B0D', lineHeight: 1.2 }}>{student.name}</div>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 5,
+              background: group.color + '33', borderRadius: 7, padding: '2px 8px',
+            }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#0B0B0D' }}>{group.name}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Scores */}
+      <div
+        className="flex flex-col"
+        style={{
+          padding: 18, borderRadius: 22, gap: 12,
+          background: 'rgba(255,255,255,0.94)',
+          border: '1px solid rgba(0,0,0,0.06)',
+        }}
+      >
+        <div style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+          Сводка по ученику
+        </div>
+        <ScoreBar label="ДЗ" icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" />
+        <ScoreBar label="Тесты" icon={TrendingUp} value={student.testScore} color="#B98FFF" />
+        {student.trialScore !== null && (
+          <ScoreBar label="Пробник" icon={Award} value={student.trialScore} color="#F5A623" />
+        )}
+        <div className="flex items-center justify-between" style={{ padding: '7px 10px', background: '#F5F5F6', borderRadius: 10 }}>
+          <div className="flex items-center" style={{ gap: 7 }}>
+            <Clock size={13} strokeWidth={2} style={{ color: '#6F6F76' }} />
+            <span style={{ fontSize: 12, color: '#6F6F76' }}>Посещаемость</span>
+          </div>
+          <span style={{
+            fontSize: 13, fontWeight: 700,
+            color: student.attendance >= 90 ? '#1a7a3f' : student.attendance >= 70 ? '#7a6500' : '#c0303a',
+          }}>
+            {student.attendance}%
+          </span>
+        </div>
+        <div className="flex items-center justify-between" style={{
+          padding: '7px 10px', borderRadius: 10,
+          background: '#FFF9CC', border: '1px solid #F8C99166',
+        }}>
+          <span style={{ fontSize: 12, color: '#6F6F76' }}>Желаемый балл</span>
+          <span style={{ fontSize: 16, fontWeight: 750, color: '#7a6500' }}>{student.desiredScore}</span>
+        </div>
+      </div>
+
+      {student.comment && (
+        <div style={{
+          padding: 16, borderRadius: 20,
+          background: 'rgba(255,255,255,0.94)', border: '1px solid rgba(0,0,0,0.06)',
+        }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>
+            Заметка
+          </div>
+          <p style={{ fontSize: 13, lineHeight: 1.5, color: '#50505A' }}>{student.comment}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ScoreBar({ label, icon: Icon, value, color }: {
+  label: string; icon: React.ElementType; value: number; color: string
+}) {
+  return (
+    <div className="flex flex-col" style={{ gap: 4 }}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center" style={{ gap: 6 }}>
+          <Icon size={12} strokeWidth={2} style={{ color }} />
+          <span style={{ fontSize: 11, color: '#6F6F76', fontWeight: 600 }}>{label}</span>
+        </div>
+        <span style={{ fontSize: 13, fontWeight: 700, color }}>{value}</span>
+      </div>
+      <div style={{ height: 5, background: 'rgba(0,0,0,0.06)', borderRadius: 99, overflow: 'hidden' }}>
+        <motion.div
+          initial={{ width: 0 }} animate={{ width: `${value}%` }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          style={{ height: '100%', background: color, borderRadius: 99, opacity: 0.85 }}
+        />
+      </div>
+    </div>
+  )
+}
+
+// ─── Floating bottom progress bar ───────────────────────────────────────────
+function ReviewBottomBar({
+  submitters, reviews, activeIdx, onJump, color,
+}: {
+  submitters: Student[]
+  reviews: Record<string, HwReview>
+  activeIdx: number
+  onJump: (i: number) => void
+  color: string
+}) {
+  const reviewedCount = submitters.filter(s => reviews[s.id]).length
+  const remaining = submitters.length - reviewedCount
+
+  return (
+    <div className="flex items-center" style={{ gap: 10 }}>
+      {/* track */}
+      <div style={{
+        display: 'flex', alignItems: 'center', flex: 1, minWidth: 0,
+        height: 44, padding: '12px 16px', borderRadius: 18,
+        background: 'rgba(255,255,255,0.62)', border: '1px solid rgba(255,255,255,0.9)',
+        backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 16px rgba(0,0,0,0.06)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0, height: 20 }}>
+          {submitters.map((s, i) => {
+            const review = reviews[s.id]
+            const isActive = i === activeIdx
+            const bg = review?.verdict === 'accepted' ? '#6EE7A0'
+              : review?.verdict === 'returned' ? '#F8C991'
+              : isActive ? color : '#E4E4E9'
+            if (isActive) {
+              return (
+                <button key={s.id} onClick={() => onJump(i)} style={{
+                  width: 20, height: 20, borderRadius: '50%', flexShrink: 0, border: 'none', cursor: 'pointer',
+                  background: bg, color: '#fff', fontSize: 9, fontWeight: 800,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: `0 2px 10px ${color}59`,
+                }}>
+                  {i + 1}
+                </button>
+              )
+            }
+            return (
+              <button key={s.id} onClick={() => onJump(i)} title={s.name} style={{
+                flex: 1, height: i < activeIdx ? 6 : 4, minWidth: 2, borderRadius: 3, border: 'none', cursor: 'pointer',
+                background: bg, padding: 0, transition: 'height 0.2s ease',
+              }} />
+            )
+          })}
+        </div>
+      </div>
+
+      {/* counter */}
+      <div style={{
+        flexShrink: 0, height: 44, display: 'flex', alignItems: 'center',
+        padding: '0 14px', borderRadius: 18,
+        background: 'rgba(255,255,255,0.62)', border: '1px solid rgba(255,255,255,0.9)',
+        backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 16px rgba(0,0,0,0.06)',
+      }}>
+        {remaining === 0 ? (
+          <span style={{ fontSize: 12, fontWeight: 500, color: '#1a7a3f', whiteSpace: 'nowrap' }}>
+            Все проверены ✓
+          </span>
+        ) : (
+          <span style={{ fontSize: 12, fontWeight: 400, color: '#6F6F76', whiteSpace: 'nowrap' }}>
+            Осталось {remaining} из {submitters.length}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Main page ──────────────────────────────────────────────────────────────
+export default function TeacherHomeworkReviewPage() {
+  const reviewingHwId = useTeacher(s => s.reviewingHwId)
+  const setActivePage = useTeacher(s => s.setActivePage)
+  const reviews = useTeacher(s => s.reviews)
+  const submitReview = useTeacher(s => s.submitReview)
+
+  const hw = allHomework.find(h => h.id === reviewingHwId) ?? null
+  const group = hw ? groups.find(g => g.id === hw.groupId) ?? null : null
+  const submitters = useMemo(() => (hw ? getSubmitters(hw) : []), [hw])
+  const hwReviews = (reviewingHwId && reviews[reviewingHwId]) || {}
+
+  // Start on the first not-yet-reviewed student.
+  const firstUnreviewed = submitters.findIndex(s => !hwReviews[s.id])
+  const [idx, setIdx] = useState(firstUnreviewed === -1 ? 0 : firstUnreviewed)
+  const [dir, setDir] = useState(0)
+  // Per-student draft of the score + comment fields.
+  const [drafts, setDrafts] = useState<Record<string, { score: string; comment: string }>>({})
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [docked, setDocked] = useState(false)
+
+  const dockGlass = {
+    border: '1px solid rgba(255,255,255,0.9)',
+    background: 'rgba(255,255,255,0.86)',
+    backdropFilter: 'blur(14px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+    boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14)',
+  } as const
+
+  if (!hw || !group || submitters.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center" style={{ flex: 1, color: '#6F6F76', gap: 12 }}>
+        <p style={{ fontSize: 15, fontWeight: 650, color: '#0B0B0D' }}>
+          {hw && group ? 'Пока никто не сдал работу' : 'Домашка не найдена'}
+        </p>
+        <button onClick={() => setActivePage('homework')} style={{
+          padding: '8px 18px', borderRadius: 999, border: 'none', cursor: 'pointer',
+          background: '#0B0B0D', color: '#fff', fontSize: 13, fontWeight: 600,
+        }}>
+          К списку ДЗ
+        </button>
+      </div>
+    )
+  }
+
+  const student = submitters[idx]
+  const existing = hwReviews[student.id]
+  const draft = drafts[student.id] ?? {
+    score: existing ? String(existing.score) : '',
+    comment: existing ? existing.comment : '',
+  }
+  const reviewedCount = submitters.filter(s => hwReviews[s.id]).length
+  const allDone = reviewedCount === submitters.length
+
+  function setDraft(patch: Partial<{ score: string; comment: string }>) {
+    setDrafts(d => ({ ...d, [student.id]: { ...draft, ...patch } }))
+  }
+
+  function go(next: number) {
+    if (next < 0 || next >= submitters.length) return
+    setDir(next > idx ? 1 : -1)
+    setIdx(next)
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function advance() {
+    // Jump to the next student who still needs a review; else stay/finish.
+    const nextUnreviewed = submitters.findIndex((s, i) => i > idx && !hwReviews[s.id])
+    const fallback = submitters.findIndex(s => !hwReviews[s.id])
+    const target = nextUnreviewed !== -1 ? nextUnreviewed : fallback
+    if (target !== -1 && target !== idx) go(target)
+  }
+
+  function handleVerdict(verdict: 'accepted' | 'returned') {
+    const score = verdict === 'accepted' ? Math.max(0, Math.min(100, Number(draft.score) || 0)) : Number(draft.score) || 0
+    submitReview(hw!.id, student.id, { verdict, score, comment: draft.comment })
+    setTimeout(advance, 260)
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative' }}>
+
+      {/* ── Static header: Назад + title only ── */}
+      <div className="flex items-center" style={{ flexShrink: 0, padding: '0 32px 14px', gap: 12 }}>
+        <motion.button
+          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
+          onClick={() => setActivePage('homework')}
+          className="flex items-center cursor-pointer flex-shrink-0"
+          style={{
+            gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999,
+            border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(255,255,255,0.96)',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: '#0B0B0D', fontSize: 14, fontWeight: 600,
+          }}
+        >
+          <ChevronLeft size={18} />
+          Назад
+        </motion.button>
+
+        <span style={{ fontSize: 18, fontWeight: 750, color: '#0B0B0D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {hw.title}
+        </span>
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0,
+          background: group.colorSoft, borderRadius: 8, padding: '3px 10px',
+        }}>
+          <div style={{ width: 7, height: 7, borderRadius: '50%', background: group.color }} />
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#0B0B0D' }}>{group.name}</span>
+        </span>
+      </div>
+
+      {/* ── Docked bar (appears on scroll): arrows + counter ── */}
+      <AnimatePresence>
+        {docked && (
+          <motion.div
+            key="review-dock"
+            className="flex items-center"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80,
+              gap: 10, pointerEvents: 'none',
+            }}
+          >
+            <motion.button
+              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
+              onClick={() => setActivePage('homework')}
+              className="flex items-center cursor-pointer flex-shrink-0"
+              style={{
+                gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999,
+                ...dockGlass, color: '#0B0B0D', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
+              }}
+            >
+              <ChevronLeft size={18} />
+              Назад
+            </motion.button>
+
+            <div style={{ flexGrow: 1, flexBasis: 0 }} />
+
+            <div className="flex items-center flex-shrink-0" style={{ gap: 8, pointerEvents: 'auto' }}>
+              <NavArrow dir="left" disabled={idx === 0} onClick={() => go(idx - 1)} />
+              <NavArrow dir="right" disabled={idx === submitters.length - 1} onClick={() => go(idx + 1)} />
+            </div>
+
+            <div className="flex-shrink-0 flex items-center" style={{
+              gap: 7, padding: '9px 16px', borderRadius: 999,
+              ...dockGlass, color: '#6F6F76', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
+            }}>
+              <CheckCircle2 size={15} style={{ color: '#1a7a3f' }} />
+              {reviewedCount} / {submitters.length}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+
+      {/* ── Scroll area with edge fades ── */}
+      <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+        <div
+          ref={scrollRef}
+          onScroll={e => setDocked((e.currentTarget as HTMLElement).scrollTop > 64)}
+          style={{
+            position: 'absolute', inset: 0, overflowY: 'auto',
+            padding: '8px 32px 110px',
+            maskImage: 'linear-gradient(to bottom, transparent 0, black 16px, black calc(100% - 90px), transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0, black 16px, black calc(100% - 90px), transparent 100%)',
+          }}
+        >
+          <AnimatePresence mode="wait" custom={dir}>
+            <motion.div
+              key={student.id}
+              custom={dir}
+              initial={{ opacity: 0, x: dir * 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: dir * -40 }}
+              transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+              className="grid"
+              style={{ gridTemplateColumns: 'minmax(260px, 320px) minmax(0, 1fr)', gap: 18, alignItems: 'start' }}
+            >
+              {/* Left: student summary */}
+              <StudentSummary student={student} group={group} />
+
+              {/* Right: submission + grading */}
+              <div className="flex flex-col" style={{ gap: 16 }}>
+                {/* Submission */}
+                <div style={{
+                  padding: 22, borderRadius: 26,
+                  background: 'rgba(255,255,255,0.96)', border: '1px solid rgba(0,0,0,0.06)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
+                }}>
+                  <div className="flex items-center" style={{ gap: 8, marginBottom: 14 }}>
+                    <FileText size={16} style={{ color: group.color }} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#0B0B0D' }}>Работа ученика</span>
+                  </div>
+                  <p style={{ fontSize: 14.5, lineHeight: 1.65, color: '#1F1F24', whiteSpace: 'pre-line' }}>
+                    {submissionFor(hw, student)}
+                  </p>
+                  <div className="flex items-center flex-wrap" style={{ gap: 8, marginTop: 16 }}>
+                    {['solution.pdf', 'photo-1.jpg'].map(f => (
+                      <span key={f} className="flex items-center" style={{
+                        gap: 6, padding: '8px 12px', borderRadius: 12,
+                        background: '#F2F2F6', color: '#4E4E57', fontSize: 12, fontWeight: 650,
+                      }}>
+                        <Paperclip size={13} />
+                        {f}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Grading */}
+                <div style={{
+                  padding: 22, borderRadius: 26,
+                  background: 'rgba(255,255,255,0.96)', border: '1px solid rgba(0,0,0,0.06)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
+                }}>
+                  <div className="flex items-center" style={{ gap: 8, marginBottom: 16 }}>
+                    <Star size={16} style={{ color: '#F5A623' }} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#0B0B0D' }}>Оценка и комментарий</span>
+                  </div>
+
+                  {/* Score field */}
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.4, marginBottom: 6 }}>
+                      БАЛЛ (0–100)
+                    </div>
+                    <div className="flex items-center" style={{ gap: 10 }}>
+                      <input
+                        type="number" min={0} max={100} value={draft.score}
+                        onChange={e => setDraft({ score: e.target.value })}
+                        placeholder="—"
+                        style={{
+                          width: 96, boxSizing: 'border-box', padding: '12px 14px', borderRadius: 14,
+                          border: '1.5px solid rgba(0,0,0,0.1)', fontSize: 20, fontWeight: 750, color: '#0B0B0D',
+                          background: '#F9F9FB', outline: 'none', textAlign: 'center', fontFamily: 'inherit',
+                          appearance: 'textfield',
+                        } as React.CSSProperties}
+                      />
+                      <div className="flex items-center flex-wrap" style={{ gap: 6 }}>
+                        {[60, 75, 85, 100].map(v => (
+                          <button key={v} onClick={() => setDraft({ score: String(v) })} style={{
+                            padding: '6px 12px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                            fontSize: 12, fontWeight: 700,
+                            background: Number(draft.score) === v ? group.colorSoft : '#F5F5F6',
+                            color: Number(draft.score) === v ? group.color : '#6F6F76',
+                          }}>
+                            {v}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Comment */}
+                  <div style={{ marginBottom: 18 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.4, marginBottom: 6 }}>
+                      ЗАМЕЧАНИЯ / КОММЕНТАРИЙ
+                    </div>
+                    <textarea
+                      value={draft.comment}
+                      onChange={e => setDraft({ comment: e.target.value })}
+                      placeholder="Что получилось, что доработать..."
+                      rows={4}
+                      style={{
+                        width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 14,
+                        border: '1.5px solid rgba(0,0,0,0.1)', fontSize: 14, color: '#17171B', lineHeight: 1.55,
+                        background: '#F9F9FB', outline: 'none', resize: 'vertical', minHeight: 96, fontFamily: 'inherit',
+                      }}
+                    />
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
+                    <motion.button
+                      whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
+                      onClick={() => handleVerdict('accepted')}
+                      className="flex items-center cursor-pointer"
+                      style={{
+                        gap: 8, padding: '13px 22px', borderRadius: 16, border: 'none',
+                        background: '#7C3AED',
+                        color: '#fff', fontSize: 14, fontWeight: 600,
+                        boxShadow: '0 4px 16px rgba(124,58,237,0.25)',
+                      }}
+                    >
+                      <Check size={17} strokeWidth={2.4} />
+                      Засчитать и начислить баллы
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
+                      onClick={() => handleVerdict('returned')}
+                      className="flex items-center cursor-pointer"
+                      style={{
+                        gap: 8, padding: '13px 20px', borderRadius: 16,
+                        border: '1.5px solid #F8C991', background: '#FFF6E6',
+                        color: '#8B4900', fontSize: 14, fontWeight: 700,
+                      }}
+                    >
+                      <RotateCcw size={16} strokeWidth={2.2} />
+                      Вернуть на доработку
+                    </motion.button>
+                  </div>
+                  <p style={{ fontSize: 12, color: '#9A9AA2', marginTop: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Send size={12} />
+                    Решение и комментарий уйдут ученику в его кабинет.
+                  </p>
+                </div>
+
+                {allDone && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                    style={{
+                      padding: 20, borderRadius: 22,
+                      background: 'linear-gradient(135deg, #DFF8D6, #C8EDDA)',
+                      border: '1px solid rgba(26,122,63,0.2)',
+                      display: 'flex', alignItems: 'center', gap: 14,
+                    }}
+                  >
+                    <div style={{
+                      width: 44, height: 44, borderRadius: 14, flexShrink: 0,
+                      background: 'rgba(26,122,63,0.16)', color: '#1a7a3f',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <CheckCircle2 size={24} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 15, fontWeight: 750, color: '#0B0B0D' }}>Все работы проверены!</div>
+                      <div style={{ fontSize: 13, color: '#3A6B4A' }}>Задача «Проверить ДЗ» отмечена на главной.</div>
+                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                      onClick={() => setActivePage('homework')}
+                      style={{
+                        flexShrink: 0, padding: '11px 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
+                        background: '#1a7a3f', color: '#fff', fontSize: 13, fontWeight: 700,
+                      }}
+                    >
+                      К списку ДЗ
+                    </motion.button>
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* ── Floating bottom bar ── */}
+        <div style={{ position: 'absolute', bottom: 20, left: 32, right: 32, zIndex: 40 }}>
+          <ReviewBottomBar
+            submitters={submitters}
+            reviews={hwReviews}
+            activeIdx={idx}
+            onJump={go}
+            color={group.color}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function NavArrow({ dir, disabled, onClick }: { dir: 'left' | 'right'; disabled: boolean; onClick: () => void }) {
+  const Icon = dir === 'left' ? ChevronLeft : ChevronRight
+  return (
+    <motion.button
+      whileHover={disabled ? undefined : { scale: 1.08 }}
+      whileTap={disabled ? undefined : { scale: 0.94 }}
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+        border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(255,255,255,0.96)',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        color: disabled ? '#C2C2C8' : '#0B0B0D',
+        opacity: disabled ? 0.6 : 1,
+      }}
+    >
+      <Icon size={20} />
+    </motion.button>
+  )
+}

@@ -6,7 +6,7 @@ import { DEFAULT_WIDGET_ORDER } from '../data/widgets'
 // The top-level views the navigation switches between. 'home' is the dashboard,
 // 'courses' is the lesson catalogue (screen 3), 'lesson' is a single lesson with
 // its player + materials (screen 2), 'homework' is the dedicated homework page.
-export type AppPage = 'home' | 'courses' | 'lesson' | 'homework'
+export type AppPage = 'home' | 'courses' | 'lesson' | 'homework' | 'trainer'
 
 export interface HomeworkWidgetFeedback {
   lessonTitle: string
@@ -117,9 +117,10 @@ interface DashboardState {
   setTrackPopoverOpen: (v: boolean) => void
 
   // Homework self-assessment results, keyed by lessonId.
-  lessonAssessments: Record<string, { score: number; emojiIndex: number; hardAvailable?: boolean; hardCompleted?: boolean }>
+  lessonAssessments: Record<string, { score: number; emojiIndex: number; hardAvailable?: boolean; hardCompleted?: boolean; hardStatus?: 'submitted' | 'returned' | 'completed' }>
   setLessonAssessment: (lessonId: string, score: number, emojiIndex: number, hardAvailable?: boolean) => void
   setHardCompleted: (lessonId: string) => void
+  setHardStatus: (lessonId: string, status: 'submitted' | 'returned' | 'completed') => void
 
   // Pomodoro focus timer. Kept in the store (with a module-level interval) so it
   // keeps ticking even when the widget is swiped off-screen and unmounts.
@@ -275,11 +276,18 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   trackPopoverOpen: false,
   setTrackPopoverOpen: (v) => set({ trackPopoverOpen: v }),
 
-  lessonAssessments: {},
+  // DEMO: показываем все состояния харда — удалить после просмотра
+  lessonAssessments: {
+    'c3-1': { score: 82, emojiIndex: 2, hardAvailable: true, hardStatus: 'submitted' },
+    'c3-2': { score: 85, emojiIndex: 2, hardAvailable: true, hardStatus: 'returned' },
+    'c3-3': { score: 91, emojiIndex: 3, hardAvailable: true, hardStatus: 'completed', hardCompleted: true },
+  } as Record<string, { score: number; emojiIndex: number; hardAvailable?: boolean; hardCompleted?: boolean; hardStatus?: 'submitted' | 'returned' | 'completed' }>,
   setLessonAssessment: (lessonId, score, emojiIndex, hardAvailable) =>
     set((s) => ({ lessonAssessments: { ...s.lessonAssessments, [lessonId]: { ...s.lessonAssessments[lessonId], score, emojiIndex, hardAvailable } } })),
   setHardCompleted: (lessonId) =>
-    set((s) => ({ lessonAssessments: { ...s.lessonAssessments, [lessonId]: { ...s.lessonAssessments[lessonId], hardCompleted: true } } })),
+    set((s) => ({ lessonAssessments: { ...s.lessonAssessments, [lessonId]: { ...s.lessonAssessments[lessonId], hardCompleted: true, hardStatus: 'submitted' as const } } })),
+  setHardStatus: (lessonId, status) =>
+    set((s) => ({ lessonAssessments: { ...s.lessonAssessments, [lessonId]: { ...s.lessonAssessments[lessonId], hardStatus: status, hardCompleted: status === 'completed' } } })),
 
   pomoMode: 'focus',
   pomoTimerMode: 'timer',
@@ -339,6 +347,20 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
     pomoFocusDuration: state.pomoFocusDuration,
     lessonAssessments: state.lessonAssessments,
   }),
+  // DEMO: принудительно подмешиваем demo-данные поверх сохранённых — удалить после просмотра
+  merge: (persisted: unknown, current) => {
+    const p = persisted as Partial<typeof current>
+    return {
+      ...current,
+      ...p,
+      lessonAssessments: {
+        ...(p.lessonAssessments ?? {}),
+        'c3-1': { score: 82, emojiIndex: 2, hardAvailable: true, hardStatus: 'submitted' as const },
+        'c3-2': { score: 85, emojiIndex: 2, hardAvailable: true, hardStatus: 'returned' as const },
+        'c3-3': { score: 91, emojiIndex: 3, hardAvailable: true, hardStatus: 'completed' as const, hardCompleted: true },
+      },
+    }
+  },
 }))
 
 // Module-level interval so the countdown survives the widget unmounting when the

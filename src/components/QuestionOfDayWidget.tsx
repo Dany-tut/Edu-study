@@ -77,7 +77,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
               transition={{ duration: 0.18 }}
               style={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                height: 44 * scale, padding: `0 ${22 * scale}px`, borderRadius: 16,
+                height: 44 * scale, padding: `0 ${22 * scale}px`, borderRadius: 24,
                 border: 'none', cursor: 'pointer',
                 background: 'linear-gradient(135deg, #5AD4C5, #14A695)',
                 color: '#fff', fontSize: 14 * scale, fontWeight: 650,

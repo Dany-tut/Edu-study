@@ -263,6 +263,8 @@ export default function Sidebar() {
     } else if (id === 'courses') {
       // "Курсы" opens the general catalogue (no specific lesson focused).
       openCourses()
+    } else if (id === 'trainer') {
+      setActivePage('trainer')
     }
   }
 

@@ -1,11 +1,14 @@
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, Users, ClipboardList, BookOpen, Layers,
-  Bell, ChevronLeft, ChevronRight, GraduationCap,
+  Bell, ChevronLeft, ChevronRight,
+  Plus, UserPlus, Send, CheckSquare, type LucideIcon,
 } from 'lucide-react'
-import { useState } from 'react'
-import { teacher, pendingHomework, getTotalPendingHw } from '../../data/teacherMockData'
+import { useState, useRef, useLayoutEffect, useEffect } from 'react'
+import { createPortal } from 'react-dom'
+import { pendingHomework, getTotalPendingHw } from '../../data/teacherMockData'
 import { useTeacher, type TeacherPage } from '../../store/teacherStore'
+import CreateTaskModal from './CreateTaskModal'
 
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
   { id: 'home',        label: 'Главная',     icon: Home },
@@ -17,34 +20,73 @@ const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = 
 
 const EASE = [0.32, 0.72, 0, 1] as const
 const transition = { duration: 0.32, ease: EASE }
-
 const pendingHwCount = getTotalPendingHw(pendingHomework)
 
+type QuickAction = { icon: LucideIcon; label: string; sub: string; color: string; bg: string; page?: TeacherPage; action?: string }
+const quickActions: QuickAction[] = [
+  { icon: BookOpen,      label: 'Создать урок',      sub: 'новый урок',     color: '#1a7a3f', bg: '#DFF8D6', page: 'lesson-editor' },
+  { icon: CheckSquare,   label: 'Создать задачу',    sub: 'встреча, урок…', color: '#16a87a', bg: '#d5f5e8', action: 'create-task' },
+  { icon: UserPlus,      label: 'Добавить студента', sub: 'в группу',       color: '#7B3FCC', bg: '#EEDBFF', page: 'groups' },
+  { icon: ClipboardList, label: 'Выдать ДЗ',        sub: 'группе / лично', color: '#1a7a3f', bg: '#DFF8D6', page: 'homework' },
+  { icon: Send,          label: 'Пуш / СМС',         sub: 'уведомление',    color: '#8B4900', bg: '#FFE4BD' },
+]
+
 export default function TeacherTopBar() {
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed]       = useState(false)
+  const [addOpen, setAddOpen]           = useState(false)
+  const [taskModalOpen, setTaskModalOpen] = useState(false)
+  const [anchor, setAnchor]             = useState<{ top: number; left: number } | null>(null)
+  const addBtnRef  = useRef<HTMLButtonElement>(null)
+  const dropRef    = useRef<HTMLDivElement>(null)
   const activePage = useTeacher(s => s.activePage)
   const setActivePage = useTeacher(s => s.setActivePage)
+  const addTask = useTeacher(s => s.addTask)
+
+  // Measure anchor on open / resize
+  useLayoutEffect(() => {
+    if (!addOpen) return
+    const update = () => {
+      const el = addBtnRef.current
+      if (!el) return
+      const r = el.getBoundingClientRect()
+      setAnchor({ top: r.bottom + 10, left: r.left })
+    }
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [addOpen])
+
+  // Close on outside click / Escape
+  useEffect(() => {
+    if (!addOpen) return
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Node
+      if (addBtnRef.current?.contains(t) || dropRef.current?.contains(t)) return
+      setAddOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setAddOpen(false) }
+    document.addEventListener('pointerdown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [addOpen])
 
   return (
+    <>
     <motion.div
       layout
       style={{
-        position: 'relative',
-        zIndex: 60,
-        borderRadius: 32,
-        padding: '12px',
-        height: 60,
-        width: 'fit-content',
+        position: 'relative', zIndex: 60,
+        borderRadius: 32, padding: '8px', height: 60, width: 'fit-content',
         boxSizing: 'border-box',
         background: 'rgba(255,255,255,0.5)',
         backdropFilter: 'blur(14px) saturate(180%)',
         WebkitBackdropFilter: 'blur(14px) saturate(180%)',
         border: '1px solid rgba(255,255,255,0.7)',
         boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 14px rgba(21,18,31,0.08)',
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
+        display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 8,
       }}
     >
       {/* Nav */}
@@ -73,7 +115,7 @@ export default function TeacherTopBar() {
               }}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                padding: '8px 14px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                padding: '0 16px', height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
                 fontSize: 14, fontWeight: isActive ? 600 : 500,
                 color: isActive ? '#7B3FCC' : '#6F6F76',
                 background: isActive ? '#EEDBFF' : 'transparent',
@@ -81,7 +123,6 @@ export default function TeacherTopBar() {
                 whiteSpace: 'nowrap', position: 'relative',
               }}
             >
-              {/* Icon (compact mode) */}
               <motion.span
                 initial={false}
                 animate={{ width: collapsed ? 'auto' : 0, opacity: collapsed ? 1 : 0 }}
@@ -90,7 +131,6 @@ export default function TeacherTopBar() {
               >
                 <item.icon size={18} strokeWidth={isActive ? 2.2 : 1.8} />
               </motion.span>
-              {/* Label (expanded mode) */}
               <motion.span
                 initial={false}
                 animate={{ width: collapsed ? 0 : 'auto', opacity: collapsed ? 0 : 1 }}
@@ -99,7 +139,6 @@ export default function TeacherTopBar() {
               >
                 {item.label}
               </motion.span>
-              {/* Badge */}
               {showBadge && (
                 <span style={{
                   position: 'absolute', top: 5, right: collapsed ? 2 : 4,
@@ -121,9 +160,10 @@ export default function TeacherTopBar() {
 
       {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+
+        {/* Bell */}
         <motion.button
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.96 }}
+          whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.96 }}
           aria-label="Уведомления"
           style={{
             width: 32, height: 32, borderRadius: '50%',
@@ -134,36 +174,32 @@ export default function TeacherTopBar() {
           <Bell size={16} />
         </motion.button>
 
-        {/* Switch to student view */}
+        {/* + Quick-add */}
         <motion.button
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.96 }}
-          onClick={() => { window.location.hash = '' }}
-          aria-label="Перейти к дашборду студента"
+          ref={addBtnRef}
+          whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.96 }}
+          onClick={() => setAddOpen(o => !o)}
+          aria-label="Быстрое добавление"
           style={{
-            display: 'flex', alignItems: 'center', gap: 5,
-            padding: '6px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
-            background: 'rgba(0,0,0,0.05)', color: '#6F6F76',
-            fontSize: 12, fontWeight: 600, transition: 'background 0.15s',
+            display: 'flex', alignItems: 'center', gap: collapsed ? 0 : 6,
+            height: 34, padding: '0 12px',
+            borderRadius: 12, border: 'none', cursor: 'pointer',
+            background: addOpen ? '#EEDBFF' : 'rgba(123,63,204,0.10)',
+            color: '#7B3FCC', transition: 'background 0.15s',
           }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.09)' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.05)' }}
         >
-          <GraduationCap size={14} />
           <motion.span
-            initial={false}
-            animate={{ width: collapsed ? 0 : 'auto', opacity: collapsed ? 0 : 1 }}
-            transition={transition}
-            style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}
+            animate={{ rotate: addOpen ? 45 : 0 }}
+            transition={{ duration: 0.2 }}
+            style={{ display: 'flex', alignItems: 'center' }}
           >
-            Студент
+            <Plus size={17} strokeWidth={2.2} />
           </motion.span>
         </motion.button>
 
-        {/* Collapse toggle */}
+        {/* Collapse */}
         <motion.button
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.96 }}
+          whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.96 }}
           onClick={() => setCollapsed(c => !c)}
           aria-label={collapsed ? 'Развернуть' : 'Свернуть'}
           style={{
@@ -176,5 +212,85 @@ export default function TeacherTopBar() {
         </motion.button>
       </div>
     </motion.div>
+
+    {/* + Dropdown — portaled to body */}
+    {createPortal(
+      <AnimatePresence>
+        {addOpen && anchor && (
+          <motion.div
+            ref={dropRef}
+            initial={{ scale: 0.88, opacity: 0, y: -6 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.88, opacity: 0, y: -6 }}
+            transition={{ type: 'spring', stiffness: 460, damping: 26, mass: 0.7 }}
+            style={{
+              position: 'fixed', top: anchor.top, left: anchor.left,
+              zIndex: 1000, transformOrigin: 'top left',
+              background: 'rgba(255,255,255,0.78)',
+              backdropFilter: 'blur(16px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              border: '1px solid rgba(255,255,255,0.85)',
+              borderRadius: 18,
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 12px 40px rgba(0,0,0,0.14)',
+              padding: 10, minWidth: 220,
+              display: 'flex', flexDirection: 'column', gap: 4,
+            }}
+          >
+            {quickActions.map(action => (
+              <motion.button
+                key={action.label}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  if (action.action === 'create-task') { setTaskModalOpen(true) }
+                  if (action.page) setActivePage(action.page)
+                  setAddOpen(false)
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.72)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '9px 10px', borderRadius: 12,
+                  border: 'none', cursor: 'pointer',
+                  background: 'transparent', textAlign: 'left',
+                  transition: 'background 0.12s',
+                }}
+              >
+                <div style={{
+                  width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+                  background: action.bg,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <action.icon size={16} strokeWidth={2} style={{ color: action.color }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 650, color: '#0B0B0D' }}>{action.label}</div>
+                  <div style={{ fontSize: 11, color: '#6F6F76', marginTop: 1 }}>{action.sub}</div>
+                </div>
+              </motion.button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>,
+      document.body
+    )}
+    {taskModalOpen && (
+      <CreateTaskModal
+        onClose={() => setTaskModalOpen(false)}
+        onSave={task => {
+          addTask({
+            typeId: task.type?.id ?? null,
+            typeLabel: task.type?.label ?? null,
+            typeBg: task.type?.bg ?? null,
+            typeColor: task.type?.textColor ?? null,
+            title: task.title,
+            date: task.date,
+            time: task.time,
+            comment: task.comment,
+          })
+          setTaskModalOpen(false)
+        }}
+      />
+    )}
+    </>
   )
 }

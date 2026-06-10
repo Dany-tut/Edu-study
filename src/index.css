@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  --statusline-height: 56px;
   --radius-card: 24px;
   --radius-large: 32px;
   --radius-pill: 999px;
@@ -74,6 +75,18 @@ a {
   scrollbar-color: rgba(0,0,0,0.16) transparent;
 }
 
+/* Hide the scrollbar entirely (scroll still works) — used where scroll fades
+   replace the visible track. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 /* Focus visible */
 *:focus-visible {
   outline: 2px solid rgba(197,139,255,0.7);
@@ -137,6 +150,7 @@ a {
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 22%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 0%, #000 22%, transparent 100%);
 }
+
 
 .dashboard-schedule {
   flex-shrink: 0;
@@ -215,25 +229,20 @@ a {
 .stats-grid {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
 }
 .stat-card { padding: 18px 24px; }
-.stat-value { font-size: 34px; }
-.stat-label { font-size: 13px; }
-/* Narrow card (3-per-row desktop ≈ 420px, phones): two cards on top,
-   "Общий балл" spans the full width below — pyramid layout. */
+.stat-value { font-size: 56px; }
+.stat-label { font-size: 13px; margin-top: -6px; }
 @container (max-width: 479px) {
   .stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: minmax(0, 1fr) minmax(0, auto);
     gap: 10px;
   }
-  .stats-grid > *:last-child {
-    grid-column: 1 / -1;
-  }
   .stat-card { padding: 10px 16px; }
-  .stat-value { font-size: 22px; }
-  .stat-label { font-size: 11px; }
+  .stat-value { font-size: 34px; }
+  .stat-label { font-size: 11px; margin-top: -4px; }
 }
 
 /* Quiz answer options: 2×2 when the quiz card is wide enough for readable
@@ -281,8 +290,63 @@ a {
   animation: courseNodeFlashRing 2s ease-in-out;
 }
 
+/* Hard-done node: animated green gradient that "flows" around the node */
+@keyframes hardDoneGradient {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes hardDoneGlow {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(245,200,66,0.45), 0 0 14px rgba(245,200,66,0.35); }
+  50%       { box-shadow: 0 0 0 5px rgba(245,200,66,0.65), 0 0 26px rgba(245,200,66,0.55); }
+}
+.hard-done-node {
+  animation: hardDoneGlow 2s ease-in-out infinite !important;
+}
+
 @keyframes shimmer-bar {
   0%   { transform: translateX(-120%); }
   60%  { transform: translateX(220%); }
   100% { transform: translateX(220%); }
+}
+
+/* ─── Group card compact mode ─────────────────────────────────────────────── */
+.group-card {
+  padding: 18px 20px;
+  transition: background 0.18s, border 0.18s, box-shadow 0.18s, padding 0.28s cubic-bezier(0.22,1,0.36,1);
+}
+.group-card .group-card-header {
+  margin-bottom: 10px;
+  transition: margin-bottom 0.28s cubic-bezier(0.22,1,0.36,1);
+}
+.group-card .group-card-name {
+  font-size: 15px;
+  margin-bottom: 4px;
+  transition: font-size 0.28s cubic-bezier(0.22,1,0.36,1), margin-bottom 0.28s cubic-bezier(0.22,1,0.36,1);
+}
+.group-card .group-card-details {
+  overflow: hidden;
+  max-height: 120px;
+  opacity: 1;
+  transition: max-height 0.28s cubic-bezier(0.22,1,0.36,1), opacity 0.2s ease;
+}
+.group-card[data-compact="true"] {
+  padding: 10px 14px;
+}
+.group-card[data-compact="true"] .group-card-header {
+  margin-bottom: 6px;
+}
+.group-card[data-compact="true"] .group-card-name {
+  font-size: 13px;
+  margin-bottom: 0;
+}
+.group-card[data-compact="true"] .group-card-details {
+  max-height: 0;
+  opacity: 0;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
