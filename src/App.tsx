@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import DashboardPage from './pages/DashboardPage'
 import TeacherDashboardPage from './pages/teacher/TeacherDashboardPage'
+import TeacherLoginPage from './pages/teacher/TeacherLoginPage'
+import { supabase } from './lib/supabase'
+import type { Session } from '@supabase/supabase-js'
 
 function useHashRoute() {
   const [hash, setHash] = useState(window.location.hash)
@@ -14,6 +17,18 @@ function useHashRoute() {
 
 export default function App() {
   const hash = useHashRoute()
-  if (hash === '#/teacher') return <TeacherDashboardPage />
+  const [session, setSession] = useState<Session | null | undefined>(undefined)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
+    return () => subscription.unsubscribe()
+  }, [])
+
+  if (hash === '#/teacher') {
+    if (session === undefined) return null // loading
+    if (!session) return <TeacherLoginPage onLogin={() => {}} />
+    return <TeacherDashboardPage />
+  }
   return <DashboardPage />
 }

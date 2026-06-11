@@ -500,7 +500,9 @@ export default function TeacherHome() {
   const nextLesson = todaySchedule.find(s => s.status === 'upcoming')
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, gap: 0 }}>
+    // Scroll container lifted to viewport top — content scrolls under the topbar
+    // progressive-blur strip (same recipe as student DashboardPage panels).
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, gap: 0, marginTop: -100, paddingTop: 100, overflowY: 'auto', scrollbarGutter: 'stable' }}>
       {/* ── Stats row ── */}
       <section style={{ padding: '0 32px', flexShrink: 0 }}>
         <div style={{ display: 'flex', gap: 14 }}>
@@ -595,7 +597,7 @@ export default function TeacherHome() {
                 Напоминания
               </CardTitle>
               <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
-                <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 7,
+                <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', scrollbarGutter: 'stable', display: 'flex', flexDirection: 'column', gap: 7,
                   maskImage: 'linear-gradient(to bottom, transparent 0%, black 12px, black calc(100% - 20px), transparent 100%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 12px, black calc(100% - 20px), transparent 100%)',
                   paddingBlock: 8,

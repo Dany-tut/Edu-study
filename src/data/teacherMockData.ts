@@ -70,6 +70,12 @@ export type ScheduleItem = {
   colorSoft: string
 }
 
+export type HwTask = {
+  id: string
+  title: string
+  maxScore: number
+}
+
 export type HomeworkItem = {
   id: string
   groupId: string
@@ -82,6 +88,7 @@ export type HomeworkItem = {
   totalCount: number
   reviewedCount: number
   color: string
+  tasks?: HwTask[]
 }
 
 export type Reminder = {
@@ -247,9 +254,37 @@ export const homeworkTemplates: HomeworkTemplate[] = [
 ]
 
 export const pendingHomework: HomeworkItem[] = [
-  { id: 'hw1', groupId: 'g1', groupName: 'ЕГЭ-Хим Атомы', icon: '🧪', title: 'Задачи на гидролиз', assignedAt: '05.06', dueDate: '09.06', submittedCount: 7, totalCount: 8, reviewedCount: 0, color: '#B98FFF' },
-  { id: 'hw2', groupId: 'g2', groupName: 'ЕГЭ-Хим Молекулы', icon: '🧪', title: 'Окислительно-восстановительные реакции', assignedAt: '07.06', dueDate: '10.06', submittedCount: 5, totalCount: 12, reviewedCount: 2, color: '#9B6DFF' },
-  { id: 'hw3', groupId: 'g4', groupName: 'ЕГЭ-Био Хлорофилл', icon: '🌿', title: 'Фотосинтез — схемы', assignedAt: '08.06', dueDate: '11.06', submittedCount: 4, totalCount: 10, reviewedCount: 0, color: '#5FD68A' },
+  {
+    id: 'hw1', groupId: 'g1', groupName: 'ЕГЭ-Хим Атомы', icon: '🧪',
+    title: 'Задачи на гидролиз', assignedAt: '05.06', dueDate: '09.06',
+    submittedCount: 7, totalCount: 8, reviewedCount: 0, color: '#B98FFF',
+    tasks: [
+      { id: 't1', title: 'Задание 1. Составить уравнение гидролиза', maxScore: 30 },
+      { id: 't2', title: 'Задание 2. Определить среду раствора', maxScore: 20 },
+      { id: 't3', title: 'Задание 3. Расставить коэффициенты', maxScore: 30 },
+      { id: 't4', title: 'Задание 4. Задача с объяснением', maxScore: 20 },
+    ],
+  },
+  {
+    id: 'hw2', groupId: 'g2', groupName: 'ЕГЭ-Хим Молекулы', icon: '🧪',
+    title: 'Окислительно-восстановительные реакции', assignedAt: '07.06', dueDate: '10.06',
+    submittedCount: 5, totalCount: 12, reviewedCount: 2, color: '#9B6DFF',
+    tasks: [
+      { id: 't1', title: 'Задание 1. Определить окислитель и восстановитель', maxScore: 25 },
+      { id: 't2', title: 'Задание 2. Метод электронного баланса', maxScore: 40 },
+      { id: 't3', title: 'Задание 3. Составить схему реакции', maxScore: 35 },
+    ],
+  },
+  {
+    id: 'hw3', groupId: 'g4', groupName: 'ЕГЭ-Био Хлорофилл', icon: '🌿',
+    title: 'Фотосинтез — схемы', assignedAt: '08.06', dueDate: '11.06',
+    submittedCount: 4, totalCount: 10, reviewedCount: 0, color: '#5FD68A',
+    tasks: [
+      { id: 't1', title: 'Задание 1. Световая фаза', maxScore: 40 },
+      { id: 't2', title: 'Задание 2. Тёмновая фаза', maxScore: 40 },
+      { id: 't3', title: 'Задание 3. Схема хлоропласта', maxScore: 20 },
+    ],
+  },
 ]
 
 // Full homework log shown on the ДЗ page — pending items plus already-graded

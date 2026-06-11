@@ -1,17 +1,61 @@
-import { useState } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   BookOpen, Zap, Layers, Plus, Clock,
   GraduationCap, FileText, X, Check,
   Trash2, Link2, Database, Sparkles, ArrowUp, ArrowDown,
   CircleHelp, FlaskConical, Atom, Timer, Laugh,
+  Image as ImageIcon, Key, ArrowLeft, Maximize2,
+  ListChecks, Eye, EyeOff,
+  CircleDot, Type as TypeIcon, Shuffle, ArrowUpDown, Table as TableIcon,
+  AlignLeft, Pencil,
 } from 'lucide-react'
+import { useTeacher } from '../../store/teacherStore'
+import { useTaskBank } from '../../store/taskBankStore'
+import { TrainerBankBrowser, TrainerBankFilterPanel, emptyTrainerFilters, type TrainerFilters } from '../../components/teacher/TrainerBank'
+import { courseLessons } from '../../data/teacherMockData'
+import TeacherSelect from '../../components/teacher/TeacherSelect'
+import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
+import {
+  type AnswerType, type Task as BankTask, type TaskChoice, type Subject,
+  BIOLOGY_SECTIONS, CHEMISTRY_SECTIONS,
+  BIOLOGY_TOPICS, CHEMISTRY_TOPICS, SOURCES,
+} from '../../data/taskBankData'
+
+type NewBankTask = Omit<BankTask, 'id'>
+const LETTERS = 'АБВГДЕЖЗИКЛМНОП'
+
+// The answer-block palette shown on the right of the task constructor.
+const ANSWER_TYPES: { type: AnswerType; label: string; hint: string; Icon: React.ElementType }[] = [
+  { type: 'single',    label: 'Один ответ',          hint: 'Выбор одного варианта',  Icon: CircleDot },
+  { type: 'multi',     label: 'Несколько верных',    hint: 'Выбор нескольких',       Icon: ListChecks },
+  { type: 'short',     label: 'Краткий ответ',       hint: 'Слово / число / формула', Icon: TypeIcon },
+  { type: 'matching',  label: 'Сопоставление',       hint: 'Таблица А1 Б2 В3',        Icon: Shuffle },
+  { type: 'sequence',  label: 'Последовательность',  hint: 'Расставить порядок',      Icon: ArrowUpDown },
+  { type: 'tableFill', label: 'Заполнить таблицу',   hint: 'Ячейка «?» в таблице',    Icon: TableIcon },
+  { type: 'extended',  label: 'Развёрнутый ответ',   hint: 'Текст + фото, критерии',  Icon: AlignLeft },
+]
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Tab = 'course' | 'trainer' | 'widget'
 type CourseStatus = 'published' | 'draft'
 type Difficulty = 'easy' | 'medium' | 'hard'
 type WidgetType = 'quiz' | 'facts' | 'reactions' | 'pomodoro' | 'memes' | 'qod'
+type QuestionType = 'choice' | 'free'
+
+interface AnswerKey {
+  id: string
+  keyword: string
+  points: number
+}
+
+type ScoreMode = 'perOption' | 'criteria' | 'whole'
+
+interface Criterion {
+  id: string
+  text: string
+  points: number
+}
 
 interface Lesson {
   id: string
@@ -30,7 +74,7 @@ interface BankQuestion {
   id: string; topic: string; text: string; answer: string; difficulty: Difficulty
 }
 
-interface TrainerAnswer { id: string; text: string; correct?: boolean }
+interface TrainerAnswer { id: string; text: string; correct?: boolean; points?: number }
 
 interface TrainerQ {
   id: string
@@ -42,11 +86,22 @@ interface TrainerQ {
   difficulty?: Difficulty
   part?: 1 | 2
   source: 'bank' | 'manual'
+  questionType?: QuestionType
+  answerKeys?: AnswerKey[]
+  maxPoints?: number
+  scoreMode?: ScoreMode
+  criteria?: Criterion[]
+  criteriaVisibleOnCheck?: boolean
+  imageUrl?: string
 }
 
 interface Trainer {
   id: string; title: string; topic: string; difficulty: Difficulty
   timePerQuestion: number; questions: TrainerQ[]
+  // Shared-bank task numbers (useTaskBank ids) this trainer is built from. The
+  // `questions` array above is kept as a denormalised snapshot for cards/widgets.
+  questionIds?: number[]
+  subject?: string
   color: string; bg: string; lastEdited: string
 }
 
@@ -127,33 +182,7 @@ const COURSES_INIT: Course[] = [
   },
 ]
 
-const TRAINERS_INIT: Trainer[] = [
-  {
-    id: 't1', title: 'Гидролиз солей', topic: 'Неорганика', difficulty: 'hard',
-    timePerQuestion: 2, color: '#B98FFF', bg: '#EFE0FF', lastEdited: '10.06',
-    questions: TASK_BANK.filter(q => q.topic === 'Неорганика').slice(0, 4).map(q => ({ id: q.id, text: q.text, answer: q.answer, source: 'bank' as const })),
-  },
-  {
-    id: 't2', title: 'ОВР — окисление и восстановление', topic: 'Неорганика', difficulty: 'medium',
-    timePerQuestion: 3, color: '#9B6DFF', bg: '#E4D9FF', lastEdited: '08.06',
-    questions: TASK_BANK.filter(q => q.topic === 'Неорганика').map(q => ({ id: q.id, text: q.text, answer: q.answer, source: 'bank' as const })),
-  },
-  {
-    id: 't3', title: 'Периодический закон', topic: 'Общая', difficulty: 'easy',
-    timePerQuestion: 1, color: '#C58BFF', bg: '#EEDBFF', lastEdited: '06.06',
-    questions: TASK_BANK.filter(q => q.topic === 'Общая').map(q => ({ id: q.id, text: q.text, answer: q.answer, source: 'bank' as const })),
-  },
-  {
-    id: 't4', title: 'Фотосинтез и дыхание растений', topic: 'Биология', difficulty: 'medium',
-    timePerQuestion: 2, color: '#5FD68A', bg: '#D6F5E3', lastEdited: '04.06',
-    questions: TASK_BANK.filter(q => q.topic === 'Биология').map(q => ({ id: q.id, text: q.text, answer: q.answer, source: 'bank' as const })),
-  },
-  {
-    id: 't5', title: 'Кислоты и основания', topic: 'Неорганика', difficulty: 'easy',
-    timePerQuestion: 1, color: '#3EC87A', bg: '#C8F0D9', lastEdited: '02.06',
-    questions: TASK_BANK.filter(q => q.topic === 'Неорганика').slice(1, 3).map(q => ({ id: q.id, text: q.text, answer: q.answer, source: 'bank' as const })),
-  },
-]
+const TRAINERS_INIT: Trainer[] = []
 
 const WIDGETS_INIT: Widget[] = [
   {
@@ -191,9 +220,6 @@ const WIDGETS_INIT: Widget[] = [
 ]
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const DIFF_LABEL: Record<Difficulty, string> = { easy: 'Лёгкий', medium: 'Средний', hard: 'Сложный' }
-const DIFF_COLOR: Record<Difficulty, string> = { easy: '#1a7a3f', medium: '#8B4900', hard: '#c0303a' }
-const DIFF_BG:    Record<Difficulty, string> = { easy: '#DFF8D6', medium: '#FFE4BD', hard: '#FFE1E4' }
 const WTYPE_LABEL: Record<WidgetType, string> = { quiz: 'Викторина', facts: 'Научные факты', reactions: 'Реакции', pomodoro: 'Фокус', memes: 'Мемы', qod: 'Вопрос дня' }
 const WTYPE_ICON:  Record<WidgetType, React.ElementType> = { quiz: CircleHelp, facts: FlaskConical, reactions: Atom, pomodoro: Timer, memes: Laugh, qod: Sparkles }
 const WTYPE_COLOR: Record<WidgetType, string> = { quiz: '#7B3FCC', facts: '#1E9E63', reactions: '#1F6FB8', pomodoro: '#E0794B', memes: '#C58BFF', qod: '#0E7A6F' }
@@ -211,8 +237,30 @@ const inputSt: React.CSSProperties = {
 }
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <div style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.4, marginBottom: 4, textTransform: 'uppercase' }}>{children}</div>
+  return <div style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.4, marginBottom: 5 }}>{children}</div>
 }
+
+function GlassCard({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  return (
+    <div style={{
+      background: 'rgba(255,255,255,0.88)',
+      backdropFilter: 'blur(16px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      border: '1px solid rgba(255,255,255,0.9)',
+      borderRadius: 18,
+      boxShadow: '0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.95)',
+      ...style,
+    }}>{children}</div>
+  )
+}
+
+const dockGlass = {
+  border: '1px solid rgba(255,255,255,0.9)',
+  background: 'rgba(255,255,255,0.86)',
+  backdropFilter: 'blur(14px) saturate(180%)',
+  WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+  boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14)',
+} as const
 
 function SectionHead({ children }: { children: React.ReactNode }) {
   return <div style={{ fontSize: 11, fontWeight: 700, color: '#6F6F76', marginBottom: 8 }}>{children}</div>
@@ -230,8 +278,8 @@ function SegBtn({ label, active, color, bg, onClick }: { label: string; active: 
   )
 }
 
-function PanelHeader({ title, accent, accentBg, Icon, onClose }: {
-  title: string; accent: string; accentBg: string; Icon: React.ElementType; onClose: () => void
+function PanelHeader({ title, accent, accentBg, Icon, onClose, onExpand }: {
+  title: string; accent: string; accentBg: string; Icon: React.ElementType; onClose: () => void; onExpand?: () => void
 }) {
   return (
     <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid rgba(0,0,0,0.06)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
@@ -241,41 +289,67 @@ function PanelHeader({ title, accent, accentBg, Icon, onClose }: {
         </div>
         <div style={{ fontSize: 14, fontWeight: 700, color: '#0B0B0D' }}>{title}</div>
       </div>
-      <button onClick={onClose} style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6F6F76', flexShrink: 0 }}>
-        <X size={13} />
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+        {onExpand && (
+          <button onClick={onExpand} title="Раскрыть на всю" style={{ height: 26, padding: '0 10px', borderRadius: 999, border: 'none', cursor: 'pointer', background: accentBg, display: 'flex', alignItems: 'center', gap: 5, color: accent, fontSize: 11.5, fontWeight: 700, fontFamily: 'inherit' }}>
+            <Maximize2 size={12} strokeWidth={2.4} /> Раскрыть
+          </button>
+        )}
+        <button onClick={onClose} style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6F6F76', flexShrink: 0 }}>
+          <X size={13} />
+        </button>
+      </div>
     </div>
   )
 }
 
-function SaveBtn({ accent, accentBg, onClick }: { accent: string; accentBg: string; onClick: () => void }) {
-  return (
-    <motion.button
-      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-      onClick={onClick}
-      style={{
-        width: '100%', padding: '11px 0', borderRadius: 14, border: 'none', cursor: 'pointer',
-        background: accentBg, color: accent, fontSize: 13, fontWeight: 700,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-      }}
-    >
-      <Check size={14} strokeWidth={2.5} />
-      Сохранить
-    </motion.button>
-  )
+// Per-type accent keyed off the legacy `accent` colour the call sites already pass.
+function SaveBtn({ accent, onClick }: { accent: string; accentBg?: string; onClick: () => void }) {
+  const a = accent === '#8B4900' ? SAVE_ACCENTS.trainer
+    : accent === '#1a7a3f' ? SAVE_ACCENTS.widget
+    : SAVE_ACCENTS.purple
+  return <TeacherSaveButton label="Сохранить" accent={a} fullWidth onClick={onClick} />
 }
 
 function uid() { return Math.random().toString(36).slice(2, 8) }
 
+// "+" insert control with its OWN hover zone in the gutter: the circle only
+// appears when the cursor enters this handle's zone (passed via `style`), so
+// neighbouring "+"s don't all light up together.
+function InsertHandle({ accent, title, onClick, style }: {
+  accent: string; title: string; onClick: () => void; style: React.CSSProperties
+}) {
+  const [h, setH] = useState(false)
+  return (
+    <div
+      title={title}
+      onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
+      onClick={e => { e.preventDefault(); e.stopPropagation(); onClick() }}
+      style={{ position: 'absolute', zIndex: 6, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', ...style }}
+    >
+      <div style={{
+        width: 18, height: 18, borderRadius: '50%', background: accent, color: '#fff',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.28)', pointerEvents: 'none',
+        opacity: h ? 1 : 0, transform: h ? 'scale(1)' : 'scale(0.6)',
+        transition: 'opacity 0.12s ease, transform 0.12s ease',
+      }}>
+        <Plus size={12} strokeWidth={3} />
+      </div>
+    </div>
+  )
+}
+
 // ─── Course Editor ────────────────────────────────────────────────────────────
 function CourseEditor({
-  course, trainers, widgets, onSave, onClose,
+  course, trainers, widgets, onSave, onClose, onExpand,
 }: {
   course: Course
   trainers: Trainer[]
   widgets: Widget[]
   onSave: (c: Course) => void
   onClose: () => void
+  onExpand: () => void
 }) {
   const [title, setTitle] = useState(course.title)
   const [subject, setSubject] = useState(course.subject)
@@ -286,9 +360,12 @@ function CourseEditor({
   const [newLessonTitle, setNewLessonTitle] = useState('')
   const [saved, setSaved] = useState(false)
 
+  function addLessonByTitle(title: string) {
+    setLessons(prev => [...prev, { id: uid(), title, trainerId: null, widgetId: null }])
+  }
   function addLesson() {
     if (!newLessonTitle.trim()) return
-    setLessons(prev => [...prev, { id: uid(), title: newLessonTitle.trim(), trainerId: null, widgetId: null }])
+    addLessonByTitle(newLessonTitle.trim())
     setNewLessonTitle('')
   }
 
@@ -319,12 +396,12 @@ function CourseEditor({
       initial={{ x: 380, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 380, opacity: 0 }}
-      transition={{ type: 'spring', stiffness: 380, damping: 34, mass: 0.8 }}
-      style={{ width: 360, flexShrink: 0, background: 'rgba(255,255,255,0.97)', borderLeft: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
+      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(255,255,255,0.97)', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 10px 34px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
     >
-      <PanelHeader title="Редактор курса" accent="#7B3FCC" accentBg="#EEDBFF" Icon={BookOpen} onClose={onClose} />
+      <PanelHeader title="Редактор курса" accent="#7B3FCC" accentBg="#EEDBFF" Icon={BookOpen} onClose={onClose} onExpand={onExpand} />
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Title */}
         <div><Label>Название</Label>
           <input value={title} onChange={e => setTitle(e.target.value)} style={inputSt} />
@@ -333,14 +410,10 @@ function CourseEditor({
         {/* Subject + Level */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           <div><Label>Предмет</Label>
-            <select value={subject} onChange={e => setSubject(e.target.value)} style={{ ...inputSt, appearance: 'none', cursor: 'pointer' }}>
-              <option>Химия</option><option>Биология</option>
-            </select>
+            <TeacherSelect value={subject} onChange={setSubject} options={['Химия', 'Биология']} />
           </div>
           <div><Label>Уровень</Label>
-            <select value={level} onChange={e => setLevel(e.target.value)} style={{ ...inputSt, appearance: 'none', cursor: 'pointer' }}>
-              <option>ЕГЭ</option><option>ОГЭ</option><option>Углублённый</option>
-            </select>
+            <TeacherSelect value={level} onChange={setLevel} options={['ЕГЭ', 'ОГЭ', 'Углублённый', 'Интенсив']} />
           </div>
         </div>
 
@@ -382,30 +455,24 @@ function CourseEditor({
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                   <div>
                     <div style={{ fontSize: 9, fontWeight: 700, color: '#9A9AA2', marginBottom: 2 }}>ТРЕНАЖЁР</div>
-                    <select value={lesson.trainerId ?? ''} onChange={e => setLessonLink(lesson.id, 'trainerId', e.target.value || null)}
-                      style={{ ...inputSt, padding: '5px 8px', fontSize: 11, appearance: 'none' }}>
-                      <option value="">— нет —</option>
-                      {trainers.map(t => <option key={t.id} value={t.id}>{t.title.slice(0, 22)}</option>)}
-                    </select>
+                    <TeacherSelect small value={lesson.trainerId ?? ''} onChange={v => setLessonLink(lesson.id, 'trainerId', v || null)}
+                      triggerStyle={{ padding: '5px 8px', fontSize: 11 }}
+                      options={[{ value: '', label: '— нет —' }, ...trainers.map(t => ({ value: t.id, label: t.title.slice(0, 22) }))]} />
                   </div>
                   <div>
                     <div style={{ fontSize: 9, fontWeight: 700, color: '#9A9AA2', marginBottom: 2 }}>ВИДЖЕТ</div>
-                    <select value={lesson.widgetId ?? ''} onChange={e => setLessonLink(lesson.id, 'widgetId', e.target.value || null)}
-                      style={{ ...inputSt, padding: '5px 8px', fontSize: 11, appearance: 'none' }}>
-                      <option value="">— нет —</option>
-                      {widgets.map(w => <option key={w.id} value={w.id}>{w.title.slice(0, 22)}</option>)}
-                    </select>
+                    <TeacherSelect small value={lesson.widgetId ?? ''} onChange={v => setLessonLink(lesson.id, 'widgetId', v || null)}
+                      triggerStyle={{ padding: '5px 8px', fontSize: 11 }}
+                      options={[{ value: '', label: '— нет —' }, ...widgets.map(w => ({ value: w.id, label: w.title.slice(0, 22) }))]} />
                   </div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Add lesson */}
+          {/* Add lesson — with suggestions from the lesson library */}
           <div style={{ display: 'flex', gap: 6 }}>
-            <input value={newLessonTitle} onChange={e => setNewLessonTitle(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && addLesson()}
-              placeholder="Название урока…" style={{ ...inputSt, flex: 1 }} />
+            <LessonNameInput value={newLessonTitle} onChange={setNewLessonTitle} onAdd={addLessonByTitle} />
             <motion.button whileTap={{ scale: 0.95 }} onClick={addLesson}
               style={{ width: 36, height: 36, borderRadius: 11, border: 'none', cursor: 'pointer', background: '#EEDBFF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7B3FCC', flexShrink: 0 }}>
               <Plus size={16} strokeWidth={2.4} />
@@ -466,31 +533,21 @@ function TrainerEditor({
   return (
     <motion.div
       initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}
-      transition={{ type: 'spring', stiffness: 380, damping: 34, mass: 0.8 }}
-      style={{ width: 360, flexShrink: 0, background: 'rgba(255,255,255,0.97)', borderLeft: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
+      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(255,255,255,0.97)', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 10px 34px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
     >
       <PanelHeader title="Редактор тренажёра" accent="#8B4900" accentBg="#FFE4BD" Icon={Zap} onClose={onClose} />
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Title + topic */}
         <div><Label>Название</Label><input value={title} onChange={e => setTitle(e.target.value)} style={inputSt} /></div>
         <div><Label>Тема</Label>
-          <select value={topic} onChange={e => setTopic(e.target.value)} style={{ ...inputSt, appearance: 'none', cursor: 'pointer' }}>
-            {TOPICS.map(t => <option key={t}>{t}</option>)}
-            <option>Смешанный</option>
-          </select>
+          <TeacherSelect value={topic} onChange={setTopic} options={[...TOPICS, 'Смешанный']} />
         </div>
 
-        {/* Difficulty + time */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          <div><Label>Сложность</Label>
-            <select value={difficulty} onChange={e => setDifficulty(e.target.value as Difficulty)} style={{ ...inputSt, appearance: 'none', cursor: 'pointer' }}>
-              <option value="easy">Лёгкий</option><option value="medium">Средний</option><option value="hard">Сложный</option>
-            </select>
-          </div>
-          <div><Label>Минут / вопрос</Label>
-            <input type="number" min={1} max={10} value={timePerQ} onChange={e => setTimePerQ(Number(e.target.value))} style={inputSt} />
-          </div>
+        {/* Time */}
+        <div><Label>Минут / вопрос</Label>
+          <input type="number" min={1} max={10} value={timePerQ} onChange={e => setTimePerQ(Number(e.target.value))} style={inputSt} />
         </div>
 
         {/* Source */}
@@ -506,9 +563,7 @@ function TrainerEditor({
             <SectionHead>Параметры банка</SectionHead>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px', gap: 8 }}>
               <div><Label>Тема банка</Label>
-                <select value={bankTopic} onChange={e => setBankTopic(e.target.value)} style={{ ...inputSt, appearance: 'none', cursor: 'pointer' }}>
-                  {TOPICS.map(t => <option key={t}>{t}</option>)}
-                </select>
+                <TeacherSelect value={bankTopic} onChange={setBankTopic} options={TOPICS} />
               </div>
               <div><Label>Кол-во</Label>
                 <input type="number" min={1} max={TASK_BANK.filter(q => q.topic === bankTopic).length}
@@ -641,12 +696,12 @@ function WidgetEditor({
   return (
     <motion.div
       initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}
-      transition={{ type: 'spring', stiffness: 380, damping: 34, mass: 0.8 }}
-      style={{ width: 360, flexShrink: 0, background: 'rgba(255,255,255,0.97)', borderLeft: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
+      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(255,255,255,0.97)', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 10px 34px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
     >
       <PanelHeader title="Редактор виджета" accent="#1a7a3f" accentBg="#DFF8D6" Icon={Layers} onClose={onClose} />
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div><Label>Название</Label><input value={title} onChange={e => setTitle(e.target.value)} style={inputSt} /></div>
 
         {/* Type selector */}
@@ -676,10 +731,9 @@ function WidgetEditor({
         {(type === 'quiz' || type === 'facts') && (
           <div style={{ background: '#F0FBF4', borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
             <SectionHead>Автонаполнение из тренажёра</SectionHead>
-            <select value={linkedId} onChange={e => setLinkedId(e.target.value)} style={{ ...inputSt, appearance: 'none', cursor: 'pointer' }}>
-              <option value="">— выберите тренажёр —</option>
-              {trainers.map(t => <option key={t.id} value={t.id}>{t.title} ({t.questions.length} вопр.)</option>)}
-            </select>
+            <TeacherSelect value={linkedId} onChange={setLinkedId} placeholder="— выберите тренажёр —"
+              accent="#1a7a3f" accentBg="#DFF8D6"
+              options={[{ value: '', label: '— выберите тренажёр —' }, ...trainers.map(t => ({ value: t.id, label: `${t.title} (${t.questions.length} вопр.)` }))]} />
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
               onClick={autoPopulate} disabled={!linkedId}
               style={{
@@ -889,13 +943,18 @@ function TrainerCard({ trainer, isSelected, onClick }: { trainer: Trainer; isSel
         <div style={{ width: 36, height: 36, borderRadius: 12, background: trainer.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Zap size={17} strokeWidth={2} style={{ color: trainer.color }} />
         </div>
-        <span style={{ fontSize: 10, fontWeight: 700, color: DIFF_COLOR[trainer.difficulty], background: DIFF_BG[trainer.difficulty], borderRadius: 6, padding: '2px 7px' }}>
-          {DIFF_LABEL[trainer.difficulty]}
-        </span>
+        <div />
       </div>
       <div>
         <div style={{ fontSize: 14, fontWeight: 700, color: '#0B0B0D', lineHeight: 1.3, marginBottom: 4 }}>{trainer.title}</div>
         <div style={{ fontSize: 11, color: '#9A9AA2' }}>{trainer.topic} · {trainer.timePerQuestion} мин/вопрос</div>
+        {trainer.questionIds && trainer.questionIds.length > 0 && (
+          <div style={{ marginTop: 5, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+            {trainer.questionIds.map(id => (
+              <span key={id} onClick={e => e.stopPropagation()} style={{ padding: '1px 7px', borderRadius: 999, background: '#FFE1E4', color: '#B03040', fontSize: 10, fontWeight: 800, userSelect: 'text', cursor: 'text' }}>№{id}</span>
+            ))}
+          </div>
+        )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8, borderTop: '1px solid rgba(0,0,0,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#6F6F76', fontSize: 12 }}>
@@ -952,202 +1011,1282 @@ function WidgetCard({ widget, isSelected, onClick }: { widget: Widget; isSelecte
   )
 }
 
-// ─── Tab + create button ──────────────────────────────────────────────────────
+// ─── Tab pill (list view) ─────────────────────────────────────────────────────
 function TabBtn({ tab, activeTab, label, icon: Icon, color, bg, onClick, onPlus }: {
   tab: Tab; activeTab: Tab; label: string; icon: React.ElementType
   color: string; bg: string; onClick: () => void; onPlus: () => void
 }) {
   const isActive = tab === activeTab
+  const [hover, setHover] = useState(false)
   return (
-    <div style={{ display: 'flex', alignItems: 'center' }}>
-      <motion.button
-        whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onClick}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          padding: '10px 20px', borderRadius: isActive ? '16px 0 0 16px' : 16,
-          border: 'none', cursor: 'pointer',
-          background: isActive ? bg : 'rgba(255,255,255,0.6)',
-          color: isActive ? color : '#6F6F76', fontSize: 14, fontWeight: 600,
-          boxShadow: isActive ? `0 0 0 1.5px ${color}44, 0 4px 14px rgba(0,0,0,0.06)` : '0 2px 8px rgba(0,0,0,0.04)',
-          transition: 'all 0.15s',
-        }}>
-        <Icon size={16} strokeWidth={isActive ? 2.2 : 1.8} />{label}
-      </motion.button>
+    <motion.button
+      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={onClick}
+      onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        padding: '10px 20px', borderRadius: 16,
+        border: 'none', cursor: 'pointer',
+        background: isActive ? bg : 'rgba(255,255,255,0.6)',
+        color: isActive ? color : '#6F6F76', fontSize: 14, fontWeight: 600,
+        boxShadow: isActive ? `0 0 0 1.5px ${color}44, 0 4px 14px rgba(0,0,0,0.06)` : '0 2px 8px rgba(0,0,0,0.04)',
+        transition: 'all 0.15s',
+      }}>
+      <Icon size={16} strokeWidth={isActive ? 2.2 : 1.8} />{label}
       <AnimatePresence>
-        {isActive && (
-          <motion.button
+        {isActive && hover && (
+          <motion.span
             key="plus"
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 36, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
+            initial={{ width: 0, opacity: 0, marginLeft: -8 }}
+            animate={{ width: 18, opacity: 1, marginLeft: 0 }}
+            exit={{ width: 0, opacity: 0, marginLeft: -8 }}
             transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-            whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.9 }}
             onClick={e => { e.stopPropagation(); onPlus() }}
             style={{
-              height: 40, borderRadius: '0 14px 14px 0', border: 'none', cursor: 'pointer',
-              background: color, color: '#fff', overflow: 'hidden', flexShrink: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: `0 4px 12px ${color}55`,
+              overflow: 'hidden', flexShrink: 0, color,
             }}
           >
-            <Plus size={15} strokeWidth={2.6} />
-          </motion.button>
+            <Plus size={16} strokeWidth={2.6} />
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </motion.button>
+  )
+}
+
+// ─── Lesson name input with suggestions (existing course lessons) ─────────────
+function LessonNameInput({ value, onChange, onAdd }: {
+  value: string; onChange: (v: string) => void; onAdd: (title: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [open])
+
+  const q = value.trim().toLowerCase()
+  // Unique lesson titles from the mock course library, matched against the query.
+  const suggestions = [...new Map(courseLessons.map(l => [l.lessonTitle, l])).values()]
+    .filter(l => !q || l.lessonTitle.toLowerCase().includes(q))
+    .slice(0, 6)
+
+  function commit(title: string) {
+    onAdd(title)
+    onChange('')
+    setOpen(false)
+  }
+
+  return (
+    <div ref={ref} style={{ position: 'relative', flex: 1 }}>
+      <input
+        value={value}
+        onChange={e => { onChange(e.target.value); setOpen(true) }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={e => { if (e.key === 'Enter' && value.trim()) commit(value.trim()) }}
+        placeholder="Название урока…"
+        style={{ ...inputSt, width: '100%' }}
+      />
+      <AnimatePresence>
+        {open && suggestions.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.98 }}
+            transition={{ duration: 0.16 }}
+            style={{
+              position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 60,
+              padding: 8, borderRadius: 14,
+              background: 'rgba(255,255,255,0.96)',
+              backdropFilter: 'blur(24px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+              border: '1px solid rgba(0,0,0,0.07)',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.14)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px 6px' }}>
+              <Sparkles size={11} style={{ color: '#7B3FCC' }} />
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#7B3FCC', letterSpacing: 0.3 }}>ИЗ БИБЛИОТЕКИ УРОКОВ</span>
+            </div>
+            {suggestions.map(l => (
+              <button
+                key={l.id}
+                onClick={() => commit(l.lessonTitle)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 9, width: '100%',
+                  padding: '8px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
+                  background: 'transparent', textAlign: 'left', fontFamily: 'inherit',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#F5F5F6')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+              >
+                <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, background: '#F0EBF8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <BookOpen size={13} style={{ color: '#7B3FCC' }} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#0B0B0D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.lessonTitle}</div>
+                  <div style={{ fontSize: 10, color: '#9A9AA2', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.courseTitle}</div>
+                </div>
+                <Plus size={13} style={{ color: '#7B3FCC', flexShrink: 0 }} />
+              </button>
+            ))}
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
   )
 }
 
-// ─── Inline question creation card ────────────────────────────────────────────
-function NewQuestionCard({ onSave, onCancel }: {
-  onSave: (q: TrainerQ) => void
+// ─── Creator view (split layout: left settings + center content) ──────────────
+// Creator chrome is unified on the purple accent to match the lesson editor
+// and homework-create pages; per-type colors stay only in the list view.
+const CREATOR_CFG = {
+  course:  { label: 'Курс',     Icon: BookOpen, color: '#7B3FCC', bg: '#EEDBFF', accent: '#7B3FCC' },
+  trainer: { label: 'Тренажёр', Icon: Zap,      color: '#7B3FCC', bg: '#EEDBFF', accent: '#7B3FCC' },
+  widget:  { label: 'Виджет',   Icon: Layers,   color: '#7B3FCC', bg: '#EEDBFF', accent: '#7B3FCC' },
+}
+
+function CreatorView({
+  initialMode,
+  editCourse,
+  editingTask,
+  trainers,
+  widgets,
+  onSaveTrainer,
+  onSaveCourse,
+  onSaveWidget,
+  onCancel,
+}: {
+  initialMode: Tab
+  editCourse?: Course | null
+  editTrainer?: Trainer | null
+  editingTask?: BankTask | null
+  trainers: Trainer[]
+  widgets: Widget[]
+  onSaveTrainer: (t: Trainer) => void
+  onSaveCourse: (c: Course) => void
+  onSaveWidget: (w: Widget) => void
   onCancel: () => void
 }) {
-  const [title, setTitle] = useState('')
-  const [subject, setSubject] = useState('Химия')
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium')
-  const [part, setPart] = useState<1 | 2>(1)
-  const [answers, setAnswers] = useState(['', '', '', ''])
-  const [correctIdx, setCorrectIdx] = useState(0)
-  const [explanation, setExplanation] = useState('')
+  const [mode, setMode] = useState<Tab>(initialMode)
+  const addTask = useTaskBank(s => s.addTask)
+  const replaceTask = useTaskBank(s => s.replaceTask)
 
-  function handleSave() {
-    if (!title.trim()) return
-    const q: TrainerQ = {
-      id: uid(),
-      text: title.trim(),
-      answer: answers[correctIdx] || '',
-      subject,
-      answers: answers.map((text, i) => ({ id: `a${i + 1}`, text, correct: i === correctIdx })),
-      explanation: explanation.trim(),
-      difficulty,
-      part,
-      source: 'manual',
+  // ── Task-authoring state (the "trainer" tab now authors a bank task) ──
+  // Meta → where the task lives in the bank / how the student finds it.
+  const [tkSubject, setTkSubject] = useState<'Химия' | 'Биология'>(editingTask?.subject === 'biology' ? 'Биология' : 'Химия')
+  const [tkSection, setTkSection] = useState(editingTask?.section ?? '')
+  const [tkTopic, setTkTopic] = useState(editingTask?.topic ?? '')
+  const [tkPart, setTkPart] = useState<1 | 2>(editingTask?.part ?? 1)
+  const [tkLine, setTkLine] = useState(editingTask?.line ?? 1)
+  const [tkSource, setTkSource] = useState(editingTask?.source ?? SOURCES[SOURCES.length - 1]) // «Авторский»
+  const [tkDifficulty, setTkDifficulty] = useState<Difficulty>(editingTask?.difficulty ?? 'medium')
+
+  // Условие — question text + optional content blocks (image / table)
+  const [tkQuestion, setTkQuestion] = useState(editingTask?.question ?? '')
+  const [tkImage, setTkImage] = useState(editingTask?.questionImage ?? '')
+  const [tkHasTable, setTkHasTable] = useState(!!(editingTask?.questionTable))
+  const [tkTableHeaders, setTkTableHeaders] = useState<string[]>(editingTask?.questionTable?.headers ?? ['', ''])
+  const [tkTableRows, setTkTableRows] = useState<string[][]>(editingTask?.questionTable?.rows ?? [['', ''], ['', '']])
+
+  // Ответ — which block + its config
+  const [tkAnswerType, setTkAnswerType] = useState<AnswerType>(editingTask?.answerType ?? 'single')
+  // single / multi
+  const [tkChoices, setTkChoices] = useState<string[]>(
+    editingTask?.choices?.length ? editingTask.choices.map((c: TaskChoice) => c.text) : ['', '', '', '']
+  )
+  const [tkCorrect, setTkCorrect] = useState<number[]>(
+    editingTask?.choices?.length
+      ? editingTask.choices.map((c: TaskChoice, i: number) => c.correct ? i : -1).filter((i: number) => i >= 0)
+      : [0]
+  )
+  const [tkChoicePts, setTkChoicePts] = useState<number[]>(
+    editingTask?.choices?.length ? editingTask.choices.map((c: TaskChoice) => c.points ?? 0) : [1, 0, 0, 0]
+  )
+  // short / tableFill / extended — single reference answer string
+  const [tkShortAnswer, setTkShortAnswer] = useState(
+    (editingTask?.answerType === 'short' || editingTask?.answerType === 'tableFill' || editingTask?.answerType === 'extended')
+      ? (editingTask.answer ?? '') : ''
+  )
+  const [tkAllowPhoto, setTkAllowPhoto] = useState(editingTask?.allowPhoto ?? true)
+  // matching — left prompts mapped to right options
+  const [tkMatchLeft, setTkMatchLeft] = useState<string[]>(editingTask?.matchLeft ?? ['', ''])
+  const [tkMatchRight, setTkMatchRight] = useState<string[]>(editingTask?.matchRight ?? ['', ''])
+  const [tkMatchMap, setTkMatchMap] = useState<number[]>(
+    editingTask?.matchLeft ? editingTask.matchLeft.map((_: string, i: number) => i) : [0, 1]
+  )
+  // sequence — items already in the correct order
+  const [tkSeq, setTkSeq] = useState<string[]>(editingTask?.sequenceItems ?? ['', ''])
+
+  const [tkSolution, setTkSolution] = useState(editingTask?.solution ?? '')
+  const [explPhotos, setExplPhotos] = useState<string[]>([])
+  const explTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const [savedFlash, setSavedFlash] = useState(false)
+  const [savedTaskId, setSavedTaskId] = useState<number | null>(null)
+  // Clicked cell → selects its row/column for deletion.
+  const [sel, setSel] = useState<{ type: 'row' | 'col'; index: number } | null>(null)
+  // Measured gridline boundary positions (relative to the bordered table box) so
+  // the "+" handles can live OUTSIDE the table while the table itself stays clipped.
+  const tblBoxRef = useRef<HTMLDivElement>(null)
+  const [tblBounds, setTblBounds] = useState<{ colX: number[]; rowY: number[]; w: number; h: number }>({ colX: [], rowY: [], w: 0, h: 0 })
+  useLayoutEffect(() => {
+    const el = tblBoxRef.current
+    if (!tkHasTable || !el) return
+    const measure = () => {
+      const er = el.getBoundingClientRect()
+      const colX: number[] = []
+      el.querySelectorAll('thead th').forEach((th, i) => {
+        const r = (th as HTMLElement).getBoundingClientRect()
+        if (i === 0) colX.push(r.left - er.left)
+        colX.push(r.right - er.left)
+      })
+      const rowY: number[] = []
+      el.querySelectorAll('tbody tr').forEach((tr, i) => {
+        const r = (tr as HTMLElement).getBoundingClientRect()
+        if (i === 0) rowY.push(r.top - er.top)
+        rowY.push(r.bottom - er.top)
+      })
+      setTblBounds({ colX, rowY, w: er.width, h: er.height })
     }
-    onSave(q)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [tkHasTable, tkTableHeaders.length, tkTableRows.length])
+
+  // ── Scoring (shared across answer types) ──
+  const [trMaxPoints, setTrMaxPoints] = useState(editingTask?.maxPoints ?? 1)
+  const [answerKeys, setAnswerKeys] = useState<AnswerKey[]>(editingTask?.answerKeys as AnswerKey[] ?? [])
+  const [newKw, setNewKw] = useState('')
+  const [newKwPts, setNewKwPts] = useState(1)
+  const [scoreMode, setScoreMode] = useState<ScoreMode>(editingTask?.scoreMode ?? 'whole')
+  const [criteria, setCriteria] = useState<Criterion[]>(editingTask?.criteria as Criterion[] ?? [])
+  const [newCrit, setNewCrit] = useState('')
+  const [newCritPts, setNewCritPts] = useState(1)
+  const [criteriaVisible, setCriteriaVisible] = useState(editingTask?.criteriaVisibleOnCheck ?? false)
+
+  const isChoiceType = tkAnswerType === 'single' || tkAnswerType === 'multi'
+  const tkTopicMap = tkSubject === 'Химия' ? CHEMISTRY_TOPICS : BIOLOGY_TOPICS
+  const tkSectionList = tkSubject === 'Химия' ? CHEMISTRY_SECTIONS : BIOLOGY_SECTIONS
+  const tkTopicList = tkSection ? (tkTopicMap[tkSection] ?? []) : Object.values(tkTopicMap).flat()
+
+  // ── Course state (pre-filled when editing an existing course) ──
+  const [cTitle, setCTitle] = useState(editCourse?.title ?? 'Новый курс')
+  const [cSubject, setCSubject] = useState(editCourse?.subject ?? 'Химия')
+  const [cLevel, setCLevel] = useState(editCourse?.level ?? 'ЕГЭ')
+  const [cDesc, setCDesc] = useState(editCourse?.description ?? '')
+  const [cStatus, setCStatus] = useState<CourseStatus>(editCourse?.status ?? 'draft')
+  const [cLessons, setCLessons] = useState<Lesson[]>(editCourse?.lessons ?? [])
+  const [newLessonTitle, setNewLessonTitle] = useState('')
+
+  // ── Widget state ──
+  const [wTitle, setWTitle] = useState('Новый виджет')
+  const [wType, setWType] = useState<WidgetType>('quiz')
+  const [wLinkedId, setWLinkedId] = useState('')
+  const [wItems, setWItems] = useState<WidgetItem[]>([])
+  const [wQText, setWQText] = useState('')
+  const [wQOpts, setWQOpts] = useState(['', '', '', ''])
+  const [wQCorr, setWQCorr] = useState(0)
+  const [wFcTerm, setWFcTerm] = useState('')
+  const [wFcDef, setWFcDef] = useState('')
+
+  const cfg = CREATOR_CFG[mode]
+
+  function addKey() {
+    if (!newKw.trim()) return
+    setAnswerKeys(prev => [...prev, { id: uid(), keyword: newKw.trim(), points: newKwPts }])
+    setNewKw(''); setNewKwPts(1)
+  }
+  function removeKey(id: string) { setAnswerKeys(prev => prev.filter(k => k.id !== id)) }
+
+  function addCriterion() {
+    if (!newCrit.trim()) return
+    setCriteria(prev => [...prev, { id: uid(), text: newCrit.trim(), points: newCritPts }])
+    setNewCrit(''); setNewCritPts(1)
+  }
+  function removeCriterion(id: string) { setCriteria(prev => prev.filter(c => c.id !== id)) }
+
+  // ── Answer-block helpers ──
+  function toggleCorrect(i: number) {
+    setTkCorrect(prev =>
+      tkAnswerType === 'single'
+        ? [i]                                            // radio
+        : prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i].sort((a, b) => a - b))
+  }
+  function setChoice(i: number, v: string) { setTkChoices(prev => prev.map((c, j) => j === i ? v : c)) }
+  function addChoice() {
+    setTkChoices(prev => [...prev, ''])
+    setTkChoicePts(prev => [...prev, 0])
+  }
+  function removeChoice(i: number) {
+    if (tkChoices.length <= 2) return
+    setTkChoices(prev => prev.filter((_, j) => j !== i))
+    setTkChoicePts(prev => prev.filter((_, j) => j !== i))
+    setTkCorrect(prev => prev.filter(x => x !== i).map(x => (x > i ? x - 1 : x)))
   }
 
-  const accentColor = '#8B4900'
-  const accentBg = '#FFE4BD'
+  // matching rows (left prompt ↔ right option, paired by index in tkMatchMap)
+  function addMatchRow() {
+    setTkMatchLeft(prev => [...prev, ''])
+    setTkMatchRight(prev => [...prev, ''])
+    setTkMatchMap(prev => [...prev, prev.length])
+  }
+  function removeMatchRow(i: number) {
+    if (tkMatchLeft.length <= 2) return
+    setTkMatchLeft(prev => prev.filter((_, j) => j !== i))
+    setTkMatchRight(prev => prev.filter((_, j) => j !== i))
+    setTkMatchMap(prev => prev.filter((_, j) => j !== i).map(x => (x >= tkMatchRight.length - 1 ? Math.max(0, x - 1) : x)))
+  }
+
+  // sequence rows (stored in correct order; teacher reorders with arrows)
+  function addSeqRow() { setTkSeq(prev => [...prev, '']) }
+  function removeSeqRow(i: number) { if (tkSeq.length > 2) setTkSeq(prev => prev.filter((_, j) => j !== i)) }
+  function moveSeq(i: number, dir: -1 | 1) {
+    setTkSeq(prev => {
+      const to = i + dir
+      if (to < 0 || to >= prev.length) return prev
+      const next = [...prev];[next[i], next[to]] = [next[to], next[i]]; return next
+    })
+  }
+
+  // table-block cell helpers
+  function setTableCell(r: number, c: number, v: string) {
+    setTkTableRows(prev => prev.map((row, ri) => ri === r ? row.map((cell, ci) => ci === c ? v : cell) : row))
+  }
+  function setTableHeader(c: number, v: string) { setTkTableHeaders(prev => prev.map((h, ci) => ci === c ? v : h)) }
+  // Insert a row/column at an explicit boundary index (Notion-style hover handles).
+  function insertTableRow(index: number) {
+    setTkTableRows(prev => {
+      const blank = (prev[0] ?? ['', '']).map(() => '')
+      const n = [...prev]; n.splice(index, 0, blank); return n
+    })
+  }
+  function insertTableCol(index: number) {
+    setTkTableHeaders(prev => { const n = [...prev]; n.splice(index, 0, ''); return n })
+    setTkTableRows(prev => prev.map(row => { const n = [...row]; n.splice(index, 0, ''); return n }))
+  }
+  function removeTableRow(r: number) { setTkTableRows(prev => prev.length > 1 ? prev.filter((_, ri) => ri !== r) : prev); setSel(null) }
+  function removeTableCol(c: number) {
+    if (tkTableHeaders.length <= 1) return
+    setTkTableHeaders(prev => prev.filter((_, i) => i !== c))
+    setTkTableRows(prev => prev.map(row => row.filter((_, i) => i !== c)))
+    setSel(null)
+  }
+  // Delete/Backspace removes the selected row/column. While a cell with text is
+  // being edited we let the key edit the text instead (only act on empty fields).
+  function onTableKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (!sel || (e.key !== 'Delete' && e.key !== 'Backspace')) return
+    const el = e.target as HTMLElement
+    if (el.tagName === 'INPUT' && (el as HTMLInputElement).value.length > 0) return
+    e.preventDefault()
+    if (sel.type === 'row') removeTableRow(sel.index)
+    else removeTableCol(sel.index)
+  }
+
+  function onPickImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => setTkImage(String(reader.result))
+    reader.readAsDataURL(file)
+  }
+
+  function resetTaskForm() {
+    setTkQuestion(''); setTkImage(''); setTkHasTable(false)
+    setTkTableHeaders(['', '']); setTkTableRows([['', ''], ['', '']])
+    setTkChoices(['', '', '', '']); setTkCorrect([0]); setTkChoicePts([1, 0, 0, 0])
+    setTkShortAnswer('')
+    setTkMatchLeft(['', '']); setTkMatchRight(['', '']); setTkMatchMap([0, 1])
+    setTkSeq(['', '']); setTkSolution('')
+    setAnswerKeys([]); setCriteria([])
+  }
+
+  const critTotal = criteria.reduce((s, c) => s + c.points, 0)
+  // Max points the task awards, depending on the chosen scoring mode.
+  // perOption sums the points of the options marked correct.
+  const correctOptPts = tkCorrect.reduce((s, i) => s + (tkChoicePts[i] || 0), 0)
+  const computedMax =
+    scoreMode === 'perOption' ? correctOptPts
+    : scoreMode === 'criteria' ? critTotal
+    : trMaxPoints
+
+  function addLesson() {
+    if (!newLessonTitle.trim()) return
+    addLessonByTitle(newLessonTitle.trim())
+    setNewLessonTitle('')
+  }
+  function addLessonByTitle(title: string) {
+    setCLessons(prev => [...prev, { id: uid(), title, trainerId: null, widgetId: null }])
+  }
+
+  function addWidgetItem() {
+    if (wType === 'quiz' || wType === 'qod') {
+      if (!wQText.trim()) return
+      setWItems(prev => [...prev, { id: uid(), question: wQText.trim(), options: [...wQOpts], correct: wQCorr }])
+      setWQText(''); setWQOpts(['', '', '', '']); setWQCorr(0)
+    } else if (wType === 'facts') {
+      if (!wFcTerm.trim()) return
+      setWItems(prev => [...prev, { id: uid(), factTitle: wFcTerm.trim(), factText: wFcDef.trim() }])
+      setWFcTerm(''); setWFcDef('')
+    }
+  }
+
+  // Assemble the authored task into a bank-ready record, or null if incomplete.
+  function buildTask(): NewBankTask | null {
+    const q = tkQuestion.trim()
+    if (!q) return null
+    const table = tkHasTable ? { headers: tkTableHeaders, rows: tkTableRows } : undefined
+    const base = {
+      subject: (tkSubject === 'Химия' ? 'chemistry' : 'biology') as Subject,
+      section: tkSection || tkSectionList[0],
+      topic: tkTopic || tkTopicList[0] || '—',
+      part: tkPart, line: tkLine, source: tkSource,
+      question: q, solution: tkSolution.trim(),
+      difficulty: tkDifficulty,
+      answerType: tkAnswerType,
+      questionImage: tkImage || undefined,
+      questionTable: table,
+      scoreMode,
+      criteria: scoreMode === 'criteria' && criteria.length ? criteria : undefined,
+      criteriaVisibleOnCheck: scoreMode === 'criteria' ? criteriaVisible : undefined,
+      maxPoints: computedMax || 1,
+    }
+
+    if (tkAnswerType === 'single' || tkAnswerType === 'multi') {
+      const choices = tkChoices
+        .map((text, i) => ({ id: uid(), text: text.trim(), correct: tkCorrect.includes(i), points: scoreMode === 'perOption' ? tkChoicePts[i] : undefined }))
+        .filter(c => c.text)
+      const correctCount = tkChoices.filter((t, i) => tkCorrect.includes(i) && t.trim()).length
+      if (choices.length < 2 || correctCount === 0) return null
+      const answer = tkChoices.map((t, i) => ({ t, i })).filter(({ t, i }) => tkCorrect.includes(i) && t.trim()).map(({ i }) => LETTERS[i]).join('')
+      return { ...base, questionType: 'choice', choices, answer }
+    }
+    if (tkAnswerType === 'matching') {
+      const left = tkMatchLeft.map(s => s.trim())
+      const right = tkMatchRight.map(s => s.trim())
+      if (left.length < 2 || left.some(s => !s) || right.some(s => !s)) return null
+      const answer = left.map((_, i) => `${LETTERS[i]}${tkMatchMap[i] + 1}`).join(' ')
+      return { ...base, questionType: 'free', matchLeft: left, matchRight: right, answer }
+    }
+    if (tkAnswerType === 'sequence') {
+      const items = tkSeq.map(s => s.trim())
+      if (items.length < 2 || items.some(s => !s)) return null
+      const answer = items.map((_, i) => i + 1).join('')
+      return { ...base, questionType: 'free', sequenceItems: items, answer }
+    }
+    if (tkAnswerType === 'tableFill') {
+      if (!table) return null
+      const ans = tkShortAnswer.trim()
+      if (!ans) return null
+      return { ...base, questionType: 'free', answer: ans }
+    }
+    // short / extended
+    const ans = tkShortAnswer.trim()
+    if (tkAnswerType === 'short' && !ans) return null
+    return {
+      ...base, questionType: 'free', answer: ans,
+      answerKeys: scoreMode === 'perOption' && answerKeys.length ? answerKeys : undefined,
+      allowPhoto: tkAnswerType === 'extended' ? tkAllowPhoto : undefined,
+    }
+  }
+  const builtTask = mode === 'trainer' ? buildTask() : null
+
+  function handleSave() {
+    const dateStr = new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
+    if (mode === 'trainer') {
+      const task = buildTask()
+      if (!task) return
+
+      if (editingTask) {
+        // Update existing task in the bank, then close without creating a new trainer card.
+        replaceTask(editingTask.id, task)
+        onCancel()
+        return
+      }
+
+      const newId = addTask(task)
+
+      // Create a trainer card so the task appears in the Тренажёр list.
+      const isBio = tkSubject === 'Биология'
+      const trainerColor = isBio ? '#5FD68A' : '#B98FFF'
+      const trainerBg    = isBio ? '#D6F5E3' : '#EFE0FF'
+      const trainerTitle = (tkTopic || tkSection || tkQuestion.slice(0, 40)).trim() || 'Новое задание'
+      const newTrainer: Trainer = {
+        id: uid(),
+        title: trainerTitle,
+        topic: tkTopic || tkSection || 'Общая',
+        difficulty: tkDifficulty,
+        timePerQuestion: 2,
+        questions: [{
+          id: String(newId),
+          text: tkQuestion.trim(),
+          answer: task.answer ?? '',
+          source: 'bank',
+          difficulty: tkDifficulty,
+          part: tkPart,
+        }],
+        questionIds: [newId],
+        subject: (tkSubject === 'Химия' ? 'chemistry' : 'biology'),
+        color: trainerColor,
+        bg: trainerBg,
+        lastEdited: dateStr,
+      }
+      onSaveTrainer(newTrainer)
+      resetTaskForm()
+    } else if (mode === 'course') {
+      const c: Course = {
+        id: editCourse?.id ?? uid(), title: cTitle, subject: cSubject, level: cLevel,
+        description: cDesc, lessons: cLessons, status: cStatus,
+        color: editCourse?.color ?? '#B98FFF', bg: editCourse?.bg ?? '#EFE0FF', lastEdited: dateStr,
+      }
+      onSaveCourse(c)
+    } else {
+      const w: Widget = {
+        id: uid(), title: wTitle, type: wType,
+        linkedTrainerId: wLinkedId || null, items: wItems,
+        color: WTYPE_COLOR[wType], bg: WTYPE_BG[wType], lastEdited: dateStr,
+      }
+      onSaveWidget(w)
+    }
+  }
+
+  const canSave = mode === 'trainer' ? builtTask !== null
+    : mode === 'course' ? cTitle.trim().length > 0
+    : wTitle.trim().length > 0
+
+  const docked = useTeacher(s => s.headerDocked)
+  const setDocked = useTeacher(s => s.setHeaderDocked)
+  useEffect(() => () => setDocked(false), [])
+
+  const currentName = (mode === 'trainer' ? tkQuestion : mode === 'course' ? cTitle : wTitle).trim()
+  const createLabel = mode === 'trainer' ? (editingTask ? 'Редактировать задание' : 'Создать задание') : mode === 'course' ? (editCourse ? 'Редактировать курс' : 'Создать курс') : 'Создать виджет'
+  const saveLabel = mode === 'trainer' ? (editingTask ? 'Сохранить изменения' : 'Сохранить в банк') : mode === 'course' ? 'Сохранить курс' : 'Сохранить виджет'
+  const paramsLabel = mode === 'course' ? 'Параметры курса' : mode === 'trainer' ? 'Параметры задания' : 'Параметры виджета'
+
+  const savePillStyle: React.CSSProperties = teacherSaveStyle({ disabled: !canSave })
 
   return (
+    // Single scroll container — same pattern as TeacherHomeworkCreatePage.
+    // The page root is already lifted by -100, so paddingTop:100 alone lets
+    // content scroll under the floating topbar.
     <motion.div
-      initial={{ opacity: 0, y: -10, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -6, scale: 0.97 }}
-      transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-      style={{
-        background: 'rgba(255,255,255,0.96)',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        border: `1.5px solid rgba(139,73,0,0.18)`,
-        borderRadius: 20, padding: '18px 20px',
-        display: 'flex', flexDirection: 'column', gap: 14,
-        boxShadow: '0 6px 28px rgba(139,73,0,0.1), 0 2px 8px rgba(0,0,0,0.06)',
-      }}
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onScroll={e => setDocked((e.currentTarget as HTMLElement).scrollTop > 64)}
+      style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', paddingTop: 100 }}
     >
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 9, background: accentBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Zap size={13} strokeWidth={2.3} style={{ color: accentColor }} />
+      {/* ── Docked twin — fixed on the topbar line ── */}
+      <AnimatePresence>
+        {docked && (
+          <motion.div
+            key="creator-dock"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80,
+              display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none',
+            }}
+          >
+            <motion.button
+              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
+              onClick={onCancel}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
+                padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass,
+                color: '#0B0B0D', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                fontFamily: 'inherit', pointerEvents: 'auto',
+              }}
+            >
+              <ArrowLeft size={15} strokeWidth={2} /> Назад
+            </motion.button>
+
+            <div style={{
+              flexShrink: 1, minWidth: 0, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              padding: '9px 16px', borderRadius: 999, ...dockGlass,
+              fontSize: 14, fontWeight: 700, color: '#0B0B0D', pointerEvents: 'auto',
+            }}>
+              {currentName || createLabel}
+            </div>
+
+            <div style={{ flexGrow: 1, flexBasis: 0 }} />
+
+            <motion.button
+              whileHover={{ scale: canSave ? 1.03 : 1 }} whileTap={{ scale: canSave ? 0.97 : 1 }}
+              onClick={handleSave}
+              style={{ ...savePillStyle, pointerEvents: 'auto' }}
+            >
+              <Check size={14} strokeWidth={2.5} /> {saveLabel}
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── All page content in the scroll flow ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', padding: '4px 0 48px' }}>
+
+        {/* Rest-state header — in scroll flow, fades out when docked */}
+        <motion.div
+          style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 24px 14px' }}
+          animate={{ opacity: docked ? 0 : 1 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+        >
+          <motion.button
+            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
+            onClick={onCancel}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
+              padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid rgba(0,0,0,0.06)',
+              background: 'rgba(255,255,255,0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+              color: '#0B0B0D', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            <ArrowLeft size={15} strokeWidth={2} /> Назад
+          </motion.button>
+
+          <div style={{ flex: 1, minWidth: 0, fontSize: 18, fontWeight: 700, color: '#0B0B0D', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' }}>
+            {createLabel}
+            {mode !== 'trainer' && currentName && <span style={{ color: '#9A9AA2', fontWeight: 500 }}> — {currentName}</span>}
           </div>
-          <span style={{ fontSize: 13, fontWeight: 700, color: accentColor }}>Новый вопрос</span>
-        </div>
-        <button onClick={onCancel}
-          style={{ width: 24, height: 24, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6F6F76' }}>
-          <X size={12} />
-        </button>
-      </div>
 
-      {/* Meta: subject / difficulty / part */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 72px', gap: 8 }}>
-        <div><Label>Предмет</Label>
-          <select value={subject} onChange={e => setSubject(e.target.value)} style={{ ...inputSt, appearance: 'none', cursor: 'pointer' }}>
-            <option>Химия</option><option>Биология</option>
-          </select>
-        </div>
-        <div><Label>Сложность</Label>
-          <select value={difficulty} onChange={e => setDifficulty(e.target.value as Difficulty)} style={{ ...inputSt, appearance: 'none', cursor: 'pointer' }}>
-            <option value="easy">Лёгкий</option>
-            <option value="medium">Средний</option>
-            <option value="hard">Сложный</option>
-          </select>
-        </div>
-        <div><Label>Часть</Label>
-          <select value={part} onChange={e => setPart(Number(e.target.value) as 1 | 2)} style={{ ...inputSt, appearance: 'none', cursor: 'pointer' }}>
-            <option value={1}>1</option>
-            <option value={2}>2</option>
-          </select>
-        </div>
-      </div>
+          <motion.button
+            whileHover={{ scale: canSave ? 1.03 : 1 }} whileTap={{ scale: canSave ? 0.97 : 1 }}
+            onClick={handleSave}
+            style={savePillStyle}
+          >
+            <Check size={14} strokeWidth={2.5} /> {saveLabel}
+          </motion.button>
+        </motion.div>
 
-      {/* Question text */}
-      <div><Label>Вопрос</Label>
-        <textarea value={title} onChange={e => setTitle(e.target.value)}
-          placeholder="Введите текст вопроса…" rows={3}
-          style={{ ...inputSt, resize: 'vertical', minHeight: 68 }} />
-      </div>
+        {/* ── Body: left sticky panel + center ── */}
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
 
-      {/* 4 answer options */}
-      <div>
-        <Label>Варианты ответа — отметьте верный</Label>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 6 }}>
-          {answers.map((ans, i) => {
-            const isCorrect = correctIdx === i
-            return (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <button onClick={() => setCorrectIdx(i)}
-                  style={{
-                    width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                    border: isCorrect ? 'none' : '2px solid #C2C2C8',
-                    background: isCorrect ? accentColor : 'transparent',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                  {isCorrect && <Check size={10} strokeWidth={3} style={{ color: '#fff' }} />}
-                </button>
-                <span style={{
-                  width: 22, height: 22, borderRadius: 7, flexShrink: 0,
-                  background: isCorrect ? accentBg : '#F0F0F2',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 10, fontWeight: 700,
-                  color: isCorrect ? accentColor : '#9A9AA2',
-                }}>{String.fromCharCode(65 + i)}</span>
-                <input
-                  value={ans}
-                  onChange={e => setAnswers(prev => prev.map((a, j) => j === i ? e.target.value : a))}
-                  placeholder={`Вариант ${String.fromCharCode(65 + i)}…`}
-                  style={{
-                    ...inputSt, flex: 1,
-                    border: isCorrect ? `1.5px solid rgba(139,73,0,0.35)` : '1.5px solid rgba(0,0,0,0.1)',
-                    background: isCorrect ? '#FFF8F0' : '#F9F9FB',
-                  }}
-                />
+        {/* LEFT: settings panel — sticky glass card */}
+        <div style={{ padding: '0 0 20px 24px', flexShrink: 0, position: 'sticky', top: 20 }}>
+          <GlassCard style={{ width: 260, boxSizing: 'border-box', padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#0B0B0D' }}>
+            {paramsLabel}
+          </div>
+
+          {/* ─ Task meta left ─ */}
+          {mode === 'trainer' && <>
+            <div>
+              <Label>Предмет</Label>
+              <TeacherSelect value={tkSubject} onChange={v => { setTkSubject(v as 'Химия' | 'Биология'); setTkSection(''); setTkTopic('') }} options={['Химия', 'Биология']} />
+            </div>
+            <div><Label>Раздел</Label>
+              <TeacherSelect value={tkSection} onChange={v => { setTkSection(v); setTkTopic('') }} placeholder="— выбрать —"
+                options={[{ value: '', label: '— любой —' }, ...tkSectionList.map(s => ({ value: s, label: s }))]} />
+            </div>
+            <div><Label>Тема</Label>
+              <TeacherSelect value={tkTopic} onChange={setTkTopic} placeholder="— выбрать —"
+                options={[{ value: '', label: '— любая —' }, ...tkTopicList.map(s => ({ value: s, label: s }))]} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div><Label>Часть</Label>
+                <TeacherSelect value={String(tkPart)} onChange={v => setTkPart(Number(v) as 1 | 2)}
+                  options={[{ value: '1', label: 'Часть 1' }, { value: '2', label: 'Часть 2' }]} />
               </div>
-            )
-          })}
+              <div><Label>Линия</Label>
+                <input type="number" min={1} max={35} value={tkLine}
+                  onChange={e => setTkLine(Math.max(1, Number(e.target.value)))} style={inputSt} />
+              </div>
+            </div>
+            <div><Label>Источник</Label>
+              <TeacherSelect value={tkSource} onChange={setTkSource} options={SOURCES} />
+            </div>
+            {/* Points summary */}
+            <div style={{ background: canSave ? '#F0FBF4' : '#F9F9FB', borderRadius: 12, padding: '10px 12px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: canSave ? '#1a7a3f' : '#9A9AA2', marginBottom: 4 }}>
+                {canSave ? '✓ Задание готово' : 'Заполните условие и ответ'}
+              </div>
+              <div style={{ fontSize: 12, color: '#6F6F76' }}>
+                {ANSWER_TYPES.find(a => a.type === tkAnswerType)?.label} · {computedMax || 1} {(computedMax || 1) === 1 ? 'балл' : (computedMax || 1) < 5 ? 'балла' : 'баллов'}
+              </div>
+            </div>
+          </>}
+
+          {/* ─ Course left ─ */}
+          {mode === 'course' && <>
+            <div><Label>Название</Label>
+              <input value={cTitle} onChange={e => setCTitle(e.target.value)} style={inputSt} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div><Label>Предмет</Label>
+                <TeacherSelect value={cSubject} onChange={setCSubject} options={['Химия', 'Биология']} />
+              </div>
+              <div><Label>Уровень</Label>
+                <TeacherSelect value={cLevel} onChange={setCLevel} options={['ЕГЭ', 'ОГЭ', 'Углублённый', 'Интенсив']} />
+              </div>
+            </div>
+            <div><Label>Описание</Label>
+              <textarea value={cDesc} onChange={e => setCDesc(e.target.value)} rows={3}
+                style={{ ...inputSt, resize: 'vertical' }} placeholder="Краткое описание курса…" />
+            </div>
+            <div><Label>Статус</Label>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <SegBtn label="Черновик" active={cStatus === 'draft'} color="#8B4900" bg="#FFE4BD" onClick={() => setCStatus('draft')} />
+                <SegBtn label="Опубликован" active={cStatus === 'published'} color="#1a7a3f" bg="#DFF8D6" onClick={() => setCStatus('published')} />
+              </div>
+            </div>
+          </>}
+
+          {/* ─ Widget left ─ */}
+          {mode === 'widget' && <>
+            <div><Label>Название</Label>
+              <input value={wTitle} onChange={e => setWTitle(e.target.value)} style={inputSt} />
+            </div>
+            <div><Label>Тип виджета</Label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                {(['quiz', 'facts', 'reactions', 'pomodoro'] as WidgetType[]).map(wt => {
+                  const WIcon = WTYPE_ICON[wt]
+                  return (
+                    <button key={wt} onClick={() => setWType(wt)} style={{
+                      padding: '8px 10px', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 7,
+                      border: wType === wt ? `1.5px solid ${WTYPE_COLOR[wt]}` : '1.5px solid transparent',
+                      background: wType === wt ? WTYPE_BG[wt] : '#F5F5F6', cursor: 'pointer',
+                      fontSize: 12, fontWeight: 600,
+                      color: wType === wt ? WTYPE_COLOR[wt] : '#6F6F76', transition: 'all 0.15s',
+                    }}>
+                      <WIcon size={13} strokeWidth={2} />{WTYPE_LABEL[wt]}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+            <div><Label>Привязать тренажёр</Label>
+              <TeacherSelect value={wLinkedId} onChange={setWLinkedId} placeholder="— нет —"
+                options={[{ value: '', label: '— нет —' }, ...trainers.map(t => ({ value: t.id, label: t.title.slice(0, 28) }))]} />
+            </div>
+          </>}
+          </GlassCard>
         </div>
-      </div>
 
-      {/* Explanation */}
-      <div><Label>Объяснение (показывается студенту после ответа)</Label>
-        <textarea value={explanation} onChange={e => setExplanation(e.target.value)}
-          placeholder="Почему этот ответ верный…" rows={2}
-          style={{ ...inputSt, resize: 'vertical', minHeight: 52, background: '#F0FBF4' }} />
-      </div>
+        {/* CENTER: type pills + content form */}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', padding: '0 24px 20px 20px' }}>
 
-      {/* Actions */}
-      <div style={{ display: 'flex', gap: 8 }}>
-        <button onClick={onCancel}
-          style={{ flex: 1, padding: '10px 0', borderRadius: 14, border: '1.5px solid rgba(0,0,0,0.1)', cursor: 'pointer', background: 'transparent', fontSize: 13, fontWeight: 600, color: '#6F6F76' }}>
-          Отмена
-        </button>
-        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={handleSave}
-          style={{ flex: 2, padding: '10px 0', borderRadius: 14, border: 'none', cursor: title.trim() ? 'pointer' : 'not-allowed', background: title.trim() ? accentBg : '#F5F5F6', color: title.trim() ? accentColor : '#9A9AA2', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.15s' }}>
-          <Check size={14} strokeWidth={2.5} />
-          Сохранить вопрос
-        </motion.button>
-      </div>
+          {/* Type pills — styled like the homework-create tab bar */}
+          <div style={{
+            display: 'flex', gap: 4, marginBottom: 16,
+            background: 'rgba(255,255,255,0.7)',
+            backdropFilter: 'blur(12px)',
+            borderRadius: 14, padding: 4,
+            alignSelf: 'flex-start',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+            border: '1px solid rgba(255,255,255,0.9)',
+          }}>
+            {(['course', 'trainer', 'widget'] as Tab[]).map(t => {
+              const c = CREATOR_CFG[t]
+              const isActive = mode === t
+              return (
+                <button key={t} onClick={() => setMode(t)} style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '8px 16px', borderRadius: 11, border: 'none', cursor: 'pointer',
+                  fontSize: 13, fontWeight: 600,
+                  background: isActive ? '#fff' : 'transparent',
+                  color: isActive ? '#7B3FCC' : '#6F6F76',
+                  fontFamily: 'inherit', transition: 'all 0.15s',
+                  boxShadow: isActive ? '0 2px 10px rgba(0,0,0,0.09)' : 'none',
+                }}>
+                  <c.Icon size={14} strokeWidth={isActive ? 2.2 : 1.8} />
+                  {c.label}
+                </button>
+              )
+            })}
+          </div>
+
+          <GlassCard style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          {/* ─── TASK center: block-based authoring ─── */}
+          {mode === 'trainer' && <>
+            {/* success flash */}
+            <AnimatePresence>
+              {savedFlash && (
+                <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: '#DFF8D6', borderRadius: 14, fontSize: 13, fontWeight: 700, color: '#1a7a3f', border: '1.5px solid #b4e8c2' }}>
+                  <Check size={15} strokeWidth={2.5} />
+                  <span>Задание сохранено в банк</span>
+                  {savedTaskId !== null && (
+                    <span style={{ marginLeft: 4, padding: '2px 10px', borderRadius: 999, background: '#fff', color: '#1a7a3f', fontSize: 13, fontWeight: 800, letterSpacing: 0.2, border: '1.5px solid #b4e8c2' }}>
+                      №{savedTaskId}
+                    </span>
+                  )}
+                  <span style={{ marginLeft: 4, fontSize: 12, fontWeight: 600, color: '#2d9158' }}>— дайте этот номер ученику, чтобы найти задание в тренажёре</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* 1 ─ Условие */}
+            <div>
+              <SectionHead>Условие задания</SectionHead>
+              <textarea value={tkQuestion} onChange={e => setTkQuestion(e.target.value)}
+                placeholder="Введите текст задания…" rows={4}
+                style={{ ...inputSt, resize: 'vertical', minHeight: 88, fontSize: 14 }} />
+            </div>
+
+            {/* image block */}
+            {tkImage && (
+              <div>
+                <Label>Изображение</Label>
+                <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,0.08)', alignSelf: 'flex-start', maxWidth: 360 }}>
+                  <img src={tkImage} alt="" style={{ display: 'block', maxWidth: '100%' }} />
+                  <button onClick={() => setTkImage('')} style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.55)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <X size={13} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* table block */}
+            {tkHasTable && (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6, gap: 8 }}>
+                  <Label>Таблица условия{tkAnswerType === 'tableFill' ? ' — впишите «?» в проверяемую ячейку' : ''}</Label>
+                  <button onClick={() => { setTkHasTable(false); setSel(null) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c0303a', fontSize: 12, fontWeight: 600 }}>Убрать</button>
+                </div>
+                {/* Outer wrapper with gutters on every side; the table is clipped for
+                    clean rounded corners, the "+" handles sit OUTSIDE it in the gutters. */}
+                <div onKeyDown={onTableKeyDown} style={{ position: 'relative', padding: 20 }}>
+                  <div ref={tblBoxRef} style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(0,0,0,0.1)' }}>
+                    <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 13 }}>
+                      <thead><tr>{tkTableHeaders.map((h, c) => {
+                        const colSel = sel?.type === 'col' && sel.index === c
+                        return (
+                          <th key={c} onClick={() => setSel({ type: 'col', index: c })}
+                            style={{ borderRight: '1px solid rgba(0,0,0,0.08)', borderBottom: '1px solid rgba(0,0,0,0.1)', background: colSel ? cfg.bg : 'rgba(0,0,0,0.03)', padding: 0, cursor: 'pointer', transition: 'background 0.12s' }}>
+                            <input value={h} onChange={e => setTableHeader(c, e.target.value)} onFocus={() => setSel({ type: 'col', index: c })} placeholder={`Заголовок ${c + 1}`}
+                              style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: '8px 10px', fontWeight: 700, fontFamily: 'inherit', fontSize: 13 }} />
+                          </th>
+                        )
+                      })}</tr></thead>
+                      <tbody>{tkTableRows.map((row, r) => (
+                        <tr key={r}>{row.map((cell, c) => {
+                          const hl = (sel?.type === 'row' && sel.index === r) || (sel?.type === 'col' && sel.index === c)
+                          return (
+                            <td key={c} onClick={() => setSel({ type: 'row', index: r })}
+                              style={{ borderRight: '1px solid rgba(0,0,0,0.07)', borderTop: r > 0 ? '1px solid rgba(0,0,0,0.07)' : undefined, padding: 0, cursor: 'pointer', background: hl ? cfg.bg : 'transparent', transition: 'background 0.12s' }}>
+                              <input value={cell} onChange={e => setTableCell(r, c, e.target.value)} onFocus={() => setSel({ type: 'row', index: r })} placeholder="—"
+                                style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: '8px 10px', fontFamily: 'inherit', fontSize: 13 }} />
+                            </td>
+                          )
+                        })}</tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+                  {/* column "+" in the TOP gutter, row "+" in the LEFT gutter — measured boundaries */}
+                  {tblBounds.colX.map((x, i) => (
+                    <InsertHandle key={`c${i}`} accent={cfg.color} title="Добавить столбец" onClick={() => insertTableCol(i)}
+                      style={{ left: 20 + x - 18, top: 0, width: 36, height: 20 }} />
+                  ))}
+                  {tblBounds.rowY.map((y, j) => (
+                    <InsertHandle key={`r${j}`} accent={cfg.color} title="Добавить строку" onClick={() => insertTableRow(j)}
+                      style={{ left: 0, top: 20 + y - 18, width: 20, height: 36 }} />
+                  ))}
+                </div>
+                <div style={{ fontSize: 11, color: '#9A9AA2', marginTop: 6 }}>Внутри таблицы клик выделяет строку (по ячейке) или столбец (по заголовку), удалить выделенное — клавишей Delete. Кружки «+» по краям: сверху добавляют столбец, слева — строку.</div>
+              </div>
+            )}
+
+            {/* 2 ─ Блок ответа */}
+            <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: 16 }}>
+              <SectionHead>Блок ответа · {ANSWER_TYPES.find(a => a.type === tkAnswerType)?.label}</SectionHead>
+
+              {/* single / multi */}
+              {isChoiceType && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {tkChoices.map((ans, i) => {
+                    const isCorrect = tkCorrect.includes(i)
+                    return (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <button onClick={() => toggleCorrect(i)} style={{
+                          width: 22, height: 22, borderRadius: tkAnswerType === 'single' ? '50%' : 7, flexShrink: 0,
+                          border: isCorrect ? 'none' : '2px solid #C2C2C8',
+                          background: isCorrect ? cfg.color : 'transparent',
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                          {isCorrect && <Check size={11} strokeWidth={3} style={{ color: '#fff' }} />}
+                        </button>
+                        <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: isCorrect ? cfg.bg : '#F0F0F2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: isCorrect ? cfg.color : '#9A9AA2' }}>{LETTERS[i]}</span>
+                        <input value={ans} onChange={e => setChoice(i, e.target.value)} placeholder={`Вариант ${LETTERS[i]}…`}
+                          style={{ ...inputSt, flex: 1, border: isCorrect ? `1.5px solid ${cfg.color}55` : '1.5px solid rgba(0,0,0,0.1)', background: isCorrect ? `${cfg.bg}88` : '#F9F9FB' }} />
+                        {scoreMode === 'perOption' && (
+                          <input type="number" min={0} max={20} value={tkChoicePts[i] ?? 0}
+                            onChange={e => setTkChoicePts(prev => prev.map((p, j) => j === i ? Number(e.target.value) : p))}
+                            onFocus={e => e.target.select()}
+                            style={{ ...inputSt, width: 52, textAlign: 'center', padding: '9px 6px', flexShrink: 0 }} />
+                        )}
+                        {tkChoices.length > 2 && (
+                          <button onClick={() => removeChoice(i)} style={{ width: 22, height: 22, borderRadius: 7, border: 'none', cursor: 'pointer', background: '#FFE1E4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c0303a', flexShrink: 0 }}><X size={10} /></button>
+                        )}
+                      </div>
+                    )
+                  })}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
+                    <button onClick={addChoice} style={{ padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}><Plus size={13} /> Вариант</button>
+                    <span style={{ fontSize: 11, color: '#9A9AA2' }}>{tkAnswerType === 'single' ? 'Отметьте один верный вариант' : 'Отметьте все верные варианты'}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* short */}
+              {tkAnswerType === 'short' && (
+                <div>
+                  <input value={tkShortAnswer} onChange={e => setTkShortAnswer(e.target.value)}
+                    placeholder="Правильный ответ — слово, число или формула" style={inputSt} />
+                  <div style={{ fontSize: 11, color: '#9A9AA2', marginTop: 6 }}>Ответ ученика сверяется без учёта регистра.</div>
+                </div>
+              )}
+
+              {/* tableFill */}
+              {tkAnswerType === 'tableFill' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ fontSize: 12, color: '#6F6F76' }}>Таблица условия — выше. Впишите «?» в проверяемую ячейку, а сюда — правильный термин.</div>
+                  <Label>Правильный термин для ячейки «?»</Label>
+                  <input value={tkShortAnswer} onChange={e => setTkShortAnswer(e.target.value)} placeholder="Напр. Палеонтология" style={inputSt} />
+                </div>
+              )}
+
+              {/* matching */}
+              {tkAnswerType === 'matching' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ fontSize: 12, color: '#6F6F76' }}>Левый столбец (А, Б, В…) сопоставляется с правым (1, 2, 3…). Выберите верный номер для каждой строки.</div>
+                  {tkMatchLeft.map((l, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{LETTERS[i]}</span>
+                      <input value={l} onChange={e => setTkMatchLeft(prev => prev.map((x, j) => j === i ? e.target.value : x))} placeholder="Левый элемент…" style={{ ...inputSt, flex: 1 }} />
+                      <span style={{ flexShrink: 0, color: '#9A9AA2', fontWeight: 700 }}>→</span>
+                      <input value={tkMatchRight[i]} onChange={e => setTkMatchRight(prev => prev.map((x, j) => j === i ? e.target.value : x))} placeholder={`${i + 1}. Правый элемент…`} style={{ ...inputSt, flex: 1 }} />
+                      <div style={{ width: 64, flexShrink: 0 }}>
+                        <TeacherSelect small value={String(tkMatchMap[i] + 1)} onChange={v => setTkMatchMap(prev => prev.map((x, j) => j === i ? Number(v) - 1 : x))}
+                          options={tkMatchRight.map((_, j) => ({ value: String(j + 1), label: `= ${j + 1}` }))} />
+                      </div>
+                      {tkMatchLeft.length > 2 && (
+                        <button onClick={() => removeMatchRow(i)} style={{ width: 22, height: 22, borderRadius: 7, border: 'none', cursor: 'pointer', background: '#FFE1E4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c0303a', flexShrink: 0 }}><X size={10} /></button>
+                      )}
+                    </div>
+                  ))}
+                  <button onClick={addMatchRow} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}><Plus size={13} /> Пара</button>
+                </div>
+              )}
+
+              {/* sequence */}
+              {tkAnswerType === 'sequence' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ fontSize: 12, color: '#6F6F76' }}>Введите элементы в правильном порядке — ученику они покажутся перемешанными.</div>
+                  {tkSeq.map((s, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{i + 1}</span>
+                      <input value={s} onChange={e => setTkSeq(prev => prev.map((x, j) => j === i ? e.target.value : x))} placeholder={`Шаг ${i + 1}…`} style={{ ...inputSt, flex: 1 }} />
+                      <button onClick={() => moveSeq(i, -1)} disabled={i === 0} style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: i === 0 ? 'default' : 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6F6F76', opacity: i === 0 ? 0.3 : 1, flexShrink: 0 }}><ArrowUp size={11} /></button>
+                      <button onClick={() => moveSeq(i, 1)} disabled={i === tkSeq.length - 1} style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: i === tkSeq.length - 1 ? 'default' : 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6F6F76', opacity: i === tkSeq.length - 1 ? 0.3 : 1, flexShrink: 0 }}><ArrowDown size={11} /></button>
+                      {tkSeq.length > 2 && (
+                        <button onClick={() => removeSeqRow(i)} style={{ width: 22, height: 22, borderRadius: 7, border: 'none', cursor: 'pointer', background: '#FFE1E4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c0303a', flexShrink: 0 }}><X size={10} /></button>
+                      )}
+                    </div>
+                  ))}
+                  <button onClick={addSeqRow} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}><Plus size={13} /> Шаг</button>
+                </div>
+              )}
+
+              {/* extended */}
+              {tkAnswerType === 'extended' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div>
+                    <Label>Эталонный ответ (для проверяющего)</Label>
+                    <textarea value={tkShortAnswer} onChange={e => setTkShortAnswer(e.target.value)} rows={3}
+                      placeholder="Развёрнутый эталон ответа…" style={{ ...inputSt, resize: 'vertical' }} />
+                  </div>
+                  <button onClick={() => setTkAllowPhoto(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${tkAllowPhoto ? cfg.color + '55' : 'rgba(0,0,0,0.1)'}`, background: tkAllowPhoto ? `${cfg.bg}88` : '#F9F9FB', textAlign: 'left', width: '100%' }}>
+                    <span style={{ width: 34, height: 20, borderRadius: 10, flexShrink: 0, position: 'relative', background: tkAllowPhoto ? cfg.color : '#C2C2C8', transition: 'background 0.15s' }}>
+                      <span style={{ position: 'absolute', top: 2, left: tkAllowPhoto ? 16 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.15s' }} />
+                    </span>
+                    <ImageIcon size={15} strokeWidth={2} style={{ color: tkAllowPhoto ? cfg.color : '#9A9AA2' }} />
+                    <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#0B0B0D' }}>Разрешить прикрепить фото решения</div>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 3 ─ Оценивание */}
+            <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: 16 }}>
+              <Label>Как оценивать</Label>
+              <div style={{ display: 'flex', gap: 6, marginTop: 2, marginBottom: 12 }}>
+                {([['perOption', 'За ответы'], ['criteria', 'По критериям'], ['whole', 'За всё задание']] as [ScoreMode, string][]).map(([m, label]) => (
+                  <button key={m} onClick={() => setScoreMode(m)} style={{
+                    padding: '9px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                    background: scoreMode === m ? cfg.bg : '#F0F0F3', color: scoreMode === m ? cfg.color : '#6F6F76',
+                    fontSize: 13, fontWeight: 600, boxShadow: scoreMode === m ? `0 0 0 1.5px ${cfg.color}44` : 'none', transition: 'all 0.15s',
+                  }}>{label}</button>
+                ))}
+              </div>
+
+              {/* whole */}
+              {scoreMode === 'whole' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <input type="number" min={1} max={20} value={trMaxPoints} onChange={e => setTrMaxPoints(Number(e.target.value))} onFocus={e => e.target.select()} style={{ ...inputSt, width: 90, textAlign: 'center' }} />
+                  <span style={{ fontSize: 12, color: '#9A9AA2' }}>баллов целиком за верный ответ</span>
+                </div>
+              )}
+
+              {/* perOption hint for non-choice types → keyword scoring */}
+              {scoreMode === 'perOption' && !isChoiceType && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Key size={14} strokeWidth={2} style={{ color: cfg.color }} />
+                    <Label>Ключи ответа — за каждое слово свой балл</Label>
+                  </div>
+                  {answerKeys.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {answerKeys.map(k => (
+                        <div key={k.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, background: '#fff', border: '1px solid rgba(0,0,0,0.08)' }}>
+                          <div style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: cfg.color, opacity: 0.7 }} />
+                          <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#0B0B0D' }}>{k.keyword}</div>
+                          <div style={{ padding: '3px 10px', borderRadius: 8, background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>+{k.points}</div>
+                          <button onClick={() => removeKey(k.id)} style={{ width: 22, height: 22, borderRadius: 7, border: 'none', cursor: 'pointer', background: '#FFE1E4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c0303a', flexShrink: 0 }}><X size={10} /></button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+                    <div style={{ flex: 1 }}><Label>Ключевое слово</Label>
+                      <input value={newKw} onChange={e => setNewKw(e.target.value)} onKeyDown={e => e.key === 'Enter' && addKey()} placeholder="Напр. дыхание, теплоотдача…" style={inputSt} />
+                    </div>
+                    <div style={{ width: 80 }}><Label>Баллов</Label>
+                      <input type="number" min={1} max={20} value={newKwPts} onChange={e => setNewKwPts(Number(e.target.value))} onFocus={e => e.target.select()} style={inputSt} />
+                    </div>
+                    <motion.button whileTap={{ scale: 0.95 }} onClick={addKey} style={{ height: 38, width: 38, borderRadius: 12, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Plus size={16} strokeWidth={2.4} /></motion.button>
+                  </div>
+                </div>
+              )}
+              {scoreMode === 'perOption' && isChoiceType && (
+                <div style={{ fontSize: 12, color: '#9A9AA2' }}>Баллы за каждый вариант задаются в блоке ответа выше.</div>
+              )}
+
+              {/* criteria */}
+              {scoreMode === 'criteria' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <ListChecks size={14} strokeWidth={2} style={{ color: cfg.color }} />
+                    <Label>Критерии оценивания — у каждого свои баллы</Label>
+                  </div>
+                  {criteria.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {criteria.map((c, idx) => (
+                        <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, background: '#fff', border: '1px solid rgba(0,0,0,0.08)' }}>
+                          <span style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{idx + 1}</span>
+                          <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#0B0B0D' }}>{c.text}</div>
+                          <div style={{ padding: '3px 10px', borderRadius: 8, background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>+{c.points}</div>
+                          <button onClick={() => removeCriterion(c.id)} style={{ width: 22, height: 22, borderRadius: 7, border: 'none', cursor: 'pointer', background: '#FFE1E4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c0303a', flexShrink: 0 }}><X size={10} /></button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+                    <div style={{ flex: 1 }}><Label>Критерий</Label>
+                      <input value={newCrit} onChange={e => setNewCrit(e.target.value)} onKeyDown={e => e.key === 'Enter' && addCriterion()} placeholder="Напр. записано уравнение реакции…" style={inputSt} />
+                    </div>
+                    <div style={{ width: 80 }}><Label>Баллов</Label>
+                      <input type="number" min={1} max={20} value={newCritPts} onChange={e => setNewCritPts(Number(e.target.value))} onFocus={e => e.target.select()} style={inputSt} />
+                    </div>
+                    <motion.button whileTap={{ scale: 0.95 }} onClick={addCriterion} style={{ height: 38, width: 38, borderRadius: 12, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Plus size={16} strokeWidth={2.4} /></motion.button>
+                  </div>
+                  <button onClick={() => setCriteriaVisible(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${criteriaVisible ? cfg.color + '55' : 'rgba(0,0,0,0.1)'}`, background: criteriaVisible ? `${cfg.bg}88` : '#F9F9FB', textAlign: 'left', width: '100%' }}>
+                    <span style={{ width: 34, height: 20, borderRadius: 10, flexShrink: 0, position: 'relative', background: criteriaVisible ? cfg.color : '#C2C2C8' }}>
+                      <span style={{ position: 'absolute', top: 2, left: criteriaVisible ? 16 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.15s' }} />
+                    </span>
+                    {criteriaVisible ? <Eye size={15} strokeWidth={2} style={{ color: cfg.color }} /> : <EyeOff size={15} strokeWidth={2} style={{ color: '#9A9AA2' }} />}
+                    <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#0B0B0D' }}>Показывать критерии студенту при проверке</div>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 4 ─ Объяснение */}
+            <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: 16 }}>
+              <Label>Объяснение / решение (показывается после ответа)</Label>
+              <div style={{ border: '1.5px solid rgba(0,0,0,0.10)', borderRadius: 12, background: '#F0FBF4', overflow: 'hidden' }}>
+                <textarea
+                  ref={explTextareaRef}
+                  value={tkSolution}
+                  onChange={e => {
+                    setTkSolution(e.target.value)
+                    const el = e.target
+                    el.style.height = 'auto'
+                    el.style.height = Math.max(90, el.scrollHeight) + 'px'
+                  }}
+                  onFocus={e => {
+                    const el = e.target
+                    el.style.height = 'auto'
+                    el.style.height = Math.max(90, el.scrollHeight) + 'px'
+                  }}
+                  placeholder="Почему этот ответ верный…"
+                  rows={3}
+                  style={{ ...inputSt, resize: 'none', background: 'transparent', border: 'none', borderRadius: 0, minHeight: 90, width: '100%', boxSizing: 'border-box', overflow: 'hidden' }}
+                />
+                {explPhotos.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '0 12px 12px' }}>
+                    {explPhotos.map((src, i) => (
+                      <div key={i} style={{ position: 'relative', display: 'inline-block' }}>
+                        <img src={src} alt="" style={{ maxWidth: 180, maxHeight: 140, borderRadius: 8, objectFit: 'cover', display: 'block' }} />
+                        <button
+                          onClick={() => setExplPhotos(prev => prev.filter((_, j) => j !== i))}
+                          style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.55)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, lineHeight: 1 }}
+                        >×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 12, color: '#5A8A6A', fontWeight: 600, userSelect: 'none' }}>
+                    <input type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => {
+                      const files = Array.from(e.target.files || [])
+                      files.forEach(file => {
+                        const reader = new FileReader()
+                        reader.onload = ev => {
+                          if (ev.target?.result) setExplPhotos(prev => [...prev, ev.target!.result as string])
+                        }
+                        reader.readAsDataURL(file)
+                      })
+                      e.target.value = ''
+                    }} />
+                    <ImageIcon size={14} />
+                    Добавить фото
+                  </label>
+                </div>
+              </div>
+            </div>
+          </>}
+
+          {/* ─── COURSE center ─── */}
+          {mode === 'course' && (
+            <div>
+              <SectionHead>Уроки курса ({cLessons.length})</SectionHead>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+                {cLessons.map((lesson, idx) => (
+                  <div key={lesson.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: '#fff', borderRadius: 12, border: '1px solid rgba(0,0,0,0.07)' }}>
+                    <div style={{ width: 22, height: 22, borderRadius: 7, background: '#EEDBFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#7B3FCC', flexShrink: 0 }}>{idx + 1}</div>
+                    <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#0B0B0D' }}>{lesson.title}</div>
+                    <button onClick={() => setCLessons(prev => prev.map((l, i) => {
+                      if (i === idx - 1) return cLessons[idx]
+                      if (i === idx) return cLessons[idx - 1]
+                      return l
+                    }))} disabled={idx === 0} style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: idx === 0 ? 'not-allowed' : 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6F6F76', opacity: idx === 0 ? 0.3 : 1 }}>
+                      <ArrowUp size={11} />
+                    </button>
+                    <button onClick={() => setCLessons(prev => prev.filter(l => l.id !== lesson.id))} style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: '#FFE1E4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c0303a' }}>
+                      <Trash2 size={11} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+                <LessonNameInput value={newLessonTitle} onChange={setNewLessonTitle} onAdd={addLessonByTitle} />
+                <motion.button whileTap={{ scale: 0.95 }} onClick={addLesson}
+                  style={{ width: 38, height: 38, borderRadius: 11, border: 'none', cursor: 'pointer', background: '#EEDBFF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7B3FCC', flexShrink: 0 }}>
+                  <Plus size={16} strokeWidth={2.4} />
+                </motion.button>
+              </div>
+            </div>
+          )}
+
+          {/* ─── WIDGET center ─── */}
+          {mode === 'widget' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <SectionHead>Содержимое — {WTYPE_LABEL[wType]}</SectionHead>
+              {(wType === 'quiz' || wType === 'qod') && <>
+                <div><Label>Вопрос</Label><input value={wQText} onChange={e => setWQText(e.target.value)} placeholder="Текст вопроса…" style={inputSt} /></div>
+                {wQOpts.map((opt, oi) => (
+                  <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <button onClick={() => setWQCorr(oi)} style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid', flexShrink: 0, borderColor: wQCorr === oi ? WTYPE_COLOR[wType] : '#C2C2C8', background: wQCorr === oi ? WTYPE_COLOR[wType] : 'transparent', cursor: 'pointer' }} />
+                    <input value={opt} onChange={e => { const o = [...wQOpts]; o[oi] = e.target.value; setWQOpts(o) }} placeholder={`Вариант ${oi + 1}…`} style={{ ...inputSt, flex: 1 }} />
+                  </div>
+                ))}
+              </>}
+              {wType === 'facts' && <>
+                <div><Label>Заголовок факта</Label><input value={wFcTerm} onChange={e => setWFcTerm(e.target.value)} style={inputSt} /></div>
+                <div><Label>Текст факта</Label><textarea value={wFcDef} onChange={e => setWFcDef(e.target.value)} rows={3} style={{ ...inputSt, resize: 'vertical' }} /></div>
+              </>}
+              <motion.button whileTap={{ scale: 0.97 }} onClick={addWidgetItem}
+                style={{ padding: '9px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: WTYPE_BG[wType], color: WTYPE_COLOR[wType], fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <Plus size={13} /> Добавить элемент
+              </motion.button>
+              {wItems.length > 0 && (
+                <div>
+                  <SectionHead>Добавлено: {wItems.length}</SectionHead>
+                  {wItems.slice(0, 5).map((item, i) => (
+                    <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: '#F9F9FB', borderRadius: 9, marginBottom: 4 }}>
+                      <div style={{ width: 18, height: 18, borderRadius: 5, background: WTYPE_BG[wType], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: WTYPE_COLOR[wType] }}>{i + 1}</div>
+                      <div style={{ flex: 1, fontSize: 11, color: '#0B0B0D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.question ?? item.factTitle ?? '—'}</div>
+                      <button onClick={() => setWItems(prev => prev.filter(x => x.id !== item.id))} style={{ width: 18, height: 18, borderRadius: 5, border: 'none', cursor: 'pointer', background: '#FFE1E4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c0303a' }}><X size={9} /></button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          </GlassCard>
+        </div>{/* end center column */}
+
+        {/* RIGHT: block palette (trainer mode) */}
+        {mode === 'trainer' && (
+          <div style={{ padding: '0 24px 20px 0', flexShrink: 0, position: 'sticky', top: 20 }}>
+            <GlassCard style={{ width: 248, boxSizing: 'border-box', padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <SectionHead>Тип ответа</SectionHead>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {ANSWER_TYPES.map(({ type, label, hint, Icon }) => {
+                    const active = tkAnswerType === type
+                    return (
+                      <button key={type} onClick={() => {
+                        setTkAnswerType(type)
+                        if (type === 'tableFill') setTkHasTable(true)
+                        if (type === 'multi' && tkCorrect.length === 0) setTkCorrect([0])
+                        if (type === 'single' && tkCorrect.length > 1) setTkCorrect([tkCorrect[0]])
+                      }} style={{
+                        display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11,
+                        border: active ? `1.5px solid ${cfg.color}` : '1.5px solid transparent',
+                        background: active ? cfg.bg : '#F5F5F6', cursor: 'pointer', textAlign: 'left', width: '100%',
+                      }}>
+                        <Icon size={15} strokeWidth={2} style={{ color: active ? cfg.color : '#9A9AA2', flexShrink: 0 }} />
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 12.5, fontWeight: 700, color: active ? cfg.color : '#0B0B0D' }}>{label}</div>
+                          <div style={{ fontSize: 10.5, color: '#9A9AA2', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{hint}</div>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: 14 }}>
+                <SectionHead>Блоки условия</SectionHead>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11, background: '#F5F5F6', cursor: 'pointer' }}>
+                    <ImageIcon size={15} strokeWidth={2} style={{ color: '#9A9AA2', flexShrink: 0 }} />
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: '#0B0B0D' }}>{tkImage ? 'Заменить фото' : 'Добавить фото'}</div>
+                    <input type="file" accept="image/*" onChange={onPickImage} style={{ display: 'none' }} />
+                  </label>
+                  <button onClick={() => setTkHasTable(v => !v)} style={{
+                    display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11,
+                    border: tkHasTable ? `1.5px solid ${cfg.color}` : '1.5px solid transparent',
+                    background: tkHasTable ? cfg.bg : '#F5F5F6', cursor: 'pointer', textAlign: 'left', width: '100%',
+                  }}>
+                    <TableIcon size={15} strokeWidth={2} style={{ color: tkHasTable ? cfg.color : '#9A9AA2', flexShrink: 0 }} />
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: tkHasTable ? cfg.color : '#0B0B0D' }}>{tkHasTable ? 'Таблица добавлена' : 'Добавить таблицу'}</div>
+                  </button>
+                </div>
+              </div>
+            </GlassCard>
+          </div>
+        )}
+        </div>{/* end body row */}
+      </div>{/* end page content */}
     </motion.div>
   )
 }
@@ -1156,50 +2295,142 @@ function NewQuestionCard({ onSave, onCancel }: {
 export default function TeacherConstructorPage() {
   const [activeTab, setActiveTab] = useState<Tab>('course')
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [showNewCard, setShowNewCard] = useState(false)
-  const [courses, setCourses] = useState<Course[]>(COURSES_INIT)
-  const [trainers, setTrainers] = useState<Trainer[]>(TRAINERS_INIT)
-  const [widgets, setWidgets] = useState<Widget[]>(WIDGETS_INIT)
+  const [creatorMode, setCreatorMode] = useState<Tab | null>(null)
+  const [editCourse, setEditCourse] = useState<Course | null>(null)
+  const [editTrainer, setEditTrainer] = useState<Trainer | null>(null)
+  const [selectedTrainerId, setSelectedTrainerId] = useState<string | null>(null)
+  const [courses, setCourses] = useState<Course[]>(() => {
+    try { const s = localStorage.getItem('constructor-courses'); return s ? JSON.parse(s) : COURSES_INIT } catch { return COURSES_INIT }
+  })
+  const [trainers, setTrainers] = useState<Trainer[]>(() => {
+    try {
+      const s = localStorage.getItem('constructor-trainers')
+      const v = localStorage.getItem('constructor-trainers-v')
+      if (s && v === '2') return JSON.parse(s)
+    } catch {}
+    return TRAINERS_INIT
+  })
+  const [widgets, setWidgets] = useState<Widget[]>(() => {
+    try { const s = localStorage.getItem('constructor-widgets'); return s ? JSON.parse(s) : WIDGETS_INIT } catch { return WIDGETS_INIT }
+  })
+  const [editMode, setEditMode] = useState(false)
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set())
+
+  useEffect(() => { try { localStorage.setItem('constructor-courses', JSON.stringify(courses)) } catch {} }, [courses])
+  useEffect(() => { try { localStorage.setItem('constructor-trainers', JSON.stringify(trainers)); localStorage.setItem('constructor-trainers-v', '2') } catch {} }, [trainers])
+  useEffect(() => { try { localStorage.setItem('constructor-widgets', JSON.stringify(widgets)) } catch {} }, [widgets])
+
+  const [bankFilters, setBankFilters] = useState<TrainerFilters>(emptyTrainerFilters)
+  const removeTask = useTaskBank(s => s.removeTask)
+
+  // Open straight into a creator view when navigated here from the topbar "+" menu.
+  const constructorIntent = useTeacher(s => s.constructorIntent)
+  const clearConstructorIntent = useTeacher(s => s.clearConstructorIntent)
+  useEffect(() => {
+    if (!constructorIntent) return
+    setActiveTab(constructorIntent)
+    setEditCourse(null)
+    setCreatorMode(constructorIntent)
+    setSelectedId(null)
+    clearConstructorIntent()
+  }, [constructorIntent, clearConstructorIntent])
+
+  // Open straight into trainer task editor when pencil is clicked on a bank card.
+  const editTaskIntent = useTeacher(s => s.editTaskIntent)
+  const clearEditTaskIntent = useTeacher(s => s.clearEditTaskIntent)
+  const allTasks = useTaskBank(s => s.tasks)
+  const [editingTask, setEditingTask] = useState<BankTask | null>(null)
+  useEffect(() => {
+    if (editTaskIntent == null) return
+    const task = allTasks.find(t => t.id === editTaskIntent) ?? null
+    setActiveTab('trainer')
+    setEditCourse(null)
+    setCreatorMode('trainer')
+    setSelectedId(null)
+    setEditingTask(task)
+    clearEditTaskIntent()
+  }, [editTaskIntent, clearEditTaskIntent])
 
   const selectedCourse  = courses.find(c => c.id === selectedId) ?? null
   const selectedTrainer = trainers.find(t => t.id === selectedId) ?? null
   const selectedWidget  = widgets.find(w => w.id === selectedId) ?? null
+  // Whether the side editor panel is open — drives the synchronized list shift.
+  const panelOpen = (!!selectedCourse && activeTab === 'course') || (!!selectedWidget && activeTab === 'widget')
 
   function openItem(id: string) { setSelectedId(prev => prev === id ? null : id) }
   function closeEditor() { setSelectedId(null) }
 
   function handleTabChange(t: Tab) {
-    setActiveTab(t); setSelectedId(null); setShowNewCard(false)
+    setActiveTab(t); setSelectedId(null); setCreatorMode(null); setEditCourse(null); setEditTrainer(null); setSelectedTrainerId(null)
+    setEditMode(false); setCheckedIds(new Set())
   }
 
   function handlePlus() {
-    if (activeTab === 'trainer') {
-      setShowNewCard(true)
-      setSelectedId(null)
-    } else if (activeTab === 'course') {
-      const c: Course = { id: uid(), title: 'Новый курс', subject: 'Химия', level: 'ЕГЭ', description: '', lessons: [], color: '#B98FFF', bg: '#EFE0FF', status: 'draft', lastEdited: new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) }
-      setCourses(prev => [c, ...prev]); setSelectedId(c.id)
-    } else {
-      const w: Widget = { id: uid(), title: 'Новый виджет', type: 'quiz', linkedTrainerId: null, items: [], color: WTYPE_COLOR.quiz, bg: WTYPE_BG.quiz, lastEdited: new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) }
-      setWidgets(prev => [w, ...prev]); setSelectedId(w.id)
-    }
+    setEditCourse(null); setEditTrainer(null)
+    setCreatorMode(activeTab)
+    setSelectedId(null)
+    setEditMode(false); setCheckedIds(new Set())
   }
 
-  function saveNewQuestion(q: TrainerQ) {
-    const dateStr = new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
-    if (selectedTrainer) {
-      const updated = { ...selectedTrainer, questions: [q, ...selectedTrainer.questions], lastEdited: dateStr }
-      setTrainers(prev => prev.map(t => t.id === updated.id ? updated : t))
-    } else {
-      const t: Trainer = {
-        id: uid(), title: q.text.slice(0, 50), topic: TOPICS[0],
-        difficulty: q.difficulty ?? 'medium', timePerQuestion: 2,
-        questions: [q], color: '#9B6DFF', bg: '#E4D9FF', lastEdited: dateStr,
-      }
-      setTrainers(prev => [t, ...prev])
-      setSelectedId(t.id)
-    }
-    setShowNewCard(false)
+  function toggleEditMode() {
+    setEditMode(prev => !prev)
+    setCheckedIds(new Set())
+    setSelectedId(null)
+  }
+
+  function toggleCheck(id: string) {
+    setCheckedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  function deleteChecked() {
+    if (activeTab === 'course') setCourses(prev => prev.filter(c => !checkedIds.has(c.id)))
+    else if (activeTab === 'trainer') setTrainers(prev => prev.filter(t => !checkedIds.has(t.id)))
+    else setWidgets(prev => prev.filter(w => !checkedIds.has(w.id)))
+    setCheckedIds(new Set())
+    setEditMode(false)
+  }
+
+  // Trainer cards open straight into the full-screen bank-browser editor.
+  function handleOpenTrainer(t: Trainer) {
+    setEditTrainer(t)
+    setCreatorMode('trainer')
+    setSelectedId(null)
+  }
+
+  // "Раскрыть на всю" — open the full-screen editor pre-loaded to edit this course.
+  function handleExpandCourse(c: Course) {
+    setEditCourse(c)
+    setCreatorMode('course')
+    setSelectedId(null)
+  }
+
+  function handleSaveTrainer(t: Trainer) {
+    // Upsert: update in place when editing, else prepend.
+    setTrainers(prev => prev.some(x => x.id === t.id) ? prev.map(x => x.id === t.id ? t : x) : [t, ...prev])
+    setCreatorMode(null)
+    setEditTrainer(null)
+    setActiveTab('trainer')
+    setSelectedId(t.id)
+  }
+
+  function handleSaveCourse(c: Course) {
+    // Upsert: update in place when editing an existing course, else prepend.
+    setCourses(prev => prev.some(x => x.id === c.id) ? prev.map(x => x.id === c.id ? c : x) : [c, ...prev])
+    setCreatorMode(null)
+    setEditCourse(null)
+    setActiveTab('course')
+    setSelectedId(c.id)
+  }
+
+  function handleSaveWidget(w: Widget) {
+    setWidgets(prev => [w, ...prev])
+    setCreatorMode(null)
+    setActiveTab('widget')
+    setSelectedId(w.id)
   }
 
   const tabCfg = {
@@ -1209,53 +2440,154 @@ export default function TeacherConstructorPage() {
   }
 
   return (
-    <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden' }}>
-      {/* Main scrollable area */}
-      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', padding: '0 32px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+    // overflow:visible + marginTop:-100 so both sub-views can lift content under the topbar blur.
+    <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', marginTop: -100 }}>
+      <AnimatePresence mode="wait">
+        {creatorMode ? (
+          <CreatorView
+            key={editCourse ? `edit-${editCourse.id}` : editTrainer ? `edit-tr-${editTrainer.id}` : editingTask ? `edit-task-${editingTask.id}` : 'creator'}
+            initialMode={creatorMode}
+            editCourse={editCourse}
+            editTrainer={editTrainer}
+            editingTask={editingTask}
+            trainers={trainers}
+            widgets={widgets}
+            onSaveTrainer={handleSaveTrainer}
+            onSaveCourse={handleSaveCourse}
+            onSaveWidget={handleSaveWidget}
+            onCancel={() => { setCreatorMode(null); setEditCourse(null); setEditTrainer(null); setEditingTask(null) }}
+          />
+        ) : (
+          <motion.div
+            key="list"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ flex: 1, display: 'flex', minWidth: 0, overflow: 'hidden', position: 'relative' }}
+          >
+            <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                {/* Edit-mode toggle — square button */}
+                <motion.button
+                  whileTap={{ scale: 0.93 }}
+                  onClick={toggleEditMode}
+                  title={editMode ? 'Выйти из режима редактирования' : 'Редактировать'}
+                  style={{
+                    width: 44, padding: '10px 0', borderRadius: 16, border: 'none', cursor: 'pointer', flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: editMode ? '#FFE1E4' : 'rgba(255,255,255,0.88)',
+                    color: editMode ? '#c0303a' : '#6F6F76',
+                    boxShadow: editMode ? '0 0 0 1.5px #c0303a44, 0 4px 14px rgba(0,0,0,0.06)' : '0 2px 8px rgba(0,0,0,0.07)',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {editMode ? <X size={17} strokeWidth={2.4} /> : <Pencil size={16} strokeWidth={2} />}
+                </motion.button>
 
-        {/* Tab selector */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          {(['course', 'trainer', 'widget'] as Tab[]).map(t => {
-            const cfg = tabCfg[t]
-            return <TabBtn key={t} tab={t} activeTab={activeTab} label={cfg.label} icon={cfg.Icon} color={cfg.color} bg={cfg.bg}
-              onClick={() => handleTabChange(t)} onPlus={handlePlus} />
-          })}
-        </div>
+                {(['course', 'trainer', 'widget'] as Tab[]).map(t => {
+                  const cfg = tabCfg[t]
+                  return <TabBtn key={t} tab={t} activeTab={activeTab} label={cfg.label} icon={cfg.Icon} color={cfg.color} bg={cfg.bg}
+                    onClick={() => t === activeTab ? handlePlus() : handleTabChange(t)} onPlus={handlePlus} />
+                })}
 
-        {/* Inline new question form (trainer tab only) */}
-        <AnimatePresence>
-          {showNewCard && activeTab === 'trainer' && (
-            <NewQuestionCard key="new-question" onSave={saveNewQuestion} onCancel={() => setShowNewCard(false)} />
-          )}
-        </AnimatePresence>
-
-        {/* Card grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
-          {activeTab === 'course' && courses.map(c => (
-            <CourseCard key={c.id} course={c} isSelected={selectedId === c.id} onClick={() => openItem(c.id)} />
-          ))}
-          {activeTab === 'trainer' && trainers.map(t => (
-            <TrainerCard key={t.id} trainer={t} isSelected={selectedId === t.id} onClick={() => openItem(t.id)} />
-          ))}
-          {activeTab === 'widget' && widgets.map(w => (
-            <WidgetCard key={w.id} widget={w} isSelected={selectedId === w.id} onClick={() => openItem(w.id)} />
-          ))}
-        </div>
-      </div>
-
-      {/* Editor panel */}
-      <AnimatePresence>
-        {selectedCourse && activeTab === 'course' && (
-          <CourseEditor key={selectedCourse.id} course={selectedCourse} trainers={trainers} widgets={widgets}
-            onSave={c => setCourses(prev => prev.map(x => x.id === c.id ? c : x))} onClose={closeEditor} />
-        )}
-        {selectedTrainer && activeTab === 'trainer' && (
-          <TrainerEditor key={selectedTrainer.id} trainer={selectedTrainer}
-            onSave={t => setTrainers(prev => prev.map(x => x.id === t.id ? t : x))} onClose={closeEditor} />
-        )}
-        {selectedWidget && activeTab === 'widget' && (
-          <WidgetEditor key={selectedWidget.id} widget={selectedWidget} trainers={trainers}
-            onSave={w => setWidgets(prev => prev.map(x => x.id === w.id ? w : x))} onClose={closeEditor} />
+                {/* Delete bar — shown when items are checked */}
+                <AnimatePresence>
+                  {editMode && checkedIds.size > 0 && (
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.92, x: -10 }}
+                      animate={{ opacity: 1, scale: 1, x: 0 }}
+                      exit={{ opacity: 0, scale: 0.92, x: -10 }}
+                      transition={{ type: 'spring', stiffness: 360, damping: 28 }}
+                      onClick={deleteChecked}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 7,
+                        padding: '10px 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
+                        background: '#c0303a', color: '#fff', fontSize: 13, fontWeight: 700,
+                        boxShadow: '0 4px 14px rgba(192,48,58,0.32)',
+                      }}
+                    >
+                      <Trash2 size={14} strokeWidth={2.4} />
+                      Удалить {checkedIds.size}
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+              </div>
+              {activeTab === 'trainer' && (
+                <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <TrainerBankBrowser
+                      filters={bankFilters}
+                      selectedIds={new Set()}
+                      onToggleSelected={() => {}}
+                      onForkSelected={() => {}}
+                      onDeleteTask={id => removeTask(id)}
+                      showSelect={false}
+                      compact={true}
+                      accent="#7B3FCC"
+                      accentBg="#EEDBFF"
+                    />
+                  </div>
+                  <TrainerBankFilterPanel
+                    filters={bankFilters}
+                    onChange={f => setBankFilters(prev => ({ ...prev, ...f }))}
+                    accent="#7B3FCC"
+                    accentBg="#EEDBFF"
+                  />
+                </div>
+              )}
+              <motion.div
+                animate={{ marginRight: panelOpen && !editMode ? 384 : 0 }}
+                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                style={{ display: activeTab === 'trainer' ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+                {activeTab === 'course' && courses.map(c => (
+                  <div key={c.id} style={{ position: 'relative' }}>
+                    <CourseCard course={c} isSelected={!editMode && selectedId === c.id}
+                      onClick={() => editMode ? toggleCheck(c.id) : openItem(c.id)} />
+                    {editMode && (
+                      <div onClick={() => toggleCheck(c.id)} style={{
+                        position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
+                        border: checkedIds.has(c.id) ? '2px solid #c0303a' : '2px solid rgba(0,0,0,0.18)',
+                        background: checkedIds.has(c.id) ? '#c0303a' : 'rgba(255,255,255,0.9)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', transition: 'all 0.14s', zIndex: 5,
+                        boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+                      }}>
+                        {checkedIds.has(c.id) && <Check size={13} strokeWidth={3} style={{ color: '#fff' }} />}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {activeTab === 'widget' && widgets.map(w => (
+                  <div key={w.id} style={{ position: 'relative' }}>
+                    <WidgetCard widget={w} isSelected={!editMode && selectedId === w.id}
+                      onClick={() => editMode ? toggleCheck(w.id) : openItem(w.id)} />
+                    {editMode && (
+                      <div onClick={() => toggleCheck(w.id)} style={{
+                        position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
+                        border: checkedIds.has(w.id) ? '2px solid #c0303a' : '2px solid rgba(0,0,0,0.18)',
+                        background: checkedIds.has(w.id) ? '#c0303a' : 'rgba(255,255,255,0.9)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', transition: 'all 0.14s', zIndex: 5,
+                        boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+                      }}>
+                        {checkedIds.has(w.id) && <Check size={13} strokeWidth={3} style={{ color: '#fff' }} />}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </motion.div>
+            </div>
+            <AnimatePresence>
+              {selectedCourse && activeTab === 'course' && (
+                <CourseEditor key={selectedCourse.id} course={selectedCourse} trainers={trainers} widgets={widgets}
+                  onSave={c => setCourses(prev => prev.map(x => x.id === c.id ? c : x))} onClose={closeEditor}
+                  onExpand={() => handleExpandCourse(selectedCourse)} />
+              )}
+              {/* Trainer editing now happens in the full-screen CreatorView (bank browser) */}
+              {selectedWidget && activeTab === 'widget' && (
+                <WidgetEditor key={selectedWidget.id} widget={selectedWidget} trainers={trainers}
+                  onSave={w => setWidgets(prev => prev.map(x => x.id === w.id ? w : x))} onClose={closeEditor} />
+              )}
+            </AnimatePresence>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

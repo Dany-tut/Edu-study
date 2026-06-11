@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Calendar, Clock, MessageSquare, Check, ChevronLeft, ChevronRight } from 'lucide-react'
+import { X, Calendar, Clock, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react'
 import { students, groups } from '../../data/teacherMockData'
+import TeacherSaveButton from './TeacherSaveButton'
 
 // ─── Task types ───────────────────────────────────────────────────────────────
 
@@ -718,36 +719,12 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
               >
                 Отмена
               </button>
-              <motion.button
-                whileTap={{ scale: 0.97 }}
+              <TeacherSaveButton
+                label="Сохранить" savedLabel="Сохранено"
+                saved={saved} disabled={!canSave}
                 onClick={handleSave}
-                disabled={!canSave}
-                style={{
-                  flex: 2, padding: '11px 0', borderRadius: 14,
-                  border: 'none', cursor: canSave ? 'pointer' : 'default',
-                  fontSize: 14, fontWeight: 650,
-                  background: saved ? '#16a87a' : (canSave ? '#7B3FCC' : '#C4B0F0'),
-                  color: '#fff',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                  transition: 'background 0.2s',
-                }}
-              >
-                <AnimatePresence mode="wait">
-                  {saved ? (
-                    <motion.span
-                      key="check"
-                      initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
-                      style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-                    >
-                      <Check size={16} strokeWidth={2.5} /> Сохранено
-                    </motion.span>
-                  ) : (
-                    <motion.span key="save" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                      Сохранить
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.button>
+                style={{ flex: 2 }}
+              />
             </div>
           </div>
         </motion.div>

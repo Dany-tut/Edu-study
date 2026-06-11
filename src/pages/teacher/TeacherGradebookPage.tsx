@@ -1,7 +1,10 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Download, Users } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Download, ClipboardList, X, Check } from 'lucide-react'
 import { groups, students } from '../../data/teacherMockData'
+import { useTeacher } from '../../store/teacherStore'
+import GroupStrip from '../../components/teacher/GroupStrip'
+import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -39,6 +42,46 @@ function ScorePill({ value }: { value: number | null }) {
   )
 }
 
+// Avatar/accent colour for a student, resolved from their own group.
+const groupColor = (gid: string) => groups.find(g => g.id === gid)?.color ?? '#9B6DFF'
+
+function ScrollFadeTable({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [fadeLeft, setFadeLeft] = useState(false)
+  const [fadeRight, setFadeRight] = useState(false)
+
+  function check() {
+    const el = ref.current
+    if (!el) return
+    setFadeLeft(el.scrollLeft > 4)
+    setFadeRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4)
+  }
+
+  useEffect(() => { check() }, [])
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <div ref={ref} onScroll={check} style={{ overflowX: 'auto' }}>
+        {children}
+      </div>
+      <div style={{
+        position: 'absolute', top: 0, left: 0, bottom: 0, width: 56,
+        pointerEvents: 'none', zIndex: 2,
+        background: 'linear-gradient(to right, rgba(255,255,255,0.92), transparent)',
+        opacity: fadeLeft ? 1 : 0,
+        transition: 'opacity 0.22s ease',
+      }} />
+      <div style={{
+        position: 'absolute', top: 0, right: 0, bottom: 0, width: 72,
+        pointerEvents: 'none', zIndex: 2,
+        background: 'linear-gradient(to left, rgba(255,255,255,0.92), transparent)',
+        opacity: fadeRight ? 1 : 0,
+        transition: 'opacity 0.22s ease',
+      }} />
+    </div>
+  )
+}
+
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
     <div style={{
@@ -55,15 +98,13 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 }
 
 // ─── Attendance tab ────────────────────────────────────────────────────────────
-function AttendanceTab({ groupId }: { groupId: string }) {
-  const group = groups.find(g => g.id === groupId)
-  const groupStudents = students.filter(s => s.groupId === groupId)
-
-  if (!group) return null
+function AttendanceTab({ groupId }: { groupId: string | null }) {
+  // null groupId → whole list (all students across every group).
+  const groupStudents = groupId ? students.filter(s => s.groupId === groupId) : students
 
   return (
     <Card>
-      <div style={{ overflowX: 'auto' }}>
+      <ScrollFadeTable>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'rgba(0,0,0,0.018)' }}>
@@ -112,7 +153,7 @@ function AttendanceTab({ groupId }: { groupId: string }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                       <div style={{
                         width: 28, height: 28, borderRadius: 9, flexShrink: 0,
-                        background: group.color,
+                        background: groupColor(student.groupId),
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 10, fontWeight: 700, color: '#fff',
                       }}>
@@ -155,17 +196,15 @@ function AttendanceTab({ groupId }: { groupId: string }) {
             })}
           </tbody>
         </table>
-      </div>
+      </ScrollFadeTable>
     </Card>
   )
 }
 
 // ─── Scores tab ────────────────────────────────────────────────────────────────
-function ScoresTab({ groupId }: { groupId: string }) {
-  const group = groups.find(g => g.id === groupId)
-  const groupStudents = students.filter(s => s.groupId === groupId)
-
-  if (!group) return null
+function ScoresTab({ groupId }: { groupId: string | null }) {
+  // null groupId → whole list (all students across every group).
+  const groupStudents = groupId ? students.filter(s => s.groupId === groupId) : students
 
   const avgHw = Math.round(groupStudents.reduce((a, s) => a + s.hwScore, 0) / groupStudents.length)
   const avgTest = Math.round(groupStudents.reduce((a, s) => a + s.testScore, 0) / groupStudents.length)
@@ -174,7 +213,7 @@ function ScoresTab({ groupId }: { groupId: string }) {
 
   return (
     <Card>
-      <div style={{ overflowX: 'auto' }}>
+      <ScrollFadeTable>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'rgba(0,0,0,0.018)' }}>
@@ -213,7 +252,7 @@ function ScoresTab({ groupId }: { groupId: string }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                       <div style={{
                         width: 28, height: 28, borderRadius: 9, flexShrink: 0,
-                        background: group.color,
+                        background: groupColor(student.groupId),
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 10, fontWeight: 700, color: '#fff',
                       }}>
@@ -268,62 +307,267 @@ function ScoresTab({ groupId }: { groupId: string }) {
             </tr>
           </tbody>
         </table>
-      </div>
+      </ScrollFadeTable>
     </Card>
+  )
+}
+
+// ─── Lesson grading modal ──────────────────────────────────────────────────────
+const GRADE_OPTIONS = [null, 1, 2, 3, 4, 5] as const
+type Grade = 1 | 2 | 3 | 4 | 5 | null
+
+function GradeButton({ value, selected, onClick }: { value: Grade; selected: boolean; onClick: () => void }) {
+  if (value === null) return null
+  const colors: Record<number, { bg: string; color: string; selBg: string }> = {
+    1: { bg: '#FFE1E4', color: '#c0303a', selBg: '#c0303a' },
+    2: { bg: '#FFE1E4', color: '#c0303a', selBg: '#c0303a' },
+    3: { bg: '#FFF9CC', color: '#7a6500', selBg: '#e6a800' },
+    4: { bg: '#DFF8D6', color: '#1a7a3f', selBg: '#1a7a3f' },
+    5: { bg: '#DFF8D6', color: '#1a7a3f', selBg: '#1a7a3f' },
+  }
+  const c = colors[value]
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        width: 32, height: 32, borderRadius: 9, border: selected ? 'none' : '1.5px solid transparent',
+        background: selected ? c.selBg : c.bg,
+        color: selected ? '#fff' : c.color,
+        fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
+        outline: selected ? `2px solid ${c.selBg}` : 'none',
+        outlineOffset: 1,
+      }}
+    >
+      {value}
+    </button>
+  )
+}
+
+function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClose: () => void }) {
+  const group = groupId ? groups.find(g => g.id === groupId) ?? null : null
+  const groupStudents = groupId ? students.filter(s => s.groupId === groupId) : students
+  const today = new Date()
+  const dateLabel = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}`
+
+  const [present, setPresent] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(groupStudents.map(s => [s.id, true]))
+  )
+  const [grades, setGrades] = useState<Record<string, Grade>>(() =>
+    Object.fromEntries(groupStudents.map(s => [s.id, null]))
+  )
+  const [saved, setSaved] = useState(false)
+
+  // Accent/label fall back to a neutral "Все группы" when grading the whole list.
+  const accent = group?.color ?? '#7B3FCC'
+  const headerName = group?.name ?? 'Все группы'
+
+  function handleSave() {
+    setSaved(true)
+    setTimeout(onClose, 900)
+  }
+
+  const presentCount = Object.values(present).filter(Boolean).length
+  const gradedCount = Object.values(grades).filter(v => v !== null).length
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(11,11,13,0.45)', backdropFilter: 'blur(6px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+    >
+      <motion.div
+        onClick={e => e.stopPropagation()}
+        initial={{ opacity: 0, scale: 0.94, y: 16 }}
+        animate={saved ? { opacity: 0, scale: 0.96, y: -8 } : { opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+        style={{
+          background: 'rgba(255,255,255,0.97)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: 24,
+          boxShadow: '0 24px 64px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,1)',
+          width: 560, maxHeight: '82vh',
+          display: 'flex', flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Header */}
+        <div style={{
+          padding: '20px 24px 16px',
+          borderBottom: '1px solid rgba(0,0,0,0.06)',
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+        }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: accent }} />
+              <span style={{ fontSize: 11, fontWeight: 700, color: accent }}>{headerName}</span>
+              <span style={{ fontSize: 11, color: '#9A9AA2' }}>·</span>
+              <span style={{ fontSize: 11, color: '#9A9AA2', fontWeight: 600 }}>{dateLabel}</span>
+            </div>
+            <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#0B0B0D' }}>
+              Оценки за урок
+            </h2>
+            <p style={{ margin: '3px 0 0', fontSize: 12, color: '#9A9AA2' }}>
+              Присутствовало {presentCount} из {groupStudents.length} · оценок выставлено {gradedCount}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              width: 30, height: 30, borderRadius: 10, border: 'none',
+              background: '#F5F5F6', color: '#6F6F76', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <X size={14} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        {/* Column headers */}
+        <div style={{
+          padding: '8px 24px',
+          display: 'grid', gridTemplateColumns: '1fr 72px 1fr',
+          background: 'rgba(0,0,0,0.018)',
+          borderBottom: '1px solid rgba(0,0,0,0.04)',
+        }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.3 }}>СТУДЕНТ</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.3, textAlign: 'center' }}>ПРИСУТСТВИЕ</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.3, paddingLeft: 16 }}>ОЦЕНКА ЗА УРОК</span>
+        </div>
+
+        {/* Student list */}
+        <div style={{ overflowY: 'auto', scrollbarGutter: 'stable', flex: 1 }}>
+          {groupStudents.map((student, si) => {
+            const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
+            const isPresent = present[student.id]
+
+            return (
+              <motion.div
+                key={student.id}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.2, delay: si * 0.03 }}
+                style={{
+                  display: 'grid', gridTemplateColumns: '1fr 72px 1fr',
+                  alignItems: 'center',
+                  padding: '10px 24px',
+                  borderBottom: '1px solid rgba(0,0,0,0.04)',
+                  background: isPresent ? 'transparent' : 'rgba(192,48,58,0.025)',
+                  transition: 'background 0.2s',
+                }}
+              >
+                {/* Name */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                  <div style={{
+                    width: 28, height: 28, borderRadius: 9, flexShrink: 0,
+                    background: isPresent ? groupColor(student.groupId) : '#D4D4D8',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 10, fontWeight: 700, color: '#fff',
+                    transition: 'background 0.2s',
+                  }}>
+                    {initials}
+                  </div>
+                  <span style={{
+                    fontSize: 13, fontWeight: 600,
+                    color: isPresent ? '#0B0B0D' : '#A0A0A8',
+                    transition: 'color 0.2s',
+                  }}>
+                    {student.name}
+                  </span>
+                </div>
+
+                {/* Attendance toggle */}
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <button
+                    onClick={() => {
+                      setPresent(p => ({ ...p, [student.id]: !p[student.id] }))
+                      if (!present[student.id] === false) setGrades(g => ({ ...g, [student.id]: null }))
+                    }}
+                    style={{
+                      width: 32, height: 32, borderRadius: 9, border: 'none', cursor: 'pointer',
+                      background: isPresent ? '#DFF8D6' : '#FFE1E4',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {isPresent
+                      ? <Check size={14} strokeWidth={2.5} color="#1a7a3f" />
+                      : <X size={13} strokeWidth={2.5} color="#c0303a" />
+                    }
+                  </button>
+                </div>
+
+                {/* Grade selector */}
+                <div style={{
+                  display: 'flex', gap: 4, paddingLeft: 16,
+                  opacity: isPresent ? 1 : 0.3, pointerEvents: isPresent ? 'auto' : 'none',
+                  transition: 'opacity 0.2s',
+                }}>
+                  {([1, 2, 3, 4, 5] as const).map(g => (
+                    <GradeButton
+                      key={g} value={g}
+                      selected={grades[student.id] === g}
+                      onClick={() => setGrades(prev => ({ ...prev, [student.id]: prev[student.id] === g ? null : g }))}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            )
+          })}
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          padding: '16px 24px',
+          borderTop: '1px solid rgba(0,0,0,0.06)',
+          display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10,
+        }}>
+          <button
+            onClick={onClose}
+            style={{
+              padding: '9px 20px', borderRadius: 13, border: '1.5px solid rgba(0,0,0,0.08)',
+              background: 'transparent', color: '#6F6F76', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            Отмена
+          </button>
+          <TeacherSaveButton
+            label="Сохранить урок" savedLabel="Сохранено"
+            saved={saved} onClick={handleSave}
+          />
+        </div>
+      </motion.div>
+    </div>
   )
 }
 
 // ─── Main page ─────────────────────────────────────────────────────────────────
 export default function TeacherGradebookPage() {
   const [activeTab, setActiveTab] = useState<'attendance' | 'scores'>('attendance')
-  const [activeGroupId, setActiveGroupId] = useState(groups[0].id)
-
-  const activeGroup = groups.find(g => g.id === activeGroupId)!
-  const groupStudents = students.filter(s => s.groupId === activeGroupId)
+  const activeGroupId = useTeacher(s => s.selectedGroupId)
+  const setActiveGroupId = useTeacher(s => s.setSelectedGroupId)
+  const [lessonModalOpen, setLessonModalOpen] = useState(false)
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 32px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+    // Scroll pane lifted to the viewport top (marginTop:-100) and re-inset with
+    // paddingTop:100 so content scrolls UP under the floating topbar and melts
+    // into the progressive-blur strip instead of hard-clipping at the pane edge.
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-      {/* Toolbar */}
-      <motion.div {...fadeUp(0.04)} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        {/* Group selector */}
-        <div style={{ display: 'flex', gap: 6 }}>
-          {groups.map(g => (
-            <button
-              key={g.id}
-              onClick={() => setActiveGroupId(g.id)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 5,
-                padding: '6px 14px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                fontSize: 12, fontWeight: 600,
-                background: activeGroupId === g.id ? g.colorSoft : '#F5F5F6',
-                color: activeGroupId === g.id ? g.color : '#6F6F76',
-                transition: 'all 0.15s',
-              }}
-            >
-              <div style={{ width: 7, height: 7, borderRadius: '50%', background: g.color }} />
-              {g.name}
-            </button>
-          ))}
-        </div>
-
-        <div style={{ flex: 1 }} />
-
-        {/* Export */}
-        <motion.button
-          whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 7,
-            padding: '8px 16px', borderRadius: 14, border: 'none', cursor: 'pointer',
-            background: '#F5F5F6', color: '#3A3A40', fontSize: 13, fontWeight: 600,
-          }}
-        >
-          <Download size={14} strokeWidth={2} />
-          Экспорт CSV
-        </motion.button>
+      {/* Group strip: pinned "Выставить оценки" action card + scrollable group cards */}
+      <motion.div {...fadeUp(0.04)}>
+        <GroupStrip
+          selectedGroupId={activeGroupId}
+          onSelectGroup={setActiveGroupId}
+          actionLabel="Выставить оценки"
+          actionIcon={ClipboardList}
+          onAction={() => setLessonModalOpen(true)}
+        />
       </motion.div>
 
-      {/* Tab bar + summary */}
+      {/* Tab bar + export */}
       <motion.div {...fadeUp(0.08)} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         {/* Tabs */}
         <div style={{
@@ -347,14 +591,20 @@ export default function TeacherGradebookPage() {
           ))}
         </div>
 
-        {/* Group summary pill */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px', background: activeGroup.colorSoft, borderRadius: 12 }}>
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: activeGroup.color }} />
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#0B0B0D' }}>{activeGroup.name}</span>
-          <span style={{ fontSize: 12, color: '#6F6F76' }}>·</span>
-          <Users size={12} strokeWidth={2} style={{ color: '#6F6F76' }} />
-          <span style={{ fontSize: 12, color: '#6F6F76', fontWeight: 600 }}>{groupStudents.length}</span>
-        </div>
+        <div style={{ flex: 1 }} />
+
+        {/* Export */}
+        <motion.button
+          whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 7,
+            padding: '8px 16px', borderRadius: 14, border: 'none', cursor: 'pointer',
+            background: '#F5F5F6', color: '#3A3A40', fontSize: 13, fontWeight: 600,
+          }}
+        >
+          <Download size={14} strokeWidth={2} />
+          Экспорт CSV
+        </motion.button>
       </motion.div>
 
       {/* Table */}
@@ -364,6 +614,16 @@ export default function TeacherGradebookPage() {
           : <ScoresTab groupId={activeGroupId} />
         }
       </motion.div>
+
+      {/* Lesson grading modal */}
+      <AnimatePresence>
+        {lessonModalOpen && (
+          <LessonGradeModal
+            groupId={activeGroupId}
+            onClose={() => setLessonModalOpen(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -1,20 +1,31 @@
-import { useState, useMemo, useRef, type ReactNode } from 'react'
+import { useState, useMemo, useRef, useEffect, type ReactNode } from 'react'
 import { useFloatingPill } from '../lib/useFloatingPill'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, Search, BookOpen, CheckCircle2, XCircle,
   Bookmark, Share2, AlertTriangle, Eye, Target, Filter,
+  LayoutGrid, List, ArrowUpDown,
 } from 'lucide-react'
 import {
-  tasks, Task, Subject,
+  Task, Subject,
   BIOLOGY_SECTIONS, CHEMISTRY_SECTIONS,
   BIOLOGY_TOPICS, CHEMISTRY_TOPICS,
   SOURCES,
 } from '../data/taskBankData'
+import { useTaskBank } from '../store/taskBankStore'
 import { useDashboard } from '../store/dashboardStore'
 import { subjectTheme, PURPLE } from '../lib/theme'
 
 type StatusFilter = 'all' | 'done' | 'undone'
+type SortMode = 'newest' | 'oldest' | 'subject' | 'line'
+type ViewMode = 'list' | 'grid'
+
+const SORT_OPTIONS: [SortMode, string][] = [
+  ['newest', 'Новые'],
+  ['oldest', 'Старые'],
+  ['subject', 'По предмету'],
+  ['line', 'По линии'],
+]
 
 // ── Scroll-fade list ─────────────────────────────────────────────────────────
 // Vertical scroll area that fades content at whichever edge is still scrollable,
@@ -137,12 +148,73 @@ function FilterField({ label, options, value, onChange, accent }: {
   )
 }
 
+// ── Copyable №-badge ─────────────────────────────────────────────────────────
+function NumberBadge({ id, onCopied }: { id: number; onCopied: () => void }) {
+  const [tipped, setTipped] = useState(false)
+  function copy(e: React.MouseEvent) {
+    e.stopPropagation()
+    navigator.clipboard.writeText(`№${id}`)
+    setTipped(true)
+    onCopied()
+    setTimeout(() => setTipped(false), 1400)
+  }
+  return (
+    <span
+      onClick={copy}
+      title="Скопировать номер"
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
+    >
+      <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: '#FFE1E4', color: '#B03040', transition: 'background 0.15s ease' }}>
+        №{id}
+      </span>
+      <AnimatePresence>
+        {tipped && (
+          <motion.span
+            key="tip"
+            initial={{ opacity: 0, scale: 0.78, y: 4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.78, y: 4 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            style={{
+              position: 'absolute', bottom: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)',
+              pointerEvents: 'none', zIndex: 999,
+              display: 'flex', alignItems: 'center', gap: 5,
+              padding: '5px 10px 5px 7px',
+              borderRadius: 999,
+              background: 'rgba(255,255,255,0.22)',
+              backdropFilter: 'blur(14px)',
+              WebkitBackdropFilter: 'blur(14px)',
+              border: '1px solid rgba(255,255,255,0.55)',
+              boxShadow: '0 4px 18px rgba(42,125,79,0.18), 0 1px 4px rgba(0,0,0,0.08)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span style={{
+              width: 18, height: 18, borderRadius: '50%',
+              background: 'linear-gradient(135deg, #34C877 0%, #2A7D4F 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+              boxShadow: '0 2px 6px rgba(42,125,79,0.35)',
+            }}>
+              <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                <path d="M1.5 4.5l2.2 2.2 3.3-3.7" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#1a2a20', letterSpacing: 0.1 }}>Скопировано</span>
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </span>
+  )
+}
+
 // ── Task card — same visual language as HomeworkFlow questions ───────────────
-function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAnswer }: {
+function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAnswer, onCopyId }: {
   task: Task; index: number; palette: ReturnType<typeof subjectTheme>
   favorites: Set<number>; onFavorite: (id: number) => void
   answered: Map<number, { value: string; correct: boolean | null }>
   onAnswer: (id: number, value: string, correct: boolean | null) => void
+  onCopyId: () => void
 }) {
   const [showSolution, setShowSolution] = useState(false)
   const [inputVal, setInputVal] = useState(answered.get(task.id)?.value ?? '')
@@ -180,7 +252,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 11, fontWeight: 700, color: palette.text }}>Задание {index + 1}</span>
             <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
-            <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: '#FFE1E4', color: '#B03040' }}>№{task.id}</span>
+            <NumberBadge id={task.id} onCopied={onCopyId} />
             <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: '#6F6F76' }}>{task.line} линия</span>
             <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: '#6F6F76' }}>Часть {task.part}</span>
           </div>
@@ -198,20 +270,77 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
 
       {/* Table */}
       {task.questionTable && (
-        <table style={{ borderCollapse: 'collapse', fontSize: 13, border: '1px solid rgba(0,0,0,0.09)' }}>
-          <thead>
-            <tr>{task.questionTable.headers.map(h => (
-              <th key={h} style={{ border: '1px solid rgba(0,0,0,0.08)', padding: '8px 14px', fontWeight: 700, background: 'rgba(0,0,0,0.025)', textAlign: 'left' }}>{h}</th>
-            ))}</tr>
-          </thead>
-          <tbody>
-            {task.questionTable.rows.map((row, i) => (
-              <tr key={i}>{row.map((cell, j) => (
-                <td key={j} style={{ border: '1px solid rgba(0,0,0,0.08)', padding: '8px 14px' }}>{cell}</td>
+        <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,0.09)', alignSelf: 'flex-start', maxWidth: '100%' }}>
+          <table style={{ borderCollapse: 'collapse', fontSize: 13, width: '100%' }}>
+            <thead>
+              <tr>{task.questionTable.headers.map(h => (
+                <th key={h} style={{ borderBottom: '1px solid rgba(0,0,0,0.09)', borderRight: '1px solid rgba(0,0,0,0.08)', padding: '9px 16px', fontWeight: 700, background: 'rgba(0,0,0,0.03)', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
               ))}</tr>
+            </thead>
+            <tbody>
+              {task.questionTable.rows.map((row, i) => (
+                <tr key={i} style={{ background: i % 2 === 1 ? 'rgba(0,0,0,0.015)' : 'transparent' }}>{row.map((cell, j) => (
+                  <td key={j} style={{ borderTop: i > 0 ? '1px solid rgba(0,0,0,0.07)' : undefined, borderRight: '1px solid rgba(0,0,0,0.07)', padding: '9px 16px' }}>{cell}</td>
+                ))}</tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Image block */}
+      {task.questionImage && (
+        <img src={task.questionImage} alt="" style={{ maxWidth: '100%', borderRadius: 14, border: '1px solid rgba(0,0,0,0.08)', alignSelf: 'flex-start' }} />
+      )}
+
+      {/* Choice options */}
+      {task.choices && task.choices.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {task.choices.map((c, i) => (
+            <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, background: 'rgba(0,0,0,0.025)', border: '1px solid rgba(0,0,0,0.06)' }}>
+              <span style={{ width: 24, height: 24, borderRadius: task.answerType === 'multi' ? 7 : '50%', flexShrink: 0, background: '#fff', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#6F6F76' }}>{'АБВГДЕЖЗИК'[i]}</span>
+              <span style={{ fontSize: 14, color: '#0B0B0D' }}>{c.text}</span>
+            </div>
+          ))}
+          <div style={{ fontSize: 11, color: '#9A9AA2' }}>{task.answerType === 'multi' ? 'Введите буквы всех верных вариантов, напр. АБГ' : 'Введите букву верного варианта'}</div>
+        </div>
+      )}
+
+      {/* Matching */}
+      {task.matchLeft && task.matchRight && (
+        <div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {task.matchLeft.map((l, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid rgba(0,0,0,0.06)', fontSize: 13 }}>
+                  <b style={{ color: palette.text }}>{'АБВГДЕЖЗИК'[i]}</b> {l}
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {task.matchRight.map((r, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid rgba(0,0,0,0.06)', fontSize: 13 }}>
+                  <b style={{ color: palette.text }}>{i + 1}</b> {r}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ fontSize: 11, color: '#9A9AA2', marginTop: 6 }}>Сопоставьте и введите, напр. А2 Б1 В3</div>
+        </div>
+      )}
+
+      {/* Sequence */}
+      {task.sequenceItems && task.sequenceItems.length > 0 && (
+        <div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {[...task.sequenceItems].sort((a, b) => a.localeCompare(b, 'ru')).map((s, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid rgba(0,0,0,0.06)', fontSize: 13 }}>
+                <b style={{ color: palette.text }}>{i + 1}</b> {s}
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+          <div style={{ fontSize: 11, color: '#9A9AA2', marginTop: 6 }}>Введите порядок цифрами, напр. 3142</div>
+        </div>
       )}
 
       {/* Answer + action buttons */}
@@ -312,6 +441,149 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
   )
 }
 
+// ── Compact card — fits 4 per row ────────────────────────────────────────────
+function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer, onCopyId }: {
+  task: Task; palette: ReturnType<typeof subjectTheme>
+  favorites: Set<number>; onFavorite: (id: number) => void
+  answered: Map<number, { value: string; correct: boolean | null }>
+  onAnswer: (id: number, value: string, correct: boolean | null) => void
+  onCopyId: () => void
+}) {
+  const [inputVal, setInputVal] = useState(answered.get(task.id)?.value ?? '')
+  const [showSolution, setShowSolution] = useState(false)
+  const state = answered.get(task.id)
+  const isFav = favorites.has(task.id)
+  const isCorrect = state?.correct === true
+  const isWrong   = state?.correct === false
+
+  function check() {
+    onAnswer(task.id, inputVal, inputVal.trim().toLowerCase() === task.answer.toLowerCase())
+  }
+
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', gap: 10, padding: 14, borderRadius: 18,
+      background: 'rgba(255,255,255,0.97)',
+      border: `1px solid ${isCorrect ? 'rgba(110,231,160,0.5)' : isWrong ? 'rgba(244,139,145,0.45)' : 'rgba(0,0,0,0.07)'}`,
+      boxShadow: isCorrect ? '0 6px 18px rgba(110,231,160,0.1)' : isWrong ? '0 6px 18px rgba(244,139,145,0.08)' : '0 4px 14px rgba(0,0,0,0.04)',
+      height: '100%', boxSizing: 'border-box',
+    }}>
+      {/* Badge row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+        <NumberBadge id={task.id} onCopied={onCopyId} />
+        <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: '#6F6F76' }}>{task.line} лин.</span>
+      </div>
+
+      {/* Question */}
+      <p style={{ fontSize: 13, lineHeight: 1.4, fontWeight: 600, color: '#0B0B0D', margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+        {task.question}
+      </p>
+
+      {/* Topic */}
+      <span style={{ fontSize: 11, color: '#9A9AA2', marginTop: 'auto' }}>{task.topic}</span>
+
+      {/* Answer row */}
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <input
+          value={inputVal}
+          onChange={e => setInputVal(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && inputVal.trim() && check()}
+          placeholder="Ответ"
+          style={{
+            flex: 1, minWidth: 0, padding: '7px 10px', borderRadius: 10, fontSize: 12, outline: 'none',
+            border: `1px solid ${state ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'rgba(0,0,0,0.1)'}`,
+            background: state ? (isCorrect ? '#DFF8D6' : '#FFE1E4') : '#FFFFFF',
+          }}
+        />
+        <button onClick={check} disabled={!inputVal.trim()} style={{
+          padding: '7px 10px', borderRadius: 10, border: 'none', fontSize: 12, fontWeight: 700,
+          background: inputVal.trim() ? palette.accent : '#E0E0E4',
+          color: inputVal.trim() ? palette.onAccent : '#AAAAAF',
+          cursor: inputVal.trim() ? 'pointer' : 'default', flexShrink: 0,
+        }}>✓</button>
+        <button onClick={() => setShowSolution(s => !s)} style={{
+          padding: '7px 8px', borderRadius: 10, border: `1px solid ${showSolution ? palette.accent : 'rgba(0,0,0,0.09)'}`,
+          background: showSolution ? palette.soft : 'transparent', cursor: 'pointer', flexShrink: 0,
+        }}><Eye size={12} color={showSolution ? palette.text : '#9A9AA2'} /></button>
+        <button onClick={() => onFavorite(task.id)} style={{
+          padding: '7px 8px', borderRadius: 10, border: `1px solid ${isFav ? '#F8EF8C' : 'rgba(0,0,0,0.09)'}`,
+          background: isFav ? '#FFF9CC' : 'transparent', cursor: 'pointer', flexShrink: 0,
+        }}><Bookmark size={12} color={isFav ? '#7A6B00' : '#9A9AA2'} fill={isFav ? '#7A6B00' : 'none'} /></button>
+      </div>
+
+      {/* Solution */}
+      <AnimatePresence>
+        {showSolution && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }} style={{ overflow: 'hidden' }}>
+            <div style={{ padding: '10px 12px', background: palette.soft, borderRadius: 12, fontSize: 12, color: '#3A3A42', lineHeight: 1.5 }}>
+              <strong style={{ color: palette.text }}>Ответ: </strong>{task.answer}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+// ── Sort dropdown ─────────────────────────────────────────────────────────────
+function SortDropdown({ value, onChange }: { value: SortMode; onChange: (v: SortMode) => void }) {
+  const [open, setOpen] = useState(false)
+  const label = SORT_OPTIONS.find(([v]) => v === value)?.[1] ?? 'Новые'
+  return (
+    <div style={{ position: 'relative' }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        onBlur={() => setTimeout(() => setOpen(false), 120)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: '9px 13px', borderRadius: 999,
+          background: open ? '#fff' : 'rgba(255,255,255,0.9)',
+          border: `1px solid ${open ? 'rgba(0,0,0,0.14)' : 'rgba(0,0,0,0.08)'}`,
+          boxShadow: open ? '0 0 0 3px rgba(0,0,0,0.05)' : 'none',
+          fontSize: 12, fontWeight: 600, color: '#0B0B0D', cursor: 'pointer',
+          transition: 'all 0.15s ease',
+        }}
+      >
+        <ArrowUpDown size={12} style={{ color: '#9A9AA2' }} />
+        {label}
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: '#9A9AA2', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
+          <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.12 }}
+          style={{
+            position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 150,
+            background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            border: '1px solid rgba(255,255,255,0.8)', borderRadius: 14,
+            boxShadow: '0 12px 32px rgba(0,0,0,0.12)', overflow: 'hidden', padding: 5,
+          }}
+        >
+          {SORT_OPTIONS.map(([val, label]) => (
+            <button
+              key={val}
+              onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
+                background: value === val ? 'rgba(0,0,0,0.05)' : 'transparent',
+                fontSize: 13, fontWeight: value === val ? 700 : 400, color: '#0B0B0D',
+                cursor: 'pointer', textAlign: 'left',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = value === val ? 'rgba(0,0,0,0.05)' : 'transparent' }}
+            >
+              {label}
+              {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#0B0B0D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+            </button>
+          ))}
+        </motion.div>
+      )}
+    </div>
+  )
+}
+
 // ── Status tabs with floating glass pill ─────────────────────────────────────
 const STATUS_OPTIONS: [StatusFilter, string][] = [
   ['all', 'Все'],
@@ -382,6 +654,7 @@ export default function TaskBankPage() {
   const setActivePage = useDashboard(s => s.setActivePage)
   const docked        = useDashboard(s => s.lessonScrolled)
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
+  const tasks         = useTaskBank(s => s.tasks)
 
   const defaultSubject: Subject = activeSubjectId === 'chemistry' ? 'chemistry' : 'biology'
   const [subject, setSubject]   = useState<Subject>(defaultSubject)
@@ -392,15 +665,25 @@ export default function TaskBankPage() {
   const [source, setSource]     = useState('')
   const [search, setSearch]     = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [sortMode, setSortMode]         = useState<SortMode>('newest')
+  const [viewMode, setViewMode]         = useState<ViewMode>('list')
   const [showFavOnly, setShowFavOnly]   = useState(false)
   const [favorites, setFavorites]       = useState<Set<number>>(new Set())
   const [answered, setAnswered] = useState<Map<number, { value: string; correct: boolean | null }>>(new Map())
+  const [savedPill, setSavedPill] = useState(false)
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function handleCopyId() {
+    setSavedPill(true)
+    if (savedTimer.current) clearTimeout(savedTimer.current)
+    savedTimer.current = setTimeout(() => setSavedPill(false), 1800)
+  }
 
   const palette      = subjectTheme(subject)
   const sections     = subject === 'biology' ? BIOLOGY_SECTIONS : CHEMISTRY_SECTIONS
   const topicsMap    = subject === 'biology' ? BIOLOGY_TOPICS : CHEMISTRY_TOPICS
   const topicOptions = section ? (topicsMap[section] ?? []) : Object.values(topicsMap).flat()
-  const allLines     = useMemo(() => [...new Set(tasks.filter(t => t.subject === subject).map(t => t.line))].sort((a, b) => a - b).map(String), [subject])
+  const allLines     = useMemo(() => [...new Set(tasks.filter(t => t.subject === subject).map(t => t.line))].sort((a, b) => a - b).map(String), [tasks, subject])
 
   function toggleFav(id: number) {
     setFavorites(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
@@ -410,21 +693,41 @@ export default function TaskBankPage() {
   }
 
   const filtered = useMemo(() => {
-    let list = tasks.filter(t => t.subject === subject)
-    if (section) list = list.filter(t => t.section === section)
-    if (topic)   list = list.filter(t => t.topic === topic)
-    if (part)    list = list.filter(t => t.part === Number(part))
-    if (line)    list = list.filter(t => t.line === Number(line))
-    if (source)  list = list.filter(t => t.source === source)
+    // When searching, go global (all subjects); otherwise stay on the active tab
+    let list = search
+      ? tasks
+      : tasks.filter(t => t.subject === subject)
+    if (!search && section) list = list.filter(t => t.section === section)
+    if (!search && topic)   list = list.filter(t => t.topic === topic)
+    if (!search && part)    list = list.filter(t => t.part === Number(part))
+    if (!search && line)    list = list.filter(t => t.line === Number(line))
+    if (!search && source)  list = list.filter(t => t.source === source)
     if (search) {
-      const q = search.toLowerCase()
+      const q = search.toLowerCase().replace(/^№/, '')
       list = list.filter(t => t.question.toLowerCase().includes(q) || String(t.id).includes(q) || t.topic.toLowerCase().includes(q))
     }
     if (statusFilter === 'done')   list = list.filter(t => answered.get(t.id)?.correct === true)
     if (statusFilter === 'undone') list = list.filter(t => !answered.get(t.id))
     if (showFavOnly) list = list.filter(t => favorites.has(t.id))
-    return [...list].sort((a, b) => a.id - b.id)
-  }, [subject, section, topic, part, line, source, search, statusFilter, showFavOnly, answered, favorites])
+    return [...list].sort((a, b) => {
+      switch (sortMode) {
+        case 'oldest':     return a.id - b.id
+        case 'subject':    return a.subject.localeCompare(b.subject) || a.id - b.id
+        case 'line':       return a.line - b.line || a.id - b.id
+        default:           return b.id - a.id  // newest
+      }
+    })
+  }, [tasks, subject, section, topic, part, line, source, search, statusFilter, showFavOnly, answered, favorites, sortMode])
+
+  // Auto-switch subject tab when search results all belong to one subject
+  useEffect(() => {
+    if (!search || filtered.length === 0) return
+    const subjects = new Set(filtered.map(t => t.subject))
+    if (subjects.size === 1) {
+      const only = [...subjects][0] as Subject
+      if (only !== subject) { setSubject(only); setSection(''); setTopic('') }
+    }
+  }, [search, filtered])
 
   const doneCount  = tasks.filter(t => t.subject === subject && answered.get(t.id)?.correct).length
   const totalCount = tasks.filter(t => t.subject === subject).length
@@ -440,6 +743,41 @@ export default function TaskBankPage() {
 
   return (
     <div className="flex flex-col" style={{ gap: 16 }}>
+
+      {/* Glass pill "Сохранено" */}
+      <AnimatePresence>
+        {savedPill && (
+          <motion.div
+            key="saved-pill"
+            initial={{ opacity: 0, y: 16, scale: 0.88 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.92 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
+              zIndex: 9999, pointerEvents: 'none',
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '10px 18px', borderRadius: 999,
+              background: 'rgba(255,255,255,0.72)',
+              backdropFilter: 'blur(24px) saturate(200%)',
+              WebkitBackdropFilter: 'blur(24px) saturate(200%)',
+              border: '1px solid rgba(255,255,255,0.85)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.9)',
+            }}
+          >
+            <span style={{
+              width: 20, height: 20, borderRadius: '50%', background: '#2A7D4F',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              boxShadow: '0 3px 10px rgba(42,125,79,0.35)',
+            }}>
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M2 5l2.5 2.5 3.5-4" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#0B0B0D', whiteSpace: 'nowrap' }}>Сохранено в буфере</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Rest-state Back / title row — fades out when docked */}
       <motion.div
@@ -592,18 +930,24 @@ export default function TaskBankPage() {
 
           {/* Controls row */}
           <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', background: 'rgba(255,255,255,0.96)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 999, flex: '1 1 180px', maxWidth: 360, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', background: 'rgba(255,255,255,0.96)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 999, flex: '1 1 180px', maxWidth: 320, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
               <Search size={14} style={{ color: '#9A9AA2', flexShrink: 0 }} />
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по тексту или №..."
                 style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, background: 'transparent', color: '#0B0B0D' }} />
               {search && <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9A9AA2', fontSize: 15, lineHeight: 1 }}>×</button>}
             </div>
             <StatusTabs value={statusFilter} onChange={setStatusFilter} />
+
+            {/* Sort dropdown */}
+            <SortDropdown value={sortMode} onChange={setSortMode} />
+
             <button onClick={() => setShowFavOnly(f => !f)}
               style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 14px', borderRadius: 999, background: showFavOnly ? '#FFF9CC' : 'rgba(255,255,255,0.9)', border: `1px solid ${showFavOnly ? '#F8EF8C' : 'rgba(0,0,0,0.08)'}`, fontSize: 12, cursor: 'pointer', color: showFavOnly ? '#7A6B00' : '#9A9AA2', fontWeight: showFavOnly ? 700 : 400 }}>
               <Bookmark size={13} fill={showFavOnly ? 'currentColor' : 'none'} />
               {showFavOnly ? `Избранное (${favorites.size})` : 'Избранное'}
             </button>
+
+
             <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9A9AA2' }}>
               Всего: <strong style={{ color: '#0B0B0D' }}>{filtered.length}</strong>
             </span>
@@ -614,12 +958,23 @@ export default function TaskBankPage() {
             <div style={{ textAlign: 'center', padding: '48px 0', color: '#9A9AA2', fontSize: 14 }}>
               Заданий не найдено — измените фильтры
             </div>
+          ) : viewMode === 'grid' ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
+              {filtered.map(task => (
+                <CompactCard key={task.id} task={task} palette={palette}
+                  favorites={favorites} onFavorite={toggleFav}
+                  answered={answered} onAnswer={setAnswer}
+                  onCopyId={handleCopyId}
+                />
+              ))}
+            </div>
           ) : (
             <div className="flex flex-col" style={{ gap: 12 }}>
               {filtered.map((task, i) => (
                 <TaskCard key={task.id} task={task} index={i} palette={palette}
                   favorites={favorites} onFavorite={toggleFav}
                   answered={answered} onAnswer={setAnswer}
+                  onCopyId={handleCopyId}
                 />
               ))}
             </div>

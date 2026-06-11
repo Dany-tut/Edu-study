@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import {
   allHomework, groups, getSubmitters,
-  type Student, type Group, type HomeworkItem,
+  type Student, type Group, type HomeworkItem, type HwTask,
 } from '../../data/teacherMockData'
 import { useTeacher, type HwReview } from '../../store/teacherStore'
 
@@ -219,26 +219,98 @@ function ReviewBottomBar({
   )
 }
 
+// ─── Per-task score grid ─────────────────────────────────────────────────────
+function TaskScoreGrid({
+  tasks, taskScores, onScoreChange, groupColor, groupColorSoft, total, maxTotal,
+}: {
+  tasks: HwTask[]
+  taskScores: Record<string, string>
+  onScoreChange: (taskId: string, value: string) => void
+  groupColor: string
+  groupColorSoft: string
+  total: number
+  maxTotal: number
+}) {
+  const pct = maxTotal > 0 ? Math.round((total / maxTotal) * 100) : 0
+  return (
+    <div className="flex flex-col" style={{ gap: 8 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.4, marginBottom: 2 }}>
+        БАЛЛЫ ЗА ЗАДАНИЯ
+      </div>
+      {tasks.map(task => {
+        const val = taskScores[task.id] ?? ''
+        const num = Number(val)
+        const over = val !== '' && num > task.maxScore
+        return (
+          <div key={task.id} className="flex items-center" style={{ gap: 10 }}>
+            <div style={{ flex: 1, minWidth: 0, fontSize: 13, color: '#50505A', lineHeight: 1.4 }}>
+              {task.title}
+            </div>
+            <div className="flex items-center flex-shrink-0" style={{ gap: 6 }}>
+              <input
+                type="number" min={0} max={task.maxScore} value={val}
+                onChange={e => onScoreChange(task.id, e.target.value)}
+                placeholder="—"
+                style={{
+                  width: 64, boxSizing: 'border-box', padding: '7px 10px', borderRadius: 10,
+                  border: `1.5px solid ${over ? '#f87171' : 'rgba(0,0,0,0.1)'}`,
+                  fontSize: 16, fontWeight: 750, color: over ? '#c0303a' : '#0B0B0D',
+                  background: '#F9F9FB', outline: 'none', textAlign: 'center', fontFamily: 'inherit',
+                  appearance: 'textfield',
+                } as React.CSSProperties}
+              />
+              <span style={{ fontSize: 12, color: '#9A9AA2', minWidth: 28 }}>/ {task.maxScore}</span>
+            </div>
+          </div>
+        )
+      })}
+      {/* Total row */}
+      <div style={{
+        marginTop: 4, padding: '10px 14px', borderRadius: 14,
+        background: groupColorSoft, border: `1px solid ${groupColor}33`,
+        display: 'flex', alignItems: 'center', gap: 10,
+      }}>
+        <div style={{ flex: 1, fontSize: 13, fontWeight: 700, color: '#0B0B0D' }}>Итого</div>
+        <span style={{ fontSize: 20, fontWeight: 800, color: groupColor }}>{total}</span>
+        <span style={{ fontSize: 13, color: '#9A9AA2' }}>/ {maxTotal}</span>
+        <span style={{
+          fontSize: 12, fontWeight: 700,
+          padding: '3px 8px', borderRadius: 8,
+          background: groupColor + '22', color: groupColor,
+        }}>{pct}%</span>
+      </div>
+    </div>
+  )
+}
+
 // ─── Main page ──────────────────────────────────────────────────────────────
 export default function TeacherHomeworkReviewPage() {
   const reviewingHwId = useTeacher(s => s.reviewingHwId)
   const setActivePage = useTeacher(s => s.setActivePage)
   const reviews = useTeacher(s => s.reviews)
   const submitReview = useTeacher(s => s.submitReview)
+  const reviewIdx = useTeacher(s => s.reviewIdx)
+  const setReviewIdx = useTeacher(s => s.setReviewIdx)
 
   const hw = allHomework.find(h => h.id === reviewingHwId) ?? null
   const group = hw ? groups.find(g => g.id === hw.groupId) ?? null : null
   const submitters = useMemo(() => (hw ? getSubmitters(hw) : []), [hw])
   const hwReviews = (reviewingHwId && reviews[reviewingHwId]) || {}
 
-  // Start on the first not-yet-reviewed student.
-  const firstUnreviewed = submitters.findIndex(s => !hwReviews[s.id])
-  const [idx, setIdx] = useState(firstUnreviewed === -1 ? 0 : firstUnreviewed)
+  const idx = reviewIdx
+  const prevIdxRef = useRef(reviewIdx)
   const [dir, setDir] = useState(0)
-  // Per-student draft of the score + comment fields.
-  const [drafts, setDrafts] = useState<Record<string, { score: string; comment: string }>>({})
+  if (prevIdxRef.current !== reviewIdx) {
+    setDir(reviewIdx > prevIdxRef.current ? 1 : -1)
+    prevIdxRef.current = reviewIdx
+  }
+  // Per-student draft: score (manual), taskScores (per-task), comment.
+  const [drafts, setDrafts] = useState<Record<string, { score: string; taskScores: Record<string, string>; comment: string }>>({})
   const scrollRef = useRef<HTMLDivElement>(null)
-  const [docked, setDocked] = useState(false)
+  // Shared via the store — the dashboard hides the ReviewNavPill while the
+  // docked bar shows its own arrows/counter on the same spot.
+  const docked = useTeacher(s => s.headerDocked)
+  const setDocked = useTeacher(s => s.setHeaderDocked)
 
   const dockGlass = {
     border: '1px solid rgba(255,255,255,0.9)',
@@ -268,19 +340,35 @@ export default function TeacherHomeworkReviewPage() {
   const existing = hwReviews[student.id]
   const draft = drafts[student.id] ?? {
     score: existing ? String(existing.score) : '',
+    taskScores: existing?.taskScores
+      ? Object.fromEntries(Object.entries(existing.taskScores).map(([k, v]) => [k, String(v)]))
+      : {},
     comment: existing ? existing.comment : '',
   }
+
+  // If hw has tasks, compute total from task scores; otherwise use manual score.
+  const hasTasks = (hw.tasks?.length ?? 0) > 0
+  const taskTotal = hasTasks
+    ? (hw.tasks ?? []).reduce((sum, t) => sum + (Number(draft.taskScores[t.id]) || 0), 0)
+    : null
+  const maxTaskTotal = hasTasks
+    ? (hw.tasks ?? []).reduce((sum, t) => sum + t.maxScore, 0)
+    : null
   const reviewedCount = submitters.filter(s => hwReviews[s.id]).length
   const allDone = reviewedCount === submitters.length
 
-  function setDraft(patch: Partial<{ score: string; comment: string }>) {
+  function setDraft(patch: Partial<{ score: string; taskScores: Record<string, string>; comment: string }>) {
     setDrafts(d => ({ ...d, [student.id]: { ...draft, ...patch } }))
+  }
+
+  function setTaskScore(taskId: string, value: string) {
+    setDraft({ taskScores: { ...draft.taskScores, [taskId]: value } })
   }
 
   function go(next: number) {
     if (next < 0 || next >= submitters.length) return
     setDir(next > idx ? 1 : -1)
-    setIdx(next)
+    setReviewIdx(next)
     scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -293,16 +381,37 @@ export default function TeacherHomeworkReviewPage() {
   }
 
   function handleVerdict(verdict: 'accepted' | 'returned') {
-    const score = verdict === 'accepted' ? Math.max(0, Math.min(100, Number(draft.score) || 0)) : Number(draft.score) || 0
-    submitReview(hw!.id, student.id, { verdict, score, comment: draft.comment })
+    const rawScore = hasTasks ? (taskTotal ?? 0) : Math.max(0, Math.min(100, Number(draft.score) || 0))
+    const score = verdict === 'accepted' ? rawScore : rawScore
+    const taskScores = hasTasks
+      ? Object.fromEntries(
+          Object.entries(draft.taskScores).map(([k, v]) => [k, Number(v) || 0])
+        )
+      : undefined
+    submitReview(hw!.id, student.id, { verdict, score, taskScores, comment: draft.comment })
     setTimeout(advance, 260)
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative' }}>
+    // Single scroll container — same recipe as TeacherHomeworkCreatePage.
+    // marginTop:-100 lifts the pane to y=0; paddingTop:100 re-insets content
+    // below the topbar so it melts into the progressive-blur strip on scroll.
+    <div
+      ref={scrollRef}
+      onScroll={e => setDocked((e.currentTarget as HTMLElement).scrollTop > 64)}
+      style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100, paddingBottom: 110 }}
+    >
 
-      {/* ── Static header: Назад + title only ── */}
-      <div className="flex items-center" style={{ flexShrink: 0, padding: '0 32px 14px', gap: 12 }}>
+      {/* ── Rest-state header: Назад + title. Fades out (opacity only — NO height
+          collapse, which would jolt the scroll position / feel "magnetic") as the
+          page docks; its fixed twin below takes over on the topbar line. ── */}
+      <motion.div
+        className="flex items-center"
+        initial={false}
+        animate={{ opacity: docked ? 0 : 1 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        style={{ position: 'relative', flexShrink: 0, justifyContent: 'space-between', paddingLeft: 32, paddingRight: 32, paddingBottom: 14, gap: 12, pointerEvents: docked ? 'none' : 'auto' }}
+      >
         <motion.button
           whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
           onClick={() => setActivePage('homework')}
@@ -317,7 +426,11 @@ export default function TeacherHomeworkReviewPage() {
           Назад
         </motion.button>
 
-        <span style={{ fontSize: 18, fontWeight: 750, color: '#0B0B0D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{
+          position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
+          maxWidth: '44%', pointerEvents: 'none',
+          textAlign: 'center', fontSize: 18, fontWeight: 750, color: '#0B0B0D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
           {hw.title}
         </span>
         <span style={{
@@ -327,7 +440,7 @@ export default function TeacherHomeworkReviewPage() {
           <div style={{ width: 7, height: 7, borderRadius: '50%', background: group.color }} />
           <span style={{ fontSize: 12, fontWeight: 700, color: '#0B0B0D' }}>{group.name}</span>
         </span>
-      </div>
+      </motion.div>
 
       {/* ── Docked bar (appears on scroll): arrows + counter ── */}
       <AnimatePresence>
@@ -357,6 +470,14 @@ export default function TeacherHomeworkReviewPage() {
               Назад
             </motion.button>
 
+            <div style={{
+              flexShrink: 1, minWidth: 0, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              padding: '9px 16px', borderRadius: 999, ...dockGlass,
+              fontSize: 14, fontWeight: 700, color: '#0B0B0D', pointerEvents: 'auto',
+            }}>
+              {hw.title}
+            </div>
+
             <div style={{ flexGrow: 1, flexBasis: 0 }} />
 
             <div className="flex items-center flex-shrink-0" style={{ gap: 8, pointerEvents: 'auto' }}>
@@ -376,18 +497,8 @@ export default function TeacherHomeworkReviewPage() {
       </AnimatePresence>
 
 
-      {/* ── Scroll area with edge fades ── */}
-      <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
-        <div
-          ref={scrollRef}
-          onScroll={e => setDocked((e.currentTarget as HTMLElement).scrollTop > 64)}
-          style={{
-            position: 'absolute', inset: 0, overflowY: 'auto',
-            padding: '8px 32px 110px',
-            maskImage: 'linear-gradient(to bottom, transparent 0, black 16px, black calc(100% - 90px), transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0, black 16px, black calc(100% - 90px), transparent 100%)',
-          }}
-        >
+      {/* ── Content ── */}
+      <div style={{ padding: '8px 32px 0' }}>
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div
               key={student.id}
@@ -443,34 +554,48 @@ export default function TeacherHomeworkReviewPage() {
 
                   {/* Score field */}
                   <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.4, marginBottom: 6 }}>
-                      БАЛЛ (0–100)
-                    </div>
-                    <div className="flex items-center" style={{ gap: 10 }}>
-                      <input
-                        type="number" min={0} max={100} value={draft.score}
-                        onChange={e => setDraft({ score: e.target.value })}
-                        placeholder="—"
-                        style={{
-                          width: 96, boxSizing: 'border-box', padding: '12px 14px', borderRadius: 14,
-                          border: '1.5px solid rgba(0,0,0,0.1)', fontSize: 20, fontWeight: 750, color: '#0B0B0D',
-                          background: '#F9F9FB', outline: 'none', textAlign: 'center', fontFamily: 'inherit',
-                          appearance: 'textfield',
-                        } as React.CSSProperties}
+                    {hasTasks ? (
+                      <TaskScoreGrid
+                        tasks={hw.tasks!}
+                        taskScores={draft.taskScores}
+                        onScoreChange={setTaskScore}
+                        groupColor={group.color}
+                        groupColorSoft={group.colorSoft}
+                        total={taskTotal!}
+                        maxTotal={maxTaskTotal!}
                       />
-                      <div className="flex items-center flex-wrap" style={{ gap: 6 }}>
-                        {[60, 75, 85, 100].map(v => (
-                          <button key={v} onClick={() => setDraft({ score: String(v) })} style={{
-                            padding: '6px 12px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                            fontSize: 12, fontWeight: 700,
-                            background: Number(draft.score) === v ? group.colorSoft : '#F5F5F6',
-                            color: Number(draft.score) === v ? group.color : '#6F6F76',
-                          }}>
-                            {v}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                    ) : (
+                      <>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.4, marginBottom: 6 }}>
+                          БАЛЛ (0–100)
+                        </div>
+                        <div className="flex items-center" style={{ gap: 10 }}>
+                          <input
+                            type="number" min={0} max={100} value={draft.score}
+                            onChange={e => setDraft({ score: e.target.value })}
+                            placeholder="—"
+                            style={{
+                              width: 96, boxSizing: 'border-box', padding: '12px 14px', borderRadius: 14,
+                              border: '1.5px solid rgba(0,0,0,0.1)', fontSize: 20, fontWeight: 750, color: '#0B0B0D',
+                              background: '#F9F9FB', outline: 'none', textAlign: 'center', fontFamily: 'inherit',
+                              appearance: 'textfield',
+                            } as React.CSSProperties}
+                          />
+                          <div className="flex items-center flex-wrap" style={{ gap: 6 }}>
+                            {[60, 75, 85, 100].map(v => (
+                              <button key={v} onClick={() => setDraft({ score: String(v) })} style={{
+                                padding: '6px 12px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                                fontSize: 12, fontWeight: 700,
+                                background: Number(draft.score) === v ? group.colorSoft : '#F5F5F6',
+                                color: Number(draft.score) === v ? group.color : '#6F6F76',
+                              }}>
+                                {v}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* Comment */}
@@ -565,16 +690,15 @@ export default function TeacherHomeworkReviewPage() {
           </AnimatePresence>
         </div>
 
-        {/* ── Floating bottom bar ── */}
-        <div style={{ position: 'absolute', bottom: 20, left: 32, right: 32, zIndex: 40 }}>
-          <ReviewBottomBar
-            submitters={submitters}
-            reviews={hwReviews}
-            activeIdx={idx}
-            onJump={go}
-            color={group.color}
-          />
-        </div>
+      {/* ── Floating bottom bar (fixed so it stays on screen while content scrolls) ── */}
+      <div style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 40, width: 'min(560px, calc(100vw - 48px))' }}>
+        <ReviewBottomBar
+          submitters={submitters}
+          reviews={hwReviews}
+          activeIdx={idx}
+          onJump={go}
+          color={group.color}
+        />
       </div>
     </div>
   )
@@ -590,8 +714,9 @@ function NavArrow({ dir, disabled, onClick }: { dir: 'left' | 'right'; disabled:
       disabled={disabled}
       style={{
         width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-        border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(255,255,255,0.96)',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+        border: '1px solid rgba(255,255,255,0.9)', background: 'rgba(255,255,255,0.86)',
+        backdropFilter: 'blur(14px) saturate(180%)', WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: disabled ? 'not-allowed' : 'pointer',
         color: disabled ? '#C2C2C8' : '#0B0B0D',

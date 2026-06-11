@@ -7,9 +7,9 @@ import {
   ChevronsUpDown, ExternalLink,
 } from 'lucide-react'
 import {
-  groups, students,
   type Group, type Student,
 } from '../../data/teacherMockData'
+import { useGroups, useStudents } from '../../lib/useGroups'
 import { useTeacher } from '../../store/teacherStore'
 
 const fadeUp = (delay = 0) => ({
@@ -38,6 +38,43 @@ function Card({
       }}
     >
       {children}
+    </div>
+  )
+}
+
+function ScrollFadeTable({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [fadeLeft, setFadeLeft] = useState(false)
+  const [fadeRight, setFadeRight] = useState(false)
+
+  function check() {
+    const el = ref.current
+    if (!el) return
+    setFadeLeft(el.scrollLeft > 4)
+    setFadeRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4)
+  }
+
+  useEffect(() => { check() }, [])
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <div ref={ref} onScroll={check} style={{ overflowX: 'auto' }}>
+        {children}
+      </div>
+      <div style={{
+        position: 'absolute', top: 0, left: 0, bottom: 0, width: 56,
+        pointerEvents: 'none', zIndex: 2,
+        background: 'linear-gradient(to right, rgba(255,255,255,0.92), transparent)',
+        opacity: fadeLeft ? 1 : 0,
+        transition: 'opacity 0.22s ease',
+      }} />
+      <div style={{
+        position: 'absolute', top: 0, right: 0, bottom: 0, width: 72,
+        pointerEvents: 'none', zIndex: 2,
+        background: 'linear-gradient(to left, rgba(255,255,255,0.92), transparent)',
+        opacity: fadeRight ? 1 : 0,
+        transition: 'opacity 0.22s ease',
+      }} />
     </div>
   )
 }
@@ -260,7 +297,7 @@ function StudentPanel({
       </div>
 
       {/* Scrollable body */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
         {/* Contacts */}
         <section>
@@ -425,6 +462,8 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function TeacherGroupsPage() {
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
+  const { groups, loading: groupsLoading } = useGroups()
+  const { students } = useStudents(selectedGroupId)
   const [activeStudentId, setActiveStudentId] = useState<string | null>(null)
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
@@ -436,10 +475,10 @@ export default function TeacherGroupsPage() {
   // scrolled state removed — compact handled via direct DOM manipulation (no re-renders)
 
   useEffect(() => {
-    if (!selectedGroupId && groups.length > 0) {
+    if (!selectedGroupId && groups.length > 0 && !groupsLoading) {
       setSelectedGroupId(groups[0].id)
     }
-  }, [])
+  }, [groups, groupsLoading])
 
   useEffect(() => {
     const el = mainScrollRef.current
@@ -532,13 +571,15 @@ export default function TeacherGroupsPage() {
   }
 
   return (
-    <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative' }}>
+    // overflow:visible so the lifted header (marginTop:-100) isn't clipped.
+    <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', position: 'relative', marginTop: -100 }}>
 
       {/* Column: fixed group header + scrollable table below */}
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
 
         {/* Group cards — fixed header (NOT inside the scroll area, so compressing
-            it never shifts the table's scroll position), compresses on scroll */}
+            it never shifts the table's scroll position), compresses on scroll.
+            paddingTop:100 lifts content below the floating topbar (student-page recipe). */}
         <motion.div
           {...fadeUp(0.04)}
           ref={groupsStickyRef}
@@ -546,7 +587,7 @@ export default function TeacherGroupsPage() {
             flexShrink: 0,
             background: '#F5F5F6',
             paddingLeft: 32, paddingRight: 32,
-            paddingTop: 0,
+            paddingTop: 100,
             paddingBottom: 14,
             marginBottom: 20,
             transition: 'padding-bottom 0.28s ease, margin-bottom 0.28s ease',
@@ -637,7 +678,7 @@ export default function TeacherGroupsPage() {
                   </div>
                 </div>
 
-                <div style={{ overflowX: 'auto' }}>
+                <ScrollFadeTable>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ background: 'rgba(0,0,0,0.018)' }}>
@@ -744,7 +785,7 @@ export default function TeacherGroupsPage() {
                       })}
                     </tbody>
                   </table>
-                </div>
+                </ScrollFadeTable>
               </Card>
             </motion.div>
           )}
@@ -777,7 +818,7 @@ export default function TeacherGroupsPage() {
             exit={{ x: 360, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
             style={{
-              position: 'absolute', right: 0, top: 0, bottom: 0,
+              position: 'absolute', right: 0, top: 100, bottom: 0,
               width: 344, zIndex: 10,
               display: 'flex', flexDirection: 'column',
             }}

@@ -7,6 +7,7 @@ import {
   ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
+import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import {
   groups, students, todaySchedule, homeworkTemplates,
   type HomeworkTemplate,
@@ -524,7 +525,7 @@ function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: 
         <ListVideo size={17} style={{ color: '#7B3FCC' }} />
         <span style={{ fontSize: 14, fontWeight: 700, color: '#0B0B0D' }}>Таймкоды</span>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, overflowY: 'auto' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, overflowY: 'auto', scrollbarGutter: 'stable' }}>
         {codes.map((tc, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <input
@@ -723,7 +724,7 @@ function AudiencePicker({
   useEffect(() => {
     if (!open) return
     function onDown(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      if (ref.current && !ref.current.contains(e.target as Node)) { setOpen(false); setQuery('') }
     }
     document.addEventListener('mousedown', onDown)
     return () => document.removeEventListener('mousedown', onDown)
@@ -1113,24 +1114,24 @@ export default function TeacherLessonEditorPage() {
     </>
   )
   const draftLabel = 'Черновик'
-  const publishLabel = published
-    ? <><Check size={14} /> Опубликовано!</>
-    : <><Send size={14} /> Опубликовать урок</>
 
   return (
-    // Single scroll container: cancel the shell's 100px topbar reservation, then
-    // re-inset content with an equal padding so it still starts below the topbar
-    // — but now scrolls UP under the floating topbar + progressive-blur strip.
+    // Single scroll container. The teacher shell wrapper sits 100px down (topbar
+    // reservation); marginTop:-100 lifts the pane up to the viewport top so it
+    // can scroll UNDER the floating topbar, and paddingTop:100 re-insets the
+    // content below the topbar at rest — exactly the student lesson page recipe.
+    // The wrapper's overflow:visible (set for this page) keeps the lifted top
+    // from being clipped.
     <div
       onScroll={e => setDocked((e.currentTarget as HTMLElement).scrollTop > 64)}
-      style={{ flex: 1, minHeight: 0, overflowY: 'auto', marginTop: -100, paddingTop: 100 }}
+      style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18, padding: '4px 32px 48px' }}>
 
         {/* ── Rest-state header row — in the scroll flow below the topbar; fades
             out as the page docks. Its docked twin (below) sits ON the topbar line. ── */}
         <motion.div
-          style={{ display: 'flex', alignItems: 'center', gap: 12 }}
+          style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}
           animate={{ opacity: docked ? 0 : 1 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
@@ -1147,35 +1148,31 @@ export default function TeacherLessonEditorPage() {
             {backBtn}
           </motion.button>
 
-          <div style={{ flex: 1, minWidth: 0, fontSize: 18, fontWeight: 700, color: '#0B0B0D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center' }}>
+          <div style={{
+            position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
+            maxWidth: '44%', pointerEvents: 'none',
+            fontSize: 18, fontWeight: 700, color: '#0B0B0D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center',
+          }}>
             {isNew ? 'Создать урок' : 'Урок'}
             {meta.title && <span style={{ color: '#9A9AA2', fontWeight: 500 }}> — {meta.title}</span>}
           </div>
 
-          <button
-            style={{
-              flexShrink: 0, padding: '9px 18px', borderRadius: 999, border: '1px solid rgba(0,0,0,0.08)',
-              background: 'rgba(255,255,255,0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', cursor: 'pointer',
-              fontSize: 13.5, fontWeight: 600, color: '#6F6F76', fontFamily: 'inherit',
-            }}
-          >
-            {draftLabel}
-          </button>
-          <motion.button
-            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-            onClick={handlePublish}
-            style={{
-              flexShrink: 0, display: 'flex', alignItems: 'center', gap: 7,
-              padding: '9px 18px', borderRadius: 999, border: 'none', cursor: 'pointer',
-              background: published
-                ? 'linear-gradient(135deg, #34D399 0%, #1a7a3f 100%)'
-                : 'linear-gradient(135deg, #9B6DFF 0%, #7B3FCC 100%)',
-              color: '#fff', fontSize: 13.5, fontWeight: 700,
-              boxShadow: '0 4px 14px rgba(123,63,204,0.30)', fontFamily: 'inherit', transition: 'background 0.3s',
-            }}
-          >
-            {publishLabel}
-          </motion.button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+            <button
+              style={{
+                padding: '9px 18px', borderRadius: 999, border: '1px solid rgba(0,0,0,0.08)',
+                background: 'rgba(255,255,255,0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', cursor: 'pointer',
+                fontSize: 13.5, fontWeight: 600, color: '#6F6F76', fontFamily: 'inherit',
+              }}
+            >
+              {draftLabel}
+            </button>
+            <TeacherSaveButton
+              label="Опубликовать урок" savedLabel="Опубликовано!"
+              icon={<Send size={14} />}
+              saved={published} onClick={handlePublish}
+            />
+          </div>
         </motion.div>
 
         {/* ── Docked twin — fixed at the topbar line, escaping the scroll
@@ -1228,22 +1225,12 @@ export default function TeacherLessonEditorPage() {
               >
                 {draftLabel}
               </button>
-              <motion.button
-                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                onClick={handlePublish}
-                style={{
-                  flexShrink: 0, display: 'flex', alignItems: 'center', gap: 7,
-                  padding: '9px 18px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                  background: published
-                    ? 'linear-gradient(135deg, #34D399 0%, #1a7a3f 100%)'
-                    : 'linear-gradient(135deg, #9B6DFF 0%, #7B3FCC 100%)',
-                  color: '#fff', fontSize: 13.5, fontWeight: 700,
-                  boxShadow: '0 6px 20px rgba(123,63,204,0.32)', fontFamily: 'inherit',
-                  transition: 'background 0.3s', pointerEvents: 'auto',
-                }}
-              >
-                {publishLabel}
-              </motion.button>
+              <TeacherSaveButton
+                label="Опубликовать урок" savedLabel="Опубликовано!"
+                icon={<Send size={14} />}
+                saved={published} onClick={handlePublish}
+                style={{ boxShadow: '0 6px 20px rgba(123,63,204,0.32)', pointerEvents: 'auto' }}
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -1268,13 +1255,13 @@ export default function TeacherLessonEditorPage() {
             {/* Row 2: materials + homework */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 14, alignItems: 'start' }}>
               <UploadTile icon={NotebookPen} label="Рабочая тетрадь" files={workbook}
-                onAdd={() => setWorkbook(f => [...f, `Рабочая тетрадь ${f.length + 1}.pdf`])}
+                onAddFiles={names => setWorkbook(f => [...f, ...names])}
                 onRemove={i => setWorkbook(f => f.filter((_, j) => j !== i))} />
               <UploadTile icon={FileText} label="Конспект" files={notes}
-                onAdd={() => setNotes(f => [...f, `Конспект ${f.length + 1}.pdf`])}
+                onAddFiles={names => setNotes(f => [...f, ...names])}
                 onRemove={i => setNotes(f => f.filter((_, j) => j !== i))} />
               <UploadTile icon={FolderOpen} label="Материалы" files={materials} multiple
-                onAdd={() => setMaterials(f => [...f, `Материал ${f.length + 1}.pdf`])}
+                onAddFiles={names => setMaterials(f => [...f, ...names])}
                 onRemove={i => setMaterials(f => f.filter((_, j) => j !== i))} />
               <HomeworkSelectorCard
                 lessonTitle={meta.title}

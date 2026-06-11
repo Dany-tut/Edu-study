@@ -5,6 +5,7 @@ export type TeacherPage = 'home' | 'groups' | 'homework' | 'homework-create' | '
 export type HwReview = {
   verdict: 'accepted' | 'returned'
   score: number
+  taskScores?: Record<string, number>
   comment: string
 }
 
@@ -24,10 +25,24 @@ export type TeacherTask = {
 type TeacherStore = {
   activePage: TeacherPage
   setActivePage: (page: TeacherPage) => void
+  // True while a page's fixed "docked twin" header occupies the topbar line —
+  // the top-right widget slot hides so the docked controls aren't covered.
+  headerDocked: boolean
+  setHeaderDocked: (docked: boolean) => void
   editingScheduleId: string | null
   openLessonEditor: (scheduleId: string | null) => void
+  // One-shot signal: open the Constructor straight into a creator view.
+  // The Constructor page consumes it on mount, then calls clearConstructorIntent.
+  constructorIntent: 'course' | 'trainer' | 'widget' | null
+  openConstructor: (mode: 'course' | 'trainer' | 'widget') => void
+  clearConstructorIntent: () => void
+  editTaskIntent: number | null
+  openConstructorEditTask: (taskId: number) => void
+  clearEditTaskIntent: () => void
   reviewingHwId: string | null
   openHomeworkReview: (hwId: string) => void
+  reviewIdx: number
+  setReviewIdx: (idx: number) => void
   // hwId -> studentId -> verdict the teacher gave while reviewing
   reviews: Record<string, Record<string, HwReview>>
   submitReview: (hwId: string, studentId: string, review: HwReview) => void
@@ -44,11 +59,21 @@ type TeacherStore = {
 
 export const useTeacher = create<TeacherStore>(set => ({
   activePage: 'home',
-  setActivePage: page => set({ activePage: page }),
+  setActivePage: page => set({ activePage: page, headerDocked: false }),
+  headerDocked: false,
+  setHeaderDocked: docked => set({ headerDocked: docked }),
   editingScheduleId: null,
-  openLessonEditor: scheduleId => set({ editingScheduleId: scheduleId, activePage: 'lesson-editor' }),
+  openLessonEditor: scheduleId => set({ editingScheduleId: scheduleId, activePage: 'lesson-editor', headerDocked: false }),
+  constructorIntent: null,
+  openConstructor: mode => set({ activePage: 'constructor', constructorIntent: mode, headerDocked: false }),
+  clearConstructorIntent: () => set({ constructorIntent: null }),
+  editTaskIntent: null,
+  openConstructorEditTask: taskId => set({ activePage: 'constructor', editTaskIntent: taskId, constructorIntent: 'trainer', headerDocked: false }),
+  clearEditTaskIntent: () => set({ editTaskIntent: null }),
   reviewingHwId: null,
-  openHomeworkReview: hwId => set({ reviewingHwId: hwId, activePage: 'homework-review' }),
+  openHomeworkReview: hwId => set({ reviewingHwId: hwId, activePage: 'homework-review', reviewIdx: 0, headerDocked: false }),
+  reviewIdx: 0,
+  setReviewIdx: idx => set({ reviewIdx: idx }),
   reviews: {},
   submitReview: (hwId, studentId, review) => set(s => ({
     reviews: { ...s.reviews, [hwId]: { ...(s.reviews[hwId] ?? {}), [studentId]: review } },

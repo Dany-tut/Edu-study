@@ -2,13 +2,14 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, Users, ClipboardList, BookOpen, Layers,
   Bell, ChevronLeft, ChevronRight,
-  Plus, UserPlus, Send, CheckSquare, type LucideIcon,
+  Plus, UserPlus, Send, CheckSquare, LayoutDashboard, type LucideIcon,
 } from 'lucide-react'
 import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { pendingHomework, getTotalPendingHw } from '../../data/teacherMockData'
 import { useTeacher, type TeacherPage } from '../../store/teacherStore'
 import CreateTaskModal from './CreateTaskModal'
+import WidgetsModal from './WidgetsModal'
 
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
   { id: 'home',        label: 'Главная',     icon: Home },
@@ -22,25 +23,34 @@ const EASE = [0.32, 0.72, 0, 1] as const
 const transition = { duration: 0.32, ease: EASE }
 const pendingHwCount = getTotalPendingHw(pendingHomework)
 
-type QuickAction = { icon: LucideIcon; label: string; sub: string; color: string; bg: string; page?: TeacherPage; action?: string }
-const quickActions: QuickAction[] = [
-  { icon: BookOpen,      label: 'Создать урок',      sub: 'новый урок',     color: '#1a7a3f', bg: '#DFF8D6', page: 'lesson-editor' },
-  { icon: CheckSquare,   label: 'Создать задачу',    sub: 'встреча, урок…', color: '#16a87a', bg: '#d5f5e8', action: 'create-task' },
-  { icon: UserPlus,      label: 'Добавить студента', sub: 'в группу',       color: '#7B3FCC', bg: '#EEDBFF', page: 'groups' },
-  { icon: ClipboardList, label: 'Выдать ДЗ',        sub: 'группе / лично', color: '#1a7a3f', bg: '#DFF8D6', page: 'homework' },
-  { icon: Send,          label: 'Пуш / СМС',         sub: 'уведомление',    color: '#8B4900', bg: '#FFE4BD' },
+type QuickAction = { type?: 'action'; icon: LucideIcon; label: string; sub: string; color: string; bg: string; page?: TeacherPage; action?: string }
+type QuickSeparator = { type: 'separator' }
+type QuickItem = QuickAction | QuickSeparator
+
+const quickActions: QuickItem[] = [
+  { icon: Layers,           label: 'Создать курс',      sub: 'новый курс',       color: '#7B3FCC', bg: '#EEDBFF', action: 'create-course' },
+  { icon: BookOpen,         label: 'Создать урок',      sub: 'новый урок',       color: '#1a7a3f', bg: '#DFF8D6', page: 'lesson-editor' },
+  { icon: ClipboardList,    label: 'Создать домашку',   sub: 'группе / лично',   color: '#1a7a3f', bg: '#DFF8D6', page: 'homework-create' },
+  { icon: CheckSquare,      label: 'Создать задачу',    sub: 'встреча, урок…',   color: '#16a87a', bg: '#d5f5e8', action: 'create-task' },
+  { type: 'separator' },
+  { icon: UserPlus,         label: 'Добавить студента', sub: 'в группу',         color: '#7B3FCC', bg: '#EEDBFF', page: 'groups' },
+  { icon: Send,             label: 'Пуш / СМС',         sub: 'уведомление',      color: '#8B4900', bg: '#FFE4BD' },
+  { type: 'separator' },
+  { icon: LayoutDashboard,  label: 'Настроить виджеты', sub: 'как у учеников',   color: '#7B3FCC', bg: '#EEDBFF', action: 'widgets' },
 ]
 
 export default function TeacherTopBar() {
   const [collapsed, setCollapsed]       = useState(false)
   const [addOpen, setAddOpen]           = useState(false)
   const [taskModalOpen, setTaskModalOpen] = useState(false)
+  const [widgetsOpen, setWidgetsOpen] = useState(false)
   const [anchor, setAnchor]             = useState<{ top: number; left: number } | null>(null)
   const addBtnRef  = useRef<HTMLButtonElement>(null)
   const dropRef    = useRef<HTMLDivElement>(null)
   const activePage = useTeacher(s => s.activePage)
   const setActivePage = useTeacher(s => s.setActivePage)
   const addTask = useTeacher(s => s.addTask)
+  const openConstructor = useTeacher(s => s.openConstructor)
 
   // Measure anchor on open / resize
   useLayoutEffect(() => {
@@ -236,43 +246,52 @@ export default function TeacherTopBar() {
               display: 'flex', flexDirection: 'column', gap: 4,
             }}
           >
-            {quickActions.map(action => (
-              <motion.button
-                key={action.label}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  if (action.action === 'create-task') { setTaskModalOpen(true) }
-                  if (action.page) setActivePage(action.page)
-                  setAddOpen(false)
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.72)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 12,
-                  padding: '9px 10px', borderRadius: 12,
-                  border: 'none', cursor: 'pointer',
-                  background: 'transparent', textAlign: 'left',
-                  transition: 'background 0.12s',
-                }}
-              >
-                <div style={{
-                  width: 34, height: 34, borderRadius: 10, flexShrink: 0,
-                  background: action.bg,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <action.icon size={16} strokeWidth={2} style={{ color: action.color }} />
-                </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 650, color: '#0B0B0D' }}>{action.label}</div>
-                  <div style={{ fontSize: 11, color: '#6F6F76', marginTop: 1 }}>{action.sub}</div>
-                </div>
-              </motion.button>
-            ))}
+            {quickActions.map((item, i) => {
+              if (item.type === 'separator') {
+                return <div key={`sep-${i}`} style={{ height: 1, background: 'rgba(0,0,0,0.07)', margin: '4px 6px' }} />
+              }
+              const action = item as QuickAction
+              return (
+                <motion.button
+                  key={action.label}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    if (action.action === 'create-task') { setTaskModalOpen(true) }
+                    if (action.action === 'widgets') { setWidgetsOpen(true) }
+                    if (action.action === 'create-course') { openConstructor('course') }
+                    if (action.page) setActivePage(action.page)
+                    setAddOpen(false)
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.72)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '9px 10px', borderRadius: 12,
+                    border: 'none', cursor: 'pointer',
+                    background: 'transparent', textAlign: 'left',
+                    transition: 'background 0.12s',
+                  }}
+                >
+                  <div style={{
+                    width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+                    background: action.bg,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <action.icon size={16} strokeWidth={2} style={{ color: action.color }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 650, color: '#0B0B0D' }}>{action.label}</div>
+                    <div style={{ fontSize: 11, color: '#6F6F76', marginTop: 1 }}>{action.sub}</div>
+                  </div>
+                </motion.button>
+              )
+            })}
           </motion.div>
         )}
       </AnimatePresence>,
       document.body
     )}
+    {widgetsOpen && <WidgetsModal onClose={() => setWidgetsOpen(false)} />}
     {taskModalOpen && (
       <CreateTaskModal
         onClose={() => setTaskModalOpen(false)}

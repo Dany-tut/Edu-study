@@ -126,29 +126,28 @@ a {
 }
 
 /* Full-width progressive blur+fade pinned to the top of the viewport, behind
-   the floating topbar pill (z:90 > 40). Single layer: uniform backdrop-blur +
-   a background gradient that fades the page colour in toward the top + a
-   mask gradient that tapers the whole strip (and its blur) to nothing by the
-   bottom edge — giving the "progressive" blur look. pointer-events:none so it
-   never blocks clicks. */
+   the floating topbar pill (z:90 > 40). Mask tapers from the very first pixel
+   so there is never a solid "stripe" — just a smooth breath of blur that melts
+   away by the bottom edge. pointer-events:none so it never blocks clicks. */
 .edge-progressive-blur--top {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 100px;
+  height: 120px;
   z-index: 40;
   pointer-events: none;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   background: linear-gradient(
     to bottom,
-    rgba(245, 245, 246, 0.72) 0%,
-    rgba(245, 245, 246, 0.44) 34%,
+    rgba(245, 245, 246, 0.55) 0%,
+    rgba(245, 245, 246, 0.18) 50%,
     transparent 100%
   );
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 22%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 22%, transparent 100%);
+  /* Start fading from pixel 0 — no flat plateau that reads as a stripe */
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
 }
 
 

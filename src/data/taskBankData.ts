@@ -1,5 +1,28 @@
 export type Subject = 'biology' | 'chemistry'
 
+export type QuestionType = 'choice' | 'free'
+export type ScoreMode = 'perOption' | 'criteria' | 'whole'
+
+// The shape of the answer block the student fills in. Drives both the teacher
+// editor (which inputs to show) and the student card (how to render/check).
+//  single   — radio, one correct option            → answer like "Б"
+//  multi    — checkboxes, several correct           → answer like "АБГ" / "24"
+//  short    — one input: word / number / formula    → answer like "Палеонтология"
+//  matching — two columns, map А→2, Б→1…            → answer like "А2 Б1 В3"
+//  sequence — order the items                       → answer like "3142"
+//  tableFill— complete the "?" cell(s) of a table   → answer = the missing term
+//  extended — long free text + photo, criteria      → answer = reference answer
+export type AnswerType =
+  | 'single' | 'multi' | 'short' | 'matching' | 'sequence' | 'tableFill' | 'extended'
+
+// One answer option for a choice-type question. `points` is used only in the
+// 'perOption' scoring mode.
+export interface TaskChoice { id: string; text: string; correct: boolean; points?: number }
+// A keyword the student's free-text answer is scored against ('perOption' free mode).
+export interface TaskAnswerKey { id: string; keyword: string; points: number }
+// One rubric line for the 'criteria' scoring mode.
+export interface TaskCriterion { id: string; text: string; points: number }
+
 export interface Task {
   id: number
   subject: Subject
@@ -14,6 +37,27 @@ export interface Task {
   answer: string
   solution: string
   difficulty: 'easy' | 'medium' | 'hard'
+  // ── Optional rich scoring (used by the teacher trainer/homework editors) ──
+  // All optional so the existing seed tasks above keep working untouched; a task
+  // with none of these set is treated as a plain free-answer, whole-task question.
+  questionType?: QuestionType
+  scoreMode?: ScoreMode
+  choices?: TaskChoice[]
+  answerKeys?: TaskAnswerKey[]
+  criteria?: TaskCriterion[]
+  criteriaVisibleOnCheck?: boolean
+  maxPoints?: number
+  // ── Rich answer-block fields (set by the teacher block constructor) ──
+  // `answerType` selects the input the student gets; the type-specific config
+  // below feeds the renderer. Tasks without `answerType` stay plain short-answer.
+  answerType?: AnswerType
+  // matching: left fixed prompts (А, Б, В…) + right options (1, 2, 3…)
+  matchLeft?: string[]
+  matchRight?: string[]
+  // sequence: items to be ordered (correct order is encoded in `answer`)
+  sequenceItems?: string[]
+  // whether a free-text answer also lets the student attach a photo of the work
+  allowPhoto?: boolean
 }
 
 export const BIOLOGY_SECTIONS = ['Биология как наука', 'Клетка', 'Организм', 'Экосистемы', 'Эволюция', 'Человек']

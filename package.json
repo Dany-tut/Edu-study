@@ -16,9 +16,9 @@
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
-    "prisma": "^5.22.0",
     "@radix-ui/react-popover": "^1.1.0",
     "@radix-ui/react-scroll-area": "^1.2.0",
+    "@supabase/supabase-js": "^2.108.1",
     "clsx": "^2.1.0",
     "cors": "^2.8.5",
     "date-fns": "^3.6.0",
@@ -27,6 +27,7 @@
     "liquid-glass-react": "^1.1.0",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.468.0",
+    "prisma": "^5.22.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^2.2.0",

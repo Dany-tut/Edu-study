@@ -2,13 +2,15 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, X, ClipboardCheck, Clock, CheckCircle2,
-  Circle, ChevronDown, Users, AlertCircle, Send, ClipboardList,
+  Circle, Users, AlertCircle, Send, ClipboardList,
 } from 'lucide-react'
 import {
   groups, allHomework, students,
   type HomeworkItem, type Group,
 } from '../../data/teacherMockData'
 import { useTeacher } from '../../store/teacherStore'
+import TeacherSelect from '../../components/teacher/TeacherSelect'
+import GroupStrip from '../../components/teacher/GroupStrip'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -61,6 +63,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!selectedGroup || (assignTo === 'student' && !selectedStudent)) return
     setSubmitted(true)
     setTimeout(onClose, 1400)
   }
@@ -109,7 +112,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
           <div style={{ fontSize: 12, color: '#6F6F76', textAlign: 'center' }}>Уведомление отправлено студентам</div>
         </motion.div>
       ) : (
-        <form onSubmit={handleSubmit} style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <form onSubmit={handleSubmit} style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
           {/* Assign to toggle */}
           <div>
@@ -137,24 +140,18 @@ function AssignForm({ onClose }: { onClose: () => void }) {
           {/* Group select */}
           <div>
             <Label>Группа</Label>
-            <Select value={selectedGroup} onChange={e => { setSelectedGroup(e.target.value); setSelectedStudent('') }} required>
-              <option value="">Выберите группу</option>
-              {groups.map(g => (
-                <option key={g.id} value={g.id}>{g.name} ({g.studentCount} чел.)</option>
-              ))}
-            </Select>
+            <TeacherSelect value={selectedGroup} onChange={v => { setSelectedGroup(v); setSelectedStudent('') }}
+              placeholder="Выберите группу"
+              options={[{ value: '', label: 'Выберите группу' }, ...groups.map(g => ({ value: g.id, label: `${g.name} (${g.studentCount} чел.)` }))]} />
           </div>
 
           {/* Student select (only if assignTo = 'student') */}
           {assignTo === 'student' && (
             <div>
               <Label>Студент</Label>
-              <Select value={selectedStudent} onChange={e => setSelectedStudent(e.target.value)} required={assignTo === 'student'}>
-                <option value="">Выберите студента</option>
-                {groupStudents.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </Select>
+              <TeacherSelect value={selectedStudent} onChange={setSelectedStudent}
+                placeholder="Выберите студента"
+                options={[{ value: '', label: 'Выберите студента' }, ...groupStudents.map(s => ({ value: s.id, label: s.name }))]} />
             </div>
           )}
 
@@ -228,22 +225,6 @@ const inputStyle: React.CSSProperties = {
   background: '#F9F9FB',
   outline: 'none',
   fontFamily: 'inherit',
-}
-
-function Select({ children, value, onChange, required }: {
-  children: React.ReactNode; value: string
-  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void; required?: boolean
-}) {
-  return (
-    <div style={{ position: 'relative' }}>
-      <select value={value} onChange={onChange} required={required} style={{
-        ...inputStyle, appearance: 'none', paddingRight: 32, cursor: 'pointer',
-      }}>
-        {children}
-      </select>
-      <ChevronDown size={14} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: '#9A9AA2', pointerEvents: 'none' }} />
-    </div>
-  )
 }
 
 // ─── Homework row ──────────────────────────────────────────────────────────────
@@ -373,7 +354,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {[
@@ -387,16 +368,6 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
               <div style={{ fontSize: 16, fontWeight: 750, color: '#0B0B0D' }}>{item.value}</div>
             </div>
           ))}
-        </div>
-
-        {/* Status badge */}
-        <div style={{ textAlign: 'center' }}>
-          <span style={{
-            fontSize: 12, fontWeight: 700, color: STATUS_COLOR[status],
-            background: STATUS_BG[status], borderRadius: 10, padding: '5px 14px',
-          }}>
-            {STATUS_LABEL[status]}
-          </span>
         </div>
 
         {/* Continue / start review */}
@@ -436,7 +407,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
                 <div key={s.id} style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   padding: '7px 10px', borderRadius: 10,
-                  background: returned ? '#FFE4BD' : reviewed ? '#DFF8D6' : submitted ? '#EEDBFF' : '#F5F5F6',
+                  background: returned ? '#FFF3E4' : reviewed ? '#EEFAE9' : submitted ? '#F6EFFD' : '#F5F5F6',
                 }}>
                   <div style={{
                     width: 26, height: 26, borderRadius: 8, flexShrink: 0,
@@ -481,26 +452,12 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
   )
 }
 
-// ─── Stat chips ────────────────────────────────────────────────────────────────
-function StatChip({ label, value, color, bg }: { label: string; value: string | number; color: string; bg: string }) {
-  return (
-    <div style={{
-      background: bg, borderRadius: 14, padding: '10px 16px',
-      display: 'flex', alignItems: 'center', gap: 10,
-    }}>
-      <div>
-        <div style={{ fontSize: 10, fontWeight: 700, color, marginBottom: 2 }}>{label}</div>
-        <div style={{ fontSize: 20, fontWeight: 750, color: '#0B0B0D' }}>{value}</div>
-      </div>
-    </div>
-  )
-}
-
 // ─── Main page ─────────────────────────────────────────────────────────────────
 export default function TeacherHomeworkPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const reviews = useTeacher(s => s.reviews)
-  const [filterGroup, setFilterGroup] = useState<string>('all')
+  const filterGroup = useTeacher(s => s.selectedGroupId)
+  const setFilterGroup = useTeacher(s => s.setSelectedGroupId)
   const [selectedHwId, setSelectedHwId] = useState<string | null>(null)
   const [showAssignForm, setShowAssignForm] = useState(false)
 
@@ -512,14 +469,13 @@ export default function TeacherHomeworkPage() {
     return { ...hw, reviewedCount: Math.max(hw.reviewedCount, Object.keys(reviewed).length) }
   })
 
-  const filtered = filterGroup === 'all'
-    ? homework
-    : homework.filter(hw => hw.groupId === filterGroup)
+  // No group selected → whole list; a group selected → just that group's homework.
+  const filtered = filterGroup
+    ? homework.filter(hw => hw.groupId === filterGroup)
+    : homework
 
   const selectedHw = homework.find(hw => hw.id === selectedHwId) ?? null
   const selectedGroup = selectedHw ? groups.find(g => g.id === selectedHw.groupId) ?? null : null
-
-  const totalPending = homework.reduce((a, hw) => a + (hw.submittedCount - hw.reviewedCount), 0)
 
   const panelOpen = showAssignForm || (!!selectedHw && !!selectedGroup)
 
@@ -529,53 +485,22 @@ export default function TeacherHomeworkPage() {
   }
 
   return (
-    <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative' }}>
-      {/* Main area */}
-      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', padding: '0 32px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+    // overflow:visible so the lifted scroll pane below isn't clipped at the row
+    // edge; the slide-in panel overflowing right is clipped by .dashboard-root.
+    <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', position: 'relative' }}>
+      {/* Main area — lifted under the topbar so content melts into the
+          progressive-blur strip instead of hard-clipping (student-page recipe) */}
+      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-        {/* Stats row */}
-        <motion.div {...fadeUp(0.04)} style={{ display: 'flex', gap: 10 }}>
-          <StatChip label="На проверке" value={totalPending} color="#8B4900" bg="#FFE4BD" />
-        </motion.div>
-
-        {/* Toolbar: filter chips + button */}
-        <motion.div {...fadeUp(0.08)} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          {['all', ...groups.map(g => g.id)].map(gid => {
-            const g = groups.find(x => x.id === gid)
-            const isActive = filterGroup === gid
-            return (
-              <button
-                key={gid}
-                onClick={() => setFilterGroup(gid)}
-                style={{
-                  padding: '6px 14px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                  fontSize: 12, fontWeight: 600,
-                  background: isActive ? (g?.colorSoft ?? '#EEDBFF') : '#F5F5F6',
-                  color: isActive ? (g?.color ?? '#7B3FCC') : '#6F6F76',
-                  transition: 'all 0.15s',
-                  display: 'flex', alignItems: 'center', gap: 5,
-                }}
-              >
-                {g && <div style={{ width: 7, height: 7, borderRadius: '50%', background: g.color }} />}
-                {gid === 'all' ? 'Все группы' : g?.name}
-              </button>
-            )
-          })}
-          <div style={{ flex: 1 }} />
-          <motion.button
-            whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-            onClick={() => setActivePage('homework-create')}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 7,
-              padding: '8px 16px', borderRadius: 14, border: 'none', cursor: 'pointer',
-              background: 'linear-gradient(135deg, #9B6DFF 0%, #7B3FCC 100%)',
-              color: '#fff', fontSize: 13, fontWeight: 700,
-              boxShadow: '0 4px 14px rgba(123,63,204,0.30)',
-            }}
-          >
-            <Plus size={15} strokeWidth={2.4} />
-            Создать ДЗ
-          </motion.button>
+        {/* Group strip: pinned "Создать ДЗ" action card + scrollable group cards */}
+        <motion.div {...fadeUp(0.08)}>
+          <GroupStrip
+            selectedGroupId={filterGroup}
+            onSelectGroup={setFilterGroup}
+            actionLabel="Создать ДЗ"
+            actionIcon={Plus}
+            onAction={() => setActivePage('homework-create')}
+          />
         </motion.div>
 
         {/* Table */}
