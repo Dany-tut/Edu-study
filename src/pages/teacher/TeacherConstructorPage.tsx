@@ -1147,9 +1147,9 @@ function LessonNameInput({ value, onChange, onAdd }: {
 // Creator chrome is unified on the purple accent to match the lesson editor
 // and homework-create pages; per-type colors stay only in the list view.
 const CREATOR_CFG = {
-  course:  { label: 'Курс',     Icon: BookOpen, color: '#7B3FCC', bg: 'var(--color-purple-soft)', accent: '#7B3FCC' },
-  trainer: { label: 'Тренажёр', Icon: Zap,      color: '#7B3FCC', bg: 'var(--color-purple-soft)', accent: '#7B3FCC' },
-  widget:  { label: 'Виджет',   Icon: Layers,   color: '#7B3FCC', bg: 'var(--color-purple-soft)', accent: '#7B3FCC' },
+  course:  { label: 'Курс',     Icon: BookOpen, color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', accent: 'var(--color-accent)' },
+  trainer: { label: 'Тренажёр', Icon: Zap,      color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', accent: 'var(--color-accent)' },
+  widget:  { label: 'Виджет',   Icon: Layers,   color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', accent: 'var(--color-accent)' },
 }
 
 function CreatorView({
@@ -2257,7 +2257,7 @@ function CreatorView({
                         <Icon size={15} strokeWidth={2} style={{ color: active ? cfg.color : 'var(--color-text-3)', flexShrink: 0 }} />
                         <div style={{ minWidth: 0 }}>
                           <div style={{ fontSize: 12.5, fontWeight: 700, color: active ? cfg.color : 'var(--color-text)' }}>{label}</div>
-                          <div style={{ fontSize: 10.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{hint}</div>
+                          <div style={{ fontSize: 10.5, color: active ? 'var(--color-accent)' : 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: active ? 0.75 : 1 }}>{hint}</div>
                         </div>
                       </button>
                     )
@@ -2437,9 +2437,9 @@ export default function TeacherConstructorPage() {
   }
 
   const tabCfg = {
-    course:  { label: 'Курс',     Icon: BookOpen, color: '#7B3FCC', bg: 'var(--color-purple-soft)' },
-    trainer: { label: 'Тренажёр', Icon: Zap,      color: 'var(--color-peach-text)', bg: 'var(--color-peach-soft)' },
-    widget:  { label: 'Виджет',   Icon: Layers,   color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
+    course:  { label: 'Курс',     Icon: BookOpen, color: 'var(--color-accent)', bg: 'var(--color-purple-soft)' },
+    trainer: { label: 'Тренажёр', Icon: Zap,      color: 'var(--color-accent)', bg: 'var(--color-purple-soft)' },
+    widget:  { label: 'Виджет',   Icon: Layers,   color: 'var(--color-accent)', bg: 'var(--color-purple-soft)' },
   }
 
   return (

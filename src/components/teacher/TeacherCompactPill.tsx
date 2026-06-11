@@ -335,7 +335,7 @@ function QuickActionsWidget({ expanded: _expanded }: { expanded: boolean }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
   const actions = [
     { icon: BookOpen,      label: 'Создать урок', bg: 'var(--color-green-soft)', iconColor: '#2A9D5C', page: 'lesson-editor'   as const },
-    { icon: ClipboardList, label: 'Создать ДЗ',   bg: 'var(--color-purple-soft)', iconColor: '#7B3FCC', page: 'homework-create' as const },
+    { icon: ClipboardList, label: 'Создать ДЗ',   bg: 'var(--color-purple-soft)', iconColor: 'var(--color-accent)', page: 'homework-create' as const },
     { icon: BarChart2,     label: 'Статистика',   bg: 'var(--color-peach-soft)', iconColor: '#C47800', page: 'gradebook'       as const },
   ]
   return (
