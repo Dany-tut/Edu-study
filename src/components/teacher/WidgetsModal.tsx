@@ -13,13 +13,13 @@ type Widget = {
 }
 
 const DEFAULT_WIDGETS: Widget[] = [
-  { id: 'schedule',   label: 'Расписание',       icon: CalendarDays,   bg: '#EDE9FF', color: '#6C5CE7', visible: true },
-  { id: 'homework',   label: 'ДЗ на проверку',   icon: ClipboardCheck, bg: '#FFE9E9', color: '#C0392B', visible: true },
-  { id: 'reminders',  label: 'Напоминания',       icon: Bell,           bg: '#FFF4E5', color: '#E67E22', visible: true },
-  { id: 'payments',   label: 'Оплата',            icon: CreditCard,     bg: '#E8F6F0', color: '#1a8a5a', visible: true },
-  { id: 'stats',      label: 'Статистика',        icon: BarChart2,      bg: '#EDE9FF', color: '#6C5CE7', visible: false },
-  { id: 'students',   label: 'Студенты',          icon: Users,          bg: '#E8F0FF', color: '#3B5BDB', visible: false },
-  { id: 'lessons',    label: 'Уроки',             icon: BookOpen,       bg: '#E8F6F0', color: '#1a8a5a', visible: false },
+  { id: 'schedule',   label: 'Расписание',       icon: CalendarDays,   bg: 'var(--color-purple-soft)', color: '#6C5CE7', visible: true },
+  { id: 'homework',   label: 'ДЗ на проверку',   icon: ClipboardCheck, bg: 'var(--color-red-soft)', color: '#C0392B', visible: true },
+  { id: 'reminders',  label: 'Напоминания',       icon: Bell,           bg: 'var(--color-peach-soft)', color: '#E67E22', visible: true },
+  { id: 'payments',   label: 'Оплата',            icon: CreditCard,     bg: 'var(--color-green-soft)', color: '#1a8a5a', visible: true },
+  { id: 'stats',      label: 'Статистика',        icon: BarChart2,      bg: 'var(--color-purple-soft)', color: '#6C5CE7', visible: false },
+  { id: 'students',   label: 'Студенты',          icon: Users,          bg: 'var(--color-blue-pill-bg)', color: '#3B5BDB', visible: false },
+  { id: 'lessons',    label: 'Уроки',             icon: BookOpen,       bg: 'var(--color-green-soft)', color: '#1a8a5a', visible: false },
 ]
 
 function WidgetIcon({ icon: Icon, bg, color }: { icon: LucideIcon; bg: string; color: string }) {
@@ -108,7 +108,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                   key={w.id}
                   value={w}
                   style={{ display: 'flex', alignItems: 'center', gap: 10,
-                    background: '#F7F7FA', borderRadius: 12, padding: '10px 12px',
+                    background: 'var(--color-bg-4)', borderRadius: 12, padding: '10px 12px',
                     cursor: 'grab', userSelect: 'none',
                   }}
                 >
@@ -119,7 +119,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                     onClick={() => toggle(w.id)}
                     style={{
                       width: 28, height: 28, borderRadius: 8, border: 'none',
-                      background: '#EAEAF0', cursor: 'pointer',
+                      background: 'var(--color-bg-5)', cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}
                   >

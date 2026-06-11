@@ -8,6 +8,7 @@ import {
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { clearStudentSession, getStudentSession } from '../lib/studentSession'
+import { canUseFeature } from '../lib/featureFlags'
 import { playTransitionDrop } from '../lib/sound'
 import { tactile } from '../lib/feedback'
 import { useDashboard, type WidgetColumns } from '../store/dashboardStore'
@@ -532,27 +533,48 @@ export default function Sidebar() {
                         {/* Divider */}
                         <div style={{ height: 1, background: 'var(--color-border)', margin: '10px 0' }} />
 
-                        {/* Theme toggle — left-aligned like SettingsRow */}
-                        <motion.button
-                          whileTap={{ scale: 0.985 }}
-                          onClick={toggleTheme}
-                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
-                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-                          style={{
+                        {/* Theme toggle — preview users get the real button; others see a "coming soon" row */}
+                        {canUseFeature('darkTheme') ? (
+                          <motion.button
+                            whileTap={{ scale: 0.985 }}
+                            onClick={toggleTheme}
+                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                            style={{
+                              width: '100%', padding: '9px 8px',
+                              display: 'flex', alignItems: 'center',
+                              gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
+                              background: 'transparent',
+                              color: 'var(--color-text)',
+                              fontSize: 14, fontWeight: 550, transition: 'background 0.15s',
+                            }}
+                          >
+                            {dark
+                              ? <Sun size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                              : <Moon size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                            }
+                            <span style={{ flex: 1, textAlign: 'left' }}>{dark ? 'Светлая тема' : 'Тёмная тема'}</span>
+                          </motion.button>
+                        ) : (
+                          <div style={{
                             width: '100%', padding: '9px 8px',
                             display: 'flex', alignItems: 'center',
-                            gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
-                            background: 'transparent',
-                            color: 'var(--color-text)',
-                            fontSize: 14, fontWeight: 550, transition: 'background 0.15s',
-                          }}
-                        >
-                          {dark
-                            ? <Sun size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-                            : <Moon size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-                          }
-                          <span style={{ flex: 1, textAlign: 'left' }}>{dark ? 'Светлая тема' : 'Тёмная тема'}</span>
-                        </motion.button>
+                            gap: 10,
+                            color: 'var(--color-muted)',
+                            fontSize: 14, fontWeight: 550,
+                          }}>
+                            <Moon size={17} strokeWidth={1.9} style={{ flexShrink: 0 }} />
+                            <span style={{ flex: 1, textAlign: 'left' }}>Тёмная тема</span>
+                            <span style={{
+                              fontSize: 11, fontWeight: 600,
+                              padding: '2px 7px', borderRadius: 20,
+                              background: 'var(--color-purple-soft)',
+                              color: 'var(--color-accent)',
+                              letterSpacing: 0.2,
+                              flexShrink: 0,
+                            }}>скоро</span>
+                          </div>
+                        )}
 
                         {/* Opens the list modal — left-aligned like SettingsRow */}
                         <motion.button
@@ -615,7 +637,7 @@ export default function Sidebar() {
       </div>
 
       {/* Divider */}
-      <div style={{ width: 1, height: 28, background: 'rgba(0,0,0,0.08)', flexShrink: 0 }} />
+      <div style={{ width: 1, height: 28, background: 'var(--color-border)', flexShrink: 0 }} />
 
       {/* Nav */}
       <nav style={{ display: 'flex', flexDirection: 'row', gap: 2, justifyContent: 'center' }}>
@@ -684,7 +706,7 @@ export default function Sidebar() {
       </nav>
 
       {/* Divider */}
-      <div style={{ width: 1, height: 28, background: 'rgba(0,0,0,0.08)', flexShrink: 0 }} />
+      <div style={{ width: 1, height: 28, background: 'var(--color-border)', flexShrink: 0 }} />
 
       {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginLeft: 8 }}>

@@ -14,7 +14,7 @@ function SpoilerQuestion({ text }: { text: string }) {
   return (
     <div
       className="flex items-center justify-center my-5 px-2 py-4 rounded-2xl cursor-pointer select-none"
-      style={{ minHeight: 64, background: '#F7F0FF', position: 'relative', overflow: 'hidden' }}
+      style={{ minHeight: 64, background: 'var(--color-purple-soft)', position: 'relative', overflow: 'hidden' }}
       onClick={() => setRevealed(r => !r)}
       title={revealed ? 'Скрыть' : 'Показать вопрос'}
     >
@@ -149,7 +149,7 @@ export default function DailyQuiz() {
                 {timeLeft} сек
               </span>
             </div>
-            <div className="h-2 rounded-full" style={{ background: '#E8E8EA' }}>
+            <div className="h-2 rounded-full" style={{ background: 'var(--color-bg-5)' }}>
               <motion.div
                 className="h-full rounded-full"
                 style={{
@@ -195,7 +195,7 @@ export default function DailyQuiz() {
                   fontWeight: 500,
                   background: 'var(--color-bg)',
                   color: 'var(--color-text)',
-                  border: '1.5px solid #E8E8EA',
+                  border: '1.5px solid var(--color-border)',
                   minHeight: 56,
                 }}
               >
@@ -215,8 +215,8 @@ export default function DailyQuiz() {
           >
             <span style={{ fontSize: 22 }}>✓</span>
             <div>
-              <p style={{ fontSize: 16, fontWeight: 600, color: '#1A5C38' }}>Ответ принят</p>
-              <p style={{ fontSize: 13, color: '#2A7D4F' }}>
+              <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-green-text)' }}>Ответ принят</p>
+              <p style={{ fontSize: 13, color: 'var(--color-green-text)' }}>
                 {dailyQuiz.answers.find(a => a.id === selectedAnswer)?.text}
               </p>
             </div>

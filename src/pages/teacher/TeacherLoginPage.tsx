@@ -120,7 +120,7 @@ export default function TeacherLoginPage({ onLogin }: { onLogin: () => void }) {
           </div>
 
           {error && (
-            <div style={{ color: '#e53935', fontSize: 13, padding: '8px 12px', background: '#fff5f5', borderRadius: 10 }}>
+            <div style={{ color: 'var(--color-red-text)', fontSize: 13, padding: '8px 12px', background: 'var(--color-red-soft)', borderRadius: 10 }}>
               {error}
             </div>
           )}
@@ -131,7 +131,7 @@ export default function TeacherLoginPage({ onLogin }: { onLogin: () => void }) {
             style={{
               padding: '13px 24px',
               borderRadius: 14,
-              background: loading ? '#c4b0ff' : '#9B6DFF',
+              background: loading ? 'rgba(155,109,255,0.6)' : '#9B6DFF',
               color: '#fff',
               fontWeight: 700,
               fontSize: 15,

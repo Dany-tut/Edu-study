@@ -77,7 +77,7 @@ export default function JoinPage() {
 
   return (
     <div style={{
-      minHeight: '100dvh', background: '#F4F4F6',
+      minHeight: '100dvh', background: 'var(--color-bg)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
       <motion.div
@@ -115,7 +115,7 @@ export default function JoinPage() {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="Укажите вашу реальную почту"
-                  style={{ ...inputStyle, borderColor: emailTouched && !emailValid ? '#F48B91' : '#E8E8EA' }}
+                  style={{ ...inputStyle, borderColor: emailTouched && !emailValid ? '#F48B91' : 'var(--color-border)' }}
                   autoFocus
                 />
                 {emailTouched && !emailValid && (
@@ -129,7 +129,7 @@ export default function JoinPage() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="минимум 4 символа"
-                  style={{ ...inputStyle, borderColor: passwordTouched && !passwordValid ? '#F48B91' : '#E8E8EA' }}
+                  style={{ ...inputStyle, borderColor: passwordTouched && !passwordValid ? '#F48B91' : 'var(--color-border)' }}
                   onKeyDown={e => e.key === 'Enter' && handleRegister()}
                 />
                 {passwordTouched && !passwordValid && (
@@ -149,7 +149,7 @@ export default function JoinPage() {
               disabled={!emailValid || !passwordValid || saving}
               style={{
                 marginTop: 22, width: '100%', padding: '13px 0',
-                background: emailValid && passwordValid ? '#9B6DFF' : '#e0d4ff',
+                background: emailValid && passwordValid ? '#9B6DFF' : 'rgba(155,109,255,0.35)',
                 color: '#fff', fontWeight: 700, fontSize: 15,
                 border: 'none', borderRadius: 14,
                 cursor: emailValid && passwordValid ? 'pointer' : 'not-allowed',

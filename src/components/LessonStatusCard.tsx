@@ -21,10 +21,10 @@ const configs: Record<LessonStatus, CardConfig> = {
   completed: {
     bg: 'var(--color-green-soft)',
     badgeBg: 'rgba(110,231,160,0.3)',
-    badgeText: '#1A5C38',
+    badgeText: 'var(--color-green-text)',
     badgeLabel: 'Выполнено',
     icon: CheckCircle2,
-    textColor: '#0F3D26',
+    textColor: 'var(--color-green-text)',
   },
   returned: {
     bg: 'var(--color-yellow-soft)',

@@ -166,7 +166,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
                             {formatUntil(st)}
                           </span>
                         ) : (
-                          <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', background: 'rgba(0,0,0,0.06)', padding: '1px 6px', borderRadius: 999 }}>
+                          <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', background: 'var(--color-bg-5)', padding: '1px 6px', borderRadius: 999 }}>
                             {formatUntil(st)}
                           </span>
                         )
@@ -180,7 +180,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
                     <span style={{ fontSize: 18, fontWeight: 700, color: (isUpcoming || isMissed) ? pal.text : 'var(--color-text)', lineHeight: 1, minWidth: 54, textAlign: 'right' }}>
                       {lesson.time}
                     </span>
-                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: (isUpcoming || isMissed) ? pal.ring : 'rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: (isUpcoming || isMissed) ? pal.ring : 'var(--color-bg-4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {isMissed
                         ? <IconMissedLesson size={11} color={pal.text} />
                         : <Video size={11} color={isUpcoming ? pal.text : 'var(--color-muted)'} />
@@ -193,7 +193,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
             ) : (
               <div
                 className="rounded-2xl flex flex-col items-center justify-center text-center"
-                style={{ minHeight: 116, padding: '18px 24px', background: 'rgba(0,0,0,0.025)', color: 'var(--color-muted)' }}
+                style={{ minHeight: 116, padding: '18px 24px', background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}
               >
                 <CalendarX2 size={20} style={{ marginBottom: 8 }} />
                 <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)' }}>Пока нет данных</p>

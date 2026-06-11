@@ -57,7 +57,7 @@ function tileBase(active: boolean): React.CSSProperties {
 
 const navBtnStyle: React.CSSProperties = {
   width: 26, height: 26, borderRadius: 8, border: 'none',
-  background: '#F7F5FC', cursor: 'pointer',
+  background: 'var(--color-bg-3)', cursor: 'pointer',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   color: 'var(--color-muted)',
 }
@@ -126,9 +126,9 @@ function CalendarPickerLesson({ value, onChange, onClose }: { value: string; onC
           const tod = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate()
           return (
             <button key={i} onClick={() => { onChange(formatDateDot(d)); onClose() }}
-              style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500, background: sel ? '#7B3FCC' : tod ? '#F0E8FF' : 'transparent', color: sel ? '#fff' : tod ? '#7B3FCC' : 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s' }}
-              onMouseEnter={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = '#F7F5FC' }}
-              onMouseLeave={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = tod ? '#F0E8FF' : 'transparent' }}
+              style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500, background: sel ? '#7B3FCC' : tod ? 'var(--color-purple-soft)' : 'transparent', color: sel ? '#fff' : tod ? '#7B3FCC' : 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s' }}
+              onMouseEnter={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
+              onMouseLeave={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = tod ? 'var(--color-purple-soft)' : 'transparent' }}
             >{d.getDate()}</button>
           )
         })}
@@ -167,7 +167,7 @@ function TimePickerLesson({ value, onChange, onClose }: { value: string; onChang
             return (
               <button key={t} onClick={() => { onChange(t); onClose() }}
                 style={{ width: '100%', border: 'none', background: active ? '#7B3FCC' : 'transparent', color: active ? '#fff' : 'var(--color-text)', padding: '7px 10px', textAlign: 'left', fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'block', borderRadius: 9, transition: 'background 0.18s, color 0.18s' }}
-                onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = '#F3EEFF' }}
+                onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--color-purple-soft)' }}
                 onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
               >{t}</button>
             )
@@ -471,7 +471,7 @@ function HwOption({ t, active, suggested, onClick }: {
     >
       <div style={{
         width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-        background: t.level === 'hard' ? '#FEF3C7' : 'var(--color-purple-soft)',
+        background: t.level === 'hard' ? 'var(--color-yellow-soft)' : 'var(--color-purple-soft)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         {t.level === 'hard'
@@ -593,7 +593,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
     return (
       <div style={{
         position: 'relative', width: '100%', height: '54vh', borderRadius: 24, overflow: 'hidden',
-        background: 'linear-gradient(135deg, #2A2740, #14131F)',
+        background: 'linear-gradient(135deg, #2A2A2C, #111113)',
         boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14,
       }}>
@@ -869,7 +869,7 @@ function AudiencePicker({
                         key={g.id}
                         onClick={() => add('group', g.id)}
                         style={pickerRow}
-                        onMouseEnter={e => (e.currentTarget.style.background = '#F5F0FF')}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-4)')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
                         <div style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
@@ -897,10 +897,10 @@ function AudiencePicker({
                           key={s.id}
                           onClick={() => add('student', s.id)}
                           style={pickerRow}
-                          onMouseEnter={e => (e.currentTarget.style.background = '#F0FBF0')}
+                          onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-4)')}
                           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                         >
-                          <div style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: '#1a7a3f', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9.5, fontWeight: 800, color: '#fff' }}>
+                          <div style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-green-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9.5, fontWeight: 800, color: '#fff' }}>
                             {initials}
                           </div>
                           <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
@@ -1011,7 +1011,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
         <div ref={calRef} style={{ position: 'relative' }}>
           <button
             onClick={() => { setShowCal(v => !v); setShowStartTime(false); setShowEndTime(false) }}
-            style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', border: `1.5px solid ${showCal ? '#C4B0F0' : 'rgba(0,0,0,0.09)'}`, background: showCal ? '#FAFAFD' : 'var(--color-bg-2)', paddingLeft: 11, textAlign: 'left' }}
+            style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', border: `1.5px solid ${showCal ? 'rgba(123,63,204,0.55)' : 'var(--color-border)'}`, background: showCal ? 'var(--color-bg-3)' : 'var(--color-bg-2)', paddingLeft: 11, textAlign: 'left' }}
           >
             <Calendar size={13} color="#9A9AA2" style={{ flexShrink: 0 }} />
             <span style={{ flex: 1 }}>{displayDate}</span>
@@ -1034,7 +1034,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
           <div ref={startRef} style={{ position: 'relative', flex: 1 }}>
             <button
               onClick={() => { setShowStartTime(v => !v); setShowCal(false); setShowEndTime(false) }}
-              style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', border: `1.5px solid ${showStartTime ? '#C4B0F0' : 'rgba(0,0,0,0.09)'}`, background: showStartTime ? '#FAFAFD' : 'var(--color-bg-2)', paddingLeft: 10, textAlign: 'left' }}
+              style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', border: `1.5px solid ${showStartTime ? 'rgba(123,63,204,0.55)' : 'var(--color-border)'}`, background: showStartTime ? 'var(--color-bg-3)' : 'var(--color-bg-2)', paddingLeft: 10, textAlign: 'left' }}
             >
               <Clock size={13} color="#9A9AA2" style={{ flexShrink: 0 }} />
               <span>{meta.startTime || '—'}</span>
@@ -1053,7 +1053,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
           <div ref={endRef} style={{ position: 'relative', flex: 1 }}>
             <button
               onClick={() => { setShowEndTime(v => !v); setShowCal(false); setShowStartTime(false) }}
-              style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', border: `1.5px solid ${showEndTime ? '#C4B0F0' : 'rgba(0,0,0,0.09)'}`, background: showEndTime ? '#FAFAFD' : 'var(--color-bg-2)', paddingLeft: 10, textAlign: 'left' }}
+              style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', border: `1.5px solid ${showEndTime ? 'rgba(123,63,204,0.55)' : 'var(--color-border)'}`, background: showEndTime ? 'var(--color-bg-3)' : 'var(--color-bg-2)', paddingLeft: 10, textAlign: 'left' }}
             >
               <Clock size={13} color="#9A9AA2" style={{ flexShrink: 0 }} />
               <span>{meta.endTime || '—'}</span>

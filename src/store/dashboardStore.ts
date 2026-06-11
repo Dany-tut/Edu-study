@@ -273,7 +273,7 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   setQuizResumeIndex: (i) => set({ quizResumeIndex: i }),
   showAllSubjects: false,
   setShowAllSubjects: (v) => set({ showAllSubjects: v }),
-  widgetColumns: 1,
+  widgetColumns: 2,
   setWidgetColumns: (n) => set({ widgetColumns: n }),
   widgetOrder: DEFAULT_WIDGET_ORDER,
   setWidgetOrder: (order) => set({ widgetOrder: order }),

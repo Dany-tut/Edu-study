@@ -116,7 +116,7 @@ const TASK_TYPES: { type: HWTaskType; label: string; icon: React.ElementType; co
   { type: 'text',   label: 'Текстовый ответ', icon: AlignLeft,   color: '#7B3FCC', bg: 'var(--color-purple-soft)' },
   { type: 'choice', label: 'Выбор ответа',    icon: CheckSquare, color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
   { type: 'fill',   label: 'Вписать слово',   icon: Type,        color: 'var(--color-peach-text)', bg: 'var(--color-peach-soft)' },
-  { type: 'match',  label: 'Сопоставление',   icon: Shuffle,     color: '#CC4B7B', bg: '#FFE1F0' },
+  { type: 'match',  label: 'Сопоставление',   icon: Shuffle,     color: 'var(--color-rose-text)', bg: 'var(--color-rose-soft)' },
 ]
 
 function typeConfig(t: HWTaskType) {
@@ -258,7 +258,7 @@ function TaskCard({
             onClick={e => { e.stopPropagation(); onDelete() }}
             style={{
               width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer',
-              background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0,
+              background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0,
             }}
           >
             <Trash2 size={13} />
@@ -330,7 +330,7 @@ function TaskCard({
                                 const correct = (task.correctChoices ?? []).filter(i => i !== ci).map(i => i > ci ? i - 1 : i)
                                 onUpdate({ choices, correctChoices: correct })
                               }}
-                              style={{ width: 22, height: 22, borderRadius: 6, border: 'none', background: 'rgba(0,0,0,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+                              style={{ width: 22, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                             >
                               <X size={11} />
                             </button>
@@ -378,7 +378,7 @@ function TaskCard({
                           {(task.pairs ?? []).length > 2 && (
                             <button
                               onClick={() => onUpdate({ pairs: (task.pairs ?? []).filter((_, i) => i !== pi) })}
-                              style={{ width: 22, height: 22, borderRadius: 6, border: 'none', background: 'rgba(0,0,0,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+                              style={{ width: 22, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                             >
                               <X size={11} />
                             </button>
@@ -416,77 +416,102 @@ function TaskCard({
   )
 }
 
-// ─── Add task button with type picker ─────────────────────────────────────────
+// ─── Right panel: task type picker (shown on compose tab) ─────────────────────
 
-function AddTaskBtn({ onAdd }: { onAdd: (type: HWTaskType) => void }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+const TASK_TYPE_DESCS: Record<HWTaskType, string> = {
+  text:   'Развёрнутый ответ',
+  choice: 'Один или несколько',
+  fill:   'Слово / фраза',
+  match:  'Таблица А1 Б2 В3',
+}
 
+function ComposeTypePanel({ onAdd, onAddHard }: { onAdd: (type: HWTaskType) => void; onAddHard: (type: HWTaskType) => void }) {
+  const [active, setActive] = useState<HWTaskType | null>(null)
+  function flash(type: HWTaskType, cb: (t: HWTaskType) => void) {
+    cb(type); setActive(type); setTimeout(() => setActive(null), 280)
+  }
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 7,
-          padding: '9px 16px', borderRadius: 12, border: '1.5px dashed rgba(123,63,204,0.35)',
-          background: 'rgba(123,63,204,0.05)', cursor: 'pointer',
-          fontSize: 13, fontWeight: 600, color: '#7B3FCC', fontFamily: 'inherit',
-          width: '100%', justifyContent: 'center',
-        }}
-      >
-        <Plus size={14} strokeWidth={2.4} />
-        Добавить задание
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 6, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 4, scale: 0.96 }}
-            transition={{ duration: 0.16 }}
-            style={{
-              position: 'absolute', bottom: 'calc(100% + 8px)', left: 0, right: 0,
-              background: 'var(--color-bg-input)', borderRadius: 14, overflow: 'hidden',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.14)', zIndex: 100,
-              border: '1px solid var(--color-border)',
-            }}
-          >
-            {TASK_TYPES.map(t => (
-              <button
-                key={t.type}
-                onClick={() => { onAdd(t.type); setOpen(false) }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  width: '100%', padding: '10px 14px', border: 'none',
-                  background: 'transparent', cursor: 'pointer', textAlign: 'left',
-                  fontSize: 13, color: 'var(--color-text)', fontFamily: 'inherit',
-                  transition: 'background 0.12s',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.background = t.bg)}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-              >
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <t.icon size={14} style={{ color: t.color }} />
-                </div>
-                <span style={{ fontWeight: 600 }}>{t.label}</span>
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+    <motion.div
+      initial={{ x: 320, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: 320, opacity: 0 }}
+      transition={{ type: 'spring', stiffness: 380, damping: 34, mass: 0.8 }}
+      style={{
+        width: 220, flexShrink: 0,
+        background: 'rgba(var(--glass-rgb), 0.88)',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        border: '1px solid var(--color-border-glass)',
+        borderRadius: 18,
+        boxShadow: 'var(--shadow-sm-page)',
+        padding: '16px 12px',
+        display: 'flex', flexDirection: 'column', gap: 6,
+        margin: '20px 24px 20px 0',
+      }}
+    >
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 4 }}>
+        ТИП ЗАДАНИЯ
+      </div>
+      {TASK_TYPES.map(t => (
+        <button
+          key={t.type}
+          onClick={() => flash(t.type, onAdd)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '10px 12px', borderRadius: 13,
+            border: `1.5px solid ${active === t.type ? t.color : 'transparent'}`,
+            background: active === t.type ? t.bg : 'var(--color-bg-2)',
+            cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
+            transition: 'all 0.13s',
+          }}
+          onMouseEnter={e => { if (active !== t.type) (e.currentTarget as HTMLButtonElement).style.background = t.bg }}
+          onMouseLeave={e => { if (active !== t.type) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-2)' }}
+        >
+          <div style={{
+            width: 32, height: 32, borderRadius: 9, background: t.bg,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <t.icon size={15} style={{ color: t.color }} />
+          </div>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t.label}</div>
+            <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 1 }}>{TASK_TYPE_DESCS[t.type]}</div>
+          </div>
+        </button>
+      ))}
+      <div style={{ height: 1, background: 'var(--color-border)', margin: '6px 0 2px' }} />
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 2 }}>
+        СЛОЖНОЕ ЗАДАНИЕ
+      </div>
+      {TASK_TYPES.slice(0, 2).map(t => (
+        <button
+          key={'hard-' + t.type}
+          onClick={() => flash(t.type, onAddHard)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '8px 12px', borderRadius: 11,
+            border: '1.5px solid transparent',
+            background: 'var(--color-yellow-soft)',
+            cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
+            transition: 'all 0.13s',
+          }}
+        >
+          <Star size={13} style={{ color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-yellow-text)' }}>{t.label}</div>
+        </button>
+      ))}
+    </motion.div>
   )
 }
 
 // ─── Compose tab ───────────────────────────────────────────────────────────────
 
 function ComposeTab({
-  tasks, onUpdate, onDelete, onAdd,
+  tasks, onUpdate, onDelete,
 }: {
   tasks: HWTask[]
   onUpdate: (id: string, p: Partial<HWTask>) => void
   onDelete: (id: string) => void
-  onAdd: (type: HWTaskType) => void
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -503,14 +528,14 @@ function ComposeTab({
       </AnimatePresence>
       {tasks.length === 0 && (
         <div style={{
-          textAlign: 'center', padding: '40px 0', color: 'var(--color-text-4)',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
+          textAlign: 'center', padding: '60px 0', color: 'var(--color-text-4)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
         }}>
-          <BookOpen size={32} strokeWidth={1.2} />
-          <div style={{ fontSize: 13, fontWeight: 600 }}>Добавьте первое задание</div>
+          <BookOpen size={36} strokeWidth={1.2} />
+          <div style={{ fontSize: 13, fontWeight: 600 }}>Выберите тип задания справа</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-5)' }}>и оно появится здесь</div>
         </div>
       )}
-      <AddTaskBtn onAdd={onAdd} />
     </div>
   )
 }
@@ -588,9 +613,9 @@ function BankTaskCard({ task, index, added, onAdd }: {
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 11, fontWeight: 700, color: '#7B3FCC' }}>Задание {index + 1}</span>
             <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
-            <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-red-soft)', color: '#B03040' }}>№{task.id}</span>
-            <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>{task.line} линия</span>
-            <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
+            <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>№{task.id}</span>
+            <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>{task.line} линия</span>
+            <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
             {modified && (
               <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-purple-soft)', color: '#7B3FCC' }}>
                 изменено
@@ -644,7 +669,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
                     display: 'flex', alignItems: 'center', gap: 7,
                     padding: '6px 10px', borderRadius: 10, cursor: 'pointer',
                     border: variantId !== null ? '1px solid rgba(34,197,94,0.4)' : '1px solid var(--color-border-strong)',
-                    background: variantId !== null ? 'var(--color-green-soft)' : '#F4F4F6',
+                    background: variantId !== null ? 'var(--color-green-soft)' : 'var(--color-bg-3)',
                     fontSize: 11.5, fontWeight: 700,
                     color: variantId !== null ? 'var(--color-green-text)' : 'var(--color-muted)',
                     fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'all 0.15s',
@@ -652,7 +677,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
                 >
                   <span style={{
                     width: 26, height: 15, borderRadius: 999, flexShrink: 0, position: 'relative',
-                    background: variantId !== null ? '#22C55E' : '#C9C9D0', transition: 'background 0.18s',
+                    background: variantId !== null ? '#22C55E' : 'var(--color-bg-5)', transition: 'background 0.18s',
                   }}>
                     <span style={{
                       position: 'absolute', top: 2, left: variantId !== null ? 13 : 2,
@@ -677,7 +702,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
                     border: justReplaced ? '1px solid rgba(34,197,94,0.4)' : '1px solid var(--color-border-strong)',
                     background: justReplaced ? 'var(--color-green-soft)' : 'var(--color-surface)',
                     fontSize: 11.5, fontWeight: 700,
-                    color: justReplaced ? 'var(--color-green-text)' : '#B03040',
+                    color: justReplaced ? 'var(--color-green-text)' : 'var(--color-red-text)',
                     fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'all 0.15s',
                   }}
                 >
@@ -696,7 +721,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
           <table style={{ borderCollapse: 'collapse', fontSize: 13, width: '100%' }}>
             <thead>
               <tr>{task.questionTable.headers.map(h => (
-                <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '9px 16px', fontWeight: 700, background: 'rgba(0,0,0,0.03)', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
+                <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '9px 16px', fontWeight: 700, background: 'var(--color-bg-2)', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
               ))}</tr>
             </thead>
             <tbody>
@@ -1039,7 +1064,7 @@ function TrainerFilterPanel({
       {hasFilters && (
         <button
           onClick={() => onChange({ section: '', topic: '', part: '', line: '', source: '' })}
-          style={{ padding: '8px 0', borderRadius: 12, background: 'var(--color-red-soft)', border: 'none', fontSize: 12, color: '#B03040', cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit' }}
+          style={{ padding: '8px 0', borderRadius: 12, background: 'var(--color-red-soft)', border: 'none', fontSize: 12, color: 'var(--color-red-text)', cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit' }}
         >
           Сбросить фильтры
         </button>
@@ -1095,23 +1120,23 @@ function HardTaskAccordion({
           width: '100%', display: 'flex', alignItems: 'center', gap: 10,
           padding: '12px 16px', borderRadius: open ? '16px 16px 0 0' : 16,
           border: '1.5px solid rgba(255,180,0,0.3)',
-          background: open ? 'linear-gradient(135deg, #FFF8E6 0%, #FFFBF0 100%)' : 'rgba(255,248,230,0.6)',
+          background: open ? 'var(--color-yellow-soft)' : 'var(--color-yellow-soft)',
           cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s',
         }}
       >
         <Star size={16} style={{ color: '#F59E0B', fill: '#F59E0B' }} />
-        <span style={{ fontSize: 13, fontWeight: 700, color: '#8B6000', flex: 1, textAlign: 'left' }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-yellow-text)', flex: 1, textAlign: 'left' }}>
           Сложное задание
         </span>
         {tasks.length > 0 && (
-          <span style={{ fontSize: 11, fontWeight: 700, color: '#8B6000', background: 'rgba(255,180,0,0.2)', borderRadius: 8, padding: '2px 8px' }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-yellow-text)', background: 'rgba(255,180,0,0.2)', borderRadius: 8, padding: '2px 8px' }}>
             {tasks.length} зад.
           </span>
         )}
-        <span style={{ fontSize: 11, color: '#C2A000', fontWeight: 600 }}>
+        <span style={{ fontSize: 11, color: 'var(--color-yellow-text)', fontWeight: 600 }}>
           {open ? 'Свернуть' : 'Добавить'}
         </span>
-        {open ? <ChevronUp size={14} style={{ color: '#C2A000' }} /> : <ChevronDown size={14} style={{ color: '#C2A000' }} />}
+        {open ? <ChevronUp size={14} style={{ color: 'var(--color-yellow-text)' }} /> : <ChevronDown size={14} style={{ color: 'var(--color-yellow-text)' }} />}
       </button>
 
       <AnimatePresence>
@@ -1126,11 +1151,11 @@ function HardTaskAccordion({
             <div style={{
               border: '1.5px solid rgba(255,180,0,0.3)', borderTop: 'none',
               borderRadius: '0 0 16px 16px',
-              background: 'rgba(255,253,245,0.9)',
+              background: 'var(--color-bg-2)',
               padding: '16px',
               display: 'flex', flexDirection: 'column', gap: 14,
             }}>
-              <div style={{ fontSize: 12, color: '#8B6000', lineHeight: 1.5 }}>
+              <div style={{ fontSize: 12, color: 'var(--color-yellow-text)', lineHeight: 1.5 }}>
                 Это задание откроется только студентам, набравшим <strong>80%+</strong> в основном ДЗ.
               </div>
 
@@ -1145,8 +1170,8 @@ function HardTaskAccordion({
                       style={{
                         flex: 1, padding: '7px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
                         fontSize: 12, fontWeight: 600,
-                        background: assignTo === opt.v ? '#FEF3C7' : 'var(--color-bg)',
-                        color: assignTo === opt.v ? '#8B6000' : 'var(--color-muted)',
+                        background: assignTo === opt.v ? 'var(--color-yellow-soft)' : 'var(--color-bg)',
+                        color: assignTo === opt.v ? 'var(--color-yellow-text)' : 'var(--color-muted)',
                         fontFamily: 'inherit', transition: 'all 0.15s',
                       }}
                     >
@@ -1171,13 +1196,13 @@ function HardTaskAccordion({
                             display: 'flex', alignItems: 'center', gap: 10,
                             padding: '7px 10px', borderRadius: 10,
                             border: 'none', cursor: 'pointer', textAlign: 'left',
-                            background: sel ? '#FEF3C7' : 'var(--color-bg-2)',
+                            background: sel ? 'var(--color-yellow-soft)' : 'var(--color-bg-2)',
                             fontFamily: 'inherit', transition: 'background 0.12s',
                           }}
                         >
                           <div style={{
                             width: 24, height: 24, borderRadius: 7, flexShrink: 0,
-                            background: sel ? '#F59E0B' : '#E0E0E6',
+                            background: sel ? '#F59E0B' : 'var(--color-bg-3)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                           }}>
                             {sel
@@ -1217,12 +1242,21 @@ function HardTaskAccordion({
                 </div>
 
                 {tab === 'compose' && (
-                  <ComposeTab
-                    tasks={tasks}
-                    onUpdate={onUpdate}
-                    onDelete={onDelete}
-                    onAdd={onAdd}
-                  />
+                  <>
+                    <ComposeTab tasks={tasks} onUpdate={onUpdate} onDelete={onDelete} />
+                    <div style={{ marginTop: 10 }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {TASK_TYPES.map(t => (
+                          <button key={t.type} onClick={() => onAdd(t.type)} style={{
+                            display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 10,
+                            border: 'none', background: t.bg, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: t.color, fontFamily: 'inherit',
+                          }}>
+                            <t.icon size={12} /> {t.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
                 )}
                 {tab === 'trainer' && (
                   <TrainerTab
@@ -1253,7 +1287,7 @@ function HardTaskAccordion({
 
 const navBtnStyle: React.CSSProperties = {
   width: 26, height: 26, borderRadius: 8, border: 'none',
-  background: '#F7F5FC', cursor: 'pointer', display: 'flex',
+  background: 'var(--color-bg-2)', cursor: 'pointer', display: 'flex',
   alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)',
 }
 function todayDotStr() {
@@ -1322,7 +1356,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
           padding: '9px 12px', borderRadius: 11, border: '1.5px solid rgba(0,0,0,0.09)',
-          cursor: 'pointer', background: value ? '#F5F0FF' : 'var(--color-bg-2)',
+          cursor: 'pointer', background: value ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
           fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s',
         }}
       >
@@ -1350,7 +1384,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
             transition={{ duration: 0.16 }}
             style={{
               position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 999,
-              background: 'var(--color-bg-input)', border: '1.5px solid #EDEAF5', borderRadius: 16,
+              background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-medium)', borderRadius: 16,
               boxShadow: '0 8px 32px rgba(123,63,204,0.12)',
               padding: '14px 12px 12px',
             }}
@@ -1383,7 +1417,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
                     style={{
                       width: '100%', aspectRatio: '1', borderRadius: 8, border: 'none',
                       cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: isSelected ? 700 : 400,
-                      background: isSelected ? '#7B3FCC' : isToday ? '#F0E8FF' : 'transparent',
+                      background: isSelected ? '#7B3FCC' : isToday ? 'var(--color-purple-soft)' : 'transparent',
                       color: isSelected ? '#fff' : isToday ? '#7B3FCC' : 'var(--color-text)',
                       transition: 'background 0.12s',
                     }}
@@ -1424,7 +1458,7 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
           padding: '9px 12px', borderRadius: 11, border: '1.5px solid rgba(0,0,0,0.09)',
-          cursor: 'pointer', background: selected ? '#F5F0FF' : 'var(--color-bg-2)',
+          cursor: 'pointer', background: selected ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
           fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s',
         }}
       >
@@ -1452,7 +1486,7 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
             transition={{ duration: 0.16 }}
             style={{
               position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 999,
-              background: 'var(--color-bg-input)', border: '1.5px solid #EDEAF5', borderRadius: 16,
+              background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-medium)', borderRadius: 16,
               boxShadow: '0 8px 32px rgba(123,63,204,0.12)',
               overflow: 'hidden',
             }}
@@ -1464,7 +1498,7 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
                 style={{
                   width: '100%', display: 'flex', alignItems: 'center', gap: 10,
                   padding: '10px 14px', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                  background: g.id === value ? '#F5F0FF' : 'transparent',
+                  background: g.id === value ? 'var(--color-purple-soft)' : 'transparent',
                   transition: 'background 0.12s', textAlign: 'left',
                 }}
               >
@@ -1545,7 +1579,7 @@ function LessonPicker({
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
           padding: '9px 12px', borderRadius: 11, border: '1.5px solid rgba(0,0,0,0.09)',
-          cursor: 'pointer', background: selected ? '#F5F0FF' : 'var(--color-bg-2)',
+          cursor: 'pointer', background: selected ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
           fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s',
         }}
       >
@@ -1676,7 +1710,7 @@ function LessonOption({ lesson, active, suggested, onClick }: {
       onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--color-bg)' }}
       onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
     >
-      <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, background: active ? 'var(--color-purple-soft)' : '#F0EBF8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <BookOpen size={13} style={{ color: '#7B3FCC' }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -2076,7 +2110,7 @@ export default function TeacherHomeworkCreatePage() {
                 {tab.key === 'preview' && hwTasks.length > 0 && (
                   <span style={{
                     fontSize: 10, fontWeight: 700,
-                    background: activeTab === tab.key ? 'var(--color-purple-soft)' : '#E0E0E6',
+                    background: activeTab === tab.key ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
                     color: activeTab === tab.key ? 'var(--color-accent)' : 'var(--color-text-3)',
                     borderRadius: 6, padding: '1px 6px',
                   }}>
@@ -2104,15 +2138,16 @@ export default function TeacherHomeworkCreatePage() {
                       tasks={hwTasks}
                       onUpdate={(id, p) => updateTask(id, p)}
                       onDelete={id => deleteTask(id)}
-                      onAdd={type => addCustomTask(type)}
                     />
-                    <HardTaskAccordion
-                      groupId={meta.groupId}
-                      tasks={hardTasks}
-                      onUpdate={(id, p) => updateTask(id, p, true)}
-                      onDelete={id => deleteTask(id, true)}
-                      onAdd={type => addCustomTask(type, true)}
-                    />
+                    {hardTasks.length > 0 && (
+                      <HardTaskAccordion
+                        groupId={meta.groupId}
+                        tasks={hardTasks}
+                        onUpdate={(id, p) => updateTask(id, p, true)}
+                        onDelete={id => deleteTask(id, true)}
+                        onAdd={type => addCustomTask(type, true)}
+                      />
+                    )}
                   </>
                 )}
                 {activeTab === 'trainer' && (
@@ -2133,7 +2168,7 @@ export default function TeacherHomeworkCreatePage() {
                       <div style={{ marginTop: 20 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                           <Star size={14} style={{ color: '#F59E0B', fill: '#F59E0B' }} />
-                          <span style={{ fontSize: 12, fontWeight: 700, color: '#8B6000' }}>Сложное задание (80%+)</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-yellow-text)' }}>Сложное задание (80%+)</span>
                         </div>
                         <PreviewTab
                           tasks={hardTasks}
@@ -2149,9 +2184,16 @@ export default function TeacherHomeworkCreatePage() {
           </div>
         </div>
 
-        {/* Right column — always reserves width so center never reflows on tab switch */}
-        <div style={{ width: 284, flexShrink: 0, overflow: 'hidden' }}>
-          <AnimatePresence>
+        {/* Right column */}
+        <div style={{ flexShrink: 0, overflow: 'hidden' }}>
+          <AnimatePresence mode="wait">
+            {activeTab === 'compose' && (
+              <ComposeTypePanel
+                key="compose-types"
+                onAdd={type => addCustomTask(type)}
+                onAddHard={type => addCustomTask(type, true)}
+              />
+            )}
             {activeTab === 'trainer' && (
               <TrainerFilterPanel
                 key="trainer-filter"
@@ -2197,7 +2239,7 @@ export default function TeacherHomeworkCreatePage() {
                 <div style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 6, lineHeight: 1.55 }}>
                   Домашнее задание будет привязано к уроку:
                 </div>
-                <div style={{ background: '#F5F0FF', borderRadius: 12, padding: '10px 14px', marginBottom: 20 }}>
+                <div style={{ background: 'var(--color-purple-soft)', borderRadius: 12, padding: '10px 14px', marginBottom: 20 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: '#7B3FCC' }}>{lesson?.lessonTitle}</div>
                   <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 2 }}>{lesson?.courseTitle}</div>
                 </div>

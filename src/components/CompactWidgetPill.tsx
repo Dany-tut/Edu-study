@@ -317,7 +317,7 @@ function PomoControls() {
                 fontSize: 11.5, fontWeight: 650, lineHeight: 1, padding: '5px 12px', borderRadius: 999,
                 border: 'none', cursor: 'pointer',
                 color: active ? 'var(--color-text)' : '#9A9AA0',
-                background: active ? '#FFFFFF' : 'transparent',
+                background: active ? 'var(--color-bg-input)' : 'transparent',
                 boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
                 transition: 'color 0.2s, background 0.2s',
               }}
@@ -1094,7 +1094,7 @@ export default function CompactWidgetPill() {
                 width: i === idx ? 14 : 4,
                 height: 4,
                 borderRadius: 999,
-                background: i === idx ? accent : '#CFCFD4',
+                background: i === idx ? accent : 'var(--color-text-4)',
                 transition: 'width 0.3s ease, background 0.3s ease',
               }}
             />

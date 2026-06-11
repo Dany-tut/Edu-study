@@ -29,12 +29,12 @@ function withAlpha(hex: string, alpha: number) {
 }
 
 const detailStyles: Record<LessonStatus, { bg: string; badgeBg: string; badgeText: string; badgeLabel: string; textColor: string; icon: React.ElementType }> = {
-  completed: { bg: 'var(--color-green-soft)', badgeBg: '#BDF2A8', badgeText: '#4C804F', badgeLabel: 'выполнено', textColor: 'var(--color-text)', icon: CheckCircle2 },
-  returned: { bg: '#F7F1B8', badgeBg: '#F2E56F', badgeText: '#9A8E36', badgeLabel: 'возвращено на доработку', textColor: 'var(--color-text)', icon: RotateCcw },
-  unviewed: { bg: '#F8D2D5', badgeBg: '#F4AAB0', badgeText: '#9E434A', badgeLabel: 'запись урока', textColor: 'var(--color-text)', icon: AlertCircle },
-  submitted: { bg: '#F2C492', badgeBg: '#F7D9B0', badgeText: '#6E4514', badgeLabel: 'отправлено на проверку', textColor: 'var(--color-text)', icon: Upload },
-  current: { bg: '#E8D6FA', badgeBg: '#CEB2F4', badgeText: '#6E47A5', badgeLabel: 'текущий урок', textColor: 'var(--color-text)', icon: Play },
-  locked: { bg: '#ECECEC', badgeBg: '#DBDBDB', badgeText: '#7D7D7D', badgeLabel: 'недоступно', textColor: 'var(--color-text)', icon: Lock },
+  completed: { bg: 'var(--color-green-soft)', badgeBg: 'var(--color-green-soft)', badgeText: 'var(--color-green-text)', badgeLabel: 'выполнено', textColor: 'var(--color-text)', icon: CheckCircle2 },
+  returned: { bg: 'var(--color-yellow-soft)', badgeBg: 'var(--color-yellow-soft)', badgeText: 'var(--color-yellow-text)', badgeLabel: 'возвращено на доработку', textColor: 'var(--color-text)', icon: RotateCcw },
+  unviewed: { bg: 'var(--color-red-soft)', badgeBg: 'var(--color-red-soft)', badgeText: 'var(--color-red-text)', badgeLabel: 'запись урока', textColor: 'var(--color-text)', icon: AlertCircle },
+  submitted: { bg: 'var(--color-peach-soft)', badgeBg: 'var(--color-peach-soft)', badgeText: 'var(--color-peach-text)', badgeLabel: 'отправлено на проверку', textColor: 'var(--color-text)', icon: Upload },
+  current: { bg: 'var(--color-purple-soft)', badgeBg: 'var(--color-purple-soft)', badgeText: 'var(--color-accent)', badgeLabel: 'текущий урок', textColor: 'var(--color-text)', icon: Play },
+  locked: { bg: 'var(--color-bg-4)', badgeBg: 'var(--color-bg-5)', badgeText: 'var(--color-muted)', badgeLabel: 'недоступно', textColor: 'var(--color-text)', icon: Lock },
 }
 
 function TrackForSubject({ subject }: { subject: Subject }) {
@@ -154,7 +154,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
             const isFullyDone = totalLessons > 0 && completedLessons === totalLessons
             const pct = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
 
-            const textColor = isFullyDone ? '#2A7A3B' : 'var(--color-text)'
+            const textColor = isFullyDone ? 'var(--color-green-text)' : 'var(--color-text)'
 
             return (
               <motion.button
@@ -191,7 +191,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                       alignItems: 'center',
                       fontSize: 11,
                       fontWeight: 500,
-                      color: isFullyDone ? '#2A7A3B' : '#A0A0A8',
+                      color: isFullyDone ? 'var(--color-green-text)' : 'var(--color-text-3)',
                     }}
                   >
                     {pct}%
@@ -239,7 +239,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     top: NODE_SIZE / 2,
                     transform: 'translateY(-50%)',
                     height: 16,
-                    background: '#E8E8EA',
+                    background: 'var(--color-bg-5)',
                     borderRadius: 999,
                   }}
                 />
@@ -373,7 +373,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                               <span style={{ fontSize: 18 }}>{EMOJI_STEPS[a.emojiIndex].emoji}</span>
                               <span style={{ fontSize: 13, fontWeight: 700, color: '#7B3FCC' }}>{a.score} баллов</span>
-                              <span style={{ fontSize: 12, color: '#9090A0' }}>· {EMOJI_STEPS[a.emojiIndex].label}</span>
+                              <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>· {EMOJI_STEPS[a.emojiIndex].label}</span>
                             </div>
                           )
                         })()}
@@ -389,7 +389,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                             </span>
                           </div>
                         ) : (
-                          <span style={{ fontSize: 13, fontWeight: 500, color: '#8D8D8D' }}>
+                          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)' }}>
                             Нет оценки
                           </span>
                         )}
@@ -401,7 +401,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                       style={{
                         fontSize: 13,
                         fontWeight: 600,
-                        color: '#9A9A9A',
+                        color: 'var(--color-muted)',
                         background: 'rgba(var(--glass-rgb), 0.5)',
                         borderRadius: 12,
                         padding: '9px 18px',
@@ -549,7 +549,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ fontSize: 18 }}>{EMOJI_STEPS[hardAssessment.emojiIndex].emoji}</span>
                         <span style={{ fontSize: 13, fontWeight: 700, color: '#7B3FCC' }}>{hardAssessment.score} баллов</span>
-                        <span style={{ fontSize: 12, color: '#9090A0' }}>· {EMOJI_STEPS[hardAssessment.emojiIndex].label}</span>
+                        <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>· {EMOJI_STEPS[hardAssessment.emojiIndex].label}</span>
                         {hardStatus === 'completed' && <span style={{ marginLeft: 4, fontSize: 16 }}>🌟</span>}
                       </div>
                     )}

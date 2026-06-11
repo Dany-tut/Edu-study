@@ -113,7 +113,7 @@ function ScoreBar({ label, icon: Icon, value, color }: {
         </div>
         <span style={{ fontSize: 13, fontWeight: 700, color }}>{value}</span>
       </div>
-      <div style={{ height: 5, background: 'rgba(0,0,0,0.06)', borderRadius: 99, overflow: 'hidden' }}>
+      <div style={{ height: 5, background: 'var(--color-bg-5)', borderRadius: 99, overflow: 'hidden' }}>
         <motion.div
           initial={{ width: 0 }} animate={{ width: `${value}%` }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -515,14 +515,14 @@ export default function TeacherHomeworkReviewPage() {
                     <FileText size={16} style={{ color: group.color }} />
                     <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Работа ученика</span>
                   </div>
-                  <p style={{ fontSize: 14.5, lineHeight: 1.65, color: '#1F1F24', whiteSpace: 'pre-line' }}>
+                  <p style={{ fontSize: 14.5, lineHeight: 1.65, color: 'var(--color-text)', whiteSpace: 'pre-line' }}>
                     {currentSubmission?.comment || 'Ученик не оставил комментарий к сдаче.'}
                   </p>
                   <div className="flex items-center flex-wrap" style={{ gap: 8, marginTop: 16 }}>
                     {['solution.pdf', 'photo-1.jpg'].map(f => (
                       <span key={f} className="flex items-center" style={{
                         gap: 6, padding: '8px 12px', borderRadius: 12,
-                        background: '#F2F2F6', color: '#4E4E57', fontSize: 12, fontWeight: 650,
+                        background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 12, fontWeight: 650,
                       }}>
                         <Paperclip size={13} />
                         {f}
@@ -600,7 +600,7 @@ export default function TeacherHomeworkReviewPage() {
                       rows={4}
                       style={{
                         width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 14,
-                        border: '1.5px solid rgba(0,0,0,0.1)', fontSize: 14, color: '#17171B', lineHeight: 1.55,
+                        border: '1.5px solid var(--color-border-medium)', fontSize: 14, color: 'var(--color-text)', lineHeight: 1.55,
                         background: 'var(--color-bg-2)', outline: 'none', resize: 'vertical', minHeight: 96, fontFamily: 'inherit',
                       }}
                     />
@@ -614,7 +614,7 @@ export default function TeacherHomeworkReviewPage() {
                       className="flex items-center cursor-pointer"
                       style={{
                         gap: 8, padding: '13px 22px', borderRadius: 16, border: 'none',
-                        background: '#7C3AED',
+                        background: 'var(--color-accent)',
                         color: '#fff', fontSize: 14, fontWeight: 600,
                         boxShadow: '0 4px 16px rgba(124,58,237,0.25)',
                       }}
@@ -628,7 +628,7 @@ export default function TeacherHomeworkReviewPage() {
                       className="flex items-center cursor-pointer"
                       style={{
                         gap: 8, padding: '13px 20px', borderRadius: 16,
-                        border: '1.5px solid #F8C991', background: '#FFF6E6',
+                        border: '1.5px solid var(--color-peach-text)', background: 'var(--color-peach-soft)',
                         color: 'var(--color-peach-text)', fontSize: 14, fontWeight: 700,
                       }}
                     >
@@ -661,14 +661,14 @@ export default function TeacherHomeworkReviewPage() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 15, fontWeight: 750, color: 'var(--color-text)' }}>Все работы проверены!</div>
-                      <div style={{ fontSize: 13, color: '#3A6B4A' }}>Задача «Проверить ДЗ» отмечена на главной.</div>
+                      <div style={{ fontSize: 13, color: 'var(--color-green-text)' }}>Задача «Проверить ДЗ» отмечена на главной.</div>
                     </div>
                     <motion.button
                       whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                       onClick={() => setActivePage('homework')}
                       style={{
                         flexShrink: 0, padding: '11px 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
-                        background: '#1a7a3f', color: '#fff', fontSize: 13, fontWeight: 700,
+                        background: 'var(--color-green-accent)', color: '#fff', fontSize: 13, fontWeight: 700,
                       }}
                     >
                       К списку ДЗ

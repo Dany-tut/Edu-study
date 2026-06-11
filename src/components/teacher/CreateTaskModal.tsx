@@ -18,10 +18,10 @@ type TaskType = {
 
 const TASK_TYPES: TaskType[] = [
   { id: 'meeting',      label: 'Встреча',  keywords: ['встреча', 'встречу'],       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', textColor: 'var(--color-green-text)' },
-  { id: 'call',         label: 'Созвон',   keywords: ['созвон'],                    color: '#6C7BE8', bg: '#e6e9ff', textColor: '#3d4ecc' },
-  { id: 'lesson',       label: 'Урок',     keywords: ['урок'],                      color: '#e07c2a', bg: '#fdefd8', textColor: '#b85e10' },
-  { id: 'homework',     label: 'Домашка',  keywords: ['домашка', 'домашку', 'дз'], color: '#9B6DCC', bg: '#eedbff', textColor: '#7B3FCC' },
-  { id: 'presentation', label: 'Преза',    keywords: ['преза', 'презентация'],      color: '#e0397a', bg: '#fde0ef', textColor: '#c41f60' },
+  { id: 'call',         label: 'Созвон',   keywords: ['созвон'],                    color: '#6C7BE8', bg: 'var(--color-blue-pill-bg)', textColor: '#3d4ecc' },
+  { id: 'lesson',       label: 'Урок',     keywords: ['урок'],                      color: '#e07c2a', bg: 'var(--color-peach-soft)', textColor: '#b85e10' },
+  { id: 'homework',     label: 'Домашка',  keywords: ['домашка', 'домашку', 'дз'], color: '#9B6DCC', bg: 'var(--color-purple-soft)', textColor: '#7B3FCC' },
+  { id: 'presentation', label: 'Преза',    keywords: ['преза', 'презентация'],      color: '#e0397a', bg: 'var(--color-red-soft)', textColor: '#c41f60' },
 ]
 
 function detectType(text: string): { type: TaskType; rest: string } | null {
@@ -110,7 +110,7 @@ const RU_DAYS_SHORT = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс']
 
 const navBtnStyle: React.CSSProperties = {
   width: 26, height: 26, borderRadius: 8, border: 'none',
-  background: '#F7F5FC', cursor: 'pointer',
+  background: 'var(--color-bg-3)', cursor: 'pointer',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   color: 'var(--color-muted)',
 }
@@ -190,13 +190,13 @@ function CalendarPicker({ value, onChange, onClose }: { value: string; onChange:
               style={{
                 width: 30, height: 30, borderRadius: 8, border: 'none',
                 cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500,
-                background: sel ? '#7B3FCC' : tod ? '#F0E8FF' : 'transparent',
+                background: sel ? '#7B3FCC' : tod ? 'var(--color-purple-soft)' : 'transparent',
                 color: sel ? '#fff' : tod ? '#7B3FCC' : 'var(--color-text)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'background 0.1s',
               }}
-              onMouseEnter={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = '#F7F5FC' }}
-              onMouseLeave={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = tod ? '#F0E8FF' : 'transparent' }}
+              onMouseEnter={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
+              onMouseLeave={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = tod ? 'var(--color-purple-soft)' : 'transparent' }}
             >
               {d.getDate()}
             </button>
@@ -278,7 +278,7 @@ function TimePicker({ value, onChange, onClose }: { value: string; onChange: (v:
                 borderRadius: 9,
                 transition: 'background 0.18s, color 0.18s',
               }}
-              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = '#F3EEFF' }}
+              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--color-purple-soft)' }}
               onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
             >
               {t}
@@ -487,7 +487,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
               onClick={onClose}
               style={{
                 width: 28, height: 28, borderRadius: '50%',
-                background: '#F4F2F8', border: 'none', cursor: 'pointer',
+                background: 'var(--color-bg-3)', border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: 'var(--color-muted)',
               }}
@@ -502,12 +502,12 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
             <div style={{ position: 'relative' }}>
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 8,
-                background: '#F7F5FC', borderRadius: 14,
+                background: 'var(--color-bg-3)', borderRadius: 14,
                 padding: '10px 14px',
                 border: '1.5px solid transparent',
                 transition: 'border-color 0.15s',
               }}
-                onFocusCapture={e => (e.currentTarget.style.borderColor = '#C4B0F0')}
+                onFocusCapture={e => (e.currentTarget.style.borderColor = 'rgba(123,63,204,0.55)')}
                 onBlurCapture={e => (e.currentTarget.style.borderColor = 'transparent')}
               >
                 <AnimatePresence>
@@ -579,12 +579,12 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                           display: 'flex', alignItems: 'center', gap: 10,
                           padding: '9px 14px', cursor: 'pointer', textAlign: 'left',
                         }}
-                        onMouseEnter={e => (e.currentTarget.style.background = '#F7F5FC')}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-3)')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'none')}
                       >
                         <div style={{
                           width: 30, height: 30, borderRadius: 10, flexShrink: 0,
-                          background: ent.kind === 'group' ? '#EFE0FF' : '#E8F4FD',
+                          background: ent.kind === 'group' ? 'var(--color-purple-soft)' : 'var(--color-blue-pill-bg)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: 13, fontWeight: 700,
                           color: ent.kind === 'group' ? '#7B3FCC' : '#3a6fbf',
@@ -613,7 +613,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                     style={{
                       padding: '5px 12px', borderRadius: 20, cursor: 'pointer',
                       fontSize: 12, fontWeight: 650,
-                      background: active ? t.bg : '#F4F2F8',
+                      background: active ? t.bg : 'var(--color-bg-3)',
                       color: active ? t.textColor : 'var(--color-muted)',
                       border: active ? `1.5px solid ${t.color}44` : '1.5px solid transparent',
                       transition: 'all 0.15s',
@@ -626,7 +626,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
             </div>
 
             {/* Divider */}
-            <div style={{ height: 1, background: '#F0EDF8', margin: '0 -20px', width: 'calc(100% + 40px)' }} />
+            <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '0 -20px', width: 'calc(100% + 40px)' }} />
 
             {/* Date + Time */}
             <div style={{ display: 'flex', gap: 10 }}>
@@ -640,8 +640,8 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                   onClick={() => { setShowCalendar(v => !v); setShowTimePicker(false) }}
                   style={{
                     padding: '9px 12px', borderRadius: 12,
-                    border: `1.5px solid ${showCalendar ? '#C4B0F0' : '#EDEAF5'}`,
-                    background: '#F7F5FC', fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
+                    border: `1.5px solid ${showCalendar ? 'rgba(123,63,204,0.55)' : 'var(--color-border-medium)'}`,
+                    background: 'var(--color-bg-3)', fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
                     cursor: 'pointer', textAlign: 'left', width: '100%',
                     transition: 'border-color 0.15s',
                   }}
@@ -669,8 +669,8 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                   onClick={() => { setShowTimePicker(v => !v); setShowCalendar(false) }}
                   style={{
                     padding: '9px 12px', borderRadius: 12,
-                    border: `1.5px solid ${showTimePicker ? '#C4B0F0' : '#EDEAF5'}`,
-                    background: '#F7F5FC', fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
+                    border: `1.5px solid ${showTimePicker ? 'rgba(123,63,204,0.55)' : 'var(--color-border-medium)'}`,
+                    background: 'var(--color-bg-3)', fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
                     cursor: 'pointer', textAlign: 'left', width: '100%',
                     transition: 'border-color 0.15s',
                   }}
@@ -702,12 +702,12 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                 rows={2}
                 style={{
                   padding: '9px 12px', borderRadius: 12, border: '1.5px solid #EDEAF5',
-                  background: '#F7F5FC', fontSize: 14, color: 'var(--color-text)',
+                  background: 'var(--color-bg-3)', fontSize: 14, color: 'var(--color-text)',
                   outline: 'none', width: '100%', boxSizing: 'border-box',
                   resize: 'none', fontFamily: 'inherit', lineHeight: 1.5,
                 }}
-                onFocus={e => (e.target.style.borderColor = '#C4B0F0')}
-                onBlur={e => (e.target.style.borderColor = '#EDEAF5')}
+                onFocus={e => (e.target.style.borderColor = 'rgba(123,63,204,0.55)')}
+                onBlur={e => (e.target.style.borderColor = 'var(--color-border-medium)')}
               />
             </label>
 

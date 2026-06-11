@@ -179,7 +179,7 @@ export default function StatsQuizRow() {
                       <span style={{ fontSize: 14, fontWeight: 650, color: timerPct < 30 ? '#F48B91' : 'var(--color-muted)', minWidth: 46 }}>
                         {timeLeft} сек
                       </span>
-                      <div style={{ width: 112, height: 6, background: '#E8E8EA', borderRadius: 999, overflow: 'hidden' }}>
+                      <div style={{ width: 112, height: 6, background: 'var(--color-bg-5)', borderRadius: 999, overflow: 'hidden' }}>
                         <motion.div
                           style={{ height: '100%', borderRadius: 999, background: timerPct < 30 ? '#F48B91' : '#6EE7A0' }}
                           animate={{ width: `${timerPct}%` }}
@@ -232,7 +232,7 @@ export default function StatsQuizRow() {
                           fontWeight: 500,
                           background: 'var(--color-bg)',
                           color: 'var(--color-text)',
-                          border: '1.5px solid #E8E8EA',
+                          border: '1.5px solid var(--color-border)',
                           minHeight: 54,
                           lineHeight: 1.25,
                         }}
@@ -250,8 +250,8 @@ export default function StatsQuizRow() {
                     className="flex items-center gap-3 px-5 py-3 rounded-2xl"
                     style={{ padding: '12px 20px', background: 'var(--color-green-soft)', borderRadius: 16 }}
                   >
-                    <span style={{ fontSize: 18, color: '#1A5C38' }}>✓</span>
-                    <p className="truncate" style={{ fontSize: 15, fontWeight: 650, color: '#1A5C38' }}>
+                    <span style={{ fontSize: 18, color: 'var(--color-green-text)' }}>✓</span>
+                    <p className="truncate" style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-green-text)' }}>
                       Ответ принят{selectedAnswerText ? `: ${selectedAnswerText}` : ''}
                     </p>
                   </motion.div>

@@ -49,7 +49,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
           <Sparkles size={12 * scale} strokeWidth={2.2} />
           Вопрос дня
         </span>
-        <span style={{ fontSize: 12 * scale, fontWeight: 500, color: '#9A9AA0' }}>{q.subject}</span>
+        <span style={{ fontSize: 12 * scale, fontWeight: 500, color: 'var(--color-muted)' }}>{q.subject}</span>
       </div>
 
       {/* Question */}
@@ -107,7 +107,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
                 onClick={() => setRevealed(false)}
                 style={{
                   flexShrink: 0, border: 'none', cursor: 'pointer', background: 'none',
-                  color: '#9A9AA0', fontSize: 13 * scale, fontWeight: 600,
+                  color: 'var(--color-muted)', fontSize: 13 * scale, fontWeight: 600,
                 }}
               >
                 Скрыть

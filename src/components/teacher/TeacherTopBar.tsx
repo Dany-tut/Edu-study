@@ -29,16 +29,16 @@ type QuickSeparator = { type: 'separator' }
 type QuickItem = QuickAction | QuickSeparator
 
 const quickActions: QuickItem[] = [
-  { icon: Layers,           label: 'Создать курс',      sub: 'новый курс',       color: '#7B3FCC', bg: 'var(--color-purple-soft)', action: 'create-course' },
+  { icon: Layers,           label: 'Создать курс',      sub: 'новый курс',       color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', action: 'create-course' },
   { icon: BookOpen,         label: 'Создать урок',      sub: 'новый урок',       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', page: 'lesson-editor' },
   { icon: ClipboardList,    label: 'Создать домашку',   sub: 'группе / лично',   color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', page: 'homework-create' },
   { icon: CheckSquare,      label: 'Создать задачу',    sub: 'встреча, урок…',   color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', action: 'create-task' },
   { type: 'separator' },
-  { icon: Users,            label: 'Создать группу',    sub: 'новая группа',     color: '#7B3FCC', bg: 'var(--color-purple-soft)', action: 'create-group' },
-  { icon: UserPlus,         label: 'Добавить студента', sub: 'в группу',         color: '#7B3FCC', bg: 'var(--color-purple-soft)', action: 'add-student' },
+  { icon: Users,            label: 'Создать группу',    sub: 'новая группа',     color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', action: 'create-group' },
+  { icon: UserPlus,         label: 'Добавить студента', sub: 'в группу',         color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', action: 'add-student' },
   { icon: Send,             label: 'Пуш / СМС',         sub: 'уведомление',      color: 'var(--color-peach-text)', bg: 'var(--color-peach-soft)' },
   { type: 'separator' },
-  { icon: LayoutDashboard,  label: 'Настроить виджеты', sub: 'как у учеников',   color: '#7B3FCC', bg: 'var(--color-purple-soft)', action: 'widgets' },
+  { icon: LayoutDashboard,  label: 'Настроить виджеты', sub: 'как у учеников',   color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', action: 'widgets' },
   { icon: Moon,             label: 'Тема',              sub: 'светлая / тёмная', color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', action: 'theme' },
   { type: 'separator' },
   { icon: LogOut,           label: 'Выйти',             sub: 'из аккаунта',      color: '#A8282D', bg: 'var(--color-red-soft)', action: 'logout' },
@@ -177,7 +177,7 @@ export default function TeacherTopBar() {
       </nav>
 
       {/* Divider */}
-      <div style={{ width: 1, height: 28, background: 'rgba(0,0,0,0.08)', flexShrink: 0 }} />
+      <div style={{ width: 1, height: 28, background: 'var(--color-border)', flexShrink: 0 }} />
 
       {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -253,7 +253,7 @@ export default function TeacherTopBar() {
           >
             {quickActions.map((item, i) => {
               if (item.type === 'separator') {
-                return <div key={`sep-${i}`} style={{ height: 1, background: 'rgba(0,0,0,0.07)', margin: '4px 8px' }} />
+                return <div key={`sep-${i}`} style={{ height: 1, background: 'var(--color-border)', margin: '4px 8px' }} />
               }
               const action = item as QuickAction
               const isLogout = action.action === 'logout'
@@ -280,8 +280,8 @@ export default function TeacherTopBar() {
                   }}
                   onMouseEnter={e => {
                     (e.currentTarget as HTMLButtonElement).style.background = isLogout
-                      ? 'rgba(220,38,38,0.08)'
-                      : 'rgba(0,0,0,0.05)'
+                      ? (dark ? 'rgba(220,38,38,0.18)' : 'rgba(220,38,38,0.08)')
+                      : (dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)')
                   }}
                   onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                   style={{
@@ -299,7 +299,7 @@ export default function TeacherTopBar() {
                   }}>
                     {action.action === 'theme'
                       ? (dark
-                          ? <Sun size={15} strokeWidth={2} style={{ color: '#7B3FCC' }} />
+                          ? <Sun size={15} strokeWidth={2} style={{ color: 'var(--color-accent)' }} />
                           : <Moon size={15} strokeWidth={2} style={{ color: 'var(--color-accent)' }} />)
                       : <action.icon size={15} strokeWidth={2} style={{ color: action.color }} />
                     }

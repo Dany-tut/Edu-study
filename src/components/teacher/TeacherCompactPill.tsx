@@ -196,7 +196,7 @@ function SchedulePreview({ expanded }: { expanded: boolean }) {
                 opacity: past ? 0.45 : 1,
               }}>
                 <span style={{
-                  fontSize: 11, fontWeight: 700, color: '#2D6BE0',
+                  fontSize: 11, fontWeight: 700, color: 'var(--color-blue-pill-text)',
                   width: 36, flexShrink: 0,
                 }}>{s.time}</span>
                 <span style={{ fontSize: 12, color: 'var(--color-text)', fontWeight: 500 }}>{s.groupName}</span>
@@ -334,9 +334,9 @@ function QuickActionsWidget({ expanded: _expanded }: { expanded: boolean }) {
   const setActivePage = useTeacher(s => s.setActivePage)
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
   const actions = [
-    { icon: BookOpen,      label: 'Создать урок', bg: '#DFF5E8', iconColor: '#2A9D5C', page: 'lesson-editor'   as const },
-    { icon: ClipboardList, label: 'Создать ДЗ',   bg: '#EDE0FF', iconColor: '#7B3FCC', page: 'homework-create' as const },
-    { icon: BarChart2,     label: 'Статистика',   bg: '#FFF0D6', iconColor: '#C47800', page: 'gradebook'       as const },
+    { icon: BookOpen,      label: 'Создать урок', bg: 'var(--color-green-soft)', iconColor: '#2A9D5C', page: 'lesson-editor'   as const },
+    { icon: ClipboardList, label: 'Создать ДЗ',   bg: 'var(--color-purple-soft)', iconColor: '#7B3FCC', page: 'homework-create' as const },
+    { icon: BarChart2,     label: 'Статистика',   bg: 'var(--color-peach-soft)', iconColor: '#C47800', page: 'gradebook'       as const },
   ]
   return (
     <div
@@ -576,7 +576,7 @@ export default function TeacherCompactPill() {
           {Array.from({ length: total }, (_, i) => (
             <span key={i} style={{
               width: i === idx ? 14 : 4, height: 4, borderRadius: 999,
-              background: i === idx ? accent : '#CFCFD4',
+              background: i === idx ? accent : 'var(--color-text-4)',
               transition: 'width 0.3s ease, background 0.3s ease',
             }} />
           ))}

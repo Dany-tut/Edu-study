@@ -61,7 +61,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
           <span style={{ fontSize: 24 * sz.scale, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
             {format(pomoSecondsLeft)}
           </span>
-          <span style={{ fontSize: 10 * sz.scale, fontWeight: 600, color: '#9A9AA0', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 2 }}>
+          <span style={{ fontSize: 10 * sz.scale, fontWeight: 600, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 2 }}>
             {MODE_LABEL[pomoMode]}
           </span>
         </div>
@@ -90,7 +90,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
               </button>
             ))}
           </div>
-          <span style={{ fontSize: 12 * sz.scale, fontWeight: 500, color: '#9A9AA0', whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: 12 * sz.scale, fontWeight: 500, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
             🍅 {pomoCompleted} {pomoCompleted === 1 ? 'сессия' : 'сессий'}
           </span>
         </div>

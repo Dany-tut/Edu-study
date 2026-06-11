@@ -87,8 +87,8 @@ function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number)
 
       {/* Labels row */}
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 11, color: '#9898A0', fontWeight: 600 }}>Сложно</span>
-        <span style={{ fontSize: 11, color: '#9898A0', fontWeight: 600 }}>Легко</span>
+        <span style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>Сложно</span>
+        <span style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>Легко</span>
       </div>
 
       {/* Slider track */}
@@ -107,7 +107,7 @@ function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number)
             transform: 'translateX(-50%)',
             width: i === value ? 0 : 7, height: i === value ? 0 : 7,
             borderRadius: '50%',
-            background: i <= value ? '#C59BFF' : '#D4D4DA',
+            background: i <= value ? '#C59BFF' : 'var(--color-text-4)',
             transition: 'all 0.14s ease',
             pointerEvents: 'none',
           }} />
@@ -123,7 +123,7 @@ function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number)
           transform: 'translateX(-50%)',
           width: 26, height: 26, borderRadius: '50%',
           background: 'linear-gradient(135deg, #9B5FE8, #7B3FCC)',
-          border: '3px solid #fff',
+          border: '3px solid var(--color-bg)',
           boxShadow: '0 2px 12px rgba(123,63,204,0.45)',
           transition: 'left 0.16s ease',
           pointerEvents: 'none',
@@ -338,9 +338,9 @@ function ResultModal({
         <div ref={bannerRef} style={{
           padding: '28px 28px 24px',
           background: context === 'hard'
-            ? 'linear-gradient(135deg, #E7F6EE, #C8EDDA)'
+            ? 'var(--color-green-soft)'
             : passed
-              ? 'linear-gradient(135deg, #F1ECFF, #E4D6FF)'
+              ? 'var(--color-purple-soft)'
               : 'linear-gradient(135deg, #FFF6DB, #FDECC5)',
           display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: 16,
         }}>
@@ -391,7 +391,7 @@ function ResultModal({
                 fontSize: 42, fontWeight: 760, lineHeight: 1,
                 color: passed ? '#7B3FCC' : '#9A6000',
               }}>{score}</span>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#9898A0', marginTop: 2 }}>баллов</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', marginTop: 2 }}>баллов</p>
             </div>
           )}
           {passed && context === 'basic' && (
@@ -415,8 +415,8 @@ function ResultModal({
           <div style={{
             padding: '18px 20px',
             borderRadius: 22,
-            background: '#F8F8FA',
-            border: '1px solid rgba(0,0,0,0.05)',
+            background: 'var(--color-bg-3)',
+            border: '1px solid var(--color-border-soft)',
           }}>
             <EmojiSlider value={emojiValue} onChange={setEmojiValue} />
           </div>
@@ -430,8 +430,8 @@ function ResultModal({
                 style={{
                   flex: 1, padding: '15px 16px',
                   borderRadius: 18, border: '1px solid var(--color-border-medium)',
-                  background: '#F4F4F7',
-                  color: '#3D3D45', fontSize: 14, fontWeight: 700,
+                  background: 'var(--color-bg-3)',
+                  color: 'var(--color-text)', fontSize: 14, fontWeight: 700,
                   cursor: 'pointer',
                 }}
               >
@@ -961,8 +961,8 @@ export default function HomeworkFlow({
                   style={{
                     gap: 14, padding: 18, borderRadius: 24,
                     background: state.basicSubmitted
-                      ? (basicScore >= homework.recommendationScore ? '#F1ECFF' : '#FFF6DB')
-                      : 'rgba(255,255,255,0.94)',
+                      ? (basicScore >= homework.recommendationScore ? 'var(--color-purple-soft)' : 'var(--color-yellow-soft)')
+                      : 'var(--color-bg-input)',
                     border: state.basicSubmitted
                       ? `1px solid ${basicScore >= homework.recommendationScore ? 'rgba(123,63,204,0.18)' : 'rgba(248,201,145,0.42)'}`
                       : '1px solid var(--color-border-medium)',
@@ -1121,13 +1121,13 @@ export default function HomeworkFlow({
                                 correctSelected ? '#6EE7A0'
                                   : wrongSelected ? '#F48B91'
                                   : active ? 'rgba(123,63,204,0.38)'
-                                  : 'rgba(0,0,0,0.08)'
+                                  : 'var(--color-border)'
                               }`,
                               background: correctSelected ? 'var(--color-green-soft)'
                                 : wrongSelected ? 'var(--color-red-soft)'
-                                : active ? '#F3EAFF'
-                                : '#FFFFFF',
-                              color: '#17171B',
+                                : active ? 'var(--color-purple-soft)'
+                                : 'var(--color-bg-input)',
+                              color: 'var(--color-text)',
                               fontSize: 14,
                               lineHeight: 1.45,
                               fontWeight: 600,
@@ -1147,7 +1147,7 @@ export default function HomeworkFlow({
                           padding: '14px 16px',
                           borderRadius: 18,
                           background: isCorrect ? 'rgba(223,248,214,0.42)' : 'rgba(255,225,228,0.44)',
-                          border: '1px solid rgba(0,0,0,0.05)',
+                          border: '1px solid var(--color-border-soft)',
                         }}
                       >
                         <p
@@ -1242,8 +1242,8 @@ export default function HomeworkFlow({
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          background: '#E7F6EE',
-                          color: '#2A7D4F',
+                          background: 'var(--color-green-soft)',
+                          color: 'var(--color-green-text)',
                         }}
                       >
                         <Send size={22} />
@@ -1310,7 +1310,7 @@ export default function HomeworkFlow({
                       padding: 20,
                       borderRadius: 24,
                       background: 'var(--color-bg-2)',
-                      border: '1px solid rgba(0,0,0,0.05)',
+                      border: '1px solid var(--color-border-soft)',
                     }}
                   >
                     <p style={{ fontSize: 12, fontWeight: 700, color: palette.text, marginBottom: 8 }}>
@@ -1337,7 +1337,7 @@ export default function HomeworkFlow({
                       padding: 18,
                       fontSize: 15,
                       lineHeight: 1.65,
-                      color: '#17171B',
+                      color: 'var(--color-text)',
                     }}
                   />
 
@@ -1371,8 +1371,8 @@ export default function HomeworkFlow({
                           style={{
                             padding: '10px 12px',
                             borderRadius: 999,
-                            background: '#F2F2F6',
-                            color: '#4E4E57',
+                            background: 'var(--color-bg-3)',
+                            color: 'var(--color-text-2)',
                             fontSize: 13,
                             fontWeight: 650,
                           }}
@@ -1392,7 +1392,7 @@ export default function HomeworkFlow({
                         padding: '14px 20px',
                         borderRadius: 18,
                         border: 'none',
-                        background: state.hardDraft.trim() ? palette.accent : '#D9D9DE',
+                        background: state.hardDraft.trim() ? palette.accent : 'var(--color-bg-5)',
                         color: '#fff',
                         fontSize: 15,
                         fontWeight: 750,
@@ -1422,7 +1422,7 @@ export default function HomeworkFlow({
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between" style={{ gap: 12 }}>
-      <span style={{ fontSize: 13, color: '#70707A' }}>{label}</span>
+      <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{label}</span>
       <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', textAlign: 'right' }}>{value}</span>
     </div>
   )
@@ -1434,12 +1434,12 @@ function MetricPill({ label, value, accent = false }: { label: string; value: st
       style={{
         padding: '10px 12px',
         borderRadius: 16,
-        background: accent ? '#F1ECFF' : 'rgba(247,247,249,0.96)',
-        border: accent ? '1px solid rgba(123,63,204,0.18)' : '1px solid rgba(0,0,0,0.05)',
+        background: accent ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
+        border: accent ? '1px solid rgba(123,63,204,0.18)' : '1px solid var(--color-border-soft)',
         minWidth: 92,
       }}
     >
-      <p style={{ fontSize: 11, fontWeight: 700, color: accent ? '#7B3FCC' : '#888891', marginBottom: 4 }}>
+      <p style={{ fontSize: 11, fontWeight: 700, color: accent ? 'var(--color-accent)' : 'var(--color-muted)', marginBottom: 4 }}>
         {label}
       </p>
       <p style={{ fontSize: 18, fontWeight: 760, color: 'var(--color-text)' }}>
@@ -1538,7 +1538,7 @@ function ProgressStrip({
         <div className="flex items-center" style={{ gap: 8 }}>
           {correctCount > 0 && (
             <span style={{
-              fontSize: 11, fontWeight: 700, color: '#2A7D4F',
+              fontSize: 11, fontWeight: 700, color: 'var(--color-green-text)',
               background: 'var(--color-green-soft)', padding: '3px 8px', borderRadius: 999,
             }}>
               ✓ {correctCount} верно
@@ -1685,7 +1685,7 @@ function BottomProgressBar({
             Сдать домашку
           </motion.button>
         ) : (
-          <span style={{ fontSize: 12, color: '#9898A0', fontWeight: 600 }}>
+          <span style={{ fontSize: 12, color: 'var(--color-muted)', fontWeight: 600 }}>
             {answeredCount} / {total}
           </span>
         )}
@@ -1735,7 +1735,7 @@ function StatusCard({
       >
         {value}
       </div>
-      <p style={{ fontSize: 13, lineHeight: 1.55, color: '#585862' }}>{description}</p>
+      <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--color-muted)' }}>{description}</p>
     </div>
   )
 }

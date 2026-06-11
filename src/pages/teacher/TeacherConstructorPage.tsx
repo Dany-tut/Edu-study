@@ -150,7 +150,7 @@ const COURSES_INIT: Course[] = [
   {
     id: 'c1', title: 'ЕГЭ по Химии — Полный курс', subject: 'Химия', level: 'ЕГЭ',
     description: 'Подготовка к ЕГЭ по химии с нуля до 90+ баллов',
-    color: '#B98FFF', bg: '#EFE0FF', status: 'published', lastEdited: '09.06',
+    color: '#B98FFF', bg: 'var(--color-purple-soft)', status: 'published', lastEdited: '09.06',
     lessons: [
       { id: 'l1', title: 'Периодический закон', trainerId: 't3', widgetId: 'w2' },
       { id: 'l2', title: 'Гидролиз солей',      trainerId: 't1', widgetId: null  },
@@ -160,7 +160,7 @@ const COURSES_INIT: Course[] = [
   {
     id: 'c2', title: 'ОГЭ по Химии — Базовый', subject: 'Химия', level: 'ОГЭ',
     description: 'Базовая подготовка к ОГЭ',
-    color: '#9B6DFF', bg: '#E4D9FF', status: 'published', lastEdited: '07.06',
+    color: '#9B6DFF', bg: 'var(--color-purple-soft)', status: 'published', lastEdited: '07.06',
     lessons: [
       { id: 'l4', title: 'Кислоты и основания', trainerId: 't5', widgetId: 'w2' },
       { id: 'l5', title: 'Соли и реакции',      trainerId: null, widgetId: null  },
@@ -169,7 +169,7 @@ const COURSES_INIT: Course[] = [
   {
     id: 'c3', title: 'ЕГЭ по Биологии — 2025', subject: 'Биология', level: 'ЕГЭ',
     description: 'Актуальная программа ЕГЭ 2025',
-    color: '#5FD68A', bg: '#D6F5E3', status: 'draft', lastEdited: '05.06',
+    color: '#5FD68A', bg: 'var(--color-green-soft)', status: 'draft', lastEdited: '05.06',
     lessons: [
       { id: 'l6', title: 'Фотосинтез', trainerId: 't4', widgetId: 'w1' },
     ],
@@ -177,7 +177,7 @@ const COURSES_INIT: Course[] = [
   {
     id: 'c4', title: 'Биохимия — Дополнительный', subject: 'Биология', level: 'ЕГЭ',
     description: 'Углублённый модуль по биохимии',
-    color: '#3EC87A', bg: '#C8F0D9', status: 'draft', lastEdited: '01.06',
+    color: '#3EC87A', bg: 'var(--color-green-soft)', status: 'draft', lastEdited: '01.06',
     lessons: [],
   },
 ]
@@ -195,7 +195,7 @@ const WIDGETS_INIT: Widget[] = [
   },
   {
     id: 'w2', title: 'Факты: Строение атома', type: 'facts',
-    linkedTrainerId: null, color: '#1E9E63', bg: '#DCF6E7', lastEdited: '09.06',
+    linkedTrainerId: null, color: '#1E9E63', bg: 'var(--color-green-soft)', lastEdited: '09.06',
     items: [
       { id: 'i3', factTitle: 'Ядро атома', factText: 'Протоны (+) и нейтроны, несёт 99,9% массы атома' },
       { id: 'i4', factTitle: 'Электроны', factText: 'Отрицательно заряженные частицы на орбиталях вокруг ядра' },
@@ -204,7 +204,7 @@ const WIDGETS_INIT: Widget[] = [
   },
   {
     id: 'w3', title: 'Реакции: Органическая химия', type: 'reactions',
-    linkedTrainerId: null, color: '#1F6FB8', bg: '#DCEEFB', lastEdited: '07.06',
+    linkedTrainerId: null, color: '#1F6FB8', bg: 'var(--color-blue-pill-bg)', lastEdited: '07.06',
     items: [
       { id: 'i6', emoji: '🔥', quote: 'Реакция горения — самая экзотермическая!', lesson: 'Алканы' },
       { id: 'i7', emoji: '⚗️', quote: 'Полимеризация меняет всё вокруг нас', lesson: 'Полимеры' },
@@ -729,7 +729,7 @@ function WidgetEditor({
 
         {/* Auto-populate from trainer (only for quiz/facts) */}
         {(type === 'quiz' || type === 'facts') && (
-          <div style={{ background: '#F0FBF4', borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ background: 'var(--color-green-soft)', borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
             <SectionHead>Автонаполнение из тренажёра</SectionHead>
             <TeacherSelect value={linkedId} onChange={setLinkedId} placeholder="— выберите тренажёр —"
               accent="#1a7a3f" accentBg="var(--color-green-soft)"
@@ -1126,7 +1126,7 @@ function LessonNameInput({ value, onChange, onAdd }: {
                 onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg)')}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
-                <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, background: '#F0EBF8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <BookOpen size={13} style={{ color: '#7B3FCC' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -1817,7 +1817,7 @@ function CreatorView({
                       №{savedTaskId}
                     </span>
                   )}
-                  <span style={{ marginLeft: 4, fontSize: 12, fontWeight: 600, color: '#2d9158' }}>— дайте этот номер ученику, чтобы найти задание в тренажёре</span>
+                  <span style={{ marginLeft: 4, fontSize: 12, fontWeight: 600, color: 'var(--color-green-text)' }}>— дайте этот номер ученику, чтобы найти задание в тренажёре</span>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -2110,7 +2110,7 @@ function CreatorView({
             {/* 4 ─ Объяснение */}
             <div style={{ borderTop: '1px solid var(--color-border-soft)', paddingTop: 16 }}>
               <Label>Объяснение / решение (показывается после ответа)</Label>
-              <div style={{ border: '1.5px solid rgba(0,0,0,0.10)', borderRadius: 12, background: '#F0FBF4', overflow: 'hidden' }}>
+              <div style={{ border: '1.5px solid rgba(0,0,0,0.10)', borderRadius: 12, background: 'var(--color-green-soft)', overflow: 'hidden' }}>
                 <textarea
                   ref={explTextareaRef}
                   value={tkSolution}
@@ -2143,7 +2143,7 @@ function CreatorView({
                   </div>
                 )}
                 <div style={{ borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 12, color: '#5A8A6A', fontWeight: 600, userSelect: 'none' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 12, color: 'var(--color-green-text)', fontWeight: 600, userSelect: 'none' }}>
                     <input type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => {
                       const files = Array.from(e.target.files || [])
                       files.forEach(file => {

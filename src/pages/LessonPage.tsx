@@ -358,7 +358,7 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
   const hardStatusLabel =
     hardStatus === 'submitted' ? { emoji: '🔶', text: 'На проверке', color: '#8A4A00' } :
     hardStatus === 'returned'  ? { emoji: '🔁', text: 'Возвращён',  color: '#7A6A00' } :
-    hardStatus === 'completed' ? { emoji: '🌟', text: 'Сдан',       color: '#166534' } :
+    hardStatus === 'completed' ? { emoji: '🌟', text: 'Сдан',       color: 'var(--color-green-text)' } :
     null
 
   return (
@@ -780,7 +780,7 @@ export default function LessonPage() {
             height: '54vh',
             borderRadius: 24,
             overflow: 'hidden',
-            background: 'linear-gradient(135deg, #2A2740, #14131F)',
+            background: 'linear-gradient(135deg, #2A2A2C, #111113)',
             boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
           }}
         >
@@ -936,7 +936,7 @@ export default function LessonPage() {
                 style={{
                   fontSize: 15,
                   lineHeight: 1.6,
-                  color: '#1F1F24',
+                  color: 'var(--color-text)',
                   fontWeight: 450,
                 }}
               >

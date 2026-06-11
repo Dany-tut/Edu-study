@@ -197,7 +197,7 @@ function NumberBadge({ id, onCopied }: { id: number; onCopied: () => void }) {
                 <path d="M1.5 4.5l2.2 2.2 3.3-3.7" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#1a2a20', letterSpacing: 0.1 }}>Скопировано</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-green-text)', letterSpacing: 0.1 }}>Скопировано</span>
           </motion.span>
         )}
       </AnimatePresence>
@@ -261,7 +261,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           </p>
         </div>
         {state !== undefined && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)', color: isCorrect ? '#2A7D4F' : '#A8282D', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)', color: isCorrect ? 'var(--color-green-text)' : 'var(--color-red-text)', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
             {isCorrect ? <CheckCircle2 size={15} /> : <XCircle size={15} />}
             {isCorrect ? 'Верно' : 'Неверно'}
           </div>
@@ -776,7 +776,7 @@ export default function TaskBankPage() {
             }}
           >
             <span style={{
-              width: 20, height: 20, borderRadius: '50%', background: '#2A7D4F',
+              width: 20, height: 20, borderRadius: '50%', background: 'var(--color-green-accent)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               boxShadow: '0 3px 10px rgba(42,125,79,0.35)',
             }}>

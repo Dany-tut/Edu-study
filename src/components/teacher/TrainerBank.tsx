@@ -6,6 +6,7 @@ import {
   ChevronDown, Search, Shuffle, AlertCircle, Trash2, Save,
   LayoutGrid, List, ArrowUpDown, Pencil,
 } from 'lucide-react'
+import TeacherSelect from './TeacherSelect'
 import {
   BIOLOGY_SECTIONS, CHEMISTRY_SECTIONS, BIOLOGY_TOPICS, CHEMISTRY_TOPICS, SOURCES,
   type Task, type QuestionType, type ScoreMode, type TaskChoice, type TaskAnswerKey, type TaskCriterion,
@@ -25,7 +26,7 @@ function CopyableIdBadge({ id }: { id: number }) {
   return (
     <span onClick={copy} title="Скопировать номер"
       style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}>
-      <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 800, background: 'var(--color-red-soft)', color: '#B03040' }}>№{id}</span>
+      <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 800, background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>№{id}</span>
       <AnimatePresence>
         {tipped && (
           <motion.span key="tip"
@@ -54,7 +55,7 @@ function CopyableIdBadge({ id }: { id: number }) {
                 <path d="M1.5 4.5l2.2 2.2 3.3-3.7" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#1a2a20', letterSpacing: 0.1 }}>Скопировано</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-green-text)', letterSpacing: 0.1 }}>Скопировано</span>
           </motion.span>
         )}
       </AnimatePresence>
@@ -83,7 +84,7 @@ const plBall = (n: number) => (n === 1 ? 'балл' : n >= 2 && n <= 4 ? 'бал
 const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
   padding: '9px 12px', borderRadius: 11,
-  border: '1.5px solid rgba(0,0,0,0.09)',
+  border: '1.5px solid var(--color-border-medium)',
   fontSize: 13, color: 'var(--color-text)',
   background: 'var(--color-bg-2)', outline: 'none',
   fontFamily: 'inherit', transition: 'border-color 0.15s',
@@ -214,7 +215,7 @@ export function BankQuestionCard({
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
             <CopyableIdBadge id={task.id} />
-            <span style={{ padding: '2px 6px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>{task.line} лин.</span>
+            <span style={{ padding: '2px 6px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>{task.line} лин.</span>
             {dirty && <span style={{ padding: '2px 6px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-purple-soft)', color: '#7B3FCC' }}>изм.</span>}
           </div>
           <p style={{ flex: 1, minWidth: 0, margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -224,7 +225,7 @@ export function BankQuestionCard({
           <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
             <button onClick={() => openEdit(task.id)} style={{
               display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 8, cursor: 'pointer',
-              background: '#F4F4F6', color: 'var(--color-muted)', border: 'none', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+              background: 'var(--color-bg-3)', color: 'var(--color-muted)', border: 'none', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
             }}>Изменить</button>
             {onDelete && (
               <button onClick={onDelete} style={{
@@ -242,8 +243,8 @@ export function BankQuestionCard({
               <span style={{ fontSize: 11, fontWeight: 700, color: accent }}>Вопрос {index + 1}</span>
               <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
               <CopyableIdBadge id={task.id} />
-              <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>{task.line} линия</span>
-              <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
+              <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>{task.line} линия</span>
+              <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
               <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: accentBg, color: accent }}>{computedMax} {plBall(computedMax)}</span>
               {dirty && <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-purple-soft)', color: '#7B3FCC' }}>изменено</span>}
             </div>
@@ -270,7 +271,7 @@ export function BankQuestionCard({
         <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', maxWidth: '100%' }}>
           <table style={{ borderCollapse: 'collapse', fontSize: 13 }}>
             <thead><tr>{task.questionTable.headers.map(h => (
-              <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '8px 14px', fontWeight: 700, background: 'rgba(0,0,0,0.03)', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
+              <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '8px 14px', fontWeight: 700, background: 'var(--color-bg-2)', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
             ))}</tr></thead>
             <tbody>{task.questionTable.rows.map((row, ri) => (
               <tr key={ri}>{row.map((cell, ci) => (
@@ -290,7 +291,7 @@ export function BankQuestionCard({
 
       {/* Collapsed answer summary */}
       {!compact && (
-        <div style={{ padding: '10px 14px', background: '#F0FBF4', borderRadius: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ padding: '10px 14px', background: 'var(--color-green-soft)', borderRadius: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-green-text)', flexShrink: 0 }}>Ответ:</span>
           <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{answer || '—'}</span>
         </div>
@@ -370,7 +371,7 @@ function KeyRubric({
         </motion.button>
       </div>
       {rows.length === 0 && (
-        <div style={{ padding: 14, borderRadius: 12, border: '1.5px dashed rgba(0,0,0,0.12)', textAlign: 'center', fontSize: 12, color: 'var(--color-text-3)' }}>{emptyHint}</div>
+        <div style={{ padding: 14, borderRadius: 12, border: '1.5px dashed var(--color-border-medium)', textAlign: 'center', fontSize: 12, color: 'var(--color-text-3)' }}>{emptyHint}</div>
       )}
     </div>
   )
@@ -452,7 +453,7 @@ function BankGridCard({
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
         <CopyableIdBadge id={task.id} />
         <span style={{ padding: '2px 6px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: subjectBg, color: subjectColor }}>{subjectLabel}</span>
-        <span style={{ padding: '2px 6px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>{task.line} лин.</span>
+        <span style={{ padding: '2px 6px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>{task.line} лин.</span>
       </div>
 
       {/* Question preview */}
@@ -479,7 +480,7 @@ function BankSortDropdown({ value, onChange }: { value: SortMode; onChange: (v: 
         style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 999,
           background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.9)',
-          border: `1px solid ${open ? 'rgba(0,0,0,0.14)' : 'rgba(0,0,0,0.09)'}`,
+          border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
           fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit',
         }}
       >
@@ -695,13 +696,12 @@ function FilterField({ label, value, options, onChange }: { label: string; value
   return (
     <div>
       <Label>{label}</Label>
-      <div style={{ position: 'relative' }}>
-        <select value={value} onChange={e => onChange(e.target.value)} style={{ ...inputStyle, appearance: 'none', cursor: 'pointer', color: value ? 'var(--color-text)' : 'var(--color-text-3)' }}>
-          <option value="">— любой —</option>
-          {options.map(o => <option key={o} value={o}>{o}</option>)}
-        </select>
-        <ChevronDown size={14} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
-      </div>
+      <TeacherSelect
+        value={value}
+        onChange={onChange}
+        placeholder="— любой —"
+        options={[{ value: '', label: '— любой —' }, ...options.map(o => ({ value: o, label: o }))]}
+      />
     </div>
   )
 }

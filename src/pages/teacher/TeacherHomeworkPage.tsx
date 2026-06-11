@@ -294,7 +294,7 @@ function HwRow({ hw, index, isSelected, onClick }: {
       <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ flex: 1, height: 6, background: 'rgba(0,0,0,0.07)', borderRadius: 99, overflow: 'hidden', minWidth: 60 }}>
-            <div style={{ height: '100%', width: `${reviewedPct}%`, background: '#1a7a3f', borderRadius: 99, transition: 'width 0.5s' }} />
+            <div style={{ height: '100%', width: `${reviewedPct}%`, background: 'var(--color-green-accent)', borderRadius: 99, transition: 'width 0.5s' }} />
           </div>
           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', flexShrink: 0 }}>
             {hw.reviewedCount}/{hw.submittedCount || 0}
@@ -410,7 +410,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
                 <div key={s.id} style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   padding: '7px 10px', borderRadius: 10,
-                  background: returned ? '#FFF3E4' : reviewed ? '#EEFAE9' : submitted ? '#F6EFFD' : 'var(--color-bg)',
+                  background: returned ? 'var(--color-peach-soft)' : reviewed ? 'var(--color-green-soft)' : submitted ? 'var(--color-purple-soft)' : 'var(--color-bg)',
                 }}>
                   <div style={{
                     width: 26, height: 26, borderRadius: 8, flexShrink: 0,

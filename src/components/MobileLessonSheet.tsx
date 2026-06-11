@@ -40,7 +40,7 @@ export default function MobileLessonSheet({ lesson, onClose }: Props) {
             >
               {/* Handle */}
               <div className="flex justify-center mb-4">
-                <div style={{ width: 40, height: 4, borderRadius: 2, background: '#E0E0E2' }} />
+                <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--color-bg-5)' }} />
               </div>
               <div className="flex items-center justify-between mb-4">
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>

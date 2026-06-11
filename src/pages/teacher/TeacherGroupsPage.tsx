@@ -6,6 +6,7 @@ import {
   TrendingUp, ClipboardCheck, Clock, Award,
   ChevronsUpDown, ExternalLink, Plus, Copy, Check,
 } from 'lucide-react'
+import TeacherSelect from '../../components/teacher/TeacherSelect'
 import {
   type Group, type Student,
 } from '../../data/teacherMockData'
@@ -87,16 +88,20 @@ function AddGroupModal({ onClose, onSave }: {
 
           <label style={labelStyle}>
             Предмет
-            <select value={subject} onChange={e => { setSubject(e.target.value); setIcon(subjectIcons[e.target.value] ?? '📚') }} style={inputStyle}>
-              {Object.keys(subjectIcons).map(s => <option key={s}>{s}</option>)}
-            </select>
+            <TeacherSelect
+              value={subject}
+              onChange={v => { setSubject(v); setIcon(subjectIcons[v] ?? '📚') }}
+              options={Object.keys(subjectIcons)}
+            />
           </label>
 
           <label style={labelStyle}>
             Уровень
-            <select value={level} onChange={e => setLevel(e.target.value)} style={inputStyle}>
-              {['ЕГЭ', 'ОГЭ', 'Олимпиада', 'Школьная программа', 'Интенсив'].map(l => <option key={l}>{l}</option>)}
-            </select>
+            <TeacherSelect
+              value={level}
+              onChange={setLevel}
+              options={['ЕГЭ', 'ОГЭ', 'Олимпиада', 'Школьная программа', 'Интенсив']}
+            />
           </label>
 
           <label style={labelStyle}>
@@ -123,7 +128,7 @@ function AddGroupModal({ onClose, onSave }: {
           disabled={!name.trim() || saving}
           style={{
             marginTop: 22, width: '100%', padding: '12px 0',
-            background: name.trim() ? '#9B6DFF' : '#e0d4ff',
+            background: name.trim() ? '#9B6DFF' : 'rgba(155,109,255,0.35)',
             color: '#fff', fontWeight: 700, fontSize: 15,
             border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
           }}
@@ -194,7 +199,7 @@ function AddStudentModal({ onClose, onSave }: {
 
         {inviteLink ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ background: '#F5F5F7', borderRadius: 14, padding: '14px 16px' }}>
+            <div style={{ background: 'var(--color-bg-4)', borderRadius: 14, padding: '14px 16px' }}>
               <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 6, fontWeight: 600 }}>ССЫЛКА ДЛЯ РЕГИСТРАЦИИ</div>
               <div style={{ fontSize: 13, color: 'var(--color-text)', wordBreak: 'break-all', lineHeight: 1.5 }}>{inviteLink}</div>
             </div>
@@ -265,7 +270,7 @@ function AddStudentModal({ onClose, onSave }: {
           disabled={!name.trim() || saving}
           style={{
             marginTop: 22, width: '100%', padding: '12px 0',
-            background: name.trim() ? '#9B6DFF' : '#e0d4ff',
+            background: name.trim() ? '#9B6DFF' : 'rgba(155,109,255,0.35)',
             color: '#fff', fontWeight: 700, fontSize: 15,
             border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
           }}
@@ -285,8 +290,8 @@ const labelStyle: React.CSSProperties = {
 }
 const inputStyle: React.CSSProperties = {
   padding: '10px 12px', borderRadius: 12,
-  border: '1.5px solid #ece8ff', fontSize: 14,
-  outline: 'none', background: 'var(--color-bg-4)', color: '#1a1a2e',
+  border: '1.5px solid var(--color-border-medium)', fontSize: 14,
+  outline: 'none', background: 'var(--color-bg-4)', color: 'var(--color-text)',
 }
 
 const fadeUp = (delay = 0) => ({
@@ -662,7 +667,7 @@ function StudentAvatar({
         <div style={{
           position: 'absolute', bottom: -2, right: -2,
           width: 12, height: 12, borderRadius: '50%',
-          background: '#F5A623', border: '2px solid #fff',
+          background: '#F5A623', border: '2px solid var(--color-bg)',
         }} title="Ещё не зарегистрирован" />
       )}
     </div>
@@ -1190,6 +1195,8 @@ export default function TeacherGroupsPage() {
                       {groupStudents.map((student, i) => {
                         const isSelected = student.id === activeStudentId
                         const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
+                        const colBg = (key: SortKey) =>
+                          !isSelected && sortKey === key ? { background: 'rgba(255,255,255,0.035)' } : {}
                         return (
                           <motion.tr
                             key={student.id}
@@ -1211,7 +1218,7 @@ export default function TeacherGroupsPage() {
                             }}
                           >
                             {/* Name */}
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)' }}>
+                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', ...colBg('name') }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                 <div style={{
                                   width: 30, height: 30, borderRadius: 10, flexShrink: 0,
@@ -1227,21 +1234,21 @@ export default function TeacherGroupsPage() {
                               </div>
                             </td>
                             {/* Last visit */}
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', fontSize: 12, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
+                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', fontSize: 12, color: 'var(--color-muted)', whiteSpace: 'nowrap', ...colBg('lastVisit') }}>
                               {student.lastVisit}
                             </td>
                             {/* Scores */}
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center' }}>
+                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('hwScore') }}>
                               <ScorePill value={student.hwScore} />
                             </td>
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center' }}>
+                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('testScore') }}>
                               <ScorePill value={student.testScore} />
                             </td>
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center' }}>
+                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('trialScore') }}>
                               <ScorePill value={student.trialScore} />
                             </td>
                             {/* Attendance */}
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center' }}>
+                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('attendance') }}>
                               <span style={{
                                 fontSize: 12, fontWeight: 700,
                                 color: student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-text-2)' : 'var(--color-red-text)',
@@ -1250,7 +1257,7 @@ export default function TeacherGroupsPage() {
                               </span>
                             </td>
                             {/* Last payment */}
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center' }}>
+                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('lastPayment') }}>
                               <span style={{ fontSize: 12, color: student.lastPayment ? 'var(--color-muted)' : 'var(--color-text-4)' }}>
                                 {student.lastPayment
                                   ? new Date(student.lastPayment).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
@@ -1258,7 +1265,7 @@ export default function TeacherGroupsPage() {
                               </span>
                             </td>
                             {/* Debt */}
-                            <td style={{ padding: '11px 24px 11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center' }}>
+                            <td style={{ padding: '11px 24px 11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('debt') }}>
                               {student.debt != null && student.debt > 0 ? (
                                 <span style={{
                                   fontSize: 12, fontWeight: 700,

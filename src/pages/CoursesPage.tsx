@@ -13,10 +13,10 @@ import { useStudentData } from '../store/studentDataStore'
 // reads the same here as it does on the track / in the detail popover.
 const cardStyle: Record<LessonStatus, { bg: string; ring: string; label: string; subText: string }> = {
   completed: { bg: 'var(--color-green-soft)', ring: '#6EE7A0', label: 'var(--color-text)', subText: '#4C804F' },
-  returned:  { bg: 'var(--color-yellow-soft)', ring: '#F8EF8C', label: 'var(--color-text)', subText: '#9A8E36' },
-  unviewed:  { bg: 'var(--color-red-soft)', ring: '#F48B91', label: 'var(--color-text)', subText: '#9E434A' },
-  submitted: { bg: 'var(--color-peach-soft)', ring: '#F8C991', label: 'var(--color-text)', subText: '#8A4A00' },
-  current:   { bg: 'var(--color-purple-soft)', ring: '#C58BFF', label: 'var(--color-text)', subText: '#7B3FCC' },
+  returned:  { bg: 'var(--color-yellow-soft)', ring: '#F8EF8C', label: 'var(--color-text)', subText: 'var(--color-yellow-text)' },
+  unviewed:  { bg: 'var(--color-red-soft)', ring: '#F48B91', label: 'var(--color-text)', subText: 'var(--color-red-text)' },
+  submitted: { bg: 'var(--color-peach-soft)', ring: '#F8C991', label: 'var(--color-text)', subText: 'var(--color-peach-text)' },
+  current:   { bg: 'var(--color-purple-soft)', ring: '#C58BFF', label: 'var(--color-text)', subText: 'var(--color-accent)' },
   locked:    { bg: 'var(--color-bg-3)', ring: '#E0E0E2', label: 'var(--color-text-3)', subText: 'var(--color-text-5)' },
 }
 
@@ -234,7 +234,7 @@ export default function CoursesPage() {
                 fontSize: 13,
                 fontWeight: 650,
                 background: 'transparent',
-                color: module && pct === 100 ? '#2A7A3B' : 'var(--color-text)',
+                color: module && pct === 100 ? 'var(--color-green-text)' : 'var(--color-text)',
                 border: '1px solid transparent',
                 outline: 'none',
                 appearance: 'none',
@@ -273,7 +273,7 @@ export default function CoursesPage() {
                     marginLeft: 6,
                     fontSize: 11,
                     fontWeight: 500,
-                    color: pct === 100 ? '#2A7A3B' : (isActive ? '#8C8C94' : '#A0A0A8'),
+                    color: pct === 100 ? 'var(--color-green-text)' : (isActive ? 'var(--color-muted)' : 'var(--color-text-3)'),
                   }}
                 >
                   {pct}%
@@ -361,7 +361,7 @@ export default function CoursesPage() {
         <div
           className="flex flex-col items-center justify-center text-center"
           style={{
-            minHeight: 200, borderRadius: 24, background: 'rgba(0,0,0,0.025)', color: 'var(--color-muted)',
+            minHeight: 200, borderRadius: 24, background: 'var(--color-bg-3)', color: 'var(--color-muted)',
           }}
         >
           <Search size={22} style={{ marginBottom: 8 }} />

@@ -39,7 +39,7 @@ export default function StudentLoginPage() {
 
   return (
     <div style={{
-      minHeight: '100dvh', background: '#F4F4F6',
+      minHeight: '100dvh', background: 'var(--color-bg)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
       <motion.div
@@ -92,7 +92,7 @@ export default function StudentLoginPage() {
           disabled={!email.trim() || !password || loading}
           style={{
             marginTop: 22, width: '100%', padding: '13px 0',
-            background: email.trim() && password ? '#9B6DFF' : '#e0d4ff',
+            background: email.trim() && password ? '#9B6DFF' : 'rgba(155,109,255,0.35)',
             color: '#fff', fontWeight: 700, fontSize: 15,
             border: 'none', borderRadius: 14,
             cursor: email.trim() && password ? 'pointer' : 'not-allowed',

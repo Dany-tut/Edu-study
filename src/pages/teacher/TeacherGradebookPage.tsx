@@ -481,7 +481,7 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                   <div style={{
                     width: 28, height: 28, borderRadius: 9, flexShrink: 0,
-                    background: isPresent ? '#9B6DFF' : '#D4D4D8',
+                    background: isPresent ? '#9B6DFF' : 'var(--color-bg-5)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 10, fontWeight: 700, color: '#fff',
                     transition: 'background 0.2s',

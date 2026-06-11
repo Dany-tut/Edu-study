@@ -134,7 +134,7 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
                 width: i === index ? 28 : 10,
                 height: 10,
                 borderRadius: 999,
-                background: i === index ? '#7B61FF' : '#D4D4D8',
+                background: i === index ? '#7B61FF' : 'var(--color-text-4)',
                 transition: 'width 0.3s ease, background 0.3s ease',
               }}
             />
