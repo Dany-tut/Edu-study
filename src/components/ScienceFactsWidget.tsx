@@ -20,6 +20,8 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
   const fact = scienceFacts[index]
   const sz = getWidgetSizing(columns)
 
+  if (!fact) return <div style={{ flex: 1, borderRadius: 24 }} />
+
   const goTo = (i: number) => {
     setIndex(((i % scienceFacts.length) + scienceFacts.length) % scienceFacts.length)
     setImgFailed(false)
