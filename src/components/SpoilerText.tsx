@@ -22,6 +22,8 @@ type SpoilerTextProps = {
   feather?: number
   /** peak dot opacity */
   maxAlpha?: number
+  /** fill the parent container instead of wrapping just the text */
+  fill?: boolean
   style?: CSSProperties
   className?: string
 }
@@ -47,6 +49,7 @@ export default function SpoilerText({
   pad = 10,
   feather = 14,
   maxAlpha = 0.5,
+  fill = false,
   style,
   className,
 }: SpoilerTextProps) {
@@ -139,6 +142,39 @@ export default function SpoilerText({
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
   }, [density, color, feather, maxAlpha])
+
+  if (fill) {
+    return (
+      <div
+        className={className}
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <span style={{ opacity: revealed ? 1 : 0, transition: 'opacity 0.4s ease', position: 'relative', zIndex: 1, ...style }}>
+          {children}
+        </span>
+        <canvas
+          ref={canvasRef}
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+            opacity: revealed ? 0 : 1,
+            transition: 'opacity 0.35s ease',
+          }}
+        />
+      </div>
+    )
+  }
 
   return (
     <span className={className} style={{ position: 'relative', display: 'inline-block', ...style }}>

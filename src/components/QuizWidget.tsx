@@ -248,8 +248,9 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
 
       {/* Centered spoiler — preview only */}
       {quizState === 'preview' && (
-        <div className="flex flex-1 items-center justify-center">
+        <div style={{ flex: 1, minHeight: 0 }}>
           <SpoilerText
+            fill
             revealed={spoilerRevealed}
             style={{ fontSize: 20 * scale, fontWeight: 700, lineHeight: 1.25, color: '#0B0B0D', textAlign: 'center' }}
           >

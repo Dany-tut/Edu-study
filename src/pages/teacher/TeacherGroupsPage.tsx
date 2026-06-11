@@ -201,7 +201,14 @@ function AddStudentModal({ onClose, onSave }: {
           </label>
           <label style={labelStyle}>
             Стоимость занятия (₽)
-            <input type="number" value={paymentAmount} onChange={e => setPaymentAmount(Number(e.target.value))} min={0} style={inputStyle} />
+            <input
+              type="number"
+              value={paymentAmount === 0 ? '' : paymentAmount}
+              onChange={e => setPaymentAmount(e.target.value === '' ? 0 : Number(e.target.value))}
+              placeholder="0"
+              min={0}
+              style={inputStyle}
+            />
           </label>
         </div>
 
@@ -919,14 +926,6 @@ export default function TeacherGroupsPage() {
                         · {groupStudents.length} студентов
                       </span>
                     </div>
-                    <button onClick={() => setShowAddStudent(true)} style={{
-                      display: 'flex', alignItems: 'center', gap: 5,
-                      background: activeGroup.color, color: '#fff',
-                      border: 'none', borderRadius: 10, padding: '6px 12px',
-                      fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                    }}>
-                      <Plus size={13} /> Ученик
-                    </button>
                   </div>
                 </div>
 
