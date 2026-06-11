@@ -1,6 +1,6 @@
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
-import { ChevronLeft, ChevronRight, BookOpen, ClipboardList, BarChart2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, BookOpen, ClipboardList, BarChart2, PenLine } from 'lucide-react'
 import {
   allHomework, todaySchedule,
 } from '../../data/teacherMockData'
@@ -32,18 +32,19 @@ const swipeVariants = {
 
 // ── Shared pill content layout ─────────────────────────────────────────────
 function PillContent({
-  avatar, kicker, title, detail, expanded,
+  avatar, kicker, title, detail, action, expanded,
 }: {
   avatar: React.ReactNode
   kicker: string
   title: string
   detail: React.ReactNode
+  action?: React.ReactNode
   expanded: boolean
 }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'flex-start', gap: 12,
-      padding: '9px 14px 14px 9px', width: '100%', boxSizing: 'border-box',
+      padding: '9px 24px 14px 9px', width: '100%', boxSizing: 'border-box',
     }}>
       <div style={{
         width: 40, height: 40, borderRadius: '50%', overflow: 'hidden',
@@ -80,6 +81,12 @@ function PillContent({
           {detail}
         </motion.div>
       </div>
+
+      {action && (
+        <div style={{ flexShrink: 0, alignSelf: 'flex-start', paddingTop: 8 }} onClick={e => e.stopPropagation()}>
+          {action}
+        </div>
+      )}
     </div>
   )
 }
@@ -117,31 +124,30 @@ function PendingHwPreview({ expanded }: { expanded: boolean }) {
       kicker="Сегодня · домашки"
       title={toCheck > 0 ? `${toCheck} работ ждут проверки` : 'Всё проверено — красавец!'}
       expanded={expanded}
+      action={toCheck > 0 ? (
+        <button
+          onClick={e => { e.stopPropagation(); tactile(); setActivePage('homework') }}
+          style={{
+            padding: 6, borderRadius: '50%',
+            border: 'none', cursor: 'pointer',
+            background: 'none', color: '#7B3FCC',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <PenLine size={18} strokeWidth={2} />
+        </button>
+      ) : undefined}
       detail={
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {toCheck > 0 ? (
-            <div style={{ display: 'flex', gap: 8 }}>
-              <StatBadge label="На проверке" value={`${onReview} ДЗ`} color="#8B4900" bg="#FFE4BD" />
-              <StatBadge label="Нужно проверить" value={`${toCheck}`} color="#7B3FCC" bg="#EDE0FF" />
-            </div>
-          ) : (
-            <span style={{ color: '#5A5A60', lineHeight: 1.4 }}>
-              Сданные работы появятся здесь автоматически.
-            </span>
-          )}
-          {toCheck > 0 && (
-            <button
-              onClick={e => { e.stopPropagation(); tactile(); setActivePage('homework') }}
-              style={{
-                alignSelf: 'flex-start', padding: '6px 14px', borderRadius: 999,
-                border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700,
-                background: 'linear-gradient(135deg, #C79BFF, #7B3FCC)', color: '#fff',
-              }}
-            >
-              Проверить
-            </button>
-          )}
-        </div>
+        toCheck > 0 ? (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <StatBadge label="На проверке" value={`${onReview} ДЗ`} color="#8B4900" bg="#FFE4BD" />
+            <StatBadge label="Нужно проверить" value={`${toCheck}`} color="#7B3FCC" bg="#EDE0FF" />
+          </div>
+        ) : (
+          <span style={{ color: '#5A5A60', lineHeight: 1.4 }}>
+            Сданные работы появятся здесь автоматически.
+          </span>
+        )
       }
     />
   )

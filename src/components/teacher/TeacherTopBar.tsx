@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, Users, ClipboardList, BookOpen, Layers,
   Bell, ChevronLeft, ChevronRight,
-  Plus, UserPlus, Send, CheckSquare, LayoutDashboard, LogOut, type LucideIcon,
+  LayoutGrid, UserPlus, Send, CheckSquare, LayoutDashboard, LogOut, type LucideIcon,
 } from 'lucide-react'
 import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
@@ -116,8 +116,8 @@ export default function TeacherTopBar() {
               onMouseEnter={e => {
                 if (!isActive) {
                   const el = e.currentTarget as HTMLButtonElement
-                  el.style.background = '#F4E9FC'
-                  el.style.color = '#7B3FCC'
+                  el.style.background = 'rgba(155,109,255,0.14)'
+                  el.style.color = '#6B2FCC'
                 }
               }}
               onMouseLeave={e => {
@@ -188,42 +188,21 @@ export default function TeacherTopBar() {
           <Bell size={16} />
         </motion.button>
 
-        {/* + Quick-add */}
+        {/* Quick-actions grid button */}
         <motion.button
           ref={addBtnRef}
           whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.96 }}
           onClick={() => setAddOpen(o => !o)}
-          aria-label="Быстрое добавление"
+          aria-label="Действия"
           style={{
-            display: 'flex', alignItems: 'center', gap: collapsed ? 0 : 6,
-            height: 34, padding: '0 12px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 38, height: 34,
             borderRadius: 12, border: 'none', cursor: 'pointer',
-            background: addOpen ? '#EEDBFF' : 'rgba(123,63,204,0.10)',
+            background: addOpen ? '#EEDBFF' : 'transparent',
             color: '#7B3FCC', transition: 'background 0.15s',
           }}
         >
-          <motion.span
-            animate={{ rotate: addOpen ? 45 : 0 }}
-            transition={{ duration: 0.2 }}
-            style={{ display: 'flex', alignItems: 'center' }}
-          >
-            <Plus size={17} strokeWidth={2.2} />
-          </motion.span>
-        </motion.button>
-
-        {/* Logout */}
-        <motion.button
-          whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.96 }}
-          onClick={() => supabase.auth.signOut()}
-          aria-label="Выйти"
-          title="Выйти"
-          style={{
-            width: 32, height: 32, borderRadius: '50%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: '#6F6F76', background: 'none', border: 'none',
-          }}
-        >
-          <LogOut size={15} />
+          <LayoutGrid size={17} strokeWidth={2} />
         </motion.button>
 
         {/* Collapse */}
@@ -255,21 +234,22 @@ export default function TeacherTopBar() {
             style={{
               position: 'fixed', top: anchor.top, left: anchor.left,
               zIndex: 1000, transformOrigin: 'top left',
-              background: 'rgba(255,255,255,0.78)',
-              backdropFilter: 'blur(16px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-              border: '1px solid rgba(255,255,255,0.85)',
+              background: 'rgba(255,255,255,0.92)',
+              backdropFilter: 'blur(20px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              border: '1px solid rgba(0,0,0,0.07)',
               borderRadius: 18,
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 12px 40px rgba(0,0,0,0.14)',
-              padding: 10, minWidth: 220,
-              display: 'flex', flexDirection: 'column', gap: 4,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+              padding: 8, minWidth: 230,
+              display: 'flex', flexDirection: 'column',
             }}
           >
             {quickActions.map((item, i) => {
               if (item.type === 'separator') {
-                return <div key={`sep-${i}`} style={{ height: 1, background: 'rgba(0,0,0,0.07)', margin: '4px 6px' }} />
+                return <div key={`sep-${i}`} style={{ height: 1, background: 'rgba(0,0,0,0.07)', margin: '4px 8px' }} />
               }
               const action = item as QuickAction
+              const isLogout = action.action === 'logout'
               return (
                 <motion.button
                   key={action.label}
@@ -290,26 +270,30 @@ export default function TeacherTopBar() {
                     if (action.page) setActivePage(action.page)
                     setAddOpen(false)
                   }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.72)' }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLButtonElement).style.background = isLogout
+                      ? 'rgba(220,38,38,0.08)'
+                      : 'rgba(0,0,0,0.05)'
+                  }}
                   onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '9px 10px', borderRadius: 12,
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '7px 8px', borderRadius: 10,
                     border: 'none', cursor: 'pointer',
                     background: 'transparent', textAlign: 'left',
-                    transition: 'background 0.12s',
+                    transition: 'background 0.12s', width: '100%',
                   }}
                 >
                   <div style={{
-                    width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+                    width: 32, height: 32, borderRadius: 9, flexShrink: 0,
                     background: action.bg,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
-                    <action.icon size={16} strokeWidth={2} style={{ color: action.color }} />
+                    <action.icon size={15} strokeWidth={2} style={{ color: action.color }} />
                   </div>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 650, color: '#0B0B0D' }}>{action.label}</div>
-                    <div style={{ fontSize: 11, color: '#6F6F76', marginTop: 1 }}>{action.sub}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: isLogout ? '#C53030' : '#0B0B0D', lineHeight: 1.3 }}>{action.label}</div>
+                    <div style={{ fontSize: 11, color: '#9A9AA2', marginTop: 1 }}>{action.sub}</div>
                   </div>
                 </motion.button>
               )

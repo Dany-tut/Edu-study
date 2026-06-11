@@ -26,36 +26,36 @@ export default function TeacherDashboardPage() {
       {/* Progressive blur strip behind topbar */}
       <div aria-hidden className="edge-progressive-blur--top" />
 
-      {/* Topbar row — topbar centered, widget pinned right */}
+      {/* Topbar row — 3-col grid: empty | topbar (always centered) | widget */}
       <div className="topbar-row">
-        {/* Topbar centered */}
+        {/* Left spacer */}
+        <div />
+
+        {/* Topbar — always in center column */}
         <div style={{ display: 'inline-flex', pointerEvents: 'auto' }}>
           <TeacherTopBar />
         </div>
 
-        {/* Top-right slot — review nav on review page, compact pill elsewhere.
-            Yields (fades out) while a page's docked twin header occupies the
-            topbar line, so its right-side controls aren't covered. */}
-        <AnimatePresence>
-          {activePage !== 'lesson-editor' && activePage !== 'constructor' && !headerDocked && (
-            <motion.div
-              key="top-right-slot"
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
-              style={{
-                position: 'absolute', right: 32, top: 20,
-                pointerEvents: 'auto',
-              }}
-            >
-              {activePage === 'homework-review'
-                ? <ReviewNavPill />
-                : <TeacherCompactPill />
-              }
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Right column — widget appears/disappears independently */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', paddingLeft: 10, pointerEvents: 'none' }}>
+          <AnimatePresence>
+            {activePage !== 'lesson-editor' && activePage !== 'constructor' && !headerDocked && (
+              <motion.div
+                key="top-right-slot"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+                style={{ pointerEvents: 'auto' }}
+              >
+                {activePage === 'homework-review'
+                  ? <ReviewNavPill />
+                  : <TeacherCompactPill />
+                }
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Page content */}

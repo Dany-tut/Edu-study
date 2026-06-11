@@ -115,8 +115,9 @@ a {
   left: 0;
   right: 0;
   z-index: 90;
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: flex-start;
   padding: 20px 32px 20px;
   background: transparent;
   /* Let clicks fall through the empty bar area so the docked lesson back/title
