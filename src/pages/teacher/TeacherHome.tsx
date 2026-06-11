@@ -51,13 +51,7 @@ function CardTitle({ children }: { children: React.ReactNode }) {
 }
 
 // ─── Stat card ─────────────────────────────────────────────────────────────
-const WEEKLY_EARNED = 18400
-const WEEKLY_GOAL   = 25000
-const MONTHLY_EARNED = 74600
-const MONTHLY_GOAL   = 100000
-
 function EarningsCard({ delay }: { delay: number }) {
-  const pct = Math.min(100, Math.round((MONTHLY_EARNED / MONTHLY_GOAL) * 100))
   return (
     <motion.div {...fadeUp(delay)} style={{ flex: 1, minWidth: 0 }}>
       <Card style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -70,33 +64,15 @@ function EarningsCard({ delay }: { delay: number }) {
             <TrendingUp size={15} strokeWidth={2} style={{ color: '#7a6500' }} />
           </div>
         </div>
-        <div style={{ fontSize: 36, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1 }}>
-          {MONTHLY_EARNED.toLocaleString('ru-RU')} ₽
+        <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--color-text-3)', lineHeight: 1, marginBottom: 6 }}>
+          Нет данных
         </div>
-        {/* Progress bar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <div style={{
-            height: 5, borderRadius: 99,
-            background: 'var(--color-bg-5)', overflow: 'hidden',
-          }}>
-            <div style={{
-              height: '100%', borderRadius: 99,
-              width: `${pct}%`,
-              background: 'linear-gradient(90deg, #9B6DCC, #7B3FCC)',
-              transition: 'width 0.6s ease',
-            }} />
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{
-              fontSize: 11, fontWeight: 600, color: '#7a6500',
-              background: 'var(--color-yellow-soft)', borderRadius: 8, padding: '3px 8px',
-            }}>
-              {pct}% цели
-            </span>
-            <span style={{ fontSize: 10, color: 'var(--color-text-3)' }}>
-              цель {MONTHLY_GOAL.toLocaleString('ru-RU')} ₽
-            </span>
-          </div>
+        <div style={{
+          fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)',
+          background: 'var(--color-bg-4)', borderRadius: 8, padding: '3px 8px',
+          alignSelf: 'flex-start',
+        }}>
+          будет позже
         </div>
       </Card>
     </motion.div>
