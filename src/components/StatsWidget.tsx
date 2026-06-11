@@ -34,7 +34,7 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
         style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`, gridTemplateRows: columns >= 3 ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)' }}
       >
         {stats.map(s => (
-          <div key={s.label} className="stat-card flex flex-col justify-between rounded-[24px]" style={cardStyle}>
+          <div key={s.label} className="stat-card flex flex-col items-center justify-center rounded-[24px]" style={{ ...cardStyle, gap: 8, textAlign: 'center' }}>
             <span className="stat-value" style={{ fontWeight: 650, color: 'var(--color-text)', lineHeight: 1 }}>
               {s.value}
             </span>
@@ -45,7 +45,7 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
         ))}
 
         {/* Stars card */}
-        <div className="stat-card flex flex-col justify-between rounded-[24px]" style={cardStyle}>
+        <div className="stat-card flex flex-col items-center justify-center rounded-[24px]" style={{ ...cardStyle, gap: 8, textAlign: 'center' }}>
           <span className="stat-value" style={{ fontWeight: 650, color: 'var(--color-text)', lineHeight: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ display: 'flex', transform: 'translateY(-6px)' }}><StarStickerLottie size={36} /></span>
             <span style={{ display: 'block', lineHeight: 1, transform: 'translateY(-1px)' }}>{hasData ? dbStats.stars : dash}</span>
