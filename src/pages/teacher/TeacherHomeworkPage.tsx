@@ -44,7 +44,7 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
       WebkitBackdropFilter: 'blur(16px) saturate(180%)',
       border: '1px solid var(--color-border-glass)',
       borderRadius: 22,
-      boxShadow: '0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.95)',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.07)',
       ...style,
     }}>{children}</div>
   )
@@ -130,7 +130,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
                     flex: 1, padding: '8px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
                     fontSize: 12, fontWeight: 600,
                     background: assignTo === mode ? 'var(--color-purple-soft)' : 'var(--color-bg)',
-                    color: assignTo === mode ? '#7B3FCC' : 'var(--color-muted)',
+                    color: assignTo === mode ? '#CDB0FF' : 'var(--color-muted)',
                     transition: 'all 0.15s',
                   }}
                 >

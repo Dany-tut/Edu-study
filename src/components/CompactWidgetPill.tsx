@@ -196,9 +196,9 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
         </div>
       }
       kicker={META[0].kicker}
-      title="68 баллов за неделю"
+      title="Пока недостаточно данных"
       expanded={expanded}
-      detail="Ты обогнал 72% потока по химии. Следующая цель — 80 баллов."
+      detail="Данные появятся после первых занятий."
     />
   )
 }
@@ -943,8 +943,8 @@ export default function CompactWidgetPill() {
         WebkitBackdropFilter: 'blur(14px) saturate(180%)',
         border: overDarkDock ? '1px solid var(--color-border-glass)' : '1px solid var(--color-border-glass)',
         boxShadow: overDarkDock
-          ? 'inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14)'
-          : 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 14px rgba(21,18,31,0.08)',
+          ? 'inset 0 1px 0 rgba(255,255,255,0.07), 0 8px 28px rgba(21,18,31,0.26), 0 2px 8px rgba(21,18,31,0.10)'
+          : 'inset 0 1px 0 rgba(255,255,255,0.07), 0 6px 24px rgba(21,18,31,0.22), 0 2px 6px rgba(21,18,31,0.08)',
         overflow: 'hidden',
         boxSizing: 'border-box',
       }}

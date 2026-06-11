@@ -564,7 +564,7 @@ export function TrainerBankBrowser({
       if (filters.line && t.line !== Number(filters.line)) return false
       if (filters.source && t.source !== filters.source) return false
       if (filters.search) {
-        const q = filters.search.toLowerCase()
+        const q = filters.search.toLowerCase().replace(/^№/, '')
         if (!t.question.toLowerCase().includes(q) && !t.topic.toLowerCase().includes(q) && !t.section.toLowerCase().includes(q) && !String(t.id).includes(q)) return false
       }
       return true

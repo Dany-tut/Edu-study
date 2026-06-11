@@ -465,7 +465,7 @@ function Th({
       style={{
         padding: last ? '10px 24px 10px 12px' : '10px 12px',
         textAlign: right ? 'center' : 'left',
-        fontSize: 11, fontWeight: 700, color: active ? '#7B3FCC' : 'var(--color-text-3)',
+        fontSize: 11, fontWeight: 700, color: active ? '#CDB0FF' : 'var(--color-text-3)',
         letterSpacing: 0.3, cursor: 'pointer', whiteSpace: 'nowrap',
         userSelect: 'none',
         borderBottom: '1px solid var(--color-border-soft)',

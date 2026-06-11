@@ -106,7 +106,7 @@ export default function TeacherTopBar() {
         backdropFilter: 'blur(14px) saturate(180%)',
         WebkitBackdropFilter: 'blur(14px) saturate(180%)',
         border: '1px solid var(--color-border-glass)',
-        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 14px rgba(21,18,31,0.08)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 6px 24px rgba(21,18,31,0.22), 0 2px 6px rgba(21,18,31,0.08)',
         display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 8,
       }}
     >
@@ -138,7 +138,7 @@ export default function TeacherTopBar() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 padding: '0 16px', height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
                 fontSize: 14, fontWeight: isActive ? 600 : 500,
-                color: isActive ? '#7B3FCC' : 'var(--color-muted)',
+                color: isActive ? '#CDB0FF' : 'var(--color-muted)',
                 background: isActive ? 'var(--color-purple-soft)' : 'transparent',
                 transition: 'background 0.15s, color 0.15s',
                 whiteSpace: 'nowrap', position: 'relative',

@@ -633,7 +633,7 @@ export default function LessonPage() {
     background: 'rgba(var(--glass-rgb), 0.86)',
     backdropFilter: 'blur(14px) saturate(180%)',
     WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-    boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 8px 28px rgba(21,18,31,0.26), 0 2px 8px rgba(21,18,31,0.10)',
   } as const
 
   return (
@@ -874,7 +874,7 @@ export default function LessonPage() {
                   <span
                     style={{
                       fontSize: 12, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-                      color: active ? '#7B3FCC' : 'var(--color-text-3)', minWidth: 42, flexShrink: 0,
+                      color: active ? '#CDB0FF' : 'var(--color-text-3)', minWidth: 42, flexShrink: 0,
                     }}
                   >
                     {tc.time}

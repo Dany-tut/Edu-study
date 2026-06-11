@@ -248,7 +248,7 @@ function GlassCard({ children, style }: { children: React.ReactNode; style?: Rea
       WebkitBackdropFilter: 'blur(16px) saturate(180%)',
       border: '1px solid var(--color-border-glass)',
       borderRadius: 18,
-      boxShadow: '0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.95)',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.07)',
       ...style,
     }}>{children}</div>
   )
@@ -259,7 +259,7 @@ const dockGlass = {
   background: 'rgba(var(--glass-rgb), 0.86)',
   backdropFilter: 'blur(14px) saturate(180%)',
   WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-  boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 8px 28px rgba(21,18,31,0.26), 0 2px 8px rgba(21,18,31,0.10)',
 } as const
 
 function SectionHead({ children }: { children: React.ReactNode }) {
@@ -1790,7 +1790,7 @@ function CreatorView({
                   padding: '8px 16px', borderRadius: 11, border: 'none', cursor: 'pointer',
                   fontSize: 13, fontWeight: 600,
                   background: isActive ? 'var(--color-surface)' : 'transparent',
-                  color: isActive ? '#7B3FCC' : 'var(--color-muted)',
+                  color: isActive ? '#CDB0FF' : 'var(--color-muted)',
                   fontFamily: 'inherit', transition: 'all 0.15s',
                   boxShadow: isActive ? '0 2px 10px rgba(0,0,0,0.09)' : 'none',
                 }}>

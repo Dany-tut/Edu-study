@@ -350,8 +350,8 @@ export default function Sidebar() {
         // floating glass surface. The contrasty (over-video) form keeps a touch
         // more inset highlight; both share the same soft drop.
         boxShadow: contrasty
-          ? 'inset 0 1px 1px rgba(255,255,255,0.9), 0 4px 14px rgba(21,18,31,0.10)'
-          : 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 14px rgba(21,18,31,0.08)',
+          ? 'inset 0 1px 0 rgba(255,255,255,0.10), 0 6px 24px rgba(21,18,31,0.24), 0 2px 6px rgba(21,18,31,0.09)'
+          : 'inset 0 1px 0 rgba(255,255,255,0.08), 0 6px 24px rgba(21,18,31,0.22), 0 2px 6px rgba(21,18,31,0.08)',
         transition: 'background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease',
         display: 'flex',
         flexDirection: 'row',
@@ -534,8 +534,8 @@ export default function Sidebar() {
                                   alignItems: 'center',
                                   justifyContent: 'center',
                                   background: selected ? 'var(--color-purple-soft)' : 'rgba(var(--glass-rgb),0.5)',
-                                  color: selected ? '#7B3FCC' : 'var(--color-text-3)',
-                                  boxShadow: selected ? 'inset 0 0 0 1.5px #7B3FCC' : 'none',
+                                  color: selected ? '#CDB0FF' : 'var(--color-text-3)',
+                                  boxShadow: selected ? 'inset 0 0 0 1.5px #CDB0FF' : 'none',
                                   transition: 'background 0.15s, color 0.15s, box-shadow 0.15s',
                                 }}
                               >
@@ -557,12 +557,12 @@ export default function Sidebar() {
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             gap: 8, height: 42, borderRadius: 12, border: 'none', cursor: 'pointer',
                             background: 'transparent',
-                            color: dark ? '#7B3FCC' : 'var(--color-text)',
+                            color: dark ? '#CDB0FF' : 'var(--color-text)',
                             fontSize: 13.5, fontWeight: 600, transition: 'background 0.15s',
                           }}
                         >
                           {dark
-                            ? <Sun size={16} strokeWidth={1.9} style={{ color: '#7B3FCC' }} />
+                            ? <Sun size={16} strokeWidth={1.9} style={{ color: '#CDB0FF' }} />
                             : <Moon size={16} strokeWidth={1.9} style={{ color: 'var(--color-muted)' }} />
                           }
                           {dark ? 'Светлая тема' : 'Тёмная тема'}
@@ -661,7 +661,7 @@ export default function Sidebar() {
                 fontWeight: isActive ? 600 : 500,
                 // Inactive icons go darker in the compact dock for legibility on
                 // the bright glass over the dark video.
-                color: isActive ? '#7B3FCC' : (isCompact ? 'var(--color-text-2)' : 'var(--color-muted)'),
+                color: isActive ? '#CDB0FF' : (isCompact ? 'var(--color-text-2)' : 'var(--color-muted)'),
                 background: isActive ? 'var(--color-purple-soft)' : 'transparent',
                 transition: 'background 0.15s, color 0.15s',
                 whiteSpace: 'nowrap',
@@ -670,7 +670,7 @@ export default function Sidebar() {
                 if (!isActive) {
                   const el = e.currentTarget as HTMLButtonElement
                   el.style.background = 'rgba(155,109,255,0.14)'
-                  el.style.color = '#6B2FCC'
+                  el.style.color = '#B89AFF'
                 }
               }}
               onMouseLeave={e => {
