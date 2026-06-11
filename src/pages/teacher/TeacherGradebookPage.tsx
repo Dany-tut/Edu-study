@@ -549,6 +549,7 @@ export default function TeacherGradebookPage() {
   const activeGroupId = useTeacher(s => s.selectedGroupId)
   const setActiveGroupId = useTeacher(s => s.setSelectedGroupId)
   const [lessonModalOpen, setLessonModalOpen] = useState(false)
+  const { groups } = useGroups()
 
   return (
     // Scroll pane lifted to the viewport top (marginTop:-100) and re-inset with
@@ -559,6 +560,7 @@ export default function TeacherGradebookPage() {
       {/* Group strip: pinned "Выставить оценки" action card + scrollable group cards */}
       <motion.div {...fadeUp(0.04)}>
         <GroupStrip
+          groups={groups}
           selectedGroupId={activeGroupId}
           onSelectGroup={setActiveGroupId}
           actionLabel="Выставить оценки"

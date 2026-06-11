@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Users } from 'lucide-react'
-import { groups, type Group } from '../../data/teacherMockData'
+import type { Group } from '../../data/teacherMockData'
 
 // Page background the strip sits on — used to back the pinned card so its
 // rounded corners always read against the page, never a card sliding underneath.
@@ -90,9 +90,11 @@ function GroupMiniCard({
 
 // ─── Strip ──────────────────────────────────────────────────────────────────────
 export default function GroupStrip({
+  groups,
   selectedGroupId, onSelectGroup,
   actionLabel, actionIcon, onAction,
 }: {
+  groups: Group[]
   selectedGroupId: string | null
   onSelectGroup: (id: string | null) => void
   actionLabel: string

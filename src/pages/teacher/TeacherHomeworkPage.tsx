@@ -506,6 +506,7 @@ export default function TeacherHomeworkPage() {
         {/* Group strip: pinned "Создать ДЗ" action card + scrollable group cards */}
         <motion.div {...fadeUp(0.08)}>
           <GroupStrip
+            groups={groups}
             selectedGroupId={filterGroup}
             onSelectGroup={setFilterGroup}
             actionLabel="Создать ДЗ"

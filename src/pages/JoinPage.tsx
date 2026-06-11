@@ -48,8 +48,13 @@ export default function JoinPage() {
       })
   }, [token])
 
+  const emailValid = email.includes('@')
+  const passwordValid = password.length >= 4
+  const emailTouched = email.length > 0
+  const passwordTouched = password.length > 0
+
   async function handleRegister() {
-    if (!email.trim() || password.length < 6) return
+    if (!emailValid || !passwordValid) return
     setSaving(true)
     setErrorMsg('')
 
@@ -109,10 +114,13 @@ export default function JoinPage() {
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="alice@example.com"
-                  style={inputStyle}
+                  placeholder="Укажите вашу реальную почту"
+                  style={{ ...inputStyle, borderColor: emailTouched && !emailValid ? '#F48B91' : '#E8E8EA' }}
                   autoFocus
                 />
+                {emailTouched && !emailValid && (
+                  <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>Укажите почту со знаком @</span>
+                )}
               </label>
               <label style={{ fontSize: 13, fontWeight: 600, color: '#3A3A3F', display: 'flex', flexDirection: 'column' }}>
                 Пароль
@@ -120,10 +128,13 @@ export default function JoinPage() {
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="минимум 6 символов"
-                  style={inputStyle}
+                  placeholder="минимум 4 символа"
+                  style={{ ...inputStyle, borderColor: passwordTouched && !passwordValid ? '#F48B91' : '#E8E8EA' }}
                   onKeyDown={e => e.key === 'Enter' && handleRegister()}
                 />
+                {passwordTouched && !passwordValid && (
+                  <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>Пароль должен быть не менее 4 символов</span>
+                )}
               </label>
             </div>
 
@@ -135,13 +146,13 @@ export default function JoinPage() {
 
             <button
               onClick={handleRegister}
-              disabled={!email.trim() || password.length < 6 || saving}
+              disabled={!emailValid || !passwordValid || saving}
               style={{
                 marginTop: 22, width: '100%', padding: '13px 0',
-                background: email.trim() && password.length >= 6 ? '#9B6DFF' : '#e0d4ff',
+                background: emailValid && passwordValid ? '#9B6DFF' : '#e0d4ff',
                 color: '#fff', fontWeight: 700, fontSize: 15,
                 border: 'none', borderRadius: 14,
-                cursor: email.trim() && password.length >= 6 ? 'pointer' : 'not-allowed',
+                cursor: emailValid && passwordValid ? 'pointer' : 'not-allowed',
               }}
             >
               {saving ? 'Сохранение...' : 'Войти в платформу'}
