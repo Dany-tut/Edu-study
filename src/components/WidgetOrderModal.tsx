@@ -29,7 +29,7 @@ function ShownRow({ id, onHide, disabled }: { id: number; onHide: (id: number) =
         position: 'relative',
         display: 'flex', alignItems: 'center', gap: 12,
         padding: '10px 12px', borderRadius: 14,
-        background: 'var(--color-bg)',
+        background: 'var(--color-bg-3)',
         border: '1.5px solid transparent',
         listStyle: 'none',
         userSelect: 'none', WebkitUserSelect: 'none',
@@ -124,7 +124,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
             transition={{ duration: 0.2, ease: EASE }}
             style={{
               width: 'min(420px, 100%)', maxHeight: '90vh', overflowY: 'auto',
-              background: 'var(--color-bg-input)', borderRadius: 24, padding: 24,
+              background: 'var(--color-bg)', borderRadius: 24, padding: 24,
               boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
             }}
           >

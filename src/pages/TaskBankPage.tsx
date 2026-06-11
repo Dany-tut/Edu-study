@@ -671,7 +671,7 @@ export default function TaskBankPage() {
   const [search, setSearch]     = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [sortMode, setSortMode]         = useState<SortMode>('newest')
-  const [viewMode] = useState<ViewMode>('grid')
+  const viewMode: ViewMode = 'list'
   const [showFavOnly, setShowFavOnly]   = useState(false)
   const [favorites, setFavorites]       = useState<Set<number>>(new Set())
   const [answered, setAnswered] = useState<Map<number, { value: string; correct: boolean | null }>>(new Map())
@@ -970,9 +970,9 @@ export default function TaskBankPage() {
               Заданий не найдено — измените фильтры
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
-              {filtered.map(task => (
-                <CompactCard key={task.id} task={task} palette={palette}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {filtered.map((task, i) => (
+                <TaskCard key={task.id} task={task} index={i} palette={palette}
                   favorites={favorites} onFavorite={toggleFav}
                   answered={answered} onAnswer={setAnswer}
                   onCopyId={handleCopyId} lineNames={lineNames}
