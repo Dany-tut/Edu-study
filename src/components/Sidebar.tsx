@@ -68,7 +68,7 @@ const panelBox = {
   backdropFilter: 'blur(16px) saturate(180%)',
   WebkitBackdropFilter: 'blur(16px) saturate(180%)',
   border: '1px solid var(--color-border-glass)',
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 40px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.06)',
+  boxShadow: 'var(--shadow-sidebar)',
   boxSizing: 'border-box',
 } as const
 
@@ -350,8 +350,8 @@ export default function Sidebar() {
         // floating glass surface. The contrasty (over-video) form keeps a touch
         // more inset highlight; both share the same soft drop.
         boxShadow: contrasty
-          ? 'inset 0 1px 0 rgba(255,255,255,0.10), 0 6px 24px rgba(21,18,31,0.24), 0 2px 6px rgba(21,18,31,0.09)'
-          : 'inset 0 1px 0 rgba(255,255,255,0.08), 0 6px 24px rgba(21,18,31,0.22), 0 2px 6px rgba(21,18,31,0.08)',
+          ? 'var(--shadow-bar-hi)'
+          : 'var(--shadow-bar)',
         transition: 'background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease',
         display: 'flex',
         flexDirection: 'row',

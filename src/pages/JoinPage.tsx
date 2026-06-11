@@ -108,7 +108,7 @@ export default function JoinPage() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <label style={{ fontSize: 13, fontWeight: 600, color: '#3A3A3F', display: 'flex', flexDirection: 'column' }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', display: 'flex', flexDirection: 'column' }}>
                 Email (логин)
                 <input
                   type="email"
@@ -122,7 +122,7 @@ export default function JoinPage() {
                   <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>Укажите почту со знаком @</span>
                 )}
               </label>
-              <label style={{ fontSize: 13, fontWeight: 600, color: '#3A3A3F', display: 'flex', flexDirection: 'column' }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', display: 'flex', flexDirection: 'column' }}>
                 Пароль
                 <input
                   type="password"

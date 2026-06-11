@@ -623,7 +623,7 @@ function StatusTabs({ value, onChange }: { value: StatusFilter; onChange: (v: St
             background: 'rgba(var(--glass-rgb), 0.82)',
             backdropFilter: 'blur(16px) saturate(180%)',
             WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 8px rgba(0,0,0,0.08)',
+            boxShadow: 'var(--shadow-tab-pill)',
             border: '1px solid var(--color-border-glass)',
             pointerEvents: 'none',
             zIndex: 0,
@@ -772,7 +772,7 @@ export default function TaskBankPage() {
               backdropFilter: 'blur(24px) saturate(200%)',
               WebkitBackdropFilter: 'blur(24px) saturate(200%)',
               border: '1px solid var(--color-border-glass)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.08)',
+              boxShadow: 'var(--shadow-filter)',
             }}
           >
             <span style={{

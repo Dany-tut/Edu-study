@@ -124,7 +124,7 @@ export default function TeacherSelect({
                 WebkitBackdropFilter: 'blur(16px) saturate(180%)',
                 border: '1px solid var(--color-border-glass)',
                 borderRadius: 14,
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06), 0 12px 40px rgba(0,0,0,0.16)',
+                boxShadow: 'var(--shadow-dropdown)',
                 padding: 6, maxHeight: 276, overflowY: 'auto',
                 display: 'flex', flexDirection: 'column', gap: 2,
               }}

@@ -77,7 +77,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
             <div>
               <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)' }}>Виджеты</div>
-              <div style={{ fontSize: 13, color: '#8A8A96', marginTop: 4, lineHeight: 1.4 }}>
+              <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4, lineHeight: 1.4 }}>
                 Перетащите за ручку, чтобы изменить порядок.<br />
                 Скрытые — ниже черты.
               </div>
@@ -86,7 +86,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
               onClick={onClose}
               style={{
                 width: 32, height: 32, borderRadius: '50%', border: 'none',
-                background: '#F0F0F5', cursor: 'pointer',
+                background: 'var(--color-bg-3)', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: '#555', flexShrink: 0,
               }}
@@ -157,7 +157,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                     >
                       <WidgetIcon icon={w.icon} bg={w.bg} color={w.color} />
                     </motion.div>
-                    <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: '#8A8A96' }}>{w.label}</span>
+                    <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: 'var(--color-muted)' }}>{w.label}</span>
                     <button
                       onClick={() => toggle(w.id)}
                       style={{

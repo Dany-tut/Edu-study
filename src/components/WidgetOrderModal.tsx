@@ -191,7 +191,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                       >
                         <w.Icon size={17} />
                       </span>
-                      <span style={{ flex: 1, fontSize: 14.5, fontWeight: 600, color: '#8A8A92' }}>{w.label}</span>
+                      <span style={{ flex: 1, fontSize: 14.5, fontWeight: 600, color: 'var(--color-muted)' }}>{w.label}</span>
                       <motion.button
                         whileTap={{ scale: 0.9 }}
                         onClick={() => show(w.id)}

@@ -730,7 +730,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
           onChange={setEditedSolution}
           placeholder="Пояснение к решению…"
           style={{
-            fontSize: 12, lineHeight: 1.6, color: '#3A3A42',
+            fontSize: 12, lineHeight: 1.6, color: 'var(--color-text-2)',
             background: 'rgba(var(--glass-rgb), 0.6)', borderRadius: 10,
             padding: '8px 10px', borderColor: 'rgba(0,0,0,0.06)',
           }}

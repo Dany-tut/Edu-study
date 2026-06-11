@@ -308,7 +308,7 @@ function Card({
         WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         border: '1px solid var(--color-border-glass)',
         borderRadius: 22,
-        boxShadow: '0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.06)',
+        boxShadow: 'var(--shadow-sm-page)',
         padding: 20,
         cursor: onClick ? 'pointer' : undefined,
         ...style,
@@ -377,7 +377,7 @@ function GroupCard({
         borderRadius: 22,
         boxShadow: isActive
           ? `0 0 0 3px ${group.color}33, 0 4px 20px rgba(0,0,0,0.06)`
-          : '0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.06)',
+          : 'var(--shadow-sm-page)',
         cursor: 'pointer',
         flex: '1 1 180px',
         overflow: 'hidden',

@@ -104,7 +104,7 @@ export default function SpoilerText({
         if (W !== lastW || H !== lastH) resize(W, H)
 
         ctx.clearRect(0, 0, W, H)
-        const dotColor = color ?? getComputedStyle(document.documentElement).getPropertyValue('--spoiler-dot-rgb').trim() || '11, 11, 13'
+        const dotColor = color ?? (getComputedStyle(document.documentElement).getPropertyValue('--spoiler-dot-rgb').trim() || '11, 11, 13')
         for (const p of particles) {
           p.x += p.vx
           p.y += p.vy
