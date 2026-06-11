@@ -136,14 +136,23 @@ function AddGroupModal({ onClose, onSave }: {
 }
 
 // ─── Модалка добавления ученика ───────────────────────────────────────────────
+function genPassword() {
+  const words = ['Ромашка', 'Берёза', 'Комета', 'Ракета', 'Лазурь', 'Пчёлка', 'Феникс', 'Сапфир']
+  const word = words[Math.floor(Math.random() * words.length)]
+  const num = Math.floor(10 + Math.random() * 90)
+  return `${word}${num}!`
+}
+
 function AddStudentModal({ onClose, onSave }: {
   onClose: () => void
-  onSave: (s: { name: string; phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number }) => Promise<{ inviteToken: string | null }>
+  onSave: (s: { name: string; phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number; email: string; tempPassword: string }) => Promise<{ inviteToken: string | null }>
 }) {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [telegram, setTelegram] = useState('')
   const [parent, setParent] = useState('')
+  const [email, setEmail] = useState('')
+  const [tempPassword] = useState(genPassword)
   const [desiredScore, setDesiredScore] = useState(80)
   const [paymentAmount, setPaymentAmount] = useState(0)
   const [saving, setSaving] = useState(false)
@@ -153,7 +162,7 @@ function AddStudentModal({ onClose, onSave }: {
   async function handleSave() {
     if (!name.trim()) return
     setSaving(true)
-    const { inviteToken } = await onSave({ name: name.trim(), phone, telegramLink: telegram, parentContact: parent, desiredScore, paymentAmount })
+    const { inviteToken } = await onSave({ name: name.trim(), phone, telegramLink: telegram, parentContact: parent, desiredScore, paymentAmount, email: email.trim(), tempPassword })
     setSaving(false)
     if (inviteToken) {
       setInviteLink(`${window.location.origin}${window.location.pathname}#/join?token=${inviteToken}`)
@@ -238,6 +247,10 @@ function AddStudentModal({ onClose, onSave }: {
           <label style={labelStyle}>
             Telegram
             <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder="https://t.me/username" style={inputStyle} />
+          </label>
+          <label style={labelStyle}>
+            Email для входа
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="alice@example.com" style={inputStyle} />
           </label>
           <label style={labelStyle}>
             Контакт родителя
@@ -501,6 +514,51 @@ function ScorePill({ value, max = 100 }: { value: number | null; max?: number })
 }
 
 // ─── Student profile panel ────────────────────────────────────────────────────
+function CredentialsSpoiler({ login, password }: { login: string; password: string }) {
+  const [phase, setPhase] = useState<'hidden' | 'revealed'>('hidden')
+
+  function handleClick() {
+    if (phase === 'hidden') {
+      setPhase('revealed')
+    } else {
+      navigator.clipboard.writeText(`Логин: ${login}\nПароль: ${password}`)
+      setPhase('hidden')
+    }
+  }
+
+  const mono: React.CSSProperties = { fontFamily: 'monospace', fontSize: 13, fontWeight: 600 }
+  const rowStyle: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    gap: 8, padding: '7px 10px', background: '#F5F5F6', borderRadius: 10,
+  }
+
+  return (
+    <div
+      onClick={handleClick}
+      title={phase === 'hidden' ? 'Нажмите чтобы показать' : 'Нажмите чтобы скопировать'}
+      style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 6 }}
+    >
+      <div style={rowStyle}>
+        <span style={{ fontSize: 11, color: '#6F6F76', minWidth: 48 }}>Логин</span>
+        {phase === 'revealed'
+          ? <span style={{ ...mono, color: '#0B0B0D', flex: 1, textAlign: 'right', wordBreak: 'break-all' }}>{login}</span>
+          : <span style={{ flex: 1, height: 14, borderRadius: 6, background: 'linear-gradient(90deg,#C8C8CE,#B8B8C2)', filter: 'blur(0px)' }} />
+        }
+      </div>
+      <div style={rowStyle}>
+        <span style={{ fontSize: 11, color: '#6F6F76', minWidth: 48 }}>Пароль</span>
+        {phase === 'revealed'
+          ? <span style={{ ...mono, color: '#0B0B0D', flex: 1, textAlign: 'right' }}>{password}</span>
+          : <span style={{ flex: 1, height: 14, borderRadius: 6, background: 'linear-gradient(90deg,#C8C8CE,#B8B8C2)', filter: 'blur(0px)' }} />
+        }
+      </div>
+      <div style={{ fontSize: 10, color: '#9A9AA2', textAlign: 'center', marginTop: 2 }}>
+        {phase === 'hidden' ? '● ● ●  нажмите чтобы показать' : 'нажмите ещё раз — скопирует оба поля'}
+      </div>
+    </div>
+  )
+}
+
 function StudentPanel({
   student, group, onClose,
 }: { student: Student; group: Group; onClose: () => void }) {
@@ -575,6 +633,19 @@ function StudentPanel({
 
       {/* Scrollable body */}
       <div style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+        {/* Credentials */}
+        {(student.email || student.tempPassword) && (
+          <section>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
+              Доступ в кабинет
+            </div>
+            <CredentialsSpoiler
+              login={student.email ?? ''}
+              password={student.tempPassword ?? ''}
+            />
+          </section>
+        )}
 
         {/* Contacts */}
         <section>
@@ -1135,7 +1206,7 @@ export default function TeacherGroupsPage() {
         {showAddStudent && selectedGroupId && (
           <AddStudentModal
             onClose={() => setShowAddStudent(false)}
-            onSave={async (s) => { const { inviteToken } = await addStudent(s); return { inviteToken: inviteToken ?? null } }}
+            onSave={async (s) => { const { inviteToken } = await addStudent({ ...s, email: s.email, tempPassword: s.tempPassword }); return { inviteToken: inviteToken ?? null } }}
           />
         )}
       </AnimatePresence>

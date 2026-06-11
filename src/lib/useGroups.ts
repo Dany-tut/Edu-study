@@ -100,6 +100,8 @@ export function useStudents(groupId: string | null) {
         lastPayment: s.last_payment ?? '',
         debt: s.debt ?? 0,
         inviteToken: s.invite_token ?? null,
+        email: s.email ?? '',
+        tempPassword: s.temp_password ?? '',
       })))
     }
     setLoading(false)
@@ -120,6 +122,8 @@ export function useStudents(groupId: string | null) {
       payment_due: s.paymentDue || null,
       payment_amount: s.paymentAmount ?? 0,
       debt: s.debt ?? 0,
+      email: s.email ?? null,
+      temp_password: s.tempPassword ?? null,
     }).select('invite_token').single()
     if (!error) await load()
     return { error, inviteToken: data?.invite_token as string | null }

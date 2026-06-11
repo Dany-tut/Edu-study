@@ -50,8 +50,11 @@ export type Student = {
   comment?: string
   paymentDue?: string
   paymentAmount?: number
-  lastPayment?: string  // ISO date of last received payment
-  debt?: number         // outstanding debt in RUB
+  lastPayment?: string
+  debt?: number
+  email?: string
+  tempPassword?: string
+  inviteToken?: string | null
 }
 
 export type ScheduleItem = {
