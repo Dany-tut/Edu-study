@@ -4,7 +4,7 @@ import {
   Users, ChevronUp, ChevronDown, X,
   Phone, Send, User,
   TrendingUp, ClipboardCheck, Clock, Award,
-  ChevronsUpDown, ExternalLink, Plus,
+  ChevronsUpDown, ExternalLink, Plus, Copy, Check,
 } from 'lucide-react'
 import {
   type Group, type Student,
@@ -546,10 +546,72 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
   )
 }
 
+function StudentAvatar({
+  student, group,
+}: { student: Student; group: Group }) {
+  const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
+  const [hovered, setHovered] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const isRegistered = !!student.email
+
+  function copyInvite() {
+    if (!student.inviteToken) return
+    const link = `${window.location.origin}${window.location.pathname}#/join?token=${student.inviteToken}`
+    navigator.clipboard.writeText(link)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div
+      style={{ position: 'relative', width: 46, height: 46, flexShrink: 0, cursor: isRegistered ? 'default' : 'pointer' }}
+      onMouseEnter={() => !isRegistered && setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={() => !isRegistered && copyInvite()}
+      title={isRegistered ? '' : 'Скопировать ссылку приглашения'}
+    >
+      <div style={{
+        width: 46, height: 46, borderRadius: 16,
+        background: group.color,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 18, fontWeight: 700, color: '#fff',
+        transition: 'opacity 0.15s',
+        opacity: hovered ? 0.25 : 1,
+      }}>
+        {initials}
+      </div>
+
+      {/* Overlay: copy icon (not registered) */}
+      {!isRegistered && (
+        <div style={{
+          position: 'absolute', inset: 0, borderRadius: 16,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          opacity: hovered ? 1 : 0,
+          transition: 'opacity 0.15s',
+          pointerEvents: 'none',
+        }}>
+          {copied
+            ? <Check size={18} strokeWidth={2.5} style={{ color: group.color }} />
+            : <Copy size={17} strokeWidth={2.2} style={{ color: group.color }} />
+          }
+        </div>
+      )}
+
+      {/* Badge: pending registration dot */}
+      {!isRegistered && (
+        <div style={{
+          position: 'absolute', bottom: -2, right: -2,
+          width: 12, height: 12, borderRadius: '50%',
+          background: '#F5A623', border: '2px solid #fff',
+        }} title="Ещё не зарегистрирован" />
+      )}
+    </div>
+  )
+}
+
 function StudentPanel({
   student, group, onClose,
 }: { student: Student; group: Group; onClose: () => void }) {
-  const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
   const [comment, setComment] = useState(student.comment ?? '')
   return (
     <motion.div
@@ -581,15 +643,7 @@ function StudentPanel({
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{
-              width: 46, height: 46, borderRadius: 16,
-              background: group.color,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 18, fontWeight: 700, color: '#fff',
-              flexShrink: 0,
-            }}>
-              {initials}
-            </div>
+            <StudentAvatar student={student} group={group} />
             <div>
               <div style={{ fontSize: 15, fontWeight: 700, color: '#0B0B0D', lineHeight: 1.2 }}>
                 {student.name}
