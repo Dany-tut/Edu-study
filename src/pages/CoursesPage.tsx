@@ -49,6 +49,7 @@ export default function CoursesPage() {
   // The lessons to show: a single module, or every lesson in the subject when
   // "Все" is selected. Search narrows by title or lesson number.
   const lessons = useMemo(() => {
+    if (!subject) return []
     const base: Lesson[] = moduleTab === ALL
       ? subject.modules.flatMap(m => m.lessons)
       : (subject.modules.find(m => m.id === moduleTab)?.lessons ?? [])
@@ -68,10 +69,10 @@ export default function CoursesPage() {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [focusLessonId, lessons])
 
-  const moduleTabs: Array<{ id: number | typeof ALL; label: string }> = [
+  const moduleTabs: Array<{ id: number | typeof ALL; label: string }> = subject ? [
     { id: ALL, label: 'Все' },
     ...subject.modules.map(m => ({ id: m.id, label: m.label })),
-  ]
+  ] : []
 
   if (!subject) {
     return (
