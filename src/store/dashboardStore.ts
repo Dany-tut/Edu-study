@@ -278,12 +278,7 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   trackPopoverOpen: false,
   setTrackPopoverOpen: (v) => set({ trackPopoverOpen: v }),
 
-  // DEMO: показываем все состояния харда — удалить после просмотра
-  lessonAssessments: {
-    'c3-1': { score: 82, emojiIndex: 2, hardAvailable: true, hardStatus: 'submitted' },
-    'c3-2': { score: 85, emojiIndex: 2, hardAvailable: true, hardStatus: 'returned' },
-    'c3-3': { score: 91, emojiIndex: 3, hardAvailable: true, hardStatus: 'completed', hardCompleted: true },
-  } as Record<string, { score: number; emojiIndex: number; hardAvailable?: boolean; hardCompleted?: boolean; hardStatus?: 'submitted' | 'returned' | 'completed' }>,
+  lessonAssessments: {} as Record<string, { score: number; emojiIndex: number; hardAvailable?: boolean; hardCompleted?: boolean; hardStatus?: 'submitted' | 'returned' | 'completed' }>,
   setLessonAssessment: (lessonId, score, emojiIndex, hardAvailable) =>
     set((s) => ({ lessonAssessments: { ...s.lessonAssessments, [lessonId]: { ...s.lessonAssessments[lessonId], score, emojiIndex, hardAvailable } } })),
   setHardCompleted: (lessonId) =>
@@ -349,20 +344,6 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
     pomoFocusDuration: state.pomoFocusDuration,
     lessonAssessments: state.lessonAssessments,
   }),
-  // DEMO: принудительно подмешиваем demo-данные поверх сохранённых — удалить после просмотра
-  merge: (persisted: unknown, current) => {
-    const p = persisted as Partial<typeof current>
-    return {
-      ...current,
-      ...p,
-      lessonAssessments: {
-        ...(p.lessonAssessments ?? {}),
-        'c3-1': { score: 82, emojiIndex: 2, hardAvailable: true, hardStatus: 'submitted' as const },
-        'c3-2': { score: 85, emojiIndex: 2, hardAvailable: true, hardStatus: 'returned' as const },
-        'c3-3': { score: 91, emojiIndex: 3, hardAvailable: true, hardStatus: 'completed' as const, hardCompleted: true },
-      },
-    }
-  },
 }))
 
 // Module-level interval so the countdown survives the widget unmounting when the

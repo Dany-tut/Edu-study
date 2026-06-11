@@ -4,9 +4,9 @@
  */
 import { supabase } from './supabase'
 import {
-  subjects as catalogSubjects,
   type Subject,
   type LessonStatus,
+  type LessonShape,
   type ScheduleDay,
   type ScheduleLesson,
   type QuizQuestion,
@@ -134,21 +134,91 @@ export async function upsertLessonProgress(
   }, { onConflict: 'student_id,lesson_ref' })
 }
 
+// ─── Course structure from Supabase ──────────────────────────────────────────
+
+interface DbCourse {
+  id: string
+  short_id: string
+  title: string
+  subject: string
+  course_modules: Array<{
+    id: string
+    label: string
+    position: number
+    lessons: Array<{
+      id: string
+      short_id: string
+      title: string
+      lesson_number: number
+      shape: string
+    }>
+  }>
+}
+
+export async function fetchCourseStructure(): Promise<Subject[]> {
+  const { data, error } = await supabase
+    .from('courses')
+    .select(`
+      id, short_id, title, subject,
+      course_modules (
+        id, label, position,
+        lessons ( id, short_id, title, lesson_number, shape )
+      )
+    `)
+    .eq('status', 'published')
+    .order('created_at', { ascending: true })
+
+  if (error || !data || data.length === 0) return []
+
+  return (data as unknown as DbCourse[]).map(course => ({
+    id: course.short_id,
+    name: course.subject,
+    progress: 0,
+    activeModuleId: 1,
+    modules: [...course.course_modules]
+      .sort((a, b) => a.position - b.position)
+      .map(mod => ({
+        id: mod.position,
+        label: mod.label,
+        lessons: [...mod.lessons]
+          .sort((a, b) => a.lesson_number - b.lesson_number)
+          .map(l => ({
+            id: l.short_id,
+            title: l.title,
+            number: l.lesson_number,
+            status: 'locked' as LessonStatus,
+            shape: (l.shape as LessonShape) ?? 'circle',
+            subject: course.short_id,
+          })),
+      })),
+  }))
+}
+
 // ─── Subjects merged with progress ───────────────────────────────────────────
 
-export function mergeSubjectsWithProgress(progress: ProgressMap): Subject[] {
-  return catalogSubjects.map(subject => ({
-    ...subject,
-    modules: subject.modules.map(module => ({
+export function mergeSubjectsWithProgress(catalog: Subject[], progress: ProgressMap): Subject[] {
+  return catalog.map(subject => {
+    const modules = subject.modules.map(module => ({
       ...module,
       lessons: module.lessons.map(lesson => {
         const p = progress[lesson.id]
-        // No DB record → lesson is locked with no score (ignore mock defaults)
         if (!p) return { ...lesson, status: 'locked' as LessonStatus, points: undefined, comment: undefined }
         return { ...lesson, status: p.status, points: p.score > 0 ? p.score : undefined, comment: p.comment || undefined }
       }),
-    })),
-  }))
+    }))
+
+    // Compute activeModuleId: first module with an active lesson, otherwise module 1
+    const allLessons = modules.flatMap(m => m.lessons.map(l => ({ ...l, moduleId: m.id })))
+    const currentLesson = allLessons.find(l => l.status === 'current' || l.status === 'submitted' || l.status === 'returned')
+    const activeModuleId = currentLesson ? currentLesson.moduleId : (modules[0]?.id ?? 1)
+
+    // Compute progress %
+    const total = allLessons.length
+    const completed = allLessons.filter(l => l.status === 'completed').length
+    const progress_pct = total > 0 ? Math.round((completed / total) * 100) : 0
+
+    return { ...subject, modules, activeModuleId, progress: progress_pct }
+  })
 }
 
 // ─── Student stats (computed from progress) ──────────────────────────────────
