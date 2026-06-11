@@ -308,7 +308,7 @@ function Card({
         WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         border: '1px solid var(--color-border-glass)',
         borderRadius: 22,
-        boxShadow: '0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.95)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.06)',
         padding: 20,
         cursor: onClick ? 'pointer' : undefined,
         ...style,
@@ -341,14 +341,14 @@ function ScrollFadeTable({ children }: { children: React.ReactNode }) {
       <div style={{
         position: 'absolute', top: 0, left: 0, bottom: 0, width: 56,
         pointerEvents: 'none', zIndex: 2,
-        background: 'linear-gradient(to right, rgba(255,255,255,0.92), transparent)',
+        background: 'linear-gradient(to right, var(--color-bg-2), transparent)',
         opacity: fadeLeft ? 1 : 0,
         transition: 'opacity 0.22s ease',
       }} />
       <div style={{
         position: 'absolute', top: 0, right: 0, bottom: 0, width: 72,
         pointerEvents: 'none', zIndex: 2,
-        background: 'linear-gradient(to left, rgba(255,255,255,0.92), transparent)',
+        background: 'linear-gradient(to left, var(--color-bg-2), transparent)',
         opacity: fadeRight ? 1 : 0,
         transition: 'opacity 0.22s ease',
       }} />

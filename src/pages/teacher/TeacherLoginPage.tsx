@@ -7,6 +7,7 @@ export default function TeacherLoginPage({ onLogin }: { onLogin: () => void }) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [mode, setMode] = useState<'login' | 'register'>('login')
+  const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -65,6 +66,7 @@ export default function TeacherLoginPage({ onLogin }: { onLogin: () => void }) {
             placeholder="Email"
             value={email}
             onChange={e => setEmail(e.target.value)}
+            autoComplete="email"
             required
             style={{
               padding: '12px 16px',
@@ -76,22 +78,46 @@ export default function TeacherLoginPage({ onLogin }: { onLogin: () => void }) {
               background: 'var(--color-bg-input)',
             }}
           />
-          <input
-            type="password"
-            placeholder="Пароль"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-            style={{
-              padding: '12px 16px',
-              borderRadius: 14,
-              border: '1.5px solid var(--color-border-medium)',
-              fontSize: 15,
-              outline: 'none',
-              color: 'var(--color-text)',
-              background: 'var(--color-bg-input)',
-            }}
-          />
+          <div style={{ position: 'relative' }}>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Пароль"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                padding: '12px 44px 12px 16px',
+                borderRadius: 14,
+                border: '1.5px solid var(--color-border-medium)',
+                fontSize: 15,
+                outline: 'none',
+                color: 'var(--color-text)',
+                background: 'var(--color-bg-input)',
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(v => !v)}
+              style={{
+                position: 'absolute',
+                right: 12,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 4,
+                color: 'var(--color-muted)',
+                fontSize: 18,
+                lineHeight: 1,
+              }}
+            >
+              {showPassword ? '🙈' : '👁'}
+            </button>
+          </div>
 
           {error && (
             <div style={{ color: '#e53935', fontSize: 13, padding: '8px 12px', background: '#fff5f5', borderRadius: 10 }}>

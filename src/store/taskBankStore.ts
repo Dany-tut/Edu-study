@@ -7,7 +7,7 @@ type NewTask = Omit<Task, 'id'>
 type TaskBankStore = {
   tasks: Task[]
   loaded: boolean
-  load: () => Promise<void>
+  load: (force?: boolean) => Promise<void>
   addTask: (t: NewTask) => Promise<number>
   replaceTask: (id: number, patch: Partial<Task>) => Promise<void>
   removeTask: (id: number) => Promise<void>
@@ -76,8 +76,8 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
   tasks: [],
   loaded: false,
 
-  load: async () => {
-    if (get().loaded && get().tasks.length > 0) return
+  load: async (force = false) => {
+    if (!force && get().loaded && get().tasks.length > 0) return
     const { data } = await supabase.from('task_bank').select('*').order('id')
     if (data) {
       set({ tasks: data.map(dbToTask), loaded: true })

@@ -656,7 +656,7 @@ export default function TaskBankPage() {
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
   const tasks         = useTaskBank(s => s.tasks)
   const loadTasks     = useTaskBank(s => s.load)
-  useEffect(() => { loadTasks() }, [])
+  useEffect(() => { loadTasks(true) }, [])
 
   const defaultSubject: Subject = activeSubjectId === 'chemistry' ? 'chemistry' : 'biology'
   const [subject, setSubject]   = useState<Subject>(defaultSubject)

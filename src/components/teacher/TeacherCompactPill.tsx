@@ -1,10 +1,9 @@
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { ChevronLeft, ChevronRight, BookOpen, ClipboardList, BarChart2, PenLine } from 'lucide-react'
-import {
-  allHomework, todaySchedule,
-} from '../../data/teacherMockData'
 import { useTeacher } from '../../store/teacherStore'
+import { useHomework } from '../../lib/useHomework'
+import { useScheduleToday } from '../../lib/useScheduleToday'
 import { tactile } from '../../lib/feedback'
 
 const TOPBAR_H = 60
@@ -95,16 +94,13 @@ function PillContent({
 function PendingHwPreview({ expanded }: { expanded: boolean }) {
   const setActivePage = useTeacher(s => s.setActivePage)
   const reviews = useTeacher(s => s.reviews)
+  const { homework: allHomework } = useHomework()
 
-  // Fold the teacher's in-session reviews in so the counters drop live as work
-  // gets graded — same source the homework page uses, so the numbers match.
   const homework = allHomework.map(hw => {
     const r = reviews[hw.id]
     return r ? { ...hw, reviewedCount: Math.max(hw.reviewedCount, Object.keys(r).length) } : hw
   })
-  // "Нужно проверить" — individual student works submitted but not yet reviewed.
   const toCheck = homework.reduce((a, hw) => a + Math.max(0, hw.submittedCount - hw.reviewedCount), 0)
-  // "На проверке" — homework assignments that still have unreviewed submissions.
   const onReview = homework.filter(hw => hw.submittedCount - hw.reviewedCount > 0).length
 
   return (
@@ -167,6 +163,7 @@ function StatBadge({ label, value, color, bg }: { label: string; value: string; 
 
 // ── Widget 1: Today's schedule ─────────────────────────────────────────────
 function SchedulePreview({ expanded }: { expanded: boolean }) {
+  const { schedule: todaySchedule } = useScheduleToday()
   const now = new Date()
   const nowMin = now.getHours() * 60 + now.getMinutes()
   const upcoming = todaySchedule.filter(s => {
@@ -227,9 +224,9 @@ function SchedulePreview({ expanded }: { expanded: boolean }) {
 
 // ── Widget 2: Lessons awaiting grades + attendance ─────────────────────────
 function PendingGradesPreview({ expanded }: { expanded: boolean }) {
+  const { schedule: todaySchedule } = useScheduleToday()
   const setActivePage = useTeacher(s => s.setActivePage)
   const setSelectedGroupId = useTeacher(s => s.setSelectedGroupId)
-  // A finished lesson still needs its grades + attendance entered in the journal.
   const ungraded = todaySchedule.filter(s => s.status === 'completed')
   const next = ungraded[0]
 
