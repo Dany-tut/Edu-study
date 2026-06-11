@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm run build"
+buildCommand = "npx prisma generate && npm run build"
 
 [deploy]
 startCommand = "node server/index.js"
@@ -8,6 +8,3 @@ healthcheckPath = "/api/health"
 healthcheckTimeout = 30
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
-
-[nixpacks]
-aptPkgs = ["openssl"]
