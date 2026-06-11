@@ -102,7 +102,7 @@ export default function TeacherTopBar() {
         position: 'relative', zIndex: 60,
         borderRadius: 32, padding: '8px', height: 60, width: 'fit-content',
         boxSizing: 'border-box',
-        background: 'rgba(var(--glass-rgb), 0.5)',
+        background: 'rgba(var(--glass-rgb), 0.88)',
         backdropFilter: 'blur(14px) saturate(180%)',
         WebkitBackdropFilter: 'blur(14px) saturate(180%)',
         border: '1px solid var(--color-border-glass)',

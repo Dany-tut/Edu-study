@@ -222,8 +222,8 @@ const WIDGETS_INIT: Widget[] = [
 // ─── Constants ────────────────────────────────────────────────────────────────
 const WTYPE_LABEL: Record<WidgetType, string> = { quiz: 'Викторина', facts: 'Научные факты', reactions: 'Реакции', pomodoro: 'Фокус', memes: 'Мемы', qod: 'Вопрос дня' }
 const WTYPE_ICON:  Record<WidgetType, React.ElementType> = { quiz: CircleHelp, facts: FlaskConical, reactions: Atom, pomodoro: Timer, memes: Laugh, qod: Sparkles }
-const WTYPE_COLOR: Record<WidgetType, string> = { quiz: '#7B3FCC', facts: '#1E9E63', reactions: '#1F6FB8', pomodoro: '#E0794B', memes: '#C58BFF', qod: '#0E7A6F' }
-const WTYPE_BG:    Record<WidgetType, string> = { quiz: 'var(--color-purple-soft)', facts: '#DCF6E7', reactions: '#DCEEFB', pomodoro: 'var(--color-peach-soft)', memes: '#F1E3FF', qod: '#CFF3EE' }
+const WTYPE_COLOR: Record<WidgetType, string> = { quiz: 'var(--color-purple-text,#7B3FCC)', facts: 'var(--color-green-text)', reactions: 'var(--color-blue-pill-text)', pomodoro: 'var(--color-peach-text)', memes: 'var(--color-purple-text,#C58BFF)', qod: 'var(--color-teal-pill-text)' }
+const WTYPE_BG:    Record<WidgetType, string> = { quiz: 'var(--color-purple-soft)', facts: 'var(--color-green-soft)', reactions: 'var(--color-blue-pill-bg)', pomodoro: 'var(--color-peach-soft)', memes: 'var(--color-purple-soft)', qod: 'var(--color-teal-pill-bg)' }
 const STATUS_LABEL: Record<CourseStatus, string> = { published: 'Опубликован', draft: 'Черновик' }
 const STATUS_COLOR: Record<CourseStatus, string> = { published: 'var(--color-green-text)', draft: 'var(--color-peach-text)' }
 const STATUS_BG:   Record<CourseStatus, string> = { published: 'var(--color-green-soft)', draft: 'var(--color-peach-soft)' }

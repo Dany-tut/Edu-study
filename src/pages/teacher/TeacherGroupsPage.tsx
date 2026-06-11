@@ -1206,7 +1206,7 @@ export default function TeacherGroupsPage() {
                             onClick={() => setActiveStudentId(isSelected ? null : student.id)}
                             style={{
                               cursor: 'pointer',
-                              background: isSelected ? activeGroup.colorSoft : 'transparent',
+                              background: isSelected ? `${activeGroup.color}22` : 'transparent',
                               borderLeft: isSelected ? `3px solid ${activeGroup.color}` : '3px solid transparent',
                               transition: 'background 0.15s',
                             }}
