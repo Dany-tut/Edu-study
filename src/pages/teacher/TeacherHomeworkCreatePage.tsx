@@ -559,8 +559,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
     } else {
       // Same characteristics, new content, fresh searchable id.
       const { id: _omit, ...rest } = task
-      const newId = addTaskToBank({ ...rest, ...editedFields() })
-      setVariantId(newId)
+      addTaskToBank({ ...rest, ...editedFields() }).then(newId => setVariantId(newId))
     }
   }
 

@@ -1496,7 +1496,7 @@ function CreatorView({
   }
   const builtTask = mode === 'trainer' ? buildTask() : null
 
-  function handleSave() {
+  async function handleSave() {
     const dateStr = new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
     if (mode === 'trainer') {
       const task = buildTask()
@@ -1509,7 +1509,7 @@ function CreatorView({
         return
       }
 
-      const newId = addTask(task)
+      const newId = await addTask(task)
 
       // Create a trainer card so the task appears in the Тренажёр list.
       const isBio = tkSubject === 'Биология'
@@ -2322,6 +2322,8 @@ export default function TeacherConstructorPage() {
 
   const [bankFilters, setBankFilters] = useState<TrainerFilters>(emptyTrainerFilters)
   const removeTask = useTaskBank(s => s.removeTask)
+  const loadTasks = useTaskBank(s => s.load)
+  useEffect(() => { loadTasks() }, [])
 
   // Open straight into a creator view when navigated here from the topbar "+" menu.
   const constructorIntent = useTeacher(s => s.constructorIntent)

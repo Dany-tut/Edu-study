@@ -5,12 +5,13 @@ import {
   Circle, Users, AlertCircle, Send, ClipboardList,
 } from 'lucide-react'
 import {
-  groups, allHomework, students,
   type HomeworkItem, type Group,
 } from '../../data/teacherMockData'
 import { useTeacher } from '../../store/teacherStore'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import GroupStrip from '../../components/teacher/GroupStrip'
+import { useGroups, useStudents } from '../../lib/useGroups'
+import { useHomework } from '../../lib/useHomework'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -51,6 +52,7 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 
 // ─── Assign form panel ─────────────────────────────────────────────────────────
 function AssignForm({ onClose }: { onClose: () => void }) {
+  const { groups } = useGroups()
   const [selectedGroup, setSelectedGroup] = useState<string>('')
   const [selectedStudent, setSelectedStudent] = useState<string>('')
   const [assignTo, setAssignTo] = useState<'group' | 'student'>('group')
@@ -58,8 +60,9 @@ function AssignForm({ onClose }: { onClose: () => void }) {
   const [description, setDescription] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const { students } = useStudents(selectedGroup || null)
 
-  const groupStudents = students.filter(s => s.groupId === selectedGroup)
+  const groupStudents = students
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -317,7 +320,7 @@ function HwRow({ hw, index, isSelected, onClick }: {
 // ─── Homework detail panel ─────────────────────────────────────────────────────
 function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onClose: () => void }) {
   const status = hwStatus(hw)
-  const groupStudents = students.filter(s => s.groupId === hw.groupId)
+  const { students: groupStudents } = useStudents(hw.groupId)
   const openHomeworkReview = useTeacher(s => s.openHomeworkReview)
   const hwReviews = useTeacher(s => s.reviews[hw.id]) ?? {}
   const pendingReview = hw.submittedCount - hw.reviewedCount
@@ -460,16 +463,24 @@ export default function TeacherHomeworkPage() {
   const setFilterGroup = useTeacher(s => s.setSelectedGroupId)
   const [selectedHwId, setSelectedHwId] = useState<string | null>(null)
   const [showAssignForm, setShowAssignForm] = useState(false)
+  const { groups } = useGroups()
+  const { homework: dbHomework, loading: hwLoading } = useHomework()
 
-  // Fold the teacher's in-session reviews into each row so the "Проверено"
-  // counter and status update live as homework gets graded.
-  const homework: HomeworkItem[] = allHomework.map(hw => {
+  // Map DB homework to HomeworkItem shape
+  const homework: HomeworkItem[] = dbHomework.map(hw => {
     const reviewed = reviews[hw.id]
-    if (!reviewed) return hw
-    return { ...hw, reviewedCount: Math.max(hw.reviewedCount, Object.keys(reviewed).length) }
+    const reviewedCount = reviewed ? Object.keys(reviewed).length : 0
+    return {
+      id: hw.id,
+      groupId: hw.groupId,
+      title: hw.title,
+      dueDate: hw.dueDate,
+      totalCount: hw.totalCount,
+      submittedCount: hw.submittedCount,
+      reviewedCount,
+    } as HomeworkItem
   })
 
-  // No group selected → whole list; a group selected → just that group's homework.
   const filtered = filterGroup
     ? homework.filter(hw => hw.groupId === filterGroup)
     : homework

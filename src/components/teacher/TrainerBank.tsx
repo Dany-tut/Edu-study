@@ -183,9 +183,9 @@ export function BankQuestionCard({
 
   // "Сохранить как новый" — fork a brand-new searchable number, leaving the
   // original untouched. If this card is in the trainer, swap selection over.
-  function doSaveAsNew() {
+  async function doSaveAsNew() {
     const { id: _omit, ...rest } = task
-    const newId = addTaskToBank({ ...rest, ...patch() } as Omit<Task, 'id'>)
+    const newId = await addTaskToBank({ ...rest, ...patch() } as Omit<Task, 'id'>)
     if (selected) onForkSelected(newId)
     flash('forked')
   }

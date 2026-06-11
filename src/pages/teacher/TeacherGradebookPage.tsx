@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Download, ClipboardList, X, Check } from 'lucide-react'
-import { groups, students } from '../../data/teacherMockData'
 import { useTeacher } from '../../store/teacherStore'
 import GroupStrip from '../../components/teacher/GroupStrip'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
+import { useGroups, useStudents } from '../../lib/useGroups'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -18,12 +18,10 @@ const DATES = [
   '05.06', '06.06', '07.06', '09.06', '10.06',
 ]
 
-// Deterministic attendance per student/date based on their attendance %
+// Deterministic attendance per student/date based on their id seed
 function wasPresent(studentId: string, dateIdx: number): boolean | null {
-  const s = students.find(x => x.id === studentId)
-  if (!s) return null
-  const seed = (studentId.charCodeAt(1) + dateIdx * 7) % 100
-  return seed < s.attendance
+  const seed = (studentId.charCodeAt(0) + dateIdx * 7) % 100
+  return seed < 75
 }
 
 function ScorePill({ value }: { value: number | null }) {
@@ -43,7 +41,10 @@ function ScorePill({ value }: { value: number | null }) {
 }
 
 // Avatar/accent colour for a student, resolved from their own group.
-const groupColor = (gid: string) => groups.find(g => g.id === gid)?.color ?? '#9B6DFF'
+function useGroupColor(gid: string | null) {
+  const { groups } = useGroups()
+  return gid ? (groups.find(g => g.id === gid)?.color ?? '#9B6DFF') : '#9B6DFF'
+}
 
 function ScrollFadeTable({ children }: { children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -99,8 +100,7 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 
 // ─── Attendance tab ────────────────────────────────────────────────────────────
 function AttendanceTab({ groupId }: { groupId: string | null }) {
-  // null groupId → whole list (all students across every group).
-  const groupStudents = groupId ? students.filter(s => s.groupId === groupId) : students
+  const { students: groupStudents } = useStudents(groupId)
 
   return (
     <Card>
@@ -153,7 +153,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                       <div style={{
                         width: 28, height: 28, borderRadius: 9, flexShrink: 0,
-                        background: groupColor(student.groupId),
+                        background: '#9B6DFF',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 10, fontWeight: 700, color: '#fff',
                       }}>
@@ -203,8 +203,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
 
 // ─── Scores tab ────────────────────────────────────────────────────────────────
 function ScoresTab({ groupId }: { groupId: string | null }) {
-  // null groupId → whole list (all students across every group).
-  const groupStudents = groupId ? students.filter(s => s.groupId === groupId) : students
+  const { students: groupStudents } = useStudents(groupId)
 
   const avgHw = Math.round(groupStudents.reduce((a, s) => a + s.hwScore, 0) / groupStudents.length)
   const avgTest = Math.round(groupStudents.reduce((a, s) => a + s.testScore, 0) / groupStudents.length)
@@ -252,7 +251,7 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                       <div style={{
                         width: 28, height: 28, borderRadius: 9, flexShrink: 0,
-                        background: groupColor(student.groupId),
+                        background: '#9B6DFF',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 10, fontWeight: 700, color: '#fff',
                       }}>
@@ -344,8 +343,9 @@ function GradeButton({ value, selected, onClick }: { value: Grade; selected: boo
 }
 
 function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClose: () => void }) {
+  const { groups } = useGroups()
+  const { students: groupStudents } = useStudents(groupId)
   const group = groupId ? groups.find(g => g.id === groupId) ?? null : null
-  const groupStudents = groupId ? students.filter(s => s.groupId === groupId) : students
   const today = new Date()
   const dateLabel = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}`
 
@@ -462,7 +462,7 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                   <div style={{
                     width: 28, height: 28, borderRadius: 9, flexShrink: 0,
-                    background: isPresent ? groupColor(student.groupId) : '#D4D4D8',
+                    background: isPresent ? '#9B6DFF' : '#D4D4D8',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 10, fontWeight: 700, color: '#fff',
                     transition: 'background 0.2s',
