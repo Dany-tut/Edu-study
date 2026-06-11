@@ -10,8 +10,6 @@ const TOPBAR_H = 60
 const COLLAPSED_H = TOPBAR_H
 const PILL_WIDTH = 320
 
-const WEEKLY_EARNED = 18400
-const WEEKLY_GOAL   = 25000
 
 const META: Record<number, { kicker: string; accent: string }> = {
   0: { kicker: 'Сегодня',    accent: '#7B3FCC' },
@@ -296,9 +294,6 @@ function PendingGradesPreview({ expanded }: { expanded: boolean }) {
 
 // ── Widget 3: Weekly earnings ──────────────────────────────────────────────
 function EarningsPreview({ expanded }: { expanded: boolean }) {
-  const pct = Math.round((WEEKLY_EARNED / WEEKLY_GOAL) * 100)
-  const fmt = (n: number) => n.toLocaleString('ru-RU') + ' ₽'
-
   return (
     <PillContent
       avatar={
@@ -312,21 +307,12 @@ function EarningsPreview({ expanded }: { expanded: boolean }) {
         </div>
       }
       kicker="Заработок · неделя"
-      title={`${fmt(WEEKLY_EARNED)} из ${fmt(WEEKLY_GOAL)}`}
+      title="Нет данных"
       expanded={expanded}
       detail={
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ height: 4, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
-            <motion.div
-              animate={{ width: `${pct}%` }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              style={{ height: '100%', borderRadius: 999, background: 'linear-gradient(90deg, #6EE7A0, #1E9E63)' }}
-            />
-          </div>
-          <span style={{ fontSize: 12, color: 'var(--color-text-2)' }}>
-            {pct}% цели на неделю · {fmt(WEEKLY_GOAL - WEEKLY_EARNED)} осталось
-          </span>
-        </div>
+        <span style={{ color: 'var(--color-text-2)', lineHeight: 1.4 }}>
+          Данные о заработке появятся здесь позже.
+        </span>
       }
     />
   )

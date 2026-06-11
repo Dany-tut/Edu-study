@@ -16,7 +16,9 @@ export type HwSubmission = {
 }
 
 function mapRow(h: any): HwAssignment {
-  const submittedCount = h.homework_submissions?.[0]?.count ?? 0
+  const subs: { verdict: string }[] = h.homework_submissions ?? []
+  const submittedCount = subs.length
+  const reviewedCount = subs.filter(s => s.verdict !== 'pending').length
   return {
     id: h.id,
     groupId: h.group_id,
@@ -32,7 +34,7 @@ function mapRow(h: any): HwAssignment {
       : '',
     submittedCount,
     totalCount: h.total_students ?? 0,
-    reviewedCount: h.reviewed_count ?? 0,
+    reviewedCount,
     status: h.status ?? 'active',
   }
 }
@@ -44,7 +46,7 @@ export function useHomework() {
   async function load() {
     const { data } = await supabase
       .from('homework')
-      .select('*, groups(name, icon, color), homework_submissions(count)')
+      .select('*, groups(name, icon, color), homework_submissions(verdict)')
       .order('created_at', { ascending: false })
     if (data) setHomework(data.map(mapRow))
     setLoading(false)
