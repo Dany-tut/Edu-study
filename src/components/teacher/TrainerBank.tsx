@@ -113,7 +113,7 @@ function editableOf(t: Task) {
 
 // ─── Rich, editable question card ───────────────────────────────────────────────
 export function BankQuestionCard({
-  task, index, selected, onToggleSelected, onForkSelected, onDelete, showSelect = true, compact = false, accent = '#8B4900', accentBg = 'var(--color-peach-soft)',
+  task, index, selected, onToggleSelected, onForkSelected, onDelete, showSelect = true, compact = false, accent = 'var(--color-peach-text)', accentBg = 'var(--color-peach-soft)',
 }: {
   task: Task
   index: number
@@ -229,7 +229,7 @@ export function BankQuestionCard({
             {onDelete && (
               <button onClick={onDelete} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 8, cursor: 'pointer',
-                background: '#FFF0F0', color: '#c0303a', border: 'none',
+                background: 'var(--color-red-soft)', color: 'var(--color-red-text)', border: 'none',
               }}><Trash2 size={13} /></button>
             )}
           </div>
@@ -291,7 +291,7 @@ export function BankQuestionCard({
       {/* Collapsed answer summary */}
       {!compact && (
         <div style={{ padding: '10px 14px', background: '#F0FBF4', borderRadius: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: '#1a7a3f', flexShrink: 0 }}>Ответ:</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-green-text)', flexShrink: 0 }}>Ответ:</span>
           <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{answer || '—'}</span>
         </div>
       )}
@@ -319,7 +319,7 @@ export function BankQuestionCard({
               </button>
               {onDelete && (
                 <button onClick={onDelete} title="Удалить"
-                  style={{ width: 28, height: 28, borderRadius: 9, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FFF0F0', color: '#c0303a' }}>
+                  style={{ width: 28, height: 28, borderRadius: 9, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
                   <Trash2 size={12} />
                 </button>
               )}
@@ -353,7 +353,7 @@ function KeyRubric({
                 : <span style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: accent, opacity: 0.7 }} />}
               <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{r.text}</div>
               <div style={{ padding: '3px 10px', borderRadius: 8, background: accentBg, color: accent, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>+{r.points} {plBall(r.points)}</div>
-              <button onClick={() => onRemove(r.id)} style={iconBtn('var(--color-red-soft)', '#c0303a')}><X size={10} /></button>
+              <button onClick={() => onRemove(r.id)} style={iconBtn('var(--color-red-soft)', 'var(--color-red-text)')}><X size={10} /></button>
             </div>
           ))}
         </div>
@@ -399,7 +399,7 @@ function BankGridCard({
   const [hovered, setHovered] = useState(false)
   const subjectLabel = task.subject === 'biology' ? 'Биол.' : 'Хим.'
   const subjectBg = task.subject === 'biology' ? 'var(--color-green-soft)' : 'var(--color-purple-soft)'
-  const subjectColor = task.subject === 'biology' ? '#1a7a3f' : '#7B3FCC'
+  const subjectColor = task.subject === 'biology' ? 'var(--color-green-text)' : '#7B3FCC'
   const showActions = hovered
 
   return (
@@ -440,7 +440,7 @@ function BankGridCard({
             </button>
             {onDelete && (
               <button onClick={onDelete} title="Удалить"
-                style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FFF0F0', color: '#c0303a' }}>
+                style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
                 <Trash2 size={11} />
               </button>
             )}
@@ -524,7 +524,7 @@ function BankSortDropdown({ value, onChange }: { value: SortMode; onChange: (v: 
 
 // ─── Browser (filtered list of cards) ───────────────────────────────────────────
 export function TrainerBankBrowser({
-  filters, selectedIds, onToggleSelected, onForkSelected, onDeleteTask, showSelect = true, compact = false, accent = '#8B4900', accentBg = 'var(--color-peach-soft)',
+  filters, selectedIds, onToggleSelected, onForkSelected, onDeleteTask, showSelect = true, compact = false, accent = 'var(--color-peach-text)', accentBg = 'var(--color-peach-soft)',
 }: {
   filters: TrainerFilters
   selectedIds: Set<number>
@@ -628,7 +628,7 @@ export function TrainerBankBrowser({
 
 // ─── Filter panel (right rail) ──────────────────────────────────────────────────
 export function TrainerBankFilterPanel({
-  filters, onChange, accent = '#8B4900', accentBg = 'var(--color-peach-soft)',
+  filters, onChange, accent = 'var(--color-peach-text)', accentBg = 'var(--color-peach-soft)',
 }: {
   filters: TrainerFilters
   onChange: (f: Partial<TrainerFilters>) => void

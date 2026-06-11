@@ -251,7 +251,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             <span style={{ fontSize: 11, fontWeight: 700, color: palette.text }}>Задание {index + 1}</span>
             <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
             <NumberBadge id={task.id} onCopied={onCopyId} />
-            <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: palette.soft, color: palette.text }}>
+            <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: `${palette.soft}99`, color: `${palette.text}cc`, border: `1px solid ${palette.soft}` }}>
               {task.line} · {lineNames[task.line] ?? `Линия ${task.line}`}
             </span>
             <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
@@ -472,7 +472,7 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
       {/* Badge row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
         <NumberBadge id={task.id} onCopied={onCopyId} />
-        <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: palette.soft, color: palette.text }}>
+        <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: `${palette.soft}99`, color: `${palette.text}cc`, border: `1px solid ${palette.soft}` }}>
           {task.line}
         </span>
       </div>
@@ -540,9 +540,9 @@ function SortDropdown({ value, onChange }: { value: SortMode; onChange: (v: Sort
         style={{
           display: 'flex', alignItems: 'center', gap: 6,
           padding: '9px 13px', borderRadius: 999,
-          background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.9)',
-          border: `1px solid ${open ? 'rgba(0,0,0,0.14)' : 'rgba(0,0,0,0.08)'}`,
-          boxShadow: open ? '0 0 0 3px rgba(0,0,0,0.05)' : 'none',
+          background: 'rgba(var(--glass-rgb), 0.92)',
+          border: `1px solid ${open ? 'var(--color-border)' : 'var(--color-border-soft)'}`,
+          boxShadow: open ? '0 0 0 3px rgba(0,0,0,0.06), var(--shadow-modal-sm)' : 'none',
           fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer',
           transition: 'all 0.15s ease',
         }}
@@ -904,7 +904,7 @@ export default function TaskBankPage() {
             </div>
             {hasFilters && (
               <button onClick={() => { setSection(''); setTopic(''); setPart(''); setLine(''); setSource('') }}
-                style={{ padding: '8px 0', borderRadius: 12, background: 'var(--color-red-soft)', border: 'none', fontSize: 12, color: '#B03040', cursor: 'pointer', fontWeight: 600 }}>
+                style={{ padding: '8px 0', borderRadius: 12, background: 'rgba(176,48,64,0.10)', border: '1px solid rgba(176,48,64,0.18)', fontSize: 12, color: 'rgba(176,48,64,0.75)', cursor: 'pointer', fontWeight: 600 }}>
                 Сбросить фильтры
               </button>
             )}
@@ -952,7 +952,7 @@ export default function TaskBankPage() {
             <SortDropdown value={sortMode} onChange={setSortMode} />
 
             <button onClick={() => setShowFavOnly(f => !f)}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 14px', borderRadius: 999, background: showFavOnly ? 'var(--color-yellow-soft)' : 'rgba(255,255,255,0.9)', border: `1px solid ${showFavOnly ? '#F8EF8C' : 'rgba(0,0,0,0.08)'}`, fontSize: 12, cursor: 'pointer', color: showFavOnly ? '#7A6B00' : 'var(--color-text-3)', fontWeight: showFavOnly ? 700 : 400 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 14px', borderRadius: 999, background: showFavOnly ? 'rgba(248,239,140,0.28)' : 'rgba(var(--glass-rgb), 0.88)', border: `1px solid ${showFavOnly ? 'rgba(248,239,140,0.55)' : 'rgba(0,0,0,0.08)'}`, fontSize: 12, cursor: 'pointer', color: showFavOnly ? '#8A7800' : 'var(--color-text-3)', fontWeight: showFavOnly ? 700 : 400 }}>
               <Bookmark size={13} fill={showFavOnly ? 'currentColor' : 'none'} />
               {showFavOnly ? `Избранное (${favorites.size})` : 'Избранное'}
             </button>

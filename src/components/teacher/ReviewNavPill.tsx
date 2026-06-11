@@ -63,7 +63,7 @@ export default function ReviewNavPill() {
         WebkitBackdropFilter: 'blur(14px) saturate(180%)',
         boxShadow: 'var(--shadow-pill)',
       }}>
-        <CheckCircle2 size={14} style={{ color: allDone ? '#1a7a3f' : 'var(--color-text-4)', flexShrink: 0 }} />
+        <CheckCircle2 size={14} style={{ color: allDone ? 'var(--color-green-text)' : 'var(--color-text-4)', flexShrink: 0 }} />
         <span style={{ fontSize: 13, fontWeight: 600, color: allDone ? 'var(--color-green-accent)' : 'var(--color-text-2)', whiteSpace: 'nowrap' }}>
           {allDone ? 'Все проверены' : `Проверено ${reviewedCount} из ${submitters.length}`}
         </span>

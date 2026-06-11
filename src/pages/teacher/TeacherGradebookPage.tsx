@@ -15,7 +15,7 @@ const fadeUp = (delay = 0) => ({
 function ScorePill({ value }: { value: number | null }) {
   if (value === null) return <span style={{ color: 'var(--color-text-4)', fontSize: 12 }}>—</span>
   const pct = value / 100
-  const color = pct >= 0.8 ? '#1a7a3f' : pct >= 0.6 ? '#7a6500' : '#c0303a'
+  const color = pct >= 0.8 ? 'var(--color-green-text)' : pct >= 0.6 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
   const bg = pct >= 0.8 ? 'var(--color-green-soft)' : pct >= 0.6 ? 'var(--color-yellow-soft)' : 'var(--color-red-soft)'
   return (
     <span style={{
@@ -187,7 +187,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                               width: 22, height: 22, borderRadius: 7, margin: '0 auto',
                               background: 'var(--color-red-soft)',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontSize: 11, color: '#c0303a',
+                              fontSize: 11, color: 'var(--color-red-text)',
                             }}>✗</div>
                           )}
                         </td>
@@ -199,7 +199,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                       ) : (
                         <span style={{
                           fontSize: 13, fontWeight: 700,
-                          color: pct >= 90 ? '#1a7a3f' : pct >= 70 ? '#7a6500' : '#c0303a',
+                          color: pct >= 90 ? 'var(--color-green-text)' : pct >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)',
                         }}>
                           {pct}%
                         </span>
@@ -281,12 +281,12 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
                   <td style={{ padding: '10px 16px', textAlign: 'center' }}><ScorePill value={student.testScore} /></td>
                   <td style={{ padding: '10px 16px', textAlign: 'center' }}><ScorePill value={student.trialScore} /></td>
                   <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#7a6500' }}>{student.desiredScore}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-yellow-text)' }}>{student.desiredScore}</span>
                   </td>
                   <td style={{ padding: '10px 16px', textAlign: 'center' }}>
                     <span style={{
                       fontSize: 13, fontWeight: 700,
-                      color: student.attendance >= 90 ? '#1a7a3f' : student.attendance >= 70 ? '#7a6500' : '#c0303a',
+                      color: student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)',
                     }}>
                       {student.attendance}%
                     </span>
@@ -333,11 +333,11 @@ type Grade = 1 | 2 | 3 | 4 | 5 | null
 function GradeButton({ value, selected, onClick }: { value: Grade; selected: boolean; onClick: () => void }) {
   if (value === null) return null
   const colors: Record<number, { bg: string; color: string; selBg: string }> = {
-    1: { bg: 'var(--color-red-soft)', color: '#c0303a', selBg: '#c0303a' },
-    2: { bg: 'var(--color-red-soft)', color: '#c0303a', selBg: '#c0303a' },
-    3: { bg: 'var(--color-yellow-soft)', color: '#7a6500', selBg: '#e6a800' },
-    4: { bg: 'var(--color-green-soft)', color: '#1a7a3f', selBg: '#1a7a3f' },
-    5: { bg: 'var(--color-green-soft)', color: '#1a7a3f', selBg: '#1a7a3f' },
+    1: { bg: 'var(--color-red-soft)', color: 'var(--color-red-text)', selBg: 'var(--color-red-text)' },
+    2: { bg: 'var(--color-red-soft)', color: 'var(--color-red-text)', selBg: 'var(--color-red-text)' },
+    3: { bg: 'var(--color-yellow-soft)', color: 'var(--color-yellow-text)', selBg: '#e6a800' },
+    4: { bg: 'var(--color-green-soft)', color: 'var(--color-green-text)', selBg: 'var(--color-green-text)' },
+    5: { bg: 'var(--color-green-soft)', color: 'var(--color-green-text)', selBg: 'var(--color-green-text)' },
   }
   const c = colors[value]
   return (

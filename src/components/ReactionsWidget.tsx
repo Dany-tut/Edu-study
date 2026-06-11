@@ -99,7 +99,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
           <span
             style={{
               fontSize: 12 * sz.scale, fontWeight: 650, lineHeight: 1, padding: '5px 12px', borderRadius: 999,
-              color: '#1F6FB8', background: '#DCEEFB',
+              color: 'var(--color-blue-pill-text)', background: 'var(--color-blue-pill-bg)',
             }}
           >
             Химия · реакция курса
@@ -151,7 +151,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
                 width: i === index ? 28 : 10,
                 height: 10,
                 borderRadius: 999,
-                background: i === index ? '#7B61FF' : '#D4D4D8',
+                background: i === index ? '#7B61FF' : 'var(--color-border-medium)',
                 transition: 'width 0.3s ease, background 0.3s ease',
               }}
             />

@@ -8,6 +8,8 @@ import { IconMissedLesson } from './icons'
 import { useDashboard } from '../store/dashboardStore'
 import { PURPLE, subjectTheme } from '../lib/theme'
 import { useNow, lessonTimeState } from '../lib/useNow'
+import LiquidGlass from 'liquid-glass-react'
+import { useTheme } from '../store/themeStore'
 
 interface Props {
   day: ScheduleDay
@@ -17,6 +19,7 @@ interface Props {
 }
 
 export default function ScheduleCard({ day, isCenter, distance, onClick }: Props) {
+  const { dark } = useTheme()
   const openLesson = useDashboard(s => s.openLesson)
   const openCourses = useDashboard(s => s.openCourses)
   const setActiveSubject = useDashboard(s => s.setActiveSubject)
@@ -76,6 +79,19 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
   const opacity = isCenter ? 1 : distance === 1 ? 0.72 : distance === 2 ? 0.48 : 0.3
   const missedPalette = { text: '#A8282D', soft: 'var(--color-red-soft)', accent: '#A8282D', onAccent: '#FFFFFF', ring: 'rgba(168,40,45,0.12)' }
 
+  const dateHeader = (fontSize: number, mb: number) => (
+    <div className="flex items-center justify-between" style={{ marginBottom: mb }}>
+      <span style={{ fontSize, fontWeight: 600, color: day.isToday ? PURPLE.text : 'var(--color-muted)' }}>
+        {day.label}
+      </span>
+      {day.isToday && isCenter && (
+        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-purple)', background: 'var(--color-purple-soft)', padding: '2px 8px', borderRadius: 999 }}>
+          Сегодня
+        </span>
+      )}
+    </div>
+  )
+
   return (
     <motion.div
       layout
@@ -86,36 +102,18 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
       className="flex-shrink-0 cursor-pointer h-full"
       style={{ width: isCenter ? 480 : distance === 1 ? 160 : distance === 2 ? 130 : 110 }}
     >
-      <div
-        className="w-full h-full rounded-[28px]"
-        style={{
-          // Equal inset on all four sides so the content is framed symmetrically.
-          padding: isCenter ? '16px' : '14px 16px',
-          background: isCenter ? 'rgba(var(--glass-rgb), 0.97)' : 'rgba(var(--glass-rgb), 0.80)',
-          backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid var(--color-border-medium)',
-          boxShadow: isCenter
-            ? '0 8px 40px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.04)'
-            : '0 2px 12px rgba(0,0,0,0.06)',
-        }}
-      >
-        {/* Date header */}
-        <div
-          className="flex items-center justify-between"
-          style={{ marginBottom: isCenter ? 10 : 8 }}
+      {isCenter ? (
+        <LiquidGlass
+          cornerRadius={28}
+          padding="16px"
+          displacementScale={60}
+          blurAmount={0.07}
+          aberrationIntensity={2}
+          elasticity={0.2}
+          overLight={!dark}
+          style={{ width: '100%', height: '100%' }}
         >
-          <span style={{ fontSize: isCenter ? 13 : 11, fontWeight: 600, color: day.isToday ? PURPLE.text : 'var(--color-muted)' }}>
-            {day.label}
-          </span>
-          {day.isToday && isCenter && (
-            <span style={{ fontSize: 11, fontWeight: 600, color: PURPLE.text, background: PURPLE.soft, padding: '2px 8px', borderRadius: 999 }}>
-              Сегодня
-            </span>
-          )}
-        </div>
-
-        {/* Lessons */}
-        {isCenter ? (
+          {dateHeader(13, 10)}
           <div className="flex flex-col" style={{ gap: 10 }}>
             {day.lessons.length > 0 ? (
               day.lessons.map(lesson => {
@@ -139,9 +137,6 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
                     if (isSelected) openScheduledLesson(lesson)
                     else {
                       setSelectedLessonId(lesson.id)
-                      // Sync the course track below: switch subject + module and
-                      // highlight the matching lesson node so the student can see
-                      // which lesson this row points to on their track.
                       previewScheduleLesson(lesson)
                     }
                   }}
@@ -200,12 +195,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
             ) : (
               <div
                 className="rounded-2xl flex flex-col items-center justify-center text-center"
-                style={{
-                  minHeight: 116,
-                  padding: '18px 24px',
-                  background: 'rgba(0,0,0,0.025)',
-                  color: 'var(--color-muted)',
-                }}
+                style={{ minHeight: 116, padding: '18px 24px', background: 'rgba(0,0,0,0.025)', color: 'var(--color-muted)' }}
               >
                 <CalendarX2 size={20} style={{ marginBottom: 8 }} />
                 <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)' }}>Пока нет данных</p>
@@ -213,7 +203,19 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
               </div>
             )}
           </div>
-        ) : (
+        </LiquidGlass>
+      ) : (
+        <div
+          className="w-full h-full rounded-[28px]"
+          style={{
+            padding: '14px 16px',
+            background: 'rgba(var(--glass-rgb), 0.80)',
+            backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid var(--color-border-medium)',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+          }}
+        >
+          {dateHeader(11, 8)}
           <div className="flex flex-col gap-2">
             {day.lessons.length > 0 ? (
               day.lessons.slice(0, 2).map(lesson => (
@@ -234,8 +236,8 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
               </div>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </motion.div>
   )
 }

@@ -403,7 +403,7 @@ function GroupCard({
               background: 'rgba(220,50,50,0.12)',
               border: 'none', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#c0303a', zIndex: 5,
+              color: 'var(--color-red-text)', zIndex: 5,
               padding: 0,
             }}
             title="Удалить группу"
@@ -517,7 +517,7 @@ function Th({
 function ScorePill({ value, max = 100 }: { value: number | null; max?: number }) {
   if (value === null) return <span style={{ color: 'var(--color-text-4)', fontSize: 12 }}>—</span>
   const pct = value / max
-  const color = pct >= 0.8 ? '#1a7a3f' : pct >= 0.6 ? '#7a6500' : '#c0303a'
+  const color = pct >= 0.8 ? 'var(--color-green-text)' : pct >= 0.6 ? 'var(--color-text-2)' : 'var(--color-red-text)'
   const bg    = pct >= 0.8 ? 'var(--color-green-soft)' : pct >= 0.6 ? 'var(--color-yellow-soft)' : 'var(--color-red-soft)'
   return (
     <span style={{
@@ -786,7 +786,7 @@ function StudentPanel({
               </div>
               <span style={{
                 fontSize: 13, fontWeight: 700,
-                color: student.attendance >= 90 ? '#1a7a3f' : student.attendance >= 70 ? '#7a6500' : '#c0303a',
+                color: student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)',
               }}>
                 {student.attendance}%
               </span>
@@ -805,7 +805,7 @@ function StudentPanel({
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Желаемый балл ЕГЭ</span>
-            <span style={{ fontSize: 18, fontWeight: 750, color: '#7a6500' }}>{student.desiredScore}</span>
+            <span style={{ fontSize: 18, fontWeight: 750, color: 'var(--color-yellow-text)' }}>{student.desiredScore}</span>
           </div>
         </section>
 
@@ -1124,14 +1124,14 @@ export default function TeacherGroupsPage() {
             <div style={{
               position: 'absolute', right: -32, top: 0, bottom: 6,
               width: 100, pointerEvents: 'none',
-              background: 'linear-gradient(to right, transparent, #F5F5F6)',
+              background: 'linear-gradient(to right, transparent, var(--color-bg))',
             }} />
           </div>
           {/* Bottom fade — softens rows scrolling up under the sticky bar */}
           <div style={{
             position: 'absolute', left: 0, right: 0, top: 'calc(100% - 20px)',
             height: 44, pointerEvents: 'none',
-            background: 'linear-gradient(to bottom, #F5F5F6 0%, #F5F5F6 45%, rgba(245,245,246,0) 100%)',
+            background: 'linear-gradient(to bottom, var(--color-bg) 0%, var(--color-bg) 45%, transparent 100%)',
           }} />
         </motion.div>
 
@@ -1175,7 +1175,7 @@ export default function TeacherGroupsPage() {
                 <ScrollFadeTable>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr style={{ background: 'rgba(0,0,0,0.018)' }}>
+                      <tr style={{ background: 'var(--color-bg-3)' }}>
                         <Th label="Студент"        sortKey="name"       currentKey={sortKey} dir={sortDir} onSort={handleSort} />
                         <Th label="Посл. вход"     sortKey="lastVisit"  currentKey={sortKey} dir={sortDir} onSort={handleSort} />
                         <Th label="ДЗ"             sortKey="hwScore"    currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
@@ -1204,14 +1204,14 @@ export default function TeacherGroupsPage() {
                               transition: 'background 0.15s',
                             }}
                             onMouseEnter={e => {
-                              if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.022)'
+                              if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)'
                             }}
                             onMouseLeave={e => {
                               if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent'
                             }}
                           >
                             {/* Name */}
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                 <div style={{
                                   width: 30, height: 30, borderRadius: 10, flexShrink: 0,
@@ -1227,51 +1227,51 @@ export default function TeacherGroupsPage() {
                               </div>
                             </td>
                             {/* Last visit */}
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid rgba(0,0,0,0.04)', fontSize: 12, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
+                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', fontSize: 12, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
                               {student.lastVisit}
                             </td>
                             {/* Scores */}
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid rgba(0,0,0,0.04)', textAlign: 'center' }}>
+                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center' }}>
                               <ScorePill value={student.hwScore} />
                             </td>
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid rgba(0,0,0,0.04)', textAlign: 'center' }}>
+                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center' }}>
                               <ScorePill value={student.testScore} />
                             </td>
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid rgba(0,0,0,0.04)', textAlign: 'center' }}>
+                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center' }}>
                               <ScorePill value={student.trialScore} />
                             </td>
                             {/* Attendance */}
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid rgba(0,0,0,0.04)', textAlign: 'center' }}>
+                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center' }}>
                               <span style={{
                                 fontSize: 12, fontWeight: 700,
-                                color: student.attendance >= 90 ? '#1a7a3f' : student.attendance >= 70 ? '#7a6500' : '#c0303a',
+                                color: student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-text-2)' : 'var(--color-red-text)',
                               }}>
                                 {student.attendance}%
                               </span>
                             </td>
                             {/* Last payment */}
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid rgba(0,0,0,0.04)', textAlign: 'center' }}>
-                              <span style={{ fontSize: 12, color: student.lastPayment ? 'var(--color-muted)' : '#BBBBBB' }}>
+                            <td style={{ padding: '11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center' }}>
+                              <span style={{ fontSize: 12, color: student.lastPayment ? 'var(--color-muted)' : 'var(--color-text-4)' }}>
                                 {student.lastPayment
                                   ? new Date(student.lastPayment).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
                                   : '—'}
                               </span>
                             </td>
                             {/* Debt */}
-                            <td style={{ padding: '11px 24px 11px 12px', borderBottom: '1px solid rgba(0,0,0,0.04)', textAlign: 'center' }}>
+                            <td style={{ padding: '11px 24px 11px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center' }}>
                               {student.debt != null && student.debt > 0 ? (
                                 <span style={{
                                   fontSize: 12, fontWeight: 700,
-                                  color: '#c0303a',
-                                  background: '#FFF0F0',
-                                  border: '1px solid #f5c6c6',
+                                  color: 'var(--color-red-text)',
+                                  background: 'var(--color-red-soft)',
+                                  border: '1px solid var(--color-red)',
                                   borderRadius: 6,
                                   padding: '2px 7px',
                                 }}>
                                   {student.debt.toLocaleString('ru-RU')} ₽
                                 </span>
                               ) : (
-                                <span style={{ fontSize: 12, color: '#BBBBBB' }}>—</span>
+                                <span style={{ fontSize: 12, color: 'var(--color-text-4)' }}>—</span>
                               )}
                             </td>
                           </motion.tr>

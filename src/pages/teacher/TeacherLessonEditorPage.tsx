@@ -721,7 +721,7 @@ function resolveRecipient(r: Recipient, groups: Group[], students: Student[]) {
     sub: g?.name ?? '',
     icon: '',
     initials,
-    color: '#1a7a3f',
+    color: 'var(--color-green-text)',
   }
 }
 
@@ -794,7 +794,7 @@ function AudiencePicker({
                 </div>
                 <span style={{
                   fontSize: 11.5, fontWeight: 600,
-                  color: r.kind === 'group' ? '#7B3FCC' : '#1a7a3f',
+                  color: r.kind === 'group' ? '#7B3FCC' : 'var(--color-green-text)',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
                   {d.name}
@@ -804,7 +804,7 @@ function AudiencePicker({
                   style={{
                     width: 16, height: 16, borderRadius: 5, border: 'none', cursor: 'pointer',
                     background: 'rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: r.kind === 'group' ? '#7B3FCC' : '#1a7a3f', flexShrink: 0,
+                    color: r.kind === 'group' ? '#7B3FCC' : 'var(--color-green-text)', flexShrink: 0,
                   }}
                 >
                   <X size={9} strokeWidth={2.6} />
@@ -907,7 +907,7 @@ function AudiencePicker({
                             <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
                             <div style={{ fontSize: 10.5, color: 'var(--color-text-3)' }}>{g?.name ?? ''}</div>
                           </div>
-                          <Plus size={13} style={{ color: '#1a7a3f', flexShrink: 0 }} />
+                          <Plus size={13} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                         </button>
                       )
                     })}

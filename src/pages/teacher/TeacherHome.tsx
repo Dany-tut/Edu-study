@@ -61,7 +61,7 @@ function EarningsCard({ delay }: { delay: number }) {
             width: 30, height: 30, borderRadius: 10,
             background: 'var(--color-yellow-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <TrendingUp size={15} strokeWidth={2} style={{ color: '#7a6500' }} />
+            <TrendingUp size={15} strokeWidth={2} style={{ color: 'var(--color-yellow-text)' }} />
           </div>
         </div>
         <div style={{ fontSize: 36, fontWeight: 750, color: 'var(--color-text-3)', lineHeight: 1, marginBottom: 6 }}>
@@ -272,15 +272,15 @@ function ReminderRow({ item, done }: { item: Reminder; done?: boolean }) {
     }}>
       <div style={{
         width: 28, height: 28, borderRadius: 9, flexShrink: 0,
-        background: done ? 'rgba(26,122,63,0.18)' : urgencyColor[item.urgency] + '44',
+        background: done ? 'rgba(74,222,128,0.18)' : urgencyColor[item.urgency] + '44',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <Icon size={14} strokeWidth={2} style={{ color: done ? '#1a7a3f' : urgencyColor[item.urgency] }} />
+        <Icon size={14} strokeWidth={2} style={{ color: done ? 'var(--color-green-text)' : urgencyColor[item.urgency] }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           fontSize: 12, fontWeight: 650,
-          color: done ? '#1a7a3f' : 'var(--color-text)',
+          color: done ? 'var(--color-green-text)' : 'var(--color-text)',
           textDecoration: done ? 'line-through' : 'none',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
@@ -532,12 +532,12 @@ export default function TeacherHome() {
           <StatCard
             icon={Users} label="Студентов" value={totalStudents}
             sub={`${groups.length} группы`}
-            accentBg="var(--color-green-soft)" accentColor="var(--color-green-accent)" delay={0.05}
+            accentBg="var(--color-green-soft)" accentColor="var(--color-green-text)" delay={0.05}
           />
           <StatCard
             icon={ClipboardCheck} label="Проверить ДЗ" value={pendingCount}
             sub="ждут ревью"
-            accentBg="var(--color-red-soft)" accentColor="#c0303a" delay={0.1}
+            accentBg="var(--color-red-soft)" accentColor="var(--color-red-text)" delay={0.1}
           />
           <StatCard
             icon={Clock} label="Уроков сегодня" value={todaySchedule.length}
@@ -592,7 +592,7 @@ export default function TeacherHome() {
                         </span>
                         <span style={{
                           fontSize: 11, fontWeight: 700,
-                          color: left === 0 ? '#1a7a3f' : '#F48B91',
+                          color: left === 0 ? 'var(--color-green-text)' : '#F48B91',
                           background: left === 0 ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
                           borderRadius: 6, padding: '1px 7px',
                         }}>

@@ -17,7 +17,7 @@ type TaskType = {
 }
 
 const TASK_TYPES: TaskType[] = [
-  { id: 'meeting',      label: 'Встреча',  keywords: ['встреча', 'встречу'],       color: '#16a87a', bg: '#d5f5e8', textColor: '#0e7a58' },
+  { id: 'meeting',      label: 'Встреча',  keywords: ['встреча', 'встречу'],       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', textColor: 'var(--color-green-text)' },
   { id: 'call',         label: 'Созвон',   keywords: ['созвон'],                    color: '#6C7BE8', bg: '#e6e9ff', textColor: '#3d4ecc' },
   { id: 'lesson',       label: 'Урок',     keywords: ['урок'],                      color: '#e07c2a', bg: '#fdefd8', textColor: '#b85e10' },
   { id: 'homework',     label: 'Домашка',  keywords: ['домашка', 'домашку', 'дз'], color: '#9B6DCC', bg: '#eedbff', textColor: '#7B3FCC' },

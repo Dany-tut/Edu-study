@@ -114,8 +114,8 @@ function FilterSelect({ label, options, value, onChange }: {
 
 const TASK_TYPES: { type: HWTaskType; label: string; icon: React.ElementType; color: string; bg: string }[] = [
   { type: 'text',   label: 'Текстовый ответ', icon: AlignLeft,   color: '#7B3FCC', bg: 'var(--color-purple-soft)' },
-  { type: 'choice', label: 'Выбор ответа',    icon: CheckSquare, color: '#1a7a3f', bg: 'var(--color-green-soft)' },
-  { type: 'fill',   label: 'Вписать слово',   icon: Type,        color: '#8B4900', bg: 'var(--color-peach-soft)' },
+  { type: 'choice', label: 'Выбор ответа',    icon: CheckSquare, color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
+  { type: 'fill',   label: 'Вписать слово',   icon: Type,        color: 'var(--color-peach-text)', bg: 'var(--color-peach-soft)' },
   { type: 'match',  label: 'Сопоставление',   icon: Shuffle,     color: '#CC4B7B', bg: '#FFE1F0' },
 ]
 
@@ -151,7 +151,7 @@ function SaveToTrainerDialog({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
           <div style={{ width: 38, height: 38, borderRadius: 12, background: 'var(--color-peach-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AlertCircle size={20} style={{ color: '#8B4900' }} />
+            <AlertCircle size={20} style={{ color: 'var(--color-peach-text)' }} />
           </div>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>Задание изменено</div>
         </div>
@@ -161,7 +161,7 @@ function SaveToTrainerDialog({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {[
             { value: 'update' as const, label: 'Обновить в тренажере', desc: 'Заменить оригинал исправленным', color: '#7B3FCC', bg: 'var(--color-purple-soft)' },
-            { value: 'both'   as const, label: 'Сохранить оба',        desc: 'Добавить как новое, оригинал сохранить', color: '#1a7a3f', bg: 'var(--color-green-soft)' },
+            { value: 'both'   as const, label: 'Сохранить оба',        desc: 'Добавить как новое, оригинал сохранить', color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
             { value: 'skip'   as const, label: 'Только в домашку',     desc: 'В тренажер не добавлять',              color: 'var(--color-muted)', bg: 'var(--color-bg)' },
           ].map(opt => (
             <button
@@ -245,7 +245,7 @@ function TaskCard({
           )}
           {task.modified && (
             <div style={{
-              fontSize: 10, fontWeight: 700, color: '#8B4900',
+              fontSize: 10, fontWeight: 700, color: 'var(--color-peach-text)',
               background: 'var(--color-peach-soft)', borderRadius: 6, padding: '2px 7px', flexShrink: 0,
             }}>
               изменено
@@ -535,8 +535,8 @@ function BankTaskCard({ task, index, added, onAdd }: {
   const [justReplaced, setJustReplaced] = useState(false)
 
   const palette = {
-    easy:   { accent: '#22C55E', soft: 'var(--color-green-soft)', text: '#1a7a3f' },
-    medium: { accent: '#F59E0B', soft: 'var(--color-peach-soft)', text: '#8B4900' },
+    easy:   { accent: '#22C55E', soft: 'var(--color-green-soft)', text: 'var(--color-green-text)' },
+    medium: { accent: '#F59E0B', soft: 'var(--color-peach-soft)', text: 'var(--color-peach-text)' },
     hard:   { accent: '#7B3FCC', soft: 'var(--color-purple-soft)', text: '#7B3FCC' },
   }[task.difficulty]
 
@@ -614,7 +614,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
               padding: '8px 16px', borderRadius: 12, border: 'none',
               cursor: added ? 'default' : 'pointer',
               background: added ? 'var(--color-green-soft)' : 'linear-gradient(135deg, #9B6DFF 0%, #7B3FCC 100%)',
-              color: added ? '#1a7a3f' : '#fff',
+              color: added ? 'var(--color-green-text)' : '#fff',
               fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5,
               boxShadow: added ? 'none' : '0 3px 12px rgba(123,63,204,0.32)',
               transition: 'all 0.15s', whiteSpace: 'nowrap',
@@ -646,7 +646,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
                     border: variantId !== null ? '1px solid rgba(34,197,94,0.4)' : '1px solid var(--color-border-strong)',
                     background: variantId !== null ? 'var(--color-green-soft)' : '#F4F4F6',
                     fontSize: 11.5, fontWeight: 700,
-                    color: variantId !== null ? '#1a7a3f' : 'var(--color-muted)',
+                    color: variantId !== null ? 'var(--color-green-text)' : 'var(--color-muted)',
                     fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'all 0.15s',
                   }}
                 >
@@ -677,7 +677,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
                     border: justReplaced ? '1px solid rgba(34,197,94,0.4)' : '1px solid var(--color-border-strong)',
                     background: justReplaced ? 'var(--color-green-soft)' : 'var(--color-surface)',
                     fontSize: 11.5, fontWeight: 700,
-                    color: justReplaced ? '#1a7a3f' : '#B03040',
+                    color: justReplaced ? 'var(--color-green-text)' : '#B03040',
                     fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'all 0.15s',
                   }}
                 >
@@ -884,7 +884,7 @@ function PreviewTab({
                   {t.modified && (
                     <button
                       onClick={() => onOpenTrainerDialog(t.id)}
-                      style={{ fontSize: 10, fontWeight: 700, color: '#8B4900', background: 'var(--color-peach-soft)', borderRadius: 6, padding: '2px 7px', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+                      style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-peach-text)', background: 'var(--color-peach-soft)', borderRadius: 6, padding: '2px 7px', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
                     >
                       ⚠ изменено
                     </button>
@@ -904,7 +904,7 @@ function PreviewTab({
                       }}>
                         <div style={{
                           width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-                          background: (t.correctChoices ?? []).includes(ci) ? '#1a7a3f' : 'var(--color-text-4)',
+                          background: (t.correctChoices ?? []).includes(ci) ? 'var(--color-green-text)' : 'var(--color-text-4)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}>
                           {(t.correctChoices ?? []).includes(ci) && <Check size={10} style={{ color: '#fff' }} />}
@@ -923,7 +923,7 @@ function PreviewTab({
                           {p.left || `Левая ${pi + 1}`}
                         </div>
                         <span style={{ color: 'var(--color-text-4)' }}>↔</span>
-                        <div style={{ flex: 1, padding: '5px 10px', borderRadius: 8, background: 'var(--color-peach-soft)', fontSize: 12, color: '#8B4900', fontWeight: 600 }}>
+                        <div style={{ flex: 1, padding: '5px 10px', borderRadius: 8, background: 'var(--color-peach-soft)', fontSize: 12, color: 'var(--color-peach-text)', fontWeight: 600 }}>
                           {p.right || `Правая ${pi + 1}`}
                         </div>
                       </div>
@@ -939,7 +939,7 @@ function PreviewTab({
                       padding: '4px 10px', borderRadius: 8, border: 'none',
                       background: showAnswer.has(t.id) ? 'var(--color-green-soft)' : 'var(--color-bg)',
                       cursor: 'pointer', fontSize: 11, fontWeight: 600,
-                      color: showAnswer.has(t.id) ? '#1a7a3f' : 'var(--color-muted)',
+                      color: showAnswer.has(t.id) ? 'var(--color-green-text)' : 'var(--color-muted)',
                       fontFamily: 'inherit', marginBottom: 4,
                     }}
                   >

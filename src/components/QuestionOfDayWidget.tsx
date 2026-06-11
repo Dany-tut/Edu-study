@@ -43,7 +43,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
             display: 'inline-flex', alignItems: 'center', gap: 5,
             fontSize: 12 * scale, fontWeight: 650, lineHeight: 1,
             padding: '5px 12px', borderRadius: 999,
-            color: '#0E7A6F', background: '#CFF3EE',
+            color: 'var(--color-teal-pill-text)', background: 'var(--color-teal-pill-bg)',
           }}
         >
           <Sparkles size={12 * scale} strokeWidth={2.2} />
@@ -96,7 +96,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
                 className="flex items-center gap-2"
                 style={{
                   padding: `${8 * scale}px ${14 * scale}px`, borderRadius: 14,
-                  background: 'var(--color-green-soft)', color: '#1A5C38',
+                  background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
                   fontSize: 14 * scale, fontWeight: 650, lineHeight: 1.2,
                 }}
               >

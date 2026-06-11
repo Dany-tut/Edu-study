@@ -141,7 +141,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
     if (i === current && quizState === 'active') return '#7B61FF'
     if (results[i] === 'correct') return '#3FCC8A'
     if (results[i] === 'wrong' || results[i] === 'timeout') return '#F48B91'
-    return '#CFCFD4'
+    return 'var(--color-border-medium)'
   }
 
   // Done state — score summary
@@ -158,7 +158,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
             width: 44, height: 44, borderRadius: 14, flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: pct >= 60 ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
-            color: pct >= 60 ? '#1A5C38' : '#A8282D',
+            color: pct >= 60 ? 'var(--color-green-text)' : 'var(--color-red-text)',
           }}
         >
           <Trophy size={22} />
@@ -176,7 +176,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
               key={i}
               style={{
                 width: 8, height: 8, borderRadius: 999,
-                background: r === 'correct' ? '#3FCC8A' : r === 'wrong' || r === 'timeout' ? '#F48B91' : '#E0E0E4',
+                background: r === 'correct' ? '#3FCC8A' : r === 'wrong' || r === 'timeout' ? '#F48B91' : 'var(--color-border-medium)',
               }}
             />
           ))}
@@ -206,7 +206,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
       <div className="flex items-start justify-between gap-4" style={{ marginBottom: compact ? 8 : 0, flexShrink: 0 }}>
         <div className="flex min-w-0 flex-1 flex-col items-start" style={{ gap: compact ? 6 : 8 }}>
           {!compact && (
-            <span style={{ fontSize: 12, fontWeight: 650, color: '#7B3FCC', background: 'var(--color-purple-soft)', padding: '5px 12px', borderRadius: 999, lineHeight: 1, flexShrink: 0 }}>
+            <span style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', padding: '5px 12px', borderRadius: 999, lineHeight: 1, flexShrink: 0 }}>
               Викторина дня
             </span>
           )}
@@ -297,7 +297,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
                 className="rounded-2xl text-left cursor-pointer"
                 style={{
                   padding: '4px 12px', fontSize: 12.5, fontWeight: 500,
-                  background: 'var(--color-bg)', color: 'var(--color-text)', border: '1.5px solid #E8E8EA',
+                  background: 'var(--color-bg)', color: 'var(--color-text)', border: '1.5px solid var(--color-border)',
                   minHeight: 0, lineHeight: 1.2, display: 'flex', alignItems: 'center', overflow: 'hidden',
                 }}
               >
@@ -365,10 +365,10 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
               borderRadius: 16,
             }}
           >
-            <span style={{ fontSize: 18, flexShrink: 0, color: quizState === 'timeout' ? '#A8282D' : results[current] === 'correct' ? '#1A5C38' : '#A8282D' }}>
+            <span style={{ fontSize: 18, flexShrink: 0, color: quizState === 'timeout' ? 'var(--color-red-text)' : results[current] === 'correct' ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>
               {quizState === 'timeout' ? '⏱' : results[current] === 'correct' ? '✓' : '✕'}
             </span>
-            <p style={{ fontSize: 15, fontWeight: 650, lineHeight: 1.35, color: quizState === 'timeout' ? '#A8282D' : results[current] === 'correct' ? '#1A5C38' : '#A8282D' }}>
+            <p style={{ fontSize: 15, fontWeight: 650, lineHeight: 1.35, color: quizState === 'timeout' ? 'var(--color-red-text)' : results[current] === 'correct' ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>
               {quizState === 'timeout'
                 ? 'Время вышло'
                 : results[current] === 'correct'

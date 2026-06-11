@@ -57,6 +57,19 @@
   --color-accent: #7B3FCC;
   --color-green-accent: #1a7a3f;
 
+  /* ── Semantic text-on-soft-bg colors ─────────────────────── */
+  --color-green-text: #1A5C38;
+  --color-red-text: #A8282D;
+  --color-yellow-text: #7A6500;
+  --color-peach-text: #8B4900;
+  --color-blue-pill-bg: #DCEEFB;
+  --color-blue-pill-text: #1F6FB8;
+  --color-teal-pill-bg: #CFF3EE;
+  --color-teal-pill-text: #0E7A6F;
+  /* Active pill (mode toggles) */
+  --color-pill-active-bg: #FFFFFF;
+  --color-pill-active-shadow: 0 1px 4px rgba(0,0,0,0.10);
+
   /* ── Shadows (light-theme glass cards) ───────────────────── */
   --shadow-pill:     inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 14px rgba(21,18,31,0.08);
   --shadow-xs:       inset 0 1px 0 rgba(255,255,255,0.85), 0 2px 10px rgba(0,0,0,0.06);
@@ -87,9 +100,11 @@
   --color-bg-5: #282834;
   --color-bg-input: #1E1E2A;
 
-  --color-surface: rgba(26,26,34,0.92);
+  --color-surface: rgba(22,20,36,0.92);
 
-  --glass-rgb: 26, 26, 34;
+  /* Cooler, slightly purple-tinted glass base — makes backdrop-blur
+     look like real tinted glass instead of a dark box */
+  --glass-rgb: 22, 20, 36;
 
   /* Spoiler dot color (RGB triplet for rgba()) */
   --spoiler-dot-rgb: 240, 240, 242;
@@ -105,7 +120,8 @@
   --color-border-soft: rgba(255,255,255,0.06);
   --color-border-medium: rgba(255,255,255,0.10);
   --color-border-strong: rgba(255,255,255,0.15);
-  --color-border-glass: rgba(255,255,255,0.09);
+  /* Glass surfaces: no flat outline — depth comes from shadows only */
+  --color-border-glass: rgba(255,255,255,0);
 
   --color-green-soft: rgba(74,222,128,0.22);
   --color-yellow-soft: rgba(248,230,80,0.18);
@@ -113,26 +129,48 @@
   --color-peach-soft: rgba(248,180,100,0.22);
   --color-purple-soft: rgba(181,122,255,0.30);
 
+  /* ── Semantic text-on-soft-bg colors (dark overrides) ────── */
+  --color-green-text: #4ADE80;
+  --color-red-text: #F48B91;
+  --color-yellow-text: #F0DC60;
+  --color-peach-text: #F8C070;
+  --color-blue-pill-bg: rgba(99,179,237,0.20);
+  --color-blue-pill-text: #63B3ED;
+  --color-teal-pill-bg: rgba(74,222,180,0.20);
+  --color-teal-pill-text: #4ADEB4;
+  /* Active pill (mode toggles) */
+  --color-pill-active-bg: var(--color-bg-5);
+  --color-pill-active-shadow: 0 1px 4px rgba(0,0,0,0.30);
+
   --color-accent: #C48BFF;
   --color-green-accent: #4ADE80;
 
   /* ── Shadows (dark-theme glass cards) ────────────────────── */
-  --shadow-pill:     inset 0 1px 0 rgba(255,255,255,0.07), 0 6px 24px rgba(21,18,31,0.22), 0 2px 6px rgba(21,18,31,0.08);
-  --shadow-xs:       inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 10px rgba(0,0,0,0.06);
-  --shadow-sm:       inset 0 1px 0 rgba(255,255,255,0.07), 0 4px 16px rgba(0,0,0,0.06);
-  --shadow-sm-page:  0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.07);
-  --shadow-md:       0 8px 24px rgba(21,18,31,0.22), 0 2px 6px rgba(21,18,31,0.08), inset 0 1px 0 rgba(255,255,255,0.07);
-  --shadow-lg:       inset 0 1px 0 rgba(255,255,255,0.07), 0 8px 28px rgba(21,18,31,0.26), 0 2px 8px rgba(21,18,31,0.10);
-  --shadow-inset:    inset 0 1px 0 rgba(255,255,255,0.07);
-  --shadow-modal-sm: 0 14px 36px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.07);
-  --shadow-modal:    0 24px 72px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.07);
-  --shadow-modal-lg: 0 24px 64px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.07);
-  --shadow-sidebar:  inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 40px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.06);
-  --shadow-bar:      inset 0 1px 0 rgba(255,255,255,0.08), 0 6px 24px rgba(21,18,31,0.22), 0 2px 6px rgba(21,18,31,0.08);
-  --shadow-bar-hi:   inset 0 1px 0 rgba(255,255,255,0.10), 0 6px 24px rgba(21,18,31,0.24), 0 2px 6px rgba(21,18,31,0.09);
-  --shadow-dropdown: inset 0 1px 0 rgba(255,255,255,0.06), 0 12px 40px rgba(0,0,0,0.16);
-  --shadow-tab-pill: inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 8px rgba(0,0,0,0.08);
-  --shadow-filter:   0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.08);
+  /* Top edge lit + deep ambient — no flat border needed               */
+  --shadow-pill:     inset 0 1px 0 rgba(255,255,255,0.14), 0 6px 24px rgba(8,6,20,0.55), 0 2px 6px rgba(8,6,20,0.30);
+  --shadow-xs:       inset 0 1px 0 rgba(255,255,255,0.12), 0 2px 12px rgba(8,6,20,0.35);
+  --shadow-sm:       inset 0 1px 0 rgba(255,255,255,0.12), 0 4px 24px rgba(8,6,20,0.45), 0 1px 4px rgba(8,6,20,0.25);
+  --shadow-sm-page:  inset 0 1px 0 rgba(255,255,255,0.12), 0 6px 28px rgba(8,6,20,0.50);
+  --shadow-md:       inset 0 1px 0 rgba(255,255,255,0.13), 0 10px 36px rgba(8,6,20,0.55), 0 3px 10px rgba(8,6,20,0.30);
+  --shadow-lg:       inset 0 1px 0 rgba(255,255,255,0.15), 0 16px 48px rgba(8,6,20,0.65), 0 4px 14px rgba(8,6,20,0.35);
+  --shadow-inset:    inset 0 1px 0 rgba(255,255,255,0.12);
+  --shadow-modal-sm: inset 0 1px 0 rgba(255,255,255,0.14), 0 14px 40px rgba(8,6,20,0.60);
+  --shadow-modal:    inset 0 1px 0 rgba(255,255,255,0.16), 0 28px 80px rgba(8,6,20,0.70), 0 8px 24px rgba(8,6,20,0.40);
+  --shadow-modal-lg: inset 0 1px 0 rgba(255,255,255,0.16), 0 28px 72px rgba(8,6,20,0.70), 0 8px 24px rgba(8,6,20,0.40);
+  --shadow-sidebar:  inset 0 1px 0 rgba(255,255,255,0.12), 0 16px 50px rgba(8,6,20,0.55), 0 3px 8px rgba(8,6,20,0.25);
+  --shadow-bar:      inset 0 1px 0 rgba(255,255,255,0.12), 0 6px 28px rgba(8,6,20,0.50), 0 2px 8px rgba(8,6,20,0.25);
+  --shadow-bar-hi:   inset 0 1px 0 rgba(255,255,255,0.16), 0 8px 32px rgba(8,6,20,0.55), 0 2px 8px rgba(8,6,20,0.28);
+  --shadow-dropdown: inset 0 1px 0 rgba(255,255,255,0.12), 0 14px 48px rgba(8,6,20,0.60), 0 4px 12px rgba(8,6,20,0.30);
+  --shadow-tab-pill: inset 0 1px 0 rgba(255,255,255,0.10), 0 2px 10px rgba(8,6,20,0.40);
+  --shadow-filter:   inset 0 1px 0 rgba(255,255,255,0.12), 0 10px 36px rgba(8,6,20,0.50);
+}
+
+/* Upgrade all backdrop-filter surfaces in dark mode to use saturate —
+   this is what turns a blurry dark box into actual tinted glass */
+[data-theme="dark"] [style*="backdrop-filter"],
+[data-theme="dark"] [style*="backdropFilter"] {
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
 }
 
 * {

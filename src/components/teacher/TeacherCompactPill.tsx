@@ -134,7 +134,7 @@ function PendingHwPreview({ expanded }: { expanded: boolean }) {
       detail={
         toCheck > 0 ? (
           <div style={{ display: 'flex', gap: 8 }}>
-            <StatBadge label="На проверке" value={`${onReview} ДЗ`} color="#8B4900" bg="#FFE4BD" />
+            <StatBadge label="На проверке" value={`${onReview} ДЗ`} color="#8B4900" bg="var(--color-peach-soft)" />
             <StatBadge label="Нужно проверить" value={`${toCheck}`} color="#7B3FCC" bg="#EDE0FF" />
           </div>
         ) : (

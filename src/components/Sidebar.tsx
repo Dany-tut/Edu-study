@@ -5,7 +5,7 @@ import {
   Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun,
   type LucideIcon,
 } from 'lucide-react'
-import { useState, useRef, useEffect, useLayoutEffect } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { clearStudentSession, getStudentSession } from '../lib/studentSession'
 import { playTransitionDrop } from '../lib/sound'
@@ -14,6 +14,7 @@ import { useDashboard, type WidgetColumns } from '../store/dashboardStore'
 import WidgetOrderModal from './WidgetOrderModal'
 import { useTheme } from '../store/themeStore'
 import { useStudentData } from '../store/studentDataStore'
+import { useLiquidGlass } from '../lib/useLiquidGlass'
 
 const navItems = [
   { id: 'home',    label: 'Главная',  icon: Home },
@@ -94,8 +95,8 @@ function SettingsRow({ icon: Icon, label, onClick, active = false, danger = fals
       role="menuitem"
       onMouseEnter={e => {
         if (!active) (e.currentTarget as HTMLButtonElement).style.background = danger
-          ? 'rgba(220,38,38,0.08)'
-          : 'rgba(0,0,0,0.05)'
+          ? 'rgba(220,38,38,0.12)'
+          : 'var(--color-bg-3)'
       }}
       onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
       style={{
@@ -133,12 +134,12 @@ function MenuHeader({ title, onBack }: { title: string; onBack: () => void }) {
         style={{
           width: 26, height: 26, borderRadius: 8, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          border: 'none', cursor: 'pointer', background: 'rgba(var(--glass-rgb), 0.6)', color: 'var(--color-muted)',
+          border: 'none', cursor: 'pointer', background: 'rgba(var(--glass-rgb), 0.6)', color: 'var(--color-text-4)',
         }}
       >
         <ChevronLeft size={15} />
       </motion.button>
-      <span style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)' }}>{title}</span>
+      <span onClick={onBack} style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', cursor: 'pointer' }}>{title}</span>
     </div>
   )
 }
@@ -327,32 +328,32 @@ export default function Sidebar() {
 
   const avatar = AVATARS.find(a => a.id === avatarId) ?? AVATARS[0]
 
+  const { glassRef, filterStyle } = useLiquidGlass({ cornerRadius: 32, scale: 28 })
+
+  // Share the bar element between barRef (layout logic) and glassRef (liquid glass)
+  const barCallbackRef = useCallback((el: HTMLDivElement | null) => {
+    barRef.current = el
+    glassRef.current = el
+  }, [glassRef])
+
   return (
     <>
     <motion.div
-      ref={barRef}
+      ref={barCallbackRef}
       style={{
         position: 'relative',
-        zIndex: 60,            // lift bar (and its avatar-picker popover) above the rows below
+        zIndex: 60,
         borderRadius: 32,
         padding: '12px',
-        height: 60,                 // fixed → bar never twitches vertically
-        width: 'fit-content',       // shrinks in length when collapsed
+        height: 60,
+        width: 'fit-content',
         boxSizing: 'border-box',
-        // More opaque / contrasty whenever the bar floats over the dark scrolled
-        // video (compact OR expanded) so it never washes out as faint glass;
-        // light translucent glass everywhere else.
         background: contrasty ? 'rgba(var(--glass-rgb), 0.92)' : 'rgba(var(--glass-rgb), 0.72)',
         backdropFilter: 'blur(14px) saturate(180%)',
         WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-        border: contrasty ? '1px solid var(--color-border-glass)' : '1px solid var(--color-border-glass)',
-        // Light, consistent drop shadow in both states so the bar reads as a
-        // floating glass surface. The contrasty (over-video) form keeps a touch
-        // more inset highlight; both share the same soft drop.
-        boxShadow: contrasty
-          ? 'var(--shadow-bar-hi)'
-          : 'var(--shadow-bar)',
-        transition: 'background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease',
+        boxShadow: contrasty ? 'var(--shadow-bar-hi)' : 'var(--shadow-bar)',
+        filter: filterStyle,
+        transition: 'background 0.3s ease, box-shadow 0.3s ease',
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
@@ -500,40 +501,29 @@ export default function Sidebar() {
                         // Same eased fade-out so it doesn't jitter when tiny.
                         exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.16, ease: EASE } }}
                         transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }}
-                        style={{ ...panelBox, transformOrigin: 'left top' }}
+                        style={{ ...panelBox, transformOrigin: 'left top', marginTop: 158 }}
                       >
-                        {/* Settings open straight onto the Виджеты block — its
-                            column-count types show inline, no extra drill-in. */}
-                        <MenuHeader title="Настройки" onBack={() => setMenuView('root')} />
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                          <LayoutGrid size={15} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-                          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>Виджеты</span>
-                        </div>
-                        <div style={labelStyle}>Блоков в строке</div>
-                        <div style={{ display: 'flex', gap: 8 }}>
+                        <MenuHeader title="Назад" onBack={() => setMenuView('root')} />
+
+                        {/* Columns picker */}
+                        <div style={{ ...labelStyle, marginBottom: 8 }}>Блоков в строке</div>
+                        <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
                           {([1, 2, 3] as WidgetColumns[]).map(n => {
                             const selected = widgetColumns === n
                             return (
                               <motion.button
                                 key={n}
-                                whileHover={!selected ? { scale: 1.06 } : {}}
                                 whileTap={{ scale: 0.92 }}
                                 onClick={() => setWidgetColumns(n)}
-                                onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(123,63,204,0.1)' }}
-                                onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(var(--glass-rgb),0.5)' }}
+                                onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-purple-soft)' }}
+                                onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                                 role="menuitemradio"
                                 aria-checked={selected}
                                 aria-label={`${n} в строке`}
                                 style={{
-                                  flex: 1,
-                                  height: 44,
-                                  borderRadius: 12,
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  background: selected ? 'var(--color-purple-soft)' : 'rgba(var(--glass-rgb),0.5)',
+                                  flex: 1, height: 40, borderRadius: 12, border: 'none', cursor: 'pointer',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  background: selected ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
                                   color: selected ? 'var(--color-accent)' : 'var(--color-text-3)',
                                   boxShadow: selected ? 'inset 0 0 0 1.5px var(--color-accent)' : 'none',
                                   transition: 'background 0.15s, color 0.15s, box-shadow 0.15s',
@@ -545,56 +535,49 @@ export default function Sidebar() {
                           })}
                         </div>
 
-                        {/* Theme toggle */}
-                        <div style={{ height: 1, background: 'rgba(0,0,0,0.08)', margin: '10px -2px' }} />
+                        {/* Divider */}
+                        <div style={{ height: 1, background: 'var(--color-border)', margin: '10px 0' }} />
+
+                        {/* Theme toggle — left-aligned like SettingsRow */}
                         <motion.button
-                          whileTap={{ scale: 0.98 }}
+                          whileTap={{ scale: 0.985 }}
                           onClick={toggleTheme}
-                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.05)' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                           style={{
-                            width: '100%', marginBottom: 8,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            gap: 8, height: 42, borderRadius: 12, border: 'none', cursor: 'pointer',
+                            width: '100%', padding: '9px 8px',
+                            display: 'flex', alignItems: 'center',
+                            gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                             background: 'transparent',
-                            color: dark ? 'var(--color-accent)' : 'var(--color-text)',
-                            fontSize: 13.5, fontWeight: 600, transition: 'background 0.15s',
+                            color: 'var(--color-text)',
+                            fontSize: 14, fontWeight: 550, transition: 'background 0.15s',
                           }}
                         >
                           {dark
-                            ? <Sun size={16} strokeWidth={1.9} style={{ color: 'var(--color-accent)' }} />
-                            : <Moon size={16} strokeWidth={1.9} style={{ color: 'var(--color-muted)' }} />
+                            ? <Sun size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                            : <Moon size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                           }
-                          {dark ? 'Светлая тема' : 'Тёмная тема'}
+                          <span style={{ flex: 1, textAlign: 'left' }}>{dark ? 'Светлая тема' : 'Тёмная тема'}</span>
                         </motion.button>
 
-                        {/* Opens the list modal: reorder by drag + show/hide. */}
+                        {/* Opens the list modal — left-aligned like SettingsRow */}
                         <motion.button
-                          whileTap={{ scale: 0.98 }}
+                          whileTap={{ scale: 0.985 }}
                           onClick={() => { setOrderModalOpen(true); closePicker() }}
                           aria-label="Настроить виджеты"
-                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.05)' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                           style={{
-                            width: '100%',
-                            marginTop: 14,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 8,
-                            height: 42,
-                            borderRadius: 12,
-                            border: 'none',
-                            cursor: 'pointer',
+                            width: '100%', padding: '9px 8px',
+                            display: 'flex', alignItems: 'center',
+                            gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
                             background: 'transparent',
                             color: 'var(--color-text)',
-                            fontSize: 13.5,
-                            fontWeight: 600,
-                            transition: 'background 0.15s',
+                            fontSize: 14, fontWeight: 550, transition: 'background 0.15s',
                           }}
                         >
-                          <ArrowUpDown size={16} strokeWidth={1.9} style={{ color: 'var(--color-muted)' }} />
-                          Настроить виджеты
+                          <ArrowUpDown size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                          <span style={{ flex: 1, textAlign: 'left' }}>Настроить виджеты</span>
                         </motion.button>
                       </motion.div>
                     )}

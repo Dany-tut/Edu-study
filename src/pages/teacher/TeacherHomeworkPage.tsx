@@ -30,7 +30,7 @@ const STATUS_LABEL: Record<string, string> = {
   done: 'Проверено', reviewing: 'На проверке', waiting: 'Ожидание', overdue: 'Просрочено',
 }
 const STATUS_COLOR: Record<string, string> = {
-  done: '#1a7a3f', reviewing: '#8B4900', waiting: 'var(--color-muted)', overdue: '#c0303a',
+  done: 'var(--color-green-text)', reviewing: 'var(--color-peach-text)', waiting: 'var(--color-muted)', overdue: 'var(--color-red-text)',
 }
 const STATUS_BG: Record<string, string> = {
   done: 'var(--color-green-soft)', reviewing: 'var(--color-peach-soft)', waiting: 'var(--color-bg)', overdue: 'var(--color-red-soft)',
@@ -109,7 +109,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
           style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}
         >
           <div style={{ width: 56, height: 56, borderRadius: 20, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <CheckCircle2 size={28} strokeWidth={2} style={{ color: '#1a7a3f' }} />
+            <CheckCircle2 size={28} strokeWidth={2} style={{ color: 'var(--color-green-text)' }} />
           </div>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>ДЗ выдано!</div>
           <div style={{ fontSize: 12, color: 'var(--color-muted)', textAlign: 'center' }}>Уведомление отправлено студентам</div>
@@ -362,9 +362,9 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {[
             { label: 'Назначено', value: hw.assignedAt, icon: Clock, color: 'var(--color-muted)', bg: 'var(--color-bg)' },
-            { label: 'Дедлайн', value: hw.dueDate, icon: AlertCircle, color: '#8B4900', bg: 'var(--color-peach-soft)' },
+            { label: 'Дедлайн', value: hw.dueDate, icon: AlertCircle, color: 'var(--color-peach-text)', bg: 'var(--color-peach-soft)' },
             { label: 'Сдали', value: `${hw.submittedCount}/${hw.totalCount}`, icon: ClipboardCheck, color: '#7B3FCC', bg: 'var(--color-purple-soft)' },
-            { label: 'Проверено', value: `${hw.reviewedCount}/${hw.submittedCount}`, icon: CheckCircle2, color: '#1a7a3f', bg: 'var(--color-green-soft)' },
+            { label: 'Проверено', value: `${hw.reviewedCount}/${hw.submittedCount}`, icon: CheckCircle2, color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
           ].map(item => (
             <div key={item.label} style={{ background: item.bg, borderRadius: 12, padding: '10px 12px' }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: item.color, marginBottom: 4 }}>{item.label}</div>
@@ -440,8 +440,8 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
                       background: returned ? 'var(--color-peach-soft)' : reviewed ? 'var(--color-green-soft)' : 'rgba(0,0,0,0.04)',
                     }}>
                       {returned
-                        ? <Clock size={12} strokeWidth={2.2} style={{ color: '#8B4900' }} />
-                        : <CheckCircle2 size={12} strokeWidth={2.2} style={{ color: reviewed ? '#1a7a3f' : 'var(--color-text-4)' }} />
+                        ? <Clock size={12} strokeWidth={2.2} style={{ color: 'var(--color-peach-text)' }} />
+                        : <CheckCircle2 size={12} strokeWidth={2.2} style={{ color: reviewed ? 'var(--color-green-text)' : 'var(--color-text-4)' }} />
                       }
                     </div>
                   </div>

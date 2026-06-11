@@ -72,7 +72,7 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
           </div>
           <span style={{
             fontSize: 13, fontWeight: 700,
-            color: student.attendance >= 90 ? '#1a7a3f' : student.attendance >= 70 ? '#7a6500' : '#c0303a',
+            color: student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)',
           }}>
             {student.attendance}%
           </span>
@@ -82,7 +82,7 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
           background: 'var(--color-yellow-soft)', border: '1px solid #F8C99166',
         }}>
           <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Желаемый балл</span>
-          <span style={{ fontSize: 16, fontWeight: 750, color: '#7a6500' }}>{student.desiredScore}</span>
+          <span style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-yellow-text)' }}>{student.desiredScore}</span>
         </div>
       </div>
 
@@ -185,7 +185,7 @@ function ReviewBottomBar({
         boxShadow: 'var(--shadow-sm)',
       }}>
         {remaining === 0 ? (
-          <span style={{ fontSize: 12, fontWeight: 500, color: '#1a7a3f', whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-green-text)', whiteSpace: 'nowrap' }}>
             Все проверены ✓
           </span>
         ) : (
@@ -233,7 +233,7 @@ function TaskScoreGrid({
                 style={{
                   width: 64, boxSizing: 'border-box', padding: '7px 10px', borderRadius: 10,
                   border: `1.5px solid ${over ? '#f87171' : 'rgba(0,0,0,0.1)'}`,
-                  fontSize: 16, fontWeight: 750, color: over ? '#c0303a' : 'var(--color-text)',
+                  fontSize: 16, fontWeight: 750, color: over ? 'var(--color-red-text)' : 'var(--color-text)',
                   background: 'var(--color-bg-2)', outline: 'none', textAlign: 'center', fontFamily: 'inherit',
                   appearance: 'textfield',
                 } as React.CSSProperties}
@@ -479,7 +479,7 @@ export default function TeacherHomeworkReviewPage() {
               gap: 7, padding: '9px 16px', borderRadius: 999,
               ...dockGlass, color: 'var(--color-muted)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
             }}>
-              <CheckCircle2 size={15} style={{ color: '#1a7a3f' }} />
+              <CheckCircle2 size={15} style={{ color: 'var(--color-green-text)' }} />
               {reviewedCount} / {submitters.length}
             </div>
           </motion.div>
@@ -629,7 +629,7 @@ export default function TeacherHomeworkReviewPage() {
                       style={{
                         gap: 8, padding: '13px 20px', borderRadius: 16,
                         border: '1.5px solid #F8C991', background: '#FFF6E6',
-                        color: '#8B4900', fontSize: 14, fontWeight: 700,
+                        color: 'var(--color-peach-text)', fontSize: 14, fontWeight: 700,
                       }}
                     >
                       <RotateCcw size={16} strokeWidth={2.2} />
@@ -647,14 +647,14 @@ export default function TeacherHomeworkReviewPage() {
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                     style={{
                       padding: 20, borderRadius: 22,
-                      background: 'linear-gradient(135deg, #DFF8D6, #C8EDDA)',
-                      border: '1px solid rgba(26,122,63,0.2)',
+                      background: 'linear-gradient(135deg, var(--color-green-soft), #C8EDDA)',
+                      border: '1px solid rgba(74,222,128,0.20)',
                       display: 'flex', alignItems: 'center', gap: 14,
                     }}
                   >
                     <div style={{
                       width: 44, height: 44, borderRadius: 14, flexShrink: 0,
-                      background: 'rgba(26,122,63,0.16)', color: '#1a7a3f',
+                      background: 'rgba(74,222,128,0.16)', color: 'var(--color-green-text)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
                       <CheckCircle2 size={24} />

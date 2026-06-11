@@ -49,7 +49,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
       <div className="flex flex-shrink-0 items-center" style={{ height: '100%' }}>
       <div className="relative flex-shrink-0" style={{ width: ringSize, height: ringSize }}>
         <svg width={ringSize} height={ringSize} viewBox="0 0 104 104" style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx="52" cy="52" r={46} fill="none" stroke="#ECECEE" strokeWidth="8" />
+          <circle cx="52" cy="52" r={46} fill="none" strokeWidth="8" style={{ stroke: 'var(--color-border-glass)' }} />
           <motion.circle
             cx="52" cy="52" r={46} fill="none" stroke={accent} strokeWidth="8" strokeLinecap="round"
             strokeDasharray={C}
@@ -81,8 +81,8 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
                 style={{
                   fontSize: 12 * sz.scale, fontWeight: 650, lineHeight: 1, padding: '6px 14px', borderRadius: 999,
                   color: pomoMode === m ? 'var(--color-text)' : '#9A9AA0',
-                  background: pomoMode === m ? '#FFFFFF' : 'transparent',
-                  boxShadow: pomoMode === m ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                  background: pomoMode === m ? 'var(--color-pill-active-bg)' : 'transparent',
+                  boxShadow: pomoMode === m ? 'var(--color-pill-active-shadow)' : 'none',
                   transition: 'color 0.2s, background 0.2s',
                 }}
               >

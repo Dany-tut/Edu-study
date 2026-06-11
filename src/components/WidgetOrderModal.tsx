@@ -62,7 +62,7 @@ function ShownRow({ id, onHide, disabled }: { id: number; onHide: (id: number) =
           cursor: disabled ? 'not-allowed' : 'pointer',
           opacity: disabled ? 0.35 : 1,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: '#ECECEE', color: 'var(--color-muted)',
+          background: 'var(--color-bg-3)', color: 'var(--color-muted)',
         }}
       >
         <Minus size={16} />
@@ -166,11 +166,11 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
             {hidden.length > 0 && (
               <>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '18px 2px 12px' }}>
-                  <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.08)' }} />
+                  <div style={{ flex: 1, height: 1, background: 'var(--color-text-4)' }} />
                   <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', color: 'var(--color-text-3)' }}>
                     Скрытые
                   </span>
-                  <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.08)' }} />
+                  <div style={{ flex: 1, height: 1, background: 'var(--color-text-4)' }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {hidden.map(w => (
@@ -179,7 +179,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                       style={{
                         display: 'flex', alignItems: 'center', gap: 12,
                         padding: '10px 12px', borderRadius: 14,
-                        background: '#FAFAFB', border: '1px dashed rgba(0,0,0,0.10)',
+                        background: 'var(--color-bg-3)', border: '1px dashed var(--color-text-4)',
                       }}
                     >
                       <span
