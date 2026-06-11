@@ -20,7 +20,14 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
   const fact = scienceFacts[index]
   const sz = getWidgetSizing(columns)
 
-  if (!fact) return <div style={{ flex: 1, borderRadius: 24 }} />
+  if (!fact) return (
+    <div className="flex h-full w-full items-center justify-center flex-col gap-2 overflow-hidden rounded-[24px]"
+      style={{ background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid var(--color-border-glass)' }}>
+      <span style={{ fontSize: 26 }}>🔬</span>
+      <span style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text-2)' }}>Научные факты</span>
+      <span style={{ fontSize: 12, color: 'var(--color-text-5)' }}>—</span>
+    </div>
+  )
 
   const goTo = (i: number) => {
     setIndex(((i % scienceFacts.length) + scienceFacts.length) % scienceFacts.length)

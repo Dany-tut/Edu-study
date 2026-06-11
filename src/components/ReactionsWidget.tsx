@@ -20,7 +20,14 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
   const reaction = courseReactions[index]
   const sz = getWidgetSizing(columns)
 
-  if (!reaction) return <div style={{ flex: 1, borderRadius: 24 }} />
+  if (!reaction) return (
+    <div className="flex h-full w-full items-center justify-center flex-col gap-2 overflow-hidden rounded-[24px]"
+      style={{ background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid var(--color-border-glass)' }}>
+      <span style={{ fontSize: 26 }}>⚗️</span>
+      <span style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text-2)' }}>Реакции курса</span>
+      <span style={{ fontSize: 12, color: 'var(--color-text-5)' }}>—</span>
+    </div>
+  )
 
   const openLesson = () => openLessonForReaction(reaction.id)
 

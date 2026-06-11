@@ -191,7 +191,10 @@ export default function DashboardPage() {
           </main>
         ) : (
           /* Courses catalogue (screen 3) */
-          <main className="dashboard-main">
+          <main
+            className="dashboard-main"
+            style={{ overflowY: 'auto', minHeight: 0, marginTop: -100, paddingTop: 100 }}
+          >
             <CoursesPage />
           </main>
         )}

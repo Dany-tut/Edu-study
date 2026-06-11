@@ -207,7 +207,15 @@ function ScienceFactPreview({ expanded, paused }: { expanded: boolean; paused: b
   const scienceFacts = useStudentData(s => s.scienceFacts)
   const i = useRotatingIndex(scienceFacts.length || 1, scienceFactInterval, paused)
   const fact = scienceFacts[i]
-  if (!fact) return <div style={{ flex: 1 }} />
+  if (!fact) return (
+    <PillContent
+      avatar={<div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #3FCB8A, #1E9E63)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20 }}>🔬</div>}
+      kicker="Научный факт"
+      title="—"
+      expanded={expanded}
+      detail="Загружаем интересные факты…"
+    />
+  )
   return (
     <PillContent
       avatar={
@@ -238,7 +246,15 @@ function ReactionPreview({ expanded, paused }: { expanded: boolean; paused: bool
   const courseReactions = useStudentData(s => s.courseReactions)
   const i = useRotatingIndex(courseReactions.length || 1, courseReactionInterval, paused)
   const r = courseReactions[i]
-  if (!r) return <div style={{ flex: 1 }} />
+  if (!r) return (
+    <PillContent
+      avatar={<div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #5A9BF0, #1F6FB8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20 }}>⚗️</div>}
+      kicker="Химия · Реакция"
+      title="—"
+      expanded={expanded}
+      detail="Загружаем реакции курса…"
+    />
+  )
   return (
     <PillContent
       avatar={
@@ -412,7 +428,15 @@ function MemePreview({ expanded, paused }: { expanded: boolean; paused: boolean 
   const scienceMemes = useStudentData(s => s.scienceMemes)
   const i = useRotatingIndex(scienceMemes.length || 1, scienceMemeInterval, paused)
   const m = scienceMemes[i]
-  if (!m) return <div style={{ flex: 1 }} />
+  if (!m) return (
+    <PillContent
+      avatar={<div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #F0A83F, #C58BFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20 }}>😄</div>}
+      kicker="Мем"
+      title="—"
+      expanded={expanded}
+      detail="Загружаем мемы курса…"
+    />
+  )
   return (
     <PillContent
       avatar={
