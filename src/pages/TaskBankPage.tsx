@@ -109,7 +109,7 @@ function FilterField({ label, options, value, onChange, accent }: {
             background: 'rgba(var(--glass-rgb), 0.9)',
             backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)',
             border: '1px solid var(--color-border-glass)', borderRadius: 13,
-            boxShadow: '0 14px 36px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.07)', overflow: 'hidden',
+            boxShadow: 'var(--shadow-modal-sm)', overflow: 'hidden',
           }}
         >
           <ScrollFade maxHeight={190}>
@@ -748,7 +748,7 @@ export default function TaskBankPage() {
     background: 'rgba(var(--glass-rgb), 0.86)',
     backdropFilter: 'blur(14px) saturate(180%)',
     WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 8px 28px rgba(21,18,31,0.26), 0 2px 8px rgba(21,18,31,0.10)',
+    boxShadow: 'var(--shadow-lg)',
   } as const
 
   return (

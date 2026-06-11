@@ -44,7 +44,7 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
       WebkitBackdropFilter: 'blur(16px) saturate(180%)',
       border: '1px solid var(--color-border-glass)',
       borderRadius: 22,
-      boxShadow: '0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.07)',
+      boxShadow: 'var(--shadow-sm-page)',
       ...style,
     }}>{children}</div>
   )

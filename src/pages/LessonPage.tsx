@@ -633,7 +633,7 @@ export default function LessonPage() {
     background: 'rgba(var(--glass-rgb), 0.86)',
     backdropFilter: 'blur(14px) saturate(180%)',
     WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 8px 28px rgba(21,18,31,0.26), 0 2px 8px rgba(21,18,31,0.10)',
+    boxShadow: 'var(--shadow-lg)',
   } as const
 
   return (

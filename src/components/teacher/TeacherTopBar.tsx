@@ -106,7 +106,7 @@ export default function TeacherTopBar() {
         backdropFilter: 'blur(14px) saturate(180%)',
         WebkitBackdropFilter: 'blur(14px) saturate(180%)',
         border: '1px solid var(--color-border-glass)',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 6px 24px rgba(21,18,31,0.22), 0 2px 6px rgba(21,18,31,0.08)',
+        boxShadow: 'var(--shadow-pill)',
         display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 8,
       }}
     >

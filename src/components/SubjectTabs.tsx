@@ -44,7 +44,7 @@ export default function SubjectTabs() {
               color: 'var(--color-text)',
               fontSize: 14,
               fontWeight: 600,
-              boxShadow: isActive ? 'inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 10px rgba(0,0,0,0.06)' : 'none',
+              boxShadow: isActive ? 'var(--shadow-xs)' : 'none',
               border: isActive ? '1px solid var(--color-border-glass)' : '1px solid transparent',
             }}
           >

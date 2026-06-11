@@ -248,7 +248,7 @@ function GlassCard({ children, style }: { children: React.ReactNode; style?: Rea
       WebkitBackdropFilter: 'blur(16px) saturate(180%)',
       border: '1px solid var(--color-border-glass)',
       borderRadius: 18,
-      boxShadow: '0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.07)',
+      boxShadow: 'var(--shadow-sm-page)',
       ...style,
     }}>{children}</div>
   )
@@ -259,7 +259,7 @@ const dockGlass = {
   background: 'rgba(var(--glass-rgb), 0.86)',
   backdropFilter: 'blur(14px) saturate(180%)',
   WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 8px 28px rgba(21,18,31,0.26), 0 2px 8px rgba(21,18,31,0.10)',
+  boxShadow: 'var(--shadow-lg)',
 } as const
 
 function SectionHead({ children }: { children: React.ReactNode }) {

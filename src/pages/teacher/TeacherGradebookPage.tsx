@@ -79,7 +79,7 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
       WebkitBackdropFilter: 'blur(16px) saturate(180%)',
       border: '1px solid var(--color-border-glass)',
       borderRadius: 22,
-      boxShadow: '0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.07)',
+      boxShadow: 'var(--shadow-sm-page)',
       overflow: 'hidden',
       ...style,
     }}>{children}</div>
@@ -406,7 +406,7 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
           background: 'rgba(var(--glass-rgb), 0.97)',
           backdropFilter: 'blur(20px)',
           borderRadius: 24,
-          boxShadow: '0 24px 64px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.07)',
+          boxShadow: 'var(--shadow-modal-lg)',
           width: 560, maxHeight: '82vh',
           display: 'flex', flexDirection: 'column',
           overflow: 'hidden',

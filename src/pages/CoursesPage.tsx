@@ -136,7 +136,7 @@ export default function CoursesPage() {
               background: 'rgba(var(--glass-rgb), 0.55)',
               backdropFilter: 'blur(16px) saturate(180%)',
               WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 10px rgba(0,0,0,0.06)',
+              boxShadow: 'var(--shadow-xs)',
               border: '1px solid var(--color-border-glass)',
               pointerEvents: 'none',
               zIndex: 0,
@@ -200,7 +200,7 @@ export default function CoursesPage() {
               background: 'rgba(var(--glass-rgb), 0.55)',
               backdropFilter: 'blur(16px) saturate(180%)',
               WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 10px rgba(0,0,0,0.06)',
+              boxShadow: 'var(--shadow-xs)',
               border: '1px solid var(--color-border-glass)',
               pointerEvents: 'none',
               zIndex: 0,
@@ -338,7 +338,7 @@ export default function CoursesPage() {
                       fontSize: 11,
                       fontWeight: 750,
                       lineHeight: 1,
-                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)',
+                      boxShadow: 'var(--shadow-inset)',
                     }}
                   >
                     {lesson.points}
