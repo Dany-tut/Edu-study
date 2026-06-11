@@ -840,14 +840,6 @@ export default function TeacherGroupsPage() {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <span>ГРУППЫ</span>
-            <button onClick={() => setShowAddGroup(true)} style={{
-              display: 'flex', alignItems: 'center', gap: 5,
-              background: '#9B6DFF', color: '#fff',
-              border: 'none', borderRadius: 10, padding: '4px 10px',
-              fontSize: 11, fontWeight: 700, cursor: 'pointer',
-            }}>
-              <Plus size={12} /> Группа
-            </button>
           </div>
           <div style={{ position: 'relative' }}>
             <div
