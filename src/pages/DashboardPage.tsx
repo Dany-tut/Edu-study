@@ -27,16 +27,45 @@ function useIsDesktop() {
   return isDesktop
 }
 
+const HASH_TO_PAGE: Record<string, 'home' | 'courses' | 'trainer'> = {
+  '#/': 'home',
+  '#': 'home',
+  '': 'home',
+  '#/courses': 'courses',
+  '#/trainer': 'trainer',
+}
+const PAGE_TO_HASH: Record<string, string> = {
+  home: '#/',
+  courses: '#/courses',
+  trainer: '#/trainer',
+}
+
 export default function DashboardPage() {
   useStudentPrefsSync()
   const isDesktop = useIsDesktop()
   const trackPopoverOpen = useDashboard(s => s.trackPopoverOpen)
   const activePage = useDashboard(s => s.activePage)
+  const setActivePage = useDashboard(s => s.setActivePage)
   const currentLessonId = useDashboard(s => s.currentLessonId)
   const setLessonScrolled = useDashboard(s => s.setLessonScrolled)
   const closeHomework = useDashboard(s => s.closeHomework)
   const lesson = currentLessonId ? findLessonById(currentLessonId) : null
   const homework = lesson ? getLessonDetail(lesson).homework : null
+
+  // Restore page from hash on mount
+  useEffect(() => {
+    const page = HASH_TO_PAGE[window.location.hash]
+    if (page && page !== activePage) setActivePage(page)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Sync hash when activePage changes (only for persistent pages)
+  useEffect(() => {
+    const hash = PAGE_TO_HASH[activePage]
+    if (hash && window.location.hash !== hash) {
+      window.history.replaceState(null, '', hash)
+    }
+  }, [activePage])
 
   // Sidebar is centered in the topbar via flex; the mini widget pill is
   // overlaid absolutely beside it so its presence never shifts the sidebar.
