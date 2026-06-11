@@ -597,7 +597,24 @@ function TrackForSubject({ subject }: { subject: Subject }) {
 export default function CourseTrack() {
   const { activeSubjectId, setActiveSubject } = useDashboard()
   const subjects = useStudentData(s => s.subjects)
+  const loaded = useStudentData(s => s.loaded)
   const subjectPill = useFloatingPill(activeSubjectId)
+
+  if (subjects.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center" style={{ minHeight: 160, gap: 8 }}>
+        {loaded ? (
+          <>
+            <Lock size={22} style={{ opacity: 0.35, color: 'var(--color-muted)' }} />
+            <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-3)' }}>Курсы ещё не добавлены</p>
+            <p style={{ fontSize: 12, color: 'var(--color-muted)' }}>Преподаватель откроет доступ к урокам</p>
+          </>
+        ) : (
+          <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Загрузка…</p>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-4 h-full">

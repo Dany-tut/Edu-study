@@ -5,6 +5,7 @@
 import { supabase } from './supabase'
 import {
   type Subject,
+  type Lesson,
   type LessonStatus,
   type LessonShape,
   type ScheduleDay,
@@ -308,4 +309,48 @@ export async function fetchCourseReactions(): Promise<CourseReaction[]> {
 
   if (error || !data || data.length === 0) return []
   return data as CourseReaction[]
+}
+
+// ─── Catalog utilities (pure, work with live subjects) ───────────────────────
+
+const subjectNameToId = (subjects: Subject[]) =>
+  Object.fromEntries(subjects.map(s => [s.name.toLowerCase(), s.id]))
+
+export function resolveScheduleLesson(
+  s: ScheduleLesson,
+  subjects: Subject[],
+): { subjectId: string | null; lesson: Lesson | null } {
+  const nameMap = subjectNameToId(subjects)
+  const subjectId = nameMap[s.subject.toLowerCase()] ?? null
+  const subject = subjects.find(su => su.id === subjectId)
+  if (!subject) return { subjectId, lesson: null }
+
+  const want = s.lessonTitle.toLowerCase()
+  const all = subject.modules.flatMap(m => m.lessons)
+  const match = all.find(l => {
+    const t = l.title.toLowerCase()
+    return want.includes(t) || t.includes(want)
+  })
+  return { subjectId, lesson: match ?? null }
+}
+
+export function findChemistryLessonByTitle(
+  title: string,
+  subjects: Subject[],
+): { lesson: Lesson; moduleId: number } | null {
+  const subject = subjects.find(s => s.id === 'chemistry')
+  if (!subject) return null
+  const want = title.trim().toLowerCase()
+  for (const m of subject.modules) {
+    const lesson = m.lessons.find(l => l.title.toLowerCase() === want)
+    if (lesson) return { lesson, moduleId: m.id }
+  }
+  for (const m of subject.modules) {
+    const lesson = m.lessons.find(l => {
+      const t = l.title.toLowerCase()
+      return t.includes(want) || want.includes(t)
+    })
+    if (lesson) return { lesson, moduleId: m.id }
+  }
+  return null
 }

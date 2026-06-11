@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import { findChemistryLessonByTitle, resolveScheduleLesson, scheduleTodayIndex, subjects, type ScheduleLesson } from '../data/mockData'
+import { type ScheduleLesson } from '../data/mockData'
+import { resolveScheduleLesson, findChemistryLessonByTitle } from '../lib/db'
 import { useStudentData } from './studentDataStore'
 import { DEFAULT_WIDGET_ORDER } from '../data/widgets'
 
@@ -163,7 +164,8 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
     }
     // Preselect the subject (and its active module) that owns the lesson so the
     // catalogue lands on the right tab; the page itself handles the highlight.
-    const subj = subjects.find(s => s.modules.some(m => m.lessons.some(l => l.id === lessonId)))
+    const liveSubjects = useStudentData.getState().subjects
+    const subj = liveSubjects.find(s => s.modules.some(m => m.lessons.some(l => l.id === lessonId)))
     const mod = subj?.modules.find(m => m.lessons.some(l => l.id === lessonId))
     set({
       activePage: 'courses',
@@ -178,7 +180,8 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
     // Preselect the lesson's subject/module so returning to the catalogue lands
     // on the right tab. Remember the current page for the "Назад" button (a
     // lesson opened from another lesson keeps the original return target).
-    const subj = subjects.find(su => su.modules.some(m => m.lessons.some(l => l.id === lessonId)))
+    const liveSubjects = useStudentData.getState().subjects
+    const subj = liveSubjects.find(su => su.modules.some(m => m.lessons.some(l => l.id === lessonId)))
     const mod = subj?.modules.find(m => m.lessons.some(l => l.id === lessonId))
     return {
       activePage: 'lesson',
@@ -227,7 +230,7 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
     const reactions = useStudentData.getState().courseReactions
     const reaction = reactions.find(r => r.id === reactionId)
     if (!reaction) return
-    const found = findChemistryLessonByTitle(reaction.lesson)
+    const found = findChemistryLessonByTitle(reaction.lesson, useStudentData.getState().subjects)
     if (!found) return
     // Reuse openLesson so we get the same return-page bookkeeping + subject/module
     // preselection. Open at the top without any paragraph highlight.
@@ -237,12 +240,11 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
 
   highlightLessonId: null,
   previewScheduleLesson: (lesson) => {
-    const { subjectId, lesson: match } = resolveScheduleLesson(lesson)
+    const liveSubjects = useStudentData.getState().subjects
+    const { subjectId, lesson: match } = resolveScheduleLesson(lesson, liveSubjects)
     if (!subjectId) return
-    const subj = subjects.find(s => s.id === subjectId)
+    const subj = liveSubjects.find(s => s.id === subjectId)
     if (!subj) return
-    // Find the module that owns the matched lesson; fall back to the subject's
-    // default active module if the title couldn't be resolved.
     const mod = match
       ? subj.modules.find(m => m.lessons.some(l => l.id === match.id))
       : null
@@ -256,14 +258,14 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
 
   activeSubjectId: 'chemistry',
   setActiveSubject: (id) => {
-    const subj = subjects.find(s => s.id === id)
+    const subj = useStudentData.getState().subjects.find(s => s.id === id)
     set({ activeSubjectId: id, activeModuleId: subj?.activeModuleId ?? 1 })
   },
-  activeModuleId: subjects[0].activeModuleId,
+  activeModuleId: 1,
   setActiveModule: (id) => set({ activeModuleId: id }),
   avatarId: 'flower',
   setAvatarId: (id) => set({ avatarId: id }),
-  scheduleIndex: scheduleTodayIndex,
+  scheduleIndex: 3,
   setScheduleIndex: (idx) => set({ scheduleIndex: idx }),
   quizDismissed: false,
   dismissQuiz: () => set({ quizDismissed: true }),

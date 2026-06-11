@@ -23,6 +23,14 @@ export default function ScheduleCarousel() {
     }
   })
 
+  if (total === 0) {
+    return (
+      <div className="flex items-center justify-center" style={{ height: 198 }}>
+        <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Расписание не добавлено</p>
+      </div>
+    )
+  }
+
   return (
     <div className="relative" style={{ height: 198 }}>
       {/* Cards */}

@@ -36,6 +36,7 @@ export default function CoursesPage() {
   const [moduleTab, setModuleTab] = useState<number | typeof ALL>(activeModuleId)
   const [search, setSearch] = useState('')
   const subjects = useStudentData(s => s.subjects)
+  const loaded = useStudentData(s => s.loaded)
   const subjectPill = useFloatingPill(activeSubjectId)
   const modulePill = useFloatingPill(moduleTab)
 
@@ -71,6 +72,21 @@ export default function CoursesPage() {
     { id: ALL, label: 'Все' },
     ...subject.modules.map(m => ({ id: m.id, label: m.label })),
   ]
+
+  if (!subject) {
+    return (
+      <div className="flex flex-col items-center justify-center text-center" style={{ minHeight: 300, gap: 8 }}>
+        {loaded ? (
+          <>
+            <p style={{ fontSize: 16, fontWeight: 650, color: 'var(--color-text)' }}>Курсы ещё не добавлены</p>
+            <p style={{ fontSize: 13, marginTop: 4, color: 'var(--color-muted)' }}>Преподаватель откроет доступ к урокам</p>
+          </>
+        ) : (
+          <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Загрузка…</p>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col" style={{ gap: 18 }}>

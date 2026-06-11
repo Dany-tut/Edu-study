@@ -13,13 +13,6 @@ import {
 } from '../lib/db'
 import { getStudentSession } from '../lib/studentSession'
 import {
-  scheduleDays as mockScheduleDays,
-  scheduleTodayIndex as mockTodayIndex,
-  subjects as mockSubjects,
-  quizQuestions as mockQuizQuestions,
-  scienceFacts as mockFacts,
-  scienceMemes as mockMemes,
-  courseReactions as mockReactions,
   type Subject,
   type ScheduleDay,
   type QuizQuestion,
@@ -53,14 +46,14 @@ const defaultStats: StudentStats = {
 
 export const useStudentData = create<StudentDataState>((set) => ({
   loaded: false,
-  subjects: mockSubjects,
-  scheduleDays: mockScheduleDays,
-  scheduleTodayIndex: mockTodayIndex,
+  subjects: [],
+  scheduleDays: [],
+  scheduleTodayIndex: 3,
   stats: defaultStats,
-  quizQuestions: mockQuizQuestions,
-  scienceFacts: mockFacts,
-  scienceMemes: mockMemes,
-  courseReactions: mockReactions,
+  quizQuestions: [],
+  scienceFacts: [],
+  scienceMemes: [],
+  courseReactions: [],
 
   load: async () => {
     const session = getStudentSession()
@@ -76,21 +69,20 @@ export const useStudentData = create<StudentDataState>((set) => ({
       fetchCourseReactions(),
     ])
 
-    const subjectCatalog = catalog.length > 0 ? catalog : mockSubjects
-    const mergedSubjects = mergeSubjectsWithProgress(subjectCatalog, progress)
+    const mergedSubjects = mergeSubjectsWithProgress(catalog, progress)
     const stats = computeStats(progress)
     const todayIdx = schedule.findIndex(d => d.isToday)
 
     set({
       loaded: true,
       subjects: mergedSubjects,
-      scheduleDays: schedule.length > 0 ? schedule : mockScheduleDays,
-      scheduleTodayIndex: schedule.length > 0 ? (todayIdx >= 0 ? todayIdx : mockTodayIndex) : mockTodayIndex,
+      scheduleDays: schedule,
+      scheduleTodayIndex: todayIdx >= 0 ? todayIdx : 3,
       stats,
-      quizQuestions: quizQ.length > 0 ? quizQ : mockQuizQuestions,
-      scienceFacts: facts.length > 0 ? facts : mockFacts,
-      scienceMemes: memes.length > 0 ? memes : mockMemes,
-      courseReactions: reactions.length > 0 ? reactions : mockReactions,
+      quizQuestions: quizQ,
+      scienceFacts: facts,
+      scienceMemes: memes,
+      courseReactions: reactions,
     })
   },
 }))
