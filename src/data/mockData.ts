@@ -68,12 +68,13 @@ export const scienceMemeInterval = 16
 
 export interface CourseReaction {
   id: string
+  equation: string
+  name: string
   lesson: string
-  subject: string
-  formula: string
-  label: string
-  paragraph: string
+  module?: string
+  emoji: string
   gradient: string
+  paragraph: string
 }
 
 export const courseReactionInterval = 14
