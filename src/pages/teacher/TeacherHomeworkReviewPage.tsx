@@ -5,31 +5,10 @@ import {
   ClipboardCheck, TrendingUp, Clock, Award, FileText, Paperclip,
   CheckCircle2, Star,
 } from 'lucide-react'
-import {
-  allHomework, groups, getSubmitters,
-  type Student, type Group, type HomeworkItem, type HwTask,
-} from '../../data/teacherMockData'
+import type { Student, Group, HomeworkItem, HwTask } from '../../data/teacherMockData'
+import { useHomework, useHomeworkSubmissions } from '../../lib/useHomework'
+import { useGroups, useStudents } from '../../lib/useGroups'
 import { useTeacher, type HwReview } from '../../store/teacherStore'
-
-// ─── Mock student submission text ───────────────────────────────────────────
-// There's no backend, so we synthesise a plausible "answer" per student from
-// the homework topic. Deterministic so re-renders don't reshuffle the text.
-function submissionFor(hw: HomeworkItem, student: Student): string {
-  const seed = student.name.length + hw.title.length
-  const intros = [
-    'Решение задания:',
-    'Мой ответ:',
-    'Привожу разбор:',
-    'Вот что получилось:',
-  ]
-  const bodies = [
-    'Составил уравнение реакции, расставил коэффициенты методом электронного баланса. В первом пункте получил соль и воду, среда раствора слабокислая.',
-    'Определил тип гидролиза по силе кислоты и основания. Для соли слабого основания и сильной кислоты реакция среды кислая, pH < 7.',
-    'Записал схему процесса, отметил окислитель и восстановитель, посчитал число отданных и принятых электронов. Баланс сошёлся.',
-    'Построил схему по этапам, подписал продукты на каждой стадии и пояснил, где выделяется энергия.',
-  ]
-  return `${intros[seed % intros.length]}\n\n${bodies[seed % bodies.length]}\n\nЕсли где-то ошибся — поправьте, пожалуйста, буду благодарен за разбор.`
-}
 
 function initials(name: string) {
   return name.split(' ').map(p => p[0]).join('').slice(0, 2)
@@ -292,9 +271,19 @@ export default function TeacherHomeworkReviewPage() {
   const reviewIdx = useTeacher(s => s.reviewIdx)
   const setReviewIdx = useTeacher(s => s.setReviewIdx)
 
-  const hw = allHomework.find(h => h.id === reviewingHwId) ?? null
+  const { homework: allHomework } = useHomework()
+  const { groups } = useGroups()
+
+  const hw = (allHomework.find(h => h.id === reviewingHwId) ?? null) as (HomeworkItem & { tasks?: HwTask[] }) | null
   const group = hw ? groups.find(g => g.id === hw.groupId) ?? null : null
-  const submitters = useMemo(() => (hw ? getSubmitters(hw) : []), [hw])
+
+  const rawSubmissions = useHomeworkSubmissions(reviewingHwId)
+  const { students: groupStudents } = useStudents(hw?.groupId ?? null)
+  const submitters: Student[] = useMemo(() => {
+    if (!hw) return []
+    const submittedIds = new Set(rawSubmissions.map(s => s.studentId))
+    return groupStudents.filter(s => submittedIds.has(s.id))
+  }, [hw, rawSubmissions, groupStudents])
   const hwReviews = (reviewingHwId && reviews[reviewingHwId]) || {}
 
   const idx = reviewIdx
@@ -337,6 +326,7 @@ export default function TeacherHomeworkReviewPage() {
   }
 
   const student = submitters[idx]
+  const currentSubmission = rawSubmissions.find(s => s.studentId === student?.id)
   const existing = hwReviews[student.id]
   const draft = drafts[student.id] ?? {
     score: existing ? String(existing.score) : '',
@@ -526,7 +516,7 @@ export default function TeacherHomeworkReviewPage() {
                     <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Работа ученика</span>
                   </div>
                   <p style={{ fontSize: 14.5, lineHeight: 1.65, color: '#1F1F24', whiteSpace: 'pre-line' }}>
-                    {submissionFor(hw, student)}
+                    {currentSubmission?.comment || 'Ученик не оставил комментарий к сдаче.'}
                   </p>
                   <div className="flex items-center flex-wrap" style={{ gap: 8, marginTop: 16 }}>
                     {['solution.pdf', 'photo-1.jpg'].map(f => (

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Calendar, Clock, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react'
-import { students, groups } from '../../data/teacherMockData'
+import { useAllStudents, useGroups } from '../../lib/useGroups'
 import TeacherSaveButton from './TeacherSaveButton'
 
 // ─── Task types ───────────────────────────────────────────────────────────────
@@ -51,16 +51,17 @@ function getSuggestionType(text: string): TaskType | null {
   return null
 }
 
-function getEntitySuggestions(titleText: string) {
+import type { Student, Group } from '../../data/teacherMockData'
+
+function getEntitySuggestions(titleText: string, students: Student[], groups: Group[]) {
   const atIdx = titleText.lastIndexOf('@')
   if (atIdx !== -1) {
     const query = titleText.slice(atIdx + 1).toLowerCase()
     if (query.length > 0) {
-      const matchedStudents = students
+      return students
         .filter(s => s.name.toLowerCase().startsWith(query))
         .slice(0, 5)
         .map(s => ({ kind: 'student' as const, id: s.id, label: s.name, sub: groups.find(g => g.id === s.groupId)?.name ?? '', triggerType: '@' as const }))
-      return matchedStudents
     }
   }
 
@@ -249,14 +250,14 @@ function TimePicker({ value, onChange, onClose }: { value: string; onChange: (v:
         {/* top fade */}
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, height: 32, zIndex: 1,
-          background: 'linear-gradient(to bottom, #fff 0%, rgba(255,255,255,0) 100%)',
+          background: 'linear-gradient(to bottom, var(--color-surface) 0%, transparent 100%)',
           pointerEvents: 'none',
           borderRadius: '14px 14px 0 0',
         }} />
         {/* bottom fade */}
         <div style={{
           position: 'absolute', bottom: 0, left: 0, right: 0, height: 32, zIndex: 1,
-          background: 'linear-gradient(to top, #fff 0%, rgba(255,255,255,0) 100%)',
+          background: 'linear-gradient(to top, var(--color-surface) 0%, transparent 100%)',
           pointerEvents: 'none',
           borderRadius: '0 0 14px 14px',
         }} />
@@ -342,6 +343,9 @@ interface CreateTaskModalProps {
 }
 
 export default function CreateTaskModal({ onClose, onSave, initialTask }: CreateTaskModalProps) {
+  const students = useAllStudents()
+  const { groups } = useGroups()
+
   const initType = initialTask?.typeId
     ? TASK_TYPES.find(t => t.id === initialTask.typeId) ?? null
     : null
@@ -382,7 +386,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
   }, [showCalendar, showTimePicker])
 
   const suggestion = useMemo(() => (!taskType ? getSuggestionType(titleText) : null), [taskType, titleText])
-  const entitySuggestions = useMemo(() => getEntitySuggestions(titleText), [titleText])
+  const entitySuggestions = useMemo(() => getEntitySuggestions(titleText, students, groups), [titleText, students, groups])
 
   function handleTitleChange(raw: string) {
     if (!taskType) {
@@ -399,7 +403,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
       if (sMatch) {
         const prefix = sMatch[1]
         const name = sMatch[2]
-        const matchExists = students.some(s => s.name.toLowerCase().startsWith(name.toLowerCase()))
+        const matchExists = students.some((s: Student) => s.name.toLowerCase().startsWith(name.toLowerCase()))
         if (matchExists) {
           setTitleText(prefix + '@' + name)
           return

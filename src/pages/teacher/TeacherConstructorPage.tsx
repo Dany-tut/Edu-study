@@ -13,7 +13,7 @@ import {
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { TrainerBankBrowser, TrainerBankFilterPanel, emptyTrainerFilters, type TrainerFilters } from '../../components/teacher/TrainerBank'
-import { courseLessons } from '../../data/teacherMockData'
+import { useCourseLessons } from '../../lib/useCourseLessons'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
 import {
@@ -1060,6 +1060,7 @@ function LessonNameInput({ value, onChange, onAdd }: {
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const courseLessons = useCourseLessons()
 
   useEffect(() => {
     if (!open) return

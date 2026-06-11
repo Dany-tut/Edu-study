@@ -139,6 +139,56 @@ export function useStudents(groupId: string | null) {
   return { students, loading, addStudent, deleteStudent, reload: load }
 }
 
+export type AttendanceRecord = {
+  studentId: string
+  lessonDate: string // 'YYYY-MM-DD'
+  present: boolean
+}
+
+export function useAttendance(groupId: string | null) {
+  const [records, setRecords] = useState<AttendanceRecord[]>([])
+  const [loading, setLoading] = useState(false)
+
+  async function load() {
+    if (!groupId) { setRecords([]); return }
+    setLoading(true)
+    const { data } = await supabase
+      .from('lesson_attendance')
+      .select('student_id, lesson_date, present')
+      .eq('group_id', groupId)
+      .order('lesson_date')
+    if (data) {
+      setRecords(data.map((r: any) => ({
+        studentId: r.student_id,
+        lessonDate: r.lesson_date,
+        present: r.present,
+      })))
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => { load() }, [groupId])
+
+  async function saveLesson(
+    groupId: string,
+    lessonDate: string,
+    entries: { studentId: string; present: boolean }[]
+  ) {
+    const rows = entries.map(e => ({
+      group_id: groupId,
+      student_id: e.studentId,
+      lesson_date: lessonDate,
+      present: e.present,
+    }))
+    await supabase
+      .from('lesson_attendance')
+      .upsert(rows, { onConflict: 'student_id,lesson_date' })
+    await load()
+  }
+
+  return { records, loading, saveLesson, reload: load }
+}
+
 export function useAllStudents() {
   const [students, setStudents] = useState<Student[]>([])
   useEffect(() => {

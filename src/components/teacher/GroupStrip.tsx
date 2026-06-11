@@ -58,7 +58,7 @@ function GroupMiniCard({
       style={{
         width: CARD_W, height: CARD_H, boxSizing: 'border-box', flex: '0 0 auto',
         display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-        background: isActive ? `${group.color}14` : '#fff',
+        background: isActive ? `${group.color}14` : 'rgba(var(--glass-rgb), 0.97)',
         border: isActive ? `1.5px solid ${group.color}` : '1px solid var(--color-border-soft)',
         borderRadius: 18, cursor: 'pointer', userSelect: 'none',
         padding: '14px 16px',

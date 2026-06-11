@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react'
 import { useMemo } from 'react'
-import { allHomework, getSubmitters } from '../../data/teacherMockData'
 import { useTeacher } from '../../store/teacherStore'
+import { useHomework, useHomeworkSubmissions } from '../../lib/useHomework'
+import { useStudents } from '../../lib/useGroups'
 
 export default function ReviewNavPill() {
   const reviewingHwId = useTeacher(s => s.reviewingHwId)
@@ -10,8 +11,18 @@ export default function ReviewNavPill() {
   const setReviewIdx = useTeacher(s => s.setReviewIdx)
   const reviews = useTeacher(s => s.reviews)
 
+  const { homework: allHomework } = useHomework()
   const hw = allHomework.find(h => h.id === reviewingHwId) ?? null
-  const submitters = useMemo(() => (hw ? getSubmitters(hw) : []), [hw])
+
+  const rawSubmissions = useHomeworkSubmissions(reviewingHwId)
+  const { students: groupStudents } = useStudents(hw?.groupId ?? null)
+
+  const submitters = useMemo(() => {
+    if (!hw) return []
+    const submittedIds = new Set(rawSubmissions.map(s => s.studentId))
+    return groupStudents.filter(s => submittedIds.has(s.id))
+  }, [hw, rawSubmissions, groupStudents])
+
   const hwReviews = (reviewingHwId && reviews[reviewingHwId]) || {}
   const reviewedCount = submitters.filter(s => hwReviews[s.id]).length
   const allDone = reviewedCount === submitters.length && submitters.length > 0
@@ -53,7 +64,7 @@ export default function ReviewNavPill() {
         boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 14px rgba(21,18,31,0.08)',
       }}>
         <CheckCircle2 size={14} style={{ color: allDone ? '#1a7a3f' : 'var(--color-text-4)', flexShrink: 0 }} />
-        <span style={{ fontSize: 13, fontWeight: 600, color: allDone ? '#1a7a3f' : '#50505A', whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: allDone ? 'var(--color-green-accent)' : 'var(--color-text-2)', whiteSpace: 'nowrap' }}>
           {allDone ? 'Все проверены' : `Проверено ${reviewedCount} из ${submitters.length}`}
         </span>
       </div>
@@ -71,7 +82,7 @@ function NavBtn({ disabled, onClick, dir }: { disabled: boolean; onClick: () => 
       disabled={disabled}
       style={{
         width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
-        border: '1px solid var(--color-border-soft)', background: disabled ? 'transparent' : '#fff',
+        border: '1px solid var(--color-border-soft)', background: disabled ? 'transparent' : 'var(--color-surface)',
         boxShadow: disabled ? 'none' : '0 1px 6px rgba(0,0,0,0.07)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: disabled ? 'not-allowed' : 'pointer',

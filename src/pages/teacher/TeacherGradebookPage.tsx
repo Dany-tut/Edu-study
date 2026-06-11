@@ -4,25 +4,13 @@ import { Download, ClipboardList, X, Check } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import GroupStrip from '../../components/teacher/GroupStrip'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
-import { useGroups, useStudents } from '../../lib/useGroups'
+import { useGroups, useStudents, useAttendance } from '../../lib/useGroups'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.34, delay, ease: [0.22, 1, 0.36, 1] },
 })
-
-// Generate mock attendance dates (last 14 school days)
-const DATES = [
-  '28.05', '29.05', '30.05', '02.06', '03.06', '04.06',
-  '05.06', '06.06', '07.06', '09.06', '10.06',
-]
-
-// Deterministic attendance per student/date based on their id seed
-function wasPresent(studentId: string, dateIdx: number): boolean | null {
-  const seed = (studentId.charCodeAt(0) + dateIdx * 7) % 100
-  return seed < 75
-}
 
 function ScorePill({ value }: { value: number | null }) {
   if (value === null) return <span style={{ color: 'var(--color-text-4)', fontSize: 12 }}>—</span>
@@ -68,14 +56,14 @@ function ScrollFadeTable({ children }: { children: React.ReactNode }) {
       <div style={{
         position: 'absolute', top: 0, left: 0, bottom: 0, width: 56,
         pointerEvents: 'none', zIndex: 2,
-        background: 'linear-gradient(to right, rgba(255,255,255,0.92), transparent)',
+        background: 'linear-gradient(to right, var(--color-surface), transparent)',
         opacity: fadeLeft ? 1 : 0,
         transition: 'opacity 0.22s ease',
       }} />
       <div style={{
         position: 'absolute', top: 0, right: 0, bottom: 0, width: 72,
         pointerEvents: 'none', zIndex: 2,
-        background: 'linear-gradient(to left, rgba(255,255,255,0.92), transparent)',
+        background: 'linear-gradient(to left, var(--color-surface), transparent)',
         opacity: fadeRight ? 1 : 0,
         transition: 'opacity 0.22s ease',
       }} />
@@ -101,102 +89,129 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 // ─── Attendance tab ────────────────────────────────────────────────────────────
 function AttendanceTab({ groupId }: { groupId: string | null }) {
   const { students: groupStudents } = useStudents(groupId)
+  const { records } = useAttendance(groupId)
+
+  // Derive sorted unique dates from real records
+  const dates = Array.from(new Set(records.map(r => r.lessonDate))).sort()
+
+  // Format 'YYYY-MM-DD' → 'DD.MM'
+  function fmtDate(iso: string) {
+    const [, m, d] = iso.split('-')
+    return `${d}.${m}`
+  }
 
   return (
     <Card>
-      <ScrollFadeTable>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ background: 'rgba(0,0,0,0.018)' }}>
-              <th style={{
-                padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700,
-                color: 'var(--color-text-3)', borderBottom: '1px solid var(--color-border-soft)',
-                position: 'sticky', left: 0, background: 'var(--color-surface)', zIndex: 1, whiteSpace: 'nowrap',
-              }}>
-                Студент
-              </th>
-              {DATES.map(d => (
-                <th key={d} style={{
-                  padding: '10px 8px', textAlign: 'center', fontSize: 10, fontWeight: 700,
-                  color: 'var(--color-text-3)', letterSpacing: 0.2, borderBottom: '1px solid var(--color-border-soft)',
-                  whiteSpace: 'nowrap', minWidth: 44,
+      {dates.length === 0 && groupStudents.length === 0 ? (
+        <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--color-text-3)', fontSize: 13 }}>
+          Нет данных — выберите группу и отметьте посещаемость
+        </div>
+      ) : (
+        <ScrollFadeTable>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ background: 'rgba(0,0,0,0.018)' }}>
+                <th style={{
+                  padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700,
+                  color: 'var(--color-text-3)', borderBottom: '1px solid var(--color-border-soft)',
+                  position: 'sticky', left: 0, background: 'var(--color-surface)', zIndex: 1, whiteSpace: 'nowrap',
                 }}>
-                  {d}
+                  Студент
                 </th>
-              ))}
-              <th style={{
-                padding: '10px 14px', textAlign: 'center', fontSize: 11, fontWeight: 700,
-                color: '#7B3FCC', borderBottom: '1px solid var(--color-border-soft)', whiteSpace: 'nowrap',
-              }}>
-                Итого
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {groupStudents.map((student, si) => {
-              const presences = DATES.map((_, di) => wasPresent(student.id, di))
-              const presentCount = presences.filter(Boolean).length
-              const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
-
-              return (
-                <motion.tr
-                  key={student.id}
-                  initial={{ opacity: 0, x: -6 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.22, delay: si * 0.04 }}
-                  style={{ borderBottom: '1px solid rgba(0,0,0,0.04)' }}
-                >
-                  <td style={{
-                    padding: '10px 16px', position: 'sticky', left: 0,
-                    background: 'rgba(var(--glass-rgb), 0.95)', zIndex: 1,
+                {dates.map(d => (
+                  <th key={d} style={{
+                    padding: '10px 8px', textAlign: 'center', fontSize: 10, fontWeight: 700,
+                    color: 'var(--color-text-3)', letterSpacing: 0.2, borderBottom: '1px solid var(--color-border-soft)',
+                    whiteSpace: 'nowrap', minWidth: 44,
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                      <div style={{
-                        width: 28, height: 28, borderRadius: 9, flexShrink: 0,
-                        background: '#9B6DFF',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 10, fontWeight: 700, color: '#fff',
-                      }}>
-                        {initials}
+                    {fmtDate(d)}
+                  </th>
+                ))}
+                <th style={{
+                  padding: '10px 14px', textAlign: 'center', fontSize: 11, fontWeight: 700,
+                  color: '#7B3FCC', borderBottom: '1px solid var(--color-border-soft)', whiteSpace: 'nowrap',
+                }}>
+                  Итого
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {groupStudents.map((student, si) => {
+                const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
+                const studentRecords = records.filter(r => r.studentId === student.id)
+                const presentCount = studentRecords.filter(r => r.present).length
+                const pct = dates.length ? Math.round((presentCount / dates.length) * 100) : null
+
+                return (
+                  <motion.tr
+                    key={student.id}
+                    initial={{ opacity: 0, x: -6 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.22, delay: si * 0.04 }}
+                    style={{ borderBottom: '1px solid rgba(0,0,0,0.04)' }}
+                  >
+                    <td style={{
+                      padding: '10px 16px', position: 'sticky', left: 0,
+                      background: 'rgba(var(--glass-rgb), 0.95)', zIndex: 1,
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                        <div style={{
+                          width: 28, height: 28, borderRadius: 9, flexShrink: 0,
+                          background: '#9B6DFF',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 10, fontWeight: 700, color: '#fff',
+                        }}>
+                          {initials}
+                        </div>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
+                          {student.name}
+                        </span>
                       </div>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
-                        {student.name}
-                      </span>
-                    </div>
-                  </td>
-                  {presences.map((present, di) => (
-                    <td key={di} style={{ padding: '10px 8px', textAlign: 'center' }}>
-                      {present === null ? null : present ? (
-                        <div style={{
-                          width: 22, height: 22, borderRadius: 7, margin: '0 auto',
-                          background: 'var(--color-green-soft)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 12,
-                        }}>✓</div>
+                    </td>
+                    {dates.map(date => {
+                      const rec = studentRecords.find(r => r.lessonDate === date)
+                      const present = rec?.present
+                      return (
+                        <td key={date} style={{ padding: '10px 8px', textAlign: 'center' }}>
+                          {rec === undefined ? (
+                            <span style={{ color: 'var(--color-text-4)', fontSize: 12 }}>—</span>
+                          ) : present ? (
+                            <div style={{
+                              width: 22, height: 22, borderRadius: 7, margin: '0 auto',
+                              background: 'var(--color-green-soft)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: 12,
+                            }}>✓</div>
+                          ) : (
+                            <div style={{
+                              width: 22, height: 22, borderRadius: 7, margin: '0 auto',
+                              background: 'var(--color-red-soft)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: 11, color: '#c0303a',
+                            }}>✗</div>
+                          )}
+                        </td>
+                      )
+                    })}
+                    <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                      {pct === null ? (
+                        <span style={{ color: 'var(--color-text-4)', fontSize: 12 }}>—</span>
                       ) : (
-                        <div style={{
-                          width: 22, height: 22, borderRadius: 7, margin: '0 auto',
-                          background: 'var(--color-red-soft)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 11, color: '#c0303a',
-                        }}>✗</div>
+                        <span style={{
+                          fontSize: 13, fontWeight: 700,
+                          color: pct >= 90 ? '#1a7a3f' : pct >= 70 ? '#7a6500' : '#c0303a',
+                        }}>
+                          {pct}%
+                        </span>
                       )}
                     </td>
-                  ))}
-                  <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                    <span style={{
-                      fontSize: 13, fontWeight: 700,
-                      color: student.attendance >= 90 ? '#1a7a3f' : student.attendance >= 70 ? '#7a6500' : '#c0303a',
-                    }}>
-                      {student.attendance}%
-                    </span>
-                  </td>
-                </motion.tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </ScrollFadeTable>
+                  </motion.tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </ScrollFadeTable>
+      )}
     </Card>
   )
 }
@@ -345,8 +360,10 @@ function GradeButton({ value, selected, onClick }: { value: Grade; selected: boo
 function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClose: () => void }) {
   const { groups } = useGroups()
   const { students: groupStudents } = useStudents(groupId)
+  const { saveLesson } = useAttendance(groupId)
   const group = groupId ? groups.find(g => g.id === groupId) ?? null : null
   const today = new Date()
+  const isoDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
   const dateLabel = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}`
 
   const [present, setPresent] = useState<Record<string, boolean>>(() =>
@@ -357,11 +374,13 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
   )
   const [saved, setSaved] = useState(false)
 
-  // Accent/label fall back to a neutral "Все группы" when grading the whole list.
   const accent = group?.color ?? '#7B3FCC'
   const headerName = group?.name ?? 'Все группы'
 
-  function handleSave() {
+  async function handleSave() {
+    if (!groupId) return
+    const entries = groupStudents.map(s => ({ studentId: s.id, present: !!present[s.id] }))
+    await saveLesson(groupId, isoDate, entries)
     setSaved(true)
     setTimeout(onClose, 900)
   }

@@ -8,10 +8,24 @@ import {
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
-import {
-  groups, students, todaySchedule, homeworkTemplates,
-  type HomeworkTemplate,
-} from '../../data/teacherMockData'
+import type { HomeworkTemplate, Group, Student, ScheduleItem } from '../../data/teacherMockData'
+import { useGroups, useAllStudents } from '../../lib/useGroups'
+import { supabase } from '../../lib/supabase'
+
+// ─── Static homework templates (formerly mock data) ────────────────────────────
+
+const HOMEWORK_TEMPLATES: HomeworkTemplate[] = [
+  { id: 't1',  title: 'Гидролиз солей — базовый',          subject: 'Химия',    level: 'basic', topic: 'Гидролиз солей',        taskCount: 8 },
+  { id: 't2',  title: 'Гидролиз: сложные случаи',          subject: 'Химия',    level: 'hard',  topic: 'Гидролиз солей',        taskCount: 5 },
+  { id: 't3',  title: 'Основные оксиды — базовый',         subject: 'Химия',    level: 'basic', topic: 'Оксиды',                taskCount: 10 },
+  { id: 't4',  title: 'Сложные оксиды — продвинутый',      subject: 'Химия',    level: 'hard',  topic: 'Оксиды',                taskCount: 6 },
+  { id: 't5',  title: 'Фотосинтез — схемы',                subject: 'Биология', level: 'basic', topic: 'Фотосинтез',            taskCount: 10 },
+  { id: 't6',  title: 'Фотосинтез и дыхание — задачи C',   subject: 'Биология', level: 'hard',  topic: 'Фотосинтез',            taskCount: 4 },
+  { id: 't7',  title: 'ОВР — базовый',                     subject: 'Химия',    level: 'basic', topic: 'Окислительно',          taskCount: 9 },
+  { id: 't8',  title: 'ОВР — метод электронного баланса',  subject: 'Химия',    level: 'hard',  topic: 'Окислительно',          taskCount: 5 },
+  { id: 't9',  title: 'Периодический закон',               subject: 'Химия',    level: 'basic', topic: 'Периодический',         taskCount: 12 },
+  { id: 't10', title: 'Кислоты: классификация',            subject: 'Химия',    level: 'basic', topic: 'Кислоты',               taskCount: 6 },
+]
 
 // ─── Style helpers ─────────────────────────────────────────────────────────────
 
@@ -145,8 +159,8 @@ function TimePickerLesson({ value, onChange, onClose }: { value: string; onChang
       style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 100, background: 'var(--color-bg-input)', border: '1.5px solid #EDEAF5', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.14)', overflow: 'hidden' }}
     >
       <div style={{ position: 'relative' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 32, zIndex: 1, background: 'linear-gradient(to bottom, #fff 0%, rgba(255,255,255,0) 100%)', pointerEvents: 'none', borderRadius: '14px 14px 0 0' }} />
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 32, zIndex: 1, background: 'linear-gradient(to top, #fff 0%, rgba(255,255,255,0) 100%)', pointerEvents: 'none', borderRadius: '0 0 14px 14px' }} />
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 32, zIndex: 1, background: 'linear-gradient(to bottom, var(--color-bg-input) 0%, transparent 100%)', pointerEvents: 'none', borderRadius: '14px 14px 0 0' }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 32, zIndex: 1, background: 'linear-gradient(to top, var(--color-bg-input) 0%, transparent 100%)', pointerEvents: 'none', borderRadius: '0 0 14px 14px' }} />
         <div ref={listRef} style={{ maxHeight: 200, overflowY: 'auto', padding: '4px 6px', scrollbarWidth: 'none' }}>
           {TIME_SLOTS.map(t => {
             const active = t === value
@@ -424,13 +438,13 @@ function HwPicker({
               {/* Top fade */}
               <div aria-hidden style={{
                 position: 'absolute', top: 0, left: 0, right: 0, height: 28,
-                background: 'linear-gradient(to bottom, rgba(255,255,255,0.92), rgba(255,255,255,0))',
+                background: 'linear-gradient(to bottom, var(--color-surface), transparent)',
                 opacity: fade.top, transition: 'opacity 0.2s ease', pointerEvents: 'none', borderRadius: '8px 8px 0 0',
               }} />
               {/* Bottom fade */}
               <div aria-hidden style={{
                 position: 'absolute', bottom: 0, left: 0, right: 0, height: 28,
-                background: 'linear-gradient(to top, rgba(255,255,255,0.92), rgba(255,255,255,0))',
+                background: 'linear-gradient(to top, var(--color-surface), transparent)',
                 opacity: fade.bottom, transition: 'opacity 0.2s ease', pointerEvents: 'none', borderRadius: '0 0 8px 8px',
               }} />
             </div>
@@ -490,7 +504,7 @@ function HomeworkSelectorCard({
   const suggestions = useMemo(() => {
     const title = lessonTitle.toLowerCase()
     if (!title.trim()) return []
-    return homeworkTemplates.filter(t => {
+    return HOMEWORK_TEMPLATES.filter(t => {
       const stem = t.topic.toLowerCase().slice(0, 5)
       return title.includes(t.topic.toLowerCase()) || title.includes(stem)
     })
@@ -504,8 +518,8 @@ function HomeworkSelectorCard({
       boxShadow: '0 12px 28px rgba(123,97,255,0.28)',
       minHeight: 92,
     }}>
-      <HwPicker level="basic" value={basic} suggestions={suggestions} all={homeworkTemplates} onPick={onBasic} onCreateNew={onCreateNew} />
-      <HwPicker level="hard" value={hard} suggestions={suggestions} all={homeworkTemplates} onPick={onHard} onCreateNew={onCreateNew} />
+      <HwPicker level="basic" value={basic} suggestions={suggestions} all={HOMEWORK_TEMPLATES} onPick={onBasic} onCreateNew={onCreateNew} />
+      <HwPicker level="hard" value={hard} suggestions={suggestions} all={HOMEWORK_TEMPLATES} onPick={onHard} onCreateNew={onCreateNew} />
     </div>
   )
 }
@@ -688,7 +702,7 @@ type Meta = {
 }
 
 // Resolve a recipient to display props (name, sub-label, icon/initials, color)
-function resolveRecipient(r: Recipient) {
+function resolveRecipient(r: Recipient, groups: Group[], students: Student[]) {
   if (r.kind === 'group') {
     const g = groups.find(x => x.id === r.id)
     return {
@@ -716,6 +730,8 @@ function resolveRecipient(r: Recipient) {
 function AudiencePicker({
   recipients, onChange,
 }: { recipients: Recipient[]; onChange: (r: Recipient[]) => void }) {
+  const { groups } = useGroups()
+  const students = useAllStudents()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const ref = useRef<HTMLDivElement>(null)
@@ -756,7 +772,7 @@ function AudiencePicker({
       {recipients.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
           {recipients.map(r => {
-            const d = resolveRecipient(r)
+            const d = resolveRecipient(r, groups, students)
             return (
               <div
                 key={`${r.kind}-${r.id}`}
@@ -1064,17 +1080,56 @@ export default function TeacherLessonEditorPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const editingScheduleId = useTeacher(s => s.editingScheduleId)
 
-  const source = todaySchedule.find(s => s.id === editingScheduleId) ?? null
+  const [source, setSource] = useState<ScheduleItem | null>(null)
+  useEffect(() => {
+    if (!editingScheduleId) { setSource(null); return }
+    supabase
+      .from('schedule_lessons')
+      .select('*, groups(name, icon, color, color_soft, subject)')
+      .eq('id', editingScheduleId)
+      .single()
+      .then(({ data }) => {
+        if (!data) return
+        setSource({
+          id: String(data.id),
+          groupId: data.group_id,
+          groupName: data.groups?.name ?? '',
+          icon: data.groups?.icon ?? '📚',
+          time: (data.time_start ?? '').slice(0, 5),
+          endTime: (data.time_end ?? '').slice(0, 5),
+          topic: data.lesson_title ?? '',
+          lessonNumber: data.lesson_number ?? 0,
+          subject: data.subject ?? data.groups?.subject ?? '',
+          status: 'upcoming' as const,
+          studentCount: 0,
+          color: data.groups?.color ?? '#9B6DFF',
+          colorSoft: data.groups?.color_soft ?? '#E4D9FF',
+        })
+      })
+  }, [editingScheduleId])
+
   const isNew = !source
 
   const [meta, setMeta] = useState<Meta>({
-    recipients: source?.groupId ? [{ kind: 'group', id: source.groupId }] : [],
-    title: source?.topic ?? '',
-    lessonNumber: source ? String(source.lessonNumber) : '',
+    recipients: [],
+    title: '',
+    lessonNumber: '',
     date: todayDotStr(),
-    startTime: source?.time ?? '',
-    endTime: source?.endTime ?? '',
+    startTime: '',
+    endTime: '',
   })
+
+  useEffect(() => {
+    if (!source) return
+    setMeta(m => ({
+      ...m,
+      recipients: source.groupId ? [{ kind: 'group', id: source.groupId }] : m.recipients,
+      title: source.topic || m.title,
+      lessonNumber: String(source.lessonNumber || '') || m.lessonNumber,
+      startTime: source.time || m.startTime,
+      endTime: source.endTime || m.endTime,
+    }))
+  }, [source])
   const [videoUrl, setVideoUrl] = useState('')
   const [timecodes, setTimecodes] = useState<Timecode[]>([])
   const [workbook, setWorkbook] = useState<string[]>([])

@@ -6,6 +6,8 @@ import {
 } from 'lucide-react'
 import type { LessonHomework } from '../data/lessonContent'
 import { PURPLE, subjectTheme } from '../lib/theme'
+import { supabase } from '../lib/supabase'
+import { getStudentSession } from '../lib/studentSession'
 import { playUnlock, playPop, vibrate } from '../lib/sound'
 import { useDashboard } from '../store/dashboardStore'
 import HardStarLottie from './HardStarLottie'
@@ -488,6 +490,7 @@ interface HomeworkFlowProps {
   subject: string
   homework: LessonHomework
   onBack: () => void
+  hwId?: string
 }
 
 interface PersistedHomeworkState {
@@ -526,6 +529,7 @@ export default function HomeworkFlow({
   subject,
   homework,
   onBack,
+  hwId,
 }: HomeworkFlowProps) {
   const palette = subjectTheme(subject)
   const setHomeworkWidgetFeedback = useDashboard(s => s.setHomeworkWidgetFeedback)
@@ -599,10 +603,25 @@ export default function HomeworkFlow({
     setState(current => ({ ...current, hardFiles: [...current.hardFiles, fileName] }))
   }
 
+  async function submitToSupabase(level: 'basic' | 'hard', score: number, comment: string) {
+    if (!hwId) return
+    const session = getStudentSession()
+    if (!session?.id) return
+    await supabase.from('homework_submissions').upsert({
+      hw_id: hwId,
+      student_id: session.id,
+      submitted_at: new Date().toISOString(),
+      verdict: 'pending',
+      score,
+      comment,
+    }, { onConflict: 'hw_id,student_id' })
+  }
+
   const submitHard = () => {
     if (!state.hardDraft.trim()) return
     setState(current => ({ ...current, hardSubmitted: true }))
     setHardCompleted(lessonId)
+    submitToSupabase('hard', 100, state.hardDraft)
     setTimeout(() => setShowResultModal('hard'), 400)
   }
 
@@ -807,7 +826,7 @@ export default function HomeworkFlow({
         style={{
           borderRadius: 32,
           overflow: 'hidden',
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,248,250,0.98))',
+          background: 'rgba(var(--glass-rgb), 0.98)',
           border: '1px solid var(--color-border-glass)',
           boxShadow: '0 24px 80px rgba(17, 12, 34, 0.12)',
         }}
@@ -1013,7 +1032,7 @@ export default function HomeworkFlow({
                     {!state.basicSubmitted && (
                       <motion.button
                         whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
-                        onClick={() => setShowResultModal('basic')}
+                        onClick={() => { submitToSupabase('basic', basicScore, ''); setShowResultModal('basic') }}
                         className="cursor-pointer"
                         style={{
                           padding: '13px 22px', borderRadius: 16, border: 'none',
@@ -1163,7 +1182,7 @@ export default function HomeworkFlow({
                   submitted={state.basicSubmitted}
                   score={basicScore}
                   recommendationScore={homework.recommendationScore}
-                  onSubmit={() => setShowResultModal('basic')}
+                  onSubmit={() => { submitToSupabase('basic', basicScore, ''); setShowResultModal('basic') }}
                 />
               </div>
             </div>

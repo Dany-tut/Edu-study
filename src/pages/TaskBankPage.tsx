@@ -48,12 +48,12 @@ function ScrollFade({ children, maxHeight }: { children: ReactNode; maxHeight: n
       </div>
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, height: 22, pointerEvents: 'none',
-        background: 'linear-gradient(to bottom, rgba(255,255,255,0.98), transparent)',
+        background: 'linear-gradient(to bottom, var(--color-bg), transparent)',
         opacity: edges.top ? 1 : 0, transition: 'opacity 0.18s ease',
       }} />
       <div style={{
         position: 'absolute', bottom: 0, left: 0, right: 0, height: 22, pointerEvents: 'none',
-        background: 'linear-gradient(to top, rgba(255,255,255,0.98), transparent)',
+        background: 'linear-gradient(to top, var(--color-bg), transparent)',
         opacity: edges.bottom ? 1 : 0, transition: 'opacity 0.18s ease',
       }} />
     </div>
@@ -845,14 +845,14 @@ export default function TaskBankPage() {
         className="grid grid-cols-1 lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)] items-stretch"
         style={{
           borderRadius: 32,
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,248,250,0.98))',
+          background: 'rgba(var(--glass-rgb), 0.98)',
           border: '1px solid var(--color-border-glass)',
           boxShadow: '0 24px 80px rgba(17,12,34,0.12)',
           overflow: 'hidden',
         }}
       >
         {/* Left sidebar */}
-        <aside className="flex flex-col" style={{ padding: 16, gap: 16, borderRight: '1px solid var(--color-border-soft)', background: 'linear-gradient(180deg, rgba(250,250,252,0.98), rgba(245,245,247,0.98))' }}>
+        <aside className="flex flex-col" style={{ padding: 16, gap: 16, borderRight: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)' }}>
 
           {/* Subject gradient card — clicking it toggles between biology and chemistry */}
           <div
@@ -882,7 +882,7 @@ export default function TaskBankPage() {
           </div>
 
           {/* Filters card */}
-          <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(255,255,255,0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
+          <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
             <div className="flex items-center" style={{ gap: 7 }}>
               <Filter size={15} style={{ color: palette.text }} />
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Фильтры</span>
@@ -903,7 +903,7 @@ export default function TaskBankPage() {
           </div>
 
           {/* Progress card */}
-          <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(255,255,255,0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
+          <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
             <div className="flex items-center" style={{ gap: 7 }}>
               <Target size={15} style={{ color: palette.text }} />
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Прогресс</span>

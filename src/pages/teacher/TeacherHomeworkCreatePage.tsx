@@ -9,7 +9,8 @@ import {
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
-import { groups, students, courseLessons } from '../../data/teacherMockData'
+import { useGroups, useStudents } from '../../lib/useGroups'
+import { useCourseLessons, type CourseLesson } from '../../lib/useCourseLessons'
 import {
   BIOLOGY_SECTIONS, CHEMISTRY_SECTIONS,
   BIOLOGY_TOPICS, CHEMISTRY_TOPICS,
@@ -673,7 +674,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
                     display: 'flex', alignItems: 'center', gap: 5,
                     padding: '6px 12px', borderRadius: 10, cursor: 'pointer',
                     border: justReplaced ? '1px solid rgba(34,197,94,0.4)' : '1px solid var(--color-border-strong)',
-                    background: justReplaced ? 'var(--color-green-soft)' : '#fff',
+                    background: justReplaced ? 'var(--color-green-soft)' : 'var(--color-surface)',
                     fontSize: 11.5, fontWeight: 700,
                     color: justReplaced ? '#1a7a3f' : '#B03040',
                     fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'all 0.15s',
@@ -1068,7 +1069,7 @@ function HardTaskAccordion({
   const [trainerFilters, setTrainerFilters] = useState<TrainerFilters>({ search: '', subject: '', section: '', topic: '', part: '', line: '', source: '' })
   const [addedIds, setAddedIds] = useState<Set<number>>(new Set())
 
-  const groupStudents = students.filter(s => s.groupId === groupId)
+  const { students: groupStudents } = useStudents(groupId)
 
   function toggleStudent(id: string) {
     setSelectedStudents(prev => {
@@ -1403,6 +1404,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
 function GroupPicker({ value, onChange }: { value: string; onChange: (id: string) => void }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const { groups } = useGroups()
   const selected = groups.find(g => g.id === value) ?? null
 
   useEffect(() => {
@@ -1496,6 +1498,7 @@ function LessonPicker({
   const [query, setQuery] = useState('')
   const [fade, setFade] = useState({ top: 0, bottom: 0 })
   const ref = useRef<HTMLDivElement>(null)
+  const courseLessons = useCourseLessons()
 
   useEffect(() => {
     if (!open) return
@@ -1648,8 +1651,8 @@ function LessonPicker({
               </div>
 
               {/* Edge fades */}
-              <div aria-hidden style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 24, background: 'linear-gradient(to bottom, rgba(255,255,255,0.92), transparent)', opacity: fade.top, transition: 'opacity 0.2s', pointerEvents: 'none', borderRadius: '8px 8px 0 0' }} />
-              <div aria-hidden style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 24, background: 'linear-gradient(to top, rgba(255,255,255,0.92), transparent)', opacity: fade.bottom, transition: 'opacity 0.2s', pointerEvents: 'none', borderRadius: '0 0 8px 8px' }} />
+              <div aria-hidden style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 24, background: 'linear-gradient(to bottom, var(--color-bg-input), transparent)', opacity: fade.top, transition: 'opacity 0.2s', pointerEvents: 'none', borderRadius: '8px 8px 0 0' }} />
+              <div aria-hidden style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 24, background: 'linear-gradient(to top, var(--color-bg-input), transparent)', opacity: fade.bottom, transition: 'opacity 0.2s', pointerEvents: 'none', borderRadius: '0 0 8px 8px' }} />
             </div>
           </motion.div>
         )}
@@ -1659,7 +1662,7 @@ function LessonPicker({
 }
 
 function LessonOption({ lesson, active, suggested, onClick }: {
-  lesson: typeof courseLessons[0]; active: boolean; suggested?: boolean; onClick: () => void
+  lesson: CourseLesson; active: boolean; suggested?: boolean; onClick: () => void
 }) {
   return (
     <button
@@ -1698,7 +1701,7 @@ type Meta = {
 }
 
 function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>) => void }) {
-  const groupStudents = students.filter(s => s.groupId === meta.groupId)
+  const { students: groupStudents } = useStudents(meta.groupId)
 
   return (
     <div style={{
@@ -1793,6 +1796,7 @@ type MainTab = 'compose' | 'trainer' | 'preview'
 export default function TeacherHomeworkCreatePage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const selectedGroupId = useTeacher(s => s.selectedGroupId)
+  const allCourseLessons = useCourseLessons()
 
   const [meta, setMeta] = useState<Meta>({
     // Prefill the group picked on the homework page; empty = assign to all.
@@ -2152,7 +2156,7 @@ export default function TeacherHomeworkCreatePage() {
       {/* Publish with lesson confirmation */}
       <AnimatePresence>
         {showPublishConfirm && (() => {
-          const lesson = courseLessons.find(l => l.id === meta.lessonId)
+          const lesson = allCourseLessons.find(l => l.id === meta.lessonId)
           return (
             <motion.div
               key="publish-confirm"
