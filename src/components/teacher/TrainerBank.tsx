@@ -216,7 +216,7 @@ export function BankQuestionCard({
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
             <CopyableIdBadge id={task.id} />
             <span style={{ padding: '2px 6px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>{task.line} лин.</span>
-            {dirty && <span style={{ padding: '2px 6px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-purple-soft)', color: '#7B3FCC' }}>изм.</span>}
+            {dirty && <span style={{ padding: '2px 6px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' }}>изм.</span>}
           </div>
           <p style={{ flex: 1, minWidth: 0, margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {task.question.split('\n')[0] || <span style={{ color: 'var(--color-text-4)' }}>Без текста</span>}
@@ -246,7 +246,7 @@ export function BankQuestionCard({
               <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>{task.line} линия</span>
               <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
               <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: accentBg, color: accent }}>{computedMax} {plBall(computedMax)}</span>
-              {dirty && <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-purple-soft)', color: '#7B3FCC' }}>изменено</span>}
+              {dirty && <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' }}>изменено</span>}
             </div>
             <p style={{ fontSize: 14.5, lineHeight: 1.4, fontWeight: 650, color: 'var(--color-text)', margin: 0, whiteSpace: 'pre-wrap' }}>
               {question || <span style={{ color: 'var(--color-text-4)' }}>Без текста</span>}
@@ -400,7 +400,7 @@ function BankGridCard({
   const [hovered, setHovered] = useState(false)
   const subjectLabel = task.subject === 'biology' ? 'Биол.' : 'Хим.'
   const subjectBg = task.subject === 'biology' ? 'var(--color-green-soft)' : 'var(--color-purple-soft)'
-  const subjectColor = task.subject === 'biology' ? 'var(--color-green-text)' : '#7B3FCC'
+  const subjectColor = task.subject === 'biology' ? 'var(--color-green-text)' : 'var(--color-purple-text)'
   const showActions = hovered
 
   return (

@@ -13,11 +13,11 @@ type Widget = {
 }
 
 const DEFAULT_WIDGETS: Widget[] = [
-  { id: 'schedule',   label: 'Расписание',       icon: CalendarDays,   bg: 'var(--color-purple-soft)', color: '#6C5CE7', visible: true },
+  { id: 'schedule',   label: 'Расписание',       icon: CalendarDays,   bg: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', visible: true },
   { id: 'homework',   label: 'ДЗ на проверку',   icon: ClipboardCheck, bg: 'var(--color-red-soft)', color: '#C0392B', visible: true },
   { id: 'reminders',  label: 'Напоминания',       icon: Bell,           bg: 'var(--color-peach-soft)', color: '#E67E22', visible: true },
   { id: 'payments',   label: 'Оплата',            icon: CreditCard,     bg: 'var(--color-green-soft)', color: '#1a8a5a', visible: true },
-  { id: 'stats',      label: 'Статистика',        icon: BarChart2,      bg: 'var(--color-purple-soft)', color: '#6C5CE7', visible: false },
+  { id: 'stats',      label: 'Статистика',        icon: BarChart2,      bg: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', visible: false },
   { id: 'students',   label: 'Студенты',          icon: Users,          bg: 'var(--color-blue-pill-bg)', color: '#3B5BDB', visible: false },
   { id: 'lessons',    label: 'Уроки',             icon: BookOpen,       bg: 'var(--color-green-soft)', color: '#1a8a5a', visible: false },
 ]
@@ -166,7 +166,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}
                     >
-                      <Plus size={14} color="#7B3FCC" />
+                      <Plus size={14} color="var(--color-purple-text)" />
                     </button>
                   </motion.div>
                 ))}
