@@ -490,7 +490,6 @@ interface HomeworkFlowProps {
   subject: string
   homework: LessonHomework
   onBack: () => void
-  hwId?: string
 }
 
 interface PersistedHomeworkState {
@@ -529,7 +528,6 @@ export default function HomeworkFlow({
   subject,
   homework,
   onBack,
-  hwId,
 }: HomeworkFlowProps) {
   const palette = subjectTheme(subject)
   const setHomeworkWidgetFeedback = useDashboard(s => s.setHomeworkWidgetFeedback)
@@ -603,18 +601,17 @@ export default function HomeworkFlow({
     setState(current => ({ ...current, hardFiles: [...current.hardFiles, fileName] }))
   }
 
-  async function submitToSupabase(level: 'basic' | 'hard', score: number, comment: string) {
-    if (!hwId) return
+  async function submitToSupabase(_level: 'basic' | 'hard', score: number, comment: string) {
     const session = getStudentSession()
     if (!session?.id) return
-    await supabase.from('homework_submissions').upsert({
-      hw_id: hwId,
+    await supabase.from('lesson_progress').upsert({
       student_id: session.id,
-      submitted_at: new Date().toISOString(),
-      verdict: 'pending',
+      lesson_ref: lessonId,
+      subject,
+      status: 'submitted',
       score,
       comment,
-    }, { onConflict: 'hw_id,student_id' })
+    }, { onConflict: 'student_id,lesson_ref' })
   }
 
   const submitHard = () => {

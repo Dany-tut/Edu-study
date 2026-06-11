@@ -14,6 +14,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { LayoutGroup, motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { findLessonById, getLessonDetail } from '../data/lessonContent'
+import { useStudentPrefsSync } from '../lib/useStudentPrefsSync'
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024)
@@ -27,6 +28,7 @@ function useIsDesktop() {
 }
 
 export default function DashboardPage() {
+  useStudentPrefsSync()
   const isDesktop = useIsDesktop()
   const trackPopoverOpen = useDashboard(s => s.trackPopoverOpen)
   const activePage = useDashboard(s => s.activePage)
