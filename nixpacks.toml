@@ -1,2 +1,2 @@
 [phases.setup]
-aptPkgs = ["openssl", "libssl-dev"]
+aptPkgs = ["openssl", "libssl-dev", "build-essential", "python3", "pkg-config"]
