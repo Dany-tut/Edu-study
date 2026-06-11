@@ -143,8 +143,9 @@ export function mergeSubjectsWithProgress(progress: ProgressMap): Subject[] {
       ...module,
       lessons: module.lessons.map(lesson => {
         const p = progress[lesson.id]
-        if (!p) return lesson
-        return { ...lesson, status: p.status, points: p.score || lesson.points, comment: p.comment || lesson.comment }
+        // No DB record → lesson is locked with no score (ignore mock defaults)
+        if (!p) return { ...lesson, status: 'locked' as LessonStatus, points: undefined, comment: undefined }
+        return { ...lesson, status: p.status, points: p.score > 0 ? p.score : undefined, comment: p.comment || undefined }
       }),
     })),
   }))
