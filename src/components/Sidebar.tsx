@@ -359,7 +359,9 @@ export default function Sidebar() {
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <div ref={avatarRef} style={{ position: 'relative', flexShrink: 0, lineHeight: 0 }}>
           <motion.button
+            whileHover={{ scale: 1.08, filter: 'drop-shadow(0 0 7px rgba(255,255,255,0.35))' }}
             whileTap={{ scale: 0.94 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             onClick={() => {
               // Sound + vibro on opening (and closing — same tick as the widget pill).
               tactile()
@@ -379,9 +381,8 @@ export default function Sidebar() {
               justifyContent: 'center',
               color: '#fff',
               boxShadow: pickerOpen
-                ? 'inset 0 0 0 1px rgba(255,255,255,0.35), 0 0 0 3px rgba(123,63,204,0.35)'
-                : 'inset 0 0 0 1px rgba(255,255,255,0.35)',
-              transition: 'box-shadow 0.15s',
+                ? 'inset 0 0 0 1.5px rgba(255,255,255,0.5), 0 0 14px rgba(255,255,255,0.2)'
+                : 'inset 0 0 0 1px rgba(255,255,255,0.25)',
             }}
             aria-label="Сменить аватар"
             aria-haspopup="menu"
