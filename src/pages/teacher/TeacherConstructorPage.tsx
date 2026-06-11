@@ -717,7 +717,7 @@ function WidgetEditor({
                   border: isActive ? `1.5px solid ${WTYPE_COLOR[wt]}` : '1.5px solid transparent',
                   background: isActive ? WTYPE_BG[wt] : 'var(--color-bg)', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, fontWeight: 600,
-                  color: isActive ? WTYPE_COLOR[wt] : 'var(--color-muted)', transition: 'all 0.15s',
+                  color: isActive ? 'var(--color-purple-text, #E8D0FF)' : 'var(--color-muted)', transition: 'all 0.15s',
                 }}>
                   <WIcon size={13} strokeWidth={2} />
                   {WTYPE_LABEL[wt]}
@@ -1752,7 +1752,7 @@ function CreatorView({
                       border: wType === wt ? `1.5px solid ${WTYPE_COLOR[wt]}` : '1.5px solid transparent',
                       background: wType === wt ? WTYPE_BG[wt] : 'var(--color-bg)', cursor: 'pointer',
                       fontSize: 12, fontWeight: 600,
-                      color: wType === wt ? WTYPE_COLOR[wt] : 'var(--color-muted)', transition: 'all 0.15s',
+                      color: wType === wt ? 'var(--color-purple-text, #E8D0FF)' : 'var(--color-muted)', transition: 'all 0.15s',
                     }}>
                       <WIcon size={13} strokeWidth={2} />{WTYPE_LABEL[wt]}
                     </button>

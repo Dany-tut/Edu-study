@@ -29,7 +29,7 @@ function ShownRow({ id, onHide, disabled }: { id: number; onHide: (id: number) =
         position: 'relative',
         display: 'flex', alignItems: 'center', gap: 12,
         padding: '10px 12px', borderRadius: 14,
-        background: 'var(--color-bg-3)',
+        background: 'var(--color-bg-2)',
         border: '1.5px solid transparent',
         listStyle: 'none',
         userSelect: 'none', WebkitUserSelect: 'none',
@@ -62,7 +62,7 @@ function ShownRow({ id, onHide, disabled }: { id: number; onHide: (id: number) =
           cursor: disabled ? 'not-allowed' : 'pointer',
           opacity: disabled ? 0.35 : 1,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'var(--color-bg-3)', color: 'var(--color-muted)',
+          background: 'var(--color-bg-2)', color: 'var(--color-muted)',
         }}
       >
         <Minus size={16} />
@@ -179,7 +179,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                       style={{
                         display: 'flex', alignItems: 'center', gap: 12,
                         padding: '10px 12px', borderRadius: 14,
-                        background: 'var(--color-bg-3)', border: '1px dashed var(--color-text-4)',
+                        background: 'var(--color-bg-2)', border: '1px dashed var(--color-text-4)',
                       }}
                     >
                       <span
