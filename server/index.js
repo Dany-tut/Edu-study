@@ -15,6 +15,9 @@ const PORT = process.env.PORT || 3001
 app.use(cors())
 app.use(express.json())
 
+// Health check
+app.get('/api/health', (_req, res) => res.json({ status: 'ok' }))
+
 // API routes
 app.use('/api', lessonsRouter)
 app.use('/api/homework', homeworkRouter)
