@@ -8,8 +8,6 @@ import { IconMissedLesson } from './icons'
 import { useDashboard } from '../store/dashboardStore'
 import { PURPLE, subjectTheme } from '../lib/theme'
 import { useNow, lessonTimeState } from '../lib/useNow'
-import LiquidGlass from 'liquid-glass-react'
-import { useTheme } from '../store/themeStore'
 
 interface Props {
   day: ScheduleDay
@@ -19,7 +17,6 @@ interface Props {
 }
 
 export default function ScheduleCard({ day, isCenter, distance, onClick }: Props) {
-  const { dark } = useTheme()
   const openLesson = useDashboard(s => s.openLesson)
   const openCourses = useDashboard(s => s.openCourses)
   const setActiveSubject = useDashboard(s => s.setActiveSubject)
@@ -103,15 +100,16 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
       style={{ width: isCenter ? 480 : distance === 1 ? 160 : distance === 2 ? 130 : 110 }}
     >
       {isCenter ? (
-        <LiquidGlass
-          cornerRadius={28}
-          padding="16px"
-          displacementScale={60}
-          blurAmount={0.07}
-          aberrationIntensity={2}
-          elasticity={0.2}
-          overLight={!dark}
-          style={{ width: '100%', height: '100%' }}
+        <div
+          className="w-full h-full rounded-[28px]"
+          style={{
+            padding: '16px',
+            background: 'rgba(var(--glass-rgb), 0.85)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            border: '1px solid var(--color-border-glass)',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+          }}
         >
           {dateHeader(13, 10)}
           <div className="flex flex-col" style={{ gap: 10 }}>
@@ -203,7 +201,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
               </div>
             )}
           </div>
-        </LiquidGlass>
+        </div>
       ) : (
         <div
           className="w-full h-full rounded-[28px]"

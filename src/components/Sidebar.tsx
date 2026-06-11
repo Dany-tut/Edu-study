@@ -14,7 +14,6 @@ import { useDashboard, type WidgetColumns } from '../store/dashboardStore'
 import WidgetOrderModal from './WidgetOrderModal'
 import { useTheme } from '../store/themeStore'
 import { useStudentData } from '../store/studentDataStore'
-import { useLiquidGlass } from '../lib/useLiquidGlass'
 
 const navItems = [
   { id: 'home',    label: 'Главная',  icon: Home },
@@ -328,13 +327,9 @@ export default function Sidebar() {
 
   const avatar = AVATARS.find(a => a.id === avatarId) ?? AVATARS[0]
 
-  const { glassRef, filterStyle } = useLiquidGlass({ cornerRadius: 32, scale: 28 })
-
-  // Share the bar element between barRef (layout logic) and glassRef (liquid glass)
   const barCallbackRef = useCallback((el: HTMLDivElement | null) => {
     barRef.current = el
-    glassRef.current = el
-  }, [glassRef])
+  }, [])
 
   return (
     <>
@@ -352,7 +347,6 @@ export default function Sidebar() {
         backdropFilter: 'blur(14px) saturate(180%)',
         WebkitBackdropFilter: 'blur(14px) saturate(180%)',
         boxShadow: contrasty ? 'var(--shadow-bar-hi)' : 'var(--shadow-bar)',
-        filter: filterStyle,
         transition: 'background 0.3s ease, box-shadow 0.3s ease',
         display: 'flex',
         flexDirection: 'row',
