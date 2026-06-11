@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import DashboardPage from './pages/DashboardPage'
 import TeacherDashboardPage from './pages/teacher/TeacherDashboardPage'
 import TeacherLoginPage from './pages/teacher/TeacherLoginPage'
+import JoinPage from './pages/JoinPage'
 import { supabase } from './lib/supabase'
 import type { Session } from '@supabase/supabase-js'
 
@@ -24,6 +25,8 @@ export default function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
     return () => subscription.unsubscribe()
   }, [])
+
+  if (hash.startsWith('#/join')) return <JoinPage />
 
   if (hash === '#/teacher') {
     if (session === undefined) return null // loading

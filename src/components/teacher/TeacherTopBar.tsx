@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, Users, ClipboardList, BookOpen, Layers,
   Bell, ChevronLeft, ChevronRight,
-  Plus, UserPlus, Send, CheckSquare, LayoutDashboard, type LucideIcon,
+  Plus, UserPlus, Send, CheckSquare, LayoutDashboard, LogOut, type LucideIcon,
 } from 'lucide-react'
 import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
@@ -10,6 +10,7 @@ import { pendingHomework, getTotalPendingHw } from '../../data/teacherMockData'
 import { useTeacher, type TeacherPage } from '../../store/teacherStore'
 import CreateTaskModal from './CreateTaskModal'
 import WidgetsModal from './WidgetsModal'
+import { supabase } from '../../lib/supabase'
 
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
   { id: 'home',        label: 'Главная',     icon: Home },
@@ -38,6 +39,8 @@ const quickActions: QuickItem[] = [
   { icon: Send,             label: 'Пуш / СМС',         sub: 'уведомление',      color: '#8B4900', bg: '#FFE4BD' },
   { type: 'separator' },
   { icon: LayoutDashboard,  label: 'Настроить виджеты', sub: 'как у учеников',   color: '#7B3FCC', bg: '#EEDBFF', action: 'widgets' },
+  { type: 'separator' },
+  { icon: LogOut,           label: 'Выйти',             sub: 'из аккаунта',      color: '#A8282D', bg: '#FFE1E4', action: 'logout' },
 ]
 
 export default function TeacherTopBar() {
@@ -208,6 +211,21 @@ export default function TeacherTopBar() {
           </motion.span>
         </motion.button>
 
+        {/* Logout */}
+        <motion.button
+          whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.96 }}
+          onClick={() => supabase.auth.signOut()}
+          aria-label="Выйти"
+          title="Выйти"
+          style={{
+            width: 32, height: 32, borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', color: '#6F6F76', background: 'none', border: 'none',
+          }}
+        >
+          <LogOut size={15} />
+        </motion.button>
+
         {/* Collapse */}
         <motion.button
           whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.96 }}
@@ -260,6 +278,7 @@ export default function TeacherTopBar() {
                     if (action.action === 'create-task') { setTaskModalOpen(true) }
                     if (action.action === 'widgets') { setWidgetsOpen(true) }
                     if (action.action === 'create-course') { openConstructor('course') }
+                    if (action.action === 'logout') { supabase.auth.signOut() }
                     if (action.action === 'create-group') {
                       setActivePage('groups')
                       setTimeout(() => window.dispatchEvent(new CustomEvent('teacher:open-add-group')), 80)

@@ -2,12 +2,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, BookOpen, Dumbbell, Bell, ChevronLeft, ChevronRight,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star,
-  Settings, LayoutGrid, ArrowUpDown, GraduationCap,
+  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut,
   type LucideIcon,
 } from 'lucide-react'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { student, scheduleTodayIndex } from '../data/mockData'
+import { supabase } from '../lib/supabase'
 import { playTransitionDrop } from '../lib/sound'
 import { tactile } from '../lib/feedback'
 import { useDashboard, type WidgetColumns } from '../store/dashboardStore'
@@ -464,6 +465,12 @@ export default function Sidebar() {
                       label="Настройки"
                       active={menuView !== 'root'}
                       onClick={() => setMenuView(menuView === 'root' ? 'settings' : 'root')}
+                    />
+                    <div style={{ height: 1, background: 'rgba(0,0,0,0.1)', margin: '6px -2px' }} />
+                    <SettingsRow
+                      icon={LogOut}
+                      label="Выйти"
+                      onClick={() => { supabase.auth.signOut(); closePicker() }}
                     />
                   </div>
 

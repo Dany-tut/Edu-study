@@ -99,6 +99,7 @@ export function useStudents(groupId: string | null) {
         paymentAmount: s.payment_amount ?? 0,
         lastPayment: s.last_payment ?? '',
         debt: s.debt ?? 0,
+        inviteToken: s.invite_token ?? null,
       })))
     }
     setLoading(false)
@@ -107,7 +108,7 @@ export function useStudents(groupId: string | null) {
   useEffect(() => { load() }, [groupId])
 
   async function addStudent(s: Partial<Student>) {
-    const { error } = await supabase.from('students').insert({
+    const { data, error } = await supabase.from('students').insert({
       group_id: groupId,
       name: s.name ?? '',
       phone: s.phone ?? '',
@@ -119,9 +120,9 @@ export function useStudents(groupId: string | null) {
       payment_due: s.paymentDue || null,
       payment_amount: s.paymentAmount ?? 0,
       debt: s.debt ?? 0,
-    })
+    }).select('invite_token').single()
     if (!error) await load()
-    return { error }
+    return { error, inviteToken: data?.invite_token as string | null }
   }
 
   async function deleteStudent(id: string) {

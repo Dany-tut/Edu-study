@@ -138,7 +138,7 @@ function AddGroupModal({ onClose, onSave }: {
 // ─── Модалка добавления ученика ───────────────────────────────────────────────
 function AddStudentModal({ onClose, onSave }: {
   onClose: () => void
-  onSave: (s: { name: string; phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number }) => Promise<void>
+  onSave: (s: { name: string; phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number }) => Promise<{ inviteToken: string | null }>
 }) {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -147,12 +147,26 @@ function AddStudentModal({ onClose, onSave }: {
   const [desiredScore, setDesiredScore] = useState(80)
   const [paymentAmount, setPaymentAmount] = useState(0)
   const [saving, setSaving] = useState(false)
+  const [inviteLink, setInviteLink] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   async function handleSave() {
     if (!name.trim()) return
     setSaving(true)
-    await onSave({ name: name.trim(), phone, telegramLink: telegram, parentContact: parent, desiredScore, paymentAmount })
-    onClose()
+    const { inviteToken } = await onSave({ name: name.trim(), phone, telegramLink: telegram, parentContact: parent, desiredScore, paymentAmount })
+    setSaving(false)
+    if (inviteToken) {
+      setInviteLink(`${window.location.origin}${window.location.pathname}#/join?token=${inviteToken}`)
+    } else {
+      onClose()
+    }
+  }
+
+  function copyLink() {
+    if (!inviteLink) return
+    navigator.clipboard.writeText(inviteLink)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   return (
@@ -174,10 +188,44 @@ function AddStudentModal({ onClose, onSave }: {
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <span style={{ fontSize: 16, fontWeight: 700 }}>Новый ученик</span>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>{inviteLink ? 'Ученик добавлен' : 'Новый ученик'}</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
         </div>
 
+        {inviteLink ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ background: '#F5F5F7', borderRadius: 14, padding: '14px 16px' }}>
+              <div style={{ fontSize: 12, color: '#6F6F76', marginBottom: 6, fontWeight: 600 }}>ССЫЛКА ДЛЯ РЕГИСТРАЦИИ</div>
+              <div style={{ fontSize: 13, color: '#0B0B0D', wordBreak: 'break-all', lineHeight: 1.5 }}>{inviteLink}</div>
+            </div>
+            <p style={{ fontSize: 13, color: '#6F6F76', margin: 0 }}>
+              Отправьте эту ссылку ученику — он перейдёт по ней и создаст свой аккаунт.
+            </p>
+            <button
+              onClick={copyLink}
+              style={{
+                width: '100%', padding: '12px 0',
+                background: copied ? '#3FCC8A' : '#9B6DFF',
+                color: '#fff', fontWeight: 700, fontSize: 15,
+                border: 'none', borderRadius: 14, cursor: 'pointer',
+                transition: 'background 0.2s',
+              }}
+            >
+              {copied ? '✓ Скопировано' : 'Скопировать ссылку'}
+            </button>
+            <button
+              onClick={onClose}
+              style={{
+                width: '100%', padding: '10px 0',
+                background: 'transparent', color: '#6F6F76', fontWeight: 600, fontSize: 14,
+                border: 'none', cursor: 'pointer',
+              }}
+            >
+              Закрыть
+            </button>
+          </div>
+        ) : (
+          <>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <label style={labelStyle}>
             Имя *
@@ -224,6 +272,8 @@ function AddStudentModal({ onClose, onSave }: {
         >
           {saving ? 'Сохранение...' : 'Добавить ученика'}
         </button>
+          </>
+        )}
       </motion.div>
     </div>
   )
@@ -1085,7 +1135,7 @@ export default function TeacherGroupsPage() {
         {showAddStudent && selectedGroupId && (
           <AddStudentModal
             onClose={() => setShowAddStudent(false)}
-            onSave={async (s) => { await addStudent(s) }}
+            onSave={async (s) => { const { inviteToken } = await addStudent(s); return { inviteToken: inviteToken ?? null } }}
           />
         )}
       </AnimatePresence>
