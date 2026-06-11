@@ -111,7 +111,7 @@ const navBtnStyle: React.CSSProperties = {
   width: 26, height: 26, borderRadius: 8, border: 'none',
   background: '#F7F5FC', cursor: 'pointer',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
-  color: '#6F6F76',
+  color: 'var(--color-muted)',
 }
 
 function CalendarPicker({ value, onChange, onClose }: { value: string; onChange: (v: string) => void; onClose: () => void }) {
@@ -154,7 +154,7 @@ function CalendarPicker({ value, onChange, onClose }: { value: string; onChange:
       transition={{ duration: 0.15 }}
       style={{
         position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 100,
-        background: '#fff',
+        background: 'var(--color-bg-input)',
         border: '1.5px solid #EDEAF5',
         borderRadius: 16,
         boxShadow: '0 12px 40px rgba(0,0,0,0.14)',
@@ -165,7 +165,7 @@ function CalendarPicker({ value, onChange, onClose }: { value: string; onChange:
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <button onClick={prevMonth} style={navBtnStyle}><ChevronLeft size={14} strokeWidth={2.2} /></button>
-        <span style={{ fontSize: 13, fontWeight: 700, color: '#0B0B0D' }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
           {RU_MONTHS[viewMonth]} {viewYear}
         </span>
         <button onClick={nextMonth} style={navBtnStyle}><ChevronRight size={14} strokeWidth={2.2} /></button>
@@ -190,7 +190,7 @@ function CalendarPicker({ value, onChange, onClose }: { value: string; onChange:
                 width: 30, height: 30, borderRadius: 8, border: 'none',
                 cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500,
                 background: sel ? '#7B3FCC' : tod ? '#F0E8FF' : 'transparent',
-                color: sel ? '#fff' : tod ? '#7B3FCC' : '#0B0B0D',
+                color: sel ? '#fff' : tod ? '#7B3FCC' : 'var(--color-text)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'background 0.1s',
               }}
@@ -238,7 +238,7 @@ function TimePicker({ value, onChange, onClose }: { value: string; onChange: (v:
       transition={{ duration: 0.15 }}
       style={{
         position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 100,
-        background: '#fff',
+        background: 'var(--color-bg-input)',
         border: '1.5px solid #EDEAF5',
         borderRadius: 14,
         boxShadow: '0 12px 40px rgba(0,0,0,0.14)',
@@ -270,7 +270,7 @@ function TimePicker({ value, onChange, onClose }: { value: string; onChange: (v:
               style={{
                 width: '100%', border: 'none',
                 background: active ? '#7B3FCC' : 'transparent',
-                color: active ? '#fff' : '#0B0B0D',
+                color: active ? '#fff' : 'var(--color-text)',
                 padding: '7px 10px', textAlign: 'left',
                 fontSize: 13, fontWeight: active ? 700 : 500,
                 cursor: 'pointer', display: 'block',
@@ -466,9 +466,9 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
           onClick={e => e.stopPropagation()}
           style={{
             width: 480, borderRadius: 26,
-            background: 'rgba(255,255,255,0.96)',
+            background: 'rgba(var(--glass-rgb), 0.96)',
             backdropFilter: 'blur(24px) saturate(200%)',
-            border: '1px solid rgba(255,255,255,0.9)',
+            border: '1px solid var(--color-border-glass)',
             boxShadow: '0 24px 72px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,1)',
             overflow: 'visible',
           }}
@@ -478,14 +478,14 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '18px 20px 0',
           }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: '#0B0B0D' }}>{initialTask ? 'Редактировать' : 'Новая задача'}</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{initialTask ? 'Редактировать' : 'Новая задача'}</span>
             <button
               onClick={onClose}
               style={{
                 width: 28, height: 28, borderRadius: '50%',
                 background: '#F4F2F8', border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#6F6F76',
+                color: 'var(--color-muted)',
               }}
             >
               <X size={14} strokeWidth={2.2} />
@@ -524,7 +524,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                         userSelect: 'none', whiteSpace: 'nowrap',
                       }}
                     >
-                      <span style={{ color: '#0B0B0D' }}>{titleText}</span>
+                      <span style={{ color: 'var(--color-text)' }}>{titleText}</span>
                       <span style={{ color: '#C8C0E0' }}>
                         {suggestion.label.slice(titleText.length)}
                       </span>
@@ -540,8 +540,8 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                       width: '100%', border: 'none', outline: 'none',
                       background: 'transparent',
                       fontSize: 15, fontWeight: 500,
-                      color: suggestion ? 'transparent' : '#0B0B0D',
-                      caretColor: '#0B0B0D',
+                      color: suggestion ? 'transparent' : 'var(--color-text)',
+                      caretColor: 'var(--color-text)',
                       lineHeight: '22px',
                     }}
                   />
@@ -559,7 +559,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                     style={{
                       position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10,
                       marginTop: 6,
-                      background: 'rgba(255,255,255,0.98)',
+                      background: 'rgba(var(--glass-rgb), 0.98)',
                       border: '1px solid rgba(196,176,240,0.5)',
                       borderRadius: 14,
                       boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
@@ -588,7 +588,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                           {ent.kind === 'group' ? '👥' : ent.label.split(' ').map((w: string) => w[0]).slice(0,2).join('')}
                         </div>
                         <div>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: '#0B0B0D' }}>{ent.label}</div>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{ent.label}</div>
                           <div style={{ fontSize: 11, color: '#9090A0', marginTop: 1 }}>{ent.sub}</div>
                         </div>
                       </button>
@@ -610,7 +610,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                       padding: '5px 12px', borderRadius: 20, cursor: 'pointer',
                       fontSize: 12, fontWeight: 650,
                       background: active ? t.bg : '#F4F2F8',
-                      color: active ? t.textColor : '#6F6F76',
+                      color: active ? t.textColor : 'var(--color-muted)',
                       border: active ? `1.5px solid ${t.color}44` : '1.5px solid transparent',
                       transition: 'all 0.15s',
                     }}
@@ -637,7 +637,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                   style={{
                     padding: '9px 12px', borderRadius: 12,
                     border: `1.5px solid ${showCalendar ? '#C4B0F0' : '#EDEAF5'}`,
-                    background: '#F7F5FC', fontSize: 14, fontWeight: 500, color: '#0B0B0D',
+                    background: '#F7F5FC', fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
                     cursor: 'pointer', textAlign: 'left', width: '100%',
                     transition: 'border-color 0.15s',
                   }}
@@ -666,7 +666,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                   style={{
                     padding: '9px 12px', borderRadius: 12,
                     border: `1.5px solid ${showTimePicker ? '#C4B0F0' : '#EDEAF5'}`,
-                    background: '#F7F5FC', fontSize: 14, fontWeight: 500, color: '#0B0B0D',
+                    background: '#F7F5FC', fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
                     cursor: 'pointer', textAlign: 'left', width: '100%',
                     transition: 'border-color 0.15s',
                   }}
@@ -698,7 +698,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                 rows={2}
                 style={{
                   padding: '9px 12px', borderRadius: 12, border: '1.5px solid #EDEAF5',
-                  background: '#F7F5FC', fontSize: 14, color: '#0B0B0D',
+                  background: '#F7F5FC', fontSize: 14, color: 'var(--color-text)',
                   outline: 'none', width: '100%', boxSizing: 'border-box',
                   resize: 'none', fontFamily: 'inherit', lineHeight: 1.5,
                 }}
@@ -714,7 +714,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                 style={{
                   flex: 1, padding: '11px 0', borderRadius: 14,
                   border: '1.5px solid #E8E4F0', background: 'transparent',
-                  fontSize: 14, fontWeight: 600, color: '#6F6F76', cursor: 'pointer',
+                  fontSize: 14, fontWeight: 600, color: 'var(--color-muted)', cursor: 'pointer',
                 }}
               >
                 Отмена

@@ -30,19 +30,19 @@ const STATUS_LABEL: Record<string, string> = {
   done: 'Проверено', reviewing: 'На проверке', waiting: 'Ожидание', overdue: 'Просрочено',
 }
 const STATUS_COLOR: Record<string, string> = {
-  done: '#1a7a3f', reviewing: '#8B4900', waiting: '#6F6F76', overdue: '#c0303a',
+  done: '#1a7a3f', reviewing: '#8B4900', waiting: 'var(--color-muted)', overdue: '#c0303a',
 }
 const STATUS_BG: Record<string, string> = {
-  done: '#DFF8D6', reviewing: '#FFE4BD', waiting: '#F5F5F6', overdue: '#FFE1E4',
+  done: 'var(--color-green-soft)', reviewing: 'var(--color-peach-soft)', waiting: 'var(--color-bg)', overdue: 'var(--color-red-soft)',
 }
 
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
     <div style={{
-      background: 'rgba(255,255,255,0.88)',
+      background: 'rgba(var(--glass-rgb), 0.88)',
       backdropFilter: 'blur(16px) saturate(180%)',
       WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-      border: '1px solid rgba(255,255,255,0.9)',
+      border: '1px solid var(--color-border-glass)',
       borderRadius: 22,
       boxShadow: '0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.95)',
       ...style,
@@ -75,10 +75,10 @@ function AssignForm({ onClose }: { onClose: () => void }) {
     <div
       style={{
         width: 332, flexShrink: 0, flex: 1, minHeight: 0,
-        background: 'rgba(255,255,255,0.96)',
+        background: 'rgba(var(--glass-rgb), 0.96)',
         backdropFilter: 'blur(20px) saturate(180%)',
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        border: '1px solid rgba(0,0,0,0.07)',
+        border: '1px solid var(--color-border)',
         borderRadius: 20,
         margin: '36px 12px 12px 0',
         display: 'flex', flexDirection: 'column',
@@ -89,14 +89,14 @@ function AssignForm({ onClose }: { onClose: () => void }) {
       {/* Header */}
       <div style={{
         padding: '20px 20px 16px', flexShrink: 0,
-        borderBottom: '1px solid rgba(0,0,0,0.06)',
+        borderBottom: '1px solid var(--color-border-soft)',
         borderTopLeftRadius: 19, borderTopRightRadius: 19,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: '#0B0B0D' }}>Выдать домашнее задание</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>Выдать домашнее задание</div>
         <button onClick={onClose} style={{
           width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer',
-          background: 'rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6F6F76',
+          background: 'rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)',
         }}>
           <X size={14} />
         </button>
@@ -108,11 +108,11 @@ function AssignForm({ onClose }: { onClose: () => void }) {
           animate={{ opacity: 1, scale: 1 }}
           style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}
         >
-          <div style={{ width: 56, height: 56, borderRadius: 20, background: '#DFF8D6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 56, height: 56, borderRadius: 20, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <CheckCircle2 size={28} strokeWidth={2} style={{ color: '#1a7a3f' }} />
           </div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: '#0B0B0D' }}>ДЗ выдано!</div>
-          <div style={{ fontSize: 12, color: '#6F6F76', textAlign: 'center' }}>Уведомление отправлено студентам</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>ДЗ выдано!</div>
+          <div style={{ fontSize: 12, color: 'var(--color-muted)', textAlign: 'center' }}>Уведомление отправлено студентам</div>
         </motion.div>
       ) : (
         <form onSubmit={handleSubmit} style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -129,8 +129,8 @@ function AssignForm({ onClose }: { onClose: () => void }) {
                   style={{
                     flex: 1, padding: '8px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
                     fontSize: 12, fontWeight: 600,
-                    background: assignTo === mode ? '#EEDBFF' : '#F5F5F6',
-                    color: assignTo === mode ? '#7B3FCC' : '#6F6F76',
+                    background: assignTo === mode ? 'var(--color-purple-soft)' : 'var(--color-bg)',
+                    color: assignTo === mode ? '#7B3FCC' : 'var(--color-muted)',
                     transition: 'all 0.15s',
                   }}
                 >
@@ -217,15 +217,15 @@ function AssignForm({ onClose }: { onClose: () => void }) {
 }
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <div style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.4, marginBottom: 4 }}>{children}</div>
+  return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 4 }}>{children}</div>
 }
 
 const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
   padding: '10px 12px', borderRadius: 12,
   border: '1.5px solid rgba(0,0,0,0.1)',
-  fontSize: 13, color: '#0B0B0D',
-  background: '#F9F9FB',
+  fontSize: 13, color: 'var(--color-text)',
+  background: 'var(--color-bg-2)',
   outline: 'none',
   fontFamily: 'inherit',
 }
@@ -246,7 +246,7 @@ function HwRow({ hw, index, isSelected, onClick }: {
       onClick={onClick}
       style={{
         cursor: 'pointer',
-        background: isSelected ? '#EEDBFF' : 'transparent',
+        background: isSelected ? 'var(--color-purple-soft)' : 'transparent',
         borderLeft: isSelected ? '3px solid #7B3FCC' : '3px solid transparent',
         transition: 'background 0.15s',
       }}
@@ -257,24 +257,24 @@ function HwRow({ hw, index, isSelected, onClick }: {
       <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)', whiteSpace: 'nowrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: hw.color, flexShrink: 0 }} />
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#0B0B0D' }}>{hw.groupName}</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{hw.groupName}</span>
         </div>
       </td>
 
       {/* Title */}
       <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)', maxWidth: 260 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#0B0B0D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {hw.title}
         </div>
       </td>
 
       {/* Assigned */}
-      <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)', fontSize: 12, color: '#9A9AA2', whiteSpace: 'nowrap' }}>
+      <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)', fontSize: 12, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
         {hw.assignedAt}
       </td>
 
       {/* Due */}
-      <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)', fontSize: 12, color: '#6F6F76', whiteSpace: 'nowrap' }}>
+      <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)', fontSize: 12, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
         {hw.dueDate}
       </td>
 
@@ -284,7 +284,7 @@ function HwRow({ hw, index, isSelected, onClick }: {
           <div style={{ flex: 1, height: 6, background: 'rgba(0,0,0,0.07)', borderRadius: 99, overflow: 'hidden', minWidth: 60 }}>
             <div style={{ height: '100%', width: `${submittedPct}%`, background: '#9B6DFF', borderRadius: 99, transition: 'width 0.5s' }} />
           </div>
-          <span style={{ fontSize: 11, fontWeight: 700, color: '#6F6F76', flexShrink: 0 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', flexShrink: 0 }}>
             {hw.submittedCount}/{hw.totalCount}
           </span>
         </div>
@@ -296,7 +296,7 @@ function HwRow({ hw, index, isSelected, onClick }: {
           <div style={{ flex: 1, height: 6, background: 'rgba(0,0,0,0.07)', borderRadius: 99, overflow: 'hidden', minWidth: 60 }}>
             <div style={{ height: '100%', width: `${reviewedPct}%`, background: '#1a7a3f', borderRadius: 99, transition: 'width 0.5s' }} />
           </div>
-          <span style={{ fontSize: 11, fontWeight: 700, color: '#6F6F76', flexShrink: 0 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', flexShrink: 0 }}>
             {hw.reviewedCount}/{hw.submittedCount || 0}
           </span>
         </div>
@@ -329,10 +329,10 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
     <div
       style={{
         width: 332, flexShrink: 0, flex: 1, minHeight: 0,
-        background: 'rgba(255,255,255,0.96)',
+        background: 'rgba(var(--glass-rgb), 0.96)',
         backdropFilter: 'blur(20px) saturate(180%)',
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        border: '1px solid rgba(0,0,0,0.07)',
+        border: '1px solid var(--color-border)',
         borderRadius: 20,
         margin: '36px 12px 12px 0',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
@@ -342,15 +342,15 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
       <div style={{ padding: '18px 18px 14px', background: group.colorSoft, borderBottom: `1px solid ${group.color}33`, flexShrink: 0, borderTopLeftRadius: 19, borderTopRightRadius: 19 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#0B0B0D', lineHeight: 1.3, marginBottom: 6 }}>{hw.title}</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 6 }}>{hw.title}</div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: group.color + '33', borderRadius: 7, padding: '2px 8px' }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#0B0B0D' }}>{hw.groupName}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{hw.groupName}</span>
             </div>
           </div>
           <button onClick={onClose} style={{
             width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer',
-            background: 'rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6F6F76', flexShrink: 0,
+            background: 'rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', flexShrink: 0,
           }}>
             <X size={13} />
           </button>
@@ -361,14 +361,14 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {[
-            { label: 'Назначено', value: hw.assignedAt, icon: Clock, color: '#6F6F76', bg: '#F5F5F6' },
-            { label: 'Дедлайн', value: hw.dueDate, icon: AlertCircle, color: '#8B4900', bg: '#FFE4BD' },
-            { label: 'Сдали', value: `${hw.submittedCount}/${hw.totalCount}`, icon: ClipboardCheck, color: '#7B3FCC', bg: '#EEDBFF' },
-            { label: 'Проверено', value: `${hw.reviewedCount}/${hw.submittedCount}`, icon: CheckCircle2, color: '#1a7a3f', bg: '#DFF8D6' },
+            { label: 'Назначено', value: hw.assignedAt, icon: Clock, color: 'var(--color-muted)', bg: 'var(--color-bg)' },
+            { label: 'Дедлайн', value: hw.dueDate, icon: AlertCircle, color: '#8B4900', bg: 'var(--color-peach-soft)' },
+            { label: 'Сдали', value: `${hw.submittedCount}/${hw.totalCount}`, icon: ClipboardCheck, color: '#7B3FCC', bg: 'var(--color-purple-soft)' },
+            { label: 'Проверено', value: `${hw.reviewedCount}/${hw.submittedCount}`, icon: CheckCircle2, color: '#1a7a3f', bg: 'var(--color-green-soft)' },
           ].map(item => (
             <div key={item.label} style={{ background: item.bg, borderRadius: 12, padding: '10px 12px' }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: item.color, marginBottom: 4 }}>{item.label}</div>
-              <div style={{ fontSize: 16, fontWeight: 750, color: '#0B0B0D' }}>{item.value}</div>
+              <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)' }}>{item.value}</div>
             </div>
           ))}
         </div>
@@ -396,7 +396,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
 
         {/* Student list */}
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.4, marginBottom: 8, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 8, textTransform: 'uppercase' }}>
             Студенты
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -410,7 +410,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
                 <div key={s.id} style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   padding: '7px 10px', borderRadius: 10,
-                  background: returned ? '#FFF3E4' : reviewed ? '#EEFAE9' : submitted ? '#F6EFFD' : '#F5F5F6',
+                  background: returned ? '#FFF3E4' : reviewed ? '#EEFAE9' : submitted ? '#F6EFFD' : 'var(--color-bg)',
                 }}>
                   <div style={{
                     width: 26, height: 26, borderRadius: 8, flexShrink: 0,
@@ -420,7 +420,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
                   }}>
                     {initials}
                   </div>
-                  <span style={{ flex: 1, fontSize: 12, color: '#0B0B0D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span style={{ flex: 1, fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {s.name}
                   </span>
                   {/* Two-status icons: submitted + reviewed */}
@@ -429,19 +429,19 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
                     <div title={submitted ? 'Сдал' : 'Не сдал'} style={{
                       width: 22, height: 22, borderRadius: 7, flexShrink: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: submitted ? '#EEDBFF' : 'rgba(0,0,0,0.04)',
+                      background: submitted ? 'var(--color-purple-soft)' : 'rgba(0,0,0,0.04)',
                     }}>
-                      <ClipboardCheck size={12} strokeWidth={2.2} style={{ color: submitted ? '#7B3FCC' : '#C2C2C8' }} />
+                      <ClipboardCheck size={12} strokeWidth={2.2} style={{ color: submitted ? '#7B3FCC' : 'var(--color-text-4)' }} />
                     </div>
                     {/* Reviewed by teacher */}
                     <div title={returned ? 'На доработку' : reviewed ? 'Проверено' : 'Не проверено'} style={{
                       width: 22, height: 22, borderRadius: 7, flexShrink: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: returned ? '#FFE4BD' : reviewed ? '#DFF8D6' : 'rgba(0,0,0,0.04)',
+                      background: returned ? 'var(--color-peach-soft)' : reviewed ? 'var(--color-green-soft)' : 'rgba(0,0,0,0.04)',
                     }}>
                       {returned
                         ? <Clock size={12} strokeWidth={2.2} style={{ color: '#8B4900' }} />
-                        : <CheckCircle2 size={12} strokeWidth={2.2} style={{ color: reviewed ? '#1a7a3f' : '#C2C2C8' }} />
+                        : <CheckCircle2 size={12} strokeWidth={2.2} style={{ color: reviewed ? '#1a7a3f' : 'var(--color-text-4)' }} />
                       }
                     </div>
                   </div>
@@ -528,9 +528,9 @@ export default function TeacherHomeworkPage() {
                     {['Группа', 'Задание', 'Назначено', 'Дедлайн', 'Сдано', 'Проверено', 'Статус'].map(col => (
                       <th key={col} style={{
                         padding: '10px 16px', textAlign: 'left',
-                        fontSize: 11, fontWeight: 700, color: '#9A9AA2',
+                        fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)',
                         letterSpacing: 0.3, whiteSpace: 'nowrap',
-                        borderBottom: '1px solid rgba(0,0,0,0.06)',
+                        borderBottom: '1px solid var(--color-border-soft)',
                       }}>
                         {col}
                       </th>

@@ -5,7 +5,7 @@ import { groups, type Group } from '../../data/teacherMockData'
 
 // Page background the strip sits on — used to back the pinned card so its
 // rounded corners always read against the page, never a card sliding underneath.
-const PAGE_BG = '#F5F5F6'
+const PAGE_BG = 'var(--color-bg)'
 const CARD_W = 190
 const CARD_H = 88
 const GAP = 14
@@ -36,7 +36,7 @@ function ActionCard({
     >
       <div style={{
         width: 32, height: 32, borderRadius: 10,
-        background: 'rgba(255,255,255,0.22)',
+        background: 'rgba(var(--glass-rgb), 0.22)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <Icon size={17} strokeWidth={2.4} />
@@ -59,7 +59,7 @@ function GroupMiniCard({
         width: CARD_W, height: CARD_H, boxSizing: 'border-box', flex: '0 0 auto',
         display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
         background: isActive ? `${group.color}14` : '#fff',
-        border: isActive ? `1.5px solid ${group.color}` : '1px solid rgba(0,0,0,0.06)',
+        border: isActive ? `1.5px solid ${group.color}` : '1px solid var(--color-border-soft)',
         borderRadius: 18, cursor: 'pointer', userSelect: 'none',
         padding: '14px 16px',
         boxShadow: isActive
@@ -76,12 +76,12 @@ function GroupMiniCard({
         }}>
           {group.level}
         </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#6F6F76' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-muted)' }}>
           <Users size={13} strokeWidth={1.8} />
           <span style={{ fontSize: 12, fontWeight: 600 }}>{group.studentCount}</span>
         </div>
       </div>
-      <div style={{ fontSize: 14, fontWeight: 700, color: '#0B0B0D', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {group.name}
       </div>
     </motion.div>

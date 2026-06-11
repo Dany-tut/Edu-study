@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import { courseReactions, findChemistryLessonByTitle, resolveScheduleLesson, scheduleTodayIndex, subjects, type ScheduleLesson } from '../data/mockData'
+import { findChemistryLessonByTitle, resolveScheduleLesson, scheduleTodayIndex, subjects, type ScheduleLesson } from '../data/mockData'
+import { useStudentData } from './studentDataStore'
 import { DEFAULT_WIDGET_ORDER } from '../data/widgets'
 
 // The top-level views the navigation switches between. 'home' is the dashboard,
@@ -223,7 +224,8 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
 
   highlightReactionId: null,
   openLessonForReaction: (reactionId) => {
-    const reaction = courseReactions.find(r => r.id === reactionId)
+    const reactions = useStudentData.getState().courseReactions
+    const reaction = reactions.find(r => r.id === reactionId)
     if (!reaction) return
     const found = findChemistryLessonByTitle(reaction.lesson)
     if (!found) return

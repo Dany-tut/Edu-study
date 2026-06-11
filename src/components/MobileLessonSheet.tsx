@@ -32,7 +32,7 @@ export default function MobileLessonSheet({ lesson, onClose }: Props) {
             <div
               className="p-6"
               style={{
-                background: 'rgba(255,255,255,0.98)',
+                background: 'rgba(var(--glass-rgb), 0.98)',
                 borderRadius: '32px 32px 0 0',
                 paddingBottom: 'calc(env(safe-area-inset-bottom, 24px) + 24px)',
                 boxShadow: '0 -8px 40px rgba(0,0,0,0.12)',
@@ -43,23 +43,23 @@ export default function MobileLessonSheet({ lesson, onClose }: Props) {
                 <div style={{ width: 40, height: 4, borderRadius: 2, background: '#E0E0E2' }} />
               </div>
               <div className="flex items-center justify-between mb-4">
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#6F6F76', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Урок
                 </span>
                 <button onClick={onClose} className="cursor-pointer">
-                  <X size={20} style={{ color: '#6F6F76' }} />
+                  <X size={20} style={{ color: 'var(--color-muted)' }} />
                 </button>
               </div>
-              <h3 style={{ fontSize: 22, fontWeight: 650, color: '#0B0B0D', marginBottom: 16 }}>
+              <h3 style={{ fontSize: 22, fontWeight: 650, color: 'var(--color-text)', marginBottom: 16 }}>
                 Занятие #{lesson.number} {lesson.title}
               </h3>
               {lesson.points != null && (
-                <p style={{ fontSize: 16, color: '#6F6F76', marginBottom: 8 }}>
-                  <span style={{ fontWeight: 600, color: '#0B0B0D' }}>{lesson.points}</span> баллов
+                <p style={{ fontSize: 16, color: 'var(--color-muted)', marginBottom: 8 }}>
+                  <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{lesson.points}</span> баллов
                 </p>
               )}
               {lesson.comment && (
-                <p className="px-4 py-3 rounded-2xl mb-4" style={{ background: '#FFF9CC', color: '#7A6A00', fontSize: 14 }}>
+                <p className="px-4 py-3 rounded-2xl mb-4" style={{ background: 'var(--color-yellow-soft)', color: '#7A6A00', fontSize: 14 }}>
                   💬 {lesson.comment}
                 </p>
               )}

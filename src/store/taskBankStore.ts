@@ -77,7 +77,7 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
   loaded: false,
 
   load: async () => {
-    if (get().loaded) return
+    if (get().loaded && get().tasks.length > 0) return
     const { data } = await supabase.from('task_bank').select('*').order('id')
     if (data) {
       set({ tasks: data.map(dbToTask), loaded: true })

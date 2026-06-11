@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion'
-import { subjects } from '../data/mockData'
 import { useDashboard } from '../store/dashboardStore'
+import { useStudentData } from '../store/studentDataStore'
 import { playTransitionDrop } from '../lib/sound'
 
 export default function SubjectTabs() {
   const { activeSubjectId, setActiveSubject, showAllSubjects, setShowAllSubjects } = useDashboard()
+  const subjects = useStudentData(s => s.subjects)
 
   const tabs = [
     ...subjects.map(s => ({ id: s.id, label: s.name })),
@@ -40,11 +41,11 @@ export default function SubjectTabs() {
               background: isActive ? 'rgba(255,255,255,0.55)' : 'transparent',
               backdropFilter: isActive ? 'blur(16px) saturate(180%)' : undefined,
               WebkitBackdropFilter: isActive ? 'blur(16px) saturate(180%)' : undefined,
-              color: '#0B0B0D',
+              color: 'var(--color-text)',
               fontSize: 14,
               fontWeight: 600,
               boxShadow: isActive ? 'inset 0 1px 0 rgba(255,255,255,0.85), 0 2px 10px rgba(0,0,0,0.06)' : 'none',
-              border: isActive ? '1px solid rgba(255,255,255,0.7)' : '1px solid transparent',
+              border: isActive ? '1px solid var(--color-border-glass)' : '1px solid transparent',
             }}
           >
             {tab.label}

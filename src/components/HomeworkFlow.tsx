@@ -77,7 +77,7 @@ function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number)
           key={step.label}
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
-          style={{ fontSize: 14, fontWeight: 700, color: '#0B0B0D', textAlign: 'center' }}
+          style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', textAlign: 'center' }}
         >
           {step.label}
         </motion.p>
@@ -91,7 +91,7 @@ function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number)
 
       {/* Slider track */}
       <div style={{ position: 'relative', height: 40, display: 'flex', alignItems: 'center' }}>
-        <div style={{ position: 'absolute', left: 0, right: 0, height: 6, borderRadius: 999, background: '#EBEBEF' }} />
+        <div style={{ position: 'absolute', left: 0, right: 0, height: 6, borderRadius: 999, background: 'var(--color-bg-5)' }} />
         <div style={{
           position: 'absolute', left: 0, height: 6, borderRadius: 999,
           width: `${(value / (EMOJI_STEPS.length - 1)) * 100}%`,
@@ -326,7 +326,7 @@ function ResultModal({
         style={{
           width: '100%', maxWidth: 480,
           borderRadius: 36,
-          background: '#FFFFFF',
+          background: 'var(--color-bg-input)',
           boxShadow: '0 40px 100px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.04)',
           overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
@@ -366,7 +366,7 @@ function ResultModal({
             }}>
               {context === 'hard' ? 'Работа отправлена' : 'Тест сдан'}
             </p>
-            <h2 style={{ fontSize: 22, fontWeight: 760, color: '#0B0B0D', lineHeight: 1.18, marginBottom: 8 }}>
+            <h2 style={{ fontSize: 22, fontWeight: 760, color: 'var(--color-text)', lineHeight: 1.18, marginBottom: 8 }}>
               {context === 'hard'
                 ? 'Отправлено на проверку!'
                 : passed
@@ -402,10 +402,10 @@ function ResultModal({
         {/* Emoji assessment section */}
         <div style={{ padding: '24px 28px 28px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <p style={{ fontSize: 15, fontWeight: 760, color: '#0B0B0D', marginBottom: 4 }}>
+            <p style={{ fontSize: 15, fontWeight: 760, color: 'var(--color-text)', marginBottom: 4 }}>
               Оставь свою оценку
             </p>
-            <p style={{ fontSize: 13, color: '#6F6F76' }}>
+            <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>
               Насколько понятным оказался материал? Это помогает нам улучшать уроки.
             </p>
           </div>
@@ -427,7 +427,7 @@ function ResultModal({
                 onClick={() => onContinue(emojiValue, false)}
                 style={{
                   flex: 1, padding: '15px 16px',
-                  borderRadius: 18, border: '1px solid rgba(0,0,0,0.08)',
+                  borderRadius: 18, border: '1px solid var(--color-border-medium)',
                   background: '#F4F4F7',
                   color: '#3D3D45', fontSize: 14, fontWeight: 700,
                   cursor: 'pointer',
@@ -653,8 +653,8 @@ export default function HomeworkFlow({
   // Glass recipe for the docked top-line pills — matched to the lesson page so
   // the floating Back/title pills read as the same piece of glass as the topbar.
   const dockGlass = {
-    border: '1px solid rgba(255,255,255,0.9)',
-    background: 'rgba(255,255,255,0.86)',
+    border: '1px solid var(--color-border-glass)',
+    background: 'rgba(var(--glass-rgb), 0.86)',
     backdropFilter: 'blur(14px) saturate(180%)',
     WebkitBackdropFilter: 'blur(14px) saturate(180%)',
     boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14)',
@@ -711,9 +711,9 @@ export default function HomeworkFlow({
           onClick={() => { clearHomeworkWidgetFeedback(); onBack() }}
           className="flex items-center cursor-pointer flex-shrink-0"
           style={{
-            gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid rgba(0,0,0,0.06)',
-            background: 'rgba(255,255,255,0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-            color: '#0B0B0D', fontSize: 14, fontWeight: 600,
+            gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
+            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+            color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
           }}
         >
           <ChevronLeft size={18} />
@@ -722,7 +722,7 @@ export default function HomeworkFlow({
 
         <h1
           className="flex-1 min-w-0 text-center flex items-center justify-center"
-          style={{ gap: 10, fontSize: 18, fontWeight: 700, color: '#0B0B0D' }}
+          style={{ gap: 10, fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}
         >
           <span className="truncate">{homework.title}</span>
           {levelPill(false)}
@@ -752,7 +752,7 @@ export default function HomeworkFlow({
               style={{
                 gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999,
                 ...dockGlass,
-                color: '#0B0B0D', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
+                color: 'var(--color-text)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
               }}
             >
               <ChevronLeft size={18} />
@@ -763,7 +763,7 @@ export default function HomeworkFlow({
               ref={dockTitleRef}
               className="min-w-0 flex items-center"
               style={{
-                fontSize: 14, fontWeight: 700, color: '#0B0B0D', flexShrink: 1,
+                fontSize: 14, fontWeight: 700, color: 'var(--color-text)', flexShrink: 1,
                 maxWidth: dockTitleMax, gap: 8,
                 padding: '9px 16px', borderRadius: 999,
                 ...dockGlass, pointerEvents: 'auto',
@@ -808,7 +808,7 @@ export default function HomeworkFlow({
           borderRadius: 32,
           overflow: 'hidden',
           background: 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,248,250,0.98))',
-          border: '1px solid rgba(255,255,255,0.62)',
+          border: '1px solid var(--color-border-glass)',
           boxShadow: '0 24px 80px rgba(17, 12, 34, 0.12)',
         }}
       >
@@ -821,7 +821,7 @@ export default function HomeworkFlow({
           style={{
             padding: 16,
             gap: 16,
-            borderRight: '1px solid rgba(0,0,0,0.06)',
+            borderRight: '1px solid var(--color-border-soft)',
             background: 'linear-gradient(180deg, rgba(250,250,252,0.98), rgba(245,245,247,0.98))',
           }}
         >
@@ -852,7 +852,7 @@ export default function HomeworkFlow({
               padding: 16,
               borderRadius: 16,
               background: 'rgba(255,255,255,0.94)',
-              border: '1px solid rgba(0,0,0,0.06)',
+              border: '1px solid var(--color-border-soft)',
               boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
               gap: 12,
             }}
@@ -875,16 +875,16 @@ export default function HomeworkFlow({
               padding: 16,
               borderRadius: 16,
               background: 'rgba(255,255,255,0.94)',
-              border: '1px solid rgba(0,0,0,0.06)',
+              border: '1px solid var(--color-border-soft)',
               gap: 12,
             }}
           >
             <div className="flex items-center" style={{ gap: 8 }}>
               <Sparkles size={16} style={{ color: palette.text }} />
-              <p style={{ fontSize: 13, fontWeight: 700, color: '#0B0B0D' }}>Как это работает</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Как это работает</p>
             </div>
             <p style={{ fontSize: 13, lineHeight: 1.55, color: '#5D5D66' }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontWeight: 700, color: '#0B0B0D' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontWeight: 700, color: 'var(--color-text)' }}>
                 <Clock size={13} />
                 Обычно занимает {selectedEstimatedTime}.
               </span>{' '}
@@ -949,7 +949,7 @@ export default function HomeworkFlow({
                       : 'rgba(255,255,255,0.94)',
                     border: state.basicSubmitted
                       ? `1px solid ${basicScore >= homework.recommendationScore ? 'rgba(123,63,204,0.18)' : 'rgba(248,201,145,0.42)'}`
-                      : '1px solid rgba(0,0,0,0.08)',
+                      : '1px solid var(--color-border-medium)',
                     boxShadow: state.basicSubmitted ? 'none' : '0 8px 24px rgba(0,0,0,0.05)',
                   }}
                 >
@@ -970,7 +970,7 @@ export default function HomeworkFlow({
                       }
                     </div>
                     <div>
-                      <p style={{ fontSize: 17, fontWeight: 760, color: '#0B0B0D', marginBottom: 4 }}>
+                      <p style={{ fontSize: 17, fontWeight: 760, color: 'var(--color-text)', marginBottom: 4 }}>
                         {state.basicSubmitted
                           ? (basicScore >= homework.recommendationScore ? `Тест сдан на ${basicScore} баллов` : `Результат: ${basicScore} из 100`)
                           : 'Все вопросы отвечены!'
@@ -987,7 +987,7 @@ export default function HomeworkFlow({
                       {state.basicSubmitted && state.selfAssessmentValue !== null && (
                         <div className="flex items-center" style={{ gap: 8, marginTop: 8 }}>
                           <span style={{ fontSize: 20 }}>{EMOJI_STEPS[state.selfAssessmentValue].emoji}</span>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: '#6F6F76' }}>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-muted)' }}>
                             Самооценка: {EMOJI_STEPS[state.selfAssessmentValue].label}
                           </span>
                         </div>
@@ -1044,10 +1044,10 @@ export default function HomeworkFlow({
                       gap: 14,
                       padding: 20,
                       borderRadius: 26,
-                      background: 'rgba(255,255,255,0.96)',
+                      background: 'rgba(var(--glass-rgb), 0.96)',
                       border: answered
                         ? `1px solid ${isCorrect ? 'rgba(110,231,160,0.58)' : 'rgba(244,139,145,0.5)'}`
-                        : '1px solid rgba(0,0,0,0.06)',
+                        : '1px solid var(--color-border-soft)',
                       boxShadow: answered
                         ? `0 12px 34px ${isCorrect ? 'rgba(110,231,160,0.14)' : 'rgba(244,139,145,0.12)'}`
                         : '0 8px 24px rgba(0,0,0,0.04)',
@@ -1058,7 +1058,7 @@ export default function HomeworkFlow({
                         <p style={{ fontSize: 12, fontWeight: 700, color: palette.text, marginBottom: 6 }}>
                           Вопрос {index + 1}
                         </p>
-                        <h4 style={{ fontSize: 18, lineHeight: 1.35, fontWeight: 720, color: '#0B0B0D' }}>
+                        <h4 style={{ fontSize: 18, lineHeight: 1.35, fontWeight: 720, color: 'var(--color-text)' }}>
                           {question.prompt}
                         </h4>
                       </div>
@@ -1070,7 +1070,7 @@ export default function HomeworkFlow({
                             gap: 8,
                             padding: '9px 12px',
                             borderRadius: 14,
-                            background: isCorrect ? '#DFF8D6' : '#FFE1E4',
+                            background: isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
                             color: isCorrect ? '#2A7D4F' : '#A8282D',
                             fontSize: 13,
                             fontWeight: 700,
@@ -1107,8 +1107,8 @@ export default function HomeworkFlow({
                                   : active ? 'rgba(123,63,204,0.38)'
                                   : 'rgba(0,0,0,0.08)'
                               }`,
-                              background: correctSelected ? '#DFF8D6'
-                                : wrongSelected ? '#FFE1E4'
+                              background: correctSelected ? 'var(--color-green-soft)'
+                                : wrongSelected ? 'var(--color-red-soft)'
                                 : active ? '#F3EAFF'
                                 : '#FFFFFF',
                               color: '#17171B',
@@ -1197,7 +1197,7 @@ export default function HomeworkFlow({
                   >
                     <Lock size={28} />
                   </div>
-                  <h4 style={{ fontSize: 22, fontWeight: 760, color: '#0B0B0D', marginBottom: 10 }}>
+                  <h4 style={{ fontSize: 22, fontWeight: 760, color: 'var(--color-text)', marginBottom: 10 }}>
                     Сначала закрываем базовый уровень
                   </h4>
                   <p style={{ fontSize: 14, lineHeight: 1.6, color: '#5D5D66', maxWidth: 520 }}>
@@ -1212,8 +1212,8 @@ export default function HomeworkFlow({
                     gap: 18,
                     padding: 24,
                     borderRadius: 28,
-                    background: 'rgba(255,255,255,0.96)',
-                    border: '1px solid rgba(0,0,0,0.06)',
+                    background: 'rgba(var(--glass-rgb), 0.96)',
+                    border: '1px solid var(--color-border-soft)',
                   }}
                 >
                   <div className="flex items-start justify-between" style={{ gap: 16 }}>
@@ -1233,7 +1233,7 @@ export default function HomeworkFlow({
                         <Send size={22} />
                       </div>
                       <div>
-                        <p style={{ fontSize: 20, fontWeight: 760, color: '#0B0B0D', marginBottom: 6 }}>
+                        <p style={{ fontSize: 20, fontWeight: 760, color: 'var(--color-text)', marginBottom: 6 }}>
                           Работа отправлена преподавателю
                         </p>
                         <p style={{ fontSize: 14, lineHeight: 1.55, color: '#5D5D66', maxWidth: 640 }}>
@@ -1247,7 +1247,7 @@ export default function HomeworkFlow({
                       style={{
                         padding: '10px 14px',
                         borderRadius: 999,
-                        background: '#FFE4BD',
+                        background: 'var(--color-peach-soft)',
                         color: '#8A4A00',
                         fontSize: 13,
                         fontWeight: 700,
@@ -1285,22 +1285,22 @@ export default function HomeworkFlow({
                     gap: 18,
                     padding: 22,
                     borderRadius: 28,
-                    background: 'rgba(255,255,255,0.96)',
-                    border: '1px solid rgba(0,0,0,0.06)',
+                    background: 'rgba(var(--glass-rgb), 0.96)',
+                    border: '1px solid var(--color-border-soft)',
                   }}
                 >
                   <div
                     style={{
                       padding: 20,
                       borderRadius: 24,
-                      background: '#F9F9FB',
+                      background: 'var(--color-bg-2)',
                       border: '1px solid rgba(0,0,0,0.05)',
                     }}
                   >
                     <p style={{ fontSize: 12, fontWeight: 700, color: palette.text, marginBottom: 8 }}>
                       {hardLevel.teacherTask?.topic}
                     </p>
-                    <h4 style={{ fontSize: 20, lineHeight: 1.35, fontWeight: 760, color: '#0B0B0D', marginBottom: 12 }}>
+                    <h4 style={{ fontSize: 20, lineHeight: 1.35, fontWeight: 760, color: 'var(--color-text)', marginBottom: 12 }}>
                       {hardLevel.teacherTask?.prompt}
                     </h4>
                     <p style={{ fontSize: 14, lineHeight: 1.55, color: '#5D5D66' }}>
@@ -1316,8 +1316,8 @@ export default function HomeworkFlow({
                       minHeight: 220,
                       resize: 'vertical',
                       borderRadius: 24,
-                      border: '1px solid rgba(0,0,0,0.08)',
-                      background: '#FFFFFF',
+                      border: '1px solid var(--color-border-medium)',
+                      background: 'var(--color-bg-input)',
                       padding: 18,
                       fontSize: 15,
                       lineHeight: 1.65,
@@ -1338,9 +1338,9 @@ export default function HomeworkFlow({
                           gap: 8,
                           padding: '11px 14px',
                           borderRadius: 16,
-                          border: '1px solid rgba(0,0,0,0.08)',
-                          background: 'rgba(255,255,255,0.96)',
-                          color: '#0B0B0D',
+                          border: '1px solid var(--color-border-medium)',
+                          background: 'rgba(var(--glass-rgb), 0.96)',
+                          color: 'var(--color-text)',
                           fontSize: 13,
                           fontWeight: 700,
                         }}
@@ -1388,7 +1388,7 @@ export default function HomeworkFlow({
                     </motion.button>
                   </div>
 
-                  <p style={{ fontSize: 13, color: '#6F6F76' }}>
+                  <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>
                     Черновик и прикрепления сохраняются локально, поэтому после обновления страницы прогресс не теряется.
                   </p>
                 </section>
@@ -1407,7 +1407,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between" style={{ gap: 12 }}>
       <span style={{ fontSize: 13, color: '#70707A' }}>{label}</span>
-      <span style={{ fontSize: 13, fontWeight: 700, color: '#0B0B0D', textAlign: 'right' }}>{value}</span>
+      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', textAlign: 'right' }}>{value}</span>
     </div>
   )
 }
@@ -1426,7 +1426,7 @@ function MetricPill({ label, value, accent = false }: { label: string; value: st
       <p style={{ fontSize: 11, fontWeight: 700, color: accent ? '#7B3FCC' : '#888891', marginBottom: 4 }}>
         {label}
       </p>
-      <p style={{ fontSize: 18, fontWeight: 760, color: '#0B0B0D' }}>
+      <p style={{ fontSize: 18, fontWeight: 760, color: 'var(--color-text)' }}>
         {value}
       </p>
     </div>
@@ -1459,11 +1459,11 @@ function ProgressStrip({
         padding: 16,
         borderRadius: 22,
         background: 'rgba(255,255,255,0.94)',
-        border: '1px solid rgba(0,0,0,0.06)',
+        border: '1px solid var(--color-border-soft)',
       }}
     >
       <div className="flex items-center justify-between">
-        <p style={{ fontSize: 13, fontWeight: 700, color: '#0B0B0D' }}>Прогресс</p>
+        <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Прогресс</p>
         {answeredCount > 0 && (
           <span style={{ fontSize: 12, fontWeight: 700, color: '#7B3FCC' }}>
             {answeredCount}/{total}
@@ -1523,7 +1523,7 @@ function ProgressStrip({
           {correctCount > 0 && (
             <span style={{
               fontSize: 11, fontWeight: 700, color: '#2A7D4F',
-              background: '#DFF8D6', padding: '3px 8px', borderRadius: 999,
+              background: 'var(--color-green-soft)', padding: '3px 8px', borderRadius: 999,
             }}>
               ✓ {correctCount} верно
             </span>
@@ -1531,7 +1531,7 @@ function ProgressStrip({
           {(answeredCount - correctCount) > 0 && (
             <span style={{
               fontSize: 11, fontWeight: 700, color: '#A8282D',
-              background: '#FFE1E4', padding: '3px 8px', borderRadius: 999,
+              background: 'var(--color-red-soft)', padding: '3px 8px', borderRadius: 999,
             }}>
               ✗ {answeredCount - correctCount} нет
             </span>
@@ -1582,8 +1582,8 @@ function BottomProgressBar({
           height: 44,
           padding: '12px 16px',
           borderRadius: 18,
-          background: 'rgba(255,255,255,0.62)',
-          border: '1px solid rgba(255,255,255,0.9)',
+          background: 'rgba(var(--glass-rgb), 0.62)',
+          border: '1px solid var(--color-border-glass)',
           backdropFilter: 'blur(16px) saturate(180%)',
           WebkitBackdropFilter: 'blur(16px) saturate(180%)',
           boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 16px rgba(0,0,0,0.06)',
@@ -1638,8 +1638,8 @@ function BottomProgressBar({
           justifyContent: 'center',
           padding: '0 16px',
           borderRadius: 18,
-          background: 'rgba(255,255,255,0.62)',
-          border: '1px solid rgba(255,255,255,0.9)',
+          background: 'rgba(var(--glass-rgb), 0.62)',
+          border: '1px solid var(--color-border-glass)',
           backdropFilter: 'blur(16px) saturate(180%)',
           WebkitBackdropFilter: 'blur(16px) saturate(180%)',
           boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 16px rgba(0,0,0,0.06)',
@@ -1700,8 +1700,8 @@ function StatusCard({
       style={{
         padding: 18,
         borderRadius: 22,
-        background: 'rgba(255,255,255,0.96)',
-        border: '1px solid rgba(0,0,0,0.06)',
+        background: 'rgba(var(--glass-rgb), 0.96)',
+        border: '1px solid var(--color-border-soft)',
       }}
     >
       <p style={{ fontSize: 12, fontWeight: 700, color: '#7C7C84', marginBottom: 8 }}>{title}</p>

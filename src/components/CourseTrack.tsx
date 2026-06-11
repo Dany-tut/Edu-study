@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle2, RotateCcw, AlertCircle, Upload, Lock, Play, Star, Clock } from 'lucide-react'
-import { subjects, type Subject, type Lesson, type LessonStatus } from '../data/mockData'
+import { type Subject, type Lesson, type LessonStatus } from '../data/mockData'
+import { useStudentData } from '../store/studentDataStore'
 import { HARD_STYLE } from './CourseNode'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
 import { useNow } from '../lib/useNow'
@@ -28,12 +29,12 @@ function withAlpha(hex: string, alpha: number) {
 }
 
 const detailStyles: Record<LessonStatus, { bg: string; badgeBg: string; badgeText: string; badgeLabel: string; textColor: string; icon: React.ElementType }> = {
-  completed: { bg: '#DFF8D6', badgeBg: '#BDF2A8', badgeText: '#4C804F', badgeLabel: 'выполнено', textColor: '#0B0B0D', icon: CheckCircle2 },
-  returned: { bg: '#F7F1B8', badgeBg: '#F2E56F', badgeText: '#9A8E36', badgeLabel: 'возвращено на доработку', textColor: '#0B0B0D', icon: RotateCcw },
-  unviewed: { bg: '#F8D2D5', badgeBg: '#F4AAB0', badgeText: '#9E434A', badgeLabel: 'запись урока', textColor: '#0B0B0D', icon: AlertCircle },
-  submitted: { bg: '#F2C492', badgeBg: '#F7D9B0', badgeText: '#6E4514', badgeLabel: 'отправлено на проверку', textColor: '#0B0B0D', icon: Upload },
-  current: { bg: '#E8D6FA', badgeBg: '#CEB2F4', badgeText: '#6E47A5', badgeLabel: 'текущий урок', textColor: '#0B0B0D', icon: Play },
-  locked: { bg: '#ECECEC', badgeBg: '#DBDBDB', badgeText: '#7D7D7D', badgeLabel: 'недоступно', textColor: '#0B0B0D', icon: Lock },
+  completed: { bg: 'var(--color-green-soft)', badgeBg: '#BDF2A8', badgeText: '#4C804F', badgeLabel: 'выполнено', textColor: 'var(--color-text)', icon: CheckCircle2 },
+  returned: { bg: '#F7F1B8', badgeBg: '#F2E56F', badgeText: '#9A8E36', badgeLabel: 'возвращено на доработку', textColor: 'var(--color-text)', icon: RotateCcw },
+  unviewed: { bg: '#F8D2D5', badgeBg: '#F4AAB0', badgeText: '#9E434A', badgeLabel: 'запись урока', textColor: 'var(--color-text)', icon: AlertCircle },
+  submitted: { bg: '#F2C492', badgeBg: '#F7D9B0', badgeText: '#6E4514', badgeLabel: 'отправлено на проверку', textColor: 'var(--color-text)', icon: Upload },
+  current: { bg: '#E8D6FA', badgeBg: '#CEB2F4', badgeText: '#6E47A5', badgeLabel: 'текущий урок', textColor: 'var(--color-text)', icon: Play },
+  locked: { bg: '#ECECEC', badgeBg: '#DBDBDB', badgeText: '#7D7D7D', badgeLabel: 'недоступно', textColor: 'var(--color-text)', icon: Lock },
 }
 
 function TrackForSubject({ subject }: { subject: Subject }) {
@@ -136,11 +137,11 @@ function TrackForSubject({ subject }: { subject: Subject }) {
               style={{
                 position: 'absolute',
                 borderRadius: 999,
-                background: 'rgba(255,255,255,0.55)',
+                background: 'rgba(var(--glass-rgb), 0.55)',
                 backdropFilter: 'blur(16px) saturate(180%)',
                 WebkitBackdropFilter: 'blur(16px) saturate(180%)',
                 boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.85), 0 2px 10px rgba(0,0,0,0.06)',
-                border: '1px solid rgba(255,255,255,0.7)',
+                border: '1px solid var(--color-border-glass)',
                 pointerEvents: 'none',
                 zIndex: 0,
               }}
@@ -153,7 +154,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
             const isFullyDone = totalLessons > 0 && completedLessons === totalLessons
             const pct = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
 
-            const textColor = isFullyDone ? '#2A7A3B' : '#0B0B0D'
+            const textColor = isFullyDone ? '#2A7A3B' : 'var(--color-text)'
 
             return (
               <motion.button
@@ -202,7 +203,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
         </div>
 
         {/* Subject name + progress */}
-        <span style={{ fontSize: 18, fontWeight: 650, color: '#0B0B0D', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
+        <span style={{ fontSize: 18, fontWeight: 650, color: 'var(--color-text)', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
           {subject.name}{' '}
           <span style={{ color: '#C58BFF' }}>{subject.progress}%</span>
         </span>
@@ -316,7 +317,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     background: `linear-gradient(to bottom, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.22) 55%, ${withAlpha(selectedDetail.bg, 0.32)} 100%)`,
                     backdropFilter: 'blur(8px) saturate(150%)',
                     WebkitBackdropFilter: 'blur(8px) saturate(150%)',
-                    border: '1px solid rgba(255,255,255,0.55)',
+                    border: '1px solid var(--color-border-glass)',
                     boxShadow: '0 6px 18px rgba(21,18,31,0.10), inset 0 1px 1px rgba(255,255,255,0.65)',
                     padding: 16,
                     display: 'flex',
@@ -401,7 +402,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                         fontSize: 13,
                         fontWeight: 600,
                         color: '#9A9A9A',
-                        background: 'rgba(255,255,255,0.5)',
+                        background: 'rgba(var(--glass-rgb), 0.5)',
                         borderRadius: 12,
                         padding: '9px 18px',
                         whiteSpace: 'nowrap',
@@ -421,7 +422,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                           fontSize: 13,
                           fontWeight: 600,
                           color: '#fff',
-                          background: '#0B0B0D',
+                          background: 'var(--color-text)',
                           borderRadius: 12,
                           padding: '9px 18px',
                           whiteSpace: 'nowrap',
@@ -493,7 +494,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     background: `linear-gradient(to bottom, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.22) 55%, rgba(243,234,255,0.32) 100%)`,
                     backdropFilter: 'blur(8px) saturate(150%)',
                     WebkitBackdropFilter: 'blur(8px) saturate(150%)',
-                    border: '1px solid rgba(255,255,255,0.55)',
+                    border: '1px solid var(--color-border-glass)',
                     boxShadow: '0 6px 18px rgba(21,18,31,0.10), inset 0 1px 1px rgba(255,255,255,0.65)',
                     padding: 16,
                     display: 'flex',
@@ -532,7 +533,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                       style={{
                         fontSize: 15,
                         fontWeight: 600,
-                        color: '#0B0B0D',
+                        color: 'var(--color-text)',
                         display: '-webkit-box',
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical',
@@ -554,7 +555,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     )}
 
                     {/* Description */}
-                    <span style={{ fontSize: 12, color: '#6F6F76', lineHeight: 1.5 }}>
+                    <span style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5 }}>
                       {hardStatus === 'available' && 'Ты набрал достаточно баллов, чтобы попробовать сложный уровень. Это необязательное задание, но оно принесёт тебе звезду.'}
                       {hardStatus === 'submitted' && 'Работа отправлена на проверку. Преподаватель проверит её и даст обратную связь.'}
                       {hardStatus === 'returned' && 'Преподаватель вернул работу на доработку. Открой урок, чтобы прочитать комментарии и исправить ошибки.'}
@@ -595,6 +596,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
 
 export default function CourseTrack() {
   const { activeSubjectId, setActiveSubject } = useDashboard()
+  const subjects = useStudentData(s => s.subjects)
   const subjectPill = useFloatingPill(activeSubjectId)
 
   return (
@@ -612,11 +614,11 @@ export default function CourseTrack() {
             style={{
               position: 'absolute',
               borderRadius: 999,
-              background: 'rgba(255,255,255,0.55)',
+              background: 'rgba(var(--glass-rgb), 0.55)',
               backdropFilter: 'blur(16px) saturate(180%)',
               WebkitBackdropFilter: 'blur(16px) saturate(180%)',
               boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.85), 0 2px 10px rgba(0,0,0,0.06)',
-              border: '1px solid rgba(255,255,255,0.7)',
+              border: '1px solid var(--color-border-glass)',
               pointerEvents: 'none',
               zIndex: 0,
             }}
@@ -643,7 +645,7 @@ export default function CourseTrack() {
                 fontSize: 14,
                 fontWeight: 600,
                 background: 'transparent',
-                color: '#0B0B0D',
+                color: 'var(--color-text)',
                 border: '1px solid transparent',
                 cursor: 'pointer',
                 transition: 'color 0.16s ease, font-weight 0.16s ease',
@@ -656,7 +658,7 @@ export default function CourseTrack() {
       </div>
 
       <TrackForSubject
-        subject={subjects.find(s => s.id === activeSubjectId) ?? subjects[0]}
+        subject={subjects.find(s => s.id === activeSubjectId) ?? subjects[0] ?? null}
       />
     </div>
   )

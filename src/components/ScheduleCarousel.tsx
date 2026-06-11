@@ -1,5 +1,5 @@
-import { scheduleDays } from '../data/mockData'
 import { useDashboard } from '../store/dashboardStore'
+import { useStudentData } from '../store/studentDataStore'
 import ScheduleCard from './ScheduleCard'
 
 // Side card widths by distance from center — must match ScheduleCard.
@@ -7,6 +7,7 @@ const SLOT_WIDTH: Record<number, number> = { 1: 160, 2: 130, 3: 110 }
 
 export default function ScheduleCarousel() {
   const { scheduleIndex, setScheduleIndex } = useDashboard()
+  const scheduleDays = useStudentData(s => s.scheduleDays)
   const total = scheduleDays.length
 
   // Always render 3 slots on each side of the selected day so it stays

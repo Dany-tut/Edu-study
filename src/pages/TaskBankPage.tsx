@@ -73,7 +73,7 @@ function FilterField({ label, options, value, onChange, accent }: {
       <div style={{
         display: 'flex', alignItems: 'center', gap: 6,
         padding: '9px 12px', borderRadius: 13,
-        background: '#FFFFFF',
+        background: 'var(--color-bg-input)',
         border: `1px solid ${open ? accent : value ? 'rgba(0,0,0,0.16)' : 'rgba(0,0,0,0.1)'}`,
         boxShadow: open ? `0 0 0 3px ${accent}22` : 'none',
         transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
@@ -87,16 +87,16 @@ function FilterField({ label, options, value, onChange, accent }: {
           style={{
             flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
             fontSize: 13, fontWeight: value && !open ? 600 : 400,
-            color: value && !open ? '#0B0B0D' : '#6F6F76',
+            color: value && !open ? 'var(--color-text)' : 'var(--color-muted)',
           }}
         />
         {value && !open ? (
           <button onMouseDown={e => { e.preventDefault(); onChange('') }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9A9AA2', fontSize: 16, lineHeight: 1, padding: 0 }}>
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 16, lineHeight: 1, padding: 0 }}>
             ×
           </button>
         ) : (
-          <svg width="11" height="11" viewBox="0 0 10 10" fill="none" style={{ color: '#9A9AA2', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
+          <svg width="11" height="11" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
             <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         )}
@@ -109,9 +109,9 @@ function FilterField({ label, options, value, onChange, accent }: {
             // Float over the filters below instead of pushing them down — a glass
             // sheet anchored to the field's bottom edge.
             position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 6, zIndex: 50,
-            background: 'rgba(255,255,255,0.9)',
+            background: 'rgba(var(--glass-rgb), 0.9)',
             backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-            border: '1px solid rgba(255,255,255,0.7)', borderRadius: 13,
+            border: '1px solid var(--color-border-glass)', borderRadius: 13,
             boxShadow: '0 14px 36px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.8)', overflow: 'hidden',
           }}
         >
@@ -123,19 +123,19 @@ function FilterField({ label, options, value, onChange, accent }: {
                 <button onMouseDown={e => { e.preventDefault(); onChange(''); setOpen(false) }}
                   onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-                  style={{ width: '100%', padding: '8px 8px', borderRadius: 9, textAlign: 'left', background: 'transparent', border: 'none', fontSize: 12, color: '#9A9AA2', cursor: 'pointer', transition: 'background 0.13s ease' }}>
+                  style={{ width: '100%', padding: '8px 8px', borderRadius: 9, textAlign: 'left', background: 'transparent', border: 'none', fontSize: 12, color: 'var(--color-text-3)', cursor: 'pointer', transition: 'background 0.13s ease' }}>
                   — Сбросить
                 </button>
               )}
               {shown.length === 0 ? (
-                <div style={{ padding: '10px 8px', fontSize: 12, color: '#B5B5BC' }}>Ничего не найдено</div>
+                <div style={{ padding: '10px 8px', fontSize: 12, color: 'var(--color-text-5)' }}>Ничего не найдено</div>
               ) : shown.map(opt => {
                 const rest = opt === value ? `${accent}14` : 'transparent'
                 return (
                   <button key={opt} onMouseDown={e => { e.preventDefault(); onChange(opt); setOpen(false) }}
                     onMouseEnter={e => { e.currentTarget.style.background = `${accent}1f` }}
                     onMouseLeave={e => { e.currentTarget.style.background = rest }}
-                    style={{ width: '100%', padding: '9px 8px', borderRadius: 9, textAlign: 'left', background: rest, border: 'none', fontSize: 12.5, cursor: 'pointer', color: '#0B0B0D', fontWeight: opt === value ? 700 : 400, transition: 'background 0.13s ease' }}>
+                    style={{ width: '100%', padding: '9px 8px', borderRadius: 9, textAlign: 'left', background: rest, border: 'none', fontSize: 12.5, cursor: 'pointer', color: 'var(--color-text)', fontWeight: opt === value ? 700 : 400, transition: 'background 0.13s ease' }}>
                     {opt}
                   </button>
                 )
@@ -164,7 +164,7 @@ function NumberBadge({ id, onCopied }: { id: number; onCopied: () => void }) {
       title="Скопировать номер"
       style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
     >
-      <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: '#FFE1E4', color: '#B03040', transition: 'background 0.15s ease' }}>
+      <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-red-soft)', color: '#B03040', transition: 'background 0.15s ease' }}>
         №{id}
       </span>
       <AnimatePresence>
@@ -181,10 +181,10 @@ function NumberBadge({ id, onCopied }: { id: number; onCopied: () => void }) {
               display: 'flex', alignItems: 'center', gap: 5,
               padding: '5px 10px 5px 7px',
               borderRadius: 999,
-              background: 'rgba(255,255,255,0.22)',
+              background: 'rgba(var(--glass-rgb), 0.22)',
               backdropFilter: 'blur(14px)',
               WebkitBackdropFilter: 'blur(14px)',
-              border: '1px solid rgba(255,255,255,0.55)',
+              border: '1px solid var(--color-border-glass)',
               boxShadow: '0 4px 18px rgba(42,125,79,0.18), 0 1px 4px rgba(0,0,0,0.08)',
               whiteSpace: 'nowrap',
             }}
@@ -241,7 +241,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       className="flex flex-col"
       style={{
         gap: 14, padding: 20, borderRadius: 26,
-        background: 'rgba(255,255,255,0.96)',
+        background: 'rgba(var(--glass-rgb), 0.96)',
         border: `1px solid ${isCorrect ? 'rgba(110,231,160,0.58)' : isWrong ? 'rgba(244,139,145,0.5)' : 'rgba(0,0,0,0.06)'}`,
         boxShadow: isCorrect ? '0 12px 34px rgba(110,231,160,0.14)' : isWrong ? '0 12px 34px rgba(244,139,145,0.12)' : '0 8px 24px rgba(0,0,0,0.04)',
       }}
@@ -253,15 +253,15 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             <span style={{ fontSize: 11, fontWeight: 700, color: palette.text }}>Задание {index + 1}</span>
             <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
             <NumberBadge id={task.id} onCopied={onCopyId} />
-            <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: '#6F6F76' }}>{task.line} линия</span>
-            <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: '#6F6F76' }}>Часть {task.part}</span>
+            <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>{task.line} линия</span>
+            <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
           </div>
-          <p style={{ fontSize: 16, lineHeight: 1.45, fontWeight: 650, color: '#0B0B0D', whiteSpace: 'pre-wrap' }}>
+          <p style={{ fontSize: 16, lineHeight: 1.45, fontWeight: 650, color: 'var(--color-text)', whiteSpace: 'pre-wrap' }}>
             {task.question}
           </p>
         </div>
         {state !== undefined && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: isCorrect ? '#DFF8D6' : '#FFE1E4', color: isCorrect ? '#2A7D4F' : '#A8282D', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)', color: isCorrect ? '#2A7D4F' : '#A8282D', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
             {isCorrect ? <CheckCircle2 size={15} /> : <XCircle size={15} />}
             {isCorrect ? 'Верно' : 'Неверно'}
           </div>
@@ -270,17 +270,17 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
 
       {/* Table */}
       {task.questionTable && (
-        <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,0.09)', alignSelf: 'flex-start', maxWidth: '100%' }}>
+        <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', maxWidth: '100%' }}>
           <table style={{ borderCollapse: 'collapse', fontSize: 13, width: '100%' }}>
             <thead>
               <tr>{task.questionTable.headers.map(h => (
-                <th key={h} style={{ borderBottom: '1px solid rgba(0,0,0,0.09)', borderRight: '1px solid rgba(0,0,0,0.08)', padding: '9px 16px', fontWeight: 700, background: 'rgba(0,0,0,0.03)', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
+                <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '9px 16px', fontWeight: 700, background: 'rgba(0,0,0,0.03)', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
               ))}</tr>
             </thead>
             <tbody>
               {task.questionTable.rows.map((row, i) => (
                 <tr key={i} style={{ background: i % 2 === 1 ? 'rgba(0,0,0,0.015)' : 'transparent' }}>{row.map((cell, j) => (
-                  <td key={j} style={{ borderTop: i > 0 ? '1px solid rgba(0,0,0,0.07)' : undefined, borderRight: '1px solid rgba(0,0,0,0.07)', padding: '9px 16px' }}>{cell}</td>
+                  <td key={j} style={{ borderTop: i > 0 ? '1px solid var(--color-border)' : undefined, borderRight: '1px solid var(--color-border)', padding: '9px 16px' }}>{cell}</td>
                 ))}</tr>
               ))}
             </tbody>
@@ -290,19 +290,19 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
 
       {/* Image block */}
       {task.questionImage && (
-        <img src={task.questionImage} alt="" style={{ maxWidth: '100%', borderRadius: 14, border: '1px solid rgba(0,0,0,0.08)', alignSelf: 'flex-start' }} />
+        <img src={task.questionImage} alt="" style={{ maxWidth: '100%', borderRadius: 14, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start' }} />
       )}
 
       {/* Choice options */}
       {task.choices && task.choices.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {task.choices.map((c, i) => (
-            <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, background: 'rgba(0,0,0,0.025)', border: '1px solid rgba(0,0,0,0.06)' }}>
-              <span style={{ width: 24, height: 24, borderRadius: task.answerType === 'multi' ? 7 : '50%', flexShrink: 0, background: '#fff', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#6F6F76' }}>{'АБВГДЕЖЗИК'[i]}</span>
-              <span style={{ fontSize: 14, color: '#0B0B0D' }}>{c.text}</span>
+            <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)' }}>
+              <span style={{ width: 24, height: 24, borderRadius: task.answerType === 'multi' ? 7 : '50%', flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--color-muted)' }}>{'АБВГДЕЖЗИК'[i]}</span>
+              <span style={{ fontSize: 14, color: 'var(--color-text)' }}>{c.text}</span>
             </div>
           ))}
-          <div style={{ fontSize: 11, color: '#9A9AA2' }}>{task.answerType === 'multi' ? 'Введите буквы всех верных вариантов, напр. АБГ' : 'Введите букву верного варианта'}</div>
+          <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{task.answerType === 'multi' ? 'Введите буквы всех верных вариантов, напр. АБГ' : 'Введите букву верного варианта'}</div>
         </div>
       )}
 
@@ -312,20 +312,20 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {task.matchLeft.map((l, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid rgba(0,0,0,0.06)', fontSize: 13 }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)', fontSize: 13 }}>
                   <b style={{ color: palette.text }}>{'АБВГДЕЖЗИК'[i]}</b> {l}
                 </div>
               ))}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {task.matchRight.map((r, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid rgba(0,0,0,0.06)', fontSize: 13 }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)', fontSize: 13 }}>
                   <b style={{ color: palette.text }}>{i + 1}</b> {r}
                 </div>
               ))}
             </div>
           </div>
-          <div style={{ fontSize: 11, color: '#9A9AA2', marginTop: 6 }}>Сопоставьте и введите, напр. А2 Б1 В3</div>
+          <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>Сопоставьте и введите, напр. А2 Б1 В3</div>
         </div>
       )}
 
@@ -334,12 +334,12 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         <div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {[...task.sequenceItems].sort((a, b) => a.localeCompare(b, 'ru')).map((s, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid rgba(0,0,0,0.06)', fontSize: 13 }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)', fontSize: 13 }}>
                 <b style={{ color: palette.text }}>{i + 1}</b> {s}
               </div>
             ))}
           </div>
-          <div style={{ fontSize: 11, color: '#9A9AA2', marginTop: 6 }}>Введите порядок цифрами, напр. 3142</div>
+          <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>Введите порядок цифрами, напр. 3142</div>
         </div>
       )}
 
@@ -361,20 +361,20 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               width: '100%', boxSizing: 'border-box',
               padding: '11px 16px', borderRadius: 16, fontSize: 14, outline: 'none',
               border: `1px solid ${state ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'rgba(0,0,0,0.1)'}`,
-              background: state ? (isCorrect ? '#DFF8D6' : '#FFE1E4') : '#FFFFFF',
+              background: state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : '#FFFFFF',
             }}
           />
           <div style={{
             position: 'absolute', left: 1, top: 1, bottom: 1, width: 32,
             borderRadius: '15px 0 0 15px', pointerEvents: 'none',
-            background: `linear-gradient(to right, ${state ? (isCorrect ? '#DFF8D6' : '#FFE1E4') : '#FFFFFF'}, transparent)`,
+            background: `linear-gradient(to right, ${state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : '#FFFFFF'}, transparent)`,
             opacity: inputVal ? 1 : 0,
             transition: 'opacity 0.2s ease',
           }} />
           <div style={{
             position: 'absolute', right: 1, top: 1, bottom: 1, width: 32,
             borderRadius: '0 15px 15px 0', pointerEvents: 'none',
-            background: `linear-gradient(to left, ${state ? (isCorrect ? '#DFF8D6' : '#FFE1E4') : '#FFFFFF'}, transparent)`,
+            background: `linear-gradient(to left, ${state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : '#FFFFFF'}, transparent)`,
             opacity: inputOverflow ? 1 : 0,
             transition: 'opacity 0.2s ease',
           }} />
@@ -398,16 +398,16 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           background: showSolution ? palette.soft : 'rgba(255,255,255,0.88)',
           border: `1px solid ${showSolution ? palette.accent : 'rgba(0,0,0,0.09)'}`,
           outline: 'none',
-          fontSize: 13, cursor: 'pointer', color: showSolution ? palette.text : '#6F6F76', fontWeight: showSolution ? 700 : 500,
+          fontSize: 13, cursor: 'pointer', color: showSolution ? palette.text : 'var(--color-muted)', fontWeight: showSolution ? 700 : 500,
         }}>
           <Eye size={14} />Решение
         </button>
         <button onClick={() => onFavorite(task.id)} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '11px 18px', borderRadius: 999,
-          background: isFav ? '#FFF9CC' : 'rgba(255,255,255,0.88)',
+          background: isFav ? 'var(--color-yellow-soft)' : 'rgba(255,255,255,0.88)',
           border: `1px solid ${isFav ? '#F8EF8C' : 'rgba(0,0,0,0.09)'}`,
           outline: 'none',
-          fontSize: 13, cursor: 'pointer', color: isFav ? '#7A6B00' : '#6F6F76', fontWeight: isFav ? 700 : 500,
+          fontSize: 13, cursor: 'pointer', color: isFav ? '#7A6B00' : 'var(--color-muted)', fontWeight: isFav ? 700 : 500,
         }}>
           <Bookmark size={14} fill={isFav ? 'currentColor' : 'none'} />
           {isFav ? 'В избранном' : 'В избранное'}
@@ -420,7 +420,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.18 }} style={{ overflow: 'hidden' }}>
             <div style={{ padding: '14px 18px', background: palette.soft, borderRadius: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
               <p style={{ fontSize: 12, fontWeight: 700, color: palette.text }}>Правильный ответ</p>
-              <p style={{ fontSize: 14, fontWeight: 700, color: '#0B0B0D' }}>{task.answer}</p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{task.answer}</p>
               <p style={{ fontSize: 13, lineHeight: 1.6, color: '#3A3A42', whiteSpace: 'pre-wrap' }}>{task.solution}</p>
             </div>
           </motion.div>
@@ -429,11 +429,11 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
 
       {/* Footer */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingTop: 2, borderTop: '1px solid rgba(0,0,0,0.04)' }}>
-        <span style={{ fontSize: 11, color: '#B5B5BC', flex: 1 }}>{task.section} → {task.topic} · {task.source}</span>
-        <button onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : '#B5B5BC', cursor: 'pointer' }}>
+        <span style={{ fontSize: 11, color: 'var(--color-text-5)', flex: 1 }}>{task.section} → {task.topic} · {task.source}</span>
+        <button onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-5)', cursor: 'pointer' }}>
           <AlertTriangle size={10} />{reported ? 'Отправлено' : 'Ошибка'}
         </button>
-        <button onClick={share} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: '#B5B5BC', cursor: 'pointer' }}>
+        <button onClick={share} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: 'var(--color-text-5)', cursor: 'pointer' }}>
           <Share2 size={10} />{copied ? 'Скопировано' : 'Поделиться'}
         </button>
       </div>
@@ -463,7 +463,7 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', gap: 10, padding: 14, borderRadius: 18,
-      background: 'rgba(255,255,255,0.97)',
+      background: 'rgba(var(--glass-rgb), 0.97)',
       border: `1px solid ${isCorrect ? 'rgba(110,231,160,0.5)' : isWrong ? 'rgba(244,139,145,0.45)' : 'rgba(0,0,0,0.07)'}`,
       boxShadow: isCorrect ? '0 6px 18px rgba(110,231,160,0.1)' : isWrong ? '0 6px 18px rgba(244,139,145,0.08)' : '0 4px 14px rgba(0,0,0,0.04)',
       height: '100%', boxSizing: 'border-box',
@@ -471,16 +471,16 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
       {/* Badge row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
         <NumberBadge id={task.id} onCopied={onCopyId} />
-        <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: '#6F6F76' }}>{task.line} лин.</span>
+        <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>{task.line} лин.</span>
       </div>
 
       {/* Question */}
-      <p style={{ fontSize: 13, lineHeight: 1.4, fontWeight: 600, color: '#0B0B0D', margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+      <p style={{ fontSize: 13, lineHeight: 1.4, fontWeight: 600, color: 'var(--color-text)', margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
         {task.question}
       </p>
 
       {/* Topic */}
-      <span style={{ fontSize: 11, color: '#9A9AA2', marginTop: 'auto' }}>{task.topic}</span>
+      <span style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 'auto' }}>{task.topic}</span>
 
       {/* Answer row */}
       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -492,7 +492,7 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
           style={{
             flex: 1, minWidth: 0, padding: '7px 10px', borderRadius: 10, fontSize: 12, outline: 'none',
             border: `1px solid ${state ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'rgba(0,0,0,0.1)'}`,
-            background: state ? (isCorrect ? '#DFF8D6' : '#FFE1E4') : '#FFFFFF',
+            background: state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : '#FFFFFF',
           }}
         />
         <button onClick={check} disabled={!inputVal.trim()} style={{
@@ -504,11 +504,11 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
         <button onClick={() => setShowSolution(s => !s)} style={{
           padding: '7px 8px', borderRadius: 10, border: `1px solid ${showSolution ? palette.accent : 'rgba(0,0,0,0.09)'}`,
           background: showSolution ? palette.soft : 'transparent', cursor: 'pointer', flexShrink: 0,
-        }}><Eye size={12} color={showSolution ? palette.text : '#9A9AA2'} /></button>
+        }}><Eye size={12} color={showSolution ? palette.text : 'var(--color-text-3)'} /></button>
         <button onClick={() => onFavorite(task.id)} style={{
           padding: '7px 8px', borderRadius: 10, border: `1px solid ${isFav ? '#F8EF8C' : 'rgba(0,0,0,0.09)'}`,
-          background: isFav ? '#FFF9CC' : 'transparent', cursor: 'pointer', flexShrink: 0,
-        }}><Bookmark size={12} color={isFav ? '#7A6B00' : '#9A9AA2'} fill={isFav ? '#7A6B00' : 'none'} /></button>
+          background: isFav ? 'var(--color-yellow-soft)' : 'transparent', cursor: 'pointer', flexShrink: 0,
+        }}><Bookmark size={12} color={isFav ? '#7A6B00' : 'var(--color-text-3)'} fill={isFav ? '#7A6B00' : 'none'} /></button>
       </div>
 
       {/* Solution */}
@@ -540,13 +540,13 @@ function SortDropdown({ value, onChange }: { value: SortMode; onChange: (v: Sort
           background: open ? '#fff' : 'rgba(255,255,255,0.9)',
           border: `1px solid ${open ? 'rgba(0,0,0,0.14)' : 'rgba(0,0,0,0.08)'}`,
           boxShadow: open ? '0 0 0 3px rgba(0,0,0,0.05)' : 'none',
-          fontSize: 12, fontWeight: 600, color: '#0B0B0D', cursor: 'pointer',
+          fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer',
           transition: 'all 0.15s ease',
         }}
       >
-        <ArrowUpDown size={12} style={{ color: '#9A9AA2' }} />
+        <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
         {label}
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: '#9A9AA2', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
           <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </button>
@@ -555,8 +555,8 @@ function SortDropdown({ value, onChange }: { value: SortMode; onChange: (v: Sort
           initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.12 }}
           style={{
             position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 150,
-            background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            border: '1px solid rgba(255,255,255,0.8)', borderRadius: 14,
+            background: 'rgba(var(--glass-rgb), 0.96)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            border: '1px solid var(--color-border-glass)', borderRadius: 14,
             boxShadow: '0 12px 32px rgba(0,0,0,0.12)', overflow: 'hidden', padding: 5,
           }}
         >
@@ -568,7 +568,7 @@ function SortDropdown({ value, onChange }: { value: SortMode; onChange: (v: Sort
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
                 width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
                 background: value === val ? 'rgba(0,0,0,0.05)' : 'transparent',
-                fontSize: 13, fontWeight: value === val ? 700 : 400, color: '#0B0B0D',
+                fontSize: 13, fontWeight: value === val ? 700 : 400, color: 'var(--color-text)',
                 cursor: 'pointer', textAlign: 'left',
               }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)' }}
@@ -602,8 +602,8 @@ function StatusTabs({ value, onChange }: { value: StatusFilter; onChange: (v: St
         gap: 0,
         padding: 3,
         borderRadius: 999,
-        background: 'rgba(255,255,255,0.88)',
-        border: '1px solid rgba(0,0,0,0.07)',
+        background: 'rgba(var(--glass-rgb), 0.88)',
+        border: '1px solid var(--color-border)',
         boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
         backdropFilter: 'blur(8px)',
       }}
@@ -621,7 +621,7 @@ function StatusTabs({ value, onChange }: { value: StatusFilter; onChange: (v: St
             backdropFilter: 'blur(16px) saturate(180%)',
             WebkitBackdropFilter: 'blur(16px) saturate(180%)',
             boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 8px rgba(0,0,0,0.08)',
-            border: '1px solid rgba(255,255,255,0.75)',
+            border: '1px solid var(--color-border-glass)',
             pointerEvents: 'none',
             zIndex: 0,
           }}
@@ -636,7 +636,7 @@ function StatusTabs({ value, onChange }: { value: StatusFilter; onChange: (v: St
             position: 'relative', zIndex: 1,
             padding: '7px 14px', borderRadius: 999, border: 'none',
             background: 'transparent',
-            color: value === val ? '#0B0B0D' : '#9A9AA2',
+            color: value === val ? 'var(--color-text)' : 'var(--color-text-3)',
             fontSize: 12, fontWeight: value === val ? 700 : 500,
             cursor: 'pointer', whiteSpace: 'nowrap',
             transition: 'color 0.16s ease',
@@ -655,6 +655,8 @@ export default function TaskBankPage() {
   const docked        = useDashboard(s => s.lessonScrolled)
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
   const tasks         = useTaskBank(s => s.tasks)
+  const loadTasks     = useTaskBank(s => s.load)
+  useEffect(() => { loadTasks() }, [])
 
   const defaultSubject: Subject = activeSubjectId === 'chemistry' ? 'chemistry' : 'biology'
   const [subject, setSubject]   = useState<Subject>(defaultSubject)
@@ -734,8 +736,8 @@ export default function TaskBankPage() {
   const hasFilters = !!(section || topic || part || line || source)
 
   const dockGlass = {
-    border: '1px solid rgba(255,255,255,0.9)',
-    background: 'rgba(255,255,255,0.86)',
+    border: '1px solid var(--color-border-glass)',
+    background: 'rgba(var(--glass-rgb), 0.86)',
     backdropFilter: 'blur(14px) saturate(180%)',
     WebkitBackdropFilter: 'blur(14px) saturate(180%)',
     boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14)',
@@ -761,7 +763,7 @@ export default function TaskBankPage() {
               background: 'rgba(255,255,255,0.72)',
               backdropFilter: 'blur(24px) saturate(200%)',
               WebkitBackdropFilter: 'blur(24px) saturate(200%)',
-              border: '1px solid rgba(255,255,255,0.85)',
+              border: '1px solid var(--color-border-glass)',
               boxShadow: '0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.9)',
             }}
           >
@@ -774,7 +776,7 @@ export default function TaskBankPage() {
                 <path d="M2 5l2.5 2.5 3.5-4" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#0B0B0D', whiteSpace: 'nowrap' }}>Сохранено в буфере</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>Сохранено в буфере</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -790,14 +792,14 @@ export default function TaskBankPage() {
           whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
           onClick={() => setActivePage('home')}
           className="flex items-center cursor-pointer flex-shrink-0"
-          style={{ gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(255,255,255,0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: '#0B0B0D', fontSize: 14, fontWeight: 600 }}
+          style={{ gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600 }}
         >
           <ChevronLeft size={18} />Назад
         </motion.button>
 
         <h1
           className="flex-1 min-w-0 text-center"
-          style={{ fontSize: 18, fontWeight: 700, color: '#0B0B0D', margin: 0 }}
+          style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', margin: 0 }}
         >
           Банк заданий ЕГЭ‑2026
         </h1>
@@ -821,14 +823,14 @@ export default function TaskBankPage() {
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
               onClick={() => setActivePage('home')}
               className="flex items-center cursor-pointer flex-shrink-0"
-              style={{ gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass, color: '#0B0B0D', fontSize: 14, fontWeight: 600, pointerEvents: 'auto' }}
+              style={{ gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto' }}
             >
               <ChevronLeft size={18} />Назад
             </motion.button>
 
             <div
               className="min-w-0 flex items-center"
-              style={{ fontSize: 14, fontWeight: 700, color: '#0B0B0D', flexShrink: 1, padding: '9px 16px', borderRadius: 999, ...dockGlass, pointerEvents: 'auto' }}
+              style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', flexShrink: 1, padding: '9px 16px', borderRadius: 999, ...dockGlass, pointerEvents: 'auto' }}
             >
               <span className="truncate">Банк заданий · {subject === 'biology' ? 'Биология' : 'Химия'}</span>
             </div>
@@ -844,13 +846,13 @@ export default function TaskBankPage() {
         style={{
           borderRadius: 32,
           background: 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,248,250,0.98))',
-          border: '1px solid rgba(255,255,255,0.62)',
+          border: '1px solid var(--color-border-glass)',
           boxShadow: '0 24px 80px rgba(17,12,34,0.12)',
           overflow: 'hidden',
         }}
       >
         {/* Left sidebar */}
-        <aside className="flex flex-col" style={{ padding: 16, gap: 16, borderRight: '1px solid rgba(0,0,0,0.06)', background: 'linear-gradient(180deg, rgba(250,250,252,0.98), rgba(245,245,247,0.98))' }}>
+        <aside className="flex flex-col" style={{ padding: 16, gap: 16, borderRight: '1px solid var(--color-border-soft)', background: 'linear-gradient(180deg, rgba(250,250,252,0.98), rgba(245,245,247,0.98))' }}>
 
           {/* Subject gradient card — clicking it toggles between biology and chemistry */}
           <div
@@ -866,7 +868,7 @@ export default function TaskBankPage() {
                 <button key={s} onClick={e => { e.stopPropagation(); setSubject(s); setSection(''); setTopic('') }}
                   style={{
                     padding: '6px 12px', borderRadius: 999, border: '1.5px solid',
-                    borderColor: subject === s ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)',
+                    borderColor: subject === s ? 'var(--color-border-glass)' : 'var(--color-border-medium)',
                     background: subject === s ? 'rgba(255,255,255,0.22)' : 'transparent',
                     color: 'white', fontSize: 12, fontWeight: subject === s ? 700 : 500, cursor: 'pointer',
                   }}>
@@ -880,10 +882,10 @@ export default function TaskBankPage() {
           </div>
 
           {/* Filters card */}
-          <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(255,255,255,0.94)', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
+          <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(255,255,255,0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
             <div className="flex items-center" style={{ gap: 7 }}>
               <Filter size={15} style={{ color: palette.text }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#0B0B0D' }}>Фильтры</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Фильтры</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <FilterField label="Раздел"   options={sections}     value={section} onChange={v => { setSection(v); setTopic('') }} accent={palette.accent} />
@@ -894,32 +896,32 @@ export default function TaskBankPage() {
             </div>
             {hasFilters && (
               <button onClick={() => { setSection(''); setTopic(''); setPart(''); setLine(''); setSource('') }}
-                style={{ padding: '8px 0', borderRadius: 12, background: '#FFE1E4', border: 'none', fontSize: 12, color: '#B03040', cursor: 'pointer', fontWeight: 600 }}>
+                style={{ padding: '8px 0', borderRadius: 12, background: 'var(--color-red-soft)', border: 'none', fontSize: 12, color: '#B03040', cursor: 'pointer', fontWeight: 600 }}>
                 Сбросить фильтры
               </button>
             )}
           </div>
 
           {/* Progress card */}
-          <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(255,255,255,0.94)', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
+          <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(255,255,255,0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
             <div className="flex items-center" style={{ gap: 7 }}>
               <Target size={15} style={{ color: palette.text }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#0B0B0D' }}>Прогресс</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Прогресс</span>
             </div>
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ fontSize: 12, color: '#6F6F76' }}>Решено верно</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: '#0B0B0D' }}>{doneCount} / {totalCount}</span>
+                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Решено верно</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{doneCount} / {totalCount}</span>
               </div>
-              <div style={{ height: 6, borderRadius: 999, background: '#EBEBEF', overflow: 'hidden' }}>
+              <div style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
                 <motion.div animate={{ width: `${totalCount ? (doneCount / totalCount) * 100 : 0}%` }} transition={{ duration: 0.4 }}
                   style={{ height: '100%', borderRadius: 999, background: `linear-gradient(90deg, ${palette.accent}, ${palette.text})` }} />
               </div>
             </div>
             {[['В избранном', `${favorites.size}`], ['Показано', `${filtered.length}`]].map(([label, val]) => (
               <div key={label} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 12, color: '#6F6F76' }}>{label}</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#0B0B0D' }}>{val}</span>
+                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{label}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{val}</span>
               </div>
             ))}
           </div>
@@ -930,11 +932,11 @@ export default function TaskBankPage() {
 
           {/* Controls row */}
           <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', background: 'rgba(255,255,255,0.96)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 999, flex: '1 1 180px', maxWidth: 320, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-              <Search size={14} style={{ color: '#9A9AA2', flexShrink: 0 }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-medium)', borderRadius: 999, flex: '1 1 180px', maxWidth: 320, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+              <Search size={14} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по тексту или №..."
-                style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, background: 'transparent', color: '#0B0B0D' }} />
-              {search && <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9A9AA2', fontSize: 15, lineHeight: 1 }}>×</button>}
+                style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, background: 'transparent', color: 'var(--color-text)' }} />
+              {search && <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1 }}>×</button>}
             </div>
             <StatusTabs value={statusFilter} onChange={setStatusFilter} />
 
@@ -942,20 +944,20 @@ export default function TaskBankPage() {
             <SortDropdown value={sortMode} onChange={setSortMode} />
 
             <button onClick={() => setShowFavOnly(f => !f)}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 14px', borderRadius: 999, background: showFavOnly ? '#FFF9CC' : 'rgba(255,255,255,0.9)', border: `1px solid ${showFavOnly ? '#F8EF8C' : 'rgba(0,0,0,0.08)'}`, fontSize: 12, cursor: 'pointer', color: showFavOnly ? '#7A6B00' : '#9A9AA2', fontWeight: showFavOnly ? 700 : 400 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 14px', borderRadius: 999, background: showFavOnly ? 'var(--color-yellow-soft)' : 'rgba(255,255,255,0.9)', border: `1px solid ${showFavOnly ? '#F8EF8C' : 'rgba(0,0,0,0.08)'}`, fontSize: 12, cursor: 'pointer', color: showFavOnly ? '#7A6B00' : 'var(--color-text-3)', fontWeight: showFavOnly ? 700 : 400 }}>
               <Bookmark size={13} fill={showFavOnly ? 'currentColor' : 'none'} />
               {showFavOnly ? `Избранное (${favorites.size})` : 'Избранное'}
             </button>
 
 
-            <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9A9AA2' }}>
-              Всего: <strong style={{ color: '#0B0B0D' }}>{filtered.length}</strong>
+            <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--color-text-3)' }}>
+              Всего: <strong style={{ color: 'var(--color-text)' }}>{filtered.length}</strong>
             </span>
           </div>
 
           {/* Tasks */}
           {filtered.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '48px 0', color: '#9A9AA2', fontSize: 14 }}>
+            <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14 }}>
               Заданий не найдено — измените фильтры
             </div>
           ) : viewMode === 'grid' ? (

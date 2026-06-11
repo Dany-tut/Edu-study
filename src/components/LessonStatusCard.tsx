@@ -19,7 +19,7 @@ interface CardConfig {
 
 const configs: Record<LessonStatus, CardConfig> = {
   completed: {
-    bg: '#DFF8D6',
+    bg: 'var(--color-green-soft)',
     badgeBg: 'rgba(110,231,160,0.3)',
     badgeText: '#1A5C38',
     badgeLabel: 'Выполнено',
@@ -27,7 +27,7 @@ const configs: Record<LessonStatus, CardConfig> = {
     textColor: '#0F3D26',
   },
   returned: {
-    bg: '#FFF9CC',
+    bg: 'var(--color-yellow-soft)',
     badgeBg: 'rgba(248,239,140,0.5)',
     badgeText: '#7A6A00',
     badgeLabel: 'Возвращено на доработку',
@@ -36,7 +36,7 @@ const configs: Record<LessonStatus, CardConfig> = {
     textColor: '#4A3F00',
   },
   unviewed: {
-    bg: '#FFE1E4',
+    bg: 'var(--color-red-soft)',
     badgeBg: 'rgba(244,139,145,0.3)',
     badgeText: '#A8282D',
     badgeLabel: 'Запись урока',
@@ -45,7 +45,7 @@ const configs: Record<LessonStatus, CardConfig> = {
     textColor: '#6B1115',
   },
   submitted: {
-    bg: '#FFE4BD',
+    bg: 'var(--color-peach-soft)',
     badgeBg: 'rgba(248,201,145,0.4)',
     badgeText: '#8A4A00',
     badgeLabel: 'Отправлено на проверку',
@@ -54,7 +54,7 @@ const configs: Record<LessonStatus, CardConfig> = {
     textColor: '#5A2F00',
   },
   current: {
-    bg: '#EEDBFF',
+    bg: 'var(--color-purple-soft)',
     badgeBg: 'rgba(197,139,255,0.25)',
     badgeText: '#7B3FCC',
     badgeLabel: 'Текущий урок',
@@ -62,9 +62,9 @@ const configs: Record<LessonStatus, CardConfig> = {
     textColor: '#4A1A8A',
   },
   locked: {
-    bg: '#F0F0F2',
+    bg: 'var(--color-bg-3)',
     badgeBg: 'rgba(189,189,194,0.4)',
-    badgeText: '#6F6F76',
+    badgeText: 'var(--color-muted)',
     badgeLabel: 'Недоступно',
     icon: Lock,
     textColor: '#4A4A4F',

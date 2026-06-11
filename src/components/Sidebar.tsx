@@ -2,17 +2,19 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, BookOpen, Dumbbell, Bell, ChevronLeft, ChevronRight,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star,
-  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut,
+  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun,
   type LucideIcon,
 } from 'lucide-react'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { student, scheduleTodayIndex } from '../data/mockData'
-import { clearStudentSession } from '../lib/studentSession'
+import { student } from '../data/mockData'
+import { clearStudentSession, getStudentSession } from '../lib/studentSession'
 import { playTransitionDrop } from '../lib/sound'
 import { tactile } from '../lib/feedback'
 import { useDashboard, type WidgetColumns } from '../store/dashboardStore'
 import WidgetOrderModal from './WidgetOrderModal'
+import { useTheme } from '../store/themeStore'
+import { useStudentData } from '../store/studentDataStore'
 
 const navItems = [
   { id: 'home',    label: 'Главная',  icon: Home },
@@ -41,8 +43,9 @@ function nameToGradient(seed: string) {
 // Pickable avatars: a glyph + its own gradient backdrop. The default flower
 // keeps the per-user generated colour; the rest carry a fixed themed gradient.
 type AvatarOption = { id: string; Icon: LucideIcon; gradient: string }
-const AVATARS: AvatarOption[] = [
-  { id: 'flower', Icon: Flower2, gradient: nameToGradient(student.name) },
+function buildAvatars(name: string): AvatarOption[] {
+  return [
+  { id: 'flower', Icon: Flower2, gradient: nameToGradient(name) },
   { id: 'cat',    Icon: Cat,    gradient: 'linear-gradient(135deg, hsl(28 92% 68%), hsl(14 84% 56%))' },
   { id: 'rabbit', Icon: Rabbit, gradient: 'linear-gradient(135deg, hsl(330 88% 74%), hsl(345 76% 60%))' },
   { id: 'bird',   Icon: Bird,   gradient: 'linear-gradient(135deg, hsl(205 92% 70%), hsl(220 80% 58%))' },
@@ -50,7 +53,8 @@ const AVATARS: AvatarOption[] = [
   { id: 'bug',    Icon: Bug,    gradient: 'linear-gradient(135deg, hsl(2 82% 70%), hsl(354 74% 56%))' },
   { id: 'rocket', Icon: Rocket, gradient: 'linear-gradient(135deg, hsl(264 82% 72%), hsl(278 70% 58%))' },
   { id: 'star',   Icon: Star,   gradient: 'linear-gradient(135deg, hsl(46 96% 66%), hsl(36 92% 54%))' },
-]
+  ]
+}
 
 // Shared visual box for each popover panel (main grid + the settings panel
 // beside it), so both read as the same floating card.
@@ -64,7 +68,7 @@ const panelBox = {
   background: 'rgba(255,255,255,0.72)',
   backdropFilter: 'blur(16px) saturate(180%)',
   WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-  border: '1px solid rgba(255,255,255,0.7)',
+  border: '1px solid var(--color-border-glass)',
   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.85), 0 12px 40px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.06)',
   boxSizing: 'border-box',
 } as const
@@ -105,16 +109,16 @@ function SettingsRow({ icon: Icon, label, onClick, active = false, danger = fals
         border: 'none',
         cursor: 'pointer',
         background: active ? 'rgba(123,63,204,0.1)' : 'transparent',
-        color: danger ? '#C53030' : '#0B0B0D',
+        color: danger ? '#C53030' : 'var(--color-text)',
         fontSize: 14,
         fontWeight: 550,
         textAlign: 'left',
         transition: 'background 0.15s',
       }}
     >
-      <Icon size={17} strokeWidth={1.9} style={{ color: danger ? '#C53030' : '#6F6F76', flexShrink: 0 }} />
+      <Icon size={17} strokeWidth={1.9} style={{ color: danger ? '#C53030' : 'var(--color-muted)', flexShrink: 0 }} />
       <span style={{ flex: 1 }}>{label}</span>
-      <ChevronRight size={16} style={{ color: danger ? '#E57373' : '#C2C2C8', flexShrink: 0 }} />
+      <ChevronRight size={16} style={{ color: danger ? '#E57373' : 'var(--color-text-4)', flexShrink: 0 }} />
     </motion.button>
   )
 }
@@ -130,12 +134,12 @@ function MenuHeader({ title, onBack }: { title: string; onBack: () => void }) {
         style={{
           width: 26, height: 26, borderRadius: 8, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          border: 'none', cursor: 'pointer', background: 'rgba(255,255,255,0.6)', color: '#6F6F76',
+          border: 'none', cursor: 'pointer', background: 'rgba(var(--glass-rgb), 0.6)', color: 'var(--color-muted)',
         }}
       >
         <ChevronLeft size={15} />
       </motion.button>
-      <span style={{ fontSize: 14, fontWeight: 650, color: '#0B0B0D' }}>{title}</span>
+      <span style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)' }}>{title}</span>
     </div>
   )
 }
@@ -170,6 +174,11 @@ export default function Sidebar() {
   const [nameMaxWidth, setNameMaxWidth] = useState<number | undefined>(undefined)
   // Viewport coords for the portaled popover, measured from the avatar.
   const [anchor, setAnchor] = useState<{ top: number; left: number } | null>(null)
+  const { dark, toggle: toggleTheme } = useTheme()
+  const session = getStudentSession()
+  const displayName = session?.name ?? student.name
+  const AVATARS = buildAvatars(displayName)
+  const scheduleTodayIndex = useStudentData(s => s.scheduleTodayIndex)
   const setScheduleIndex = useDashboard(state => state.setScheduleIndex)
   const avatarId = useDashboard(state => state.avatarId)
   const setAvatarId = useDashboard(state => state.setAvatarId)
@@ -337,7 +346,7 @@ export default function Sidebar() {
         background: contrasty ? 'rgba(255,255,255,0.86)' : 'rgba(255,255,255,0.5)',
         backdropFilter: 'blur(14px) saturate(180%)',
         WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-        border: contrasty ? '1px solid rgba(255,255,255,0.9)' : '1px solid rgba(255,255,255,0.7)',
+        border: contrasty ? '1px solid var(--color-border-glass)' : '1px solid var(--color-border-glass)',
         // Light, consistent drop shadow in both states so the bar reads as a
         // floating glass surface. The contrasty (over-video) form keeps a touch
         // more inset highlight; both share the same soft drop.
@@ -498,8 +507,8 @@ export default function Sidebar() {
                             column-count types show inline, no extra drill-in. */}
                         <MenuHeader title="Настройки" onBack={() => setMenuView('root')} />
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                          <LayoutGrid size={15} strokeWidth={1.9} style={{ color: '#6F6F76', flexShrink: 0 }} />
-                          <span style={{ fontSize: 13, fontWeight: 600, color: '#0B0B0D' }}>Виджеты</span>
+                          <LayoutGrid size={15} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>Виджеты</span>
                         </div>
                         <div style={labelStyle}>Блоков в строке</div>
                         <div style={{ display: 'flex', gap: 8 }}>
@@ -508,8 +517,11 @@ export default function Sidebar() {
                             return (
                               <motion.button
                                 key={n}
+                                whileHover={!selected ? { scale: 1.06 } : {}}
                                 whileTap={{ scale: 0.92 }}
                                 onClick={() => setWidgetColumns(n)}
+                                onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(123,63,204,0.1)' }}
+                                onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(var(--glass-rgb),0.5)' }}
                                 role="menuitemradio"
                                 aria-checked={selected}
                                 aria-label={`${n} в строке`}
@@ -522,8 +534,8 @@ export default function Sidebar() {
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  background: selected ? '#EEDBFF' : 'rgba(255,255,255,0.5)',
-                                  color: selected ? '#7B3FCC' : '#9A9AA2',
+                                  background: selected ? 'var(--color-purple-soft)' : 'rgba(var(--glass-rgb),0.5)',
+                                  color: selected ? '#7B3FCC' : 'var(--color-text-3)',
                                   boxShadow: selected ? 'inset 0 0 0 1.5px #7B3FCC' : 'none',
                                   transition: 'background 0.15s, color 0.15s, box-shadow 0.15s',
                                 }}
@@ -534,23 +546,27 @@ export default function Sidebar() {
                           })}
                         </div>
 
-                        {/* Switch to teacher view */}
+                        {/* Theme toggle */}
                         <div style={{ height: 1, background: 'rgba(0,0,0,0.08)', margin: '10px -2px' }} />
                         <motion.button
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => { window.location.hash = '#/teacher'; closePicker() }}
-                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.8)' }}
-                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.5)' }}
+                          onClick={toggleTheme}
+                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.05)' }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                           style={{
                             width: '100%', marginBottom: 8,
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             gap: 8, height: 42, borderRadius: 12, border: 'none', cursor: 'pointer',
-                            background: 'rgba(255,255,255,0.5)', color: '#7B3FCC',
+                            background: 'transparent',
+                            color: dark ? '#7B3FCC' : 'var(--color-text)',
                             fontSize: 13.5, fontWeight: 600, transition: 'background 0.15s',
                           }}
                         >
-                          <GraduationCap size={16} strokeWidth={1.9} style={{ color: '#7B3FCC' }} />
-                          Режим учителя
+                          {dark
+                            ? <Sun size={16} strokeWidth={1.9} style={{ color: '#7B3FCC' }} />
+                            : <Moon size={16} strokeWidth={1.9} style={{ color: 'var(--color-muted)' }} />
+                          }
+                          {dark ? 'Светлая тема' : 'Тёмная тема'}
                         </motion.button>
 
                         {/* Opens the list modal: reorder by drag + show/hide. */}
@@ -558,8 +574,8 @@ export default function Sidebar() {
                           whileTap={{ scale: 0.98 }}
                           onClick={() => { setOrderModalOpen(true); closePicker() }}
                           aria-label="Настроить виджеты"
-                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.8)' }}
-                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.5)' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.05)' }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                           style={{
                             width: '100%',
                             marginTop: 14,
@@ -571,14 +587,14 @@ export default function Sidebar() {
                             borderRadius: 12,
                             border: 'none',
                             cursor: 'pointer',
-                            background: 'rgba(255,255,255,0.5)',
-                            color: '#0B0B0D',
+                            background: 'transparent',
+                            color: 'var(--color-text)',
                             fontSize: 13.5,
                             fontWeight: 600,
                             transition: 'background 0.15s',
                           }}
                         >
-                          <ArrowUpDown size={16} strokeWidth={1.9} style={{ color: '#6F6F76' }} />
+                          <ArrowUpDown size={16} strokeWidth={1.9} style={{ color: 'var(--color-muted)' }} />
                           Настроить виджеты
                         </motion.button>
                       </motion.div>
@@ -612,12 +628,12 @@ export default function Sidebar() {
               display: 'block',
               fontSize: 15,
               fontWeight: 600,
-              color: '#0B0B0D',
+              color: 'var(--color-text)',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
             }}
           >
-            {student.name}
+            {displayName}
           </span>
         </motion.div>
       </div>
@@ -646,8 +662,8 @@ export default function Sidebar() {
                 fontWeight: isActive ? 600 : 500,
                 // Inactive icons go darker in the compact dock for legibility on
                 // the bright glass over the dark video.
-                color: isActive ? '#7B3FCC' : (isCompact ? '#3A3A40' : '#6F6F76'),
-                background: isActive ? '#EEDBFF' : 'transparent',
+                color: isActive ? '#7B3FCC' : (isCompact ? 'var(--color-text-2)' : 'var(--color-muted)'),
+                background: isActive ? 'var(--color-purple-soft)' : 'transparent',
                 transition: 'background 0.15s, color 0.15s',
                 whiteSpace: 'nowrap',
               }}
@@ -662,7 +678,7 @@ export default function Sidebar() {
                 if (!isActive) {
                   const el = e.currentTarget as HTMLButtonElement
                   el.style.background = 'transparent'
-                  el.style.color = isCompact ? '#3A3A40' : '#6F6F76'
+                  el.style.color = isCompact ? 'var(--color-text-2)' : 'var(--color-muted)'
                 }
               }}
             >
@@ -703,13 +719,14 @@ export default function Sidebar() {
             width: 32, height: 32,
             borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: isCompact ? '#3A3A40' : '#6F6F76',
+            cursor: 'pointer', color: isCompact ? 'var(--color-text-2)' : 'var(--color-muted)',
             background: 'none', border: 'none',
           }}
           aria-label="Уведомления"
         >
           <Bell size={16} />
         </motion.button>
+
         <motion.button
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.96 }}
@@ -724,7 +741,7 @@ export default function Sidebar() {
             width: 32, height: 32,
             borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: isCompact ? '#3A3A40' : '#6F6F76',
+            cursor: 'pointer', color: isCompact ? 'var(--color-text-2)' : 'var(--color-muted)',
             background: 'none', border: 'none',
           }}
           aria-label={isCompact ? 'Развернуть' : 'Свернуть'}

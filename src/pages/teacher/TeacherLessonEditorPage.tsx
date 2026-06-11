@@ -19,13 +19,13 @@ const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
   padding: '9px 12px', borderRadius: 11,
   border: '1.5px solid rgba(0,0,0,0.09)',
-  fontSize: 13, color: '#0B0B0D',
-  background: '#F9F9FB', outline: 'none',
+  fontSize: 13, color: 'var(--color-text)',
+  background: 'var(--color-bg-2)', outline: 'none',
   fontFamily: 'inherit',
 }
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <div style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.4, marginBottom: 5 }}>{children}</div>
+  return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 5 }}>{children}</div>
 }
 
 function tileBase(active: boolean): React.CSSProperties {
@@ -33,7 +33,7 @@ function tileBase(active: boolean): React.CSSProperties {
     display: 'flex', alignItems: 'center', gap: 12,
     padding: 16, borderRadius: 18, minHeight: 92, width: '100%',
     background: active ? 'rgba(255,255,255,0.96)' : 'rgba(123,63,204,0.04)',
-    border: active ? '1px solid rgba(0,0,0,0.06)' : '1.5px dashed rgba(123,63,204,0.3)',
+    border: active ? '1px solid var(--color-border-soft)' : '1.5px dashed rgba(123,63,204,0.3)',
     boxShadow: active ? '0 2px 12px rgba(0,0,0,0.05)' : 'none',
     cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
   }
@@ -45,7 +45,7 @@ const navBtnStyle: React.CSSProperties = {
   width: 26, height: 26, borderRadius: 8, border: 'none',
   background: '#F7F5FC', cursor: 'pointer',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
-  color: '#6F6F76',
+  color: 'var(--color-muted)',
 }
 
 function todayDotStr() {
@@ -90,14 +90,14 @@ function CalendarPickerLesson({ value, onChange, onClose }: { value: string; onC
       transition={{ duration: 0.15 }}
       style={{
         position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 100,
-        background: '#fff', border: '1.5px solid #EDEAF5', borderRadius: 16,
+        background: 'var(--color-bg-input)', border: '1.5px solid #EDEAF5', borderRadius: 16,
         boxShadow: '0 12px 40px rgba(0,0,0,0.14)', padding: '12px 14px 14px',
         minWidth: 232, userSelect: 'none',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <button onClick={prevMonth} style={navBtnStyle}><ChevronLeft size={14} strokeWidth={2.2} /></button>
-        <span style={{ fontSize: 13, fontWeight: 700, color: '#0B0B0D' }}>{RU_MONTHS[viewMonth]} {viewYear}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{RU_MONTHS[viewMonth]} {viewYear}</span>
         <button onClick={nextMonth} style={navBtnStyle}><ChevronRight size={14} strokeWidth={2.2} /></button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
@@ -112,7 +112,7 @@ function CalendarPickerLesson({ value, onChange, onClose }: { value: string; onC
           const tod = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate()
           return (
             <button key={i} onClick={() => { onChange(formatDateDot(d)); onClose() }}
-              style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500, background: sel ? '#7B3FCC' : tod ? '#F0E8FF' : 'transparent', color: sel ? '#fff' : tod ? '#7B3FCC' : '#0B0B0D', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s' }}
+              style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500, background: sel ? '#7B3FCC' : tod ? '#F0E8FF' : 'transparent', color: sel ? '#fff' : tod ? '#7B3FCC' : 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s' }}
               onMouseEnter={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = '#F7F5FC' }}
               onMouseLeave={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = tod ? '#F0E8FF' : 'transparent' }}
             >{d.getDate()}</button>
@@ -142,7 +142,7 @@ function TimePickerLesson({ value, onChange, onClose }: { value: string; onChang
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -6, scale: 0.97 }}
       transition={{ duration: 0.15 }}
-      style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 100, background: '#fff', border: '1.5px solid #EDEAF5', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.14)', overflow: 'hidden' }}
+      style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 100, background: 'var(--color-bg-input)', border: '1.5px solid #EDEAF5', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.14)', overflow: 'hidden' }}
     >
       <div style={{ position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 32, zIndex: 1, background: 'linear-gradient(to bottom, #fff 0%, rgba(255,255,255,0) 100%)', pointerEvents: 'none', borderRadius: '14px 14px 0 0' }} />
@@ -152,7 +152,7 @@ function TimePickerLesson({ value, onChange, onClose }: { value: string; onChang
             const active = t === value
             return (
               <button key={t} onClick={() => { onChange(t); onClose() }}
-                style={{ width: '100%', border: 'none', background: active ? '#7B3FCC' : 'transparent', color: active ? '#fff' : '#0B0B0D', padding: '7px 10px', textAlign: 'left', fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'block', borderRadius: 9, transition: 'background 0.18s, color 0.18s' }}
+                style={{ width: '100%', border: 'none', background: active ? '#7B3FCC' : 'transparent', color: active ? '#fff' : 'var(--color-text)', padding: '7px 10px', textAlign: 'left', fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'block', borderRadius: 9, transition: 'background 0.18s, color 0.18s' }}
                 onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = '#F3EEFF' }}
                 onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
               >{t}</button>
@@ -205,17 +205,17 @@ function UploadTile({
         <div style={{
           width: 40, height: 40, borderRadius: 12, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: has ? '#EEDBFF' : 'rgba(123,63,204,0.1)', color: '#7B3FCC',
+          background: has ? 'var(--color-purple-soft)' : 'rgba(123,63,204,0.1)', color: '#7B3FCC',
         }}>
           <Icon size={20} strokeWidth={1.9} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 14, fontWeight: 650, color: '#0B0B0D', lineHeight: 1.2 }}>{label}</p>
-          <p style={{ fontSize: 12, color: '#9A9AA2', marginTop: 2 }}>
+          <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.2 }}>{label}</p>
+          <p style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>
             {has ? `${files.length} файл${files.length > 1 ? (files.length < 5 ? 'а' : 'ов') : ''}` : 'Загрузить файл'}
           </p>
         </div>
-        {!has && <Upload size={16} style={{ color: '#C2C2C8', flexShrink: 0 }} />}
+        {!has && <Upload size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
         {has && multiple && <Plus size={16} style={{ color: '#7B3FCC', flexShrink: 0 }} />}
       </motion.button>
 
@@ -224,7 +224,7 @@ function UploadTile({
           {files.map((f, i) => (
             <div key={i} style={{
               display: 'flex', alignItems: 'center', gap: 8,
-              padding: '6px 10px', borderRadius: 9, background: '#F5F5F6',
+              padding: '6px 10px', borderRadius: 9, background: 'var(--color-bg)',
             }}>
               <div style={{
                 width: 24, height: 24, borderRadius: 7, flexShrink: 0,
@@ -232,10 +232,10 @@ function UploadTile({
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 7, fontWeight: 800, color: '#fff',
               }}>{fileExt(f)}</div>
-              <span style={{ flex: 1, fontSize: 11.5, color: '#0B0B0D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f}</span>
+              <span style={{ flex: 1, fontSize: 11.5, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f}</span>
               <button
                 onClick={() => onRemove(i)}
-                style={{ width: 18, height: 18, borderRadius: 5, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9A9AA2', flexShrink: 0 }}
+                style={{ width: 18, height: 18, borderRadius: 5, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
               >
                 <X size={10} />
               </button>
@@ -302,7 +302,7 @@ function HwPicker({
           width: '100%', display: 'flex', alignItems: 'center', gap: 10,
           padding: '10px 12px', borderRadius: 12, border: 'none', cursor: 'pointer',
           background: value ? '#fff' : 'rgba(255,255,255,0.14)',
-          color: value ? '#0B0B0D' : '#fff',
+          color: value ? 'var(--color-text)' : '#fff',
           boxShadow: value ? '0 2px 10px rgba(0,0,0,0.08)' : 'none',
           fontFamily: 'inherit', textAlign: 'left',
         }}
@@ -325,12 +325,12 @@ function HwPicker({
         {value && (
           <button
             onClick={e => { e.stopPropagation(); onPick(null) }}
-            style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9A9AA2', flexShrink: 0 }}
+            style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
           >
             <X size={12} />
           </button>
         )}
-        <ChevronDown size={15} style={{ flexShrink: 0, color: value ? '#C2C2C8' : '#fff', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
+        <ChevronDown size={15} style={{ flexShrink: 0, color: value ? 'var(--color-text-4)' : '#fff', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
       </button>
 
       <AnimatePresence>
@@ -347,16 +347,16 @@ function HwPicker({
                 : { bottom: 'calc(100% + 6px)' }),
               left: 0, right: 0, zIndex: 60,
               padding: 8, borderRadius: 14,
-              background: 'rgba(255,255,255,0.6)',
+              background: 'rgba(var(--glass-rgb), 0.6)',
               backdropFilter: 'blur(24px) saturate(180%)',
               WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-              border: '1px solid rgba(255,255,255,0.6)',
+              border: '1px solid var(--color-border-glass)',
               boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
             }}
           >
             {/* Search — fixed above the scroll area */}
             <div style={{ position: 'relative', marginBottom: 6 }}>
-              <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#9A9AA2', pointerEvents: 'none' }} />
+              <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
               <input
                 autoFocus
                 value={query}
@@ -365,7 +365,7 @@ function HwPicker({
                 style={{
                   width: '100%', boxSizing: 'border-box', padding: '8px 10px 8px 32px',
                   borderRadius: 10, border: '1.5px solid rgba(0,0,0,0.08)',
-                  fontSize: 12.5, color: '#0B0B0D', background: 'rgba(255,255,255,0.7)',
+                  fontSize: 12.5, color: 'var(--color-text)', background: 'rgba(var(--glass-rgb), 0.7)',
                   outline: 'none', fontFamily: 'inherit',
                 }}
               />
@@ -389,7 +389,7 @@ function HwPicker({
                       <HwOption key={t.id} t={t} active={value?.id === t.id} suggested onClick={() => { onPick(t); setOpen(false) }} />
                     ))}
                     <div style={{ height: 1, background: 'rgba(0,0,0,0.06)', margin: '6px 8px' }} />
-                    <div style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.3, padding: '2px 8px 6px' }}>ВСЕ ШАБЛОНЫ</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3, padding: '2px 8px 6px' }}>ВСЕ ШАБЛОНЫ</div>
                   </>
                 )}
                 {options.filter(t => !suggestedIds.has(t.id)).map(t => (
@@ -397,7 +397,7 @@ function HwPicker({
                 ))}
                 <div style={{ height: 8 }} />
                 {options.length === 0 && suggested.length === 0 && (
-                  <div style={{ padding: '12px 8px', fontSize: 12, color: '#9A9AA2', textAlign: 'center' }}>Ничего не найдено</div>
+                  <div style={{ padding: '12px 8px', fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>Ничего не найдено</div>
                 )}
                 {/* Create new */}
                 <div style={{ height: 1, background: 'rgba(0,0,0,0.06)', margin: '6px 4px' }} />
@@ -408,15 +408,15 @@ function HwPicker({
                     padding: '9px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
                     background: 'transparent', textAlign: 'left', fontFamily: 'inherit',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#EEDBFF' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-purple-soft)' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                 >
-                  <div style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, background: '#EEDBFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Plus size={15} style={{ color: '#7B3FCC' }} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 12.5, fontWeight: 700, color: '#7B3FCC' }}>Создать новую</div>
-                    <div style={{ fontSize: 11, color: '#9A9AA2', marginTop: 1 }}>Перейти в конструктор</div>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>Перейти в конструктор</div>
                   </div>
                 </button>
               </div>
@@ -450,14 +450,14 @@ function HwOption({ t, active, suggested, onClick }: {
       style={{
         display: 'flex', alignItems: 'center', gap: 10, width: '100%',
         padding: '9px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
-        background: active ? '#EEDBFF' : 'transparent', textAlign: 'left', fontFamily: 'inherit',
+        background: active ? 'var(--color-purple-soft)' : 'transparent', textAlign: 'left', fontFamily: 'inherit',
       }}
-      onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#F5F5F6' }}
+      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--color-bg)' }}
       onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
     >
       <div style={{
         width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-        background: t.level === 'hard' ? '#FEF3C7' : '#EEDBFF',
+        background: t.level === 'hard' ? '#FEF3C7' : 'var(--color-purple-soft)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         {t.level === 'hard'
@@ -465,8 +465,8 @@ function HwOption({ t, active, suggested, onClick }: {
           : <GraduationCap size={15} style={{ color: '#7B3FCC' }} />}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12.5, fontWeight: 600, color: '#0B0B0D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</div>
-        <div style={{ fontSize: 11, color: '#9A9AA2', marginTop: 1 }}>{t.subject} · {t.taskCount} зад.</div>
+        <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</div>
+        <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{t.subject} · {t.taskCount} зад.</div>
       </div>
       {suggested && <Sparkles size={13} style={{ color: '#7B3FCC', flexShrink: 0 }} />}
       {active && <Check size={15} style={{ color: '#7B3FCC', flexShrink: 0 }} />}
@@ -517,13 +517,13 @@ type Timecode = { time: string; label: string }
 function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: Timecode[]) => void }) {
   return (
     <div className="flex flex-col h-full" style={{
-      borderRadius: 24, background: 'rgba(255,255,255,0.96)',
-      border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+      borderRadius: 24, background: 'rgba(var(--glass-rgb), 0.96)',
+      border: '1px solid var(--color-border-soft)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
       padding: 16, gap: 8, maxHeight: '54vh',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
         <ListVideo size={17} style={{ color: '#7B3FCC' }} />
-        <span style={{ fontSize: 14, fontWeight: 700, color: '#0B0B0D' }}>Таймкоды</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Таймкоды</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, overflowY: 'auto', scrollbarGutter: 'stable' }}>
         {codes.map((tc, i) => (
@@ -542,14 +542,14 @@ function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: 
             />
             <button
               onClick={() => onChange(codes.filter((_, j) => j !== i))}
-              style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9A9AA2', flexShrink: 0 }}
+              style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
             >
               <Trash2 size={13} />
             </button>
           </div>
         ))}
         {codes.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '24px 0', color: '#C2C2C8', fontSize: 12 }}>
+          <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--color-text-4)', fontSize: 12 }}>
             Добавьте главы видео
           </div>
         )}
@@ -591,7 +591,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
         </div>
         <div style={{ textAlign: 'center', padding: '0 20px' }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Запись прикреплена</div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 360, whiteSpace: 'nowrap' }}>{url}</div>
+          <div style={{ fontSize: 12, color: 'var(--color-border-glass)', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 360, whiteSpace: 'nowrap' }}>{url}</div>
         </div>
         <button
           onClick={() => onChange('')}
@@ -620,8 +620,8 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
         <Video size={30} style={{ color: '#7B3FCC' }} />
       </div>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: '#0B0B0D', marginBottom: 4 }}>Добавьте запись урока</div>
-        <div style={{ fontSize: 13, color: '#9A9AA2' }}>После созвона — вставьте ссылку RuTube / YouTube</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>Добавьте запись урока</div>
+        <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>После созвона — вставьте ссылку RuTube / YouTube</div>
       </div>
 
       {editing ? (
@@ -632,7 +632,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
             onChange={e => setDraft(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && draft.trim()) { onChange(draft.trim()); setEditing(false) } }}
             placeholder="https://rutube.ru/video/..."
-            style={{ ...inputStyle, flex: 1, background: '#fff' }}
+            style={{ ...inputStyle, flex: 1, background: 'var(--color-bg-input)' }}
           />
           <button
             onClick={() => { if (draft.trim()) { onChange(draft.trim()); setEditing(false) } }}
@@ -663,7 +663,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
             style={{
               display: 'flex', alignItems: 'center', gap: 7, padding: '10px 18px', borderRadius: 12,
               border: '1.5px solid rgba(0,0,0,0.1)', cursor: 'pointer', background: 'transparent',
-              color: '#6F6F76', fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit',
+              color: 'var(--color-muted)', fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit',
             }}
           >
             <Upload size={15} /> Загрузить файл
@@ -763,7 +763,7 @@ function AudiencePicker({
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
                   padding: '4px 6px 4px 5px', borderRadius: 9,
-                  background: r.kind === 'group' ? '#EEDBFF' : '#DFF8D6',
+                  background: r.kind === 'group' ? 'var(--color-purple-soft)' : 'var(--color-green-soft)',
                   maxWidth: '100%',
                 }}
               >
@@ -824,15 +824,15 @@ function AudiencePicker({
               transition={{ duration: 0.15 }}
               style={{
                 position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
-                background: '#fff', borderRadius: 14, zIndex: 200,
+                background: 'var(--color-bg-input)', borderRadius: 14, zIndex: 200,
                 boxShadow: '0 12px 36px rgba(0,0,0,0.16)',
-                border: '1px solid rgba(0,0,0,0.07)', overflow: 'hidden',
+                border: '1px solid var(--color-border)', overflow: 'hidden',
               }}
             >
               {/* Search */}
               <div style={{ padding: 8, borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
                 <div style={{ position: 'relative' }}>
-                  <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#9A9AA2', pointerEvents: 'none' }} />
+                  <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
                   <input
                     autoFocus
                     value={query}
@@ -847,7 +847,7 @@ function AudiencePicker({
                 {/* Groups */}
                 {groupMatches.length > 0 && (
                   <>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.4, padding: '6px 8px 4px' }}>ГРУППЫ</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, padding: '6px 8px 4px' }}>ГРУППЫ</div>
                     {groupMatches.map(g => (
                       <button
                         key={g.id}
@@ -856,12 +856,12 @@ function AudiencePicker({
                         onMouseEnter={e => (e.currentTarget.style.background = '#F5F0FF')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
-                        <div style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: '#EEDBFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+                        <div style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
                           {g.icon}
                         </div>
                         <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                          <div style={{ fontSize: 12.5, fontWeight: 600, color: '#0B0B0D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name}</div>
-                          <div style={{ fontSize: 10.5, color: '#9A9AA2' }}>{g.level} · {g.subject}</div>
+                          <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name}</div>
+                          <div style={{ fontSize: 10.5, color: 'var(--color-text-3)' }}>{g.level} · {g.subject}</div>
                         </div>
                         <Plus size={13} style={{ color: '#7B3FCC', flexShrink: 0 }} />
                       </button>
@@ -872,7 +872,7 @@ function AudiencePicker({
                 {/* Students */}
                 {studentMatches.length > 0 && (
                   <>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.4, padding: '8px 8px 4px' }}>УЧЕНИКИ</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, padding: '8px 8px 4px' }}>УЧЕНИКИ</div>
                     {studentMatches.slice(0, 40).map(s => {
                       const initials = s.name.split(' ').map(p => p[0]).join('').slice(0, 2)
                       const g = groups.find(x => x.id === s.groupId)
@@ -888,8 +888,8 @@ function AudiencePicker({
                             {initials}
                           </div>
                           <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                            <div style={{ fontSize: 12.5, fontWeight: 600, color: '#0B0B0D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
-                            <div style={{ fontSize: 10.5, color: '#9A9AA2' }}>{g?.name ?? ''}</div>
+                            <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
+                            <div style={{ fontSize: 10.5, color: 'var(--color-text-3)' }}>{g?.name ?? ''}</div>
                           </div>
                           <Plus size={13} style={{ color: '#1a7a3f', flexShrink: 0 }} />
                         </button>
@@ -899,7 +899,7 @@ function AudiencePicker({
                 )}
 
                 {groupMatches.length === 0 && studentMatches.length === 0 && (
-                  <div style={{ padding: '20px 8px', textAlign: 'center', fontSize: 12, color: '#C2C2C8' }}>
+                  <div style={{ padding: '20px 8px', textAlign: 'center', fontSize: 12, color: 'var(--color-text-4)' }}>
                     Ничего не найдено
                   </div>
                 )}
@@ -910,7 +910,7 @@ function AudiencePicker({
                   onClick={() => { setOpen(false); setQuery('') }}
                   style={{
                     width: '100%', padding: '8px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
-                    background: '#F5F5F6', color: '#6F6F76', fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit',
+                    background: 'var(--color-bg)', color: 'var(--color-muted)', fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit',
                   }}
                 >
                   Готово
@@ -954,10 +954,10 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
     <div style={{
       width: 260, flexShrink: 0,
       padding: 16, borderRadius: 18,
-      background: 'rgba(255,255,255,0.88)',
+      background: 'rgba(var(--glass-rgb), 0.88)',
       backdropFilter: 'blur(16px) saturate(180%)',
       WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-      border: '1px solid rgba(255,255,255,0.9)',
+      border: '1px solid var(--color-border-glass)',
       boxShadow: '0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.95)',
       display: 'flex', flexDirection: 'column', gap: 14,
       alignSelf: 'flex-start',
@@ -975,7 +975,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
           placeholder="Например: Основные оксиды"
           style={inputStyle}
         />
-        <div style={{ fontSize: 10.5, color: '#C2C2C8', marginTop: 4, lineHeight: 1.4 }}>
+        <div style={{ fontSize: 10.5, color: 'var(--color-text-4)', marginTop: 4, lineHeight: 1.4 }}>
           По названию подберём домашки из конструктора
         </div>
       </div>
@@ -995,7 +995,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
         <div ref={calRef} style={{ position: 'relative' }}>
           <button
             onClick={() => { setShowCal(v => !v); setShowStartTime(false); setShowEndTime(false) }}
-            style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', border: `1.5px solid ${showCal ? '#C4B0F0' : 'rgba(0,0,0,0.09)'}`, background: showCal ? '#FAFAFD' : '#F9F9FB', paddingLeft: 11, textAlign: 'left' }}
+            style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', border: `1.5px solid ${showCal ? '#C4B0F0' : 'rgba(0,0,0,0.09)'}`, background: showCal ? '#FAFAFD' : 'var(--color-bg-2)', paddingLeft: 11, textAlign: 'left' }}
           >
             <Calendar size={13} color="#9A9AA2" style={{ flexShrink: 0 }} />
             <span style={{ flex: 1 }}>{displayDate}</span>
@@ -1018,7 +1018,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
           <div ref={startRef} style={{ position: 'relative', flex: 1 }}>
             <button
               onClick={() => { setShowStartTime(v => !v); setShowCal(false); setShowEndTime(false) }}
-              style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', border: `1.5px solid ${showStartTime ? '#C4B0F0' : 'rgba(0,0,0,0.09)'}`, background: showStartTime ? '#FAFAFD' : '#F9F9FB', paddingLeft: 10, textAlign: 'left' }}
+              style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', border: `1.5px solid ${showStartTime ? '#C4B0F0' : 'rgba(0,0,0,0.09)'}`, background: showStartTime ? '#FAFAFD' : 'var(--color-bg-2)', paddingLeft: 10, textAlign: 'left' }}
             >
               <Clock size={13} color="#9A9AA2" style={{ flexShrink: 0 }} />
               <span>{meta.startTime || '—'}</span>
@@ -1033,11 +1033,11 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
               )}
             </AnimatePresence>
           </div>
-          <span style={{ color: '#C2C2C8', fontSize: 14 }}>—</span>
+          <span style={{ color: 'var(--color-text-4)', fontSize: 14 }}>—</span>
           <div ref={endRef} style={{ position: 'relative', flex: 1 }}>
             <button
               onClick={() => { setShowEndTime(v => !v); setShowCal(false); setShowStartTime(false) }}
-              style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', border: `1.5px solid ${showEndTime ? '#C4B0F0' : 'rgba(0,0,0,0.09)'}`, background: showEndTime ? '#FAFAFD' : '#F9F9FB', paddingLeft: 10, textAlign: 'left' }}
+              style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', border: `1.5px solid ${showEndTime ? '#C4B0F0' : 'rgba(0,0,0,0.09)'}`, background: showEndTime ? '#FAFAFD' : 'var(--color-bg-2)', paddingLeft: 10, textAlign: 'left' }}
             >
               <Clock size={13} color="#9A9AA2" style={{ flexShrink: 0 }} />
               <span>{meta.endTime || '—'}</span>
@@ -1101,8 +1101,8 @@ export default function TeacherLessonEditorPage() {
   // Shared glass recipe for the docked top-line pills — matched to the teacher
   // topbar so every floating surface reads as one consistent piece of glass.
   const dockGlass = {
-    border: '1px solid rgba(255,255,255,0.9)',
-    background: 'rgba(255,255,255,0.86)',
+    border: '1px solid var(--color-border-glass)',
+    background: 'rgba(var(--glass-rgb), 0.86)',
     backdropFilter: 'blur(14px) saturate(180%)',
     WebkitBackdropFilter: 'blur(14px) saturate(180%)',
     boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14)',
@@ -1140,9 +1140,9 @@ export default function TeacherLessonEditorPage() {
             onClick={() => setActivePage('home')}
             style={{
               display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
-              padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid rgba(0,0,0,0.06)',
-              background: 'rgba(255,255,255,0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-              color: '#0B0B0D', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+              padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
+              background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+              color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
             }}
           >
             {backBtn}
@@ -1151,18 +1151,18 @@ export default function TeacherLessonEditorPage() {
           <div style={{
             position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
             maxWidth: '44%', pointerEvents: 'none',
-            fontSize: 18, fontWeight: 700, color: '#0B0B0D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center',
+            fontSize: 18, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center',
           }}>
             {isNew ? 'Создать урок' : 'Урок'}
-            {meta.title && <span style={{ color: '#9A9AA2', fontWeight: 500 }}> — {meta.title}</span>}
+            {meta.title && <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}> — {meta.title}</span>}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
             <button
               style={{
-                padding: '9px 18px', borderRadius: 999, border: '1px solid rgba(0,0,0,0.08)',
-                background: 'rgba(255,255,255,0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', cursor: 'pointer',
-                fontSize: 13.5, fontWeight: 600, color: '#6F6F76', fontFamily: 'inherit',
+                padding: '9px 18px', borderRadius: 999, border: '1px solid var(--color-border-medium)',
+                background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', cursor: 'pointer',
+                fontSize: 13.5, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit',
               }}
             >
               {draftLabel}
@@ -1197,7 +1197,7 @@ export default function TeacherLessonEditorPage() {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
                   padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass,
-                  color: '#0B0B0D', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                  color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
                   fontFamily: 'inherit', pointerEvents: 'auto',
                 }}
               >
@@ -1208,7 +1208,7 @@ export default function TeacherLessonEditorPage() {
                 style={{
                   flexShrink: 1, minWidth: 0, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   padding: '9px 16px', borderRadius: 999, ...dockGlass,
-                  fontSize: 14, fontWeight: 700, color: '#0B0B0D', pointerEvents: 'auto',
+                  fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
                 }}
               >
                 {meta.title || (isNew ? 'Создать урок' : 'Урок')}
@@ -1219,7 +1219,7 @@ export default function TeacherLessonEditorPage() {
               <button
                 style={{
                   flexShrink: 0, padding: '9px 16px', borderRadius: 999, ...dockGlass,
-                  cursor: 'pointer', fontSize: 13.5, fontWeight: 600, color: '#6F6F76',
+                  cursor: 'pointer', fontSize: 13.5, fontWeight: 600, color: 'var(--color-muted)',
                   fontFamily: 'inherit', pointerEvents: 'auto',
                 }}
               >
@@ -1275,19 +1275,19 @@ export default function TeacherLessonEditorPage() {
             <section style={{
               display: 'flex', flexDirection: 'column', gap: 12,
               padding: 24, borderRadius: 24,
-              background: 'rgba(255,255,255,0.96)', border: '1px solid rgba(0,0,0,0.06)',
+              background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-soft)',
               boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <FileText size={17} style={{ color: '#7B3FCC' }} />
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#0B0B0D' }}>Описание урока</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Описание урока</span>
               </div>
               <textarea
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 placeholder="Краткое содержание урока, что разобрали, ключевые моменты..."
                 rows={5}
-                style={{ ...inputStyle, resize: 'vertical', minHeight: 120, lineHeight: 1.6, background: '#fff' }}
+                style={{ ...inputStyle, resize: 'vertical', minHeight: 120, lineHeight: 1.6, background: 'var(--color-bg-input)' }}
               />
             </section>
 

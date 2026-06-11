@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
 import { Check, Sparkles } from 'lucide-react'
-import { quizQuestions } from '../data/mockData'
+import { useStudentData } from '../store/studentDataStore'
 
 type Props = {
   /** carousel passes this; unused here (no timer/rotation) */
@@ -10,16 +10,14 @@ type Props = {
   columns?: number
 }
 
-// One question per calendar day, picked deterministically so it stays stable
-// through the day and differs from the multi-question «Викторина дня» on Stats.
-function questionOfDay() {
-  const day = new Date().getDate()
-  return quizQuestions[day % quizQuestions.length]
-}
-
 export default function QuestionOfDayWidget({ columns = 1 }: Props) {
   const [revealed, setRevealed] = useState(false)
-  const q = questionOfDay()
+  const quizQuestions = useStudentData(s => s.quizQuestions)
+  // One question per calendar day, picked deterministically.
+  const day = new Date().getDate()
+  const q = quizQuestions[day % Math.max(quizQuestions.length, 1)]
+    ?? quizQuestions[0]
+    ?? { id: 'q1', title: '…', subject: 'Химия', answers: [] }
   const correct = q.answers.find(a => a.correct)
 
   const scale = columns >= 3 ? 0.82 : columns >= 2 ? 0.9 : 1
@@ -31,10 +29,10 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
       className="flex h-full w-full flex-col rounded-[24px]"
       style={{
         padding: `${padY}px ${padX}px`,
-        background: 'rgba(255,255,255,0.9)',
+        background: 'rgba(var(--glass-rgb), 0.9)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255,255,255,0.62)',
+        border: '1px solid var(--color-border-glass)',
         boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
       }}
     >
@@ -56,7 +54,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
 
       {/* Question */}
       <div className="flex flex-1 items-center" style={{ minHeight: 0 }}>
-        <h3 style={{ fontSize: 21 * scale, fontWeight: 700, lineHeight: 1.2, color: '#0B0B0D' }}>
+        <h3 style={{ fontSize: 21 * scale, fontWeight: 700, lineHeight: 1.2, color: 'var(--color-text)' }}>
           {q.title}
         </h3>
       </div>
@@ -98,7 +96,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
                 className="flex items-center gap-2"
                 style={{
                   padding: `${8 * scale}px ${14 * scale}px`, borderRadius: 14,
-                  background: '#DFF8D6', color: '#1A5C38',
+                  background: 'var(--color-green-soft)', color: '#1A5C38',
                   fontSize: 14 * scale, fontWeight: 650, lineHeight: 1.2,
                 }}
               >

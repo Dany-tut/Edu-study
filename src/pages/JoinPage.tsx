@@ -17,7 +17,7 @@ const inputStyle: React.CSSProperties = {
 }
 
 const card: React.CSSProperties = {
-  background: '#fff', borderRadius: 24, padding: 32,
+  background: 'var(--color-bg-input)', borderRadius: 24, padding: 32,
   width: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.14)',
 }
 
@@ -82,23 +82,23 @@ export default function JoinPage() {
         style={card}
       >
         {step === 'loading' && (
-          <div style={{ textAlign: 'center', color: '#6F6F76', padding: '24px 0' }}>Загрузка...</div>
+          <div style={{ textAlign: 'center', color: 'var(--color-muted)', padding: '24px 0' }}>Загрузка...</div>
         )}
 
         {step === 'error' && (
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 32, marginBottom: 12 }}>🔗</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#0B0B0D', marginBottom: 8 }}>Ссылка недействительна</div>
-            <div style={{ fontSize: 13, color: '#6F6F76' }}>Попросите учителя отправить новую ссылку.</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 8 }}>Ссылка недействительна</div>
+            <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>Попросите учителя отправить новую ссылку.</div>
           </div>
         )}
 
         {step === 'form' && (
           <>
             <div style={{ marginBottom: 24 }}>
-              <div style={{ fontSize: 22, fontWeight: 750, color: '#0B0B0D' }}>Добро пожаловать!</div>
-              <div style={{ fontSize: 14, color: '#6F6F76', marginTop: 4 }}>
-                Придумайте логин и пароль для <strong style={{ color: '#0B0B0D' }}>{studentName}</strong>
+              <div style={{ fontSize: 22, fontWeight: 750, color: 'var(--color-text)' }}>Добро пожаловать!</div>
+              <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 4 }}>
+                Придумайте логин и пароль для <strong style={{ color: 'var(--color-text)' }}>{studentName}</strong>
               </div>
             </div>
 
@@ -128,7 +128,7 @@ export default function JoinPage() {
             </div>
 
             {errorMsg && (
-              <div style={{ marginTop: 12, fontSize: 13, color: '#A8282D', background: '#FFE1E4', borderRadius: 10, padding: '8px 12px' }}>
+              <div style={{ marginTop: 12, fontSize: 13, color: '#A8282D', background: 'var(--color-red-soft)', borderRadius: 10, padding: '8px 12px' }}>
                 {errorMsg}
               </div>
             )}

@@ -1,22 +1,23 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Search } from 'lucide-react'
-import { subjects, type Lesson, type LessonStatus } from '../data/mockData'
+import { type Lesson, type LessonStatus } from '../data/mockData'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
 import { playTransitionDrop } from '../lib/sound'
 import { useNow } from '../lib/useNow'
 import { useDashboard } from '../store/dashboardStore'
 import { useFloatingPill } from '../lib/useFloatingPill'
+import { useStudentData } from '../store/studentDataStore'
 
 // Soft surface colours per status — mirrors the course-track palette so a lesson
 // reads the same here as it does on the track / in the detail popover.
 const cardStyle: Record<LessonStatus, { bg: string; ring: string; label: string; subText: string }> = {
-  completed: { bg: '#DFF8D6', ring: '#6EE7A0', label: '#0B0B0D', subText: '#4C804F' },
-  returned:  { bg: '#FFF9CC', ring: '#F8EF8C', label: '#0B0B0D', subText: '#9A8E36' },
-  unviewed:  { bg: '#FFE1E4', ring: '#F48B91', label: '#0B0B0D', subText: '#9E434A' },
-  submitted: { bg: '#FFE4BD', ring: '#F8C991', label: '#0B0B0D', subText: '#8A4A00' },
-  current:   { bg: '#EEDBFF', ring: '#C58BFF', label: '#0B0B0D', subText: '#7B3FCC' },
-  locked:    { bg: '#F0F0F2', ring: '#E0E0E2', label: '#9A9AA2', subText: '#B5B5BC' },
+  completed: { bg: 'var(--color-green-soft)', ring: '#6EE7A0', label: 'var(--color-text)', subText: '#4C804F' },
+  returned:  { bg: 'var(--color-yellow-soft)', ring: '#F8EF8C', label: 'var(--color-text)', subText: '#9A8E36' },
+  unviewed:  { bg: 'var(--color-red-soft)', ring: '#F48B91', label: 'var(--color-text)', subText: '#9E434A' },
+  submitted: { bg: 'var(--color-peach-soft)', ring: '#F8C991', label: 'var(--color-text)', subText: '#8A4A00' },
+  current:   { bg: 'var(--color-purple-soft)', ring: '#C58BFF', label: 'var(--color-text)', subText: '#7B3FCC' },
+  locked:    { bg: 'var(--color-bg-3)', ring: '#E0E0E2', label: 'var(--color-text-3)', subText: 'var(--color-text-5)' },
 }
 
 const ALL = 'all' as const
@@ -34,6 +35,7 @@ export default function CoursesPage() {
   // active module so a focused lesson lands on its own section.
   const [moduleTab, setModuleTab] = useState<number | typeof ALL>(activeModuleId)
   const [search, setSearch] = useState('')
+  const subjects = useStudentData(s => s.subjects)
   const subjectPill = useFloatingPill(activeSubjectId)
   const modulePill = useFloatingPill(moduleTab)
 
@@ -82,21 +84,21 @@ export default function CoursesPage() {
             height: 40,
             padding: '0 16px',
             borderRadius: 999,
-            background: 'rgba(255,255,255,0.95)',
-            border: '1px solid rgba(0,0,0,0.06)',
+            background: 'rgba(var(--glass-rgb), 0.95)',
+            border: '1px solid var(--color-border-soft)',
             boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
             flex: '1 1 220px',
             maxWidth: 320,
           }}
         >
-          <Search size={16} style={{ color: '#9A9AA2', flexShrink: 0 }} />
+          <Search size={16} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Поиск"
             style={{
               flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
-              fontSize: 14, fontWeight: 500, color: '#0B0B0D',
+              fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
             }}
           />
         </div>
@@ -114,11 +116,11 @@ export default function CoursesPage() {
             style={{
               position: 'absolute',
               borderRadius: 999,
-              background: 'rgba(255,255,255,0.55)',
+              background: 'rgba(var(--glass-rgb), 0.55)',
               backdropFilter: 'blur(16px) saturate(180%)',
               WebkitBackdropFilter: 'blur(16px) saturate(180%)',
               boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.85), 0 2px 10px rgba(0,0,0,0.06)',
-              border: '1px solid rgba(255,255,255,0.7)',
+              border: '1px solid var(--color-border-glass)',
               pointerEvents: 'none',
               zIndex: 0,
             }}
@@ -145,8 +147,8 @@ export default function CoursesPage() {
                   fontSize: 14,
                   fontWeight: 600,
                   background: 'transparent',
-                  color: '#0B0B0D',
-                  border: isActive ? '1px solid transparent' : '1px solid rgba(0,0,0,0.08)',
+                  color: 'var(--color-text)',
+                  border: isActive ? '1px solid transparent' : '1px solid var(--color-border-medium)',
                   outline: 'none',
                   appearance: 'none',
                   WebkitAppearance: 'none',
@@ -178,11 +180,11 @@ export default function CoursesPage() {
             style={{
               position: 'absolute',
               borderRadius: 999,
-              background: 'rgba(255,255,255,0.55)',
+              background: 'rgba(var(--glass-rgb), 0.55)',
               backdropFilter: 'blur(16px) saturate(180%)',
               WebkitBackdropFilter: 'blur(16px) saturate(180%)',
               boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.85), 0 2px 10px rgba(0,0,0,0.06)',
-              border: '1px solid rgba(255,255,255,0.7)',
+              border: '1px solid var(--color-border-glass)',
               pointerEvents: 'none',
               zIndex: 0,
             }}
@@ -215,7 +217,7 @@ export default function CoursesPage() {
                 fontSize: 13,
                 fontWeight: 650,
                 background: 'transparent',
-                color: module && pct === 100 ? '#2A7A3B' : '#0B0B0D',
+                color: module && pct === 100 ? '#2A7A3B' : 'var(--color-text)',
                 border: '1px solid transparent',
                 outline: 'none',
                 appearance: 'none',
@@ -342,11 +344,11 @@ export default function CoursesPage() {
         <div
           className="flex flex-col items-center justify-center text-center"
           style={{
-            minHeight: 200, borderRadius: 24, background: 'rgba(0,0,0,0.025)', color: '#6F6F76',
+            minHeight: 200, borderRadius: 24, background: 'rgba(0,0,0,0.025)', color: 'var(--color-muted)',
           }}
         >
           <Search size={22} style={{ marginBottom: 8 }} />
-          <p style={{ fontSize: 15, fontWeight: 650, color: '#0B0B0D' }}>Ничего не найдено</p>
+          <p style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)' }}>Ничего не найдено</p>
           <p style={{ fontSize: 13, marginTop: 3 }}>Попробуйте изменить запрос или модуль</p>
         </div>
       )}

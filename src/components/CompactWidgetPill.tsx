@@ -2,15 +2,12 @@ import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { Play, Pause, ChevronLeft, ChevronRight, RotateCcw, Timer, Watch } from 'lucide-react'
 import {
-  scienceFacts,
   scienceFactInterval,
-  scienceMemes,
   scienceMemeInterval,
-  courseReactions,
   courseReactionInterval,
-  quizQuestions,
 } from '../data/mockData'
 import { useDashboard } from '../store/dashboardStore'
+import { useStudentData } from '../store/studentDataStore'
 import { tactile } from '../lib/feedback'
 
 /**
@@ -101,7 +98,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
           <div style={{
             position: 'absolute', bottom: -3, right: -3,
             width: 15, height: 15, borderRadius: '50%',
-            background: '#fff',
+            background: 'var(--color-bg-input)',
             color: accentColor,
             fontSize: 8, fontWeight: 800,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -116,7 +113,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
           {/* Kicker */}
           <span style={{
             fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
-            textTransform: 'uppercase', color: '#9A9AA2',
+            textTransform: 'uppercase', color: 'var(--color-text-3)',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
             Домашка · {lessonTitle}
@@ -130,9 +127,9 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
             }}>
               {lastCorrect ? 'Верно' : 'Пока мимо'}
             </span>
-            <span style={{ fontSize: 11.5, color: '#9A9AA2', fontWeight: 500 }}>·</span>
+            <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', fontWeight: 500 }}>·</span>
             <span style={{
-              fontSize: 11.5, fontWeight: 600, color: '#5A5A60',
+              fontSize: 11.5, fontWeight: 600, color: 'var(--color-text-2)',
               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
             }}>
               вопрос {lastQuestionIndex + 1} из {total}
@@ -143,7 +140,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
                 marginLeft: 'auto', flexShrink: 0,
                 fontSize: 10.5, fontWeight: 750,
                 padding: '2px 7px', borderRadius: 999,
-                background: pct >= 60 ? '#DFF8D6' : '#FFE1E4',
+                background: pct >= 60 ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
                 color: pct >= 60 ? '#2A7D4F' : '#A8282D',
               }}>
                 {correct}/{total}
@@ -157,7 +154,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
               style={{
                 height: 3,
                 borderRadius: 999,
-                background: '#EBEBEF',
+                background: 'var(--color-bg-5)',
                 overflow: 'hidden',
               }}
             >
@@ -180,7 +177,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
             transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
             style={{
               marginTop: 5,
-              fontSize: 12, fontWeight: 450, color: '#5A5A60',
+              fontSize: 12, fontWeight: 450, color: 'var(--color-text-2)',
               lineHeight: 1.45, overflow: 'hidden', willChange: 'opacity',
             }}
           >
@@ -207,7 +204,8 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
 }
 
 function ScienceFactPreview({ expanded, paused }: { expanded: boolean; paused: boolean }) {
-  const i = useRotatingIndex(scienceFacts.length, scienceFactInterval, paused)
+  const scienceFacts = useStudentData(s => s.scienceFacts)
+  const i = useRotatingIndex(scienceFacts.length || 1, scienceFactInterval, paused)
   const fact = scienceFacts[i]
   return (
     <PillContent
@@ -236,7 +234,8 @@ function ScienceFactPreview({ expanded, paused }: { expanded: boolean; paused: b
 }
 
 function ReactionPreview({ expanded, paused }: { expanded: boolean; paused: boolean }) {
-  const i = useRotatingIndex(courseReactions.length, courseReactionInterval, paused)
+  const courseReactions = useStudentData(s => s.courseReactions)
+  const i = useRotatingIndex(courseReactions.length || 1, courseReactionInterval, paused)
   const r = courseReactions[i]
   return (
     <PillContent
@@ -289,7 +288,7 @@ function PomoControls() {
   return (
     <div onClick={stop} style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 2 }}>
       {/* Timer ↔ Stopwatch segmented control */}
-      <div style={{ display: 'flex', alignSelf: 'flex-start', background: '#F0F0F2', borderRadius: 999, padding: 3 }}>
+      <div style={{ display: 'flex', alignSelf: 'flex-start', background: 'var(--color-bg-3)', borderRadius: 999, padding: 3 }}>
         {([['timer', 'Таймер'], ['stopwatch', 'Секундомер']] as const).map(([mode, label]) => {
           const active = pomoTimerMode === mode
           return (
@@ -299,7 +298,7 @@ function PomoControls() {
               style={{
                 fontSize: 11.5, fontWeight: 650, lineHeight: 1, padding: '5px 12px', borderRadius: 999,
                 border: 'none', cursor: 'pointer',
-                color: active ? '#0B0B0D' : '#9A9AA0',
+                color: active ? 'var(--color-text)' : '#9A9AA0',
                 background: active ? '#FFFFFF' : 'transparent',
                 boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
                 transition: 'color 0.2s, background 0.2s',
@@ -324,8 +323,8 @@ function PomoControls() {
                   minWidth: 38, padding: '5px 0', borderRadius: 10, cursor: 'pointer',
                   fontSize: 12.5, fontWeight: 650, lineHeight: 1,
                   border: active ? `1px solid ${POMO_ACCENT}` : '1px solid transparent',
-                  color: active ? POMO_ACCENT : '#5A5A60',
-                  background: active ? 'rgba(123,97,255,0.10)' : '#F0F0F2',
+                  color: active ? POMO_ACCENT : 'var(--color-text-2)',
+                  background: active ? 'rgba(123,97,255,0.10)' : 'var(--color-bg-3)',
                   transition: 'all 0.18s ease',
                 }}
               >
@@ -345,8 +344,8 @@ function PomoControls() {
             flex: 1, height: 38, borderRadius: 12, border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             fontSize: 13, fontWeight: 650,
-            color: pomoRunning ? '#0B0B0D' : '#FFFFFF',
-            background: pomoRunning ? '#F0F0F2' : `linear-gradient(135deg, #B98BFF, ${POMO_ACCENT})`,
+            color: pomoRunning ? 'var(--color-text)' : '#FFFFFF',
+            background: pomoRunning ? 'var(--color-bg-3)' : `linear-gradient(135deg, #B98BFF, ${POMO_ACCENT})`,
           }}
         >
           {pomoRunning ? <Pause size={15} /> : <Play size={15} />}
@@ -358,7 +357,7 @@ function PomoControls() {
           style={{
             width: 38, height: 38, borderRadius: 12, border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#6F6F76', background: '#F0F0F2',
+            color: 'var(--color-muted)', background: 'var(--color-bg-3)',
           }}
         >
           <RotateCcw size={15} />
@@ -408,7 +407,8 @@ function PomoPreview({ expanded }: { expanded: boolean }) {
 }
 
 function MemePreview({ expanded, paused }: { expanded: boolean; paused: boolean }) {
-  const i = useRotatingIndex(scienceMemes.length, scienceMemeInterval, paused)
+  const scienceMemes = useStudentData(s => s.scienceMemes)
+  const i = useRotatingIndex(scienceMemes.length || 1, scienceMemeInterval, paused)
   const m = scienceMemes[i]
   return (
     <PillContent
@@ -546,8 +546,9 @@ function AnswerSpoiler({ text, expanded }: { text: string; expanded: boolean }) 
 }
 
 function QuestionOfDayPreview({ expanded }: { expanded: boolean }) {
+  const quizQuestions = useStudentData(s => s.quizQuestions)
   const day = new Date().getDate()
-  const q = quizQuestions[day % quizQuestions.length]
+  const q = quizQuestions[day % Math.max(quizQuestions.length, 1)] ?? quizQuestions[0] ?? { id: 'q1', title: '…', subject: 'Химия', answers: [] }
   const correct = q.answers.find(a => a.correct)
 
   return (
@@ -644,7 +645,7 @@ function PillContent({
             fontWeight: 600,
             letterSpacing: 0.3,
             textTransform: 'uppercase',
-            color: '#9A9AA2',
+            color: 'var(--color-text-3)',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -656,7 +657,7 @@ function PillContent({
           style={{
             fontSize: 13.5,
             fontWeight: 600,
-            color: '#0B0B0D',
+            color: 'var(--color-text)',
             lineHeight: 1.25,
             display: '-webkit-box',
             // Collapsed: clamp to one line so the mini pill stays a capsule.
@@ -679,7 +680,7 @@ function PillContent({
             marginTop: 4,
             fontSize: 12.5,
             fontWeight: 450,
-            color: '#5A5A60',
+            color: 'var(--color-text-2)',
             lineHeight: 1.4,
             overflow: 'hidden',
             willChange: 'opacity',
@@ -913,7 +914,7 @@ export default function CompactWidgetPill() {
         background: overDarkDock ? 'rgba(255,255,255,0.86)' : 'rgba(255,255,255,0.5)',
         backdropFilter: 'blur(14px) saturate(180%)',
         WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-        border: overDarkDock ? '1px solid rgba(255,255,255,0.9)' : '1px solid rgba(255,255,255,0.7)',
+        border: overDarkDock ? '1px solid var(--color-border-glass)' : '1px solid var(--color-border-glass)',
         boxShadow: overDarkDock
           ? 'inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14)'
           : 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 14px rgba(21,18,31,0.08)',
@@ -974,12 +975,12 @@ export default function CompactWidgetPill() {
               height: 22,
               borderRadius: '50%',
               border: 'none',
-              background: 'rgba(255,255,255,0.85)',
+              background: 'rgba(var(--glass-rgb), 0.85)',
               boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#5A5A60',
+              color: 'var(--color-text-2)',
               cursor: 'pointer',
               opacity: hovering ? 1 : 0,
               transition: 'opacity 0.18s ease',
@@ -1003,12 +1004,12 @@ export default function CompactWidgetPill() {
               height: 22,
               borderRadius: '50%',
               border: 'none',
-              background: 'rgba(255,255,255,0.85)',
+              background: 'rgba(var(--glass-rgb), 0.85)',
               boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#5A5A60',
+              color: 'var(--color-text-2)',
               cursor: 'pointer',
               opacity: hovering ? 1 : 0,
               transition: 'opacity 0.18s ease',

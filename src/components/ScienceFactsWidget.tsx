@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
-import { scienceFacts, scienceFactInterval } from '../data/mockData'
+import { scienceFactInterval } from '../data/mockData'
+import { useStudentData } from '../store/studentDataStore'
 import { getWidgetSizing } from '../lib/widgetSizing'
 import { subjectTheme } from '../lib/theme'
 
@@ -14,6 +15,7 @@ type Props = {
 export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
   const [index, setIndex] = useState(0)
   const [imgFailed, setImgFailed] = useState(false)
+  const scienceFacts = useStudentData(s => s.scienceFacts)
 
   const fact = scienceFacts[index]
   const sz = getWidgetSizing(columns)
@@ -35,10 +37,10 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
     <div
       className="flex h-full w-full overflow-hidden rounded-[24px]"
       style={{
-        background: 'rgba(255,255,255,0.9)',
+        background: 'rgba(var(--glass-rgb), 0.9)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255,255,255,0.62)',
+        border: '1px solid var(--color-border-glass)',
         boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
       }}
     >
@@ -102,7 +104,7 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               style={{
-                fontSize: 17 * sz.scale, fontWeight: 550, lineHeight: sz.bodyLeading, color: '#0B0B0D',
+                fontSize: 17 * sz.scale, fontWeight: 550, lineHeight: sz.bodyLeading, color: 'var(--color-text)',
                 display: '-webkit-box', WebkitLineClamp: sz.clampLines, WebkitBoxOrient: 'vertical', overflow: 'hidden',
               }}
             >

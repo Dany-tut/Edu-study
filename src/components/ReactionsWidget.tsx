@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
-import { courseReactions, courseReactionInterval } from '../data/mockData'
+import { courseReactionInterval } from '../data/mockData'
+import { useStudentData } from '../store/studentDataStore'
 import { getWidgetSizing } from '../lib/widgetSizing'
 import { useDashboard } from '../store/dashboardStore'
 
@@ -14,6 +15,7 @@ type Props = {
 export default function ReactionsWidget({ active, columns = 1 }: Props) {
   const [index, setIndex] = useState(0)
   const openLessonForReaction = useDashboard(s => s.openLessonForReaction)
+  const courseReactions = useStudentData(s => s.courseReactions)
 
   const reaction = courseReactions[index]
   const sz = getWidgetSizing(columns)
@@ -35,10 +37,10 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
     <div
       className="flex h-full w-full overflow-hidden rounded-[24px]"
       style={{
-        background: 'rgba(255,255,255,0.9)',
+        background: 'rgba(var(--glass-rgb), 0.9)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255,255,255,0.62)',
+        border: '1px solid var(--color-border-glass)',
         boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
       }}
     >
@@ -111,14 +113,14 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
             >
               <p
                 style={{
-                  fontSize: 21 * sz.scale, fontWeight: 700, lineHeight: 1.25, color: '#0B0B0D',
+                  fontSize: 21 * sz.scale, fontWeight: 700, lineHeight: 1.25, color: 'var(--color-text)',
                   fontVariantNumeric: 'tabular-nums', letterSpacing: '0.01em',
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}
               >
                 {reaction.equation}
               </p>
-              <p style={{ fontSize: 13 * sz.scale, fontWeight: 500, color: '#6F6F76', marginTop: 4 }}>
+              <p style={{ fontSize: 13 * sz.scale, fontWeight: 500, color: 'var(--color-muted)', marginTop: 4 }}>
                 {reaction.name} · <span
                   style={{ color: '#7B61FF', fontWeight: 600, textDecoration: 'underline', textDecorationColor: 'rgba(123,97,255,0.4)', textUnderlineOffset: 3 }}
                 >Урок «{reaction.lesson}»</span>

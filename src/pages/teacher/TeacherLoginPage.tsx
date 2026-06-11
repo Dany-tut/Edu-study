@@ -38,24 +38,24 @@ export default function TeacherLoginPage({ onLogin }: { onLogin: () => void }) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #f5f0ff 0%, #e8f4ff 100%)',
+      background: 'var(--color-bg)',
       padding: 24,
     }}>
       <div style={{
-        background: 'rgba(255,255,255,0.92)',
+        background: 'rgba(var(--glass-rgb), 0.92)',
         backdropFilter: 'blur(20px)',
         borderRadius: 28,
         padding: '40px 36px',
         width: '100%',
         maxWidth: 400,
         boxShadow: '0 8px 40px rgba(0,0,0,0.10)',
-        border: '1px solid rgba(255,255,255,0.9)',
+        border: '1px solid var(--color-border-glass)',
       }}>
         <div style={{ fontSize: 36, marginBottom: 8 }}>👩‍🏫</div>
-        <h1 style={{ fontSize: 24, fontWeight: 700, color: '#1a1a2e', margin: '0 0 4px' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)', margin: '0 0 4px' }}>
           Платформа учителя
         </h1>
-        <p style={{ color: '#888', fontSize: 14, margin: '0 0 28px' }}>
+        <p style={{ color: 'var(--color-muted)', fontSize: 14, margin: '0 0 28px' }}>
           {mode === 'login' ? 'Войдите в аккаунт' : 'Создайте аккаунт'}
         </p>
 
@@ -69,10 +69,11 @@ export default function TeacherLoginPage({ onLogin }: { onLogin: () => void }) {
             style={{
               padding: '12px 16px',
               borderRadius: 14,
-              border: '1.5px solid #e8e0ff',
+              border: '1.5px solid var(--color-border-medium)',
               fontSize: 15,
               outline: 'none',
-              background: '#fafafa',
+              color: 'var(--color-text)',
+              background: 'var(--color-bg-input)',
             }}
           />
           <input
@@ -84,10 +85,11 @@ export default function TeacherLoginPage({ onLogin }: { onLogin: () => void }) {
             style={{
               padding: '12px 16px',
               borderRadius: 14,
-              border: '1.5px solid #e8e0ff',
+              border: '1.5px solid var(--color-border-medium)',
               fontSize: 15,
               outline: 'none',
-              background: '#fafafa',
+              color: 'var(--color-text)',
+              background: 'var(--color-bg-input)',
             }}
           />
 
@@ -116,7 +118,7 @@ export default function TeacherLoginPage({ onLogin }: { onLogin: () => void }) {
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: '#888' }}>
+        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--color-muted)' }}>
           {mode === 'login' ? 'Нет аккаунта? ' : 'Уже есть аккаунт? '}
           <span
             onClick={() => setMode(mode === 'login' ? 'register' : 'login')}

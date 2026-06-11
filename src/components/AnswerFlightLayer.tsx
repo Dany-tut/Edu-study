@@ -104,7 +104,7 @@ function FlightChip({
         width: 16,
         height: 16,
         borderRadius: '50%',
-        background: '#fff',
+        background: 'var(--color-bg-input)',
         color: correct ? '#2A7D4F' : '#A8282D',
         fontSize: 8.5,
         fontWeight: 800,

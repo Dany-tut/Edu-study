@@ -10,7 +10,7 @@ const norm = (o: TeacherSelectOption) => (typeof o === 'string' ? { value: o, la
 const baseTrigger: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box', padding: '9px 12px',
   borderRadius: 11, borderWidth: 1.5, borderStyle: 'solid', borderColor: 'rgba(0,0,0,0.1)',
-  fontSize: 13, color: '#0B0B0D', background: '#F9F9FB',
+  fontSize: 13, color: 'var(--color-text)', background: 'var(--color-bg-2)',
   outline: 'none', fontFamily: 'inherit', cursor: 'pointer',
   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
   gap: 8, textAlign: 'left',
@@ -18,7 +18,7 @@ const baseTrigger: React.CSSProperties = {
 
 export default function TeacherSelect({
   value, options, onChange, placeholder, triggerStyle, small = false,
-  accent = '#7B3FCC', accentBg = '#EEDBFF',
+  accent = '#7B3FCC', accentBg = 'var(--color-purple-soft)',
 }: {
   value: string
   options: TeacherSelectOption[]
@@ -92,14 +92,14 @@ export default function TeacherSelect({
       >
         <span style={{
           flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-          color: isEmpty && placeholder !== undefined ? '#9A9AA2' : undefined,
+          color: isEmpty && placeholder !== undefined ? 'var(--color-text-3)' : undefined,
         }}>
           {shownLabel}
         </span>
         <motion.span
           animate={{ rotate: open ? 180 : 0 }}
           transition={{ duration: 0.18 }}
-          style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: '#9A9AA2' }}
+          style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: 'var(--color-text-3)' }}
         >
           <ChevronDown size={small ? 11 : 13} strokeWidth={2.2} />
         </motion.span>
@@ -122,7 +122,7 @@ export default function TeacherSelect({
                 background: 'rgba(255,255,255,0.82)',
                 backdropFilter: 'blur(16px) saturate(180%)',
                 WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-                border: '1px solid rgba(255,255,255,0.85)',
+                border: '1px solid var(--color-border-glass)',
                 borderRadius: 14,
                 boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 12px 40px rgba(0,0,0,0.16)',
                 padding: 6, maxHeight: 276, overflowY: 'auto',
@@ -146,7 +146,7 @@ export default function TeacherSelect({
                       fontSize: small ? 11 : 13, fontWeight: selected ? 650 : 500,
                       fontFamily: 'inherit',
                       background: selected ? accentBg : 'transparent',
-                      color: selected ? accent : muted ? '#9A9AA2' : '#0B0B0D',
+                      color: selected ? accent : muted ? 'var(--color-text-3)' : 'var(--color-text)',
                       transition: 'background 0.12s',
                       flexShrink: 0,
                     }}

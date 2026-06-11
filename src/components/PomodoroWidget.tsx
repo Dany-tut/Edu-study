@@ -38,10 +38,10 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
       style={{
         gap: 20 * sz.scale,
         padding: `${sz.padY}px ${sz.padX}px`,
-        background: 'rgba(255,255,255,0.9)',
+        background: 'rgba(var(--glass-rgb), 0.9)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255,255,255,0.62)',
+        border: '1px solid var(--color-border-glass)',
         boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
       }}
     >
@@ -58,7 +58,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span style={{ fontSize: 24 * sz.scale, fontWeight: 700, color: '#0B0B0D', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+          <span style={{ fontSize: 24 * sz.scale, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
             {format(pomoSecondsLeft)}
           </span>
           <span style={{ fontSize: 10 * sz.scale, fontWeight: 600, color: '#9A9AA0', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 2 }}>
@@ -72,7 +72,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
       <div className="flex min-w-0 flex-1 flex-col" style={{ gap: 10 * sz.scale }}>
         <div className="flex items-center justify-between gap-2">
           {/* Mode toggle */}
-          <div className="flex" style={{ background: '#F0F0F2', borderRadius: 999, padding: 3 }}>
+          <div className="flex" style={{ background: 'var(--color-bg-3)', borderRadius: 999, padding: 3 }}>
             {(['focus', 'break'] as PomoMode[]).map(m => (
               <button
                 key={m}
@@ -80,7 +80,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
                 className="cursor-pointer"
                 style={{
                   fontSize: 12 * sz.scale, fontWeight: 650, lineHeight: 1, padding: '6px 14px', borderRadius: 999,
-                  color: pomoMode === m ? '#0B0B0D' : '#9A9AA0',
+                  color: pomoMode === m ? 'var(--color-text)' : '#9A9AA0',
                   background: pomoMode === m ? '#FFFFFF' : 'transparent',
                   boxShadow: pomoMode === m ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
                   transition: 'color 0.2s, background 0.2s',
@@ -96,7 +96,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
         </div>
 
         <div className="flex flex-1 items-center" style={{ minHeight: 0 }}>
-          <p style={{ fontSize: 13 * sz.scale, fontWeight: 500, color: '#6F6F76', lineHeight: 1.3 }}>
+          <p style={{ fontSize: 13 * sz.scale, fontWeight: 500, color: 'var(--color-muted)', lineHeight: 1.3 }}>
             {pomoMode === 'focus'
               ? 'Сосредоточься на работе без отвлечений.'
               : 'Сделай паузу — отдохни и восстановись.'}
@@ -112,8 +112,8 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
             className="flex cursor-pointer items-center justify-center gap-2"
             style={{
               height: btnH, padding: `0 ${22 * sz.scale}px`, borderRadius: 16,
-              background: pomoRunning ? '#F0F0F2' : `linear-gradient(135deg, ${accent}, ${accent}CC)`,
-              color: pomoRunning ? '#0B0B0D' : '#FFFFFF',
+              background: pomoRunning ? 'var(--color-bg-3)' : `linear-gradient(135deg, ${accent}, ${accent}CC)`,
+              color: pomoRunning ? 'var(--color-text)' : '#FFFFFF',
               fontSize: 14 * sz.scale, fontWeight: 650,
             }}
           >
@@ -126,7 +126,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
             onClick={pomoReset}
             aria-label="Сбросить таймер"
             className="flex cursor-pointer items-center justify-center"
-            style={{ width: btnH, height: btnH, borderRadius: 16, background: '#F0F0F2', color: '#6F6F76' }}
+            style={{ width: btnH, height: btnH, borderRadius: 16, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}
           >
             <RotateCcw size={16 * sz.scale} />
           </motion.button>

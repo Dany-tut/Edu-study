@@ -29,7 +29,7 @@ function ShownRow({ id, onHide, disabled }: { id: number; onHide: (id: number) =
         position: 'relative',
         display: 'flex', alignItems: 'center', gap: 12,
         padding: '10px 12px', borderRadius: 14,
-        background: '#F5F5F6',
+        background: 'var(--color-bg)',
         border: '1.5px solid transparent',
         listStyle: 'none',
         userSelect: 'none', WebkitUserSelect: 'none',
@@ -37,7 +37,7 @@ function ShownRow({ id, onHide, disabled }: { id: number; onHide: (id: number) =
     >
       <span
         onPointerDown={e => controls.start(e)}
-        style={{ display: 'flex', cursor: 'grab', touchAction: 'none', color: '#C2C2C8', flexShrink: 0 }}
+        style={{ display: 'flex', cursor: 'grab', touchAction: 'none', color: 'var(--color-text-4)', flexShrink: 0 }}
       >
         <GripVertical size={16} />
       </span>
@@ -50,7 +50,7 @@ function ShownRow({ id, onHide, disabled }: { id: number; onHide: (id: number) =
       >
         <w.Icon size={17} />
       </span>
-      <span style={{ flex: 1, fontSize: 14.5, fontWeight: 600, color: '#0B0B0D' }}>{w.label}</span>
+      <span style={{ flex: 1, fontSize: 14.5, fontWeight: 600, color: 'var(--color-text)' }}>{w.label}</span>
       <motion.button
         whileTap={{ scale: 0.9 }}
         onClick={() => onHide(id)}
@@ -62,7 +62,7 @@ function ShownRow({ id, onHide, disabled }: { id: number; onHide: (id: number) =
           cursor: disabled ? 'not-allowed' : 'pointer',
           opacity: disabled ? 0.35 : 1,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: '#ECECEE', color: '#6F6F76',
+          background: '#ECECEE', color: 'var(--color-muted)',
         }}
       >
         <Minus size={16} />
@@ -124,15 +124,15 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
             transition={{ duration: 0.2, ease: EASE }}
             style={{
               width: 'min(420px, 100%)', maxHeight: '90vh', overflowY: 'auto',
-              background: '#fff', borderRadius: 24, padding: 24,
+              background: 'var(--color-bg-input)', borderRadius: 24, padding: 24,
               boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
             }}
           >
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
               <div>
-                <h2 style={{ fontSize: 19, fontWeight: 700, color: '#0B0B0D', lineHeight: 1.2 }}>Виджеты</h2>
-                <p style={{ fontSize: 13, color: '#6F6F76', marginTop: 4 }}>
+                <h2 style={{ fontSize: 19, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>Виджеты</h2>
+                <p style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>
                   Перетащите за ручку, чтобы изменить порядок. Скрытые — ниже черты.
                 </p>
               </div>
@@ -142,7 +142,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                 aria-label="Закрыть"
                 style={{
                   width: 34, height: 34, borderRadius: 999, flexShrink: 0, border: 'none', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F0F0F2', color: '#6F6F76',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg-3)', color: 'var(--color-muted)',
                 }}
               >
                 <X size={17} />
@@ -167,7 +167,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
               <>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '18px 2px 12px' }}>
                   <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.08)' }} />
-                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', color: '#9A9AA2' }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', color: 'var(--color-text-3)' }}>
                     Скрытые
                   </span>
                   <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.08)' }} />
@@ -200,7 +200,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                         style={{
                           width: 28, height: 28, borderRadius: 8, flexShrink: 0, border: 'none', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: '#EEDBFF', color: '#7B3FCC',
+                          background: 'var(--color-purple-soft)', color: '#7B3FCC',
                         }}
                       >
                         <Plus size={16} />
@@ -218,7 +218,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                 onClick={onClose}
                 style={{
                   padding: '0 18px', height: 42, borderRadius: 12, border: 'none', cursor: 'pointer',
-                  background: '#F0F0F2', color: '#3A3A40', fontSize: 14, fontWeight: 600,
+                  background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600,
                 }}
               >
                 Отмена

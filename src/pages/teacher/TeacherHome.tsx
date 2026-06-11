@@ -28,12 +28,12 @@ function Card({
   return (
     <div
       style={{
-        background: 'rgba(255,255,255,0.88)',
+        background: 'rgba(var(--glass-rgb), 0.88)',
         backdropFilter: 'blur(16px) saturate(180%)',
         WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-        border: '1px solid rgba(255,255,255,0.9)',
+        border: '1px solid var(--color-border-medium)',
         borderRadius: 24,
-        boxShadow: '0 4px 24px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.95)',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.15)',
         padding: 20,
         ...style,
       }}
@@ -45,7 +45,7 @@ function Card({
 
 function CardTitle({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontSize: 13, fontWeight: 700, color: '#6F6F76', letterSpacing: 0.2, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)', letterSpacing: 0.2, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
       {children}
     </div>
   )
@@ -63,22 +63,22 @@ function EarningsCard({ delay }: { delay: number }) {
     <motion.div {...fadeUp(delay)} style={{ flex: 1, minWidth: 0 }}>
       <Card style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: '#6F6F76' }}>За месяц</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-muted)' }}>За месяц</span>
           <div style={{
             width: 30, height: 30, borderRadius: 10,
-            background: '#FFF9CC', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'var(--color-yellow-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <TrendingUp size={15} strokeWidth={2} style={{ color: '#7a6500' }} />
           </div>
         </div>
-        <div style={{ fontSize: 36, fontWeight: 750, color: '#0B0B0D', lineHeight: 1 }}>
+        <div style={{ fontSize: 36, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1 }}>
           {MONTHLY_EARNED.toLocaleString('ru-RU')} ₽
         </div>
         {/* Progress bar */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <div style={{
             height: 5, borderRadius: 99,
-            background: '#F0EEF5', overflow: 'hidden',
+            background: 'var(--color-bg-5)', overflow: 'hidden',
           }}>
             <div style={{
               height: '100%', borderRadius: 99,
@@ -90,11 +90,11 @@ function EarningsCard({ delay }: { delay: number }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{
               fontSize: 11, fontWeight: 600, color: '#7a6500',
-              background: '#FFF9CC', borderRadius: 8, padding: '3px 8px',
+              background: 'var(--color-yellow-soft)', borderRadius: 8, padding: '3px 8px',
             }}>
               {pct}% цели
             </span>
-            <span style={{ fontSize: 10, color: '#9A9AA2' }}>
+            <span style={{ fontSize: 10, color: 'var(--color-text-3)' }}>
               цель {MONTHLY_GOAL.toLocaleString('ru-RU')} ₽
             </span>
           </div>
@@ -114,7 +114,7 @@ function StatCard({
     <motion.div {...fadeUp(delay)} style={{ flex: 1, minWidth: 0 }}>
       <Card style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: '#6F6F76' }}>{label}</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-muted)' }}>{label}</span>
           <div style={{
             width: 30, height: 30, borderRadius: 10,
             background: accentBg, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -122,7 +122,7 @@ function StatCard({
             <Icon size={15} strokeWidth={2} style={{ color: accentColor }} />
           </div>
         </div>
-        <div style={{ fontSize: 36, fontWeight: 750, color: '#0B0B0D', lineHeight: 1, marginBottom: 6 }}>{value}</div>
+        <div style={{ fontSize: 36, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1, marginBottom: 6 }}>{value}</div>
         <div style={{
           fontSize: 11, fontWeight: 600, color: accentColor,
           background: accentBg, borderRadius: 8, padding: '3px 8px',
@@ -162,12 +162,12 @@ function ScheduleRow({ item }: { item: ScheduleItem }) {
             }} />
           </>
         ) : (
-          <Circle size={18} strokeWidth={1.8} style={{ color: '#C2C2C8' }} />
+          <Circle size={18} strokeWidth={1.8} style={{ color: 'var(--color-text-4)' }} />
         )}
       </div>
 
       {/* Time */}
-      <span style={{ fontSize: 13, fontWeight: 600, color: '#6F6F76', flexShrink: 0, width: 38 }}>
+      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-muted)', flexShrink: 0, width: 38 }}>
         {item.time}
       </span>
 
@@ -177,16 +177,16 @@ function ScheduleRow({ item }: { item: ScheduleItem }) {
         background: item.colorSoft, borderRadius: 8, padding: '3px 9px', flexShrink: 0,
       }}>
         <span style={{ fontSize: 13, lineHeight: 1 }}>{item.icon}</span>
-        <span style={{ fontSize: 12, fontWeight: 700, color: '#0B0B0D' }}>{item.groupName}</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{item.groupName}</span>
       </div>
 
       {/* Topic */}
-      <span style={{ fontSize: 13, color: '#3A3A40', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span style={{ fontSize: 13, color: 'var(--color-text-2)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {item.topic}
       </span>
 
       {/* Student count */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, color: '#9A9AA2' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, color: 'var(--color-text-3)' }}>
         <Users size={13} strokeWidth={1.8} />
         <span style={{ fontSize: 12, fontWeight: 600 }}>{item.studentCount}</span>
       </div>
@@ -238,16 +238,16 @@ function PaymentBlock() {
                   {s.name.split(' ').map(w => w[0]).join('').slice(0, 2)}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 650, color: '#0B0B0D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {s.name.split(' ')[0]} {s.name.split(' ')[1]?.[0]}.
                   </div>
-                  <div style={{ fontSize: 10, color: '#8A8A94' }}>{group?.name ?? ''}</div>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-3)' }}>{group?.name ?? ''}</div>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
                   {s.paymentAmount && (
                     <div style={{ fontSize: 12, fontWeight: 700, color }}>{s.paymentAmount.toLocaleString('ru-RU')} ₽</div>
                   )}
-                  <div style={{ fontSize: 10, color: '#8A8A94' }}>{formatDue(s.paymentDue!)}</div>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-3)' }}>{formatDue(s.paymentDue!)}</div>
                 </div>
               </div>
             )
@@ -259,18 +259,18 @@ function PaymentBlock() {
 
   return (
     <div style={{
-      borderRadius: 14, border: '1px solid #EEE', padding: '12px 14px',
-      background: '#FAFAFA',
+      borderRadius: 14, border: '1px solid var(--color-border)', padding: '12px 14px',
+      background: 'var(--color-bg-4)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-        <Banknote size={13} strokeWidth={2} style={{ color: '#8A8A94' }} />
-        <span style={{ fontSize: 11, fontWeight: 700, color: '#6F6F76', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        <Banknote size={13} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />
+        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           Оплата
         </span>
       </div>
-      <Section label="Просрочено" color="#E04848" bg="#FFF0F0" items={overdue} />
-      <Section label="На этой неделе" color="#D07020" bg="#FFF5E6" items={thisWeek} />
-      <Section label="В этом месяце" color="#5A7A9A" bg="#F0F5FA" items={thisMonth} />
+      <Section label="Просрочено" color="#E04848" bg="var(--color-red-soft)" items={overdue} />
+      <Section label="На этой неделе" color="#D07020" bg="var(--color-peach-soft)" items={thisWeek} />
+      <Section label="В этом месяце" color="#5A7A9A" bg="var(--color-bg-3)" items={thisMonth} />
     </div>
   )
 }
@@ -283,8 +283,8 @@ const reminderIcons: Record<Reminder['type'], React.ElementType> = {
   'send-push': Bell,
   'payment-debt': Banknote,
 }
-const urgencyColor = { high: '#F48B91', medium: '#F8C991', low: '#C2C2C8' }
-const urgencyBg = { high: '#FFE1E4', medium: '#FFE4BD', low: '#F5F5F6' }
+const urgencyColor = { high: '#F48B91', medium: '#F8C991', low: 'var(--color-text-4)' }
+const urgencyBg = { high: 'var(--color-red-soft)', medium: 'var(--color-peach-soft)', low: 'var(--color-bg)' }
 
 function ReminderRow({ item, done }: { item: Reminder; done?: boolean }) {
   const Icon = done ? CheckCircle2 : reminderIcons[item.type]
@@ -292,7 +292,7 @@ function ReminderRow({ item, done }: { item: Reminder; done?: boolean }) {
     <div style={{
       display: 'flex', alignItems: 'center', gap: 10,
       padding: '8px 10px', borderRadius: 12,
-      background: done ? '#DFF8D6' : urgencyBg[item.urgency],
+      background: done ? 'var(--color-green-soft)' : urgencyBg[item.urgency],
       opacity: done ? 0.85 : 1,
       transition: 'background 0.25s, opacity 0.25s',
     }}>
@@ -306,14 +306,14 @@ function ReminderRow({ item, done }: { item: Reminder; done?: boolean }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           fontSize: 12, fontWeight: 650,
-          color: done ? '#1a7a3f' : '#0B0B0D',
+          color: done ? '#1a7a3f' : 'var(--color-text)',
           textDecoration: done ? 'line-through' : 'none',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {item.text}
         </div>
         {item.detail && (
-          <div style={{ fontSize: 11, color: '#6F6F76', marginTop: 1 }}>{done ? 'Готово' : item.detail}</div>
+          <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 1 }}>{done ? 'Готово' : item.detail}</div>
         )}
       </div>
       {!done && item.urgency === 'high' && (
@@ -341,7 +341,7 @@ function QuickAction({
     >
       <div style={{
         width: 36, height: 36, borderRadius: 12,
-        background: 'rgba(255,255,255,0.6)',
+        background: 'rgba(var(--glass-rgb), 0.6)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <Icon size={17} strokeWidth={2} style={{ color }} />
@@ -396,7 +396,7 @@ function MyTasksBlock() {
             <span style={{
               marginLeft: 'auto',
               fontSize: 11, fontWeight: 700, color: '#7B3FCC',
-              background: '#EEDBFF', borderRadius: 8, padding: '2px 8px',
+              background: 'var(--color-purple-soft)', borderRadius: 8, padding: '2px 8px',
             }}>
               {pending.length}
             </span>
@@ -410,14 +410,14 @@ function MyTasksBlock() {
               style={{
                 display: 'flex', alignItems: 'center', gap: 10,
                 padding: '8px 10px', borderRadius: 12,
-                background: task.done ? '#F8F7FC' : '#FDFCFF',
-                border: `1px solid ${task.done ? '#EEEAF5' : '#E8E0F5'}`,
+                background: task.done ? 'var(--color-bg-3)' : 'var(--color-bg-2)',
+                border: `1px solid ${task.done ? 'var(--color-border-soft)' : 'var(--color-border-medium)'}`,
                 opacity: task.done ? 0.6 : 1,
                 transition: 'opacity 0.2s, background 0.15s',
                 cursor: 'pointer',
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = task.done ? '#F3F1FA' : '#F5F0FF' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = task.done ? '#F8F7FC' : '#FDFCFF' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = task.done ? 'var(--color-bg-5)' : 'var(--color-purple-soft)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = task.done ? 'var(--color-bg-3)' : 'var(--color-bg-2)' }}
             >
               {/* Checkbox */}
               <button
@@ -447,7 +447,7 @@ function MyTasksBlock() {
               {/* Title */}
               <span style={{
                 flex: 1, fontSize: 13, fontWeight: 500,
-                color: task.done ? '#9A9AA2' : '#0B0B0D',
+                color: task.done ? 'var(--color-text-3)' : 'var(--color-text)',
                 textDecoration: task.done ? 'line-through' : 'none',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>
@@ -455,7 +455,7 @@ function MyTasksBlock() {
               </span>
 
               {/* Date + time */}
-              <span style={{ fontSize: 11, color: '#9A9AA2', flexShrink: 0 }}>
+              <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>
                 {task.date}{task.time ? ` · ${task.time}` : ''}
               </span>
 
@@ -465,11 +465,11 @@ function MyTasksBlock() {
                 style={{
                   width: 20, height: 20, borderRadius: 6, flexShrink: 0,
                   border: 'none', background: 'none', cursor: 'pointer',
-                  color: '#C2C2C8', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'var(--color-text-4)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 14, lineHeight: 1,
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#F48B91' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#C2C2C8' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-4)' }}
               >
                 ×
               </button>
@@ -509,17 +509,17 @@ export default function TeacherHome() {
           <StatCard
             icon={Users} label="Студентов" value={totalStudents}
             sub={`${groups.length} группы`}
-            accentBg="#DFF8D6" accentColor="#1a7a3f" delay={0.05}
+            accentBg="var(--color-green-soft)" accentColor="var(--color-green-accent)" delay={0.05}
           />
           <StatCard
             icon={ClipboardCheck} label="Проверить ДЗ" value={pendingCount}
             sub="ждут ревью"
-            accentBg="#FFE1E4" accentColor="#c0303a" delay={0.1}
+            accentBg="var(--color-red-soft)" accentColor="#c0303a" delay={0.1}
           />
           <StatCard
             icon={Clock} label="Уроков сегодня" value={todaySchedule.length}
             sub={nextLesson ? `следующий в ${nextLesson.time}` : 'все завершены'}
-            accentBg="#EEDBFF" accentColor="#7B3FCC" delay={0.15}
+            accentBg="var(--color-purple-soft)" accentColor="var(--color-accent)" delay={0.15}
           />
           <EarningsCard delay={0.2} />
         </div>
@@ -552,10 +552,10 @@ export default function TeacherHome() {
               {pendingHomework.length > 0 && (
                 <div style={{
                   marginTop: 14, paddingTop: 12,
-                  borderTop: '1px solid rgba(0,0,0,0.06)',
+                  borderTop: '1px solid var(--color-border-soft)',
                   display: 'flex', flexDirection: 'column', gap: 6,
                 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#6F6F76', marginBottom: 2 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-muted)', marginBottom: 2 }}>
                     ДЗ на проверку
                   </div>
                   {pendingHomework.map(hw => {
@@ -563,13 +563,13 @@ export default function TeacherHome() {
                     return (
                       <div key={hw.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <span style={{ fontSize: 13, lineHeight: 1, flexShrink: 0 }}>{hw.icon}</span>
-                        <span style={{ flex: 1, fontSize: 12, color: '#3A3A40', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ flex: 1, fontSize: 12, color: 'var(--color-text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {hw.groupName} — {hw.title}
                         </span>
                         <span style={{
                           fontSize: 11, fontWeight: 700,
                           color: left === 0 ? '#1a7a3f' : '#F48B91',
-                          background: left === 0 ? '#DFF8D6' : '#FFE1E4',
+                          background: left === 0 ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
                           borderRadius: 6, padding: '1px 7px',
                         }}>
                           {left === 0 ? 'готово ✓' : `${left} непров.`}

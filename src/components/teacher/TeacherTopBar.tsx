@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, Users, ClipboardList, BookOpen, Layers,
   Bell, ChevronLeft, ChevronRight,
-  LayoutGrid, UserPlus, Send, CheckSquare, LayoutDashboard, LogOut, type LucideIcon,
+  LayoutGrid, UserPlus, Send, CheckSquare, LayoutDashboard, LogOut, Moon, Sun, type LucideIcon,
 } from 'lucide-react'
 import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
@@ -11,6 +11,7 @@ import { useTeacher, type TeacherPage } from '../../store/teacherStore'
 import CreateTaskModal from './CreateTaskModal'
 import WidgetsModal from './WidgetsModal'
 import { supabase } from '../../lib/supabase'
+import { useTheme } from '../../store/themeStore'
 
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
   { id: 'home',        label: 'Главная',     icon: Home },
@@ -29,18 +30,19 @@ type QuickSeparator = { type: 'separator' }
 type QuickItem = QuickAction | QuickSeparator
 
 const quickActions: QuickItem[] = [
-  { icon: Layers,           label: 'Создать курс',      sub: 'новый курс',       color: '#7B3FCC', bg: '#EEDBFF', action: 'create-course' },
-  { icon: BookOpen,         label: 'Создать урок',      sub: 'новый урок',       color: '#1a7a3f', bg: '#DFF8D6', page: 'lesson-editor' },
-  { icon: ClipboardList,    label: 'Создать домашку',   sub: 'группе / лично',   color: '#1a7a3f', bg: '#DFF8D6', page: 'homework-create' },
+  { icon: Layers,           label: 'Создать курс',      sub: 'новый курс',       color: '#7B3FCC', bg: 'var(--color-purple-soft)', action: 'create-course' },
+  { icon: BookOpen,         label: 'Создать урок',      sub: 'новый урок',       color: '#1a7a3f', bg: 'var(--color-green-soft)', page: 'lesson-editor' },
+  { icon: ClipboardList,    label: 'Создать домашку',   sub: 'группе / лично',   color: '#1a7a3f', bg: 'var(--color-green-soft)', page: 'homework-create' },
   { icon: CheckSquare,      label: 'Создать задачу',    sub: 'встреча, урок…',   color: '#16a87a', bg: '#d5f5e8', action: 'create-task' },
   { type: 'separator' },
-  { icon: Users,            label: 'Создать группу',    sub: 'новая группа',     color: '#7B3FCC', bg: '#EEDBFF', action: 'create-group' },
-  { icon: UserPlus,         label: 'Добавить студента', sub: 'в группу',         color: '#7B3FCC', bg: '#EEDBFF', action: 'add-student' },
-  { icon: Send,             label: 'Пуш / СМС',         sub: 'уведомление',      color: '#8B4900', bg: '#FFE4BD' },
+  { icon: Users,            label: 'Создать группу',    sub: 'новая группа',     color: '#7B3FCC', bg: 'var(--color-purple-soft)', action: 'create-group' },
+  { icon: UserPlus,         label: 'Добавить студента', sub: 'в группу',         color: '#7B3FCC', bg: 'var(--color-purple-soft)', action: 'add-student' },
+  { icon: Send,             label: 'Пуш / СМС',         sub: 'уведомление',      color: '#8B4900', bg: 'var(--color-peach-soft)' },
   { type: 'separator' },
-  { icon: LayoutDashboard,  label: 'Настроить виджеты', sub: 'как у учеников',   color: '#7B3FCC', bg: '#EEDBFF', action: 'widgets' },
+  { icon: LayoutDashboard,  label: 'Настроить виджеты', sub: 'как у учеников',   color: '#7B3FCC', bg: 'var(--color-purple-soft)', action: 'widgets' },
+  { icon: Moon,             label: 'Тема',              sub: 'светлая / тёмная', color: '#5A4A8A', bg: '#EDEAF8', action: 'theme' },
   { type: 'separator' },
-  { icon: LogOut,           label: 'Выйти',             sub: 'из аккаунта',      color: '#A8282D', bg: '#FFE1E4', action: 'logout' },
+  { icon: LogOut,           label: 'Выйти',             sub: 'из аккаунта',      color: '#A8282D', bg: 'var(--color-red-soft)', action: 'logout' },
 ]
 
 export default function TeacherTopBar() {
@@ -55,6 +57,7 @@ export default function TeacherTopBar() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const addTask = useTeacher(s => s.addTask)
   const openConstructor = useTeacher(s => s.openConstructor)
+  const { dark, toggle: toggleTheme } = useTheme()
 
   // Measure anchor on open / resize
   useLayoutEffect(() => {
@@ -95,10 +98,10 @@ export default function TeacherTopBar() {
         position: 'relative', zIndex: 60,
         borderRadius: 32, padding: '8px', height: 60, width: 'fit-content',
         boxSizing: 'border-box',
-        background: 'rgba(255,255,255,0.5)',
+        background: 'rgba(var(--glass-rgb), 0.5)',
         backdropFilter: 'blur(14px) saturate(180%)',
         WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-        border: '1px solid rgba(255,255,255,0.7)',
+        border: '1px solid var(--color-border-glass)',
         boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 14px rgba(21,18,31,0.08)',
         display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 8,
       }}
@@ -124,15 +127,15 @@ export default function TeacherTopBar() {
                 if (!isActive) {
                   const el = e.currentTarget as HTMLButtonElement
                   el.style.background = 'transparent'
-                  el.style.color = '#6F6F76'
+                  el.style.color = 'var(--color-muted)'
                 }
               }}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 padding: '0 16px', height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
                 fontSize: 14, fontWeight: isActive ? 600 : 500,
-                color: isActive ? '#7B3FCC' : '#6F6F76',
-                background: isActive ? '#EEDBFF' : 'transparent',
+                color: isActive ? '#7B3FCC' : 'var(--color-muted)',
+                background: isActive ? 'var(--color-purple-soft)' : 'transparent',
                 transition: 'background 0.15s, color 0.15s',
                 whiteSpace: 'nowrap', position: 'relative',
               }}
@@ -182,7 +185,7 @@ export default function TeacherTopBar() {
           style={{
             width: 32, height: 32, borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: '#6F6F76', background: 'none', border: 'none',
+            cursor: 'pointer', color: 'var(--color-muted)', background: 'none', border: 'none',
           }}
         >
           <Bell size={16} />
@@ -198,7 +201,7 @@ export default function TeacherTopBar() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             width: 38, height: 34,
             borderRadius: 12, border: 'none', cursor: 'pointer',
-            background: addOpen ? '#EEDBFF' : 'transparent',
+            background: addOpen ? 'var(--color-purple-soft)' : 'transparent',
             color: '#7B3FCC', transition: 'background 0.15s',
           }}
         >
@@ -213,7 +216,7 @@ export default function TeacherTopBar() {
           style={{
             width: 32, height: 32, borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: '#6F6F76', background: 'none', border: 'none',
+            cursor: 'pointer', color: 'var(--color-muted)', background: 'none', border: 'none',
           }}
         >
           {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
@@ -234,10 +237,10 @@ export default function TeacherTopBar() {
             style={{
               position: 'fixed', top: anchor.top, left: anchor.left,
               zIndex: 1000, transformOrigin: 'top left',
-              background: 'rgba(255,255,255,0.92)',
+              background: 'rgba(var(--glass-rgb), 0.92)',
               backdropFilter: 'blur(20px) saturate(180%)',
               WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-              border: '1px solid rgba(0,0,0,0.07)',
+              border: '1px solid var(--color-border)',
               borderRadius: 18,
               boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
               padding: 8, minWidth: 230,
@@ -259,6 +262,7 @@ export default function TeacherTopBar() {
                     if (action.action === 'widgets') { setWidgetsOpen(true) }
                     if (action.action === 'create-course') { openConstructor('course') }
                     if (action.action === 'logout') { supabase.auth.signOut() }
+                    if (action.action === 'theme') { toggleTheme(); return }
                     if (action.action === 'create-group') {
                       setActivePage('groups')
                       setTimeout(() => window.dispatchEvent(new CustomEvent('teacher:open-add-group')), 80)
@@ -286,14 +290,21 @@ export default function TeacherTopBar() {
                 >
                   <div style={{
                     width: 32, height: 32, borderRadius: 9, flexShrink: 0,
-                    background: action.bg,
+                    background: action.action === 'theme' ? (dark ? 'rgba(181,122,255,0.18)' : '#EDEAF8') : action.bg,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
-                    <action.icon size={15} strokeWidth={2} style={{ color: action.color }} />
+                    {action.action === 'theme'
+                      ? (dark
+                          ? <Sun size={15} strokeWidth={2} style={{ color: '#7B3FCC' }} />
+                          : <Moon size={15} strokeWidth={2} style={{ color: '#5A4A8A' }} />)
+                      : <action.icon size={15} strokeWidth={2} style={{ color: action.color }} />
+                    }
                   </div>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: isLogout ? '#C53030' : '#0B0B0D', lineHeight: 1.3 }}>{action.label}</div>
-                    <div style={{ fontSize: 11, color: '#9A9AA2', marginTop: 1 }}>{action.sub}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: isLogout ? '#C53030' : 'var(--color-text)', lineHeight: 1.3 }}>
+                      {action.action === 'theme' ? (dark ? 'Светлая тема' : 'Тёмная тема') : action.label}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{action.sub}</div>
                   </div>
                 </motion.button>
               )

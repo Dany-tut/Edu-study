@@ -29,8 +29,8 @@ export default function ReviewNavPill() {
       <div style={{
         display: 'flex', alignItems: 'center', gap: 4,
         padding: '6px 8px', borderRadius: 999,
-        background: 'rgba(255,255,255,0.86)',
-        border: '1px solid rgba(255,255,255,0.9)',
+        background: 'rgba(var(--glass-rgb), 0.86)',
+        border: '1px solid var(--color-border-glass)',
         backdropFilter: 'blur(14px) saturate(180%)',
         WebkitBackdropFilter: 'blur(14px) saturate(180%)',
         boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 14px rgba(21,18,31,0.08)',
@@ -46,13 +46,13 @@ export default function ReviewNavPill() {
       <div style={{
         display: 'flex', alignItems: 'center', gap: 6,
         padding: '8px 14px', borderRadius: 999,
-        background: 'rgba(255,255,255,0.86)',
-        border: '1px solid rgba(255,255,255,0.9)',
+        background: 'rgba(var(--glass-rgb), 0.86)',
+        border: '1px solid var(--color-border-glass)',
         backdropFilter: 'blur(14px) saturate(180%)',
         WebkitBackdropFilter: 'blur(14px) saturate(180%)',
         boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 14px rgba(21,18,31,0.08)',
       }}>
-        <CheckCircle2 size={14} style={{ color: allDone ? '#1a7a3f' : '#C2C2C8', flexShrink: 0 }} />
+        <CheckCircle2 size={14} style={{ color: allDone ? '#1a7a3f' : 'var(--color-text-4)', flexShrink: 0 }} />
         <span style={{ fontSize: 13, fontWeight: 600, color: allDone ? '#1a7a3f' : '#50505A', whiteSpace: 'nowrap' }}>
           {allDone ? 'Все проверены' : `Проверено ${reviewedCount} из ${submitters.length}`}
         </span>
@@ -71,11 +71,11 @@ function NavBtn({ disabled, onClick, dir }: { disabled: boolean; onClick: () => 
       disabled={disabled}
       style={{
         width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
-        border: '1px solid rgba(0,0,0,0.06)', background: disabled ? 'transparent' : '#fff',
+        border: '1px solid var(--color-border-soft)', background: disabled ? 'transparent' : '#fff',
         boxShadow: disabled ? 'none' : '0 1px 6px rgba(0,0,0,0.07)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: disabled ? 'not-allowed' : 'pointer',
-        color: disabled ? '#C2C2C8' : '#0B0B0D',
+        color: disabled ? 'var(--color-text-4)' : 'var(--color-text)',
         opacity: disabled ? 0.5 : 1,
       }}
     >

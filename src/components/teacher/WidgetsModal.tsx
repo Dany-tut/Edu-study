@@ -66,7 +66,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
           transition={{ type: 'spring', stiffness: 420, damping: 28, mass: 0.8 }}
           onClick={e => e.stopPropagation()}
           style={{
-            background: '#fff', borderRadius: 20,
+            background: 'var(--color-bg-input)', borderRadius: 20,
             boxShadow: '0 24px 80px rgba(0,0,0,0.18)',
             width: 420, maxWidth: '92vw',
             padding: '28px 24px 20px',
@@ -76,7 +76,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
             <div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: '#0B0B0D' }}>Виджеты</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)' }}>Виджеты</div>
               <div style={{ fontSize: 13, color: '#8A8A96', marginTop: 4, lineHeight: 1.4 }}>
                 Перетащите за ручку, чтобы изменить порядок.<br />
                 Скрытые — ниже черты.
@@ -114,7 +114,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                 >
                   <GripVertical size={16} color="#C0C0CC" style={{ flexShrink: 0 }} />
                   <WidgetIcon icon={w.icon} bg={w.bg} color={w.color} />
-                  <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: '#0B0B0D' }}>{w.label}</span>
+                  <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>{w.label}</span>
                   <button
                     onClick={() => toggle(w.id)}
                     style={{
@@ -141,28 +141,34 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {hidden.map(w => (
-                  <div
+                  <motion.div
                     key={w.id}
+                    initial={false}
+                    whileHover="hovered"
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10,
-                      background: '#FAFAFA', borderRadius: 12, padding: '10px 12px',
+                      background: 'var(--color-bg-4)', borderRadius: 12, padding: '10px 12px',
                       border: '1.5px dashed #E0E0EA',
                     }}
                   >
-                    <div style={{ width: 16, flexShrink: 0 }} />
-                    <WidgetIcon icon={w.icon} bg={w.bg} color={w.color} />
+                    <motion.div
+                      variants={{ hovered: { x: -8 }, default: { x: 0 } }}
+                      transition={{ type: 'spring', stiffness: 380, damping: 26 }}
+                    >
+                      <WidgetIcon icon={w.icon} bg={w.bg} color={w.color} />
+                    </motion.div>
                     <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: '#8A8A96' }}>{w.label}</span>
                     <button
                       onClick={() => toggle(w.id)}
                       style={{
                         width: 28, height: 28, borderRadius: 8, border: 'none',
-                        background: '#EEDBFF', cursor: 'pointer',
+                        background: 'var(--color-purple-soft)', cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}
                     >
                       <Plus size={14} color="#7B3FCC" />
                     </button>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </>
@@ -174,7 +180,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
               onClick={onClose}
               style={{
                 padding: '10px 20px', borderRadius: 12, border: '1.5px solid #E0E0EA',
-                background: '#fff', fontSize: 14, fontWeight: 600, color: '#555', cursor: 'pointer',
+                background: 'var(--color-bg-input)', fontSize: 14, fontWeight: 600, color: '#555', cursor: 'pointer',
               }}
             >
               Отмена

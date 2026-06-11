@@ -83,6 +83,7 @@ export default function DashboardPage() {
           {/* `.topbar-row` is pointer-events:none so clicks fall through its
               empty area to the docked lesson pills; the interactive wrappers
               must explicitly re-enable pointer events or the bar goes dead. */}
+          <div />
           <div ref={sidebarWrapRef} style={{ display: 'inline-flex', pointerEvents: 'auto' }}>
             <Sidebar />
           </div>
@@ -196,14 +197,14 @@ export default function DashboardPage() {
       </LayoutGroup>
 
       {/* Mobile layout (separate, scrollable) */}
-      <div style={{ display: isDesktop ? 'none' : 'block', minHeight: '100vh', background: '#F5F5F6', padding: '24px 24px 100px' }}>
+      <div style={{ display: isDesktop ? 'none' : 'block', minHeight: '100vh', background: 'var(--color-bg)', padding: '24px 24px 100px' }}>
         {activePage === 'home' ? (
           <div className="flex flex-col gap-6">
             <ScheduleCarousel />
             <WidgetCarousel />
             <CourseTrack />
             <div>
-              <h2 style={{ fontSize: 18, fontWeight: 650, color: '#0B0B0D', marginBottom: 12 }}>Статусы уроков</h2>
+              <h2 style={{ fontSize: 18, fontWeight: 650, color: 'var(--color-text)', marginBottom: 12 }}>Статусы уроков</h2>
               <div className="flex flex-col gap-3">
                 {([
                   { status: 'completed', lessonNumber: 23, title: 'Строение атома', points: 68 },

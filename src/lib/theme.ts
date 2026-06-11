@@ -58,10 +58,10 @@ export const PURPLE = {
 // Course track status palette — kept here so all status chrome (CourseNode,
 // LessonStatusCard, lesson page badges) reads from one place.
 export const TRACK_STATUS = {
-  completed: { bg: '#DFF8D6', border: '#6EE7A0', icon: '#2A7D4F' },
-  returned:  { bg: '#FFF9CC', border: '#F8EF8C', icon: '#7A6A00' },
-  unviewed:  { bg: '#FFE1E4', border: '#F48B91', icon: '#A8282D' },
-  submitted: { bg: '#FFE4BD', border: '#F8C991', icon: '#8A4A00' },
-  current:   { bg: '#FFFFFF', border: PURPLE.mid, icon: PURPLE.text },
-  locked:    { bg: '#F0F0F2', border: '#E0E0E2', icon: '#BDBDC2' },
-} as const
+  completed: { bg: 'var(--color-green-soft)',  border: '#6EE7A0', icon: '#2A7D4F' },
+  returned:  { bg: 'var(--color-yellow-soft)', border: '#F8EF8C', icon: '#7A6A00' },
+  unviewed:  { bg: 'var(--color-red-soft)',    border: '#F48B91', icon: '#A8282D' },
+  submitted: { bg: 'var(--color-peach-soft)',  border: '#F8C991', icon: '#8A4A00' },
+  current:   { bg: 'var(--color-bg-input)',    border: PURPLE.mid, icon: PURPLE.text },
+  locked:    { bg: 'var(--color-bg-3)',        border: 'var(--color-border-soft)', icon: 'var(--color-muted)' },
+}

@@ -38,10 +38,10 @@ function getShapeClass(_shape: LessonShape, _isSquare: boolean): string {
 type HardStatus = 'submitted' | 'returned' | 'completed'
 
 export const HARD_STYLE: Record<HardStatus | 'available', { bg: string; border: string; iconColor: string; label: string }> = {
-  available:  { bg: '#F3EAFF', border: '#C58BFF', iconColor: '#7B3FCC', label: 'Доступен хард' },
-  submitted:  { bg: '#FFE4BD', border: '#F8A84B', iconColor: '#8A4A00', label: 'На проверке' },
-  returned:   { bg: '#FFF3CC', border: '#F0D060', iconColor: '#7A6000', label: 'Возвращён' },
-  completed:  { bg: '#FFF3C4', border: '#F5C842', iconColor: '#7A5800', label: 'Сдан' },
+  available:  { bg: 'var(--color-purple-soft)', border: '#C58BFF', iconColor: '#7B3FCC', label: 'Доступен хард' },
+  submitted:  { bg: 'var(--color-peach-soft)',  border: '#F8A84B', iconColor: '#8A4A00', label: 'На проверке' },
+  returned:   { bg: 'var(--color-yellow-soft)', border: '#F0D060', iconColor: '#7A6000', label: 'Возвращён' },
+  completed:  { bg: 'var(--color-yellow-soft)', border: '#F5C842', iconColor: '#7A5800', label: 'Сдан' },
 }
 
 interface Props {
@@ -174,7 +174,7 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
         className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none"
         style={{ top: 'calc(100% + 7px)' }}
       >
-        <span style={{ fontSize: 10, fontWeight: 600, color: '#6F6F76', whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
           #{lesson.number}
         </span>
       </div>

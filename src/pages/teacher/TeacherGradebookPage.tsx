@@ -25,10 +25,10 @@ function wasPresent(studentId: string, dateIdx: number): boolean | null {
 }
 
 function ScorePill({ value }: { value: number | null }) {
-  if (value === null) return <span style={{ color: '#C2C2C8', fontSize: 12 }}>—</span>
+  if (value === null) return <span style={{ color: 'var(--color-text-4)', fontSize: 12 }}>—</span>
   const pct = value / 100
   const color = pct >= 0.8 ? '#1a7a3f' : pct >= 0.6 ? '#7a6500' : '#c0303a'
-  const bg = pct >= 0.8 ? '#DFF8D6' : pct >= 0.6 ? '#FFF9CC' : '#FFE1E4'
+  const bg = pct >= 0.8 ? 'var(--color-green-soft)' : pct >= 0.6 ? 'var(--color-yellow-soft)' : 'var(--color-red-soft)'
   return (
     <span style={{
       display: 'inline-block', minWidth: 34,
@@ -86,10 +86,10 @@ function ScrollFadeTable({ children }: { children: React.ReactNode }) {
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
     <div style={{
-      background: 'rgba(255,255,255,0.88)',
+      background: 'rgba(var(--glass-rgb), 0.88)',
       backdropFilter: 'blur(16px) saturate(180%)',
       WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-      border: '1px solid rgba(255,255,255,0.9)',
+      border: '1px solid var(--color-border-glass)',
       borderRadius: 22,
       boxShadow: '0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.95)',
       overflow: 'hidden',
@@ -110,7 +110,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
             <tr style={{ background: 'rgba(0,0,0,0.018)' }}>
               <th style={{
                 padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700,
-                color: '#9A9AA2', borderBottom: '1px solid rgba(0,0,0,0.06)',
+                color: 'var(--color-text-3)', borderBottom: '1px solid var(--color-border-soft)',
                 position: 'sticky', left: 0, background: 'rgba(249,249,251,0.97)', zIndex: 1, whiteSpace: 'nowrap',
               }}>
                 Студент
@@ -118,7 +118,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
               {DATES.map(d => (
                 <th key={d} style={{
                   padding: '10px 8px', textAlign: 'center', fontSize: 10, fontWeight: 700,
-                  color: '#9A9AA2', letterSpacing: 0.2, borderBottom: '1px solid rgba(0,0,0,0.06)',
+                  color: 'var(--color-text-3)', letterSpacing: 0.2, borderBottom: '1px solid var(--color-border-soft)',
                   whiteSpace: 'nowrap', minWidth: 44,
                 }}>
                   {d}
@@ -126,7 +126,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
               ))}
               <th style={{
                 padding: '10px 14px', textAlign: 'center', fontSize: 11, fontWeight: 700,
-                color: '#7B3FCC', borderBottom: '1px solid rgba(0,0,0,0.06)', whiteSpace: 'nowrap',
+                color: '#7B3FCC', borderBottom: '1px solid var(--color-border-soft)', whiteSpace: 'nowrap',
               }}>
                 Итого
               </th>
@@ -148,7 +148,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                 >
                   <td style={{
                     padding: '10px 16px', position: 'sticky', left: 0,
-                    background: 'rgba(255,255,255,0.95)', zIndex: 1,
+                    background: 'rgba(var(--glass-rgb), 0.95)', zIndex: 1,
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                       <div style={{
@@ -159,7 +159,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                       }}>
                         {initials}
                       </div>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: '#0B0B0D', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
                         {student.name}
                       </span>
                     </div>
@@ -169,14 +169,14 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                       {present === null ? null : present ? (
                         <div style={{
                           width: 22, height: 22, borderRadius: 7, margin: '0 auto',
-                          background: '#DFF8D6',
+                          background: 'var(--color-green-soft)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: 12,
                         }}>✓</div>
                       ) : (
                         <div style={{
                           width: 22, height: 22, borderRadius: 7, margin: '0 auto',
-                          background: '#FFE1E4',
+                          background: 'var(--color-red-soft)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: 11, color: '#c0303a',
                         }}>✗</div>
@@ -218,7 +218,7 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
             <tr style={{ background: 'rgba(0,0,0,0.018)' }}>
               <th style={{
                 padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700,
-                color: '#9A9AA2', borderBottom: '1px solid rgba(0,0,0,0.06)',
+                color: 'var(--color-text-3)', borderBottom: '1px solid var(--color-border-soft)',
                 position: 'sticky', left: 0, background: 'rgba(249,249,251,0.97)', zIndex: 1,
               }}>
                 Студент
@@ -226,7 +226,7 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
               {['ДЗ', 'Тесты', 'Пробник', 'Цель', 'Посещ.'].map(col => (
                 <th key={col} style={{
                   padding: '10px 16px', textAlign: 'center', fontSize: 11, fontWeight: 700,
-                  color: '#9A9AA2', borderBottom: '1px solid rgba(0,0,0,0.06)', whiteSpace: 'nowrap',
+                  color: 'var(--color-text-3)', borderBottom: '1px solid var(--color-border-soft)', whiteSpace: 'nowrap',
                 }}>
                   {col}
                 </th>
@@ -246,7 +246,7 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
                 >
                   <td style={{
                     padding: '10px 16px', position: 'sticky', left: 0,
-                    background: 'rgba(255,255,255,0.95)', zIndex: 1,
+                    background: 'rgba(var(--glass-rgb), 0.95)', zIndex: 1,
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                       <div style={{
@@ -257,7 +257,7 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
                       }}>
                         {initials}
                       </div>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: '#0B0B0D', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
                         {student.name}
                       </span>
                     </div>
@@ -318,11 +318,11 @@ type Grade = 1 | 2 | 3 | 4 | 5 | null
 function GradeButton({ value, selected, onClick }: { value: Grade; selected: boolean; onClick: () => void }) {
   if (value === null) return null
   const colors: Record<number, { bg: string; color: string; selBg: string }> = {
-    1: { bg: '#FFE1E4', color: '#c0303a', selBg: '#c0303a' },
-    2: { bg: '#FFE1E4', color: '#c0303a', selBg: '#c0303a' },
-    3: { bg: '#FFF9CC', color: '#7a6500', selBg: '#e6a800' },
-    4: { bg: '#DFF8D6', color: '#1a7a3f', selBg: '#1a7a3f' },
-    5: { bg: '#DFF8D6', color: '#1a7a3f', selBg: '#1a7a3f' },
+    1: { bg: 'var(--color-red-soft)', color: '#c0303a', selBg: '#c0303a' },
+    2: { bg: 'var(--color-red-soft)', color: '#c0303a', selBg: '#c0303a' },
+    3: { bg: 'var(--color-yellow-soft)', color: '#7a6500', selBg: '#e6a800' },
+    4: { bg: 'var(--color-green-soft)', color: '#1a7a3f', selBg: '#1a7a3f' },
+    5: { bg: 'var(--color-green-soft)', color: '#1a7a3f', selBg: '#1a7a3f' },
   }
   const c = colors[value]
   return (
@@ -384,7 +384,7 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
         animate={saved ? { opacity: 0, scale: 0.96, y: -8 } : { opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
         style={{
-          background: 'rgba(255,255,255,0.97)',
+          background: 'rgba(var(--glass-rgb), 0.97)',
           backdropFilter: 'blur(20px)',
           borderRadius: 24,
           boxShadow: '0 24px 64px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,1)',
@@ -396,20 +396,20 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
         {/* Header */}
         <div style={{
           padding: '20px 24px 16px',
-          borderBottom: '1px solid rgba(0,0,0,0.06)',
+          borderBottom: '1px solid var(--color-border-soft)',
           display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
         }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: accent }} />
               <span style={{ fontSize: 11, fontWeight: 700, color: accent }}>{headerName}</span>
-              <span style={{ fontSize: 11, color: '#9A9AA2' }}>·</span>
-              <span style={{ fontSize: 11, color: '#9A9AA2', fontWeight: 600 }}>{dateLabel}</span>
+              <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>·</span>
+              <span style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 600 }}>{dateLabel}</span>
             </div>
-            <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#0B0B0D' }}>
+            <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>
               Оценки за урок
             </h2>
-            <p style={{ margin: '3px 0 0', fontSize: 12, color: '#9A9AA2' }}>
+            <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--color-text-3)' }}>
               Присутствовало {presentCount} из {groupStudents.length} · оценок выставлено {gradedCount}
             </p>
           </div>
@@ -417,7 +417,7 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
             onClick={onClose}
             style={{
               width: 30, height: 30, borderRadius: 10, border: 'none',
-              background: '#F5F5F6', color: '#6F6F76', cursor: 'pointer',
+              background: 'var(--color-bg)', color: 'var(--color-muted)', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
@@ -432,9 +432,9 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
           background: 'rgba(0,0,0,0.018)',
           borderBottom: '1px solid rgba(0,0,0,0.04)',
         }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.3 }}>СТУДЕНТ</span>
-          <span style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.3, textAlign: 'center' }}>ПРИСУТСТВИЕ</span>
-          <span style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.3, paddingLeft: 16 }}>ОЦЕНКА ЗА УРОК</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3 }}>СТУДЕНТ</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3, textAlign: 'center' }}>ПРИСУТСТВИЕ</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3, paddingLeft: 16 }}>ОЦЕНКА ЗА УРОК</span>
         </div>
 
         {/* Student list */}
@@ -471,7 +471,7 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
                   </div>
                   <span style={{
                     fontSize: 13, fontWeight: 600,
-                    color: isPresent ? '#0B0B0D' : '#A0A0A8',
+                    color: isPresent ? 'var(--color-text)' : '#A0A0A8',
                     transition: 'color 0.2s',
                   }}>
                     {student.name}
@@ -487,7 +487,7 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
                     }}
                     style={{
                       width: 32, height: 32, borderRadius: 9, border: 'none', cursor: 'pointer',
-                      background: isPresent ? '#DFF8D6' : '#FFE1E4',
+                      background: isPresent ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       transition: 'all 0.15s',
                     }}
@@ -521,14 +521,14 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
         {/* Footer */}
         <div style={{
           padding: '16px 24px',
-          borderTop: '1px solid rgba(0,0,0,0.06)',
+          borderTop: '1px solid var(--color-border-soft)',
           display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10,
         }}>
           <button
             onClick={onClose}
             style={{
               padding: '9px 20px', borderRadius: 13, border: '1.5px solid rgba(0,0,0,0.08)',
-              background: 'transparent', color: '#6F6F76', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}
           >
             Отмена
@@ -581,7 +581,7 @@ export default function TeacherGradebookPage() {
                 padding: '7px 18px', borderRadius: 11, border: 'none', cursor: 'pointer',
                 fontSize: 13, fontWeight: 600,
                 background: activeTab === tab ? '#fff' : 'transparent',
-                color: activeTab === tab ? '#0B0B0D' : '#6F6F76',
+                color: activeTab === tab ? 'var(--color-text)' : 'var(--color-muted)',
                 boxShadow: activeTab === tab ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
                 transition: 'all 0.18s',
               }}
@@ -599,7 +599,7 @@ export default function TeacherGradebookPage() {
           style={{
             display: 'flex', alignItems: 'center', gap: 7,
             padding: '8px 16px', borderRadius: 14, border: 'none', cursor: 'pointer',
-            background: '#F5F5F6', color: '#3A3A40', fontSize: 13, fontWeight: 600,
+            background: 'var(--color-bg)', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600,
           }}
         >
           <Download size={14} strokeWidth={2} />

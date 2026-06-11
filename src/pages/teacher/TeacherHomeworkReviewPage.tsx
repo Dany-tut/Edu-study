@@ -57,13 +57,13 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
             {initials(student.name)}
           </div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 16, fontWeight: 750, color: '#0B0B0D', lineHeight: 1.2 }}>{student.name}</div>
+            <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.2 }}>{student.name}</div>
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 5,
               background: group.color + '33', borderRadius: 7, padding: '2px 8px',
             }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#0B0B0D' }}>{group.name}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</span>
             </div>
           </div>
         </div>
@@ -75,10 +75,10 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
         style={{
           padding: 18, borderRadius: 22, gap: 12,
           background: 'rgba(255,255,255,0.94)',
-          border: '1px solid rgba(0,0,0,0.06)',
+          border: '1px solid var(--color-border-soft)',
         }}
       >
-        <div style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>
           Сводка по ученику
         </div>
         <ScoreBar label="ДЗ" icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" />
@@ -86,10 +86,10 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
         {student.trialScore !== null && (
           <ScoreBar label="Пробник" icon={Award} value={student.trialScore} color="#F5A623" />
         )}
-        <div className="flex items-center justify-between" style={{ padding: '7px 10px', background: '#F5F5F6', borderRadius: 10 }}>
+        <div className="flex items-center justify-between" style={{ padding: '7px 10px', background: 'var(--color-bg)', borderRadius: 10 }}>
           <div className="flex items-center" style={{ gap: 7 }}>
-            <Clock size={13} strokeWidth={2} style={{ color: '#6F6F76' }} />
-            <span style={{ fontSize: 12, color: '#6F6F76' }}>Посещаемость</span>
+            <Clock size={13} strokeWidth={2} style={{ color: 'var(--color-muted)' }} />
+            <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Посещаемость</span>
           </div>
           <span style={{
             fontSize: 13, fontWeight: 700,
@@ -100,9 +100,9 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
         </div>
         <div className="flex items-center justify-between" style={{
           padding: '7px 10px', borderRadius: 10,
-          background: '#FFF9CC', border: '1px solid #F8C99166',
+          background: 'var(--color-yellow-soft)', border: '1px solid #F8C99166',
         }}>
-          <span style={{ fontSize: 12, color: '#6F6F76' }}>Желаемый балл</span>
+          <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Желаемый балл</span>
           <span style={{ fontSize: 16, fontWeight: 750, color: '#7a6500' }}>{student.desiredScore}</span>
         </div>
       </div>
@@ -110,9 +110,9 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
       {student.comment && (
         <div style={{
           padding: 16, borderRadius: 20,
-          background: 'rgba(255,255,255,0.94)', border: '1px solid rgba(0,0,0,0.06)',
+          background: 'rgba(255,255,255,0.94)', border: '1px solid var(--color-border-soft)',
         }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>
             Заметка
           </div>
           <p style={{ fontSize: 13, lineHeight: 1.5, color: '#50505A' }}>{student.comment}</p>
@@ -130,7 +130,7 @@ function ScoreBar({ label, icon: Icon, value, color }: {
       <div className="flex items-center justify-between">
         <div className="flex items-center" style={{ gap: 6 }}>
           <Icon size={12} strokeWidth={2} style={{ color }} />
-          <span style={{ fontSize: 11, color: '#6F6F76', fontWeight: 600 }}>{label}</span>
+          <span style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>{label}</span>
         </div>
         <span style={{ fontSize: 13, fontWeight: 700, color }}>{value}</span>
       </div>
@@ -164,7 +164,7 @@ function ReviewBottomBar({
       <div style={{
         display: 'flex', alignItems: 'center', flex: 1, minWidth: 0,
         height: 44, padding: '12px 16px', borderRadius: 18,
-        background: 'rgba(255,255,255,0.62)', border: '1px solid rgba(255,255,255,0.9)',
+        background: 'rgba(var(--glass-rgb), 0.62)', border: '1px solid var(--color-border-glass)',
         backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 16px rgba(0,0,0,0.06)',
       }}>
@@ -201,7 +201,7 @@ function ReviewBottomBar({
       <div style={{
         flexShrink: 0, height: 44, display: 'flex', alignItems: 'center',
         padding: '0 14px', borderRadius: 18,
-        background: 'rgba(255,255,255,0.62)', border: '1px solid rgba(255,255,255,0.9)',
+        background: 'rgba(var(--glass-rgb), 0.62)', border: '1px solid var(--color-border-glass)',
         backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 16px rgba(0,0,0,0.06)',
       }}>
@@ -210,7 +210,7 @@ function ReviewBottomBar({
             Все проверены ✓
           </span>
         ) : (
-          <span style={{ fontSize: 12, fontWeight: 400, color: '#6F6F76', whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
             Осталось {remaining} из {submitters.length}
           </span>
         )}
@@ -234,7 +234,7 @@ function TaskScoreGrid({
   const pct = maxTotal > 0 ? Math.round((total / maxTotal) * 100) : 0
   return (
     <div className="flex flex-col" style={{ gap: 8 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.4, marginBottom: 2 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 2 }}>
         БАЛЛЫ ЗА ЗАДАНИЯ
       </div>
       {tasks.map(task => {
@@ -254,12 +254,12 @@ function TaskScoreGrid({
                 style={{
                   width: 64, boxSizing: 'border-box', padding: '7px 10px', borderRadius: 10,
                   border: `1.5px solid ${over ? '#f87171' : 'rgba(0,0,0,0.1)'}`,
-                  fontSize: 16, fontWeight: 750, color: over ? '#c0303a' : '#0B0B0D',
-                  background: '#F9F9FB', outline: 'none', textAlign: 'center', fontFamily: 'inherit',
+                  fontSize: 16, fontWeight: 750, color: over ? '#c0303a' : 'var(--color-text)',
+                  background: 'var(--color-bg-2)', outline: 'none', textAlign: 'center', fontFamily: 'inherit',
                   appearance: 'textfield',
                 } as React.CSSProperties}
               />
-              <span style={{ fontSize: 12, color: '#9A9AA2', minWidth: 28 }}>/ {task.maxScore}</span>
+              <span style={{ fontSize: 12, color: 'var(--color-text-3)', minWidth: 28 }}>/ {task.maxScore}</span>
             </div>
           </div>
         )
@@ -270,9 +270,9 @@ function TaskScoreGrid({
         background: groupColorSoft, border: `1px solid ${groupColor}33`,
         display: 'flex', alignItems: 'center', gap: 10,
       }}>
-        <div style={{ flex: 1, fontSize: 13, fontWeight: 700, color: '#0B0B0D' }}>Итого</div>
+        <div style={{ flex: 1, fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Итого</div>
         <span style={{ fontSize: 20, fontWeight: 800, color: groupColor }}>{total}</span>
-        <span style={{ fontSize: 13, color: '#9A9AA2' }}>/ {maxTotal}</span>
+        <span style={{ fontSize: 13, color: 'var(--color-text-3)' }}>/ {maxTotal}</span>
         <span style={{
           fontSize: 12, fontWeight: 700,
           padding: '3px 8px', borderRadius: 8,
@@ -313,8 +313,8 @@ export default function TeacherHomeworkReviewPage() {
   const setDocked = useTeacher(s => s.setHeaderDocked)
 
   const dockGlass = {
-    border: '1px solid rgba(255,255,255,0.9)',
-    background: 'rgba(255,255,255,0.86)',
+    border: '1px solid var(--color-border-glass)',
+    background: 'rgba(var(--glass-rgb), 0.86)',
     backdropFilter: 'blur(14px) saturate(180%)',
     WebkitBackdropFilter: 'blur(14px) saturate(180%)',
     boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14)',
@@ -322,13 +322,13 @@ export default function TeacherHomeworkReviewPage() {
 
   if (!hw || !group || submitters.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center" style={{ flex: 1, color: '#6F6F76', gap: 12 }}>
-        <p style={{ fontSize: 15, fontWeight: 650, color: '#0B0B0D' }}>
+      <div className="flex flex-col items-center justify-center" style={{ flex: 1, color: 'var(--color-muted)', gap: 12 }}>
+        <p style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)' }}>
           {hw && group ? 'Пока никто не сдал работу' : 'Домашка не найдена'}
         </p>
         <button onClick={() => setActivePage('homework')} style={{
           padding: '8px 18px', borderRadius: 999, border: 'none', cursor: 'pointer',
-          background: '#0B0B0D', color: '#fff', fontSize: 13, fontWeight: 600,
+          background: 'var(--color-text)', color: '#fff', fontSize: 13, fontWeight: 600,
         }}>
           К списку ДЗ
         </button>
@@ -418,8 +418,8 @@ export default function TeacherHomeworkReviewPage() {
           className="flex items-center cursor-pointer flex-shrink-0"
           style={{
             gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999,
-            border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(255,255,255,0.96)',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: '#0B0B0D', fontSize: 14, fontWeight: 600,
+            border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
           }}
         >
           <ChevronLeft size={18} />
@@ -429,7 +429,7 @@ export default function TeacherHomeworkReviewPage() {
         <span style={{
           position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
           maxWidth: '44%', pointerEvents: 'none',
-          textAlign: 'center', fontSize: 18, fontWeight: 750, color: '#0B0B0D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          textAlign: 'center', fontSize: 18, fontWeight: 750, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {hw.title}
         </span>
@@ -438,7 +438,7 @@ export default function TeacherHomeworkReviewPage() {
           background: group.colorSoft, borderRadius: 8, padding: '3px 10px',
         }}>
           <div style={{ width: 7, height: 7, borderRadius: '50%', background: group.color }} />
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#0B0B0D' }}>{group.name}</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</span>
         </span>
       </motion.div>
 
@@ -463,7 +463,7 @@ export default function TeacherHomeworkReviewPage() {
               className="flex items-center cursor-pointer flex-shrink-0"
               style={{
                 gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999,
-                ...dockGlass, color: '#0B0B0D', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
+                ...dockGlass, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
               }}
             >
               <ChevronLeft size={18} />
@@ -473,7 +473,7 @@ export default function TeacherHomeworkReviewPage() {
             <div style={{
               flexShrink: 1, minWidth: 0, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               padding: '9px 16px', borderRadius: 999, ...dockGlass,
-              fontSize: 14, fontWeight: 700, color: '#0B0B0D', pointerEvents: 'auto',
+              fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
             }}>
               {hw.title}
             </div>
@@ -487,7 +487,7 @@ export default function TeacherHomeworkReviewPage() {
 
             <div className="flex-shrink-0 flex items-center" style={{
               gap: 7, padding: '9px 16px', borderRadius: 999,
-              ...dockGlass, color: '#6F6F76', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
+              ...dockGlass, color: 'var(--color-muted)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
             }}>
               <CheckCircle2 size={15} style={{ color: '#1a7a3f' }} />
               {reviewedCount} / {submitters.length}
@@ -518,12 +518,12 @@ export default function TeacherHomeworkReviewPage() {
                 {/* Submission */}
                 <div style={{
                   padding: 22, borderRadius: 26,
-                  background: 'rgba(255,255,255,0.96)', border: '1px solid rgba(0,0,0,0.06)',
+                  background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-soft)',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
                 }}>
                   <div className="flex items-center" style={{ gap: 8, marginBottom: 14 }}>
                     <FileText size={16} style={{ color: group.color }} />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#0B0B0D' }}>Работа ученика</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Работа ученика</span>
                   </div>
                   <p style={{ fontSize: 14.5, lineHeight: 1.65, color: '#1F1F24', whiteSpace: 'pre-line' }}>
                     {submissionFor(hw, student)}
@@ -544,12 +544,12 @@ export default function TeacherHomeworkReviewPage() {
                 {/* Grading */}
                 <div style={{
                   padding: 22, borderRadius: 26,
-                  background: 'rgba(255,255,255,0.96)', border: '1px solid rgba(0,0,0,0.06)',
+                  background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-soft)',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
                 }}>
                   <div className="flex items-center" style={{ gap: 8, marginBottom: 16 }}>
                     <Star size={16} style={{ color: '#F5A623' }} />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#0B0B0D' }}>Оценка и комментарий</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Оценка и комментарий</span>
                   </div>
 
                   {/* Score field */}
@@ -566,7 +566,7 @@ export default function TeacherHomeworkReviewPage() {
                       />
                     ) : (
                       <>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.4, marginBottom: 6 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 6 }}>
                           БАЛЛ (0–100)
                         </div>
                         <div className="flex items-center" style={{ gap: 10 }}>
@@ -576,8 +576,8 @@ export default function TeacherHomeworkReviewPage() {
                             placeholder="—"
                             style={{
                               width: 96, boxSizing: 'border-box', padding: '12px 14px', borderRadius: 14,
-                              border: '1.5px solid rgba(0,0,0,0.1)', fontSize: 20, fontWeight: 750, color: '#0B0B0D',
-                              background: '#F9F9FB', outline: 'none', textAlign: 'center', fontFamily: 'inherit',
+                              border: '1.5px solid rgba(0,0,0,0.1)', fontSize: 20, fontWeight: 750, color: 'var(--color-text)',
+                              background: 'var(--color-bg-2)', outline: 'none', textAlign: 'center', fontFamily: 'inherit',
                               appearance: 'textfield',
                             } as React.CSSProperties}
                           />
@@ -586,8 +586,8 @@ export default function TeacherHomeworkReviewPage() {
                               <button key={v} onClick={() => setDraft({ score: String(v) })} style={{
                                 padding: '6px 12px', borderRadius: 10, border: 'none', cursor: 'pointer',
                                 fontSize: 12, fontWeight: 700,
-                                background: Number(draft.score) === v ? group.colorSoft : '#F5F5F6',
-                                color: Number(draft.score) === v ? group.color : '#6F6F76',
+                                background: Number(draft.score) === v ? group.colorSoft : 'var(--color-bg)',
+                                color: Number(draft.score) === v ? group.color : 'var(--color-muted)',
                               }}>
                                 {v}
                               </button>
@@ -600,7 +600,7 @@ export default function TeacherHomeworkReviewPage() {
 
                   {/* Comment */}
                   <div style={{ marginBottom: 18 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.4, marginBottom: 6 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 6 }}>
                       ЗАМЕЧАНИЯ / КОММЕНТАРИЙ
                     </div>
                     <textarea
@@ -611,7 +611,7 @@ export default function TeacherHomeworkReviewPage() {
                       style={{
                         width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 14,
                         border: '1.5px solid rgba(0,0,0,0.1)', fontSize: 14, color: '#17171B', lineHeight: 1.55,
-                        background: '#F9F9FB', outline: 'none', resize: 'vertical', minHeight: 96, fontFamily: 'inherit',
+                        background: 'var(--color-bg-2)', outline: 'none', resize: 'vertical', minHeight: 96, fontFamily: 'inherit',
                       }}
                     />
                   </div>
@@ -646,7 +646,7 @@ export default function TeacherHomeworkReviewPage() {
                       Вернуть на доработку
                     </motion.button>
                   </div>
-                  <p style={{ fontSize: 12, color: '#9A9AA2', marginTop: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <p style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Send size={12} />
                     Решение и комментарий уйдут ученику в его кабинет.
                   </p>
@@ -670,7 +670,7 @@ export default function TeacherHomeworkReviewPage() {
                       <CheckCircle2 size={24} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 15, fontWeight: 750, color: '#0B0B0D' }}>Все работы проверены!</div>
+                      <div style={{ fontSize: 15, fontWeight: 750, color: 'var(--color-text)' }}>Все работы проверены!</div>
                       <div style={{ fontSize: 13, color: '#3A6B4A' }}>Задача «Проверить ДЗ» отмечена на главной.</div>
                     </div>
                     <motion.button
@@ -714,12 +714,12 @@ function NavArrow({ dir, disabled, onClick }: { dir: 'left' | 'right'; disabled:
       disabled={disabled}
       style={{
         width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-        border: '1px solid rgba(255,255,255,0.9)', background: 'rgba(255,255,255,0.86)',
+        border: '1px solid var(--color-border-glass)', background: 'rgba(var(--glass-rgb), 0.86)',
         backdropFilter: 'blur(14px) saturate(180%)', WebkitBackdropFilter: 'blur(14px) saturate(180%)',
         boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: disabled ? 'not-allowed' : 'pointer',
-        color: disabled ? '#C2C2C8' : '#0B0B0D',
+        color: disabled ? 'var(--color-text-4)' : 'var(--color-text)',
         opacity: disabled ? 0.6 : 1,
       }}
     >

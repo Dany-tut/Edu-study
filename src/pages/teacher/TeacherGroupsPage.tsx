@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Users, ChevronUp, ChevronDown, X,
@@ -70,7 +70,7 @@ function AddGroupModal({ onClose, onSave }: {
         transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#fff', borderRadius: 24, padding: 28,
+          background: 'var(--color-bg-input)', borderRadius: 24, padding: 28,
           width: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
         }}
       >
@@ -182,7 +182,7 @@ function AddStudentModal({ onClose, onSave }: {
         transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#fff', borderRadius: 24, padding: 28,
+          background: 'var(--color-bg-input)', borderRadius: 24, padding: 28,
           width: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
           maxHeight: '90dvh', overflowY: 'auto',
         }}
@@ -195,10 +195,10 @@ function AddStudentModal({ onClose, onSave }: {
         {inviteLink ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ background: '#F5F5F7', borderRadius: 14, padding: '14px 16px' }}>
-              <div style={{ fontSize: 12, color: '#6F6F76', marginBottom: 6, fontWeight: 600 }}>ССЫЛКА ДЛЯ РЕГИСТРАЦИИ</div>
-              <div style={{ fontSize: 13, color: '#0B0B0D', wordBreak: 'break-all', lineHeight: 1.5 }}>{inviteLink}</div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 6, fontWeight: 600 }}>ССЫЛКА ДЛЯ РЕГИСТРАЦИИ</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text)', wordBreak: 'break-all', lineHeight: 1.5 }}>{inviteLink}</div>
             </div>
-            <p style={{ fontSize: 13, color: '#6F6F76', margin: 0 }}>
+            <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: 0 }}>
               Отправьте эту ссылку ученику — он перейдёт по ней и создаст свой аккаунт.
             </p>
             <button
@@ -217,7 +217,7 @@ function AddStudentModal({ onClose, onSave }: {
               onClick={onClose}
               style={{
                 width: '100%', padding: '10px 0',
-                background: 'transparent', color: '#6F6F76', fontWeight: 600, fontSize: 14,
+                background: 'transparent', color: 'var(--color-muted)', fontWeight: 600, fontSize: 14,
                 border: 'none', cursor: 'pointer',
               }}
             >
@@ -286,7 +286,7 @@ const labelStyle: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   padding: '10px 12px', borderRadius: 12,
   border: '1.5px solid #ece8ff', fontSize: 14,
-  outline: 'none', background: '#fafafa', color: '#1a1a2e',
+  outline: 'none', background: 'var(--color-bg-4)', color: '#1a1a2e',
 }
 
 const fadeUp = (delay = 0) => ({
@@ -303,10 +303,10 @@ function Card({
     <div
       onClick={onClick}
       style={{
-        background: 'rgba(255,255,255,0.88)',
+        background: 'rgba(var(--glass-rgb), 0.88)',
         backdropFilter: 'blur(16px) saturate(180%)',
         WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-        border: '1px solid rgba(255,255,255,0.9)',
+        border: '1px solid var(--color-border-glass)',
         borderRadius: 22,
         boxShadow: '0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.95)',
         padding: 20,
@@ -373,7 +373,7 @@ function GroupCard({
         background: isActive ? `${group.color}14` : 'rgba(255,255,255,0.88)',
         backdropFilter: 'blur(16px) saturate(180%)',
         WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-        border: isActive ? `1.5px solid ${group.color}` : '1px solid rgba(255,255,255,0.9)',
+        border: isActive ? `1.5px solid ${group.color}` : '1px solid var(--color-border-glass)',
         borderRadius: 22,
         boxShadow: isActive
           ? `0 0 0 3px ${group.color}33, 0 4px 20px rgba(0,0,0,0.06)`
@@ -394,26 +394,26 @@ function GroupCard({
         }}>
           {group.level}
         </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#6F6F76' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-muted)' }}>
           <Users size={13} strokeWidth={1.8} />
           <span style={{ fontSize: 12, fontWeight: 600 }}>{group.studentCount}</span>
         </div>
       </div>
 
       {/* Name */}
-      <div className="group-card-name" style={{ fontWeight: 700, color: '#0B0B0D' }}>
+      <div className="group-card-name" style={{ fontWeight: 700, color: 'var(--color-text)' }}>
         {group.name}
       </div>
 
       {/* Date + progress — hidden in compact via CSS */}
       <div className="group-card-details">
-        <div style={{ fontSize: 12, color: '#6F6F76', marginBottom: 14 }}>
+        <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>
           с {group.startDate}
         </div>
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-            <span style={{ fontSize: 11, color: '#6F6F76', fontWeight: 600 }}>Прогресс</span>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#0B0B0D' }}>
+            <span style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>Прогресс</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>
               {group.lessonsCompleted}/{group.totalLessons}
             </span>
           </div>
@@ -425,7 +425,7 @@ function GroupCard({
               style={{ height: '100%', background: group.color, borderRadius: 99 }}
             />
           </div>
-          <div style={{ fontSize: 10, color: '#9A9AA2', marginTop: 4 }}>{progress}% выполнено</div>
+          <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 4 }}>{progress}% выполнено</div>
         </div>
       </div>
     </motion.div>
@@ -465,10 +465,10 @@ function Th({
       style={{
         padding: last ? '10px 24px 10px 12px' : '10px 12px',
         textAlign: right ? 'center' : 'left',
-        fontSize: 11, fontWeight: 700, color: active ? '#7B3FCC' : '#9A9AA2',
+        fontSize: 11, fontWeight: 700, color: active ? '#7B3FCC' : 'var(--color-text-3)',
         letterSpacing: 0.3, cursor: 'pointer', whiteSpace: 'nowrap',
         userSelect: 'none',
-        borderBottom: '1px solid rgba(0,0,0,0.06)',
+        borderBottom: '1px solid var(--color-border-soft)',
       }}
     >
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
@@ -485,10 +485,10 @@ function Th({
 }
 
 function ScorePill({ value, max = 100 }: { value: number | null; max?: number }) {
-  if (value === null) return <span style={{ color: '#C2C2C8', fontSize: 12 }}>—</span>
+  if (value === null) return <span style={{ color: 'var(--color-text-4)', fontSize: 12 }}>—</span>
   const pct = value / max
   const color = pct >= 0.8 ? '#1a7a3f' : pct >= 0.6 ? '#7a6500' : '#c0303a'
-  const bg    = pct >= 0.8 ? '#DFF8D6' : pct >= 0.6 ? '#FFF9CC' : '#FFE1E4'
+  const bg    = pct >= 0.8 ? 'var(--color-green-soft)' : pct >= 0.6 ? 'var(--color-yellow-soft)' : 'var(--color-red-soft)'
   return (
     <span style={{
       display: 'inline-block', minWidth: 34,
@@ -503,6 +503,15 @@ function ScorePill({ value, max = 100 }: { value: number | null; max?: number })
 // ─── Student profile panel ────────────────────────────────────────────────────
 function CredentialsSpoiler({ login, password }: { login: string; password: string }) {
   const [phase, setPhase] = useState<'hidden' | 'revealed'>('hidden')
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Auto-hide after 3s of inactivity when revealed
+  useEffect(() => {
+    if (phase === 'revealed') {
+      hideTimer.current = setTimeout(() => setPhase('hidden'), 3000)
+    }
+    return () => { if (hideTimer.current) clearTimeout(hideTimer.current) }
+  }, [phase])
 
   function handleClick() {
     if (phase === 'hidden') {
@@ -516,7 +525,12 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
   const mono: React.CSSProperties = { fontFamily: 'monospace', fontSize: 13, fontWeight: 600 }
   const rowStyle: React.CSSProperties = {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    gap: 8, padding: '7px 10px', background: '#F5F5F6', borderRadius: 10,
+    gap: 8, padding: '7px 10px', background: 'var(--color-bg)', borderRadius: 10,
+  }
+  const shimBar: React.CSSProperties = {
+    flex: 1, height: 14, borderRadius: 6,
+    background: 'linear-gradient(90deg,#C8C8CE,#B8B8C2)',
+    position: 'relative', overflow: 'hidden',
   }
 
   return (
@@ -526,20 +540,36 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
       style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 6 }}
     >
       <div style={rowStyle}>
-        <span style={{ fontSize: 11, color: '#6F6F76', minWidth: 48 }}>Логин</span>
+        <span style={{ fontSize: 11, color: 'var(--color-muted)', minWidth: 48 }}>Логин</span>
         {phase === 'revealed'
-          ? <span style={{ ...mono, color: '#0B0B0D', flex: 1, textAlign: 'right', wordBreak: 'break-all' }}>{login}</span>
-          : <span style={{ flex: 1, height: 14, borderRadius: 6, background: 'linear-gradient(90deg,#C8C8CE,#B8B8C2)', filter: 'blur(0px)' }} />
+          ? <span style={{ ...mono, color: 'var(--color-text)', flex: 1, textAlign: 'right', wordBreak: 'break-all' }}>{login}</span>
+          : (
+            <span style={shimBar}>
+              <span style={{
+                position: 'absolute', inset: 0,
+                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%)',
+                animation: 'shimmer-bar 1.6s ease-in-out infinite',
+              }} />
+            </span>
+          )
         }
       </div>
       <div style={rowStyle}>
-        <span style={{ fontSize: 11, color: '#6F6F76', minWidth: 48 }}>Пароль</span>
+        <span style={{ fontSize: 11, color: 'var(--color-muted)', minWidth: 48 }}>Пароль</span>
         {phase === 'revealed'
-          ? <span style={{ ...mono, color: '#0B0B0D', flex: 1, textAlign: 'right' }}>{password}</span>
-          : <span style={{ flex: 1, height: 14, borderRadius: 6, background: 'linear-gradient(90deg,#C8C8CE,#B8B8C2)', filter: 'blur(0px)' }} />
+          ? <span style={{ ...mono, color: 'var(--color-text)', flex: 1, textAlign: 'right' }}>{password}</span>
+          : (
+            <span style={shimBar}>
+              <span style={{
+                position: 'absolute', inset: 0,
+                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%)',
+                animation: 'shimmer-bar 1.6s ease-in-out 0.3s infinite',
+              }} />
+            </span>
+          )
         }
       </div>
-      <div style={{ fontSize: 10, color: '#9A9AA2', textAlign: 'center', marginTop: 2 }}>
+      <div style={{ fontSize: 10, color: 'var(--color-text-3)', textAlign: 'center', marginTop: 2 }}>
         {phase === 'hidden' ? '● ● ●  нажмите чтобы показать' : 'нажмите ещё раз — скопирует оба поля'}
       </div>
     </div>
@@ -621,10 +651,10 @@ function StudentPanel({
       transition={{ type: 'spring', stiffness: 380, damping: 34, mass: 0.8 }}
       style={{
         width: 320, flexShrink: 0, flex: 1, minHeight: 0,
-        background: 'rgba(255,255,255,0.96)',
+        background: 'rgba(var(--glass-rgb), 0.96)',
         backdropFilter: 'blur(20px) saturate(180%)',
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        border: '1px solid rgba(0,0,0,0.07)',
+        border: '1px solid var(--color-border)',
         borderRadius: 20,
         margin: '36px 12px 12px 0',
         display: 'flex', flexDirection: 'column',
@@ -645,7 +675,7 @@ function StudentPanel({
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <StudentAvatar student={student} group={group} />
             <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#0B0B0D', lineHeight: 1.2 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>
                 {student.name}
               </div>
               <div style={{
@@ -653,7 +683,7 @@ function StudentPanel({
                 background: group.color + '33', borderRadius: 7, padding: '2px 8px',
               }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#0B0B0D' }}>{group.name}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</span>
               </div>
             </div>
           </div>
@@ -664,7 +694,7 @@ function StudentPanel({
               border: 'none', cursor: 'pointer',
               background: 'rgba(0,0,0,0.07)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#6F6F76', flexShrink: 0,
+              color: 'var(--color-muted)', flexShrink: 0,
             }}
           >
             <X size={14} />
@@ -678,7 +708,7 @@ function StudentPanel({
         {/* Credentials */}
         {(student.email || student.tempPassword) && (
           <section>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
               Доступ в кабинет
             </div>
             <CredentialsSpoiler
@@ -690,7 +720,7 @@ function StudentPanel({
 
         {/* Contacts */}
         <section>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
             Контакты
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -706,7 +736,7 @@ function StudentPanel({
 
         {/* Scores */}
         <section>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
             Показатели
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -717,11 +747,11 @@ function StudentPanel({
             )}
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '7px 10px', background: '#F5F5F6', borderRadius: 10,
+              padding: '7px 10px', background: 'var(--color-bg)', borderRadius: 10,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                <Clock size={13} strokeWidth={2} style={{ color: '#6F6F76' }} />
-                <span style={{ fontSize: 12, color: '#6F6F76' }}>Посещаемость</span>
+                <Clock size={13} strokeWidth={2} style={{ color: 'var(--color-muted)' }} />
+                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Посещаемость</span>
               </div>
               <span style={{
                 fontSize: 13, fontWeight: 700,
@@ -735,22 +765,22 @@ function StudentPanel({
 
         {/* Goal */}
         <section>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
             Цель
           </div>
           <div style={{
-            background: '#FFF9CC', border: '1px solid #F8C99166',
+            background: 'var(--color-yellow-soft)', border: '1px solid #F8C99166',
             borderRadius: 12, padding: '10px 12px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
-            <span style={{ fontSize: 12, color: '#6F6F76' }}>Желаемый балл ЕГЭ</span>
+            <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Желаемый балл ЕГЭ</span>
             <span style={{ fontSize: 18, fontWeight: 750, color: '#7a6500' }}>{student.desiredScore}</span>
           </div>
         </section>
 
         {/* Info */}
         <section>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
             Прочее
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -761,7 +791,7 @@ function StudentPanel({
 
         {/* Comment */}
         <section>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
             Комментарий
           </div>
           <textarea
@@ -771,9 +801,9 @@ function StudentPanel({
             rows={3}
             style={{
               width: '100%', boxSizing: 'border-box',
-              background: '#F5F5F6', border: '1.5px solid transparent',
+              background: 'var(--color-bg)', border: '1.5px solid transparent',
               borderRadius: 12, padding: '10px 12px',
-              fontSize: 12, color: '#3A3A40', lineHeight: 1.6,
+              fontSize: 12, color: 'var(--color-text-2)', lineHeight: 1.6,
               resize: 'none', outline: 'none', fontFamily: 'inherit',
               transition: 'border-color 0.15s, background 0.15s',
             }}
@@ -783,7 +813,7 @@ function StudentPanel({
             }}
             onBlur={e => {
               e.currentTarget.style.borderColor = 'transparent'
-              e.currentTarget.style.background = '#F5F5F6'
+              e.currentTarget.style.background = 'var(--color-bg)'
             }}
           />
         </section>
@@ -800,17 +830,17 @@ function ContactRow({ icon: Icon, label, href }: { icon: React.ElementType; labe
       rel="noreferrer"
       style={{
         display: 'flex', alignItems: 'center', gap: 8,
-        padding: '7px 10px', background: '#F5F5F6',
+        padding: '7px 10px', background: 'var(--color-bg)',
         borderRadius: 10, textDecoration: 'none',
-        color: '#0B0B0D', fontSize: 12, fontWeight: 500,
+        color: 'var(--color-text)', fontSize: 12, fontWeight: 500,
         transition: 'background 0.12s',
       }}
-      onMouseEnter={e => (e.currentTarget.style.background = '#EEDBFF')}
-      onMouseLeave={e => (e.currentTarget.style.background = '#F5F5F6')}
+      onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-purple-soft)')}
+      onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-bg)')}
     >
       <Icon size={13} strokeWidth={2} style={{ color: '#7B3FCC', flexShrink: 0 }} />
       <span style={{ flex: 1 }}>{label}</span>
-      <ExternalLink size={11} style={{ color: '#9A9AA2' }} />
+      <ExternalLink size={11} style={{ color: 'var(--color-text-3)' }} />
     </a>
   )
 }
@@ -823,7 +853,7 @@ function ScoreBar({ label, icon: Icon, value, color, bg }: {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <Icon size={12} strokeWidth={2} style={{ color }} />
-          <span style={{ fontSize: 11, color: '#6F6F76', fontWeight: 600 }}>{label}</span>
+          <span style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>{label}</span>
         </div>
         <span style={{ fontSize: 13, fontWeight: 700, color }}>{value}</span>
       </div>
@@ -842,8 +872,8 @@ function ScoreBar({ label, icon: Icon, value, color, bg }: {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
-      <span style={{ fontSize: 12, color: '#9A9AA2' }}>{label}</span>
-      <span style={{ fontSize: 12, fontWeight: 600, color: '#0B0B0D' }}>{value}</span>
+      <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{label}</span>
+      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)' }}>{value}</span>
     </div>
   )
 }
@@ -871,16 +901,17 @@ export default function TeacherGroupsPage() {
     }
   }, [groups, groupsLoading])
 
+  const openAddGroupModal = useCallback(() => setShowAddGroup(true), [])
+
   useEffect(() => {
-    const onAddGroup = () => setShowAddGroup(true)
     const onAddStudent = () => setShowAddStudent(true)
-    window.addEventListener('teacher:open-add-group', onAddGroup)
+    window.addEventListener('teacher:open-add-group', openAddGroupModal)
     window.addEventListener('teacher:open-add-student', onAddStudent)
     return () => {
-      window.removeEventListener('teacher:open-add-group', onAddGroup)
+      window.removeEventListener('teacher:open-add-group', openAddGroupModal)
       window.removeEventListener('teacher:open-add-student', onAddStudent)
     }
-  }, [])
+  }, [openAddGroupModal])
 
   useEffect(() => {
     const el = mainScrollRef.current
@@ -987,7 +1018,7 @@ export default function TeacherGroupsPage() {
           ref={groupsStickyRef}
           style={{
             flexShrink: 0,
-            background: '#F5F5F6',
+            background: 'var(--color-bg)',
             paddingLeft: 32, paddingRight: 32,
             paddingTop: 100,
             paddingBottom: 14,
@@ -996,12 +1027,24 @@ export default function TeacherGroupsPage() {
           }}
         >
           <div ref={groupsLabelRef} style={{
-            fontSize: 12, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.4,
+            fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4,
             marginBottom: 12,
             transition: 'margin-bottom 0.28s ease',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <span>ГРУППЫ</span>
+            <button
+              onClick={openAddGroupModal}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: 'var(--color-accent)', color: '#fff',
+                border: 'none', borderRadius: 20, padding: '6px 14px',
+                fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                lineHeight: 1,
+              }}
+            >
+              + Группа
+            </button>
           </div>
           <div style={{ position: 'relative' }}>
             <div
@@ -1065,7 +1108,7 @@ export default function TeacherGroupsPage() {
                 <div style={{
                   padding: '14px 20px 0',
                   display: 'flex', alignItems: 'center', gap: 10,
-                  borderBottom: '1px solid rgba(0,0,0,0.06)',
+                  borderBottom: '1px solid var(--color-border-soft)',
                   paddingBottom: 0,
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
@@ -1073,10 +1116,10 @@ export default function TeacherGroupsPage() {
                       <div style={{
                         width: 10, height: 10, borderRadius: '50%', background: activeGroup.color,
                       }} />
-                      <span style={{ fontSize: 14, fontWeight: 700, color: '#0B0B0D' }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
                         {activeGroup.name}
                       </span>
-                      <span style={{ fontSize: 12, color: '#9A9AA2' }}>
+                      <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>
                         · {groupStudents.length} студентов
                       </span>
                     </div>
@@ -1132,13 +1175,13 @@ export default function TeacherGroupsPage() {
                                 }}>
                                   {initials}
                                 </div>
-                                <span style={{ fontSize: 13, fontWeight: 600, color: '#0B0B0D', whiteSpace: 'nowrap' }}>
+                                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
                                   {student.name}
                                 </span>
                               </div>
                             </td>
                             {/* Last visit */}
-                            <td style={{ padding: '11px 12px', borderBottom: '1px solid rgba(0,0,0,0.04)', fontSize: 12, color: '#6F6F76', whiteSpace: 'nowrap' }}>
+                            <td style={{ padding: '11px 12px', borderBottom: '1px solid rgba(0,0,0,0.04)', fontSize: 12, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
                               {student.lastVisit}
                             </td>
                             {/* Scores */}
@@ -1162,7 +1205,7 @@ export default function TeacherGroupsPage() {
                             </td>
                             {/* Last payment */}
                             <td style={{ padding: '11px 12px', borderBottom: '1px solid rgba(0,0,0,0.04)', textAlign: 'center' }}>
-                              <span style={{ fontSize: 12, color: student.lastPayment ? '#6F6F76' : '#BBBBBB' }}>
+                              <span style={{ fontSize: 12, color: student.lastPayment ? 'var(--color-muted)' : '#BBBBBB' }}>
                                 {student.lastPayment
                                   ? new Date(student.lastPayment).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
                                   : '—'}
@@ -1203,11 +1246,11 @@ export default function TeacherGroupsPage() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.3 }}
             style={{
-              textAlign: 'center', padding: '48px 0', color: '#9A9AA2',
+              textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)',
             }}
           >
             <Users size={36} strokeWidth={1.3} style={{ margin: '0 auto 12px' }} />
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#6F6F76' }}>Выберите группу</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-muted)' }}>Выберите группу</div>
             <div style={{ fontSize: 12, marginTop: 4 }}>чтобы увидеть список студентов</div>
           </motion.div>
         )}

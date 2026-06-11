@@ -6,18 +6,19 @@ import {
   ChevronRight, Clock, Lock, CheckCircle2,
 } from 'lucide-react'
 import { useDashboard } from '../store/dashboardStore'
-import { courseReactions } from '../data/mockData'
 import { findLessonById, getLessonDetail, type LessonMaterial, type LessonHomework } from '../data/lessonContent'
+import { useStudentData } from '../store/studentDataStore'
+import type { CourseReaction } from '../data/mockData'
 import { EMOJI_STEPS } from '../components/HomeworkFlow'
 
 type Tint = 'bw' | 'color'
 
-function renderHighlightedParagraph(text: string, reactionId?: string, activeReactionId?: string | null) {
+function renderHighlightedParagraph(text: string, reactionId?: string, activeReactionId?: string | null, reactions: CourseReaction[] = []) {
   // No reaction tag — render plain text, no wrapper. Other paragraphs in the
   // conspect never need the inline-flex pill, so they stay unchanged.
   if (!reactionId) return text
 
-  const reaction = courseReactions.find(item => item.id === reactionId)
+  const reaction = reactions.find(item => item.id === reactionId)
   if (!reaction) return text
 
   const highlightText = reaction.equation
@@ -127,8 +128,8 @@ function DownloadTile({ icon: Icon, label }: { icon: typeof NotebookPen; label: 
           gap: 12,
           padding: 16,
           borderRadius: 18,
-          background: 'rgba(255,255,255,0.96)',
-          border: open ? '1px solid rgba(123,63,204,0.4)' : '1px solid rgba(0,0,0,0.06)',
+          background: 'rgba(var(--glass-rgb), 0.96)',
+          border: open ? '1px solid rgba(123,63,204,0.4)' : '1px solid var(--color-border-soft)',
           boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
           minHeight: 92,
         }}
@@ -137,18 +138,18 @@ function DownloadTile({ icon: Icon, label }: { icon: typeof NotebookPen; label: 
           style={{
             width: 40, height: 40, borderRadius: 12, flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: '#EEDBFF', color: '#7B3FCC',
+            background: 'var(--color-purple-soft)', color: '#7B3FCC',
           }}
         >
           <Icon size={20} strokeWidth={1.9} />
         </div>
         <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
-          <p style={{ fontSize: 14, fontWeight: 650, color: '#0B0B0D', lineHeight: 1.2 }}>{label}</p>
-          <p style={{ fontSize: 12, color: '#9A9AA2', marginTop: 2 }}>PDF · скачать</p>
+          <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.2 }}>{label}</p>
+          <p style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>PDF · скачать</p>
         </div>
         <ChevronDown
           size={16}
-          style={{ color: '#C2C2C8', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }}
+          style={{ color: 'var(--color-text-4)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }}
         />
       </motion.button>
 
@@ -170,7 +171,7 @@ function DownloadTile({ icon: Icon, label }: { icon: typeof NotebookPen; label: 
               background: 'rgba(255,255,255,0.45)',
               backdropFilter: 'blur(24px) saturate(180%)',
               WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-              border: '1px solid rgba(255,255,255,0.5)',
+              border: '1px solid var(--color-border-glass)',
               boxShadow: '0 12px 40px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.06)',
             }}
           >
@@ -180,11 +181,11 @@ function DownloadTile({ icon: Icon, label }: { icon: typeof NotebookPen; label: 
                 onClick={() => { downloadFile(`${label} (${o.label}).pdf`); setOpen(false) }}
                 className="flex items-center w-full cursor-pointer"
                 style={{ gap: 10, padding: 10, borderRadius: 12, border: 'none', background: 'transparent', textAlign: 'left' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F5F5F6' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
               >
-                <span style={{ flex: 1, fontSize: 13.5, fontWeight: 550, color: '#0B0B0D' }}>{o.label}</span>
-                <Download size={15} style={{ color: '#C2C2C8', flexShrink: 0 }} />
+                <span style={{ flex: 1, fontSize: 13.5, fontWeight: 550, color: 'var(--color-text)' }}>{o.label}</span>
+                <Download size={15} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
               </button>
             ))}
           </motion.div>
@@ -219,8 +220,8 @@ function MaterialsTile({ materials }: { materials: LessonMaterial[] }) {
           gap: 12,
           padding: 16,
           borderRadius: 18,
-          background: 'rgba(255,255,255,0.96)',
-          border: open ? '1px solid rgba(123,63,204,0.4)' : '1px solid rgba(0,0,0,0.06)',
+          background: 'rgba(var(--glass-rgb), 0.96)',
+          border: open ? '1px solid rgba(123,63,204,0.4)' : '1px solid var(--color-border-soft)',
           boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
           minHeight: 92,
         }}
@@ -229,18 +230,18 @@ function MaterialsTile({ materials }: { materials: LessonMaterial[] }) {
           style={{
             width: 40, height: 40, borderRadius: 12, flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: '#EEDBFF', color: '#7B3FCC',
+            background: 'var(--color-purple-soft)', color: '#7B3FCC',
           }}
         >
           <FolderOpen size={20} strokeWidth={1.9} />
         </div>
         <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
-          <p style={{ fontSize: 14, fontWeight: 650, color: '#0B0B0D', lineHeight: 1.2 }}>Материалы</p>
-          <p style={{ fontSize: 12, color: '#9A9AA2', marginTop: 2 }}>{materials.length} файла</p>
+          <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.2 }}>Материалы</p>
+          <p style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{materials.length} файла</p>
         </div>
         <ChevronDown
           size={16}
-          style={{ color: '#C2C2C8', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }}
+          style={{ color: 'var(--color-text-4)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }}
         />
       </motion.button>
 
@@ -262,7 +263,7 @@ function MaterialsTile({ materials }: { materials: LessonMaterial[] }) {
               background: 'rgba(255,255,255,0.45)',
               backdropFilter: 'blur(24px) saturate(180%)',
               WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-              border: '1px solid rgba(255,255,255,0.5)',
+              border: '1px solid var(--color-border-glass)',
               boxShadow: '0 12px 40px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.06)',
             }}
           >
@@ -272,7 +273,7 @@ function MaterialsTile({ materials }: { materials: LessonMaterial[] }) {
                 onClick={() => { downloadFile(`${m.name}.pdf`); setOpen(false) }}
                 className="flex items-center w-full cursor-pointer"
                 style={{ gap: 10, padding: 10, borderRadius: 12, border: 'none', background: 'transparent', textAlign: 'left' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F5F5F6' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
               >
                 <div
@@ -285,8 +286,8 @@ function MaterialsTile({ materials }: { materials: LessonMaterial[] }) {
                 >
                   PDF
                 </div>
-                <span style={{ flex: 1, fontSize: 13.5, fontWeight: 550, color: '#0B0B0D' }}>{m.name}</span>
-                <Download size={15} style={{ color: '#C2C2C8', flexShrink: 0 }} />
+                <span style={{ flex: 1, fontSize: 13.5, fontWeight: 550, color: 'var(--color-text)' }}>{m.name}</span>
+                <Download size={15} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
               </button>
             ))}
           </motion.div>
@@ -397,7 +398,7 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
               textAlign: 'left',
               cursor: locked ? 'not-allowed' : 'pointer',
               background: solidWhite ? '#fff' : faintWash ? 'rgba(255,255,255,0.12)' : 'transparent',
-              color: solidWhite ? '#0B0B0D' : '#fff',
+              color: solidWhite ? 'var(--color-text)' : '#fff',
               boxShadow: solidWhite ? '0 2px 12px rgba(0,0,0,0.10)' : 'none',
               transition: 'background 0.22s ease, box-shadow 0.22s ease, color 0.22s ease, height 0.22s ease',
             }}
@@ -496,6 +497,7 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
 }
 
 export default function LessonPage() {
+  const courseReactions = useStudentData(s => s.courseReactions)
   const currentLessonId = useDashboard(s => s.currentLessonId)
   const closeLesson = useDashboard(s => s.closeLesson)
   const openHomework = useDashboard(s => s.openHomework)
@@ -574,11 +576,11 @@ export default function LessonPage() {
 
   if (!lesson) {
     return (
-      <div className="flex flex-col items-center justify-center" style={{ minHeight: 300, color: '#6F6F76' }}>
-        <p style={{ fontSize: 15, fontWeight: 650, color: '#0B0B0D' }}>Урок не найден</p>
+      <div className="flex flex-col items-center justify-center" style={{ minHeight: 300, color: 'var(--color-muted)' }}>
+        <p style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)' }}>Урок не найден</p>
         <button
           onClick={closeLesson}
-          style={{ marginTop: 12, padding: '8px 18px', borderRadius: 999, border: 'none', cursor: 'pointer', background: '#0B0B0D', color: '#fff', fontSize: 13, fontWeight: 600 }}
+          style={{ marginTop: 12, padding: '8px 18px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--color-text)', color: '#fff', fontSize: 13, fontWeight: 600 }}
         >
           Назад
         </button>
@@ -627,8 +629,8 @@ export default function LessonPage() {
   // compact top bar (same opacity, border, shadow) so every floating surface on
   // the scrolled lesson reads as one consistent piece of glass.
   const dockGlass = {
-    border: '1px solid rgba(255,255,255,0.9)',
-    background: 'rgba(255,255,255,0.86)',
+    border: '1px solid var(--color-border-glass)',
+    background: 'rgba(var(--glass-rgb), 0.86)',
     backdropFilter: 'blur(14px) saturate(180%)',
     WebkitBackdropFilter: 'blur(14px) saturate(180%)',
     boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14)',
@@ -651,9 +653,9 @@ export default function LessonPage() {
           onClick={closeLesson}
           className="flex items-center cursor-pointer flex-shrink-0"
           style={{
-            gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid rgba(0,0,0,0.06)',
-            background: 'rgba(255,255,255,0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-            color: '#0B0B0D', fontSize: 14, fontWeight: 600,
+            gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
+            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+            color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
           }}
         >
           <ChevronLeft size={18} />
@@ -662,7 +664,7 @@ export default function LessonPage() {
 
         <h1
           className="flex-1 min-w-0 truncate text-center"
-          style={{ fontSize: 18, fontWeight: 700, color: '#0B0B0D' }}
+          style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}
         >
           Занятие #{lesson.number} {lesson.title}
         </h1>
@@ -670,9 +672,9 @@ export default function LessonPage() {
         <div
           className="flex items-center flex-shrink-0"
           style={{
-            gap: 6, padding: '9px 16px', borderRadius: 999, border: '1px solid rgba(0,0,0,0.06)',
-            background: 'rgba(255,255,255,0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-            color: '#6F6F76', fontSize: 14, fontWeight: 600,
+            gap: 6, padding: '9px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
+            background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+            color: 'var(--color-muted)', fontSize: 14, fontWeight: 600,
           }}
         >
           <Calendar size={15} />
@@ -706,7 +708,7 @@ export default function LessonPage() {
               style={{
                 gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999,
                 ...dockGlass,
-                color: '#0B0B0D', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
+                color: 'var(--color-text)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
               }}
             >
               <ChevronLeft size={18} />
@@ -717,7 +719,7 @@ export default function LessonPage() {
               ref={dockTitleRef}
               className="min-w-0 truncate"
               style={{
-                fontSize: 14, fontWeight: 700, color: '#0B0B0D', flexShrink: 1,
+                fontSize: 14, fontWeight: 700, color: 'var(--color-text)', flexShrink: 1,
                 maxWidth: dockTitleMax,
                 padding: '9px 16px', borderRadius: 999,
                 ...dockGlass, pointerEvents: 'auto',
@@ -738,7 +740,7 @@ export default function LessonPage() {
                 overflow: 'hidden',
                 padding: '9px 14px', borderRadius: 999,
                 ...dockGlass,
-                color: '#6F6F76', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
+                color: 'var(--color-muted)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
               }}
             >
               <motion.span
@@ -816,7 +818,7 @@ export default function LessonPage() {
                   style={{
                     width: 76, height: 76, borderRadius: '50%',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: 'rgba(255,255,255,0.95)', color: '#7B3FCC',
+                    background: 'rgba(var(--glass-rgb), 0.95)', color: '#7B3FCC',
                     boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
                   }}
                 >
@@ -841,8 +843,8 @@ export default function LessonPage() {
           className="flex flex-col h-full"
           style={{
             borderRadius: 24,
-            background: 'rgba(255,255,255,0.96)',
-            border: '1px solid rgba(0,0,0,0.06)',
+            background: 'rgba(var(--glass-rgb), 0.96)',
+            border: '1px solid var(--color-border-soft)',
             boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
             padding: 16,
             gap: 6,
@@ -851,7 +853,7 @@ export default function LessonPage() {
         >
           <div className="flex items-center" style={{ gap: 8, marginBottom: 6 }}>
             <ListVideo size={17} style={{ color: '#7B3FCC' }} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: '#0B0B0D' }}>Таймкоды</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Таймкоды</span>
           </div>
           <div className="flex flex-col flex-1" style={{ gap: 2, overflowY: 'auto' }}>
             {detail.timecodes.map((tc, i) => {
@@ -863,21 +865,21 @@ export default function LessonPage() {
                   className="flex items-center cursor-pointer text-left"
                   style={{
                     gap: 10, padding: '9px 10px', borderRadius: 12, border: 'none',
-                    background: active ? '#EEDBFF' : 'transparent',
+                    background: active ? 'var(--color-purple-soft)' : 'transparent',
                     transition: 'background 0.15s ease',
                   }}
-                  onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = '#F5F5F6' }}
+                  onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg)' }}
                   onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                 >
                   <span
                     style={{
                       fontSize: 12, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-                      color: active ? '#7B3FCC' : '#9A9AA2', minWidth: 42, flexShrink: 0,
+                      color: active ? '#7B3FCC' : 'var(--color-text-3)', minWidth: 42, flexShrink: 0,
                     }}
                   >
                     {tc.time}
                   </span>
-                  <span style={{ fontSize: 13.5, fontWeight: active ? 600 : 500, color: active ? '#0B0B0D' : '#4A4A52' }}>
+                  <span style={{ fontSize: 13.5, fontWeight: active ? 600 : 500, color: active ? 'var(--color-text)' : '#4A4A52' }}>
                     {tc.label}
                   </span>
                 </button>
@@ -912,14 +914,14 @@ export default function LessonPage() {
             gap: 14,
             padding: 24,
             borderRadius: 24,
-            background: 'rgba(255,255,255,0.96)',
-            border: '1px solid rgba(0,0,0,0.06)',
+            background: 'rgba(var(--glass-rgb), 0.96)',
+            border: '1px solid var(--color-border-soft)',
             boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
           }}
         >
           <div className="flex items-center" style={{ gap: 8 }}>
             <FileText size={17} style={{ color: '#7B3FCC' }} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: '#0B0B0D' }}>Описание</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Описание</span>
           </div>
           {detail.paragraphs.map(p => (
             <div
@@ -938,7 +940,7 @@ export default function LessonPage() {
                   fontWeight: 450,
                 }}
               >
-                {renderHighlightedParagraph(p.text, p.reactionId, pendingHighlight)}
+                {renderHighlightedParagraph(p.text, p.reactionId, pendingHighlight, courseReactions)}
               </p>
             </div>
           ))}

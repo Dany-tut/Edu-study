@@ -71,7 +71,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
 
   const scale = isCenter ? 1 : distance === 1 ? 0.90 : distance === 2 ? 0.82 : 0.74
   const opacity = isCenter ? 1 : distance === 1 ? 0.72 : distance === 2 ? 0.48 : 0.3
-  const missedPalette = { text: '#A8282D', soft: '#FFE1E4', accent: '#A8282D', onAccent: '#FFFFFF', ring: 'rgba(168,40,45,0.12)' }
+  const missedPalette = { text: '#A8282D', soft: 'var(--color-red-soft)', accent: '#A8282D', onAccent: '#FFFFFF', ring: 'rgba(168,40,45,0.12)' }
 
   return (
     <motion.div
@@ -88,9 +88,9 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
         style={{
           // Equal inset on all four sides so the content is framed symmetrically.
           padding: isCenter ? '16px' : '14px 16px',
-          background: isCenter ? 'rgba(255,255,255,0.97)' : 'rgba(255,255,255,0.80)',
+          background: isCenter ? 'rgba(var(--glass-rgb), 0.97)' : 'rgba(var(--glass-rgb), 0.80)',
           backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,0.7)',
+          border: '1px solid var(--color-border-medium)',
           boxShadow: isCenter
             ? '0 8px 40px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.04)'
             : '0 2px 12px rgba(0,0,0,0.06)',
@@ -101,7 +101,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
           className="flex items-center justify-between"
           style={{ marginBottom: isCenter ? 10 : 8 }}
         >
-          <span style={{ fontSize: isCenter ? 13 : 11, fontWeight: 600, color: day.isToday ? PURPLE.text : '#6F6F76' }}>
+          <span style={{ fontSize: isCenter ? 13 : 11, fontWeight: 600, color: day.isToday ? PURPLE.text : 'var(--color-muted)' }}>
             {day.label}
           </span>
           {day.isToday && isCenter && (
@@ -156,7 +156,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5" style={{ marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: (isUpcoming || isMissed) ? pal.text : '#6F6F76', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: (isUpcoming || isMissed) ? pal.text : 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         {lesson.subject}
                       </span>
                       {isMissed && (
@@ -170,24 +170,24 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
                             {formatUntil(st)}
                           </span>
                         ) : (
-                          <span style={{ fontSize: 10, fontWeight: 600, color: '#6F6F76', background: 'rgba(0,0,0,0.06)', padding: '1px 6px', borderRadius: 999 }}>
+                          <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', background: 'rgba(0,0,0,0.06)', padding: '1px 6px', borderRadius: 999 }}>
                             {formatUntil(st)}
                           </span>
                         )
                       )}
                     </div>
-                    <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: '#0B0B0D' }}>
+                    <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>
                       Занятие #{lesson.lessonNumber} {lesson.lessonTitle}
                     </p>
                   </div>
                   <div className="flex-shrink-0 flex items-center" style={{ gap: 10 }}>
-                    <span style={{ fontSize: 18, fontWeight: 700, color: (isUpcoming || isMissed) ? pal.text : '#0B0B0D', lineHeight: 1, minWidth: 54, textAlign: 'right' }}>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: (isUpcoming || isMissed) ? pal.text : 'var(--color-text)', lineHeight: 1, minWidth: 54, textAlign: 'right' }}>
                       {lesson.time}
                     </span>
                     <div style={{ width: 24, height: 24, borderRadius: '50%', background: (isUpcoming || isMissed) ? pal.ring : 'rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {isMissed
                         ? <IconMissedLesson size={11} color={pal.text} />
-                        : <Video size={11} color={isUpcoming ? pal.text : '#6F6F76'} />
+                        : <Video size={11} color={isUpcoming ? pal.text : 'var(--color-muted)'} />
                       }
                     </div>
                   </div>
@@ -201,11 +201,11 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
                   minHeight: 116,
                   padding: '18px 24px',
                   background: 'rgba(0,0,0,0.025)',
-                  color: '#6F6F76',
+                  color: 'var(--color-muted)',
                 }}
               >
                 <CalendarX2 size={20} style={{ marginBottom: 8 }} />
-                <p style={{ fontSize: 14, fontWeight: 650, color: '#0B0B0D' }}>Пока нет данных</p>
+                <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)' }}>Пока нет данных</p>
                 <p style={{ fontSize: 12, marginTop: 3 }}>Преподаватель еще не проставил уроки</p>
               </div>
             )}
@@ -215,18 +215,18 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
             {day.lessons.length > 0 ? (
               day.lessons.slice(0, 2).map(lesson => (
                 <div key={lesson.id}>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: '#6F6F76', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     {lesson.subject}
                   </p>
-                  <p className="truncate" style={{ fontSize: 12, fontWeight: 500, color: '#0B0B0D' }}>
+                  <p className="truncate" style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text)' }}>
                     {lesson.lessonTitle}
                   </p>
-                  <p style={{ fontSize: 11, color: '#6F6F76' }}>{lesson.time}</p>
+                  <p style={{ fontSize: 11, color: 'var(--color-muted)' }}>{lesson.time}</p>
                 </div>
               ))
             ) : (
-              <div style={{ minHeight: 70, display: 'flex', flexDirection: 'column', justifyContent: 'center', color: '#6F6F76' }}>
-                <p style={{ fontSize: 12, fontWeight: 650, color: '#0B0B0D' }}>Пока нет данных</p>
+              <div style={{ minHeight: 70, display: 'flex', flexDirection: 'column', justifyContent: 'center', color: 'var(--color-muted)' }}>
+                <p style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text)' }}>Пока нет данных</p>
                 <p style={{ fontSize: 11, marginTop: 3 }}>Уроки еще не проставлены</p>
               </div>
             )}

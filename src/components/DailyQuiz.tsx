@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Clock } from 'lucide-react'
-import { dailyQuiz } from '../data/mockData'
+import { quizTimeLimit } from '../data/mockData'
 import { useDashboard } from '../store/dashboardStore'
+import { useStudentData } from '../store/studentDataStore'
 import StatsPanel from './StatsPanel'
 import { cn } from '../lib/utils'
 
@@ -21,7 +22,7 @@ function SpoilerQuestion({ text }: { text: string }) {
         style={{
           fontSize: 18,
           fontWeight: 650,
-          color: '#0B0B0D',
+          color: 'var(--color-text)',
           lineHeight: 1.3,
           textAlign: 'center',
           transition: 'filter 0.25s ease, opacity 0.25s ease',
@@ -39,7 +40,7 @@ function SpoilerQuestion({ text }: { text: string }) {
             fontSize: 12,
             fontWeight: 600,
             color: '#7B3FCC',
-            background: '#EEDBFF',
+            background: 'var(--color-purple-soft)',
             borderRadius: 999,
             padding: '3px 10px',
             pointerEvents: 'none',
@@ -54,8 +55,10 @@ function SpoilerQuestion({ text }: { text: string }) {
 
 export default function DailyQuiz() {
   const { quizDismissed, dismissQuiz } = useDashboard()
+  const quizQuestions = useStudentData(s => s.quizQuestions)
+  const dailyQuiz = { ...(quizQuestions[0] ?? { id: 'q1', title: '…', subject: 'Химия', answers: [] }), timeLimit: quizTimeLimit }
   const [quizState, setQuizState] = useState<QuizState>('preview')
-  const [timeLeft, setTimeLeft] = useState(dailyQuiz.timeLimit)
+  const [timeLeft, setTimeLeft] = useState(quizTimeLimit)
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
 
   // Timer
@@ -72,7 +75,7 @@ export default function DailyQuiz() {
 
   const handleStart = () => {
     setQuizState('active')
-    setTimeLeft(dailyQuiz.timeLimit)
+    setTimeLeft(quizTimeLimit)
   }
 
   const handleAnswer = useCallback((answerId: string) => {
@@ -82,7 +85,7 @@ export default function DailyQuiz() {
     setTimeout(() => setQuizState('done'), 2000)
   }, [quizState])
 
-  const timerPct = (timeLeft / dailyQuiz.timeLimit) * 100
+  const timerPct = (timeLeft / quizTimeLimit) * 100
 
   if (quizDismissed || quizState === 'done') {
     return <StatsPanel />
@@ -98,10 +101,10 @@ export default function DailyQuiz() {
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         className="rounded-[32px] p-8"
         style={{
-          background: 'rgba(255,255,255,0.92)',
+          background: 'rgba(var(--glass-rgb), 0.92)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,0.65)',
+          border: '1px solid var(--color-border-glass)',
           boxShadow: '0 4px 32px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04)',
         }}
       >
@@ -110,7 +113,7 @@ export default function DailyQuiz() {
           <div>
             <span
               className="inline-block px-3 py-1 rounded-full text-xs font-semibold"
-              style={{ background: '#EEDBFF', color: '#7B3FCC', fontSize: 12, fontWeight: 600 }}
+              style={{ background: 'var(--color-purple-soft)', color: '#7B3FCC', fontSize: 12, fontWeight: 600 }}
             >
               Викторина дня
             </span>
@@ -121,7 +124,7 @@ export default function DailyQuiz() {
               whileTap={{ scale: 0.96 }}
               onClick={dismissQuiz}
               className="ml-4 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer"
-              style={{ background: '#F0F0F2', color: '#6F6F76' }}
+              style={{ background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}
               aria-label="Закрыть"
             >
               <X size={14} />
@@ -132,7 +135,7 @@ export default function DailyQuiz() {
         {/* Question — spoiler in preview, plain in active/answered/timeout */}
         {quizState === 'preview'
           ? <SpoilerQuestion text={dailyQuiz.title} />
-          : <h2 style={{ fontSize: 22, fontWeight: 650, color: '#0B0B0D', lineHeight: 1.3, marginBottom: 20 }}>
+          : <h2 style={{ fontSize: 22, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 20 }}>
               {dailyQuiz.title}
             </h2>
         }
@@ -141,8 +144,8 @@ export default function DailyQuiz() {
         {quizState === 'active' && (
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-2">
-              <Clock size={14} style={{ color: timerPct < 30 ? '#F48B91' : '#6F6F76' }} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: timerPct < 30 ? '#F48B91' : '#6F6F76' }}>
+              <Clock size={14} style={{ color: timerPct < 30 ? '#F48B91' : 'var(--color-muted)' }} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: timerPct < 30 ? '#F48B91' : 'var(--color-muted)' }}>
                 {timeLeft} сек
               </span>
             </div>
@@ -173,7 +176,7 @@ export default function DailyQuiz() {
             >
               Начать
             </motion.button>
-            <span style={{ fontSize: 13, color: '#6F6F76' }}>20 секунд на ответ</span>
+            <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>20 секунд на ответ</span>
           </div>
         )}
 
@@ -190,8 +193,8 @@ export default function DailyQuiz() {
                 style={{
                   fontSize: 15,
                   fontWeight: 500,
-                  background: '#F5F5F6',
-                  color: '#0B0B0D',
+                  background: 'var(--color-bg)',
+                  color: 'var(--color-text)',
                   border: '1.5px solid #E8E8EA',
                   minHeight: 56,
                 }}
@@ -208,7 +211,7 @@ export default function DailyQuiz() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex items-center gap-3 px-6 py-4 rounded-2xl"
-            style={{ background: '#DFF8D6' }}
+            style={{ background: 'var(--color-green-soft)' }}
           >
             <span style={{ fontSize: 22 }}>✓</span>
             <div>
@@ -226,7 +229,7 @@ export default function DailyQuiz() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex items-center gap-3 px-6 py-4 rounded-2xl"
-            style={{ background: '#FFE1E4' }}
+            style={{ background: 'var(--color-red-soft)' }}
           >
             <span style={{ fontSize: 22 }}>⏱</span>
             <p style={{ fontSize: 16, fontWeight: 600, color: '#A8282D' }}>Время вышло</p>

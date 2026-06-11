@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
-import { scienceMemes, scienceMemeInterval } from '../data/mockData'
+import { scienceMemeInterval } from '../data/mockData'
+import { useStudentData } from '../store/studentDataStore'
 import { getWidgetSizing } from '../lib/widgetSizing'
 import { subjectTheme } from '../lib/theme'
 
@@ -13,6 +14,7 @@ type Props = {
 
 export default function MemesWidget({ active, columns = 1 }: Props) {
   const [index, setIndex] = useState(0)
+  const scienceMemes = useStudentData(s => s.scienceMemes)
 
   const meme = scienceMemes[index]
   const sz = getWidgetSizing(columns)
@@ -33,10 +35,10 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
     <div
       className="flex h-full w-full overflow-hidden rounded-[24px]"
       style={{
-        background: 'rgba(255,255,255,0.9)',
+        background: 'rgba(var(--glass-rgb), 0.9)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255,255,255,0.62)',
+        border: '1px solid var(--color-border-glass)',
         boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
       }}
     >
@@ -105,7 +107,7 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
                 {meme.setup}
               </p>
               <p style={{
-                fontSize: 20 * sz.scale, fontWeight: 650, lineHeight: 1.3, color: '#0B0B0D',
+                fontSize: 20 * sz.scale, fontWeight: 650, lineHeight: 1.3, color: 'var(--color-text)',
                 display: '-webkit-box', WebkitLineClamp: sz.clampLines, WebkitBoxOrient: 'vertical', overflow: 'hidden',
               }}>
                 {meme.punchline}

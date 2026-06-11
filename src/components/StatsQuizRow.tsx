@@ -1,23 +1,26 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect, useCallback } from 'react'
 import { Clock, X } from 'lucide-react'
-import { dailyQuiz, student } from '../data/mockData'
+import { quizTimeLimit } from '../data/mockData'
 import { useDashboard } from '../store/dashboardStore'
+import { useStudentData } from '../store/studentDataStore'
 import SpoilerText from './SpoilerText'
-
-const stats = [
-  { label: 'Успеваемость', value: `${student.stats.performance}%`, sub: 'Уровень успеваемости\nпо программе' },
-  { label: 'Задания', value: `${student.stats.completedTasks}/${student.stats.totalTasks}`, sub: 'Выполнено заданий' },
-  { label: 'Средний балл', value: `${student.stats.avgScore}`, sub: 'За месяц' },
-  { label: 'Серия', value: `${student.stats.streak} дн.`, sub: 'Подряд' },
-]
 
 type QuizState = 'preview' | 'active' | 'answered' | 'timeout' | 'done'
 
 export default function StatsQuizRow() {
   const { quizDismissed, dismissQuiz } = useDashboard()
+  const dbStats = useStudentData(s => s.stats)
+  const quizQuestions = useStudentData(s => s.quizQuestions)
+  const dailyQuiz = quizQuestions[0] ?? { id: 'q1', title: '…', subject: 'Химия', answers: [], timeLimit: quizTimeLimit }
+  const stats = [
+    { label: 'Успеваемость', value: `${dbStats.performance}%`, sub: 'Уровень успеваемости\nпо программе' },
+    { label: 'Задания', value: `${dbStats.completedTasks}/${dbStats.totalTasks}`, sub: 'Выполнено заданий' },
+    { label: 'Средний балл', value: `${dbStats.avgScore}`, sub: 'За месяц' },
+    { label: 'Серия', value: `${dbStats.streak} дн.`, sub: 'Подряд' },
+  ]
   const [quizState, setQuizState] = useState<QuizState>('preview')
-  const [timeLeft, setTimeLeft] = useState(dailyQuiz.timeLimit)
+  const [timeLeft, setTimeLeft] = useState(quizTimeLimit)
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
 
   useEffect(() => {
@@ -33,7 +36,7 @@ export default function StatsQuizRow() {
 
   const handleStart = () => {
     setQuizState('active')
-    setTimeLeft(dailyQuiz.timeLimit)
+    setTimeLeft(quizTimeLimit)
   }
 
   const handleAnswer = useCallback((answerId: string) => {
@@ -44,7 +47,7 @@ export default function StatsQuizRow() {
   }, [quizState])
 
   const showQuiz = !quizDismissed && quizState !== 'done'
-  const timerPct = (timeLeft / dailyQuiz.timeLimit) * 100
+  const timerPct = (timeLeft / quizTimeLimit) * 100
   const selectedAnswerText = dailyQuiz.answers.find(a => a.id === selectedAnswer)?.text
 
   return (
@@ -71,20 +74,20 @@ export default function StatsQuizRow() {
             className="flex flex-col justify-center rounded-[24px]"
             style={{
               padding: '18px 22px',
-              background: 'rgba(255,255,255,0.88)',
+              background: 'rgba(var(--glass-rgb), 0.88)',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255,255,255,0.62)',
+              border: '1px solid var(--color-border-glass)',
               boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
             }}
           >
-            <span style={{ fontSize: 10, fontWeight: 600, color: '#6F6F76', textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1 }}>
+            <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1 }}>
               {s.sub.split('\n')[0]}
             </span>
-            <span style={{ fontSize: 28, fontWeight: 650, color: '#0B0B0D', lineHeight: 1.1 }}>
+            <span style={{ fontSize: 28, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.1 }}>
               {s.value}
             </span>
-            <span style={{ fontSize: 11, fontWeight: 500, color: '#6F6F76' }}>
+            <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--color-muted)' }}>
               {s.label}
             </span>
           </div>
@@ -136,10 +139,10 @@ export default function StatsQuizRow() {
                   display: 'flex',
                   flexDirection: 'column',
                   padding: quizState === 'active' ? '28px 28px 28px 28px' : '26px 34px 26px 26px',
-                  background: 'rgba(255,255,255,0.98)',
+                  background: 'rgba(var(--glass-rgb), 0.98)',
                   backdropFilter: 'blur(28px)',
                   WebkitBackdropFilter: 'blur(28px)',
-                  border: '1px solid rgba(255,255,255,0.88)',
+                  border: '1px solid var(--color-border-glass)',
                   boxShadow: '0 18px 54px rgba(21,18,31,0.16), 0 2px 10px rgba(21,18,31,0.08)',
                   pointerEvents: 'auto',
                 }}
@@ -148,11 +151,11 @@ export default function StatsQuizRow() {
                   <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
                     <span
                       className="flex-shrink-0"
-                      style={{ fontSize: 12, fontWeight: 650, color: '#7B3FCC', background: '#EEDBFF', padding: '5px 12px', borderRadius: 999, lineHeight: 1 }}
+                      style={{ fontSize: 12, fontWeight: 650, color: '#7B3FCC', background: 'var(--color-purple-soft)', padding: '5px 12px', borderRadius: 999, lineHeight: 1 }}
                     >
                       Викторина дня
                     </span>
-                    <h3 style={{ fontSize: 24, fontWeight: 700, color: '#0B0B0D', lineHeight: 1.12 }}>
+                    <h3 style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.12 }}>
                       <SpoilerText revealed={quizState !== 'preview'}>
                         {dailyQuiz.title}
                       </SpoilerText>
@@ -164,7 +167,7 @@ export default function StatsQuizRow() {
                       whileTap={{ scale: 0.96 }}
                       onClick={dismissQuiz}
                       className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center cursor-pointer"
-                      style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F0F0F2', color: '#6F6F76', borderRadius: 999 }}
+                      style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg-3)', color: 'var(--color-muted)', borderRadius: 999 }}
                       aria-label="Закрыть викторину"
                     >
                       <X size={16} />
@@ -172,8 +175,8 @@ export default function StatsQuizRow() {
                   )}
                   {quizState === 'active' && (
                     <div className="flex-shrink-0 flex items-center gap-2">
-                      <Clock size={16} style={{ color: timerPct < 30 ? '#F48B91' : '#6F6F76' }} />
-                      <span style={{ fontSize: 14, fontWeight: 650, color: timerPct < 30 ? '#F48B91' : '#6F6F76', minWidth: 46 }}>
+                      <Clock size={16} style={{ color: timerPct < 30 ? '#F48B91' : 'var(--color-muted)' }} />
+                      <span style={{ fontSize: 14, fontWeight: 650, color: timerPct < 30 ? '#F48B91' : 'var(--color-muted)', minWidth: 46 }}>
                         {timeLeft} сек
                       </span>
                       <div style={{ width: 112, height: 6, background: '#E8E8EA', borderRadius: 999, overflow: 'hidden' }}>
@@ -210,7 +213,7 @@ export default function StatsQuizRow() {
                     >
                       Начать
                     </motion.button>
-                    <span style={{ fontSize: 14, color: '#6F6F76' }}>20 секунд на ответ</span>
+                    <span style={{ fontSize: 14, color: 'var(--color-muted)' }}>20 секунд на ответ</span>
                   </div>
                 )}
 
@@ -227,8 +230,8 @@ export default function StatsQuizRow() {
                           padding: '12px 16px',
                           fontSize: 14,
                           fontWeight: 500,
-                          background: '#F5F5F6',
-                          color: '#0B0B0D',
+                          background: 'var(--color-bg)',
+                          color: 'var(--color-text)',
                           border: '1.5px solid #E8E8EA',
                           minHeight: 54,
                           lineHeight: 1.25,
@@ -245,7 +248,7 @@ export default function StatsQuizRow() {
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center gap-3 px-5 py-3 rounded-2xl"
-                    style={{ padding: '12px 20px', background: '#DFF8D6', borderRadius: 16 }}
+                    style={{ padding: '12px 20px', background: 'var(--color-green-soft)', borderRadius: 16 }}
                   >
                     <span style={{ fontSize: 18, color: '#1A5C38' }}>✓</span>
                     <p className="truncate" style={{ fontSize: 15, fontWeight: 650, color: '#1A5C38' }}>
@@ -259,7 +262,7 @@ export default function StatsQuizRow() {
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center gap-3 px-5 py-3 rounded-2xl"
-                    style={{ padding: '12px 20px', background: '#FFE1E4', borderRadius: 16 }}
+                    style={{ padding: '12px 20px', background: 'var(--color-red-soft)', borderRadius: 16 }}
                   >
                     <span style={{ fontSize: 18, color: '#A8282D' }}>⏱</span>
                     <p style={{ fontSize: 15, fontWeight: 650, color: '#A8282D' }}>Время вышло</p>

@@ -56,13 +56,13 @@ function PillContent({
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 2 }}>
         <span style={{
           fontSize: 10.5, fontWeight: 600, letterSpacing: 0.3,
-          textTransform: 'uppercase', color: '#9A9AA2',
+          textTransform: 'uppercase', color: 'var(--color-text-3)',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
           {kicker}
         </span>
         <span style={{
-          fontSize: 13.5, fontWeight: 600, color: '#0B0B0D', lineHeight: 1.25,
+          fontSize: 13.5, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.25,
           display: '-webkit-box',
           WebkitLineClamp: expanded ? 'unset' : 1,
           WebkitBoxOrient: 'vertical',
@@ -74,7 +74,7 @@ function PillContent({
           animate={{ opacity: expanded ? 1 : 0 }}
           transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
           style={{
-            marginTop: 4, fontSize: 12.5, fontWeight: 450, color: '#5A5A60',
+            marginTop: 4, fontSize: 12.5, fontWeight: 450, color: 'var(--color-text-2)',
             lineHeight: 1.4, overflow: 'hidden', willChange: 'opacity',
           }}
         >
@@ -144,7 +144,7 @@ function PendingHwPreview({ expanded }: { expanded: boolean }) {
             <StatBadge label="Нужно проверить" value={`${toCheck}`} color="#7B3FCC" bg="#EDE0FF" />
           </div>
         ) : (
-          <span style={{ color: '#5A5A60', lineHeight: 1.4 }}>
+          <span style={{ color: 'var(--color-text-2)', lineHeight: 1.4 }}>
             Сданные работы появятся здесь автоматически.
           </span>
         )
@@ -160,7 +160,7 @@ function StatBadge({ label, value, color, bg }: { label: string; value: string; 
       <div style={{ fontSize: 9.5, fontWeight: 700, color, letterSpacing: 0.2, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
         {label}
       </div>
-      <div style={{ fontSize: 16, fontWeight: 750, color: '#0B0B0D', marginTop: 1 }}>{value}</div>
+      <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)', marginTop: 1 }}>{value}</div>
     </div>
   )
 }
@@ -204,10 +204,10 @@ function SchedulePreview({ expanded }: { expanded: boolean }) {
                   fontSize: 11, fontWeight: 700, color: '#2D6BE0',
                   width: 36, flexShrink: 0,
                 }}>{s.time}</span>
-                <span style={{ fontSize: 12, color: '#0B0B0D', fontWeight: 500 }}>{s.groupName}</span>
+                <span style={{ fontSize: 12, color: 'var(--color-text)', fontWeight: 500 }}>{s.groupName}</span>
                 {s.topic && (
                   <span style={{
-                    marginLeft: 'auto', fontSize: 10.5, color: '#9A9AA2',
+                    marginLeft: 'auto', fontSize: 10.5, color: 'var(--color-text-3)',
                     flexShrink: 0, maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>{s.topic}</span>
                 )}
@@ -215,7 +215,7 @@ function SchedulePreview({ expanded }: { expanded: boolean }) {
             )
           })}
           {todaySchedule.length > 3 && (
-            <span style={{ fontSize: 11, color: '#9A9AA2' }}>
+            <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
               + ещё {todaySchedule.length - 3} занятий
             </span>
           )}
@@ -258,7 +258,7 @@ function PendingGradesPreview({ expanded }: { expanded: boolean }) {
       detail={
         ungraded.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span style={{ color: '#5A5A60', lineHeight: 1.4 }}>
+            <span style={{ color: 'var(--color-text-2)', lineHeight: 1.4 }}>
               Нужно проставить оценки и посещаемость:
             </span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -276,10 +276,10 @@ function PendingGradesPreview({ expanded }: { expanded: boolean }) {
                     {s.time}
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#0B0B0D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {s.groupName}
                     </span>
-                    <span style={{ display: 'block', fontSize: 10.5, color: '#5A5A60', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span style={{ display: 'block', fontSize: 10.5, color: 'var(--color-text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       урок №{s.lessonNumber} · {s.topic}
                     </span>
                   </span>
@@ -288,7 +288,7 @@ function PendingGradesPreview({ expanded }: { expanded: boolean }) {
             </div>
           </div>
         ) : (
-          <span style={{ color: '#5A5A60', lineHeight: 1.4 }}>
+          <span style={{ color: 'var(--color-text-2)', lineHeight: 1.4 }}>
             Оценки появятся здесь после занятий.
           </span>
         )
@@ -319,14 +319,14 @@ function EarningsPreview({ expanded }: { expanded: boolean }) {
       expanded={expanded}
       detail={
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ height: 4, borderRadius: 999, background: '#EBEBEF', overflow: 'hidden' }}>
+          <div style={{ height: 4, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
             <motion.div
               animate={{ width: `${pct}%` }}
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
               style={{ height: '100%', borderRadius: 999, background: 'linear-gradient(90deg, #6EE7A0, #1E9E63)' }}
             />
           </div>
-          <span style={{ fontSize: 12, color: '#5A5A60' }}>
+          <span style={{ fontSize: 12, color: 'var(--color-text-2)' }}>
             {pct}% цели на неделю · {fmt(WEEKLY_GOAL - WEEKLY_EARNED)} осталось
           </span>
         </div>
@@ -511,10 +511,10 @@ export default function TeacherCompactPill() {
         width: PILL_WIDTH,
         borderRadius: 30,
         cursor: 'pointer',
-        background: 'rgba(255,255,255,0.5)',
+        background: 'rgba(var(--glass-rgb), 0.5)',
         backdropFilter: 'blur(14px) saturate(180%)',
         WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-        border: '1px solid rgba(255,255,255,0.7)',
+        border: '1px solid var(--color-border-glass)',
         boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 14px rgba(21,18,31,0.08)',
         overflow: 'hidden',
         boxSizing: 'border-box',
@@ -569,10 +569,10 @@ export default function TeacherCompactPill() {
                 top: '50%', transform: 'translateY(-50%)',
                 width: 22, height: 22, borderRadius: '50%',
                 border: 'none',
-                background: 'rgba(255,255,255,0.85)',
+                background: 'rgba(var(--glass-rgb), 0.85)',
                 boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#5A5A60', cursor: 'pointer',
+                color: 'var(--color-text-2)', cursor: 'pointer',
                 opacity: hovering ? 1 : 0,
                 transition: 'opacity 0.18s ease',
                 pointerEvents: hovering ? 'auto' : 'none',

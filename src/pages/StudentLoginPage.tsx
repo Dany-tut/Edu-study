@@ -47,13 +47,13 @@ export default function StudentLoginPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
         style={{
-          background: '#fff', borderRadius: 24, padding: 32,
+          background: 'var(--color-bg-input)', borderRadius: 24, padding: 32,
           width: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.14)',
         }}
       >
         <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 22, fontWeight: 750, color: '#0B0B0D' }}>Вход в кабинет</div>
-          <div style={{ fontSize: 14, color: '#6F6F76', marginTop: 4 }}>Введите email и пароль</div>
+          <div style={{ fontSize: 22, fontWeight: 750, color: 'var(--color-text)' }}>Вход в кабинет</div>
+          <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 4 }}>Введите email и пароль</div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -82,7 +82,7 @@ export default function StudentLoginPage() {
         </div>
 
         {error && (
-          <div style={{ marginTop: 12, fontSize: 13, color: '#A8282D', background: '#FFE1E4', borderRadius: 10, padding: '8px 12px' }}>
+          <div style={{ marginTop: 12, fontSize: 13, color: '#A8282D', background: 'var(--color-red-soft)', borderRadius: 10, padding: '8px 12px' }}>
             {error}
           </div>
         )}
@@ -101,7 +101,7 @@ export default function StudentLoginPage() {
           {loading ? 'Вход...' : 'Войти'}
         </button>
 
-        <div style={{ marginTop: 16, fontSize: 12, color: '#9A9AA2', textAlign: 'center' }}>
+        <div style={{ marginTop: 16, fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>
           Если забыли пароль — обратитесь к учителю
         </div>
       </motion.div>

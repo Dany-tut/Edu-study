@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion'
 import { Home, BookOpen, Dumbbell, User } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { scheduleTodayIndex } from '../data/mockData'
 import { playTransitionDrop } from '../lib/sound'
 import { useDashboard } from '../store/dashboardStore'
+import { useStudentData } from '../store/studentDataStore'
 
 const items = [
   { id: 'home', label: 'Главная', icon: Home },
@@ -14,6 +14,7 @@ const items = [
 
 export default function MobileBottomNav() {
   const [active, setActive] = useState('home')
+  const scheduleTodayIndex = useStudentData(s => s.scheduleTodayIndex)
   const setScheduleIndex = useDashboard(state => state.setScheduleIndex)
   const activePage = useDashboard(state => state.activePage)
   const setActivePage = useDashboard(state => state.setActivePage)
@@ -44,10 +45,10 @@ export default function MobileBottomNav() {
         className="mx-4 mb-4 flex items-center justify-around px-2 py-3"
         style={{
           borderRadius: '28px',
-          background: 'rgba(255,255,255,0.92)',
+          background: 'rgba(var(--glass-rgb), 0.92)',
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
-          border: '1px solid rgba(255,255,255,0.65)',
+          border: '1px solid var(--color-border-glass)',
           boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
           height: 72,
         }}
@@ -67,12 +68,12 @@ export default function MobileBottomNav() {
               <Icon
                 size={22}
                 strokeWidth={isActive ? 2.5 : 1.8}
-                style={{ color: isActive ? '#7B3FCC' : '#6F6F76' }}
+                style={{ color: isActive ? '#7B3FCC' : 'var(--color-muted)' }}
               />
               <span style={{
                 fontSize: 10,
                 fontWeight: isActive ? 600 : 500,
-                color: isActive ? '#7B3FCC' : '#6F6F76',
+                color: isActive ? '#7B3FCC' : 'var(--color-muted)',
               }}>
                 {item.label}
               </span>
