@@ -673,7 +673,7 @@ export default function HomeworkFlow({
     background: 'rgba(var(--glass-rgb), 0.86)',
     backdropFilter: 'blur(14px) saturate(180%)',
     WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-    boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 8px 28px rgba(21,18,31,0.26), 0 2px 8px rgba(21,18,31,0.10)',
   } as const
 
   const levelPill = (compact: boolean) => (
@@ -1602,7 +1602,7 @@ function BottomProgressBar({
           border: '1px solid var(--color-border-glass)',
           backdropFilter: 'blur(16px) saturate(180%)',
           WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 16px rgba(0,0,0,0.06)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 4px 16px rgba(0,0,0,0.06)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0, height: 20 }}>
@@ -1658,7 +1658,7 @@ function BottomProgressBar({
           border: '1px solid var(--color-border-glass)',
           backdropFilter: 'blur(16px) saturate(180%)',
           WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 16px rgba(0,0,0,0.06)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 4px 16px rgba(0,0,0,0.06)',
         }}
       >
         {basicCompleted && submitted ? (

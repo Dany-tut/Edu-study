@@ -498,7 +498,7 @@ export default function TeacherCompactPill() {
         backdropFilter: 'blur(14px) saturate(180%)',
         WebkitBackdropFilter: 'blur(14px) saturate(180%)',
         border: '1px solid var(--color-border-glass)',
-        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 14px rgba(21,18,31,0.08)',
+        boxShadow: 'var(--shadow-pill)',
         overflow: 'hidden',
         boxSizing: 'border-box',
       }}

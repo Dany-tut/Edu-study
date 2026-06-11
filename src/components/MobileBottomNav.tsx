@@ -68,12 +68,12 @@ export default function MobileBottomNav() {
               <Icon
                 size={22}
                 strokeWidth={isActive ? 2.5 : 1.8}
-                style={{ color: isActive ? '#CDB0FF' : 'var(--color-muted)' }}
+                style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-muted)' }}
               />
               <span style={{
                 fontSize: 10,
                 fontWeight: isActive ? 600 : 500,
-                color: isActive ? '#CDB0FF' : 'var(--color-muted)',
+                color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
               }}>
                 {item.label}
               </span>

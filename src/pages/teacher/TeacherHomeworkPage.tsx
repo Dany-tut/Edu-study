@@ -130,7 +130,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
                     flex: 1, padding: '8px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
                     fontSize: 12, fontWeight: 600,
                     background: assignTo === mode ? 'var(--color-purple-soft)' : 'var(--color-bg)',
-                    color: assignTo === mode ? '#CDB0FF' : 'var(--color-muted)',
+                    color: assignTo === mode ? 'var(--color-accent)' : 'var(--color-muted)',
                     transition: 'all 0.15s',
                   }}
                 >

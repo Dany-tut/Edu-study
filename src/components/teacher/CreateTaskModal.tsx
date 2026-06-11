@@ -473,7 +473,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
             background: 'rgba(var(--glass-rgb), 0.96)',
             backdropFilter: 'blur(24px) saturate(200%)',
             border: '1px solid var(--color-border-glass)',
-            boxShadow: '0 24px 72px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,1)',
+            boxShadow: '0 24px 72px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.07)',
             overflow: 'visible',
           }}
         >

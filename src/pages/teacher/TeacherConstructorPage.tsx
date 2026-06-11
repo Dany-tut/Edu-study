@@ -1790,7 +1790,7 @@ function CreatorView({
                   padding: '8px 16px', borderRadius: 11, border: 'none', cursor: 'pointer',
                   fontSize: 13, fontWeight: 600,
                   background: isActive ? 'var(--color-surface)' : 'transparent',
-                  color: isActive ? '#CDB0FF' : 'var(--color-muted)',
+                  color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
                   fontFamily: 'inherit', transition: 'all 0.15s',
                   boxShadow: isActive ? '0 2px 10px rgba(0,0,0,0.09)' : 'none',
                 }}>

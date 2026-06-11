@@ -22,6 +22,9 @@
   /* Glass base RGB — change one var, all glass surfaces adapt */
   --glass-rgb: 255, 255, 255;
 
+  /* Spoiler dot color (RGB triplet for rgba()) */
+  --spoiler-dot-rgb: 11, 11, 13;
+
   /* ── Text scale ───────────────────────────────────────── */
   --color-text: #0B0B0D;
   --color-text-2: #3A3A40;
@@ -51,6 +54,7 @@
   --color-purple-soft: #EEDBFF;
   --color-accent: #7B3FCC;
   --color-green-accent: #1a7a3f;
+  --shadow-pill: inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 14px rgba(21,18,31,0.08);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -67,6 +71,9 @@
   --color-surface: rgba(26,26,34,0.92);
 
   --glass-rgb: 26, 26, 34;
+
+  /* Spoiler dot color (RGB triplet for rgba()) */
+  --spoiler-dot-rgb: 240, 240, 242;
 
   --color-text: #F0F0F2;
   --color-text-2: #C2C2C8;
@@ -89,6 +96,7 @@
 
   --color-accent: #C48BFF;
   --color-green-accent: #4ADE80;
+  --shadow-pill: inset 0 1px 0 rgba(255,255,255,0.07), 0 6px 24px rgba(21,18,31,0.22), 0 2px 6px rgba(21,18,31,0.08);
 }
 
 * {
@@ -137,10 +145,10 @@ a {
   background: rgba(0,0,0,0.28);
 }
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.08);
 }
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.30);
+  background: rgba(255,255,255,0.16);
 }
 
 /* Firefox */
@@ -149,7 +157,7 @@ a {
   scrollbar-color: rgba(0,0,0,0.16) transparent;
 }
 [data-theme="dark"] * {
-  scrollbar-color: rgba(255,255,255,0.18) transparent;
+  scrollbar-color: rgba(255,255,255,0.08) transparent;
 }
 
 /* Hide the scrollbar entirely (scroll still works) — used where scroll fades
@@ -270,7 +278,7 @@ a {
   -webkit-backdrop-filter: blur(14px) saturate(180%);
   backdrop-filter: blur(14px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 6px 18px rgba(21, 18, 31, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 24px rgba(21, 18, 31, 0.22), 0 2px 6px rgba(21, 18, 31, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.07);
   transition: color 0.25s ease, background 0.25s ease;
 }
 [data-theme="dark"] .carousel-nav {
@@ -296,7 +304,7 @@ a {
 }
 .stat-card { padding: 18px 24px; }
 .stat-value { font-size: 56px; }
-.stat-label { font-size: 13px; margin-top: -6px; }
+.stat-label { font-size: 13px; }
 
 /* Quiz answer options */
 .quiz-answers {

@@ -138,7 +138,7 @@ export default function TeacherTopBar() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 padding: '0 16px', height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
                 fontSize: 14, fontWeight: isActive ? 600 : 500,
-                color: isActive ? '#CDB0FF' : 'var(--color-muted)',
+                color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
                 background: isActive ? 'var(--color-purple-soft)' : 'transparent',
                 transition: 'background 0.15s, color 0.15s',
                 whiteSpace: 'nowrap', position: 'relative',

@@ -15,6 +15,7 @@ type SpoilerTextProps = {
   revealed?: boolean
   /** dots per px² of covered area */
   density?: number
+  /** RGB triplet string e.g. "11, 11, 13"; if omitted reads --spoiler-dot-rgb CSS var */
   color?: string
   /** px the dot field extends beyond the text box on every side */
   pad?: number
@@ -45,7 +46,7 @@ export default function SpoilerText({
   children,
   revealed = false,
   density = 0.12,
-  color = '11, 11, 13', // #0B0B0D as rgb triplet
+  color, // rgb triplet; if omitted, reads --spoiler-dot-rgb from CSS
   pad = 10,
   feather = 14,
   maxAlpha = 0.5,
@@ -103,6 +104,7 @@ export default function SpoilerText({
         if (W !== lastW || H !== lastH) resize(W, H)
 
         ctx.clearRect(0, 0, W, H)
+        const dotColor = color ?? getComputedStyle(document.documentElement).getPropertyValue('--spoiler-dot-rgb').trim() || '11, 11, 13'
         for (const p of particles) {
           p.x += p.vx
           p.y += p.vy
@@ -133,7 +135,7 @@ export default function SpoilerText({
 
           ctx.beginPath()
           ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
-          ctx.fillStyle = `rgba(${color}, ${alpha})`
+          ctx.fillStyle = `rgba(${dotColor}, ${alpha})`
           ctx.fill()
         }
       }

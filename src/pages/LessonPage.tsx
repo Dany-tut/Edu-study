@@ -874,7 +874,7 @@ export default function LessonPage() {
                   <span
                     style={{
                       fontSize: 12, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-                      color: active ? '#CDB0FF' : 'var(--color-text-3)', minWidth: 42, flexShrink: 0,
+                      color: active ? 'var(--color-accent)' : 'var(--color-text-3)', minWidth: 42, flexShrink: 0,
                     }}
                   >
                     {tc.time}

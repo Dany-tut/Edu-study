@@ -145,7 +145,7 @@ function ReviewBottomBar({
         height: 44, padding: '12px 16px', borderRadius: 18,
         background: 'rgba(var(--glass-rgb), 0.62)', border: '1px solid var(--color-border-glass)',
         backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 16px rgba(0,0,0,0.06)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 4px 16px rgba(0,0,0,0.06)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0, height: 20 }}>
           {submitters.map((s, i) => {
@@ -182,7 +182,7 @@ function ReviewBottomBar({
         padding: '0 14px', borderRadius: 18,
         background: 'rgba(var(--glass-rgb), 0.62)', border: '1px solid var(--color-border-glass)',
         backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 16px rgba(0,0,0,0.06)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 4px 16px rgba(0,0,0,0.06)',
       }}>
         {remaining === 0 ? (
           <span style={{ fontSize: 12, fontWeight: 500, color: '#1a7a3f', whiteSpace: 'nowrap' }}>
@@ -306,7 +306,7 @@ export default function TeacherHomeworkReviewPage() {
     background: 'rgba(var(--glass-rgb), 0.86)',
     backdropFilter: 'blur(14px) saturate(180%)',
     WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-    boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 8px 28px rgba(21,18,31,0.26), 0 2px 8px rgba(21,18,31,0.10)',
   } as const
 
   if (!hw || !group || submitters.length === 0) {
@@ -706,7 +706,7 @@ function NavArrow({ dir, disabled, onClick }: { dir: 'left' | 'right'; disabled:
         width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
         border: '1px solid var(--color-border-glass)', background: 'rgba(var(--glass-rgb), 0.86)',
         backdropFilter: 'blur(14px) saturate(180%)', WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 8px 28px rgba(21,18,31,0.26), 0 2px 8px rgba(21,18,31,0.10)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: disabled ? 'not-allowed' : 'pointer',
         color: disabled ? 'var(--color-text-4)' : 'var(--color-text)',

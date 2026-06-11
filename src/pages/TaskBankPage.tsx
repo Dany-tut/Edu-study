@@ -7,10 +7,7 @@ import {
   LayoutGrid, List, ArrowUpDown,
 } from 'lucide-react'
 import {
-  Task, Subject,
-  BIOLOGY_SECTIONS, CHEMISTRY_SECTIONS,
-  BIOLOGY_TOPICS, CHEMISTRY_TOPICS,
-  SOURCES,
+  Task, Subject, CHEMISTRY_LINES, BIOLOGY_LINES,
 } from '../data/taskBankData'
 import { useTaskBank } from '../store/taskBankStore'
 import { useDashboard } from '../store/dashboardStore'
@@ -74,7 +71,7 @@ function FilterField({ label, options, value, onChange, accent }: {
         display: 'flex', alignItems: 'center', gap: 6,
         padding: '9px 12px', borderRadius: 13,
         background: 'var(--color-bg-input)',
-        border: `1px solid ${open ? accent : value ? 'rgba(0,0,0,0.16)' : 'rgba(0,0,0,0.1)'}`,
+        border: `1px solid ${open ? accent : value ? 'var(--color-border)' : 'var(--color-border-soft)'}`,
         boxShadow: open ? `0 0 0 3px ${accent}22` : 'none',
         transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
       }}>
@@ -112,7 +109,7 @@ function FilterField({ label, options, value, onChange, accent }: {
             background: 'rgba(var(--glass-rgb), 0.9)',
             backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)',
             border: '1px solid var(--color-border-glass)', borderRadius: 13,
-            boxShadow: '0 14px 36px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.8)', overflow: 'hidden',
+            boxShadow: '0 14px 36px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.07)', overflow: 'hidden',
           }}
         >
           <ScrollFade maxHeight={190}>
@@ -209,8 +206,9 @@ function NumberBadge({ id, onCopied }: { id: number; onCopied: () => void }) {
 }
 
 // ── Task card — same visual language as HomeworkFlow questions ───────────────
-function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAnswer, onCopyId }: {
+function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAnswer, onCopyId, lineNames }: {
   task: Task; index: number; palette: ReturnType<typeof subjectTheme>
+  lineNames: Record<number, string>
   favorites: Set<number>; onFavorite: (id: number) => void
   answered: Map<number, { value: string; correct: boolean | null }>
   onAnswer: (id: number, value: string, correct: boolean | null) => void
@@ -253,7 +251,9 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             <span style={{ fontSize: 11, fontWeight: 700, color: palette.text }}>Задание {index + 1}</span>
             <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
             <NumberBadge id={task.id} onCopied={onCopyId} />
-            <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>{task.line} линия</span>
+            <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: palette.soft, color: palette.text }}>
+              {task.line} · {lineNames[task.line] ?? `Линия ${task.line}`}
+            </span>
             <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
           </div>
           <p style={{ fontSize: 16, lineHeight: 1.45, fontWeight: 650, color: 'var(--color-text)', whiteSpace: 'pre-wrap' }}>
@@ -360,21 +360,21 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             style={{
               width: '100%', boxSizing: 'border-box',
               padding: '11px 16px', borderRadius: 16, fontSize: 14, outline: 'none',
-              border: `1px solid ${state ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'rgba(0,0,0,0.1)'}`,
-              background: state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : '#FFFFFF',
+              border: `1px solid ${state ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'var(--color-border-medium)'}`,
+              background: state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : 'var(--color-bg-input)',
             }}
           />
           <div style={{
             position: 'absolute', left: 1, top: 1, bottom: 1, width: 32,
             borderRadius: '15px 0 0 15px', pointerEvents: 'none',
-            background: `linear-gradient(to right, ${state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : '#FFFFFF'}, transparent)`,
+            background: `linear-gradient(to right, ${state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : 'var(--color-bg-input)'}, transparent)`,
             opacity: inputVal ? 1 : 0,
             transition: 'opacity 0.2s ease',
           }} />
           <div style={{
             position: 'absolute', right: 1, top: 1, bottom: 1, width: 32,
             borderRadius: '0 15px 15px 0', pointerEvents: 'none',
-            background: `linear-gradient(to left, ${state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : '#FFFFFF'}, transparent)`,
+            background: `linear-gradient(to left, ${state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : 'var(--color-bg-input)'}, transparent)`,
             opacity: inputOverflow ? 1 : 0,
             transition: 'opacity 0.2s ease',
           }} />
@@ -385,8 +385,8 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         </div>
         <button onClick={check} disabled={!inputVal.trim()} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '11px 20px', borderRadius: 999,
-          background: inputVal.trim() ? palette.accent : '#E0E0E4',
-          color: inputVal.trim() ? palette.onAccent : '#AAAAAF',
+          background: inputVal.trim() ? palette.accent : 'var(--color-bg-5)',
+          color: inputVal.trim() ? palette.onAccent : 'var(--color-text-3)',
           border: 'none', outline: 'none', fontSize: 13, fontWeight: 700, cursor: inputVal.trim() ? 'pointer' : 'default',
           boxShadow: inputVal.trim() ? `0 8px 20px ${palette.ring}` : 'none',
           transition: 'all 0.18s ease',
@@ -421,7 +421,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             <div style={{ padding: '14px 18px', background: palette.soft, borderRadius: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
               <p style={{ fontSize: 12, fontWeight: 700, color: palette.text }}>Правильный ответ</p>
               <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{task.answer}</p>
-              <p style={{ fontSize: 13, lineHeight: 1.6, color: '#3A3A42', whiteSpace: 'pre-wrap' }}>{task.solution}</p>
+              <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-2)', whiteSpace: 'pre-wrap' }}>{task.solution}</p>
             </div>
           </motion.div>
         )}
@@ -442,8 +442,9 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
 }
 
 // ── Compact card — fits 4 per row ────────────────────────────────────────────
-function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer, onCopyId }: {
+function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer, onCopyId, lineNames }: {
   task: Task; palette: ReturnType<typeof subjectTheme>
+  lineNames: Record<number, string>
   favorites: Set<number>; onFavorite: (id: number) => void
   answered: Map<number, { value: string; correct: boolean | null }>
   onAnswer: (id: number, value: string, correct: boolean | null) => void
@@ -471,7 +472,9 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
       {/* Badge row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
         <NumberBadge id={task.id} onCopied={onCopyId} />
-        <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>{task.line} лин.</span>
+        <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: palette.soft, color: palette.text }}>
+          {task.line}
+        </span>
       </div>
 
       {/* Question */}
@@ -491,14 +494,14 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
           placeholder="Ответ"
           style={{
             flex: 1, minWidth: 0, padding: '7px 10px', borderRadius: 10, fontSize: 12, outline: 'none',
-            border: `1px solid ${state ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'rgba(0,0,0,0.1)'}`,
-            background: state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : '#FFFFFF',
+            border: `1px solid ${state ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'var(--color-border-medium)'}`,
+            background: state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : 'var(--color-bg-input)',
           }}
         />
         <button onClick={check} disabled={!inputVal.trim()} style={{
           padding: '7px 10px', borderRadius: 10, border: 'none', fontSize: 12, fontWeight: 700,
-          background: inputVal.trim() ? palette.accent : '#E0E0E4',
-          color: inputVal.trim() ? palette.onAccent : '#AAAAAF',
+          background: inputVal.trim() ? palette.accent : 'var(--color-bg-5)',
+          color: inputVal.trim() ? palette.onAccent : 'var(--color-text-3)',
           cursor: inputVal.trim() ? 'pointer' : 'default', flexShrink: 0,
         }}>✓</button>
         <button onClick={() => setShowSolution(s => !s)} style={{
@@ -515,7 +518,7 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
       <AnimatePresence>
         {showSolution && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }} style={{ overflow: 'hidden' }}>
-            <div style={{ padding: '10px 12px', background: palette.soft, borderRadius: 12, fontSize: 12, color: '#3A3A42', lineHeight: 1.5 }}>
+            <div style={{ padding: '10px 12px', background: palette.soft, borderRadius: 12, fontSize: 12, color: 'var(--color-text-2)', lineHeight: 1.5 }}>
               <strong style={{ color: palette.text }}>Ответ: </strong>{task.answer}
             </div>
           </motion.div>
@@ -682,10 +685,15 @@ export default function TaskBankPage() {
   }
 
   const palette      = subjectTheme(subject)
-  const sections     = subject === 'biology' ? BIOLOGY_SECTIONS : CHEMISTRY_SECTIONS
-  const topicsMap    = subject === 'biology' ? BIOLOGY_TOPICS : CHEMISTRY_TOPICS
-  const topicOptions = section ? (topicsMap[section] ?? []) : Object.values(topicsMap).flat()
-  const allLines     = useMemo(() => [...new Set(tasks.filter(t => t.subject === subject).map(t => t.line))].sort((a, b) => a - b).map(String), [tasks, subject])
+  const lineNames    = subject === 'chemistry' ? CHEMISTRY_LINES : BIOLOGY_LINES
+  const subjectTasks = useMemo(() => tasks.filter(t => t.subject === subject), [tasks, subject])
+  const sections     = useMemo(() => [...new Set(subjectTasks.map(t => t.section).filter(Boolean))].sort(), [subjectTasks])
+  const topicOptions = useMemo(() => {
+    const src = section ? subjectTasks.filter(t => t.section === section) : subjectTasks
+    return [...new Set(src.map(t => t.topic).filter(Boolean))].sort()
+  }, [subjectTasks, section])
+  const allLines     = useMemo(() => [...new Set(subjectTasks.map(t => t.line))].sort((a, b) => a - b).map(n => `${n} · ${lineNames[n] ?? `Линия ${n}`}`), [subjectTasks, lineNames])
+  const allSources   = useMemo(() => [...new Set(tasks.map(t => t.source).filter(Boolean))].sort(), [tasks])
 
   function toggleFav(id: number) {
     setFavorites(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
@@ -702,7 +710,7 @@ export default function TaskBankPage() {
     if (!search && section) list = list.filter(t => t.section === section)
     if (!search && topic)   list = list.filter(t => t.topic === topic)
     if (!search && part)    list = list.filter(t => t.part === Number(part))
-    if (!search && line)    list = list.filter(t => t.line === Number(line))
+    if (!search && line)    list = list.filter(t => t.line === Number(line.split(' · ')[0]))
     if (!search && source)  list = list.filter(t => t.source === source)
     if (search) {
       const q = search.toLowerCase().replace(/^№/, '')
@@ -740,7 +748,7 @@ export default function TaskBankPage() {
     background: 'rgba(var(--glass-rgb), 0.86)',
     backdropFilter: 'blur(14px) saturate(180%)',
     WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-    boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 20px rgba(21,18,31,0.14)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 8px 28px rgba(21,18,31,0.26), 0 2px 8px rgba(21,18,31,0.10)',
   } as const
 
   return (
@@ -892,7 +900,7 @@ export default function TaskBankPage() {
               <FilterField label="Тема"     options={topicOptions} value={topic}   onChange={setTopic} accent={palette.accent} />
               <FilterField label="Часть"    options={['1', '2']}   value={part}    onChange={setPart} accent={palette.accent} />
               <FilterField label="Линия"    options={allLines}     value={line}    onChange={setLine} accent={palette.accent} />
-              <FilterField label="Источник" options={SOURCES}      value={source}  onChange={setSource} accent={palette.accent} />
+              <FilterField label="Источник" options={allSources}  value={source}  onChange={setSource} accent={palette.accent} />
             </div>
             {hasFilters && (
               <button onClick={() => { setSection(''); setTopic(''); setPart(''); setLine(''); setSource('') }}
@@ -928,7 +936,7 @@ export default function TaskBankPage() {
         </aside>
 
         {/* Right: search bar + tasks */}
-        <main className="flex flex-col" style={{ padding: 24, gap: 18, background: 'radial-gradient(circle at top right, rgba(197,139,255,0.07), transparent 28%), #F8F8FA' }}>
+        <main className="flex flex-col" style={{ padding: 24, gap: 18, background: 'radial-gradient(circle at top right, rgba(197,139,255,0.07), transparent 28%), var(--color-bg)' }}>
 
           {/* Controls row */}
           <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
@@ -953,6 +961,21 @@ export default function TaskBankPage() {
             <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--color-text-3)' }}>
               Всего: <strong style={{ color: 'var(--color-text)' }}>{filtered.length}</strong>
             </span>
+
+            {/* View-mode toggle */}
+            <div style={{ display: 'flex', borderRadius: 10, border: '1px solid rgba(0,0,0,0.08)', overflow: 'hidden', flexShrink: 0 }}>
+              {(['list', 'grid'] as ViewMode[]).map(mode => (
+                <button key={mode} onClick={() => setViewMode(mode)} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 34, height: 34, border: 'none', cursor: 'pointer',
+                  background: viewMode === mode ? palette.soft : 'rgba(var(--glass-rgb), 0.9)',
+                  color: viewMode === mode ? palette.text : 'var(--color-text-3)',
+                  transition: 'all 0.15s ease',
+                }}>
+                  {mode === 'list' ? <List size={14} /> : <LayoutGrid size={14} />}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Tasks */}
@@ -966,7 +989,7 @@ export default function TaskBankPage() {
                 <CompactCard key={task.id} task={task} palette={palette}
                   favorites={favorites} onFavorite={toggleFav}
                   answered={answered} onAnswer={setAnswer}
-                  onCopyId={handleCopyId}
+                  onCopyId={handleCopyId} lineNames={lineNames}
                 />
               ))}
             </div>
@@ -976,7 +999,7 @@ export default function TaskBankPage() {
                 <TaskCard key={task.id} task={task} index={i} palette={palette}
                   favorites={favorites} onFavorite={toggleFav}
                   answered={answered} onAnswer={setAnswer}
-                  onCopyId={handleCopyId}
+                  onCopyId={handleCopyId} lineNames={lineNames}
                 />
               ))}
             </div>

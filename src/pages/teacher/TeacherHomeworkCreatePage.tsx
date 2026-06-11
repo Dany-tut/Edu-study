@@ -1015,7 +1015,7 @@ function TrainerFilterPanel({
               flex: 1, padding: '6px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
               fontSize: 11, fontWeight: 600,
               background: filters.subject === opt.v ? 'var(--color-purple-soft)' : 'var(--color-bg)',
-              color: filters.subject === opt.v ? '#CDB0FF' : 'var(--color-muted)',
+              color: filters.subject === opt.v ? 'var(--color-accent)' : 'var(--color-muted)',
               fontFamily: 'inherit', transition: 'all 0.15s',
             }}
           >
@@ -1206,7 +1206,7 @@ function HardTaskAccordion({
                         flex: 1, padding: '7px 0', borderRadius: 9, border: 'none', cursor: 'pointer',
                         fontSize: 12, fontWeight: 600,
                         background: tab === t.v ? 'var(--color-surface)' : 'transparent',
-                        color: tab === t.v ? '#CDB0FF' : 'var(--color-muted)',
+                        color: tab === t.v ? 'var(--color-accent)' : 'var(--color-muted)',
                         fontFamily: 'inherit', transition: 'all 0.15s',
                         boxShadow: tab === t.v ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
                       }}
@@ -1326,8 +1326,8 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
           fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s',
         }}
       >
-        <Calendar size={14} strokeWidth={2} style={{ flexShrink: 0, color: value ? '#CDB0FF' : 'var(--color-text-3)' }} />
-        <div style={{ flex: 1, fontSize: 13, color: value ? '#CDB0FF' : 'var(--color-text-3)', fontWeight: value ? 600 : 400 }}>
+        <Calendar size={14} strokeWidth={2} style={{ flexShrink: 0, color: value ? 'var(--color-accent)' : 'var(--color-text-3)' }} />
+        <div style={{ flex: 1, fontSize: 13, color: value ? 'var(--color-accent)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400 }}>
           {value || 'Выберите дату'}
         </div>
         {value && (
@@ -1428,8 +1428,8 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
           fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s',
         }}
       >
-        <Users size={14} strokeWidth={2} style={{ flexShrink: 0, color: selected ? '#CDB0FF' : 'var(--color-text-3)' }} />
-        <div style={{ flex: 1, fontSize: 13, color: selected ? '#CDB0FF' : 'var(--color-text-3)', fontWeight: selected ? 600 : 400 }}>
+        <Users size={14} strokeWidth={2} style={{ flexShrink: 0, color: selected ? 'var(--color-accent)' : 'var(--color-text-3)' }} />
+        <div style={{ flex: 1, fontSize: 13, color: selected ? 'var(--color-accent)' : 'var(--color-text-3)', fontWeight: selected ? 600 : 400 }}>
           {selected ? selected.name : 'Выберите группу'}
         </div>
         {selected && (
@@ -1473,7 +1473,7 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
                   background: g.id === value ? 'var(--color-purple-soft)' : 'var(--color-bg)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <Users size={13} style={{ color: g.id === value ? '#CDB0FF' : 'var(--color-text-3)' }} />
+                  <Users size={13} style={{ color: g.id === value ? 'var(--color-accent)' : 'var(--color-text-3)' }} />
                 </div>
                 <span style={{ fontSize: 13, fontWeight: g.id === value ? 700 : 500, color: g.id === value ? '#7B3FCC' : 'var(--color-text)' }}>
                   {g.name}
@@ -1549,7 +1549,7 @@ function LessonPicker({
           fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s',
         }}
       >
-        <BookOpen size={14} strokeWidth={2} style={{ flexShrink: 0, color: selected ? '#CDB0FF' : 'var(--color-text-3)' }} />
+        <BookOpen size={14} strokeWidth={2} style={{ flexShrink: 0, color: selected ? 'var(--color-accent)' : 'var(--color-text-3)' }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           {selected ? (
             <>
@@ -1622,7 +1622,7 @@ function LessonPicker({
                   <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, background: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <X size={13} style={{ color: 'var(--color-text-3)' }} />
                   </div>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: !value ? '#CDB0FF' : 'var(--color-muted)' }}>Без привязки</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: !value ? 'var(--color-accent)' : 'var(--color-muted)' }}>Без привязки</span>
                   {!value && <Check size={13} style={{ color: '#7B3FCC', marginLeft: 'auto' }} />}
                 </button>
 
@@ -1722,7 +1722,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
                   flex: 1, padding: '8px 0', borderRadius: 11, border: 'none', cursor: 'pointer',
                   fontSize: 12, fontWeight: 600,
                   background: meta.assignTo === mode ? 'var(--color-purple-soft)' : 'var(--color-bg)',
-                  color: meta.assignTo === mode ? '#CDB0FF' : 'var(--color-muted)',
+                  color: meta.assignTo === mode ? 'var(--color-accent)' : 'var(--color-muted)',
                   fontFamily: 'inherit', transition: 'all 0.15s',
                 }}
               >
@@ -2066,7 +2066,7 @@ export default function TeacherHomeworkCreatePage() {
                   padding: '8px 16px', borderRadius: 11, border: 'none', cursor: 'pointer',
                   fontSize: 13, fontWeight: 600,
                   background: activeTab === tab.key ? 'var(--color-surface)' : 'transparent',
-                  color: activeTab === tab.key ? '#CDB0FF' : 'var(--color-muted)',
+                  color: activeTab === tab.key ? 'var(--color-accent)' : 'var(--color-muted)',
                   fontFamily: 'inherit', transition: 'all 0.15s',
                   boxShadow: activeTab === tab.key ? '0 2px 10px rgba(0,0,0,0.09)' : 'none',
                 }}
@@ -2077,7 +2077,7 @@ export default function TeacherHomeworkCreatePage() {
                   <span style={{
                     fontSize: 10, fontWeight: 700,
                     background: activeTab === tab.key ? 'var(--color-purple-soft)' : '#E0E0E6',
-                    color: activeTab === tab.key ? '#CDB0FF' : 'var(--color-text-3)',
+                    color: activeTab === tab.key ? 'var(--color-accent)' : 'var(--color-text-3)',
                     borderRadius: 6, padding: '1px 6px',
                   }}>
                     {hwTasks.length}
