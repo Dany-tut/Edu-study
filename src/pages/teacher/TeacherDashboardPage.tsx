@@ -13,13 +13,40 @@ import TeacherCompactPill from '../../components/teacher/TeacherCompactPill'
 import ReviewNavPill from '../../components/teacher/ReviewNavPill'
 import { useTeacher } from '../../store/teacherStore'
 
+const TEACHER_HASH_TO_PAGE: Record<string, 'home' | 'groups' | 'homework' | 'gradebook' | 'constructor'> = {
+  '#/teacher':             'home',
+  '#/teacher/groups':      'groups',
+  '#/teacher/homework':    'homework',
+  '#/teacher/gradebook':   'gradebook',
+  '#/teacher/constructor': 'constructor',
+}
+const TEACHER_PAGE_TO_HASH: Record<string, string> = {
+  home:        '#/teacher',
+  groups:      '#/teacher/groups',
+  homework:    '#/teacher/homework',
+  gradebook:   '#/teacher/gradebook',
+  constructor: '#/teacher/constructor',
+}
+
 export default function TeacherDashboardPage() {
   const activePage = useTeacher(s => s.activePage)
   const setActivePage = useTeacher(s => s.setActivePage)
   const headerDocked = useTeacher(s => s.headerDocked)
 
-  // Always start at home when entering the teacher view
-  useEffect(() => { setActivePage('home') }, [])
+  // Restore page from hash on mount
+  useEffect(() => {
+    const page = TEACHER_HASH_TO_PAGE[window.location.hash]
+    setActivePage(page ?? 'home')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Sync hash when activePage changes (only for persistent pages)
+  useEffect(() => {
+    const hash = TEACHER_PAGE_TO_HASH[activePage]
+    if (hash && window.location.hash !== hash) {
+      window.history.replaceState(null, '', hash)
+    }
+  }, [activePage])
 
   return (
     <div className="dashboard-root hidden lg:flex">

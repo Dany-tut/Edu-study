@@ -38,7 +38,7 @@ export default function App() {
 
   if (hash.startsWith('#/join')) return <JoinPage />
 
-  if (hash === '#/teacher') {
+  if (hash.startsWith('#/teacher')) {
     if (session === undefined) return null
     if (!session) return <TeacherLoginPage onLogin={() => {}} />
     return <TeacherDashboardPage />
