@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import {
   fetchScheduleDays,
   fetchLessonProgress,
+  fetchCourseStructure,
   mergeSubjectsWithProgress,
   computeStats,
   fetchQuizQuestions,
@@ -12,7 +13,6 @@ import {
 } from '../lib/db'
 import { getStudentSession } from '../lib/studentSession'
 import {
-  student as mockStudent,
   scheduleDays as mockScheduleDays,
   scheduleTodayIndex as mockTodayIndex,
   subjects as mockSubjects,
@@ -42,13 +42,13 @@ interface StudentDataState {
 }
 
 const defaultStats: StudentStats = {
-  performance: mockStudent.stats.performance,
-  completedTasks: mockStudent.stats.completedTasks,
-  totalTasks: mockStudent.stats.totalTasks,
-  avgScore: mockStudent.stats.avgScore,
-  streak: mockStudent.stats.streak,
-  totalPoints: mockStudent.stats.totalPoints,
-  stars: 2,
+  performance: 0,
+  completedTasks: 0,
+  totalTasks: 0,
+  avgScore: 0,
+  streak: 0,
+  totalPoints: 0,
+  stars: 0,
 }
 
 export const useStudentData = create<StudentDataState>((set) => ({
@@ -66,16 +66,18 @@ export const useStudentData = create<StudentDataState>((set) => ({
     const session = getStudentSession()
     if (!session) return
 
-    const [progress, schedule, quizQ, facts, memes, reactions] = await Promise.all([
+    const [progress, schedule, catalog, quizQ, facts, memes, reactions] = await Promise.all([
       fetchLessonProgress(session.id),
       fetchScheduleDays(session.groupId),
+      fetchCourseStructure(),
       fetchQuizQuestions(),
       fetchScienceFacts(),
       fetchScienceMemes(),
       fetchCourseReactions(),
     ])
 
-    const mergedSubjects = mergeSubjectsWithProgress(progress)
+    const subjectCatalog = catalog.length > 0 ? catalog : mockSubjects
+    const mergedSubjects = mergeSubjectsWithProgress(subjectCatalog, progress)
     const stats = computeStats(progress)
     const todayIdx = schedule.findIndex(d => d.isToday)
 
@@ -84,7 +86,7 @@ export const useStudentData = create<StudentDataState>((set) => ({
       subjects: mergedSubjects,
       scheduleDays: schedule.length > 0 ? schedule : mockScheduleDays,
       scheduleTodayIndex: schedule.length > 0 ? (todayIdx >= 0 ? todayIdx : mockTodayIndex) : mockTodayIndex,
-      stats: Object.keys(progress).length > 0 ? stats : defaultStats,
+      stats,
       quizQuestions: quizQ.length > 0 ? quizQ : mockQuizQuestions,
       scienceFacts: facts.length > 0 ? facts : mockFacts,
       scienceMemes: memes.length > 0 ? memes : mockMemes,
