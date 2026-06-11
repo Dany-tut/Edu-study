@@ -19,6 +19,9 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
 
   const reaction = courseReactions[index]
   const sz = getWidgetSizing(columns)
+
+  if (!reaction) return <div style={{ flex: 1, borderRadius: 24 }} />
+
   const openLesson = () => openLessonForReaction(reaction.id)
 
   const goTo = (i: number) => {

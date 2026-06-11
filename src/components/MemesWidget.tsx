@@ -19,6 +19,8 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
   const meme = scienceMemes[index]
   const sz = getWidgetSizing(columns)
 
+  if (!meme) return <div style={{ flex: 1, borderRadius: 24 }} />
+
   const goTo = (i: number) => {
     setIndex(((i % scienceMemes.length) + scienceMemes.length) % scienceMemes.length)
   }

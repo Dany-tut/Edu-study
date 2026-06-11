@@ -207,6 +207,7 @@ function ScienceFactPreview({ expanded, paused }: { expanded: boolean; paused: b
   const scienceFacts = useStudentData(s => s.scienceFacts)
   const i = useRotatingIndex(scienceFacts.length || 1, scienceFactInterval, paused)
   const fact = scienceFacts[i]
+  if (!fact) return <div style={{ flex: 1 }} />
   return (
     <PillContent
       avatar={
@@ -237,6 +238,7 @@ function ReactionPreview({ expanded, paused }: { expanded: boolean; paused: bool
   const courseReactions = useStudentData(s => s.courseReactions)
   const i = useRotatingIndex(courseReactions.length || 1, courseReactionInterval, paused)
   const r = courseReactions[i]
+  if (!r) return <div style={{ flex: 1 }} />
   return (
     <PillContent
       avatar={
@@ -410,6 +412,7 @@ function MemePreview({ expanded, paused }: { expanded: boolean; paused: boolean 
   const scienceMemes = useStudentData(s => s.scienceMemes)
   const i = useRotatingIndex(scienceMemes.length || 1, scienceMemeInterval, paused)
   const m = scienceMemes[i]
+  if (!m) return <div style={{ flex: 1 }} />
   return (
     <PillContent
       avatar={
