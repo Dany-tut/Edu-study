@@ -671,7 +671,7 @@ export default function TaskBankPage() {
   const [search, setSearch]     = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [sortMode, setSortMode]         = useState<SortMode>('newest')
-  const [viewMode, setViewMode]         = useState<ViewMode>('list')
+  const [viewMode] = useState<ViewMode>('grid')
   const [showFavOnly, setShowFavOnly]   = useState(false)
   const [favorites, setFavorites]       = useState<Set<number>>(new Set())
   const [answered, setAnswered] = useState<Map<number, { value: string; correct: boolean | null }>>(new Map())
@@ -962,20 +962,6 @@ export default function TaskBankPage() {
               Всего: <strong style={{ color: 'var(--color-text)' }}>{filtered.length}</strong>
             </span>
 
-            {/* View-mode toggle */}
-            <div style={{ display: 'flex', borderRadius: 10, border: '1px solid rgba(0,0,0,0.08)', overflow: 'hidden', flexShrink: 0 }}>
-              {(['list', 'grid'] as ViewMode[]).map(mode => (
-                <button key={mode} onClick={() => setViewMode(mode)} style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  width: 34, height: 34, border: 'none', cursor: 'pointer',
-                  background: viewMode === mode ? palette.soft : 'rgba(var(--glass-rgb), 0.9)',
-                  color: viewMode === mode ? palette.text : 'var(--color-text-3)',
-                  transition: 'all 0.15s ease',
-                }}>
-                  {mode === 'list' ? <List size={14} /> : <LayoutGrid size={14} />}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Tasks */}
@@ -983,20 +969,10 @@ export default function TaskBankPage() {
             <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14 }}>
               Заданий не найдено — измените фильтры
             </div>
-          ) : viewMode === 'grid' ? (
+          ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
               {filtered.map(task => (
                 <CompactCard key={task.id} task={task} palette={palette}
-                  favorites={favorites} onFavorite={toggleFav}
-                  answered={answered} onAnswer={setAnswer}
-                  onCopyId={handleCopyId} lineNames={lineNames}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col" style={{ gap: 12 }}>
-              {filtered.map((task, i) => (
-                <TaskCard key={task.id} task={task} index={i} palette={palette}
                   favorites={favorites} onFavorite={toggleFav}
                   answered={answered} onAnswer={setAnswer}
                   onCopyId={handleCopyId} lineNames={lineNames}

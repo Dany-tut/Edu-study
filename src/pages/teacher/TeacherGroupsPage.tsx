@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Users, ChevronUp, ChevronDown, X,
+  Users, ChevronUp, ChevronDown, X, Trash2,
   Phone, Send, User,
   TrendingUp, ClipboardCheck, Clock, Award,
   ChevronsUpDown, ExternalLink, Plus, Copy, Check,
@@ -358,14 +358,17 @@ function ScrollFadeTable({ children }: { children: React.ReactNode }) {
 
 // ─── Group card ───────────────────────────────────────────────────────────────
 function GroupCard({
-  group, isActive, onClick,
-}: { group: Group; isActive: boolean; onClick: () => void }) {
+  group, isActive, onClick, onDelete,
+}: { group: Group; isActive: boolean; onClick: () => void; onDelete: (e: React.MouseEvent) => void }) {
   const progress = Math.round((group.lessonsCompleted / group.totalLessons) * 100)
+  const [hovered, setHovered] = useState(false)
   return (
     <motion.div
       whileHover={{ y: -2, boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       data-group-card
       data-compact="false"
       className="group-card"
@@ -381,8 +384,35 @@ function GroupCard({
         cursor: 'pointer',
         flex: '1 1 180px',
         overflow: 'hidden',
+        position: 'relative',
       }}
     >
+      {/* Delete button */}
+      <AnimatePresence>
+        {hovered && (
+          <motion.button
+            key="del"
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.7 }}
+            transition={{ duration: 0.15 }}
+            onClick={onDelete}
+            style={{
+              position: 'absolute', top: 8, right: 8,
+              width: 24, height: 24, borderRadius: 8,
+              background: 'rgba(220,50,50,0.12)',
+              border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#c0303a', zIndex: 5,
+              padding: 0,
+            }}
+            title="Удалить группу"
+          >
+            <Trash2 size={13} strokeWidth={2.2} />
+          </motion.button>
+        )}
+      </AnimatePresence>
+
       {/* Level badge + count */}
       <div className="group-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{
@@ -640,9 +670,10 @@ function StudentAvatar({
 }
 
 function StudentPanel({
-  student, group, onClose,
-}: { student: Student; group: Group; onClose: () => void }) {
+  student, group, onClose, onDelete,
+}: { student: Student; group: Group; onClose: () => void; onDelete: () => void }) {
   const [comment, setComment] = useState(student.comment ?? '')
+  const [deleting, setDeleting] = useState(false)
   return (
     <motion.div
       initial={{ x: 360, opacity: 0 }}
@@ -817,6 +848,28 @@ function StudentPanel({
             }}
           />
         </section>
+
+        {/* Delete */}
+        <button
+          disabled={deleting}
+          onClick={async () => {
+            if (!window.confirm(`Удалить «${student.name}» из системы? Это действие нельзя отменить.`)) return
+            setDeleting(true)
+            await onDelete()
+          }}
+          style={{
+            marginTop: 4, width: '100%', padding: '10px 0',
+            background: 'none', border: '1.5px solid #ff453a55',
+            borderRadius: 12, cursor: deleting ? 'not-allowed' : 'pointer',
+            fontSize: 13, fontWeight: 600, color: '#ff453a',
+            opacity: deleting ? 0.5 : 1,
+            transition: 'background 0.15s, opacity 0.15s',
+          }}
+          onMouseEnter={e => { if (!deleting) e.currentTarget.style.background = '#ff453a11' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
+        >
+          {deleting ? 'Удаление...' : 'Удалить ученика'}
+        </button>
       </div>
     </motion.div>
   )
@@ -881,8 +934,8 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function TeacherGroupsPage() {
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
-  const { groups, loading: groupsLoading, addGroup } = useGroups()
-  const { students, addStudent } = useStudents(selectedGroupId)
+  const { groups, loading: groupsLoading, addGroup, deleteGroup } = useGroups()
+  const { students, addStudent, deleteStudent } = useStudents(selectedGroupId)
   const [activeStudentId, setActiveStudentId] = useState<string | null>(null)
   const [showAddGroup, setShowAddGroup] = useState(false)
   const [showAddStudent, setShowAddStudent] = useState(false)
@@ -1057,6 +1110,12 @@ export default function TeacherGroupsPage() {
                     group={group}
                     isActive={selectedGroupId === group.id}
                     onClick={() => handleGroupClick(group)}
+                    onDelete={async (e) => {
+                      e.stopPropagation()
+                      if (!window.confirm(`Удалить группу «${group.name}»? Это действие нельзя отменить.`)) return
+                      if (selectedGroupId === group.id) setSelectedGroupId(null)
+                      await deleteGroup(group.id)
+                    }}
                   />
                 </motion.div>
               ))}
@@ -1262,6 +1321,10 @@ export default function TeacherGroupsPage() {
               student={activeStudent}
               group={activeStudentGroup}
               onClose={() => setActiveStudentId(null)}
+              onDelete={async () => {
+                await deleteStudent(activeStudent.id)
+                setActiveStudentId(null)
+              }}
             />
           </motion.div>
         )}

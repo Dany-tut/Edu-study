@@ -64,7 +64,7 @@ function EarningsCard({ delay }: { delay: number }) {
             <TrendingUp size={15} strokeWidth={2} style={{ color: '#7a6500' }} />
           </div>
         </div>
-        <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--color-text-3)', lineHeight: 1, marginBottom: 6 }}>
+        <div style={{ fontSize: 36, fontWeight: 750, color: 'var(--color-text-3)', lineHeight: 1, marginBottom: 6 }}>
           Нет данных
         </div>
         <div style={{
