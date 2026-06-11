@@ -63,7 +63,7 @@ function taskFromBank(bt: BankTask): HWTask {
 const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
   padding: '9px 12px', borderRadius: 11,
-  border: '1.5px solid rgba(0,0,0,0.09)',
+  border: '1.5px solid var(--color-border-medium)',
   fontSize: 13, color: 'var(--color-text)',
   background: 'var(--color-bg-2)', outline: 'none',
   fontFamily: 'inherit', transition: 'border-color 0.15s',
@@ -222,7 +222,7 @@ function TaskCard({
           style={{
             display: 'flex', alignItems: 'center', gap: 10,
             padding: '12px 14px',
-            borderBottom: expanded ? '1px solid rgba(0,0,0,0.05)' : 'none',
+            borderBottom: expanded ? '1px solid var(--color-border-soft)' : 'none',
             cursor: 'pointer',
           }}
           onClick={() => setExpanded(e => !e)}
@@ -306,7 +306,7 @@ function TaskCard({
                             }}
                             style={{
                               width: 22, height: 22, borderRadius: 6, border: '2px solid',
-                              borderColor: (task.correctChoices ?? []).includes(ci) ? '#7B3FCC' : 'rgba(0,0,0,0.15)',
+                              borderColor: (task.correctChoices ?? []).includes(ci) ? '#7B3FCC' : 'var(--color-border)',
                               background: (task.correctChoices ?? []).includes(ci) ? '#7B3FCC' : 'transparent',
                               cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
                             }}
@@ -726,7 +726,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
             </thead>
             <tbody>
               {task.questionTable.rows.map((row, ri) => (
-                <tr key={ri} style={{ background: ri % 2 === 1 ? 'rgba(0,0,0,0.015)' : 'transparent' }}>{row.map((cell, ci) => (
+                <tr key={ri} style={{ background: ri % 2 === 1 ? 'var(--color-bg-2)' : 'transparent' }}>{row.map((cell, ci) => (
                   <td key={ci} style={{ borderTop: ri > 0 ? '1px solid var(--color-border)' : undefined, borderRight: '1px solid var(--color-border)', padding: '9px 16px' }}>{cell}</td>
                 ))}</tr>
               ))}
@@ -757,13 +757,13 @@ function BankTaskCard({ task, index, added, onAdd }: {
           style={{
             fontSize: 12, lineHeight: 1.6, color: 'var(--color-text-2)',
             background: 'rgba(var(--glass-rgb), 0.6)', borderRadius: 10,
-            padding: '8px 10px', borderColor: 'rgba(0,0,0,0.06)',
+            padding: '8px 10px', borderColor: 'var(--color-border-soft)',
           }}
         />
       </div>
 
       {/* Footer */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingTop: 2, borderTop: '1px solid rgba(0,0,0,0.04)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingTop: 2, borderTop: '1px solid var(--color-border-soft)' }}>
         <span style={{ fontSize: 11, color: 'var(--color-text-5)', flex: 1 }}>{task.section} → {task.topic} · {task.source}</span>
         <button onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-5)', cursor: 'pointer', fontFamily: 'inherit' }}>
           <AlertCircle size={10} />{reported ? 'Отправлено' : 'Ошибка'}
@@ -975,7 +975,7 @@ function PreviewTab({
               </div>
               <button
                 onClick={() => onDelete(t.id)}
-                style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+                style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
               >
                 <Trash2 size={13} />
               </button>
@@ -1355,7 +1355,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          padding: '9px 12px', borderRadius: 11, border: '1.5px solid rgba(0,0,0,0.09)',
+          padding: '9px 12px', borderRadius: 11, border: '1.5px solid var(--color-border-medium)',
           cursor: 'pointer', background: value ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
           fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s',
         }}
@@ -1367,7 +1367,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
         {value && (
           <button
             onClick={e => { e.stopPropagation(); onChange('') }}
-            style={{ width: 20, height: 20, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+            style={{ width: 20, height: 20, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
           >
             <X size={10} />
           </button>
@@ -1457,7 +1457,7 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          padding: '9px 12px', borderRadius: 11, border: '1.5px solid rgba(0,0,0,0.09)',
+          padding: '9px 12px', borderRadius: 11, border: '1.5px solid var(--color-border-medium)',
           cursor: 'pointer', background: selected ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
           fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s',
         }}
@@ -1469,7 +1469,7 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
         {selected && (
           <button
             onClick={e => { e.stopPropagation(); onChange('') }}
-            style={{ width: 20, height: 20, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+            style={{ width: 20, height: 20, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
           >
             <X size={10} />
           </button>
@@ -1578,7 +1578,7 @@ function LessonPicker({
         onClick={() => { if (!open) { setQuery(''); setFade({ top: 0, bottom: 0 }) } setOpen(o => !o) }}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          padding: '9px 12px', borderRadius: 11, border: '1.5px solid rgba(0,0,0,0.09)',
+          padding: '9px 12px', borderRadius: 11, border: '1.5px solid var(--color-border-medium)',
           cursor: 'pointer', background: selected ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
           fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s',
         }}
@@ -1597,7 +1597,7 @@ function LessonPicker({
         {selected && (
           <button
             onClick={e => { e.stopPropagation(); onChange('') }}
-            style={{ width: 20, height: 20, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+            style={{ width: 20, height: 20, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
           >
             <X size={10} />
           </button>
@@ -1633,7 +1633,7 @@ function LessonPicker({
                 placeholder="Поиск урока..."
                 style={{
                   width: '100%', boxSizing: 'border-box', padding: '7px 10px 7px 30px',
-                  borderRadius: 9, border: '1.5px solid rgba(0,0,0,0.08)',
+                  borderRadius: 9, border: '1.5px solid var(--color-border-medium)',
                   fontSize: 12, color: 'var(--color-text)', background: 'rgba(var(--glass-rgb), 0.8)',
                   outline: 'none', fontFamily: 'inherit',
                 }}
@@ -1670,7 +1670,7 @@ function LessonPicker({
                     {suggested.map(l => (
                       <LessonOption key={l.id} lesson={l} active={value === l.id} suggested onClick={() => { onChange(l.id); setOpen(false) }} />
                     ))}
-                    <div style={{ height: 1, background: 'rgba(0,0,0,0.06)', margin: '6px 8px' }} />
+                    <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '6px 8px' }} />
                     <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3, padding: '2px 8px 4px' }}>ВСЕ УРОКИ</div>
                   </>
                 )}

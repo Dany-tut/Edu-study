@@ -231,8 +231,8 @@ const STATUS_BG:   Record<CourseStatus, string> = { published: 'var(--color-gree
 // ─── Shared UI ────────────────────────────────────────────────────────────────
 const inputSt: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box', padding: '9px 12px',
-  borderRadius: 11, border: '1.5px solid rgba(0,0,0,0.1)',
-  fontSize: 13, color: 'var(--color-text)', background: 'var(--color-bg-2)',
+  borderRadius: 11, border: '1.5px solid var(--color-border-medium)',
+  fontSize: 13, color: 'var(--color-text)', background: 'var(--color-bg-input)',
   outline: 'none', fontFamily: 'inherit',
 }
 
@@ -295,7 +295,7 @@ function PanelHeader({ title, accent, accentBg, Icon, onClose, onExpand }: {
             <Maximize2 size={12} strokeWidth={2.4} /> Раскрыть
           </button>
         )}
-        <button onClick={onClose} style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', flexShrink: 0 }}>
+        <button onClick={onClose} style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', flexShrink: 0 }}>
           <X size={13} />
         </button>
       </div>
@@ -440,11 +440,11 @@ function CourseEditor({
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{lesson.title}</div>
                   <button onClick={() => moveLesson(idx, -1)} disabled={idx === 0}
-                    style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: idx === 0 ? 0.3 : 1 }}>
+                    style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: idx === 0 ? 0.3 : 1 }}>
                     <ArrowUp size={11} />
                   </button>
                   <button onClick={() => moveLesson(idx, 1)} disabled={idx === lessons.length - 1}
-                    style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: idx === lessons.length - 1 ? 0.3 : 1 }}>
+                    style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: idx === lessons.length - 1 ? 0.3 : 1 }}>
                     <ArrowDown size={11} />
                   </button>
                   <button onClick={() => removeLesson(lesson.id)}
@@ -1983,8 +1983,8 @@ function CreatorView({
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{i + 1}</span>
                       <input value={s} onChange={e => setTkSeq(prev => prev.map((x, j) => j === i ? e.target.value : x))} placeholder={`Шаг ${i + 1}…`} style={{ ...inputSt, flex: 1 }} />
-                      <button onClick={() => moveSeq(i, -1)} disabled={i === 0} style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: i === 0 ? 'default' : 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: i === 0 ? 0.3 : 1, flexShrink: 0 }}><ArrowUp size={11} /></button>
-                      <button onClick={() => moveSeq(i, 1)} disabled={i === tkSeq.length - 1} style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: i === tkSeq.length - 1 ? 'default' : 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: i === tkSeq.length - 1 ? 0.3 : 1, flexShrink: 0 }}><ArrowDown size={11} /></button>
+                      <button onClick={() => moveSeq(i, -1)} disabled={i === 0} style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: i === 0 ? 'default' : 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: i === 0 ? 0.3 : 1, flexShrink: 0 }}><ArrowUp size={11} /></button>
+                      <button onClick={() => moveSeq(i, 1)} disabled={i === tkSeq.length - 1} style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: i === tkSeq.length - 1 ? 'default' : 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: i === tkSeq.length - 1 ? 0.3 : 1, flexShrink: 0 }}><ArrowDown size={11} /></button>
                       {tkSeq.length > 2 && (
                         <button onClick={() => removeSeqRow(i)} style={{ width: 22, height: 22, borderRadius: 7, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={10} /></button>
                       )}
@@ -2176,7 +2176,7 @@ function CreatorView({
                       if (i === idx - 1) return cLessons[idx]
                       if (i === idx) return cLessons[idx - 1]
                       return l
-                    }))} disabled={idx === 0} style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: idx === 0 ? 'not-allowed' : 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: idx === 0 ? 0.3 : 1 }}>
+                    }))} disabled={idx === 0} style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: idx === 0 ? 'not-allowed' : 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: idx === 0 ? 0.3 : 1 }}>
                       <ArrowUp size={11} />
                     </button>
                     <button onClick={() => setCLessons(prev => prev.filter(l => l.id !== lesson.id))} style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)' }}>

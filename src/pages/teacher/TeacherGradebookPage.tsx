@@ -110,7 +110,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
         <ScrollFadeTable>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: 'rgba(0,0,0,0.018)' }}>
+              <tr style={{ background: 'var(--color-bg-2)' }}>
                 <th style={{
                   padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700,
                   color: 'var(--color-text-3)', borderBottom: '1px solid var(--color-border-soft)',
@@ -148,7 +148,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                     initial={{ opacity: 0, x: -6 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.22, delay: si * 0.04 }}
-                    style={{ borderBottom: '1px solid rgba(0,0,0,0.04)' }}
+                    style={{ borderBottom: '1px solid var(--color-border-soft)' }}
                   >
                     <td style={{
                       padding: '10px 16px', position: 'sticky', left: 0,
@@ -230,7 +230,7 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
       <ScrollFadeTable>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ background: 'rgba(0,0,0,0.018)' }}>
+            <tr style={{ background: 'var(--color-bg-2)' }}>
               <th style={{
                 padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700,
                 color: 'var(--color-text-3)', borderBottom: '1px solid var(--color-border-soft)',
@@ -257,7 +257,7 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
                   initial={{ opacity: 0, x: -6 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.22, delay: si * 0.04 }}
-                  style={{ borderBottom: '1px solid rgba(0,0,0,0.04)' }}
+                  style={{ borderBottom: '1px solid var(--color-border-soft)' }}
                 >
                   <td style={{
                     padding: '10px 16px', position: 'sticky', left: 0,
@@ -448,8 +448,8 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
         <div style={{
           padding: '8px 24px',
           display: 'grid', gridTemplateColumns: '1fr 72px 1fr',
-          background: 'rgba(0,0,0,0.018)',
-          borderBottom: '1px solid rgba(0,0,0,0.04)',
+          background: 'var(--color-bg-2)',
+          borderBottom: '1px solid var(--color-border-soft)',
         }}>
           <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3 }}>СТУДЕНТ</span>
           <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3, textAlign: 'center' }}>ПРИСУТСТВИЕ</span>
@@ -472,7 +472,7 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
                   display: 'grid', gridTemplateColumns: '1fr 72px 1fr',
                   alignItems: 'center',
                   padding: '10px 24px',
-                  borderBottom: '1px solid rgba(0,0,0,0.04)',
+                  borderBottom: '1px solid var(--color-border-soft)',
                   background: isPresent ? 'transparent' : 'rgba(192,48,58,0.025)',
                   transition: 'background 0.2s',
                 }}
@@ -546,7 +546,7 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
           <button
             onClick={onClose}
             style={{
-              padding: '9px 20px', borderRadius: 13, border: '1.5px solid rgba(0,0,0,0.08)',
+              padding: '9px 20px', borderRadius: 13, border: '1.5px solid var(--color-border-medium)',
               background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}
           >
@@ -592,7 +592,7 @@ export default function TeacherGradebookPage() {
       <motion.div {...fadeUp(0.08)} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         {/* Tabs */}
         <div style={{
-          display: 'flex', background: 'rgba(0,0,0,0.05)', borderRadius: 14, padding: 4,
+          display: 'flex', background: 'var(--color-bg-3)', borderRadius: 14, padding: 4,
         }}>
           {([['attendance', 'Посещаемость'], ['scores', 'Оценки']] as const).map(([tab, label]) => (
             <button

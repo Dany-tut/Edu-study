@@ -96,7 +96,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
         <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>Выдать домашнее задание</div>
         <button onClick={onClose} style={{
           width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer',
-          background: 'rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)',
+          background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)',
         }}>
           <X size={14} />
         </button>
@@ -250,11 +250,11 @@ function HwRow({ hw, index, isSelected, onClick }: {
         borderLeft: isSelected ? '3px solid #7B3FCC' : '3px solid transparent',
         transition: 'background 0.15s',
       }}
-      onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.022)' }}
+      onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-2)' }}
       onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
     >
       {/* Group chip */}
-      <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)', whiteSpace: 'nowrap' }}>
+      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-soft)', whiteSpace: 'nowrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: hw.color, flexShrink: 0 }} />
           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{hw.groupName}</span>
@@ -262,26 +262,26 @@ function HwRow({ hw, index, isSelected, onClick }: {
       </td>
 
       {/* Title */}
-      <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)', maxWidth: 260 }}>
+      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-soft)', maxWidth: 260 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {hw.title}
         </div>
       </td>
 
       {/* Assigned */}
-      <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)', fontSize: 12, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
+      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-soft)', fontSize: 12, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
         {hw.assignedAt}
       </td>
 
       {/* Due */}
-      <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)', fontSize: 12, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
+      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-soft)', fontSize: 12, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
         {hw.dueDate}
       </td>
 
       {/* Submitted bar */}
       <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ flex: 1, height: 6, background: 'rgba(0,0,0,0.07)', borderRadius: 99, overflow: 'hidden', minWidth: 60 }}>
+          <div style={{ flex: 1, height: 6, background: 'var(--color-bg-5)', borderRadius: 99, overflow: 'hidden', minWidth: 60 }}>
             <div style={{ height: '100%', width: `${submittedPct}%`, background: '#9B6DFF', borderRadius: 99, transition: 'width 0.5s' }} />
           </div>
           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', flexShrink: 0 }}>
@@ -293,7 +293,7 @@ function HwRow({ hw, index, isSelected, onClick }: {
       {/* Reviewed */}
       <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ flex: 1, height: 6, background: 'rgba(0,0,0,0.07)', borderRadius: 99, overflow: 'hidden', minWidth: 60 }}>
+          <div style={{ flex: 1, height: 6, background: 'var(--color-bg-5)', borderRadius: 99, overflow: 'hidden', minWidth: 60 }}>
             <div style={{ height: '100%', width: `${reviewedPct}%`, background: 'var(--color-green-accent)', borderRadius: 99, transition: 'width 0.5s' }} />
           </div>
           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', flexShrink: 0 }}>
@@ -303,7 +303,7 @@ function HwRow({ hw, index, isSelected, onClick }: {
       </td>
 
       {/* Status */}
-      <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)', textAlign: 'right' }}>
+      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-soft)', textAlign: 'right' }}>
         <span style={{
           fontSize: 11, fontWeight: 700,
           color: STATUS_COLOR[status],
@@ -350,7 +350,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
           </div>
           <button onClick={onClose} style={{
             width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer',
-            background: 'rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', flexShrink: 0,
+            background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', flexShrink: 0,
           }}>
             <X size={13} />
           </button>
@@ -429,7 +429,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
                     <div title={submitted ? 'Сдал' : 'Не сдал'} style={{
                       width: 22, height: 22, borderRadius: 7, flexShrink: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: submitted ? 'var(--color-purple-soft)' : 'rgba(0,0,0,0.04)',
+                      background: submitted ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
                     }}>
                       <ClipboardCheck size={12} strokeWidth={2.2} style={{ color: submitted ? '#7B3FCC' : 'var(--color-text-4)' }} />
                     </div>
@@ -437,7 +437,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
                     <div title={returned ? 'На доработку' : reviewed ? 'Проверено' : 'Не проверено'} style={{
                       width: 22, height: 22, borderRadius: 7, flexShrink: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: returned ? 'var(--color-peach-soft)' : reviewed ? 'var(--color-green-soft)' : 'rgba(0,0,0,0.04)',
+                      background: returned ? 'var(--color-peach-soft)' : reviewed ? 'var(--color-green-soft)' : 'var(--color-bg-3)',
                     }}>
                       {returned
                         ? <Clock size={12} strokeWidth={2.2} style={{ color: 'var(--color-peach-text)' }} />
@@ -519,7 +519,7 @@ export default function TeacherHomeworkPage() {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ background: 'rgba(0,0,0,0.018)' }}>
+                  <tr style={{ background: 'var(--color-bg-2)' }}>
                     {['Группа', 'Задание', 'Назначено', 'Дедлайн', 'Сдано', 'Проверено', 'Статус'].map(col => (
                       <th key={col} style={{
                         padding: '10px 16px', textAlign: 'left',

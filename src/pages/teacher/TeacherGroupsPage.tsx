@@ -452,7 +452,7 @@ function GroupCard({
               {group.lessonsCompleted}/{group.totalLessons}
             </span>
           </div>
-          <div style={{ height: 6, background: 'rgba(0,0,0,0.07)', borderRadius: 99, overflow: 'hidden' }}>
+          <div style={{ height: 6, background: 'var(--color-bg-5)', borderRadius: 99, overflow: 'hidden' }}>
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
@@ -728,7 +728,7 @@ function StudentPanel({
             style={{
               width: 28, height: 28, borderRadius: '50%',
               border: 'none', cursor: 'pointer',
-              background: 'rgba(0,0,0,0.07)',
+              background: 'var(--color-bg-5)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'var(--color-muted)', flexShrink: 0,
             }}
@@ -915,7 +915,7 @@ function ScoreBar({ label, icon: Icon, value, color, bg }: {
         </div>
         <span style={{ fontSize: 13, fontWeight: 700, color }}>{value}</span>
       </div>
-      <div style={{ height: 5, background: 'rgba(0,0,0,0.06)', borderRadius: 99, overflow: 'hidden' }}>
+      <div style={{ height: 5, background: 'var(--color-bg-5)', borderRadius: 99, overflow: 'hidden' }}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${value}%` }}
