@@ -818,11 +818,11 @@ export default function LessonPage() {
                   style={{
                     width: 76, height: 76, borderRadius: '50%',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: 'rgba(var(--glass-rgb), 0.95)', color: '#7B3FCC',
+                    background: 'rgba(var(--glass-rgb), 0.95)', color: 'var(--color-purple)',
                     boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
                   }}
                 >
-                  <Play size={30} fill="#7B3FCC" style={{ marginLeft: 4 }} />
+                  <Play size={30} fill="var(--color-purple)" style={{ marginLeft: 4 }} />
                 </motion.div>
               </button>
 
