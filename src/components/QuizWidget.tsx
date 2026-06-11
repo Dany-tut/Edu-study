@@ -279,7 +279,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
           <span style={{ fontSize: 14, color: 'var(--color-muted)' }}>
             {quizResumeIndex > 0
               ? `Остановлено на вопросе ${quizResumeIndex + 1} из ${TOTAL}`
-              : `${TOTAL} вопросов · ${quizTimeLimit} сек на каждый`}
+              : `${TOTAL} ${TOTAL === 1 ? 'вопрос' : TOTAL >= 2 && TOTAL <= 4 ? 'вопроса' : 'вопросов'} · ${quizTimeLimit} сек на каждый`}
           </span>
         </div>
       )}
