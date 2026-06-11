@@ -3,7 +3,9 @@ import DashboardPage from './pages/DashboardPage'
 import TeacherDashboardPage from './pages/teacher/TeacherDashboardPage'
 import TeacherLoginPage from './pages/teacher/TeacherLoginPage'
 import JoinPage from './pages/JoinPage'
+import StudentLoginPage from './pages/StudentLoginPage'
 import { supabase } from './lib/supabase'
+import { getStudentSession } from './lib/studentSession'
 import type { Session } from '@supabase/supabase-js'
 
 function useHashRoute() {
@@ -29,9 +31,13 @@ export default function App() {
   if (hash.startsWith('#/join')) return <JoinPage />
 
   if (hash === '#/teacher') {
-    if (session === undefined) return null // loading
+    if (session === undefined) return null
     if (!session) return <TeacherLoginPage onLogin={() => {}} />
     return <TeacherDashboardPage />
   }
+
+  // Student routes
+  const studentSession = getStudentSession()
+  if (!studentSession) return <StudentLoginPage />
   return <DashboardPage />
 }

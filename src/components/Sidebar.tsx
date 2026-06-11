@@ -8,7 +8,7 @@ import {
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { student, scheduleTodayIndex } from '../data/mockData'
-import { supabase } from '../lib/supabase'
+import { clearStudentSession } from '../lib/studentSession'
 import { playTransitionDrop } from '../lib/sound'
 import { tactile } from '../lib/feedback'
 import { useDashboard, type WidgetColumns } from '../store/dashboardStore'
@@ -83,34 +83,38 @@ const labelStyle = {
 
 // A navigable row in the settings menu (icon + label + chevron forward).
 // `active` keeps the row highlighted while its panel is open to the side.
-function SettingsRow({ icon: Icon, label, onClick, active = false }: { icon: LucideIcon; label: string; onClick: () => void; active?: boolean }) {
+function SettingsRow({ icon: Icon, label, onClick, active = false, danger = false }: { icon: LucideIcon; label: string; onClick: () => void; active?: boolean; danger?: boolean }) {
   return (
     <motion.button
       whileTap={{ scale: 0.985 }}
       onClick={onClick}
       role="menuitem"
-      onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.6)' }}
+      onMouseEnter={e => {
+        if (!active) (e.currentTarget as HTMLButtonElement).style.background = danger
+          ? 'rgba(220,38,38,0.08)'
+          : 'rgba(0,0,0,0.05)'
+      }}
       onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
       style={{
         width: '100%',
         display: 'flex',
         alignItems: 'center',
         gap: 10,
-        padding: '10px',
-        borderRadius: 12,
+        padding: '9px 8px',
+        borderRadius: 10,
         border: 'none',
         cursor: 'pointer',
         background: active ? 'rgba(123,63,204,0.1)' : 'transparent',
-        color: '#0B0B0D',
+        color: danger ? '#C53030' : '#0B0B0D',
         fontSize: 14,
         fontWeight: 550,
         textAlign: 'left',
         transition: 'background 0.15s',
       }}
     >
-      <Icon size={17} strokeWidth={1.9} style={{ color: '#6F6F76', flexShrink: 0 }} />
+      <Icon size={17} strokeWidth={1.9} style={{ color: danger ? '#C53030' : '#6F6F76', flexShrink: 0 }} />
       <span style={{ flex: 1 }}>{label}</span>
-      <ChevronRight size={16} style={{ color: '#C2C2C8', flexShrink: 0 }} />
+      <ChevronRight size={16} style={{ color: danger ? '#E57373' : '#C2C2C8', flexShrink: 0 }} />
     </motion.button>
   )
 }
@@ -459,18 +463,18 @@ export default function Sidebar() {
                         )
                       })}
                     </div>
-                    <div style={{ height: 1, background: 'rgba(0,0,0,0.1)', margin: '14px -2px' }} />
+                    <div style={{ height: 1, background: 'rgba(0,0,0,0.07)', margin: '12px 8px' }} />
                     <SettingsRow
                       icon={Settings}
                       label="Настройки"
                       active={menuView !== 'root'}
                       onClick={() => setMenuView(menuView === 'root' ? 'settings' : 'root')}
                     />
-                    <div style={{ height: 1, background: 'rgba(0,0,0,0.1)', margin: '6px -2px' }} />
                     <SettingsRow
                       icon={LogOut}
                       label="Выйти"
-                      onClick={() => { supabase.auth.signOut(); closePicker() }}
+                      danger
+                      onClick={() => { clearStudentSession(); window.location.hash = '#/'; window.location.reload(); closePicker() }}
                     />
                   </div>
 
@@ -649,12 +653,9 @@ export default function Sidebar() {
               }}
               onMouseEnter={e => {
                 if (!isActive) {
-                  // Light lavender hover that previews the purple active state,
-                  // so hover/active read as one theme instead of grey-on-lesson
-                  // vs purple-on-home.
                   const el = e.currentTarget as HTMLButtonElement
-                  el.style.background = '#F4E9FC'
-                  el.style.color = '#7B3FCC'
+                  el.style.background = 'rgba(155,109,255,0.14)'
+                  el.style.color = '#6B2FCC'
                 }
               }}
               onMouseLeave={e => {

@@ -1,18 +1,32 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
+import { setStudentSession } from '../lib/studentSession'
 
 function getToken() {
   const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '')
   return params.get('token')
 }
 
-type Step = 'loading' | 'form' | 'done' | 'error'
+type Step = 'loading' | 'form' | 'error'
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', padding: '11px 14px', borderRadius: 12,
+  border: '1.5px solid #E8E8EA', fontSize: 14, outline: 'none',
+  boxSizing: 'border-box', marginTop: 6,
+}
+
+const card: React.CSSProperties = {
+  background: '#fff', borderRadius: 24, padding: 32,
+  width: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.14)',
+}
 
 export default function JoinPage() {
   const token = getToken()
   const [step, setStep] = useState<Step>('loading')
   const [studentName, setStudentName] = useState('')
+  const [studentId, setStudentId] = useState('')
+  const [groupId, setGroupId] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [saving, setSaving] = useState(false)
@@ -20,10 +34,16 @@ export default function JoinPage() {
 
   useEffect(() => {
     if (!token) { setStep('error'); return }
-    supabase.from('students').select('name').eq('invite_token', token).single()
+    supabase
+      .from('students')
+      .select('id, name, group_id')
+      .eq('invite_token', token)
+      .single()
       .then(({ data, error }) => {
         if (error || !data) { setStep('error'); return }
+        setStudentId(data.id)
         setStudentName(data.name)
+        setGroupId(data.group_id)
         setStep('form')
       })
   }, [token])
@@ -32,27 +52,22 @@ export default function JoinPage() {
     if (!email.trim() || password.length < 6) return
     setSaving(true)
     setErrorMsg('')
-    const { data: authData, error: authError } = await supabase.auth.signUp({ email, password })
-    if (authError) { setErrorMsg(authError.message); setSaving(false); return }
-    if (authData.user) {
-      await supabase.from('students').update({ auth_user_id: authData.user.id }).eq('invite_token', token)
+
+    // Save credentials to students table (plain text so teacher can recover)
+    const { error } = await supabase
+      .from('students')
+      .update({ email: email.trim(), temp_password: password })
+      .eq('invite_token', token)
+
+    if (error) {
+      setErrorMsg('Ошибка при сохранении. Попробуйте ещё раз.')
+      setSaving(false)
+      return
     }
-    setSaving(false)
-    setStep('done')
-  }
 
-  const card: React.CSSProperties = {
-    background: '#fff',
-    borderRadius: 24,
-    padding: 32,
-    width: 400,
-    boxShadow: '0 20px 60px rgba(0,0,0,0.14)',
-  }
-
-  const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '11px 14px', borderRadius: 12,
-    border: '1.5px solid #E8E8EA', fontSize: 14, outline: 'none',
-    boxSizing: 'border-box', marginTop: 6,
+    // Create local session and go to dashboard
+    setStudentSession({ id: studentId, name: studentName, groupId })
+    window.location.hash = '#/'
   }
 
   return (
@@ -74,7 +89,7 @@ export default function JoinPage() {
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 32, marginBottom: 12 }}>🔗</div>
             <div style={{ fontSize: 16, fontWeight: 700, color: '#0B0B0D', marginBottom: 8 }}>Ссылка недействительна</div>
-            <div style={{ fontSize: 13, color: '#6F6F76' }}>Попросите учителя отправить новую ссылку для регистрации.</div>
+            <div style={{ fontSize: 13, color: '#6F6F76' }}>Попросите учителя отправить новую ссылку.</div>
           </div>
         )}
 
@@ -83,19 +98,20 @@ export default function JoinPage() {
             <div style={{ marginBottom: 24 }}>
               <div style={{ fontSize: 22, fontWeight: 750, color: '#0B0B0D' }}>Добро пожаловать!</div>
               <div style={{ fontSize: 14, color: '#6F6F76', marginTop: 4 }}>
-                Создайте аккаунт для <strong style={{ color: '#0B0B0D' }}>{studentName}</strong>
+                Придумайте логин и пароль для <strong style={{ color: '#0B0B0D' }}>{studentName}</strong>
               </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <label style={{ fontSize: 13, fontWeight: 600, color: '#3A3A3F', display: 'flex', flexDirection: 'column' }}>
-                Email
+                Email (логин)
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="alice@example.com"
                   style={inputStyle}
+                  autoFocus
                 />
               </label>
               <label style={{ fontSize: 13, fontWeight: 600, color: '#3A3A3F', display: 'flex', flexDirection: 'column' }}>
@@ -106,6 +122,7 @@ export default function JoinPage() {
                   onChange={e => setPassword(e.target.value)}
                   placeholder="минимум 6 символов"
                   style={inputStyle}
+                  onKeyDown={e => e.key === 'Enter' && handleRegister()}
                 />
               </label>
             </div>
@@ -127,29 +144,9 @@ export default function JoinPage() {
                 cursor: email.trim() && password.length >= 6 ? 'pointer' : 'not-allowed',
               }}
             >
-              {saving ? 'Создание аккаунта...' : 'Зарегистрироваться'}
+              {saving ? 'Сохранение...' : 'Войти в платформу'}
             </button>
           </>
-        )}
-
-        {step === 'done' && (
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>🎉</div>
-            <div style={{ fontSize: 18, fontWeight: 750, color: '#0B0B0D', marginBottom: 8 }}>Аккаунт создан!</div>
-            <div style={{ fontSize: 13, color: '#6F6F76', marginBottom: 24 }}>
-              Проверьте почту — туда пришло письмо для подтверждения.
-            </div>
-            <button
-              onClick={() => { window.location.hash = '#/' }}
-              style={{
-                width: '100%', padding: '12px 0',
-                background: '#9B6DFF', color: '#fff', fontWeight: 700, fontSize: 15,
-                border: 'none', borderRadius: 14, cursor: 'pointer',
-              }}
-            >
-              Перейти в кабинет
-            </button>
-          </div>
         )}
       </motion.div>
     </div>

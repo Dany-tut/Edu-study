@@ -136,23 +136,14 @@ function AddGroupModal({ onClose, onSave }: {
 }
 
 // ─── Модалка добавления ученика ───────────────────────────────────────────────
-function genPassword() {
-  const words = ['Ромашка', 'Берёза', 'Комета', 'Ракета', 'Лазурь', 'Пчёлка', 'Феникс', 'Сапфир']
-  const word = words[Math.floor(Math.random() * words.length)]
-  const num = Math.floor(10 + Math.random() * 90)
-  return `${word}${num}!`
-}
-
 function AddStudentModal({ onClose, onSave }: {
   onClose: () => void
-  onSave: (s: { name: string; phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number; email: string; tempPassword: string }) => Promise<{ inviteToken: string | null }>
+  onSave: (s: { name: string; phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number }) => Promise<{ inviteToken: string | null }>
 }) {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [telegram, setTelegram] = useState('')
   const [parent, setParent] = useState('')
-  const [email, setEmail] = useState('')
-  const [tempPassword] = useState(genPassword)
   const [desiredScore, setDesiredScore] = useState(80)
   const [paymentAmount, setPaymentAmount] = useState(0)
   const [saving, setSaving] = useState(false)
@@ -162,7 +153,7 @@ function AddStudentModal({ onClose, onSave }: {
   async function handleSave() {
     if (!name.trim()) return
     setSaving(true)
-    const { inviteToken } = await onSave({ name: name.trim(), phone, telegramLink: telegram, parentContact: parent, desiredScore, paymentAmount, email: email.trim(), tempPassword })
+    const { inviteToken } = await onSave({ name: name.trim(), phone, telegramLink: telegram, parentContact: parent, desiredScore, paymentAmount })
     setSaving(false)
     if (inviteToken) {
       setInviteLink(`${window.location.origin}${window.location.pathname}#/join?token=${inviteToken}`)
@@ -247,10 +238,6 @@ function AddStudentModal({ onClose, onSave }: {
           <label style={labelStyle}>
             Telegram
             <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder="https://t.me/username" style={inputStyle} />
-          </label>
-          <label style={labelStyle}>
-            Email для входа
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="alice@example.com" style={inputStyle} />
           </label>
           <label style={labelStyle}>
             Контакт родителя
@@ -1206,7 +1193,7 @@ export default function TeacherGroupsPage() {
         {showAddStudent && selectedGroupId && (
           <AddStudentModal
             onClose={() => setShowAddStudent(false)}
-            onSave={async (s) => { const { inviteToken } = await addStudent({ ...s, email: s.email, tempPassword: s.tempPassword }); return { inviteToken: inviteToken ?? null } }}
+            onSave={async (s) => { const { inviteToken } = await addStudent(s); return { inviteToken: inviteToken ?? null } }}
           />
         )}
       </AnimatePresence>
