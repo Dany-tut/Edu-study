@@ -1,4 +1,5 @@
-import { courseReactions, subjects, type Lesson } from './mockData'
+import { type Lesson } from './mockData'
+import { useStudentData } from '../store/studentDataStore'
 
 // ── Lesson page (screen 2) content ──────────────────────────────────────────
 
@@ -125,6 +126,7 @@ const outroBySubject: Record<string, string> = {
  *  case-insensitive lesson title — same rule the widget uses to navigate here. */
 function buildParagraphs(lesson: Lesson): LessonParagraph[] {
   const title = lesson.title.trim().toLowerCase()
+  const courseReactions = useStudentData.getState().courseReactions
   const reactions = courseReactions.filter(r => r.lesson.trim().toLowerCase() === title)
 
   const intro = introBySubject[lesson.subject] ?? introBySubject.chemistry
@@ -390,6 +392,7 @@ function buildBiologyQuiz(): HomeworkQuizQuestion[] {
 
 /** Find a catalogue lesson by id across every subject/module. */
 export function findLessonById(id: string): Lesson | null {
+  const subjects = useStudentData.getState().subjects
   for (const s of subjects) {
     for (const m of s.modules) {
       const l = m.lessons.find(les => les.id === id)

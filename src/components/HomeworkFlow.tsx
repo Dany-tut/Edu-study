@@ -375,7 +375,7 @@ function ResultModal({
               }
             </h2>
             {!(passed && context === 'basic') && (
-              <p style={{ fontSize: 13, lineHeight: 1.5, color: '#50505A' }}>
+              <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)' }}>
                 {context === 'hard'
                   ? 'Преподаватель посмотрит твою работу и даст обратную связь. Обычно это занимает до 24 часов.'
                   : `До открытия сложного уровня нужно ${recommendationScore}+. Можно вернуться к конспекту и попробовать снова.`
@@ -393,7 +393,7 @@ function ResultModal({
             </div>
           )}
           {passed && context === 'basic' && (
-            <p style={{ fontSize: 13, lineHeight: 1.5, color: '#50505A', width: '100%', marginTop: -8 }}>
+            <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)', width: '100%', marginTop: -8 }}>
               База закрыта уверенно. Открылся необязательный хард-уровень с разбором от преподавателя.
             </p>
           )}
@@ -851,7 +851,7 @@ export default function HomeworkFlow({
             style={{
               padding: 16,
               borderRadius: 16,
-              background: 'rgba(255,255,255,0.94)',
+              background: 'rgba(var(--glass-rgb), 0.94)',
               border: '1px solid var(--color-border-soft)',
               boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
               gap: 12,
@@ -874,7 +874,7 @@ export default function HomeworkFlow({
             style={{
               padding: 16,
               borderRadius: 16,
-              background: 'rgba(255,255,255,0.94)',
+              background: 'rgba(var(--glass-rgb), 0.94)',
               border: '1px solid var(--color-border-soft)',
               gap: 12,
             }}
@@ -883,7 +883,7 @@ export default function HomeworkFlow({
               <Sparkles size={16} style={{ color: palette.text }} />
               <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Как это работает</p>
             </div>
-            <p style={{ fontSize: 13, lineHeight: 1.55, color: '#5D5D66' }}>
+            <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--color-muted)' }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontWeight: 700, color: 'var(--color-text)' }}>
                 <Clock size={13} />
                 Обычно занимает {selectedEstimatedTime}.
@@ -898,7 +898,7 @@ export default function HomeworkFlow({
               style={{
                 padding: 16,
                 borderRadius: 16,
-                background: '#F1ECFF',
+                background: 'var(--color-purple-soft)',
                 border: '1px solid rgba(123,63,204,0.14)',
                 gap: 10,
                 display: 'flex',
@@ -913,8 +913,8 @@ export default function HomeworkFlow({
                     style={{
                       padding: '9px 12px',
                       borderRadius: 999,
-                      background: 'rgba(255,255,255,0.82)',
-                      color: '#4C2E71',
+                      background: 'rgba(var(--glass-rgb), 0.82)',
+                      color: 'var(--color-accent)',
                       fontSize: 13,
                       fontWeight: 650,
                     }}
@@ -976,7 +976,7 @@ export default function HomeworkFlow({
                           : 'Все вопросы отвечены!'
                         }
                       </p>
-                      <p style={{ fontSize: 14, lineHeight: 1.5, color: '#5D5D66' }}>
+                      <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-muted)' }}>
                         {state.basicSubmitted
                           ? (basicScore >= homework.recommendationScore
                             ? 'База закрыта уверенно. Доступен необязательный хард-уровень с разбором от преподавателя.'
@@ -1144,7 +1144,7 @@ export default function HomeworkFlow({
                         >
                           {isCorrect ? 'Справился с заданием' : 'Разберём ошибку'}
                         </p>
-                        <p style={{ fontSize: 13, lineHeight: 1.55, color: '#50505A' }}>
+                        <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--color-text-2)' }}>
                           {isCorrect
                             ? `Пояснение: ${question.explanation}`
                             : question.explanation}
@@ -1178,7 +1178,7 @@ export default function HomeworkFlow({
                     padding: 28,
                     borderRadius: 28,
                     border: '1px dashed rgba(0,0,0,0.12)',
-                    background: 'rgba(255,255,255,0.78)',
+                    background: 'rgba(var(--glass-rgb), 0.78)',
                     textAlign: 'center',
                   }}
                 >
@@ -1190,7 +1190,7 @@ export default function HomeworkFlow({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      background: '#F1ECFF',
+                      background: 'var(--color-purple-soft)',
                       color: '#7B3FCC',
                       marginBottom: 18,
                     }}
@@ -1200,7 +1200,7 @@ export default function HomeworkFlow({
                   <h4 style={{ fontSize: 22, fontWeight: 760, color: 'var(--color-text)', marginBottom: 10 }}>
                     Сначала закрываем базовый уровень
                   </h4>
-                  <p style={{ fontSize: 14, lineHeight: 1.6, color: '#5D5D66', maxWidth: 520 }}>
+                  <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-muted)', maxWidth: 520 }}>
                     Хард открывается только после уверенного результата на тесте. Это оставляет его добровольным
                     и отправляет на проверку только тем, кто уже хорошо справился с базой.
                   </p>
@@ -1236,7 +1236,7 @@ export default function HomeworkFlow({
                         <p style={{ fontSize: 20, fontWeight: 760, color: 'var(--color-text)', marginBottom: 6 }}>
                           Работа отправлена преподавателю
                         </p>
-                        <p style={{ fontSize: 14, lineHeight: 1.55, color: '#5D5D66', maxWidth: 640 }}>
+                        <p style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--color-muted)', maxWidth: 640 }}>
                           Статус домашки поменялся на “На проверке”. Когда преподаватель посмотрит решение,
                           здесь можно будет показать комментарий и итоговый балл.
                         </p>
@@ -1303,7 +1303,7 @@ export default function HomeworkFlow({
                     <h4 style={{ fontSize: 20, lineHeight: 1.35, fontWeight: 760, color: 'var(--color-text)', marginBottom: 12 }}>
                       {hardLevel.teacherTask?.prompt}
                     </h4>
-                    <p style={{ fontSize: 14, lineHeight: 1.55, color: '#5D5D66' }}>
+                    <p style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--color-muted)' }}>
                       {hardLevel.teacherTask?.teacherNote}
                     </p>
                   </div>
@@ -1458,7 +1458,7 @@ function ProgressStrip({
         marginTop: 'auto',
         padding: 16,
         borderRadius: 22,
-        background: 'rgba(255,255,255,0.94)',
+        background: 'rgba(var(--glass-rgb), 0.94)',
         border: '1px solid var(--color-border-soft)',
       }}
     >
@@ -1690,9 +1690,9 @@ function StatusCard({
   tone: 'neutral' | 'success' | 'warning'
 }) {
   const map = {
-    neutral: { bg: '#F3F3F6', color: '#50505A' },
-    success: { bg: '#E7F6EE', color: '#2A7D4F' },
-    warning: { bg: '#FFF6DB', color: '#8A4A00' },
+    neutral: { bg: 'var(--color-bg-3)', color: 'var(--color-text-2)' },
+    success: { bg: 'var(--color-green-soft)', color: 'var(--color-green-accent)' },
+    warning: { bg: 'var(--color-yellow-soft)', color: 'var(--color-text-2)' },
   } as const
   const toneStyle = map[tone]
   return (

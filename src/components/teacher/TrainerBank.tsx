@@ -414,7 +414,7 @@ function BankGridCard({
       style={{
         position: 'relative',
         display: 'flex', flexDirection: 'column', gap: 8, padding: 12, borderRadius: 16,
-        background: isNew ? 'rgba(238,219,255,0.18)' : 'rgba(255,255,255,0.97)',
+        background: isNew ? 'rgba(238,219,255,0.18)' : 'rgba(var(--glass-rgb), 0.97)',
         border: selected ? `1.5px solid ${accent}` : '1px solid var(--color-border)',
         boxShadow: '0 3px 10px rgba(0,0,0,0.05)', height: '100%', boxSizing: 'border-box',
         transition: 'background 0.4s ease',
@@ -478,7 +478,7 @@ function BankSortDropdown({ value, onChange }: { value: SortMode; onChange: (v: 
         onBlur={() => setTimeout(() => setOpen(false), 120)}
         style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 999,
-          background: open ? '#fff' : 'rgba(255,255,255,0.9)',
+          background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.9)',
           border: `1px solid ${open ? 'rgba(0,0,0,0.14)' : 'rgba(0,0,0,0.09)'}`,
           fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit',
         }}
@@ -588,7 +588,7 @@ export function TrainerBankBrowser({
           {([['grid', <LayoutGrid size={13} />], ['list', <List size={13} />]] as const).map(([mode, icon]) => (
             <button key={mode} onClick={() => setViewMode(mode as ViewMode)} style={{
               padding: '5px 8px', borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center',
-              background: viewMode === mode ? '#fff' : 'transparent', color: viewMode === mode ? 'var(--color-text)' : 'var(--color-text-3)',
+              background: viewMode === mode ? 'var(--color-surface)' : 'transparent', color: viewMode === mode ? 'var(--color-text)' : 'var(--color-text-3)',
               boxShadow: viewMode === mode ? '0 1px 4px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.14s',
             }}>{icon}</button>
           ))}

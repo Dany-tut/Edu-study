@@ -32,7 +32,7 @@ function tileBase(active: boolean): React.CSSProperties {
   return {
     display: 'flex', alignItems: 'center', gap: 12,
     padding: 16, borderRadius: 18, minHeight: 92, width: '100%',
-    background: active ? 'rgba(255,255,255,0.96)' : 'rgba(123,63,204,0.04)',
+    background: active ? 'rgba(var(--glass-rgb), 0.96)' : 'rgba(123,63,204,0.04)',
     border: active ? '1px solid var(--color-border-soft)' : '1.5px dashed rgba(123,63,204,0.3)',
     boxShadow: active ? '0 2px 12px rgba(0,0,0,0.05)' : 'none',
     cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
@@ -301,7 +301,7 @@ function HwPicker({
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 10,
           padding: '10px 12px', borderRadius: 12, border: 'none', cursor: 'pointer',
-          background: value ? '#fff' : 'rgba(255,255,255,0.14)',
+          background: value ? 'var(--color-surface)' : 'rgba(255,255,255,0.14)',
           color: value ? 'var(--color-text)' : '#fff',
           boxShadow: value ? '0 2px 10px rgba(0,0,0,0.08)' : 'none',
           fontFamily: 'inherit', textAlign: 'left',
@@ -770,7 +770,7 @@ function AudiencePicker({
                 <div style={{
                   width: 20, height: 20, borderRadius: 6, flexShrink: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: r.kind === 'group' ? 'rgba(255,255,255,0.7)' : d.color,
+                  background: r.kind === 'group' ? 'var(--color-surface)' : d.color,
                   fontSize: r.kind === 'group' ? 11 : 8.5, fontWeight: 800,
                   color: '#fff',
                 }}>

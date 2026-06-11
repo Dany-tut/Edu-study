@@ -370,14 +370,14 @@ function GroupCard({
       data-compact="false"
       className="group-card"
       style={{
-        background: isActive ? `${group.color}14` : 'rgba(255,255,255,0.88)',
+        background: isActive ? `${group.color}14` : 'rgba(var(--glass-rgb), 0.88)',
         backdropFilter: 'blur(16px) saturate(180%)',
         WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         border: isActive ? `1.5px solid ${group.color}` : '1px solid var(--color-border-glass)',
         borderRadius: 22,
         boxShadow: isActive
           ? `0 0 0 3px ${group.color}33, 0 4px 20px rgba(0,0,0,0.06)`
-          : '0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.95)',
+          : '0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.06)',
         cursor: 'pointer',
         flex: '1 1 180px',
         overflow: 'hidden',
@@ -809,7 +809,7 @@ function StudentPanel({
             }}
             onFocus={e => {
               e.currentTarget.style.borderColor = group.color
-              e.currentTarget.style.background = '#fff'
+              e.currentTarget.style.background = 'var(--color-bg-input)'
             }}
             onBlur={e => {
               e.currentTarget.style.borderColor = 'transparent'
@@ -1030,21 +1030,8 @@ export default function TeacherGroupsPage() {
             fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4,
             marginBottom: 12,
             transition: 'margin-bottom 0.28s ease',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
-            <span>ГРУППЫ</span>
-            <button
-              onClick={openAddGroupModal}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                background: 'var(--color-accent)', color: '#fff',
-                border: 'none', borderRadius: 20, padding: '6px 14px',
-                fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                lineHeight: 1,
-              }}
-            >
-              + Группа
-            </button>
+            ГРУППЫ
           </div>
           <div style={{ position: 'relative' }}>
             <div

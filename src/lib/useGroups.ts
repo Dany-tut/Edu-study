@@ -88,12 +88,14 @@ export function useStudents(groupId: string | null) {
         telegramLink: s.telegram_link ?? '',
         parentContact: s.parent_contact ?? '',
         startedAt: s.started_at ?? '',
-        lastVisit: '',
-        hwScore: 0,
-        testScore: 0,
-        trialScore: null,
+        lastVisit: s.last_visit
+          ? new Date(s.last_visit).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
+          : '—',
+        hwScore: s.hw_score ?? 0,
+        testScore: s.test_score ?? 0,
+        trialScore: s.trial_score ?? null,
         desiredScore: s.desired_score ?? 80,
-        attendance: 0,
+        attendance: s.attendance ?? 0,
         comment: s.comment ?? '',
         paymentDue: s.payment_due ?? '',
         paymentAmount: s.payment_amount ?? 0,
@@ -135,4 +137,37 @@ export function useStudents(groupId: string | null) {
   }
 
   return { students, loading, addStudent, deleteStudent, reload: load }
+}
+
+export function useAllStudents() {
+  const [students, setStudents] = useState<Student[]>([])
+  useEffect(() => {
+    supabase.from('students').select('*').order('name')
+      .then(({ data }) => {
+        if (data) setStudents(data.map((s: any) => ({
+          id: s.id,
+          groupId: s.group_id,
+          name: s.name,
+          phone: s.phone ?? '',
+          telegramLink: s.telegram_link ?? '',
+          parentContact: s.parent_contact ?? '',
+          startedAt: s.started_at ?? '',
+          lastVisit: s.last_visit ?? '',
+          hwScore: s.hw_score ?? 0,
+          testScore: s.test_score ?? 0,
+          trialScore: s.trial_score ?? null,
+          desiredScore: s.desired_score ?? 80,
+          attendance: s.attendance ?? 0,
+          comment: s.comment ?? '',
+          paymentDue: s.payment_due ?? '',
+          paymentAmount: s.payment_amount ?? 0,
+          lastPayment: s.last_payment ?? '',
+          debt: s.debt ?? 0,
+          inviteToken: s.invite_token ?? null,
+          email: s.email ?? '',
+          tempPassword: s.temp_password ?? '',
+        })))
+      })
+  }, [])
+  return students
 }

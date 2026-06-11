@@ -74,7 +74,7 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
         className="flex flex-col"
         style={{
           padding: 18, borderRadius: 22, gap: 12,
-          background: 'rgba(255,255,255,0.94)',
+          background: 'rgba(var(--glass-rgb), 0.94)',
           border: '1px solid var(--color-border-soft)',
         }}
       >
@@ -110,12 +110,12 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
       {student.comment && (
         <div style={{
           padding: 16, borderRadius: 20,
-          background: 'rgba(255,255,255,0.94)', border: '1px solid var(--color-border-soft)',
+          background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)',
         }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>
             Заметка
           </div>
-          <p style={{ fontSize: 13, lineHeight: 1.5, color: '#50505A' }}>{student.comment}</p>
+          <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)' }}>{student.comment}</p>
         </div>
       )}
     </div>
@@ -243,7 +243,7 @@ function TaskScoreGrid({
         const over = val !== '' && num > task.maxScore
         return (
           <div key={task.id} className="flex items-center" style={{ gap: 10 }}>
-            <div style={{ flex: 1, minWidth: 0, fontSize: 13, color: '#50505A', lineHeight: 1.4 }}>
+            <div style={{ flex: 1, minWidth: 0, fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.4 }}>
               {task.title}
             </div>
             <div className="flex items-center flex-shrink-0" style={{ gap: 6 }}>

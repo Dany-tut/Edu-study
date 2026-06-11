@@ -36,7 +36,7 @@ export default function ReviewNavPill() {
         boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.8), 0 4px 14px rgba(21,18,31,0.08)',
       }}>
         <NavBtn disabled={reviewIdx === 0} onClick={() => go(reviewIdx - 1)} dir="left" />
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#50505A', padding: '0 6px', minWidth: 44, textAlign: 'center' }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', padding: '0 6px', minWidth: 44, textAlign: 'center' }}>
           {reviewIdx + 1} / {submitters.length}
         </span>
         <NavBtn disabled={reviewIdx === submitters.length - 1} onClick={() => go(reviewIdx + 1)} dir="right" />

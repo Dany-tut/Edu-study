@@ -111,7 +111,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
               <th style={{
                 padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700,
                 color: 'var(--color-text-3)', borderBottom: '1px solid var(--color-border-soft)',
-                position: 'sticky', left: 0, background: 'rgba(249,249,251,0.97)', zIndex: 1, whiteSpace: 'nowrap',
+                position: 'sticky', left: 0, background: 'var(--color-surface)', zIndex: 1, whiteSpace: 'nowrap',
               }}>
                 Студент
               </th>
@@ -582,7 +582,7 @@ export default function TeacherGradebookPage() {
               style={{
                 padding: '7px 18px', borderRadius: 11, border: 'none', cursor: 'pointer',
                 fontSize: 13, fontWeight: 600,
-                background: activeTab === tab ? '#fff' : 'transparent',
+                background: activeTab === tab ? 'var(--color-surface)' : 'transparent',
                 color: activeTab === tab ? 'var(--color-text)' : 'var(--color-muted)',
                 boxShadow: activeTab === tab ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
                 transition: 'all 0.18s',

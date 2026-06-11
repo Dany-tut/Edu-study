@@ -893,7 +893,7 @@ function CourseCard({ course, isSelected, onClick }: { course: Course; isSelecte
     <motion.div
       whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} onClick={onClick}
       style={{
-        background: isSelected ? course.bg : 'rgba(255,255,255,0.88)',
+        background: isSelected ? course.bg : 'rgba(var(--glass-rgb), 0.88)',
         backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         border: isSelected ? `1.5px solid ${course.color}` : '1px solid var(--color-border-glass)',
         borderRadius: 20, padding: 18, cursor: 'pointer',
@@ -931,7 +931,7 @@ function TrainerCard({ trainer, isSelected, onClick }: { trainer: Trainer; isSel
     <motion.div
       whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} onClick={onClick}
       style={{
-        background: isSelected ? trainer.bg : 'rgba(255,255,255,0.88)',
+        background: isSelected ? trainer.bg : 'rgba(var(--glass-rgb), 0.88)',
         backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         border: isSelected ? `1.5px solid ${trainer.color}` : '1px solid var(--color-border-glass)',
         borderRadius: 20, padding: 18, cursor: 'pointer',
@@ -975,7 +975,7 @@ function WidgetCard({ widget, isSelected, onClick }: { widget: Widget; isSelecte
     <motion.div
       whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} onClick={onClick}
       style={{
-        background: isSelected ? WTYPE_BG[widget.type] : 'rgba(255,255,255,0.88)',
+        background: isSelected ? WTYPE_BG[widget.type] : 'rgba(var(--glass-rgb), 0.88)',
         backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         border: isSelected ? `1.5px solid ${WTYPE_COLOR[widget.type]}` : '1px solid var(--color-border-glass)',
         borderRadius: 20, padding: 18, cursor: 'pointer',
@@ -1026,7 +1026,7 @@ function TabBtn({ tab, activeTab, label, icon: Icon, color, bg, onClick, onPlus 
         display: 'flex', alignItems: 'center', gap: 8,
         padding: '10px 20px', borderRadius: 16,
         border: 'none', cursor: 'pointer',
-        background: isActive ? bg : 'rgba(255,255,255,0.6)',
+        background: isActive ? bg : 'rgba(var(--glass-rgb), 0.72)',
         color: isActive ? color : 'var(--color-muted)', fontSize: 14, fontWeight: 600,
         boxShadow: isActive ? `0 0 0 1.5px ${color}44, 0 4px 14px rgba(0,0,0,0.06)` : '0 2px 8px rgba(0,0,0,0.04)',
         transition: 'all 0.15s',
@@ -1788,7 +1788,7 @@ function CreatorView({
                   display: 'flex', alignItems: 'center', gap: 6,
                   padding: '8px 16px', borderRadius: 11, border: 'none', cursor: 'pointer',
                   fontSize: 13, fontWeight: 600,
-                  background: isActive ? '#fff' : 'transparent',
+                  background: isActive ? 'var(--color-surface)' : 'transparent',
                   color: isActive ? '#7B3FCC' : 'var(--color-muted)',
                   fontFamily: 'inherit', transition: 'all 0.15s',
                   boxShadow: isActive ? '0 2px 10px rgba(0,0,0,0.09)' : 'none',
@@ -2475,7 +2475,7 @@ export default function TeacherConstructorPage() {
                   style={{
                     width: 44, padding: '10px 0', borderRadius: 16, border: 'none', cursor: 'pointer', flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: editMode ? 'var(--color-red-soft)' : 'rgba(255,255,255,0.88)',
+                    background: editMode ? 'var(--color-red-soft)' : 'rgba(var(--glass-rgb), 0.88)',
                     color: editMode ? '#c0303a' : 'var(--color-muted)',
                     boxShadow: editMode ? '0 0 0 1.5px #c0303a44, 0 4px 14px rgba(0,0,0,0.06)' : '0 2px 8px rgba(0,0,0,0.07)',
                     transition: 'all 0.15s',
@@ -2547,7 +2547,7 @@ export default function TeacherConstructorPage() {
                       <div onClick={() => toggleCheck(c.id)} style={{
                         position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
                         border: checkedIds.has(c.id) ? '2px solid #c0303a' : '2px solid rgba(0,0,0,0.18)',
-                        background: checkedIds.has(c.id) ? '#c0303a' : 'rgba(255,255,255,0.9)',
+                        background: checkedIds.has(c.id) ? '#c0303a' : 'rgba(var(--glass-rgb), 0.9)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         cursor: 'pointer', transition: 'all 0.14s', zIndex: 5,
                         boxShadow: '0 1px 6px rgba(0,0,0,0.12)',

@@ -1203,7 +1203,7 @@ function HardTaskAccordion({
                       style={{
                         flex: 1, padding: '7px 0', borderRadius: 9, border: 'none', cursor: 'pointer',
                         fontSize: 12, fontWeight: 600,
-                        background: tab === t.v ? '#fff' : 'transparent',
+                        background: tab === t.v ? 'var(--color-surface)' : 'transparent',
                         color: tab === t.v ? '#7B3FCC' : 'var(--color-muted)',
                         fontFamily: 'inherit', transition: 'all 0.15s',
                         boxShadow: tab === t.v ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
@@ -2043,7 +2043,7 @@ export default function TeacherHomeworkCreatePage() {
                   display: 'flex', alignItems: 'center', gap: 6,
                   padding: '8px 16px', borderRadius: 11, border: 'none', cursor: 'pointer',
                   fontSize: 13, fontWeight: 600,
-                  background: activeTab === tab.key ? '#fff' : 'transparent',
+                  background: activeTab === tab.key ? 'var(--color-surface)' : 'transparent',
                   color: activeTab === tab.key ? '#7B3FCC' : 'var(--color-muted)',
                   fontFamily: 'inherit', transition: 'all 0.15s',
                   boxShadow: activeTab === tab.key ? '0 2px 10px rgba(0,0,0,0.09)' : 'none',

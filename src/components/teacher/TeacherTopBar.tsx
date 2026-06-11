@@ -6,8 +6,8 @@ import {
 } from 'lucide-react'
 import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { pendingHomework, getTotalPendingHw } from '../../data/teacherMockData'
 import { useTeacher, type TeacherPage } from '../../store/teacherStore'
+import { useHomework } from '../../lib/useHomework'
 import CreateTaskModal from './CreateTaskModal'
 import WidgetsModal from './WidgetsModal'
 import { supabase } from '../../lib/supabase'
@@ -23,7 +23,6 @@ const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = 
 
 const EASE = [0.32, 0.72, 0, 1] as const
 const transition = { duration: 0.32, ease: EASE }
-const pendingHwCount = getTotalPendingHw(pendingHomework)
 
 type QuickAction = { type?: 'action'; icon: LucideIcon; label: string; sub: string; color: string; bg: string; page?: TeacherPage; action?: string }
 type QuickSeparator = { type: 'separator' }
@@ -48,6 +47,11 @@ const quickActions: QuickItem[] = [
 export default function TeacherTopBar() {
   const [collapsed, setCollapsed]       = useState(false)
   const [addOpen, setAddOpen]           = useState(false)
+  const { homework } = useHomework()
+  const reviews = useTeacher(s => s.reviews)
+  const pendingHwCount = homework
+    .filter(hw => hw.status === 'active')
+    .reduce((acc, hw) => acc + Math.max(0, hw.submittedCount - Object.keys(reviews[hw.id] ?? {}).length), 0)
   const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [widgetsOpen, setWidgetsOpen] = useState(false)
   const [anchor, setAnchor]             = useState<{ top: number; left: number } | null>(null)

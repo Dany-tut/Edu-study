@@ -7,7 +7,6 @@ import {
 } from 'lucide-react'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { student } from '../data/mockData'
 import { clearStudentSession, getStudentSession } from '../lib/studentSession'
 import { playTransitionDrop } from '../lib/sound'
 import { tactile } from '../lib/feedback'
@@ -65,11 +64,11 @@ const panelBox = {
   // Frosted-glass recipe like the module buttons / track-click card, but a
   // touch more opaque (0.72) so the label, divider and "Настройки" text keep
   // enough contrast even when the popover floats over a dark video backdrop.
-  background: 'rgba(255,255,255,0.72)',
+  background: 'rgba(var(--glass-rgb), 0.88)',
   backdropFilter: 'blur(16px) saturate(180%)',
   WebkitBackdropFilter: 'blur(16px) saturate(180%)',
   border: '1px solid var(--color-border-glass)',
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.85), 0 12px 40px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.06)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 40px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.06)',
   boxSizing: 'border-box',
 } as const
 
@@ -81,7 +80,7 @@ const labelStyle = {
   textTransform: 'uppercase',
   // Darker than the usual light grey so the label still reads when the glass
   // sits over a dark backdrop and overall contrast drops.
-  color: '#7A7A82',
+  color: 'var(--color-muted)',
   marginBottom: 10,
 } as const
 
@@ -176,7 +175,7 @@ export default function Sidebar() {
   const [anchor, setAnchor] = useState<{ top: number; left: number } | null>(null)
   const { dark, toggle: toggleTheme } = useTheme()
   const session = getStudentSession()
-  const displayName = session?.name ?? student.name
+  const displayName = session?.name ?? ''
   const AVATARS = buildAvatars(displayName)
   const scheduleTodayIndex = useStudentData(s => s.scheduleTodayIndex)
   const setScheduleIndex = useDashboard(state => state.setScheduleIndex)
@@ -343,7 +342,7 @@ export default function Sidebar() {
         // More opaque / contrasty whenever the bar floats over the dark scrolled
         // video (compact OR expanded) so it never washes out as faint glass;
         // light translucent glass everywhere else.
-        background: contrasty ? 'rgba(255,255,255,0.86)' : 'rgba(255,255,255,0.5)',
+        background: contrasty ? 'rgba(var(--glass-rgb), 0.92)' : 'rgba(var(--glass-rgb), 0.72)',
         backdropFilter: 'blur(14px) saturate(180%)',
         WebkitBackdropFilter: 'blur(14px) saturate(180%)',
         border: contrasty ? '1px solid var(--color-border-glass)' : '1px solid var(--color-border-glass)',
@@ -472,7 +471,7 @@ export default function Sidebar() {
                         )
                       })}
                     </div>
-                    <div style={{ height: 1, background: 'rgba(0,0,0,0.07)', margin: '12px 8px' }} />
+                    <div style={{ height: 1, background: 'var(--color-border)', margin: '12px 8px' }} />
                     <SettingsRow
                       icon={Settings}
                       label="Настройки"

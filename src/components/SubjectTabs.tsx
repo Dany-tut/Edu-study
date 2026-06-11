@@ -38,7 +38,7 @@ export default function SubjectTabs() {
             className="px-6 py-2.5 font-semibold cursor-pointer"
             style={{
               borderRadius: 999,
-              background: isActive ? 'rgba(255,255,255,0.55)' : 'transparent',
+              background: isActive ? 'rgba(var(--glass-rgb), 0.72)' : 'transparent',
               backdropFilter: isActive ? 'blur(16px) saturate(180%)' : undefined,
               WebkitBackdropFilter: isActive ? 'blur(16px) saturate(180%)' : undefined,
               color: 'var(--color-text)',

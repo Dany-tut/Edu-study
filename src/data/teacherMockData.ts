@@ -91,6 +91,7 @@ export type HomeworkItem = {
   totalCount: number
   reviewedCount: number
   color: string
+  status?: string
   tasks?: HwTask[]
 }
 

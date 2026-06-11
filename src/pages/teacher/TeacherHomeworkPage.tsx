@@ -466,19 +466,13 @@ export default function TeacherHomeworkPage() {
   const { groups } = useGroups()
   const { homework: dbHomework, loading: hwLoading } = useHomework()
 
-  // Map DB homework to HomeworkItem shape
+  // Use DB homework directly; merge local review counts from Zustand
   const homework: HomeworkItem[] = dbHomework.map(hw => {
-    const reviewed = reviews[hw.id]
-    const reviewedCount = reviewed ? Object.keys(reviewed).length : 0
-    return {
-      id: hw.id,
-      groupId: hw.groupId,
-      title: hw.title,
-      dueDate: hw.dueDate,
-      totalCount: hw.totalCount,
-      submittedCount: hw.submittedCount,
-      reviewedCount,
-    } as HomeworkItem
+    const localReviewed = reviews[hw.id]
+    const reviewedCount = localReviewed
+      ? Math.max(hw.reviewedCount, Object.keys(localReviewed).length)
+      : hw.reviewedCount
+    return { ...hw, reviewedCount }
   })
 
   const filtered = filterGroup

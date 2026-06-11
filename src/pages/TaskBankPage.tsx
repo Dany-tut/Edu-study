@@ -395,7 +395,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         </button>
         <button onClick={() => setShowSolution(s => !s)} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '11px 18px', borderRadius: 999,
-          background: showSolution ? palette.soft : 'rgba(255,255,255,0.88)',
+          background: showSolution ? palette.soft : 'rgba(var(--glass-rgb), 0.88)',
           border: `1px solid ${showSolution ? palette.accent : 'rgba(0,0,0,0.09)'}`,
           outline: 'none',
           fontSize: 13, cursor: 'pointer', color: showSolution ? palette.text : 'var(--color-muted)', fontWeight: showSolution ? 700 : 500,
@@ -404,7 +404,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         </button>
         <button onClick={() => onFavorite(task.id)} style={{
           display: 'flex', alignItems: 'center', gap: 6, padding: '11px 18px', borderRadius: 999,
-          background: isFav ? 'var(--color-yellow-soft)' : 'rgba(255,255,255,0.88)',
+          background: isFav ? 'var(--color-yellow-soft)' : 'rgba(var(--glass-rgb), 0.88)',
           border: `1px solid ${isFav ? '#F8EF8C' : 'rgba(0,0,0,0.09)'}`,
           outline: 'none',
           fontSize: 13, cursor: 'pointer', color: isFav ? '#7A6B00' : 'var(--color-muted)', fontWeight: isFav ? 700 : 500,
@@ -537,7 +537,7 @@ function SortDropdown({ value, onChange }: { value: SortMode; onChange: (v: Sort
         style={{
           display: 'flex', alignItems: 'center', gap: 6,
           padding: '9px 13px', borderRadius: 999,
-          background: open ? '#fff' : 'rgba(255,255,255,0.9)',
+          background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.9)',
           border: `1px solid ${open ? 'rgba(0,0,0,0.14)' : 'rgba(0,0,0,0.08)'}`,
           boxShadow: open ? '0 0 0 3px rgba(0,0,0,0.05)' : 'none',
           fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer',
@@ -617,10 +617,10 @@ function StatusTabs({ value, onChange }: { value: StatusFilter; onChange: (v: St
             width: pill.pillRect.width,
             height: pill.pillRect.height,
             borderRadius: 999,
-            background: 'rgba(255,255,255,0.72)',
+            background: 'rgba(var(--glass-rgb), 0.82)',
             backdropFilter: 'blur(16px) saturate(180%)',
             WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 8px rgba(0,0,0,0.08)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 8px rgba(0,0,0,0.08)',
             border: '1px solid var(--color-border-glass)',
             pointerEvents: 'none',
             zIndex: 0,
@@ -760,11 +760,11 @@ export default function TaskBankPage() {
               zIndex: 9999, pointerEvents: 'none',
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '10px 18px', borderRadius: 999,
-              background: 'rgba(255,255,255,0.72)',
+              background: 'rgba(var(--glass-rgb), 0.88)',
               backdropFilter: 'blur(24px) saturate(200%)',
               WebkitBackdropFilter: 'blur(24px) saturate(200%)',
               border: '1px solid var(--color-border-glass)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.9)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.08)',
             }}
           >
             <span style={{

@@ -1,18 +1,17 @@
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import CreateTaskModal from '../../components/teacher/CreateTaskModal'
 import {
   Users, ClipboardCheck, BookOpen, TrendingUp,
   Clock, CheckCircle2, Circle, Plus, Send, Download, UserPlus,
   AlertCircle, Layers, Bell, Banknote,
 } from 'lucide-react'
-import {
-  groups, todaySchedule, pendingHomework, reminders, students,
-  getTotalPendingHw,
-  type ScheduleItem, type Reminder,
-} from '../../data/teacherMockData'
+import type { ScheduleItem, Reminder, Group, Student } from '../../data/teacherMockData'
 import { useTeacher } from '../../store/teacherStore'
 import type { TeacherTask } from '../../store/teacherStore'
+import { useGroups, useAllStudents } from '../../lib/useGroups'
+import { useHomework } from '../../lib/useHomework'
+import { supabase } from '../../lib/supabase'
 
 const SPRING = { type: 'spring', stiffness: 340, damping: 30 } as const
 const fadeUp = (delay = 0) => ({
@@ -195,8 +194,6 @@ function ScheduleRow({ item }: { item: ScheduleItem }) {
 }
 
 // ─── Payment block ───────────────────────────────────────────────────────────
-const TODAY = '2026-06-10'
-
 function diffDays(isoA: string, isoB: string) {
   return Math.round((new Date(isoA).getTime() - new Date(isoB).getTime()) / 86400000)
 }
@@ -206,7 +203,8 @@ function formatDue(iso: string): string {
   return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
 }
 
-function PaymentBlock() {
+function PaymentBlock({ students, groups }: { students: Student[]; groups: Group[] }) {
+  const TODAY = new Date().toISOString().split('T')[0]
   const withPayment = students.filter(s => s.paymentDue)
   if (!withPayment.length) return null
 
@@ -486,16 +484,65 @@ function MyTasksBlock() {
 export default function TeacherHome() {
   const { setActivePage } = useTeacher()
   const reviews = useTeacher(s => s.reviews)
-  const totalStudents = groups.reduce((a, g) => a + g.studentCount, 0)
+  const { groups } = useGroups()
+  const { homework: allHomework } = useHomework()
+  const allStudents = useAllStudents()
 
-  // A check-hw reminder is "done" once every submitted work for its group has a
-  // verdict from the review flow. Pending count drops by what's been reviewed.
-  const reviewedFor = (hw: typeof pendingHomework[number]) =>
-    Math.max(hw.reviewedCount, Object.keys(reviews[hw.id] ?? {}).length)
-  const pendingCount = pendingHomework.reduce((a, hw) => a + (hw.submittedCount - reviewedFor(hw)), 0)
+  const [todaySchedule, setTodaySchedule] = useState<ScheduleItem[]>([])
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0]
+    supabase
+      .from('schedule_lessons')
+      .select('*, groups(name, icon, color, color_soft, students(count))')
+      .eq('date', today)
+      .order('time_start')
+      .then(({ data }) => {
+        if (!data) return
+        setTodaySchedule(data.map((s: any) => ({
+          id: String(s.id),
+          groupId: s.group_id,
+          groupName: s.groups?.name ?? '',
+          icon: s.groups?.icon ?? '📚',
+          time: (s.time_start ?? '').slice(0, 5),
+          endTime: (s.time_end ?? '').slice(0, 5),
+          topic: s.lesson_title ?? '',
+          lessonNumber: s.lesson_number ?? 0,
+          subject: s.subject ?? '',
+          status: (s.status ?? 'upcoming') as ScheduleItem['status'],
+          studentCount: s.groups?.students?.[0]?.count ?? 0,
+          color: s.groups?.color ?? '#9B6DFF',
+          colorSoft: s.groups?.color_soft ?? 'var(--color-bg-3)',
+        })))
+      })
+  }, [groups])
+
+  const pendingHomework = allHomework.filter(hw => hw.status === 'active')
+  const totalStudents = groups.reduce((a, g) => a + g.studentCount, 0)
+  const TODAY = new Date().toISOString().split('T')[0]
+
+  const reviewedFor = (hwId: string) => Object.keys(reviews[hwId] ?? {}).length
+  const pendingCount = pendingHomework.reduce((a, hw) => a + Math.max(0, hw.submittedCount - reviewedFor(hw.id)), 0)
+
+  const reminders: Reminder[] = [
+    ...pendingHomework.filter(hw => hw.submittedCount > 0).map(hw => ({
+      id: `hw-${hw.id}`,
+      type: 'check-hw' as Reminder['type'],
+      text: `Проверить ДЗ — ${hw.groupName}`,
+      detail: `${hw.submittedCount} из ${hw.totalCount} сдали`,
+      urgency: 'high' as Reminder['urgency'],
+    })),
+    ...allStudents.filter(s => s.paymentDue && diffDays(s.paymentDue, TODAY) <= 7).map(s => ({
+      id: `pay-${s.id}`,
+      type: 'payment-debt' as Reminder['type'],
+      text: `Оплата — ${s.name.split(' ')[0]}`,
+      detail: s.paymentAmount ? `${s.paymentAmount.toLocaleString('ru-RU')} ₽` : '',
+      urgency: (diffDays(s.paymentDue!, TODAY) < 0 ? 'high' : 'medium') as Reminder['urgency'],
+    })),
+  ]
+
   const reminderDone = (r: Reminder) =>
     r.type === 'check-hw' &&
-    pendingHomework.some(hw => r.text.includes(hw.groupName) && reviewedFor(hw) >= hw.submittedCount)
+    pendingHomework.some(hw => r.text.includes(hw.groupName) && reviewedFor(hw.id) >= hw.submittedCount)
 
   const nextLesson = todaySchedule.find(s => s.status === 'upcoming')
 
@@ -559,10 +606,11 @@ export default function TeacherHome() {
                     ДЗ на проверку
                   </div>
                   {pendingHomework.map(hw => {
-                    const left = hw.submittedCount - reviewedFor(hw)
+                    const left = Math.max(0, hw.submittedCount - reviewedFor(hw.id))
+                    const grp = groups.find(g => g.id === hw.groupId)
                     return (
                       <div key={hw.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: 13, lineHeight: 1, flexShrink: 0 }}>{hw.icon}</span>
+                        <span style={{ fontSize: 13, lineHeight: 1, flexShrink: 0 }}>{grp?.icon ?? '📋'}</span>
                         <span style={{ flex: 1, fontSize: 12, color: 'var(--color-text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {hw.groupName} — {hw.title}
                         </span>
@@ -605,7 +653,7 @@ export default function TeacherHome() {
                   {reminders.map(r => (
                     <ReminderRow key={r.id} item={r} done={reminderDone(r)} />
                   ))}
-                  <PaymentBlock />
+                  <PaymentBlock students={allStudents} groups={groups} />
                 </div>
               </div>
             </Card>

@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { CalendarX2, Video } from 'lucide-react'
-import { resolveScheduleLesson, type ScheduleDay, type ScheduleLesson } from '../data/mockData'
+import { type ScheduleDay, type ScheduleLesson } from '../data/mockData'
+import { resolveScheduleLesson } from '../lib/db'
+import { useStudentData } from '../store/studentDataStore'
 import { IconMissedLesson } from './icons'
 import { useDashboard } from '../store/dashboardStore'
 import { PURPLE, subjectTheme } from '../lib/theme'
@@ -51,7 +53,8 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
   // Open the scheduled lesson directly on the lesson page. If we can't resolve an
   // exact lesson, fall back to the catalogue scoped to the right subject.
   const openScheduledLesson = (lesson: ScheduleLesson) => {
-    const { subjectId, lesson: match } = resolveScheduleLesson(lesson)
+    const subjects = useStudentData.getState().subjects
+    const { subjectId, lesson: match } = resolveScheduleLesson(lesson, subjects)
     if (match) {
       openLesson(match.id)
     } else {
