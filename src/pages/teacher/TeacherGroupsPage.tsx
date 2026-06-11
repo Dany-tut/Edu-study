@@ -4,13 +4,233 @@ import {
   Users, ChevronUp, ChevronDown, X,
   Phone, Send, User,
   TrendingUp, ClipboardCheck, Clock, Award,
-  ChevronsUpDown, ExternalLink,
+  ChevronsUpDown, ExternalLink, Plus,
 } from 'lucide-react'
 import {
   type Group, type Student,
 } from '../../data/teacherMockData'
 import { useGroups, useStudents } from '../../lib/useGroups'
 import { useTeacher } from '../../store/teacherStore'
+
+// ─── Цвета для выбора группы ─────────────────────────────────────────────────
+const GROUP_COLORS = [
+  { color: '#B98FFF', soft: '#EFE0FF' },
+  { color: '#6DBB9A', soft: '#DAF2E8' },
+  { color: '#FF8F6D', soft: '#FFE8DF' },
+  { color: '#6D9BFF', soft: '#DCE8FF' },
+  { color: '#FFB96D', soft: '#FFF1DC' },
+  { color: '#FF6D9B', soft: '#FFE0EC' },
+]
+
+// ─── Модалка создания группы ──────────────────────────────────────────────────
+function AddGroupModal({ onClose, onSave }: {
+  onClose: () => void
+  onSave: (g: Omit<Group, 'id' | 'studentCount' | 'lessonsCompleted'>) => Promise<void>
+}) {
+  const [name, setName] = useState('')
+  const [subject, setSubject] = useState('Химия')
+  const [icon, setIcon] = useState('🧪')
+  const [level, setLevel] = useState('ЕГЭ')
+  const [colorIdx, setColorIdx] = useState(0)
+  const [totalLessons, setTotalLessons] = useState(48)
+  const [saving, setSaving] = useState(false)
+
+  const subjectIcons: Record<string, string> = {
+    'Химия': '🧪', 'Биология': '🧬', 'Физика': '⚡', 'Математика': '📐',
+    'Русский': '📝', 'Литература': '📖', 'История': '🏛️', 'Английский': '🇬🇧',
+  }
+
+  async function handleSave() {
+    if (!name.trim()) return
+    setSaving(true)
+    const c = GROUP_COLORS[colorIdx]
+    await onSave({
+      name: name.trim(),
+      subject: subject as Group['subject'],
+      icon,
+      level,
+      color: c.color,
+      colorSoft: c.soft,
+      startDate: new Date().toLocaleDateString('ru-RU'),
+      totalLessons,
+    })
+    onClose()
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 1000,
+      background: 'rgba(0,0,0,0.32)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }} onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.94 }}
+        transition={{ duration: 0.22 }}
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: '#fff', borderRadius: 24, padding: 28,
+          width: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>Новая группа</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <label style={labelStyle}>
+            Название
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="ЕГЭ-Хим Атомы" style={inputStyle} />
+          </label>
+
+          <label style={labelStyle}>
+            Предмет
+            <select value={subject} onChange={e => { setSubject(e.target.value); setIcon(subjectIcons[e.target.value] ?? '📚') }} style={inputStyle}>
+              {Object.keys(subjectIcons).map(s => <option key={s}>{s}</option>)}
+            </select>
+          </label>
+
+          <label style={labelStyle}>
+            Уровень
+            <select value={level} onChange={e => setLevel(e.target.value)} style={inputStyle}>
+              {['ЕГЭ', 'ОГЭ', 'Олимпиада', 'Школьная программа', 'Интенсив'].map(l => <option key={l}>{l}</option>)}
+            </select>
+          </label>
+
+          <label style={labelStyle}>
+            Всего уроков
+            <input type="number" value={totalLessons} onChange={e => setTotalLessons(Number(e.target.value))} style={inputStyle} min={1} />
+          </label>
+
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 8 }}>Цвет</div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              {GROUP_COLORS.map((c, i) => (
+                <div key={i} onClick={() => setColorIdx(i)} style={{
+                  width: 28, height: 28, borderRadius: '50%', background: c.color,
+                  cursor: 'pointer', outline: colorIdx === i ? `3px solid ${c.color}` : 'none',
+                  outlineOffset: 2,
+                }} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={handleSave}
+          disabled={!name.trim() || saving}
+          style={{
+            marginTop: 22, width: '100%', padding: '12px 0',
+            background: name.trim() ? '#9B6DFF' : '#e0d4ff',
+            color: '#fff', fontWeight: 700, fontSize: 15,
+            border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
+          }}
+        >
+          {saving ? 'Сохранение...' : 'Создать группу'}
+        </button>
+      </motion.div>
+    </div>
+  )
+}
+
+// ─── Модалка добавления ученика ───────────────────────────────────────────────
+function AddStudentModal({ onClose, onSave }: {
+  onClose: () => void
+  onSave: (s: { name: string; phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number }) => Promise<void>
+}) {
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [telegram, setTelegram] = useState('')
+  const [parent, setParent] = useState('')
+  const [desiredScore, setDesiredScore] = useState(80)
+  const [paymentAmount, setPaymentAmount] = useState(0)
+  const [saving, setSaving] = useState(false)
+
+  async function handleSave() {
+    if (!name.trim()) return
+    setSaving(true)
+    await onSave({ name: name.trim(), phone, telegramLink: telegram, parentContact: parent, desiredScore, paymentAmount })
+    onClose()
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 1000,
+      background: 'rgba(0,0,0,0.32)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }} onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.94 }}
+        transition={{ duration: 0.22 }}
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: '#fff', borderRadius: 24, padding: 28,
+          width: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+          maxHeight: '90dvh', overflowY: 'auto',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>Новый ученик</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <label style={labelStyle}>
+            Имя *
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="Алиса Смирнова" style={inputStyle} />
+          </label>
+          <label style={labelStyle}>
+            Телефон
+            <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+7 999 123 45 67" style={inputStyle} />
+          </label>
+          <label style={labelStyle}>
+            Telegram
+            <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder="https://t.me/username" style={inputStyle} />
+          </label>
+          <label style={labelStyle}>
+            Контакт родителя
+            <input value={parent} onChange={e => setParent(e.target.value)} placeholder="+7 999 765 43 21" style={inputStyle} />
+          </label>
+          <label style={labelStyle}>
+            Целевой балл
+            <input type="number" value={desiredScore} onChange={e => setDesiredScore(Number(e.target.value))} min={0} max={100} style={inputStyle} />
+          </label>
+          <label style={labelStyle}>
+            Стоимость занятия (₽)
+            <input type="number" value={paymentAmount} onChange={e => setPaymentAmount(Number(e.target.value))} min={0} style={inputStyle} />
+          </label>
+        </div>
+
+        <button
+          onClick={handleSave}
+          disabled={!name.trim() || saving}
+          style={{
+            marginTop: 22, width: '100%', padding: '12px 0',
+            background: name.trim() ? '#9B6DFF' : '#e0d4ff',
+            color: '#fff', fontWeight: 700, fontSize: 15,
+            border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
+          }}
+        >
+          {saving ? 'Сохранение...' : 'Добавить ученика'}
+        </button>
+      </motion.div>
+    </div>
+  )
+}
+
+const labelStyle: React.CSSProperties = {
+  display: 'flex', flexDirection: 'column', gap: 6,
+  fontSize: 12, fontWeight: 600, color: '#555',
+}
+const inputStyle: React.CSSProperties = {
+  padding: '10px 12px', borderRadius: 12,
+  border: '1.5px solid #ece8ff', fontSize: 14,
+  outline: 'none', background: '#fafafa', color: '#1a1a2e',
+}
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 16 },
@@ -462,9 +682,11 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function TeacherGroupsPage() {
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
-  const { groups, loading: groupsLoading } = useGroups()
-  const { students } = useStudents(selectedGroupId)
+  const { groups, loading: groupsLoading, addGroup } = useGroups()
+  const { students, addStudent } = useStudents(selectedGroupId)
   const [activeStudentId, setActiveStudentId] = useState<string | null>(null)
+  const [showAddGroup, setShowAddGroup] = useState(false)
+  const [showAddStudent, setShowAddStudent] = useState(false)
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const tableRef = useRef<HTMLDivElement>(null)
@@ -479,6 +701,17 @@ export default function TeacherGroupsPage() {
       setSelectedGroupId(groups[0].id)
     }
   }, [groups, groupsLoading])
+
+  useEffect(() => {
+    const onAddGroup = () => setShowAddGroup(true)
+    const onAddStudent = () => setShowAddStudent(true)
+    window.addEventListener('teacher:open-add-group', onAddGroup)
+    window.addEventListener('teacher:open-add-student', onAddStudent)
+    return () => {
+      window.removeEventListener('teacher:open-add-group', onAddGroup)
+      window.removeEventListener('teacher:open-add-student', onAddStudent)
+    }
+  }, [])
 
   useEffect(() => {
     const el = mainScrollRef.current
@@ -597,8 +830,17 @@ export default function TeacherGroupsPage() {
             fontSize: 12, fontWeight: 700, color: '#9A9AA2', letterSpacing: 0.4,
             marginBottom: 12,
             transition: 'margin-bottom 0.28s ease',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
-            ГРУППЫ
+            <span>ГРУППЫ</span>
+            <button onClick={() => setShowAddGroup(true)} style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              background: '#9B6DFF', color: '#fff',
+              border: 'none', borderRadius: 10, padding: '4px 10px',
+              fontSize: 11, fontWeight: 700, cursor: 'pointer',
+            }}>
+              <Plus size={12} /> Группа
+            </button>
           </div>
           <div style={{ position: 'relative' }}>
             <div
@@ -665,16 +907,26 @@ export default function TeacherGroupsPage() {
                   borderBottom: '1px solid rgba(0,0,0,0.06)',
                   paddingBottom: 0,
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                    <div style={{
-                      width: 10, height: 10, borderRadius: '50%', background: activeGroup.color,
-                    }} />
-                    <span style={{ fontSize: 14, fontWeight: 700, color: '#0B0B0D' }}>
-                      {activeGroup.name}
-                    </span>
-                    <span style={{ fontSize: 12, color: '#9A9AA2' }}>
-                      · {groupStudents.length} студентов
-                    </span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{
+                        width: 10, height: 10, borderRadius: '50%', background: activeGroup.color,
+                      }} />
+                      <span style={{ fontSize: 14, fontWeight: 700, color: '#0B0B0D' }}>
+                        {activeGroup.name}
+                      </span>
+                      <span style={{ fontSize: 12, color: '#9A9AA2' }}>
+                        · {groupStudents.length} студентов
+                      </span>
+                    </div>
+                    <button onClick={() => setShowAddStudent(true)} style={{
+                      display: 'flex', alignItems: 'center', gap: 5,
+                      background: activeGroup.color, color: '#fff',
+                      border: 'none', borderRadius: 10, padding: '6px 12px',
+                      fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                    }}>
+                      <Plus size={13} /> Ученик
+                    </button>
                   </div>
                 </div>
 
@@ -829,6 +1081,21 @@ export default function TeacherGroupsPage() {
               onClose={() => setActiveStudentId(null)}
             />
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showAddGroup && (
+          <AddGroupModal
+            onClose={() => setShowAddGroup(false)}
+            onSave={async (g) => { await addGroup(g) }}
+          />
+        )}
+        {showAddStudent && selectedGroupId && (
+          <AddStudentModal
+            onClose={() => setShowAddStudent(false)}
+            onSave={async (s) => { await addStudent(s) }}
+          />
         )}
       </AnimatePresence>
     </div>

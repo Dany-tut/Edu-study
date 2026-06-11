@@ -33,7 +33,8 @@ const quickActions: QuickItem[] = [
   { icon: ClipboardList,    label: 'Создать домашку',   sub: 'группе / лично',   color: '#1a7a3f', bg: '#DFF8D6', page: 'homework-create' },
   { icon: CheckSquare,      label: 'Создать задачу',    sub: 'встреча, урок…',   color: '#16a87a', bg: '#d5f5e8', action: 'create-task' },
   { type: 'separator' },
-  { icon: UserPlus,         label: 'Добавить студента', sub: 'в группу',         color: '#7B3FCC', bg: '#EEDBFF', page: 'groups' },
+  { icon: Users,            label: 'Создать группу',    sub: 'новая группа',     color: '#7B3FCC', bg: '#EEDBFF', action: 'create-group' },
+  { icon: UserPlus,         label: 'Добавить студента', sub: 'в группу',         color: '#7B3FCC', bg: '#EEDBFF', action: 'add-student' },
   { icon: Send,             label: 'Пуш / СМС',         sub: 'уведомление',      color: '#8B4900', bg: '#FFE4BD' },
   { type: 'separator' },
   { icon: LayoutDashboard,  label: 'Настроить виджеты', sub: 'как у учеников',   color: '#7B3FCC', bg: '#EEDBFF', action: 'widgets' },
@@ -259,6 +260,14 @@ export default function TeacherTopBar() {
                     if (action.action === 'create-task') { setTaskModalOpen(true) }
                     if (action.action === 'widgets') { setWidgetsOpen(true) }
                     if (action.action === 'create-course') { openConstructor('course') }
+                    if (action.action === 'create-group') {
+                      setActivePage('groups')
+                      setTimeout(() => window.dispatchEvent(new CustomEvent('teacher:open-add-group')), 80)
+                    }
+                    if (action.action === 'add-student') {
+                      setActivePage('groups')
+                      setTimeout(() => window.dispatchEvent(new CustomEvent('teacher:open-add-student')), 80)
+                    }
                     if (action.page) setActivePage(action.page)
                     setAddOpen(false)
                   }}
