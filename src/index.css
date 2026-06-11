@@ -293,21 +293,10 @@ a {
 .stats-grid {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(2, minmax(0, 1fr));
 }
 .stat-card { padding: 18px 24px; }
 .stat-value { font-size: 56px; }
 .stat-label { font-size: 13px; margin-top: -6px; }
-@container (max-width: 479px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-  }
-  .stat-card { padding: 10px 16px; }
-  .stat-value { font-size: 34px; }
-  .stat-label { font-size: 11px; margin-top: -4px; }
-}
 
 /* Quiz answer options */
 .quiz-answers {

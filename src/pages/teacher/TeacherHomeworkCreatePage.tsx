@@ -10,6 +10,7 @@ import {
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useGroups, useStudents } from '../../lib/useGroups'
+import { useHomework } from '../../lib/useHomework'
 import { useCourseLessons, type CourseLesson } from '../../lib/useCourseLessons'
 import {
   BIOLOGY_SECTIONS, CHEMISTRY_SECTIONS,
@@ -1797,12 +1798,14 @@ export default function TeacherHomeworkCreatePage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const selectedGroupId = useTeacher(s => s.selectedGroupId)
   const allCourseLessons = useCourseLessons()
+  const { createHomework } = useHomework()
 
   const [meta, setMeta] = useState<Meta>({
     // Prefill the group picked on the homework page; empty = assign to all.
     assignTo: 'group', groupId: selectedGroupId ?? '', studentId: '',
     title: '', description: '', dueDate: '', lessonId: '',
   })
+  const { students: groupStudents } = useStudents(meta.groupId || null)
   const [activeTab, setActiveTab] = useState<MainTab>('compose')
   const [hwTasks, setHwTasks] = useState<HWTask[]>([])
   const [hardTasks, setHardTasks] = useState<HWTask[]>([])
@@ -1885,8 +1888,23 @@ export default function TeacherHomeworkCreatePage() {
     doPublish()
   }
 
-  function doPublish() {
+  async function doPublish() {
     setShowPublishConfirm(false)
+    if (meta.groupId) {
+      const taskIds = [
+        ...hwTasks.filter(t => t.bankId != null).map(t => t.bankId!),
+        ...hardTasks.filter(t => t.bankId != null).map(t => t.bankId!),
+      ]
+      const parts = meta.dueDate.split('.')
+      const isoDate = parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : meta.dueDate
+      await createHomework({
+        groupId: meta.groupId,
+        title: meta.title,
+        dueDate: isoDate,
+        taskIds,
+        totalStudents: groupStudents.length,
+      })
+    }
     setPublished(true)
     setTimeout(() => setActivePage('homework'), 1600)
   }

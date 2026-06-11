@@ -1146,9 +1146,39 @@ export default function TeacherLessonEditorPage() {
   // under the shell's floating topbar + progressive-blur strip.
   const [docked, setDocked] = useState(false)
 
+  const { groups } = useGroups()
+
   function updateMeta(p: Partial<Meta>) { setMeta(m => ({ ...m, ...p })) }
 
-  function handlePublish() {
+  async function handlePublish() {
+    const parts = meta.date.split('.')
+    const isoDate = parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : meta.date
+    const groupRecipients = meta.recipients.filter(r => r.kind === 'group')
+
+    if (editingScheduleId) {
+      await supabase.from('schedule_lessons').update({
+        lesson_title: meta.title,
+        lesson_number: meta.lessonNumber ? Number(meta.lessonNumber) : null,
+        date: isoDate,
+        time_start: meta.startTime || null,
+        time_end: meta.endTime || null,
+      }).eq('id', editingScheduleId)
+    } else if (groupRecipients.length > 0) {
+      await Promise.all(groupRecipients.map(r => {
+        const group = groups.find(g => g.id === r.id)
+        return supabase.from('schedule_lessons').insert({
+          group_id: r.id,
+          lesson_title: meta.title,
+          lesson_number: meta.lessonNumber ? Number(meta.lessonNumber) : null,
+          date: isoDate,
+          time_start: meta.startTime || null,
+          time_end: meta.endTime || null,
+          subject: group?.subject ?? '',
+          status: 'upcoming',
+        })
+      }))
+    }
+
     setPublished(true)
     setTimeout(() => setActivePage('home'), 1600)
   }

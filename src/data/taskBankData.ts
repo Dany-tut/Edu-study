@@ -82,8 +82,9 @@ export const CHEMISTRY_TOPICS: Record<string, string[]> = {
 
 export const SOURCES = ['ЕГЭ 2023', 'ЕГЭ 2024', 'ЕГЭ 2025', 'Досрочный 2024', 'Пробный 2025', 'Авторский']
 
-export const tasks: Task[] = [
-  // BIOLOGY
+export const tasks: Task[] = []
+
+const _deadMockData = [
   {
     id: 315,
     subject: 'biology',

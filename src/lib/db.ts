@@ -219,7 +219,9 @@ export function mergeSubjectsWithProgress(catalog: Subject[], progress: Progress
     const progress_pct = total > 0 ? Math.round((completed / total) * 100) : 0
 
     return { ...subject, modules, activeModuleId, progress: progress_pct }
-  })
+  }).filter(subject =>
+    subject.modules.some(m => m.lessons.some(l => l.status !== 'locked'))
+  )
 }
 
 // ─── Student stats (computed from progress) ──────────────────────────────────

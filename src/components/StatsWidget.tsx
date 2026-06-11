@@ -1,10 +1,7 @@
-import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
 import StarStickerLottie from './StarStickerLottie'
 
-export default function StatsWidget() {
-  const lessonAssessments = useDashboard(s => s.lessonAssessments)
-  const starCount = Object.values(lessonAssessments).filter(a => a.hardCompleted).length
+export default function StatsWidget({ columns = 1 }: { columns?: number }) {
   const dbStats = useStudentData(s => s.stats)
 
   const stats = [
@@ -22,9 +19,16 @@ export default function StatsWidget() {
     boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
   }
 
+  // ≤2 widgets per row → single row of 4; ≥3 → 2×2
+  const gridCols = columns >= 3 ? 2 : 4
+
   return (
-    <div className="relative h-full w-full" style={{ containerType: 'inline-size' }}>
-      <div className="stats-grid h-full" data-testid="stats-grid">
+    <div className="relative h-full w-full">
+      <div
+        className="stats-grid h-full"
+        data-testid="stats-grid"
+        style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`, gridTemplateRows: columns >= 3 ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)' }}
+      >
         {stats.map(s => (
           <div key={s.label} className="stat-card flex flex-col justify-between rounded-[24px]" style={cardStyle}>
             <span className="stat-value" style={{ fontWeight: 650, color: 'var(--color-text)', lineHeight: 1 }}>
@@ -40,7 +44,7 @@ export default function StatsWidget() {
         <div className="stat-card flex flex-col justify-between rounded-[24px]" style={cardStyle}>
           <span className="stat-value" style={{ fontWeight: 650, color: 'var(--color-text)', lineHeight: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ display: 'flex', transform: 'translateY(-6px)' }}><StarStickerLottie size={36} /></span>
-            <span style={{ display: 'block', lineHeight: 1, transform: 'translateY(-1px)' }}>{starCount}</span>
+            <span style={{ display: 'block', lineHeight: 1, transform: 'translateY(-1px)' }}>{dbStats.stars}</span>
           </span>
           <span className="stat-label" style={{ fontWeight: 500, color: 'var(--color-muted)' }}>
             Звёзды

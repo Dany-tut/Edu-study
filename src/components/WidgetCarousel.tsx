@@ -75,7 +75,7 @@ export default function WidgetCarousel() {
 
   const renderWidget = (p: number, isActive: boolean) => {
     if (p === 6) return <QuizWidget active={isActive} columns={perPage} />
-    if (p === 0) return <StatsWidget />
+    if (p === 0) return <StatsWidget columns={perPage} />
     if (p === 1) return <ScienceFactsWidget active={isActive} columns={perPage} />
     if (p === 2) return <ReactionsWidget active={isActive} columns={perPage} />
     if (p === 3) return <PomodoroWidget columns={perPage} />
