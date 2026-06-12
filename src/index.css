@@ -489,14 +489,14 @@ input[type=number]::-webkit-outer-spin-button {
   margin: 0;
 }
 
-/* Topbar fixation jelly — plays when the bar locks into compact / expanded. */
+/* Topbar fixation jelly — vertical stretch first, then settle. */
 @keyframes topbar-jelly {
   0%   { transform: scaleX(1)     scaleY(1); }
-  18%  { transform: scaleX(1.032) scaleY(0.968); }
-  36%  { transform: scaleX(0.974) scaleY(1.028); }
-  54%  { transform: scaleX(1.014) scaleY(0.987); }
-  72%  { transform: scaleX(0.993) scaleY(1.007); }
-  86%  { transform: scaleX(1.004) scaleY(0.997); }
+  18%  { transform: scaleX(0.968) scaleY(1.032); }
+  36%  { transform: scaleX(1.028) scaleY(0.974); }
+  54%  { transform: scaleX(0.987) scaleY(1.014); }
+  72%  { transform: scaleX(1.007) scaleY(0.993); }
+  86%  { transform: scaleX(0.997) scaleY(1.004); }
   100% { transform: scaleX(1)     scaleY(1); }
 }
 .topbar-snap {

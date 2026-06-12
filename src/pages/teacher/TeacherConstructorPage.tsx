@@ -1585,10 +1585,10 @@ function CreatorView({
         {docked && (
           <motion.div
             key="creator-dock"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: -8, scaleX: 1, scaleY: 1 }}
+            animate={{ opacity: 1, y: 0, scaleX: [1, 0.968, 1.028, 0.987, 1.007, 0.997, 1], scaleY: [1, 1.032, 0.974, 1.014, 0.993, 1.004, 1] }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
             style={{
               position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80,
               display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none',
@@ -2524,15 +2524,15 @@ export default function TeacherConstructorPage() {
                       onDeleteTask={id => removeTask(id)}
                       showSelect={false}
                       compact={true}
-                      accent="#7B3FCC"
-                      accentBg="#EEDBFF"
+                      accent="var(--color-purple-text)"
+                      accentBg="var(--color-purple-soft)"
                     />
                   </div>
                   <TrainerBankFilterPanel
                     filters={bankFilters}
                     onChange={f => setBankFilters(prev => ({ ...prev, ...f }))}
-                    accent="#7B3FCC"
-                    accentBg="#EEDBFF"
+                    accent="var(--color-purple-text)"
+                    accentBg="var(--color-purple-soft)"
                   />
                 </div>
               )}

@@ -100,6 +100,7 @@ export default function TeacherTopBar() {
     }
   }, [addOpen])
 
+  const headerDocked = useTeacher(s => s.headerDocked)
   useEffect(() => {
     if (!snapMountRef.current) { snapMountRef.current = true; return }
     lockSnap()
@@ -110,7 +111,7 @@ export default function TeacherTopBar() {
     el.classList.add('topbar-snap')
     const id = setTimeout(() => el.classList.remove('topbar-snap'), 420)
     return () => clearTimeout(id)
-  }, [collapsed])
+  }, [headerDocked])
 
   return (
     <>

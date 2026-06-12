@@ -213,19 +213,18 @@ export default function Sidebar() {
   // show the full date+icon when the bar is mini and just the day when it's wide.
   useEffect(() => { setTopBarCompact(isCompact) }, [isCompact, setTopBarCompact])
 
-  // Fixation snap: sound + micro-bounce animation when the bar locks/unlocks.
+  // Fixation snap: sound + jelly animation only on scroll-driven compact transitions.
   useEffect(() => {
     if (!snapMountRef.current) { snapMountRef.current = true; return }
     lockSnap()
     const el = barRef.current
     if (!el) return
     el.classList.remove('topbar-snap')
-    // force reflow so removing+adding re-triggers the animation
     void el.offsetWidth
     el.classList.add('topbar-snap')
-    const id = setTimeout(() => el.classList.remove('topbar-snap'), 320)
+    const id = setTimeout(() => el.classList.remove('topbar-snap'), 420)
     return () => clearTimeout(id)
-  }, [isCompact])
+  }, [autoCompact])
 
   // Keep the expanded bar + the widget pill within the viewport. On any
   // non-home page a 320px pill sits 20px to the right of the bar (see
