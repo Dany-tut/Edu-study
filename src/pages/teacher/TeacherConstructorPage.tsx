@@ -1618,6 +1618,7 @@ function CreatorView({
   // Условие — question text + optional content blocks (image / table)
   const [tkQuestion, setTkQuestion] = useState(editingTask?.question ?? '')
   const [tkImage, setTkImage] = useState(editingTask?.questionImage ?? '')
+  const [tkImageSize, setTkImageSize] = useState<'sm' | 'md' | 'lg' | 'full'>(editingTask?.questionImageSize ?? 'full')
   const [tkHasTable, setTkHasTable] = useState(!!(editingTask?.questionTable))
   const [tkTableHeaders, setTkTableHeaders] = useState<string[]>(editingTask?.questionTable?.headers ?? ['', ''])
   const [tkTableRows, setTkTableRows] = useState<string[][]>(editingTask?.questionTable?.rows ?? [['', ''], ['', '']])
@@ -1790,6 +1791,30 @@ function CreatorView({
     })
   }
 
+  // Paste a full table from clipboard (e.g. copied from a website) into the top-left header cell.
+  function handleTablePaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    const text = e.clipboardData.getData('text/plain')
+    const lines = text.split(/\r?\n/).filter(l => l.trim() !== '')
+    if (lines.length < 1) return
+    const parsed = lines.map(l => l.split('\t'))
+    const colCount = Math.max(...parsed.map(r => r.length))
+    if (colCount < 2 && lines.length < 2) return // looks like a plain word, don't intercept
+    e.preventDefault()
+    const headers = parsed[0].map(c => c.trim())
+    // pad headers to colCount
+    while (headers.length < colCount) headers.push('')
+    const rows = parsed.slice(1).map(row => {
+      const cells = row.map(c => c.trim())
+      while (cells.length < colCount) cells.push('')
+      return cells
+    })
+    if (rows.length === 0) rows.push(headers.map(() => ''))
+    setTkTableHeaders(headers)
+    setTkTableRows(rows)
+    setTkEmptyCells({})
+    setTkActiveCell(null)
+  }
+
   // table-block cell helpers
   function setTableCell(r: number, c: number, v: string) {
     setTkTableRows(prev => prev.map((row, ri) => ri === r ? row.map((cell, ci) => ci === c ? v : cell) : row))
@@ -1897,6 +1922,7 @@ function CreatorView({
       difficulty: tkDifficulty,
       answerType: tkAnswerType,
       questionImage: tkImage || undefined,
+      questionImageSize: tkImage ? tkImageSize : undefined,
       questionTable: table,
       scoreMode,
       criteria: scoreMode === 'criteria' && criteria.length ? criteria : undefined,
@@ -2298,11 +2324,27 @@ function CreatorView({
             {tkImage && (
               <div>
                 <Label>Изображение</Label>
-                <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', maxWidth: 360 }}>
-                  <img src={tkImage} alt="" style={{ display: 'block', maxWidth: '100%' }} />
-                  <button onClick={() => setTkImage('')} style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.55)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <X size={13} />
-                  </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignSelf: 'flex-start' }}>
+                  {/* size presets */}
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    {(['sm', 'md', 'lg', 'full'] as const).map(sz => {
+                      const labels = { sm: 'S', md: 'M', lg: 'L', full: '↔' }
+                      const titles = { sm: 'Маленькое (~30%)', md: 'Среднее (~50%)', lg: 'Большое (~70%)', full: 'Полная ширина' }
+                      const active = tkImageSize === sz
+                      return (
+                        <button key={sz} title={titles[sz]} onClick={() => setTkImageSize(sz)}
+                          style={{ padding: '3px 10px', borderRadius: 8, border: `1px solid ${active ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: active ? 'var(--color-accent)' : 'var(--color-bg-2)', color: active ? '#fff' : 'var(--color-text-2)', fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.12s' }}>
+                          {labels[sz]}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', maxWidth: { sm: '30%', md: '50%', lg: '70%', full: '100%' }[tkImageSize] }}>
+                    <img src={tkImage} alt="" style={{ display: 'block', maxWidth: '100%' }} />
+                    <button onClick={() => setTkImage('')} style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.55)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <X size={13} />
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -2325,6 +2367,7 @@ function CreatorView({
                           <th key={c} onDoubleClick={() => setSel({ type: 'col', index: c })}
                             style={{ borderRight: '1px solid var(--color-border-medium)', borderBottom: '1px solid var(--color-border-strong)', background: colSel ? cfg.bg : 'var(--color-table-header-bg)', padding: 0, cursor: 'text', transition: 'background 0.12s', minWidth: 90 }}>
                             <input value={h} onChange={e => setTableHeader(c, e.target.value)} placeholder={`Заголовок ${c + 1}`}
+                              onPaste={c === 0 ? handleTablePaste : undefined}
                               style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', color: 'var(--color-text)', padding: '8px 10px', fontWeight: 700, fontFamily: 'inherit', fontSize: 13 }} />
                           </th>
                         )

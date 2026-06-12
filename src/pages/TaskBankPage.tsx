@@ -308,7 +308,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       {/* Table */}
       {task.questionTable && (
         <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', minWidth: '50%', maxWidth: '100%' }}>
-          <table style={{ borderCollapse: 'collapse', fontSize: 13 }}>
+          <table style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'fixed', fontSize: 13 }}>
             <thead>
               <tr>{task.questionTable.headers.map(h => (
                 <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '9px 16px', fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left' }}>{h}</th>
@@ -332,7 +332,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
 
       {/* Image block */}
       {task.questionImage && (
-        <img src={task.questionImage} alt="" style={{ maxWidth: '100%', borderRadius: 14, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start' }} />
+        <img src={task.questionImage} alt="" style={{ maxWidth: { sm: '30%', md: '50%', lg: '70%', full: '100%' }[task.questionImageSize ?? 'full'], borderRadius: 14, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', display: 'block' }} />
       )}
 
       {/* Choice options */}
