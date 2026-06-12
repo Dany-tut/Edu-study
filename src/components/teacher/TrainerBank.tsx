@@ -205,10 +205,10 @@ export function BankQuestionCard({
       style={{
         position: 'relative',
         display: 'flex', flexDirection: 'column', gap: compact ? 0 : 12,
-        padding: compact ? '10px 14px' : 18, borderRadius: compact ? 14 : 22,
+        padding: compact ? '10px 14px' : 18, borderRadius: compact ? 16 : 22,
         background: 'rgba(var(--glass-rgb), 0.97)',
-        border: selected ? `1.5px solid ${accent}` : dirty ? '1.5px solid rgba(123,63,204,0.3)' : '1px solid var(--color-border-soft)',
-        boxShadow: compact ? '0 1px 4px rgba(0,0,0,0.04)' : '0 6px 20px rgba(0,0,0,0.04)', transition: 'border-color 0.2s',
+        border: selected ? `1.5px solid ${accent}` : dirty ? '1.5px solid rgba(123,63,204,0.3)' : '1px solid var(--color-border-glass)',
+        boxShadow: compact ? '0 1px 6px rgba(0,0,0,0.05)' : '0 6px 20px rgba(0,0,0,0.04)', transition: 'border-color 0.2s',
       }}>
       {compact ? (
         /* ── Compact row ── */
@@ -414,10 +414,10 @@ function BankGridCard({
       transition={{ duration: 1.2, ease: 'easeOut' }}
       style={{
         position: 'relative',
-        display: 'flex', flexDirection: 'column', gap: 8, padding: 12, borderRadius: 16,
+        display: 'flex', flexDirection: 'column', gap: 8, padding: 14, borderRadius: 20,
         background: isNew ? 'rgba(238,219,255,0.18)' : 'rgba(var(--glass-rgb), 0.97)',
-        border: selected ? `1.5px solid ${accent}` : '1px solid var(--color-border)',
-        boxShadow: '0 3px 10px rgba(0,0,0,0.05)', height: '100%', boxSizing: 'border-box',
+        border: selected ? `1.5px solid ${accent}` : '1px solid var(--color-border-glass)',
+        boxShadow: selected ? `0 0 0 3px ${accent}22, 0 6px 24px rgba(0,0,0,0.08)` : '0 3px 16px rgba(0,0,0,0.06)', height: '100%', boxSizing: 'border-box',
         transition: 'background 0.4s ease',
       }}
     >
@@ -602,7 +602,7 @@ export function TrainerBankBrowser({
       )}
 
       {viewMode === 'grid' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
           {filtered.map(t => (
             <BankGridCard key={t.id} task={t}
               selected={selectedIds.has(t.id)}
