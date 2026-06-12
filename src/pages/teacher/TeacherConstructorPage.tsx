@@ -2324,7 +2324,7 @@ function CreatorView({
             {tkImage && (
               <div>
                 <Label>Изображение</Label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignSelf: 'flex-start' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {/* size presets */}
                   <div style={{ display: 'flex', gap: 4 }}>
                     {(['sm', 'md', 'lg', 'full'] as const).map(sz => {
@@ -2412,7 +2412,7 @@ function CreatorView({
                                   onFocus={() => setTkActiveCell(key)}
                                   onBlur={() => { if (cell === '') setTkActiveCell(null) }}
                                   placeholder="—"
-                                  style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: '8px 10px', fontFamily: 'inherit', fontSize: 13 }}
+                                  style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: '8px 10px', fontFamily: 'inherit', fontSize: 13, color: 'var(--color-text)' }}
                                 />
                               )}
                             </td>

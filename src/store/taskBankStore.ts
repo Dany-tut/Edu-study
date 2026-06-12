@@ -74,12 +74,27 @@ function taskToDb(t: Partial<Task>) {
   }
 }
 
+const DEV = import.meta.env.DEV
+const LS_KEY = 'dev-task-bank'
+
+function lsLoad(): Task[] {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]') } catch { return [] }
+}
+function lsSave(tasks: Task[]) {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(tasks)) } catch {}
+}
+let lsNextId = () => { const t = lsLoad(); return t.length ? Math.max(...t.map(x => x.id)) + 1 : 1 }
+
 export const useTaskBank = create<TaskBankStore>((set, get) => ({
   tasks: [],
   loaded: false,
 
   load: async (force = false) => {
     if (!force && get().loaded && get().tasks.length > 0) return
+    if (DEV) {
+      set({ tasks: lsLoad(), loaded: true })
+      return
+    }
     const { data } = await supabase.from('task_bank').select('*').order('id')
     if (data) {
       set({ tasks: data.map(dbToTask), loaded: true })
@@ -87,6 +102,14 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
   },
 
   addTask: async (t) => {
+    if (DEV) {
+      const id = lsNextId()
+      const task: Task = { ...t, id } as Task
+      const tasks = [...lsLoad(), task]
+      lsSave(tasks)
+      set({ tasks })
+      return id
+    }
     const { data, error } = await supabase
       .from('task_bank')
       .insert(taskToDb(t))
@@ -99,6 +122,12 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
   },
 
   replaceTask: async (id, patch) => {
+    if (DEV) {
+      const tasks = lsLoad().map(t => t.id === id ? { ...t, ...patch } : t)
+      lsSave(tasks)
+      set({ tasks })
+      return
+    }
     const { error } = await supabase
       .from('task_bank')
       .update(taskToDb(patch))
@@ -108,6 +137,12 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
   },
 
   removeTask: async (id) => {
+    if (DEV) {
+      const tasks = lsLoad().filter(t => t.id !== id)
+      lsSave(tasks)
+      set({ tasks })
+      return
+    }
     await supabase.from('task_bank').delete().eq('id', id)
     set(s => ({ tasks: s.tasks.filter(t => t.id !== id) }))
   },
