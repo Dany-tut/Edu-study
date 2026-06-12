@@ -30,6 +30,7 @@
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.468.0",
     "postcss": "^8.5.15",
+    "posthog-js": "^1.386.6",
     "prisma": "^5.22.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -42,7 +42,6 @@
   --color-border-soft: rgba(0,0,0,0.06);
   --color-border-medium: rgba(0,0,0,0.08);
   --color-border-strong: rgba(0,0,0,0.10);
-  /* Glass card border — high-opacity in light, subtle in dark */
   --color-border-glass: rgba(255,255,255,0.72);
 
   /* ── Accent colours ───────────────────────────────────── */
@@ -104,8 +103,8 @@
   --color-bg-4: #1E1E20;
   --color-bg-5: #2A2A2C;
   --color-bg-input: #202022;
-  --color-table-header-bg: #3F3C48;
-  --color-table-cell-bg: #2C2A32;
+  --color-table-header-bg: rgba(255,255,255,0.30);
+  --color-table-cell-bg: rgba(255,255,255,0.10);
 
   --color-surface: rgba(22,22,24,0.92);
 
@@ -124,9 +123,8 @@
 
   --color-border: rgba(255,255,255,0.08);
   --color-border-soft: rgba(255,255,255,0.06);
-  --color-border-medium: rgba(255,255,255,0.10);
+  --color-border-medium: rgba(255,255,255,0.08);
   --color-border-strong: rgba(255,255,255,0.15);
-  /* Glass surfaces: no flat outline — depth comes from shadows only */
   --color-border-glass: rgba(255,255,255,0);
 
   --color-green-soft: rgba(74,222,128,0.22);

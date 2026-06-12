@@ -305,35 +305,36 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         )}
       </div>
 
-      {/* Table */}
-      {task.questionTable && (
-        <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', width: '50%' }}>
-          <table style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'fixed', fontSize: 13 }}>
-            <thead>
-              <tr>{task.questionTable.headers.map(h => (
-                <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '9px 16px', fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left' }}>{h}</th>
-              ))}</tr>
-            </thead>
-            <tbody>
-              {task.questionTable.rows.map((row, i) => (
-                <tr key={i}>{row.map((cell, j) => {
-                  const isEmpty = !!task.questionTable!.emptyCells?.[`${i},${j}`]
-                  return (
-                    <td key={j} style={{ borderTop: i > 0 ? '1px solid var(--color-border)' : undefined, borderRight: '1px solid var(--color-border)', padding: '9px 16px', background: 'var(--color-table-cell-bg)', minWidth: isEmpty ? 80 : undefined }}>
-                      {isEmpty ? ' ' : cell}
-                    </td>
-                  )
-                })}</tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Image block */}
-      {task.questionImage && (
-        <img src={task.questionImage} alt="" style={{ maxWidth: `${task.questionImageSize ?? 100}%`, borderRadius: 14, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', display: 'block' }} />
-      )}
+      {/* Image / table blocks in teacher-configured order */}
+      {(task.blockOrder ?? ['image', 'table']).map(blockKey => {
+        if (blockKey === 'image' && task.questionImage) return (
+          <img key="image" src={task.questionImage} alt="" style={{ maxWidth: `${task.questionImageSize ?? 100}%`, borderRadius: 14, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', display: 'block' }} />
+        )
+        if (blockKey === 'table' && task.questionTable) return (
+          <div key="table" style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', width: '50%' }}>
+            <table style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'fixed', fontSize: 13 }}>
+              <thead>
+                <tr>{task.questionTable.headers.map(h => (
+                  <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '9px 16px', fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left' }}>{h}</th>
+                ))}</tr>
+              </thead>
+              <tbody>
+                {task.questionTable.rows.map((row, i) => (
+                  <tr key={i}>{row.map((cell, j) => {
+                    const isEmpty = !!task.questionTable!.emptyCells?.[`${i},${j}`]
+                    return (
+                      <td key={j} style={{ borderTop: i > 0 ? '1px solid var(--color-border)' : undefined, borderRight: '1px solid var(--color-border)', padding: '9px 16px', background: 'var(--color-table-cell-bg)', minWidth: isEmpty ? 80 : undefined }}>
+                        {isEmpty ? ' ' : cell}
+                      </td>
+                    )
+                  })}</tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+        return null
+      })}
 
       {/* Choice options */}
       {task.choices && task.choices.length > 0 && (

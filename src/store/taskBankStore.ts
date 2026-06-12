@@ -41,6 +41,7 @@ function dbToTask(row: Record<string, unknown>): Task {
     matchRight: row.match_right as string[] | undefined,
     sequenceItems: row.sequence_items as string[] | undefined,
     allowPhoto: Boolean(row.allow_photo),
+    blockOrder: row.block_order as Array<'image' | 'table'> | undefined,
   }
 }
 
@@ -71,6 +72,7 @@ function taskToDb(t: Partial<Task>) {
     match_right: t.matchRight ?? null,
     sequence_items: t.sequenceItems ?? null,
     allow_photo: t.allowPhoto ?? false,
+    block_order: t.blockOrder ?? null,
   }
 }
 

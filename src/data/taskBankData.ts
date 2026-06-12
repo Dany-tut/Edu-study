@@ -37,6 +37,7 @@ export interface Task {
   matchRight?: string[]
   sequenceItems?: string[]
   allowPhoto?: boolean
+  blockOrder?: Array<'image' | 'table'>
 }
 
 // ── Chemistry (ЕГЭ 2026) ─────────────────────────────────────────────────────

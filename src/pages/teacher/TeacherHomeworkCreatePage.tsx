@@ -715,25 +715,31 @@ function BankTaskCard({ task, index, added, onAdd }: {
         </div>
       </div>
 
-      {/* Table (read-only) */}
-      {task.questionTable && (
-        <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', minWidth: '50%', maxWidth: '100%' }}>
-          <table style={{ borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead>
-              <tr>{task.questionTable.headers.map(h => (
-                <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '9px 16px', fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left' }}>{h}</th>
-              ))}</tr>
-            </thead>
-            <tbody>
-              {task.questionTable.rows.map((row, ri) => (
-                <tr key={ri}>{row.map((cell, ci) => (
-                  <td key={ci} style={{ borderTop: ri > 0 ? '1px solid var(--color-border)' : undefined, borderRight: '1px solid var(--color-border)', padding: '9px 16px', background: 'var(--color-table-cell-bg)' }}>{cell}</td>
+      {/* Image / table in teacher-configured order */}
+      {(task.blockOrder ?? ['image', 'table']).map(blockKey => {
+        if (blockKey === 'image' && task.questionImage) return (
+          <img key="image" src={task.questionImage} alt="" style={{ maxWidth: `${task.questionImageSize ?? 100}%`, borderRadius: 14, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', display: 'block' }} />
+        )
+        if (blockKey === 'table' && task.questionTable) return (
+          <div key="table" style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', minWidth: '50%', maxWidth: '100%' }}>
+            <table style={{ borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr>{task.questionTable.headers.map(h => (
+                  <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '9px 16px', fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left' }}>{h}</th>
                 ))}</tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {task.questionTable.rows.map((row, ri) => (
+                  <tr key={ri}>{row.map((cell, ci) => (
+                    <td key={ci} style={{ borderTop: ri > 0 ? '1px solid var(--color-border)' : undefined, borderRight: '1px solid var(--color-border)', padding: '9px 16px', background: 'var(--color-table-cell-bg)' }}>{cell}</td>
+                  ))}</tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+        return null
+      })}
 
       {/* Solution block — answer + solution editable */}
       <div style={{ padding: '14px 18px', background: palette.soft, borderRadius: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
