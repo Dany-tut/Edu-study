@@ -19,7 +19,7 @@ export interface Task {
   line: number
   source: string
   question: string
-  questionTable?: { headers: string[]; rows: string[][] }
+  questionTable?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean> }
   questionImage?: string
   answer: string
   solution: string

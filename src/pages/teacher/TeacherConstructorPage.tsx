@@ -1621,7 +1621,7 @@ function CreatorView({
   const [tkHasTable, setTkHasTable] = useState(!!(editingTask?.questionTable))
   const [tkTableHeaders, setTkTableHeaders] = useState<string[]>(editingTask?.questionTable?.headers ?? ['', ''])
   const [tkTableRows, setTkTableRows] = useState<string[][]>(editingTask?.questionTable?.rows ?? [['', ''], ['', '']])
-  const [tkEmptyCells, setTkEmptyCells] = useState<Record<string, boolean>>({})
+  const [tkEmptyCells, setTkEmptyCells] = useState<Record<string, boolean>>(editingTask?.questionTable?.emptyCells ?? {})
   const [tkActiveCell, setTkActiveCell] = useState<string | null>(null)
 
   // Ответ — which block + its config
@@ -1885,7 +1885,9 @@ function CreatorView({
   // Assemble the authored task into a bank-ready record, or null if incomplete.
   function buildTask(): NewBankTask | null {
     if (!stripHtml(tkQuestion)) return null  // validate with stripped, save raw HTML
-    const table = tkHasTable ? { headers: tkTableHeaders, rows: tkTableRows } : undefined
+    const table = tkHasTable
+      ? { headers: tkTableHeaders, rows: tkTableRows, emptyCells: Object.keys(tkEmptyCells).length ? tkEmptyCells : undefined }
+      : undefined
     const base = {
       subject: (tkSubject === 'Химия' ? 'chemistry' : 'biology') as Subject,
       section: tkSection || tkSectionList[0],
@@ -2338,7 +2340,7 @@ function CreatorView({
                             <td key={c}
                               onClick={() => { if (showChoice) setTkActiveCell(key) }}
                               onDoubleClick={() => setSel({ type: 'row', index: r })}
-                              style={{ borderRight: '1px solid var(--color-border)', borderTop: r > 0 ? '1px solid var(--color-border)' : undefined, padding: 0, cursor: showChoice ? 'pointer' : 'text', background: hl ? cfg.bg : 'transparent', transition: 'background 0.12s', position: 'relative' }}>
+                              style={{ borderRight: '1px solid var(--color-border)', borderTop: r > 0 ? '1px solid var(--color-border)' : undefined, padding: 0, cursor: showChoice ? 'pointer' : 'text', background: hl ? cfg.bg : 'var(--color-table-cell-bg)', transition: 'background 0.12s', position: 'relative' }}>
                               {isExplicitlyEmpty ? (
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', minHeight: 34, gap: 4 }}>
                                   <span style={{ fontSize: 11, color: 'var(--color-text-4)', fontStyle: 'italic' }}>пусто</span>

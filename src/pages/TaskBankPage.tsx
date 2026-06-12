@@ -316,9 +316,14 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             </thead>
             <tbody>
               {task.questionTable.rows.map((row, i) => (
-                <tr key={i}>{row.map((cell, j) => (
-                  <td key={j} style={{ borderTop: i > 0 ? '1px solid var(--color-border)' : undefined, borderRight: '1px solid var(--color-border)', padding: '9px 16px' }}>{cell}</td>
-                ))}</tr>
+                <tr key={i}>{row.map((cell, j) => {
+                  const isEmpty = !!task.questionTable!.emptyCells?.[`${i},${j}`]
+                  return (
+                    <td key={j} style={{ borderTop: i > 0 ? '1px solid var(--color-border)' : undefined, borderRight: '1px solid var(--color-border)', padding: '9px 16px', background: 'var(--color-table-cell-bg)', minWidth: isEmpty ? 80 : undefined }}>
+                      {isEmpty ? ' ' : cell}
+                    </td>
+                  )
+                })}</tr>
               ))}
             </tbody>
           </table>
