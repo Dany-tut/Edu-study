@@ -251,7 +251,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             <span style={{ fontSize: 11, fontWeight: 700, color: palette.text }}>Задание {index + 1}</span>
             <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
             <NumberBadge id={task.id} onCopied={onCopyId} />
-            <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: `${palette.soft}55`, color: `${palette.text}88`, border: `1px solid ${palette.soft}55` }}>
+            <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: `${palette.soft}55`, color: palette.text, border: `1px solid ${palette.soft}88` }}>
               {task.line} · {lineNames[task.line] ?? `Линия ${task.line}`}
             </span>
             <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
@@ -429,11 +429,11 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
 
       {/* Footer */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingTop: 2, borderTop: '1px solid rgba(0,0,0,0.04)' }}>
-        <span style={{ fontSize: 11, color: 'var(--color-text-5)', flex: 1 }}>{task.section} → {task.topic} · {task.source}</span>
-        <button onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-5)', cursor: 'pointer' }}>
+        <span style={{ fontSize: 11, color: 'var(--color-muted)', flex: 1 }}>{task.section} → {task.topic} · {task.source}</span>
+        <button onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-3)', cursor: 'pointer' }}>
           <AlertTriangle size={10} />{reported ? 'Отправлено' : 'Ошибка'}
         </button>
-        <button onClick={share} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: 'var(--color-text-5)', cursor: 'pointer' }}>
+        <button onClick={share} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: 'var(--color-text-3)', cursor: 'pointer' }}>
           <Share2 size={10} />{copied ? 'Скопировано' : 'Поделиться'}
         </button>
       </div>
@@ -898,7 +898,20 @@ export default function TaskBankPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <FilterField label="Раздел"   options={sections}     value={section} onChange={v => { setSection(v); setTopic('') }} accent={palette.accent} />
               <FilterField label="Тема"     options={topicOptions} value={topic}   onChange={setTopic} accent={palette.accent} />
-              <FilterField label="Часть"    options={['1', '2']}   value={part}    onChange={setPart} accent={palette.accent} />
+              <div style={{ display: 'flex', gap: 6 }}>
+                {['1', '2'].map(p => (
+                  <button key={p} onClick={() => setPart(part === p ? '' : p)} style={{
+                    flex: 1, padding: '9px 12px', borderRadius: 13, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    background: part === p ? `${palette.accent}22` : 'var(--color-bg-input)',
+                    border: `1px solid ${part === p ? palette.accent : 'var(--color-border-soft)'}`,
+                    boxShadow: part === p ? `0 0 0 3px ${palette.accent}22` : 'none',
+                    color: part === p ? palette.accent : 'var(--color-muted)',
+                    transition: 'all 0.15s ease',
+                  }}>
+                    Часть {p}
+                  </button>
+                ))}
+              </div>
               <FilterField label="Линия"    options={allLines}     value={line}    onChange={setLine} accent={palette.accent} />
               <FilterField label="Источник" options={allSources}  value={source}  onChange={setSource} accent={palette.accent} />
             </div>
