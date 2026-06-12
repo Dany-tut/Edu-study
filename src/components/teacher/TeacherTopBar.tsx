@@ -205,8 +205,8 @@ export default function TeacherTopBar() {
           aria-label="Действия"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: 32, height: 32,
-            borderRadius: '50%', border: 'none', cursor: 'pointer',
+            width: 36, height: 44,
+            borderRadius: 14, border: 'none', cursor: 'pointer',
             background: 'none',
             color: 'var(--color-muted)',
           }}
@@ -221,7 +221,7 @@ export default function TeacherTopBar() {
           onClick={() => setCollapsed(c => !c)}
           aria-label={collapsed ? 'Развернуть' : 'Свернуть'}
           style={{
-            width: 32, height: 32, borderRadius: '50%',
+            width: 36, height: 44, borderRadius: 14,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', color: 'var(--color-muted)', background: 'none', border: 'none',
           }}

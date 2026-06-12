@@ -736,8 +736,8 @@ export default function Sidebar() {
             else { setCollapsed(true); setForceExpanded(false) }
           }}
           style={{
-            width: 32, height: 32,
-            borderRadius: '50%',
+            width: 36, height: 44,
+            borderRadius: 14,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', color: isCompact ? 'var(--color-text-2)' : 'var(--color-muted)',
             background: 'none', border: 'none',

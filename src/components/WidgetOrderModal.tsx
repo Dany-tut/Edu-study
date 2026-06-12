@@ -179,7 +179,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                       style={{
                         display: 'flex', alignItems: 'center', gap: 12,
                         padding: '10px 12px', borderRadius: 14,
-                        background: 'var(--color-bg-2)', border: '1px dashed var(--color-text-4)',
+                        background: 'var(--color-bg-2)', border: '1px dashed color-mix(in srgb, var(--color-text-4) 50%, transparent)',
                       }}
                     >
                       <span

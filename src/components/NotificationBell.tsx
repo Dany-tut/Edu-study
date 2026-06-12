@@ -62,7 +62,7 @@ export default function NotificationBell({ size = 16, hoverBg = 'rgba(155,109,25
       aria-label="Уведомления"
       style={{
         position: 'relative',
-        width: 32, height: 32, borderRadius: '50%',
+        width: 36, height: 44, borderRadius: 14,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: 'pointer', background: 'none', border: 'none',
         flexShrink: 0,
