@@ -141,22 +141,20 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {hidden.map(w => (
-                  <motion.div
+                  <div
                     key={w.id}
-                    initial={false}
-                    whileHover="hovered"
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10,
                       background: 'rgba(var(--glass-rgb), 0.55)', borderRadius: 12, padding: '10px 12px',
                       border: '1.5px solid var(--color-border-medium)', opacity: 0.78,
+                      transition: 'background 0.15s',
                     }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(var(--glass-rgb), 0.85)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'rgba(var(--glass-rgb), 0.55)')}
                   >
-                    <motion.div
-                      variants={{ hovered: { x: -8 }, default: { x: 0 } }}
-                      transition={{ type: 'spring', stiffness: 380, damping: 26 }}
-                    >
+                    <div>
                       <WidgetIcon icon={w.icon} bg={w.bg} color={w.color} />
-                    </motion.div>
+                    </div>
                     <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: 'var(--color-muted)' }}>{w.label}</span>
                     <button
                       onClick={() => toggle(w.id)}
@@ -168,7 +166,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                     >
                       <Plus size={14} color="var(--color-purple-text)" />
                     </button>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             </>
