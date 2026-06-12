@@ -251,7 +251,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             <span style={{ fontSize: 11, fontWeight: 700, color: palette.text }}>Задание {index + 1}</span>
             <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
             <NumberBadge id={task.id} onCopied={onCopyId} />
-            <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: `${palette.soft}55`, color: palette.text, border: `1px solid ${palette.soft}88` }}>
+            <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: `${palette.accent}1A`, color: '#fff' }}>
               {task.line} · {lineNames[task.line] ?? `Линия ${task.line}`}
             </span>
             <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
