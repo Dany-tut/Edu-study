@@ -423,7 +423,7 @@ function GroupCard({
         <span style={{
           fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
           color: group.color.replace(')', ', 0.8)').replace('rgb', 'rgba'),
-          background: group.colorSoft,
+          background: group.color + '22',
           padding: '3px 9px', borderRadius: 8,
           border: `1px solid ${group.color}33`,
         }}>
@@ -564,7 +564,7 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
   }
   const shimBar: React.CSSProperties = {
     flex: 1, height: 14, borderRadius: 6,
-    background: 'linear-gradient(90deg,#C8C8CE,#B8B8C2)',
+    background: 'var(--color-bg-5)',
     position: 'relative', overflow: 'hidden',
   }
 
