@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, Users, ClipboardList, BookOpen, Layers,
   ChevronLeft, ChevronRight,
-  LayoutGrid, UserPlus, Send, CheckSquare, LayoutDashboard, LogOut, Moon, Sun, type LucideIcon,
+  LayoutGrid, UserPlus, CheckSquare, LayoutDashboard, LogOut, Moon, Sun, type LucideIcon,
 } from 'lucide-react'
 import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
@@ -31,17 +31,16 @@ type QuickSeparator = { type: 'separator' }
 type QuickItem = QuickAction | QuickSeparator
 
 const quickActions: QuickItem[] = [
-  { icon: Layers,           label: 'Создать курс',      sub: 'новый курс',       color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', action: 'create-course' },
+  { icon: Layers,           label: 'Создать курс',      sub: 'новый курс',       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', action: 'create-course' },
   { icon: BookOpen,         label: 'Создать урок',      sub: 'новый урок',       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', page: 'lesson-editor' },
   { icon: ClipboardList,    label: 'Создать домашку',   sub: 'группе / лично',   color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', page: 'homework-create' },
   { icon: CheckSquare,      label: 'Создать задачу',    sub: 'встреча, урок…',   color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', action: 'create-task' },
   { type: 'separator' },
   { icon: Users,            label: 'Создать группу',    sub: 'новая группа',     color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', action: 'create-group' },
   { icon: UserPlus,         label: 'Добавить студента', sub: 'в группу',         color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', action: 'add-student' },
-  { icon: Send,             label: 'Пуш / СМС',         sub: 'уведомление',      color: 'var(--color-peach-text)', bg: 'var(--color-peach-soft)' },
   { type: 'separator' },
-  { icon: LayoutDashboard,  label: 'Настроить виджеты', sub: 'как у учеников',   color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', action: 'widgets' },
-  { icon: Moon,             label: 'Тема',              sub: 'светлая / тёмная', color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', action: 'theme' },
+  { icon: LayoutDashboard,  label: 'Настроить виджеты', sub: 'как у учеников',   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)', action: 'widgets' },
+  { icon: Moon,             label: 'Тема',              sub: 'светлая / тёмная', color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)', action: 'theme' },
   { type: 'separator' },
   { icon: LogOut,           label: 'Выйти',             sub: 'из аккаунта',      color: '#A8282D', bg: 'var(--color-red-soft)', action: 'logout' },
 ]
