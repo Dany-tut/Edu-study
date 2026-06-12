@@ -16,7 +16,6 @@ import WidgetOrderModal from './WidgetOrderModal'
 import { useTheme } from '../store/themeStore'
 import { useStudentData } from '../store/studentDataStore'
 import NotificationBell from './NotificationBell'
-import NotificationPopup from './NotificationPopup'
 
 const navItems = [
   { id: 'home',    label: 'Главная',  icon: Home },
@@ -176,7 +175,6 @@ export default function Sidebar() {
   const [nameMaxWidth, setNameMaxWidth] = useState<number | undefined>(undefined)
   // Viewport coords for the portaled popover, measured from the avatar.
   const [anchor, setAnchor] = useState<{ top: number; left: number } | null>(null)
-  const [bellOpen, setBellOpen] = useState(false)
   const bellRef = useRef<HTMLButtonElement>(null)
   const { dark, toggle: toggleTheme } = useTheme()
   const session = getStudentSession()
@@ -674,8 +672,8 @@ export default function Sidebar() {
               onMouseEnter={e => {
                 if (!isActive) {
                   const el = e.currentTarget as HTMLButtonElement
-                  el.style.background = 'rgba(155,109,255,0.14)'
-                  el.style.color = '#fff'
+                  el.style.background = 'color-mix(in srgb, var(--color-accent) 14%, transparent)'
+                  el.style.color = 'var(--color-text)'
                 }
               }}
               onMouseLeave={e => {
@@ -716,14 +714,7 @@ export default function Sidebar() {
 
       {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginLeft: 8 }}>
-        <div ref={bellRef as unknown as React.RefObject<HTMLDivElement>} style={{ display: 'flex' }}>
-          <NotificationBell onClick={() => setBellOpen(o => !o)} />
-        </div>
-        <NotificationPopup
-          open={bellOpen}
-          anchorRef={bellRef as unknown as React.RefObject<HTMLElement>}
-          onClose={() => setBellOpen(false)}
-        />
+        <NotificationBell />
 
         <motion.button
           whileHover={{ scale: 1.08 }}

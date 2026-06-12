@@ -1,18 +1,23 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, X, ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowRight, X, ChevronDown, ChevronUp, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, Bell } from 'lucide-react'
 import { useNotificationsStore, type Notification } from '../store/notificationsStore'
+import type { NotifType } from '../store/notificationsStore'
 
-const ICON: Record<string, string> = {
-  homework_assigned:    '📚',
-  homework_graded:      '✅',
-  homework_submitted:   '📝',
-  lesson_unlocked:      '🔓',
-  quiz_available:       '🧠',
-  student_joined:       '👤',
-  deadline_approaching: '⏰',
-  achievement:          '🏆',
+const ICON_MAP: Record<NotifType, React.ReactNode> = {
+  homework_assigned:    <ClipboardList size={16} />,
+  homework_graded:      <CheckCircle2  size={16} />,
+  homework_submitted:   <FileText      size={16} />,
+  lesson_unlocked:      <BookOpen      size={16} />,
+  quiz_available:       <Brain         size={16} />,
+  student_joined:       <UserPlus      size={16} />,
+  deadline_approaching: <Clock         size={16} />,
+  achievement:          <Trophy        size={16} />,
+}
+
+function getIcon(type: string) {
+  return (ICON_MAP as Record<string, React.ReactNode>)[type] ?? <Bell size={16} />
 }
 
 function NotifRow({ n, onAction, onRead }: {
@@ -25,9 +30,10 @@ function NotifRow({ n, onAction, onRead }: {
       <span style={{
         width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
         background: 'rgba(255,90,90,0.15)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: '#FF5A5A',
       }}>
-        {ICON[n.type] ?? '🔔'}
+        {getIcon(n.type)}
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
@@ -136,8 +142,13 @@ export default function NotificationToastContainer() {
               onClick={() => setExpanded(e => !e)}
               style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}
             >
-              <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>
-                {ICON[latest.type] ?? '🔔'}
+              <span style={{
+                width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+                background: 'rgba(255,90,90,0.15)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#FF5A5A',
+              }}>
+                {getIcon(latest.type)}
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2,

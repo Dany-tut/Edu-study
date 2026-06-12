@@ -12,6 +12,7 @@ import {
 import { useTaskBank } from '../store/taskBankStore'
 import { useDashboard } from '../store/dashboardStore'
 import { subjectTheme, PURPLE } from '../lib/theme'
+import { useTheme } from '../store/themeStore'
 
 type StatusFilter = 'all' | 'done' | 'undone'
 type SortMode = 'newest' | 'oldest' | 'subject' | 'line'
@@ -238,20 +239,37 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
     <div
       className="flex flex-col"
       style={{
-        gap: 14, padding: 20, borderRadius: 26,
+        gap: 14, padding: '20px 20px 12px 20px', borderRadius: 26,
+        position: 'relative',
         background: 'rgba(var(--glass-rgb), 0.96)',
-        border: `1px solid ${isCorrect ? 'rgba(110,231,160,0.58)' : isWrong ? 'rgba(244,139,145,0.5)' : 'rgba(0,0,0,0.06)'}`,
-        boxShadow: isCorrect ? '0 12px 34px rgba(110,231,160,0.14)' : isWrong ? '0 12px 34px rgba(244,139,145,0.12)' : '0 8px 24px rgba(0,0,0,0.04)',
+        border: `1px solid ${isCorrect ? 'rgba(110,231,160,0.58)' : isWrong ? 'rgba(244,139,145,0.5)' : 'var(--color-border-soft)'}`,
+        boxShadow: isCorrect ? '0 8px 24px rgba(110,231,160,0.14)' : isWrong ? '0 8px 24px rgba(244,139,145,0.12)' : 'none',
       }}
     >
+      {/* Bookmark — top-right icon-only square */}
+      <button
+        onClick={() => onFavorite(task.id)}
+        style={{
+          position: 'absolute', top: 16, right: 16,
+          width: 36, height: 36, borderRadius: 12,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          background: isFav ? 'var(--color-yellow-soft)' : 'rgba(var(--glass-rgb), 0.88)',
+          border: `1px solid ${isFav ? '#F8EF8C' : 'var(--color-border-medium)'}`,
+          cursor: 'pointer', outline: 'none',
+          transition: 'all 0.18s ease',
+        }}
+      >
+        <Bookmark size={16} fill={isFav ? 'currentColor' : 'none'} color={isFav ? '#7A6B00' : 'var(--color-text-3)'} />
+      </button>
+
       {/* Header: label + badges + result badge */}
-      <div className="flex flex-wrap items-start justify-between" style={{ gap: 10 }}>
+      <div className="flex flex-wrap items-start justify-between" style={{ gap: 10, paddingRight: 48 }}>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 11, fontWeight: 700, color: palette.text }}>Задание {index + 1}</span>
             <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
             <NumberBadge id={task.id} onCopied={onCopyId} />
-            <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: `${palette.accent}33`, color: '#fff' }}>
+            <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: `${palette.accent}33`, color: 'var(--color-text)' }}>
               {task.line} · {lineNames[task.line] ?? `Линия ${task.line}`}
             </span>
             <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
@@ -383,35 +401,37 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             fontSize: 14, fontFamily: 'inherit', pointerEvents: 'none', top: -9999,
           }}>{inputVal}</span>
         </div>
-        <button onClick={check} disabled={!inputVal.trim()} style={{
-          display: 'flex', alignItems: 'center', gap: 6, padding: '11px 20px', borderRadius: 999,
-          background: inputVal.trim() ? palette.accent : 'var(--color-bg-5)',
-          color: inputVal.trim() ? palette.onAccent : 'var(--color-text-3)',
-          border: 'none', outline: 'none', fontSize: 13, fontWeight: 700, cursor: inputVal.trim() ? 'pointer' : 'default',
-          boxShadow: inputVal.trim() ? `0 8px 20px ${palette.ring}` : 'none',
-          transition: 'all 0.18s ease',
-        }}>
-          <CheckCircle2 size={14} />Проверить
-        </button>
-        <button onClick={() => setShowSolution(s => !s)} style={{
-          display: 'flex', alignItems: 'center', gap: 6, padding: '11px 18px', borderRadius: 999,
-          background: showSolution ? palette.soft : 'rgba(var(--glass-rgb), 0.88)',
-          border: `1px solid ${showSolution ? palette.accent : 'rgba(0,0,0,0.09)'}`,
-          outline: 'none',
-          fontSize: 13, cursor: 'pointer', color: showSolution ? palette.text : 'var(--color-muted)', fontWeight: showSolution ? 700 : 500,
-        }}>
-          <Eye size={14} />Решение
-        </button>
-        <button onClick={() => onFavorite(task.id)} style={{
-          display: 'flex', alignItems: 'center', gap: 6, padding: '11px 18px', borderRadius: 999,
-          background: isFav ? 'var(--color-yellow-soft)' : 'rgba(var(--glass-rgb), 0.88)',
-          border: `1px solid ${isFav ? '#F8EF8C' : 'rgba(0,0,0,0.09)'}`,
-          outline: 'none',
-          fontSize: 13, cursor: 'pointer', color: isFav ? '#7A6B00' : 'var(--color-muted)', fontWeight: isFav ? 700 : 500,
-        }}>
-          <Bookmark size={14} fill={isFav ? 'currentColor' : 'none'} />
-          {isFav ? 'В избранном' : 'В избранное'}
-        </button>
+        <AnimatePresence>
+          {inputVal.trim() && (
+            <motion.div
+              key="task-actions"
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -8 }}
+              transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+              style={{ display: 'flex', gap: 8, alignItems: 'center' }}
+            >
+              <button onClick={check} style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '11px 20px', borderRadius: 16,
+                background: palette.accent, color: palette.onAccent,
+                border: 'none', outline: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                boxShadow: `0 8px 20px ${palette.ring}`,
+                transition: 'all 0.18s ease',
+              }}>
+                <CheckCircle2 size={14} />Проверить
+              </button>
+              <button onClick={() => setShowSolution(s => !s)} style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '11px 18px', borderRadius: 16,
+                background: showSolution ? palette.soft : 'rgba(var(--glass-rgb), 0.88)',
+                border: `1px solid ${showSolution ? palette.accent : 'var(--color-border-medium)'}`,
+                outline: 'none',
+                fontSize: 13, cursor: 'pointer', color: showSolution ? palette.text : 'var(--color-muted)', fontWeight: showSolution ? 700 : 500,
+              }}>
+                <Eye size={14} />Решение
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Solution block */}
@@ -505,11 +525,11 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
           cursor: inputVal.trim() ? 'pointer' : 'default', flexShrink: 0,
         }}>✓</button>
         <button onClick={() => setShowSolution(s => !s)} style={{
-          padding: '7px 8px', borderRadius: 10, border: `1px solid ${showSolution ? palette.accent : 'rgba(0,0,0,0.09)'}`,
+          padding: '7px 8px', borderRadius: 10, border: `1px solid ${showSolution ? palette.accent : 'var(--color-border-medium)'}`,
           background: showSolution ? palette.soft : 'transparent', cursor: 'pointer', flexShrink: 0,
         }}><Eye size={12} color={showSolution ? palette.text : 'var(--color-text-3)'} /></button>
         <button onClick={() => onFavorite(task.id)} style={{
-          padding: '7px 8px', borderRadius: 10, border: `1px solid ${isFav ? '#F8EF8C' : 'rgba(0,0,0,0.09)'}`,
+          padding: '7px 8px', borderRadius: 10, border: `1px solid ${isFav ? '#F8EF8C' : 'var(--color-border-medium)'}`,
           background: isFav ? 'var(--color-yellow-soft)' : 'transparent', cursor: 'pointer', flexShrink: 0,
         }}><Bookmark size={12} color={isFav ? '#7A6B00' : 'var(--color-text-3)'} fill={isFav ? '#7A6B00' : 'none'} /></button>
       </div>
@@ -654,6 +674,7 @@ function StatusTabs({ value, onChange }: { value: StatusFilter; onChange: (v: St
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function TaskBankPage() {
+  const { dark } = useTheme()
   const setActivePage = useDashboard(s => s.setActivePage)
   const docked        = useDashboard(s => s.lessonScrolled)
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
@@ -684,7 +705,7 @@ export default function TaskBankPage() {
     savedTimer.current = setTimeout(() => setSavedPill(false), 1800)
   }
 
-  const palette      = subjectTheme(subject)
+  const palette      = subjectTheme(subject, dark)
   const lineNames    = subject === 'chemistry' ? CHEMISTRY_LINES : BIOLOGY_LINES
   const subjectTasks = useMemo(() => tasks.filter(t => t.subject === subject), [tasks, subject])
   const sections     = useMemo(() => [...new Set(subjectTasks.map(t => t.section).filter(Boolean))].sort(), [subjectTasks])
@@ -949,7 +970,7 @@ export default function TaskBankPage() {
         </aside>
 
         {/* Right: search bar + tasks */}
-        <main className="flex flex-col" style={{ padding: 24, gap: 18, background: 'radial-gradient(circle at top right, rgba(197,139,255,0.07), transparent 28%), var(--color-bg)' }}>
+        <main className="flex flex-col" style={{ padding: 24, gap: 18, background: `radial-gradient(circle at top right, ${subject === 'biology' ? 'rgba(29,185,125,0.10)' : 'rgba(197,139,255,0.10)'}, transparent 35%), var(--color-bg)` }}>
 
           {/* Controls row */}
           <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
@@ -965,14 +986,14 @@ export default function TaskBankPage() {
             <SortDropdown value={sortMode} onChange={setSortMode} />
 
             <button onClick={() => setShowFavOnly(f => !f)}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 14px', borderRadius: 999, background: showFavOnly ? 'rgba(248,239,140,0.28)' : 'rgba(var(--glass-rgb), 0.88)', border: `1px solid ${showFavOnly ? 'rgba(248,239,140,0.55)' : 'rgba(0,0,0,0.08)'}`, fontSize: 12, cursor: 'pointer', color: showFavOnly ? '#8A7800' : 'var(--color-text-3)', fontWeight: showFavOnly ? 700 : 400 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 14px', borderRadius: 999, background: showFavOnly ? 'rgba(248,239,140,0.28)' : 'rgba(var(--glass-rgb), 0.88)', border: `1px solid ${showFavOnly ? 'rgba(248,239,140,0.55)' : 'var(--color-border-medium)'}`, fontSize: 12, cursor: 'pointer', color: showFavOnly ? '#8A7800' : 'var(--color-text-3)', fontWeight: showFavOnly ? 700 : 400 }}>
               <Bookmark size={13} fill={showFavOnly ? 'currentColor' : 'none'} />
               {showFavOnly ? `Избранное (${favorites.size})` : 'Избранное'}
             </button>
 
 
-            <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--color-text-3)' }}>
-              Всего: <strong style={{ color: 'var(--color-text)' }}>{filtered.length}</strong>
+            <span style={{ marginLeft: 'auto', fontSize: 12, color: dark ? 'var(--color-text-3)' : 'var(--color-text-2)' }}>
+              Всего: {filtered.length}
             </span>
 
           </div>

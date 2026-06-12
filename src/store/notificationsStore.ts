@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 
 export type NotifType =
   | 'homework_assigned'
@@ -18,7 +17,7 @@ export type Notification = {
   body: string
   createdAt: number
   read: boolean
-  live: boolean  // true = пришло в текущей сессии → показать toast
+  live: boolean
   action?: { label: string; page?: string }
 }
 
@@ -31,51 +30,38 @@ type State = {
   unreadCount: () => number
 }
 
-export const useNotificationsStore = create<State>()(
-  persist(
-    (set, get) => ({
-      notifications: [],
+export const useNotificationsStore = create<State>()((set, get) => ({
+  notifications: [],
 
-      add: (n) => {
-        const id = crypto.randomUUID()
-        set(state => ({
-          notifications: [{
-            ...n,
-            id,
-            createdAt: Date.now(),
-            read: false,
-            live: true,
-          }, ...state.notifications],
-        }))
-        return id
-      },
+  add: (n) => {
+    const id = crypto.randomUUID()
+    set(state => ({
+      notifications: [{
+        ...n,
+        id,
+        createdAt: Date.now(),
+        read: false,
+        live: true,
+      }, ...state.notifications],
+    }))
+    return id
+  },
 
-      markRead: (id) => set(state => ({
-        notifications: state.notifications.map(n =>
-          n.id === id ? { ...n, read: true } : n
-        ),
-      })),
+  markRead: (id) => set(state => ({
+    notifications: state.notifications.map(n =>
+      n.id === id ? { ...n, read: true } : n
+    ),
+  })),
 
-      markAllRead: () => set(state => ({
-        notifications: state.notifications.map(n => ({ ...n, read: true })),
-      })),
+  markAllRead: () => set(state => ({
+    notifications: state.notifications.map(n => ({ ...n, read: true })),
+  })),
 
-      dismissLive: (id) => set(state => ({
-        notifications: state.notifications.map(n =>
-          n.id === id ? { ...n, live: false } : n
-        ),
-      })),
+  dismissLive: (id) => set(state => ({
+    notifications: state.notifications.map(n =>
+      n.id === id ? { ...n, live: false } : n
+    ),
+  })),
 
-      unreadCount: () => get().notifications.filter(n => !n.read).length,
-    }),
-    {
-      name: 'edu-notifications',
-      // On rehydrate — all stored notifications lose live flag (they're "old")
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.notifications = state.notifications.map(n => ({ ...n, live: false }))
-        }
-      },
-    }
-  )
-)
+  unreadCount: () => get().notifications.filter(n => !n.read).length,
+}))

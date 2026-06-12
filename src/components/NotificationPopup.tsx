@@ -2,17 +2,22 @@ import { useRef, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNotificationsStore, type Notification } from '../store/notificationsStore'
-import { Bell } from 'lucide-react'
+import type { NotifType } from '../store/notificationsStore'
+import { Bell, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy } from 'lucide-react'
 
-const ICON: Record<string, string> = {
-  homework_assigned:    '📚',
-  homework_graded:      '✅',
-  homework_submitted:   '📝',
-  lesson_unlocked:      '🔓',
-  quiz_available:       '🧠',
-  student_joined:       '👤',
-  deadline_approaching: '⏰',
-  achievement:          '🏆',
+const ICON_MAP: Record<NotifType, React.ReactNode> = {
+  homework_assigned:    <ClipboardList size={16} />,
+  homework_graded:      <CheckCircle2  size={16} />,
+  homework_submitted:   <FileText      size={16} />,
+  lesson_unlocked:      <BookOpen      size={16} />,
+  quiz_available:       <Brain         size={16} />,
+  student_joined:       <UserPlus      size={16} />,
+  deadline_approaching: <Clock         size={16} />,
+  achievement:          <Trophy        size={16} />,
+}
+
+function getIcon(type: string) {
+  return (ICON_MAP as Record<string, React.ReactNode>)[type] ?? <Bell size={16} />
 }
 
 function timeAgo(ts: number) {
@@ -39,9 +44,10 @@ function NotifRow({ n, onRead }: { n: Notification; onRead: (id: string) => void
       <span style={{
         width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
         background: n.read ? 'rgba(var(--glass-rgb),0.4)' : 'rgba(255,90,90,0.12)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: n.read ? 'var(--color-muted)' : '#FF5A5A',
       }}>
-        {ICON[n.type] ?? '🔔'}
+        {getIcon(n.type)}
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13, fontWeight: n.read ? 500 : 700, color: 'var(--color-text)', lineHeight: 1.25 }}>
@@ -161,7 +167,7 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
           </div>
 
           {/* List */}
-          <div style={{ maxHeight: 380, overflowY: 'auto', padding: '6px 6px' }}>
+          <div className="no-scrollbar" style={{ maxHeight: 380, overflowY: 'auto', padding: '6px 6px' }}>
             {notifications.length === 0 ? (
               <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--color-muted)', fontSize: 13 }}>
                 Нет уведомлений

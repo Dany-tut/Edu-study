@@ -23,6 +23,14 @@ const BIOLOGY: SubjectPalette = {
   ring: 'rgba(29,185,125,0.16)',
 }
 
+const BIOLOGY_DARK: SubjectPalette = {
+  text: '#4ECFA0',
+  soft: '#0D2B1E',
+  accent: '#2ABD8A',
+  onAccent: '#FFFFFF',
+  ring: 'rgba(42,189,138,0.25)',
+}
+
 const CHEMISTRY: SubjectPalette = {
   text: '#7B3FCC',
   soft: '#EEDBFF',
@@ -31,17 +39,25 @@ const CHEMISTRY: SubjectPalette = {
   ring: 'rgba(123,63,204,0.16)',
 }
 
+const CHEMISTRY_DARK: SubjectPalette = {
+  text: '#C08AFF',
+  soft: '#201336',
+  accent: '#9B6FE8',
+  onAccent: '#FFFFFF',
+  ring: 'rgba(155,111,232,0.25)',
+}
+
 // Accept either the Russian display name or the English id used in mock data.
-export function subjectTheme(subject: string | undefined): SubjectPalette {
+export function subjectTheme(subject: string | undefined, dark = false): SubjectPalette {
   switch (subject) {
     case 'Биология':
     case 'biology':
-      return BIOLOGY
+      return dark ? BIOLOGY_DARK : BIOLOGY
     case 'Химия':
     case 'chemistry':
-      return CHEMISTRY
+      return dark ? CHEMISTRY_DARK : CHEMISTRY
     default:
-      return CHEMISTRY
+      return dark ? CHEMISTRY_DARK : CHEMISTRY
   }
 }
 

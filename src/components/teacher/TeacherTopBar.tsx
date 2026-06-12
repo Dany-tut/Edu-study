@@ -13,7 +13,6 @@ import WidgetsModal from './WidgetsModal'
 import { supabase } from '../../lib/supabase'
 import { useTheme } from '../../store/themeStore'
 import NotificationBell from '../NotificationBell'
-import NotificationPopup from '../NotificationPopup'
 
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
   { id: 'home',        label: 'Главная',     icon: Home },
@@ -57,7 +56,6 @@ export default function TeacherTopBar() {
   const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [widgetsOpen, setWidgetsOpen] = useState(false)
   const [anchor, setAnchor]             = useState<{ top: number; left: number } | null>(null)
-  const [bellOpen, setBellOpen]         = useState(false)
   const bellRef    = useRef<HTMLDivElement>(null)
   const addBtnRef  = useRef<HTMLButtonElement>(null)
   const dropRef    = useRef<HTMLDivElement>(null)
@@ -127,8 +125,8 @@ export default function TeacherTopBar() {
               onMouseEnter={e => {
                 if (!isActive) {
                   const el = e.currentTarget as HTMLButtonElement
-                  el.style.background = 'rgba(155,109,255,0.14)'
-                  el.style.color = '#fff'
+                  el.style.background = 'color-mix(in srgb, var(--color-accent) 14%, transparent)'
+                  el.style.color = 'var(--color-text)'
                 }
               }}
               onMouseLeave={e => {
@@ -187,14 +185,7 @@ export default function TeacherTopBar() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
 
         {/* Bell */}
-        <div ref={bellRef} style={{ display: 'flex' }}>
-          <NotificationBell onClick={() => setBellOpen(o => !o)} />
-        </div>
-        <NotificationPopup
-          open={bellOpen}
-          anchorRef={bellRef as React.RefObject<HTMLElement>}
-          onClose={() => setBellOpen(false)}
-        />
+        <NotificationBell />
 
         {/* Quick-actions grid button */}
         <motion.button

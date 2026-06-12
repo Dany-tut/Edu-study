@@ -262,6 +262,8 @@ export default function DashboardPage() {
             homework={homework}
             onBack={closeHomework}
           />
+        ) : activePage === 'trainer' ? (
+          <TaskBankPage />
         ) : (
           <CoursesPage />
         )}
