@@ -203,10 +203,10 @@ export default function TeacherTopBar() {
           aria-label="Действия"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: 38, height: 34,
-            borderRadius: 12, border: 'none', cursor: 'pointer',
-            background: addOpen ? 'var(--color-purple-soft)' : 'transparent',
-            color: '#7B3FCC', transition: 'background 0.15s',
+            width: 32, height: 32,
+            borderRadius: '50%', border: 'none', cursor: 'pointer',
+            background: 'none',
+            color: 'var(--color-muted)', transition: 'color 0.15s',
           }}
         >
           <LayoutGrid size={17} strokeWidth={2} />
