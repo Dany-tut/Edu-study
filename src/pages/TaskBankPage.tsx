@@ -64,19 +64,36 @@ function FilterField({ label, options, value, onChange, accent }: {
 }) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
   const shown = query ? options.filter(o => o.toLowerCase().includes(query.toLowerCase())) : options
 
   return (
     <div style={{ position: 'relative' }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        padding: '9px 12px', borderRadius: 13,
-        background: 'var(--color-bg-input)',
-        border: `1px solid ${open ? accent : value ? 'var(--color-border)' : 'var(--color-border-soft)'}`,
-        boxShadow: open ? `0 0 0 3px ${accent}22` : 'none',
-        transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
-      }}>
+      <div
+        onMouseDown={e => {
+          // Don't intercept clicks on the input itself
+          if (e.target === inputRef.current) return
+          e.preventDefault()
+          if (open) {
+            setOpen(false)
+            inputRef.current?.blur()
+          } else {
+            setOpen(true)
+            setQuery('')
+            inputRef.current?.focus()
+          }
+        }}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: '9px 12px', borderRadius: 13,
+          background: 'var(--color-bg-input)',
+          border: `1px solid ${open ? accent : value ? 'var(--color-border)' : 'var(--color-border-soft)'}`,
+          boxShadow: open ? `0 0 0 3px ${accent}22` : 'none',
+          transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+          cursor: 'pointer',
+        }}>
         <input
+          ref={inputRef}
           value={open ? query : value}
           placeholder={label}
           onFocus={() => { setOpen(true); setQuery('') }}
@@ -86,6 +103,7 @@ function FilterField({ label, options, value, onChange, accent }: {
             flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
             fontSize: 13, fontWeight: value && !open ? 600 : 400,
             color: value && !open ? 'var(--color-text)' : 'var(--color-muted)',
+            cursor: 'pointer',
           }}
         />
         {value && !open ? (
@@ -94,7 +112,7 @@ function FilterField({ label, options, value, onChange, accent }: {
             ×
           </button>
         ) : (
-          <svg width="11" height="11" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
+          <svg width="11" height="11" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease', pointerEvents: 'none' }}>
             <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         )}

@@ -110,6 +110,7 @@ export default function TeacherSelect({
           {open && pos && (
             <motion.div
               ref={menuRef}
+              className="no-scrollbar"
               initial={{ scale: 0.92, opacity: 0, y: pos.up ? 6 : -6 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.92, opacity: 0, y: pos.up ? 6 : -6 }}
