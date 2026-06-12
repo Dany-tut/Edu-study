@@ -21,7 +21,7 @@ export interface Task {
   question: string
   questionTable?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean> }
   questionImage?: string
-  questionImageSize?: 'sm' | 'md' | 'lg' | 'full'
+  questionImageSize?: number
   answer: string
   solution: string
   difficulty: 'easy' | 'medium' | 'hard'

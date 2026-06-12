@@ -1618,7 +1618,7 @@ function CreatorView({
   // Условие — question text + optional content blocks (image / table)
   const [tkQuestion, setTkQuestion] = useState(editingTask?.question ?? '')
   const [tkImage, setTkImage] = useState(editingTask?.questionImage ?? '')
-  const [tkImageSize, setTkImageSize] = useState<'sm' | 'md' | 'lg' | 'full'>(editingTask?.questionImageSize ?? 'full')
+  const [tkImageSize, setTkImageSize] = useState<number>(() => { const v = editingTask?.questionImageSize; return typeof v === 'number' ? v : 100 })
   const [tkHasTable, setTkHasTable] = useState(!!(editingTask?.questionTable))
   const [tkTableHeaders, setTkTableHeaders] = useState<string[]>(editingTask?.questionTable?.headers ?? ['', ''])
   const [tkTableRows, setTkTableRows] = useState<string[][]>(editingTask?.questionTable?.rows ?? [['', ''], ['', '']])
@@ -2326,10 +2326,10 @@ function CreatorView({
                 <Label>Изображение</Label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {/* size presets */}
-                  <div style={{ display: 'flex', gap: 4 }}>
-                    {(['sm', 'md', 'lg', 'full'] as const).map(sz => {
-                      const labels = { sm: 'S', md: 'M', lg: 'L', full: '↔' }
-                      const titles = { sm: 'Маленькое (~30%)', md: 'Среднее (~50%)', lg: 'Большое (~70%)', full: 'Полная ширина' }
+                  <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                    {([30, 50, 70, 100] as const).map(sz => {
+                      const labels = { 30: 'S', 50: 'M', 70: 'L', 100: '↔' }
+                      const titles = { 30: 'Маленькое (30%)', 50: 'Среднее (50%)', 70: 'Большое (70%)', 100: 'Полная ширина' }
                       const active = tkImageSize === sz
                       return (
                         <button key={sz} title={titles[sz]} onClick={() => setTkImageSize(sz)}
@@ -2338,12 +2338,33 @@ function CreatorView({
                         </button>
                       )
                     })}
+                    <span style={{ fontSize: 11, color: 'var(--color-muted)', marginLeft: 4 }}>{tkImageSize}%</span>
                   </div>
-                  <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', maxWidth: { sm: '30%', md: '50%', lg: '70%', full: '100%' }[tkImageSize] }}>
-                    <img src={tkImage} alt="" style={{ display: 'block', maxWidth: '100%' }} />
-                    <button onClick={() => setTkImage('')} style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.55)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <X size={13} />
-                    </button>
+                  {/* image + resize handle */}
+                  <div style={{ position: 'relative', alignSelf: 'flex-start', width: `${tkImageSize}%` }}>
+                    <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)' }}>
+                      <img src={tkImage} alt="" style={{ display: 'block', width: '100%' }} />
+                      <button onClick={() => setTkImage('')} style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.55)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <X size={13} />
+                      </button>
+                    </div>
+                    {/* drag-resize grip */}
+                    <div
+                      onMouseDown={e => {
+                        e.preventDefault()
+                        const parentW = (e.currentTarget.parentElement?.parentElement as HTMLElement)?.getBoundingClientRect().width
+                        if (!parentW) return
+                        const startX = e.clientX
+                        const startPct = tkImageSize
+                        const onMove = (me: MouseEvent) => setTkImageSize(Math.min(100, Math.max(10, Math.round(startPct + (me.clientX - startX) / parentW * 100))))
+                        const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp) }
+                        document.addEventListener('mousemove', onMove)
+                        document.addEventListener('mouseup', onUp)
+                      }}
+                      style={{ position: 'absolute', right: -12, top: 0, bottom: 0, width: 24, cursor: 'ew-resize', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}
+                    >
+                      <div style={{ width: 4, height: 40, borderRadius: 2, background: 'var(--color-border-medium)' }} />
+                    </div>
                   </div>
                 </div>
               </div>

@@ -332,7 +332,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
 
       {/* Image block */}
       {task.questionImage && (
-        <img src={task.questionImage} alt="" style={{ maxWidth: { sm: '30%', md: '50%', lg: '70%', full: '100%' }[task.questionImageSize ?? 'full'], borderRadius: 14, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', display: 'block' }} />
+        <img src={task.questionImage} alt="" style={{ maxWidth: `${task.questionImageSize ?? 100}%`, borderRadius: 14, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', display: 'block' }} />
       )}
 
       {/* Choice options */}

@@ -28,7 +28,7 @@ function dbToTask(row: Record<string, unknown>): Task {
     difficulty: (row.difficulty as Task['difficulty']) || 'medium',
     questionTable: row.question_table as Task['questionTable'],
     questionImage: row.question_image as string | undefined,
-    questionImageSize: row.question_image_size as Task['questionImageSize'],
+    questionImageSize: (() => { const v = row.question_image_size; if (!v) return undefined; if (typeof v === 'number') return v; return ({ sm: 30, md: 50, lg: 70, full: 100 } as Record<string,number>)[v as string] ?? 100 })(),
     questionType: row.question_type as Task['questionType'],
     scoreMode: row.score_mode as Task['scoreMode'],
     choices: row.choices as Task['choices'],
@@ -83,7 +83,15 @@ function lsLoad(): Task[] {
 function lsSave(tasks: Task[]) {
   try { localStorage.setItem(LS_KEY, JSON.stringify(tasks)) } catch {}
 }
-let lsNextId = () => { const t = lsLoad(); return t.length ? Math.max(...t.map(x => x.id)) + 1 : 1 }
+const lsNextId = () => { const t = lsLoad(); return t.length ? Math.max(...t.map(x => x.id)) + 1 : 1 }
+
+if (DEV && typeof window !== 'undefined') {
+  window.addEventListener('storage', e => {
+    if (e.key === LS_KEY) {
+      useTaskBank.setState({ tasks: lsLoad(), loaded: true })
+    }
+  })
+}
 
 export const useTaskBank = create<TaskBankStore>((set, get) => ({
   tasks: [],
