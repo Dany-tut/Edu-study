@@ -271,8 +271,8 @@ function SegBtn({ label, active, color, bg, onClick }: { label: string; active: 
     <button onClick={onClick} style={{
       flex: 1, padding: '7px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
       fontSize: 12, fontWeight: 600,
-      background: active ? bg : 'var(--color-bg)',
-      color: active ? color : 'var(--color-muted)',
+      background: active ? bg : 'var(--color-bg-3)',
+      color: active ? color : 'var(--color-text-2)',
       transition: 'all 0.15s',
     }}>{label}</button>
   )
@@ -1102,8 +1102,17 @@ function RichConditionEditor({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [focused, setFocused] = useState(false)
   const [fontSize, setFontSize] = useState('16')
+  const [sizeOpen, setSizeOpen] = useState(false)
   const arrowRef = useRef({ up: false, down: false })
   const lastHtmlRef = useRef(value)
+
+  // Close size picker when clicking outside toolbar
+  useEffect(() => {
+    if (!sizeOpen) return
+    const close = () => setSizeOpen(false)
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [sizeOpen])
 
   // Sync external resets (e.g. clear form) without blowing up the cursor
   useEffect(() => {
@@ -1313,6 +1322,7 @@ function RichConditionEditor({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 5 }}
             transition={{ duration: 0.14 }}
+            onMouseDown={e => e.preventDefault()}
             style={{
               position: 'absolute', bottom: 8, left: 8, right: 8,
               height: 40, display: 'flex', alignItems: 'center', gap: 1,
@@ -1325,22 +1335,45 @@ function RichConditionEditor({
               flexWrap: 'nowrap', overflowX: 'auto',
             }}
           >
-            {/* Font size */}
-            <select
-              value={fontSize}
-              onChange={e => applyFontSize(e.target.value)}
-              onMouseDown={e => e.stopPropagation()}
-              style={{
-                height: 26, borderRadius: 6,
-                border: '1px solid var(--color-border-medium)',
-                background: 'var(--color-bg-input)',
-                color: 'var(--color-text)', fontSize: 12,
-                padding: '0 4px', cursor: 'pointer', fontFamily: 'inherit',
-                flexShrink: 0,
-              }}
-            >
-              {FONT_SIZES.map(s => <option key={s} value={s}>{s}px</option>)}
-            </select>
+            {/* Font size custom picker */}
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <button
+                onMouseDown={e => { e.preventDefault(); setSizeOpen(o => !o) }}
+                style={{
+                  height: 28, padding: '0 8px', borderRadius: 7,
+                  border: '1px solid var(--color-border-medium)',
+                  background: sizeOpen ? 'var(--color-bg-3)' : 'var(--color-bg-input)',
+                  color: 'var(--color-text)', fontSize: 12,
+                  cursor: 'pointer', fontFamily: 'inherit', display: 'flex',
+                  alignItems: 'center', gap: 4, whiteSpace: 'nowrap',
+                }}
+              >
+                {fontSize}px <span style={{ fontSize: 9, opacity: 0.5 }}>▾</span>
+              </button>
+              {sizeOpen && (
+                <div style={{
+                  position: 'absolute', bottom: 'calc(100% + 4px)', left: 0,
+                  background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)',
+                  borderRadius: 10, padding: '4px', zIndex: 30,
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                  display: 'flex', flexDirection: 'column', gap: 1, minWidth: 70,
+                }}>
+                  {FONT_SIZES.map(s => (
+                    <button key={s}
+                      onMouseDown={e => { e.preventDefault(); applyFontSize(s); setSizeOpen(false) }}
+                      style={{
+                        padding: '5px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                        background: fontSize === s ? 'var(--color-bg-3)' : 'transparent',
+                        color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit',
+                        textAlign: 'left', fontWeight: fontSize === s ? 700 : 400,
+                      }}
+                    >
+                      {s}px
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {divider}
 
