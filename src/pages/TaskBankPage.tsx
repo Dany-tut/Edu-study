@@ -71,8 +71,10 @@ function FilterField({ label, options, value, onChange, accent }: {
     <div style={{ position: 'relative' }}>
       <div
         onMouseDown={e => {
-          // Don't intercept clicks on the input itself
-          if (e.target === inputRef.current) return
+          if (e.target === inputRef.current) {
+            if (open) { e.preventDefault(); setOpen(false); inputRef.current?.blur() }
+            return
+          }
           e.preventDefault()
           if (open) {
             setOpen(false)
@@ -306,16 +308,16 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
 
       {/* Table */}
       {task.questionTable && (
-        <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', maxWidth: '100%' }}>
-          <table style={{ borderCollapse: 'collapse', fontSize: 13, width: '100%' }}>
+        <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', minWidth: 260, maxWidth: '100%' }}>
+          <table style={{ borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr>{task.questionTable.headers.map(h => (
-                <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '9px 16px', fontWeight: 700, background: 'rgba(0,0,0,0.03)', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
+                <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '9px 16px', fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left' }}>{h}</th>
               ))}</tr>
             </thead>
             <tbody>
               {task.questionTable.rows.map((row, i) => (
-                <tr key={i} style={{ background: i % 2 === 1 ? 'rgba(0,0,0,0.015)' : 'transparent' }}>{row.map((cell, j) => (
+                <tr key={i}>{row.map((cell, j) => (
                   <td key={j} style={{ borderTop: i > 0 ? '1px solid var(--color-border)' : undefined, borderRight: '1px solid var(--color-border)', padding: '9px 16px' }}>{cell}</td>
                 ))}</tr>
               ))}
@@ -860,6 +862,7 @@ export default function TaskBankPage() {
       </motion.div>
 
       {/* Docked twin — fixed on the topbar line, matches HomeworkFlow exactly */}
+      <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
       <AnimatePresence>
         {docked && (
           <motion.div
@@ -869,7 +872,7 @@ export default function TaskBankPage() {
             animate={{ opacity: 1, y: [0, 6, -3.5, 1.5, -0.5, 0] }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
-            style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, gap: 12, pointerEvents: 'none' }}
+            style={{ gap: 12, pointerEvents: 'none' }}
           >
             <motion.button
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
@@ -891,20 +894,20 @@ export default function TaskBankPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
 
-      {/* ── Two-column card — exact same as HomeworkFlow ── */}
-      <div
-        className="grid grid-cols-1 lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)] items-stretch"
-        style={{
-          borderRadius: 32,
-          background: 'rgba(var(--glass-rgb), 0.98)',
+      {/* ── Separated layout: sticky left card + independent scrolling center ── */}
+      <div className="flex flex-col lg:flex-row lg:items-start" style={{ gap: 20 }}>
+
+        {/* Left sidebar — standalone sticky card */}
+        <div className="lg:sticky" style={{ top: 108, flexShrink: 0 }}>
+        <aside className="flex flex-col" style={{
+          width: 300, padding: 16, gap: 16,
+          borderRadius: 24,
+          background: 'rgba(var(--glass-rgb), 0.97)',
           border: '1px solid var(--color-border-glass)',
-          boxShadow: '0 24px 80px rgba(17,12,34,0.12)',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Left sidebar */}
-        <aside className="flex flex-col" style={{ padding: 16, gap: 16, borderRight: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)' }}>
+          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+        }}>
 
           {/* Subject gradient card — clicking it toggles between biology and chemistry */}
           <div
@@ -991,9 +994,10 @@ export default function TaskBankPage() {
             ))}
           </div>
         </aside>
+        </div>
 
-        {/* Right: search bar + tasks */}
-        <main className="flex flex-col" style={{ padding: 24, gap: 18, background: `radial-gradient(circle at top right, ${subject === 'biology' ? 'rgba(29,185,125,0.10)' : 'rgba(197,139,255,0.10)'}, transparent 35%), var(--color-bg)` }}>
+        {/* Center: search + tasks */}
+        <main className="flex flex-col" style={{ flex: 1, minWidth: 0, gap: 18 }}>
 
           {/* Controls row */}
           <div className="flex items-center flex-wrap" style={{ gap: 10 }}>

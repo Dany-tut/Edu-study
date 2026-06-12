@@ -18,7 +18,7 @@
   --color-bg-4: #FAFAFA;
   --color-bg-5: #EBEBEF;
   --color-bg-input: #ffffff;
-  --color-table-header-bg: #EDEAF4;
+  --color-table-header-bg: #DDD8EE;
 
   --color-surface: rgba(255,255,255,0.92);
 
@@ -103,7 +103,7 @@
   --color-bg-4: #1E1E20;
   --color-bg-5: #2A2A2C;
   --color-bg-input: #202022;
-  --color-table-header-bg: #2E2840;
+  --color-table-header-bg: #3A3352;
 
   --color-surface: rgba(22,22,24,0.92);
 
@@ -289,6 +289,12 @@ a {
   padding: 20px 32px 20px;
   background: transparent;
   pointer-events: none;
+  /* Scroll spring — all topbar pills move together */
+  transform: translateY(var(--topbar-spring-y, 0px));
+}
+/* Docked-pill rows (position:fixed) share the same spring feel */
+.docked-pills-row {
+  transform: translateY(var(--topbar-spring-y, 0px));
 }
 
 /* Full-width progressive blur+fade pinned to the top of the viewport */
@@ -491,13 +497,22 @@ input[type=number]::-webkit-outer-spin-button {
   margin: 0;
 }
 
-/* Scroll DOWN — bar presses down then bounces up (locking in). */
+/* Scroll DOWN — bar presses down then bounces up (locking in). Full amplitude for UP direction. */
 @keyframes topbar-jelly-down {
   0%   { transform: translateY(0px); }
   22%  { transform: translateY(6px); }
   44%  { transform: translateY(-3.5px); }
   63%  { transform: translateY(1.5px); }
   80%  { transform: translateY(-0.7px); }
+  100% { transform: translateY(0px); }
+}
+/* Soft scroll-down — topbar + widget on downward scroll: ~40% of full amplitude. */
+@keyframes topbar-jelly-down-soft {
+  0%   { transform: translateY(0px); }
+  22%  { transform: translateY(2.5px); }
+  44%  { transform: translateY(-1.4px); }
+  63%  { transform: translateY(0.6px); }
+  80%  { transform: translateY(-0.3px); }
   100% { transform: translateY(0px); }
 }
 /* Scroll UP — bar pops up then settles (spring releasing). */
@@ -510,7 +525,7 @@ input[type=number]::-webkit-outer-spin-button {
   100% { transform: translateY(0px); }
 }
 .topbar-snap-down {
-  animation: topbar-jelly-down 0.40s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: topbar-jelly-down-soft 0.38s cubic-bezier(0.34, 1.46, 0.64, 1) both;
 }
 .topbar-snap-up {
   animation: topbar-jelly-up 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;

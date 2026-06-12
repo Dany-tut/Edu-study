@@ -268,10 +268,10 @@ export function BankQuestionCard({
 
       {/* Table (read-only) */}
       {!compact && task.questionTable && (
-        <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', maxWidth: '100%' }}>
-          <table style={{ borderCollapse: 'collapse', fontSize: 13 }}>
+        <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', minWidth: 260, maxWidth: '100%' }}>
+          <table style={{ borderCollapse: 'collapse', fontSize: 13, width: '100%' }}>
             <thead><tr>{task.questionTable.headers.map(h => (
-              <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '8px 14px', fontWeight: 700, background: 'var(--color-bg-2)', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
+              <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '8px 14px', fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left' }}>{h}</th>
             ))}</tr></thead>
             <tbody>{task.questionTable.rows.map((row, ri) => (
               <tr key={ri}>{row.map((cell, ci) => (

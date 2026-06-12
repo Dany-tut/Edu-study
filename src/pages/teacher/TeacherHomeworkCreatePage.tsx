@@ -717,16 +717,16 @@ function BankTaskCard({ task, index, added, onAdd }: {
 
       {/* Table (read-only) */}
       {task.questionTable && (
-        <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', maxWidth: '100%' }}>
-          <table style={{ borderCollapse: 'collapse', fontSize: 13, width: '100%' }}>
+        <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', minWidth: 260, maxWidth: '100%' }}>
+          <table style={{ borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr>{task.questionTable.headers.map(h => (
-                <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '9px 16px', fontWeight: 700, background: 'var(--color-bg-2)', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
+                <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '9px 16px', fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left' }}>{h}</th>
               ))}</tr>
             </thead>
             <tbody>
               {task.questionTable.rows.map((row, ri) => (
-                <tr key={ri} style={{ background: ri % 2 === 1 ? 'var(--color-bg-2)' : 'transparent' }}>{row.map((cell, ci) => (
+                <tr key={ri}>{row.map((cell, ci) => (
                   <td key={ci} style={{ borderTop: ri > 0 ? '1px solid var(--color-border)' : undefined, borderRight: '1px solid var(--color-border)', padding: '9px 16px' }}>{cell}</td>
                 ))}</tr>
               ))}
@@ -1971,6 +1971,7 @@ export default function TeacherHomeworkCreatePage() {
       style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}
     >
       {/* ── Docked twin — fixed on the topbar line ── */}
+      <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
       <AnimatePresence>
         {docked && (
           <motion.div
@@ -1980,7 +1981,6 @@ export default function TeacherHomeworkCreatePage() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
             style={{
-              position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80,
               display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none',
             }}
           >
@@ -2025,6 +2025,7 @@ export default function TeacherHomeworkCreatePage() {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
 
       {/* ── All page content in the scroll flow ── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 0, padding: '4px 0 48px' }}>

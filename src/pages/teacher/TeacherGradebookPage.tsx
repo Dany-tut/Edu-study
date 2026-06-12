@@ -553,7 +553,7 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
             Отмена
           </button>
           <TeacherSaveButton
-            label="Сохранить урок" savedLabel="Сохранено"
+            label="Сохранить" savedLabel="Сохранено"
             saved={saved} onClick={handleSave}
           />
         </div>

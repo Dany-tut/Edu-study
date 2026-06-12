@@ -906,6 +906,7 @@ export default function CompactWidgetPill() {
   return (
     <motion.div
       ref={rootRef}
+      data-widget-pill
       onClick={handleClick}
       // Capture phase so interactions still reset the idle timer even when an
       // inner control stops propagation; mousemove keeps it alive on hover.

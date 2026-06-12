@@ -1,3 +1,37 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Topbar spring — fires ONLY at the compact/expanded boundary transition.
+// Gives all topbar pills a one-shot "resist → snap-through" kick.
+// ─────────────────────────────────────────────────────────────────────────────
+let _spY   = 0
+let _spV   = 0
+let _spRaf: number | null = null
+
+const _SP_KICK  = 4      // initial push magnitude (px)
+const _SP_STIFF = 0.15
+const _SP_DAMP  = 0.80
+
+function _spTick() {
+  _spV += -_spY * _SP_STIFF
+  _spV *= _SP_DAMP
+  _spY += _spV
+  document.documentElement.style.setProperty('--topbar-spring-y', `${_spY.toFixed(3)}px`)
+  if (Math.abs(_spY) > 0.04 || Math.abs(_spV) > 0.04) {
+    _spRaf = requestAnimationFrame(_spTick)
+  } else {
+    _spY = 0; _spV = 0; _spRaf = null
+    document.documentElement.style.removeProperty('--topbar-spring-y')
+  }
+}
+
+// Call at the docking boundary: down=true when scrolling into compact, false when releasing.
+export function springTopbar(down: boolean) {
+  // Resist against scroll direction first, then spring back through neutral.
+  _spV = down ? -_SP_KICK : _SP_KICK
+  _spY = 0
+  if (_spRaf) cancelAnimationFrame(_spRaf)
+  _spRaf = requestAnimationFrame(_spTick)
+}
+
 // Lightweight tactile + audio feedback for UI affordances. Both channels are
 // best-effort: navigator.vibrate is a no-op on desktop / unsupported browsers,
 // and the WebAudio blip can only sound after a user gesture — which is exactly

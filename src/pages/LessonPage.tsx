@@ -686,6 +686,7 @@ export default function LessonPage() {
           container's top padding so it sits ON the topbar row (mini topbar
           centred between Back+title on the left and the date on the right).
           Glass pills to match the topbar; fades / slides in on scroll. */}
+      <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
       <AnimatePresence>
         {docked && (
           <motion.div
@@ -695,10 +696,7 @@ export default function LessonPage() {
             animate={{ opacity: 1, y: [0, 6, -3.5, 1.5, -0.5, 0] }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
-            style={{
-              position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80,
-              gap: 12, pointerEvents: 'none',
-            }}
+            style={{ gap: 12, pointerEvents: 'none' }}
           >
             <motion.button
               whileHover={{ scale: 1.03 }}
@@ -764,6 +762,7 @@ export default function LessonPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
 
       {/* ── Row 1: video + timecodes ── */}
       <div

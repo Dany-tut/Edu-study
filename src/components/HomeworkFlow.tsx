@@ -749,6 +749,7 @@ export default function HomeworkFlow({
 
       {/* Docked twin — fixed at the topbar line so the Back/title pills sit ON
           the topbar row (mini topbar centred between them and the widget pill). */}
+      <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
       <AnimatePresence>
         {docked && (
           <motion.div
@@ -758,7 +759,7 @@ export default function HomeworkFlow({
             animate={{ opacity: 1, y: [0, 6, -3.5, 1.5, -0.5, 0] }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
-            style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, gap: 12, pointerEvents: 'none' }}
+            style={{ gap: 12, pointerEvents: 'none' }}
           >
             <motion.button
               whileHover={{ scale: 1.03 }}
@@ -813,6 +814,7 @@ export default function HomeworkFlow({
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
 
       {/* The homework card scrolls in the flow, up under the topbar + blur. */}
       <motion.div

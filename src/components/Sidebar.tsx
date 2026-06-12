@@ -10,7 +10,7 @@ import { createPortal } from 'react-dom'
 import { clearStudentSession, getStudentSession } from '../lib/studentSession'
 import { canUseFeature } from '../lib/featureFlags'
 import { playTransitionDrop } from '../lib/sound'
-import { tactile, lockSnap, lockRelease } from '../lib/feedback'
+import { tactile, lockSnap, lockRelease, springTopbar } from '../lib/feedback'
 import { useDashboard, type WidgetColumns } from '../store/dashboardStore'
 import WidgetOrderModal from './WidgetOrderModal'
 import { useTheme } from '../store/themeStore'
@@ -218,12 +218,24 @@ export default function Sidebar() {
     if (!snapMountRef.current) { snapMountRef.current = true; return }
     const down = autoCompact
     down ? lockSnap() : lockRelease()
+    springTopbar(down)
     const el = barRef.current
     if (!el) return
     el.classList.remove('topbar-snap-down', 'topbar-snap-up')
     void el.offsetWidth
     el.classList.add(down ? 'topbar-snap-down' : 'topbar-snap-up')
     const id = setTimeout(() => el.classList.remove('topbar-snap-down', 'topbar-snap-up'), 460)
+    // On scroll-down, also give the widget pill the same soft jelly.
+    if (down) {
+      const wp = document.querySelector('[data-widget-pill]') as HTMLElement | null
+      if (wp) {
+        wp.classList.remove('topbar-snap-down', 'topbar-snap-up')
+        void wp.offsetWidth
+        wp.classList.add('topbar-snap-down')
+        const id2 = setTimeout(() => wp.classList.remove('topbar-snap-down'), 460)
+        return () => { clearTimeout(id); clearTimeout(id2) }
+      }
+    }
     return () => clearTimeout(id)
   }, [autoCompact])
 

@@ -8,7 +8,7 @@ import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useTeacher, type TeacherPage } from '../../store/teacherStore'
 import { useHomework } from '../../lib/useHomework'
-import { lockSnap, lockRelease } from '../../lib/feedback'
+import { lockSnap, lockRelease, springTopbar } from '../../lib/feedback'
 import CreateTaskModal from './CreateTaskModal'
 import WidgetsModal from './WidgetsModal'
 import { supabase } from '../../lib/supabase'
@@ -104,6 +104,7 @@ export default function TeacherTopBar() {
   useEffect(() => {
     if (!snapMountRef.current) { snapMountRef.current = true; return }
     headerDocked ? lockSnap() : lockRelease()
+    springTopbar(headerDocked)
     const el = teacherBarRef.current
     if (!el) return
     el.classList.remove('topbar-snap-down', 'topbar-snap-up')

@@ -1263,6 +1263,7 @@ export default function TeacherLessonEditorPage() {
         {/* ── Docked twin — fixed at the topbar line, escaping the scroll
             container's top padding so it sits ON the topbar row. Glass pills to
             match the topbar; fades / slides in on scroll. ── */}
+        <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
         <AnimatePresence>
           {docked && (
             <motion.div
@@ -1272,7 +1273,6 @@ export default function TeacherLessonEditorPage() {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
               style={{
-                position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80,
                 display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none',
               }}
             >
@@ -1319,6 +1319,7 @@ export default function TeacherLessonEditorPage() {
             </motion.div>
           )}
         </AnimatePresence>
+        </div>
 
         {/* ── Body ── */}
         <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   BookOpen, Zap, Layers, Plus, Clock,
@@ -1108,11 +1109,28 @@ function RichConditionEditor({
 }) {
   const editorRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const sizeBtnRef = useRef<HTMLButtonElement>(null)
   const [focused, setFocused] = useState(false)
   const [fontSize, setFontSize] = useState('16')
   const [sizeOpen, setSizeOpen] = useState(false)
-  const arrowRef = useRef({ up: false, down: false })
-  const lastHtmlRef = useRef(value)
+  const [sizeDropPos, setSizeDropPos] = useState({ top: 0, left: 0 })
+  const sizeDropRef = useRef<HTMLDivElement>(null)
+
+  const lastHtmlRef = useRef('')
+  const savedRangeRef = useRef<Range | null>(null)
+
+  useEffect(() => {
+    if (!sizeOpen) return
+    const handler = (e: MouseEvent) => {
+      if (
+        sizeBtnRef.current?.contains(e.target as Node) ||
+        sizeDropRef.current?.contains(e.target as Node)
+      ) return
+      setSizeOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [sizeOpen])
   const dark = useTheme(s => s.dark)
   const hlAlpha = dark ? 0.3 : 0.8
 
@@ -1138,24 +1156,15 @@ function RichConditionEditor({
     emit()
   }
 
-  // Insert superscript / subscript node at cursor
-  const insertScript = (tag: 'sup' | 'sub', char: string) => {
-    editorRef.current?.focus()
-    const sel = window.getSelection()
-    if (!sel || !sel.rangeCount) return
-    const range = sel.getRangeAt(0)
-    range.deleteContents()
-    const node = document.createElement(tag)
-    node.textContent = char
-    range.insertNode(node)
-    range.setStartAfter(node)
-    range.setEndAfter(node)
-    sel.removeAllRanges()
-    sel.addRange(range)
-    emit()
-  }
-
   const selectedImgRef = useRef<HTMLImageElement | null>(null)
+
+  const inScript = () =>
+    document.queryCommandState('superscript') || document.queryCommandState('subscript')
+
+  const exitScript = () => {
+    if (document.queryCommandState('superscript')) exec('superscript')
+    if (document.queryCommandState('subscript'))   exec('subscript')
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     // Delete selected image
@@ -1166,18 +1175,17 @@ function RichConditionEditor({
       emit()
       return
     }
-    if (e.key === 'ArrowUp') { e.preventDefault(); arrowRef.current.up = true; return }
-    if (e.key === 'ArrowDown') { e.preventDefault(); arrowRef.current.down = true; return }
-    if ((arrowRef.current.up || arrowRef.current.down) && e.key.length === 1) {
-      e.preventDefault()
-      insertScript(arrowRef.current.up ? 'sup' : 'sub', e.key)
-    }
+    // ↑ = superscript mode, ↓ = subscript mode
+    if (e.key === 'ArrowUp')   { e.preventDefault(); exitScript(); exec('superscript'); return }
+    if (e.key === 'ArrowDown') { e.preventDefault(); exitScript(); exec('subscript');   return }
+    // Space (first press) = exit super/sub without inserting space
+    if (e.key === ' ' && inScript()) { e.preventDefault(); exitScript(); return }
+    // → = exit super/sub, cursor stays
+    if (e.key === 'ArrowRight' && inScript()) { e.preventDefault(); exitScript(); return }
+    // Escape = exit
+    if (e.key === 'Escape' && inScript()) { e.preventDefault(); exitScript(); return }
   }
 
-  const handleKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'ArrowUp') arrowRef.current.up = false
-    if (e.key === 'ArrowDown') arrowRef.current.down = false
-  }
 
   const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement
@@ -1252,9 +1260,14 @@ function RichConditionEditor({
   const applyFontSize = (size: string) => {
     setFontSize(size)
     editorRef.current?.focus()
+    // Restore the saved selection (it may have been cleared when the dropdown opened)
     const sel = window.getSelection()
-    if (!sel || sel.isCollapsed || !sel.rangeCount) return
-    const range = sel.getRangeAt(0)
+    if (!sel) return
+    const range = savedRangeRef.current
+    if (!range) return
+    sel.removeAllRanges()
+    sel.addRange(range)
+    if (sel.isCollapsed) { emit(); return }
     // Wrap selection in a span with the desired size
     try {
       const span = document.createElement('span')
@@ -1299,7 +1312,7 @@ function RichConditionEditor({
         onBlur={() => { emit(); setTimeout(() => setFocused(false), 200) }}
         onClick={handleEditorClick}
         onKeyDown={handleKeyDown}
-        onKeyUp={handleKeyUp}
+
         onPaste={handlePaste}
         style={{
           ...(inputSt as React.CSSProperties),
@@ -1340,13 +1353,22 @@ function RichConditionEditor({
             {/* Font size custom picker — toggle via onClick (safe: parent onMouseDown handles focus) */}
             <div
               style={{ position: 'relative', flexShrink: 0 }}
-              onMouseLeave={() => setSizeOpen(false)}
             >
               <button
-                onClick={() => setSizeOpen(o => !o)}
+                ref={sizeBtnRef}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  const sel = window.getSelection()
+                  savedRangeRef.current = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).cloneRange() : null
+                  if (!sizeOpen && sizeBtnRef.current) {
+                    const r = sizeBtnRef.current.getBoundingClientRect()
+                    setSizeDropPos({ top: r.bottom + 6, left: r.left })
+                  }
+                  setSizeOpen(o => !o)
+                }}
                 style={{
                   height: 28, padding: '0 8px', borderRadius: 7,
-                  border: '1px solid var(--color-border-medium)',
+                  border: 'none', outline: 'none',
                   background: sizeOpen ? 'var(--color-bg-3)' : 'var(--color-bg-input)',
                   color: 'var(--color-text)', fontSize: 12,
                   cursor: 'pointer', fontFamily: 'inherit', display: 'flex',
@@ -1355,11 +1377,11 @@ function RichConditionEditor({
               >
                 {fontSize}px <span style={{ fontSize: 9, opacity: 0.5 }}>▾</span>
               </button>
-              {sizeOpen && (
-                <div style={{
-                  position: 'absolute', bottom: 'calc(100% + 4px)', left: 0,
+              {sizeOpen && createPortal(
+                <div ref={sizeDropRef} style={{
+                  position: 'fixed', top: sizeDropPos.top, left: sizeDropPos.left,
                   background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)',
-                  borderRadius: 10, padding: '4px', zIndex: 30,
+                  borderRadius: 10, padding: '4px', zIndex: 9999,
                   boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
                   display: 'flex', flexDirection: 'column', gap: 1, minWidth: 70,
                 }}>
@@ -1376,7 +1398,8 @@ function RichConditionEditor({
                       {s}px
                     </button>
                   ))}
-                </div>
+                </div>,
+                document.body
               )}
             </div>
 
@@ -1394,12 +1417,12 @@ function RichConditionEditor({
 
             {divider}
 
-            <ToolbarBtn title="Надстрочный (зажми ↑ + символ)" onClick={() => exec('superscript')}>
+            <ToolbarBtn title="Надстрочный (↑ чтобы войти, пробел/→ выйти)" onClick={() => exec('superscript')}>
               <span style={{ fontSize: 12, lineHeight: 1, fontFamily: 'inherit' }}>
                 x<sup style={{ fontSize: '68%' }}>2</sup>
               </span>
             </ToolbarBtn>
-            <ToolbarBtn title="Подстрочный (зажми ↓ + символ)" onClick={() => exec('subscript')}>
+            <ToolbarBtn title="Подстрочный (↓ чтобы войти, пробел/→ выйти)" onClick={() => exec('subscript')}>
               <span style={{ fontSize: 12, lineHeight: 1, fontFamily: 'inherit' }}>
                 x<sub style={{ fontSize: '68%' }}>2</sub>
               </span>
@@ -1598,6 +1621,8 @@ function CreatorView({
   const [tkHasTable, setTkHasTable] = useState(!!(editingTask?.questionTable))
   const [tkTableHeaders, setTkTableHeaders] = useState<string[]>(editingTask?.questionTable?.headers ?? ['', ''])
   const [tkTableRows, setTkTableRows] = useState<string[][]>(editingTask?.questionTable?.rows ?? [['', ''], ['', '']])
+  const [tkEmptyCells, setTkEmptyCells] = useState<Record<string, boolean>>({})
+  const [tkActiveCell, setTkActiveCell] = useState<string | null>(null)
 
   // Ответ — which block + its config
   const [tkAnswerType, setTkAnswerType] = useState<AnswerType>(editingTask?.answerType ?? 'single')
@@ -1989,7 +2014,7 @@ function CreatorView({
 
   const currentName = (mode === 'trainer' ? stripHtml(tkQuestion) : mode === 'course' ? cTitle : wTitle).trim()
   const createLabel = mode === 'trainer' ? (editingTask ? 'Редактировать задание' : 'Создать задание') : mode === 'course' ? (editCourse ? 'Редактировать курс' : 'Создать курс') : 'Создать виджет'
-  const saveLabel = mode === 'trainer' ? (editingTask ? 'Сохранить изменения' : 'Сохранить в банк') : mode === 'course' ? 'Сохранить курс' : 'Сохранить виджет'
+  const saveLabel = 'Сохранить'
   const paramsLabel = mode === 'course' ? 'Параметры курса' : mode === 'trainer' ? 'Параметры задания' : 'Параметры виджета'
 
   const savePillStyle: React.CSSProperties = teacherSaveStyle({ disabled: !canSave })
@@ -2004,6 +2029,7 @@ function CreatorView({
       style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', paddingTop: 100 }}
     >
       {/* ── Docked twin — fixed on the topbar line ── */}
+      <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
       <AnimatePresence>
         {docked && (
           <motion.div
@@ -2013,7 +2039,6 @@ function CreatorView({
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
             style={{
-              position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80,
               display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none',
             }}
           >
@@ -2040,16 +2065,19 @@ function CreatorView({
 
             <div style={{ flexGrow: 1, flexBasis: 0 }} />
 
-            <motion.button
-              whileHover={{ scale: canSave ? 1.03 : 1 }} whileTap={{ scale: canSave ? 0.97 : 1 }}
-              onClick={handleSave}
-              style={{ ...savePillStyle, pointerEvents: 'auto' }}
-            >
-              <Check size={14} strokeWidth={2.5} /> {saveLabel}
-            </motion.button>
+            <div style={{ flexShrink: 0, width: 248, display: 'flex', justifyContent: 'center' }}>
+              <motion.button
+                whileHover={{ scale: canSave ? 1.03 : 1 }} whileTap={{ scale: canSave ? 0.97 : 1 }}
+                onClick={handleSave}
+                style={{ ...savePillStyle, pointerEvents: 'auto' }}
+              >
+                <Check size={14} strokeWidth={2.5} /> {saveLabel}
+              </motion.button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
 
       {/* ── All page content in the scroll flow ── */}
       <div style={{ display: 'flex', flexDirection: 'column', padding: '4px 0 48px' }}>
@@ -2078,13 +2106,16 @@ function CreatorView({
             {mode !== 'trainer' && currentName && <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}> — {currentName}</span>}
           </div>
 
-          <motion.button
-            whileHover={{ scale: canSave ? 1.03 : 1 }} whileTap={{ scale: canSave ? 0.97 : 1 }}
-            onClick={handleSave}
-            style={savePillStyle}
-          >
-            <Check size={14} strokeWidth={2.5} /> {saveLabel}
-          </motion.button>
+          {/* Width mirrors GlassCard (248px); header paddingRight:24 mirrors right column paddingRight:24 */}
+          <div style={{ flexShrink: 0, width: 248, display: 'flex', justifyContent: 'center' }}>
+            <motion.button
+              whileHover={{ scale: canSave ? 1.03 : 1 }} whileTap={{ scale: canSave ? 0.97 : 1 }}
+              onClick={handleSave}
+              style={savePillStyle}
+            >
+              <Check size={14} strokeWidth={2.5} /> {saveLabel}
+            </motion.button>
+          </div>
         </motion.div>
 
         {/* ── Body: left sticky panel + center ── */}
@@ -2284,15 +2315,15 @@ function CreatorView({
                 </div>
                 {/* Outer wrapper with gutters on every side; the table is clipped for
                     clean rounded corners, the "+" handles sit OUTSIDE it in the gutters. */}
-                <div onKeyDown={onTableKeyDown} style={{ position: 'relative', padding: 20 }}>
+                <div onKeyDown={onTableKeyDown} onClick={() => setSel(null)} style={{ position: 'relative', padding: 20 }}>
                   <div ref={tblBoxRef} style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--color-border-strong)' }}>
                     <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 13 }}>
                       <thead><tr>{tkTableHeaders.map((h, c) => {
                         const colSel = sel?.type === 'col' && sel.index === c
                         return (
-                          <th key={c} onClick={() => setSel({ type: 'col', index: c })}
-                            style={{ borderRight: '1px solid var(--color-border-medium)', borderBottom: '1px solid var(--color-border-strong)', background: colSel ? cfg.bg : 'var(--color-table-header-bg)', padding: 0, cursor: 'pointer', transition: 'background 0.12s' }}>
-                            <input value={h} onChange={e => setTableHeader(c, e.target.value)} onFocus={() => setSel({ type: 'col', index: c })} placeholder={`Заголовок ${c + 1}`}
+                          <th key={c} onDoubleClick={() => setSel({ type: 'col', index: c })}
+                            style={{ borderRight: '1px solid var(--color-border-medium)', borderBottom: '1px solid var(--color-border-strong)', background: colSel ? cfg.bg : 'var(--color-table-header-bg)', padding: 0, cursor: 'text', transition: 'background 0.12s', minWidth: 90 }}>
+                            <input value={h} onChange={e => setTableHeader(c, e.target.value)} placeholder={`Заголовок ${c + 1}`}
                               style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', color: 'var(--color-text)', padding: '8px 10px', fontWeight: 700, fontFamily: 'inherit', fontSize: 13 }} />
                           </th>
                         )
@@ -2300,11 +2331,46 @@ function CreatorView({
                       <tbody>{tkTableRows.map((row, r) => (
                         <tr key={r}>{row.map((cell, c) => {
                           const hl = (sel?.type === 'row' && sel.index === r) || (sel?.type === 'col' && sel.index === c)
+                          const key = `${r},${c}`
+                          const isExplicitlyEmpty = !!tkEmptyCells[key]
+                          const isActive = tkActiveCell === key
+                          const showChoice = !isExplicitlyEmpty && !isActive && cell === ''
                           return (
-                            <td key={c} onClick={() => setSel({ type: 'row', index: r })}
-                              style={{ borderRight: '1px solid var(--color-border)', borderTop: r > 0 ? '1px solid var(--color-border)' : undefined, padding: 0, cursor: 'pointer', background: hl ? cfg.bg : 'transparent', transition: 'background 0.12s' }}>
-                              <input value={cell} onChange={e => setTableCell(r, c, e.target.value)} onFocus={() => setSel({ type: 'row', index: r })} placeholder="—"
-                                style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: '8px 10px', fontFamily: 'inherit', fontSize: 13 }} />
+                            <td key={c}
+                              onClick={() => { if (showChoice) setTkActiveCell(key) }}
+                              onDoubleClick={() => setSel({ type: 'row', index: r })}
+                              style={{ borderRight: '1px solid var(--color-border)', borderTop: r > 0 ? '1px solid var(--color-border)' : undefined, padding: 0, cursor: showChoice ? 'pointer' : 'text', background: hl ? cfg.bg : 'transparent', transition: 'background 0.12s', position: 'relative' }}>
+                              {isExplicitlyEmpty ? (
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', minHeight: 34, gap: 4 }}>
+                                  <span style={{ fontSize: 11, color: 'var(--color-text-4)', fontStyle: 'italic' }}>пусто</span>
+                                  <button
+                                    onMouseDown={e => { e.stopPropagation(); setTkEmptyCells(prev => { const n = { ...prev }; delete n[key]; return n }); setTkActiveCell(key) }}
+                                    style={{ fontSize: 10, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 4px', borderRadius: 4, lineHeight: 1 }}
+                                    title="Вписать"
+                                  >✎</button>
+                                </div>
+                              ) : showChoice ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', minHeight: 34 }}>
+                                  <button
+                                    onMouseDown={e => { e.stopPropagation(); setTkActiveCell(key) }}
+                                    style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: `1px solid ${cfg.color}55`, background: cfg.bg, color: cfg.color, cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
+                                  >Вписать</button>
+                                  <button
+                                    onMouseDown={e => { e.stopPropagation(); setTkEmptyCells(prev => ({ ...prev, [key]: true })) }}
+                                    style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
+                                  >Пусто</button>
+                                </div>
+                              ) : (
+                                <input
+                                  autoFocus={isActive}
+                                  value={cell}
+                                  onChange={e => setTableCell(r, c, e.target.value)}
+                                  onFocus={() => setTkActiveCell(key)}
+                                  onBlur={() => { if (cell === '') setTkActiveCell(null) }}
+                                  placeholder="—"
+                                  style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: '8px 10px', fontFamily: 'inherit', fontSize: 13 }}
+                                />
+                              )}
                             </td>
                           )
                         })}</tr>
