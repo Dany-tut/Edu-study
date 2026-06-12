@@ -16,6 +16,7 @@ import { TrainerBankBrowser, TrainerBankFilterPanel, emptyTrainerFilters, type T
 import { useCourseLessons } from '../../lib/useCourseLessons'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
+import { useTheme } from '../../store/themeStore'
 import {
   type AnswerType, type Task as BankTask, type TaskChoice, type Subject,
   BIOLOGY_SECTIONS, CHEMISTRY_SECTIONS,
@@ -1089,6 +1090,13 @@ const HIGHLIGHT_COLORS = [
   { hex: '#69DB7C', label: 'Зелёный' },
   { hex: '#FFA94D', label: 'Оранжевый' },
 ]
+
+function hexToRgba(hex: string, alpha: number) {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
 const FONT_SIZES = ['12', '14', '16', '18', '20', '24', '28']
 
 function RichConditionEditor({
@@ -1105,14 +1113,8 @@ function RichConditionEditor({
   const [sizeOpen, setSizeOpen] = useState(false)
   const arrowRef = useRef({ up: false, down: false })
   const lastHtmlRef = useRef(value)
-
-  // Close size picker when clicking outside toolbar
-  useEffect(() => {
-    if (!sizeOpen) return
-    const close = () => setSizeOpen(false)
-    document.addEventListener('mousedown', close)
-    return () => document.removeEventListener('mousedown', close)
-  }, [sizeOpen])
+  const dark = useTheme(s => s.dark)
+  const hlAlpha = dark ? 0.3 : 0.8
 
   // Sync external resets (e.g. clear form) without blowing up the cursor
   useEffect(() => {
@@ -1335,10 +1337,13 @@ function RichConditionEditor({
               flexWrap: 'nowrap', overflowX: 'auto',
             }}
           >
-            {/* Font size custom picker */}
-            <div style={{ position: 'relative', flexShrink: 0 }}>
+            {/* Font size custom picker — toggle via onClick (safe: parent onMouseDown handles focus) */}
+            <div
+              style={{ position: 'relative', flexShrink: 0 }}
+              onMouseLeave={() => setSizeOpen(false)}
+            >
               <button
-                onMouseDown={e => { e.preventDefault(); setSizeOpen(o => !o) }}
+                onClick={() => setSizeOpen(o => !o)}
                 style={{
                   height: 28, padding: '0 8px', borderRadius: 7,
                   border: '1px solid var(--color-border-medium)',
@@ -1407,11 +1412,11 @@ function RichConditionEditor({
               <button
                 key={hex}
                 title={`Выделить: ${label}`}
-                onMouseDown={e => { e.preventDefault(); exec('hiliteColor', hex) }}
+                onMouseDown={e => { e.preventDefault(); exec('hiliteColor', hexToRgba(hex, hlAlpha)) }}
                 style={{
                   width: 16, height: 16, borderRadius: 4,
                   border: '1.5px solid rgba(0,0,0,0.12)',
-                  background: hex, cursor: 'pointer', flexShrink: 0,
+                  background: hexToRgba(hex, hlAlpha), cursor: 'pointer', flexShrink: 0,
                 }}
               />
             ))}
@@ -1626,6 +1631,9 @@ function CreatorView({
   const [tkSolution, setTkSolution] = useState(editingTask?.solution ?? '')
   const [explPhotos, setExplPhotos] = useState<string[]>([])
   const explTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const condImgFileRef = useRef<HTMLInputElement>(null)
+  const [condImgPickerOpen, setCondImgPickerOpen] = useState(false)
+  const condImgPasteZoneRef = useRef<HTMLDivElement>(null)
   const [savedFlash, setSavedFlash] = useState(false)
   const [savedTaskId, setSavedTaskId] = useState<number | null>(null)
   // Clicked cell → selects its row/column for deletion.
@@ -2111,13 +2119,9 @@ function CreatorView({
               <Label>Часть</Label>
               <div style={{ display: 'flex', gap: 8 }}>
                 {([1, 2] as const).map(p => (
-                  <button key={p} onClick={() => setTkPart(p)} style={{
-                    flex: 1, padding: '8px 0', borderRadius: 8, border: '1.5px solid',
-                    borderColor: tkPart === p ? 'var(--color-accent)' : 'var(--color-border)',
-                    background: tkPart === p ? 'var(--color-accent)' : 'transparent',
-                    color: tkPart === p ? '#fff' : 'var(--color-text)',
-                    fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all .15s',
-                  }}>Часть {p}</button>
+                  <SegBtn key={p} label={`Часть ${p}`} active={tkPart === p}
+                    color="var(--color-purple-text)" bg="var(--color-purple-soft)"
+                    onClick={() => setTkPart(p)} />
                 ))}
               </div>
             </div>
@@ -2287,9 +2291,9 @@ function CreatorView({
                         const colSel = sel?.type === 'col' && sel.index === c
                         return (
                           <th key={c} onClick={() => setSel({ type: 'col', index: c })}
-                            style={{ borderRight: '1px solid var(--color-border-medium)', borderBottom: '1px solid var(--color-border-strong)', background: colSel ? cfg.bg : 'var(--color-bg-3)', padding: 0, cursor: 'pointer', transition: 'background 0.12s' }}>
+                            style={{ borderRight: '1px solid var(--color-border-medium)', borderBottom: '1px solid var(--color-border-strong)', background: colSel ? cfg.bg : 'var(--color-table-header-bg)', padding: 0, cursor: 'pointer', transition: 'background 0.12s' }}>
                             <input value={h} onChange={e => setTableHeader(c, e.target.value)} onFocus={() => setSel({ type: 'col', index: c })} placeholder={`Заголовок ${c + 1}`}
-                              style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: '8px 10px', fontWeight: 700, fontFamily: 'inherit', fontSize: 13 }} />
+                              style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', color: 'var(--color-text)', padding: '8px 10px', fontWeight: 700, fontFamily: 'inherit', fontSize: 13 }} />
                           </th>
                         )
                       })}</tr></thead>
@@ -2767,11 +2771,45 @@ function CreatorView({
               <div style={{ borderTop: '1px solid var(--color-border-soft)', paddingTop: 14 }}>
                 <SectionHead>Блоки условия</SectionHead>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11, background: 'var(--color-bg)', cursor: 'pointer' }}>
-                    <ImageIcon size={15} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
-                    <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text)' }}>{tkImage ? 'Заменить фото' : 'Добавить фото'}</div>
-                    <input type="file" accept="image/*" onChange={onPickImage} style={{ display: 'none' }} />
-                  </label>
+                  <div>
+                    <button
+                      onClick={() => {
+                        setCondImgPickerOpen(v => !v)
+                        setTimeout(() => condImgPasteZoneRef.current?.focus(), 50)
+                      }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11, background: 'var(--color-bg)', cursor: 'pointer', border: 'none', width: '100%', textAlign: 'left' }}
+                    >
+                      <ImageIcon size={15} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text)' }}>{tkImage ? 'Заменить фото' : 'Добавить фото'}</div>
+                    </button>
+                    {condImgPickerOpen && (
+                      <div style={{ margin: '4px 0 6px', borderRadius: 10, border: '1.5px dashed var(--color-border-medium)', overflow: 'hidden' }}>
+                        <div
+                          ref={condImgPasteZoneRef}
+                          tabIndex={0}
+                          onPaste={e => {
+                            const items = Array.from(e.clipboardData?.items ?? [])
+                            const imgItem = items.find(it => it.type.startsWith('image/'))
+                            if (!imgItem) return
+                            e.preventDefault()
+                            const file = imgItem.getAsFile()
+                            if (!file) return
+                            const reader = new FileReader()
+                            reader.onload = ev => { setTkImage(String(ev.target?.result)); setCondImgPickerOpen(false) }
+                            reader.readAsDataURL(file)
+                          }}
+                          style={{ padding: '12px 10px', textAlign: 'center', fontSize: 12, color: 'var(--color-text-3)', outline: 'none', cursor: 'default', background: 'var(--color-bg-2)' }}
+                        >
+                          Нажмите <kbd style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border-medium)', borderRadius: 4, padding: '1px 5px', fontFamily: 'inherit', fontSize: 11 }}>Ctrl+V</kbd> чтобы вставить фото
+                        </div>
+                        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 10px', borderTop: '1px solid var(--color-border-soft)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', background: 'var(--color-bg)' }}>
+                          <ImageIcon size={13} />
+                          Выбрать файл
+                          <input ref={condImgFileRef} type="file" accept="image/*" onChange={e => { onPickImage(e); setCondImgPickerOpen(false) }} style={{ display: 'none' }} />
+                        </label>
+                      </div>
+                    )}
+                  </div>
                   <button onClick={() => setTkHasTable(v => !v)} style={{
                     display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11,
                     border: tkHasTable ? `1.5px solid ${cfg.color}` : '1.5px solid transparent',
