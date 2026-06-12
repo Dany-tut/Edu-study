@@ -14,13 +14,13 @@ export type WidgetMeta = {
 }
 
 export const WIDGET_META: WidgetMeta[] = [
-  { id: 6, label: 'Викторина',     Icon: CircleHelp,   color: '#7B3FCC', soft: '#EEDBFF' },
-  { id: 0, label: 'Статистика',    Icon: BarChart3,    color: '#7B61FF', soft: '#E8E4FF' },
-  { id: 1, label: 'Научные факты', Icon: FlaskConical, color: '#1E9E63', soft: '#DCF6E7' },
-  { id: 2, label: 'Реакции',       Icon: Atom,         color: '#1F6FB8', soft: '#DCEEFB' },
-  { id: 3, label: 'Фокус',         Icon: Timer,        color: '#E0794B', soft: '#FFE4BD' },
-  { id: 4, label: 'Мемы',          Icon: Laugh,        color: '#C58BFF', soft: '#F1E3FF' },
-  { id: 5, label: 'Вопрос дня',    Icon: Sparkles,     color: '#0E7A6F', soft: '#CFF3EE' },
+  { id: 6, label: 'Викторина',     Icon: CircleHelp,   color: 'var(--color-purple-text)', soft: 'var(--color-purple-soft)' },
+  { id: 0, label: 'Статистика',    Icon: BarChart3,    color: 'var(--color-purple-text)', soft: 'var(--color-purple-soft)' },
+  { id: 1, label: 'Научные факты', Icon: FlaskConical, color: 'var(--color-green-text)',  soft: 'var(--color-green-soft)'  },
+  { id: 2, label: 'Реакции',       Icon: Atom,         color: 'var(--color-blue-pill-text)', soft: 'var(--color-blue-pill-bg)' },
+  { id: 3, label: 'Фокус',         Icon: Timer,        color: 'var(--color-peach-text)',  soft: 'var(--color-peach-soft)'  },
+  { id: 4, label: 'Мемы',          Icon: Laugh,        color: 'var(--color-purple-text)', soft: 'var(--color-purple-soft)' },
+  { id: 5, label: 'Вопрос дня',    Icon: Sparkles,     color: 'var(--color-teal-pill-text)', soft: 'var(--color-teal-pill-bg)' },
 ]
 
 // Default sequence: quiz first, then the rest.

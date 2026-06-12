@@ -865,7 +865,7 @@ export default function TaskBankPage() {
           {/* Subject gradient card — clicking it toggles between biology and chemistry */}
           <div
             onClick={() => { setSubject(subject === 'biology' ? 'chemistry' : 'biology'); setSection(''); setTopic('') }}
-            style={{ padding: 16, borderRadius: 16, background: `linear-gradient(135deg, ${palette.accent}, ${palette.text})`, color: '#fff', boxShadow: `0 18px 44px ${palette.ring}`, cursor: 'pointer' }}
+            style={{ padding: 16, borderRadius: 16, background: `linear-gradient(135deg, ${palette.accent}cc, ${palette.text}cc)`, color: '#fff', boxShadow: `0 18px 44px ${palette.ring}`, cursor: 'pointer', userSelect: 'none' }}
           >
             <div className="flex items-center" style={{ gap: 8, marginBottom: 10 }}>
               <BookOpen size={16} />
@@ -885,7 +885,7 @@ export default function TaskBankPage() {
               ))}
             </div>
             <p style={{ fontSize: 13, lineHeight: 1.45, color: 'rgba(255,255,255,0.88)' }}>
-              Отработай все линии заданий и подготовься к экзамену.
+              Отработай все линии заданий<br />и подготовься к экзамену.
             </p>
           </div>
 
