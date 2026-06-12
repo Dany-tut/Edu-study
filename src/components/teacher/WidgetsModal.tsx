@@ -147,8 +147,8 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                     whileHover="hovered"
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10,
-                      background: 'var(--color-bg-4)', borderRadius: 12, padding: '10px 12px',
-                      border: '1.5px dashed #E0E0EA',
+                      background: 'rgba(var(--glass-rgb), 0.55)', borderRadius: 12, padding: '10px 12px',
+                      border: '1.5px solid var(--color-border-medium)', opacity: 0.78,
                     }}
                   >
                     <motion.div
@@ -179,8 +179,8 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
             <button
               onClick={onClose}
               style={{
-                padding: '10px 20px', borderRadius: 12, border: '1.5px solid #E0E0EA',
-                background: 'var(--color-bg-input)', fontSize: 14, fontWeight: 600, color: '#555', cursor: 'pointer',
+                padding: '10px 20px', borderRadius: 12, border: '1.5px solid var(--color-border-medium)',
+                background: 'rgba(var(--glass-rgb), 0.6)', fontSize: 14, fontWeight: 600, color: 'var(--color-text-2)', cursor: 'pointer',
               }}
             >
               Отмена
@@ -189,7 +189,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
               onClick={onClose}
               style={{
                 padding: '10px 24px', borderRadius: 12, border: 'none',
-                background: '#7B3FCC', color: '#fff',
+                background: 'var(--color-accent)', color: '#fff',
                 fontSize: 14, fontWeight: 600, cursor: 'pointer',
               }}
             >
