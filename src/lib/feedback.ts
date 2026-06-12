@@ -75,7 +75,7 @@ export function lockSnap() {
     const osc2 = ac.createOscillator()
     const g2   = ac.createGain()
     osc2.type = 'triangle'
-    osc2.frequency.value = 520
+    osc2.frequency.value = 380
     g2.gain.setValueAtTime(0, t + 0.035)
     g2.gain.linearRampToValueAtTime(0.03, t + 0.040)
     g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.095)
