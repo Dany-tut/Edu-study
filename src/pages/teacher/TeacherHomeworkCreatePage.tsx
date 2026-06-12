@@ -814,7 +814,7 @@ function AutoTextarea({ value, onChange, placeholder, style }: {
 
 // ─── Trainer tab (bank picker) ─────────────────────────────────────────────────
 
-type TrainerFilters = { search: string; subject: string; section: string; topic: string; part: string; line: string; source: string }
+type TrainerFilters = { search: string; subject: string; section: string; topic: string; parts: string[]; line: string; source: string }
 
 function TrainerTab({
   addedIds, filters, onAdd,
@@ -828,7 +828,7 @@ function TrainerTab({
     if (filters.subject && t.subject !== filters.subject) return false
     if (filters.section && t.section !== filters.section) return false
     if (filters.topic && t.topic !== filters.topic) return false
-    if (filters.part && t.part !== Number(filters.part)) return false
+    if (filters.parts.length && !filters.parts.includes(String(t.part))) return false
     if (filters.line && t.line !== Number(filters.line)) return false
     if (filters.source && t.source !== filters.source) return false
     if (filters.search) {
@@ -1003,7 +1003,7 @@ function TrainerFilterPanel({
     .filter(t => !filters.subject || t.subject === filters.subject)
     .map(t => t.line))].sort((a, b) => a - b).map(String)
 
-  const hasFilters = !!(filters.section || filters.topic || filters.part || filters.line || filters.source)
+  const hasFilters = !!(filters.section || filters.topic || filters.parts.length || filters.line || filters.source)
 
   return (
     <motion.div
@@ -1054,8 +1054,22 @@ function TrainerFilterPanel({
         onChange={v => onChange({ section: v, topic: '' })} />
       <FilterSelect label="Тема" options={topicOptions} value={filters.topic}
         onChange={v => onChange({ topic: v })} />
-      <FilterSelect label="Часть" options={['1', '2']} value={filters.part}
-        onChange={v => onChange({ part: v })} />
+      <div>
+        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Часть</div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {(['1', '2'] as string[]).map(p => {
+            const active = filters.parts.includes(p)
+            return (
+              <button key={p} onClick={() => onChange({ parts: active ? filters.parts.filter(x => x !== p) : [...filters.parts, p] })}
+                style={{ flex: 1, padding: '7px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+                  background: active ? 'rgba(139,92,246,0.15)' : 'var(--color-bg-3)',
+                  color: active ? 'var(--color-purple-text)' : 'var(--color-muted)' }}>
+                {p}
+              </button>
+            )
+          })}
+        </div>
+      </div>
       <FilterSelect label="Линия" options={allLines} value={filters.line}
         onChange={v => onChange({ line: v })} />
       <FilterSelect label="Источник" options={SOURCES} value={filters.source}
@@ -1063,7 +1077,7 @@ function TrainerFilterPanel({
 
       {hasFilters && (
         <button
-          onClick={() => onChange({ section: '', topic: '', part: '', line: '', source: '' })}
+          onClick={() => onChange({ section: '', topic: '', parts: [], line: '', source: '' })}
           style={{ padding: '8px 0', borderRadius: 12, background: 'var(--color-red-soft)', border: 'none', fontSize: 12, color: 'var(--color-red-text)', cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit' }}
         >
           Сбросить фильтры
@@ -1092,7 +1106,7 @@ function HardTaskAccordion({
   const [assignTo, setAssignTo] = useState<'all' | 'selected'>('all')
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set())
   const [tab, setTab] = useState<'compose' | 'trainer'>('compose')
-  const [trainerFilters, setTrainerFilters] = useState<TrainerFilters>({ search: '', subject: '', section: '', topic: '', part: '', line: '', source: '' })
+  const [trainerFilters, setTrainerFilters] = useState<TrainerFilters>({ search: '', subject: '', section: '', topic: '', parts: [], line: '', source: '' })
   const [addedIds, setAddedIds] = useState<Set<number>>(new Set())
 
   const { students: groupStudents } = useStudents(groupId)
@@ -1843,7 +1857,7 @@ export default function TeacherHomeworkCreatePage() {
   const [activeTab, setActiveTab] = useState<MainTab>('compose')
   const [hwTasks, setHwTasks] = useState<HWTask[]>([])
   const [hardTasks, setHardTasks] = useState<HWTask[]>([])
-  const [trainerFilters, setTrainerFilters] = useState<TrainerFilters>({ search: '', subject: '', section: '', topic: '', part: '', line: '', source: '' })
+  const [trainerFilters, setTrainerFilters] = useState<TrainerFilters>({ search: '', subject: '', section: '', topic: '', parts: [], line: '', source: '' })
   const [trainerAddedIds, setTrainerAddedIds] = useState<Set<number>>(new Set())
   const [trainerDialogTaskId, setTrainerDialogTaskId] = useState<string | null>(null)
   const [published, setPublished] = useState(false)

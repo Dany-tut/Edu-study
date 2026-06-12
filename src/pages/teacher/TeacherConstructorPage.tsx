@@ -1144,7 +1144,17 @@ function RichConditionEditor({
     emit()
   }
 
+  const selectedImgRef = useRef<HTMLImageElement | null>(null)
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    // Delete selected image
+    if ((e.key === 'Delete' || e.key === 'Backspace') && selectedImgRef.current) {
+      e.preventDefault()
+      selectedImgRef.current.remove()
+      selectedImgRef.current = null
+      emit()
+      return
+    }
     if (e.key === 'ArrowUp') { e.preventDefault(); arrowRef.current.up = true; return }
     if (e.key === 'ArrowDown') { e.preventDefault(); arrowRef.current.down = true; return }
     if ((arrowRef.current.up || arrowRef.current.down) && e.key.length === 1) {
@@ -1158,6 +1168,25 @@ function RichConditionEditor({
     if (e.key === 'ArrowDown') arrowRef.current.down = false
   }
 
+  const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement
+    if (target.tagName === 'IMG') {
+      // Deselect previous
+      if (selectedImgRef.current && selectedImgRef.current !== target) {
+        selectedImgRef.current.style.outline = ''
+      }
+      const img = target as HTMLImageElement
+      img.style.outline = '2.5px solid var(--color-accent)'
+      selectedImgRef.current = img
+    } else {
+      // Click elsewhere — deselect
+      if (selectedImgRef.current) {
+        selectedImgRef.current.style.outline = ''
+        selectedImgRef.current = null
+      }
+    }
+  }
+
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     // Image paste (Ctrl+V image from clipboard)
     const items = Array.from(e.clipboardData?.items ?? [])
@@ -1165,7 +1194,11 @@ function RichConditionEditor({
     if (imgItem) {
       e.preventDefault()
       const file = imgItem.getAsFile()
-      if (file) insertImageFile(file)
+      if (!file) return
+      // Save range BEFORE async FileReader (selection is lost in onload)
+      const sel = window.getSelection()
+      const savedRange = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).cloneRange() : null
+      insertImageFile(file, savedRange)
       return
     }
     // Plain text paste — strip HTML from clipboard
@@ -1175,14 +1208,18 @@ function RichConditionEditor({
     emit()
   }
 
-  const insertImageFile = (file: File) => {
+  const insertImageFile = (file: File, savedRange?: Range | null) => {
     const reader = new FileReader()
     reader.onload = ev => {
       const src = ev.target?.result as string
       editorRef.current?.focus()
       const sel = window.getSelection()
-      if (!sel || !sel.rangeCount) return
-      const range = sel.getRangeAt(0)
+      if (!sel) return
+      // Restore saved range or use current
+      const range = savedRange ?? (sel.rangeCount > 0 ? sel.getRangeAt(0) : null)
+      if (!range) return
+      sel.removeAllRanges()
+      sel.addRange(range)
       range.deleteContents()
       const img = document.createElement('img')
       img.src = src
@@ -1190,6 +1227,7 @@ function RichConditionEditor({
       img.style.borderRadius = '8px'
       img.style.marginTop = '6px'
       img.style.display = 'block'
+      img.style.cursor = 'pointer'
       range.insertNode(img)
       range.setStartAfter(img)
       range.setEndAfter(img)
@@ -1248,6 +1286,7 @@ function RichConditionEditor({
         onInput={emit}
         onFocus={() => setFocused(true)}
         onBlur={() => { emit(); setTimeout(() => setFocused(false), 200) }}
+        onClick={handleEditorClick}
         onKeyDown={handleKeyDown}
         onKeyUp={handleKeyUp}
         onPaste={handlePaste}
@@ -1622,6 +1661,9 @@ function CreatorView({
   const [wQCorr, setWQCorr] = useState(0)
   const [wFcTerm, setWFcTerm] = useState('')
   const [wFcDef, setWFcDef] = useState('')
+  const [wDLabel, setWDLabel] = useState('')
+  const [wPomoFocus, setWPomoFocus] = useState(25)
+  const [wPomoBreak, setWPomoBreak] = useState(5)
 
   const cfg = CREATOR_CFG[mode]
 
@@ -1761,6 +1803,14 @@ function CreatorView({
       if (!wFcTerm.trim()) return
       setWItems(prev => [...prev, { id: uid(), factTitle: wFcTerm.trim(), factText: wFcDef.trim() }])
       setWFcTerm(''); setWFcDef('')
+    } else if (wType === 'reactions') {
+      if (!wFcTerm.trim()) return
+      setWItems(prev => [...prev, { id: uid(), emoji: wFcTerm.trim(), quote: wFcDef.trim(), lesson: wDLabel.trim() }])
+      setWFcTerm(''); setWFcDef(''); setWDLabel('')
+    } else if (wType === 'memes') {
+      if (!wFcDef.trim()) return
+      setWItems(prev => [...prev, { id: uid(), memeEmoji: wFcTerm.trim() || '😄', memeTitle: wFcDef.trim(), memeCaption: wDLabel.trim() }])
+      setWFcTerm(''); setWFcDef(''); setWDLabel('')
     }
   }
 
@@ -1876,9 +1926,12 @@ function CreatorView({
       }
       onSaveCourse(c)
     } else {
+      const finalWItems = wType === 'pomodoro'
+        ? [{ id: 'pomo', focusMin: wPomoFocus, breakMin: wPomoBreak }]
+        : wItems
       const w: Widget = {
         id: uid(), title: wTitle, type: wType,
-        linkedTrainerId: wLinkedId || null, items: wItems,
+        linkedTrainerId: wLinkedId || null, items: finalWItems,
         color: WTYPE_COLOR[wType], bg: WTYPE_BG[wType], lastEdited: dateStr,
       }
       onSaveWidget(w)
@@ -2088,7 +2141,7 @@ function CreatorView({
             </div>
             <div><Label>Тип виджета</Label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                {(['quiz', 'facts', 'reactions', 'pomodoro'] as WidgetType[]).map(wt => {
+                {(['quiz', 'facts', 'reactions', 'pomodoro', 'memes', 'qod'] as WidgetType[]).map(wt => {
                   const WIcon = WTYPE_ICON[wt]
                   return (
                     <button key={wt} onClick={() => setWType(wt)} style={{
@@ -2556,6 +2609,7 @@ function CreatorView({
           {mode === 'widget' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <SectionHead>Содержимое — {WTYPE_LABEL[wType]}</SectionHead>
+
               {(wType === 'quiz' || wType === 'qod') && <>
                 <div><Label>Вопрос</Label><input value={wQText} onChange={e => setWQText(e.target.value)} placeholder="Текст вопроса…" style={inputSt} /></div>
                 {wQOpts.map((opt, oi) => (
@@ -2564,25 +2618,80 @@ function CreatorView({
                     <input value={opt} onChange={e => { const o = [...wQOpts]; o[oi] = e.target.value; setWQOpts(o) }} placeholder={`Вариант ${oi + 1}…`} style={{ ...inputSt, flex: 1 }} />
                   </div>
                 ))}
+                <div style={{ fontSize: 10, color: 'var(--color-text-3)' }}>● — правильный ответ</div>
               </>}
+
               {wType === 'facts' && <>
                 <div><Label>Заголовок факта</Label><input value={wFcTerm} onChange={e => setWFcTerm(e.target.value)} style={inputSt} /></div>
                 <div><Label>Текст факта</Label><textarea value={wFcDef} onChange={e => setWFcDef(e.target.value)} rows={3} style={{ ...inputSt, resize: 'vertical' }} /></div>
               </>}
-              <motion.button whileTap={{ scale: 0.97 }} onClick={addWidgetItem}
-                style={{ padding: '9px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: WTYPE_BG[wType], color: WTYPE_COLOR[wType], fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                <Plus size={13} /> Добавить элемент
-              </motion.button>
-              {wItems.length > 0 && (
+
+              {wType === 'reactions' && <>
+                <div><Label>Эмодзи</Label><input value={wFcTerm} onChange={e => setWFcTerm(e.target.value)} placeholder="напр. 🔥" style={inputSt} /></div>
+                <div><Label>Цитата / реплика</Label><input value={wFcDef} onChange={e => setWFcDef(e.target.value)} placeholder="Текст реакции…" style={inputSt} /></div>
+                <div><Label>Название урока / темы</Label><input value={wDLabel} onChange={e => setWDLabel(e.target.value)} placeholder="Урок или тема…" style={inputSt} /></div>
+              </>}
+
+              {wType === 'pomodoro' && <>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div>
+                    <Label>Фокус (мин)</Label>
+                    <input type="number" min={5} max={90} value={wPomoFocus} onChange={e => setWPomoFocus(Number(e.target.value))} style={inputSt} />
+                  </div>
+                  <div>
+                    <Label>Перерыв (мин)</Label>
+                    <input type="number" min={1} max={30} value={wPomoBreak} onChange={e => setWPomoBreak(Number(e.target.value))} style={inputSt} />
+                  </div>
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)', background: 'var(--color-peach-soft)', borderRadius: 10, padding: '10px 12px' }}>
+                  Эти настройки применятся к таймеру «Фокус» у студентов
+                </div>
+              </>}
+
+              {wType === 'memes' && <>
+                <div><Label>Эмодзи</Label><input value={wFcTerm} onChange={e => setWFcTerm(e.target.value)} placeholder="напр. 😅" style={inputSt} /></div>
+                <div><Label>Название мема</Label><input value={wFcDef} onChange={e => setWFcDef(e.target.value)} placeholder="Заголовок…" style={inputSt} /></div>
+                <div><Label>Подпись / шутка</Label><input value={wDLabel} onChange={e => setWDLabel(e.target.value)} placeholder="Пуанта…" style={inputSt} /></div>
+              </>}
+
+              {wType !== 'pomodoro' && (
+                <motion.button whileTap={{ scale: 0.97 }} onClick={addWidgetItem}
+                  style={{ padding: '9px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: WTYPE_BG[wType], color: WTYPE_COLOR[wType], fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <Plus size={13} /> Добавить элемент
+                </motion.button>
+              )}
+
+              {wType === 'pomodoro' && wItems.length === 0 && (
+                <motion.button whileTap={{ scale: 0.97 }} onClick={() => setWItems([{ id: 'pomo', focusMin: wPomoFocus, breakMin: wPomoBreak }])}
+                  style={{ padding: '9px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: WTYPE_BG.pomodoro, color: WTYPE_COLOR.pomodoro, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <Check size={13} /> Применить настройки
+                </motion.button>
+              )}
+              {wType === 'pomodoro' && wItems.length > 0 && (
+                <motion.button whileTap={{ scale: 0.97 }} onClick={() => setWItems([{ id: 'pomo', focusMin: wPomoFocus, breakMin: wPomoBreak }])}
+                  style={{ padding: '9px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: WTYPE_BG.pomodoro, color: WTYPE_COLOR.pomodoro, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <Check size={13} /> Обновить: {wPomoFocus} / {wPomoBreak} мин
+                </motion.button>
+              )}
+
+              {wItems.length > 0 && wType !== 'pomodoro' && (
                 <div>
                   <SectionHead>Добавлено: {wItems.length}</SectionHead>
-                  {wItems.slice(0, 5).map((item, i) => (
+                  {wItems.slice(0, 6).map((item, i) => (
                     <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: 'var(--color-bg-2)', borderRadius: 9, marginBottom: 4 }}>
                       <div style={{ width: 18, height: 18, borderRadius: 5, background: WTYPE_BG[wType], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: WTYPE_COLOR[wType] }}>{i + 1}</div>
-                      <div style={{ flex: 1, fontSize: 11, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.question ?? item.factTitle ?? '—'}</div>
+                      <div style={{ flex: 1, fontSize: 11, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {item.question ?? item.factTitle ?? item.emoji ?? item.memeTitle ?? '—'}
+                        {(item.factText || item.quote || item.memeCaption) && (
+                          <span style={{ color: 'var(--color-text-3)' }}> · {(item.factText ?? item.quote ?? item.memeCaption ?? '').slice(0, 30)}</span>
+                        )}
+                      </div>
                       <button onClick={() => setWItems(prev => prev.filter(x => x.id !== item.id))} style={{ width: 18, height: 18, borderRadius: 5, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)' }}><X size={9} /></button>
                     </div>
                   ))}
+                  {wItems.length > 6 && (
+                    <div style={{ fontSize: 11, color: 'var(--color-text-3)', textAlign: 'center', padding: '4px 0' }}>+{wItems.length - 6} ещё</div>
+                  )}
                 </div>
               )}
             </div>

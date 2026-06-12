@@ -65,10 +65,10 @@ function CopyableIdBadge({ id }: { id: number }) {
 
 // ─── Shared filter shape ───────────────────────────────────────────────────────
 export type TrainerFilters = {
-  search: string; subject: string; section: string; topic: string; part: string; line: string; source: string
+  search: string; subject: string; section: string; topic: string; parts: string[]; line: string; source: string
 }
 export const emptyTrainerFilters: TrainerFilters = {
-  search: '', subject: '', section: '', topic: '', part: '', line: '', source: '',
+  search: '', subject: '', section: '', topic: '', parts: [], line: '', source: '',
 }
 
 type SortMode = 'newest' | 'oldest' | 'subject' | 'line'
@@ -561,7 +561,7 @@ export function TrainerBankBrowser({
       if (filters.subject && t.subject !== filters.subject) return false
       if (filters.section && t.section !== filters.section) return false
       if (filters.topic && t.topic !== filters.topic) return false
-      if (filters.part && t.part !== Number(filters.part)) return false
+      if (filters.parts.length && !filters.parts.includes(String(t.part))) return false
       if (filters.line && t.line !== Number(filters.line)) return false
       if (filters.source && t.source !== filters.source) return false
       if (filters.search) {
@@ -641,7 +641,7 @@ export function TrainerBankFilterPanel({
   const topicsMap = filters.subject === 'chemistry' ? CHEMISTRY_TOPICS : BIOLOGY_TOPICS
   const topicOptions = filters.section ? (topicsMap[filters.section] ?? []) : Object.values(topicsMap).flat()
   const allLines = [...new Set(tasks.filter(t => !filters.subject || t.subject === filters.subject).map(t => t.line))].sort((a, b) => a - b).map(String)
-  const hasFilters = !!(filters.section || filters.topic || filters.part || filters.line || filters.source)
+  const hasFilters = !!(filters.section || filters.topic || filters.parts.length || filters.line || filters.source)
 
   return (
     <motion.div
@@ -676,12 +676,27 @@ export function TrainerBankFilterPanel({
 
       <FilterField label="Раздел" value={filters.section} options={sections} onChange={v => onChange({ section: v, topic: '' })} />
       <FilterField label="Тема" value={filters.topic} options={topicOptions} onChange={v => onChange({ topic: v })} />
-      <FilterField label="Часть" value={filters.part} options={['1', '2']} onChange={v => onChange({ part: v })} />
+      <div>
+        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Часть</div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {(['1', '2'] as string[]).map(p => {
+            const active = filters.parts.includes(p)
+            return (
+              <button key={p} onClick={() => onChange({ parts: active ? filters.parts.filter(x => x !== p) : [...filters.parts, p] })}
+                style={{ flex: 1, padding: '7px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+                  background: active ? (accentBg ?? 'rgba(139,92,246,0.15)') : 'var(--color-bg-3)',
+                  color: active ? 'var(--color-purple-text)' : 'var(--color-muted)' }}>
+                {p}
+              </button>
+            )
+          })}
+        </div>
+      </div>
       <FilterField label="Линия" value={filters.line} options={allLines} onChange={v => onChange({ line: v })} />
       <FilterField label="Источник" value={filters.source} options={SOURCES} onChange={v => onChange({ source: v })} />
 
       {hasFilters && (
-        <button onClick={() => onChange({ section: '', topic: '', part: '', line: '', source: '' })}
+        <button onClick={() => onChange({ section: '', topic: '', parts: [], line: '', source: '' })}
           style={{ padding: '8px 0', borderRadius: 10, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           <Trash2 size={12} /> Сбросить фильтры
         </button>
