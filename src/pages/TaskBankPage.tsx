@@ -307,7 +307,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
 
       {/* Table */}
       {task.questionTable && (
-        <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', minWidth: 260, maxWidth: '100%' }}>
+        <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', minWidth: '50%', maxWidth: '100%' }}>
           <table style={{ borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr>{task.questionTable.headers.map(h => (

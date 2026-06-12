@@ -717,7 +717,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
 
       {/* Table (read-only) */}
       {task.questionTable && (
-        <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', minWidth: 260, maxWidth: '100%' }}>
+        <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', minWidth: '50%', maxWidth: '100%' }}>
           <table style={{ borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr>{task.questionTable.headers.map(h => (
@@ -727,7 +727,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
             <tbody>
               {task.questionTable.rows.map((row, ri) => (
                 <tr key={ri}>{row.map((cell, ci) => (
-                  <td key={ci} style={{ borderTop: ri > 0 ? '1px solid var(--color-border)' : undefined, borderRight: '1px solid var(--color-border)', padding: '9px 16px' }}>{cell}</td>
+                  <td key={ci} style={{ borderTop: ri > 0 ? '1px solid var(--color-border)' : undefined, borderRight: '1px solid var(--color-border)', padding: '9px 16px', background: 'var(--color-table-cell-bg)' }}>{cell}</td>
                 ))}</tr>
               ))}
             </tbody>

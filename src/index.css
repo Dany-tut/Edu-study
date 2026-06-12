@@ -19,6 +19,7 @@
   --color-bg-5: #EBEBEF;
   --color-bg-input: #ffffff;
   --color-table-header-bg: #DDD8EE;
+  --color-table-cell-bg: #EDEAF7;
 
   --color-surface: rgba(255,255,255,0.92);
 
@@ -104,6 +105,7 @@
   --color-bg-5: #2A2A2C;
   --color-bg-input: #202022;
   --color-table-header-bg: #3A3352;
+  --color-table-cell-bg: #272238;
 
   --color-surface: rgba(22,22,24,0.92);
 
