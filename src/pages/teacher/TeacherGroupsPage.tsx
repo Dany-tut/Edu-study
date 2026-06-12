@@ -728,10 +728,13 @@ function StudentPanel({
             style={{
               width: 28, height: 28, borderRadius: '50%',
               border: 'none', cursor: 'pointer',
-              background: 'var(--color-bg-5)',
+              background: 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--color-muted)', flexShrink: 0,
+              color: 'var(--color-text-3)', flexShrink: 0,
+              transition: 'color 0.15s',
             }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-3)' }}
           >
             <X size={14} />
           </button>

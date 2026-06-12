@@ -184,7 +184,8 @@ export default function TeacherTopBar() {
 
         {/* Bell */}
         <motion.button
-          whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.96 }}
+          whileHover={{ scale: 1.08, backgroundColor: 'rgba(255,255,255,0.07)' }}
+          whileTap={{ scale: 0.96 }}
           aria-label="Уведомления"
           style={{
             width: 32, height: 32, borderRadius: '50%',
@@ -198,7 +199,8 @@ export default function TeacherTopBar() {
         {/* Quick-actions grid button */}
         <motion.button
           ref={addBtnRef}
-          whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.96 }}
+          whileHover={{ scale: 1.06, backgroundColor: 'rgba(255,255,255,0.07)' }}
+          whileTap={{ scale: 0.96 }}
           onClick={() => setAddOpen(o => !o)}
           aria-label="Действия"
           style={{
@@ -206,7 +208,7 @@ export default function TeacherTopBar() {
             width: 32, height: 32,
             borderRadius: '50%', border: 'none', cursor: 'pointer',
             background: 'none',
-            color: 'var(--color-muted)', transition: 'color 0.15s',
+            color: 'var(--color-muted)',
           }}
         >
           <LayoutGrid size={17} strokeWidth={2} />
@@ -214,7 +216,8 @@ export default function TeacherTopBar() {
 
         {/* Collapse */}
         <motion.button
-          whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.96 }}
+          whileHover={{ scale: 1.08, backgroundColor: 'rgba(255,255,255,0.07)' }}
+          whileTap={{ scale: 0.96 }}
           onClick={() => setCollapsed(c => !c)}
           aria-label={collapsed ? 'Развернуть' : 'Свернуть'}
           style={{
