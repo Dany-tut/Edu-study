@@ -178,8 +178,8 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                       key={w.id}
                       style={{
                         display: 'flex', alignItems: 'center', gap: 12,
-                        padding: '10px 12px', borderRadius: 14,
-                        background: 'var(--color-bg-2)', border: '1px dashed color-mix(in srgb, var(--color-text-4) 50%, transparent)',
+                        padding: '10px 12px', borderRadius: 14, opacity: 0.72,
+                        background: 'rgba(var(--glass-rgb), 0.5)', border: '1.5px solid var(--color-border-medium)',
                       }}
                     >
                       <span
@@ -200,7 +200,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                         style={{
                           width: 28, height: 28, borderRadius: 8, flexShrink: 0, border: 'none', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: 'var(--color-purple-soft)', color: '#7B3FCC',
+                          background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
                         }}
                       >
                         <Plus size={16} />
@@ -217,8 +217,8 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                 whileTap={{ scale: 0.97 }}
                 onClick={onClose}
                 style={{
-                  padding: '0 18px', height: 42, borderRadius: 12, border: 'none', cursor: 'pointer',
-                  background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600,
+                  padding: '0 18px', height: 42, borderRadius: 12, border: '1.5px solid var(--color-border-strong)', cursor: 'pointer',
+                  background: 'transparent', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600,
                 }}
               >
                 Отмена
