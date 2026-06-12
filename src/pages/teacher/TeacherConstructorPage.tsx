@@ -408,13 +408,16 @@ function CourseEditor({
         </div>
 
         {/* Subject + Level */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          <div><Label>Предмет</Label>
-            <TeacherSelect value={subject} onChange={setSubject} options={['Химия', 'Биология']} />
+        <div>
+          <Label>Предмет</Label>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {(['Химия', 'Биология'] as const).map(s => (
+              <SegBtn key={s} label={s} active={subject === s} color="var(--color-purple-text)" bg="var(--color-purple-soft)" onClick={() => setSubject(s)} />
+            ))}
           </div>
-          <div><Label>Уровень</Label>
-            <TeacherSelect value={level} onChange={setLevel} options={['ЕГЭ', 'ОГЭ', 'Углублённый', 'Интенсив']} />
-          </div>
+        </div>
+        <div><Label>Уровень</Label>
+          <TeacherSelect value={level} onChange={setLevel} options={['ЕГЭ', 'ОГЭ', 'Углублённый', 'Интенсив']} />
         </div>
 
         {/* Description */}
@@ -2004,7 +2007,11 @@ function CreatorView({
           {mode === 'trainer' && <>
             <div>
               <Label>Предмет</Label>
-              <TeacherSelect value={tkSubject} onChange={v => { setTkSubject(v as 'Химия' | 'Биология'); setTkSection(''); setTkTopic('') }} options={['Химия', 'Биология']} />
+              <div style={{ display: 'flex', gap: 6 }}>
+                {(['Химия', 'Биология'] as const).map(s => (
+                  <SegBtn key={s} label={s} active={tkSubject === s} color="var(--color-purple-text)" bg="var(--color-purple-soft)" onClick={() => { setTkSubject(s); setTkSection(''); setTkTopic('') }} />
+                ))}
+              </div>
             </div>
             <div><Label>Раздел</Label>
               <TeacherSelect value={tkSection} onChange={v => { setTkSection(v); setTkTopic('') }} placeholder="— выбрать —"
@@ -2043,13 +2050,16 @@ function CreatorView({
             <div><Label>Название</Label>
               <input value={cTitle} onChange={e => setCTitle(e.target.value)} style={inputSt} />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <div><Label>Предмет</Label>
-                <TeacherSelect value={cSubject} onChange={setCSubject} options={['Химия', 'Биология']} />
+            <div>
+              <Label>Предмет</Label>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {(['Химия', 'Биология'] as const).map(s => (
+                  <SegBtn key={s} label={s} active={cSubject === s} color="var(--color-purple-text)" bg="var(--color-purple-soft)" onClick={() => setCSubject(s)} />
+                ))}
               </div>
-              <div><Label>Уровень</Label>
-                <TeacherSelect value={cLevel} onChange={setCLevel} options={['ЕГЭ', 'ОГЭ', 'Углублённый', 'Интенсив']} />
-              </div>
+            </div>
+            <div><Label>Уровень</Label>
+              <TeacherSelect value={cLevel} onChange={setCLevel} options={['ЕГЭ', 'ОГЭ', 'Углублённый', 'Интенсив']} />
             </div>
             <div><Label>Описание</Label>
               <textarea value={cDesc} onChange={e => setCDesc(e.target.value)} rows={3}
