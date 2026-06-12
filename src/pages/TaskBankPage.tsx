@@ -843,7 +843,7 @@ export default function TaskBankPage() {
             key="trainer-dock"
             className="flex items-center"
             initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: [0, -5, 3, -2, 1, 0] }}
+            animate={{ opacity: 1, y: [0, 6, -3.5, 1.5, -0.5, 0] }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
             style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, gap: 12, pointerEvents: 'none' }}

@@ -140,7 +140,7 @@ export default function DashboardPage() {
                   // we drop the shared layout in favour of a self-contained
                   // entrance that doesn't fight the expand animation.
                   initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: [0, -5, 3, -2, 1, 0] }}
+                  animate={{ opacity: 1, y: [0, -7, 4, -2, 0.8, 0] }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
                 >

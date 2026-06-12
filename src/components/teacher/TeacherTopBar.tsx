@@ -8,7 +8,7 @@ import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useTeacher, type TeacherPage } from '../../store/teacherStore'
 import { useHomework } from '../../lib/useHomework'
-import { lockSnap } from '../../lib/feedback'
+import { lockSnap, lockRelease } from '../../lib/feedback'
 import CreateTaskModal from './CreateTaskModal'
 import WidgetsModal from './WidgetsModal'
 import { supabase } from '../../lib/supabase'
@@ -103,13 +103,13 @@ export default function TeacherTopBar() {
   const headerDocked = useTeacher(s => s.headerDocked)
   useEffect(() => {
     if (!snapMountRef.current) { snapMountRef.current = true; return }
-    lockSnap()
+    headerDocked ? lockSnap() : lockRelease()
     const el = teacherBarRef.current
     if (!el) return
-    el.classList.remove('topbar-snap')
+    el.classList.remove('topbar-snap-down', 'topbar-snap-up')
     void el.offsetWidth
-    el.classList.add('topbar-snap')
-    const id = setTimeout(() => el.classList.remove('topbar-snap'), 420)
+    el.classList.add(headerDocked ? 'topbar-snap-down' : 'topbar-snap-up')
+    const id = setTimeout(() => el.classList.remove('topbar-snap-down', 'topbar-snap-up'), 460)
     return () => clearTimeout(id)
   }, [headerDocked])
 

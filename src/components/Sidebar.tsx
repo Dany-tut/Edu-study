@@ -10,7 +10,7 @@ import { createPortal } from 'react-dom'
 import { clearStudentSession, getStudentSession } from '../lib/studentSession'
 import { canUseFeature } from '../lib/featureFlags'
 import { playTransitionDrop } from '../lib/sound'
-import { tactile, lockSnap } from '../lib/feedback'
+import { tactile, lockSnap, lockRelease } from '../lib/feedback'
 import { useDashboard, type WidgetColumns } from '../store/dashboardStore'
 import WidgetOrderModal from './WidgetOrderModal'
 import { useTheme } from '../store/themeStore'
@@ -213,16 +213,17 @@ export default function Sidebar() {
   // show the full date+icon when the bar is mini and just the day when it's wide.
   useEffect(() => { setTopBarCompact(isCompact) }, [isCompact, setTopBarCompact])
 
-  // Fixation snap: sound + jelly animation only on scroll-driven compact transitions.
+  // Fixation snap: directional sound + jelly only on scroll-driven transitions.
   useEffect(() => {
     if (!snapMountRef.current) { snapMountRef.current = true; return }
-    lockSnap()
+    const down = autoCompact
+    down ? lockSnap() : lockRelease()
     const el = barRef.current
     if (!el) return
-    el.classList.remove('topbar-snap')
+    el.classList.remove('topbar-snap-down', 'topbar-snap-up')
     void el.offsetWidth
-    el.classList.add('topbar-snap')
-    const id = setTimeout(() => el.classList.remove('topbar-snap'), 420)
+    el.classList.add(down ? 'topbar-snap-down' : 'topbar-snap-up')
+    const id = setTimeout(() => el.classList.remove('topbar-snap-down', 'topbar-snap-up'), 460)
     return () => clearTimeout(id)
   }, [autoCompact])
 
