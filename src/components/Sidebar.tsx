@@ -10,7 +10,7 @@ import { createPortal } from 'react-dom'
 import { clearStudentSession, getStudentSession } from '../lib/studentSession'
 import { canUseFeature } from '../lib/featureFlags'
 import { playTransitionDrop } from '../lib/sound'
-import { tactile } from '../lib/feedback'
+import { tactile, lockSnap } from '../lib/feedback'
 import { useDashboard, type WidgetColumns } from '../store/dashboardStore'
 import WidgetOrderModal from './WidgetOrderModal'
 import { useTheme } from '../store/themeStore'
@@ -173,6 +173,7 @@ export default function Sidebar() {
   // Max width for the name when a widget pill shares the top-bar row; undefined
   // means "no cap" (home page, or when there's room for the full name).
   const [nameMaxWidth, setNameMaxWidth] = useState<number | undefined>(undefined)
+  const snapMountRef = useRef(false)
   // Viewport coords for the portaled popover, measured from the avatar.
   const [anchor, setAnchor] = useState<{ top: number; left: number } | null>(null)
   const bellRef = useRef<HTMLButtonElement>(null)
@@ -211,6 +212,20 @@ export default function Sidebar() {
   // Mirror the compact state into the store so the docked lesson date pill can
   // show the full date+icon when the bar is mini and just the day when it's wide.
   useEffect(() => { setTopBarCompact(isCompact) }, [isCompact, setTopBarCompact])
+
+  // Fixation snap: sound + micro-bounce animation when the bar locks/unlocks.
+  useEffect(() => {
+    if (!snapMountRef.current) { snapMountRef.current = true; return }
+    lockSnap()
+    const el = barRef.current
+    if (!el) return
+    el.classList.remove('topbar-snap')
+    // force reflow so removing+adding re-triggers the animation
+    void el.offsetWidth
+    el.classList.add('topbar-snap')
+    const id = setTimeout(() => el.classList.remove('topbar-snap'), 320)
+    return () => clearTimeout(id)
+  }, [isCompact])
 
   // Keep the expanded bar + the widget pill within the viewport. On any
   // non-home page a 320px pill sits 20px to the right of the bar (see

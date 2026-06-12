@@ -51,3 +51,36 @@ export function tactile(opts?: { freq?: number; vibrate?: number | number[] }) {
   blip(opts?.freq)
   haptic(opts?.vibrate ?? 10)
 }
+
+/**
+ * Topbar fixation snap — two micro-tones (thud + click) that feel like
+ * a physical latch engaging. Very soft so it stays ambient, not intrusive.
+ * Paired with the CSS @keyframes topbar-snap scale micro-bounce.
+ */
+export function lockSnap() {
+  const ac = audioCtx()
+  if (ac) {
+    const t = ac.currentTime
+    // First tone: low thud
+    const osc1 = ac.createOscillator()
+    const g1   = ac.createGain()
+    osc1.type = 'sine'
+    osc1.frequency.value = 200
+    g1.gain.setValueAtTime(0, t)
+    g1.gain.linearRampToValueAtTime(0.04, t + 0.005)
+    g1.gain.exponentialRampToValueAtTime(0.0001, t + 0.07)
+    osc1.connect(g1).connect(ac.destination)
+    osc1.start(t); osc1.stop(t + 0.07)
+    // Second tone: crisp click 35ms later
+    const osc2 = ac.createOscillator()
+    const g2   = ac.createGain()
+    osc2.type = 'triangle'
+    osc2.frequency.value = 520
+    g2.gain.setValueAtTime(0, t + 0.035)
+    g2.gain.linearRampToValueAtTime(0.03, t + 0.040)
+    g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.095)
+    osc2.connect(g2).connect(ac.destination)
+    osc2.start(t + 0.035); osc2.stop(t + 0.1)
+  }
+  haptic([6, 4, 3])
+}
