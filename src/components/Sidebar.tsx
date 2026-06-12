@@ -671,7 +671,7 @@ export default function Sidebar() {
                 if (!isActive) {
                   const el = e.currentTarget as HTMLButtonElement
                   el.style.background = 'rgba(155,109,255,0.14)'
-                  el.style.color = 'var(--color-accent)'
+                  el.style.color = '#fff'
                 }
               }}
               onMouseLeave={e => {
