@@ -251,7 +251,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
     onAnswer(task.id, inputVal, inputVal.trim().toLowerCase() === task.answer.toLowerCase())
   }
   function share() {
-    navigator.clipboard.writeText(`№${task.id} · ${task.question.slice(0, 80)}…`)
+    navigator.clipboard.writeText(`№${task.id} · ${task.question.replace(/<[^>]*>/g, '').slice(0, 80)}…`)
     setCopied(true); setTimeout(() => setCopied(false), 1400)
   }
 
@@ -294,9 +294,8 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             </span>
             <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
           </div>
-          <p style={{ fontSize: 16, lineHeight: 1.45, fontWeight: 650, color: 'var(--color-text)', whiteSpace: 'pre-wrap' }}>
-            {task.question}
-          </p>
+          <div style={{ fontSize: 16, lineHeight: 1.45, fontWeight: 650, color: 'var(--color-text)' }}
+            dangerouslySetInnerHTML={{ __html: task.question }} />
         </div>
         {state !== undefined && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)', color: isCorrect ? 'var(--color-green-text)' : 'var(--color-red-text)', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
@@ -518,9 +517,8 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
       </div>
 
       {/* Question */}
-      <p style={{ fontSize: 13, lineHeight: 1.4, fontWeight: 600, color: 'var(--color-text)', margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-        {task.question}
-      </p>
+      <div style={{ fontSize: 13, lineHeight: 1.4, fontWeight: 600, color: 'var(--color-text)', margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+        dangerouslySetInnerHTML={{ __html: task.question }} />
 
       {/* Topic */}
       <span style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 'auto' }}>{task.topic}</span>
@@ -760,7 +758,7 @@ export default function TaskBankPage() {
     if (!search && source)  list = list.filter(t => t.source === source)
     if (search) {
       const q = search.toLowerCase().replace(/^№/, '')
-      list = list.filter(t => t.question.toLowerCase().includes(q) || String(t.id).includes(q) || t.topic.toLowerCase().includes(q))
+      list = list.filter(t => t.question.replace(/<[^>]*>/g, '').toLowerCase().includes(q) || String(t.id).includes(q) || t.topic.toLowerCase().includes(q))
     }
     if (statusFilter === 'done')   list = list.filter(t => answered.get(t.id)?.correct === true)
     if (statusFilter === 'undone') list = list.filter(t => !answered.get(t.id))

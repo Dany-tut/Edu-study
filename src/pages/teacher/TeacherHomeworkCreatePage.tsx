@@ -283,7 +283,7 @@ function TaskCard({
                 <div>
                   <Label>Условие задания</Label>
                   <textarea
-                    value={task.question}
+                    value={task.question.replace(/<[^>]*>/g, '')}
                     onChange={e => updateQuestion(e.target.value)}
                     placeholder="Текст вопроса..."
                     rows={3}

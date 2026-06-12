@@ -1884,15 +1884,14 @@ function CreatorView({
 
   // Assemble the authored task into a bank-ready record, or null if incomplete.
   function buildTask(): NewBankTask | null {
-    const q = stripHtml(tkQuestion)
-    if (!q) return null
+    if (!stripHtml(tkQuestion)) return null  // validate with stripped, save raw HTML
     const table = tkHasTable ? { headers: tkTableHeaders, rows: tkTableRows } : undefined
     const base = {
       subject: (tkSubject === 'Химия' ? 'chemistry' : 'biology') as Subject,
       section: tkSection || tkSectionList[0],
       topic: tkTopic || tkTopicList[0] || '—',
       part: tkPart, line: tkLine, source: tkSource,
-      question: q, solution: tkSolution.trim(),
+      question: tkQuestion, solution: tkSolution.trim(),  // preserve HTML formatting
       difficulty: tkDifficulty,
       answerType: tkAnswerType,
       questionImage: tkImage || undefined,
