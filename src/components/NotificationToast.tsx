@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence, useAnimation } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { useNotificationsStore, type Notification } from '../store/notificationsStore'
 
@@ -13,12 +13,6 @@ const ICON: Record<string, string> = {
   student_joined:       '👤',
   deadline_approaching: '⏰',
   achievement:          '🏆',
-}
-
-// Bounce keyframes — like "something puffed into the widget"
-const BUMP = {
-  scale: [1, 1.045, 0.975, 1.022, 0.992, 1],
-  transition: { duration: 0.5, ease: 'easeOut' },
 }
 
 function NotifRow({ n, onAction, onRead }: {
@@ -61,30 +55,24 @@ export default function NotificationToastContainer() {
   const notifications = useNotificationsStore(s => s.notifications)
   const dismissLive   = useNotificationsStore(s => s.dismissLive)
   const markRead      = useNotificationsStore(s => s.markRead)
-  const markAllRead   = useNotificationsStore(s => s.markAllRead)
 
-  const live = notifications.filter(n => n.live)
-  const latest = live[0]
+  const live    = notifications.filter(n => n.live)
+  const latest  = live[0]
 
-  const [expanded, setExpanded] = useState(false)
-  const controls = useAnimation()
-  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
-  const prevCountRef = useRef(0)
+  const [expanded, setExpanded]   = useState(false)
+  const [bounceKey, setBounceKey] = useState(0)
+  const prevLenRef = useRef(0)
+  const timerRef   = useRef<ReturnType<typeof setTimeout>>(undefined)
 
-  // Enter animation on mount + bounce on each new notification
+  // Bounce inner wrapper key on each NEW notification
   useEffect(() => {
-    controls.start({ opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 380, damping: 26 } })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
-    if (live.length > prevCountRef.current && live.length > 0 && prevCountRef.current > 0) {
-      controls.start({ scale: [1, 1.045, 0.975, 1.022, 0.992, 1], transition: { duration: 0.5, ease: 'easeOut' } })
+    if (live.length > prevLenRef.current && prevLenRef.current > 0) {
+      setBounceKey(k => k + 1)
     }
-    prevCountRef.current = live.length
-  }, [live.length, controls])
+    prevLenRef.current = live.length
+  }, [live.length])
 
-  // Reset auto-dismiss timer on each new notification
+  // 30 s auto-dismiss — reset when new notification arrives
   useEffect(() => {
     if (live.length === 0) { setExpanded(false); return }
     clearTimeout(timerRef.current)
@@ -110,110 +98,123 @@ export default function NotificationToastContainer() {
   const widget = (
     <AnimatePresence>
       {live.length > 0 && latest && (
+        // Outer: handles enter / exit only — no y movement to avoid flash
         <motion.div
           key="notif-widget"
-          initial={{ opacity: 0, y: -18, scale: 0.92 }}
-          animate={controls}
-          exit={{ opacity: 0, y: -14, scale: 0.92, transition: { duration: 0.22 } }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          transition={{ type: 'spring', stiffness: 420, damping: 28 }}
           style={{
             position: 'fixed',
-            top: 76,        // just below the topbar pill
+            top: 76,
             right: 24,
             width: 300,
             zIndex: 8500,
-            borderRadius: 20,
-            overflow: 'hidden',
-            cursor: 'pointer',
-            background: 'radial-gradient(ellipse at top left, rgba(255,90,90,0.22) 0%, rgba(var(--glass-rgb),0.96) 55%)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            border: '1px solid rgba(255,90,90,0.25)',
-            boxShadow: '0 8px 32px rgba(255,90,90,0.14), 0 2px 10px rgba(0,0,0,0.08)',
+            pointerEvents: 'auto',
           }}
         >
-          {/* Top row: icon + title + count badge + controls */}
-          <div
-            onClick={() => setExpanded(e => !e)}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px 12px 14px' }}
-          >
-            <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>
-              {ICON[latest.type] ?? '🔔'}
-            </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2,
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {latest.title}
-              </div>
-              {!expanded && (
-                <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 1,
-                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {latest.body}
-                </div>
-              )}
-            </div>
-            {live.length > 1 && !expanded && (
-              <span style={{
-                fontSize: 10, fontWeight: 700, color: '#fff', background: '#FF5A5A',
-                borderRadius: 99, padding: '2px 6px', flexShrink: 0,
-              }}>
-                +{live.length - 1}
-              </span>
-            )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span style={{ color: 'var(--color-text-3)', display: 'flex' }}>
-                {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              </span>
-              <button
-                onClick={e => { e.stopPropagation(); dismissAll() }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--color-text-3)', display: 'flex', padding: 2 }}
-              >
-                <X size={13} />
-              </button>
-            </div>
-          </div>
-
-          {/* Expanded: all stacked notifications */}
-          <AnimatePresence>
-            {expanded && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.22, ease: 'easeOut' }}
-                style={{ overflow: 'hidden' }}
-              >
-                <div style={{ padding: '0 14px 14px', borderTop: '1px solid rgba(255,90,90,0.15)' }}>
-                  <div style={{ paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {live.map((n, i) => (
-                      <div key={n.id}>
-                        {i > 0 && <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />}
-                        <NotifRow n={n} onRead={markRead} onAction={handleAction} />
-                      </div>
-                    ))}
-                  </div>
-                  {live.length > 1 && (
-                    <button onClick={dismissAll} style={{
-                      marginTop: 10, width: '100%', padding: '7px 0', borderRadius: 10,
-                      border: '1px solid rgba(255,90,90,0.2)', background: 'none', cursor: 'pointer',
-                      fontSize: 11.5, fontWeight: 600, color: 'var(--color-muted)',
-                    }}>
-                      Закрыть все
-                    </button>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* 30s drain bar */}
+          {/* Inner: bounces on key change when new notification arrives */}
           <motion.div
-            key={live.length}
-            initial={{ scaleX: 1 }}
-            animate={{ scaleX: 0 }}
-            transition={{ duration: 30, ease: 'linear' }}
-            style={{ height: 2, background: 'rgba(255,90,90,0.55)', transformOrigin: 'left' }}
-          />
+            key={bounceKey}
+            initial={{ scale: bounceKey > 0 ? 1.04 : 1 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 600, damping: 18 }}
+            style={{
+              borderRadius: 20,
+              overflow: 'hidden',
+              cursor: 'pointer',
+              background: 'radial-gradient(ellipse at top left, rgba(255,90,90,0.22) 0%, rgba(var(--glass-rgb),0.96) 55%)',
+              backdropFilter: 'blur(20px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              border: '1px solid rgba(255,90,90,0.25)',
+              boxShadow: '0 8px 32px rgba(255,90,90,0.14), 0 2px 10px rgba(0,0,0,0.08)',
+            }}
+          >
+            {/* Top row */}
+            <div
+              onClick={() => setExpanded(e => !e)}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}
+            >
+              <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>
+                {ICON[latest.type] ?? '🔔'}
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2,
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {latest.title}
+                </div>
+                {!expanded && (
+                  <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 1,
+                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {latest.body}
+                  </div>
+                )}
+              </div>
+              {live.length > 1 && !expanded && (
+                <span style={{
+                  fontSize: 10, fontWeight: 700, color: '#fff', background: '#FF5A5A',
+                  borderRadius: 99, padding: '2px 6px', flexShrink: 0,
+                }}>
+                  +{live.length - 1}
+                </span>
+              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                <span style={{ color: 'var(--color-text-3)', display: 'flex' }}>
+                  {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                </span>
+                <button
+                  onClick={e => { e.stopPropagation(); dismissAll() }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer',
+                    color: 'var(--color-text-3)', display: 'flex', padding: 2 }}
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            </div>
+
+            {/* Expanded list */}
+            <AnimatePresence>
+              {expanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.22, ease: 'easeOut' }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div style={{ padding: '0 14px 14px', borderTop: '1px solid rgba(255,90,90,0.15)', paddingTop: 10 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {live.map((n, i) => (
+                        <div key={n.id}>
+                          {i > 0 && <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />}
+                          <NotifRow n={n} onRead={markRead} onAction={handleAction} />
+                        </div>
+                      ))}
+                    </div>
+                    {live.length > 1 && (
+                      <button onClick={dismissAll} style={{
+                        marginTop: 10, width: '100%', padding: '7px 0', borderRadius: 10,
+                        border: '1px solid rgba(255,90,90,0.2)', background: 'none', cursor: 'pointer',
+                        fontSize: 11.5, fontWeight: 600, color: 'var(--color-muted)',
+                      }}>
+                        Закрыть все
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* 30 s drain bar */}
+            <motion.div
+              key={`drain-${live.length}`}
+              initial={{ scaleX: 1 }}
+              animate={{ scaleX: 0 }}
+              transition={{ duration: 30, ease: 'linear' }}
+              style={{ height: 2, background: 'rgba(255,90,90,0.5)', transformOrigin: 'left' }}
+            />
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
