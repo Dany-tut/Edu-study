@@ -46,10 +46,12 @@ export default function TeacherSelect({
     const itemH = small ? 28 : 33
     const estH = Math.min(opts.length * itemH + 12, 276)
     const up = r.bottom + estH + 12 > window.innerHeight && r.top - estH - 12 > 0
+    const menuW = Math.max(r.width, 300)
+    const left = Math.min(r.left, window.innerWidth - menuW - 8)
     setPos({
       top: r.bottom + 5,
       bottom: window.innerHeight - r.top + 5,
-      left: r.left, width: r.width, up,
+      left, width: r.width, up,
     })
     setOpen(true)
   }
@@ -152,7 +154,7 @@ export default function TeacherSelect({
                       flexShrink: 0,
                     }}
                   >
-                    <span style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span style={{ flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>
                       {o.label}
                     </span>
                     {selected && <Check size={small ? 11 : 13} strokeWidth={2.5} style={{ flexShrink: 0 }} />}

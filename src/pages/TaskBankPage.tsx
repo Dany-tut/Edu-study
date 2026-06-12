@@ -700,8 +700,13 @@ export default function TaskBankPage() {
   const loadTasks     = useTaskBank(s => s.load)
   useEffect(() => { loadTasks(true) }, [])
 
-  const defaultSubject: Subject = activeSubjectId === 'chemistry' ? 'chemistry' : 'biology'
+  const defaultSubject: Subject = (() => {
+    const saved = localStorage.getItem('taskbank_subject')
+    if (saved === 'biology' || saved === 'chemistry') return saved
+    return activeSubjectId === 'chemistry' ? 'chemistry' : 'biology'
+  })()
   const [subject, setSubject]   = useState<Subject>(defaultSubject)
+  const setSubjectPersist = (s: Subject) => { localStorage.setItem('taskbank_subject', s); setSubject(s) }
   const [section, setSection]   = useState('')
   const [topic, setTopic]       = useState('')
   const [part, setPart]         = useState('')
@@ -774,7 +779,7 @@ export default function TaskBankPage() {
     const subjects = new Set(filtered.map(t => t.subject))
     if (subjects.size === 1) {
       const only = [...subjects][0] as Subject
-      if (only !== subject) { setSubject(only); setSection(''); setTopic('') }
+      if (only !== subject) { setSubjectPersist(only); setSection(''); setTopic('') }
     }
   }, [search, filtered])
 
@@ -903,7 +908,7 @@ export default function TaskBankPage() {
 
           {/* Subject gradient card — clicking it toggles between biology and chemistry */}
           <div
-            onClick={() => { setSubject(subject === 'biology' ? 'chemistry' : 'biology'); setSection(''); setTopic('') }}
+            onClick={() => { setSubjectPersist(subject === 'biology' ? 'chemistry' : 'biology'); setSection(''); setTopic('') }}
             style={{ padding: 16, borderRadius: 16, background: `linear-gradient(135deg, ${palette.accent}cc, ${palette.text}cc)`, color: '#fff', boxShadow: `0 18px 44px ${palette.ring}`, cursor: 'pointer', userSelect: 'none' }}
           >
             <div className="flex items-center" style={{ gap: 8, marginBottom: 10 }}>
@@ -912,7 +917,7 @@ export default function TaskBankPage() {
             </div>
             <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
               {(['biology', 'chemistry'] as Subject[]).map(s => (
-                <button key={s} onClick={e => { e.stopPropagation(); setSubject(s); setSection(''); setTopic('') }}
+                <button key={s} onClick={e => { e.stopPropagation(); setSubjectPersist(s); setSection(''); setTopic('') }}
                   style={{
                     padding: '6px 12px', borderRadius: 999, border: '1.5px solid',
                     borderColor: subject === s ? 'var(--color-border-glass)' : 'var(--color-border-medium)',

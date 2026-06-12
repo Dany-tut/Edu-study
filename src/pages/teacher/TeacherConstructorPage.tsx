@@ -717,7 +717,7 @@ function WidgetEditor({
                   border: isActive ? `1.5px solid ${WTYPE_COLOR[wt]}` : '1.5px solid transparent',
                   background: isActive ? WTYPE_BG[wt] : 'var(--color-bg)', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, fontWeight: 600,
-                  color: isActive ? 'var(--color-purple-text, #E8D0FF)' : 'var(--color-muted)', transition: 'all 0.15s',
+                  color: isActive ? WTYPE_COLOR[wt] : 'var(--color-muted)', transition: 'all 0.15s',
                 }}>
                   <WIcon size={13} strokeWidth={2} />
                   {WTYPE_LABEL[wt]}
@@ -1752,7 +1752,7 @@ function CreatorView({
                       border: wType === wt ? `1.5px solid ${WTYPE_COLOR[wt]}` : '1.5px solid transparent',
                       background: wType === wt ? WTYPE_BG[wt] : 'var(--color-bg)', cursor: 'pointer',
                       fontSize: 12, fontWeight: 600,
-                      color: wType === wt ? 'var(--color-purple-text, #E8D0FF)' : 'var(--color-muted)', transition: 'all 0.15s',
+                      color: wType === wt ? WTYPE_COLOR[wt] : 'var(--color-muted)', transition: 'all 0.15s',
                     }}>
                       <WIcon size={13} strokeWidth={2} />{WTYPE_LABEL[wt]}
                     </button>
@@ -1825,9 +1825,10 @@ function CreatorView({
             {/* 1 ─ Условие */}
             <div>
               <SectionHead>Условие задания</SectionHead>
-              <textarea value={tkQuestion} onChange={e => setTkQuestion(e.target.value)}
-                placeholder="Введите текст задания…" rows={4}
-                style={{ ...inputSt, resize: 'vertical', minHeight: 88, fontSize: 14 }} />
+              <textarea value={tkQuestion}
+                onChange={e => { setTkQuestion(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+                placeholder="Введите текст задания…" rows={5}
+                style={{ ...inputSt, resize: 'none', minHeight: 120, fontSize: 16, padding: '12px 16px', lineHeight: 1.6, overflow: 'hidden' }} />
             </div>
 
             {/* image block */}
@@ -2124,6 +2125,21 @@ function CreatorView({
                     const el = e.target
                     el.style.height = 'auto'
                     el.style.height = Math.max(90, el.scrollHeight) + 'px'
+                  }}
+                  onPaste={e => {
+                    const items = Array.from(e.clipboardData?.items || [])
+                    const imageItems = items.filter(it => it.type.startsWith('image/'))
+                    if (imageItems.length === 0) return
+                    e.preventDefault()
+                    imageItems.forEach(item => {
+                      const file = item.getAsFile()
+                      if (!file) return
+                      const reader = new FileReader()
+                      reader.onload = ev => {
+                        if (ev.target?.result) setExplPhotos(prev => [...prev, ev.target!.result as string])
+                      }
+                      reader.readAsDataURL(file)
+                    })
                   }}
                   placeholder="Почему этот ответ верный…"
                   rows={3}
