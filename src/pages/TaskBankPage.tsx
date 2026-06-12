@@ -161,7 +161,7 @@ function NumberBadge({ id, onCopied }: { id: number; onCopied: () => void }) {
       title="Скопировать номер"
       style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
     >
-      <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-red-soft)', color: '#B03040', transition: 'background 0.15s ease' }}>
+      <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-red-soft)', color: 'var(--color-red-text)', transition: 'background 0.15s ease' }}>
         №{id}
       </span>
       <AnimatePresence>
