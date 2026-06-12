@@ -2021,15 +2021,23 @@ function CreatorView({
               <TeacherSelect value={tkTopic} onChange={setTkTopic} placeholder="— выбрать —"
                 options={[{ value: '', label: '— любая —' }, ...tkTopicList.map(s => ({ value: s, label: s }))]} />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <div><Label>Часть</Label>
-                <TeacherSelect value={String(tkPart)} onChange={v => setTkPart(Number(v) as 1 | 2)}
-                  options={[{ value: '1', label: 'Часть 1' }, { value: '2', label: 'Часть 2' }]} />
+            <div>
+              <Label>Часть</Label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {([1, 2] as const).map(p => (
+                  <button key={p} onClick={() => setTkPart(p)} style={{
+                    flex: 1, padding: '8px 0', borderRadius: 8, border: '1.5px solid',
+                    borderColor: tkPart === p ? 'var(--color-accent)' : 'var(--color-border)',
+                    background: tkPart === p ? 'var(--color-accent)' : 'transparent',
+                    color: tkPart === p ? '#fff' : 'var(--color-text)',
+                    fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all .15s',
+                  }}>Часть {p}</button>
+                ))}
               </div>
-              <div><Label>Линия</Label>
-                <input type="number" min={1} max={35} value={tkLine}
-                  onChange={e => setTkLine(Math.max(1, Number(e.target.value)))} style={inputSt} />
-              </div>
+            </div>
+            <div><Label>Линия</Label>
+              <input type="number" min={1} max={35} value={tkLine}
+                onChange={e => setTkLine(Math.max(1, Number(e.target.value)))} style={inputSt} />
             </div>
             <div><Label>Источник</Label>
               <TeacherSelect value={tkSource} onChange={setTkSource} options={SOURCES} />
