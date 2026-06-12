@@ -197,7 +197,7 @@ export default function Sidebar() {
   // The bar renders in its mini (icons-only) form when the user manually
   // collapsed it OR when a scrolled lesson page is forcing the compact dock —
   // unless the user has explicitly re-expanded it via the chevron.
-  const autoCompact = (activePage === 'lesson' || activePage === 'homework') && lessonScrolled
+  const autoCompact = (activePage === 'lesson' || activePage === 'homework' || activePage === 'trainer') && lessonScrolled
   const isCompact = collapsed || (autoCompact && !forceExpanded)
 
   // Over the dark lesson dock the bar uses its more opaque glass even when
