@@ -8,6 +8,7 @@ import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useTeacher, type TeacherPage } from '../../store/teacherStore'
 import { useHomework } from '../../lib/useHomework'
+import { lockSnap } from '../../lib/feedback'
 import CreateTaskModal from './CreateTaskModal'
 import WidgetsModal from './WidgetsModal'
 import { supabase } from '../../lib/supabase'
@@ -48,6 +49,8 @@ const quickActions: QuickItem[] = [
 export default function TeacherTopBar() {
   const [collapsed, setCollapsed]       = useState(false)
   const [addOpen, setAddOpen]           = useState(false)
+  const teacherBarRef = useRef<HTMLDivElement>(null)
+  const snapMountRef  = useRef(false)
   const { homework } = useHomework()
   const reviews = useTeacher(s => s.reviews)
   const pendingHwCount = homework
@@ -97,9 +100,22 @@ export default function TeacherTopBar() {
     }
   }, [addOpen])
 
+  useEffect(() => {
+    if (!snapMountRef.current) { snapMountRef.current = true; return }
+    lockSnap()
+    const el = teacherBarRef.current
+    if (!el) return
+    el.classList.remove('topbar-snap')
+    void el.offsetWidth
+    el.classList.add('topbar-snap')
+    const id = setTimeout(() => el.classList.remove('topbar-snap'), 420)
+    return () => clearTimeout(id)
+  }, [collapsed])
+
   return (
     <>
     <motion.div
+      ref={teacherBarRef}
       layout
       style={{
         position: 'relative', zIndex: 60,

@@ -842,10 +842,10 @@ export default function TaskBankPage() {
           <motion.div
             key="trainer-dock"
             className="flex items-center"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: -8, scaleX: 1, scaleY: 1 }}
+            animate={{ opacity: 1, y: 0, scaleX: [1, 1.032, 0.974, 1.014, 0.993, 1.004, 1], scaleY: [1, 0.968, 1.028, 0.987, 1.007, 0.997, 1] }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
             style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, gap: 12, pointerEvents: 'none' }}
           >
             <motion.button

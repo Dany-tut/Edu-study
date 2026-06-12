@@ -489,14 +489,16 @@ input[type=number]::-webkit-outer-spin-button {
   margin: 0;
 }
 
-/* Topbar fixation snap — plays when the bar locks into compact / expanded. */
-@keyframes topbar-snap {
-  0%   { transform: scale(1); }
-  28%  { transform: scale(1.016); }
-  58%  { transform: scale(0.993); }
-  78%  { transform: scale(1.005); }
-  100% { transform: scale(1); }
+/* Topbar fixation jelly — plays when the bar locks into compact / expanded. */
+@keyframes topbar-jelly {
+  0%   { transform: scaleX(1)     scaleY(1); }
+  18%  { transform: scaleX(1.032) scaleY(0.968); }
+  36%  { transform: scaleX(0.974) scaleY(1.028); }
+  54%  { transform: scaleX(1.014) scaleY(0.987); }
+  72%  { transform: scaleX(0.993) scaleY(1.007); }
+  86%  { transform: scaleX(1.004) scaleY(0.997); }
+  100% { transform: scaleX(1)     scaleY(1); }
 }
 .topbar-snap {
-  animation: topbar-snap 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: topbar-jelly 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
