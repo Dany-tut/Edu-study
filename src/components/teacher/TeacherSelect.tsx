@@ -18,7 +18,7 @@ const baseTrigger: React.CSSProperties = {
 
 export default function TeacherSelect({
   value, options, onChange, placeholder, triggerStyle, small = false,
-  accent = '#7B3FCC', accentBg = 'var(--color-purple-soft)',
+  accent = 'var(--color-purple-text)', accentBg = 'var(--color-purple-soft)',
 }: {
   value: string
   options: TeacherSelectOption[]

@@ -139,8 +139,8 @@ export default function DashboardPage() {
                   // the pill's internal expand/collapse changed its size, so
                   // we drop the shared layout in favour of a self-contained
                   // entrance that doesn't fight the expand animation.
-                  initial={{ opacity: 0, y: -10, scaleX: 1, scaleY: 1 }}
-                  animate={{ opacity: 1, y: 0, scaleX: [1, 0.968, 1.028, 0.987, 1.007, 0.997, 1], scaleY: [1, 1.032, 0.974, 1.014, 0.993, 1.004, 1] }}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: [0, -5, 3, -2, 1, 0] }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
                 >

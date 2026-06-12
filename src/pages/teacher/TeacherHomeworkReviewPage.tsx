@@ -438,8 +438,8 @@ export default function TeacherHomeworkReviewPage() {
           <motion.div
             key="review-dock"
             className="flex items-center"
-            initial={{ opacity: 0, y: -8, scaleX: 1, scaleY: 1 }}
-            animate={{ opacity: 1, y: 0, scaleX: [1, 0.968, 1.028, 0.987, 1.007, 0.997, 1], scaleY: [1, 1.032, 0.974, 1.014, 0.993, 1.004, 1] }}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: [0, -5, 3, -2, 1, 0] }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
             style={{

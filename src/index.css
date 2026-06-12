@@ -489,16 +489,16 @@ input[type=number]::-webkit-outer-spin-button {
   margin: 0;
 }
 
-/* Topbar fixation jelly — vertical stretch first, then settle. */
+/* Topbar fixation jelly — vertical bounce, settles to rest. */
 @keyframes topbar-jelly {
-  0%   { transform: scaleX(1)     scaleY(1); }
-  18%  { transform: scaleX(0.968) scaleY(1.032); }
-  36%  { transform: scaleX(1.028) scaleY(0.974); }
-  54%  { transform: scaleX(0.987) scaleY(1.014); }
-  72%  { transform: scaleX(1.007) scaleY(0.993); }
-  86%  { transform: scaleX(0.997) scaleY(1.004); }
-  100% { transform: scaleX(1)     scaleY(1); }
+  0%   { transform: translateY(0px); }
+  20%  { transform: translateY(-5px); }
+  40%  { transform: translateY(3px); }
+  58%  { transform: translateY(-2px); }
+  74%  { transform: translateY(1px); }
+  88%  { transform: translateY(-0.5px); }
+  100% { transform: translateY(0px); }
 }
 .topbar-snap {
-  animation: topbar-jelly 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: topbar-jelly 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }

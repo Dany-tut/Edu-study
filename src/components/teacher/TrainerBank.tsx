@@ -670,7 +670,7 @@ export function TrainerBankFilterPanel({
         {([['', 'Все'], ['biology', 'Биология'], ['chemistry', 'Химия']] as [string, string][]).map(([v, l]) => (
           <button key={v} onClick={() => onChange({ subject: v, section: '', topic: '', line: '' })}
             style={{ flex: 1, padding: '7px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
-              background: filters.subject === v ? accentBg : 'var(--color-bg-3)', color: filters.subject === v ? accent : 'var(--color-muted)' }}>{l}</button>
+              background: filters.subject === v ? accentBg : 'var(--color-bg-3)', color: filters.subject === v ? 'var(--color-purple-text)' : 'var(--color-muted)' }}>{l}</button>
         ))}
       </div>
 
