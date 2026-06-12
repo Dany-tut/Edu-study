@@ -13,6 +13,7 @@ import WidgetsModal from './WidgetsModal'
 import { supabase } from '../../lib/supabase'
 import { useTheme } from '../../store/themeStore'
 import NotificationBell from '../NotificationBell'
+import NotificationPopup from '../NotificationPopup'
 
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
   { id: 'home',        label: 'Главная',     icon: Home },
@@ -55,6 +56,7 @@ export default function TeacherTopBar() {
     .reduce((acc, hw) => acc + Math.max(0, hw.submittedCount - Object.keys(reviews[hw.id] ?? {}).length), 0)
   const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [widgetsOpen, setWidgetsOpen] = useState(false)
+  const [notifOpen, setNotifOpen]       = useState(false)
   const [anchor, setAnchor]             = useState<{ top: number; left: number } | null>(null)
   const bellRef    = useRef<HTMLDivElement>(null)
   const addBtnRef  = useRef<HTMLButtonElement>(null)
@@ -141,7 +143,7 @@ export default function TeacherTopBar() {
                 padding: '0 16px', height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
                 fontSize: 14, fontWeight: isActive ? 600 : 500,
                 color: isActive ? '#fff' : 'var(--color-muted)',
-                background: isActive ? 'color-mix(in srgb, var(--color-accent) 50%, transparent)' : 'transparent',
+                background: isActive ? 'color-mix(in srgb, var(--color-accent) 80%, transparent)' : 'transparent',
                 transition: 'background 0.15s, color 0.15s',
                 whiteSpace: 'nowrap', position: 'relative',
               }}
@@ -185,7 +187,9 @@ export default function TeacherTopBar() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
 
         {/* Bell */}
-        <NotificationBell />
+        <div ref={bellRef} style={{ display: 'inline-flex' }}>
+          <NotificationBell onClick={() => setNotifOpen(o => !o)} />
+        </div>
 
         {/* Quick-actions grid button */}
         <motion.button
@@ -312,6 +316,7 @@ export default function TeacherTopBar() {
       </AnimatePresence>,
       document.body
     )}
+    <NotificationPopup open={notifOpen} anchorRef={bellRef} onClose={() => setNotifOpen(false)} />
     {widgetsOpen && <WidgetsModal onClose={() => setWidgetsOpen(false)} />}
     {taskModalOpen && (
       <CreateTaskModal

@@ -92,8 +92,13 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
     const el = anchorRef.current
     if (!el) return
     const r = el.getBoundingClientRect()
-    // Align popup left edge with bell left edge, below the bell
-    setPos({ top: r.bottom + 10, left: Math.max(8, r.left - 10) })
+    const popupWidth = 320
+    const idealLeft = r.left - 10
+    const clampedLeft = Math.min(
+      Math.max(8, idealLeft),
+      window.innerWidth - popupWidth - 8
+    )
+    setPos({ top: r.bottom + 10, left: clampedLeft })
   }, [open, anchorRef])
 
   // Close on outside click / Escape

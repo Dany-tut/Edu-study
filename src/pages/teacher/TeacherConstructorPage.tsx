@@ -399,7 +399,7 @@ function CourseEditor({
       transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
       style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
     >
-      <PanelHeader title="Редактор курса" accent="#7B3FCC" accentBg="#EEDBFF" Icon={BookOpen} onClose={onClose} onExpand={onExpand} />
+      <PanelHeader title="Редактор курса" accent="var(--color-accent)" accentBg="var(--color-purple-soft)" Icon={BookOpen} onClose={onClose} onExpand={onExpand} />
 
       <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Title */}
@@ -474,7 +474,7 @@ function CourseEditor({
           <div style={{ display: 'flex', gap: 6 }}>
             <LessonNameInput value={newLessonTitle} onChange={setNewLessonTitle} onAdd={addLessonByTitle} />
             <motion.button whileTap={{ scale: 0.95 }} onClick={addLesson}
-              style={{ width: 36, height: 36, borderRadius: 11, border: 'none', cursor: 'pointer', background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7B3FCC', flexShrink: 0 }}>
+              style={{ width: 36, height: 36, borderRadius: 11, border: 'none', cursor: 'pointer', background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-accent)', flexShrink: 0 }}>
               <Plus size={16} strokeWidth={2.4} />
             </motion.button>
           </div>
@@ -553,7 +553,7 @@ function TrainerEditor({
         {/* Source */}
         <div><Label>Источник вопросов</Label>
           <div style={{ display: 'flex', gap: 6 }}>
-            <SegBtn label="Из банка заданий" active={source === 'bank'}   color="#7B3FCC" bg="#EEDBFF" onClick={() => setSource('bank')} />
+            <SegBtn label="Из банка заданий" active={source === 'bank'}   color="var(--color-accent)" bg="var(--color-purple-soft)" onClick={() => setSource('bank')} />
             <SegBtn label="Вручную"          active={source === 'manual'} color="#8B4900" bg="var(--color-peach-soft)" onClick={() => setSource('manual')} />
           </div>
         </div>
@@ -574,7 +574,7 @@ function TrainerEditor({
               Доступно: {TASK_BANK.filter(q => q.topic === bankTopic).length} вопросов
             </div>
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={loadFromBank}
-              style={{ padding: '9px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'var(--color-purple-soft)', color: '#7B3FCC', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              style={{ padding: '9px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               <Database size={13} strokeWidth={2} /> Загрузить из банка
             </motion.button>
           </div>
@@ -603,7 +603,7 @@ function TrainerEditor({
             )}
             {questions.map((q, i) => (
               <div key={q.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '8px 10px', background: 'var(--color-bg-2)', borderRadius: 10 }}>
-                <div style={{ width: 20, height: 20, borderRadius: 6, background: q.source === 'bank' ? 'var(--color-purple-soft)' : 'var(--color-peach-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: q.source === 'bank' ? '#7B3FCC' : 'var(--color-peach-text)', flexShrink: 0, marginTop: 1 }}>
+                <div style={{ width: 20, height: 20, borderRadius: 6, background: q.source === 'bank' ? 'var(--color-purple-soft)' : 'var(--color-peach-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: q.source === 'bank' ? 'var(--color-accent)' : 'var(--color-peach-text)', flexShrink: 0, marginTop: 1 }}>
                   {i + 1}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -951,7 +951,7 @@ function TrainerCard({ trainer, isSelected, onClick }: { trainer: Trainer; isSel
         {trainer.questionIds && trainer.questionIds.length > 0 && (
           <div style={{ marginTop: 5, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             {trainer.questionIds.map(id => (
-              <span key={id} onClick={e => e.stopPropagation()} style={{ padding: '1px 7px', borderRadius: 999, background: 'var(--color-red-soft)', color: '#B03040', fontSize: 10, fontWeight: 800, userSelect: 'text', cursor: 'text' }}>№{id}</span>
+              <span key={id} onClick={e => e.stopPropagation()} style={{ padding: '1px 7px', borderRadius: 999, background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 10, fontWeight: 800, userSelect: 'text', cursor: 'text' }}>№{id}</span>
             ))}
           </div>
         )}
@@ -999,7 +999,7 @@ function WidgetCard({ widget, isSelected, onClick }: { widget: Widget; isSelecte
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--color-muted)', fontSize: 12 }}>
           <Layers size={13} strokeWidth={1.8} />
           {widget.linkedTrainerId
-            ? <span style={{ color: '#7B3FCC' }}><Link2 size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} />Из тренажёра</span>
+            ? <span style={{ color: 'var(--color-accent)' }}><Link2 size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} />Из тренажёра</span>
             : <span>Вручную</span>
           }
         </div>
@@ -1111,8 +1111,8 @@ function LessonNameInput({ value, onChange, onAdd }: {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px 6px' }}>
-              <Sparkles size={11} style={{ color: '#7B3FCC' }} />
-              <span style={{ fontSize: 10, fontWeight: 700, color: '#7B3FCC', letterSpacing: 0.3 }}>ИЗ БИБЛИОТЕКИ УРОКОВ</span>
+              <Sparkles size={11} style={{ color: 'var(--color-accent)' }} />
+              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-accent)', letterSpacing: 0.3 }}>ИЗ БИБЛИОТЕКИ УРОКОВ</span>
             </div>
             {suggestions.map(l => (
               <button
@@ -1127,13 +1127,13 @@ function LessonNameInput({ value, onChange, onAdd }: {
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
                 <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <BookOpen size={13} style={{ color: '#7B3FCC' }} />
+                  <BookOpen size={13} style={{ color: 'var(--color-accent)' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.lessonTitle}</div>
                   <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.courseTitle}</div>
                 </div>
-                <Plus size={13} style={{ color: '#7B3FCC', flexShrink: 0 }} />
+                <Plus size={13} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
               </button>
             ))}
           </motion.div>
@@ -1147,9 +1147,9 @@ function LessonNameInput({ value, onChange, onAdd }: {
 // Creator chrome is unified on the purple accent to match the lesson editor
 // and homework-create pages; per-type colors stay only in the list view.
 const CREATOR_CFG = {
-  course:  { label: 'Курс',     Icon: BookOpen, color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', accent: 'var(--color-accent)' },
-  trainer: { label: 'Тренажёр', Icon: Zap,      color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', accent: 'var(--color-accent)' },
-  widget:  { label: 'Виджет',   Icon: Layers,   color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', accent: 'var(--color-accent)' },
+  course:  { label: 'Курс',     Icon: BookOpen, color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)',   accent: 'var(--color-green-text)' },
+  trainer: { label: 'Тренажёр', Icon: Zap,      color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)', accent: 'var(--color-accent)' },
+  widget:  { label: 'Виджет',   Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)', accent: 'var(--color-blue-pill-text)' },
 }
 
 function CreatorView({
@@ -1702,7 +1702,7 @@ function CreatorView({
               <TeacherSelect value={tkSource} onChange={setTkSource} options={SOURCES} />
             </div>
             {/* Points summary */}
-            <div style={{ background: canSave ? '#F0FBF4' : 'var(--color-bg-2)', borderRadius: 12, padding: '10px 12px' }}>
+            <div style={{ background: canSave ? 'var(--color-green-soft)' : 'var(--color-bg-2)', borderRadius: 12, padding: '10px 12px' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: canSave ? 'var(--color-green-text)' : 'var(--color-text-3)', marginBottom: 4 }}>
                 {canSave ? '✓ Задание готово' : 'Заполните условие и ответ'}
               </div>
@@ -1790,7 +1790,7 @@ function CreatorView({
                   padding: '8px 16px', borderRadius: 11, border: 'none', cursor: 'pointer',
                   fontSize: 13, fontWeight: 600,
                   background: isActive ? 'var(--color-surface)' : 'transparent',
-                  color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
+                  color: isActive ? c.color : 'var(--color-muted)',
                   fontFamily: 'inherit', transition: 'all 0.15s',
                   boxShadow: isActive ? '0 2px 10px rgba(0,0,0,0.09)' : 'none',
                 }}>
@@ -1859,7 +1859,7 @@ function CreatorView({
                         const colSel = sel?.type === 'col' && sel.index === c
                         return (
                           <th key={c} onClick={() => setSel({ type: 'col', index: c })}
-                            style={{ borderRight: '1px solid var(--color-border-medium)', borderBottom: '1px solid var(--color-border-strong)', background: colSel ? cfg.bg : 'rgba(0,0,0,0.03)', padding: 0, cursor: 'pointer', transition: 'background 0.12s' }}>
+                            style={{ borderRight: '1px solid var(--color-border-medium)', borderBottom: '1px solid var(--color-border-strong)', background: colSel ? cfg.bg : 'var(--color-bg-3)', padding: 0, cursor: 'pointer', transition: 'background 0.12s' }}>
                             <input value={h} onChange={e => setTableHeader(c, e.target.value)} onFocus={() => setSel({ type: 'col', index: c })} placeholder={`Заголовок ${c + 1}`}
                               style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: '8px 10px', fontWeight: 700, fontFamily: 'inherit', fontSize: 13 }} />
                           </th>
@@ -1906,7 +1906,7 @@ function CreatorView({
                       <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <button onClick={() => toggleCorrect(i)} style={{
                           width: 22, height: 22, borderRadius: tkAnswerType === 'single' ? '50%' : 7, flexShrink: 0,
-                          border: isCorrect ? 'none' : '2px solid #C2C2C8',
+                          border: isCorrect ? 'none' : '2px solid var(--color-text-4)',
                           background: isCorrect ? cfg.color : 'transparent',
                           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}>
@@ -1914,7 +1914,7 @@ function CreatorView({
                         </button>
                         <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: isCorrect ? cfg.bg : 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: isCorrect ? cfg.color : 'var(--color-text-3)' }}>{LETTERS[i]}</span>
                         <input value={ans} onChange={e => setChoice(i, e.target.value)} placeholder={`Вариант ${LETTERS[i]}…`}
-                          style={{ ...inputSt, flex: 1, border: isCorrect ? `1.5px solid ${cfg.color}55` : '1.5px solid rgba(0,0,0,0.1)', background: isCorrect ? `${cfg.bg}88` : 'var(--color-bg-2)' }} />
+                          style={{ ...inputSt, flex: 1, border: isCorrect ? `1.5px solid ${cfg.color}55` : '1.5px solid var(--color-border-medium)', background: isCorrect ? `${cfg.bg}88` : 'var(--color-bg-2)' }} />
                         {scoreMode === 'perOption' && (
                           <input type="number" min={0} max={20} value={tkChoicePts[i] ?? 0}
                             onChange={e => setTkChoicePts(prev => prev.map((p, j) => j === i ? Number(e.target.value) : p))}
@@ -2002,7 +2002,7 @@ function CreatorView({
                     <textarea value={tkShortAnswer} onChange={e => setTkShortAnswer(e.target.value)} rows={3}
                       placeholder="Развёрнутый эталон ответа…" style={{ ...inputSt, resize: 'vertical' }} />
                   </div>
-                  <button onClick={() => setTkAllowPhoto(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${tkAllowPhoto ? cfg.color + '55' : 'rgba(0,0,0,0.1)'}`, background: tkAllowPhoto ? `${cfg.bg}88` : 'var(--color-bg-2)', textAlign: 'left', width: '100%' }}>
+                  <button onClick={() => setTkAllowPhoto(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${tkAllowPhoto ? cfg.color + '55' : 'var(--color-border-medium)'}`, background: tkAllowPhoto ? `${cfg.bg}88` : 'var(--color-bg-2)', textAlign: 'left', width: '100%' }}>
                     <span style={{ width: 34, height: 20, borderRadius: 10, flexShrink: 0, position: 'relative', background: tkAllowPhoto ? cfg.color : 'var(--color-text-4)', transition: 'background 0.15s' }}>
                       <span style={{ position: 'absolute', top: 2, left: tkAllowPhoto ? 16 : 2, width: 16, height: 16, borderRadius: '50%', background: 'var(--color-bg-input)', transition: 'left 0.15s' }} />
                     </span>
@@ -2096,7 +2096,7 @@ function CreatorView({
                     </div>
                     <motion.button whileTap={{ scale: 0.95 }} onClick={addCriterion} style={{ height: 38, width: 38, borderRadius: 12, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Plus size={16} strokeWidth={2.4} /></motion.button>
                   </div>
-                  <button onClick={() => setCriteriaVisible(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${criteriaVisible ? cfg.color + '55' : 'rgba(0,0,0,0.1)'}`, background: criteriaVisible ? `${cfg.bg}88` : 'var(--color-bg-2)', textAlign: 'left', width: '100%' }}>
+                  <button onClick={() => setCriteriaVisible(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${criteriaVisible ? cfg.color + '55' : 'var(--color-border-medium)'}`, background: criteriaVisible ? `${cfg.bg}88` : 'var(--color-bg-2)', textAlign: 'left', width: '100%' }}>
                     <span style={{ width: 34, height: 20, borderRadius: 10, flexShrink: 0, position: 'relative', background: criteriaVisible ? cfg.color : 'var(--color-text-4)' }}>
                       <span style={{ position: 'absolute', top: 2, left: criteriaVisible ? 16 : 2, width: 16, height: 16, borderRadius: '50%', background: 'var(--color-bg-input)', transition: 'left 0.15s' }} />
                     </span>
@@ -2110,7 +2110,7 @@ function CreatorView({
             {/* 4 ─ Объяснение */}
             <div style={{ borderTop: '1px solid var(--color-border-soft)', paddingTop: 16 }}>
               <Label>Объяснение / решение (показывается после ответа)</Label>
-              <div style={{ border: '1.5px solid rgba(0,0,0,0.10)', borderRadius: 12, background: 'var(--color-green-soft)', overflow: 'hidden' }}>
+              <div style={{ border: '1.5px solid var(--color-border-medium)', borderRadius: 12, background: 'var(--color-green-soft)', overflow: 'hidden' }}>
                 <textarea
                   ref={explTextareaRef}
                   value={tkSolution}
@@ -2437,9 +2437,9 @@ export default function TeacherConstructorPage() {
   }
 
   const tabCfg = {
-    course:  { label: 'Курс',     Icon: BookOpen, color: 'var(--color-accent)', bg: 'var(--color-purple-soft)' },
-    trainer: { label: 'Тренажёр', Icon: Zap,      color: 'var(--color-accent)', bg: 'var(--color-purple-soft)' },
-    widget:  { label: 'Виджет',   Icon: Layers,   color: 'var(--color-accent)', bg: 'var(--color-purple-soft)' },
+    course:  { label: 'Курс',     Icon: BookOpen, color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)' },
+    trainer: { label: 'Тренажёр', Icon: Zap,      color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)' },
+    widget:  { label: 'Виджет',   Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
   }
 
   return (

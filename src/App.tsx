@@ -38,8 +38,8 @@ export default function App() {
   if (hash.startsWith('#/join')) return <JoinPage />
 
   if (hash.startsWith('#/teacher')) {
-    if (session === undefined) return null
-    if (!session) return <TeacherLoginPage onLogin={() => {}} />
+    if (session === undefined && !import.meta.env.DEV) return null
+    if (!session && !import.meta.env.DEV) return <TeacherLoginPage onLogin={() => {}} />
     return <TeacherDashboardPage />
   }
 

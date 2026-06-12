@@ -665,7 +665,7 @@ export default function Sidebar() {
                 // Inactive icons go darker in the compact dock for legibility on
                 // the bright glass over the dark video.
                 color: isActive ? '#fff' : (isCompact ? 'var(--color-text-2)' : 'var(--color-muted)'),
-                background: isActive ? 'color-mix(in srgb, var(--color-accent) 50%, transparent)' : 'transparent',
+                background: isActive ? 'color-mix(in srgb, var(--color-accent) 80%, transparent)' : 'transparent',
                 transition: 'background 0.15s, color 0.15s',
                 whiteSpace: 'nowrap',
               }}
