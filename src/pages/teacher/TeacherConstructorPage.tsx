@@ -429,8 +429,8 @@ function CourseEditor({
         {/* Status */}
         <div><Label>Статус</Label>
           <div style={{ display: 'flex', gap: 6 }}>
-            <SegBtn label="Черновик"    active={status === 'draft'}     color="#8B4900" bg="var(--color-peach-soft)" onClick={() => setStatus('draft')} />
-            <SegBtn label="Опубликован" active={status === 'published'} color="#1a7a3f" bg="var(--color-green-soft)" onClick={() => setStatus('published')} />
+            <SegBtn label="Черновик"    active={status === 'draft'}     color="var(--color-peach-text)" bg="var(--color-peach-soft)" onClick={() => setStatus('draft')} />
+            <SegBtn label="Опубликован" active={status === 'published'} color="var(--color-green-text)" bg="var(--color-green-soft)" onClick={() => setStatus('published')} />
           </div>
         </div>
 
@@ -557,7 +557,7 @@ function TrainerEditor({
         <div><Label>Источник вопросов</Label>
           <div style={{ display: 'flex', gap: 6 }}>
             <SegBtn label="Из банка заданий" active={source === 'bank'}   color="var(--color-accent)" bg="var(--color-purple-soft)" onClick={() => setSource('bank')} />
-            <SegBtn label="Вручную"          active={source === 'manual'} color="#8B4900" bg="var(--color-peach-soft)" onClick={() => setSource('manual')} />
+            <SegBtn label="Вручную"          active={source === 'manual'} color="var(--color-peach-text)" bg="var(--color-peach-soft)" onClick={() => setSource('manual')} />
           </div>
         </div>
 
@@ -2067,8 +2067,8 @@ function CreatorView({
             </div>
             <div><Label>Статус</Label>
               <div style={{ display: 'flex', gap: 6 }}>
-                <SegBtn label="Черновик" active={cStatus === 'draft'} color="#8B4900" bg="var(--color-peach-soft)" onClick={() => setCStatus('draft')} />
-                <SegBtn label="Опубликован" active={cStatus === 'published'} color="#1a7a3f" bg="var(--color-green-soft)" onClick={() => setCStatus('published')} />
+                <SegBtn label="Черновик" active={cStatus === 'draft'} color="var(--color-peach-text)" bg="var(--color-peach-soft)" onClick={() => setCStatus('draft')} />
+                <SegBtn label="Опубликован" active={cStatus === 'published'} color="var(--color-green-text)" bg="var(--color-green-soft)" onClick={() => setCStatus('published')} />
               </div>
             </div>
           </>}
