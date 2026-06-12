@@ -1054,6 +1054,330 @@ function TabBtn({ tab, activeTab, label, icon: Icon, color, bg, onClick, onPlus 
   )
 }
 
+// ─── Rich text toolbar button ─────────────────────────────────────────────────
+function ToolbarBtn({ children, onClick, title, active }: {
+  children: React.ReactNode; onClick: () => void; title: string; active?: boolean
+}) {
+  return (
+    <button
+      title={title}
+      onMouseDown={e => { e.preventDefault(); onClick() }}
+      style={{
+        width: 28, height: 28, borderRadius: 7, border: 'none', cursor: 'pointer',
+        background: active ? 'var(--color-bg-3)' : 'transparent',
+        color: active ? 'var(--color-text)' : 'var(--color-text-2)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        transition: 'background 0.1s',
+        flexShrink: 0,
+      }}
+      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--color-bg-3)' }}
+      onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
+    >
+      {children}
+    </button>
+  )
+}
+
+// ─── Rich condition editor (contentEditable + floating toolbar) ────────────────
+const HIGHLIGHT_COLORS = [
+  { hex: '#FFD700', label: 'Жёлтый' },
+  { hex: '#FF8787', label: 'Красный' },
+  { hex: '#74C0FC', label: 'Синий' },
+  { hex: '#69DB7C', label: 'Зелёный' },
+  { hex: '#FFA94D', label: 'Оранжевый' },
+]
+const FONT_SIZES = ['12', '14', '16', '18', '20', '24', '28']
+
+function RichConditionEditor({
+  value, onChange, inputSt,
+}: {
+  value: string
+  onChange: (html: string) => void
+  inputSt: React.CSSProperties
+}) {
+  const editorRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [focused, setFocused] = useState(false)
+  const [fontSize, setFontSize] = useState('16')
+  const arrowRef = useRef({ up: false, down: false })
+  const lastHtmlRef = useRef(value)
+
+  // Sync external resets (e.g. clear form) without blowing up the cursor
+  useEffect(() => {
+    if (!editorRef.current) return
+    if (value !== lastHtmlRef.current && value !== editorRef.current.innerHTML) {
+      editorRef.current.innerHTML = value
+      lastHtmlRef.current = value
+    }
+  }, [value])
+
+  const emit = () => {
+    if (!editorRef.current) return
+    const html = editorRef.current.innerHTML
+    lastHtmlRef.current = html
+    onChange(html)
+  }
+
+  const exec = (cmd: string, val?: string) => {
+    editorRef.current?.focus()
+    document.execCommand(cmd, false, val)
+    emit()
+  }
+
+  // Insert superscript / subscript node at cursor
+  const insertScript = (tag: 'sup' | 'sub', char: string) => {
+    editorRef.current?.focus()
+    const sel = window.getSelection()
+    if (!sel || !sel.rangeCount) return
+    const range = sel.getRangeAt(0)
+    range.deleteContents()
+    const node = document.createElement(tag)
+    node.textContent = char
+    range.insertNode(node)
+    range.setStartAfter(node)
+    range.setEndAfter(node)
+    sel.removeAllRanges()
+    sel.addRange(range)
+    emit()
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'ArrowUp') { e.preventDefault(); arrowRef.current.up = true; return }
+    if (e.key === 'ArrowDown') { e.preventDefault(); arrowRef.current.down = true; return }
+    if ((arrowRef.current.up || arrowRef.current.down) && e.key.length === 1) {
+      e.preventDefault()
+      insertScript(arrowRef.current.up ? 'sup' : 'sub', e.key)
+    }
+  }
+
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'ArrowUp') arrowRef.current.up = false
+    if (e.key === 'ArrowDown') arrowRef.current.down = false
+  }
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    // Image paste (Ctrl+V image from clipboard)
+    const items = Array.from(e.clipboardData?.items ?? [])
+    const imgItem = items.find(it => it.type.startsWith('image/'))
+    if (imgItem) {
+      e.preventDefault()
+      const file = imgItem.getAsFile()
+      if (file) insertImageFile(file)
+      return
+    }
+    // Plain text paste — strip HTML from clipboard
+    e.preventDefault()
+    const text = e.clipboardData.getData('text/plain')
+    document.execCommand('insertText', false, text)
+    emit()
+  }
+
+  const insertImageFile = (file: File) => {
+    const reader = new FileReader()
+    reader.onload = ev => {
+      const src = ev.target?.result as string
+      editorRef.current?.focus()
+      const sel = window.getSelection()
+      if (!sel || !sel.rangeCount) return
+      const range = sel.getRangeAt(0)
+      range.deleteContents()
+      const img = document.createElement('img')
+      img.src = src
+      img.style.maxWidth = '100%'
+      img.style.borderRadius = '8px'
+      img.style.marginTop = '6px'
+      img.style.display = 'block'
+      range.insertNode(img)
+      range.setStartAfter(img)
+      range.setEndAfter(img)
+      sel.removeAllRanges()
+      sel.addRange(range)
+      emit()
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const applyFontSize = (size: string) => {
+    setFontSize(size)
+    editorRef.current?.focus()
+    const sel = window.getSelection()
+    if (!sel || sel.isCollapsed || !sel.rangeCount) return
+    const range = sel.getRangeAt(0)
+    // Wrap selection in a span with the desired size
+    try {
+      const span = document.createElement('span')
+      span.style.fontSize = `${size}px`
+      range.surroundContents(span)
+    } catch {
+      // surroundContents throws on partial tag selection — fall back to execCommand
+      document.execCommand('fontSize', false, '4')
+      // override the <font> size with real px via querySelectorAll
+      editorRef.current?.querySelectorAll('font[size="4"]').forEach(el => {
+        const f = el as HTMLElement
+        f.removeAttribute('size')
+        f.style.fontSize = `${size}px`
+      })
+    }
+    emit()
+  }
+
+  const isEmpty = !value || value === '<br>' || value === ''
+  const divider = <div style={{ width: 1, height: 20, background: 'var(--color-border-medium)', margin: '0 3px', flexShrink: 0 }} />
+
+  return (
+    <div style={{ position: 'relative' }}>
+      {/* Placeholder overlay */}
+      {isEmpty && !focused && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0,
+          padding: '12px 16px', fontSize: 16, lineHeight: 1.6,
+          color: 'var(--color-text-4)', pointerEvents: 'none', zIndex: 1,
+        }}>
+          Введите текст задания…
+        </div>
+      )}
+
+      {/* Editor */}
+      <div
+        ref={editorRef}
+        contentEditable
+        suppressContentEditableWarning
+        onInput={emit}
+        onFocus={() => setFocused(true)}
+        onBlur={() => { emit(); setTimeout(() => setFocused(false), 200) }}
+        onKeyDown={handleKeyDown}
+        onKeyUp={handleKeyUp}
+        onPaste={handlePaste}
+        style={{
+          ...(inputSt as React.CSSProperties),
+          minHeight: 120,
+          fontSize: 16,
+          padding: '12px 16px',
+          paddingBottom: focused ? 56 : 12,
+          lineHeight: 1.6,
+          overflowY: 'auto',
+          wordBreak: 'break-word',
+          transition: 'padding-bottom 0.18s ease',
+          cursor: 'text',
+          resize: 'vertical',
+        }}
+      />
+
+      {/* Floating toolbar */}
+      <AnimatePresence>
+        {focused && (
+          <motion.div
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 5 }}
+            transition={{ duration: 0.14 }}
+            style={{
+              position: 'absolute', bottom: 8, left: 8, right: 8,
+              height: 40, display: 'flex', alignItems: 'center', gap: 1,
+              background: 'var(--color-bg-2)',
+              borderRadius: 10,
+              border: '1px solid var(--color-border-medium)',
+              padding: '0 6px',
+              zIndex: 20,
+              boxShadow: '0 2px 14px rgba(0,0,0,0.18)',
+              flexWrap: 'nowrap', overflowX: 'auto',
+            }}
+          >
+            {/* Font size */}
+            <select
+              value={fontSize}
+              onChange={e => applyFontSize(e.target.value)}
+              onMouseDown={e => e.stopPropagation()}
+              style={{
+                height: 26, borderRadius: 6,
+                border: '1px solid var(--color-border-medium)',
+                background: 'var(--color-bg-input)',
+                color: 'var(--color-text)', fontSize: 12,
+                padding: '0 4px', cursor: 'pointer', fontFamily: 'inherit',
+                flexShrink: 0,
+              }}
+            >
+              {FONT_SIZES.map(s => <option key={s} value={s}>{s}px</option>)}
+            </select>
+
+            {divider}
+
+            <ToolbarBtn title="Жирный (Ctrl+B)" onClick={() => exec('bold')}>
+              <span style={{ fontWeight: 800, fontSize: 13, lineHeight: 1 }}>B</span>
+            </ToolbarBtn>
+            <ToolbarBtn title="Курсив (Ctrl+I)" onClick={() => exec('italic')}>
+              <span style={{ fontStyle: 'italic', fontSize: 13, lineHeight: 1 }}>I</span>
+            </ToolbarBtn>
+            <ToolbarBtn title="Подчёркнутый (Ctrl+U)" onClick={() => exec('underline')}>
+              <span style={{ textDecoration: 'underline', fontSize: 13, lineHeight: 1 }}>U</span>
+            </ToolbarBtn>
+
+            {divider}
+
+            <ToolbarBtn title="Надстрочный (зажми ↑ + символ)" onClick={() => exec('superscript')}>
+              <span style={{ fontSize: 12, lineHeight: 1, fontFamily: 'inherit' }}>
+                x<sup style={{ fontSize: '68%' }}>2</sup>
+              </span>
+            </ToolbarBtn>
+            <ToolbarBtn title="Подстрочный (зажми ↓ + символ)" onClick={() => exec('subscript')}>
+              <span style={{ fontSize: 12, lineHeight: 1, fontFamily: 'inherit' }}>
+                x<sub style={{ fontSize: '68%' }}>2</sub>
+              </span>
+            </ToolbarBtn>
+
+            {divider}
+
+            {/* Highlight colors */}
+            {HIGHLIGHT_COLORS.map(({ hex, label }) => (
+              <button
+                key={hex}
+                title={`Выделить: ${label}`}
+                onMouseDown={e => { e.preventDefault(); exec('hiliteColor', hex) }}
+                style={{
+                  width: 16, height: 16, borderRadius: 4,
+                  border: '1.5px solid rgba(0,0,0,0.12)',
+                  background: hex, cursor: 'pointer', flexShrink: 0,
+                }}
+              />
+            ))}
+            <button
+              title="Убрать выделение"
+              onMouseDown={e => { e.preventDefault(); exec('hiliteColor', 'transparent') }}
+              style={{
+                width: 16, height: 16, borderRadius: 4,
+                border: '1.5px solid var(--color-border-medium)',
+                background: 'transparent', cursor: 'pointer', flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'var(--color-text-3)',
+              }}
+            >
+              <X size={9} />
+            </button>
+
+            {divider}
+
+            {/* Image upload */}
+            <ToolbarBtn title="Вставить фото (или Ctrl+V)" onClick={() => fileInputRef.current?.click()}>
+              <ImageIcon size={13} />
+            </ToolbarBtn>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={e => {
+                const file = e.target.files?.[0]
+                if (file) insertImageFile(file)
+                e.target.value = ''
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 // ─── Lesson name input with suggestions (existing course lessons) ─────────────
 function LessonNameInput({ value, onChange, onAdd }: {
   value: string; onChange: (v: string) => void; onAdd: (title: string) => void
@@ -1437,9 +1761,11 @@ function CreatorView({
     }
   }
 
+  const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
+
   // Assemble the authored task into a bank-ready record, or null if incomplete.
   function buildTask(): NewBankTask | null {
-    const q = tkQuestion.trim()
+    const q = stripHtml(tkQuestion)
     if (!q) return null
     const table = tkHasTable ? { headers: tkTableHeaders, rows: tkTableRows } : undefined
     const base = {
@@ -1516,7 +1842,7 @@ function CreatorView({
       const isBio = tkSubject === 'Биология'
       const trainerColor = isBio ? '#5FD68A' : '#B98FFF'
       const trainerBg    = isBio ? '#D6F5E3' : '#EFE0FF'
-      const trainerTitle = (tkTopic || tkSection || tkQuestion.slice(0, 40)).trim() || 'Новое задание'
+      const trainerTitle = (tkTopic || tkSection || stripHtml(tkQuestion).slice(0, 40)).trim() || 'Новое задание'
       const newTrainer: Trainer = {
         id: uid(),
         title: trainerTitle,
@@ -1525,7 +1851,7 @@ function CreatorView({
         timePerQuestion: 2,
         questions: [{
           id: String(newId),
-          text: tkQuestion.trim(),
+          text: stripHtml(tkQuestion),
           answer: task.answer ?? '',
           source: 'bank',
           difficulty: tkDifficulty,
@@ -1564,7 +1890,7 @@ function CreatorView({
   const setDocked = useTeacher(s => s.setHeaderDocked)
   useEffect(() => () => setDocked(false), [])
 
-  const currentName = (mode === 'trainer' ? tkQuestion : mode === 'course' ? cTitle : wTitle).trim()
+  const currentName = (mode === 'trainer' ? stripHtml(tkQuestion) : mode === 'course' ? cTitle : wTitle).trim()
   const createLabel = mode === 'trainer' ? (editingTask ? 'Редактировать задание' : 'Создать задание') : mode === 'course' ? (editCourse ? 'Редактировать курс' : 'Создать курс') : 'Создать виджет'
   const saveLabel = mode === 'trainer' ? (editingTask ? 'Сохранить изменения' : 'Сохранить в банк') : mode === 'course' ? 'Сохранить курс' : 'Сохранить виджет'
   const paramsLabel = mode === 'course' ? 'Параметры курса' : mode === 'trainer' ? 'Параметры задания' : 'Параметры виджета'
@@ -1762,7 +2088,7 @@ function CreatorView({
             </div>
             <div><Label>Привязать тренажёр</Label>
               <TeacherSelect value={wLinkedId} onChange={setWLinkedId} placeholder="— нет —"
-                options={[{ value: '', label: '— нет —' }, ...trainers.map(t => ({ value: t.id, label: t.title.slice(0, 28) }))]} />
+                options={[{ value: '', label: '— нет —' }, ...trainers.map(t => ({ value: t.id, label: t.title }))]} />
             </div>
           </>}
           </GlassCard>
@@ -1825,10 +2151,7 @@ function CreatorView({
             {/* 1 ─ Условие */}
             <div>
               <SectionHead>Условие задания</SectionHead>
-              <textarea value={tkQuestion}
-                onChange={e => { setTkQuestion(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
-                placeholder="Введите текст задания…" rows={5}
-                style={{ ...inputSt, resize: 'none', minHeight: 120, fontSize: 16, padding: '12px 16px', lineHeight: 1.6, overflow: 'hidden' }} />
+              <RichConditionEditor value={tkQuestion} onChange={setTkQuestion} inputSt={inputSt} />
             </div>
 
             {/* image block */}

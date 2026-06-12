@@ -119,7 +119,7 @@ export default function TeacherSelect({
               transition={{ type: 'spring', stiffness: 460, damping: 26, mass: 0.7 }}
               style={{
                 position: 'fixed', zIndex: 2000,
-                left: pos.left, minWidth: pos.width, maxWidth: Math.max(pos.width, 300),
+                left: pos.left, width: pos.width,
                 ...(pos.up ? { bottom: pos.bottom } : { top: pos.top }),
                 transformOrigin: pos.up ? 'bottom left' : 'top left',
                 background: 'rgba(var(--glass-rgb), 0.96)',
