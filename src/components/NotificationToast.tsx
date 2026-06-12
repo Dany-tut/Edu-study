@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Bell, X, ArrowRight } from 'lucide-react'
+import { createPortal } from 'react-dom'
+import { motion, AnimatePresence, useAnimation } from 'framer-motion'
+import { ArrowRight, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { useNotificationsStore, type Notification } from '../store/notificationsStore'
-import { useTeacher } from '../store/teacherStore'
-import { useDashboard } from '../store/dashboardStore'
 
 const ICON: Record<string, string> = {
   homework_assigned:    '📚',
@@ -16,187 +15,209 @@ const ICON: Record<string, string> = {
   achievement:          '🏆',
 }
 
-// Bounce-in: widget "gets hit" by the notification
-const toastVariants = {
-  hidden: { opacity: 0, x: 60, scale: 0.88 },
-  visible: {
-    opacity: 1, x: 0, scale: 1,
-    transition: { type: 'spring', stiffness: 420, damping: 26, mass: 0.9 },
-  },
-  bump: {
-    scale: [1, 1.04, 0.98, 1.02, 0.99, 1],
-    transition: { duration: 0.45, ease: 'easeOut' },
-  },
-  exit: {
-    opacity: 0, x: 60, scale: 0.88,
-    transition: { duration: 0.28, ease: [0.4, 0, 1, 1] },
-  },
+// Bounce keyframes — like "something puffed into the widget"
+const BUMP = {
+  scale: [1, 1.045, 0.975, 1.022, 0.992, 1],
+  transition: { duration: 0.5, ease: 'easeOut' },
 }
 
-const expandVariants = {
-  collapsed: { height: 0, opacity: 0 },
-  expanded:  { height: 'auto', opacity: 1, transition: { duration: 0.22, ease: 'easeOut' } },
-}
-
-function Toast({ notif, onDismiss }: { notif: Notification; onDismiss: () => void }) {
-  const [expanded, setExpanded] = useState(false)
-  const [bump, setBump]         = useState(false)
-  const markRead    = useNotificationsStore(s => s.markRead)
-  const setTeacherPage = useTeacher(s => s.setActivePage)
-  const setStudentPage = useDashboard(s => s.setActivePage)
-  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
-
-  // Auto-dismiss after 30s
-  useEffect(() => {
-    timerRef.current = setTimeout(() => onDismiss(), 30_000)
-    return () => clearTimeout(timerRef.current)
-  }, [onDismiss])
-
-  // Bump animation shortly after mount
-  useEffect(() => {
-    const t = setTimeout(() => setBump(true), 80)
-    return () => clearTimeout(t)
-  }, [])
-
-  function handleAction() {
-    if (!notif.action) return
-    markRead(notif.id)
-    onDismiss()
-    const page = notif.action.page
-    if (!page) return
-    // Try teacher pages first, then student
-    const teacherPages = ['home','groups','homework','gradebook','constructor','homework-create','lesson-editor']
-    if (teacherPages.includes(page)) setTeacherPage(page as Parameters<typeof setTeacherPage>[0])
-    else setStudentPage(page as Parameters<typeof setStudentPage>[0])
-  }
-
-  function handleClick() {
-    setExpanded(e => !e)
-    markRead(notif.id)
-    clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(() => onDismiss(), 8_000)
-  }
-
+function NotifRow({ n, onAction, onRead }: {
+  n: Notification
+  onRead: (id: string) => void
+  onAction: (n: Notification) => void
+}) {
   return (
-    <motion.div
-      layout
-      variants={toastVariants}
-      initial="hidden"
-      animate={bump ? 'bump' : 'visible'}
-      exit="exit"
-      onClick={handleClick}
-      style={{
-        width: 300,
-        borderRadius: 20,
-        overflow: 'hidden',
-        cursor: 'pointer',
-        // Red radial gradient — adapts to dark/light via CSS vars
-        background: 'radial-gradient(ellipse at top left, rgba(255,90,90,0.18) 0%, rgba(var(--glass-rgb),0.96) 60%)',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        border: '1px solid rgba(255,90,90,0.22)',
-        boxShadow: '0 8px 32px rgba(255,90,90,0.12), 0 2px 8px rgba(0,0,0,0.08)',
-      }}
-    >
-      {/* Main row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
-        <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>
-          {ICON[notif.type] ?? '🔔'}
-        </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2,
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {notif.title}
-          </div>
-          <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2,
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {notif.body}
-          </div>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0' }}>
+      <span style={{
+        width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+        background: 'rgba(255,90,90,0.15)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15,
+      }}>
+        {ICON[n.type] ?? '🔔'}
+      </span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
+          {n.title}
         </div>
-        <button
-          onClick={e => { e.stopPropagation(); onDismiss() }}
-          style={{ background: 'none', border: 'none', cursor: 'pointer',
-            color: 'var(--color-text-3)', padding: 2, flexShrink: 0, display: 'flex' }}
-        >
-          <X size={13} />
-        </button>
-      </div>
-
-      {/* Expanded action */}
-      <AnimatePresence>
-        {expanded && notif.action && (
-          <motion.div
-            variants={expandVariants}
-            initial="collapsed"
-            animate="expanded"
-            exit="collapsed"
-            style={{ overflow: 'hidden' }}
-          >
-            <div style={{
-              padding: '0 14px 12px',
-              borderTop: '1px solid rgba(255,90,90,0.12)',
-              paddingTop: 10,
-            }}>
-              <p style={{ fontSize: 12, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 10 }}>
-                {notif.body}
-              </p>
-              <button
-                onClick={e => { e.stopPropagation(); handleAction() }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '8px 14px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                  background: 'rgba(255,90,90,0.18)',
-                  color: '#FF5A5A', fontSize: 13, fontWeight: 700,
-                }}
-              >
-                {notif.action.label}
-                <ArrowRight size={13} />
-              </button>
-            </div>
-          </motion.div>
+        <div style={{ fontSize: 11, color: 'var(--color-text-2)', marginTop: 1, lineHeight: 1.4 }}>
+          {n.body}
+        </div>
+        {n.action && (
+          <button onClick={() => { onRead(n.id); onAction(n) }} style={{
+            marginTop: 7, display: 'inline-flex', alignItems: 'center', gap: 5,
+            padding: '5px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
+            background: 'rgba(255,90,90,0.18)', color: '#FF5A5A',
+            fontSize: 11.5, fontWeight: 700,
+          }}>
+            {n.action.label} <ArrowRight size={11} />
+          </button>
         )}
-      </AnimatePresence>
-
-      {/* Progress bar — 30s drain */}
-      <motion.div
-        initial={{ scaleX: 1 }}
-        animate={{ scaleX: 0 }}
-        transition={{ duration: 30, ease: 'linear' }}
-        style={{
-          height: 2, background: 'rgba(255,90,90,0.5)',
-          transformOrigin: 'left', borderRadius: 0,
-        }}
-      />
-    </motion.div>
+      </div>
+    </div>
   )
 }
 
-// Container — renders all live notifications stacked
 export default function NotificationToastContainer() {
   const notifications = useNotificationsStore(s => s.notifications)
   const dismissLive   = useNotificationsStore(s => s.dismissLive)
   const markRead      = useNotificationsStore(s => s.markRead)
+  const markAllRead   = useNotificationsStore(s => s.markAllRead)
 
   const live = notifications.filter(n => n.live)
+  const latest = live[0]
 
-  function dismiss(id: string) {
-    dismissLive(id)
-    markRead(id)
+  const [expanded, setExpanded] = useState(false)
+  const controls = useAnimation()
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const prevCountRef = useRef(0)
+
+  // Enter animation on mount + bounce on each new notification
+  useEffect(() => {
+    controls.start({ opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 380, damping: 26 } })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (live.length > prevCountRef.current && live.length > 0 && prevCountRef.current > 0) {
+      controls.start({ scale: [1, 1.045, 0.975, 1.022, 0.992, 1], transition: { duration: 0.5, ease: 'easeOut' } })
+    }
+    prevCountRef.current = live.length
+  }, [live.length, controls])
+
+  // Reset auto-dismiss timer on each new notification
+  useEffect(() => {
+    if (live.length === 0) { setExpanded(false); return }
+    clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => {
+      live.forEach(n => { dismissLive(n.id); markRead(n.id) })
+      setExpanded(false)
+    }, 30_000)
+    return () => clearTimeout(timerRef.current)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live.length])
+
+  function dismissAll() {
+    live.forEach(n => { dismissLive(n.id); markRead(n.id) })
+    setExpanded(false)
   }
 
-  return (
-    <div style={{
-      position: 'fixed', bottom: 24, right: 24,
-      display: 'flex', flexDirection: 'column', gap: 10,
-      zIndex: 9000, pointerEvents: 'none',
-    }}>
-      <AnimatePresence mode="sync">
-        {live.map(n => (
-          <motion.div key={n.id} style={{ pointerEvents: 'auto' }}>
-            <Toast notif={n} onDismiss={() => dismiss(n.id)} />
-          </motion.div>
-        ))}
-      </AnimatePresence>
-    </div>
+  function handleAction(n: Notification) {
+    dismissAll()
+    if (!n.action?.page) return
+    window.location.hash = `#/${n.action.page}`
+  }
+
+  const widget = (
+    <AnimatePresence>
+      {live.length > 0 && latest && (
+        <motion.div
+          key="notif-widget"
+          initial={{ opacity: 0, y: -18, scale: 0.92 }}
+          animate={controls}
+          exit={{ opacity: 0, y: -14, scale: 0.92, transition: { duration: 0.22 } }}
+          style={{
+            position: 'fixed',
+            top: 76,        // just below the topbar pill
+            right: 24,
+            width: 300,
+            zIndex: 8500,
+            borderRadius: 20,
+            overflow: 'hidden',
+            cursor: 'pointer',
+            background: 'radial-gradient(ellipse at top left, rgba(255,90,90,0.22) 0%, rgba(var(--glass-rgb),0.96) 55%)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            border: '1px solid rgba(255,90,90,0.25)',
+            boxShadow: '0 8px 32px rgba(255,90,90,0.14), 0 2px 10px rgba(0,0,0,0.08)',
+          }}
+        >
+          {/* Top row: icon + title + count badge + controls */}
+          <div
+            onClick={() => setExpanded(e => !e)}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px 12px 14px' }}
+          >
+            <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>
+              {ICON[latest.type] ?? '🔔'}
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2,
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {latest.title}
+              </div>
+              {!expanded && (
+                <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 1,
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {latest.body}
+                </div>
+              )}
+            </div>
+            {live.length > 1 && !expanded && (
+              <span style={{
+                fontSize: 10, fontWeight: 700, color: '#fff', background: '#FF5A5A',
+                borderRadius: 99, padding: '2px 6px', flexShrink: 0,
+              }}>
+                +{live.length - 1}
+              </span>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ color: 'var(--color-text-3)', display: 'flex' }}>
+                {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </span>
+              <button
+                onClick={e => { e.stopPropagation(); dismissAll() }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'var(--color-text-3)', display: 'flex', padding: 2 }}
+              >
+                <X size={13} />
+              </button>
+            </div>
+          </div>
+
+          {/* Expanded: all stacked notifications */}
+          <AnimatePresence>
+            {expanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.22, ease: 'easeOut' }}
+                style={{ overflow: 'hidden' }}
+              >
+                <div style={{ padding: '0 14px 14px', borderTop: '1px solid rgba(255,90,90,0.15)' }}>
+                  <div style={{ paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {live.map((n, i) => (
+                      <div key={n.id}>
+                        {i > 0 && <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />}
+                        <NotifRow n={n} onRead={markRead} onAction={handleAction} />
+                      </div>
+                    ))}
+                  </div>
+                  {live.length > 1 && (
+                    <button onClick={dismissAll} style={{
+                      marginTop: 10, width: '100%', padding: '7px 0', borderRadius: 10,
+                      border: '1px solid rgba(255,90,90,0.2)', background: 'none', cursor: 'pointer',
+                      fontSize: 11.5, fontWeight: 600, color: 'var(--color-muted)',
+                    }}>
+                      Закрыть все
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* 30s drain bar */}
+          <motion.div
+            key={live.length}
+            initial={{ scaleX: 1 }}
+            animate={{ scaleX: 0 }}
+            transition={{ duration: 30, ease: 'linear' }}
+            style={{ height: 2, background: 'rgba(255,90,90,0.55)', transformOrigin: 'left' }}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
+
+  return createPortal(widget, document.body)
 }

@@ -1,4 +1,5 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNotificationsStore, type Notification } from '../store/notificationsStore'
 import { Bell } from 'lucide-react'
@@ -35,22 +36,15 @@ function NotifRow({ n, onRead }: { n: Notification; onRead: (id: string) => void
         borderRadius: 12, transition: 'background 0.15s',
       }}
     >
-      {/* Icon circle */}
       <span style={{
         width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
         background: n.read ? 'rgba(var(--glass-rgb),0.4)' : 'rgba(255,90,90,0.12)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 16,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
       }}>
         {ICON[n.type] ?? '🔔'}
       </span>
-
-      {/* Text */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontSize: 13, fontWeight: n.read ? 500 : 700,
-          color: 'var(--color-text)', lineHeight: 1.25,
-        }}>
+        <div style={{ fontSize: 13, fontWeight: n.read ? 500 : 700, color: 'var(--color-text)', lineHeight: 1.25 }}>
           {n.title}
         </div>
         <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>
@@ -60,18 +54,11 @@ function NotifRow({ n, onRead }: { n: Notification; onRead: (id: string) => void
           {timeAgo(n.createdAt)}
         </div>
       </div>
-
-      {/* Unread dot */}
       <AnimatePresence>
         {!n.read && (
           <motion.span
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0 }}
-            style={{
-              width: 7, height: 7, borderRadius: '50%',
-              background: '#FF5A5A', flexShrink: 0, marginTop: 4,
-            }}
+            initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+            style={{ width: 7, height: 7, borderRadius: '50%', background: '#FF5A5A', flexShrink: 0, marginTop: 4 }}
           />
         )}
       </AnimatePresence>
@@ -92,22 +79,23 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
   const popupRef      = useRef<HTMLDivElement>(null)
   const unread        = notifications.filter(n => !n.read).length
 
-  // Position relative to the bell button
-  const getPos = () => {
-    if (!anchorRef.current) return { top: 60, right: 24 }
-    const r = anchorRef.current.getBoundingClientRect()
-    return { top: r.bottom + 10, right: window.innerWidth - r.right }
-  }
-  const pos = open ? getPos() : { top: 0, right: 0 }
+  // Capture position at open time (avoids transform issues on parent)
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+  useEffect(() => {
+    if (!open) { setPos(null); return }
+    const el = anchorRef.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    // Align popup left edge with bell left edge, below the bell
+    setPos({ top: r.bottom + 10, left: Math.max(8, r.left - 10) })
+  }, [open, anchorRef])
 
-  // Close on outside click
+  // Close on outside click / Escape
   useEffect(() => {
     if (!open) return
     const onDown = (e: PointerEvent) => {
       if (!popupRef.current?.contains(e.target as Node) &&
-          !anchorRef.current?.contains(e.target as Node)) {
-        onClose()
-      }
+          !anchorRef.current?.contains(e.target as Node)) onClose()
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('pointerdown', onDown)
@@ -118,9 +106,9 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
     }
   }, [open, onClose, anchorRef])
 
-  return (
+  const popup = (
     <AnimatePresence>
-      {open && (
+      {open && pos && (
         <motion.div
           ref={popupRef}
           initial={{ opacity: 0, scale: 0.88, y: -8 }}
@@ -130,16 +118,16 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
           style={{
             position: 'fixed',
             top: pos.top,
-            right: pos.right,
+            left: pos.left,
             width: 320,
             zIndex: 9100,
             borderRadius: 20,
             overflow: 'hidden',
-            background: 'rgba(var(--glass-rgb), 0.92)',
+            background: 'rgba(var(--glass-rgb), 0.88)',
             backdropFilter: 'blur(24px) saturate(180%)',
             WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-            border: '1px solid var(--color-border-glass)',
-            boxShadow: 'var(--shadow-modal-sm)',
+            border: '1px solid var(--color-border-medium)',
+            boxShadow: '0 8px 40px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.06)',
           }}
         >
           {/* Header */}
@@ -163,13 +151,10 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
               )}
             </div>
             {unread > 0 && (
-              <button
-                onClick={markAllRead}
-                style={{
-                  fontSize: 11, fontWeight: 600, color: 'var(--color-accent)',
-                  background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                }}
-              >
+              <button onClick={markAllRead} style={{
+                fontSize: 11, fontWeight: 600, color: 'var(--color-accent)',
+                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+              }}>
                 Прочитать все
               </button>
             )}
@@ -178,20 +163,17 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
           {/* List */}
           <div style={{ maxHeight: 380, overflowY: 'auto', padding: '6px 6px' }}>
             {notifications.length === 0 ? (
-              <div style={{
-                padding: '32px 0', textAlign: 'center',
-                color: 'var(--color-muted)', fontSize: 13,
-              }}>
+              <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--color-muted)', fontSize: 13 }}>
                 Нет уведомлений
               </div>
             ) : (
-              notifications.map(n => (
-                <NotifRow key={n.id} n={n} onRead={markRead} />
-              ))
+              notifications.map(n => <NotifRow key={n.id} n={n} onRead={markRead} />)
             )}
           </div>
         </motion.div>
       )}
     </AnimatePresence>
   )
+
+  return createPortal(popup, document.body)
 }
