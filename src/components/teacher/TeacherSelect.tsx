@@ -140,7 +140,7 @@ export default function TeacherSelect({
                     key={o.value || '∅'}
                     type="button"
                     onClick={() => { onChange(o.value); setOpen(false) }}
-                    onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.05)' }}
+                    onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
                     onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
