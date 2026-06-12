@@ -15,6 +15,8 @@ import { useDashboard, type WidgetColumns } from '../store/dashboardStore'
 import WidgetOrderModal from './WidgetOrderModal'
 import { useTheme } from '../store/themeStore'
 import { useStudentData } from '../store/studentDataStore'
+import NotificationBell from './NotificationBell'
+import NotificationPopup from './NotificationPopup'
 
 const navItems = [
   { id: 'home',    label: 'Главная',  icon: Home },
@@ -174,6 +176,8 @@ export default function Sidebar() {
   const [nameMaxWidth, setNameMaxWidth] = useState<number | undefined>(undefined)
   // Viewport coords for the portaled popover, measured from the avatar.
   const [anchor, setAnchor] = useState<{ top: number; left: number } | null>(null)
+  const [bellOpen, setBellOpen] = useState(false)
+  const bellRef = useRef<HTMLButtonElement>(null)
   const { dark, toggle: toggleTheme } = useTheme()
   const session = getStudentSession()
   const displayName = session?.name ?? ''
@@ -712,20 +716,14 @@ export default function Sidebar() {
 
       {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginLeft: 8 }}>
-        <motion.button
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.96 }}
-          style={{
-            width: 32, height: 32,
-            borderRadius: '50%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: isCompact ? 'var(--color-text-2)' : 'var(--color-muted)',
-            background: 'none', border: 'none',
-          }}
-          aria-label="Уведомления"
-        >
-          <Bell size={16} />
-        </motion.button>
+        <div ref={bellRef as unknown as React.RefObject<HTMLDivElement>} style={{ display: 'flex' }}>
+          <NotificationBell onClick={() => setBellOpen(o => !o)} />
+        </div>
+        <NotificationPopup
+          open={bellOpen}
+          anchorRef={bellRef as unknown as React.RefObject<HTMLElement>}
+          onClose={() => setBellOpen(false)}
+        />
 
         <motion.button
           whileHover={{ scale: 1.08 }}

@@ -9,6 +9,7 @@ import { getStudentSession } from './lib/studentSession'
 import type { Session } from '@supabase/supabase-js'
 import './store/themeStore' // initialise theme + apply data-theme before first render
 import { useStudentData } from './store/studentDataStore'
+import NotificationToastContainer from './components/NotificationToast'
 
 function useHashRoute() {
   const [hash, setHash] = useState(window.location.hash)
@@ -41,11 +42,11 @@ export default function App() {
   if (hash.startsWith('#/teacher')) {
     if (session === undefined) return null
     if (!session) return <TeacherLoginPage onLogin={() => {}} />
-    return <TeacherDashboardPage />
+    return <><TeacherDashboardPage /><NotificationToastContainer /></>
   }
 
   // Student routes
   const studentSession = getStudentSession()
   if (!studentSession) return <StudentLoginPage />
-  return <DashboardPage />
+  return <><DashboardPage /><NotificationToastContainer /></>
 }

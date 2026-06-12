@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, Users, ClipboardList, BookOpen, Layers,
-  Bell, ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight,
   LayoutGrid, UserPlus, Send, CheckSquare, LayoutDashboard, LogOut, Moon, Sun, type LucideIcon,
 } from 'lucide-react'
 import { useState, useRef, useLayoutEffect, useEffect } from 'react'
@@ -12,6 +12,8 @@ import CreateTaskModal from './CreateTaskModal'
 import WidgetsModal from './WidgetsModal'
 import { supabase } from '../../lib/supabase'
 import { useTheme } from '../../store/themeStore'
+import NotificationBell from '../NotificationBell'
+import NotificationPopup from '../NotificationPopup'
 
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
   { id: 'home',        label: 'Главная',     icon: Home },
@@ -55,6 +57,8 @@ export default function TeacherTopBar() {
   const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [widgetsOpen, setWidgetsOpen] = useState(false)
   const [anchor, setAnchor]             = useState<{ top: number; left: number } | null>(null)
+  const [bellOpen, setBellOpen]         = useState(false)
+  const bellRef    = useRef<HTMLDivElement>(null)
   const addBtnRef  = useRef<HTMLButtonElement>(null)
   const dropRef    = useRef<HTMLDivElement>(null)
   const activePage = useTeacher(s => s.activePage)
@@ -183,18 +187,14 @@ export default function TeacherTopBar() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
 
         {/* Bell */}
-        <motion.button
-          whileHover={{ scale: 1.08, backgroundColor: 'rgba(155,109,255,0.14)' }}
-          whileTap={{ scale: 0.96 }}
-          aria-label="Уведомления"
-          style={{
-            width: 32, height: 32, borderRadius: '50%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: 'var(--color-muted)', background: 'none', border: 'none',
-          }}
-        >
-          <Bell size={16} />
-        </motion.button>
+        <div ref={bellRef} style={{ display: 'flex' }}>
+          <NotificationBell onClick={() => setBellOpen(o => !o)} />
+        </div>
+        <NotificationPopup
+          open={bellOpen}
+          anchorRef={bellRef as React.RefObject<HTMLElement>}
+          onClose={() => setBellOpen(false)}
+        />
 
         {/* Quick-actions grid button */}
         <motion.button
