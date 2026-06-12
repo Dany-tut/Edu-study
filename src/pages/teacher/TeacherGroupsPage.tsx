@@ -701,7 +701,7 @@ function StudentPanel({
       {/* Header */}
       <div style={{
         padding: '20px 20px 16px',
-        background: group.colorSoft,
+        background: group.color + '22',
         borderBottom: `1px solid ${group.color}44`,
         borderTopLeftRadius: 19,
         borderTopRightRadius: 19,
