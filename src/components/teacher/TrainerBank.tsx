@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, X, Check, Image as ImageIcon, Key, ListChecks, Eye, EyeOff,
   ChevronDown, Search, Shuffle, AlertCircle, Trash2, Save,
-  LayoutGrid, List, ArrowUpDown, Pencil,
+  LayoutGrid, List, ArrowUpDown, Pencil, Zap, Clock,
 } from 'lucide-react'
 import TeacherSelect from './TeacherSelect'
 import {
@@ -397,16 +397,13 @@ function BankGridCard({
   onDelete?: () => void; showSelect: boolean; accent: string; accentBg: string
 }) {
   const openEdit = useTeacher(s => s.openConstructorEditTask)
-  const [hovered, setHovered] = useState(false)
   const subjectLabel = task.subject === 'biology' ? 'Биол.' : 'Хим.'
   const subjectBg = task.subject === 'biology' ? 'var(--color-green-soft)' : 'var(--color-purple-soft)'
   const subjectColor = task.subject === 'biology' ? 'var(--color-green-text)' : 'var(--color-purple-text)'
-  const showActions = hovered
 
   return (
     <motion.div
-      onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
+      whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}
       animate={isNew ? {
         boxShadow: ['0 0 0 0px rgba(123,63,204,0)', '0 0 0 3px rgba(123,63,204,0.35)', '0 0 0 0px rgba(123,63,204,0)'],
         borderColor: [undefined, '#9B6DFF', undefined],
@@ -414,55 +411,58 @@ function BankGridCard({
       transition={{ duration: 1.2, ease: 'easeOut' }}
       style={{
         position: 'relative',
-        display: 'flex', flexDirection: 'column', gap: 8, padding: 14, borderRadius: 20,
+        display: 'flex', flexDirection: 'column', gap: 10, padding: 18, borderRadius: 20,
         background: isNew ? 'rgba(238,219,255,0.18)' : 'rgba(var(--glass-rgb), 0.97)',
         border: selected ? `1.5px solid ${accent}` : '1px solid var(--color-border-glass)',
         boxShadow: selected ? `0 0 0 3px ${accent}22, 0 6px 24px rgba(0,0,0,0.08)` : '0 3px 16px rgba(0,0,0,0.06)', height: '100%', boxSizing: 'border-box',
         transition: 'background 0.4s ease',
       }}
     >
-      {/* Icon buttons — top-right corner, fade in on hover */}
-      <AnimatePresence>
-        {showActions && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.12 }}
-            style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 4, zIndex: 2 }}
-          >
-            {showSelect && (
-              <button onClick={onToggleSelected} title={selected ? 'Убрать из тренажёра' : 'Добавить в тренажёр'}
-                style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? accentBg : 'linear-gradient(135deg, #9B6DFF, #7B3FCC)', color: selected ? accent : '#fff' }}>
-                {selected ? <Check size={11} strokeWidth={3} /> : <Plus size={11} strokeWidth={3} />}
-              </button>
-            )}
-            <button onClick={() => openEdit(task.id)} title="Изменить"
-              style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>
-              <Pencil size={11} />
-            </button>
-            {onDelete && (
-              <button onClick={onDelete} title="Удалить"
-                style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
-                <Trash2 size={11} />
-              </button>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Badge row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-        <CopyableIdBadge id={task.id} />
-        <span style={{ padding: '2px 6px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: subjectBg, color: subjectColor }}>{subjectLabel}</span>
-        <span style={{ padding: '2px 6px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>{task.line} лин.</span>
+      {/* Head: icon box + line badge */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+        <div style={{ width: 36, height: 36, borderRadius: 12, background: accentBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Zap size={17} strokeWidth={2} style={{ color: accent }} />
+        </div>
+        <span style={{ fontSize: 10, fontWeight: 700, color: accent, background: accentBg, borderRadius: 7, padding: '2px 8px' }}>
+          {task.line} лин.
+        </span>
       </div>
 
-      {/* Question preview */}
-      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, lineHeight: 1.4, color: 'var(--color-text)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-        {task.question.split('\n')[0] || <span style={{ color: 'var(--color-text-4)' }}>Без текста</span>}
-      </p>
+      {/* Body: question title + topic */}
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          {task.question.split('\n')[0] || <span style={{ color: 'var(--color-text-4)' }}>Без текста</span>}
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {task.topic}
+        </div>
+      </div>
 
-      {/* Topic */}
-      <span style={{ fontSize: 10.5, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 'auto' }}>{task.topic}</span>
+      {/* Footer: subject + part | actions */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8, borderTop: '1px solid var(--color-border-soft)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ padding: '2px 6px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: subjectBg, color: subjectColor }}>{subjectLabel}</span>
+          <span style={{ padding: '2px 6px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>ч.{task.part}</span>
+        </div>
+        <div style={{ display: 'flex', gap: 4 }}>
+          {showSelect && (
+            <button onClick={onToggleSelected} title={selected ? 'Убрать из тренажёра' : 'Добавить в тренажёр'}
+              style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? accentBg : 'linear-gradient(135deg, #9B6DFF, #7B3FCC)', color: selected ? accent : '#fff' }}>
+              {selected ? <Check size={11} strokeWidth={3} /> : <Plus size={11} strokeWidth={3} />}
+            </button>
+          )}
+          <button onClick={() => openEdit(task.id)} title="Изменить"
+            style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>
+            <Pencil size={11} />
+          </button>
+          {onDelete && (
+            <button onClick={onDelete} title="Удалить"
+              style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
+              <Trash2 size={11} />
+            </button>
+          )}
+        </div>
+      </div>
 
     </motion.div>
   )

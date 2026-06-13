@@ -990,13 +990,9 @@ function WidgetCard({ widget, isSelected, onClick }: { widget: Widget; isSelecte
       title={widget.title}
       subtitle={`${widget.items.length} элементов`}
       footerLeft={
-        <>
-          <Layers size={13} strokeWidth={1.8} />
-          {widget.linkedTrainerId
-            ? <span style={{ color: 'var(--color-accent)' }}><Link2 size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} />Из тренажёра</span>
-            : <span>Вручную</span>
-          }
-        </>
+        widget.linkedTrainerId
+          ? <><Link2 size={13} strokeWidth={1.8} style={{ color: 'var(--color-accent)' }} /><span style={{ color: 'var(--color-accent)' }}>Из тренажёра</span></>
+          : <><Pencil size={13} strokeWidth={1.8} /><span>Вручную</span></>
       }
       footerRight={<><Clock size={11} strokeWidth={2} />{widget.lastEdited}</>}
     />
