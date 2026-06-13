@@ -1204,13 +1204,15 @@ export default function TaskBankPage() {
       <div className="flex flex-col lg:flex-row lg:items-start" style={{ gap: 20 }}>
 
         {/* Left sidebar — standalone sticky card */}
-        <div className="lg:sticky" style={{ top: 108, flexShrink: 0 }}>
+        <div className="lg:sticky" style={{ top: 80, flexShrink: 0 }}>
         <aside className="flex flex-col" style={{
           width: 300, padding: 16, gap: 16,
           borderRadius: 24,
           background: 'rgba(var(--glass-rgb), 0.97)',
           border: '1px solid var(--color-border-glass)',
           boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+          maxHeight: 'calc(100vh - 96px)',
+          overflowY: 'auto',
         }}>
 
           {/* Subject gradient card — clicking it toggles between biology and chemistry */}
