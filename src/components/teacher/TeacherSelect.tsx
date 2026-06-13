@@ -114,7 +114,7 @@ export default function TeacherSelect({
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder={current ? current.label : (placeholder ?? '')}
-            onClick={e => e.stopPropagation()}
+            onClick={e => { if (open) { closeDropdown(); e.stopPropagation() } }}
             style={{
               flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
               fontSize: small ? 11 : 13, color: 'var(--color-text)', fontFamily: 'inherit',
