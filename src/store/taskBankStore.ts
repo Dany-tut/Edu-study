@@ -102,8 +102,12 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
   load: async (force = false) => {
     if (!force && get().loaded && get().tasks.length > 0) return
     if (DEV) {
-      set({ tasks: lsLoad(), loaded: true })
-      return
+      const local = lsLoad()
+      if (local.length > 0) {
+        set({ tasks: local, loaded: true })
+        return
+      }
+      // localStorage empty → fall through to Supabase so dev can see seeded data
     }
     const { data } = await supabase.from('task_bank').select('*').order('id')
     if (data) {

@@ -918,13 +918,13 @@ function ContentCard({ accentColor, accentBg, isSelected, onClick, icon, badge, 
         background: isSelected ? accentBg : 'rgba(var(--glass-rgb), 0.88)',
         backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         border: isSelected ? `1.5px solid ${accentColor}` : '1px solid var(--color-border-glass)',
-        borderRadius: 20, padding: 18, cursor: 'pointer',
+        borderRadius: 20, padding: '18px 18px 12px', cursor: 'pointer',
         boxShadow: isSelected ? `0 0 0 3px ${accentColor}22, 0 6px 24px rgba(0,0,0,0.08)` : '0 3px 16px rgba(0,0,0,0.06)',
         display: 'flex', flexDirection: 'column', gap: 10, transition: 'all 0.18s',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 12, background: accentBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ width: 36, height: 36, borderRadius: 12, background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           {icon}
         </div>
         {badge}
@@ -3137,9 +3137,9 @@ export default function TeacherConstructorPage() {
   }
 
   const tabCfg = {
-    course:  { label: 'Курс',     Icon: BookOpen, color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)' },
-    trainer: { label: 'Тренажёр', Icon: Zap,      color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)' },
-    widget:  { label: 'Виджет',   Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
+    course:  { label: 'Курс',     Icon: BookOpen, color: 'var(--color-accent)', bg: 'var(--color-purple-soft)' },
+    trainer: { label: 'Тренажёр', Icon: Zap,      color: 'var(--color-accent)', bg: 'var(--color-purple-soft)' },
+    widget:  { label: 'Виджет',   Icon: Layers,   color: 'var(--color-accent)', bg: 'var(--color-purple-soft)' },
   }
 
   return (
@@ -3246,8 +3246,8 @@ export default function TeacherConstructorPage() {
                     {editMode && (
                       <div onClick={() => toggleCheck(c.id)} style={{
                         position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
-                        border: checkedIds.has(c.id) ? '2px solid #c0303a' : '2px solid rgba(0,0,0,0.18)',
-                        background: checkedIds.has(c.id) ? '#c0303a' : 'rgba(var(--glass-rgb), 0.9)',
+                        border: checkedIds.has(c.id) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
+                        background: checkedIds.has(c.id) ? '#c0303a' : 'var(--color-bg-5)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         cursor: 'pointer', transition: 'all 0.14s', zIndex: 5,
                         boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
@@ -3264,8 +3264,8 @@ export default function TeacherConstructorPage() {
                     {editMode && (
                       <div onClick={() => toggleCheck(w.id)} style={{
                         position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
-                        border: checkedIds.has(w.id) ? '2px solid #c0303a' : '2px solid rgba(0,0,0,0.18)',
-                        background: checkedIds.has(w.id) ? '#c0303a' : 'rgba(255,255,255,0.9)',
+                        border: checkedIds.has(w.id) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
+                        background: checkedIds.has(w.id) ? '#c0303a' : 'var(--color-bg-5)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         cursor: 'pointer', transition: 'all 0.14s', zIndex: 5,
                         boxShadow: '0 1px 6px rgba(0,0,0,0.12)',

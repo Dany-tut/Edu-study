@@ -501,7 +501,7 @@ export default function TeacherHomeworkPage() {
             groups={groups}
             selectedGroupId={filterGroup}
             onSelectGroup={setFilterGroup}
-            actionLabel="Создать ДЗ"
+            actionLabel={"Создать\nдомашку"}
             actionIcon={Plus}
             onAction={() => setActivePage('homework-create')}
           />

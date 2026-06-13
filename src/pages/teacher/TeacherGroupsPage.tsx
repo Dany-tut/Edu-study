@@ -7,6 +7,7 @@ import {
   ChevronsUpDown, ExternalLink, Plus, Copy, Check,
 } from 'lucide-react'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
+import GroupStrip from '../../components/teacher/GroupStrip'
 import {
   type Group, type Student,
 } from '../../data/teacherMockData'
@@ -952,11 +953,6 @@ export default function TeacherGroupsPage() {
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const tableRef = useRef<HTMLDivElement>(null)
-  const groupsScrollRef = useRef<HTMLDivElement>(null)
-  const mainScrollRef = useRef<HTMLDivElement>(null)
-  const groupsStickyRef = useRef<HTMLDivElement>(null)
-  const groupsLabelRef = useRef<HTMLDivElement>(null)
-  // scrolled state removed — compact handled via direct DOM manipulation (no re-renders)
 
   useEffect(() => {
     if (!selectedGroupId && groups.length > 0 && !groupsLoading) {
@@ -976,67 +972,6 @@ export default function TeacherGroupsPage() {
     }
   }, [openAddGroupModal])
 
-  useEffect(() => {
-    const el = mainScrollRef.current
-    if (!el) return
-    let wasCompact = false
-    const onScroll = () => {
-      // Hysteresis band (expand < 16, compact > 48) so the toggle can't
-      // flip-flop when the scroll position sits right at the threshold.
-      const compact = wasCompact ? el.scrollTop > 16 : el.scrollTop > 48
-      if (compact === wasCompact) return
-      wasCompact = compact
-      const sticky = groupsStickyRef.current
-      const label = groupsLabelRef.current
-      if (sticky) {
-        sticky.style.paddingBottom = compact ? '10px' : '14px'
-        sticky.style.marginBottom = compact ? '8px' : '20px'
-      }
-      if (label) {
-        label.style.marginBottom = compact ? '8px' : '12px'
-      }
-      // toggle data-compact on all group cards
-      sticky?.querySelectorAll('[data-group-card]').forEach(card => {
-        (card as HTMLElement).dataset.compact = compact ? 'true' : 'false'
-      })
-    }
-    el.addEventListener('scroll', onScroll, { passive: true })
-    return () => el.removeEventListener('scroll', onScroll)
-  }, [])
-
-  function handleGroupsWheel(e: React.WheelEvent) {
-    const el = groupsScrollRef.current
-    if (!el) return
-    // Only treat genuinely horizontal gestures (trackpad swipe / shift+wheel) as
-    // strip scrolling. A vertical wheel must always bubble up to the table's
-    // vertical scroll — hijacking it made the table refuse to scroll and the
-    // sticky cards jerk sideways instead.
-    if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return
-    if (el.scrollWidth - el.clientWidth <= 1) return
-    e.preventDefault()
-    el.scrollLeft += e.deltaX
-  }
-
-  const dragState = useRef<{ startX: number; scrollLeft: number } | null>(null)
-
-  function handleGroupsMouseDown(e: React.MouseEvent) {
-    const el = groupsScrollRef.current
-    if (!el) return
-    dragState.current = { startX: e.pageX, scrollLeft: el.scrollLeft }
-    el.style.cursor = 'grabbing'
-  }
-
-  function handleGroupsMouseMove(e: React.MouseEvent) {
-    if (!dragState.current) return
-    const el = groupsScrollRef.current
-    if (!el) return
-    el.scrollLeft = dragState.current.scrollLeft - (e.pageX - dragState.current.startX)
-  }
-
-  function handleGroupsMouseUp() {
-    dragState.current = null
-    if (groupsScrollRef.current) groupsScrollRef.current.style.cursor = 'grab'
-  }
 
   const activeGroup = groups.find(g => g.id === selectedGroupId) ?? null
   const groupStudents = activeGroup
@@ -1067,86 +1002,21 @@ export default function TeacherGroupsPage() {
   }
 
   return (
-    // overflow:visible so the lifted header (marginTop:-100) isn't clipped.
-    <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', position: 'relative', marginTop: -100 }}>
-
-      {/* Column: fixed group header + scrollable table below */}
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-
-        {/* Group cards — fixed header (NOT inside the scroll area, so compressing
-            it never shifts the table's scroll position), compresses on scroll.
-            paddingTop:100 lifts content below the floating topbar (student-page recipe). */}
-        <motion.div
-          {...fadeUp(0.04)}
-          ref={groupsStickyRef}
-          style={{
-            flexShrink: 0,
-            background: 'var(--color-bg)',
-            paddingLeft: 32, paddingRight: 32,
-            paddingTop: 100,
-            paddingBottom: 14,
-            marginBottom: 20,
-            transition: 'padding-bottom 0.28s ease, margin-bottom 0.28s ease',
-          }}
-        >
-          <div ref={groupsLabelRef} style={{
-            fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4,
-            marginBottom: 12,
-            transition: 'margin-bottom 0.28s ease',
-          }}>
-            ГРУППЫ
-          </div>
-          <div style={{ position: 'relative' }}>
-            <div
-              ref={groupsScrollRef}
-              onWheel={handleGroupsWheel}
-              onMouseDown={handleGroupsMouseDown}
-              onMouseMove={handleGroupsMouseMove}
-              onMouseUp={handleGroupsMouseUp}
-              onMouseLeave={handleGroupsMouseUp}
-              style={{
-                display: 'flex', gap: 14,
-                overflowX: 'auto', paddingTop: 6, paddingBottom: 6,
-                scrollbarWidth: 'none',
-                marginLeft: -32, marginRight: -32,
-                paddingLeft: 32, paddingRight: 32,
-                cursor: 'grab',
-                userSelect: 'none',
-              }}
-            >
-              {groups.map((group, i) => (
-                <motion.div key={group.id} {...fadeUp(0.04 + i * 0.05)} style={{ flex: '0 0 calc(20% - 12px)', minWidth: 180 }}>
-                  <GroupCard
-                    group={group}
-                    isActive={selectedGroupId === group.id}
-                    onClick={() => handleGroupClick(group)}
-                    onDelete={async (e) => {
-                      e.stopPropagation()
-                      if (!window.confirm(`Удалить группу «${group.name}»? Это действие нельзя отменить.`)) return
-                      if (selectedGroupId === group.id) setSelectedGroupId(null)
-                      await deleteGroup(group.id)
-                    }}
-                  />
-                </motion.div>
-              ))}
-            </div>
-            {/* Right fade */}
-            <div style={{
-              position: 'absolute', right: -32, top: 0, bottom: 6,
-              width: 100, pointerEvents: 'none',
-              background: 'linear-gradient(to right, transparent, var(--color-bg))',
-            }} />
-          </div>
-          {/* Bottom fade — softens rows scrolling up under the sticky bar */}
-          <div style={{
-            position: 'absolute', left: 0, right: 0, top: 'calc(100% - 20px)',
-            height: 44, pointerEvents: 'none',
-            background: 'linear-gradient(to bottom, var(--color-bg) 0%, var(--color-bg) 45%, transparent 100%)',
-          }} />
+    <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', position: 'relative' }}>
+      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <motion.div {...fadeUp(0.04)}>
+          <GroupStrip
+            groups={groups}
+            selectedGroupId={selectedGroupId}
+            onSelectGroup={(id) => {
+              if (!id) { setSelectedGroupId(null); setActiveStudentId(null) }
+              else { setSelectedGroupId(id); setActiveStudentId(null); setSortKey('name'); setSortDir('asc') }
+            }}
+            actionLabel={"Создать\nгруппу"}
+            actionIcon={Plus}
+            onAction={() => setShowAddGroup(true)}
+          />
         </motion.div>
-
-      {/* Main scrollable area (table only) */}
-      <div ref={mainScrollRef} style={{ flex: 1, minWidth: 0, overflowY: 'scroll', scrollbarGutter: 'stable', padding: '0 32px 32px' }}>
 
         {/* Student table */}
         <AnimatePresence>
@@ -1313,9 +1183,8 @@ export default function TeacherGroupsPage() {
           </motion.div>
         )}
       </div>
-      </div>
 
-      {/* Student side panel — absolute overlay, doesn't compress group cards */}
+      {/* Student side panel — absolute overlay */}
       <AnimatePresence>
         {activeStudent && activeStudentGroup && (
           <motion.div

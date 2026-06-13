@@ -38,7 +38,7 @@ function ActionCard({
       }}>
         <Icon size={17} strokeWidth={2.4} />
       </div>
-      <span style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2 }}>{label}</span>
+      <span style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.25, whiteSpace: 'pre-line' }}>{label}</span>
     </motion.button>
   )
 }

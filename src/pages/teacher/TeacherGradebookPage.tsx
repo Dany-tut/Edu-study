@@ -582,7 +582,7 @@ export default function TeacherGradebookPage() {
           groups={groups}
           selectedGroupId={activeGroupId}
           onSelectGroup={setActiveGroupId}
-          actionLabel="Выставить оценки"
+          actionLabel={"Проставить\nоценки"}
           actionIcon={ClipboardList}
           onAction={() => setLessonModalOpen(true)}
         />
