@@ -1272,7 +1272,7 @@ export default function TaskBankPage() {
                   style={{ height: '100%', borderRadius: 999, background: `linear-gradient(90deg, ${palette.accent}, ${palette.text})` }} />
               </div>
             </div>
-            {[['В избранном', `${favorites.size}`], ['Показано', `${filtered.length}`]].map(([label, val]) => (
+            {[['В избранном', `${favorites.size}`]].map(([label, val]) => (
               <div key={label} style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{label}</span>
                 <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{val}</span>
