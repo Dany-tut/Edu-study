@@ -3223,14 +3223,14 @@ export default function TeacherConstructorPage() {
                       onDeleteTask={id => removeTask(id)}
                       showSelect={false}
                       compact={true}
-                      accent="var(--color-purple-text)"
+                      accent="var(--color-accent)"
                       accentBg="var(--color-purple-soft)"
                     />
                   </div>
                   <TrainerBankFilterPanel
                     filters={bankFilters}
                     onChange={f => setBankFilters(prev => ({ ...prev, ...f }))}
-                    accent="var(--color-purple-text)"
+                    accent="var(--color-accent)"
                     accentBg="var(--color-purple-soft)"
                   />
                 </div>
