@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Check } from 'lucide-react'
+import ScrollFade from '../ScrollFade'
 
 export type TeacherSelectOption = string | { value: string; label: string }
 
@@ -170,40 +171,42 @@ export default function TeacherSelect({
                 borderRadius: 14,
                 boxShadow: 'var(--shadow-dropdown)',
                 padding: 6,
-                display: 'flex', flexDirection: 'column', gap: 2,
-                maxHeight: 232, overflowY: 'auto',
               }}
             >
-              {filtered.length === 0 ? (
-                <div style={{ padding: '8px 11px', fontSize: 12, color: 'var(--color-text-3)' }}>Ничего не найдено</div>
-              ) : filtered.map(o => {
-                const selected = o.value === value
-                return (
-                  <button
-                    key={o.value || '∅'}
-                    type="button"
-                    onClick={() => { onChange(o.value); closeDropdown() }}
-                    onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
-                    onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-                      padding: small ? '6px 9px' : '8px 11px', borderRadius: 9,
-                      border: 'none', cursor: 'pointer', textAlign: 'left',
-                      fontSize: small ? 11 : 13, fontWeight: selected ? 650 : 500,
-                      fontFamily: 'inherit',
-                      background: selected ? accentBg : 'transparent',
-                      color: selected ? accent : 'var(--color-text)',
-                      transition: 'background 0.12s',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span style={{ flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                      {o.label}
-                    </span>
-                    {selected && <Check size={small ? 11 : 13} strokeWidth={2.5} style={{ flexShrink: 0 }} />}
-                  </button>
-                )
-              })}
+              <ScrollFade maxHeight={220} bg="rgba(var(--glass-rgb), 0.96)">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {filtered.length === 0 ? (
+                    <div style={{ padding: '8px 11px', fontSize: 12, color: 'var(--color-text-3)' }}>Ничего не найдено</div>
+                  ) : filtered.map(o => {
+                    const selected = o.value === value
+                    return (
+                      <button
+                        key={o.value || '∅'}
+                        type="button"
+                        onClick={() => { onChange(o.value); closeDropdown() }}
+                        onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
+                        onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                          padding: small ? '6px 9px' : '8px 11px', borderRadius: 9,
+                          border: 'none', cursor: 'pointer', textAlign: 'left',
+                          fontSize: small ? 11 : 13, fontWeight: selected ? 650 : 500,
+                          fontFamily: 'inherit',
+                          background: selected ? accentBg : 'transparent',
+                          color: selected ? accent : 'var(--color-text)',
+                          transition: 'background 0.12s',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <span style={{ flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                          {o.label}
+                        </span>
+                        {selected && <Check size={small ? 11 : 13} strokeWidth={2.5} style={{ flexShrink: 0 }} />}
+                      </button>
+                    )
+                  })}
+                </div>
+              </ScrollFade>
             </motion.div>
           )}
         </AnimatePresence>,

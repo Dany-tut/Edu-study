@@ -1,4 +1,5 @@
-import { useState, useMemo, useRef, useEffect, type ReactNode } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
+import ScrollFade from '../components/ScrollFade'
 import { useFloatingPill } from '../lib/useFloatingPill'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -28,37 +29,6 @@ const SORT_OPTIONS: [SortMode, string][] = [
 
 // ── Scroll-fade list ─────────────────────────────────────────────────────────
 // Vertical scroll area that fades content at whichever edge is still scrollable,
-// so a long option list never looks hard-cut. (No rAF — pure scroll events.)
-function ScrollFade({ children, maxHeight }: { children: ReactNode; maxHeight: number }) {
-  const [edges, setEdges] = useState({ top: false, bottom: false })
-  function update(el: HTMLElement) {
-    const top = el.scrollTop > 2
-    const bottom = el.scrollTop + el.clientHeight < el.scrollHeight - 2
-    setEdges(prev => (prev.top === top && prev.bottom === bottom ? prev : { top, bottom }))
-  }
-  return (
-    <div style={{ position: 'relative' }}>
-      <div
-        ref={el => { if (el) update(el) }}
-        onScroll={e => update(e.currentTarget)}
-        style={{ maxHeight, overflowY: 'auto', overscrollBehavior: 'contain' }}
-      >
-        {children}
-      </div>
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: 22, pointerEvents: 'none',
-        background: 'linear-gradient(to bottom, var(--color-bg), transparent)',
-        opacity: edges.top ? 1 : 0, transition: 'opacity 0.18s ease',
-      }} />
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0, height: 22, pointerEvents: 'none',
-        background: 'linear-gradient(to top, var(--color-bg), transparent)',
-        opacity: edges.bottom ? 1 : 0, transition: 'opacity 0.18s ease',
-      }} />
-    </div>
-  )
-}
-
 // ── Filter field — input-style combobox, expands inline (never clipped) ──────
 function FilterField({ label, options, value, onChange, accent }: {
   label: string; options: string[]; value: string; onChange: (v: string) => void; accent: string
@@ -134,7 +104,7 @@ function FilterField({ label, options, value, onChange, accent }: {
             boxShadow: 'var(--shadow-modal-sm)', overflow: 'hidden',
           }}
         >
-          <ScrollFade maxHeight={190}>
+          <ScrollFade maxHeight={190} bg="rgba(var(--glass-rgb), 0.9)">
             {/* Inset the rows so the active/hover fill floats inside the glass
                 with a margin off the edges and rounded corners. */}
             <div style={{ padding: 5, display: 'flex', flexDirection: 'column' }}>
@@ -1204,14 +1174,14 @@ export default function TaskBankPage() {
       <div className="flex flex-col lg:flex-row lg:items-start" style={{ gap: 20 }}>
 
         {/* Left sidebar — standalone sticky card */}
-        <div className="lg:sticky" style={{ top: 80, flexShrink: 0 }}>
+        <div className="lg:sticky" style={{ top: 60, flexShrink: 0 }}>
         <aside className="flex flex-col" style={{
           width: 300, padding: 16, gap: 16,
           borderRadius: 24,
           background: 'rgba(var(--glass-rgb), 0.97)',
           border: '1px solid var(--color-border-glass)',
           boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
-          maxHeight: 'calc(100vh - 96px)',
+          maxHeight: 'calc(100vh - 72px)',
           overflowY: 'auto',
         }}>
 
