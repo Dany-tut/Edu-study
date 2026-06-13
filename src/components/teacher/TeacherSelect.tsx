@@ -51,9 +51,8 @@ export default function TeacherSelect({
     const itemH = small ? 28 : 33
     const estH = Math.min(opts.length * itemH + 12, 232)
     const up = r.bottom + estH + 12 > window.innerHeight && r.top - estH - 12 > 0
-    const menuW = Math.max(r.width, 300)
-    const left = Math.min(r.left, window.innerWidth - menuW - 8)
-    setPos({ top: r.bottom + 5, bottom: window.innerHeight - r.top + 5, left, width: menuW, up })
+    const left = Math.min(r.left, window.innerWidth - r.width - 8)
+    setPos({ top: r.bottom + 5, bottom: window.innerHeight - r.top + 5, left, width: r.width, up })
     setOpen(true)
     setQuery('')
     setTimeout(() => inputRef.current?.focus(), 30)
@@ -132,20 +131,21 @@ export default function TeacherSelect({
           </span>
         )}
 
-        {!isEmpty && !open && (
+        {!isEmpty ? (
           <button
             type="button"
             onMouseDown={handleClear}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 16, lineHeight: 1, padding: '0 2px', flexShrink: 0 }}
           >×</button>
+        ) : (
+          <motion.span
+            animate={{ rotate: open ? 180 : 0 }}
+            transition={{ duration: 0.18 }}
+            style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: 'var(--color-text-3)' }}
+          >
+            <ChevronDown size={small ? 11 : 13} strokeWidth={2.2} />
+          </motion.span>
         )}
-        <motion.span
-          animate={{ rotate: open ? 180 : 0 }}
-          transition={{ duration: 0.18 }}
-          style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: 'var(--color-text-3)' }}
-        >
-          <ChevronDown size={small ? 11 : 13} strokeWidth={2.2} />
-        </motion.span>
       </div>
 
       {createPortal(
