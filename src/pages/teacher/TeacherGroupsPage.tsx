@@ -1142,7 +1142,6 @@ export default function TeacherGroupsPage() {
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
   const { groups, loading: groupsLoading, addGroup, deleteGroup } = useGroups()
   const { students, addStudent, deleteStudent } = useStudents(selectedGroupId)
-  const [activeStudentId, setActiveStudentId] = useState<string | null>(null)
   const [showAddGroup, setShowAddGroup] = useState(false)
   const [showAddStudent, setShowAddStudent] = useState(false)
   const [sortKey, setSortKey] = useState<SortKey>('name')
@@ -1172,16 +1171,11 @@ export default function TeacherGroupsPage() {
   const groupStudents = activeGroup
     ? sortStudents(students.filter(s => s.groupId === activeGroup.id), sortKey, sortDir)
     : []
-  const activeStudent = students.find(s => s.id === activeStudentId) ?? null
-  const activeStudentGroup = activeStudent ? groups.find(g => g.id === activeStudent.groupId) ?? null : null
-
   function handleGroupClick(group: Group) {
     if (selectedGroupId === group.id) {
       setSelectedGroupId(null)
-      setActiveStudentId(null)
     } else {
       setSelectedGroupId(group.id)
-      setActiveStudentId(null)
       setSortKey('name')
       setSortDir('asc')
     }
@@ -1204,8 +1198,8 @@ export default function TeacherGroupsPage() {
             groups={groups}
             selectedGroupId={selectedGroupId}
             onSelectGroup={(id) => {
-              if (!id) { setSelectedGroupId(null); setActiveStudentId(null) }
-              else { setSelectedGroupId(id); setActiveStudentId(null); setSortKey('name'); setSortDir('asc') }
+              if (!id) { setSelectedGroupId(null) }
+              else { setSelectedGroupId(id); setSortKey('name'); setSortDir('asc') }
             }}
             actionLabel={"Создать\nгруппу"}
             actionIcon={Plus}
@@ -1220,7 +1214,7 @@ export default function TeacherGroupsPage() {
               ref={tableRef}
               key="student-table"
               initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0, marginRight: activeStudentId ? 344 : 0 }}
+              animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
             >
@@ -1263,28 +1257,27 @@ export default function TeacherGroupsPage() {
                     </thead>
                     <tbody>
                       {groupStudents.map((student, i) => {
-                        const isSelected = student.id === activeStudentId
                         const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
                         const colBg = (key: SortKey) =>
-                          !isSelected && sortKey === key ? { background: 'rgba(255,255,255,0.035)' } : {}
+                          sortKey === key ? { background: 'rgba(255,255,255,0.035)' } : {}
                         return (
                           <motion.tr
                             key={student.id}
                             initial={{ opacity: 0, x: -8 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.24, delay: i * 0.04 }}
-                            onClick={() => setActiveStudentId(isSelected ? null : student.id)}
+                            onClick={() => openStudentDashboard(student.id, activeGroup.id)}
                             style={{
                               cursor: 'pointer',
-                              background: isSelected ? `${activeGroup.color}22` : 'transparent',
-                              borderLeft: isSelected ? `3px solid ${activeGroup.color}` : '3px solid transparent',
+                              background: 'transparent',
+                              borderLeft: '3px solid transparent',
                               transition: 'background 0.15s',
                             }}
                             onMouseEnter={e => {
-                              if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)'
+                              (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)'
                             }}
                             onMouseLeave={e => {
-                              if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent'
+                              (e.currentTarget as HTMLElement).style.background = 'transparent'
                             }}
                           >
                             {/* Name */}
@@ -1378,34 +1371,6 @@ export default function TeacherGroupsPage() {
           </motion.div>
         )}
       </div>
-
-      {/* Student side panel — fixed overlay so it's never clipped by overflow:hidden ancestors */}
-      <AnimatePresence>
-        {activeStudent && activeStudentGroup && (
-          <motion.div
-            initial={{ x: 340, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 340, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 320, damping: 32, mass: 0.85 }}
-            style={{
-              position: 'fixed', right: 0, top: 100, bottom: 0,
-              width: 344, zIndex: 200,
-              display: 'flex', flexDirection: 'column',
-            }}
-          >
-            <StudentPanel
-              student={activeStudent}
-              group={activeStudentGroup}
-              onClose={() => setActiveStudentId(null)}
-              onDelete={async () => {
-                await deleteStudent(activeStudent.id)
-                setActiveStudentId(null)
-              }}
-              onOpenFullCard={() => openStudentDashboard(activeStudent.id, activeStudentGroup.id)}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <AnimatePresence>
         {showAddGroup && (

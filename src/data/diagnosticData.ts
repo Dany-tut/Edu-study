@@ -321,3 +321,46 @@ export function loadDiagResults(subject: DiagSubject): DiagResults | null {
 export function saveDiagResults(subject: DiagSubject, results: DiagResults) {
   localStorage.setItem(`diag-results-${subject}`, JSON.stringify(results))
 }
+
+// ── Anonymous (pre-registration) test results ──────────────────────────────────
+
+export interface AnonDiagResult {
+  id: string
+  name: string          // student self-reported ФИО
+  subject: DiagSubject
+  timestamp: string     // ISO date
+  results: DiagResults
+  answers: Record<string, number>  // questionId → chosen option index
+  linkedStudentId?: string
+}
+
+const LS_ANON = 'diag-anon-results'
+
+export function loadAnonResults(): AnonDiagResult[] {
+  try {
+    const s = localStorage.getItem(LS_ANON)
+    return s ? JSON.parse(s) : []
+  } catch { return [] }
+}
+
+function _saveAnonArr(arr: AnonDiagResult[]) {
+  localStorage.setItem(LS_ANON, JSON.stringify(arr))
+}
+
+export function appendAnonResult(r: Omit<AnonDiagResult, 'id'>): AnonDiagResult {
+  const full: AnonDiagResult = { ...r, id: Math.random().toString(36).slice(2, 10) }
+  const arr = loadAnonResults()
+  arr.unshift(full)
+  _saveAnonArr(arr)
+  return full
+}
+
+export function linkAnonResult(id: string, studentId: string) {
+  const arr = loadAnonResults().map(r => r.id === id ? { ...r, linkedStudentId: studentId } : r)
+  _saveAnonArr(arr)
+}
+
+export function unlinkAnonResult(id: string) {
+  const arr = loadAnonResults().map(r => r.id === id ? { ...r, linkedStudentId: undefined } : r)
+  _saveAnonArr(arr)
+}

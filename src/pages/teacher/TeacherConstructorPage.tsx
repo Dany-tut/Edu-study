@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -10,12 +10,15 @@ import {
   ListChecks, Eye, EyeOff,
   CircleDot, Type as TypeIcon, Shuffle, ArrowUpDown, Table as TableIcon,
   AlignLeft, Pencil, ClipboardCopy, Target, ChevronDown, ChevronUp,
+  CheckCircle, Circle,
 } from 'lucide-react'
 import {
   loadDiagQuestions, saveDiagQuestions,
-  type DiagQuestion, type DiagSubject,
+  loadAnonResults, linkAnonResult, unlinkAnonResult,
+  type DiagQuestion, type DiagSubject, type AnonDiagResult,
   DEFAULT_QUESTIONS,
 } from '../../data/diagnosticData'
+import { useAllStudents } from '../../lib/useGroups'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { TrainerBankBrowser, TrainerBankFilterPanel, emptyTrainerFilters, type TrainerFilters } from '../../components/teacher/TrainerBank'
@@ -2152,123 +2155,8 @@ function CreatorView({
           </div>
         </motion.div>
 
-        {/* ── Body: left sticky panel + center ── */}
-        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-
-        {/* LEFT: settings panel — sticky glass card */}
-        <div style={{ padding: '0 0 20px 24px', flexShrink: 0, position: 'sticky', top: 20 }}>
-          <GlassCard style={{ width: 260, boxSizing: 'border-box', padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
-            {paramsLabel}
-          </div>
-
-          {/* ─ Task meta left ─ */}
-          {mode === 'trainer' && <>
-            <div>
-              <Label>Предмет</Label>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {(['Химия', 'Биология'] as const).map(s => (
-                  <SegBtn key={s} label={s} active={tkSubject === s} color="var(--color-purple-text)" bg="var(--color-purple-soft)" onClick={() => { setTkSubject(s); setTkSection(''); setTkTopic('') }} />
-                ))}
-              </div>
-            </div>
-            <div>
-              <TeacherSelect value={tkSection} onChange={v => { setTkSection(v); setTkTopic('') }} placeholder="Раздел"
-                options={tkSectionList} />
-            </div>
-            <div>
-              <TeacherSelect value={tkTopic} onChange={setTkTopic} placeholder="Тема"
-                options={tkTopicList} />
-            </div>
-            <div>
-              <Label>Часть</Label>
-              <div style={{ display: 'flex', gap: 8 }}>
-                {([1, 2] as const).map(p => (
-                  <SegBtn key={p} label={`Часть ${p}`} active={tkPart === p}
-                    color="var(--color-purple-text)" bg="var(--color-purple-soft)"
-                    onClick={() => setTkPart(p)} />
-                ))}
-              </div>
-            </div>
-            <div><Label>Линия</Label>
-              <input type="number" min={1} max={35} value={tkLine}
-                onChange={e => setTkLine(Math.max(1, Number(e.target.value)))} style={inputSt} />
-            </div>
-            <div>
-              <TeacherSelect value={tkSource} onChange={setTkSource} placeholder="Источник" options={SOURCES} />
-            </div>
-            {/* Points summary */}
-            <div style={{ background: canSave ? 'var(--color-green-soft)' : 'var(--color-bg-2)', borderRadius: 12, padding: '10px 12px' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: canSave ? 'var(--color-green-text)' : 'var(--color-text-3)', marginBottom: 4 }}>
-                {canSave ? '✓ Задание готово' : 'Заполните условие и ответ'}
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>
-                {ANSWER_TYPES.find(a => a.type === tkAnswerType)?.label} · {computedMax || 1} {(computedMax || 1) === 1 ? 'балл' : (computedMax || 1) < 5 ? 'балла' : 'баллов'}
-              </div>
-            </div>
-          </>}
-
-          {/* ─ Course left ─ */}
-          {mode === 'course' && <>
-            <div><Label>Название</Label>
-              <input value={cTitle} onChange={e => setCTitle(e.target.value)} style={inputSt} />
-            </div>
-            <div>
-              <Label>Предмет</Label>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {(['Химия', 'Биология'] as const).map(s => (
-                  <SegBtn key={s} label={s} active={cSubject === s} color="var(--color-purple-text)" bg="var(--color-purple-soft)" onClick={() => setCSubject(s)} />
-                ))}
-              </div>
-            </div>
-            <div>
-              <TeacherSelect value={cLevel} onChange={setCLevel} placeholder="Уровень" options={['ЕГЭ', 'ОГЭ', 'Углублённый', 'Интенсив']} />
-            </div>
-            <div><Label>Описание</Label>
-              <textarea value={cDesc} onChange={e => setCDesc(e.target.value)} rows={3}
-                style={{ ...inputSt, resize: 'vertical' }} placeholder="Краткое описание курса…" />
-            </div>
-            <div><Label>Статус</Label>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <SegBtn label="Черновик" active={cStatus === 'draft'} color="var(--color-peach-text)" bg="var(--color-peach-soft)" onClick={() => setCStatus('draft')} />
-                <SegBtn label="Опубликован" active={cStatus === 'published'} color="var(--color-green-text)" bg="var(--color-green-soft)" onClick={() => setCStatus('published')} />
-              </div>
-            </div>
-          </>}
-
-          {/* ─ Widget left ─ */}
-          {mode === 'widget' && <>
-            <div><Label>Название</Label>
-              <input value={wTitle} onChange={e => setWTitle(e.target.value)} style={inputSt} />
-            </div>
-            <div><Label>Тип виджета</Label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                {(['quiz', 'facts', 'reactions', 'pomodoro', 'memes', 'qod'] as WidgetType[]).map(wt => {
-                  const WIcon = WTYPE_ICON[wt]
-                  return (
-                    <button key={wt} onClick={() => setWType(wt)} style={{
-                      padding: '8px 10px', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 7,
-                      border: wType === wt ? `1.5px solid ${WTYPE_COLOR[wt]}` : '1.5px solid transparent',
-                      background: wType === wt ? WTYPE_BG[wt] : 'var(--color-bg)', cursor: 'pointer',
-                      fontSize: 12, fontWeight: 600,
-                      color: wType === wt ? WTYPE_COLOR[wt] : 'var(--color-muted)', transition: 'all 0.15s',
-                    }}>
-                      <WIcon size={13} strokeWidth={2} />{WTYPE_LABEL[wt]}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-            <div>
-              <TeacherSelect value={wLinkedId} onChange={setWLinkedId} placeholder="Тренажёр"
-                options={trainers.map(t => ({ value: t.id, label: t.title }))} />
-            </div>
-          </>}
-          </GlassCard>
-        </div>
-
-        {/* CENTER: type pills + content form */}
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', padding: '0 24px 20px 20px' }}>
+        {/* ── Centered content ── */}
+        <div style={{ maxWidth: 760, margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: 16, padding: '0 24px 20px' }}>
 
           {/* Type pills — styled like the homework-create tab bar */}
           <div style={{
@@ -2301,6 +2189,124 @@ function CreatorView({
           </div>
 
           <GlassCard style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          {/* ─── COURSE params (inlined, no left panel) ─── */}
+          {mode === 'course' && <>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <Label>Название</Label>
+                <input value={cTitle} onChange={e => setCTitle(e.target.value)} style={inputSt} />
+              </div>
+              <div>
+                <Label>Предмет</Label>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {(['Химия', 'Биология'] as const).map(s => (
+                    <SegBtn key={s} label={s} active={cSubject === s} color="var(--color-purple-text)" bg="var(--color-purple-soft)" onClick={() => setCSubject(s)} />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <TeacherSelect value={cLevel} onChange={setCLevel} placeholder="Уровень" options={['ЕГЭ', 'ОГЭ', 'Углублённый', 'Интенсив']} />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <Label>Описание</Label>
+                <textarea value={cDesc} onChange={e => setCDesc(e.target.value)} rows={3}
+                  style={{ ...inputSt, resize: 'vertical' }} placeholder="Краткое описание курса…" />
+              </div>
+              <div>
+                <Label>Статус</Label>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <SegBtn label="Черновик" active={cStatus === 'draft'} color="var(--color-peach-text)" bg="var(--color-peach-soft)" onClick={() => setCStatus('draft')} />
+                  <SegBtn label="Опубликован" active={cStatus === 'published'} color="var(--color-green-text)" bg="var(--color-green-soft)" onClick={() => setCStatus('published')} />
+                </div>
+              </div>
+            </div>
+            <div style={{ borderTop: '1px solid var(--color-border-soft)', margin: '4px 0' }} />
+          </>}
+
+          {/* ─── WIDGET params (inlined, no left panel) ─── */}
+          {mode === 'widget' && <>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <Label>Тип виджета</Label>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {(['quiz', 'facts', 'reactions', 'pomodoro', 'memes', 'qod'] as WidgetType[]).map(wt => {
+                    const wa = wType === wt
+                    const WIcon = WTYPE_ICON[wt]
+                    return (
+                      <button key={wt} onClick={() => setWType(wt)} style={{
+                        display: 'flex', alignItems: 'center', gap: 6,
+                        padding: '8px 14px', borderRadius: 12, border: `1.5px solid ${wa ? WTYPE_COLOR[wt] : 'var(--color-border)'}`,
+                        background: wa ? WTYPE_BG[wt] : 'var(--color-bg-2)',
+                        color: wa ? WTYPE_COLOR[wt] : 'var(--color-muted)',
+                        fontSize: 12, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
+                      }}>
+                        <WIcon size={13} strokeWidth={2} /> {WTYPE_LABEL[wt]}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <Label>Название виджета</Label>
+                  <input value={wTitle} onChange={e => setWTitle(e.target.value)} placeholder="Название…" style={inputSt} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <TeacherSelect value={wLinkedId} onChange={setWLinkedId} placeholder="Тренажёр"
+                    options={trainers.map(t => ({ value: t.id, label: t.title }))} />
+                </div>
+              </div>
+            </div>
+            <div style={{ borderTop: '1px solid var(--color-border-soft)', margin: '4px 0' }} />
+          </>}
+
+          {/* ─── TRAINER meta (inlined compact, no left panel) ─── */}
+          {mode === 'trainer' && <>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <Label>Предмет</Label>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {(['Химия', 'Биология'] as const).map(s => (
+                    <SegBtn key={s} label={s} active={tkSubject === s} color="var(--color-purple-text)" bg="var(--color-purple-soft)" onClick={() => { setTkSubject(s); setTkSection(''); setTkTopic('') }} />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <Label>Часть</Label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {([1, 2] as const).map(p => (
+                    <SegBtn key={p} label={`Часть ${p}`} active={tkPart === p}
+                      color="var(--color-purple-text)" bg="var(--color-purple-soft)"
+                      onClick={() => setTkPart(p)} />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <TeacherSelect value={tkSection} onChange={v => { setTkSection(v); setTkTopic('') }} placeholder="Раздел" options={tkSectionList} />
+              </div>
+              <div>
+                <TeacherSelect value={tkTopic} onChange={setTkTopic} placeholder="Тема" options={tkTopicList} />
+              </div>
+              <div>
+                <Label>Линия</Label>
+                <input type="number" min={1} max={35} value={tkLine}
+                  onChange={e => setTkLine(Math.max(1, Number(e.target.value)))} style={inputSt} />
+              </div>
+              <div>
+                <TeacherSelect value={tkSource} onChange={setTkSource} placeholder="Источник" options={SOURCES} />
+              </div>
+            </div>
+            <div style={{ background: canSave ? 'var(--color-green-soft)' : 'var(--color-bg-2)', borderRadius: 12, padding: '10px 12px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: canSave ? 'var(--color-green-text)' : 'var(--color-text-3)', marginBottom: 4 }}>
+                {canSave ? '✓ Задание готово' : 'Заполните условие и ответ'}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>
+                {ANSWER_TYPES.find(a => a.type === tkAnswerType)?.label} · {computedMax || 1} {(computedMax || 1) === 1 ? 'балл' : (computedMax || 1) < 5 ? 'балла' : 'баллов'}
+              </div>
+            </div>
+            <div style={{ borderTop: '1px solid var(--color-border-soft)', margin: '4px 0' }} />
+          </>}
 
           {/* ─── TASK center: block-based authoring ─── */}
           {mode === 'trainer' && <>
@@ -2489,6 +2495,81 @@ function CreatorView({
                 </div>
               )
             })}
+
+            {/* Добавить фото / таблицу (was right panel) */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <button onClick={() => setCondImgPickerOpen(v => !v)} style={{
+                  display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11,
+                  border: tkImage ? `1.5px solid ${cfg.color}` : '1.5px solid var(--color-border)',
+                  background: tkImage ? cfg.bg : 'var(--color-bg-2)', cursor: 'pointer', textAlign: 'left', width: '100%',
+                  fontSize: 12.5, fontWeight: 700, color: tkImage ? cfg.color : 'var(--color-text)',
+                }}>
+                  <ImageIcon size={15} strokeWidth={2} style={{ color: tkImage ? cfg.color : 'var(--color-text-3)', flexShrink: 0 }} />
+                  {tkImage ? 'Фото добавлено' : 'Добавить фото'}
+                </button>
+                {condImgPickerOpen && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, marginTop: 4, borderRadius: 12, background: 'var(--color-bg-2)', border: '1.5px solid var(--color-border)', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.14)' }}>
+                    <div
+                      onPaste={e => {
+                        const imgItem = Array.from(e.clipboardData.items).find(i => i.type.startsWith('image/'))
+                        if (!imgItem) return
+                        e.preventDefault()
+                        const file = imgItem.getAsFile()
+                        if (!file) return
+                        const reader = new FileReader()
+                        reader.onload = ev => { setTkImage(String(ev.target?.result)); setCondImgPickerOpen(false) }
+                        reader.readAsDataURL(file)
+                      }}
+                      style={{ padding: '12px 10px', textAlign: 'center', fontSize: 12, color: 'var(--color-text-3)', outline: 'none', cursor: 'default', background: 'var(--color-bg-2)' }}
+                    >
+                      Нажмите <kbd style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border-medium)', borderRadius: 4, padding: '1px 5px', fontFamily: 'inherit', fontSize: 11 }}>Ctrl+V</kbd> чтобы вставить фото
+                    </div>
+                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 10px', borderTop: '1px solid var(--color-border-soft)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', background: 'var(--color-bg-2)' }}>
+                      <ImageIcon size={13} />Выбрать файл
+                      <input ref={condImgFileRef} type="file" accept="image/*" onChange={e => { onPickImage(e); setCondImgPickerOpen(false) }} style={{ display: 'none' }} />
+                    </label>
+                  </div>
+                )}
+              </div>
+              <button onClick={() => setTkHasTable(v => !v)} style={{
+                display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11, flex: 1,
+                border: tkHasTable ? `1.5px solid ${cfg.color}` : '1.5px solid var(--color-border)',
+                background: tkHasTable ? cfg.bg : 'var(--color-bg-2)', cursor: 'pointer', textAlign: 'left', width: '100%',
+                fontSize: 12.5, fontWeight: 700, color: tkHasTable ? cfg.color : 'var(--color-text)',
+              }}>
+                <TableIcon size={15} strokeWidth={2} style={{ color: tkHasTable ? cfg.color : 'var(--color-text-3)', flexShrink: 0 }} />
+                {tkHasTable ? 'Таблица добавлена' : 'Добавить таблицу'}
+              </button>
+            </div>
+
+            {/* Тип ответа — inline (was right panel) */}
+            <div style={{ borderTop: '1px solid var(--color-border-soft)', paddingTop: 16 }}>
+              <Label>Тип ответа</Label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 6 }}>
+                {ANSWER_TYPES.map(({ type, label, hint, Icon }) => {
+                  const active = tkAnswerType === type
+                  return (
+                    <button key={type} onClick={() => {
+                      setTkAnswerType(type)
+                      if (type === 'tableFill') setTkHasTable(true)
+                      if (type === 'multi' && tkCorrect.length === 0) setTkCorrect([0])
+                      if (type === 'single' && tkCorrect.length > 1) setTkCorrect([tkCorrect[0]])
+                    }} style={{
+                      display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11,
+                      border: active ? `1.5px solid ${cfg.color}` : '1.5px solid var(--color-border)',
+                      background: active ? cfg.bg : 'var(--color-bg-2)', cursor: 'pointer', textAlign: 'left', width: '100%',
+                    }}>
+                      <Icon size={15} strokeWidth={2} style={{ color: active ? cfg.color : 'var(--color-text-3)', flexShrink: 0 }} />
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 12.5, fontWeight: 700, color: active ? cfg.color : 'var(--color-text)' }}>{label}</div>
+                        <div style={{ fontSize: 10.5, color: active ? 'var(--color-accent)' : 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: active ? 0.75 : 1 }}>{hint}</div>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
 
             {/* 2 ─ Блок ответа */}
             <div style={{ borderTop: '1px solid var(--color-border-soft)', paddingTop: 16 }}>
@@ -2900,95 +2981,7 @@ function CreatorView({
           )}
 
           </GlassCard>
-        </div>{/* end center column */}
-
-        {/* RIGHT: block palette (trainer mode) */}
-        {mode === 'trainer' && (
-          <div style={{ padding: '0 24px 20px 0', flexShrink: 0, position: 'sticky', top: 20 }}>
-            <GlassCard style={{ width: 248, boxSizing: 'border-box', padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <SectionHead>Тип ответа</SectionHead>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {ANSWER_TYPES.map(({ type, label, hint, Icon }) => {
-                    const active = tkAnswerType === type
-                    return (
-                      <button key={type} onClick={() => {
-                        setTkAnswerType(type)
-                        if (type === 'tableFill') setTkHasTable(true)
-                        if (type === 'multi' && tkCorrect.length === 0) setTkCorrect([0])
-                        if (type === 'single' && tkCorrect.length > 1) setTkCorrect([tkCorrect[0]])
-                      }} style={{
-                        display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11,
-                        border: active ? `1.5px solid ${cfg.color}` : '1.5px solid var(--color-border)',
-                        background: active ? cfg.bg : 'var(--color-bg-2)', cursor: 'pointer', textAlign: 'left', width: '100%',
-                      }}>
-                        <Icon size={15} strokeWidth={2} style={{ color: active ? cfg.color : 'var(--color-text-3)', flexShrink: 0 }} />
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: 12.5, fontWeight: 700, color: active ? cfg.color : 'var(--color-text)' }}>{label}</div>
-                          <div style={{ fontSize: 10.5, color: active ? 'var(--color-accent)' : 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: active ? 0.75 : 1 }}>{hint}</div>
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div style={{ borderTop: '1px solid var(--color-border-soft)', paddingTop: 14 }}>
-                <SectionHead>Блоки условия</SectionHead>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div>
-                    <button
-                      onClick={() => {
-                        setCondImgPickerOpen(v => !v)
-                        setTimeout(() => condImgPasteZoneRef.current?.focus(), 50)
-                      }}
-                      style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11, background: 'var(--color-bg-2)', cursor: 'pointer', border: '1.5px solid var(--color-border)', width: '100%', textAlign: 'left' }}
-                    >
-                      <ImageIcon size={15} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
-                      <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text)' }}>{tkImage ? 'Заменить фото' : 'Добавить фото'}</div>
-                    </button>
-                    {condImgPickerOpen && (
-                      <div style={{ margin: '4px 0 6px', borderRadius: 10, border: '1.5px dashed var(--color-border-medium)', overflow: 'hidden' }}>
-                        <div
-                          ref={condImgPasteZoneRef}
-                          tabIndex={0}
-                          onPaste={e => {
-                            const items = Array.from(e.clipboardData?.items ?? [])
-                            const imgItem = items.find(it => it.type.startsWith('image/'))
-                            if (!imgItem) return
-                            e.preventDefault()
-                            const file = imgItem.getAsFile()
-                            if (!file) return
-                            const reader = new FileReader()
-                            reader.onload = ev => { setTkImage(String(ev.target?.result)); setCondImgPickerOpen(false) }
-                            reader.readAsDataURL(file)
-                          }}
-                          style={{ padding: '12px 10px', textAlign: 'center', fontSize: 12, color: 'var(--color-text-3)', outline: 'none', cursor: 'default', background: 'var(--color-bg-2)' }}
-                        >
-                          Нажмите <kbd style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border-medium)', borderRadius: 4, padding: '1px 5px', fontFamily: 'inherit', fontSize: 11 }}>Ctrl+V</kbd> чтобы вставить фото
-                        </div>
-                        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 10px', borderTop: '1px solid var(--color-border-soft)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', background: 'var(--color-bg-2)' }}>
-                          <ImageIcon size={13} />
-                          Выбрать файл
-                          <input ref={condImgFileRef} type="file" accept="image/*" onChange={e => { onPickImage(e); setCondImgPickerOpen(false) }} style={{ display: 'none' }} />
-                        </label>
-                      </div>
-                    )}
-                  </div>
-                  <button onClick={() => setTkHasTable(v => !v)} style={{
-                    display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11,
-                    border: tkHasTable ? `1.5px solid ${cfg.color}` : '1.5px solid var(--color-border)',
-                    background: tkHasTable ? cfg.bg : 'var(--color-bg-2)', cursor: 'pointer', textAlign: 'left', width: '100%',
-                  }}>
-                    <TableIcon size={15} strokeWidth={2} style={{ color: tkHasTable ? cfg.color : 'var(--color-text-3)', flexShrink: 0 }} />
-                    <div style={{ fontSize: 12.5, fontWeight: 700, color: tkHasTable ? cfg.color : 'var(--color-text)' }}>{tkHasTable ? 'Таблица добавлена' : 'Добавить таблицу'}</div>
-                  </button>
-                </div>
-              </div>
-            </GlassCard>
-          </div>
-        )}
-        </div>{/* end body row */}
+        </div>{/* end centered content */}
       </div>{/* end page content */}
     </motion.div>
   )
@@ -3175,14 +3168,334 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
   )
 }
 
-function DiagnosticManagement() {
+function StudentPickerModal({ onPick, onClose }: { onPick: (studentId: string, name: string) => void; onClose: () => void }) {
+  const allStudents = useAllStudents()
+  const [search, setSearch] = useState('')
+  const filtered = allStudents.filter(s => s.name.toLowerCase().includes(search.toLowerCase()))
+
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 1200, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.94, y: 12 }}
+        transition={{ duration: 0.2 }}
+        onClick={e => e.stopPropagation()}
+        style={{ width: '100%', maxWidth: 400, background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 22, overflow: 'hidden', boxShadow: '0 24px 48px rgba(0,0,0,0.22)' }}
+      >
+        <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid var(--color-border-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>Выбрать ученика</div>
+          <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)' }}><X size={14} /></button>
+        </div>
+        <div style={{ padding: '12px 16px 8px' }}>
+          <input
+            autoFocus
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Поиск по имени…"
+            style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: 11, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }}
+          />
+        </div>
+        <div style={{ maxHeight: 300, overflowY: 'auto', padding: '4px 10px 14px' }}>
+          {filtered.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '20px 0', fontSize: 13, color: 'var(--color-muted)' }}>Ученики не найдены</div>
+          )}
+          {filtered.map(s => (
+            <button
+              key={s.id}
+              onClick={() => onPick(s.id, s.name)}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'transparent', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', transition: 'background 0.12s' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-2)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', flexShrink: 0 }}>
+                {s.name.split(' ').map((w: string) => w[0]).slice(0, 2).join('')}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </motion.div>
+    </div>,
+    document.body
+  )
+}
+
+function DiagnosticStudentCard({
+  result, allStudents, onLink, onUnlink, onDelete,
+}: {
+  result: AnonDiagResult
+  allStudents: { id: string; name: string }[]
+  onLink: () => void
+  onUnlink: () => void
+  onDelete: () => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const questions = useMemo(() => loadDiagQuestions(result.subject), [result.subject])
+
+  const sections = Object.entries(result.results)
+  const totalCorrect = sections.reduce((s, [, v]) => s + v.correct, 0)
+  const totalQ = sections.reduce((s, [, v]) => s + v.total, 0)
+  const pct = totalQ ? Math.round((totalCorrect / totalQ) * 100) : 0
+  const accent = result.subject === 'biology' ? '#22c55e' : '#7c3aed'
+  const soft = result.subject === 'biology' ? 'var(--color-green-soft)' : 'var(--color-purple-soft)'
+  const subjectLabel = result.subject === 'biology' ? 'Биология' : 'Химия'
+  const date = new Date(result.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
+  const time = new Date(result.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+  const pctColor = pct >= 70 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#ef4444'
+  const initials = result.name.split(' ').slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase()
+  const weakSections = sections.filter(([, v]) => v.total > 0 && v.correct / v.total < 0.5)
+  const linkedStudent = result.linkedStudentId ? allStudents.find(s => s.id === result.linkedStudentId) : null
+
+  return (
+    <div style={{
+      background: 'rgba(var(--glass-rgb), 0.9)', border: `1px solid ${expanded ? accent + '44' : 'var(--color-border-glass)'}`,
+      borderRadius: 18, overflow: 'hidden', transition: 'border-color 0.2s',
+    }}>
+      {/* Collapsed row — click to expand */}
+      <div
+        onClick={() => setExpanded(v => !v)}
+        style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+      >
+        <div style={{
+          width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+          background: `linear-gradient(135deg, ${accent}88, ${accent}44)`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 14, fontWeight: 800, color: '#fff',
+        }}>{initials || '?'}</div>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {result.name}
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
+            <span style={{ padding: '1px 7px', borderRadius: 6, background: soft, color: accent, fontSize: 10, fontWeight: 700 }}>{subjectLabel}</span>
+            <span>{date} · {time}</span>
+            {linkedStudent && (
+              <span style={{ color: '#22c55e', fontSize: 10, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Check size={10} strokeWidth={2.5} /> {linkedStudent.name.split(' ')[0]}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div style={{
+          width: 52, height: 52, borderRadius: 14, flexShrink: 0,
+          background: `${pctColor}15`, border: `2px solid ${pctColor}33`,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{ fontSize: 17, fontWeight: 900, color: pctColor, lineHeight: 1 }}>{pct}%</div>
+          <div style={{ fontSize: 9, color: 'var(--color-muted)', marginTop: 1 }}>{totalCorrect}/{totalQ}</div>
+        </div>
+
+        <ChevronDown size={16} style={{
+          color: 'var(--color-text-3)', flexShrink: 0,
+          transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s',
+        }} />
+      </div>
+
+      {/* Expanded detail */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{ borderTop: `1px solid ${accent}22`, padding: '16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+              {/* Section breakdown */}
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, letterSpacing: 0.4 }}>РЕЗУЛЬТАТЫ ПО РАЗДЕЛАМ</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {sections.map(([sec, { correct: c, total: t }]) => {
+                    const p = t ? Math.round((c / t) * 100) : 0
+                    const col = p >= 70 ? '#22c55e' : p >= 40 ? '#f59e0b' : '#ef4444'
+                    return (
+                      <div key={sec}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                          <span style={{ fontSize: 12, color: 'var(--color-text-2)', fontWeight: 600 }}>{sec}</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: col }}>{c}/{t} · {p}%</span>
+                        </div>
+                        <div style={{ height: 5, borderRadius: 999, background: 'var(--color-bg-5)' }}>
+                          <motion.div
+                            initial={{ width: 0 }} animate={{ width: `${p}%` }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            style={{ height: '100%', borderRadius: 999, background: col }}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Weak spots */}
+              {weakSections.length > 0 && (
+                <div style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#ef4444', marginBottom: 6 }}>⚠ Слабые темы для проработки</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    {weakSections.map(([sec, { correct: c, total: t }]) => (
+                      <div key={sec} style={{ fontSize: 12, color: 'var(--color-text-2)', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>{sec}</span>
+                        <span style={{ fontWeight: 700, color: '#ef4444' }}>{Math.round((c / t) * 100)}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Per-question answers */}
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, letterSpacing: 0.4 }}>ОТВЕТЫ НА ВОПРОСЫ</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {questions.map((q, i) => {
+                    const chosen = result.answers?.[q.id]
+                    const isCorrect = chosen === q.correct
+                    const hasAnswer = chosen !== undefined
+                    return (
+                      <div key={q.id} style={{
+                        borderRadius: 11,
+                        border: `1px solid ${hasAnswer ? (isCorrect ? '#22c55e33' : '#ef444433') : 'var(--color-border-soft)'}`,
+                        background: hasAnswer ? (isCorrect ? 'rgba(34,197,94,0.05)' : 'rgba(239,68,68,0.05)') : 'var(--color-bg-2)',
+                        padding: '9px 12px',
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                          <div style={{
+                            width: 20, height: 20, borderRadius: 6, flexShrink: 0, marginTop: 1,
+                            background: hasAnswer ? (isCorrect ? '#22c55e22' : '#ef444422') : 'var(--color-bg-5)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 9, fontWeight: 800, color: hasAnswer ? (isCorrect ? '#22c55e' : '#ef4444') : 'var(--color-text-3)',
+                          }}>{i + 1}</div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.4, marginBottom: 4 }}>{q.text}</div>
+                            {hasAnswer ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                <div style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 5 }}>
+                                  {isCorrect
+                                    ? <CheckCircle size={11} style={{ color: '#22c55e', flexShrink: 0 }} />
+                                    : <Circle size={11} style={{ color: '#ef4444', flexShrink: 0 }} />}
+                                  <span style={{ color: isCorrect ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
+                                    {q.options[chosen]}
+                                  </span>
+                                </div>
+                                {!isCorrect && (
+                                  <div style={{ fontSize: 11, color: '#22c55e', display: 'flex', alignItems: 'center', gap: 5 }}>
+                                    <CheckCircle size={11} style={{ color: '#22c55e', flexShrink: 0 }} />
+                                    <span style={{ color: 'var(--color-muted)' }}>Верно:</span>
+                                    <span style={{ fontWeight: 600, color: 'var(--color-text-2)' }}>{q.options[q.correct]}</span>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>— нет ответа</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Footer: link + delete */}
+              <div style={{ display: 'flex', gap: 8, paddingTop: 2 }}>
+                {result.linkedStudentId ? (
+                  <>
+                    <div style={{ flex: 1, padding: '9px 12px', borderRadius: 10, background: 'var(--color-green-soft)', border: '1px solid #86efac44', fontSize: 12, fontWeight: 600, color: 'var(--color-green-text)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <Check size={13} strokeWidth={2.5} /> {linkedStudent?.name ?? 'Привязан'}
+                    </div>
+                    <button onClick={onUnlink} style={{ padding: '9px 14px', borderRadius: 10, border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Отвязать</button>
+                  </>
+                ) : (
+                  <button
+                    onClick={onLink}
+                    style={{ flex: 1, padding: '10px', borderRadius: 10, border: `1.5px solid ${accent}`, background: soft, color: accent, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit' }}
+                  >
+                    <Key size={13} strokeWidth={2.4} /> Выбрать ученика
+                  </button>
+                )}
+                <button
+                  onClick={e => { e.stopPropagation(); onDelete() }}
+                  style={{ width: 38, borderRadius: 10, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+function DiagnosticManagement({ onBack }: { onBack: () => void }) {
+  const [anonResults, setAnonResults] = useState<AnonDiagResult[]>(() => loadAnonResults())
+  const [pickerFor, setPickerFor] = useState<string | null>(null)
+  const allStudents = useAllStudents()
+
+  function refreshResults() { setAnonResults(loadAnonResults()) }
+
+  function handleLink(resultId: string, studentId: string) {
+    linkAnonResult(resultId, studentId)
+    refreshResults()
+    setPickerFor(null)
+  }
+
+  function handleUnlink(resultId: string) {
+    unlinkAnonResult(resultId)
+    refreshResults()
+  }
+
+  function handleDelete(resultId: string) {
+    const arr = loadAnonResults().filter(r => r.id !== resultId)
+    localStorage.setItem('diag-anon-results', JSON.stringify(arr))
+    refreshResults()
+  }
+
   return (
     <motion.div
       key="testing"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       style={{ flex: 1, display: 'flex', minWidth: 0, overflow: 'hidden', position: 'relative' }}
     >
+      <AnimatePresence>
+        {pickerFor && (
+          <StudentPickerModal
+            onPick={(studentId) => handleLink(pickerFor, studentId)}
+            onClose={() => setPickerFor(null)}
+          />
+        )}
+      </AnimatePresence>
+
       <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', padding: '100px 32px 48px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+        {/* Back button */}
+        <div>
+          <motion.button
+            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
+            onClick={onBack}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '9px 16px 9px 12px', borderRadius: 999,
+              border: '1px solid var(--color-border-soft)',
+              background: 'rgba(var(--glass-rgb), 0.9)',
+              color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            <ArrowLeft size={15} strokeWidth={2} /> Назад
+          </motion.button>
+        </div>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -3191,7 +3504,7 @@ function DiagnosticManagement() {
           </div>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>Диагностическое тестирование</div>
-            <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>Скопируй ссылку и отправь ученику — результаты появятся в его тренажёре</div>
+            <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>Скопируй ссылку и отправь ученику — результаты появятся здесь</div>
           </div>
         </div>
 
@@ -3208,8 +3521,8 @@ function DiagnosticManagement() {
             <div style={{ fontSize: 12, color: 'var(--color-text-2)', lineHeight: 1.6 }}>
               1. Скопируй ссылку нужного предмета<br />
               2. Отправь ученику в мессенджере или через ДЗ<br />
-              3. Ученик проходит тест — результаты автоматически появляются в блоке «Умное обучение» в тренажёре<br />
-              4. Вопросы можно редактировать — изменения применятся для следующих прохождений
+              3. Ученик вводит ФИО и проходит тест без регистрации<br />
+              4. Результаты появляются ниже — нажми «Выбрать ученика» чтобы привязать к профилю
             </div>
           </div>
         </div>
@@ -3219,6 +3532,40 @@ function DiagnosticManagement() {
 
         {/* Chemistry panel */}
         <DiagnosticSubjectPanel subject="chemistry" />
+
+        {/* Results section */}
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Database size={14} style={{ color: 'var(--color-accent)' }} />
+            Результаты тестирований
+            {anonResults.length > 0 && (
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', borderRadius: 7, padding: '2px 8px' }}>
+                {anonResults.length}
+              </span>
+            )}
+          </div>
+          {anonResults.length === 0 ? (
+            <div style={{
+              padding: '24px', borderRadius: 16, border: '1.5px dashed var(--color-border-medium)',
+              textAlign: 'center', color: 'var(--color-muted)', fontSize: 13,
+            }}>
+              Ещё никто не прошёл тест. Скопируй ссылку выше и отправь ученику.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {anonResults.map(r => (
+                <DiagnosticStudentCard
+                  key={r.id}
+                  result={r}
+                  allStudents={allStudents}
+                  onLink={() => setPickerFor(r.id)}
+                  onUnlink={() => handleUnlink(r.id)}
+                  onDelete={() => handleDelete(r.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </motion.div>
   )
@@ -3403,7 +3750,7 @@ export default function TeacherConstructorPage() {
             onCancel={() => { setCreatorMode(null); setEditCourse(null); setEditTrainer(null); setEditingTask(null); setEditWidget(null) }}
           />
         ) : activeTab === 'testing' ? (
-          <DiagnosticManagement key="testing" />
+          <DiagnosticManagement key="testing" onBack={() => setActiveTab('course')} />
         ) : (
           <motion.div
             key="list"

@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, CheckCircle, Circle, ChevronRight, Target } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Circle, ChevronRight, Target, User } from 'lucide-react'
 import {
-  loadDiagQuestions, saveDiagResults,
+  loadDiagQuestions, saveDiagResults, appendAnonResult,
   type DiagSubject, type DiagQuestion, type DiagResults,
 } from '../data/diagnosticData'
 
@@ -21,19 +21,20 @@ export default function DiagnosticTestPage() {
 
   const questions = useMemo(() => loadDiagQuestions(subject), [subject])
 
+  const [step, setStep] = useState<'name' | 'test' | 'done'>('name')
+  const [studentName, setStudentName] = useState('')
   const [current, setCurrent] = useState(0)
   const [chosen, setChosen] = useState<Record<string, number>>({})  // questionId → option index
-  const [done, setDone] = useState(false)
   const [results, setResults] = useState<DiagResults>({})
 
   const q: DiagQuestion | undefined = questions[current]
   const total = questions.length
   const progress = Object.keys(chosen).length / total
+  const done = step === 'done'
 
   function pick(idx: number) {
     if (!q || chosen[q.id] !== undefined) return
     setChosen(prev => ({ ...prev, [q!.id]: idx }))
-    // auto-advance after 600ms
     setTimeout(() => {
       if (current < total - 1) {
         setCurrent(c => c + 1)
@@ -51,12 +52,87 @@ export default function DiagnosticTestPage() {
       if (answers[dq.id] === dq.correct) res[dq.section].correct++
     }
     saveDiagResults(subject, res)
+    appendAnonResult({ name: studentName.trim() || 'Аноним', subject, timestamp: new Date().toISOString(), results: res, answers })
     setResults(res)
-    setDone(true)
+    setStep('done')
   }
 
   function goBack() {
     window.location.hash = '#/'
+  }
+
+  // ── Name entry view ──
+  if (step === 'name') {
+    return (
+      <div style={{
+        minHeight: '100vh', background: 'var(--color-bg)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', padding: '40px 20px',
+      }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          style={{ width: '100%', maxWidth: 440 }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
+            <div style={{ width: 52, height: 52, borderRadius: 16, background: `${theme.accent}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Target size={26} style={{ color: theme.accent }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)' }}>Диагностика</div>
+              <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>{theme.label} · {total} вопросов</div>
+            </div>
+          </div>
+
+          <div style={{
+            background: 'rgba(var(--glass-rgb), 0.9)', border: '1px solid var(--color-border-glass)',
+            borderRadius: 22, padding: '28px 24px', display: 'flex', flexDirection: 'column', gap: 18,
+          }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>Введи своё ФИО</div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 12 }}>
+                Результаты сохранятся у твоего преподавателя. Логин и пароль не нужны.
+              </div>
+              <div style={{ position: 'relative' }}>
+                <User size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
+                <input
+                  autoFocus
+                  value={studentName}
+                  onChange={e => setStudentName(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && studentName.trim().length >= 2) setStep('test') }}
+                  placeholder="Например: Иванов Иван Иванович"
+                  style={{
+                    width: '100%', boxSizing: 'border-box',
+                    padding: '12px 14px 12px 36px', borderRadius: 13,
+                    border: `1.5px solid ${studentName.trim().length >= 2 ? theme.accent : 'var(--color-border-medium)'}`,
+                    background: 'var(--color-bg-input)', color: 'var(--color-text)',
+                    fontSize: 14, fontFamily: 'inherit', outline: 'none',
+                    transition: 'border-color 0.15s',
+                  }}
+                />
+              </div>
+            </div>
+
+            <motion.button
+              whileHover={{ scale: studentName.trim().length >= 2 ? 1.02 : 1 }}
+              whileTap={{ scale: studentName.trim().length >= 2 ? 0.98 : 1 }}
+              onClick={() => { if (studentName.trim().length >= 2) setStep('test') }}
+              disabled={studentName.trim().length < 2}
+              style={{
+                width: '100%', padding: '14px', borderRadius: 14, border: 'none', cursor: studentName.trim().length >= 2 ? 'pointer' : 'not-allowed',
+                background: studentName.trim().length >= 2 ? theme.accent : 'var(--color-bg-5)',
+                color: studentName.trim().length >= 2 ? '#fff' : 'var(--color-text-3)',
+                fontSize: 15, fontWeight: 700, transition: 'all 0.15s',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+            >
+              Начать тест <ChevronRight size={16} />
+            </motion.button>
+          </div>
+        </motion.div>
+      </div>
+    )
   }
 
   // ── Results view ──
@@ -166,7 +242,7 @@ export default function DiagnosticTestPage() {
   }
 
   // ── Test view ──
-  if (!q) return null
+  if (step !== 'test' || !q) return null
 
   const picked = chosen[q.id]
 

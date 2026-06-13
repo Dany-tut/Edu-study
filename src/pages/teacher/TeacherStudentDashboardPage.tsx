@@ -1,13 +1,15 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft, Phone, Send, User, TrendingUp, ClipboardCheck, Clock,
   Award, Target, XCircle, CheckCircle2, Layers, BookOpen, Dumbbell,
   Star, Calendar, BarChart3, Download, CreditCard, MessageSquare,
-  CheckCheck, AlertCircle, Percent,
+  CheckCheck, AlertCircle, Percent, FlaskConical, Atom,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useGroups, useStudents } from '../../lib/useGroups'
 import type { Student, Group } from '../../data/teacherMockData'
+import { loadAnonResults, type AnonDiagResult } from '../../data/diagnosticData'
 
 // ─── Mock data (until Supabase tables are ready) ──────────────────────────────
 const MOCK_TRAINER_SECTIONS = [
@@ -163,6 +165,8 @@ export default function TeacherStudentDashboardPage() {
       </div>
     )
   }
+
+  const diagResults = loadAnonResults().filter(r => r.linkedStudentId === selectedStudentId)
 
   const totalTrainer = MOCK_TRAINER_SECTIONS.reduce((a, s) => a + s.total, 0)
   const correctTrainer = MOCK_TRAINER_SECTIONS.reduce((a, s) => a + s.correct, 0)
@@ -479,6 +483,61 @@ export default function TeacherStudentDashboardPage() {
                 💡 Данные появятся автоматически, когда ученик занимается в тренажёре под своим аккаунтом.
               </div>
             </Card>
+
+            {/* Диагностика */}
+            {diagResults.length > 0 && (
+              <Card>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 14 }}>
+                  <Target size={14} style={{ color: 'var(--color-accent)' }} />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Диагностическое тестирование</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', borderRadius: 7, padding: '2px 8px' }}>{diagResults.length}</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {diagResults.map(r => {
+                    const sections = Object.entries(r.results)
+                    const totalQ = sections.reduce((a, [, v]) => a + v.total, 0)
+                    const correct = sections.reduce((a, [, v]) => a + v.correct, 0)
+                    const pct = totalQ ? Math.round((correct / totalQ) * 100) : 0
+                    const accent = r.subject === 'biology' ? '#22c55e' : '#7c3aed'
+                    const soft = r.subject === 'biology' ? 'var(--color-green-soft)' : 'var(--color-purple-soft)'
+                    const label = r.subject === 'biology' ? 'Биология' : 'Химия'
+                    const date = new Date(r.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })
+                    const pctColor = pct >= 70 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#ef4444'
+                    return (
+                      <div key={r.id} style={{ borderRadius: 14, border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>
+                        <div style={{ padding: '12px 14px', background: soft, display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div style={{ width: 32, height: 32, borderRadius: 9, background: `${accent}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            {r.subject === 'biology' ? <FlaskConical size={15} style={{ color: accent }} /> : <Atom size={15} style={{ color: accent }} />}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{label}</div>
+                            <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>{date}</div>
+                          </div>
+                          <div style={{ fontSize: 22, fontWeight: 900, color: pctColor }}>{pct}%</div>
+                        </div>
+                        <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          {sections.map(([sec, { correct: c, total: t }]) => {
+                            const p = t ? Math.round((c / t) * 100) : 0
+                            const col = p >= 70 ? '#22c55e' : p >= 40 ? '#f59e0b' : '#ef4444'
+                            return (
+                              <div key={sec}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+                                  <span style={{ fontSize: 10, color: 'var(--color-text-3)', fontWeight: 500, maxWidth: '80%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sec}</span>
+                                  <span style={{ fontSize: 10, fontWeight: 700, color: col }}>{c}/{t}</span>
+                                </div>
+                                <div style={{ height: 4, borderRadius: 999, background: 'var(--color-bg-5)' }}>
+                                  <div style={{ height: '100%', borderRadius: 999, background: col, width: `${p}%` }} />
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </Card>
+            )}
 
             {/* Активность */}
             <Card>
