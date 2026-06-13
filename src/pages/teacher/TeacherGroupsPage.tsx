@@ -5,6 +5,7 @@ import {
   Phone, Send, User,
   TrendingUp, ClipboardCheck, Clock, Award,
   ChevronsUpDown, ExternalLink, Plus, Copy, Check,
+  Maximize2, Target, BookOpen, XCircle, CheckCircle2, Layers,
 } from 'lucide-react'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import GroupStrip from '../../components/teacher/GroupStrip'
@@ -677,11 +678,205 @@ function StudentAvatar({
   )
 }
 
+// ─── Mock trainer stats for a student (until Supabase trainer_sessions table) ──
+const MOCK_TRAINER_SECTIONS: { section: string; correct: number; total: number }[] = [
+  { section: 'Молекулярная биология',    correct: 12, total: 18 },
+  { section: 'Клеточная теория',         correct:  6, total: 11 },
+  { section: 'Обмен веществ',            correct:  2, total:  9 },
+  { section: 'Размножение организмов',   correct:  9, total: 12 },
+  { section: 'Основы генетики',          correct:  4, total: 14 },
+]
+const MOCK_WRONG_TASKS = [
+  { id: 1554, line: 24, topic: 'Процессы жизнедеятельности клетки' },
+  { id: 892,  line: 19, topic: 'АТФ и биологическое окисление' },
+  { id: 1102, line:  6, topic: 'Строение клеток эукариот' },
+  { id: 445,  line: 28, topic: 'Генетика — задачи' },
+  { id: 730,  line: 18, topic: 'Фотосинтез и хемосинтез' },
+]
+
+// ─── Full-screen student card ─────────────────────────────────────────────────
+function StudentFullCard({ student, group, onClose }: { student: Student; group: Group; onClose: () => void }) {
+  const [tab, setTab] = useState<'main' | 'trainer'>('main')
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(0,0,0,0.48)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.94, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.94, y: 20 }}
+        transition={{ type: 'spring', stiffness: 360, damping: 32 }}
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: '100%', maxWidth: 800, maxHeight: '90dvh',
+          background: 'var(--color-bg-input)',
+          borderRadius: 28, boxShadow: '0 32px 80px rgba(0,0,0,0.22)',
+          border: '1px solid var(--color-border-glass)',
+          display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        }}
+      >
+        {/* Header */}
+        <div style={{ padding: '24px 28px 0', background: group.color + '18', borderBottom: `1px solid ${group.color}33`, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <StudentAvatar student={student} group={group} />
+              <div>
+                <div style={{ fontSize: 20, fontWeight: 750, color: 'var(--color-text)' }}>{student.name}</div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, background: group.color + '33', borderRadius: 7, padding: '2px 8px' }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</span>
+                </div>
+              </div>
+            </div>
+            <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
+              <X size={15} />
+            </button>
+          </div>
+          {/* Tabs */}
+          <div style={{ display: 'flex', gap: 0 }}>
+            {([['main', BookOpen, 'Основное'], ['trainer', Target, 'Тренажёр']] as const).map(([key, Icon, label]) => (
+              <button key={key} onClick={() => setTab(key)}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, fontWeight: tab === key ? 700 : 500, color: tab === key ? 'var(--color-text)' : 'var(--color-text-3)', borderBottom: `2px solid ${tab === key ? group.color : 'transparent'}`, transition: 'all 0.15s' }}>
+                <Icon size={13} />
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Body */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <AnimatePresence mode="wait">
+            {tab === 'main' ? (
+              <motion.div key="main" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}
+                style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
+                {/* Left col */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  <section>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>Контакты</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <ContactRow icon={Phone} label={student.phone} href={`tel:${student.phone}`} />
+                      {student.telegramLink && <ContactRow icon={Send} label={`@${student.telegramLink}`} href={`https://t.me/${student.telegramLink}`} />}
+                      {student.parentContact && <ContactRow icon={User} label={`Родитель: ${student.parentContact}`} href={`tel:${student.parentContact}`} />}
+                    </div>
+                  </section>
+                  <section>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>Прочее</div>
+                    <InfoRow label="Начал(а)" value={student.startedAt} />
+                    <InfoRow label="Последний вход" value={student.lastVisit} />
+                    <InfoRow label="Целевой балл" value={`${student.desiredScore} баллов`} />
+                  </section>
+                </div>
+                {/* Right col */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  <section>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>Показатели</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <ScoreBar label="ДЗ" icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" bg="#D6F5E3" />
+                      <ScoreBar label="Тесты" icon={TrendingUp} value={student.testScore} color="#B98FFF" bg="#EFE0FF" />
+                      {student.trialScore !== null && <ScoreBar label="Пробник" icon={Award} value={student.trialScore} color="#F5A623" bg="#FFF3D6" />}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', background: 'var(--color-bg)', borderRadius: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                          <Clock size={13} strokeWidth={2} style={{ color: 'var(--color-muted)' }} />
+                          <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Посещаемость</span>
+                        </div>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)' }}>
+                          {student.attendance}%
+                        </span>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div key="trainer" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}
+                style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                {/* Summary row */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+                  {[
+                    { val: 33, label: 'Всего задач', color: 'var(--color-text)', bg: 'var(--color-bg)' },
+                    { val: 33, label: 'Верно', color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
+                    { val: 31, label: 'Ошибок', color: 'var(--color-red-text)', bg: 'var(--color-red-soft)' },
+                    { val: '7', label: 'Занятий', color: '#B98FFF', bg: '#EFE0FF' },
+                  ].map(({ val, label, color, bg }) => (
+                    <div key={label} style={{ padding: '12px 14px', borderRadius: 14, background: bg, textAlign: 'center' }}>
+                      <div style={{ fontSize: 24, fontWeight: 750, color, lineHeight: 1 }}>{val}</div>
+                      <div style={{ fontSize: 11, color, opacity: 0.75, marginTop: 4 }}>{label}</div>
+                    </div>
+                  ))}
+                </div>
+                {/* Section breakdown */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                    <Layers size={14} style={{ color: 'var(--color-muted)' }} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>По разделам</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {MOCK_TRAINER_SECTIONS.map(({ section, correct, total }) => {
+                      const pct = total ? correct / total : 0
+                      const color = pct >= 0.7 ? '#34C877' : pct >= 0.4 ? '#FAC775' : '#F09595'
+                      return (
+                        <div key={section}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                            <span style={{ fontSize: 13, color: 'var(--color-text)' }}>{section}</span>
+                            <span style={{ fontSize: 12, fontWeight: 700, color, flexShrink: 0, marginLeft: 8 }}>{correct}/{total} · {Math.round(pct * 100)}%</span>
+                          </div>
+                          <div style={{ height: 7, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden', display: 'flex' }}>
+                            <motion.div initial={{ width: 0 }} animate={{ width: `${pct * 100}%` }} transition={{ duration: 0.55, delay: 0.1 }}
+                              style={{ height: '100%', background: color, flexShrink: 0 }} />
+                            <motion.div initial={{ width: 0 }} animate={{ width: `${((total - correct) / total) * 100}%` }} transition={{ duration: 0.55, delay: 0.1 }}
+                              style={{ height: '100%', background: '#F4B3B344', flexShrink: 0 }} />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+                {/* Wrong tasks */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <XCircle size={14} style={{ color: 'var(--color-red-text)' }} />
+                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Задания с ошибками</span>
+                    </div>
+                    <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>Нажмите, чтобы дать похожие</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {MOCK_WRONG_TASKS.map(t => (
+                      <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'var(--color-red-soft)', border: '1px solid rgba(244,139,145,0.25)', cursor: 'pointer' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(244,139,145,0.18)' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--color-red-soft)' }}>
+                        <span style={{ padding: '2px 7px', borderRadius: 7, fontSize: 11, fontWeight: 700, background: 'rgba(244,139,145,0.35)', color: 'var(--color-red-text)', flexShrink: 0 }}>#{t.id}</span>
+                        <span style={{ fontSize: 13, color: 'var(--color-text)', flex: 1 }}>{t.topic}</span>
+                        <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>Линия {t.line}</span>
+                        <CheckCircle2 size={14} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: 14, padding: '10px 14px', borderRadius: 12, background: 'rgba(155,109,255,0.08)', border: '1px solid rgba(155,109,255,0.2)', fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.6 }}>
+                    💡 Данные тренажёра появятся автоматически, когда ученик начнёт заниматься в банке заданий под своим аккаунтом.
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
 function StudentPanel({
   student, group, onClose, onDelete,
 }: { student: Student; group: Group; onClose: () => void; onDelete: () => void }) {
   const [comment, setComment] = useState(student.comment ?? '')
   const [deleting, setDeleting] = useState(false)
+  const [showFullCard, setShowFullCard] = useState(false)
   return (
     <motion.div
       initial={{ x: 360, opacity: 0 }}
@@ -726,23 +921,34 @@ function StudentPanel({
               </div>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            style={{
-              width: 28, height: 28, borderRadius: '50%',
-              border: 'none', cursor: 'pointer',
-              background: 'none',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--color-text-3)', flexShrink: 0,
-              transition: 'color 0.15s',
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text)' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-3)' }}
-          >
-            <X size={14} />
-          </button>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              onClick={() => setShowFullCard(true)}
+              title="Открыть карточку ученика"
+              style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0, transition: 'color 0.15s' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-3)' }}
+            >
+              <Maximize2 size={13} />
+            </button>
+            <button
+              onClick={onClose}
+              style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0, transition: 'color 0.15s' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-3)' }}
+            >
+              <X size={14} />
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Full card overlay */}
+      <AnimatePresence>
+        {showFullCard && (
+          <StudentFullCard student={student} group={group} onClose={() => setShowFullCard(false)} />
+        )}
+      </AnimatePresence>
 
       {/* Scrollable body */}
       <div style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
