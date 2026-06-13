@@ -940,12 +940,15 @@ function ContentCard({ accentColor, accentBg, isSelected, onClick, icon, badge, 
   )
 }
 
+const COURSE_COLOR = '#3EC87A'
+const COURSE_BG    = 'var(--color-green-soft)'
+
 function CourseCard({ course, isSelected, onClick }: { course: Course; isSelected: boolean; onClick: () => void }) {
   return (
     <ContentCard
-      accentColor={course.color} accentBg={course.bg}
+      accentColor={COURSE_COLOR} accentBg={COURSE_BG}
       isSelected={isSelected} onClick={onClick}
-      icon={<BookOpen size={17} strokeWidth={2} style={{ color: course.color }} />}
+      icon={<BookOpen size={17} strokeWidth={2} style={{ color: COURSE_COLOR }} />}
       badge={<span style={{ fontSize: 10, fontWeight: 700, color: STATUS_COLOR[course.status], background: STATUS_BG[course.status], borderRadius: 7, padding: '2px 8px' }}>{STATUS_LABEL[course.status]}</span>}
       title={course.title}
       subtitle={`${course.subject} · ${course.level}`}
