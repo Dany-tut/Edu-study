@@ -419,7 +419,7 @@ function CourseEditor({
           </div>
         </div>
         <div><Label>Уровень</Label>
-          <TeacherSelect value={level} onChange={setLevel} options={['ЕГЭ', 'ОГЭ', 'Углублённый', 'Интенсив']} />
+          <TeacherSelect value={level} onChange={setLevel} placeholder="Уровень" options={['ЕГЭ', 'ОГЭ', 'Углублённый', 'Интенсив']} />
         </div>
 
         {/* Description */}
@@ -940,9 +940,9 @@ function ContentCard({ accentColor, accentBg, isSelected, onClick, icon, badge, 
   )
 }
 
-const COURSE_COLOR    = '#3EC87A'            // hex — for border/shadow concatenation
-const COURSE_BG       = 'var(--color-green-soft)'
-const TRAINER_COLOR   = '#9B6DFF'            // hex — for border/shadow concatenation
+const COURSE_COLOR    = '#9B6DFF'            // hex — for border/shadow concatenation
+const COURSE_BG       = 'var(--color-purple-soft)'
+const TRAINER_COLOR   = '#9B6DFF'
 const TRAINER_BG      = 'var(--color-purple-soft)'
 
 function CourseCard({ course, isSelected, onClick }: { course: Course; isSelected: boolean; onClick: () => void }) {
@@ -950,7 +950,7 @@ function CourseCard({ course, isSelected, onClick }: { course: Course; isSelecte
     <ContentCard
       accentColor={COURSE_COLOR} accentBg={COURSE_BG}
       isSelected={isSelected} onClick={onClick}
-      icon={<BookOpen size={17} strokeWidth={2} style={{ color: 'var(--color-green-text)' }} />}
+      icon={<BookOpen size={17} strokeWidth={2} style={{ color: 'var(--color-purple-text)' }} />}
       badge={<span style={{ fontSize: 10, fontWeight: 700, color: STATUS_COLOR[course.status], background: STATUS_BG[course.status], borderRadius: 7, padding: '2px 8px' }}>{STATUS_LABEL[course.status]}</span>}
       title={course.title}
       subtitle={`${course.subject} · ${course.level}`}
@@ -965,7 +965,7 @@ function TrainerCard({ trainer, isSelected, onClick }: { trainer: Trainer; isSel
     <ContentCard
       accentColor={TRAINER_COLOR} accentBg={TRAINER_BG}
       isSelected={isSelected} onClick={onClick}
-      icon={<Zap size={17} strokeWidth={2} style={{ color: 'var(--color-accent)' }} />}
+      icon={<Zap size={17} strokeWidth={2} style={{ color: 'var(--color-purple-text)' }} />}
       title={trainer.title}
       subtitle={`${trainer.topic} · ${trainer.timePerQuestion} мин/вопрос`}
       extra={trainer.questionIds && trainer.questionIds.length > 0 ? (
@@ -3223,14 +3223,14 @@ export default function TeacherConstructorPage() {
                       onDeleteTask={id => removeTask(id)}
                       showSelect={false}
                       compact={true}
-                      accent="var(--color-accent)"
+                      accent="var(--color-purple-text)"
                       accentBg="var(--color-purple-soft)"
                     />
                   </div>
                   <TrainerBankFilterPanel
                     filters={bankFilters}
                     onChange={f => setBankFilters(prev => ({ ...prev, ...f }))}
-                    accent="var(--color-accent)"
+                    accent="var(--color-purple-text)"
                     accentBg="var(--color-purple-soft)"
                   />
                 </div>
