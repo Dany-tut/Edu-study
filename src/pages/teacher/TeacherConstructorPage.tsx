@@ -418,7 +418,7 @@ function CourseEditor({
             ))}
           </div>
         </div>
-        <div><Label>Уровень</Label>
+        <div>
           <TeacherSelect value={level} onChange={setLevel} placeholder="Уровень" options={['ЕГЭ', 'ОГЭ', 'Углублённый', 'Интенсив']} />
         </div>
 
@@ -548,7 +548,7 @@ function TrainerEditor({
       <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Title + topic */}
         <div><Label>Название</Label><input value={title} onChange={e => setTitle(e.target.value)} style={inputSt} /></div>
-        <div><Label>Тема</Label>
+        <div>
           <TeacherSelect value={topic} onChange={setTopic} placeholder="Тема" options={[...TOPICS, 'Смешанный']} />
         </div>
 
@@ -569,7 +569,7 @@ function TrainerEditor({
           <div style={{ background: 'var(--color-bg-2)', borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             <SectionHead>Параметры банка</SectionHead>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px', gap: 8 }}>
-              <div><Label>Тема банка</Label>
+              <div>
                 <TeacherSelect value={bankTopic} onChange={setBankTopic} placeholder="Тема банка" options={TOPICS} />
               </div>
               <div><Label>Кол-во</Label>
@@ -2163,11 +2163,11 @@ function CreatorView({
                 ))}
               </div>
             </div>
-            <div><Label>Раздел</Label>
+            <div>
               <TeacherSelect value={tkSection} onChange={v => { setTkSection(v); setTkTopic('') }} placeholder="Раздел"
                 options={tkSectionList} />
             </div>
-            <div><Label>Тема</Label>
+            <div>
               <TeacherSelect value={tkTopic} onChange={setTkTopic} placeholder="Тема"
                 options={tkTopicList} />
             </div>
@@ -2185,7 +2185,7 @@ function CreatorView({
               <input type="number" min={1} max={35} value={tkLine}
                 onChange={e => setTkLine(Math.max(1, Number(e.target.value)))} style={inputSt} />
             </div>
-            <div><Label>Источник</Label>
+            <div>
               <TeacherSelect value={tkSource} onChange={setTkSource} placeholder="Источник" options={SOURCES} />
             </div>
             {/* Points summary */}
@@ -2212,7 +2212,7 @@ function CreatorView({
                 ))}
               </div>
             </div>
-            <div><Label>Уровень</Label>
+            <div>
               <TeacherSelect value={cLevel} onChange={setCLevel} placeholder="Уровень" options={['ЕГЭ', 'ОГЭ', 'Углублённый', 'Интенсив']} />
             </div>
             <div><Label>Описание</Label>
@@ -2250,7 +2250,7 @@ function CreatorView({
                 })}
               </div>
             </div>
-            <div><Label>Привязать тренажёр</Label>
+            <div>
               <TeacherSelect value={wLinkedId} onChange={setWLinkedId} placeholder="Тренажёр"
                 options={trainers.map(t => ({ value: t.id, label: t.title }))} />
             </div>

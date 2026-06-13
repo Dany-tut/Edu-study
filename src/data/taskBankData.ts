@@ -275,4 +275,36 @@ export const BIOLOGY_LINES: Record<number, string> = {
 
 export const SOURCES = ['ЕГЭ 2023', 'ЕГЭ 2024', 'ЕГЭ 2025', 'Досрочный 2024', 'Досрочный 2025', 'Пробный 2025', 'Пробный 2026', 'Авторский']
 
+// ── Smart filter: section → recommended lines (primary first) ────────────────
+export const BIOLOGY_SECTION_LINE_MAP: Record<string, { lines: number[]; part2Lines: number[] }> = {
+  'Биология как наука':        { lines: [1, 2],                    part2Lines: [] },
+  'Клетка':                    { lines: [3, 4, 5, 6],              part2Lines: [27] },
+  'Организм':                  { lines: [7, 8, 9, 10, 11, 12, 13], part2Lines: [26] },
+  'Многообразие организмов':   { lines: [14, 15, 16, 17],          part2Lines: [24, 25] },
+  'Человек':                   { lines: [18, 19],                  part2Lines: [25] },
+  'Экосистемы':                { lines: [20, 21],                  part2Lines: [28] },
+  'Эволюция и антропогенез':   { lines: [22],                      part2Lines: [29] },
+  'Задания части 2':           { lines: [],                        part2Lines: [23, 24, 25, 26, 27, 28, 29] },
+}
+
+// Lines to sample for diagnostic (one rep per major topic cluster)
+export const BIOLOGY_DIAGNOSTIC_SAMPLE_LINES = [1, 3, 5, 7, 9, 14, 16, 18, 20, 22]
+
+// Learning route: ordered from foundational to complex
+export const BIOLOGY_ROUTE: Array<{ lines: number[]; label: string; section: string }> = [
+  { lines: [1, 2],    label: 'Биология как наука',   section: 'Биология как наука' },
+  { lines: [3, 4],    label: 'Состав и строение клетки', section: 'Клетка' },
+  { lines: [5, 6],    label: 'Метаболизм и деление', section: 'Клетка' },
+  { lines: [7, 8],    label: 'Размножение и развитие', section: 'Организм' },
+  { lines: [9, 10, 11], label: 'Генетика',           section: 'Организм' },
+  { lines: [12, 13],  label: 'Изменчивость и селекция', section: 'Организм' },
+  { lines: [14, 15],  label: 'Многообразие организмов', section: 'Многообразие организмов' },
+  { lines: [16, 17],  label: 'Растения и животные',  section: 'Многообразие организмов' },
+  { lines: [18, 19],  label: 'Человек',              section: 'Человек' },
+  { lines: [20, 21],  label: 'Экосистемы',           section: 'Экосистемы' },
+  { lines: [22],      label: 'Эволюция',             section: 'Эволюция и антропогенез' },
+  { lines: [26, 27],  label: 'Задачи Ч2: генетика и цитология', section: 'Задания части 2' },
+  { lines: [23, 24, 25, 28, 29], label: 'Остальные задания Ч2', section: 'Задания части 2' },
+]
+
 export const tasks: Task[] = []

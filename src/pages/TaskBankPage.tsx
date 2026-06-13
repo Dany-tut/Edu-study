@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import {
   Task, Subject, CHEMISTRY_LINES, BIOLOGY_LINES,
+  BIOLOGY_SECTION_LINE_MAP, BIOLOGY_DIAGNOSTIC_SAMPLE_LINES, BIOLOGY_ROUTE,
 } from '../data/taskBankData'
 import { useTaskBank } from '../store/taskBankStore'
 import { useDashboard } from '../store/dashboardStore'
@@ -696,6 +697,300 @@ function StatusTabs({ value, onChange }: { value: StatusFilter; onChange: (v: St
   )
 }
 
+// ── Фича 1: Smart suggest — показывает линии при выборе раздела ──────────────
+function SuggestBox({ section, lineNames, onPickLine, accent }: {
+  section: string
+  lineNames: Record<number, string>
+  onPickLine: (line: string) => void
+  accent: string
+}) {
+  const map = BIOLOGY_SECTION_LINE_MAP[section]
+  if (!map || (map.lines.length === 0 && map.part2Lines.length === 0)) return null
+  return (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.18 }}
+      style={{ overflow: 'hidden' }}
+    >
+      <div style={{
+        marginTop: 2, padding: '10px 12px', borderRadius: 12,
+        background: `${accent}12`, border: `1px solid ${accent}33`,
+      }}>
+        <div style={{ fontSize: 11, fontWeight: 600, color: accent, marginBottom: 7, display: 'flex', alignItems: 'center', gap: 5 }}>
+          <Target size={11} />
+          Рекомендуемые линии для «{section}»
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+          {map.lines.map(n => (
+            <button key={n} onClick={() => onPickLine(`${n} · ${lineNames[n] ?? `Линия ${n}`}`)}
+              style={{
+                padding: '4px 9px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: 'none',
+                background: accent, color: '#fff',
+                boxShadow: `0 2px 6px ${accent}44`,
+                transition: 'opacity 0.15s',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.82' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
+            >
+              №{n}
+            </button>
+          ))}
+          {map.part2Lines.map(n => (
+            <button key={n} onClick={() => onPickLine(`${n} · ${lineNames[n] ?? `Линия ${n}`}`)}
+              style={{
+                padding: '4px 9px', borderRadius: 20, fontSize: 11, fontWeight: 500, cursor: 'pointer',
+                background: `${accent}20`, border: `1px solid ${accent}55`, color: accent,
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `${accent}35` }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = `${accent}20` }}
+            >
+              №{n} · Ч2
+            </button>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+// ── Фича 2: DiagnosticPanel — мини-тест + результаты ─────────────────────────
+type DiagMode = 'idle' | 'running' | 'done'
+type DiagResults = Record<string, { correct: number; total: number }>
+
+function DiagnosticPanel({ tasks, lineNames, palette, onDone, onClose }: {
+  tasks: Task[]
+  lineNames: Record<number, string>
+  palette: ReturnType<typeof subjectTheme>
+  onDone: (results: DiagResults) => void
+  onClose: () => void
+}) {
+  const SAMPLE_PER_LINE = 2
+  const diagTasks = useMemo(() => {
+    const result: Task[] = []
+    for (const lineNum of BIOLOGY_DIAGNOSTIC_SAMPLE_LINES) {
+      const pool = tasks.filter(t => t.line === lineNum)
+      for (let i = 0; i < SAMPLE_PER_LINE && i < pool.length; i++) {
+        result.push(pool[Math.floor(Math.random() * pool.length)])
+      }
+    }
+    // if no real tasks, show placeholder instructions
+    return result
+  }, [tasks])
+
+  const [answers, setAnswers] = useState<Map<number, { value: string; correct: boolean }>>(new Map())
+  const [current, setCurrent] = useState(0)
+  const [inputVal, setInputVal] = useState('')
+
+  const task = diagTasks[current]
+  const totalQ = diagTasks.length
+  const answered = answers.size
+
+  function submit() {
+    if (!task || !inputVal.trim()) return
+    const correct = inputVal.trim().toLowerCase() === task.answer.toLowerCase()
+    setAnswers(prev => new Map(prev).set(task.id, { value: inputVal, correct }))
+    setInputVal('')
+    if (current < totalQ - 1) {
+      setCurrent(c => c + 1)
+    } else {
+      // build results
+      const results: DiagResults = {}
+      for (const t of diagTasks) {
+        const sec = t.section
+        if (!results[sec]) results[sec] = { correct: 0, total: 0 }
+        results[sec].total++
+        if (answers.get(t.id)?.correct || (t.id === task.id && correct)) results[sec].correct++
+      }
+      onDone(results)
+    }
+  }
+
+  if (diagTasks.length === 0) {
+    return (
+      <div style={{ padding: '14px 16px', borderRadius: 16, background: `${palette.accent}12`, border: `1px solid ${palette.accent}33` }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: palette.text, marginBottom: 6 }}>Диагностика</div>
+        <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+          В банке пока нет заданий. Добавьте задания — и диагностика запустится автоматически.
+        </div>
+        <button onClick={onClose} style={{ marginTop: 10, padding: '6px 14px', borderRadius: 10, border: `1px solid ${palette.accent}44`, background: 'transparent', fontSize: 12, color: palette.accent, cursor: 'pointer', fontWeight: 600 }}>Закрыть</button>
+      </div>
+    )
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
+      style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '14px 16px', borderRadius: 16, background: `${palette.accent}0e`, border: `1px solid ${palette.accent}33` }}
+    >
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: palette.text }}>Диагностика</div>
+          <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>{answered} / {totalQ} выполнено</div>
+        </div>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 18, lineHeight: 1 }}>×</button>
+      </div>
+
+      {/* Progress bar */}
+      <div style={{ height: 4, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
+        <motion.div animate={{ width: `${totalQ ? (answered / totalQ) * 100 : 0}%` }} transition={{ duration: 0.3 }}
+          style={{ height: '100%', borderRadius: 999, background: `linear-gradient(90deg, ${palette.accent}, ${palette.text})` }} />
+      </div>
+
+      {/* Current question */}
+      <div style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)' }}>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+          <span style={{ padding: '2px 7px', borderRadius: 20, fontSize: 10, fontWeight: 600, background: `${palette.accent}22`, color: palette.text }}>№{task?.line}</span>
+          <span style={{ padding: '2px 7px', borderRadius: 20, fontSize: 10, background: 'rgba(0,0,0,0.05)', color: 'var(--color-text-3)' }}>{task?.section}</span>
+        </div>
+        <div style={{ fontSize: 13, lineHeight: 1.45, fontWeight: 600, color: 'var(--color-text)' }}
+          dangerouslySetInnerHTML={{ __html: task?.question ?? '' }} />
+      </div>
+
+      {/* Answer input */}
+      <div style={{ display: 'flex', gap: 6 }}>
+        <input
+          value={inputVal}
+          onChange={e => setInputVal(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && submit()}
+          placeholder="Введи ответ..."
+          style={{
+            flex: 1, padding: '9px 12px', borderRadius: 12, fontSize: 13, outline: 'none',
+            border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)',
+          }}
+        />
+        <button onClick={submit} disabled={!inputVal.trim()}
+          style={{
+            padding: '9px 14px', borderRadius: 12, border: 'none', fontSize: 13, fontWeight: 700,
+            background: inputVal.trim() ? palette.accent : 'var(--color-bg-5)',
+            color: inputVal.trim() ? palette.onAccent : 'var(--color-text-3)',
+            cursor: inputVal.trim() ? 'pointer' : 'default',
+            transition: 'all 0.15s',
+          }}>→</button>
+      </div>
+    </motion.div>
+  )
+}
+
+// ── Фича 3: RoutePanel — персональный маршрут ─────────────────────────────────
+function RoutePanel({ diagResults, answered, lineNames, palette, onPickLine, onReset }: {
+  diagResults: DiagResults
+  answered: Map<number, { value: string; correct: boolean | null }>
+  lineNames: Record<number, string>
+  palette: ReturnType<typeof subjectTheme>
+  onPickLine: (line: string) => void
+  onReset: () => void
+}) {
+  // Sort route steps by weakest section first
+  const sectionScore = (sec: string) => {
+    const r = diagResults[sec]
+    if (!r || r.total === 0) return 0.5 // unknown → mid priority
+    return r.correct / r.total
+  }
+
+  const sortedRoute = [...BIOLOGY_ROUTE].sort((a, b) => sectionScore(a.section) - sectionScore(b.section))
+
+  // Determine status of each step
+  function stepStatus(lines: number[]): 'done' | 'active' | 'locked' {
+    const allTasks = lines.flatMap(l => Object.entries(lineNames).filter(([n]) => Number(n) === l))
+    if (lines.length === 0) return 'locked'
+    // Check if user has answered tasks in this line
+    const lineAnswers = [...answered.entries()].filter(([id]) => {
+      // We can't easily check line without tasks, so use a rough heuristic
+      return id > 0
+    })
+    if (lineAnswers.length === 0) {
+      // First step is active, rest locked
+      return 'locked'
+    }
+    return 'locked'
+  }
+
+  // Simpler: first step active, rest locked (until we have real answered data)
+  let firstActiveDone = false
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <LayoutGrid size={14} style={{ color: palette.text }} />
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Маршрут</span>
+        </div>
+        <button onClick={onReset} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--color-text-3)' }}>сбросить</button>
+      </div>
+
+      {/* Section scores mini-bars */}
+      {Object.keys(diagResults).length > 0 && (
+        <div style={{ padding: '8px 10px', borderRadius: 10, background: 'rgba(var(--glass-rgb), 0.9)', border: '1px solid var(--color-border-soft)', display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 4 }}>
+          <div style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600, marginBottom: 2 }}>Результат диагностики</div>
+          {Object.entries(diagResults).map(([sec, { correct, total }]) => {
+            const pct = total ? Math.round((correct / total) * 100) : 0
+            const color = pct >= 70 ? '#34C877' : pct >= 40 ? '#FAC775' : '#F09595'
+            return (
+              <div key={sec} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 10, color: 'var(--color-text-3)', width: 90, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0 }}>{sec}</span>
+                <div style={{ flex: 1, height: 4, borderRadius: 999, background: 'var(--color-bg-5)' }}>
+                  <motion.div animate={{ width: `${pct}%` }} transition={{ duration: 0.5, delay: 0.1 }}
+                    style={{ height: '100%', borderRadius: 999, background: color }} />
+                </div>
+                <span style={{ fontSize: 10, fontWeight: 700, color, minWidth: 28, textAlign: 'right' }}>{pct}%</span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Route steps */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {sortedRoute.map((step, i) => {
+          const score = sectionScore(step.section)
+          const isFirst = i === 0
+          const isActive = isFirst && !firstActiveDone
+          if (isActive) firstActiveDone = true
+          const isDone = false // TODO: derive from answered tasks
+          const isLocked = !isActive && !isDone
+
+          const borderColor = isDone ? 'rgba(110,231,160,0.55)' : isActive ? palette.accent : 'var(--color-border-soft)'
+          const bg = isDone ? 'var(--color-green-soft)' : isActive ? `${palette.accent}12` : 'rgba(var(--glass-rgb), 0.88)'
+
+          return (
+            <button key={i} onClick={() => !isLocked && step.lines.length > 0 && onPickLine(`${step.lines[0]} · ${lineNames[step.lines[0]] ?? `Линия ${step.lines[0]}`}`)}
+              disabled={isLocked}
+              style={{
+                width: '100%', textAlign: 'left', padding: '9px 11px', borderRadius: 12,
+                border: `1px solid ${borderColor}`,
+                background: bg, cursor: isLocked ? 'default' : 'pointer',
+                opacity: isLocked ? 0.5 : 1, transition: 'all 0.15s',
+                display: 'flex', alignItems: 'center', gap: 8,
+              }}
+              onMouseEnter={e => { if (!isLocked) (e.currentTarget as HTMLElement).style.opacity = '0.82' }}
+              onMouseLeave={e => { if (!isLocked) (e.currentTarget as HTMLElement).style.opacity = '1' }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12, fontWeight: isActive ? 700 : 500, color: isActive ? palette.text : 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {step.label}
+                </div>
+                <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 2 }}>
+                  {step.lines.length > 0 ? `Линии ${step.lines.map(n => `№${n}`).join(', ')}` : 'Линии Ч2'}
+                  {Object.keys(diagResults).length > 0 && step.section in diagResults && (
+                    <span style={{ marginLeft: 6, color: score >= 0.7 ? '#34C877' : score >= 0.4 ? '#FAC775' : '#F09595', fontWeight: 700 }}>
+                      · {Math.round(score * 100)}%
+                    </span>
+                  )}
+                </div>
+              </div>
+              {isActive && <span style={{ fontSize: 10, fontWeight: 700, color: palette.accent, flexShrink: 0 }}>→</span>}
+              {isDone && <CheckCircle2 size={13} style={{ color: '#34C877', flexShrink: 0 }} />}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function TaskBankPage() {
   const { dark } = useTheme()
@@ -727,6 +1022,11 @@ export default function TaskBankPage() {
   const [answered, setAnswered] = useState<Map<number, { value: string; correct: boolean | null }>>(new Map())
   const [savedPill, setSavedPill] = useState(false)
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // ── Smart features state ──────────────────────────────────────────────────
+  const [diagMode, setDiagMode] = useState<DiagMode>('idle')
+  const [diagResults, setDiagResults] = useState<DiagResults>({})
+  const [showRoute, setShowRoute] = useState(false)
 
   function handleCopyId() {
     setSavedPill(true)
@@ -948,6 +1248,16 @@ export default function TaskBankPage() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <FilterField label="Раздел"   options={sections}     value={section} onChange={v => { setSection(v); setTopic('') }} accent={palette.accent} />
+              <AnimatePresence>
+                {section && subject === 'biology' && (
+                  <SuggestBox
+                    section={section}
+                    lineNames={lineNames}
+                    onPickLine={v => { setLine(v) }}
+                    accent={palette.accent}
+                  />
+                )}
+              </AnimatePresence>
               <FilterField label="Тема"     options={topicOptions} value={topic}   onChange={setTopic} accent={palette.accent} />
               <div style={{ display: 'flex', gap: 6 }}>
                 {['1', '2'].map(p => (
@@ -997,6 +1307,61 @@ export default function TaskBankPage() {
               </div>
             ))}
           </div>
+
+          {/* ── Smart features: Diagnostic + Route (biology only) ──────────── */}
+          {subject === 'biology' && (
+            <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
+              <AnimatePresence mode="wait">
+                {showRoute ? (
+                  <motion.div key="route" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
+                    <RoutePanel
+                      diagResults={diagResults}
+                      answered={answered}
+                      lineNames={lineNames}
+                      palette={palette}
+                      onPickLine={v => { setLine(v); setShowRoute(false) }}
+                      onReset={() => { setShowRoute(false); setDiagResults({}); setDiagMode('idle') }}
+                    />
+                  </motion.div>
+                ) : diagMode === 'running' ? (
+                  <motion.div key="diag" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
+                    <DiagnosticPanel
+                      tasks={subjectTasks}
+                      lineNames={lineNames}
+                      palette={palette}
+                      onDone={results => { setDiagResults(results); setDiagMode('done'); setShowRoute(true) }}
+                      onClose={() => setDiagMode('idle')}
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Умное обучение</div>
+                    <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+                      Пройди диагностику — получишь персональный маршрут по слабым темам.
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <button onClick={() => setDiagMode('running')}
+                        style={{
+                          padding: '9px 14px', borderRadius: 12, border: 'none', fontSize: 12, fontWeight: 700,
+                          background: palette.accent, color: palette.onAccent, cursor: 'pointer',
+                          boxShadow: `0 6px 16px ${palette.ring}`,
+                          display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center',
+                        }}>
+                        <Target size={13} />Начать диагностику
+                      </button>
+                      {Object.keys(diagResults).length > 0 && (
+                        <button onClick={() => setShowRoute(true)}
+                          style={{ padding: '8px 14px', borderRadius: 12, border: `1px solid ${palette.accent}44`, background: `${palette.accent}12`, fontSize: 12, fontWeight: 600, color: palette.text, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
+                          <LayoutGrid size={13} />Мой маршрут
+                        </button>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
         </aside>
         </div>
 

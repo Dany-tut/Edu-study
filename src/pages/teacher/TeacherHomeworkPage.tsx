@@ -142,7 +142,6 @@ function AssignForm({ onClose }: { onClose: () => void }) {
 
           {/* Group select */}
           <div>
-            <Label>Группа</Label>
             <TeacherSelect value={selectedGroup} onChange={v => { setSelectedGroup(v); setSelectedStudent('') }}
               placeholder="Группа"
               options={groups.map(g => ({ value: g.id, label: `${g.name} (${g.studentCount} чел.)` }))} />
@@ -151,7 +150,6 @@ function AssignForm({ onClose }: { onClose: () => void }) {
           {/* Student select (only if assignTo = 'student') */}
           {assignTo === 'student' && (
             <div>
-              <Label>Студент</Label>
               <TeacherSelect value={selectedStudent} onChange={setSelectedStudent}
                 placeholder="Студент"
                 options={groupStudents.map(s => ({ value: s.id, label: s.name }))} />

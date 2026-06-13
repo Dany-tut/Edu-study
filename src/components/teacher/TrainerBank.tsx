@@ -709,14 +709,11 @@ export function TrainerBankFilterPanel({
 
 function FilterField({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (v: string) => void }) {
   return (
-    <div>
-      <Label>{label}</Label>
-      <TeacherSelect
-        value={value}
-        onChange={onChange}
-        placeholder={label}
-        options={options.map(o => ({ value: o, label: o }))}
-      />
-    </div>
+    <TeacherSelect
+      value={value}
+      onChange={onChange}
+      placeholder={label}
+      options={options.map(o => ({ value: o, label: o }))}
+    />
   )
 }

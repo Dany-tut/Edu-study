@@ -1795,7 +1795,6 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
         {/* Student */}
         {meta.assignTo === 'student' && (
           <div>
-            <Label>Студент</Label>
             <TeacherSelect
               value={meta.studentId}
               onChange={id => onChange({ studentId: id })}

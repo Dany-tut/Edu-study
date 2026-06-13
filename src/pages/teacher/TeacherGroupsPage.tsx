@@ -424,7 +424,7 @@ function GroupCard({
       <div className="group-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{
           fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
-          color: group.color.replace(')', ', 0.8)').replace('rgb', 'rgba'),
+          color: group.color,
           background: group.color + '22',
           padding: '3px 9px', borderRadius: 8,
           border: `1px solid ${group.color}33`,
