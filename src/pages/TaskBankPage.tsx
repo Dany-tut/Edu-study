@@ -689,7 +689,7 @@ function SuggestBox({ section, lineNames, onPickLine, accent }: {
         background: `${accent}22`, border: `1px solid ${accent}44`,
       }}>
         <div style={{ fontSize: 11, fontWeight: 600, color: accent, marginBottom: 7, display: 'flex', alignItems: 'center', gap: 5, lineHeight: 1.2 }}>
-          <Sparkles size={11} />
+          <Sparkles size={15} />
           Рекомендуемые линии для «{section}»
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
@@ -1200,6 +1200,7 @@ export default function TaskBankPage() {
   const [diagMode, setDiagMode] = useState<DiagMode>('idle')
   const [diagResults, setDiagResults] = useState<DiagResults>({})
   const [showRoute, setShowRoute] = useState(false)
+  const [diagOpen, setDiagOpen] = useState(false)
 
   function handleCopyId() {
     setSavedPill(true)
@@ -1284,6 +1285,22 @@ export default function TaskBankPage() {
   return (
     <div className="flex flex-col" style={{ gap: 16 }}>
 
+      {/* Progress modal */}
+      <AnimatePresence>
+        {showProgressModal && (
+          <ProgressModal
+            tasks={subjectTasks}
+            answered={answered}
+            favorites={favorites}
+            palette={palette}
+            lineNames={lineNames}
+            onClose={() => setShowProgressModal(false)}
+            onRetryMistakes={() => { setShowWrongOnly(true); setWrongSimilarLines(new Set()); setShowProgressModal(false) }}
+            onSimilarTasks={lines => { setWrongSimilarLines(new Set(lines)); setShowWrongOnly(false); setSection(''); setLine(''); setShowProgressModal(false) }}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Glass pill "Сохранено" */}
       <AnimatePresence>
         {savedPill && (
@@ -1335,17 +1352,19 @@ export default function TaskBankPage() {
               display: 'flex', alignItems: 'center', gap: 7,
               padding: '11px 22px 11px 18px',
               borderRadius: 999,
-              background: 'rgba(var(--glass-rgb), 0.82)',
-              backdropFilter: 'blur(28px) saturate(200%)',
-              WebkitBackdropFilter: 'blur(28px) saturate(200%)',
-              border: '1px solid var(--color-border-glass)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.08)',
+              background: dark ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.72)',
+              backdropFilter: 'blur(32px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+              border: dark ? '1px solid rgba(255,255,255,0.16)' : '1px solid rgba(255,255,255,0.9)',
+              boxShadow: dark
+                ? '0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12)'
+                : '0 4px 20px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.9)',
               cursor: 'pointer', outline: 'none',
               color: 'var(--color-text)',
               fontSize: 13, fontWeight: 700,
               whiteSpace: 'nowrap',
             }}
-            whileHover={{ scale: 1.06, boxShadow: '0 12px 40px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.08)' }}
+            whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.95 }}
           >
             <ArrowUp size={15} strokeWidth={2.5} />
@@ -1501,6 +1520,65 @@ export default function TaskBankPage() {
             )}
           </div>
 
+          {/* Progress card */}
+          <button
+            onClick={() => setShowProgressModal(true)}
+            style={{ all: 'unset', display: 'flex', flexDirection: 'column', gap: 12, padding: 16, borderRadius: 16, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', cursor: 'pointer', width: '100%', boxSizing: 'border-box', transition: 'border-color 0.15s', textAlign: 'left' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = palette.accent + '77' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border-soft)' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div className="flex items-center" style={{ gap: 7 }}>
+                <TrendingUp size={15} style={{ color: palette.text }} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Прогресс</span>
+              </div>
+              <span style={{ fontSize: 11, color: palette.text, fontWeight: 600, opacity: 0.7 }}>Детали →</span>
+            </div>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Решено верно</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{doneCount} / {totalCount}</span>
+              </div>
+              <div style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden', display: 'flex' }}>
+                <motion.div animate={{ width: `${totalCount ? (doneCount / totalCount) * 100 : 0}%` }} transition={{ duration: 0.4 }}
+                  style={{ height: '100%', background: 'var(--color-green-accent)', flexShrink: 0 }} />
+                <motion.div animate={{ width: `${totalCount ? (wrongCount / totalCount) * 100 : 0}%` }} transition={{ duration: 0.4 }}
+                  style={{ height: '100%', background: '#F48B91', flexShrink: 0 }} />
+              </div>
+            </div>
+            {(todayCorrect > 0 || todayWrong > 0) && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>Сегодня</span>
+                {todayCorrect > 0 && <span style={{ padding: '2px 8px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 11, fontWeight: 700 }}>✓ {todayCorrect}</span>}
+                {todayWrong   > 0 && <span style={{ padding: '2px 8px', borderRadius: 999, background: 'var(--color-red-soft)',   color: 'var(--color-red-text)',   fontSize: 11, fontWeight: 700 }}>✗ {todayWrong}</span>}
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', flex: 1 }}>
+                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Ошибок</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: wrongCount > 0 ? 'var(--color-red-text)' : 'var(--color-text)' }}>{wrongCount}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', flex: 1 }}>
+                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Избранное</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{favorites.size}</span>
+              </div>
+            </div>
+            {showWrongOnly && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 10, background: 'var(--color-red-soft)', border: '1px solid rgba(244,139,145,0.35)' }}>
+                <XCircle size={12} style={{ color: 'var(--color-red-text)', flexShrink: 0 }} />
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-red-text)', flex: 1 }}>Режим ошибок</span>
+                <button onClick={e => { e.stopPropagation(); setShowWrongOnly(false) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-red-text)', fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
+              </div>
+            )}
+            {wrongSimilarLines.size > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 10, background: `${palette.accent}14`, border: `1px solid ${palette.accent}33` }}>
+                <Target size={12} style={{ color: palette.text, flexShrink: 0 }} />
+                <span style={{ fontSize: 11, fontWeight: 600, color: palette.text, flex: 1 }}>Похожие задания</span>
+                <button onClick={e => { e.stopPropagation(); setWrongSimilarLines(new Set()) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: palette.text, fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
+              </div>
+            )}
+          </button>
+
           {/* ── Smart features: Diagnostic + Route (biology only) ──────────── */}
           {subject === 'biology' && (
             <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
@@ -1516,16 +1594,6 @@ export default function TaskBankPage() {
                       onReset={() => { setShowRoute(false); setDiagResults({}); setDiagMode('idle') }}
                     />
                   </motion.div>
-                ) : diagMode === 'running' ? (
-                  <motion.div key="diag" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
-                    <DiagnosticPanel
-                      tasks={subjectTasks}
-                      lineNames={lineNames}
-                      palette={palette}
-                      onDone={results => { setDiagResults(results); setDiagMode('done'); setShowRoute(true) }}
-                      onClose={() => setDiagMode('idle')}
-                    />
-                  </motion.div>
                 ) : (
                   <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}
                     style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1534,7 +1602,7 @@ export default function TaskBankPage() {
                       Пройди диагностику — получишь персональный маршрут по слабым темам.
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      <button onClick={() => setDiagMode('running')}
+                      <button onClick={() => setDiagOpen(true)}
                         style={{
                           padding: '9px 14px', borderRadius: 12, border: 'none', fontSize: 12, fontWeight: 700,
                           background: palette.accent, color: palette.onAccent, cursor: 'pointer',
@@ -1613,6 +1681,84 @@ export default function TaskBankPage() {
           )}
         </main>
       </div>
+
+      {/* Fullscreen diagnostic modal */}
+      <AnimatePresence>
+        {diagOpen && (
+          <motion.div
+            key="diag-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 9999,
+              background: 'rgba(0,0,0,0.72)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: 20,
+            }}
+            onClick={() => setDiagOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.96, opacity: 0, y: 16 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.96, opacity: 0, y: 16 }}
+              transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+              onClick={e => e.stopPropagation()}
+              style={{
+                width: '100%', maxWidth: 560,
+                background: 'var(--color-bg)',
+                borderRadius: 24,
+                boxShadow: '0 32px 80px rgba(0,0,0,0.45)',
+                overflow: 'hidden',
+              }}
+            >
+              {/* Modal header */}
+              <div style={{
+                padding: '20px 24px 0',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: 10,
+                    background: `${palette.accent}22`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <Target size={18} style={{ color: palette.accent }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>Умное обучение</div>
+                    <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>Диагностика слабых тем</div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setDiagOpen(false)}
+                  style={{
+                    background: 'rgba(var(--glass-rgb),0.8)', border: '1px solid var(--color-border-soft)',
+                    borderRadius: 10, width: 32, height: 32, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 18, color: 'var(--color-text-3)', lineHeight: 1,
+                  }}
+                >×</button>
+              </div>
+              <div style={{ padding: '16px 24px 24px' }}>
+                <DiagnosticPanel
+                  tasks={subjectTasks}
+                  lineNames={lineNames}
+                  palette={palette}
+                  onDone={results => {
+                    setDiagResults(results)
+                    setDiagMode('done')
+                    setShowRoute(true)
+                    setDiagOpen(false)
+                  }}
+                  onClose={() => setDiagOpen(false)}
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
