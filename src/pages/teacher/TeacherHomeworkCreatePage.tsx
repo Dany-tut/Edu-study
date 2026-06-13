@@ -97,7 +97,7 @@ function FilterSelect({ label, options, value, onChange }: {
       value={value}
       onChange={onChange}
       placeholder={label}
-      options={[{ value: '', label }, ...options.map(o => ({ value: o, label: o }))]}
+      options={options.map(o => ({ value: o, label: o }))}
       triggerStyle={{
         background: 'var(--color-bg-input)',
         borderWidth: 1, borderStyle: 'solid',
@@ -1799,8 +1799,8 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
             <TeacherSelect
               value={meta.studentId}
               onChange={id => onChange({ studentId: id })}
-              placeholder="Выберите студента"
-              options={[{ value: '', label: 'Выберите студента' }, ...groupStudents.map(s => ({ value: s.id, label: s.name }))]}
+              placeholder="Студент"
+              options={groupStudents.map(s => ({ value: s.id, label: s.name }))}
             />
           </div>
         )}

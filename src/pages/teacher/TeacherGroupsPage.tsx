@@ -91,6 +91,7 @@ function AddGroupModal({ onClose, onSave }: {
             <TeacherSelect
               value={subject}
               onChange={v => { setSubject(v); setIcon(subjectIcons[v] ?? '📚') }}
+              placeholder="Предмет"
               options={Object.keys(subjectIcons)}
             />
           </label>
@@ -100,6 +101,7 @@ function AddGroupModal({ onClose, onSave }: {
             <TeacherSelect
               value={level}
               onChange={setLevel}
+              placeholder="Уровень"
               options={['ЕГЭ', 'ОГЭ', 'Олимпиада', 'Школьная программа', 'Интенсив']}
             />
           </label>

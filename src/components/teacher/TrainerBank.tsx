@@ -714,8 +714,8 @@ function FilterField({ label, value, options, onChange }: { label: string; value
       <TeacherSelect
         value={value}
         onChange={onChange}
-        placeholder="— любой —"
-        options={[{ value: '', label: '— любой —' }, ...options.map(o => ({ value: o, label: o }))]}
+        placeholder={label}
+        options={options.map(o => ({ value: o, label: o }))}
       />
     </div>
   )

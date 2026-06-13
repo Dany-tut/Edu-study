@@ -462,13 +462,15 @@ function CourseEditor({
                     <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 2 }}>ТРЕНАЖЁР</div>
                     <TeacherSelect small value={lesson.trainerId ?? ''} onChange={v => setLessonLink(lesson.id, 'trainerId', v || null)}
                       triggerStyle={{ padding: '5px 8px', fontSize: 11 }}
-                      options={[{ value: '', label: '— нет —' }, ...trainers.map(t => ({ value: t.id, label: t.title.slice(0, 22) }))]} />
+                      placeholder="Тренажёр"
+                      options={trainers.map(t => ({ value: t.id, label: t.title.slice(0, 22) }))} />
                   </div>
                   <div>
                     <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 2 }}>ВИДЖЕТ</div>
                     <TeacherSelect small value={lesson.widgetId ?? ''} onChange={v => setLessonLink(lesson.id, 'widgetId', v || null)}
                       triggerStyle={{ padding: '5px 8px', fontSize: 11 }}
-                      options={[{ value: '', label: '— нет —' }, ...widgets.map(w => ({ value: w.id, label: w.title.slice(0, 22) }))]} />
+                      placeholder="Виджет"
+                      options={widgets.map(w => ({ value: w.id, label: w.title.slice(0, 22) }))} />
                   </div>
                 </div>
               </div>
@@ -547,7 +549,7 @@ function TrainerEditor({
         {/* Title + topic */}
         <div><Label>Название</Label><input value={title} onChange={e => setTitle(e.target.value)} style={inputSt} /></div>
         <div><Label>Тема</Label>
-          <TeacherSelect value={topic} onChange={setTopic} options={[...TOPICS, 'Смешанный']} />
+          <TeacherSelect value={topic} onChange={setTopic} placeholder="Тема" options={[...TOPICS, 'Смешанный']} />
         </div>
 
         {/* Time */}
@@ -568,7 +570,7 @@ function TrainerEditor({
             <SectionHead>Параметры банка</SectionHead>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px', gap: 8 }}>
               <div><Label>Тема банка</Label>
-                <TeacherSelect value={bankTopic} onChange={setBankTopic} options={TOPICS} />
+                <TeacherSelect value={bankTopic} onChange={setBankTopic} placeholder="Тема банка" options={TOPICS} />
               </div>
               <div><Label>Кол-во</Label>
                 <input type="number" min={1} max={TASK_BANK.filter(q => q.topic === bankTopic).length}
@@ -736,9 +738,9 @@ function WidgetEditor({
         {(type === 'quiz' || type === 'facts') && (
           <div style={{ background: 'var(--color-green-soft)', borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
             <SectionHead>Автонаполнение из тренажёра</SectionHead>
-            <TeacherSelect value={linkedId} onChange={setLinkedId} placeholder="— выберите тренажёр —"
+            <TeacherSelect value={linkedId} onChange={setLinkedId} placeholder="Тренажёр"
               accent="#1a7a3f" accentBg="var(--color-green-soft)"
-              options={[{ value: '', label: '— выберите тренажёр —' }, ...trainers.map(t => ({ value: t.id, label: `${t.title} (${t.questions.length} вопр.)` }))]} />
+              options={trainers.map(t => ({ value: t.id, label: `${t.title} (${t.questions.length} вопр.)` }))} />
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
               onClick={autoPopulate} disabled={!linkedId}
               style={{
@@ -2211,7 +2213,7 @@ function CreatorView({
               </div>
             </div>
             <div><Label>Уровень</Label>
-              <TeacherSelect value={cLevel} onChange={setCLevel} options={['ЕГЭ', 'ОГЭ', 'Углублённый', 'Интенсив']} />
+              <TeacherSelect value={cLevel} onChange={setCLevel} placeholder="Уровень" options={['ЕГЭ', 'ОГЭ', 'Углублённый', 'Интенсив']} />
             </div>
             <div><Label>Описание</Label>
               <textarea value={cDesc} onChange={e => setCDesc(e.target.value)} rows={3}
@@ -2249,8 +2251,8 @@ function CreatorView({
               </div>
             </div>
             <div><Label>Привязать тренажёр</Label>
-              <TeacherSelect value={wLinkedId} onChange={setWLinkedId} placeholder="— нет —"
-                options={[{ value: '', label: '— нет —' }, ...trainers.map(t => ({ value: t.id, label: t.title }))]} />
+              <TeacherSelect value={wLinkedId} onChange={setWLinkedId} placeholder="Тренажёр"
+                options={trainers.map(t => ({ value: t.id, label: t.title }))} />
             </div>
           </>}
           </GlassCard>

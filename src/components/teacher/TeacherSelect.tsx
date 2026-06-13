@@ -30,30 +30,46 @@ export default function TeacherSelect({
   accentBg?: string
 }) {
   const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
   const [pos, setPos] = useState<{ top: number; bottom: number; left: number; width: number; up: boolean } | null>(null)
-  const btnRef = useRef<HTMLButtonElement>(null)
+  const btnRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  const opts = options.map(norm)
+  const opts = options.map(norm).filter(o => o.value !== '')
   const current = opts.find(o => o.value === value)
-  const isEmpty = !current || current.value === ''
-  const shownLabel = current ? current.label : (placeholder ?? '')
+  const isEmpty = !current
+  const searchable = opts.length > 4
 
-  const toggle = () => {
-    if (open) { setOpen(false); return }
+  const filtered = (searchable && query)
+    ? opts.filter(o => o.label.toLowerCase().includes(query.toLowerCase()))
+    : opts
+
+  const openDropdown = () => {
     const r = btnRef.current?.getBoundingClientRect()
     if (!r) return
     const itemH = small ? 28 : 33
-    const estH = Math.min(opts.length * itemH + 12, 276)
+    const estH = Math.min(opts.length * itemH + 12, 232)
     const up = r.bottom + estH + 12 > window.innerHeight && r.top - estH - 12 > 0
     const menuW = Math.max(r.width, 300)
     const left = Math.min(r.left, window.innerWidth - menuW - 8)
-    setPos({
-      top: r.bottom + 5,
-      bottom: window.innerHeight - r.top + 5,
-      left, width: r.width, up,
-    })
+    setPos({ top: r.bottom + 5, bottom: window.innerHeight - r.top + 5, left, width: r.width, up })
     setOpen(true)
+    setQuery('')
+    setTimeout(() => inputRef.current?.focus(), 30)
+  }
+
+  const closeDropdown = () => { setOpen(false); setQuery('') }
+
+  const handleTriggerClick = () => {
+    if (open) { closeDropdown(); return }
+    openDropdown()
+  }
+
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onChange('')
+    closeDropdown()
   }
 
   useEffect(() => {
@@ -61,12 +77,12 @@ export default function TeacherSelect({
     const onDown = (e: MouseEvent) => {
       if (menuRef.current?.contains(e.target as Node)) return
       if (btnRef.current?.contains(e.target as Node)) return
-      setOpen(false)
+      closeDropdown()
     }
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeDropdown() }
     const onScroll = (e: Event) => {
       if (menuRef.current?.contains(e.target as Node)) return
-      setOpen(false)
+      closeDropdown()
     }
     window.addEventListener('mousedown', onDown)
     window.addEventListener('keydown', onKey)
@@ -82,22 +98,47 @@ export default function TeacherSelect({
 
   return (
     <>
-      <button
+      <div
         ref={btnRef}
-        type="button"
-        onClick={toggle}
+        onClick={handleTriggerClick}
         style={{
           ...baseTrigger,
           ...triggerStyle,
-          ...(open ? { borderColor: 'var(--color-border-strong)' } : null),
+          cursor: 'text',
+          ...(open ? { borderColor: accent, boxShadow: `0 0 0 3px ${accent}22` } : {}),
         }}
       >
-        <span style={{
-          flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-          color: isEmpty && placeholder !== undefined ? 'var(--color-text-3)' : undefined,
-        }}>
-          {shownLabel}
-        </span>
+        {open && searchable ? (
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder={current ? current.label : (placeholder ?? '')}
+            onClick={e => e.stopPropagation()}
+            style={{
+              flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
+              fontSize: small ? 11 : 13, color: 'var(--color-text)', fontFamily: 'inherit',
+              cursor: 'text',
+            }}
+          />
+        ) : (
+          <span style={{
+            flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            color: isEmpty ? 'var(--color-text-3)' : undefined,
+            fontWeight: isEmpty ? 400 : 600,
+            cursor: 'pointer',
+          }}>
+            {isEmpty ? (placeholder ?? '') : current!.label}
+          </span>
+        )}
+
+        {!isEmpty && !open && (
+          <button
+            type="button"
+            onMouseDown={handleClear}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 16, lineHeight: 1, padding: '0 2px', flexShrink: 0 }}
+          >×</button>
+        )}
         <motion.span
           animate={{ rotate: open ? 180 : 0 }}
           transition={{ duration: 0.18 }}
@@ -105,7 +146,7 @@ export default function TeacherSelect({
         >
           <ChevronDown size={small ? 11 : 13} strokeWidth={2.2} />
         </motion.span>
-      </button>
+      </div>
 
       {createPortal(
         <AnimatePresence>
@@ -128,18 +169,20 @@ export default function TeacherSelect({
                 border: '1px solid var(--color-border-glass)',
                 borderRadius: 14,
                 boxShadow: 'var(--shadow-dropdown)',
-                padding: 6, maxHeight: 276, overflowY: 'auto',
+                padding: 6,
                 display: 'flex', flexDirection: 'column', gap: 2,
+                maxHeight: 232, overflowY: 'auto',
               }}
             >
-              {opts.map(o => {
+              {filtered.length === 0 ? (
+                <div style={{ padding: '8px 11px', fontSize: 12, color: 'var(--color-text-3)' }}>Ничего не найдено</div>
+              ) : filtered.map(o => {
                 const selected = o.value === value
-                const muted = o.value === ''
                 return (
                   <button
                     key={o.value || '∅'}
                     type="button"
-                    onClick={() => { onChange(o.value); setOpen(false) }}
+                    onClick={() => { onChange(o.value); closeDropdown() }}
                     onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
                     onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                     style={{
@@ -149,7 +192,7 @@ export default function TeacherSelect({
                       fontSize: small ? 11 : 13, fontWeight: selected ? 650 : 500,
                       fontFamily: 'inherit',
                       background: selected ? accentBg : 'transparent',
-                      color: selected ? accent : muted ? 'var(--color-text-3)' : 'var(--color-text)',
+                      color: selected ? accent : 'var(--color-text)',
                       transition: 'background 0.12s',
                       flexShrink: 0,
                     }}
