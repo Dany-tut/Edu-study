@@ -4,6 +4,7 @@ import TeacherDashboardPage from './pages/teacher/TeacherDashboardPage'
 import TeacherLoginPage from './pages/teacher/TeacherLoginPage'
 import JoinPage from './pages/JoinPage'
 import StudentLoginPage from './pages/StudentLoginPage'
+import DiagnosticTestPage from './pages/DiagnosticTestPage'
 import { supabase } from './lib/supabase'
 import { getStudentSession } from './lib/studentSession'
 import type { Session } from '@supabase/supabase-js'
@@ -36,6 +37,7 @@ export default function App() {
   }, [loadStudentData])
 
   if (hash.startsWith('#/join')) return <JoinPage />
+  if (hash.startsWith('#/diagnostic')) return <DiagnosticTestPage />
 
   if (hash.startsWith('#/teacher')) {
     if (session === undefined && !import.meta.env.DEV) return null

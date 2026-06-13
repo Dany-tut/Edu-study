@@ -9,8 +9,13 @@ import {
   Image as ImageIcon, Key, ArrowLeft, Maximize2,
   ListChecks, Eye, EyeOff,
   CircleDot, Type as TypeIcon, Shuffle, ArrowUpDown, Table as TableIcon,
-  AlignLeft, Pencil,
+  AlignLeft, Pencil, ClipboardCopy, Target, ChevronDown, ChevronUp,
 } from 'lucide-react'
+import {
+  loadDiagQuestions, saveDiagQuestions,
+  type DiagQuestion, type DiagSubject,
+  DEFAULT_QUESTIONS,
+} from '../../data/diagnosticData'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { TrainerBankBrowser, TrainerBankFilterPanel, emptyTrainerFilters, type TrainerFilters } from '../../components/teacher/TrainerBank'
@@ -39,7 +44,7 @@ const ANSWER_TYPES: { type: AnswerType; label: string; hint: string; Icon: React
 ]
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Tab = 'course' | 'trainer' | 'widget'
+type Tab = 'course' | 'trainer' | 'widget' | 'testing'
 type CourseStatus = 'published' | 'draft'
 type Difficulty = 'easy' | 'medium' | 'hard'
 type WidgetType = 'quiz' | 'facts' | 'reactions' | 'pomodoro' | 'memes' | 'qod'
@@ -1579,7 +1584,7 @@ function CreatorView({
   onSaveWidget,
   onCancel,
 }: {
-  initialMode: Tab
+  initialMode: Exclude<Tab, 'testing'>
   editCourse?: Course | null
   editTrainer?: Trainer | null
   editingTask?: BankTask | null
@@ -1591,7 +1596,7 @@ function CreatorView({
   onSaveWidget: (w: Widget) => void
   onCancel: () => void
 }) {
-  const [mode, setMode] = useState<Tab>(initialMode)
+  const [mode, setMode] = useState<Exclude<Tab, 'testing'>>(initialMode)
   const addTask = useTaskBank(s => s.addTask)
   const replaceTask = useTaskBank(s => s.replaceTask)
 
@@ -2109,7 +2114,7 @@ function CreatorView({
 
         {/* Rest-state header — in scroll flow, fades out when docked */}
         <motion.div
-          style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 24px 14px' }}
+          style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
           animate={{ opacity: docked ? 0 : 1 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
@@ -2126,13 +2131,17 @@ function CreatorView({
             <ArrowLeft size={15} strokeWidth={2} /> Назад
           </motion.button>
 
-          <div style={{ flex: 1, minWidth: 0, fontSize: 18, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' }}>
+          {/* Absolutely centred — stays at true screen centre regardless of button widths */}
+          <div style={{
+            position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
+            maxWidth: '44%', pointerEvents: 'none',
+            fontSize: 18, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center',
+          }}>
             {createLabel}
             {mode !== 'trainer' && currentName && <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}> — {currentName}</span>}
           </div>
 
-          {/* Width mirrors GlassCard (248px); header paddingRight:24 mirrors right column paddingRight:24 */}
-          <div style={{ flexShrink: 0, width: 248, display: 'flex', justifyContent: 'center' }}>
+          <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'flex-end' }}>
             <motion.button
               whileHover={{ scale: canSave ? 1.03 : 1 }} whileTap={{ scale: canSave ? 0.97 : 1 }}
               onClick={handleSave}
@@ -2271,7 +2280,7 @@ function CreatorView({
             boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
             border: '1px solid var(--color-border-glass)',
           }}>
-            {(['course', 'trainer', 'widget'] as Tab[]).map(t => {
+            {(['course', 'trainer', 'widget'] as const).map(t => {
               const c = CREATOR_CFG[t]
               const isActive = mode === t
               return (
@@ -2910,8 +2919,8 @@ function CreatorView({
                         if (type === 'single' && tkCorrect.length > 1) setTkCorrect([tkCorrect[0]])
                       }} style={{
                         display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11,
-                        border: active ? `1.5px solid ${cfg.color}` : '1.5px solid transparent',
-                        background: active ? cfg.bg : 'var(--color-bg)', cursor: 'pointer', textAlign: 'left', width: '100%',
+                        border: active ? `1.5px solid ${cfg.color}` : '1.5px solid var(--color-border)',
+                        background: active ? cfg.bg : 'var(--color-bg-2)', cursor: 'pointer', textAlign: 'left', width: '100%',
                       }}>
                         <Icon size={15} strokeWidth={2} style={{ color: active ? cfg.color : 'var(--color-text-3)', flexShrink: 0 }} />
                         <div style={{ minWidth: 0 }}>
@@ -2933,7 +2942,7 @@ function CreatorView({
                         setCondImgPickerOpen(v => !v)
                         setTimeout(() => condImgPasteZoneRef.current?.focus(), 50)
                       }}
-                      style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11, background: 'var(--color-bg)', cursor: 'pointer', border: 'none', width: '100%', textAlign: 'left' }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11, background: 'var(--color-bg-2)', cursor: 'pointer', border: '1.5px solid var(--color-border)', width: '100%', textAlign: 'left' }}
                     >
                       <ImageIcon size={15} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
                       <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text)' }}>{tkImage ? 'Заменить фото' : 'Добавить фото'}</div>
@@ -2958,7 +2967,7 @@ function CreatorView({
                         >
                           Нажмите <kbd style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border-medium)', borderRadius: 4, padding: '1px 5px', fontFamily: 'inherit', fontSize: 11 }}>Ctrl+V</kbd> чтобы вставить фото
                         </div>
-                        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 10px', borderTop: '1px solid var(--color-border-soft)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', background: 'var(--color-bg)' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 10px', borderTop: '1px solid var(--color-border-soft)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', background: 'var(--color-bg-2)' }}>
                           <ImageIcon size={13} />
                           Выбрать файл
                           <input ref={condImgFileRef} type="file" accept="image/*" onChange={e => { onPickImage(e); setCondImgPickerOpen(false) }} style={{ display: 'none' }} />
@@ -2968,8 +2977,8 @@ function CreatorView({
                   </div>
                   <button onClick={() => setTkHasTable(v => !v)} style={{
                     display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11,
-                    border: tkHasTable ? `1.5px solid ${cfg.color}` : '1.5px solid transparent',
-                    background: tkHasTable ? cfg.bg : 'var(--color-bg)', cursor: 'pointer', textAlign: 'left', width: '100%',
+                    border: tkHasTable ? `1.5px solid ${cfg.color}` : '1.5px solid var(--color-border)',
+                    background: tkHasTable ? cfg.bg : 'var(--color-bg-2)', cursor: 'pointer', textAlign: 'left', width: '100%',
                   }}>
                     <TableIcon size={15} strokeWidth={2} style={{ color: tkHasTable ? cfg.color : 'var(--color-text-3)', flexShrink: 0 }} />
                     <div style={{ fontSize: 12.5, fontWeight: 700, color: tkHasTable ? cfg.color : 'var(--color-text)' }}>{tkHasTable ? 'Таблица добавлена' : 'Добавить таблицу'}</div>
@@ -2985,11 +2994,241 @@ function CreatorView({
   )
 }
 
+// ─── Diagnostic management ─────────────────────────────────────────────────────
+const BASE_URL = window.location.origin + window.location.pathname
+
+function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
+  const label = subject === 'biology' ? 'Биология' : 'Химия'
+  const accent = subject === 'biology' ? '#22c55e' : '#7c3aed'
+  const soft = subject === 'biology' ? 'var(--color-green-soft)' : 'var(--color-purple-soft)'
+
+  const [questions, setQuestions] = useState<DiagQuestion[]>(() => loadDiagQuestions(subject))
+  const [expanded, setExpanded] = useState(false)
+  const [editIdx, setEditIdx] = useState<number | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [editText, setEditText] = useState('')
+  const [editOpts, setEditOpts] = useState<string[]>([])
+  const [editCorrect, setEditCorrect] = useState(0)
+
+  function save(qs: DiagQuestion[]) {
+    setQuestions(qs)
+    saveDiagQuestions(subject, qs)
+  }
+
+  function startEdit(idx: number) {
+    const q = questions[idx]
+    setEditIdx(idx)
+    setEditText(q.text)
+    setEditOpts([...q.options])
+    setEditCorrect(q.correct)
+  }
+
+  function commitEdit() {
+    if (editIdx === null) return
+    const updated = questions.map((q, i) => i === editIdx
+      ? { ...q, text: editText, options: editOpts, correct: editCorrect }
+      : q
+    )
+    save(updated)
+    setEditIdx(null)
+  }
+
+  function removeQuestion(idx: number) {
+    save(questions.filter((_, i) => i !== idx))
+    if (editIdx === idx) setEditIdx(null)
+  }
+
+  function resetToDefault() {
+    const def = DEFAULT_QUESTIONS[subject]
+    save(def)
+    setEditIdx(null)
+  }
+
+  function copyLink() {
+    const url = `${BASE_URL}#/diagnostic?subject=${subject}`
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  return (
+    <div style={{
+      background: 'rgba(var(--glass-rgb), 0.9)',
+      border: '1px solid var(--color-border-glass)',
+      borderRadius: 18, overflow: 'hidden',
+    }}>
+      {/* Header */}
+      <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+          background: `${accent}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          {subject === 'biology' ? <FlaskConical size={18} style={{ color: accent }} /> : <Atom size={18} style={{ color: accent }} />}
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{label}</div>
+          <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>{questions.length} вопросов</div>
+        </div>
+
+        {/* Copy link button */}
+        <button
+          onClick={copyLink}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 7,
+            padding: '8px 14px', borderRadius: 12, cursor: 'pointer',
+            border: `1.5px solid ${copied ? '#22c55e' : accent}`,
+            background: copied ? 'var(--color-green-soft)' : `${accent}15`,
+            color: copied ? 'var(--color-green-text)' : accent,
+            fontSize: 12, fontWeight: 700, transition: 'all 0.18s', flexShrink: 0,
+          }}
+        >
+          {copied ? <Check size={13} /> : <ClipboardCopy size={13} />}
+          {copied ? 'Скопировано!' : 'Скопировать ссылку'}
+        </button>
+
+        {/* Expand/collapse */}
+        <button
+          onClick={() => setExpanded(v => !v)}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', alignItems: 'center' }}
+        >
+          {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+        </button>
+      </div>
+
+      {/* Question list */}
+      {expanded && (
+        <div style={{ borderTop: '1px solid var(--color-border-soft)', padding: '12px 20px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {questions.map((q, idx) => (
+            <div key={q.id} style={{
+              borderRadius: 12, border: `1px solid ${editIdx === idx ? accent : 'var(--color-border)'}`,
+              background: editIdx === idx ? `${accent}08` : 'var(--color-bg-2)',
+              overflow: 'hidden',
+            }}>
+              {editIdx === idx ? (
+                <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <textarea
+                    value={editText}
+                    onChange={e => setEditText(e.target.value)}
+                    rows={2}
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', resize: 'vertical', outline: 'none' }}
+                  />
+                  {editOpts.map((opt, oi) => (
+                    <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <button
+                        onClick={() => setEditCorrect(oi)}
+                        style={{
+                          width: 20, height: 20, borderRadius: '50%', flexShrink: 0, cursor: 'pointer',
+                          border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`,
+                          background: editCorrect === oi ? accent : 'transparent',
+                        }}
+                      />
+                      <input
+                        value={opt}
+                        onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o) }}
+                        style={{ flex: 1, padding: '6px 10px', borderRadius: 8, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', outline: 'none' }}
+                      />
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+                    <button onClick={() => setEditIdx(null)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Отмена</button>
+                    <button onClick={commitEdit} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: accent, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}><Check size={12} />Сохранить</button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <div style={{
+                    width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                    background: soft, color: accent,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, marginTop: 1,
+                  }}>{idx + 1}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', marginBottom: 3 }}>{q.text}</div>
+                    <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>
+                      ✓ {q.options[q.correct]}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                    <button onClick={() => startEdit(idx)} style={{ padding: '4px 8px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>Ред.</button>
+                    <button onClick={() => removeQuestion(idx)} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={11} /></button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* Footer actions */}
+          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+            <button
+              onClick={resetToDefault}
+              style={{ flex: 1, padding: '8px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+            >
+              Сбросить к стандарту
+            </button>
+            <div style={{ fontSize: 11, color: 'var(--color-muted)', display: 'flex', alignItems: 'center', paddingLeft: 4 }}>
+              Ссылка диагностики:<br /><code style={{ fontSize: 10 }}>/#/diagnostic?subject={subject}</code>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function DiagnosticManagement() {
+  return (
+    <motion.div
+      key="testing"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      style={{ flex: 1, display: 'flex', minWidth: 0, overflow: 'hidden', position: 'relative' }}
+    >
+      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', padding: '100px 32px 48px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Target size={20} style={{ color: 'var(--color-accent)' }} />
+          </div>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>Диагностическое тестирование</div>
+            <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>Скопируй ссылку и отправь ученику — результаты появятся в его тренажёре</div>
+          </div>
+        </div>
+
+        {/* How it works */}
+        <div style={{
+          padding: '14px 18px', borderRadius: 14,
+          background: 'var(--color-purple-soft)',
+          border: '1px solid rgba(123,63,204,0.2)',
+          display: 'flex', gap: 14, alignItems: 'flex-start',
+        }}>
+          <ClipboardCopy size={18} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: 2 }} />
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>Как это работает</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-2)', lineHeight: 1.6 }}>
+              1. Скопируй ссылку нужного предмета<br />
+              2. Отправь ученику в мессенджере или через ДЗ<br />
+              3. Ученик проходит тест — результаты автоматически появляются в блоке «Умное обучение» в тренажёре<br />
+              4. Вопросы можно редактировать — изменения применятся для следующих прохождений
+            </div>
+          </div>
+        </div>
+
+        {/* Biology panel */}
+        <DiagnosticSubjectPanel subject="biology" />
+
+        {/* Chemistry panel */}
+        <DiagnosticSubjectPanel subject="chemistry" />
+      </div>
+    </motion.div>
+  )
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function TeacherConstructorPage() {
   const [activeTab, setActiveTab] = useState<Tab>('course')
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [creatorMode, setCreatorMode] = useState<Tab | null>(null)
+  const [creatorMode, setCreatorMode] = useState<Exclude<Tab, 'testing'> | null>(null)
   const [editCourse, setEditCourse] = useState<Course | null>(null)
   const [editTrainer, setEditTrainer] = useState<Trainer | null>(null)
   const [editWidget, setEditWidget] = useState<Widget | null>(null)
@@ -3062,6 +3301,7 @@ export default function TeacherConstructorPage() {
   }
 
   function handlePlus() {
+    if (activeTab === 'testing') return
     setEditCourse(null); setEditTrainer(null); setEditWidget(null)
     setCreatorMode(activeTab)
     setSelectedId(null)
@@ -3141,6 +3381,7 @@ export default function TeacherConstructorPage() {
     trainer: { label: 'Тренажёр', Icon: Zap,      color: 'var(--color-accent)', bg: 'var(--color-purple-soft)' },
     widget:  { label: 'Виджет',   Icon: Layers,   color: 'var(--color-accent)', bg: 'var(--color-purple-soft)' },
   }
+  const isTestingActive = activeTab === 'testing'
 
   return (
     // overflow:visible + marginTop:-100 so both sub-views can lift content under the topbar blur.
@@ -3161,6 +3402,8 @@ export default function TeacherConstructorPage() {
             onSaveWidget={handleSaveWidget}
             onCancel={() => { setCreatorMode(null); setEditCourse(null); setEditTrainer(null); setEditingTask(null); setEditWidget(null) }}
           />
+        ) : activeTab === 'testing' ? (
+          <DiagnosticManagement key="testing" />
         ) : (
           <motion.div
             key="list"
@@ -3186,11 +3429,27 @@ export default function TeacherConstructorPage() {
                   {editMode ? <X size={17} strokeWidth={2.4} /> : <Pencil size={16} strokeWidth={2} />}
                 </motion.button>
 
-                {(['course', 'trainer', 'widget'] as Tab[]).map(t => {
+                {(['course', 'trainer', 'widget'] as const).map(t => {
                   const cfg = tabCfg[t]
                   return <TabBtn key={t} tab={t} activeTab={activeTab} label={cfg.label} icon={cfg.Icon} color={cfg.color} bg={cfg.bg}
                     onClick={() => t === activeTab ? handlePlus() : handleTabChange(t)} onPlus={handlePlus} />
                 })}
+
+                {/* Тестирование tab — separate from the + tabs */}
+                <button
+                  onClick={() => handleTabChange('testing')}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '10px 16px', borderRadius: 14, border: 'none', cursor: 'pointer',
+                    background: isTestingActive ? 'var(--color-purple-soft)' : 'rgba(var(--glass-rgb), 0.88)',
+                    color: isTestingActive ? 'var(--color-accent)' : 'var(--color-muted)',
+                    fontSize: 13, fontWeight: isTestingActive ? 700 : 500,
+                    boxShadow: isTestingActive ? '0 0 0 1.5px rgba(123,63,204,0.35), 0 4px 14px rgba(0,0,0,0.06)' : '0 2px 8px rgba(0,0,0,0.07)',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <Target size={14} strokeWidth={2} /> Тестирование
+                </button>
 
                 {/* Delete bar — shown when items are checked */}
                 <AnimatePresence>

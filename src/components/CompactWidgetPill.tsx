@@ -1,6 +1,6 @@
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
-import { Play, Pause, ChevronLeft, ChevronRight, RotateCcw, Timer, Watch } from 'lucide-react'
+import { Play, Pause, ChevronLeft, ChevronRight, RotateCcw, Timer, Watch, TrendingUp } from 'lucide-react'
 import {
   scienceFactInterval,
   scienceMemeInterval,
@@ -8,6 +8,7 @@ import {
 } from '../data/mockData'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
+import { useTrainerProgress } from '../store/trainerProgressStore'
 import { tactile } from '../lib/feedback'
 
 /**
@@ -604,6 +605,52 @@ function QuestionOfDayPreview({ expanded }: { expanded: boolean }) {
   )
 }
 
+function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
+  const { doneCount, wrongCount, totalCount, favCount, todayCorrect, todayWrong, setOpenModal } = useTrainerProgress()
+  const pct = totalCount ? Math.round((doneCount / totalCount) * 100) : 0
+
+  return (
+    <PillContent
+      avatar={
+        <div style={{
+          width: '100%', height: '100%',
+          background: 'linear-gradient(135deg, #5FD68A, #27A85A)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: '#fff', fontSize: 20,
+        }}>
+          <TrendingUp size={20} />
+        </div>
+      }
+      kicker="Тренажёр · прогресс"
+      title={totalCount ? `${doneCount} из ${totalCount} · ${pct}% верно` : 'Начни решать задания'}
+      expanded={expanded}
+      detail={
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ height: 4, borderRadius: 999, background: 'rgba(0,0,0,0.08)', overflow: 'hidden', display: 'flex' }}>
+            <div style={{ height: '100%', width: `${pct}%`, background: '#34C877', borderRadius: 999, flexShrink: 0 }} />
+            <div style={{ height: '100%', width: `${totalCount ? Math.round((wrongCount / totalCount) * 100) : 0}%`, background: '#F48B91', flexShrink: 0 }} />
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            {wrongCount > 0 && <span style={{ fontSize: 11, color: 'var(--color-red-text)', fontWeight: 600 }}>{wrongCount} ошибок</span>}
+            {favCount > 0 && <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>★ {favCount} избр.</span>}
+            {(todayCorrect > 0 || todayWrong > 0) && (
+              <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>
+                сегодня: {todayCorrect > 0 ? `✓${todayCorrect}` : ''}{todayWrong > 0 ? ` ✗${todayWrong}` : ''}
+              </span>
+            )}
+          </div>
+          {totalCount > 0 && (
+            <button onClick={e => { e.stopPropagation(); setOpenModal(true) }}
+              style={{ alignSelf: 'flex-start', padding: '4px 10px', borderRadius: 8, border: 'none', background: 'rgba(52,200,119,0.15)', color: '#27A85A', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+              Подробнее
+            </button>
+          )}
+        </div>
+      }
+    />
+  )
+}
+
 // Single shared spring so the avatar, padding, height, width, and text
 // gap all glide to the new size in lockstep instead of each running its own
 // timing curve (which was the source of the visible "jitter" on collapse).
@@ -739,6 +786,7 @@ function PreviewById({ widgetId, expanded }: { widgetId: number; expanded: boole
     case 3: return <PomoPreview expanded={expanded} />
     case 4: return <MemePreview expanded={expanded} paused={paused} />
     case 5: return <QuestionOfDayPreview expanded={expanded} />
+    case 7: return <TrainerProgressPreview expanded={expanded} />
     case 6: return (
       <PillContent
         avatar={
@@ -796,6 +844,16 @@ export default function CompactWidgetPill() {
     }
     prevAnsweredRef.current = homeworkAnswered
   }, [homeworkAnswered, activePage, widgetOrder, idx])
+
+  // When entering the trainer page, snap to the progress widget (id 7).
+  const prevPageRef = useRef(activePage)
+  useEffect(() => {
+    if (activePage === 'trainer' && prevPageRef.current !== 'trainer') {
+      const pos = widgetOrder.indexOf(7)
+      if (pos >= 0 && pos !== idx) setIdx([pos, pos > idx ? 1 : -1])
+    }
+    prevPageRef.current = activePage
+  }, [activePage, widgetOrder, idx])
 
   useEffect(() => {
     if (!expanded) return

@@ -11,6 +11,7 @@ import TeacherHomeworkReviewPage from './TeacherHomeworkReviewPage'
 import TeacherLessonEditorPage from './TeacherLessonEditorPage'
 import TeacherCompactPill from '../../components/teacher/TeacherCompactPill'
 import ReviewNavPill from '../../components/teacher/ReviewNavPill'
+import TeacherStudentDashboardPage from './TeacherStudentDashboardPage'
 import { useTeacher } from '../../store/teacherStore'
 
 const TEACHER_HASH_TO_PAGE: Record<string, 'home' | 'groups' | 'homework' | 'gradebook' | 'constructor'> = {
@@ -94,7 +95,7 @@ export default function TeacherDashboardPage() {
           // Pages whose scroll pane lifts up under the topbar (marginTop:-100 +
           // paddingTop:100 — the progressive-blur recipe) must not be clipped
           // by this wrapper, so their overflow stays visible.
-          style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['lesson-editor', 'constructor', 'gradebook', 'homework', 'homework-create', 'homework-review'].includes(activePage) ? 'visible' : 'hidden' }}
+          style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['lesson-editor', 'constructor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'student', 'groups'].includes(activePage) ? 'visible' : 'hidden' }}
         >
           {activePage === 'home'            && <TeacherHome />}
           {activePage === 'groups'          && <TeacherGroupsPage />}
@@ -104,6 +105,7 @@ export default function TeacherDashboardPage() {
           {activePage === 'lesson-editor'   && <TeacherLessonEditorPage />}
           {activePage === 'gradebook'       && <TeacherGradebookPage />}
           {activePage === 'constructor'     && <TeacherConstructorPage />}
+          {activePage === 'student'         && <TeacherStudentDashboardPage />}
         </motion.div>
       </AnimatePresence>
 

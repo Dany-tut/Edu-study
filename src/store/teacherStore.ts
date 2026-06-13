@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type TeacherPage = 'home' | 'groups' | 'homework' | 'homework-create' | 'homework-review' | 'lesson-editor' | 'gradebook' | 'constructor'
+export type TeacherPage = 'home' | 'groups' | 'homework' | 'homework-create' | 'homework-review' | 'lesson-editor' | 'gradebook' | 'constructor' | 'student'
 
 export type HwReview = {
   verdict: 'accepted' | 'returned'
@@ -50,6 +50,7 @@ type TeacherStore = {
   setSelectedGroupId: (id: string | null) => void
   selectedStudentId: string | null
   setSelectedStudentId: (id: string | null) => void
+  openStudentDashboard: (studentId: string, groupId: string) => void
   tasks: TeacherTask[]
   addTask: (task: Omit<TeacherTask, 'id' | 'done'>) => void
   updateTask: (id: string, task: Omit<TeacherTask, 'id' | 'done'>) => void
@@ -82,6 +83,7 @@ export const useTeacher = create<TeacherStore>(set => ({
   setSelectedGroupId: id => set({ selectedGroupId: id }),
   selectedStudentId: null,
   setSelectedStudentId: id => set({ selectedStudentId: id }),
+  openStudentDashboard: (studentId, groupId) => set({ activePage: 'student', selectedStudentId: studentId, selectedGroupId: groupId, headerDocked: false }),
   tasks: [],
   addTask: task => set(s => ({
     tasks: [...s.tasks, { ...task, id: Math.random().toString(36).slice(2), done: false }],

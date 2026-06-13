@@ -872,17 +872,12 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
 }
 
 function StudentPanel({
-  student, group, onClose, onDelete,
-}: { student: Student; group: Group; onClose: () => void; onDelete: () => void }) {
+  student, group, onClose, onDelete, onOpenFullCard,
+}: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void }) {
   const [comment, setComment] = useState(student.comment ?? '')
   const [deleting, setDeleting] = useState(false)
-  const [showFullCard, setShowFullCard] = useState(false)
   return (
-    <motion.div
-      initial={{ x: 360, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: 360, opacity: 0 }}
-      transition={{ type: 'spring', stiffness: 380, damping: 34, mass: 0.8 }}
+    <div
       style={{
         width: 320, flexShrink: 0, flex: 1, minHeight: 0,
         background: 'rgba(var(--glass-rgb), 0.96)',
@@ -923,7 +918,7 @@ function StudentPanel({
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
             <button
-              onClick={() => setShowFullCard(true)}
+              onClick={onOpenFullCard}
               title="Открыть карточку ученика"
               style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0, transition: 'color 0.15s' }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text)' }}
@@ -942,13 +937,6 @@ function StudentPanel({
           </div>
         </div>
       </div>
-
-      {/* Full card overlay */}
-      <AnimatePresence>
-        {showFullCard && (
-          <StudentFullCard student={student} group={group} onClose={() => setShowFullCard(false)} />
-        )}
-      </AnimatePresence>
 
       {/* Scrollable body */}
       <div style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -1088,7 +1076,7 @@ function StudentPanel({
           {deleting ? 'Удаление...' : 'Удалить ученика'}
         </button>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
@@ -1151,6 +1139,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function TeacherGroupsPage() {
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
+  const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
   const { groups, loading: groupsLoading, addGroup, deleteGroup } = useGroups()
   const { students, addStudent, deleteStudent } = useStudents(selectedGroupId)
   const [activeStudentId, setActiveStudentId] = useState<string | null>(null)
@@ -1390,17 +1379,17 @@ export default function TeacherGroupsPage() {
         )}
       </div>
 
-      {/* Student side panel — absolute overlay */}
+      {/* Student side panel — fixed overlay so it's never clipped by overflow:hidden ancestors */}
       <AnimatePresence>
         {activeStudent && activeStudentGroup && (
           <motion.div
-            initial={{ x: 360, opacity: 0 }}
+            initial={{ x: 340, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 360, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
+            exit={{ x: 340, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 32, mass: 0.85 }}
             style={{
-              position: 'absolute', right: 0, top: 100, bottom: 0,
-              width: 344, zIndex: 10,
+              position: 'fixed', right: 0, top: 100, bottom: 0,
+              width: 344, zIndex: 200,
               display: 'flex', flexDirection: 'column',
             }}
           >
@@ -1412,6 +1401,7 @@ export default function TeacherGroupsPage() {
                 await deleteStudent(activeStudent.id)
                 setActiveStudentId(null)
               }}
+              onOpenFullCard={() => openStudentDashboard(activeStudent.id, activeStudentGroup.id)}
             />
           </motion.div>
         )}

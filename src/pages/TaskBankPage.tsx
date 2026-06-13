@@ -13,6 +13,7 @@ import {
 } from '../data/taskBankData'
 import { useTaskBank } from '../store/taskBankStore'
 import { useDashboard } from '../store/dashboardStore'
+import { useTrainerProgress } from '../store/trainerProgressStore'
 import { subjectTheme, PURPLE } from '../lib/theme'
 import { useTheme } from '../store/themeStore'
 
@@ -1200,7 +1201,19 @@ export default function TaskBankPage() {
   const [diagMode, setDiagMode] = useState<DiagMode>('idle')
   const [diagResults, setDiagResults] = useState<DiagResults>({})
   const [showRoute, setShowRoute] = useState(false)
-  const [diagOpen, setDiagOpen] = useState(false)
+
+  // Reload diagnostic results whenever the active subject changes
+  useEffect(() => {
+    try {
+      const s = localStorage.getItem(`diag-results-${subject}`)
+      const parsed = s ? JSON.parse(s) : {}
+      setDiagResults(parsed)
+      setShowRoute(Object.keys(parsed).length > 0)
+    } catch {
+      setDiagResults({})
+      setShowRoute(false)
+    }
+  }, [subject])
 
   function handleCopyId() {
     setSavedPill(true)
@@ -1272,6 +1285,17 @@ export default function TaskBankPage() {
   const today = new Date().toISOString().slice(0, 10)
   const todayCorrect = useMemo(() => [...answered.values()].filter(a => a.correct === true  && a.date === today).length, [answered, today])
   const todayWrong   = useMemo(() => [...answered.values()].filter(a => a.correct === false && a.date === today).length, [answered, today])
+
+  const updateProgress = useTrainerProgress(s => s.update)
+  const openModal = useTrainerProgress(s => s.openModal)
+  const setOpenModal = useTrainerProgress(s => s.setOpenModal)
+  useEffect(() => {
+    updateProgress({ doneCount, wrongCount, totalCount, favCount: favorites.size, todayCorrect, todayWrong, subject })
+  }, [doneCount, wrongCount, totalCount, favorites.size, todayCorrect, todayWrong, subject])
+  useEffect(() => {
+    if (openModal) { setShowProgressModal(true); setOpenModal(false) }
+  }, [openModal])
+
   const hasFilters = !!(section || topic || part || line || source)
 
   const dockGlass = {
@@ -1465,7 +1489,7 @@ export default function TaskBankPage() {
                     padding: '6px 12px', borderRadius: 999, border: '1.5px solid',
                     borderColor: subject === s ? 'var(--color-border-glass)' : 'var(--color-border-medium)',
                     background: subject === s ? 'rgba(255,255,255,0.22)' : 'transparent',
-                    color: 'white', fontSize: 12, fontWeight: subject === s ? 700 : 500, cursor: 'pointer',
+                    color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                   }}>
                   {s === 'biology' ? 'Биология' : 'Химия'}
                 </button>
@@ -1520,65 +1544,6 @@ export default function TaskBankPage() {
             )}
           </div>
 
-          {/* Progress card */}
-          <button
-            onClick={() => setShowProgressModal(true)}
-            style={{ all: 'unset', display: 'flex', flexDirection: 'column', gap: 12, padding: 16, borderRadius: 16, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', cursor: 'pointer', width: '100%', boxSizing: 'border-box', transition: 'border-color 0.15s', textAlign: 'left' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = palette.accent + '77' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border-soft)' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div className="flex items-center" style={{ gap: 7 }}>
-                <TrendingUp size={15} style={{ color: palette.text }} />
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Прогресс</span>
-              </div>
-              <span style={{ fontSize: 11, color: palette.text, fontWeight: 600, opacity: 0.7 }}>Детали →</span>
-            </div>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Решено верно</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{doneCount} / {totalCount}</span>
-              </div>
-              <div style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden', display: 'flex' }}>
-                <motion.div animate={{ width: `${totalCount ? (doneCount / totalCount) * 100 : 0}%` }} transition={{ duration: 0.4 }}
-                  style={{ height: '100%', background: 'var(--color-green-accent)', flexShrink: 0 }} />
-                <motion.div animate={{ width: `${totalCount ? (wrongCount / totalCount) * 100 : 0}%` }} transition={{ duration: 0.4 }}
-                  style={{ height: '100%', background: '#F48B91', flexShrink: 0 }} />
-              </div>
-            </div>
-            {(todayCorrect > 0 || todayWrong > 0) && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>Сегодня</span>
-                {todayCorrect > 0 && <span style={{ padding: '2px 8px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 11, fontWeight: 700 }}>✓ {todayCorrect}</span>}
-                {todayWrong   > 0 && <span style={{ padding: '2px 8px', borderRadius: 999, background: 'var(--color-red-soft)',   color: 'var(--color-red-text)',   fontSize: 11, fontWeight: 700 }}>✗ {todayWrong}</span>}
-              </div>
-            )}
-            <div style={{ display: 'flex', gap: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', flex: 1 }}>
-                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Ошибок</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: wrongCount > 0 ? 'var(--color-red-text)' : 'var(--color-text)' }}>{wrongCount}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', flex: 1 }}>
-                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Избранное</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{favorites.size}</span>
-              </div>
-            </div>
-            {showWrongOnly && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 10, background: 'var(--color-red-soft)', border: '1px solid rgba(244,139,145,0.35)' }}>
-                <XCircle size={12} style={{ color: 'var(--color-red-text)', flexShrink: 0 }} />
-                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-red-text)', flex: 1 }}>Режим ошибок</span>
-                <button onClick={e => { e.stopPropagation(); setShowWrongOnly(false) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-red-text)', fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
-              </div>
-            )}
-            {wrongSimilarLines.size > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 10, background: `${palette.accent}14`, border: `1px solid ${palette.accent}33` }}>
-                <Target size={12} style={{ color: palette.text, flexShrink: 0 }} />
-                <span style={{ fontSize: 11, fontWeight: 600, color: palette.text, flex: 1 }}>Похожие задания</span>
-                <button onClick={e => { e.stopPropagation(); setWrongSimilarLines(new Set()) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: palette.text, fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
-              </div>
-            )}
-          </button>
-
           {/* ── Smart features: Diagnostic + Route (biology only) ──────────── */}
           {subject === 'biology' && (
             <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
@@ -1601,22 +1566,16 @@ export default function TaskBankPage() {
                     <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5 }}>
                       Пройди диагностику — получишь персональный маршрут по слабым темам.
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      <button onClick={() => setDiagOpen(true)}
-                        style={{
-                          padding: '9px 14px', borderRadius: 12, border: 'none', fontSize: 12, fontWeight: 700,
-                          background: palette.accent, color: palette.onAccent, cursor: 'pointer',
-                          boxShadow: `0 6px 16px ${palette.ring}`,
-                          display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center',
-                        }}>
-                        <Target size={13} />Начать диагностику
-                      </button>
-                      {Object.keys(diagResults).length > 0 && (
-                        <button onClick={() => setShowRoute(true)}
-                          style={{ padding: '8px 14px', borderRadius: 12, border: `1px solid ${palette.accent}44`, background: `${palette.accent}12`, fontSize: 12, fontWeight: 600, color: palette.text, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
-                          <LayoutGrid size={13} />Мой маршрут
-                        </button>
-                      )}
+                    {/* No results yet — teacher sends the link */}
+                    <div style={{
+                      padding: '10px 12px', borderRadius: 12,
+                      background: `${palette.accent}10`,
+                      border: `1px dashed ${palette.accent}55`,
+                      fontSize: 12, color: palette.text, lineHeight: 1.5, fontWeight: 500,
+                      display: 'flex', alignItems: 'flex-start', gap: 8,
+                    }}>
+                      <Target size={13} style={{ flexShrink: 0, marginTop: 1 }} />
+                      Учитель пришлёт тебе индивидуальную ссылку для прохождения диагностики
                     </div>
                   </motion.div>
                 )}
@@ -1682,83 +1641,6 @@ export default function TaskBankPage() {
         </main>
       </div>
 
-      {/* Fullscreen diagnostic modal */}
-      <AnimatePresence>
-        {diagOpen && (
-          <motion.div
-            key="diag-modal"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            style={{
-              position: 'fixed', inset: 0, zIndex: 9999,
-              background: 'rgba(0,0,0,0.72)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: 20,
-            }}
-            onClick={() => setDiagOpen(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.96, opacity: 0, y: 16 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.96, opacity: 0, y: 16 }}
-              transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-              onClick={e => e.stopPropagation()}
-              style={{
-                width: '100%', maxWidth: 560,
-                background: 'var(--color-bg)',
-                borderRadius: 24,
-                boxShadow: '0 32px 80px rgba(0,0,0,0.45)',
-                overflow: 'hidden',
-              }}
-            >
-              {/* Modal header */}
-              <div style={{
-                padding: '20px 24px 0',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{
-                    width: 36, height: 36, borderRadius: 10,
-                    background: `${palette.accent}22`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <Target size={18} style={{ color: palette.accent }} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>Умное обучение</div>
-                    <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>Диагностика слабых тем</div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setDiagOpen(false)}
-                  style={{
-                    background: 'rgba(var(--glass-rgb),0.8)', border: '1px solid var(--color-border-soft)',
-                    borderRadius: 10, width: 32, height: 32, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 18, color: 'var(--color-text-3)', lineHeight: 1,
-                  }}
-                >×</button>
-              </div>
-              <div style={{ padding: '16px 24px 24px' }}>
-                <DiagnosticPanel
-                  tasks={subjectTasks}
-                  lineNames={lineNames}
-                  palette={palette}
-                  onDone={results => {
-                    setDiagResults(results)
-                    setDiagMode('done')
-                    setShowRoute(true)
-                    setDiagOpen(false)
-                  }}
-                  onClose={() => setDiagOpen(false)}
-                />
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   )
 }

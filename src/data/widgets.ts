@@ -1,4 +1,4 @@
-import { BarChart3, FlaskConical, Atom, Timer, Laugh, Sparkles, CircleHelp, type LucideIcon } from 'lucide-react'
+import { BarChart3, FlaskConical, Atom, Timer, Laugh, Sparkles, CircleHelp, TrendingUp, type LucideIcon } from 'lucide-react'
 
 // Single source of truth for the carousel widgets. The numeric `id` is the
 // widget's stable identity used by the carousel (renderWidget) and by the
@@ -16,6 +16,7 @@ export type WidgetMeta = {
 export const WIDGET_META: WidgetMeta[] = [
   { id: 6, label: 'Викторина',     Icon: CircleHelp,   color: 'var(--color-purple-text)', soft: 'var(--color-purple-soft)' },
   { id: 0, label: 'Статистика',    Icon: BarChart3,    color: 'var(--color-purple-text)', soft: 'var(--color-purple-soft)' },
+  { id: 7, label: 'Прогресс',      Icon: TrendingUp,   color: 'var(--color-green-text)',  soft: 'var(--color-green-soft)'  },
   { id: 1, label: 'Научные факты', Icon: FlaskConical, color: 'var(--color-green-text)',  soft: 'var(--color-green-soft)'  },
   { id: 2, label: 'Реакции',       Icon: Atom,         color: 'var(--color-blue-pill-text)', soft: 'var(--color-blue-pill-bg)' },
   { id: 3, label: 'Фокус',         Icon: Timer,        color: 'var(--color-peach-text)',  soft: 'var(--color-peach-soft)'  },
