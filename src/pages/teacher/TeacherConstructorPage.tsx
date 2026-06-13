@@ -3116,7 +3116,7 @@ export default function TeacherConstructorPage() {
     setCreatorMode(null)
     setEditCourse(null)
     setActiveTab('course')
-    setSelectedId(c.id)
+    setSelectedId(null)
   }
 
   function handleOpenWidget(w: Widget) {
@@ -3238,8 +3238,8 @@ export default function TeacherConstructorPage() {
                 style={{ display: activeTab === 'trainer' ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
                 {activeTab === 'course' && courses.map(c => (
                   <div key={c.id} style={{ position: 'relative' }}>
-                    <CourseCard course={c} isSelected={!editMode && selectedId === c.id}
-                      onClick={() => editMode ? toggleCheck(c.id) : openItem(c.id)} />
+                    <CourseCard course={c} isSelected={false}
+                      onClick={() => editMode ? toggleCheck(c.id) : handleExpandCourse(c)} />
                     {editMode && (
                       <div onClick={() => toggleCheck(c.id)} style={{
                         position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
