@@ -716,9 +716,9 @@ function SuggestBox({ section, lineNames, onPickLine, accent }: {
     >
       <div style={{
         marginTop: 2, padding: '10px 12px', borderRadius: 12,
-        background: `${accent}12`, border: `1px solid ${accent}33`,
+        background: `${accent}22`, border: `1px solid ${accent}44`,
       }}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: accent, marginBottom: 7, display: 'flex', alignItems: 'center', gap: 5 }}>
+        <div style={{ fontSize: 11, fontWeight: 600, color: accent, marginBottom: 7, display: 'flex', alignItems: 'center', gap: 5, lineHeight: 1.2 }}>
           <Target size={11} />
           Рекомендуемые линии для «{section}»
         </div>
@@ -741,11 +741,11 @@ function SuggestBox({ section, lineNames, onPickLine, accent }: {
             <button key={n} onClick={() => onPickLine(`${n} · ${lineNames[n] ?? `Линия ${n}`}`)}
               style={{
                 padding: '4px 9px', borderRadius: 20, fontSize: 11, fontWeight: 500, cursor: 'pointer',
-                background: `${accent}20`, border: `1px solid ${accent}55`, color: accent,
+                background: `${accent}33`, border: `1px solid ${accent}66`, color: accent,
                 transition: 'background 0.15s',
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `${accent}35` }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = `${accent}20` }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `${accent}48` }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = `${accent}33` }}
             >
               №{n} · Ч2
             </button>
