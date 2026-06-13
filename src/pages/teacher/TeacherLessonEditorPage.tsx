@@ -377,12 +377,17 @@ function HwPicker({
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Поиск шаблона..."
                 style={{
-                  width: '100%', boxSizing: 'border-box', padding: '8px 10px 8px 32px',
+                  width: '100%', boxSizing: 'border-box', padding: `8px ${query ? 30 : 10}px 8px 32px`,
                   borderRadius: 10, border: '1.5px solid rgba(0,0,0,0.08)',
                   fontSize: 12.5, color: 'var(--color-text)', background: 'rgba(var(--glass-rgb), 0.7)',
                   outline: 'none', fontFamily: 'inherit',
                 }}
               />
+              {query && (
+                <button onClick={() => setQuery('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center' }}>
+                  <X size={13} />
+                </button>
+              )}
             </div>
 
             {/* Scroll area + edge fades. Fades grow with scroll position; both
@@ -854,8 +859,13 @@ function AudiencePicker({
                     value={query}
                     onChange={e => setQuery(e.target.value)}
                     placeholder="Поиск группы или ученика…"
-                    style={{ ...inputStyle, paddingLeft: 30 }}
+                    style={{ ...inputStyle, paddingLeft: 30, paddingRight: query ? 30 : undefined }}
                   />
+                  {query && (
+                    <button onClick={() => setQuery('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center' }}>
+                      <X size={13} />
+                    </button>
+                  )}
                 </div>
               </div>
 

@@ -390,11 +390,11 @@ function iconBtn(bg: string, color: string): React.CSSProperties {
 
 // ─── Compact grid tile (4 per row) ──────────────────────────────────────────────
 function BankGridCard({
-  task, selected, onToggleSelected, onForkSelected, onDelete, showSelect, accent, accentBg, isNew,
+  task, selected, onToggleSelected, onForkSelected, onDelete, showSelect, accent, accentBg, isNew, editMode,
 }: {
   task: Task; selected: boolean; isNew?: boolean
   onToggleSelected: () => void; onForkSelected: (newId: number) => void
-  onDelete?: () => void; showSelect: boolean; accent: string; accentBg: string
+  onDelete?: () => void; showSelect: boolean; accent: string; accentBg: string; editMode?: boolean
 }) {
   const openEdit = useTeacher(s => s.openConstructorEditTask)
   const subjectLabel = task.subject === 'biology' ? 'Биол.' : 'Хим.'
@@ -404,6 +404,7 @@ function BankGridCard({
   return (
     <motion.div
       whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}
+      onClick={() => editMode ? onToggleSelected() : openEdit(task.id)}
       animate={isNew ? {
         boxShadow: ['0 0 0 0px rgba(123,63,204,0)', '0 0 0 3px rgba(123,63,204,0.35)', '0 0 0 0px rgba(123,63,204,0)'],
         borderColor: [undefined, '#9B6DFF', undefined],
@@ -415,9 +416,21 @@ function BankGridCard({
         background: isNew ? 'rgba(238,219,255,0.18)' : 'rgba(var(--glass-rgb), 0.97)',
         border: selected ? `1.5px solid ${accent}` : '1px solid var(--color-border-glass)',
         boxShadow: selected ? `0 0 0 3px ${accent}22, 0 6px 24px rgba(0,0,0,0.08)` : '0 3px 16px rgba(0,0,0,0.06)', height: '100%', boxSizing: 'border-box',
-        transition: 'background 0.4s ease',
+        transition: 'background 0.4s ease', cursor: 'pointer',
       }}
     >
+      {editMode && (
+        <div onClick={e => { e.stopPropagation(); onToggleSelected() }} style={{
+          position: 'absolute', top: 10, left: 10, width: 22, height: 22, borderRadius: 7, zIndex: 5,
+          border: selected ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
+          background: selected ? '#c0303a' : 'var(--color-bg-5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.14s',
+          boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+        }}>
+          {selected && <Check size={13} strokeWidth={3} style={{ color: '#fff' }} />}
+        </div>
+      )}
       {/* Head: icon box + line badge */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
         <div style={{ width: 36, height: 36, borderRadius: 12, background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -512,7 +525,7 @@ function BankSortDropdown({ value, onChange }: { value: SortMode; onChange: (v: 
 
 // ─── Browser (filtered list of cards) ───────────────────────────────────────────
 export function TrainerBankBrowser({
-  filters, selectedIds, onToggleSelected, onForkSelected, onDeleteTask, showSelect = true, compact = false, accent = 'var(--color-peach-text)', accentBg = 'var(--color-peach-soft)',
+  filters, selectedIds, onToggleSelected, onForkSelected, onDeleteTask, showSelect = true, compact = false, accent = 'var(--color-peach-text)', accentBg = 'var(--color-peach-soft)', editMode = false,
 }: {
   filters: TrainerFilters
   selectedIds: Set<number>
@@ -523,6 +536,7 @@ export function TrainerBankBrowser({
   compact?: boolean
   accent?: string
   accentBg?: string
+  editMode?: boolean
 }) {
   const tasks = useTaskBank(s => s.tasks)
   const [sortMode, setSortMode] = useState<SortMode>('newest')
@@ -589,7 +603,7 @@ export function TrainerBankBrowser({
       )}
 
       {viewMode === 'grid' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
           {filtered.map(t => (
             <BankGridCard key={t.id} task={t}
               selected={selectedIds.has(t.id)}
@@ -597,7 +611,7 @@ export function TrainerBankBrowser({
               onForkSelected={newId => onForkSelected(t.id, newId)}
               onDelete={onDeleteTask ? () => onDeleteTask(t.id) : undefined}
               showSelect={showSelect} accent={accent} accentBg={accentBg}
-              isNew={t.id === newlyAddedId} />
+              isNew={t.id === newlyAddedId} editMode={editMode} />
           ))}
         </div>
       ) : (
@@ -649,7 +663,12 @@ export function TrainerBankFilterPanel({
       <div style={{ position: 'relative' }}>
         <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)' }} />
         <input value={filters.search} onChange={e => onChange({ search: e.target.value })} placeholder="Поиск по тексту или №…"
-          style={{ ...inputStyle, paddingLeft: 30 }} />
+          style={{ ...inputStyle, paddingLeft: 30, paddingRight: filters.search ? 30 : undefined }} />
+        {filters.search && (
+          <button onClick={() => onChange({ search: '' })} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center' }}>
+            <X size={14} />
+          </button>
+        )}
       </div>
 
       {/* Subject pills */}

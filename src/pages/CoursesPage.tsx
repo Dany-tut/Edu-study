@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Search } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { type Lesson, type LessonStatus } from '../data/mockData'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
 import { playTransitionDrop } from '../lib/sound'
@@ -118,6 +118,11 @@ export default function CoursesPage() {
               fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
             }}
           />
+          {search && (
+            <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              <X size={14} />
+            </button>
+          )}
         </div>
 
         {/* Subject pills */}

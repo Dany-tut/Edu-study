@@ -3084,7 +3084,7 @@ export default function TeacherConstructorPage() {
 
   function deleteChecked() {
     if (activeTab === 'course') setCourses(prev => prev.filter(c => !checkedIds.has(c.id)))
-    else if (activeTab === 'trainer') setTrainers(prev => prev.filter(t => !checkedIds.has(t.id)))
+    else if (activeTab === 'trainer') checkedIds.forEach(id => removeTask(Number(id)))
     else setWidgets(prev => prev.filter(w => !checkedIds.has(w.id)))
     setCheckedIds(new Set())
     setEditMode(false)
@@ -3219,12 +3219,13 @@ export default function TeacherConstructorPage() {
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <TrainerBankBrowser
                       filters={bankFilters}
-                      selectedIds={new Set()}
-                      onToggleSelected={() => {}}
+                      selectedIds={new Set([...checkedIds].map(Number).filter(n => !isNaN(n)))}
+                      onToggleSelected={id => toggleCheck(String(id))}
                       onForkSelected={() => {}}
                       onDeleteTask={id => removeTask(id)}
                       showSelect={false}
                       compact={true}
+                      editMode={editMode}
                       accent="var(--color-purple-text)"
                       accentBg="var(--color-purple-soft)"
                     />

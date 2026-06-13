@@ -1652,12 +1652,17 @@ function LessonPicker({
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Поиск урока..."
                 style={{
-                  width: '100%', boxSizing: 'border-box', padding: '7px 10px 7px 30px',
+                  width: '100%', boxSizing: 'border-box', padding: `7px ${query ? 30 : 10}px 7px 30px`,
                   borderRadius: 9, border: '1.5px solid var(--color-border-medium)',
                   fontSize: 12, color: 'var(--color-text)', background: 'rgba(var(--glass-rgb), 0.8)',
                   outline: 'none', fontFamily: 'inherit',
                 }}
               />
+              {query && (
+                <button onClick={() => setQuery('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center' }}>
+                  <X size={13} />
+                </button>
+              )}
             </div>
 
             <div style={{ position: 'relative' }}>

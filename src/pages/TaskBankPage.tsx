@@ -984,6 +984,7 @@ export default function TaskBankPage() {
   const [line, setLine]         = useState('')
   const [source, setSource]     = useState('')
   const [search, setSearch]     = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [sortMode, setSortMode]         = useState<SortMode>('newest')
   const viewMode: ViewMode = 'list'
@@ -1342,11 +1343,19 @@ export default function TaskBankPage() {
 
           {/* Controls row */}
           <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-medium)', borderRadius: 999, flex: '1 1 180px', maxWidth: 320, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-              <Search size={14} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по тексту или №..."
-                style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, background: 'transparent', color: 'var(--color-text)' }} />
-              {search && <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1 }}>×</button>}
+            <div
+              onClick={() => { if (!searchOpen) setSearchOpen(true); }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', background: 'rgba(var(--glass-rgb), 0.96)', border: `1px solid ${searchOpen || search ? 'var(--color-accent, #7c3aed)' : 'var(--color-border-medium)'}`, borderRadius: 999, width: searchOpen || search ? 260 : 112, transition: 'width 0.22s cubic-bezier(.4,0,.2,1), border-color 0.15s', overflow: 'hidden', cursor: searchOpen || search ? 'text' : 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', flexShrink: 0 }}>
+              <Search size={14} style={{ color: searchOpen || search ? 'var(--color-text)' : 'var(--color-text-3)', flexShrink: 0 }} />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                onFocus={() => setSearchOpen(true)}
+                onBlur={() => { if (!search) setSearchOpen(false); }}
+                placeholder={searchOpen || search ? 'Поиск по тексту или №...' : 'Поиск'}
+                style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, background: 'transparent', color: 'var(--color-text)', minWidth: 0, width: searchOpen || search ? 'auto' : 0, pointerEvents: searchOpen || search ? 'auto' : 'none' }}
+              />
+              {search && <button onClick={e => { e.stopPropagation(); setSearch(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1, flexShrink: 0 }}>×</button>}
             </div>
             <StatusTabs value={statusFilter} onChange={setStatusFilter} />
 
