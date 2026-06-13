@@ -53,7 +53,7 @@ export default function TeacherSelect({
     const up = r.bottom + estH + 12 > window.innerHeight && r.top - estH - 12 > 0
     const menuW = Math.max(r.width, 300)
     const left = Math.min(r.left, window.innerWidth - menuW - 8)
-    setPos({ top: r.bottom + 5, bottom: window.innerHeight - r.top + 5, left, width: r.width, up })
+    setPos({ top: r.bottom + 5, bottom: window.innerHeight - r.top + 5, left, width: menuW, up })
     setOpen(true)
     setQuery('')
     setTimeout(() => inputRef.current?.focus(), 30)
