@@ -4,8 +4,8 @@ import { useFloatingPill } from '../lib/useFloatingPill'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, Search, BookOpen, CheckCircle2, XCircle,
-  Bookmark, Share2, AlertTriangle, Eye, Target, Filter,
-  LayoutGrid, List, ArrowUpDown,
+  Bookmark, Share2, AlertTriangle, Eye, Sparkles, Target, Filter,
+  LayoutGrid, List, ArrowUpDown, ArrowUp, X, TrendingUp,
 } from 'lucide-react'
 import {
   Task, Subject, CHEMISTRY_LINES, BIOLOGY_LINES,
@@ -689,7 +689,7 @@ function SuggestBox({ section, lineNames, onPickLine, accent }: {
         background: `${accent}22`, border: `1px solid ${accent}44`,
       }}>
         <div style={{ fontSize: 11, fontWeight: 600, color: accent, marginBottom: 7, display: 'flex', alignItems: 'center', gap: 5, lineHeight: 1.2 }}>
-          <Target size={11} />
+          <Sparkles size={11} />
           Рекомендуемые линии для «{section}»
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
@@ -961,6 +961,178 @@ function RoutePanel({ diagResults, answered, lineNames, palette, onPickLine, onR
   )
 }
 
+// ── LS keys for trainer persistence ─────────────────────────────────────────
+const LS_ANSWERED  = 'trainer_answered_v1'
+const LS_FAVORITES = 'trainer_favorites_v1'
+
+// ── Progress modal ────────────────────────────────────────────────────────────
+function ProgressModal({
+  tasks, answered, favorites, palette, lineNames,
+  onClose, onRetryMistakes, onSimilarTasks,
+}: {
+  tasks: Task[]
+  answered: Map<number, { value: string; correct: boolean | null; date?: string }>
+  favorites: Set<number>
+  palette: ReturnType<typeof subjectTheme>
+  lineNames: Record<number, string>
+  onClose: () => void
+  onRetryMistakes: () => void
+  onSimilarTasks: (lines: number[]) => void
+}) {
+  const today = new Date().toISOString().slice(0, 10)
+  const totalCorrect = useMemo(() => [...answered.values()].filter(a => a.correct === true).length, [answered])
+  const totalWrong   = useMemo(() => [...answered.values()].filter(a => a.correct === false).length, [answered])
+  const todayCorrect = useMemo(() => [...answered.values()].filter(a => a.correct === true  && a.date === today).length, [answered, today])
+  const todayWrong   = useMemo(() => [...answered.values()].filter(a => a.correct === false && a.date === today).length, [answered, today])
+
+  const sectionStats = useMemo(() => {
+    const s: Record<string, { correct: number; wrong: number }> = {}
+    tasks.forEach(t => {
+      const ans = answered.get(t.id)
+      if (!ans || ans.correct === null) return
+      const sec = t.section || 'Без раздела'
+      if (!s[sec]) s[sec] = { correct: 0, wrong: 0 }
+      ans.correct ? s[sec].correct++ : s[sec].wrong++
+    })
+    return Object.entries(s).sort((a, b) => (b[1].correct + b[1].wrong) - (a[1].correct + a[1].wrong))
+  }, [tasks, answered])
+
+  const wrongTasks = useMemo(() => tasks.filter(t => answered.get(t.id)?.correct === false), [tasks, answered])
+  const wrongLines = useMemo(() => [...new Set(wrongTasks.map(t => t.line))], [wrongTasks])
+
+  return (
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, zIndex: 300,
+      background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+    }}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.94 }}
+        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: '100%', maxWidth: 520, maxHeight: '85dvh',
+          background: 'rgba(var(--glass-rgb), 0.98)',
+          backdropFilter: 'blur(28px) saturate(200%)',
+          WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+          border: '1px solid var(--color-border-glass)',
+          borderRadius: 28, boxShadow: '0 28px 70px rgba(0,0,0,0.22)',
+          display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        }}
+      >
+        {/* Header */}
+        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div style={{ fontSize: 17, fontWeight: 750, color: 'var(--color-text)' }}>Мой прогресс</div>
+            <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
+              <X size={14} />
+            </button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+            {[
+              { val: totalCorrect, label: 'Верно', bg: 'var(--color-green-soft)', border: 'rgba(110,231,160,0.3)', color: 'var(--color-green-text)' },
+              { val: totalWrong,   label: 'Ошибок', bg: 'var(--color-red-soft)',   border: 'rgba(244,139,145,0.3)', color: 'var(--color-red-text)' },
+              { val: favorites.size, label: 'Избранное', bg: `${palette.accent}18`, border: `${palette.accent}33`, color: palette.text },
+            ].map(({ val, label, bg, border, color }) => (
+              <div key={label} style={{ padding: '10px 12px', borderRadius: 14, background: bg, border: `1px solid ${border}`, textAlign: 'center' }}>
+                <div style={{ fontSize: 22, fontWeight: 750, color, lineHeight: 1 }}>{val}</div>
+                <div style={{ fontSize: 11, color, opacity: 0.75, marginTop: 3 }}>{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Body */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 0', display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          {(todayCorrect > 0 || todayWrong > 0) && (
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8 }}>Сегодня</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {todayCorrect > 0 && <span style={{ padding: '5px 12px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700 }}>✓ {todayCorrect} верно</span>}
+                {todayWrong   > 0 && <span style={{ padding: '5px 12px', borderRadius: 999, background: 'var(--color-red-soft)',   color: 'var(--color-red-text)',   fontSize: 13, fontWeight: 700 }}>✗ {todayWrong} ошибок</span>}
+              </div>
+            </div>
+          )}
+
+          {sectionStats.length > 0 && (
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10 }}>По разделам</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+                {sectionStats.map(([sec, s]) => {
+                  const total = s.correct + s.wrong
+                  const pct = total ? s.correct / total : 0
+                  return (
+                    <div key={sec}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <span style={{ fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{sec}</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, flexShrink: 0, marginLeft: 8, color: pct === 1 ? 'var(--color-green-text)' : s.wrong > 0 ? 'var(--color-red-text)' : 'var(--color-text-3)' }}>{s.correct}/{total}</span>
+                      </div>
+                      <div style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden', display: 'flex' }}>
+                        <motion.div initial={{ width: 0 }} animate={{ width: `${pct * 100}%` }} transition={{ duration: 0.5 }}
+                          style={{ height: '100%', background: 'var(--color-green-accent)', flexShrink: 0 }} />
+                        <motion.div initial={{ width: 0 }} animate={{ width: `${(s.wrong / total) * 100}%` }} transition={{ duration: 0.5 }}
+                          style={{ height: '100%', background: '#F48B91', flexShrink: 0 }} />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {wrongTasks.length > 0 && (
+            <div style={{ paddingBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, textTransform: 'uppercase' }}>Ошибки ({wrongTasks.length})</div>
+                <button onClick={onRetryMistakes} style={{ padding: '4px 12px', borderRadius: 999, border: 'none', background: `${palette.accent}22`, color: palette.text, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                  Повторить все →
+                </button>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                {wrongTasks.slice(0, 12).map(t => (
+                  <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 11, background: 'var(--color-red-soft)', border: '1px solid rgba(244,139,145,0.25)' }}>
+                    <span style={{ padding: '2px 7px', borderRadius: 7, fontSize: 10, fontWeight: 700, background: 'rgba(244,139,145,0.35)', color: 'var(--color-red-text)', flexShrink: 0 }}>#{t.id}</span>
+                    <span style={{ flex: 1, fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} dangerouslySetInnerHTML={{ __html: t.question.replace(/<[^>]*>/g, '').slice(0, 55) }} />
+                    <span style={{ fontSize: 10, color: 'var(--color-text-3)', flexShrink: 0 }}>Л.{t.line}</span>
+                  </div>
+                ))}
+                {wrongTasks.length > 12 && <div style={{ fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>и ещё {wrongTasks.length - 12}…</div>}
+              </div>
+            </div>
+          )}
+
+          {answered.size === 0 && (
+            <div style={{ textAlign: 'center', padding: '40px 0' }}>
+              <div style={{ fontSize: 32, marginBottom: 10 }}>🎯</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-2)' }}>Ещё нет решённых заданий</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 5 }}>Начни отвечать — здесь появится статистика</div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        {wrongTasks.length > 0 && (
+          <div style={{ padding: '14px 24px 20px', flexShrink: 0, display: 'flex', gap: 8 }}>
+            <button onClick={onRetryMistakes}
+              style={{ flex: 1, padding: '11px 0', borderRadius: 14, border: 'none', background: palette.accent, color: palette.onAccent, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: `0 6px 18px ${palette.ring}` }}>
+              <XCircle size={14} />Повторить ошибки
+            </button>
+            {wrongLines.length > 0 && (
+              <button onClick={() => onSimilarTasks(wrongLines)}
+                style={{ flex: 1, padding: '11px 0', borderRadius: 14, border: `1px solid ${palette.accent}44`, background: `${palette.accent}14`, fontSize: 13, fontWeight: 600, cursor: 'pointer', color: palette.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <Target size={14} />Похожие задания
+              </button>
+            )}
+          </div>
+        )}
+      </motion.div>
+    </div>
+  )
+}
+
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function TaskBankPage() {
   const { dark } = useTheme()
@@ -989,10 +1161,40 @@ export default function TaskBankPage() {
   const [sortMode, setSortMode]         = useState<SortMode>('newest')
   const viewMode: ViewMode = 'list'
   const [showFavOnly, setShowFavOnly]   = useState(false)
-  const [favorites, setFavorites]       = useState<Set<number>>(new Set())
-  const [answered, setAnswered] = useState<Map<number, { value: string; correct: boolean | null }>>(new Map())
+  const [showWrongOnly, setShowWrongOnly] = useState(false)
+  const [wrongSimilarLines, setWrongSimilarLines] = useState<Set<number>>(new Set())
+  const [showProgressModal, setShowProgressModal] = useState(false)
+  const [favorites, setFavorites]       = useState<Set<number>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem(LS_FAVORITES) || '[]') as number[]) } catch { return new Set() }
+  })
+  const [answered, setAnswered] = useState<Map<number, { value: string; correct: boolean | null; date?: string }>>(() => {
+    try {
+      const raw = JSON.parse(localStorage.getItem(LS_ANSWERED) || '{}') as Record<string, { value: string; correct: boolean | null; date?: string }>
+      return new Map(Object.entries(raw).map(([k, v]) => [Number(k), v]))
+    } catch { return new Map() }
+  })
   const [savedPill, setSavedPill] = useState(false)
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // ── Scroll-to-top button ──────────────────────────────────────────────────
+  const [showScrollTop, setShowScrollTop] = useState(false)
+  useEffect(() => {
+    const container = document.querySelector('.dashboard-main') as HTMLElement | null
+    if (!container) return
+    const onScroll = () => setShowScrollTop(container.scrollTop > 350)
+    container.addEventListener('scroll', onScroll, { passive: true })
+    return () => container.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // ── Persist trainer progress ──────────────────────────────────────────────
+  useEffect(() => {
+    const obj: Record<number, { value: string; correct: boolean | null; date?: string }> = {}
+    answered.forEach((v, k) => { obj[k] = v })
+    try { localStorage.setItem(LS_ANSWERED, JSON.stringify(obj)) } catch {}
+  }, [answered])
+  useEffect(() => {
+    try { localStorage.setItem(LS_FAVORITES, JSON.stringify([...favorites])) } catch {}
+  }, [favorites])
 
   // ── Smart features state ──────────────────────────────────────────────────
   const [diagMode, setDiagMode] = useState<DiagMode>('idle')
@@ -1020,7 +1222,8 @@ export default function TaskBankPage() {
     setFavorites(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
   }
   function setAnswer(id: number, value: string, correct: boolean | null) {
-    setAnswered(prev => new Map(prev).set(id, { value, correct }))
+    const date = new Date().toISOString().slice(0, 10)
+    setAnswered(prev => new Map(prev).set(id, { value, correct, date }))
   }
 
   const filtered = useMemo(() => {
@@ -1039,6 +1242,8 @@ export default function TaskBankPage() {
     }
     if (statusFilter === 'done')   list = list.filter(t => answered.get(t.id)?.correct === true)
     if (statusFilter === 'undone') list = list.filter(t => !answered.get(t.id))
+    if (showWrongOnly) list = list.filter(t => answered.get(t.id)?.correct === false)
+    if (wrongSimilarLines.size > 0 && !search) list = list.filter(t => wrongSimilarLines.has(t.line))
     if (showFavOnly) list = list.filter(t => favorites.has(t.id))
     return [...list].sort((a, b) => {
       switch (sortMode) {
@@ -1048,7 +1253,7 @@ export default function TaskBankPage() {
         default:           return b.id - a.id  // newest
       }
     })
-  }, [tasks, subject, section, topic, part, line, source, search, statusFilter, showFavOnly, answered, favorites, sortMode])
+  }, [tasks, subject, section, topic, part, line, source, search, statusFilter, showFavOnly, showWrongOnly, wrongSimilarLines, answered, favorites, sortMode])
 
   // Auto-switch subject tab when search results all belong to one subject
   useEffect(() => {
@@ -1060,8 +1265,12 @@ export default function TaskBankPage() {
     }
   }, [search, filtered])
 
-  const doneCount  = tasks.filter(t => t.subject === subject && answered.get(t.id)?.correct).length
+  const doneCount  = tasks.filter(t => t.subject === subject && answered.get(t.id)?.correct === true).length
+  const wrongCount = tasks.filter(t => t.subject === subject && answered.get(t.id)?.correct === false).length
   const totalCount = tasks.filter(t => t.subject === subject).length
+  const today = new Date().toISOString().slice(0, 10)
+  const todayCorrect = useMemo(() => [...answered.values()].filter(a => a.correct === true  && a.date === today).length, [answered, today])
+  const todayWrong   = useMemo(() => [...answered.values()].filter(a => a.correct === false && a.date === today).length, [answered, today])
   const hasFilters = !!(section || topic || part || line || source)
 
   const dockGlass = {
@@ -1107,6 +1316,41 @@ export default function TaskBankPage() {
             </span>
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>Сохранено в буфере</span>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Scroll-to-top button */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            key="scroll-top"
+            initial={{ opacity: 0, y: 20, scale: 0.82 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 14, scale: 0.88 }}
+            transition={{ duration: 0.28, ease: [0.34, 1.56, 0.64, 1] }}
+            onClick={() => (document.querySelector('.dashboard-main') as HTMLElement | null)?.scrollTo({ top: 0, behavior: 'smooth' })}
+            style={{
+              position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
+              zIndex: 9998,
+              display: 'flex', alignItems: 'center', gap: 7,
+              padding: '11px 22px 11px 18px',
+              borderRadius: 999,
+              background: 'rgba(var(--glass-rgb), 0.82)',
+              backdropFilter: 'blur(28px) saturate(200%)',
+              WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+              border: '1px solid var(--color-border-glass)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.08)',
+              cursor: 'pointer', outline: 'none',
+              color: 'var(--color-text)',
+              fontSize: 13, fontWeight: 700,
+              whiteSpace: 'nowrap',
+            }}
+            whileHover={{ scale: 1.06, boxShadow: '0 12px 40px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.08)' }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <ArrowUp size={15} strokeWidth={2.5} />
+            Наверх
+          </motion.button>
         )}
       </AnimatePresence>
 
@@ -1255,30 +1499,6 @@ export default function TaskBankPage() {
                 Сбросить фильтры
               </button>
             )}
-          </div>
-
-          {/* Progress card */}
-          <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
-            <div className="flex items-center" style={{ gap: 7 }}>
-              <Target size={15} style={{ color: palette.text }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Прогресс</span>
-            </div>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Решено верно</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{doneCount} / {totalCount}</span>
-              </div>
-              <div style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
-                <motion.div animate={{ width: `${totalCount ? (doneCount / totalCount) * 100 : 0}%` }} transition={{ duration: 0.4 }}
-                  style={{ height: '100%', borderRadius: 999, background: `linear-gradient(90deg, ${palette.accent}, ${palette.text})` }} />
-              </div>
-            </div>
-            {[['В избранном', `${favorites.size}`]].map(([label, val]) => (
-              <div key={label} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{label}</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{val}</span>
-              </div>
-            ))}
           </div>
 
           {/* ── Smart features: Diagnostic + Route (biology only) ──────────── */}

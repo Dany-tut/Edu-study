@@ -451,9 +451,9 @@ function BankGridCard({
         </div>
       </div>
 
-      {/* Footer: part chip | add button */}
+      {/* Footer: part label | add button */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8, borderTop: '1px solid var(--color-border-soft)' }}>
-        <span style={{ padding: '2px 6px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>ч.{task.part}</span>
+        <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{task.part === 1 ? 'I часть' : 'II часть'}</span>
         <div style={{ display: 'flex', gap: 4 }}>
           {showSelect && (
             <button onClick={onToggleSelected} title={selected ? 'Убрать из тренажёра' : 'Добавить в тренажёр'}
@@ -603,7 +603,7 @@ export function TrainerBankBrowser({
       )}
 
       {viewMode === 'grid' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
           {filtered.map(t => (
             <BankGridCard key={t.id} task={t}
               selected={selectedIds.has(t.id)}
@@ -682,21 +682,18 @@ export function TrainerBankFilterPanel({
 
       <FilterField label="Раздел" value={filters.section} options={sections} onChange={v => onChange({ section: v, topic: '' })} />
       <FilterField label="Тема" value={filters.topic} options={topicOptions} onChange={v => onChange({ topic: v })} />
-      <div>
-        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Часть</div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          {(['1', '2'] as string[]).map(p => {
-            const active = filters.parts.includes(p)
-            return (
-              <button key={p} onClick={() => onChange({ parts: active ? filters.parts.filter(x => x !== p) : [...filters.parts, p] })}
-                style={{ flex: 1, padding: '7px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
-                  background: active ? (accentBg ?? 'rgba(139,92,246,0.15)') : 'var(--color-bg-3)',
-                  color: active ? 'var(--color-purple-text)' : 'var(--color-muted)' }}>
-                {p}
-              </button>
-            )
-          })}
-        </div>
+      <div style={{ display: 'flex', gap: 6 }}>
+        {(['1', '2'] as string[]).map(p => {
+          const active = filters.parts.includes(p)
+          return (
+            <button key={p} onClick={() => onChange({ parts: active ? filters.parts.filter(x => x !== p) : [...filters.parts, p] })}
+              style={{ flex: 1, padding: '7px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+                background: active ? (accentBg ?? 'rgba(139,92,246,0.15)') : 'var(--color-bg-3)',
+                color: active ? 'var(--color-purple-text)' : 'var(--color-muted)' }}>
+              {p === '1' ? 'I часть' : 'II часть'}
+            </button>
+          )
+        })}
       </div>
       <FilterField label="Линия" value={filters.line} options={allLines} onChange={v => onChange({ line: v })} />
       <FilterField label="Источник" value={filters.source} options={SOURCES} onChange={v => onChange({ source: v })} />
