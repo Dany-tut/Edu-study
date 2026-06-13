@@ -1484,7 +1484,7 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
       >
         <Users size={14} strokeWidth={2} style={{ flexShrink: 0, color: selected ? 'var(--color-accent)' : 'var(--color-text-3)' }} />
         <div style={{ flex: 1, fontSize: 13, color: selected ? 'var(--color-accent)' : 'var(--color-text-3)', fontWeight: selected ? 600 : 400 }}>
-          {selected ? selected.name : 'Выберите группу'}
+          {selected ? selected.name : 'Группа'}
         </div>
         {selected && (
           <button
@@ -1788,7 +1788,6 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
 
         {/* Группа */}
         <div>
-          <Label>Группа</Label>
           <GroupPicker value={meta.groupId} onChange={id => onChange({ groupId: id, studentId: '' })} />
         </div>
 
@@ -1835,7 +1834,6 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
 
         {/* Lesson link */}
         <div>
-          <Label>Привязать к уроку</Label>
           <LessonPicker value={meta.lessonId} title={meta.title} onChange={id => onChange({ lessonId: id })} />
         </div>
       </GlassCard>
