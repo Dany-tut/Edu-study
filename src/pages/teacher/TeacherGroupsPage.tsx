@@ -5,7 +5,7 @@ import {
   Phone, Send, User,
   TrendingUp, ClipboardCheck, Clock, Award,
   ChevronsUpDown, ExternalLink, Plus, Copy, Check,
-  Maximize2, Target, BookOpen, XCircle, CheckCircle2, Layers,
+  BarChart2, Target, BookOpen, XCircle, CheckCircle2, Layers,
 } from 'lucide-react'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import GroupStrip from '../../components/teacher/GroupStrip'
@@ -919,12 +919,12 @@ function StudentPanel({
           <div style={{ display: 'flex', gap: 6 }}>
             <button
               onClick={onOpenFullCard}
-              title="Открыть карточку ученика"
+              title="Полная статистика ученика"
               style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0, transition: 'color 0.15s' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-accent)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-3)' }}
             >
-              <Maximize2 size={13} />
+              <BarChart2 size={14} />
             </button>
             <button
               onClick={onClose}
@@ -1146,6 +1146,7 @@ export default function TeacherGroupsPage() {
   const [showAddStudent, setShowAddStudent] = useState(false)
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
+  const [activeStudentId, setActiveStudentId] = useState<string | null>(null)
   const tableRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -1171,11 +1172,16 @@ export default function TeacherGroupsPage() {
   const groupStudents = activeGroup
     ? sortStudents(students.filter(s => s.groupId === activeGroup.id), sortKey, sortDir)
     : []
+  const activeStudent = activeStudentId ? students.find(s => s.id === activeStudentId) ?? null : null
+  const activeStudentGroup = activeStudent ? groups.find(g => g.id === activeStudent.groupId) ?? null : null
+
   function handleGroupClick(group: Group) {
     if (selectedGroupId === group.id) {
       setSelectedGroupId(null)
+      setActiveStudentId(null)
     } else {
       setSelectedGroupId(group.id)
+      setActiveStudentId(null)
       setSortKey('name')
       setSortDir('asc')
     }
@@ -1198,8 +1204,8 @@ export default function TeacherGroupsPage() {
             groups={groups}
             selectedGroupId={selectedGroupId}
             onSelectGroup={(id) => {
-              if (!id) { setSelectedGroupId(null) }
-              else { setSelectedGroupId(id); setSortKey('name'); setSortDir('asc') }
+              if (!id) { setSelectedGroupId(null); setActiveStudentId(null) }
+              else { setSelectedGroupId(id); setActiveStudentId(null); setSortKey('name'); setSortDir('asc') }
             }}
             actionLabel={"Создать\nгруппу"}
             actionIcon={Plus}
@@ -1214,7 +1220,7 @@ export default function TeacherGroupsPage() {
               ref={tableRef}
               key="student-table"
               initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 1, y: 0, marginRight: activeStudentId ? 344 : 0 }}
               exit={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
             >
@@ -1258,6 +1264,7 @@ export default function TeacherGroupsPage() {
                     <tbody>
                       {groupStudents.map((student, i) => {
                         const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
+                        const isSelected = student.id === activeStudentId
                         const colBg = (key: SortKey) =>
                           sortKey === key ? { background: 'rgba(255,255,255,0.035)' } : {}
                         return (
@@ -1266,18 +1273,18 @@ export default function TeacherGroupsPage() {
                             initial={{ opacity: 0, x: -8 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.24, delay: i * 0.04 }}
-                            onClick={() => openStudentDashboard(student.id, activeGroup.id)}
+                            onClick={() => setActiveStudentId(isSelected ? null : student.id)}
                             style={{
                               cursor: 'pointer',
-                              background: 'transparent',
-                              borderLeft: '3px solid transparent',
+                              background: isSelected ? `${activeGroup.color}12` : 'transparent',
+                              borderLeft: `3px solid ${isSelected ? activeGroup.color : 'transparent'}`,
                               transition: 'background 0.15s',
                             }}
                             onMouseEnter={e => {
-                              (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)'
+                              if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)'
                             }}
                             onMouseLeave={e => {
-                              (e.currentTarget as HTMLElement).style.background = 'transparent'
+                              if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent'
                             }}
                           >
                             {/* Name */}
@@ -1371,6 +1378,31 @@ export default function TeacherGroupsPage() {
           </motion.div>
         )}
       </div>
+
+      {/* Mini student panel */}
+      <AnimatePresence>
+        {activeStudentId && activeStudent && activeStudentGroup && (
+          <motion.div
+            key="student-panel"
+            initial={{ x: 340, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 340, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 34 }}
+            style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 332, zIndex: 10 }}
+          >
+            <StudentPanel
+              student={activeStudent}
+              group={activeStudentGroup}
+              onClose={() => setActiveStudentId(null)}
+              onDelete={async () => {
+                await deleteStudent(activeStudentId)
+                setActiveStudentId(null)
+              }}
+              onOpenFullCard={() => openStudentDashboard(activeStudentId, activeStudentGroup.id)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showAddGroup && (
