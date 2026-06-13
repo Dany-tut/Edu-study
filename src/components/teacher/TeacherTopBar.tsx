@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Home, Users, ClipboardList, BookOpen, Layers,
+  Home, Users, ClipboardList, BookOpen, Layers, GraduationCap,
   ChevronLeft, ChevronRight,
   LayoutGrid, UserPlus, CheckSquare, LayoutDashboard, LogOut, Moon, Sun, type LucideIcon,
 } from 'lucide-react'
@@ -33,7 +33,7 @@ type QuickItem = QuickAction | QuickSeparator
 
 const quickActions: QuickItem[] = [
   { icon: BookOpen,         label: 'Создать курс',      sub: 'новый курс',       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', action: 'create-course' },
-  { icon: BookOpen,         label: 'Создать урок',      sub: 'новый урок',       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', page: 'lesson-editor' },
+  { icon: GraduationCap,    label: 'Создать урок',      sub: 'новый урок',       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', page: 'lesson-editor' },
   { icon: ClipboardList,    label: 'Создать домашку',   sub: 'группе / лично',   color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', page: 'homework-create' },
   { icon: CheckSquare,      label: 'Создать задачу',    sub: 'встреча, урок…',   color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', action: 'create-task' },
   { type: 'separator' },

@@ -940,15 +940,17 @@ function ContentCard({ accentColor, accentBg, isSelected, onClick, icon, badge, 
   )
 }
 
-const COURSE_COLOR = '#3EC87A'
-const COURSE_BG    = 'var(--color-green-soft)'
+const COURSE_COLOR    = '#3EC87A'            // hex — for border/shadow concatenation
+const COURSE_BG       = 'var(--color-green-soft)'
+const TRAINER_COLOR   = '#9B6DFF'            // hex — for border/shadow concatenation
+const TRAINER_BG      = 'var(--color-purple-soft)'
 
 function CourseCard({ course, isSelected, onClick }: { course: Course; isSelected: boolean; onClick: () => void }) {
   return (
     <ContentCard
       accentColor={COURSE_COLOR} accentBg={COURSE_BG}
       isSelected={isSelected} onClick={onClick}
-      icon={<BookOpen size={17} strokeWidth={2} style={{ color: COURSE_COLOR }} />}
+      icon={<BookOpen size={17} strokeWidth={2} style={{ color: 'var(--color-green-text)' }} />}
       badge={<span style={{ fontSize: 10, fontWeight: 700, color: STATUS_COLOR[course.status], background: STATUS_BG[course.status], borderRadius: 7, padding: '2px 8px' }}>{STATUS_LABEL[course.status]}</span>}
       title={course.title}
       subtitle={`${course.subject} · ${course.level}`}
@@ -961,9 +963,9 @@ function CourseCard({ course, isSelected, onClick }: { course: Course; isSelecte
 function TrainerCard({ trainer, isSelected, onClick }: { trainer: Trainer; isSelected: boolean; onClick: () => void }) {
   return (
     <ContentCard
-      accentColor={trainer.color} accentBg={trainer.bg}
+      accentColor={TRAINER_COLOR} accentBg={TRAINER_BG}
       isSelected={isSelected} onClick={onClick}
-      icon={<Zap size={17} strokeWidth={2} style={{ color: trainer.color }} />}
+      icon={<Zap size={17} strokeWidth={2} style={{ color: 'var(--color-accent)' }} />}
       title={trainer.title}
       subtitle={`${trainer.topic} · ${trainer.timePerQuestion} мин/вопрос`}
       extra={trainer.questionIds && trainer.questionIds.length > 0 ? (
@@ -2160,12 +2162,12 @@ function CreatorView({
               </div>
             </div>
             <div><Label>Раздел</Label>
-              <TeacherSelect value={tkSection} onChange={v => { setTkSection(v); setTkTopic('') }} placeholder="— выбрать —"
-                options={[{ value: '', label: '— любой —' }, ...tkSectionList.map(s => ({ value: s, label: s }))]} />
+              <TeacherSelect value={tkSection} onChange={v => { setTkSection(v); setTkTopic('') }} placeholder="Раздел"
+                options={tkSectionList} />
             </div>
             <div><Label>Тема</Label>
-              <TeacherSelect value={tkTopic} onChange={setTkTopic} placeholder="— выбрать —"
-                options={[{ value: '', label: '— любая —' }, ...tkTopicList.map(s => ({ value: s, label: s }))]} />
+              <TeacherSelect value={tkTopic} onChange={setTkTopic} placeholder="Тема"
+                options={tkTopicList} />
             </div>
             <div>
               <Label>Часть</Label>
@@ -2182,7 +2184,7 @@ function CreatorView({
                 onChange={e => setTkLine(Math.max(1, Number(e.target.value)))} style={inputSt} />
             </div>
             <div><Label>Источник</Label>
-              <TeacherSelect value={tkSource} onChange={setTkSource} options={SOURCES} />
+              <TeacherSelect value={tkSource} onChange={setTkSource} placeholder="Источник" options={SOURCES} />
             </div>
             {/* Points summary */}
             <div style={{ background: canSave ? 'var(--color-green-soft)' : 'var(--color-bg-2)', borderRadius: 12, padding: '10px 12px' }}>
