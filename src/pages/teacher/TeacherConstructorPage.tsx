@@ -3658,21 +3658,20 @@ export default function TeacherConstructorPage() {
                     onClick={() => t === activeTab ? handlePlus() : handleTabChange(t)} onPlus={handlePlus} />
                 })}
 
-                {/* Тестирование tab — same TabBtn style */}
+                {/* Тестирование tab — filled pill, no icon */}
                 <motion.button
                   whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                   onClick={() => handleTabChange('testing')}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '10px 20px', borderRadius: 16, border: 'none', cursor: 'pointer',
-                    background: isTestingActive ? 'var(--color-purple-soft)' : 'rgba(var(--glass-rgb), 0.72)',
-                    color: isTestingActive ? 'var(--color-accent)' : 'var(--color-muted)',
+                    padding: '10px 20px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                    background: isTestingActive ? 'var(--color-accent)' : 'rgba(var(--glass-rgb), 0.72)',
+                    color: isTestingActive ? '#fff' : 'var(--color-muted)',
                     fontSize: 14, fontWeight: 600,
-                    boxShadow: isTestingActive ? '0 0 0 1.5px var(--color-accent)44, 0 4px 14px rgba(0,0,0,0.06)' : '0 2px 8px rgba(0,0,0,0.04)',
+                    boxShadow: isTestingActive ? '0 4px 14px rgba(124,58,237,0.28)' : '0 2px 8px rgba(0,0,0,0.04)',
                     transition: 'all 0.15s',
                   }}
                 >
-                  <Target size={16} strokeWidth={isTestingActive ? 2.2 : 1.8} /> Тестирование
+                  Тестирование
                 </motion.button>
 
                 {/* Delete bar — shown when items are checked */}
