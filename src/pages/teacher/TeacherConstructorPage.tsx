@@ -4134,7 +4134,7 @@ export default function TeacherConstructorPage() {
                   <motion.div
                     key={`table-${selectedId}`}
                     initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0, marginRight: 368 }}
+                    animate={{ opacity: 1, y: 0, marginRight: selectedResultId ? 368 : 0 }}
                     exit={{ opacity: 0, y: 8 }}
                     transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                   >
@@ -4143,7 +4143,7 @@ export default function TeacherConstructorPage() {
                       results={diagAnonResults.filter(r => r.subject === selectedId)}
                       selectedResultId={selectedResultId}
                       onSelectResult={id => setSelectedResultId(prev => prev === id ? null : id)}
-                      onOpenEditor={() => {}}
+                      onOpenEditor={() => openDiagCard(selectedId as DiagSubject)}
                       onRefresh={() => loadAnonResults().then(setDiagAnonResults)}
                     />
                   </motion.div>
@@ -4156,13 +4156,6 @@ export default function TeacherConstructorPage() {
                 <CourseEditor key={selectedCourse.id} course={selectedCourse} trainers={trainers} widgets={widgets}
                   onSave={c => setCourses(prev => prev.map(x => x.id === c.id ? c : x))} onClose={closeEditor}
                   onExpand={() => handleExpandCourse(selectedCourse)} />
-              )}
-              {activeTab === 'testing' && selectedId && !selectedResultId && (
-                <DiagnosticEditorPanel
-                  key={`diag-panel-${selectedId}`}
-                  subject={selectedId as DiagSubject}
-                  onClose={closeEditor}
-                />
               )}
               {activeTab === 'testing' && selectedResultId && (() => {
                 const result = diagAnonResults.find(r => r.id === selectedResultId)
