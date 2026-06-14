@@ -9,6 +9,7 @@ import {
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
 import { useTrainerProgress } from '../store/trainerProgressStore'
+import { useTeacher } from '../store/teacherStore'
 import { tactile } from '../lib/feedback'
 
 /**
@@ -307,7 +308,7 @@ function PomoControls() {
   return (
     <div onClick={stop} style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 2 }}>
       {/* Timer ↔ Stopwatch segmented control */}
-      <div style={{ display: 'flex', alignSelf: 'flex-start', background: 'var(--color-bg-3)', borderRadius: 999, padding: 3 }}>
+      <div style={{ display: 'flex', alignSelf: 'flex-start', background: 'rgba(0,0,0,0.18)', borderRadius: 999, padding: 3, gap: 2 }}>
         {([['timer', 'Таймер'], ['stopwatch', 'Секундомер']] as const).map(([mode, label]) => {
           const active = pomoTimerMode === mode
           return (
@@ -315,12 +316,12 @@ function PomoControls() {
               key={mode}
               onClick={e => { stop(e); pomoSetTimerMode(mode) }}
               style={{
-                fontSize: 11.5, fontWeight: 650, lineHeight: 1, padding: '5px 12px', borderRadius: 999,
-                border: 'none', cursor: 'pointer',
-                color: active ? 'var(--color-text)' : '#9A9AA0',
-                background: active ? 'var(--color-bg-input)' : 'transparent',
-                boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-                transition: 'color 0.2s, background 0.2s',
+                fontSize: 11.5, fontWeight: 650, lineHeight: 1, padding: '5px 14px', borderRadius: 999,
+                border: 'none', cursor: 'pointer', outline: 'none',
+                color: active ? 'var(--color-text)' : 'rgba(255,255,255,0.38)',
+                background: active ? 'rgba(255,255,255,0.12)' : 'transparent',
+                boxShadow: active ? 'inset 0 0 0 1px rgba(255,255,255,0.14)' : 'none',
+                transition: 'color 0.18s, background 0.18s, box-shadow 0.18s',
               }}
             >
               {label}
@@ -606,30 +607,36 @@ function QuestionOfDayPreview({ expanded }: { expanded: boolean }) {
 }
 
 function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
-  const { doneCount, wrongCount, totalCount, favCount, todayCorrect, todayWrong, setOpenModal } = useTrainerProgress()
+  const { doneCount, wrongCount, totalCount, todayCorrect, setOpenModal } = useTrainerProgress()
   const pct = totalCount ? Math.round((doneCount / totalCount) * 100) : 0
 
   const R = 11
   const circ = 2 * Math.PI * R
   const dash = circ * (pct / 100)
 
-  const chips = [
-    { value: doneCount,    label: 'Верно',   sub: totalCount ? `из ${totalCount}` : '', bg: 'rgba(110,231,160,0.18)', color: '#27A85A' },
-    { value: todayCorrect, label: 'Сегодня', sub: todayWrong > 0 ? `✗ ${todayWrong}` : '', bg: 'rgba(139,92,246,0.14)', color: '#7c3aed' },
-    { value: wrongCount,   label: 'Ошибок',  sub: '', bg: 'rgba(244,139,145,0.18)', color: '#A8282D' },
-    { value: favCount,     label: 'Избр.',   sub: '', bg: 'rgba(248,200,50,0.18)',  color: '#7A6B00' },
-  ]
+  const PILL_T = { type: 'spring' as const, stiffness: 220, damping: 28, mass: 1.1 }
+
+  const avatarR = 16
+  const avatarCirc = 2 * Math.PI * avatarR
+  const avatarDash = avatarCirc * (pct / 100)
 
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 14px 14px 9px', width: '100%', boxSizing: 'border-box' }}>
-      {/* Avatar */}
+      {/* Avatar — donut progress ring */}
       <div style={{
-        width: 40, height: 40, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-        background: 'linear-gradient(135deg, #5FD68A, #27A85A)',
+        width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+        background: 'rgba(52,200,119,0.10)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#fff', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.4)',
+        position: 'relative',
       }}>
-        <TrendingUp size={18} />
+        <svg width="40" height="40" viewBox="0 0 40 40" style={{ position: 'absolute', inset: 0, transform: 'rotate(-90deg)' }}>
+          <circle cx="20" cy="20" r={avatarR} fill="none" stroke="rgba(52,200,119,0.2)" strokeWidth="3.5" />
+          <circle cx="20" cy="20" r={avatarR} fill="none" stroke="#34C877" strokeWidth="3.5"
+            strokeDasharray={`${avatarDash} ${avatarCirc}`} strokeLinecap="round" />
+        </svg>
+        <span style={{ fontSize: 9.5, fontWeight: 750, color: '#34C877', position: 'relative', lineHeight: 1 }}>
+          {pct}%
+        </span>
       </div>
 
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3, paddingTop: 2 }}>
@@ -641,62 +648,74 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
           Тренажёр · прогресс
         </span>
 
-        {/* Graphical row: donut ring + colored pill badges */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          {totalCount > 0 && (
-            <svg width="26" height="26" viewBox="0 0 26 26" style={{ flexShrink: 0, transform: 'rotate(-90deg)' }}>
-              <circle cx="13" cy="13" r={R} fill="none" stroke="rgba(0,0,0,0.10)" strokeWidth="3" />
-              <circle cx="13" cy="13" r={R} fill="none" stroke="#34C877" strokeWidth="3"
-                strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" />
-            </svg>
-          )}
-          {doneCount > 0 ? (
-            <>
-              <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: 999, background: 'rgba(110,231,160,0.22)', color: '#27A85A', fontSize: 12, fontWeight: 700, lineHeight: 1 }}>
-                ✓ {doneCount}
-              </span>
-              {todayCorrect > 0 && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: 999, background: 'rgba(139,92,246,0.16)', color: '#7c3aed', fontSize: 12, fontWeight: 700, lineHeight: 1 }}>
-                  +{todayCorrect}
-                </span>
-              )}
-              {wrongCount > 0 && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: 999, background: 'rgba(244,139,145,0.22)', color: '#A8282D', fontSize: 12, fontWeight: 700, lineHeight: 1 }}>
-                  ✗ {wrongCount}
-                </span>
-              )}
-            </>
-          ) : (
-            <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-text-3)' }}>
-              Начни решать задания
-            </span>
-          )}
-        </div>
+        {/* Pills — smoothly morph between collapsed capsule and expanded tile */}
+        {doneCount > 0 ? (
+          <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, marginTop: 2 }}>
 
-        {/* Expanded detail */}
+            {/* Green: correct */}
+            <motion.div
+              initial={false}
+              animate={{ padding: expanded ? '8px 6px' : '3px 8px', borderRadius: expanded ? 12 : 999, flexGrow: expanded ? 1 : 0 }}
+              transition={PILL_T}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, background: 'rgba(110,231,160,0.22)', color: '#27A85A', fontWeight: 700, lineHeight: 1 }}
+            >
+              <motion.span initial={false} animate={{ fontSize: expanded ? 18 : 12 }} transition={PILL_T} style={{ whiteSpace: 'nowrap' }}>✓ {doneCount}</motion.span>
+              <motion.span initial={false} animate={{ opacity: expanded ? 0.75 : 0, maxHeight: expanded ? 16 : 0 }} transition={PILL_T} style={{ fontSize: 9.5, overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                {totalCount > 0 ? `Верно из ${totalCount}` : 'Верно'}
+              </motion.span>
+            </motion.div>
+
+            {/* Purple: today */}
+            {todayCorrect > 0 && (
+              <motion.div
+                initial={false}
+                animate={{ padding: expanded ? '8px 6px' : '3px 8px', borderRadius: expanded ? 12 : 999, flexGrow: expanded ? 1 : 0 }}
+                transition={PILL_T}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, background: 'rgba(139,92,246,0.18)', color: '#C4B5FD', fontWeight: 700, lineHeight: 1 }}
+              >
+                <motion.span initial={false} animate={{ fontSize: expanded ? 18 : 12 }} transition={PILL_T} style={{ whiteSpace: 'nowrap' }}>+{todayCorrect}</motion.span>
+                <motion.span initial={false} animate={{ opacity: expanded ? 0.85 : 0, maxHeight: expanded ? 16 : 0 }} transition={PILL_T} style={{ fontSize: 9.5, overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  Сегодня
+                </motion.span>
+              </motion.div>
+            )}
+
+            {/* Red: wrong */}
+            {wrongCount > 0 && (
+              <motion.div
+                initial={false}
+                animate={{ padding: expanded ? '8px 6px' : '3px 8px', borderRadius: expanded ? 12 : 999, flexGrow: expanded ? 1 : 0 }}
+                transition={PILL_T}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, background: 'rgba(220,50,60,0.26)', color: '#F04858', fontWeight: 700, lineHeight: 1 }}
+              >
+                <motion.span initial={false} animate={{ fontSize: expanded ? 18 : 12 }} transition={PILL_T} style={{ whiteSpace: 'nowrap' }}>✗ {wrongCount}</motion.span>
+                <motion.span initial={false} animate={{ opacity: expanded ? 0.85 : 0, maxHeight: expanded ? 16 : 0 }} transition={PILL_T} style={{ fontSize: 9.5, overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  Ошибок
+                </motion.span>
+              </motion.div>
+            )}
+          </div>
+        ) : (
+          <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-text-3)' }}>
+            Начни решать задания
+          </span>
+        )}
+
+        {/* Expanded extras: progress bar + link */}
         <motion.div
           animate={{ opacity: expanded ? 1 : 0 }}
-          transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-          style={{ marginTop: 5, overflow: 'hidden', willChange: 'opacity' }}
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          style={{ overflow: 'hidden', willChange: 'opacity' }}
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
-              {chips.map(c => (
-                <div key={c.label} style={{ padding: '7px 6px', borderRadius: 10, background: c.bg, textAlign: 'center' }}>
-                  <div style={{ fontSize: 18, fontWeight: 750, color: c.color, lineHeight: 1 }}>{c.value}</div>
-                  <div style={{ fontSize: 10, color: c.color, opacity: 0.8, marginTop: 2, lineHeight: 1.2 }}>{c.label}</div>
-                  {c.sub && <div style={{ fontSize: 9.5, color: c.color, opacity: 0.6, lineHeight: 1.2 }}>{c.sub}</div>}
-                </div>
-              ))}
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
             {totalCount > 0 && (
-              <div style={{ height: 4, borderRadius: 999, background: 'rgba(0,0,0,0.08)', overflow: 'hidden', display: 'flex' }}>
-                <div style={{ height: '100%', width: `${pct}%`, background: '#34C877', flexShrink: 0, transition: 'width 0.5s ease' }} />
-                <div style={{ height: '100%', width: `${totalCount ? Math.round((wrongCount / totalCount) * 100) : 0}%`, background: '#F48B91', flexShrink: 0 }} />
+              <div style={{ flex: 1, height: 4, borderRadius: 999, background: 'rgba(255,255,255,0.08)', overflow: 'hidden', display: 'flex' }}>
+                <div style={{ height: '100%', width: `${pct}%`, background: 'rgba(110,231,160,0.55)', flexShrink: 0, transition: 'width 0.6s cubic-bezier(0.22,1,0.36,1)' }} />
+                <div style={{ height: '100%', width: `${totalCount ? Math.round((wrongCount / totalCount) * 100) : 0}%`, background: 'rgba(240,96,112,0.45)', flexShrink: 0 }} />
               </div>
             )}
             <button onClick={e => { e.stopPropagation(); setOpenModal(true) }}
-              style={{ alignSelf: 'flex-start', padding: '4px 10px', borderRadius: 8, border: 'none', background: 'rgba(52,200,119,0.15)', color: '#27A85A', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+              style={{ flexShrink: 0, padding: '3px 8px', borderRadius: 999, border: 'none', background: 'rgba(52,200,119,0.15)', color: '#27A85A', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
               Подробнее →
             </button>
           </div>
@@ -709,7 +728,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
 // Single shared spring so the avatar, padding, height, width, and text
 // gap all glide to the new size in lockstep instead of each running its own
 // timing curve (which was the source of the visible "jitter" on collapse).
-const MORPH = { type: 'spring' as const, stiffness: 360, damping: 32, mass: 0.7 }
+const MORPH = { type: 'spring' as const, stiffness: 220, damping: 28, mass: 1.1 }
 
 function PillContent({
   avatar,
@@ -871,6 +890,9 @@ export default function CompactWidgetPill() {
   const pomoRunning = useDashboard(s => s.pomoRunning)
   const pomoStart = useDashboard(s => s.pomoStart)
   const pomoPause = useDashboard(s => s.pomoPause)
+  const { lastAnswerAt } = useTrainerProgress()
+  const saveStudentTrainerStats = useTeacher(s => s.saveStudentTrainerStats)
+  const [trainerWaveActive, setTrainerWaveActive] = useState(false)
   const [[idx, dir], setIdx] = useState<[number, number]>([0, 0])
   const [expanded, setExpanded] = useState(false)
   const [dotsVisible, setDotsVisible] = useState(false)
@@ -887,6 +909,16 @@ export default function CompactWidgetPill() {
 
   useEffect(() => () => { if (hideTimer.current) clearTimeout(hideTimer.current) }, [])
 
+  // Trainer idle detection: wave is active for 40s after the last answer
+  useEffect(() => {
+    if (lastAnswerAt === 0) { setTrainerWaveActive(false); return }
+    setTrainerWaveActive(Date.now() - lastAnswerAt < 40000)
+    const iv = setInterval(() => {
+      setTrainerWaveActive(Date.now() - lastAnswerAt < 40000)
+    }, 1000)
+    return () => clearInterval(iv)
+  }, [lastAnswerAt])
+
   // When a homework answer lands and the pill is not already showing the Stats
   // (homework feedback) widget, snap back to it automatically.
   const prevAnsweredRef = useRef(homeworkAnswered)
@@ -901,14 +933,19 @@ export default function CompactWidgetPill() {
   }, [homeworkAnswered, activePage, widgetOrder, idx])
 
   // When entering the trainer page (including initial load), snap to widget 7.
+  // When leaving the trainer page, persist the session stats to teacherStore.
   const prevPageRef = useRef<string | null>(null)
   useEffect(() => {
     if (activePage === 'trainer' && prevPageRef.current !== 'trainer') {
       const pos = widgetOrder.indexOf(7)
       if (pos >= 0) setIdx([pos, pos > idx ? 1 : -1])
     }
+    if (prevPageRef.current === 'trainer' && activePage !== 'trainer') {
+      const { doneCount, wrongCount, totalCount, favCount, todayCorrect, todayWrong, subject } = useTrainerProgress.getState()
+      saveStudentTrainerStats({ doneCount, wrongCount, totalCount, favCount, todayCorrect, todayWrong, subject })
+    }
     prevPageRef.current = activePage
-  }, [activePage, widgetOrder, idx])
+  }, [activePage, widgetOrder, idx, saveStudentTrainerStats])
 
   useEffect(() => {
     if (!expanded) return
@@ -1033,17 +1070,11 @@ export default function CompactWidgetPill() {
       // the pill made framer re-project the pill's box against the (old,
       // huge) WidgetCarousel bounds, which is what caused the jitter on
       // expand/collapse.
-      animate={{ height: expanded ? expandedH : COLLAPSED_H }}
+      animate={{ height: expanded ? expandedH : COLLAPSED_H, borderRadius: expanded ? 20 : 30 }}
       transition={MORPH}
       style={{
         position: 'relative',
         width: PILL_WIDTH,
-        // Same corner radius in both states — at collapsed height (60) the
-        // 30px radius reads as a full capsule (= height / 2), and at the
-        // taller expanded heights the same value reads as a soft rounded
-        // card. The shape feels continuous between modes; only the bottom
-        // detail text fades in/out beneath the unchanged mini layout.
-        borderRadius: 30,
         cursor: 'pointer',
         // Expanded: white at top fading into a frosted-glass bottom (backdrop
         // blur is what gives the lower portion its "стекло" quality — the
@@ -1061,6 +1092,8 @@ export default function CompactWidgetPill() {
           : 'var(--shadow-pill)',
         overflow: 'hidden',
         boxSizing: 'border-box',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
       }}
     >
       {/* Measurement layer — its natural height (driven by PillContent's
@@ -1190,6 +1223,147 @@ export default function CompactWidgetPill() {
           {pomoRunning ? <Pause size={20} fill={accent} /> : <Play size={20} fill={accent} />}
         </button>
       )}
+
+
+      {/* Organic wave strip — trainer widget only, active while answering */}
+      <AnimatePresence>
+        {widgetId === 7 && trainerWaveActive && (
+          <motion.div
+            key="trainer-wave"
+            initial={{ height: 0 }}
+            animate={{ height: 10 }}
+            exit={{ height: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              position: 'absolute', bottom: 0, left: 0, right: 0,
+              overflow: 'hidden', borderRadius: '0 0 30px 30px',
+              pointerEvents: 'none',
+            }}
+          >
+            {/* Green wave */}
+            <motion.svg viewBox="0 0 320 10" preserveAspectRatio="none"
+              style={{ position: 'absolute', bottom: 0, width: '100%', height: '100%' }}>
+              <motion.path
+                animate={{
+                  d: [
+                    'M0,7 C60,1 130,10 200,5 C260,1 295,8 320,6 L320,10 L0,10 Z',
+                    'M0,4 C70,9 140,2 210,8 C270,11 300,4 320,7 L320,10 L0,10 Z',
+                    'M0,8 C50,3 120,10 190,4 C255,0 290,9 320,5 L320,10 L0,10 Z',
+                    'M0,7 C60,1 130,10 200,5 C260,1 295,8 320,6 L320,10 L0,10 Z',
+                  ],
+                  opacity: [0.85, 0.45, 0.9, 0.85],
+                }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                fill="#34C877"
+              />
+            </motion.svg>
+            {/* Orange wave */}
+            <motion.svg viewBox="0 0 320 10" preserveAspectRatio="none"
+              style={{ position: 'absolute', bottom: 0, width: '100%', height: '100%' }}>
+              <motion.path
+                animate={{
+                  d: [
+                    'M0,9 C80,3 150,8 220,2 C275,0 305,7 320,4 L320,10 L0,10 Z',
+                    'M0,3 C90,8 160,3 230,9 C280,12 305,5 320,8 L320,10 L0,10 Z',
+                    'M0,6 C70,1 145,9 215,4 C270,0 300,8 320,3 L320,10 L0,10 Z',
+                    'M0,9 C80,3 150,8 220,2 C275,0 305,7 320,4 L320,10 L0,10 Z',
+                  ],
+                  opacity: [0.5, 0.85, 0.35, 0.5],
+                }}
+                transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 1.2 }}
+                fill="#F0A030"
+              />
+            </motion.svg>
+            {/* Red wave */}
+            <motion.svg viewBox="0 0 320 10" preserveAspectRatio="none"
+              style={{ position: 'absolute', bottom: 0, width: '100%', height: '100%' }}>
+              <motion.path
+                animate={{
+                  d: [
+                    'M0,5 C65,10 140,3 205,8 C260,12 300,4 320,9 L320,10 L0,10 Z',
+                    'M0,9 C75,4 145,10 210,3 C265,0 295,8 320,5 L320,10 L0,10 Z',
+                    'M0,3 C85,8 150,2 220,9 C270,13 305,5 320,7 L320,10 L0,10 Z',
+                    'M0,5 C65,10 140,3 205,8 C260,12 300,4 320,9 L320,10 L0,10 Z',
+                  ],
+                  opacity: [0.6, 0.25, 0.75, 0.6],
+                }}
+                transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 2.5 }}
+                fill="#F04858"
+              />
+            </motion.svg>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Purple wave strip — stopwatch/timer when running */}
+      <AnimatePresence>
+        {widgetId === 3 && pomoRunning && (
+          <motion.div
+            key="pomo-wave"
+            initial={{ height: 0 }}
+            animate={{ height: 10 }}
+            exit={{ height: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              position: 'absolute', bottom: 0, left: 0, right: 0,
+              overflow: 'hidden', borderRadius: '0 0 30px 30px',
+              pointerEvents: 'none',
+            }}
+          >
+            {/* Light violet wave */}
+            <motion.svg viewBox="0 0 320 10" preserveAspectRatio="none"
+              style={{ position: 'absolute', bottom: 0, width: '100%', height: '100%' }}>
+              <motion.path
+                animate={{
+                  d: [
+                    'M0,6 C65,1 135,10 205,4 C265,0 300,8 320,5 L320,10 L0,10 Z',
+                    'M0,3 C70,9 140,2 210,8 C268,12 298,4 320,7 L320,10 L0,10 Z',
+                    'M0,8 C55,2 125,10 195,3 C258,0 292,9 320,4 L320,10 L0,10 Z',
+                    'M0,6 C65,1 135,10 205,4 C265,0 300,8 320,5 L320,10 L0,10 Z',
+                  ],
+                  opacity: [0.9, 0.45, 0.85, 0.9],
+                }}
+                transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+                fill="#C4B5FD"
+              />
+            </motion.svg>
+            {/* Mid purple wave */}
+            <motion.svg viewBox="0 0 320 10" preserveAspectRatio="none"
+              style={{ position: 'absolute', bottom: 0, width: '100%', height: '100%' }}>
+              <motion.path
+                animate={{
+                  d: [
+                    'M0,9 C75,2 150,9 220,3 C272,0 302,7 320,4 L320,10 L0,10 Z',
+                    'M0,4 C85,10 155,3 225,9 C278,13 305,5 320,8 L320,10 L0,10 Z',
+                    'M0,7 C65,1 140,9 210,4 C268,0 298,8 320,3 L320,10 L0,10 Z',
+                    'M0,9 C75,2 150,9 220,3 C272,0 302,7 320,4 L320,10 L0,10 Z',
+                  ],
+                  opacity: [0.55, 0.9, 0.35, 0.55],
+                }}
+                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1.4 }}
+                fill="#7C3AED"
+              />
+            </motion.svg>
+            {/* Deep indigo wave */}
+            <motion.svg viewBox="0 0 320 10" preserveAspectRatio="none"
+              style={{ position: 'absolute', bottom: 0, width: '100%', height: '100%' }}>
+              <motion.path
+                animate={{
+                  d: [
+                    'M0,4 C60,10 135,2 200,8 C258,13 295,4 320,9 L320,10 L0,10 Z',
+                    'M0,8 C70,3 140,9 208,2 C262,0 292,8 320,4 L320,10 L0,10 Z',
+                    'M0,2 C80,8 148,2 218,9 C268,13 300,5 320,7 L320,10 L0,10 Z',
+                    'M0,4 C60,10 135,2 200,8 C258,13 295,4 320,9 L320,10 L0,10 Z',
+                  ],
+                  opacity: [0.65, 0.3, 0.8, 0.65],
+                }}
+                transition={{ duration: 7.5, repeat: Infinity, ease: 'easeInOut', delay: 2.8 }}
+                fill="#4C1D95"
+              />
+            </motion.svg>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Dots — only meaningful while collapsed (swipe navigates between widgets). */}
       {!expanded && (

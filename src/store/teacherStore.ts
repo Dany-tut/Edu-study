@@ -2,6 +2,17 @@ import { create } from 'zustand'
 
 export type TeacherPage = 'home' | 'groups' | 'homework' | 'homework-create' | 'homework-review' | 'lesson-editor' | 'gradebook' | 'constructor' | 'student'
 
+export type StudentTrainerStats = {
+  doneCount: number
+  wrongCount: number
+  totalCount: number
+  favCount: number
+  todayCorrect: number
+  todayWrong: number
+  subject: string
+  savedAt: number
+}
+
 export type HwReview = {
   verdict: 'accepted' | 'returned'
   score: number
@@ -56,6 +67,8 @@ type TeacherStore = {
   updateTask: (id: string, task: Omit<TeacherTask, 'id' | 'done'>) => void
   toggleTask: (id: string) => void
   removeTask: (id: string) => void
+  studentTrainerStats: StudentTrainerStats | null
+  saveStudentTrainerStats: (stats: Omit<StudentTrainerStats, 'savedAt'>) => void
 }
 
 const HASH_TO_PAGE: Record<string, TeacherPage> = {
@@ -107,4 +120,6 @@ export const useTeacher = create<TeacherStore>(set => ({
     tasks: s.tasks.map(t => t.id === id ? { ...t, done: !t.done } : t),
   })),
   removeTask: id => set(s => ({ tasks: s.tasks.filter(t => t.id !== id) })),
+  studentTrainerStats: null,
+  saveStudentTrainerStats: stats => set({ studentTrainerStats: { ...stats, savedAt: Date.now() } }),
 }))

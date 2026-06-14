@@ -151,6 +151,7 @@ export default function TeacherStudentDashboardPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const selectedStudentId = useTeacher(s => s.selectedStudentId)
   const selectedGroupId = useTeacher(s => s.selectedGroupId)
+  const studentTrainerStats = useTeacher(s => s.studentTrainerStats)
 
   const { groups } = useGroups()
   const { students } = useStudents(selectedGroupId)
@@ -177,9 +178,9 @@ export default function TeacherStudentDashboardPage() {
     )
   }
 
-  const totalTrainer = MOCK_TRAINER_SECTIONS.reduce((a, s) => a + s.total, 0)
-  const correctTrainer = MOCK_TRAINER_SECTIONS.reduce((a, s) => a + s.correct, 0)
-  const wrongTrainer = totalTrainer - correctTrainer
+  const totalTrainer = studentTrainerStats?.totalCount ?? MOCK_TRAINER_SECTIONS.reduce((a, s) => a + s.total, 0)
+  const correctTrainer = studentTrainerStats?.doneCount ?? MOCK_TRAINER_SECTIONS.reduce((a, s) => a + s.correct, 0)
+  const wrongTrainer = studentTrainerStats?.wrongCount ?? (totalTrainer - correctTrainer)
   const hwAvg = MOCK_HW_HISTORY.filter(h => !h.returned).reduce((a, h) => a + (h.score / h.maxScore) * 100, 0) / MOCK_HW_HISTORY.filter(h => !h.returned).length
   const attendedCount = MOCK_LESSONS.filter(l => l.attended).length
 

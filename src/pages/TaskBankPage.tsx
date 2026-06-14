@@ -312,8 +312,8 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {task.choices.map((c, i) => (
             <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)' }}>
-              <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--color-muted)' }}>{'АБВГДЕЖЗИК'[i]}</span>
-              <span style={{ fontSize: 14, color: 'var(--color-text)' }}>{c.text}</span>
+              <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: 'var(--color-muted)' }}>{'АБВГДЕЖЗИК'[i]}</span>
+              <span style={{ fontSize: 16, color: 'var(--color-text)' }}>{c.text}</span>
             </div>
           ))}
           <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{task.answerType === 'multi' ? 'Введите буквы всех верных вариантов, напр. АБГ' : 'Введите букву верного варианта'}</div>
@@ -327,16 +327,16 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {task.matchLeft.map((l, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)' }}>
-                  <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--color-muted)' }}>{'АБВГДЕЖЗИК'[i]}</span>
-                  <span style={{ fontSize: 14, color: 'var(--color-text)' }}>{l}</span>
+                  <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: 'var(--color-muted)' }}>{'АБВГДЕЖЗИК'[i]}</span>
+                  <span style={{ fontSize: 16, color: 'var(--color-text)' }}>{l}</span>
                 </div>
               ))}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {task.matchRight.map((r, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)' }}>
-                  <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--color-muted)' }}>{i + 1}</span>
-                  <span style={{ fontSize: 14, color: 'var(--color-text)' }}>{r}</span>
+                  <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: 'var(--color-muted)' }}>{i + 1}</span>
+                  <span style={{ fontSize: 16, color: 'var(--color-text)' }}>{r}</span>
                 </div>
               ))}
             </div>
@@ -351,8 +351,8 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {[...task.sequenceItems].sort((a, b) => a.localeCompare(b, 'ru')).map((s, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)' }}>
-                <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--color-muted)' }}>{i + 1}</span>
-                <span style={{ fontSize: 14, color: 'var(--color-text)' }}>{s}</span>
+                <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: 'var(--color-muted)' }}>{i + 1}</span>
+                <span style={{ fontSize: 16, color: 'var(--color-text)' }}>{s}</span>
               </div>
             ))}
           </div>
@@ -407,7 +407,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                 display: 'flex', alignItems: 'center', gap: 6, padding: '11px 20px', borderRadius: 16,
                 background: palette.accent, color: palette.onAccent,
                 border: 'none', outline: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                boxShadow: `0 8px 20px ${palette.ring}`,
+                boxShadow: `inset 0 0 0 999px rgba(0,0,0,0.30), 0 8px 20px ${palette.ring}`,
                 transition: 'all 0.18s ease',
               }}>
                 <CheckCircle2 size={14} />Проверить
@@ -415,7 +415,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               <button onClick={() => setShowSolution(s => !s)} style={{
                 display: 'flex', alignItems: 'center', gap: 6, padding: '11px 18px', borderRadius: 16,
                 background: showSolution ? palette.soft : 'rgba(var(--glass-rgb), 0.88)',
-                border: `1px solid ${showSolution ? palette.accent : 'var(--color-border-medium)'}`,
+                border: showSolution ? 'none' : '1px solid var(--color-border-medium)',
                 outline: 'none',
                 fontSize: 13, cursor: 'pointer', color: showSolution ? palette.text : 'var(--color-muted)', fontWeight: showSolution ? 700 : 500,
               }}>
