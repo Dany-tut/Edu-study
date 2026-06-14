@@ -906,13 +906,14 @@ function WidgetEditor({
 
 // Shared card shell used by all three tab types.
 // accentColor may be hex (#3EC87A) or a CSS var — icon box and glow use accentBg to stay safe.
-function ContentCard({ accentColor, accentBg, isSelected, onClick, icon, badge, title, subtitle, footerLeft, footerRight, extra }: {
+function ContentCard({ accentColor, accentBg, isSelected, onClick, icon, iconBg, badge, title, subtitle, footerLeft, footerRight, extra }: {
   accentColor: string
   accentBg: string
   isSelected: boolean
   onClick: () => void
   icon: React.ReactNode
-  badge?: React.ReactNode  // pass a pre-styled element; no wrapper styles added
+  iconBg?: string
+  badge?: React.ReactNode
   title: string
   subtitle: React.ReactNode
   footerLeft: React.ReactNode
@@ -932,7 +933,7 @@ function ContentCard({ accentColor, accentBg, isSelected, onClick, icon, badge, 
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 12, background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ width: 36, height: 36, borderRadius: 12, background: iconBg ?? 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           {icon}
         </div>
         {badge}
@@ -3539,6 +3540,7 @@ function DiagnosticCard({ subject, isSelected, onClick }: { subject: DiagSubject
     <ContentCard
       accentColor={accent} accentBg={accent + '14'}
       isSelected={isSelected} onClick={onClick}
+      iconBg={soft}
       icon={<Icon size={17} strokeWidth={2} style={{ color: accent }} />}
       badge={<span style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: 'var(--color-accent)', borderRadius: 999, padding: '3px 10px' }}>Диагностика</span>}
       title={label}
@@ -3956,9 +3958,9 @@ export default function TeacherConstructorPage() {
   }
 
   const tabCfg = {
-    course:  { label: 'Курс',     Icon: BookOpen, color: 'var(--color-accent)', bg: 'var(--color-purple-soft)' },
-    trainer: { label: 'Тренажёр', Icon: Zap,      color: 'var(--color-accent)', bg: 'var(--color-purple-soft)' },
-    widget:  { label: 'Виджет',   Icon: Layers,   color: 'var(--color-accent)', bg: 'var(--color-purple-soft)' },
+    course:  { label: 'Курс',     Icon: BookOpen, color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)' },
+    trainer: { label: 'Тренажёр', Icon: Zap,      color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)' },
+    widget:  { label: 'Виджет',   Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
   }
   const isTestingActive = activeTab === 'testing'
 
@@ -4129,14 +4131,14 @@ export default function TeacherConstructorPage() {
               </div>
 
               {/* Inline results table — appears below cards on first click */}
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                 {activeTab === 'testing' && selectedId && (
                   <motion.div
                     key={`table-${selectedId}`}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0, marginRight: selectedResultId ? 368 : 0 }}
-                    exit={{ opacity: 0, y: 8 }}
-                    transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1, marginRight: selectedResultId ? 368 : 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
                   >
                     <DiagResultsTable
                       subject={selectedId as DiagSubject}
