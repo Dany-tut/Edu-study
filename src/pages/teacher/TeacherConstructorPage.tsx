@@ -3526,8 +3526,8 @@ function DiagnosticEditorFullPage({ subject, onClose }: { subject: DiagSubject; 
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
 
           {/* LEFT: question list — sticky glass card */}
-          <div style={{ padding: '0 0 20px 24px', flexShrink: 0, position: 'sticky', top: 20 }}>
-            <GlassCard style={{ width: 230, boxSizing: 'border-box', padding: 12, display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' }}>
+          <div style={{ padding: '0 0 20px 24px', flexShrink: 0, position: 'sticky', top: 110, alignSelf: 'flex-start' }}>
+            <GlassCard style={{ width: 230, boxSizing: 'border-box', padding: 12, display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 'calc(100vh - 180px)', overflowY: 'auto' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', padding: '2px 4px 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {questions.length} вопросов
               </div>
@@ -3642,7 +3642,6 @@ function DiagnosticCard({ subject, isSelected, onClick }: { subject: DiagSubject
     <ContentCard
       accentColor={accent} accentBg={accent + '14'}
       isSelected={isSelected} onClick={onClick}
-      iconBg={soft}
       icon={<Icon size={17} strokeWidth={2} style={{ color: accent }} />}
       badge={<span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-purple-text,#7B3FCC)', background: 'var(--color-purple-soft)', borderRadius: 7, padding: '2px 8px' }}>Диагностика</span>}
       title={label}
