@@ -3456,72 +3456,108 @@ function DiagnosticEditorFullPage({ subject, onClose }: { subject: DiagSubject; 
   return (
     <motion.div
       key={`diag-editor-${subject}`}
-      initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
-      style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      style={{ flex: 1, display: 'flex', minWidth: 0, overflow: 'hidden', position: 'relative' }}
     >
-      <div style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', padding: '100px 32px 48px', display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 760, width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
+      {/* Main scrollable area — full width, shifts right when editing */}
+      <motion.div
+        animate={{ marginRight: editIdx !== null ? 360 : 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 32 }}
+        style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', padding: '100px 32px 48px', display: 'flex', flexDirection: 'column', gap: 20 }}
+      >
         {/* Back */}
-        <motion.button
-          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-          onClick={onClose}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.9)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', alignSelf: 'flex-start' }}
-        >
-          <ArrowLeft size={15} strokeWidth={2} /> Назад
-        </motion.button>
-
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 14, background: soft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Icon size={22} style={{ color: accent }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <motion.button
+            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
+            onClick={onClose}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.9)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+          >
+            <ArrowLeft size={15} strokeWidth={2} /> Назад
+          </motion.button>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: soft, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon size={20} style={{ color: accent }} />
           </div>
-          <div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)' }}>Редактор: {label}</div>
-            <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{questions.length} вопросов · редактируй, удаляй, меняй ответы</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>Редактор: {label}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>{questions.length} вопросов · нажми «Ред.» чтобы изменить</div>
           </div>
-          <button onClick={resetToDefault} style={{ marginLeft: 'auto', padding: '8px 16px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={resetToDefault} style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>
             Сбросить к стандарту
           </button>
         </div>
 
-        {/* Questions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {/* Questions list */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {questions.map((q, idx) => (
-            <div key={q.id} style={{ borderRadius: 14, border: `1px solid ${editIdx === idx ? accent : 'var(--color-border)'}`, background: editIdx === idx ? `${accent}08` : 'rgba(var(--glass-rgb),0.85)', overflow: 'hidden' }}>
-              {editIdx === idx ? (
-                <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <textarea value={editText} onChange={e => setEditText(e.target.value)} rows={3}
-                    style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 10, border: `1.5px solid ${accent}55`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', resize: 'vertical', outline: 'none' }} />
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {editOpts.map((opt, oi) => (
-                      <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <button onClick={() => setEditCorrect(oi)} style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'transparent' }} />
-                        <input value={opt} onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o) }}
-                          style={{ flex: 1, padding: '7px 12px', borderRadius: 10, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }} />
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                    <button onClick={() => setEditIdx(null)} style={{ padding: '7px 14px', borderRadius: 9, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Отмена</button>
-                    <button onClick={commitEdit} style={{ padding: '7px 16px', borderRadius: 9, border: 'none', background: accent, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}><Check size={13} />Сохранить</button>
-                  </div>
+            <motion.div
+              key={q.id}
+              animate={{ background: editIdx === idx ? `${accent}0d` : 'rgba(var(--glass-rgb),0.85)', borderColor: editIdx === idx ? accent : 'var(--color-border)' }}
+              style={{ borderRadius: 14, border: `1px solid`, overflow: 'hidden' }}
+            >
+              <div style={{ padding: '12px 18px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? '#fff' : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, marginTop: 1, transition: 'all 0.15s' }}>{idx + 1}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', marginBottom: 3, lineHeight: 1.4 }}>{q.text}</div>
+                  <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>✓ {q.options[q.correct]}</div>
                 </div>
-              ) : (
-                <div style={{ padding: '12px 18px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                  <div style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, marginTop: 1 }}>{idx + 1}</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', marginBottom: 4 }}>{q.text}</div>
-                    <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>✓ {q.options[q.correct]}</div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
-                    <button onClick={() => startEdit(idx)} style={{ padding: '5px 10px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Ред.</button>
-                    <button onClick={() => removeQuestion(idx)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={12} /></button>
-                  </div>
+                <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+                  <button
+                    onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
+                    style={{ padding: '5px 10px', borderRadius: 8, border: `1px solid ${editIdx === idx ? accent : 'var(--color-border)'}`, background: editIdx === idx ? soft : 'var(--color-bg-3)', color: editIdx === idx ? accent : 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}
+                  >
+                    {editIdx === idx ? 'Закрыть' : 'Ред.'}
+                  </button>
+                  <button onClick={() => removeQuestion(idx)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={12} /></button>
                 </div>
-              )}
-            </div>
+              </div>
+            </motion.div>
           ))}
         </div>
-      </div>
+      </motion.div>
+
+      {/* Right edit panel — slides in when a question is selected */}
+      <AnimatePresence>
+        {editIdx !== null && (
+          <motion.div
+            initial={{ x: 360, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 360, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 32 }}
+            style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 340, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: `1px solid ${accent}44`, boxShadow: '0 10px 34px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+          >
+            <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--color-border-soft)', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, flexShrink: 0 }}>{editIdx + 1}</div>
+              <div style={{ flex: 1, fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Редактирование</div>
+              <button onClick={() => setEditIdx(null)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={14} /></button>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Вопрос</div>
+                <textarea value={editText} onChange={e => setEditText(e.target.value)} rows={4}
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 10, border: `1.5px solid ${accent}55`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', resize: 'vertical', outline: 'none' }} />
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Варианты ответов</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                  {editOpts.map((opt, oi) => (
+                    <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <button
+                        onClick={() => setEditCorrect(oi)}
+                        title="Правильный ответ"
+                        style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'transparent', transition: 'all 0.14s' }}
+                      />
+                      <input value={opt} onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o) }}
+                        style={{ flex: 1, padding: '7px 10px', borderRadius: 9, border: `1.5px solid ${editCorrect === oi ? accent + '55' : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none', transition: 'border-color 0.14s' }} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div style={{ padding: '12px 18px', borderTop: '1px solid var(--color-border-soft)', display: 'flex', gap: 8 }}>
+              <button onClick={() => setEditIdx(null)} style={{ flex: 1, padding: '9px', borderRadius: 10, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Отмена</button>
+              <button onClick={commitEdit} style={{ flex: 2, padding: '9px', borderRadius: 10, border: 'none', background: accent, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Check size={14} />Сохранить</button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }
@@ -3542,7 +3578,7 @@ function DiagnosticCard({ subject, isSelected, onClick }: { subject: DiagSubject
       isSelected={isSelected} onClick={onClick}
       iconBg={soft}
       icon={<Icon size={17} strokeWidth={2} style={{ color: accent }} />}
-      badge={<span style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: 'var(--color-accent)', borderRadius: 999, padding: '3px 10px' }}>Диагностика</span>}
+      badge={<span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-purple-text,#7B3FCC)', background: 'var(--color-purple-soft)', borderRadius: 7, padding: '2px 8px' }}>Диагностика</span>}
       title={label}
       subtitle={`${questions.length} вопросов`}
       footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount > 0 ? `${anonCount} прошли тест` : 'Нет сдач'}</span></>}
