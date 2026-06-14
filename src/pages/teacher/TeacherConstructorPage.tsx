@@ -3540,7 +3540,7 @@ function DiagnosticCard({ subject, isSelected, onClick }: { subject: DiagSubject
       accentColor={accent} accentBg={accent + '14'}
       isSelected={isSelected} onClick={onClick}
       icon={<Icon size={17} strokeWidth={2} style={{ color: accent }} />}
-      badge={<span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-accent)', background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: 999, padding: '3px 10px' }}>Диагностика</span>}
+      badge={<span style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: 'var(--color-accent)', borderRadius: 999, padding: '3px 10px' }}>Диагностика</span>}
       title={label}
       subtitle={`${questions.length} вопросов`}
       footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount > 0 ? `${anonCount} прошли тест` : 'Нет сдач'}</span></>}
@@ -4143,7 +4143,7 @@ export default function TeacherConstructorPage() {
                       results={diagAnonResults.filter(r => r.subject === selectedId)}
                       selectedResultId={selectedResultId}
                       onSelectResult={id => setSelectedResultId(prev => prev === id ? null : id)}
-                      onOpenEditor={() => openDiagCard(selectedId as DiagSubject)}
+                      onOpenEditor={() => {}}
                       onRefresh={() => loadAnonResults().then(setDiagAnonResults)}
                     />
                   </motion.div>
@@ -4156,6 +4156,13 @@ export default function TeacherConstructorPage() {
                 <CourseEditor key={selectedCourse.id} course={selectedCourse} trainers={trainers} widgets={widgets}
                   onSave={c => setCourses(prev => prev.map(x => x.id === c.id ? c : x))} onClose={closeEditor}
                   onExpand={() => handleExpandCourse(selectedCourse)} />
+              )}
+              {activeTab === 'testing' && selectedId && !selectedResultId && (
+                <DiagnosticEditorPanel
+                  key={`diag-panel-${selectedId}`}
+                  subject={selectedId as DiagSubject}
+                  onClose={closeEditor}
+                />
               )}
               {activeTab === 'testing' && selectedResultId && (() => {
                 const result = diagAnonResults.find(r => r.id === selectedResultId)
