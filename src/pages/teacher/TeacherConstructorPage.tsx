@@ -3868,10 +3868,17 @@ export default function TeacherConstructorPage() {
 
   function openItem(id: string) { setSelectedId(prev => prev === id ? null : id) }
   function openDiagCard(subject: DiagSubject) {
-    setSelectedId(prev => prev === subject ? null : subject)
-    setSelectedResultId(null)
-    setDiagEditing(null)
-    loadAnonResults().then(setDiagAnonResults)
+    if (selectedId === subject) {
+      // second click on same card → open full-page editor
+      setDiagEditing(subject)
+      setSelectedId(null)
+      setSelectedResultId(null)
+    } else {
+      setSelectedId(subject)
+      setSelectedResultId(null)
+      setDiagEditing(null)
+      loadAnonResults().then(setDiagAnonResults)
+    }
   }
   function closeEditor() { setSelectedId(null); setDiagEditing(null); setSelectedResultId(null) }
 
