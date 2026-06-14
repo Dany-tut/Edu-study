@@ -62,7 +62,14 @@ export default function TeacherSelect({
   const closeDropdown = () => { setOpen(false); setQuery('') }
 
   const handleTriggerClick = () => {
-    if (open) { closeDropdown(); return }
+    if (open) {
+      // Always close; if something was selected, also clear it
+      if (!isEmpty) onChange('')
+      closeDropdown()
+      return
+    }
+    // Closed: if something selected, clear it before opening so user can search fresh
+    if (!isEmpty) onChange('')
     openDropdown()
   }
 
@@ -113,8 +120,8 @@ export default function TeacherSelect({
             ref={inputRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder={current ? current.label : (placeholder ?? '')}
-            onClick={e => { if (open) { closeDropdown(); e.stopPropagation() } }}
+            placeholder={placeholder ?? ''}
+            onClick={e => e.stopPropagation()}
             style={{
               flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
               fontSize: small ? 11 : 13, color: 'var(--color-text)', fontFamily: 'inherit',

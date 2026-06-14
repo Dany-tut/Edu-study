@@ -184,16 +184,8 @@ export default function TeacherStudentDashboardPage() {
   const attendedCount = MOCK_LESSONS.filter(l => l.attended).length
 
   return (
-    <motion.div
-      ref={scrollRef}
-      onScroll={onScroll}
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.22 }}
-      style={{ flex: 1, overflowY: 'auto', marginTop: -100, paddingTop: 100, minHeight: 0 }}
-    >
-      {/* Floating side buttons — visible after scroll */}
+    <>
+      {/* Floating side buttons — outside motion.div so position:fixed works vs viewport */}
       <AnimatePresence>
         {scrolled && (
           <>
@@ -243,6 +235,16 @@ export default function TeacherStudentDashboardPage() {
           </>
         )}
       </AnimatePresence>
+
+      <motion.div
+        ref={scrollRef}
+        onScroll={onScroll}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.22 }}
+        style={{ flex: 1, overflowY: 'auto', marginTop: -100, paddingTop: 100, minHeight: 0 }}
+      >
       {/* Hidden print container */}
       <div id="student-dashboard-print" style={{ display: 'none', fontFamily: 'system-ui, sans-serif', color: '#111' }}>
         <h1 style={{ fontSize: 22, marginBottom: 4 }}>{student.name}</h1>
@@ -668,5 +670,6 @@ export default function TeacherStudentDashboardPage() {
         </div>
       </div>
     </motion.div>
+    </>
   )
 }

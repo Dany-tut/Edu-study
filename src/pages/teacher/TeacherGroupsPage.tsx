@@ -1391,7 +1391,7 @@ export default function TeacherGroupsPage() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 340, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
-            style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 332, zIndex: 10 }}
+            style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 332, zIndex: 10, display: 'flex', flexDirection: 'column' }}
           >
             <StudentPanel
               student={activeStudent}

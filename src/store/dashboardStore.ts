@@ -346,6 +346,13 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
     pomoFocusDuration: state.pomoFocusDuration,
     lessonAssessments: state.lessonAssessments,
   }),
+  merge: (persisted: unknown, current) => {
+    const p = persisted as Partial<DashboardState>
+    const saved = p?.widgetOrder ?? DEFAULT_WIDGET_ORDER
+    // Append any widget IDs added since the user's stored order was saved
+    const missing = DEFAULT_WIDGET_ORDER.filter(id => !saved.includes(id))
+    return { ...current, ...p, widgetOrder: [...saved, ...missing] }
+  },
 }))
 
 // Module-level interval so the countdown survives the widget unmounting when the

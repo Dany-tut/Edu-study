@@ -337,13 +337,13 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
         boxShadow: '0 8px 40px rgba(0,0,0,0.10)',
       }}
     >
-      <div style={{ padding: '18px 18px 14px', background: group.colorSoft, borderBottom: `1px solid ${group.color}33`, flexShrink: 0, borderTopLeftRadius: 19, borderTopRightRadius: 19 }}>
+      <div style={{ padding: '18px 18px 14px', background: group.color + '1A', borderBottom: `1px solid ${group.color}33`, flexShrink: 0, borderTopLeftRadius: 19, borderTopRightRadius: 19 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 6 }}>{hw.title}</div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: group.color + '33', borderRadius: 7, padding: '2px 8px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: group.color + '28', borderRadius: 7, padding: '2px 8px' }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
-              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{hw.groupName}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: group.color }}>{hw.groupName}</span>
             </div>
           </div>
           <button onClick={onClose} style={{
@@ -359,14 +359,14 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {[
-            { label: 'Назначено', value: hw.assignedAt, icon: Clock, color: 'var(--color-muted)', bg: 'var(--color-bg)' },
-            { label: 'Дедлайн', value: hw.dueDate, icon: AlertCircle, color: 'var(--color-peach-text)', bg: 'var(--color-peach-soft)' },
-            { label: 'Сдали', value: `${hw.submittedCount}/${hw.totalCount}`, icon: ClipboardCheck, color: '#7B3FCC', bg: 'var(--color-purple-soft)' },
-            { label: 'Проверено', value: `${hw.reviewedCount}/${hw.submittedCount}`, icon: CheckCircle2, color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
+            { label: 'Назначено', value: hw.assignedAt, icon: Clock, color: 'var(--color-muted)', labelColor: 'var(--color-muted)', bg: 'var(--color-bg)' },
+            { label: 'Дедлайн', value: hw.dueDate, icon: AlertCircle, color: 'var(--color-peach-text)', labelColor: 'var(--color-peach-text)', bg: 'var(--color-peach-soft)' },
+            { label: 'Сдали', value: `${hw.submittedCount}/${hw.totalCount}`, icon: ClipboardCheck, color: '#9B6DFF', labelColor: '#9B6DFF', bg: 'var(--color-purple-soft)' },
+            { label: 'Проверено', value: `${hw.reviewedCount}/${hw.submittedCount}`, icon: CheckCircle2, color: 'var(--color-green-text)', labelColor: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
           ].map(item => (
             <div key={item.label} style={{ background: item.bg, borderRadius: 12, padding: '10px 12px' }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: item.color, marginBottom: 4 }}>{item.label}</div>
-              <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)' }}>{item.value}</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: item.labelColor, opacity: 0.75, marginBottom: 4 }}>{item.label}</div>
+              <div style={{ fontSize: 16, fontWeight: 750, color: item.color }}>{item.value}</div>
             </div>
           ))}
         </div>
@@ -412,7 +412,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
                 }}>
                   <div style={{
                     width: 26, height: 26, borderRadius: 8, flexShrink: 0,
-                    background: group.color,
+                    background: group.color + '99',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 9, fontWeight: 700, color: '#fff',
                   }}>

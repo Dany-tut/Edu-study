@@ -12,8 +12,9 @@ import {
   AlignLeft, Pencil, ClipboardCopy, Target, ChevronDown, ChevronUp,
   CheckCircle, Circle,
 } from 'lucide-react'
+import RichConditionEditor from '../../components/teacher/RichConditionEditor'
 import {
-  loadDiagQuestions, saveDiagQuestions,
+  loadDiagQuestions, fetchDiagQuestions, saveDiagQuestions,
   loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult,
   type DiagQuestion, type DiagSubject, type AnonDiagResult,
   DEFAULT_QUESTIONS,
@@ -25,7 +26,6 @@ import { TrainerBankBrowser, TrainerBankFilterPanel, emptyTrainerFilters, type T
 import { useCourseLessons } from '../../lib/useCourseLessons'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
-import { useTheme } from '../../store/themeStore'
 import {
   type AnswerType, type Task as BankTask, type TaskChoice, type Subject,
   BIOLOGY_SECTIONS, CHEMISTRY_SECTIONS,
@@ -1055,426 +1055,6 @@ function TabBtn({ tab, activeTab, label, icon: Icon, color, bg, onClick, onPlus 
 }
 
 // ─── Rich text toolbar button ─────────────────────────────────────────────────
-function ToolbarBtn({ children, onClick, title, active }: {
-  children: React.ReactNode; onClick: () => void; title: string; active?: boolean
-}) {
-  return (
-    <button
-      title={title}
-      onMouseDown={e => { e.preventDefault(); onClick() }}
-      style={{
-        width: 28, height: 28, borderRadius: 7, border: 'none', cursor: 'pointer',
-        background: active ? 'var(--color-bg-3)' : 'transparent',
-        color: active ? 'var(--color-text)' : 'var(--color-text-2)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        transition: 'background 0.1s',
-        flexShrink: 0,
-      }}
-      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--color-bg-3)' }}
-      onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
-    >
-      {children}
-    </button>
-  )
-}
-
-// ─── Rich condition editor (contentEditable + floating toolbar) ────────────────
-const HIGHLIGHT_COLORS = [
-  { hex: '#FFD700', label: 'Жёлтый' },
-  { hex: '#FF8787', label: 'Красный' },
-  { hex: '#74C0FC', label: 'Синий' },
-  { hex: '#69DB7C', label: 'Зелёный' },
-  { hex: '#FFA94D', label: 'Оранжевый' },
-]
-
-function hexToRgba(hex: string, alpha: number) {
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`
-}
-const FONT_SIZES = ['12', '14', '16', '18', '20', '24', '28']
-
-function RichConditionEditor({
-  value, onChange, inputSt,
-}: {
-  value: string
-  onChange: (html: string) => void
-  inputSt: React.CSSProperties
-}) {
-  const editorRef = useRef<HTMLDivElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const sizeBtnRef = useRef<HTMLButtonElement>(null)
-  const [focused, setFocused] = useState(false)
-  const [fontSize, setFontSize] = useState('16')
-  const [sizeOpen, setSizeOpen] = useState(false)
-  const [sizeDropPos, setSizeDropPos] = useState({ top: 0, left: 0 })
-  const sizeDropRef = useRef<HTMLDivElement>(null)
-
-  const lastHtmlRef = useRef('')
-  const savedRangeRef = useRef<Range | null>(null)
-
-  useEffect(() => {
-    if (!sizeOpen) return
-    const handler = (e: MouseEvent) => {
-      if (
-        sizeBtnRef.current?.contains(e.target as Node) ||
-        sizeDropRef.current?.contains(e.target as Node)
-      ) return
-      setSizeOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [sizeOpen])
-  const dark = useTheme(s => s.dark)
-  const hlAlpha = dark ? 0.3 : 0.8
-
-  // Sync external resets (e.g. clear form) without blowing up the cursor
-  useEffect(() => {
-    if (!editorRef.current) return
-    if (value !== lastHtmlRef.current && value !== editorRef.current.innerHTML) {
-      editorRef.current.innerHTML = value
-      lastHtmlRef.current = value
-    }
-  }, [value])
-
-  const emit = () => {
-    if (!editorRef.current) return
-    const html = editorRef.current.innerHTML
-    lastHtmlRef.current = html
-    onChange(html)
-  }
-
-  const exec = (cmd: string, val?: string) => {
-    editorRef.current?.focus()
-    document.execCommand(cmd, false, val)
-    emit()
-  }
-
-  const selectedImgRef = useRef<HTMLImageElement | null>(null)
-
-  const inScript = () =>
-    document.queryCommandState('superscript') || document.queryCommandState('subscript')
-
-  const exitScript = () => {
-    if (document.queryCommandState('superscript')) exec('superscript')
-    if (document.queryCommandState('subscript'))   exec('subscript')
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    // Delete selected image
-    if ((e.key === 'Delete' || e.key === 'Backspace') && selectedImgRef.current) {
-      e.preventDefault()
-      selectedImgRef.current.remove()
-      selectedImgRef.current = null
-      emit()
-      return
-    }
-    // ↑ = superscript mode, ↓ = subscript mode
-    if (e.key === 'ArrowUp')   { e.preventDefault(); exitScript(); exec('superscript'); return }
-    if (e.key === 'ArrowDown') { e.preventDefault(); exitScript(); exec('subscript');   return }
-    // Space (first press) = exit super/sub without inserting space
-    if (e.key === ' ' && inScript()) { e.preventDefault(); exitScript(); return }
-    // → = exit super/sub, cursor stays
-    if (e.key === 'ArrowRight' && inScript()) { e.preventDefault(); exitScript(); return }
-    // Escape = exit
-    if (e.key === 'Escape' && inScript()) { e.preventDefault(); exitScript(); return }
-  }
-
-
-  const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLElement
-    if (target.tagName === 'IMG') {
-      // Deselect previous
-      if (selectedImgRef.current && selectedImgRef.current !== target) {
-        selectedImgRef.current.style.outline = ''
-      }
-      const img = target as HTMLImageElement
-      img.style.outline = '2.5px solid var(--color-accent)'
-      selectedImgRef.current = img
-    } else {
-      // Click elsewhere — deselect
-      if (selectedImgRef.current) {
-        selectedImgRef.current.style.outline = ''
-        selectedImgRef.current = null
-      }
-    }
-  }
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
-    // Image paste (Ctrl+V image from clipboard)
-    const items = Array.from(e.clipboardData?.items ?? [])
-    const imgItem = items.find(it => it.type.startsWith('image/'))
-    if (imgItem) {
-      e.preventDefault()
-      const file = imgItem.getAsFile()
-      if (!file) return
-      // Save range BEFORE async FileReader (selection is lost in onload)
-      const sel = window.getSelection()
-      const savedRange = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).cloneRange() : null
-      insertImageFile(file, savedRange)
-      return
-    }
-    // Plain text paste — strip HTML from clipboard
-    e.preventDefault()
-    const text = e.clipboardData.getData('text/plain')
-    document.execCommand('insertText', false, text)
-    emit()
-  }
-
-  const insertImageFile = (file: File, savedRange?: Range | null) => {
-    const reader = new FileReader()
-    reader.onload = ev => {
-      const src = ev.target?.result as string
-      editorRef.current?.focus()
-      const sel = window.getSelection()
-      if (!sel) return
-      // Restore saved range or use current
-      const range = savedRange ?? (sel.rangeCount > 0 ? sel.getRangeAt(0) : null)
-      if (!range) return
-      sel.removeAllRanges()
-      sel.addRange(range)
-      range.deleteContents()
-      const img = document.createElement('img')
-      img.src = src
-      img.style.maxWidth = '100%'
-      img.style.borderRadius = '8px'
-      img.style.marginTop = '6px'
-      img.style.display = 'block'
-      img.style.cursor = 'pointer'
-      range.insertNode(img)
-      range.setStartAfter(img)
-      range.setEndAfter(img)
-      sel.removeAllRanges()
-      sel.addRange(range)
-      emit()
-    }
-    reader.readAsDataURL(file)
-  }
-
-  const applyFontSize = (size: string) => {
-    setFontSize(size)
-    editorRef.current?.focus()
-    // Restore the saved selection (it may have been cleared when the dropdown opened)
-    const sel = window.getSelection()
-    if (!sel) return
-    const range = savedRangeRef.current
-    if (!range) return
-    sel.removeAllRanges()
-    sel.addRange(range)
-    if (sel.isCollapsed) { emit(); return }
-    // Wrap selection in a span with the desired size
-    try {
-      const span = document.createElement('span')
-      span.style.fontSize = `${size}px`
-      range.surroundContents(span)
-    } catch {
-      // surroundContents throws on partial tag selection — fall back to execCommand
-      document.execCommand('fontSize', false, '4')
-      // override the <font> size with real px via querySelectorAll
-      editorRef.current?.querySelectorAll('font[size="4"]').forEach(el => {
-        const f = el as HTMLElement
-        f.removeAttribute('size')
-        f.style.fontSize = `${size}px`
-      })
-    }
-    emit()
-  }
-
-  const isEmpty = !value || value === '<br>' || value === ''
-  const divider = <div style={{ width: 1, height: 20, background: 'var(--color-border-medium)', margin: '0 3px', flexShrink: 0 }} />
-
-  return (
-    <div style={{ position: 'relative' }}>
-      {/* Placeholder overlay */}
-      {isEmpty && !focused && (
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0,
-          padding: '12px 16px', fontSize: 16, lineHeight: 1.6,
-          color: 'var(--color-text-4)', pointerEvents: 'none', zIndex: 1,
-        }}>
-          Введите текст задания…
-        </div>
-      )}
-
-      {/* Editor */}
-      <div
-        ref={editorRef}
-        contentEditable
-        suppressContentEditableWarning
-        onInput={emit}
-        onFocus={() => setFocused(true)}
-        onBlur={() => { emit(); setTimeout(() => setFocused(false), 200) }}
-        onClick={handleEditorClick}
-        onKeyDown={handleKeyDown}
-
-        onPaste={handlePaste}
-        style={{
-          ...(inputSt as React.CSSProperties),
-          minHeight: 120,
-          fontSize: 16,
-          padding: '12px 16px',
-          paddingBottom: focused ? 56 : 12,
-          lineHeight: 1.6,
-          overflowY: 'auto',
-          wordBreak: 'break-word',
-          transition: 'padding-bottom 0.18s ease',
-          cursor: 'text',
-          resize: 'vertical',
-        }}
-      />
-
-      {/* Floating toolbar */}
-      <AnimatePresence>
-        {focused && (
-          <motion.div
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 5 }}
-            transition={{ duration: 0.14 }}
-            onMouseDown={e => e.preventDefault()}
-            style={{
-              position: 'absolute', bottom: 8, left: 8, right: 8,
-              height: 40, display: 'flex', alignItems: 'center', gap: 1,
-              background: 'var(--color-bg-2)',
-              borderRadius: 10,
-              border: '1px solid var(--color-border-medium)',
-              padding: '0 6px',
-              zIndex: 20,
-              boxShadow: '0 2px 14px rgba(0,0,0,0.18)',
-              flexWrap: 'nowrap', overflowX: 'auto',
-            }}
-          >
-            {/* Font size custom picker — toggle via onClick (safe: parent onMouseDown handles focus) */}
-            <div
-              style={{ position: 'relative', flexShrink: 0 }}
-            >
-              <button
-                ref={sizeBtnRef}
-                onMouseDown={e => {
-                  e.preventDefault()
-                  const sel = window.getSelection()
-                  savedRangeRef.current = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).cloneRange() : null
-                  if (!sizeOpen && sizeBtnRef.current) {
-                    const r = sizeBtnRef.current.getBoundingClientRect()
-                    setSizeDropPos({ top: r.bottom + 6, left: r.left })
-                  }
-                  setSizeOpen(o => !o)
-                }}
-                style={{
-                  height: 28, padding: '0 8px', borderRadius: 7,
-                  border: 'none', outline: 'none',
-                  background: sizeOpen ? 'var(--color-bg-3)' : 'var(--color-bg-input)',
-                  color: 'var(--color-text)', fontSize: 12,
-                  cursor: 'pointer', fontFamily: 'inherit', display: 'flex',
-                  alignItems: 'center', gap: 4, whiteSpace: 'nowrap',
-                }}
-              >
-                {fontSize}px <span style={{ fontSize: 9, opacity: 0.5 }}>▾</span>
-              </button>
-              {sizeOpen && createPortal(
-                <div ref={sizeDropRef} style={{
-                  position: 'fixed', top: sizeDropPos.top, left: sizeDropPos.left,
-                  background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)',
-                  borderRadius: 10, padding: '4px', zIndex: 9999,
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-                  display: 'flex', flexDirection: 'column', gap: 1, minWidth: 70,
-                }}>
-                  {FONT_SIZES.map(s => (
-                    <button key={s}
-                      onMouseDown={e => { e.preventDefault(); applyFontSize(s); setSizeOpen(false) }}
-                      style={{
-                        padding: '5px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
-                        background: fontSize === s ? 'var(--color-bg-3)' : 'transparent',
-                        color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit',
-                        textAlign: 'left', fontWeight: fontSize === s ? 700 : 400,
-                      }}
-                    >
-                      {s}px
-                    </button>
-                  ))}
-                </div>,
-                document.body
-              )}
-            </div>
-
-            {divider}
-
-            <ToolbarBtn title="Жирный (Ctrl+B)" onClick={() => exec('bold')}>
-              <span style={{ fontWeight: 800, fontSize: 13, lineHeight: 1 }}>B</span>
-            </ToolbarBtn>
-            <ToolbarBtn title="Курсив (Ctrl+I)" onClick={() => exec('italic')}>
-              <span style={{ fontStyle: 'italic', fontSize: 13, lineHeight: 1 }}>I</span>
-            </ToolbarBtn>
-            <ToolbarBtn title="Подчёркнутый (Ctrl+U)" onClick={() => exec('underline')}>
-              <span style={{ textDecoration: 'underline', fontSize: 13, lineHeight: 1 }}>U</span>
-            </ToolbarBtn>
-
-            {divider}
-
-            <ToolbarBtn title="Надстрочный (↑ чтобы войти, пробел/→ выйти)" onClick={() => exec('superscript')}>
-              <span style={{ fontSize: 12, lineHeight: 1, fontFamily: 'inherit' }}>
-                x<sup style={{ fontSize: '68%' }}>2</sup>
-              </span>
-            </ToolbarBtn>
-            <ToolbarBtn title="Подстрочный (↓ чтобы войти, пробел/→ выйти)" onClick={() => exec('subscript')}>
-              <span style={{ fontSize: 12, lineHeight: 1, fontFamily: 'inherit' }}>
-                x<sub style={{ fontSize: '68%' }}>2</sub>
-              </span>
-            </ToolbarBtn>
-
-            {divider}
-
-            {/* Highlight colors */}
-            {HIGHLIGHT_COLORS.map(({ hex, label }) => (
-              <button
-                key={hex}
-                title={`Выделить: ${label}`}
-                onMouseDown={e => { e.preventDefault(); exec('hiliteColor', hexToRgba(hex, hlAlpha)) }}
-                style={{
-                  width: 16, height: 16, borderRadius: 4,
-                  border: '1.5px solid rgba(0,0,0,0.12)',
-                  background: hexToRgba(hex, hlAlpha), cursor: 'pointer', flexShrink: 0,
-                }}
-              />
-            ))}
-            <button
-              title="Убрать выделение"
-              onMouseDown={e => { e.preventDefault(); exec('hiliteColor', 'transparent') }}
-              style={{
-                width: 16, height: 16, borderRadius: 4,
-                border: '1.5px solid var(--color-border-medium)',
-                background: 'transparent', cursor: 'pointer', flexShrink: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--color-text-3)',
-              }}
-            >
-              <X size={9} />
-            </button>
-
-            {divider}
-
-            {/* Image upload */}
-            <ToolbarBtn title="Вставить фото (или Ctrl+V)" onClick={() => fileInputRef.current?.click()}>
-              <ImageIcon size={13} />
-            </ToolbarBtn>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              style={{ display: 'none' }}
-              onChange={e => {
-                const file = e.target.files?.[0]
-                if (file) insertImageFile(file)
-                e.target.value = ''
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
 
 // ─── Lesson name input with suggestions (existing course lessons) ─────────────
 function LessonNameInput({ value, onChange, onAdd }: {
@@ -3004,7 +2584,7 @@ const BASE_URL = window.location.origin + window.location.pathname
 
 const SUBJECT_META: Record<DiagSubject, { label: string; accent: string; soft: string }> = {
   biology:   { label: 'Биология',          accent: '#22c55e', soft: 'var(--color-green-soft)'  },
-  chemistry: { label: 'Химия',             accent: '#7c3aed', soft: 'var(--color-purple-soft)' },
+  chemistry: { label: 'Химия',             accent: '#8B5CF6', soft: 'var(--color-purple-soft)' },
   logic:     { label: 'Скрининг мышления', accent: '#f59e0b', soft: 'var(--color-yellow-soft)'  },
 }
 const DIAG_SUBJECTS: DiagSubject[] = ['biology', 'chemistry', 'logic']
@@ -3154,7 +2734,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
                 <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                   <div style={{
                     width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                    background: soft, color: accent,
+                    background: accent, color: '#fff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, marginTop: 1,
                   }}>{idx + 1}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -3296,7 +2876,7 @@ function DiagnosticStudentCard({
             {result.name}
           </div>
           <div style={{ fontSize: 11, color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
-            <span style={{ padding: '1px 7px', borderRadius: 6, background: soft, color: accent, fontSize: 10, fontWeight: 700 }}>{subjectLabel}</span>
+            <span style={{ padding: '1px 7px', borderRadius: 6, background: accent, color: '#fff', fontSize: 10, fontWeight: 700 }}>{subjectLabel}</span>
             <span>{date} · {time}</span>
             {linkedStudent && (
               <span style={{ color: '#22c55e', fontSize: 10, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -3439,7 +3019,7 @@ function DiagnosticStudentCard({
                 ) : (
                   <button
                     onClick={onLink}
-                    style={{ flex: 1, padding: '10px', borderRadius: 10, border: `1.5px solid ${accent}`, background: soft, color: accent, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit' }}
+                    style={{ flex: 1, padding: '10px', borderRadius: 10, border: `1.5px solid ${accent}`, background: accent, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit' }}
                   >
                     <Key size={13} strokeWidth={2.4} /> Выбрать ученика
                   </button>
@@ -3623,13 +3203,13 @@ function DiagnosticCard({ subject, isSelected, onClick }: { subject: DiagSubject
   }, [subject])
   return (
     <ContentCard
-      accentColor={accent} accentBg={soft}
+      accentColor={accent} accentBg={accent + '14'}
       isSelected={isSelected} onClick={onClick}
       icon={<Icon size={17} strokeWidth={2} style={{ color: accent }} />}
-      badge={<span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', borderRadius: 7, padding: '2px 8px' }}>Диагностика</span>}
+      badge={<span style={{ fontSize: 10, fontWeight: 700, color: '#fff', background: 'var(--color-accent)', borderRadius: 7, padding: '2px 8px' }}>Диагностика</span>}
       title={label}
       subtitle={`${questions.length} вопросов`}
-      footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount} результатов</span></>}
+      footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount > 0 ? `${anonCount} прошли тест` : 'Нет сдач'}</span></>}
       footerRight={<><Target size={11} strokeWidth={2} />Тест</>}
     />
   )
@@ -3643,10 +3223,23 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
 }) {
   const { label, accent, soft } = SUBJECT_META[subject]
   const Icon = SUBJECT_ICON_MAP[subject]
+  const questions = useMemo(() => loadDiagQuestions(subject), [subject])
   const [copied, setCopied] = useState(false)
   const [anonResults, setAnonResults] = useState<AnonDiagResult[]>([])
   const [pickerFor, setPickerFor] = useState<string | null>(null)
+  const [expandedSection, setExpandedSection] = useState<string | null>(null)
   const allStudents = useAllStudents()
+
+  // Group questions by section
+  const sections = useMemo(() => {
+    const map: Record<string, DiagQuestion[]> = {}
+    questions.forEach(q => {
+      const s = q.section ?? 'Общее'
+      if (!map[s]) map[s] = []
+      map[s].push(q)
+    })
+    return Object.entries(map)
+  }, [questions])
 
   async function refreshResults() {
     const all = await loadAnonResults()
@@ -3704,6 +3297,41 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
             >
               <Pencil size={14} /> Редактировать
             </button>
+          </div>
+
+          {/* Sections overview */}
+          <div>
+            <SectionHead>{sections.length} тем · {questions.length} вопросов</SectionHead>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {sections.map(([sectionName, qs]) => {
+                const isExp = expandedSection === sectionName
+                return (
+                  <div key={sectionName} style={{ borderRadius: 12, border: `1px solid ${isExp ? accent : 'var(--color-border)'}`, overflow: 'hidden', transition: 'border-color 0.15s' }}>
+                    <button
+                      onClick={() => setExpandedSection(prev => prev === sectionName ? null : sectionName)}
+                      style={{ width: '100%', padding: '9px 12px', display: 'flex', alignItems: 'center', gap: 8, background: isExp ? `${accent}10` : 'var(--color-bg-2)', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
+                    >
+                      <div style={{ width: 22, height: 22, borderRadius: 6, background: accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, flexShrink: 0 }}>{qs.length}</div>
+                      <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: isExp ? accent : 'var(--color-text)' }}>{sectionName}</div>
+                      {isExp ? <ChevronUp size={13} style={{ color: accent, flexShrink: 0 }} /> : <ChevronDown size={13} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />}
+                    </button>
+                    {isExp && (
+                      <div style={{ borderTop: `1px solid ${accent}22`, padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 7 }}>
+                        {qs.map((q, i) => (
+                          <div key={q.id} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                            <div style={{ width: 18, height: 18, borderRadius: 5, background: 'var(--color-bg-3)', color: 'var(--color-text-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, flexShrink: 0, marginTop: 2 }}>{i + 1}</div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 11.5, color: 'var(--color-text)', fontWeight: 600, marginBottom: 2, lineHeight: 1.35 }}>{q.text}</div>
+                              <div style={{ fontSize: 10.5, color: 'var(--color-muted)' }}>✓ {q.options[q.correct]}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
 
           {/* Results */}
@@ -3793,7 +3421,7 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
                 </div>
               ) : (
                 <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                  <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: soft, color: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, marginTop: 1 }}>{idx + 1}</div>
+                  <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, marginTop: 1 }}>{idx + 1}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', marginBottom: 3 }}>{q.text}</div>
                     <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>✓ {q.options[q.correct]}</div>

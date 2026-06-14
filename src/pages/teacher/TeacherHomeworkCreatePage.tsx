@@ -6,10 +6,11 @@ import {
   AlignLeft, CheckSquare, Type, Shuffle, Eye,
   BookOpen, AlertCircle, Check, GripVertical, Sparkles,
   ChevronLeft, ChevronRight, Calendar, Users,
+  PenLine,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
-import { useGroups, useStudents } from '../../lib/useGroups'
+import { useGroups, useStudents, useAllStudents } from '../../lib/useGroups'
 import { useHomework } from '../../lib/useHomework'
 import { useCourseLessons, type CourseLesson } from '../../lib/useCourseLessons'
 import {
@@ -20,10 +21,12 @@ import {
 import type { Task as BankTask } from '../../data/taskBankData'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
+import WhiteboardCanvas from '../../components/teacher/WhiteboardCanvas'
+import RichConditionEditor from '../../components/teacher/RichConditionEditor'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-type HWTaskType = 'text' | 'choice' | 'fill' | 'match'
+type HWTaskType = 'text' | 'choice' | 'fill' | 'match' | 'whiteboard'
 
 type HWTask = {
   id: string
@@ -37,6 +40,7 @@ type HWTask = {
   choices?: string[]
   correctChoices?: number[]
   pairs?: { left: string; right: string }[]
+  canvasData?: string
 }
 
 function makeTask(type: HWTaskType): HWTask {
@@ -113,10 +117,11 @@ function FilterSelect({ label, options, value, onChange }: {
 // ─── Task type config ──────────────────────────────────────────────────────────
 
 const TASK_TYPES: { type: HWTaskType; label: string; icon: React.ElementType; color: string; bg: string }[] = [
-  { type: 'text',   label: 'Текстовый ответ', icon: AlignLeft,   color: '#7B3FCC', bg: 'var(--color-purple-soft)' },
-  { type: 'choice', label: 'Выбор ответа',    icon: CheckSquare, color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
-  { type: 'fill',   label: 'Вписать слово',   icon: Type,        color: 'var(--color-peach-text)', bg: 'var(--color-peach-soft)' },
-  { type: 'match',  label: 'Сопоставление',   icon: Shuffle,     color: 'var(--color-rose-text)', bg: 'var(--color-rose-soft)' },
+  { type: 'text',       label: 'Текстовый ответ', icon: AlignLeft,   color: 'var(--color-accent)',        bg: 'var(--color-purple-soft)' },
+  { type: 'choice',     label: 'Выбор ответа',    icon: CheckSquare, color: 'var(--color-green-text)',    bg: 'var(--color-green-soft)' },
+  { type: 'fill',       label: 'Вписать слово',   icon: Type,        color: 'var(--color-peach-text)',    bg: 'var(--color-peach-soft)' },
+  { type: 'match',      label: 'Сопоставление',   icon: Shuffle,     color: 'var(--color-rose-text)',     bg: 'var(--color-rose-soft)' },
+  { type: 'whiteboard', label: 'Доска',            icon: PenLine,     color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
 ]
 
 function typeConfig(t: HWTaskType) {
@@ -281,13 +286,10 @@ function TaskCard({
               <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {/* Question */}
                 <div>
-                  <Label>Условие задания</Label>
-                  <textarea
-                    value={task.question.replace(/<[^>]*>/g, '')}
-                    onChange={e => updateQuestion(e.target.value)}
-                    placeholder="Текст вопроса..."
-                    rows={3}
-                    style={{ ...inputStyle, resize: 'vertical', minHeight: 64 }}
+                  <RichConditionEditor
+                    value={task.question}
+                    onChange={updateQuestion}
+                    placeholder="Условие задания..."
                   />
                 </div>
 
@@ -395,14 +397,21 @@ function TaskCard({
                   </div>
                 )}
 
+                {/* Whiteboard canvas */}
+                {task.type === 'whiteboard' && (
+                  <div>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginBottom: 6 }}>Ученик нарисует ответ здесь</div>
+                    <WhiteboardCanvas readOnly />
+                  </div>
+                )}
+
                 {/* Answer (for text/fill) */}
                 {(task.type === 'text' || task.type === 'fill') && (
                   <div>
-                    <Label>Правильный ответ</Label>
                     <input
                       value={task.answer}
                       onChange={e => updateAnswer(e.target.value)}
-                      placeholder={task.type === 'fill' ? 'Слово или фраза...' : 'Эталонный ответ...'}
+                      placeholder={task.type === 'fill' ? 'Эталонный ответ...' : 'Эталонный ответ...'}
                       style={inputStyle}
                     />
                   </div>
@@ -419,10 +428,11 @@ function TaskCard({
 // ─── Right panel: task type picker (shown on compose tab) ─────────────────────
 
 const TASK_TYPE_DESCS: Record<HWTaskType, string> = {
-  text:   'Развёрнутый ответ',
-  choice: 'Один или несколько',
-  fill:   'Слово / фраза',
-  match:  'Таблица А1 Б2 В3',
+  text:       'Развёрнутый ответ',
+  choice:     'Один или несколько',
+  fill:       'Слово / фраза',
+  match:      'Таблица А1 Б2 В3',
+  whiteboard: 'Рисунок на доске',
 }
 
 function ComposeTypePanel({ onAdd, onAddHard }: { onAdd: (type: HWTaskType) => void; onAddHard: (type: HWTaskType) => void }) {
@@ -1761,86 +1771,70 @@ type Meta = {
 }
 
 function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>) => void }) {
-  const { students: groupStudents } = useStudents(meta.groupId)
+  const allStudents = useAllStudents()
 
   return (
     <div style={{
       width: 260, flexShrink: 0,
       display: 'flex', flexDirection: 'column', gap: 0,
     }}>
-      <GlassCard style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <GlassCard style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
         {/* Кому */}
-        <div>
-          <Label>Кому</Label>
-          <div style={{ display: 'flex', gap: 5 }}>
-            {(['group', 'student'] as const).map(mode => (
-              <button
-                key={mode}
-                onClick={() => onChange({ assignTo: mode, studentId: '' })}
-                style={{
-                  flex: 1, padding: '8px 0', borderRadius: 11, border: 'none', cursor: 'pointer',
-                  fontSize: 12, fontWeight: 600,
-                  background: meta.assignTo === mode ? 'var(--color-purple-soft)' : 'var(--color-bg)',
-                  color: meta.assignTo === mode ? 'var(--color-accent)' : 'var(--color-muted)',
-                  fontFamily: 'inherit', transition: 'all 0.15s',
-                }}
-              >
-                {mode === 'group' ? 'Группе' : 'Студенту'}
-              </button>
-            ))}
-          </div>
+        <div style={{ display: 'flex', gap: 5 }}>
+          {(['group', 'student'] as const).map(mode => (
+            <button
+              key={mode}
+              onClick={() => onChange({ assignTo: mode, studentId: '' })}
+              style={{
+                flex: 1, padding: '8px 0', borderRadius: 11, border: 'none', cursor: 'pointer',
+                fontSize: 12, fontWeight: 600,
+                background: meta.assignTo === mode ? 'var(--color-purple-soft)' : 'var(--color-bg)',
+                color: meta.assignTo === mode ? 'var(--color-accent)' : 'var(--color-muted)',
+                fontFamily: 'inherit', transition: 'all 0.15s',
+              }}
+            >
+              {mode === 'group' ? 'Группе' : 'Студенту'}
+            </button>
+          ))}
         </div>
 
-        {/* Группа */}
-        <div>
+        {/* Группа — only in group mode */}
+        {meta.assignTo === 'group' && (
           <GroupPicker value={meta.groupId} onChange={id => onChange({ groupId: id, studentId: '' })} />
-        </div>
+        )}
 
-        {/* Student */}
+        {/* Student — direct picker across all students */}
         {meta.assignTo === 'student' && (
-          <div>
-            <TeacherSelect
-              value={meta.studentId}
-              onChange={id => onChange({ studentId: id })}
-              placeholder="Студент"
-              options={groupStudents.map(s => ({ value: s.id, label: s.name }))}
-            />
-          </div>
+          <TeacherSelect
+            value={meta.studentId}
+            onChange={id => onChange({ studentId: id })}
+            placeholder="Студент"
+            options={allStudents.map(s => ({ value: s.id, label: s.name }))}
+          />
         )}
 
         {/* Title */}
-        <div>
-          <Label>Тема задания</Label>
-          <input
-            value={meta.title}
-            onChange={e => onChange({ title: e.target.value })}
-            placeholder="Например: Задачи на гидролиз"
-            style={inputStyle}
-          />
-        </div>
+        <input
+          value={meta.title}
+          onChange={e => onChange({ title: e.target.value })}
+          placeholder="Тема задания"
+          style={inputStyle}
+        />
 
         {/* Description */}
-        <div>
-          <Label>Описание (необязательно)</Label>
-          <textarea
-            value={meta.description}
-            onChange={e => onChange({ description: e.target.value })}
-            placeholder="Задание, ссылки, требования..."
-            rows={3}
-            style={{ ...inputStyle, resize: 'vertical', minHeight: 68 }}
-          />
-        </div>
+        <textarea
+          value={meta.description}
+          onChange={e => onChange({ description: e.target.value })}
+          placeholder="Описание, ссылки, требования..."
+          rows={3}
+          style={{ ...inputStyle, resize: 'vertical', minHeight: 68 }}
+        />
 
         {/* Due date */}
-        <div>
-          <Label>Дедлайн</Label>
-          <CalendarPicker value={meta.dueDate} onChange={v => onChange({ dueDate: v })} />
-        </div>
+        <CalendarPicker value={meta.dueDate} onChange={v => onChange({ dueDate: v })} />
 
         {/* Lesson link */}
-        <div>
-          <LessonPicker value={meta.lessonId} title={meta.title} onChange={id => onChange({ lessonId: id })} />
-        </div>
+        <LessonPicker value={meta.lessonId} title={meta.title} onChange={id => onChange({ lessonId: id })} />
       </GlassCard>
     </div>
   )
