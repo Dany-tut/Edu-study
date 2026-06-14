@@ -487,7 +487,7 @@ function BankGridCard({
         <div style={{ width: 36, height: 36, borderRadius: 12, background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Zap size={17} strokeWidth={2} style={{ color: subjectColor }} />
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <CopyableLineBadge line={task.line} accent={accent} accentBg={accentBg} />
           <CopyableIdBadge id={task.id} />
         </div>
