@@ -4001,11 +4001,11 @@ export default function TeacherConstructorPage() {
   }
 
   const tabCfg = {
-    course:  { label: 'Курс',     Icon: BookOpen, color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)' },
-    trainer: { label: 'Тренажёр', Icon: Zap,      color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)' },
-    widget:  { label: 'Виджет',   Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
+    course:   { label: 'Курс',        Icon: BookOpen, color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)' },
+    trainer:  { label: 'Тренажёр',    Icon: Zap,      color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)' },
+    widget:   { label: 'Виджет',      Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
+    testing:  { label: 'Тестирование', Icon: Target,  color: 'var(--color-teal-pill-text,#0d9488)', bg: 'var(--color-teal-pill-bg,rgba(13,148,136,0.12))' },
   }
-  const isTestingActive = activeTab === 'testing'
 
   return (
     // overflow:visible + marginTop:-100 so both sub-views can lift content under the topbar blur.
@@ -4057,27 +4057,11 @@ export default function TeacherConstructorPage() {
                   {editMode ? <X size={17} strokeWidth={2.4} /> : <Pencil size={16} strokeWidth={2} />}
                 </motion.button>
 
-                {(['course', 'trainer', 'widget'] as const).map(t => {
+                {(['course', 'trainer', 'widget', 'testing'] as const).map(t => {
                   const cfg = tabCfg[t]
                   return <TabBtn key={t} tab={t} activeTab={activeTab} label={cfg.label} icon={cfg.Icon} color={cfg.color} bg={cfg.bg}
                     onClick={() => t === activeTab ? handlePlus() : handleTabChange(t)} onPlus={handlePlus} />
                 })}
-
-                {/* Тестирование tab */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  onClick={() => handleTabChange('testing')}
-                  style={{
-                    padding: '10px 20px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                    background: isTestingActive ? 'var(--color-accent)' : 'rgba(var(--glass-rgb), 0.72)',
-                    color: isTestingActive ? '#fff' : 'var(--color-muted)',
-                    fontSize: 14, fontWeight: 600,
-                    boxShadow: isTestingActive ? '0 4px 14px rgba(124,58,237,0.28)' : 'none',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  Тестирование
-                </motion.button>
 
                 {/* Delete bar — shown when items are checked */}
                 <AnimatePresence>
