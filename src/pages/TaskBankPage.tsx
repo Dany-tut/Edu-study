@@ -1409,7 +1409,7 @@ export default function TaskBankPage() {
               <BookOpen size={16} />
               <span style={{ fontSize: 12, fontWeight: 700 }}>Тренажёр ЕГЭ</span>
             </div>
-            <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
               {(['biology', 'chemistry'] as Subject[]).map(s => (
                 <button key={s} onClick={e => { e.stopPropagation(); setSubjectPersist(s); setSection(''); setTopic('') }}
                   style={{
@@ -1417,6 +1417,7 @@ export default function TaskBankPage() {
                     borderColor: subject === s ? 'var(--color-border-glass)' : 'var(--color-border-medium)',
                     background: subject === s ? 'rgba(255,255,255,0.22)' : 'transparent',
                     color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                    whiteSpace: 'nowrap',
                   }}>
                   {s === 'biology' ? 'Биология' : 'Химия'}
                 </button>
