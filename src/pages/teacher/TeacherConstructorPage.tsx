@@ -3005,7 +3005,7 @@ const BASE_URL = window.location.origin + window.location.pathname
 const SUBJECT_META: Record<DiagSubject, { label: string; accent: string; soft: string }> = {
   biology:   { label: 'Биология',          accent: '#22c55e', soft: 'var(--color-green-soft)'  },
   chemistry: { label: 'Химия',             accent: '#7c3aed', soft: 'var(--color-purple-soft)' },
-  logic:     { label: 'Скрининг мышления', accent: '#f59e0b', soft: '#fef3c7'                  },
+  logic:     { label: 'Скрининг мышления', accent: '#f59e0b', soft: 'var(--color-yellow-soft)'  },
 }
 const DIAG_SUBJECTS: DiagSubject[] = ['biology', 'chemistry', 'logic']
 const SUBJECT_ICON_MAP: Record<DiagSubject, React.ElementType> = {
@@ -3626,7 +3626,7 @@ function DiagnosticCard({ subject, isSelected, onClick }: { subject: DiagSubject
       accentColor={accent} accentBg={soft}
       isSelected={isSelected} onClick={onClick}
       icon={<Icon size={17} strokeWidth={2} style={{ color: accent }} />}
-      badge={<span style={{ fontSize: 10, fontWeight: 700, color: accent, background: soft, borderRadius: 7, padding: '2px 8px' }}>Диагностика</span>}
+      badge={<span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', borderRadius: 7, padding: '2px 8px' }}>Диагностика</span>}
       title={label}
       subtitle={`${questions.length} вопросов`}
       footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount} результатов</span></>}
@@ -3635,16 +3635,14 @@ function DiagnosticCard({ subject, isSelected, onClick }: { subject: DiagSubject
   )
 }
 
-// ─── Diagnostic Panel (right-side slide-in panel) ────────────────────────────
-function DiagnosticPanel({ subject, onClose }: { subject: DiagSubject; onClose: () => void }) {
+// ─── Diagnostic Selection Panel (right-side: buttons + results table) ────────
+function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
+  subject: DiagSubject
+  onClose: () => void
+  onEditTest: () => void
+}) {
   const { label, accent, soft } = SUBJECT_META[subject]
   const Icon = SUBJECT_ICON_MAP[subject]
-
-  const [questions, setQuestions] = useState<DiagQuestion[]>(() => loadDiagQuestions(subject))
-  const [editIdx, setEditIdx] = useState<number | null>(null)
-  const [editText, setEditText] = useState('')
-  const [editOpts, setEditOpts] = useState<string[]>([])
-  const [editCorrect, setEditCorrect] = useState(0)
   const [copied, setCopied] = useState(false)
   const [anonResults, setAnonResults] = useState<AnonDiagResult[]>([])
   const [pickerFor, setPickerFor] = useState<string | null>(null)
@@ -3654,20 +3652,11 @@ function DiagnosticPanel({ subject, onClose }: { subject: DiagSubject; onClose: 
     const all = await loadAnonResults()
     setAnonResults(all.filter(r => r.subject === subject))
   }
-
   useEffect(() => { refreshResults() }, [subject])
 
-  function save(qs: DiagQuestion[]) { setQuestions(qs); saveDiagQuestions(subject, qs) }
-  function startEdit(idx: number) { const q = questions[idx]; setEditIdx(idx); setEditText(q.text); setEditOpts([...q.options]); setEditCorrect(q.correct) }
-  function commitEdit() {
-    if (editIdx === null) return
-    save(questions.map((q, i) => i === editIdx ? { ...q, text: editText, options: editOpts, correct: editCorrect } : q))
-    setEditIdx(null)
-  }
-  function removeQuestion(idx: number) { save(questions.filter((_, i) => i !== idx)); if (editIdx === idx) setEditIdx(null) }
-  function resetToDefault() { save(DEFAULT_QUESTIONS[subject]); setEditIdx(null) }
   function copyLink() {
-    navigator.clipboard.writeText(`${BASE_URL}#/diagnostic?subject=${subject}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
+    navigator.clipboard.writeText(`${BASE_URL}#/diagnostic?subject=${subject}`)
+      .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
   async function handleLink(resultId: string, studentId: string) { await linkAnonResult(resultId, studentId); await refreshResults(); setPickerFor(null) }
   async function handleUnlink(resultId: string) { await unlinkAnonResult(resultId); await refreshResults() }
@@ -3686,66 +3675,35 @@ function DiagnosticPanel({ subject, onClose }: { subject: DiagSubject; onClose: 
         style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
       >
         <PanelHeader title={label} accent={accent} accentBg={soft} Icon={Icon} onClose={onClose} />
-        <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-          {/* Copy link */}
-          <button
-            onClick={copyLink}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-              padding: '10px 14px', borderRadius: 12, cursor: 'pointer', width: '100%', boxSizing: 'border-box',
-              border: `1.5px solid ${copied ? '#22c55e' : accent}`,
-              background: copied ? 'var(--color-green-soft)' : `${accent}15`,
-              color: copied ? 'var(--color-green-text)' : accent,
-              fontSize: 13, fontWeight: 700, transition: 'all 0.18s',
-            }}
-          >
-            {copied ? <Check size={14} /> : <ClipboardCopy size={14} />}
-            {copied ? 'Ссылка скопирована!' : 'Скопировать ссылку'}
-          </button>
-
-          {/* Questions */}
-          <div>
-            <SectionHead>Вопросы ({questions.length})</SectionHead>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {questions.map((q, idx) => (
-                <div key={q.id} style={{ borderRadius: 12, border: `1px solid ${editIdx === idx ? accent : 'var(--color-border)'}`, background: editIdx === idx ? `${accent}08` : 'var(--color-bg-2)', overflow: 'hidden' }}>
-                  {editIdx === idx ? (
-                    <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <textarea value={editText} onChange={e => setEditText(e.target.value)} rows={2}
-                        style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', resize: 'vertical', outline: 'none' }} />
-                      {editOpts.map((opt, oi) => (
-                        <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <button onClick={() => setEditCorrect(oi)}
-                            style={{ width: 20, height: 20, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'transparent' }} />
-                          <input value={opt} onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o) }}
-                            style={{ flex: 1, padding: '6px 10px', borderRadius: 8, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
-                        </div>
-                      ))}
-                      <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                        <button onClick={() => setEditIdx(null)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Отмена</button>
-                        <button onClick={commitEdit} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: accent, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}><Check size={12} />Сохранить</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                      <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: soft, color: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, marginTop: 1 }}>{idx + 1}</div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', marginBottom: 3 }}>{q.text}</div>
-                        <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>✓ {q.options[q.correct]}</div>
-                      </div>
-                      <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                        <button onClick={() => startEdit(idx)} style={{ padding: '4px 8px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>Ред.</button>
-                        <button onClick={() => removeQuestion(idx)} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={11} /></button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-              <button onClick={resetToDefault} style={{ padding: '8px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                Сбросить к стандарту
-              </button>
-            </div>
+          {/* Action buttons */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={copyLink}
+              style={{
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                padding: '11px 14px', borderRadius: 12, cursor: 'pointer', border: 'none', fontFamily: 'inherit',
+                background: copied ? 'var(--color-green-soft)' : soft,
+                color: copied ? 'var(--color-green-text)' : accent,
+                fontSize: 13, fontWeight: 700, transition: 'all 0.18s',
+              }}
+            >
+              {copied ? <Check size={14} /> : <Link2 size={14} />}
+              {copied ? 'Скопировано!' : 'Ссылка'}
+            </button>
+            <button
+              onClick={onEditTest}
+              style={{
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                padding: '11px 14px', borderRadius: 12, cursor: 'pointer', border: 'none', fontFamily: 'inherit',
+                background: 'var(--color-bg-3)',
+                color: 'var(--color-text-2)',
+                fontSize: 13, fontWeight: 700, transition: 'all 0.18s',
+              }}
+            >
+              <Pencil size={14} /> Редактировать
+            </button>
           </div>
 
           {/* Results */}
@@ -3753,11 +3711,15 @@ function DiagnosticPanel({ subject, onClose }: { subject: DiagSubject; onClose: 
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
               <Database size={13} style={{ color: accent }} />
               Результаты
-              {anonResults.length > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: accent, background: soft, borderRadius: 6, padding: '1px 7px' }}>{anonResults.length}</span>}
+              {anonResults.length > 0 && (
+                <span style={{ fontSize: 10, fontWeight: 700, color: accent, background: soft, borderRadius: 6, padding: '1px 7px' }}>
+                  {anonResults.length}
+                </span>
+              )}
               <button onClick={refreshResults} title="Обновить" style={{ marginLeft: 'auto', padding: '3px 10px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 10, fontWeight: 600 }}>↻</button>
             </div>
             {anonResults.length === 0 ? (
-              <div style={{ padding: '16px', borderRadius: 12, border: '1.5px dashed var(--color-border-medium)', textAlign: 'center', color: 'var(--color-muted)', fontSize: 12 }}>
+              <div style={{ padding: '24px 16px', borderRadius: 12, border: '1.5px dashed var(--color-border-medium)', textAlign: 'center', color: 'var(--color-muted)', fontSize: 12 }}>
                 Ещё никто не прошёл тест
               </div>
             ) : (
@@ -3779,10 +3741,85 @@ function DiagnosticPanel({ subject, onClose }: { subject: DiagSubject; onClose: 
   )
 }
 
+// ─── Diagnostic Editor Panel (questions editor) ───────────────────────────────
+function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onClose: () => void }) {
+  const { label, accent, soft } = SUBJECT_META[subject]
+  const Icon = SUBJECT_ICON_MAP[subject]
+
+  const [questions, setQuestions] = useState<DiagQuestion[]>(() => loadDiagQuestions(subject))
+  const [editIdx, setEditIdx] = useState<number | null>(null)
+  const [editText, setEditText] = useState('')
+  const [editOpts, setEditOpts] = useState<string[]>([])
+  const [editCorrect, setEditCorrect] = useState(0)
+
+  function save(qs: DiagQuestion[]) { setQuestions(qs); saveDiagQuestions(subject, qs) }
+  function startEdit(idx: number) { const q = questions[idx]; setEditIdx(idx); setEditText(q.text); setEditOpts([...q.options]); setEditCorrect(q.correct) }
+  function commitEdit() {
+    if (editIdx === null) return
+    save(questions.map((q, i) => i === editIdx ? { ...q, text: editText, options: editOpts, correct: editCorrect } : q))
+    setEditIdx(null)
+  }
+  function removeQuestion(idx: number) { save(questions.filter((_, i) => i !== idx)); if (editIdx === idx) setEditIdx(null) }
+  function resetToDefault() { save(DEFAULT_QUESTIONS[subject]); setEditIdx(null) }
+
+  return (
+    <motion.div
+      initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}
+      transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
+      style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 20, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+    >
+      <PanelHeader title={`Редактор: ${label}`} accent={accent} accentBg={soft} Icon={Icon} onClose={onClose} />
+      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <SectionHead>Вопросы ({questions.length})</SectionHead>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {questions.map((q, idx) => (
+            <div key={q.id} style={{ borderRadius: 12, border: `1px solid ${editIdx === idx ? accent : 'var(--color-border)'}`, background: editIdx === idx ? `${accent}08` : 'var(--color-bg-2)', overflow: 'hidden' }}>
+              {editIdx === idx ? (
+                <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <textarea value={editText} onChange={e => setEditText(e.target.value)} rows={2}
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', resize: 'vertical', outline: 'none' }} />
+                  {editOpts.map((opt, oi) => (
+                    <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <button onClick={() => setEditCorrect(oi)}
+                        style={{ width: 20, height: 20, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'transparent' }} />
+                      <input value={opt} onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o) }}
+                        style={{ flex: 1, padding: '6px 10px', borderRadius: 8, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+                    <button onClick={() => setEditIdx(null)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Отмена</button>
+                    <button onClick={commitEdit} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: accent, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}><Check size={12} />Сохранить</button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: soft, color: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, marginTop: 1 }}>{idx + 1}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', marginBottom: 3 }}>{q.text}</div>
+                    <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>✓ {q.options[q.correct]}</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                    <button onClick={() => startEdit(idx)} style={{ padding: '4px 8px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>Ред.</button>
+                    <button onClick={() => removeQuestion(idx)} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={11} /></button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+          <button onClick={resetToDefault} style={{ padding: '8px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+            Сбросить к стандарту
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function TeacherConstructorPage() {
   const [activeTab, setActiveTab] = useState<Tab>('course')
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [diagEditing, setDiagEditing] = useState<DiagSubject | null>(null)
   const [creatorMode, setCreatorMode] = useState<Exclude<Tab, 'testing'> | null>(null)
   const [editCourse, setEditCourse] = useState<Course | null>(null)
   const [editTrainer, setEditTrainer] = useState<Trainer | null>(null)
@@ -3848,10 +3885,10 @@ export default function TeacherConstructorPage() {
   const panelOpen = !!selectedCourse && activeTab === 'course'
 
   function openItem(id: string) { setSelectedId(prev => prev === id ? null : id) }
-  function closeEditor() { setSelectedId(null) }
+  function closeEditor() { setSelectedId(null); setDiagEditing(null) }
 
   function handleTabChange(t: Tab) {
-    setActiveTab(t); setSelectedId(null); setCreatorMode(null); setEditCourse(null); setEditTrainer(null); setEditWidget(null); setSelectedTrainerId(null)
+    setActiveTab(t); setSelectedId(null); setDiagEditing(null); setCreatorMode(null); setEditCourse(null); setEditTrainer(null); setEditWidget(null); setSelectedTrainerId(null)
     setEditMode(false); setCheckedIds(new Set())
   }
 
@@ -4003,7 +4040,7 @@ export default function TeacherConstructorPage() {
                   }}
                 >
                   <Target size={16} strokeWidth={isTestingActive ? 2.2 : 1.8} /> Тестирование
-                </button>
+                </motion.button>
 
                 {/* Delete bar — shown when items are checked */}
                 <AnimatePresence>
@@ -4106,7 +4143,19 @@ export default function TeacherConstructorPage() {
                   onExpand={() => handleExpandCourse(selectedCourse)} />
               )}
               {activeTab === 'testing' && selectedId && (
-                <DiagnosticPanel key={selectedId} subject={selectedId as DiagSubject} onClose={closeEditor} />
+                <DiagnosticSelectionPanel
+                  key={selectedId}
+                  subject={selectedId as DiagSubject}
+                  onClose={closeEditor}
+                  onEditTest={() => setDiagEditing(selectedId as DiagSubject)}
+                />
+              )}
+              {activeTab === 'testing' && diagEditing && (
+                <DiagnosticEditorPanel
+                  key={`editor-${diagEditing}`}
+                  subject={diagEditing}
+                  onClose={() => setDiagEditing(null)}
+                />
               )}
             </AnimatePresence>
           </motion.div>

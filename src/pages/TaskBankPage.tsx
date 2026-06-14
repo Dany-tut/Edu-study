@@ -727,6 +727,184 @@ function SuggestBox({ section, lineNames, onPickLine, accent }: {
   )
 }
 
+// ── Stat chip — big number by default, label on hover, detail on click ───────
+function StatChip({ value, label, detail, bg, border, color, active, onClick }: {
+  value: number; label: string; detail?: string
+  bg: string; border: string; color: string
+  active: boolean; onClick: () => void
+}) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <motion.button
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
+      onClick={onClick}
+      whileTap={{ scale: 0.96 }}
+      style={{
+        flex: 1, minWidth: 0,
+        padding: '10px 14px', borderRadius: 16,
+        background: bg, border: `1.5px solid ${active ? color : border}`,
+        boxShadow: active ? `0 0 0 3px ${color}22` : 'none',
+        cursor: 'pointer', outline: 'none',
+        display: 'flex', alignItems: 'center', gap: 9,
+        overflow: 'hidden', textAlign: 'left',
+        transition: 'border-color 0.15s, box-shadow 0.15s',
+      }}
+    >
+      <motion.span
+        animate={{ fontSize: hovered ? '17px' : '26px' }}
+        transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+        style={{ fontWeight: 750, color, lineHeight: 1, flexShrink: 0 }}
+      >
+        {value}
+      </motion.span>
+      <AnimatePresence>
+        {hovered && (
+          <motion.div
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -8 }}
+            transition={{ duration: 0.15 }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0, overflow: 'hidden' }}
+          >
+            <span style={{ fontSize: 12, fontWeight: 700, color, lineHeight: 1.3, whiteSpace: 'normal' }}>{label}</span>
+            {detail && <span style={{ fontSize: 11, color, opacity: 0.68, lineHeight: 1.25 }}>{detail}</span>}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.button>
+  )
+}
+
+// ── Stats bar — row of chips + expandable detail area ────────────────────────
+function StatsBar({ doneCount, wrongCount, totalCount, favCount, todayCorrect, todayWrong, palette, onOpenModal, onRetryWrong, onToggleFav, showFavOnly }: {
+  doneCount: number; wrongCount: number; totalCount: number; favCount: number
+  todayCorrect: number; todayWrong: number
+  palette: ReturnType<typeof subjectTheme>
+  onOpenModal: () => void; onRetryWrong: () => void
+  onToggleFav: () => void; showFavOnly: boolean
+}) {
+  const [active, setActive] = useState<'correct' | 'today' | 'wrong' | 'fav' | null>(null)
+  const toggle = (key: typeof active) => setActive(a => a === key ? null : key)
+  const pct = totalCount ? Math.round((doneCount / totalCount) * 100) : 0
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <StatChip
+          value={doneCount}
+          label="Решено верно"
+          detail={`из ${totalCount} заданий`}
+          bg="var(--color-green-soft)"
+          border="rgba(110,231,160,0.28)"
+          color="var(--color-green-text)"
+          active={active === 'correct'}
+          onClick={() => toggle('correct')}
+        />
+        <StatChip
+          value={todayCorrect}
+          label="Верно сегодня"
+          detail={todayWrong > 0 ? `${todayWrong} ошибок` : 'отличный день!'}
+          bg="rgba(139,92,246,0.10)"
+          border="rgba(139,92,246,0.22)"
+          color="#7c3aed"
+          active={active === 'today'}
+          onClick={() => toggle('today')}
+        />
+        <StatChip
+          value={wrongCount}
+          label="Ошибок"
+          detail="нажми — повторить"
+          bg="var(--color-red-soft)"
+          border="rgba(244,139,145,0.28)"
+          color="var(--color-red-text)"
+          active={active === 'wrong'}
+          onClick={() => toggle('wrong')}
+        />
+        <StatChip
+          value={favCount}
+          label="В избранном"
+          detail={showFavOnly ? 'скрыть остальные' : 'показать только'}
+          bg="var(--color-yellow-soft, rgba(248,239,140,0.22))"
+          border="rgba(248,200,50,0.3)"
+          color="#7A6B00"
+          active={active === 'fav' || showFavOnly}
+          onClick={() => toggle('fav')}
+        />
+      </div>
+
+      <AnimatePresence>
+        {active && (
+          <motion.div
+            key={active}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.18 }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{
+              padding: '12px 16px', borderRadius: 14,
+              background: 'rgba(var(--glass-rgb), 0.96)',
+              border: '1px solid var(--color-border-soft)',
+              display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
+            }}>
+              {active === 'correct' && (<>
+                <div style={{ flex: 1, minWidth: 180 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                    <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Правильность</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-green-text)' }}>{pct}%</span>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden', display: 'flex' }}>
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.5 }}
+                      style={{ height: '100%', background: 'var(--color-green-accent)', flexShrink: 0 }} />
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${totalCount ? wrongCount / totalCount * 100 : 0}%` }} transition={{ duration: 0.5 }}
+                      style={{ height: '100%', background: '#F48B91', flexShrink: 0 }} />
+                  </div>
+                </div>
+                <button onClick={onOpenModal}
+                  style={{ padding: '7px 14px', borderRadius: 10, border: 'none', background: `${palette.accent}20`, color: palette.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                  Детали →
+                </button>
+              </>)}
+
+              {active === 'today' && (<>
+                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Сегодня:</span>
+                {todayCorrect > 0 && <span style={{ padding: '4px 12px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700 }}>✓ {todayCorrect} верно</span>}
+                {todayWrong   > 0 && <span style={{ padding: '4px 12px', borderRadius: 999, background: 'var(--color-red-soft)',   color: 'var(--color-red-text)',   fontSize: 13, fontWeight: 700 }}>✗ {todayWrong} ошибок</span>}
+                {todayCorrect === 0 && todayWrong === 0 && <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>Ещё не решал сегодня</span>}
+              </>)}
+
+              {active === 'wrong' && (<>
+                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{wrongCount} заданий с ошибкой</span>
+                {wrongCount > 0 && (
+                  <button onClick={() => { onRetryWrong(); setActive(null) }}
+                    style={{ padding: '7px 14px', borderRadius: 10, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <XCircle size={13} />Повторить ошибки
+                  </button>
+                )}
+                <button onClick={onOpenModal}
+                  style={{ padding: '7px 14px', borderRadius: 10, border: '1px solid var(--color-border-medium)', background: 'transparent', color: 'var(--color-text-2)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                  Полная статистика
+                </button>
+              </>)}
+
+              {active === 'fav' && (<>
+                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{favCount} в избранном</span>
+                <button onClick={() => { onToggleFav(); setActive(null) }}
+                  style={{ padding: '7px 14px', borderRadius: 10, border: `1px solid ${showFavOnly ? 'rgba(248,200,50,0.4)' : 'var(--color-border-medium)'}`, background: showFavOnly ? 'rgba(248,239,140,0.22)' : 'transparent', color: showFavOnly ? '#7A6B00' : 'var(--color-text-2)', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <Bookmark size={13} fill={showFavOnly ? 'currentColor' : 'none'} />
+                  {showFavOnly ? 'Показать все' : 'Только избранное'}
+                </button>
+              </>)}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 // ── LS keys for trainer persistence ─────────────────────────────────────────
 const LS_ANSWERED  = 'trainer_answered_v1'
 const LS_FAVORITES = 'trainer_favorites_v1'
@@ -1298,6 +1476,21 @@ export default function TaskBankPage() {
 
         {/* Center: search + tasks */}
         <main className="flex flex-col" style={{ flex: 1, minWidth: 0, gap: 18 }}>
+
+          {/* Stats bar */}
+          <StatsBar
+            doneCount={doneCount}
+            wrongCount={wrongCount}
+            totalCount={totalCount}
+            favCount={favorites.size}
+            todayCorrect={todayCorrect}
+            todayWrong={todayWrong}
+            palette={palette}
+            onOpenModal={() => setShowProgressModal(true)}
+            onRetryWrong={() => { setShowWrongOnly(true); setWrongSimilarLines(new Set()) }}
+            onToggleFav={() => setShowFavOnly(f => !f)}
+            showFavOnly={showFavOnly}
+          />
 
           {/* Controls row */}
           <div className="flex items-center flex-wrap" style={{ gap: 10 }}>

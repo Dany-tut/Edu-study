@@ -939,7 +939,7 @@ function StudentPanel({
       </div>
 
       {/* Scrollable body */}
-      <div style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', padding: '16px 20px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
         {/* Credentials */}
         {(student.email || student.tempPassword) && (
@@ -1054,7 +1054,10 @@ function StudentPanel({
           />
         </section>
 
-        {/* Delete */}
+      </div>
+
+      {/* Sticky footer: delete */}
+      <div style={{ padding: '12px 20px 16px', flexShrink: 0, borderTop: '1px solid var(--color-border-soft)' }}>
         <button
           disabled={deleting}
           onClick={async () => {
@@ -1063,7 +1066,7 @@ function StudentPanel({
             await onDelete()
           }}
           style={{
-            marginTop: 4, width: '100%', padding: '10px 0',
+            width: '100%', padding: '10px 0',
             background: 'none', border: '1.5px solid #ff453a55',
             borderRadius: 12, cursor: deleting ? 'not-allowed' : 'pointer',
             fontSize: 13, fontWeight: 600, color: '#ff453a',
