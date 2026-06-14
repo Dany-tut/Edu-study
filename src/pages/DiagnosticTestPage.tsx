@@ -2,21 +2,35 @@ import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, CheckCircle, Circle, ChevronRight, Target, User } from 'lucide-react'
 import {
-  loadDiagQuestions, saveDiagResults, appendAnonResult,
+  loadDiagQuestions, appendAnonResult,
   type DiagSubject, type DiagQuestion, type DiagResults,
 } from '../data/diagnosticData'
 
 // ── Subject theme ──────────────────────────────────────────────────────────────
-const THEME: Record<DiagSubject, { accent: string; soft: string; label: string }> = {
-  biology:   { accent: '#22c55e', soft: '#dcfce7', label: 'Биология' },
-  chemistry: { accent: '#7c3aed', soft: '#ede9fe', label: 'Химия' },
+const THEME: Record<DiagSubject, { accent: string; soft: string; label: string; sublabel: string }> = {
+  biology:   { accent: '#22c55e', soft: '#dcfce7', label: 'Биология', sublabel: 'Диагностика знаний' },
+  chemistry: { accent: '#7c3aed', soft: '#ede9fe', label: 'Химия', sublabel: 'Диагностика знаний' },
+  logic:     { accent: '#f59e0b', soft: '#fef3c7', label: 'Скрининг мышления', sublabel: 'Когнитивный профиль' },
+}
+
+// Cognitive sections for logic test — maps section name → display info
+const COGNITIVE_SECTIONS: Record<string, { emoji: string; short: string; desc: string }> = {
+  'Числовые паттерны':          { emoji: '🔢', short: 'Числовое',      desc: 'Видишь закономерности в числах и прогрессиях' },
+  'Вербальные аналогии':        { emoji: '💬', short: 'Вербальное',    desc: 'Мыслишь понятиями, улавливаешь смысловые связи' },
+  'Логические исключения':      { emoji: '🔍', short: 'Аналитическое', desc: 'Умеешь выделять главное и отсекать лишнее' },
+  'Математические вычисления':  { emoji: '🧮', short: 'Математическое',desc: 'Считаешь быстро и точно, решаешь задачи' },
+  'Пространственное мышление':  { emoji: '🧩', short: 'Пространственное', desc: 'Хорошо ориентируешься в 2D/3D, мыслишь образами' },
+  'Причинно-следственные связи':{ emoji: '🔗', short: 'Системное',     desc: 'Понимаешь, как одно явление влияет на другое' },
 }
 
 // ── Main page ──────────────────────────────────────────────────────────────────
 export default function DiagnosticTestPage() {
   const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '')
   const rawSubject = params.get('subject')
-  const subject: DiagSubject = rawSubject === 'chemistry' ? 'chemistry' : 'biology'
+  const subject: DiagSubject =
+    rawSubject === 'chemistry' ? 'chemistry'
+    : rawSubject === 'logic' ? 'logic'
+    : 'biology'
   const theme = THEME[subject]
 
   const questions = useMemo(() => loadDiagQuestions(subject), [subject])
@@ -44,15 +58,14 @@ export default function DiagnosticTestPage() {
     }, 600)
   }
 
-  function finishTest(answers: Record<string, number>) {
+  async function finishTest(answers: Record<string, number>) {
     const res: DiagResults = {}
     for (const dq of questions) {
       if (!res[dq.section]) res[dq.section] = { correct: 0, total: 0 }
       res[dq.section].total++
       if (answers[dq.id] === dq.correct) res[dq.section].correct++
     }
-    saveDiagResults(subject, res)
-    appendAnonResult({ name: studentName.trim() || 'Аноним', subject, timestamp: new Date().toISOString(), results: res, answers })
+    await appendAnonResult({ name: studentName.trim() || 'Аноним', subject, results: res, answers })
     setResults(res)
     setStep('done')
   }
@@ -142,6 +155,14 @@ export default function DiagnosticTestPage() {
     const totalQ = sections.reduce((s, [, v]) => s + v.total, 0)
     const pct = totalQ ? Math.round((totalCorrect / totalQ) * 100) : 0
 
+    // Cognitive profile for logic test
+    const cognitiveProfile = subject === 'logic'
+      ? sections
+          .map(([sec, { correct: c, total: t }]) => ({ sec, pct: t ? Math.round((c / t) * 100) : 0, info: COGNITIVE_SECTIONS[sec] }))
+          .sort((a, b) => b.pct - a.pct)
+      : null
+    const topSkill = cognitiveProfile?.[0]
+
     return (
       <div style={{
         minHeight: '100vh', background: 'var(--color-bg)',
@@ -156,15 +177,13 @@ export default function DiagnosticTestPage() {
         >
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
-            <div style={{
-              width: 44, height: 44, borderRadius: 14,
-              background: `${theme.accent}22`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: `${theme.accent}22`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Target size={22} style={{ color: theme.accent }} />
             </div>
             <div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)' }}>Диагностика завершена</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)' }}>
+                {subject === 'logic' ? 'Скрининг завершён' : 'Диагностика завершена'}
+              </div>
               <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{theme.label}</div>
             </div>
           </div>
@@ -187,54 +206,90 @@ export default function DiagnosticTestPage() {
             </div>
           </div>
 
-          {/* Section breakdown */}
-          <div style={{
-            background: 'rgba(var(--glass-rgb), 0.9)',
-            border: '1px solid var(--color-border-glass)',
-            borderRadius: 18, padding: '18px 20px',
-            display: 'flex', flexDirection: 'column', gap: 12,
-            marginBottom: 20,
-          }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>
-              Результаты по разделам
-            </div>
-            {sections.map(([sec, { correct, total: tot }]) => {
-              const p = tot ? Math.round((correct / tot) * 100) : 0
-              const color = p >= 70 ? '#22c55e' : p >= 40 ? '#f59e0b' : '#ef4444'
-              return (
-                <div key={sec}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 12, color: 'var(--color-text-2)', fontWeight: 600 }}>{sec}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color }}>{correct}/{tot}</span>
+          {/* Cognitive profile (logic only) */}
+          {cognitiveProfile && topSkill && (
+            <div style={{ background: `${theme.accent}12`, border: `1.5px solid ${theme.accent}44`, borderRadius: 18, padding: '18px 20px', marginBottom: 20 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: theme.accent, marginBottom: 14 }}>
+                🧠 Твой когнитивный профиль
+              </div>
+              {/* Top skill highlight */}
+              <div style={{ padding: '12px 14px', borderRadius: 12, background: `${theme.accent}18`, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 24 }}>{topSkill.info?.emoji ?? '⭐'}</span>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
+                    Сильнее всего: {topSkill.info?.short ?? topSkill.sec}
                   </div>
-                  <div style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-5)' }}>
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${p}%` }}
-                      transition={{ duration: 0.6, delay: 0.2 }}
-                      style={{ height: '100%', borderRadius: 999, background: color }}
-                    />
+                  <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2 }}>
+                    {topSkill.info?.desc}
                   </div>
                 </div>
-              )
-            })}
-          </div>
+                <div style={{ marginLeft: 'auto', fontSize: 16, fontWeight: 800, color: theme.accent }}>{topSkill.pct}%</div>
+              </div>
+              {/* All sections */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {cognitiveProfile.map(({ sec, pct: p, info }) => {
+                  const col = p >= 70 ? '#22c55e' : p >= 40 ? '#f59e0b' : '#ef4444'
+                  return (
+                    <div key={sec}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3, alignItems: 'center' }}>
+                        <span style={{ fontSize: 11, color: 'var(--color-text-2)', fontWeight: 600 }}>
+                          {info?.emoji} {info?.short ?? sec}
+                        </span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: col }}>{p}%</span>
+                      </div>
+                      <div style={{ height: 5, borderRadius: 999, background: 'var(--color-bg-5)' }}>
+                        <motion.div initial={{ width: 0 }} animate={{ width: `${p}%` }} transition={{ duration: 0.6, delay: 0.15 }}
+                          style={{ height: '100%', borderRadius: 999, background: col }} />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Section breakdown (standard subjects) */}
+          {!cognitiveProfile && (
+            <div style={{
+              background: 'rgba(var(--glass-rgb), 0.9)', border: '1px solid var(--color-border-glass)',
+              borderRadius: 18, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20,
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>
+                Результаты по разделам
+              </div>
+              {sections.map(([sec, { correct, total: tot }]) => {
+                const p = tot ? Math.round((correct / tot) * 100) : 0
+                const color = p >= 70 ? '#22c55e' : p >= 40 ? '#f59e0b' : '#ef4444'
+                return (
+                  <div key={sec}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontSize: 12, color: 'var(--color-text-2)', fontWeight: 600 }}>{sec}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color }}>{correct}/{tot}</span>
+                    </div>
+                    <div style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-5)' }}>
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${p}%` }} transition={{ duration: 0.6, delay: 0.2 }}
+                        style={{ height: '100%', borderRadius: 999, background: color }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
 
           <div style={{ fontSize: 13, color: 'var(--color-muted)', textAlign: 'center', marginBottom: 20 }}>
-            Результаты сохранены — они отобразятся в твоём тренажёре
+            Результаты сохранены — преподаватель увидит их в своём кабинете
           </div>
 
           <button
             onClick={goBack}
             style={{
               width: '100%', padding: '14px', borderRadius: 14, border: 'none', cursor: 'pointer',
-              background: theme.accent, color: '#fff',
-              fontSize: 15, fontWeight: 700,
+              background: theme.accent, color: '#fff', fontSize: 15, fontWeight: 700,
               boxShadow: `0 6px 20px ${theme.accent}44`,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             }}
           >
-            <ArrowLeft size={16} /> Перейти в тренажёр
+            <ArrowLeft size={16} /> На главную
           </button>
         </motion.div>
       </div>

@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import {
   loadDiagQuestions, saveDiagQuestions,
-  loadAnonResults, linkAnonResult, unlinkAnonResult,
+  loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult,
   type DiagQuestion, type DiagSubject, type AnonDiagResult,
   DEFAULT_QUESTIONS,
 } from '../../data/diagnosticData'
@@ -2155,8 +2155,122 @@ function CreatorView({
           </div>
         </motion.div>
 
-        {/* ── Centered content ── */}
-        <div style={{ maxWidth: 760, margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: 16, padding: '0 24px 20px' }}>
+        {/* ── Body: left sticky panel + center ── */}
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+
+        {/* LEFT: settings panel — sticky glass card */}
+        <div style={{ padding: '0 0 20px 24px', flexShrink: 0, position: 'sticky', top: 20 }}>
+          <GlassCard style={{ width: 260, boxSizing: 'border-box', padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
+            {paramsLabel}
+          </div>
+
+          {/* ─ Task meta left ─ */}
+          {mode === 'trainer' && <>
+            <div>
+              <Label>Предмет</Label>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {(['Химия', 'Биология'] as const).map(s => (
+                  <SegBtn key={s} label={s} active={tkSubject === s} color="var(--color-purple-text)" bg="var(--color-purple-soft)" onClick={() => { setTkSubject(s); setTkSection(''); setTkTopic('') }} />
+                ))}
+              </div>
+            </div>
+            <div>
+              <TeacherSelect value={tkSection} onChange={v => { setTkSection(v); setTkTopic('') }} placeholder="Раздел"
+                options={tkSectionList} />
+            </div>
+            <div>
+              <TeacherSelect value={tkTopic} onChange={setTkTopic} placeholder="Тема"
+                options={tkTopicList} />
+            </div>
+            <div>
+              <Label>Часть</Label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {([1, 2] as const).map(p => (
+                  <SegBtn key={p} label={`Часть ${p}`} active={tkPart === p}
+                    color="var(--color-purple-text)" bg="var(--color-purple-soft)"
+                    onClick={() => setTkPart(p)} />
+                ))}
+              </div>
+            </div>
+            <div><Label>Линия</Label>
+              <input type="number" min={1} max={35} value={tkLine}
+                onChange={e => setTkLine(Math.max(1, Number(e.target.value)))} style={inputSt} />
+            </div>
+            <div>
+              <TeacherSelect value={tkSource} onChange={setTkSource} placeholder="Источник" options={SOURCES} />
+            </div>
+            <div style={{ background: canSave ? 'var(--color-green-soft)' : 'var(--color-bg-2)', borderRadius: 12, padding: '10px 12px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: canSave ? 'var(--color-green-text)' : 'var(--color-text-3)', marginBottom: 4 }}>
+                {canSave ? '✓ Задание готово' : 'Заполните условие и ответ'}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>
+                {ANSWER_TYPES.find(a => a.type === tkAnswerType)?.label} · {computedMax || 1} {(computedMax || 1) === 1 ? 'балл' : (computedMax || 1) < 5 ? 'балла' : 'баллов'}
+              </div>
+            </div>
+          </>}
+
+          {/* ─ Course left ─ */}
+          {mode === 'course' && <>
+            <div><Label>Название</Label>
+              <input value={cTitle} onChange={e => setCTitle(e.target.value)} style={inputSt} />
+            </div>
+            <div>
+              <Label>Предмет</Label>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {(['Химия', 'Биология'] as const).map(s => (
+                  <SegBtn key={s} label={s} active={cSubject === s} color="var(--color-purple-text)" bg="var(--color-purple-soft)" onClick={() => setCSubject(s)} />
+                ))}
+              </div>
+            </div>
+            <div>
+              <TeacherSelect value={cLevel} onChange={setCLevel} placeholder="Уровень" options={['ЕГЭ', 'ОГЭ', 'Углублённый', 'Интенсив']} />
+            </div>
+            <div><Label>Описание</Label>
+              <textarea value={cDesc} onChange={e => setCDesc(e.target.value)} rows={3}
+                style={{ ...inputSt, resize: 'vertical' }} placeholder="Краткое описание курса…" />
+            </div>
+            <div><Label>Статус</Label>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <SegBtn label="Черновик" active={cStatus === 'draft'} color="var(--color-peach-text)" bg="var(--color-peach-soft)" onClick={() => setCStatus('draft')} />
+                <SegBtn label="Опубликован" active={cStatus === 'published'} color="var(--color-green-text)" bg="var(--color-green-soft)" onClick={() => setCStatus('published')} />
+              </div>
+            </div>
+          </>}
+
+          {/* ─ Widget left ─ */}
+          {mode === 'widget' && <>
+            <div><Label>Название</Label>
+              <input value={wTitle} onChange={e => setWTitle(e.target.value)} style={inputSt} />
+            </div>
+            <div><Label>Тип виджета</Label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                {(['quiz', 'facts', 'reactions', 'pomodoro', 'memes', 'qod'] as WidgetType[]).map(wt => {
+                  const WIcon = WTYPE_ICON[wt]
+                  return (
+                    <button key={wt} onClick={() => setWType(wt)} style={{
+                      padding: '8px 10px', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 7,
+                      border: wType === wt ? `1.5px solid ${WTYPE_COLOR[wt]}` : '1.5px solid transparent',
+                      background: wType === wt ? WTYPE_BG[wt] : 'var(--color-bg)', cursor: 'pointer',
+                      fontSize: 12, fontWeight: 600,
+                      color: wType === wt ? WTYPE_COLOR[wt] : 'var(--color-muted)', transition: 'all 0.15s',
+                    }}>
+                      <WIcon size={13} strokeWidth={2} />{WTYPE_LABEL[wt]}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+            <div>
+              <TeacherSelect value={wLinkedId} onChange={setWLinkedId} placeholder="Тренажёр"
+                options={trainers.map(t => ({ value: t.id, label: t.title }))} />
+            </div>
+          </>}
+          </GlassCard>
+        </div>
+
+        {/* CENTER: type pills + content form */}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', padding: '0 24px 20px 20px' }}>
 
           {/* Type pills — styled like the homework-create tab bar */}
           <div style={{
@@ -2189,124 +2303,6 @@ function CreatorView({
           </div>
 
           <GlassCard style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-          {/* ─── COURSE params (inlined, no left panel) ─── */}
-          {mode === 'course' && <>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <div style={{ gridColumn: '1 / -1' }}>
-                <Label>Название</Label>
-                <input value={cTitle} onChange={e => setCTitle(e.target.value)} style={inputSt} />
-              </div>
-              <div>
-                <Label>Предмет</Label>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  {(['Химия', 'Биология'] as const).map(s => (
-                    <SegBtn key={s} label={s} active={cSubject === s} color="var(--color-purple-text)" bg="var(--color-purple-soft)" onClick={() => setCSubject(s)} />
-                  ))}
-                </div>
-              </div>
-              <div>
-                <TeacherSelect value={cLevel} onChange={setCLevel} placeholder="Уровень" options={['ЕГЭ', 'ОГЭ', 'Углублённый', 'Интенсив']} />
-              </div>
-              <div style={{ gridColumn: '1 / -1' }}>
-                <Label>Описание</Label>
-                <textarea value={cDesc} onChange={e => setCDesc(e.target.value)} rows={3}
-                  style={{ ...inputSt, resize: 'vertical' }} placeholder="Краткое описание курса…" />
-              </div>
-              <div>
-                <Label>Статус</Label>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <SegBtn label="Черновик" active={cStatus === 'draft'} color="var(--color-peach-text)" bg="var(--color-peach-soft)" onClick={() => setCStatus('draft')} />
-                  <SegBtn label="Опубликован" active={cStatus === 'published'} color="var(--color-green-text)" bg="var(--color-green-soft)" onClick={() => setCStatus('published')} />
-                </div>
-              </div>
-            </div>
-            <div style={{ borderTop: '1px solid var(--color-border-soft)', margin: '4px 0' }} />
-          </>}
-
-          {/* ─── WIDGET params (inlined, no left panel) ─── */}
-          {mode === 'widget' && <>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div>
-                <Label>Тип виджета</Label>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {(['quiz', 'facts', 'reactions', 'pomodoro', 'memes', 'qod'] as WidgetType[]).map(wt => {
-                    const wa = wType === wt
-                    const WIcon = WTYPE_ICON[wt]
-                    return (
-                      <button key={wt} onClick={() => setWType(wt)} style={{
-                        display: 'flex', alignItems: 'center', gap: 6,
-                        padding: '8px 14px', borderRadius: 12, border: `1.5px solid ${wa ? WTYPE_COLOR[wt] : 'var(--color-border)'}`,
-                        background: wa ? WTYPE_BG[wt] : 'var(--color-bg-2)',
-                        color: wa ? WTYPE_COLOR[wt] : 'var(--color-muted)',
-                        fontSize: 12, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
-                      }}>
-                        <WIcon size={13} strokeWidth={2} /> {WTYPE_LABEL[wt]}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 12 }}>
-                <div style={{ flex: 1 }}>
-                  <Label>Название виджета</Label>
-                  <input value={wTitle} onChange={e => setWTitle(e.target.value)} placeholder="Название…" style={inputSt} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <TeacherSelect value={wLinkedId} onChange={setWLinkedId} placeholder="Тренажёр"
-                    options={trainers.map(t => ({ value: t.id, label: t.title }))} />
-                </div>
-              </div>
-            </div>
-            <div style={{ borderTop: '1px solid var(--color-border-soft)', margin: '4px 0' }} />
-          </>}
-
-          {/* ─── TRAINER meta (inlined compact, no left panel) ─── */}
-          {mode === 'trainer' && <>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div>
-                <Label>Предмет</Label>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  {(['Химия', 'Биология'] as const).map(s => (
-                    <SegBtn key={s} label={s} active={tkSubject === s} color="var(--color-purple-text)" bg="var(--color-purple-soft)" onClick={() => { setTkSubject(s); setTkSection(''); setTkTopic('') }} />
-                  ))}
-                </div>
-              </div>
-              <div>
-                <Label>Часть</Label>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {([1, 2] as const).map(p => (
-                    <SegBtn key={p} label={`Часть ${p}`} active={tkPart === p}
-                      color="var(--color-purple-text)" bg="var(--color-purple-soft)"
-                      onClick={() => setTkPart(p)} />
-                  ))}
-                </div>
-              </div>
-              <div>
-                <TeacherSelect value={tkSection} onChange={v => { setTkSection(v); setTkTopic('') }} placeholder="Раздел" options={tkSectionList} />
-              </div>
-              <div>
-                <TeacherSelect value={tkTopic} onChange={setTkTopic} placeholder="Тема" options={tkTopicList} />
-              </div>
-              <div>
-                <Label>Линия</Label>
-                <input type="number" min={1} max={35} value={tkLine}
-                  onChange={e => setTkLine(Math.max(1, Number(e.target.value)))} style={inputSt} />
-              </div>
-              <div>
-                <TeacherSelect value={tkSource} onChange={setTkSource} placeholder="Источник" options={SOURCES} />
-              </div>
-            </div>
-            <div style={{ background: canSave ? 'var(--color-green-soft)' : 'var(--color-bg-2)', borderRadius: 12, padding: '10px 12px' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: canSave ? 'var(--color-green-text)' : 'var(--color-text-3)', marginBottom: 4 }}>
-                {canSave ? '✓ Задание готово' : 'Заполните условие и ответ'}
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>
-                {ANSWER_TYPES.find(a => a.type === tkAnswerType)?.label} · {computedMax || 1} {(computedMax || 1) === 1 ? 'балл' : (computedMax || 1) < 5 ? 'балла' : 'баллов'}
-              </div>
-            </div>
-            <div style={{ borderTop: '1px solid var(--color-border-soft)', margin: '4px 0' }} />
-          </>}
 
           {/* ─── TASK center: block-based authoring ─── */}
           {mode === 'trainer' && <>
@@ -2495,81 +2491,6 @@ function CreatorView({
                 </div>
               )
             })}
-
-            {/* Добавить фото / таблицу (was right panel) */}
-            <div style={{ display: 'flex', gap: 8 }}>
-              <div style={{ position: 'relative', flex: 1 }}>
-                <button onClick={() => setCondImgPickerOpen(v => !v)} style={{
-                  display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11,
-                  border: tkImage ? `1.5px solid ${cfg.color}` : '1.5px solid var(--color-border)',
-                  background: tkImage ? cfg.bg : 'var(--color-bg-2)', cursor: 'pointer', textAlign: 'left', width: '100%',
-                  fontSize: 12.5, fontWeight: 700, color: tkImage ? cfg.color : 'var(--color-text)',
-                }}>
-                  <ImageIcon size={15} strokeWidth={2} style={{ color: tkImage ? cfg.color : 'var(--color-text-3)', flexShrink: 0 }} />
-                  {tkImage ? 'Фото добавлено' : 'Добавить фото'}
-                </button>
-                {condImgPickerOpen && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, marginTop: 4, borderRadius: 12, background: 'var(--color-bg-2)', border: '1.5px solid var(--color-border)', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.14)' }}>
-                    <div
-                      onPaste={e => {
-                        const imgItem = Array.from(e.clipboardData.items).find(i => i.type.startsWith('image/'))
-                        if (!imgItem) return
-                        e.preventDefault()
-                        const file = imgItem.getAsFile()
-                        if (!file) return
-                        const reader = new FileReader()
-                        reader.onload = ev => { setTkImage(String(ev.target?.result)); setCondImgPickerOpen(false) }
-                        reader.readAsDataURL(file)
-                      }}
-                      style={{ padding: '12px 10px', textAlign: 'center', fontSize: 12, color: 'var(--color-text-3)', outline: 'none', cursor: 'default', background: 'var(--color-bg-2)' }}
-                    >
-                      Нажмите <kbd style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border-medium)', borderRadius: 4, padding: '1px 5px', fontFamily: 'inherit', fontSize: 11 }}>Ctrl+V</kbd> чтобы вставить фото
-                    </div>
-                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 10px', borderTop: '1px solid var(--color-border-soft)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', background: 'var(--color-bg-2)' }}>
-                      <ImageIcon size={13} />Выбрать файл
-                      <input ref={condImgFileRef} type="file" accept="image/*" onChange={e => { onPickImage(e); setCondImgPickerOpen(false) }} style={{ display: 'none' }} />
-                    </label>
-                  </div>
-                )}
-              </div>
-              <button onClick={() => setTkHasTable(v => !v)} style={{
-                display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11, flex: 1,
-                border: tkHasTable ? `1.5px solid ${cfg.color}` : '1.5px solid var(--color-border)',
-                background: tkHasTable ? cfg.bg : 'var(--color-bg-2)', cursor: 'pointer', textAlign: 'left', width: '100%',
-                fontSize: 12.5, fontWeight: 700, color: tkHasTable ? cfg.color : 'var(--color-text)',
-              }}>
-                <TableIcon size={15} strokeWidth={2} style={{ color: tkHasTable ? cfg.color : 'var(--color-text-3)', flexShrink: 0 }} />
-                {tkHasTable ? 'Таблица добавлена' : 'Добавить таблицу'}
-              </button>
-            </div>
-
-            {/* Тип ответа — inline (was right panel) */}
-            <div style={{ borderTop: '1px solid var(--color-border-soft)', paddingTop: 16 }}>
-              <Label>Тип ответа</Label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 6 }}>
-                {ANSWER_TYPES.map(({ type, label, hint, Icon }) => {
-                  const active = tkAnswerType === type
-                  return (
-                    <button key={type} onClick={() => {
-                      setTkAnswerType(type)
-                      if (type === 'tableFill') setTkHasTable(true)
-                      if (type === 'multi' && tkCorrect.length === 0) setTkCorrect([0])
-                      if (type === 'single' && tkCorrect.length > 1) setTkCorrect([tkCorrect[0]])
-                    }} style={{
-                      display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11,
-                      border: active ? `1.5px solid ${cfg.color}` : '1.5px solid var(--color-border)',
-                      background: active ? cfg.bg : 'var(--color-bg-2)', cursor: 'pointer', textAlign: 'left', width: '100%',
-                    }}>
-                      <Icon size={15} strokeWidth={2} style={{ color: active ? cfg.color : 'var(--color-text-3)', flexShrink: 0 }} />
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: 12.5, fontWeight: 700, color: active ? cfg.color : 'var(--color-text)' }}>{label}</div>
-                        <div style={{ fontSize: 10.5, color: active ? 'var(--color-accent)' : 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: active ? 0.75 : 1 }}>{hint}</div>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
 
             {/* 2 ─ Блок ответа */}
             <div style={{ borderTop: '1px solid var(--color-border-soft)', paddingTop: 16 }}>
@@ -2981,8 +2902,96 @@ function CreatorView({
           )}
 
           </GlassCard>
-        </div>{/* end centered content */}
-      </div>{/* end page content */}
+        </div>{/* end center column */}
+
+        {/* RIGHT: block palette (trainer mode) */}
+        {mode === 'trainer' && (
+          <div style={{ padding: '0 24px 20px 0', flexShrink: 0, position: 'sticky', top: 20 }}>
+            <GlassCard style={{ width: 248, boxSizing: 'border-box', padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <SectionHead>Тип ответа</SectionHead>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {ANSWER_TYPES.map(({ type, label, hint, Icon }) => {
+                    const active = tkAnswerType === type
+                    return (
+                      <button key={type} onClick={() => {
+                        setTkAnswerType(type)
+                        if (type === 'tableFill') setTkHasTable(true)
+                        if (type === 'multi' && tkCorrect.length === 0) setTkCorrect([0])
+                        if (type === 'single' && tkCorrect.length > 1) setTkCorrect([tkCorrect[0]])
+                      }} style={{
+                        display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11,
+                        border: active ? `1.5px solid ${cfg.color}` : '1.5px solid var(--color-border)',
+                        background: active ? cfg.bg : 'var(--color-bg-2)', cursor: 'pointer', textAlign: 'left', width: '100%',
+                      }}>
+                        <Icon size={15} strokeWidth={2} style={{ color: active ? cfg.color : 'var(--color-text-3)', flexShrink: 0 }} />
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 12.5, fontWeight: 700, color: active ? cfg.color : 'var(--color-text)' }}>{label}</div>
+                          <div style={{ fontSize: 10.5, color: active ? 'var(--color-accent)' : 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: active ? 0.75 : 1 }}>{hint}</div>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid var(--color-border-soft)', paddingTop: 14 }}>
+                <SectionHead>Блоки условия</SectionHead>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div>
+                    <button
+                      onClick={() => {
+                        setCondImgPickerOpen(v => !v)
+                        setTimeout(() => condImgPasteZoneRef.current?.focus(), 50)
+                      }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11, background: 'var(--color-bg-2)', cursor: 'pointer', border: '1.5px solid var(--color-border)', width: '100%', textAlign: 'left' }}
+                    >
+                      <ImageIcon size={15} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text)' }}>{tkImage ? 'Заменить фото' : 'Добавить фото'}</div>
+                    </button>
+                    {condImgPickerOpen && (
+                      <div style={{ margin: '4px 0 6px', borderRadius: 10, border: '1.5px dashed var(--color-border-medium)', overflow: 'hidden' }}>
+                        <div
+                          ref={condImgPasteZoneRef}
+                          tabIndex={0}
+                          onPaste={e => {
+                            const items = Array.from(e.clipboardData?.items ?? [])
+                            const imgItem = items.find(it => it.type.startsWith('image/'))
+                            if (!imgItem) return
+                            e.preventDefault()
+                            const file = imgItem.getAsFile()
+                            if (!file) return
+                            const reader = new FileReader()
+                            reader.onload = ev => { setTkImage(String(ev.target?.result)); setCondImgPickerOpen(false) }
+                            reader.readAsDataURL(file)
+                          }}
+                          style={{ padding: '12px 10px', textAlign: 'center', fontSize: 12, color: 'var(--color-text-3)', outline: 'none', cursor: 'default', background: 'var(--color-bg-2)' }}
+                        >
+                          Нажмите <kbd style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border-medium)', borderRadius: 4, padding: '1px 5px', fontFamily: 'inherit', fontSize: 11 }}>Ctrl+V</kbd> чтобы вставить фото
+                        </div>
+                        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 10px', borderTop: '1px solid var(--color-border-soft)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', background: 'var(--color-bg-2)' }}>
+                          <ImageIcon size={13} />
+                          Выбрать файл
+                          <input ref={condImgFileRef} type="file" accept="image/*" onChange={e => { onPickImage(e); setCondImgPickerOpen(false) }} style={{ display: 'none' }} />
+                        </label>
+                      </div>
+                    )}
+                  </div>
+                  <button onClick={() => setTkHasTable(v => !v)} style={{
+                    display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11,
+                    border: tkHasTable ? `1.5px solid ${cfg.color}` : '1.5px solid var(--color-border)',
+                    background: tkHasTable ? cfg.bg : 'var(--color-bg-2)', cursor: 'pointer', textAlign: 'left', width: '100%',
+                  }}>
+                    <TableIcon size={15} strokeWidth={2} style={{ color: tkHasTable ? cfg.color : 'var(--color-text-3)', flexShrink: 0 }} />
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: tkHasTable ? cfg.color : 'var(--color-text)' }}>{tkHasTable ? 'Таблица добавлена' : 'Добавить таблицу'}</div>
+                  </button>
+                </div>
+              </div>
+            </GlassCard>
+          </div>
+        )}
+        </div>{/* end body row */}
+    </div>{/* end page content */}
     </motion.div>
   )
 }
@@ -2990,10 +2999,20 @@ function CreatorView({
 // ─── Diagnostic management ─────────────────────────────────────────────────────
 const BASE_URL = window.location.origin + window.location.pathname
 
+const SUBJECT_META: Record<DiagSubject, { label: string; accent: string; soft: string }> = {
+  biology:   { label: 'Биология',          accent: '#22c55e', soft: 'var(--color-green-soft)'  },
+  chemistry: { label: 'Химия',             accent: '#7c3aed', soft: 'var(--color-purple-soft)' },
+  logic:     { label: 'Скрининг мышления', accent: '#f59e0b', soft: '#fef3c7'                  },
+}
+const DIAG_SUBJECTS: DiagSubject[] = ['biology', 'chemistry', 'logic']
+const SUBJECT_ICON_MAP: Record<DiagSubject, React.ElementType> = {
+  biology: FlaskConical,
+  chemistry: Atom,
+  logic: Target,
+}
+
 function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
-  const label = subject === 'biology' ? 'Биология' : 'Химия'
-  const accent = subject === 'biology' ? '#22c55e' : '#7c3aed'
-  const soft = subject === 'biology' ? 'var(--color-green-soft)' : 'var(--color-purple-soft)'
+  const { label, accent, soft } = SUBJECT_META[subject]
 
   const [questions, setQuestions] = useState<DiagQuestion[]>(() => loadDiagQuestions(subject))
   const [expanded, setExpanded] = useState(false)
@@ -3439,27 +3458,31 @@ function DiagnosticStudentCard({
 }
 
 function DiagnosticManagement({ onBack }: { onBack: () => void }) {
-  const [anonResults, setAnonResults] = useState<AnonDiagResult[]>(() => loadAnonResults())
+  const [anonResults, setAnonResults] = useState<AnonDiagResult[]>([])
   const [pickerFor, setPickerFor] = useState<string | null>(null)
   const allStudents = useAllStudents()
 
-  function refreshResults() { setAnonResults(loadAnonResults()) }
+  async function refreshResults() {
+    const data = await loadAnonResults()
+    setAnonResults(data)
+  }
 
-  function handleLink(resultId: string, studentId: string) {
-    linkAnonResult(resultId, studentId)
-    refreshResults()
+  useEffect(() => { refreshResults() }, [])
+
+  async function handleLink(resultId: string, studentId: string) {
+    await linkAnonResult(resultId, studentId)
+    await refreshResults()
     setPickerFor(null)
   }
 
-  function handleUnlink(resultId: string) {
-    unlinkAnonResult(resultId)
-    refreshResults()
+  async function handleUnlink(resultId: string) {
+    await unlinkAnonResult(resultId)
+    await refreshResults()
   }
 
-  function handleDelete(resultId: string) {
-    const arr = loadAnonResults().filter(r => r.id !== resultId)
-    localStorage.setItem('diag-anon-results', JSON.stringify(arr))
-    refreshResults()
+  async function handleDelete(resultId: string) {
+    await deleteAnonResult(resultId)
+    await refreshResults()
   }
 
   return (
@@ -3533,6 +3556,9 @@ function DiagnosticManagement({ onBack }: { onBack: () => void }) {
         {/* Chemistry panel */}
         <DiagnosticSubjectPanel subject="chemistry" />
 
+        {/* Logic / cognitive screening panel */}
+        <DiagnosticSubjectPanel subject="logic" />
+
         {/* Results section */}
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -3543,6 +3569,18 @@ function DiagnosticManagement({ onBack }: { onBack: () => void }) {
                 {anonResults.length}
               </span>
             )}
+            <button
+              onClick={refreshResults}
+              title="Обновить"
+              style={{
+                marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5,
+                padding: '4px 12px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                background: 'var(--color-bg-3)', color: 'var(--color-muted)',
+                fontSize: 11, fontWeight: 600,
+              }}
+            >
+              ↻ Обновить
+            </button>
           </div>
           {anonResults.length === 0 ? (
             <div style={{
@@ -3568,6 +3606,173 @@ function DiagnosticManagement({ onBack }: { onBack: () => void }) {
         </div>
       </div>
     </motion.div>
+  )
+}
+
+// ─── Diagnostic Card ─────────────────────────────────────────────────────────
+function DiagnosticCard({ subject, isSelected, onClick }: { subject: DiagSubject; isSelected: boolean; onClick: () => void }) {
+  const { label, accent, soft } = SUBJECT_META[subject]
+  const Icon = SUBJECT_ICON_MAP[subject]
+  const questions = loadDiagQuestions(subject)
+  const [anonCount, setAnonCount] = useState(0)
+  useEffect(() => {
+    loadAnonResults().then(all => setAnonCount(all.filter(r => r.subject === subject).length))
+  }, [subject])
+  return (
+    <ContentCard
+      accentColor={accent} accentBg={soft}
+      isSelected={isSelected} onClick={onClick}
+      icon={<Icon size={17} strokeWidth={2} style={{ color: accent }} />}
+      badge={<span style={{ fontSize: 10, fontWeight: 700, color: accent, background: soft, borderRadius: 7, padding: '2px 8px' }}>Диагностика</span>}
+      title={label}
+      subtitle={`${questions.length} вопросов`}
+      footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount} результатов</span></>}
+      footerRight={<><Target size={11} strokeWidth={2} />Тест</>}
+    />
+  )
+}
+
+// ─── Diagnostic Panel (right-side slide-in panel) ────────────────────────────
+function DiagnosticPanel({ subject, onClose }: { subject: DiagSubject; onClose: () => void }) {
+  const { label, accent, soft } = SUBJECT_META[subject]
+  const Icon = SUBJECT_ICON_MAP[subject]
+
+  const [questions, setQuestions] = useState<DiagQuestion[]>(() => loadDiagQuestions(subject))
+  const [editIdx, setEditIdx] = useState<number | null>(null)
+  const [editText, setEditText] = useState('')
+  const [editOpts, setEditOpts] = useState<string[]>([])
+  const [editCorrect, setEditCorrect] = useState(0)
+  const [copied, setCopied] = useState(false)
+  const [anonResults, setAnonResults] = useState<AnonDiagResult[]>([])
+  const [pickerFor, setPickerFor] = useState<string | null>(null)
+  const allStudents = useAllStudents()
+
+  async function refreshResults() {
+    const all = await loadAnonResults()
+    setAnonResults(all.filter(r => r.subject === subject))
+  }
+
+  useEffect(() => { refreshResults() }, [subject])
+
+  function save(qs: DiagQuestion[]) { setQuestions(qs); saveDiagQuestions(subject, qs) }
+  function startEdit(idx: number) { const q = questions[idx]; setEditIdx(idx); setEditText(q.text); setEditOpts([...q.options]); setEditCorrect(q.correct) }
+  function commitEdit() {
+    if (editIdx === null) return
+    save(questions.map((q, i) => i === editIdx ? { ...q, text: editText, options: editOpts, correct: editCorrect } : q))
+    setEditIdx(null)
+  }
+  function removeQuestion(idx: number) { save(questions.filter((_, i) => i !== idx)); if (editIdx === idx) setEditIdx(null) }
+  function resetToDefault() { save(DEFAULT_QUESTIONS[subject]); setEditIdx(null) }
+  function copyLink() {
+    navigator.clipboard.writeText(`${BASE_URL}#/diagnostic?subject=${subject}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
+  }
+  async function handleLink(resultId: string, studentId: string) { await linkAnonResult(resultId, studentId); await refreshResults(); setPickerFor(null) }
+  async function handleUnlink(resultId: string) { await unlinkAnonResult(resultId); await refreshResults() }
+  async function handleDelete(resultId: string) { await deleteAnonResult(resultId); await refreshResults() }
+
+  return (
+    <>
+      <AnimatePresence>
+        {pickerFor && (
+          <StudentPickerModal onPick={(sid) => handleLink(pickerFor, sid)} onClose={() => setPickerFor(null)} />
+        )}
+      </AnimatePresence>
+      <motion.div
+        initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
+        style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 360, zIndex: 10, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      >
+        <PanelHeader title={label} accent={accent} accentBg={soft} Icon={Icon} onClose={onClose} />
+        <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+          {/* Copy link */}
+          <button
+            onClick={copyLink}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+              padding: '10px 14px', borderRadius: 12, cursor: 'pointer', width: '100%', boxSizing: 'border-box',
+              border: `1.5px solid ${copied ? '#22c55e' : accent}`,
+              background: copied ? 'var(--color-green-soft)' : `${accent}15`,
+              color: copied ? 'var(--color-green-text)' : accent,
+              fontSize: 13, fontWeight: 700, transition: 'all 0.18s',
+            }}
+          >
+            {copied ? <Check size={14} /> : <ClipboardCopy size={14} />}
+            {copied ? 'Ссылка скопирована!' : 'Скопировать ссылку'}
+          </button>
+
+          {/* Questions */}
+          <div>
+            <SectionHead>Вопросы ({questions.length})</SectionHead>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {questions.map((q, idx) => (
+                <div key={q.id} style={{ borderRadius: 12, border: `1px solid ${editIdx === idx ? accent : 'var(--color-border)'}`, background: editIdx === idx ? `${accent}08` : 'var(--color-bg-2)', overflow: 'hidden' }}>
+                  {editIdx === idx ? (
+                    <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <textarea value={editText} onChange={e => setEditText(e.target.value)} rows={2}
+                        style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', resize: 'vertical', outline: 'none' }} />
+                      {editOpts.map((opt, oi) => (
+                        <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <button onClick={() => setEditCorrect(oi)}
+                            style={{ width: 20, height: 20, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'transparent' }} />
+                          <input value={opt} onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o) }}
+                            style={{ flex: 1, padding: '6px 10px', borderRadius: 8, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
+                        </div>
+                      ))}
+                      <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+                        <button onClick={() => setEditIdx(null)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Отмена</button>
+                        <button onClick={commitEdit} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: accent, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}><Check size={12} />Сохранить</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                      <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: soft, color: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, marginTop: 1 }}>{idx + 1}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', marginBottom: 3 }}>{q.text}</div>
+                        <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>✓ {q.options[q.correct]}</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                        <button onClick={() => startEdit(idx)} style={{ padding: '4px 8px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>Ред.</button>
+                        <button onClick={() => removeQuestion(idx)} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={11} /></button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <button onClick={resetToDefault} style={{ padding: '8px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                Сбросить к стандарту
+              </button>
+            </div>
+          </div>
+
+          {/* Results */}
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Database size={13} style={{ color: accent }} />
+              Результаты
+              {anonResults.length > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: accent, background: soft, borderRadius: 6, padding: '1px 7px' }}>{anonResults.length}</span>}
+              <button onClick={refreshResults} title="Обновить" style={{ marginLeft: 'auto', padding: '3px 10px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 10, fontWeight: 600 }}>↻</button>
+            </div>
+            {anonResults.length === 0 ? (
+              <div style={{ padding: '16px', borderRadius: 12, border: '1.5px dashed var(--color-border-medium)', textAlign: 'center', color: 'var(--color-muted)', fontSize: 12 }}>
+                Ещё никто не прошёл тест
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {anonResults.map(r => (
+                  <DiagnosticStudentCard
+                    key={r.id} result={r} allStudents={allStudents}
+                    onLink={() => setPickerFor(r.id)}
+                    onUnlink={() => handleUnlink(r.id)}
+                    onDelete={() => handleDelete(r.id)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    </>
   )
 }
 
@@ -3749,8 +3954,6 @@ export default function TeacherConstructorPage() {
             onSaveWidget={handleSaveWidget}
             onCancel={() => { setCreatorMode(null); setEditCourse(null); setEditTrainer(null); setEditingTask(null); setEditWidget(null) }}
           />
-        ) : activeTab === 'testing' ? (
-          <DiagnosticManagement key="testing" onBack={() => setActiveTab('course')} />
         ) : (
           <motion.div
             key="list"
@@ -3882,6 +4085,14 @@ export default function TeacherConstructorPage() {
                     )}
                   </div>
                 ))}
+                {activeTab === 'testing' && DIAG_SUBJECTS.map(subject => (
+                  <DiagnosticCard
+                    key={subject}
+                    subject={subject}
+                    isSelected={selectedId === subject}
+                    onClick={() => openItem(subject)}
+                  />
+                ))}
               </div>
             </div>
             <AnimatePresence>
@@ -3889,6 +4100,9 @@ export default function TeacherConstructorPage() {
                 <CourseEditor key={selectedCourse.id} course={selectedCourse} trainers={trainers} widgets={widgets}
                   onSave={c => setCourses(prev => prev.map(x => x.id === c.id ? c : x))} onClose={closeEditor}
                   onExpand={() => handleExpandCourse(selectedCourse)} />
+              )}
+              {activeTab === 'testing' && selectedId && (
+                <DiagnosticPanel key={selectedId} subject={selectedId as DiagSubject} onClose={closeEditor} />
               )}
             </AnimatePresence>
           </motion.div>

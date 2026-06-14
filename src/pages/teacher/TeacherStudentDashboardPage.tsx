@@ -1,10 +1,10 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft, Phone, Send, User, TrendingUp, ClipboardCheck, Clock,
   Award, Target, XCircle, CheckCircle2, Layers, BookOpen, Dumbbell,
   Star, Calendar, BarChart3, Download, CreditCard, MessageSquare,
-  CheckCheck, AlertCircle, Percent, FlaskConical, Atom,
+  CheckCheck, AlertCircle, Percent, FlaskConical, Atom, Brain,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useGroups, useStudents } from '../../lib/useGroups'
@@ -158,6 +158,17 @@ export default function TeacherStudentDashboardPage() {
   const group = groups.find(g => g.id === selectedGroupId) ?? null
   const student = students.find(s => s.id === selectedStudentId) ?? null
 
+  const [scrolled, setScrolled] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const onScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    setScrolled((e.currentTarget as HTMLElement).scrollTop > 80)
+  }, [])
+
+  const [diagResults, setDiagResults] = useState<AnonDiagResult[]>([])
+  useEffect(() => {
+    loadAnonResults().then(all => setDiagResults(all.filter(r => r.linkedStudentId === selectedStudentId)))
+  }, [selectedStudentId])
+
   if (!student || !group) {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)' }}>
@@ -165,8 +176,6 @@ export default function TeacherStudentDashboardPage() {
       </div>
     )
   }
-
-  const diagResults = loadAnonResults().filter(r => r.linkedStudentId === selectedStudentId)
 
   const totalTrainer = MOCK_TRAINER_SECTIONS.reduce((a, s) => a + s.total, 0)
   const correctTrainer = MOCK_TRAINER_SECTIONS.reduce((a, s) => a + s.correct, 0)
@@ -176,12 +185,64 @@ export default function TeacherStudentDashboardPage() {
 
   return (
     <motion.div
+      ref={scrollRef}
+      onScroll={onScroll}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.22 }}
       style={{ flex: 1, overflowY: 'auto', marginTop: -100, paddingTop: 100, minHeight: 0 }}
     >
+      {/* Floating side buttons — visible after scroll */}
+      <AnimatePresence>
+        {scrolled && (
+          <>
+            <motion.button
+              key="side-back"
+              initial={{ opacity: 0, x: -16 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -16 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              onClick={() => setActivePage('groups')}
+              style={{
+                position: 'fixed', left: 20, top: '50%', transform: 'translateY(-50%)',
+                zIndex: 200, display: 'flex', flexDirection: 'column', alignItems: 'center',
+                gap: 6, padding: '12px 10px', borderRadius: 16, border: 'none', cursor: 'pointer',
+                background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'blur(14px)',
+                boxShadow: '0 4px 18px rgba(0,0,0,0.14)', color: 'var(--color-text-3)',
+                fontSize: 10, fontWeight: 600, transition: 'color 0.15s',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--color-text)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--color-text-3)' }}
+            >
+              <ArrowLeft size={16} />
+              <span style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: 0.3 }}>Назад</span>
+            </motion.button>
+
+            <motion.button
+              key="side-pdf"
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 16 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              onClick={() => printStudentCard(student.name)}
+              style={{
+                position: 'fixed', right: 20, top: '50%', transform: 'translateY(-50%)',
+                zIndex: 200, display: 'flex', flexDirection: 'column', alignItems: 'center',
+                gap: 6, padding: '12px 10px', borderRadius: 16, border: 'none', cursor: 'pointer',
+                background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'blur(14px)',
+                boxShadow: '0 4px 18px rgba(0,0,0,0.14)', color: 'var(--color-text-3)',
+                fontSize: 10, fontWeight: 600, transition: 'color 0.15s',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = group.color }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--color-text-3)' }}
+            >
+              <Download size={16} />
+              <span style={{ writingMode: 'vertical-rl', letterSpacing: 0.3 }}>PDF</span>
+            </motion.button>
+          </>
+        )}
+      </AnimatePresence>
       {/* Hidden print container */}
       <div id="student-dashboard-print" style={{ display: 'none', fontFamily: 'system-ui, sans-serif', color: '#111' }}>
         <h1 style={{ fontSize: 22, marginBottom: 4 }}>{student.name}</h1>
@@ -223,7 +284,7 @@ export default function TeacherStudentDashboardPage() {
         <p style={{ color: '#999', fontSize: 11, marginTop: 24 }}>Сформировано автоматически · {new Date().toLocaleDateString('ru-RU')}</p>
       </div>
 
-      <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 32px 56px' }}>
+      <div style={{ padding: '0 64px 56px' }}>
 
         {/* ── Toolbar ─────────────────────────────────────────────────── */}
         <div style={{ paddingTop: 24, marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -484,12 +545,12 @@ export default function TeacherStudentDashboardPage() {
               </div>
             </Card>
 
-            {/* Диагностика */}
+            {/* Диагностика + Скрининг мышления */}
             {diagResults.length > 0 && (
               <Card>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 14 }}>
                   <Target size={14} style={{ color: 'var(--color-accent)' }} />
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Диагностическое тестирование</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Диагностика и скрининг</span>
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', borderRadius: 7, padding: '2px 8px' }}>{diagResults.length}</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -498,25 +559,48 @@ export default function TeacherStudentDashboardPage() {
                     const totalQ = sections.reduce((a, [, v]) => a + v.total, 0)
                     const correct = sections.reduce((a, [, v]) => a + v.correct, 0)
                     const pct = totalQ ? Math.round((correct / totalQ) * 100) : 0
-                    const accent = r.subject === 'biology' ? '#22c55e' : '#7c3aed'
-                    const soft = r.subject === 'biology' ? 'var(--color-green-soft)' : 'var(--color-purple-soft)'
-                    const label = r.subject === 'biology' ? 'Биология' : 'Химия'
+                    const isLogic = r.subject === 'logic'
+                    const accent = isLogic ? '#f59e0b' : r.subject === 'biology' ? '#22c55e' : '#7c3aed'
+                    const soft = isLogic ? '#fef3c7' : r.subject === 'biology' ? 'var(--color-green-soft)' : 'var(--color-purple-soft)'
+                    const label = isLogic ? 'Скрининг мышления' : r.subject === 'biology' ? 'Биология' : 'Химия'
                     const date = new Date(r.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })
                     const pctColor = pct >= 70 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#ef4444'
+
+                    // For logic test: sort sections by score desc, show top skill
+                    const sortedSections = isLogic
+                      ? [...sections].sort((a, b) => {
+                          const pa = a[1].total ? a[1].correct / a[1].total : 0
+                          const pb = b[1].total ? b[1].correct / b[1].total : 0
+                          return pb - pa
+                        })
+                      : sections
+                    const topSection = isLogic ? sortedSections[0] : null
+
                     return (
-                      <div key={r.id} style={{ borderRadius: 14, border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>
+                      <div key={r.id} style={{ borderRadius: 14, border: `1px solid ${accent}22`, overflow: 'hidden' }}>
+                        {/* Header */}
                         <div style={{ padding: '12px 14px', background: soft, display: 'flex', alignItems: 'center', gap: 10 }}>
                           <div style={{ width: 32, height: 32, borderRadius: 9, background: `${accent}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            {r.subject === 'biology' ? <FlaskConical size={15} style={{ color: accent }} /> : <Atom size={15} style={{ color: accent }} />}
+                            {isLogic ? <Brain size={15} style={{ color: accent }} />
+                              : r.subject === 'biology' ? <FlaskConical size={15} style={{ color: accent }} />
+                              : <Atom size={15} style={{ color: accent }} />}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{label}</div>
-                            <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>{date}</div>
+                            <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>
+                              {date}
+                              {isLogic && topSection && (
+                                <span style={{ marginLeft: 6, color: accent, fontWeight: 600 }}>
+                                  · сильнее: {topSection[0]}
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <div style={{ fontSize: 22, fontWeight: 900, color: pctColor }}>{pct}%</div>
                         </div>
+                        {/* Section bars */}
                         <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                          {sections.map(([sec, { correct: c, total: t }]) => {
+                          {sortedSections.map(([sec, { correct: c, total: t }]) => {
                             const p = t ? Math.round((c / t) * 100) : 0
                             const col = p >= 70 ? '#22c55e' : p >= 40 ? '#f59e0b' : '#ef4444'
                             return (

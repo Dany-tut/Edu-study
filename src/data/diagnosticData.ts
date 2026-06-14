@@ -1,7 +1,9 @@
-// Pre-designed diagnostic test questions for biology and chemistry.
+// Pre-designed diagnostic test questions for biology, chemistry, and logic screening.
 // Teachers can view and edit these in Constructor → Тестирование.
 
-export type DiagSubject = 'biology' | 'chemistry'
+import { supabase } from '../lib/supabase'
+
+export type DiagSubject = 'biology' | 'chemistry' | 'logic'
 
 export interface DiagQuestion {
   id: string
@@ -288,18 +290,272 @@ export const CHEMISTRY_DIAG_QUESTIONS: DiagQuestion[] = [
   },
 ]
 
-export const DEFAULT_QUESTIONS: Record<DiagSubject, DiagQuestion[]> = {
-  biology: BIOLOGY_DIAG_QUESTIONS,
-  chemistry: CHEMISTRY_DIAG_QUESTIONS,
-}
+// ── Biology extras: Анатомия, Зоология, Ботаника ─────────────────────────────
 
-const LS_BIO = 'diag-questions-biology'
-const LS_CHEM = 'diag-questions-chemistry'
+export const BIOLOGY_EXTRA_QUESTIONS: DiagQuestion[] = [
+  // Анатомия человека
+  {
+    id: 'bio-16',
+    section: 'Анатомия человека',
+    text: 'Основная функция эритроцитов крови:',
+    options: ['Защита от инфекций', 'Свёртывание крови', 'Перенос кислорода и CO₂', 'Синтез антител'],
+    correct: 2,
+  },
+  {
+    id: 'bio-17',
+    section: 'Анатомия человека',
+    text: 'В каком отделе пищеварительного тракта происходит основное всасывание питательных веществ?',
+    options: ['Желудок', 'Тонкий кишечник', 'Толстый кишечник', 'Двенадцатиперстная кишка'],
+    correct: 1,
+  },
+  {
+    id: 'bio-18',
+    section: 'Анатомия человека',
+    text: 'Антитела (иммуноглобулины) синтезируются:',
+    options: ['T-лимфоцитами', 'Нейтрофилами', 'B-лимфоцитами', 'Тромбоцитами'],
+    correct: 2,
+  },
+  {
+    id: 'bio-19',
+    section: 'Анатомия человека',
+    text: 'Какой орган является главным органом детоксикации в организме человека?',
+    options: ['Почки', 'Лёгкие', 'Селезёнка', 'Печень'],
+    correct: 3,
+  },
+  // Зоология
+  {
+    id: 'bio-20',
+    section: 'Зоология',
+    text: 'Кит относится к классу:',
+    options: ['Рыбы', 'Пресмыкающиеся', 'Млекопитающие', 'Земноводные'],
+    correct: 2,
+  },
+  {
+    id: 'bio-21',
+    section: 'Зоология',
+    text: 'Чем насекомые отличаются от паукообразных?',
+    options: [
+      'Наличием хитинового покрова',
+      '6 ногами против 8 у паукообразных',
+      'Отсутствием нервной системы',
+      'Способностью к метаморфозу',
+    ],
+    correct: 1,
+  },
+  {
+    id: 'bio-22',
+    section: 'Зоология',
+    text: 'Земноводные откладывают яйца:',
+    options: [
+      'На суше, в твёрдой скорлупе',
+      'В воде, без твёрдой оболочки',
+      'В почве, в коконе',
+      'Живородящие — яиц не откладывают',
+    ],
+    correct: 1,
+  },
+  // Ботаника
+  {
+    id: 'bio-23',
+    section: 'Ботаника',
+    text: 'Ксилема растений проводит:',
+    options: [
+      'Органические вещества от листьев к корням',
+      'Воду и минеральные соли от корней к листьям',
+      'Кислород из листьев к корням',
+      'Глюкозу от корней к побегам',
+    ],
+    correct: 1,
+  },
+  {
+    id: 'bio-24',
+    section: 'Ботаника',
+    text: 'Камбий — это образовательная ткань, обеспечивающая:',
+    options: [
+      'Фотосинтез в листьях',
+      'Проведение воды по стеблю',
+      'Рост стебля в толщину',
+      'Поглощение воды корнями',
+    ],
+    correct: 2,
+  },
+  {
+    id: 'bio-25',
+    section: 'Ботаника',
+    text: 'При перекрёстном опылении пыльца переносится:',
+    options: [
+      'С тычинки на пестик того же цветка',
+      'С цветка одного растения на цветок другого растения того же вида',
+      'Только с помощью насекомых',
+      'Внутри одного соцветия',
+    ],
+    correct: 1,
+  },
+]
+
+// ── Logic / Cognitive screening ───────────────────────────────────────────────
+// 18 questions across 6 cognitive dimensions.
+// Sections map to teacher-visible "сильные стороны" of the student.
+
+export const LOGIC_DIAG_QUESTIONS: DiagQuestion[] = [
+  // Числовые паттерны
+  {
+    id: 'log-1',
+    section: 'Числовые паттерны',
+    text: 'Продолжи последовательность: 2, 4, 8, 16, ?',
+    options: ['24', '32', '20', '64'],
+    correct: 1,
+  },
+  {
+    id: 'log-2',
+    section: 'Числовые паттерны',
+    text: 'Продолжи последовательность: 1, 4, 9, 16, ?',
+    options: ['20', '23', '25', '36'],
+    correct: 2,
+  },
+  {
+    id: 'log-3',
+    section: 'Числовые паттерны',
+    text: 'Разности между соседними числами: 100, 90, 81, 73, ?. Найди следующее.',
+    options: ['65', '66', '68', '64'],
+    correct: 1,
+  },
+  // Вербальные аналогии
+  {
+    id: 'log-4',
+    section: 'Вербальные аналогии',
+    text: 'Врач : Больница = Учитель : ?',
+    options: ['Ученик', 'Школа', 'Урок', 'Класс'],
+    correct: 1,
+  },
+  {
+    id: 'log-5',
+    section: 'Вербальные аналогии',
+    text: 'Птица : Крылья = Рыба : ?',
+    options: ['Хвост', 'Жабры', 'Плавники', 'Чешуя'],
+    correct: 2,
+  },
+  {
+    id: 'log-6',
+    section: 'Вербальные аналогии',
+    text: 'Горячий : Холодный = Быстрый : ?',
+    options: ['Сильный', 'Медленный', 'Тихий', 'Лёгкий'],
+    correct: 1,
+  },
+  // Логические исключения
+  {
+    id: 'log-7',
+    section: 'Логические исключения',
+    text: 'Что лишнее? Кошка, Собака, Орёл, Корова.',
+    options: ['Кошка', 'Собака', 'Орёл', 'Корова'],
+    correct: 2,
+  },
+  {
+    id: 'log-8',
+    section: 'Логические исключения',
+    text: 'Что лишнее? 2, 4, 5, 6, 8.',
+    options: ['2', '4', '5', '8'],
+    correct: 2,
+  },
+  {
+    id: 'log-9',
+    section: 'Логические исключения',
+    text: 'Что лишнее? Треугольник, Квадрат, Ромб, Круг.',
+    options: ['Треугольник', 'Квадрат', 'Ромб', 'Круг'],
+    correct: 3,
+  },
+  // Математические вычисления
+  {
+    id: 'log-10',
+    section: 'Математические вычисления',
+    text: '3 ручки стоят 45 рублей. Сколько стоят 7 ручек?',
+    options: ['95 руб', '105 руб', '100 руб', '115 руб'],
+    correct: 1,
+  },
+  {
+    id: 'log-11',
+    section: 'Математические вычисления',
+    text: '25% от 80 равно:',
+    options: ['15', '25', '20', '40'],
+    correct: 2,
+  },
+  {
+    id: 'log-12',
+    section: 'Математические вычисления',
+    text: 'Поезд едет со скоростью 90 км/ч. За 2 часа он проедет:',
+    options: ['180 км', '45 км', '200 км', '160 км'],
+    correct: 0,
+  },
+  // Пространственное мышление
+  {
+    id: 'log-13',
+    section: 'Пространственное мышление',
+    text: 'Лист бумаги сложили пополам, потом ещё раз пополам. Сколько получилось слоёв?',
+    options: ['2', '3', '4', '8'],
+    correct: 2,
+  },
+  {
+    id: 'log-14',
+    section: 'Пространственное мышление',
+    text: 'Куб разрезали вертикально ровно посередине. Сколько граней у каждой полученной половины?',
+    options: ['4', '5', '6', '3'],
+    correct: 1,
+  },
+  {
+    id: 'log-15',
+    section: 'Пространственное мышление',
+    text: 'Квадрат 4×4 разрезали на квадраты 1×1. Сколько получилось кусков?',
+    options: ['8', '12', '16', '4'],
+    correct: 2,
+  },
+  // Причинно-следственные связи
+  {
+    id: 'log-16',
+    section: 'Причинно-следственные связи',
+    text: 'Если убрать из экосистемы всех хищников, то численность травоядных...',
+    options: [
+      'Резко сократится',
+      'Останется прежней',
+      'Резко вырастет, а затем упадёт из-за нехватки пищи',
+      'Будет плавно расти бесконечно',
+    ],
+    correct: 2,
+  },
+  {
+    id: 'log-17',
+    section: 'Причинно-следственные связи',
+    text: 'При резком увеличении концентрации CO₂ в атмосфере средняя температура Земли...',
+    options: [
+      'Понизится — CO₂ охлаждает воздух',
+      'Повысится — усилится парниковый эффект',
+      'Не изменится — CO₂ не влияет на климат',
+      'Сначала понизится, потом повысится',
+    ],
+    correct: 1,
+  },
+  {
+    id: 'log-18',
+    section: 'Причинно-следственные связи',
+    text: 'Ученик занимается по 1 часу каждый день вместо 7 часов один раз в неделю. Что произойдёт?',
+    options: [
+      'Ничего не изменится — суммарное время одинаковое',
+      'Материал запомнится хуже — нужны длинные сессии',
+      'Материал запомнится лучше — интервальное повторение эффективнее',
+      'Усталость накопится быстрее',
+    ],
+    correct: 2,
+  },
+]
+
+export const DEFAULT_QUESTIONS: Record<DiagSubject, DiagQuestion[]> = {
+  biology: [...BIOLOGY_DIAG_QUESTIONS, ...BIOLOGY_EXTRA_QUESTIONS],
+  chemistry: CHEMISTRY_DIAG_QUESTIONS,
+  logic: LOGIC_DIAG_QUESTIONS,
+}
 
 export function loadDiagQuestions(subject: DiagSubject): DiagQuestion[] {
   try {
-    const key = subject === 'biology' ? LS_BIO : LS_CHEM
-    const s = localStorage.getItem(key)
+    const s = localStorage.getItem(`diag-questions-${subject}`)
     return s ? JSON.parse(s) : DEFAULT_QUESTIONS[subject]
   } catch {
     return DEFAULT_QUESTIONS[subject]
@@ -307,8 +563,7 @@ export function loadDiagQuestions(subject: DiagSubject): DiagQuestion[] {
 }
 
 export function saveDiagQuestions(subject: DiagSubject, qs: DiagQuestion[]) {
-  const key = subject === 'biology' ? LS_BIO : LS_CHEM
-  localStorage.setItem(key, JSON.stringify(qs))
+  localStorage.setItem(`diag-questions-${subject}`, JSON.stringify(qs))
 }
 
 export function loadDiagResults(subject: DiagSubject): DiagResults | null {
@@ -326,41 +581,65 @@ export function saveDiagResults(subject: DiagSubject, results: DiagResults) {
 
 export interface AnonDiagResult {
   id: string
-  name: string          // student self-reported ФИО
+  name: string
   subject: DiagSubject
-  timestamp: string     // ISO date
+  timestamp: string     // ISO date (mapped from created_at)
   results: DiagResults
-  answers: Record<string, number>  // questionId → chosen option index
+  answers: Record<string, number>
   linkedStudentId?: string
 }
 
-const LS_ANON = 'diag-anon-results'
-
-export function loadAnonResults(): AnonDiagResult[] {
-  try {
-    const s = localStorage.getItem(LS_ANON)
-    return s ? JSON.parse(s) : []
-  } catch { return [] }
+function rowToResult(row: Record<string, unknown>): AnonDiagResult {
+  return {
+    id: row.id as string,
+    name: row.name as string,
+    subject: row.subject as DiagSubject,
+    timestamp: row.created_at as string,
+    results: row.results as DiagResults,
+    answers: row.answers as Record<string, number>,
+    linkedStudentId: (row.linked_student_id as string | null) ?? undefined,
+  }
 }
 
-function _saveAnonArr(arr: AnonDiagResult[]) {
-  localStorage.setItem(LS_ANON, JSON.stringify(arr))
+export async function loadAnonResults(): Promise<AnonDiagResult[]> {
+  const { data, error } = await supabase
+    .from('diag_results')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) { console.error('loadAnonResults:', error); return [] }
+  return (data ?? []).map(rowToResult)
 }
 
-export function appendAnonResult(r: Omit<AnonDiagResult, 'id'>): AnonDiagResult {
-  const full: AnonDiagResult = { ...r, id: Math.random().toString(36).slice(2, 10) }
-  const arr = loadAnonResults()
-  arr.unshift(full)
-  _saveAnonArr(arr)
-  return full
+export async function appendAnonResult(r: Omit<AnonDiagResult, 'id' | 'timestamp'>): Promise<AnonDiagResult | null> {
+  const { data, error } = await supabase
+    .from('diag_results')
+    .insert({ name: r.name, subject: r.subject, results: r.results, answers: r.answers })
+    .select()
+    .single()
+  if (error) { console.error('appendAnonResult:', error); return null }
+  return rowToResult(data)
 }
 
-export function linkAnonResult(id: string, studentId: string) {
-  const arr = loadAnonResults().map(r => r.id === id ? { ...r, linkedStudentId: studentId } : r)
-  _saveAnonArr(arr)
+export async function linkAnonResult(id: string, studentId: string): Promise<void> {
+  const { error } = await supabase
+    .from('diag_results')
+    .update({ linked_student_id: studentId })
+    .eq('id', id)
+  if (error) console.error('linkAnonResult:', error)
 }
 
-export function unlinkAnonResult(id: string) {
-  const arr = loadAnonResults().map(r => r.id === id ? { ...r, linkedStudentId: undefined } : r)
-  _saveAnonArr(arr)
+export async function unlinkAnonResult(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('diag_results')
+    .update({ linked_student_id: null })
+    .eq('id', id)
+  if (error) console.error('unlinkAnonResult:', error)
+}
+
+export async function deleteAnonResult(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('diag_results')
+    .delete()
+    .eq('id', id)
+  if (error) console.error('deleteAnonResult:', error)
 }

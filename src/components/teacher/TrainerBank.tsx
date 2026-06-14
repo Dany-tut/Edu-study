@@ -603,7 +603,7 @@ export function TrainerBankBrowser({
       )}
 
       {viewMode === 'grid' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
           {filtered.map(t => (
             <BankGridCard key={t.id} task={t}
               selected={selectedIds.has(t.id)}
