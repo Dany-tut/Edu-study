@@ -95,5 +95,4 @@ export const useTeacher = create<TeacherStore>(set => ({
     tasks: s.tasks.map(t => t.id === id ? { ...t, done: !t.done } : t),
   })),
   removeTask: id => set(s => ({ tasks: s.tasks.filter(t => t.id !== id) })),
-}));
-(window as any).__teacherStore = useTeacher
+}))

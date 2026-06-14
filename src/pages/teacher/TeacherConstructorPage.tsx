@@ -2818,8 +2818,11 @@ function CreatorView({
                 <div><Label>Вопрос</Label><input value={wQText} onChange={e => setWQText(e.target.value)} placeholder="Текст вопроса…" style={inputSt} /></div>
                 {wQOpts.map((opt, oi) => (
                   <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <button onClick={() => setWQCorr(oi)} style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid', flexShrink: 0, borderColor: wQCorr === oi ? WTYPE_COLOR[wType] : 'var(--color-text-4)', background: wQCorr === oi ? WTYPE_COLOR[wType] : 'transparent', cursor: 'pointer' }} />
-                    <input value={opt} onChange={e => { const o = [...wQOpts]; o[oi] = e.target.value; setWQOpts(o) }} placeholder={`Вариант ${oi + 1}…`} style={{ ...inputSt, flex: 1 }} />
+                    <button onClick={() => setWQCorr(oi)} style={{ width: 22, height: 22, borderRadius: '50%', border: wQCorr === oi ? 'none' : '2px solid var(--color-text-4)', flexShrink: 0, background: wQCorr === oi ? WTYPE_COLOR[wType] : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {wQCorr === oi && <Check size={11} strokeWidth={3} style={{ color: '#fff' }} />}
+                    </button>
+                    <input value={opt} onChange={e => { const o = [...wQOpts]; o[oi] = e.target.value; setWQOpts(o) }} placeholder={`Вариант ${oi + 1}…`}
+                      style={{ ...inputSt, flex: 1, border: wQCorr === oi ? `1.5px solid ${WTYPE_COLOR[wType]}55` : '1.5px solid var(--color-border-medium)', background: wQCorr === oi ? `${WTYPE_BG[wType]}88` : 'var(--color-bg-2)' }} />
                   </div>
                 ))}
                 <div style={{ fontSize: 10, color: 'var(--color-text-3)' }}>● — правильный ответ</div>
@@ -3985,20 +3988,21 @@ export default function TeacherConstructorPage() {
                     onClick={() => t === activeTab ? handlePlus() : handleTabChange(t)} onPlus={handlePlus} />
                 })}
 
-                {/* Тестирование tab — separate from the + tabs */}
-                <button
+                {/* Тестирование tab — same TabBtn style */}
+                <motion.button
+                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                   onClick={() => handleTabChange('testing')}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 6,
-                    padding: '10px 16px', borderRadius: 14, border: 'none', cursor: 'pointer',
-                    background: isTestingActive ? 'var(--color-purple-soft)' : 'rgba(var(--glass-rgb), 0.88)',
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '10px 20px', borderRadius: 16, border: 'none', cursor: 'pointer',
+                    background: isTestingActive ? 'var(--color-purple-soft)' : 'rgba(var(--glass-rgb), 0.72)',
                     color: isTestingActive ? 'var(--color-accent)' : 'var(--color-muted)',
-                    fontSize: 13, fontWeight: isTestingActive ? 700 : 500,
-                    boxShadow: isTestingActive ? '0 0 0 1.5px rgba(123,63,204,0.35), 0 4px 14px rgba(0,0,0,0.06)' : '0 2px 8px rgba(0,0,0,0.07)',
+                    fontSize: 14, fontWeight: 600,
+                    boxShadow: isTestingActive ? '0 0 0 1.5px var(--color-accent)44, 0 4px 14px rgba(0,0,0,0.06)' : '0 2px 8px rgba(0,0,0,0.04)',
                     transition: 'all 0.15s',
                   }}
                 >
-                  <Target size={14} strokeWidth={2} /> Тестирование
+                  <Target size={16} strokeWidth={isTestingActive ? 2.2 : 1.8} /> Тестирование
                 </button>
 
                 {/* Delete bar — shown when items are checked */}
