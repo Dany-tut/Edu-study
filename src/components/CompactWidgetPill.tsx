@@ -671,7 +671,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
                 initial={false}
                 animate={{ padding: expanded ? '8px 6px' : '3px 8px', borderRadius: expanded ? 26 : 999, flexGrow: expanded ? 1 : 0 }}
                 transition={PILL_T}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, background: 'rgba(139,92,246,0.18)', color: '#C4B5FD', fontWeight: 700, lineHeight: 1 }}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, background: 'rgba(139,92,246,0.18)', color: '#7B3FCC', fontWeight: 700, lineHeight: 1 }}
               >
                 <motion.span initial={false} animate={{ fontSize: expanded ? 18 : 12 }} transition={PILL_T} style={{ whiteSpace: 'nowrap' }}>+{todayCorrect}</motion.span>
                 <motion.span initial={false} animate={{ opacity: expanded ? 0.85 : 0, maxHeight: expanded ? 16 : 0 }} transition={PILL_T} style={{ fontSize: 9.5, overflow: 'hidden', whiteSpace: 'nowrap' }}>
