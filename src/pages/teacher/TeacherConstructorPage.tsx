@@ -4027,7 +4027,7 @@ export default function TeacherConstructorPage() {
                     onClick={() => t === activeTab ? handlePlus() : handleTabChange(t)} onPlus={handlePlus} />
                 })}
 
-                {/* Тестирование tab — filled pill, no icon */}
+                {/* Тестирование tab */}
                 <motion.button
                   whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                   onClick={() => handleTabChange('testing')}
@@ -4036,7 +4036,7 @@ export default function TeacherConstructorPage() {
                     background: isTestingActive ? 'var(--color-accent)' : 'rgba(var(--glass-rgb), 0.72)',
                     color: isTestingActive ? '#fff' : 'var(--color-muted)',
                     fontSize: 14, fontWeight: 600,
-                    boxShadow: isTestingActive ? '0 4px 14px rgba(124,58,237,0.28)' : '0 2px 8px rgba(0,0,0,0.04)',
+                    boxShadow: isTestingActive ? '0 4px 14px rgba(124,58,237,0.28)' : 'none',
                     transition: 'all 0.15s',
                   }}
                 >
