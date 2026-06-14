@@ -10,7 +10,7 @@ import {
   ListChecks, Eye, EyeOff,
   CircleDot, Type as TypeIcon, Shuffle, ArrowUpDown, Table as TableIcon,
   AlignLeft, Pencil, ClipboardCopy, Target, ChevronDown, ChevronUp,
-  CheckCircle, Circle,
+  CheckCircle, Circle, Globe,
 } from 'lucide-react'
 import RichConditionEditor from '../../components/teacher/RichConditionEditor'
 import {
@@ -2584,15 +2584,19 @@ function CreatorView({
 const BASE_URL = window.location.origin + window.location.pathname
 
 const SUBJECT_META: Record<DiagSubject, { label: string; accent: string; soft: string }> = {
-  biology:   { label: 'Биология',          accent: '#22c55e', soft: 'var(--color-green-soft)'  },
-  chemistry: { label: 'Химия',             accent: '#8B5CF6', soft: 'var(--color-purple-soft)' },
-  logic:     { label: 'Скрининг мышления', accent: '#f59e0b', soft: 'var(--color-yellow-soft)'  },
+  biology:      { label: 'Биология',          accent: '#22c55e', soft: 'var(--color-green-soft)'  },
+  chemistry:    { label: 'Химия',             accent: '#8B5CF6', soft: 'var(--color-purple-soft)' },
+  logic:        { label: 'Скрининг мышления', accent: '#f59e0b', soft: 'var(--color-yellow-soft)' },
+  'ap-chem-ru': { label: 'AP Chemistry (RU)', accent: '#3b82f6', soft: 'rgba(59,130,246,0.12)'   },
+  'ap-chem-en': { label: 'AP Chemistry (EN)', accent: '#14b8a6', soft: 'rgba(20,184,166,0.12)'   },
 }
-const DIAG_SUBJECTS: DiagSubject[] = ['biology', 'chemistry', 'logic']
+const DIAG_SUBJECTS: DiagSubject[] = ['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en']
 const SUBJECT_ICON_MAP: Record<DiagSubject, React.ElementType> = {
   biology: FlaskConical,
   chemistry: Atom,
   logic: Target,
+  'ap-chem-ru': Atom,
+  'ap-chem-en': Globe,
 }
 
 function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
@@ -2661,7 +2665,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
           width: 36, height: 36, borderRadius: 10, flexShrink: 0,
           background: `${accent}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          {subject === 'biology' ? <FlaskConical size={18} style={{ color: accent }} /> : <Atom size={18} style={{ color: accent }} />}
+          {(() => { const I = SUBJECT_ICON_MAP[subject]; return <I size={18} style={{ color: accent }} /> })()}
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{label}</div>
@@ -2847,9 +2851,7 @@ function DiagnosticStudentCard({
   const totalCorrect = sections.reduce((s, [, v]) => s + v.correct, 0)
   const totalQ = sections.reduce((s, [, v]) => s + v.total, 0)
   const pct = totalQ ? Math.round((totalCorrect / totalQ) * 100) : 0
-  const accent = result.subject === 'biology' ? '#22c55e' : '#7c3aed'
-  const soft = result.subject === 'biology' ? 'var(--color-green-soft)' : 'var(--color-purple-soft)'
-  const subjectLabel = result.subject === 'biology' ? 'Биология' : 'Химия'
+  const { accent, soft, label: subjectLabel } = SUBJECT_META[result.subject as DiagSubject] ?? { accent: '#8B5CF6', soft: 'var(--color-purple-soft)', label: result.subject }
   const date = new Date(result.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
   const time = new Date(result.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
   const pctColor = pct >= 70 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#ef4444'
@@ -3415,7 +3417,7 @@ function DiagResultStudentPanel({
             ) : (
               <button
                 onClick={() => setPickerOpen(true)}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '12px', borderRadius: 14, border: `1.5px dashed ${accent}55`, cursor: 'pointer', background: soft, color: accent, fontSize: 13, fontWeight: 700 }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '12px', borderRadius: 14, border: `1.5px dashed ${accent}55`, cursor: 'pointer', background: soft, color: '#fff', fontSize: 13, fontWeight: 700 }}
               >
                 <GraduationCap size={15} /> Назначить ученика
               </button>

@@ -3,7 +3,7 @@
 
 import { supabase } from '../lib/supabase'
 
-export type DiagSubject = 'biology' | 'chemistry' | 'logic'
+export type DiagSubject = 'biology' | 'chemistry' | 'logic' | 'ap-chem-ru' | 'ap-chem-en'
 
 export interface DiagQuestion {
   id: string
@@ -699,15 +699,83 @@ export const LOGIC_DIAG_QUESTIONS: DiagQuestion[] = [
   },
 ]
 
+// ── AP Chemistry (Russian) ────────────────────────────────────────────────────
+
+export const AP_CHEM_RU_QUESTIONS: DiagQuestion[] = [
+  // Атомная структура
+  { id: 'apcru-1', section: 'Атомная структура', text: 'Квантовое число, определяющее форму орбитали:', options: ['Главное (n)', 'Орбитальное (l)', 'Магнитное (mₗ)', 'Спиновое (mₛ)'], correct: 1 },
+  { id: 'apcru-2', section: 'Атомная структура', text: 'Изотопы отличаются друг от друга:', options: ['Числом протонов', 'Числом электронов', 'Числом нейтронов', 'Зарядом ядра'], correct: 2 },
+  { id: 'apcru-3', section: 'Атомная структура', text: 'Электронная конфигурация иона Fe³⁺ (железо — Z=26):', options: ['[Ar] 3d⁶ 4s⁰', '[Ar] 3d⁵ 4s⁰', '[Ar] 3d⁶ 4s²', '[Ar] 3d⁴ 4s¹'], correct: 1 },
+  // Химическая связь
+  { id: 'apcru-4', section: 'Химическая связь и молекулярная структура', text: 'Молекула CO₂ имеет форму:', options: ['Угловую', 'Линейную', 'Тетраэдрическую', 'Тригонально-плоскостную'], correct: 1 },
+  { id: 'apcru-5', section: 'Химическая связь и молекулярная структура', text: 'По теории VSEPR молекула SF₆ имеет геометрию:', options: ['Октаэдрическую', 'Тригонально-бипирамидальную', 'Тетраэдрическую', 'Квадратно-планарную'], correct: 0 },
+  { id: 'apcru-6', section: 'Химическая связь и молекулярная структура', text: 'Гибридизация углерода в молекуле ацетилена C₂H₂:', options: ['sp³', 'sp²', 'sp', 'dsp²'], correct: 2 },
+  // Межмолекулярные силы
+  { id: 'apcru-7', section: 'Межмолекулярные силы', text: 'Самый сильный тип межмолекулярного взаимодействия:', options: ['Дисперсионные силы Лондона', 'Диполь-дипольное', 'Водородная связь', 'Ион-дипольное'], correct: 3 },
+  { id: 'apcru-8', section: 'Межмолекулярные силы', text: 'HF имеет аномально высокую точку кипения из-за:', options: ['Большой молекулярной массы', 'Водородных связей', 'Ионной связи', 'Ковалентных сетей'], correct: 1 },
+  // Термодинамика
+  { id: 'apcru-9', section: 'Термодинамика', text: 'Процесс самопроизвольный при любой температуре, если:', options: ['ΔH < 0, ΔS < 0', 'ΔH > 0, ΔS > 0', 'ΔH < 0, ΔS > 0', 'ΔH > 0, ΔS < 0'], correct: 2 },
+  { id: 'apcru-10', section: 'Термодинамика', text: 'Первый закон термодинамики утверждает:', options: ['Энтропия изолированной системы возрастает', 'Энергия не создаётся и не уничтожается', 'При 0 К энтропия совершенного кристалла равна нулю', 'ΔG = ΔH − TΔS'], correct: 1 },
+  { id: 'apcru-11', section: 'Термодинамика', text: 'Стандартная энтальпия образования простого вещества в стандартном состоянии:', options: ['Положительная', 'Отрицательная', 'Равна нулю', 'Зависит от давления'], correct: 2 },
+  // Кинетика
+  { id: 'apcru-12', section: 'Кинетика', text: 'Если концентрацию реагента А удвоить и скорость реакции увеличится в 4 раза, порядок реакции по А:', options: ['0', '1', '2', '3'], correct: 2 },
+  { id: 'apcru-13', section: 'Кинетика', text: 'Катализатор увеличивает скорость реакции, потому что:', options: ['Сдвигает равновесие вправо', 'Снижает энергию активации', 'Увеличивает температуру', 'Уменьшает ΔH реакции'], correct: 1 },
+  // Равновесие
+  { id: 'apcru-14', section: 'Химическое равновесие', text: 'Если Kc >> 1, то реакция:', options: ['Практически не идёт', 'Идёт в обратном направлении', 'Практически полностью идёт вправо', 'Находится точно посередине'], correct: 2 },
+  { id: 'apcru-15', section: 'Химическое равновесие', text: 'По принципу Ле Шателье, увеличение давления сдвигает равновесие в сторону:', options: ['Большего числа молей газа', 'Меньшего числа молей газа', 'Не влияет на равновесие', 'Зависит от температуры'], correct: 1 },
+  // Кислоты и основания
+  { id: 'apcru-16', section: 'Кислоты и основания', text: 'pH буферного раствора рассчитывается по уравнению Хендерсона-Хассельбальха:', options: ['pH = pKa + lg([A⁻]/[HA])', 'pH = -lg[H⁺]', 'pH = pKw − pOH', 'pH = pKb − lg([B]/[BH⁺])'], correct: 0 },
+  { id: 'apcru-17', section: 'Кислоты и основания', text: 'Слабая кислота HA имеет Ka = 1×10⁻⁵. pKa равен:', options: ['−5', '5', '10', '0.5'], correct: 1 },
+  // Электрохимия
+  { id: 'apcru-18', section: 'Электрохимия', text: 'В гальваническом элементе окисление происходит на:', options: ['Катоде', 'Аноде', 'Обоих электродах', 'В солевом мостике'], correct: 1 },
+  { id: 'apcru-19', section: 'Электрохимия', text: 'Уравнение Нернста позволяет рассчитать ЭДС при:', options: ['Стандартных условиях', 'Нестандартных концентрациях', 'Любой температуре одинаково', 'Только при 0 К'], correct: 1 },
+  { id: 'apcru-20', section: 'Электрохимия', text: 'Самопроизвольная электрохимическая реакция имеет:', options: ['E°cell < 0, ΔG > 0', 'E°cell > 0, ΔG < 0', 'E°cell = 0, ΔG = 0', 'E°cell > 0, ΔG > 0'], correct: 1 },
+]
+
+// ── AP Chemistry (English) ────────────────────────────────────────────────────
+
+export const AP_CHEM_EN_QUESTIONS: DiagQuestion[] = [
+  // Atomic Structure
+  { id: 'apcen-1', section: 'Atomic Structure', text: 'The quantum number that describes the shape of an orbital is:', options: ['Principal (n)', 'Angular momentum (l)', 'Magnetic (mₗ)', 'Spin (mₛ)'], correct: 1 },
+  { id: 'apcen-2', section: 'Atomic Structure', text: 'Isotopes of the same element differ in their:', options: ['Number of protons', 'Number of electrons', 'Number of neutrons', 'Atomic number'], correct: 2 },
+  { id: 'apcen-3', section: 'Atomic Structure', text: 'The electron configuration of Fe³⁺ (Z = 26) is:', options: ['[Ar] 3d⁶ 4s⁰', '[Ar] 3d⁵ 4s⁰', '[Ar] 3d⁶ 4s²', '[Ar] 3d⁴ 4s¹'], correct: 1 },
+  // Bonding & Structure
+  { id: 'apcen-4', section: 'Bonding and Molecular Structure', text: 'According to VSEPR theory, the geometry of SF₆ is:', options: ['Octahedral', 'Trigonal bipyramidal', 'Tetrahedral', 'Square planar'], correct: 0 },
+  { id: 'apcen-5', section: 'Bonding and Molecular Structure', text: 'The hybridization of carbon in acetylene (C₂H₂) is:', options: ['sp³', 'sp²', 'sp', 'dsp²'], correct: 2 },
+  { id: 'apcen-6', section: 'Bonding and Molecular Structure', text: 'Which molecule is polar?', options: ['CO₂', 'BF₃', 'H₂O', 'CCl₄'], correct: 2 },
+  // Intermolecular Forces
+  { id: 'apcen-7', section: 'Intermolecular Forces', text: 'The strongest type of intermolecular force is:', options: ['London dispersion', 'Dipole-dipole', 'Hydrogen bonding', 'Ion-dipole'], correct: 3 },
+  { id: 'apcen-8', section: 'Intermolecular Forces', text: 'HF has an abnormally high boiling point due to:', options: ['High molar mass', 'Hydrogen bonding', 'Ionic character', 'Covalent network'], correct: 1 },
+  // Thermodynamics
+  { id: 'apcen-9', section: 'Thermodynamics', text: 'A reaction is spontaneous at all temperatures when:', options: ['ΔH < 0, ΔS < 0', 'ΔH > 0, ΔS > 0', 'ΔH < 0, ΔS > 0', 'ΔH > 0, ΔS < 0'], correct: 2 },
+  { id: 'apcen-10', section: 'Thermodynamics', text: 'The standard enthalpy of formation of an element in its standard state is:', options: ['Positive', 'Negative', 'Zero', 'Pressure-dependent'], correct: 2 },
+  { id: 'apcen-11', section: 'Thermodynamics', text: 'Which process has the greatest increase in entropy?', options: ['H₂O(l) → H₂O(s)', 'CaCO₃(s) → CaO(s) + CO₂(g)', 'N₂(g) + 3H₂(g) → 2NH₃(g)', 'NaCl(s) → Na⁺(aq) + Cl⁻(aq)'], correct: 1 },
+  // Kinetics
+  { id: 'apcen-12', section: 'Kinetics', text: 'If doubling [A] quadruples the reaction rate, the order with respect to A is:', options: ['0', '1', '2', '3'], correct: 2 },
+  { id: 'apcen-13', section: 'Kinetics', text: 'A catalyst increases reaction rate by:', options: ['Shifting equilibrium right', 'Lowering activation energy', 'Raising the temperature', 'Decreasing ΔH'], correct: 1 },
+  { id: 'apcen-14', section: 'Kinetics', text: 'For a first-order reaction, the half-life is:', options: ['Dependent on initial concentration', 'Independent of initial concentration', 'Equal to 1/k', 'Proportional to [A]₀²'], correct: 1 },
+  // Equilibrium
+  { id: 'apcen-15', section: 'Chemical Equilibrium', text: 'If Kc >> 1, the reaction:', options: ['Barely proceeds forward', 'Favors the reverse', 'Goes nearly to completion', 'Is at exact midpoint'], correct: 2 },
+  { id: 'apcen-16', section: 'Chemical Equilibrium', text: 'According to Le Châtelier\'s principle, increasing pressure shifts equilibrium toward:', options: ['More moles of gas', 'Fewer moles of gas', 'No effect', 'Higher temperature side'], correct: 1 },
+  // Acids and Bases
+  { id: 'apcen-17', section: 'Acids and Bases', text: 'The Henderson-Hasselbalch equation is: pH =', options: ['pKa + log([A⁻]/[HA])', '-log[H⁺]', 'pKw − pOH', 'pKb − log([B]/[BH⁺])'], correct: 0 },
+  { id: 'apcen-18', section: 'Acids and Bases', text: 'A weak acid has Ka = 1×10⁻⁵. Its pKa is:', options: ['−5', '5', '10', '0.5'], correct: 1 },
+  // Electrochemistry
+  { id: 'apcen-19', section: 'Electrochemistry', text: 'In a galvanic cell, oxidation occurs at the:', options: ['Cathode', 'Anode', 'Salt bridge', 'Both electrodes'], correct: 1 },
+  { id: 'apcen-20', section: 'Electrochemistry', text: 'A spontaneous electrochemical cell has:', options: ['E°cell < 0, ΔG > 0', 'E°cell > 0, ΔG < 0', 'E°cell = 0, ΔG = 0', 'E°cell > 0, ΔG > 0'], correct: 1 },
+]
+
 export const DEFAULT_QUESTIONS: Record<DiagSubject, DiagQuestion[]> = {
   biology: [...BIOLOGY_DIAG_QUESTIONS, ...BIOLOGY_EXTRA_QUESTIONS],
   chemistry: CHEMISTRY_DIAG_QUESTIONS,
   logic: LOGIC_DIAG_QUESTIONS,
+  'ap-chem-ru': AP_CHEM_RU_QUESTIONS,
+  'ap-chem-en': AP_CHEM_EN_QUESTIONS,
 }
 
 // In-memory cache pre-seeded with compiled defaults so sync reads always work.
 const questionsCache = new Map<DiagSubject, DiagQuestion[]>(
-  (['biology', 'chemistry', 'logic'] as DiagSubject[]).map(s => [s, DEFAULT_QUESTIONS[s]])
+  (['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en'] as DiagSubject[]).map(s => [s, DEFAULT_QUESTIONS[s]])
 )
 
 // Sync read from cache (instant, no flicker). Call fetchDiagQuestions in useEffect to hydrate.
