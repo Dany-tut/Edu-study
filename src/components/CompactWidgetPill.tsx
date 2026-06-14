@@ -609,57 +609,100 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
   const { doneCount, wrongCount, totalCount, favCount, todayCorrect, todayWrong, setOpenModal } = useTrainerProgress()
   const pct = totalCount ? Math.round((doneCount / totalCount) * 100) : 0
 
+  const R = 11
+  const circ = 2 * Math.PI * R
+  const dash = circ * (pct / 100)
+
   const chips = [
-    { value: doneCount,    label: 'Верно',    sub: totalCount ? `из ${totalCount}` : '', bg: 'rgba(110,231,160,0.18)', color: '#27A85A' },
-    { value: todayCorrect, label: 'Сегодня',  sub: todayWrong > 0 ? `✗ ${todayWrong}` : '',  bg: 'rgba(139,92,246,0.14)',  color: '#7c3aed' },
-    { value: wrongCount,   label: 'Ошибок',   sub: '',                               bg: 'rgba(244,139,145,0.18)', color: '#A8282D' },
-    { value: favCount,     label: 'Избр.',     sub: '',                               bg: 'rgba(248,200,50,0.18)',  color: '#7A6B00' },
+    { value: doneCount,    label: 'Верно',   sub: totalCount ? `из ${totalCount}` : '', bg: 'rgba(110,231,160,0.18)', color: '#27A85A' },
+    { value: todayCorrect, label: 'Сегодня', sub: todayWrong > 0 ? `✗ ${todayWrong}` : '', bg: 'rgba(139,92,246,0.14)', color: '#7c3aed' },
+    { value: wrongCount,   label: 'Ошибок',  sub: '', bg: 'rgba(244,139,145,0.18)', color: '#A8282D' },
+    { value: favCount,     label: 'Избр.',   sub: '', bg: 'rgba(248,200,50,0.18)',  color: '#7A6B00' },
   ]
 
   return (
-    <PillContent
-      avatar={
-        <div style={{
-          width: '100%', height: '100%',
-          background: 'linear-gradient(135deg, #5FD68A, #27A85A)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#fff',
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 14px 14px 9px', width: '100%', boxSizing: 'border-box' }}>
+      {/* Avatar */}
+      <div style={{
+        width: 40, height: 40, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
+        background: 'linear-gradient(135deg, #5FD68A, #27A85A)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: '#fff', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.4)',
+      }}>
+        <TrendingUp size={18} />
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3, paddingTop: 2 }}>
+        {/* Kicker */}
+        <span style={{
+          fontSize: 10.5, fontWeight: 600, letterSpacing: 0.3,
+          textTransform: 'uppercase', color: 'var(--color-text-3)',
         }}>
-          <TrendingUp size={18} />
-        </div>
-      }
-      kicker="Тренажёр · прогресс"
-      title={doneCount > 0 ? `✓ ${doneCount}${todayCorrect > 0 ? ` · сегодня +${todayCorrect}` : ''}${wrongCount > 0 ? ` · ✗ ${wrongCount}` : ''}` : 'Начни решать задания'}
-      expanded={expanded}
-      detail={
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {/* Mini chip row */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
-            {chips.map(c => (
-              <div key={c.label} style={{
-                padding: '7px 6px', borderRadius: 10,
-                background: c.bg, textAlign: 'center',
-              }}>
-                <div style={{ fontSize: 18, fontWeight: 750, color: c.color, lineHeight: 1 }}>{c.value}</div>
-                <div style={{ fontSize: 10, color: c.color, opacity: 0.8, marginTop: 2, lineHeight: 1.2 }}>{c.label}</div>
-                {c.sub && <div style={{ fontSize: 9.5, color: c.color, opacity: 0.6, lineHeight: 1.2 }}>{c.sub}</div>}
-              </div>
-            ))}
-          </div>
-          {/* Progress bar */}
+          Тренажёр · прогресс
+        </span>
+
+        {/* Graphical row: donut ring + colored pill badges */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           {totalCount > 0 && (
-            <div style={{ height: 4, borderRadius: 999, background: 'rgba(0,0,0,0.08)', overflow: 'hidden', display: 'flex' }}>
-              <div style={{ height: '100%', width: `${pct}%`, background: '#34C877', flexShrink: 0, transition: 'width 0.5s ease' }} />
-              <div style={{ height: '100%', width: `${totalCount ? Math.round((wrongCount / totalCount) * 100) : 0}%`, background: '#F48B91', flexShrink: 0 }} />
-            </div>
+            <svg width="26" height="26" viewBox="0 0 26 26" style={{ flexShrink: 0, transform: 'rotate(-90deg)' }}>
+              <circle cx="13" cy="13" r={R} fill="none" stroke="rgba(0,0,0,0.10)" strokeWidth="3" />
+              <circle cx="13" cy="13" r={R} fill="none" stroke="#34C877" strokeWidth="3"
+                strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" />
+            </svg>
           )}
-          <button onClick={e => { e.stopPropagation(); setOpenModal(true) }}
-            style={{ alignSelf: 'flex-start', padding: '4px 10px', borderRadius: 8, border: 'none', background: 'rgba(52,200,119,0.15)', color: '#27A85A', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
-            Подробнее →
-          </button>
+          {doneCount > 0 ? (
+            <>
+              <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: 999, background: 'rgba(110,231,160,0.22)', color: '#27A85A', fontSize: 12, fontWeight: 700, lineHeight: 1 }}>
+                ✓ {doneCount}
+              </span>
+              {todayCorrect > 0 && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: 999, background: 'rgba(139,92,246,0.16)', color: '#7c3aed', fontSize: 12, fontWeight: 700, lineHeight: 1 }}>
+                  +{todayCorrect}
+                </span>
+              )}
+              {wrongCount > 0 && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: 999, background: 'rgba(244,139,145,0.22)', color: '#A8282D', fontSize: 12, fontWeight: 700, lineHeight: 1 }}>
+                  ✗ {wrongCount}
+                </span>
+              )}
+            </>
+          ) : (
+            <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-text-3)' }}>
+              Начни решать задания
+            </span>
+          )}
         </div>
-      }
-    />
+
+        {/* Expanded detail */}
+        <motion.div
+          animate={{ opacity: expanded ? 1 : 0 }}
+          transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+          style={{ marginTop: 5, overflow: 'hidden', willChange: 'opacity' }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+              {chips.map(c => (
+                <div key={c.label} style={{ padding: '7px 6px', borderRadius: 10, background: c.bg, textAlign: 'center' }}>
+                  <div style={{ fontSize: 18, fontWeight: 750, color: c.color, lineHeight: 1 }}>{c.value}</div>
+                  <div style={{ fontSize: 10, color: c.color, opacity: 0.8, marginTop: 2, lineHeight: 1.2 }}>{c.label}</div>
+                  {c.sub && <div style={{ fontSize: 9.5, color: c.color, opacity: 0.6, lineHeight: 1.2 }}>{c.sub}</div>}
+                </div>
+              ))}
+            </div>
+            {totalCount > 0 && (
+              <div style={{ height: 4, borderRadius: 999, background: 'rgba(0,0,0,0.08)', overflow: 'hidden', display: 'flex' }}>
+                <div style={{ height: '100%', width: `${pct}%`, background: '#34C877', flexShrink: 0, transition: 'width 0.5s ease' }} />
+                <div style={{ height: '100%', width: `${totalCount ? Math.round((wrongCount / totalCount) * 100) : 0}%`, background: '#F48B91', flexShrink: 0 }} />
+              </div>
+            )}
+            <button onClick={e => { e.stopPropagation(); setOpenModal(true) }}
+              style={{ alignSelf: 'flex-start', padding: '4px 10px', borderRadius: 8, border: 'none', background: 'rgba(52,200,119,0.15)', color: '#27A85A', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+              Подробнее →
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    </div>
   )
 }
 

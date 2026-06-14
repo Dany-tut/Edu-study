@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 import type { Task, Subject } from '../data/taskBankData'
+import { DEV_SEED_TASKS } from '../data/devTaskSeed'
 
 type NewTask = Omit<Task, 'id'>
 
@@ -107,7 +108,10 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
         set({ tasks: local, loaded: true })
         return
       }
-      // localStorage empty → fall through to Supabase so dev can see seeded data
+      // localStorage empty → seed with dev tasks so trainer has data to test
+      lsSave(DEV_SEED_TASKS)
+      set({ tasks: DEV_SEED_TASKS, loaded: true })
+      return
     }
     const { data } = await supabase.from('task_bank').select('*').order('id')
     if (data) {

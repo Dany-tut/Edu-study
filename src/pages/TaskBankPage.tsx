@@ -238,25 +238,9 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         boxShadow: isCorrect ? '0 8px 24px rgba(110,231,160,0.14)' : isWrong ? '0 8px 24px rgba(244,139,145,0.12)' : 'none',
       }}
     >
-      {/* Bookmark — top-right icon-only square */}
-      <button
-        onClick={() => onFavorite(task.id)}
-        style={{
-          position: 'absolute', top: 16, right: 16,
-          width: 36, height: 36, borderRadius: 12,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          background: isFav ? 'var(--color-yellow-soft)' : 'rgba(var(--glass-rgb), 0.88)',
-          border: `1px solid ${isFav ? '#F8EF8C' : 'var(--color-border-medium)'}`,
-          cursor: 'pointer', outline: 'none',
-          transition: 'all 0.18s ease',
-        }}
-      >
-        <Bookmark size={16} fill={isFav ? 'currentColor' : 'none'} color={isFav ? '#7A6B00' : 'var(--color-text-3)'} />
-      </button>
-
-      {/* Header: label + badges + result badge */}
-      <div className="flex flex-wrap items-start justify-between" style={{ gap: 10, paddingRight: 48 }}>
-        <div style={{ flex: 1 }}>
+      {/* Header: label + badges | result badge + bookmark */}
+      <div className="flex items-start justify-between" style={{ gap: 10 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 11, fontWeight: 700, color: palette.text }}>Задание {index + 1}</span>
             <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
@@ -269,12 +253,27 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           <div style={{ fontSize: 16, lineHeight: 1.45, fontWeight: 650, color: 'var(--color-text)' }}
             dangerouslySetInnerHTML={{ __html: task.question }} />
         </div>
-        {state !== undefined && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)', color: isCorrect ? 'var(--color-green-text)' : 'var(--color-red-text)', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
-            {isCorrect ? <CheckCircle2 size={15} /> : <XCircle size={15} />}
-            {isCorrect ? 'Верно' : 'Неверно'}
-          </div>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          {state !== undefined && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)', color: isCorrect ? 'var(--color-green-text)' : 'var(--color-red-text)', fontSize: 13, fontWeight: 700 }}>
+              {isCorrect ? <CheckCircle2 size={15} /> : <XCircle size={15} />}
+              {isCorrect ? 'Верно' : 'Неверно'}
+            </div>
+          )}
+          <button
+            onClick={() => onFavorite(task.id)}
+            style={{
+              width: 36, height: 36, borderRadius: 12,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: isFav ? 'var(--color-yellow-soft)' : 'rgba(var(--glass-rgb), 0.88)',
+              border: `1px solid ${isFav ? '#F8EF8C' : 'var(--color-border-medium)'}`,
+              cursor: 'pointer', outline: 'none',
+              transition: 'all 0.18s ease',
+            }}
+          >
+            <Bookmark size={16} fill={isFav ? 'currentColor' : 'none'} color={isFav ? '#7A6B00' : 'var(--color-text-3)'} />
+          </button>
+        </div>
       </div>
 
       {/* Image / table blocks in teacher-configured order */}
@@ -312,8 +311,8 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       {task.choices && task.choices.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {task.choices.map((c, i) => (
-            <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)' }}>
-              <span style={{ width: 24, height: 24, borderRadius: task.answerType === 'multi' ? 7 : '50%', flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--color-muted)' }}>{'АБВГДЕЖЗИК'[i]}</span>
+            <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)' }}>
+              <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--color-muted)' }}>{'АБВГДЕЖЗИК'[i]}</span>
               <span style={{ fontSize: 14, color: 'var(--color-text)' }}>{c.text}</span>
             </div>
           ))}
@@ -324,18 +323,20 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       {/* Matching */}
       {task.matchLeft && task.matchRight && (
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {task.matchLeft.map((l, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)', fontSize: 13 }}>
-                  <b style={{ color: palette.text }}>{'АБВГДЕЖЗИК'[i]}</b> {l}
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)' }}>
+                  <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--color-muted)' }}>{'АБВГДЕЖЗИК'[i]}</span>
+                  <span style={{ fontSize: 14, color: 'var(--color-text)' }}>{l}</span>
                 </div>
               ))}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {task.matchRight.map((r, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)', fontSize: 13 }}>
-                  <b style={{ color: palette.text }}>{i + 1}</b> {r}
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)' }}>
+                  <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--color-muted)' }}>{i + 1}</span>
+                  <span style={{ fontSize: 14, color: 'var(--color-text)' }}>{r}</span>
                 </div>
               ))}
             </div>
@@ -349,8 +350,9 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         <div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {[...task.sequenceItems].sort((a, b) => a.localeCompare(b, 'ru')).map((s, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)', fontSize: 13 }}>
-                <b style={{ color: palette.text }}>{i + 1}</b> {s}
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)' }}>
+                <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--color-muted)' }}>{i + 1}</span>
+                <span style={{ fontSize: 14, color: 'var(--color-text)' }}>{s}</span>
               </div>
             ))}
           </div>
@@ -383,13 +385,6 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             position: 'absolute', left: 1, top: 1, bottom: 1, width: 32,
             borderRadius: '15px 0 0 15px', pointerEvents: 'none',
             background: `linear-gradient(to right, ${state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : 'var(--color-bg-input)'}, transparent)`,
-            opacity: inputVal ? 1 : 0,
-            transition: 'opacity 0.2s ease',
-          }} />
-          <div style={{
-            position: 'absolute', right: 1, top: 1, bottom: 1, width: 32,
-            borderRadius: '0 15px 15px 0', pointerEvents: 'none',
-            background: `linear-gradient(to left, ${state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : 'var(--color-bg-input)'}, transparent)`,
             opacity: inputOverflow ? 1 : 0,
             transition: 'opacity 0.2s ease',
           }} />

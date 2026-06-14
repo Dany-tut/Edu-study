@@ -58,8 +58,20 @@ type TeacherStore = {
   removeTask: (id: string) => void
 }
 
+const HASH_TO_PAGE: Record<string, TeacherPage> = {
+  '#/teacher':             'home',
+  '#/teacher/groups':      'groups',
+  '#/teacher/homework':    'homework',
+  '#/teacher/gradebook':   'gradebook',
+  '#/teacher/constructor': 'constructor',
+}
+
+function initialPage(): TeacherPage {
+  return HASH_TO_PAGE[window.location.hash] ?? 'home'
+}
+
 export const useTeacher = create<TeacherStore>(set => ({
-  activePage: 'home',
+  activePage: initialPage(),
   setActivePage: page => set({ activePage: page, headerDocked: false }),
   headerDocked: false,
   setHeaderDocked: docked => set({ headerDocked: docked }),
