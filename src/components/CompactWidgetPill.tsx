@@ -655,7 +655,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             {/* Green: correct */}
             <motion.div
               initial={false}
-              animate={{ padding: expanded ? '8px 6px' : '3px 8px', borderRadius: expanded ? 20 : 999, flexGrow: expanded ? 1 : 0 }}
+              animate={{ padding: expanded ? '8px 6px' : '3px 8px', borderRadius: expanded ? 26 : 999, flexGrow: expanded ? 1 : 0 }}
               transition={PILL_T}
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, background: 'rgba(110,231,160,0.22)', color: '#27A85A', fontWeight: 700, lineHeight: 1 }}
             >
@@ -669,7 +669,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             {todayCorrect > 0 && (
               <motion.div
                 initial={false}
-                animate={{ padding: expanded ? '8px 6px' : '3px 8px', borderRadius: expanded ? 20 : 999, flexGrow: expanded ? 1 : 0 }}
+                animate={{ padding: expanded ? '8px 6px' : '3px 8px', borderRadius: expanded ? 26 : 999, flexGrow: expanded ? 1 : 0 }}
                 transition={PILL_T}
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, background: 'rgba(139,92,246,0.18)', color: '#C4B5FD', fontWeight: 700, lineHeight: 1 }}
               >
@@ -684,7 +684,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             {wrongCount > 0 && (
               <motion.div
                 initial={false}
-                animate={{ padding: expanded ? '8px 6px' : '3px 8px', borderRadius: expanded ? 20 : 999, flexGrow: expanded ? 1 : 0 }}
+                animate={{ padding: expanded ? '8px 6px' : '3px 8px', borderRadius: expanded ? 26 : 999, flexGrow: expanded ? 1 : 0 }}
                 transition={PILL_T}
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, background: 'rgba(220,50,60,0.26)', color: '#F04858', fontWeight: 700, lineHeight: 1 }}
               >
@@ -1070,7 +1070,7 @@ export default function CompactWidgetPill() {
       // the pill made framer re-project the pill's box against the (old,
       // huge) WidgetCarousel bounds, which is what caused the jitter on
       // expand/collapse.
-      animate={{ height: expanded ? expandedH : COLLAPSED_H, borderRadius: expanded ? 20 : 30 }}
+      animate={{ height: expanded ? expandedH : COLLAPSED_H, borderRadius: expanded ? 26 : 30 }}
       transition={MORPH}
       style={{
         position: 'relative',
