@@ -2604,6 +2604,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
   const [editText, setEditText] = useState('')
   const [editOpts, setEditOpts] = useState<string[]>([])
   const [editCorrect, setEditCorrect] = useState(0)
+  useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
 
   function save(qs: DiagQuestion[]) {
     setQuestions(qs)
@@ -2838,7 +2839,8 @@ function DiagnosticStudentCard({
   onDelete: () => void
 }) {
   const [expanded, setExpanded] = useState(false)
-  const questions = useMemo(() => loadDiagQuestions(result.subject), [result.subject])
+  const [questions, setQuestions] = useState(() => loadDiagQuestions(result.subject))
+  useEffect(() => { fetchDiagQuestions(result.subject).then(setQuestions) }, [result.subject])
 
   const sections = Object.entries(result.results)
   const totalCorrect = sections.reduce((s, [, v]) => s + v.correct, 0)
@@ -3196,8 +3198,9 @@ function DiagnosticManagement({ onBack }: { onBack: () => void }) {
 function DiagnosticCard({ subject, isSelected, onClick }: { subject: DiagSubject; isSelected: boolean; onClick: () => void }) {
   const { label, accent, soft } = SUBJECT_META[subject]
   const Icon = SUBJECT_ICON_MAP[subject]
-  const questions = loadDiagQuestions(subject)
+  const [questions, setQuestions] = useState(() => loadDiagQuestions(subject))
   const [anonCount, setAnonCount] = useState(0)
+  useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
   useEffect(() => {
     loadAnonResults().then(all => setAnonCount(all.filter(r => r.subject === subject).length))
   }, [subject])
@@ -3223,12 +3226,13 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
 }) {
   const { label, accent, soft } = SUBJECT_META[subject]
   const Icon = SUBJECT_ICON_MAP[subject]
-  const questions = useMemo(() => loadDiagQuestions(subject), [subject])
+  const [questions, setQuestions] = useState(() => loadDiagQuestions(subject))
   const [copied, setCopied] = useState(false)
   const [anonResults, setAnonResults] = useState<AnonDiagResult[]>([])
   const [pickerFor, setPickerFor] = useState<string | null>(null)
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
   const allStudents = useAllStudents()
+  useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
 
   // Group questions by section
   const sections = useMemo(() => {
@@ -3379,6 +3383,7 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
   const [editText, setEditText] = useState('')
   const [editOpts, setEditOpts] = useState<string[]>([])
   const [editCorrect, setEditCorrect] = useState(0)
+  useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
 
   function save(qs: DiagQuestion[]) { setQuestions(qs); saveDiagQuestions(subject, qs) }
   function startEdit(idx: number) { const q = questions[idx]; setEditIdx(idx); setEditText(q.text); setEditOpts([...q.options]); setEditCorrect(q.correct) }

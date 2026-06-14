@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, CheckCircle, Circle, ChevronRight, Target, User } from 'lucide-react'
 import {
-  loadDiagQuestions, appendAnonResult,
+  loadDiagQuestions, fetchDiagQuestions, appendAnonResult,
   type DiagSubject, type DiagQuestion, type DiagResults,
 } from '../data/diagnosticData'
 import CognitiveScreeningPage from './CognitiveScreeningPage'
@@ -28,7 +28,8 @@ export default function DiagnosticTestPage() {
   const knownSubject = subject as Exclude<DiagSubject, 'logic'>
   const theme = THEME[knownSubject]
 
-  const questions = useMemo(() => loadDiagQuestions(subject), [subject])
+  const [questions, setQuestions] = useState(() => loadDiagQuestions(subject))
+  useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
 
   const [step, setStep] = useState<'name' | 'test' | 'done'>('name')
   const [studentName, setStudentName] = useState('')

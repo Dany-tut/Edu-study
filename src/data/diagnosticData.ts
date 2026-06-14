@@ -705,17 +705,53 @@ export const DEFAULT_QUESTIONS: Record<DiagSubject, DiagQuestion[]> = {
   logic: LOGIC_DIAG_QUESTIONS,
 }
 
+// In-memory cache pre-seeded with compiled defaults so sync reads always work.
+const questionsCache = new Map<DiagSubject, DiagQuestion[]>(
+  (['biology', 'chemistry', 'logic'] as DiagSubject[]).map(s => [s, DEFAULT_QUESTIONS[s]])
+)
+
+// Sync read from cache (instant, no flicker). Call fetchDiagQuestions in useEffect to hydrate.
 export function loadDiagQuestions(subject: DiagSubject): DiagQuestion[] {
-  try {
-    const s = localStorage.getItem(`diag-questions-${subject}`)
-    return s ? JSON.parse(s) : DEFAULT_QUESTIONS[subject]
-  } catch {
-    return DEFAULT_QUESTIONS[subject]
-  }
+  return questionsCache.get(subject) ?? DEFAULT_QUESTIONS[subject]
 }
 
-export function saveDiagQuestions(subject: DiagSubject, qs: DiagQuestion[]) {
-  localStorage.setItem(`diag-questions-${subject}`, JSON.stringify(qs))
+// Async fetch from Supabase — updates cache and returns fresh questions.
+export async function fetchDiagQuestions(subject: DiagSubject): Promise<DiagQuestion[]> {
+  const { data, error } = await supabase
+    .from('diag_questions')
+    .select('id, section, text, options, correct')
+    .eq('subject', subject)
+    .order('position')
+  if (error || !data?.length) return loadDiagQuestions(subject)
+  const qs: DiagQuestion[] = data.map(r => ({
+    id: r.id as string,
+    section: r.section as string,
+    text: r.text as string,
+    options: r.options as string[],
+    correct: r.correct as number,
+  }))
+  questionsCache.set(subject, qs)
+  return qs
+}
+
+// Async save — updates cache + upserts all rows to Supabase.
+export async function saveDiagQuestions(subject: DiagSubject, qs: DiagQuestion[]): Promise<void> {
+  questionsCache.set(subject, qs)
+  const rows = qs.map((q, pos) => ({
+    id: q.id, subject, section: q.section, text: q.text,
+    options: q.options, correct: q.correct, position: pos,
+  }))
+  const { error } = await supabase
+    .from('diag_questions')
+    .upsert(rows, { onConflict: 'id' })
+  if (error) console.error('saveDiagQuestions:', error)
+  // Remove deleted questions from DB
+  const ids = qs.map(q => q.id)
+  await supabase
+    .from('diag_questions')
+    .delete()
+    .eq('subject', subject)
+    .not('id', 'in', `(${ids.map(id => `'${id}'`).join(',')})`)
 }
 
 export function loadDiagResults(subject: DiagSubject): DiagResults | null {
