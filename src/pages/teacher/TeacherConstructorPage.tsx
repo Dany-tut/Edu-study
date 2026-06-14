@@ -3209,7 +3209,7 @@ function DiagnosticCard({ subject, isSelected, onClick }: { subject: DiagSubject
       accentColor={accent} accentBg={accent + '14'}
       isSelected={isSelected} onClick={onClick}
       icon={<Icon size={17} strokeWidth={2} style={{ color: accent }} />}
-      badge={<span style={{ fontSize: 10, fontWeight: 700, color: '#fff', background: 'var(--color-accent)', borderRadius: 7, padding: '2px 8px' }}>Диагностика</span>}
+      badge={<span style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: 'var(--color-accent)', borderRadius: 999, padding: '3px 10px' }}>Диагностика</span>}
       title={label}
       subtitle={`${questions.length} вопросов`}
       footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount > 0 ? `${anonCount} прошли тест` : 'Нет сдач'}</span></>}
@@ -3450,8 +3450,18 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function TeacherConstructorPage() {
-  const [activeTab, setActiveTab] = useState<Tab>('course')
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<Tab>(() => {
+    const s = localStorage.getItem('constructor-active-tab') as Tab | null
+    return (s && ['course','trainer','widget','testing'].includes(s)) ? s : 'course'
+  })
+  const [selectedId, setSelectedId] = useState<string | null>(() =>
+    localStorage.getItem('constructor-selected-id')
+  )
+  useEffect(() => { localStorage.setItem('constructor-active-tab', activeTab) }, [activeTab])
+  useEffect(() => {
+    if (selectedId) localStorage.setItem('constructor-selected-id', selectedId)
+    else localStorage.removeItem('constructor-selected-id')
+  }, [selectedId])
   const [diagEditing, setDiagEditing] = useState<DiagSubject | null>(null)
   const [creatorMode, setCreatorMode] = useState<Exclude<Tab, 'testing'> | null>(null)
   const [editCourse, setEditCourse] = useState<Course | null>(null)
