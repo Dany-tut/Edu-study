@@ -407,7 +407,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                 display: 'flex', alignItems: 'center', gap: 6, padding: '11px 20px', borderRadius: 16,
                 background: palette.accent, color: palette.onAccent,
                 border: 'none', outline: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                boxShadow: `inset 0 0 0 999px rgba(0,0,0,0.30), 0 8px 20px ${palette.ring}`,
+                boxShadow: `0 4px 14px ${palette.ring}`,
                 transition: 'all 0.18s ease',
               }}>
                 <CheckCircle2 size={14} />Проверить
