@@ -63,6 +63,57 @@ function CopyableIdBadge({ id }: { id: number }) {
   )
 }
 
+// ─── Copyable line-badge ──────────────────────────────────────────────────────
+function CopyableLineBadge({ line, accent, accentBg }: { line: number; accent: string; accentBg: string }) {
+  const [tipped, setTipped] = useState(false)
+  function copy(e: React.MouseEvent) {
+    e.stopPropagation()
+    navigator.clipboard.writeText(`№${line}`)
+    setTipped(true)
+    setTimeout(() => setTipped(false), 1400)
+  }
+  return (
+    <span onClick={copy} title="Скопировать линию"
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}>
+      <span style={{ fontSize: 10, fontWeight: 700, color: accent, background: accentBg, borderRadius: 7, padding: '2px 8px' }}>
+        {line} лин.
+      </span>
+      <AnimatePresence>
+        {tipped && (
+          <motion.span key="tip"
+            initial={{ opacity: 0, scale: 0.78, y: 4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.78, y: 4 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            style={{
+              position: 'absolute', bottom: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)',
+              pointerEvents: 'none', zIndex: 999,
+              display: 'flex', alignItems: 'center', gap: 5,
+              padding: '5px 10px 5px 7px', borderRadius: 999,
+              background: 'rgba(var(--glass-rgb), 0.22)',
+              backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+              border: '1px solid var(--color-border-glass)',
+              boxShadow: '0 4px 18px rgba(42,125,79,0.18), 0 1px 4px rgba(0,0,0,0.08)',
+              whiteSpace: 'nowrap',
+            }}>
+            <span style={{
+              width: 18, height: 18, borderRadius: '50%',
+              background: 'linear-gradient(135deg, #34C877 0%, #2A7D4F 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              boxShadow: '0 2px 6px rgba(42,125,79,0.35)',
+            }}>
+              <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                <path d="M1.5 4.5l2.2 2.2 3.3-3.7" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-green-text)', letterSpacing: 0.1 }}>Скопировано</span>
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </span>
+  )
+}
+
 // ─── Shared filter shape ───────────────────────────────────────────────────────
 export type TrainerFilters = {
   search: string; subject: string; section: string; topic: string; parts: string[]; line: string; source: string
@@ -431,14 +482,15 @@ function BankGridCard({
           {selected && <Check size={13} strokeWidth={3} style={{ color: '#fff' }} />}
         </div>
       )}
-      {/* Head: icon box + line badge */}
+      {/* Head: icon box + badges */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
         <div style={{ width: 36, height: 36, borderRadius: 12, background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Zap size={17} strokeWidth={2} style={{ color: subjectColor }} />
         </div>
-        <span style={{ fontSize: 10, fontWeight: 700, color: accent, background: accentBg, borderRadius: 7, padding: '2px 8px' }}>
-          {task.line} лин.
-        </span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+          <CopyableLineBadge line={task.line} accent={accent} accentBg={accentBg} />
+          <CopyableIdBadge id={task.id} />
+        </div>
       </div>
 
       {/* Body: question title + topic */}

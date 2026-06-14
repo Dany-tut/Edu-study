@@ -3369,8 +3369,8 @@ function DiagResultStudentPanel({
           {/* Score ring */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 16, background: `${pctColor}10`, border: `1px solid ${pctColor}22` }}>
             <div style={{ width: 60, height: 60, borderRadius: 18, background: `${pctColor}20`, border: `3px solid ${pctColor}44`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <div style={{ fontSize: 20, fontWeight: 900, color: pctColor, lineHeight: 1 }}>{pct}%</div>
-              <div style={{ fontSize: 9, color: 'var(--color-muted)' }}>{totalC}/{totalQ}</div>
+              <div style={{ fontSize: 15, fontWeight: 900, color: pctColor, lineHeight: 1 }}>{pct}%</div>
+              <div style={{ fontSize: 9, color: 'var(--color-muted)', marginTop: 2 }}>{totalC}/{totalQ}</div>
             </div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Общий результат</div>
@@ -3378,6 +3378,31 @@ function DiagResultStudentPanel({
               <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>{time}</div>
             </div>
           </div>
+
+          {/* Fluid summary */}
+          {(() => {
+            const sortedBySec = [...sections].sort((a, b) => {
+              const pa = a[1].total ? a[1].correct / a[1].total : 0
+              const pb = b[1].total ? b[1].correct / b[1].total : 0
+              return pb - pa
+            })
+            const best = sortedBySec[0]
+            const worst = sortedBySec[sortedBySec.length - 1]
+            const bestPct = best ? Math.round((best[1].correct / best[1].total) * 100) : 0
+            const worstPct = worst ? Math.round((worst[1].correct / worst[1].total) * 100) : 0
+            const summary = pct >= 85
+              ? `Уверенный результат${best ? ` — особенно силён в разделе «${best[0]}» (${bestPct}%)` : ''}.`
+              : pct >= 65
+              ? `Хороший уровень${best ? `, сильнее всего «${best[0]}»` : ''}${worst && worstPct < 70 ? `, стоит подтянуть «${worst[0]}» (${worstPct}%)` : ''}.`
+              : pct >= 40
+              ? `Средний результат. ${worst ? `Слабее всего показал себя в «${worst[0]}» (${worstPct}%) — рекомендуется дополнительная проработка.` : ''}`
+              : `Низкий результат${worst ? ` — особенно в разделе «${worst[0]}» (${worstPct}%)` : ''}. Нужна серьёзная работа над базой.`
+            return (
+              <div style={{ padding: '10px 14px', borderRadius: 12, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', fontSize: 12, color: 'var(--color-text-2)', lineHeight: 1.5 }}>
+                {summary}
+              </div>
+            )
+          })()}
 
           {/* Sections */}
           <div>

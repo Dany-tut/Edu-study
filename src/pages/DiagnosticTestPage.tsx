@@ -329,14 +329,11 @@ export default function DiagnosticTestPage() {
                 const showResult = picked !== undefined
 
                 let borderColor = 'var(--color-border-medium)'
-                let bg = 'var(--color-bg-2)'
-                let textColor = 'var(--color-text)'
-
                 if (showResult) {
-                  if (isCorrect) { borderColor = '#22c55e'; bg = '#dcfce7'; textColor = '#15803d' }
-                  else if (isChosen && !isCorrect) { borderColor = '#ef4444'; bg = '#fee2e2'; textColor = '#b91c1c' }
+                  if (isCorrect) borderColor = '#22c55e'
+                  else if (isChosen) borderColor = '#ef4444'
                 } else if (isChosen) {
-                  borderColor = theme.accent; bg = `${theme.accent}15`
+                  borderColor = theme.accent
                 }
 
                 return (
@@ -350,29 +347,29 @@ export default function DiagnosticTestPage() {
                       display: 'flex', alignItems: 'center', gap: 12,
                       padding: '14px 16px', borderRadius: 14,
                       border: `1.5px solid ${borderColor}`,
-                      background: bg, cursor: picked !== undefined ? 'default' : 'pointer',
+                      background: 'var(--color-bg-2)',
+                      cursor: picked !== undefined ? 'default' : 'pointer',
                       textAlign: 'left', width: '100%',
-                      transition: 'border-color 0.15s, background 0.15s',
+                      transition: 'border-color 0.2s',
                     }}
                   >
-                    {showResult ? (
-                      isCorrect
-                        ? <CheckCircle size={18} style={{ color: '#22c55e', flexShrink: 0 }} />
-                        : isChosen
-                          ? <Circle size={18} style={{ color: '#ef4444', flexShrink: 0 }} />
-                          : <Circle size={18} style={{ color: 'var(--color-border-medium)', flexShrink: 0 }} />
-                    ) : (
-                      <div style={{
-                        width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
-                        border: `2px solid ${isChosen ? theme.accent : 'var(--color-border-medium)'}`,
-                        background: isChosen ? theme.accent : 'transparent',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 11, fontWeight: 700, color: isChosen ? '#fff' : 'var(--color-muted)',
-                      }}>
-                        {'АБВГ'[idx]}
-                      </div>
-                    )}
-                    <span style={{ fontSize: 14, fontWeight: 500, color: textColor, lineHeight: 1.4 }}>
+                    <div style={{
+                      width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
+                      border: `2px solid ${showResult
+                        ? isCorrect ? '#22c55e' : isChosen ? '#ef4444' : 'var(--color-border-medium)'
+                        : isChosen ? theme.accent : 'var(--color-border-medium)'
+                      }`,
+                      background: showResult
+                        ? isCorrect ? '#22c55e' : isChosen ? '#ef4444' : 'transparent'
+                        : isChosen ? theme.accent : 'transparent',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 11, fontWeight: 700,
+                      color: (isChosen || (showResult && isCorrect)) ? '#fff' : 'var(--color-muted)',
+                      transition: 'all 0.2s',
+                    }}>
+                      {'АБВГ'[idx]}
+                    </div>
+                    <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-text)', lineHeight: 1.4 }}>
                       {opt}
                     </span>
                   </motion.button>
@@ -380,7 +377,45 @@ export default function DiagnosticTestPage() {
               })}
             </div>
 
-            {/* Next button (visible once answered) */}
+            {/* Result feedback card — shown below options, not inside them */}
+            <AnimatePresence>
+              {picked !== undefined && (() => {
+                const isRight = picked === q.correct
+                return (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    transition={{ duration: 0.22 }}
+                    style={{
+                      marginTop: 14,
+                      padding: '14px 16px',
+                      borderRadius: 14,
+                      border: `1.5px solid ${isRight ? '#22c55e55' : '#ef444455'}`,
+                      background: isRight ? 'rgba(34,197,94,0.10)' : 'rgba(239,68,68,0.10)',
+                      display: 'flex', alignItems: 'center', gap: 12,
+                    }}
+                  >
+                    {isRight
+                      ? <CheckCircle size={20} style={{ color: '#22c55e', flexShrink: 0 }} />
+                      : <Circle size={20} style={{ color: '#ef4444', flexShrink: 0 }} />
+                    }
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: isRight ? '#22c55e' : '#ef4444' }}>
+                        {isRight ? 'Верно!' : 'Неверно'}
+                      </div>
+                      {!isRight && (
+                        <div style={{ fontSize: 12, color: 'var(--color-text-2)', marginTop: 2 }}>
+                          Правильный ответ: <span style={{ fontWeight: 600, color: '#22c55e' }}>{q.options[q.correct]}</span>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )
+              })()}
+            </AnimatePresence>
+
+            {/* Next button */}
             <AnimatePresence>
               {picked !== undefined && current < total - 1 && (
                 <motion.button
@@ -389,7 +424,7 @@ export default function DiagnosticTestPage() {
                   exit={{ opacity: 0 }}
                   onClick={() => setCurrent(c => c + 1)}
                   style={{
-                    marginTop: 20, width: '100%', padding: '13px',
+                    marginTop: 12, width: '100%', padding: '13px',
                     borderRadius: 14, border: 'none', cursor: 'pointer',
                     background: theme.accent, color: '#fff',
                     fontSize: 14, fontWeight: 700,

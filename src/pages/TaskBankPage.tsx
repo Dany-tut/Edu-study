@@ -412,15 +412,17 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               }}>
                 <CheckCircle2 size={14} />Проверить
               </button>
-              <button onClick={() => setShowSolution(s => !s)} style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '11px 18px', borderRadius: 16,
-                background: showSolution ? palette.soft : 'rgba(var(--glass-rgb), 0.88)',
-                border: showSolution ? 'none' : '1px solid var(--color-border-medium)',
-                outline: 'none',
-                fontSize: 13, cursor: 'pointer', color: showSolution ? palette.text : 'var(--color-muted)', fontWeight: showSolution ? 700 : 500,
-              }}>
-                <Eye size={14} />Решение
-              </button>
+              {state !== undefined && (
+                <button onClick={() => setShowSolution(s => !s)} style={{
+                  display: 'flex', alignItems: 'center', gap: 6, padding: '11px 18px', borderRadius: 16,
+                  background: showSolution ? palette.soft : 'rgba(var(--glass-rgb), 0.88)',
+                  border: showSolution ? 'none' : '1px solid var(--color-border-medium)',
+                  outline: 'none',
+                  fontSize: 13, cursor: 'pointer', color: showSolution ? palette.text : 'var(--color-muted)', fontWeight: showSolution ? 700 : 500,
+                }}>
+                  <Eye size={14} />Решение
+                </button>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -515,9 +517,10 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
           color: inputVal.trim() ? palette.onAccent : 'var(--color-text-3)',
           cursor: inputVal.trim() ? 'pointer' : 'default', flexShrink: 0,
         }}>✓</button>
-        <button onClick={() => setShowSolution(s => !s)} style={{
+        <button onClick={() => state !== undefined && setShowSolution(s => !s)} style={{
           padding: '7px 8px', borderRadius: 10, border: `1px solid ${showSolution ? palette.accent : 'var(--color-border-medium)'}`,
-          background: showSolution ? palette.soft : 'transparent', cursor: 'pointer', flexShrink: 0,
+          background: showSolution ? palette.soft : 'transparent', cursor: state !== undefined ? 'pointer' : 'default', flexShrink: 0,
+          opacity: state !== undefined ? 1 : 0.35,
         }}><Eye size={12} color={showSolution ? palette.text : 'var(--color-text-3)'} /></button>
         <button onClick={() => onFavorite(task.id)} style={{
           padding: '7px 8px', borderRadius: 10, border: `1px solid ${isFav ? '#F8EF8C' : 'var(--color-border-medium)'}`,
@@ -1391,8 +1394,6 @@ export default function TaskBankPage() {
           background: 'rgba(var(--glass-rgb), 0.97)',
           border: '1px solid var(--color-border-glass)',
           boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
-          maxHeight: 'calc(100vh - 72px)',
-          overflowY: 'auto',
         }}>
 
           {/* Subject gradient card — clicking it toggles between biology and chemistry */}
