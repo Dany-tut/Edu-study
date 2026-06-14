@@ -1413,11 +1413,12 @@ export default function TaskBankPage() {
               {(['biology', 'chemistry'] as Subject[]).map(s => (
                 <button key={s} onClick={e => { e.stopPropagation(); setSubjectPersist(s); setSection(''); setTopic('') }}
                   style={{
-                    padding: '6px 12px', borderRadius: 999, border: '1.5px solid',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    height: 28, padding: '0 12px', borderRadius: 999, border: '1.5px solid',
                     borderColor: subject === s ? 'var(--color-border-glass)' : 'var(--color-border-medium)',
                     background: subject === s ? 'rgba(255,255,255,0.22)' : 'transparent',
                     color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                    whiteSpace: 'nowrap',
+                    whiteSpace: 'nowrap', lineHeight: 1, boxSizing: 'border-box',
                   }}>
                   {s === 'biology' ? 'Биология' : 'Химия'}
                 </button>
@@ -1477,21 +1478,6 @@ export default function TaskBankPage() {
 
         {/* Center: search + tasks */}
         <main className="flex flex-col" style={{ flex: 1, minWidth: 0, gap: 18 }}>
-
-          {/* Stats bar */}
-          <StatsBar
-            doneCount={doneCount}
-            wrongCount={wrongCount}
-            totalCount={totalCount}
-            favCount={favorites.size}
-            todayCorrect={todayCorrect}
-            todayWrong={todayWrong}
-            palette={palette}
-            onOpenModal={() => setShowProgressModal(true)}
-            onRetryWrong={() => { setShowWrongOnly(true); setWrongSimilarLines(new Set()) }}
-            onToggleFav={() => setShowFavOnly(f => !f)}
-            showFavOnly={showFavOnly}
-          />
 
           {/* Controls row */}
           <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
