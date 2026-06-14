@@ -9,18 +9,20 @@ import CognitiveScreeningPage from './CognitiveScreeningPage'
 
 // ── Subject theme ──────────────────────────────────────────────────────────────
 const THEME: Record<Exclude<DiagSubject, 'logic'>, { accent: string; soft: string; label: string; sublabel: string }> = {
-  biology:   { accent: '#22c55e', soft: '#dcfce7', label: 'Биология', sublabel: 'Диагностика знаний' },
-  chemistry: { accent: '#7c3aed', soft: '#ede9fe', label: 'Химия', sublabel: 'Диагностика знаний' },
+  biology:      { accent: '#22c55e', soft: '#dcfce7', label: 'Биология', sublabel: 'Диагностика знаний' },
+  chemistry:    { accent: '#7c3aed', soft: '#ede9fe', label: 'Химия', sublabel: 'Диагностика знаний' },
+  'ap-chem-ru': { accent: '#7c3aed', soft: '#ede9fe', label: 'AP Химия', sublabel: 'Диагностика · RU' },
+  'ap-chem-en': { accent: '#7c3aed', soft: '#ede9fe', label: 'AP Chemistry', sublabel: 'Diagnostic · EN' },
 }
+
+const KNOWN_SUBJECTS = new Set<DiagSubject>(['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en'])
 
 // ── Main page ──────────────────────────────────────────────────────────────────
 export default function DiagnosticTestPage() {
   const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '')
   const rawSubject = params.get('subject')
   const subject: DiagSubject =
-    rawSubject === 'chemistry' ? 'chemistry'
-    : rawSubject === 'logic' ? 'logic'
-    : 'biology'
+    KNOWN_SUBJECTS.has(rawSubject as DiagSubject) ? (rawSubject as DiagSubject) : 'biology'
 
   // Logic subject uses the full interactive cognitive battery
   if (subject === 'logic') return <CognitiveScreeningPage />
