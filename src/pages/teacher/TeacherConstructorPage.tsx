@@ -3194,6 +3194,337 @@ function DiagnosticManagement({ onBack }: { onBack: () => void }) {
   )
 }
 
+// ─── DiagResultsTable — inline table below cards ──────────────────────────────
+function DiagResultsTable({
+  subject, results, selectedResultId, onSelectResult, onOpenEditor, onRefresh,
+}: {
+  subject: DiagSubject
+  results: AnonDiagResult[]
+  selectedResultId: string | null
+  onSelectResult: (id: string) => void
+  onOpenEditor: () => void
+  onRefresh: () => void
+}) {
+  const { label, accent, soft } = SUBJECT_META[subject]
+  const [copied, setCopied] = useState(false)
+
+  function copyLink() {
+    navigator.clipboard.writeText(`${BASE_URL}#/diagnostic?subject=${subject}`)
+      .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
+  }
+
+  return (
+    <div style={{ background: 'rgba(var(--glass-rgb), 0.95)', border: '1px solid var(--color-border)', borderRadius: 22, overflow: 'hidden' }}>
+      {/* Table header toolbar */}
+      <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid var(--color-border-soft)' }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{label}</div>
+          <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 1 }}>
+            {results.length > 0 ? `${results.length} прохождени${results.length === 1 ? 'е' : 'й'}` : 'Ещё никто не прошёл'}
+            &nbsp;·&nbsp;<span style={{ color: accent, fontWeight: 600 }}>Второй клик = редактор</span>
+          </div>
+        </div>
+        <button onClick={onRefresh} style={{ padding: '6px 12px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 12, fontWeight: 600 }}>↻</button>
+        <button onClick={copyLink} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : soft, color: copied ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700 }}>
+          {copied ? <Check size={13} /> : <Link2 size={13} />}
+          {copied ? 'Скопировано!' : 'Ссылка'}
+        </button>
+        <button onClick={onOpenEditor} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 12, fontWeight: 700 }}>
+          <Pencil size={13} /> Редактор
+        </button>
+      </div>
+
+      {results.length === 0 ? (
+        <div style={{ padding: '32px', textAlign: 'center', color: 'var(--color-muted)', fontSize: 13 }}>
+          Ещё никто не прошёл. Отправь ссылку ученику.
+        </div>
+      ) : (
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ background: 'var(--color-bg-3)' }}>
+              {['Ученик', 'Дата', 'Результат', 'Разделы (слабые)', 'Статус'].map((h, i) => (
+                <th key={h} style={{ padding: '9px 16px', textAlign: i >= 2 ? 'center' : 'left', fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', whiteSpace: 'nowrap', borderBottom: '1px solid var(--color-border-soft)' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {results.map((r, i) => {
+              const sections = Object.entries(r.results)
+              const totalC = sections.reduce((s, [, v]) => s + v.correct, 0)
+              const totalQ = sections.reduce((s, [, v]) => s + v.total, 0)
+              const pct = totalQ ? Math.round((totalC / totalQ) * 100) : 0
+              const pctColor = pct >= 70 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#ef4444'
+              const weak = sections.filter(([, v]) => v.total > 0 && v.correct / v.total < 0.5).map(([k]) => k)
+              const date = new Date(r.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
+              const initials = r.name.split(' ').slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase()
+              const isSelected = r.id === selectedResultId
+              return (
+                <motion.tr
+                  key={r.id}
+                  onClick={() => onSelectResult(r.id)}
+                  animate={{ background: isSelected ? `${accent}10` : i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)' }}
+                  style={{ cursor: 'pointer', borderBottom: '1px solid var(--color-border-soft)', borderLeft: isSelected ? `3px solid ${accent}` : '3px solid transparent' }}
+                  whileHover={{ background: `${accent}08` }}
+                >
+                  <td style={{ padding: '11px 16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: `${accent}33`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: accent }}>
+                        {initials || '?'}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{r.name}</div>
+                        {r.linkedStudentId && <div style={{ fontSize: 10, color: '#22c55e', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}><Check size={9} /> привязан</div>}
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ padding: '11px 16px', fontSize: 12, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>{date}</td>
+                  <td style={{ padding: '11px 16px', textAlign: 'center' }}>
+                    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <div style={{ fontSize: 16, fontWeight: 900, color: pctColor, lineHeight: 1 }}>{pct}%</div>
+                      <div style={{ fontSize: 9, color: 'var(--color-muted)' }}>{totalC}/{totalQ}</div>
+                    </div>
+                  </td>
+                  <td style={{ padding: '11px 16px' }}>
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
+                      {weak.length === 0
+                        ? <span style={{ fontSize: 10, color: '#22c55e', fontWeight: 600 }}>Всё ок</span>
+                        : weak.slice(0, 3).map(s => (
+                            <span key={s} style={{ fontSize: 9, padding: '2px 7px', borderRadius: 6, background: '#ef444420', color: '#ef4444', fontWeight: 600 }}>{s}</span>
+                          ))
+                      }
+                    </div>
+                  </td>
+                  <td style={{ padding: '11px 16px', textAlign: 'center' }}>
+                    {r.linkedStudentId
+                      ? <span style={{ fontSize: 10, padding: '3px 9px', borderRadius: 7, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontWeight: 700 }}>Привязан</span>
+                      : <span style={{ fontSize: 10, padding: '3px 9px', borderRadius: 7, background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontWeight: 600 }}>Аноним</span>
+                    }
+                  </td>
+                </motion.tr>
+              )
+            })}
+          </tbody>
+        </table>
+      )}
+    </div>
+  )
+}
+
+// ─── DiagResultStudentPanel — right-side panel for selected result ─────────────
+function DiagResultStudentPanel({
+  result, allStudents, onClose, onRefresh,
+}: {
+  result: AnonDiagResult
+  allStudents: { id: string; name: string }[]
+  onClose: () => void
+  onRefresh: () => void
+}) {
+  const { accent, soft } = SUBJECT_META[result.subject]
+  const Icon = SUBJECT_ICON_MAP[result.subject]
+  const [pickerOpen, setPickerOpen] = useState(false)
+
+  const sections = Object.entries(result.results)
+  const totalC = sections.reduce((s, [, v]) => s + v.correct, 0)
+  const totalQ = sections.reduce((s, [, v]) => s + v.total, 0)
+  const pct = totalQ ? Math.round((totalC / totalQ) * 100) : 0
+  const pctColor = pct >= 70 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#ef4444'
+  const initials = result.name.split(' ').slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase()
+  const linkedStudent = result.linkedStudentId ? allStudents.find(s => s.id === result.linkedStudentId) : null
+  const date = new Date(result.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })
+  const time = new Date(result.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+
+  async function handleLink(studentId: string) {
+    await linkAnonResult(result.id, studentId)
+    await onRefresh()
+    setPickerOpen(false)
+  }
+  async function handleUnlink() {
+    await unlinkAnonResult(result.id)
+    await onRefresh()
+  }
+  async function handleDelete() {
+    await deleteAnonResult(result.id)
+    await onRefresh()
+    onClose()
+  }
+
+  return (
+    <>
+      <AnimatePresence>
+        {pickerOpen && (
+          <StudentPickerModal onPick={(sid) => handleLink(sid)} onClose={() => setPickerOpen(false)} />
+        )}
+      </AnimatePresence>
+      <motion.div
+        initial={{ x: 380, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 380, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.9 }}
+        style={{ position: 'absolute', top: 108, right: 24, bottom: 28, width: 352, zIndex: 20, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.97)', border: '1px solid var(--color-border)', boxShadow: '0 10px 34px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      >
+        <PanelHeader title={result.name} accent={accent} accentBg={soft} Icon={Icon} onClose={onClose} />
+        <div style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+          {/* Score ring */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 16, background: `${pctColor}10`, border: `1px solid ${pctColor}22` }}>
+            <div style={{ width: 60, height: 60, borderRadius: 18, background: `${pctColor}20`, border: `3px solid ${pctColor}44`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ fontSize: 20, fontWeight: 900, color: pctColor, lineHeight: 1 }}>{pct}%</div>
+              <div style={{ fontSize: 9, color: 'var(--color-muted)' }}>{totalC}/{totalQ}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Общий результат</div>
+              <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2 }}>{date}</div>
+              <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>{time}</div>
+            </div>
+          </div>
+
+          {/* Sections */}
+          <div>
+            <SectionHead>Разбивка по разделам</SectionHead>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {sections.map(([sec, v]) => {
+                const p = v.total ? Math.round((v.correct / v.total) * 100) : 0
+                const c = p >= 70 ? '#22c55e' : p >= 40 ? '#f59e0b' : '#ef4444'
+                return (
+                  <div key={sec} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 10, background: 'var(--color-bg-2)', border: `1px solid ${c}22` }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', marginBottom: 3 }}>{sec}</div>
+                      <div style={{ height: 4, borderRadius: 999, background: 'var(--color-bg-3)', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${p}%`, background: c, borderRadius: 999, transition: 'width 0.4s' }} />
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: c, flexShrink: 0 }}>{p}%</div>
+                    <div style={{ fontSize: 10, color: 'var(--color-muted)', flexShrink: 0 }}>{v.correct}/{v.total}</div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Link to student */}
+          <div>
+            <SectionHead>Ученик</SectionHead>
+            {linkedStudent ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 14, background: 'var(--color-green-soft)', border: '1px solid rgba(34,197,94,0.25)' }}>
+                <Check size={16} style={{ color: '#22c55e', flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{linkedStudent.name}</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-green-text)' }}>Привязан к профилю</div>
+                </div>
+                <button onClick={handleUnlink} style={{ padding: '5px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.12)', color: '#ef4444', fontSize: 11, fontWeight: 700 }}>Отвязать</button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setPickerOpen(true)}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '12px', borderRadius: 14, border: `1.5px dashed ${accent}55`, cursor: 'pointer', background: soft, color: accent, fontSize: 13, fontWeight: 700 }}
+              >
+                <GraduationCap size={15} /> Назначить ученика
+              </button>
+            )}
+          </div>
+
+          {/* Delete */}
+          <button onClick={handleDelete} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 700 }}>
+            <Trash2 size={13} /> Удалить результат
+          </button>
+        </div>
+      </motion.div>
+    </>
+  )
+}
+
+// ─── DiagnosticEditorFullPage — full-width editor replacing the side panel ─────
+function DiagnosticEditorFullPage({ subject, onClose }: { subject: DiagSubject; onClose: () => void }) {
+  const { label, accent, soft } = SUBJECT_META[subject]
+  const Icon = SUBJECT_ICON_MAP[subject]
+  const [questions, setQuestions] = useState<DiagQuestion[]>(() => loadDiagQuestions(subject))
+  const [editIdx, setEditIdx] = useState<number | null>(null)
+  const [editText, setEditText] = useState('')
+  const [editOpts, setEditOpts] = useState<string[]>([])
+  const [editCorrect, setEditCorrect] = useState(0)
+  useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
+
+  function save(qs: DiagQuestion[]) { setQuestions(qs); saveDiagQuestions(subject, qs) }
+  function startEdit(idx: number) { const q = questions[idx]; setEditIdx(idx); setEditText(q.text); setEditOpts([...q.options]); setEditCorrect(q.correct) }
+  function commitEdit() {
+    if (editIdx === null) return
+    save(questions.map((q, i) => i === editIdx ? { ...q, text: editText, options: editOpts, correct: editCorrect } : q))
+    setEditIdx(null)
+  }
+  function removeQuestion(idx: number) { save(questions.filter((_, i) => i !== idx)); if (editIdx === idx) setEditIdx(null) }
+  function resetToDefault() { save(DEFAULT_QUESTIONS[subject]); setEditIdx(null) }
+
+  return (
+    <motion.div
+      key={`diag-editor-${subject}`}
+      initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+      style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}
+    >
+      <div style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', padding: '100px 32px 48px', display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 760, width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
+        {/* Back */}
+        <motion.button
+          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
+          onClick={onClose}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.9)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', alignSelf: 'flex-start' }}
+        >
+          <ArrowLeft size={15} strokeWidth={2} /> Назад
+        </motion.button>
+
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 14, background: soft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon size={22} style={{ color: accent }} />
+          </div>
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)' }}>Редактор: {label}</div>
+            <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{questions.length} вопросов · редактируй, удаляй, меняй ответы</div>
+          </div>
+          <button onClick={resetToDefault} style={{ marginLeft: 'auto', padding: '8px 16px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+            Сбросить к стандарту
+          </button>
+        </div>
+
+        {/* Questions */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {questions.map((q, idx) => (
+            <div key={q.id} style={{ borderRadius: 14, border: `1px solid ${editIdx === idx ? accent : 'var(--color-border)'}`, background: editIdx === idx ? `${accent}08` : 'rgba(var(--glass-rgb),0.85)', overflow: 'hidden' }}>
+              {editIdx === idx ? (
+                <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <textarea value={editText} onChange={e => setEditText(e.target.value)} rows={3}
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 10, border: `1.5px solid ${accent}55`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', resize: 'vertical', outline: 'none' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {editOpts.map((opt, oi) => (
+                      <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <button onClick={() => setEditCorrect(oi)} style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'transparent' }} />
+                        <input value={opt} onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o) }}
+                          style={{ flex: 1, padding: '7px 12px', borderRadius: 10, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }} />
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                    <button onClick={() => setEditIdx(null)} style={{ padding: '7px 14px', borderRadius: 9, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Отмена</button>
+                    <button onClick={commitEdit} style={{ padding: '7px 16px', borderRadius: 9, border: 'none', background: accent, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}><Check size={13} />Сохранить</button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ padding: '12px 18px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                  <div style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, marginTop: 1 }}>{idx + 1}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', marginBottom: 4 }}>{q.text}</div>
+                    <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>✓ {q.options[q.correct]}</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+                    <button onClick={() => startEdit(idx)} style={{ padding: '5px 10px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Ред.</button>
+                    <button onClick={() => removeQuestion(idx)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={12} /></button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
 // ─── Diagnostic Card ─────────────────────────────────────────────────────────
 function DiagnosticCard({ subject, isSelected, onClick }: { subject: DiagSubject; isSelected: boolean; onClick: () => void }) {
   const { label, accent, soft } = SUBJECT_META[subject]
@@ -3209,7 +3540,7 @@ function DiagnosticCard({ subject, isSelected, onClick }: { subject: DiagSubject
       accentColor={accent} accentBg={accent + '14'}
       isSelected={isSelected} onClick={onClick}
       icon={<Icon size={17} strokeWidth={2} style={{ color: accent }} />}
-      badge={<span style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: 'var(--color-accent)', borderRadius: 999, padding: '3px 10px' }}>Диагностика</span>}
+      badge={<span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-accent)', background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: 999, padding: '3px 10px' }}>Диагностика</span>}
       title={label}
       subtitle={`${questions.length} вопросов`}
       footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount > 0 ? `${anonCount} прошли тест` : 'Нет сдач'}</span></>}
@@ -3463,6 +3794,12 @@ export default function TeacherConstructorPage() {
     else localStorage.removeItem('constructor-selected-id')
   }, [selectedId])
   const [diagEditing, setDiagEditing] = useState<DiagSubject | null>(null)
+  const [selectedResultId, setSelectedResultId] = useState<string | null>(null)
+  const [diagAnonResults, setDiagAnonResults] = useState<AnonDiagResult[]>([])
+  const diagAllStudents = useAllStudents()
+  useEffect(() => {
+    if (activeTab === 'testing') loadAnonResults().then(setDiagAnonResults)
+  }, [activeTab])
   const [creatorMode, setCreatorMode] = useState<Exclude<Tab, 'testing'> | null>(null)
   const [editCourse, setEditCourse] = useState<Course | null>(null)
   const [editTrainer, setEditTrainer] = useState<Trainer | null>(null)
@@ -3528,11 +3865,18 @@ export default function TeacherConstructorPage() {
   const panelOpen = !!selectedCourse && activeTab === 'course'
 
   function openItem(id: string) { setSelectedId(prev => prev === id ? null : id) }
-  function closeEditor() { setSelectedId(null); setDiagEditing(null) }
+  function openDiagCard(subject: DiagSubject) {
+    setSelectedId(prev => prev === subject ? null : subject)
+    setSelectedResultId(null)
+    setDiagEditing(null)
+    loadAnonResults().then(setDiagAnonResults)
+  }
+  function closeEditor() { setSelectedId(null); setDiagEditing(null); setSelectedResultId(null) }
 
   function handleTabChange(t: Tab) {
-    setActiveTab(t); setSelectedId(null); setDiagEditing(null); setCreatorMode(null); setEditCourse(null); setEditTrainer(null); setEditWidget(null); setSelectedTrainerId(null)
+    setActiveTab(t); setSelectedId(null); setDiagEditing(null); setSelectedResultId(null); setCreatorMode(null); setEditCourse(null); setEditTrainer(null); setEditWidget(null); setSelectedTrainerId(null)
     setEditMode(false); setCheckedIds(new Set())
+    if (t === 'testing') loadAnonResults().then(setDiagAnonResults)
   }
 
   function handlePlus() {
@@ -3636,6 +3980,12 @@ export default function TeacherConstructorPage() {
             onSaveCourse={handleSaveCourse}
             onSaveWidget={handleSaveWidget}
             onCancel={() => { setCreatorMode(null); setEditCourse(null); setEditTrainer(null); setEditingTask(null); setEditWidget(null) }}
+          />
+        ) : diagEditing ? (
+          <DiagnosticEditorFullPage
+            key={`diag-editor-${diagEditing}`}
+            subject={diagEditing}
+            onClose={() => setDiagEditing(null)}
           />
         ) : (
           <motion.div
@@ -3773,32 +4123,52 @@ export default function TeacherConstructorPage() {
                     key={subject}
                     subject={subject}
                     isSelected={selectedId === subject}
-                    onClick={() => openItem(subject)}
+                    onClick={() => openDiagCard(subject)}
                   />
                 ))}
               </div>
+
+              {/* Inline results table — appears below cards on first click */}
+              <AnimatePresence>
+                {activeTab === 'testing' && selectedId && (
+                  <motion.div
+                    key={`table-${selectedId}`}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0, marginRight: 368 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <DiagResultsTable
+                      subject={selectedId as DiagSubject}
+                      results={diagAnonResults.filter(r => r.subject === selectedId)}
+                      selectedResultId={selectedResultId}
+                      onSelectResult={id => setSelectedResultId(prev => prev === id ? null : id)}
+                      onOpenEditor={() => openDiagCard(selectedId as DiagSubject)}
+                      onRefresh={() => loadAnonResults().then(setDiagAnonResults)}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
+
             <AnimatePresence>
               {selectedCourse && activeTab === 'course' && (
                 <CourseEditor key={selectedCourse.id} course={selectedCourse} trainers={trainers} widgets={widgets}
                   onSave={c => setCourses(prev => prev.map(x => x.id === c.id ? c : x))} onClose={closeEditor}
                   onExpand={() => handleExpandCourse(selectedCourse)} />
               )}
-              {activeTab === 'testing' && selectedId && (
-                <DiagnosticSelectionPanel
-                  key={selectedId}
-                  subject={selectedId as DiagSubject}
-                  onClose={closeEditor}
-                  onEditTest={() => setDiagEditing(selectedId as DiagSubject)}
-                />
-              )}
-              {activeTab === 'testing' && diagEditing && (
-                <DiagnosticEditorPanel
-                  key={`editor-${diagEditing}`}
-                  subject={diagEditing}
-                  onClose={() => setDiagEditing(null)}
-                />
-              )}
+              {activeTab === 'testing' && selectedResultId && (() => {
+                const result = diagAnonResults.find(r => r.id === selectedResultId)
+                return result ? (
+                  <DiagResultStudentPanel
+                    key={selectedResultId}
+                    result={result}
+                    allStudents={diagAllStudents}
+                    onClose={() => setSelectedResultId(null)}
+                    onRefresh={() => loadAnonResults().then(setDiagAnonResults)}
+                  />
+                ) : null
+              })()}
             </AnimatePresence>
           </motion.div>
         )}
