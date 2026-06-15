@@ -1,5 +1,10 @@
 // Lightweight click sound using the Web Audio API — no asset files needed.
 // Lazily created on first use so we respect browser autoplay policies.
+//
+// ⚠️ DEPRECATED for new (mobile) code — use lib/feedback.ts instead (canon:
+// tactile/blip/haptic/lockSnap/lockRelease). This module stays as-is because
+// desktop components still depend on it; do NOT change its behaviour. Dup D1
+// in docs/MOBILE_SPEC.md §3 — full consolidation tracked in task T9.
 
 let ctx: AudioContext | null = null
 

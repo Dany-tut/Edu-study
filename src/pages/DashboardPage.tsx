@@ -4,7 +4,8 @@ import WidgetCarousel from '../components/WidgetCarousel'
 import CompactWidgetPill from '../components/CompactWidgetPill'
 import CourseTrack from '../components/CourseTrack'
 import MobileBottomNav from '../components/MobileBottomNav'
-import LessonStatusCard from '../components/LessonStatusCard'
+import MobileHome from '../components/MobileHome'
+import MobileCourses from '../components/MobileCourses'
 import CoursesPage from './CoursesPage'
 import LessonPage from './LessonPage'
 import TaskBankPage from './TaskBankPage'
@@ -230,44 +231,33 @@ export default function DashboardPage() {
       </div>
       </LayoutGroup>
 
-      {/* Mobile layout (separate, scrollable) */}
-      <div style={{ display: isDesktop ? 'none' : 'block', minHeight: '100vh', background: 'var(--color-bg)', padding: '24px 24px 100px' }}>
+      {/* Mobile layout (separate). Home uses the MobileScreen shell; the other
+          pages keep their padded scroll wrapper until they're converted (T4/T5). */}
+      <div style={{ display: isDesktop ? 'none' : 'block' }}>
         {activePage === 'home' ? (
-          <div className="flex flex-col gap-6">
-            <ScheduleCarousel />
-            <WidgetCarousel />
-            <CourseTrack />
-            <div>
-              <h2 style={{ fontSize: 18, fontWeight: 650, color: 'var(--color-text)', marginBottom: 12 }}>Статусы уроков</h2>
-              <div className="flex flex-col gap-3">
-                {([
-                  { status: 'completed', lessonNumber: 23, title: 'Строение атома', points: 68 },
-                  { status: 'returned', lessonNumber: 24, title: 'Электролиты', points: 30 },
-                  { status: 'unviewed', lessonNumber: 25, title: 'Кислоты и основания' },
-                  { status: 'submitted', lessonNumber: 26, title: 'Органические молекулы', points: 60 },
-                  { status: 'locked', lessonNumber: 27, title: 'Итоговый экзамен' },
-                ] as const).map((c, i) => (
-                  <LessonStatusCard key={c.status} {...c} index={i} />
-                ))}
-              </div>
-            </div>
-          </div>
-        ) : activePage === 'lesson' ? (
-          <LessonPage />
-        ) : activePage === 'homework' && lesson && homework ? (
-          <HomeworkFlow
-            lessonId={lesson.id}
-            lessonTitle={lesson.title}
-            subject={lesson.subject}
-            homework={homework}
-            onBack={closeHomework}
-          />
-        ) : activePage === 'trainer' ? (
-          <TaskBankPage />
+          <MobileHome />
+        ) : activePage === 'courses' ? (
+          <MobileCourses />
         ) : (
-          <CoursesPage />
+          <div style={{ minHeight: '100vh', background: 'var(--color-bg)', padding: '24px 24px 100px' }}>
+            {activePage === 'lesson' ? (
+              <LessonPage />
+            ) : activePage === 'homework' && lesson && homework ? (
+              <HomeworkFlow
+                lessonId={lesson.id}
+                lessonTitle={lesson.title}
+                subject={lesson.subject}
+                homework={homework}
+                onBack={closeHomework}
+              />
+            ) : activePage === 'trainer' ? (
+              <TaskBankPage />
+            ) : (
+              <CoursesPage />
+            )}
+            <MobileBottomNav />
+          </div>
         )}
-        <MobileBottomNav />
       </div>
     </>
   )
