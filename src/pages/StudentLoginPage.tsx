@@ -5,13 +5,14 @@ import { setStudentSession } from '../lib/studentSession'
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '11px 14px', borderRadius: 12,
-  border: '1.5px solid #E8E8EA', fontSize: 14, outline: 'none',
+  border: '1.5px solid #E8E8EA', fontSize: 16, outline: 'none',
   boxSizing: 'border-box', marginTop: 6,
 }
 
 export default function StudentLoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -34,7 +35,7 @@ export default function StudentLoginPage() {
 
     const s = data[0] as { id: string; name: string; group_id: string }
     setStudentSession({ id: s.id, name: s.name, groupId: s.group_id })
-    window.location.hash = '#/'
+    window.location.reload()
   }
 
   return (
@@ -70,14 +71,28 @@ export default function StudentLoginPage() {
           </label>
           <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', display: 'flex', flexDirection: 'column' }}>
             Пароль
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••"
-              style={inputStyle}
-              onKeyDown={e => e.key === 'Enter' && handleLogin()}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••"
+                style={{ ...inputStyle, paddingRight: 44 }}
+                onKeyDown={e => e.key === 'Enter' && handleLogin()}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(v => !v)}
+                style={{
+                  position: 'absolute', right: 12, top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  padding: 4, color: 'var(--color-muted)', fontSize: 18, lineHeight: 1,
+                }}
+              >
+                {showPassword ? '🙈' : '👁'}
+              </button>
+            </div>
           </label>
         </div>
 
