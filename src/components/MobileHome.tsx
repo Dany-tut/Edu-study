@@ -15,33 +15,48 @@ import type { LessonStatus } from '../data/mockData'
 // Top: glass greeting widget (real student name). Content scrolls under it.
 // Statuses come from the active subject's real lessons (no hardcoded list).
 
-const GREETING_GLASS = {
-  borderRadius: 22,
-  background: 'rgba(var(--glass-rgb), 0.72)',
-  backdropFilter: 'blur(18px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(18px) saturate(180%)',
-  border: '1px solid var(--color-border-glass)',
-  boxShadow: 'var(--shadow-bar)',
-  padding: '14px 18px',
-} as const
-
 // Statuses worth surfacing on the home hub (skip plain locked/future lessons).
 const SURFACED: LessonStatus[] = ['returned', 'submitted', 'current', 'completed']
 
 function Greeting() {
   const name = getStudentSession()?.name?.trim().split(/\s+/)[0] || 'Ученик'
+  const initial = name.charAt(0).toUpperCase()
   return (
     <motion.div
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      style={GREETING_GLASS}
+      className="flex items-center"
+      style={{
+        gap: 12,
+        borderRadius: 20,
+        // Opaque surface + lift so the card reads clearly on a light page bg
+        // (translucent glass was invisible white-on-white in light theme).
+        background: 'var(--color-surface)',
+        backdropFilter: 'blur(18px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(18px) saturate(180%)',
+        border: '1px solid var(--color-border-glass)',
+        boxShadow: 'var(--shadow-md)',
+        padding: '12px 16px',
+      }}
     >
-      <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.1 }}>
-        Привет, {name} 👋
+      <div
+        className="flex items-center justify-center flex-shrink-0"
+        style={{
+          width: 40, height: 40, borderRadius: 999,
+          background: 'var(--color-accent)', color: '#fff',
+          fontSize: 18, fontWeight: 700,
+        }}
+      >
+        {initial}
       </div>
-      <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', marginTop: 3 }}>
-        Готов учиться сегодня?
+      <div className="min-w-0">
+        <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.1 }}>
+          Привет, {name} 👋
+        </div>
+        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', marginTop: 2 }}>
+          Готов учиться сегодня?
+        </div>
       </div>
     </motion.div>
   )
@@ -66,7 +81,7 @@ export default function MobileHome() {
       <MobileScreen topZone={<Greeting />}>
         <div className="flex flex-col" style={{ gap: 24 }}>
           <ScheduleCarousel />
-          <WidgetCarousel />
+          <WidgetCarousel columnsOverride={1} />
           <CourseTrack />
 
           {statusCards.length > 0 && (

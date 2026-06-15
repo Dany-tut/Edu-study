@@ -22,14 +22,17 @@ const variants = {
   exit: (dir: number) => ({ x: dir > 0 ? '-130%' : '130%', opacity: 0 }),
 }
 
-export default function WidgetCarousel() {
+export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: number } = {}) {
   const [[page, dir], setPage] = useState<[number, number]>([0, 0])
   const [dotsVisible, setDotsVisible] = useState(false)
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // How many widget blocks sit in one row (set from the avatar settings menu).
   // `page` now indexes pages of `perPage` widgets rather than single widgets.
-  const perPage = useDashboard(s => s.widgetColumns)
+  // Mobile passes columnsOverride={1} → one full-width widget per page; desktop
+  // omits it and keeps the user's stored column preference.
+  const storeColumns = useDashboard(s => s.widgetColumns)
+  const perPage = columnsOverride ?? storeColumns
   const widgetOrder = useDashboard(s => s.widgetOrder)
   // Page count follows the number of *visible* widgets (hidden ones are simply
   // absent from widgetOrder), so a hidden widget leaves no empty trailing page.
