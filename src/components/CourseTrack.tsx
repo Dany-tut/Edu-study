@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle2, RotateCcw, AlertCircle, Upload, Lock, Play, Star, Clock } from 'lucide-react'
+import { CheckCircle2, RotateCcw, Upload, Lock, Play, Star, Clock } from 'lucide-react'
+import { IconLessonRecording } from './icons'
 import { type Subject, type Lesson, type LessonStatus } from '../data/mockData'
 import { useStudentData } from '../store/studentDataStore'
 import { HARD_STYLE } from './CourseNode'
@@ -28,10 +29,10 @@ function withAlpha(hex: string, alpha: number) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
-const detailStyles: Record<LessonStatus, { bg: string; badgeBg: string; badgeText: string; badgeLabel: string; textColor: string; icon: React.ElementType }> = {
+const detailStyles: Record<LessonStatus, { bg: string; badgeBg: string; badgeText: string; badgeLabel: string; textColor: string; icon: React.ElementType; custom?: boolean }> = {
   completed: { bg: 'var(--color-green-soft)', badgeBg: 'var(--color-green-soft)', badgeText: 'var(--color-green-text)', badgeLabel: 'выполнено', textColor: 'var(--color-text)', icon: CheckCircle2 },
   returned: { bg: 'var(--color-yellow-soft)', badgeBg: 'var(--color-yellow-soft)', badgeText: 'var(--color-yellow-text)', badgeLabel: 'возвращено на доработку', textColor: 'var(--color-text)', icon: RotateCcw },
-  unviewed: { bg: 'var(--color-red-soft)', badgeBg: 'var(--color-red-soft)', badgeText: 'var(--color-red-text)', badgeLabel: 'запись урока', textColor: 'var(--color-text)', icon: AlertCircle },
+  unviewed: { bg: 'var(--color-red-soft)', badgeBg: 'var(--color-red-soft)', badgeText: 'var(--color-red-text)', badgeLabel: 'запись урока', textColor: 'var(--color-text)', icon: IconLessonRecording, custom: true },
   submitted: { bg: 'var(--color-peach-soft)', badgeBg: 'var(--color-peach-soft)', badgeText: 'var(--color-peach-text)', badgeLabel: 'отправлено на проверку', textColor: 'var(--color-text)', icon: Upload },
   current: { bg: 'var(--color-purple-soft)', badgeBg: 'var(--color-purple-soft)', badgeText: 'var(--color-accent)', badgeLabel: 'текущий урок', textColor: 'var(--color-text)', icon: Play },
   locked: { bg: 'var(--color-bg-4)', badgeBg: 'var(--color-bg-5)', badgeText: 'var(--color-muted)', badgeLabel: 'недоступно', textColor: 'var(--color-text)', icon: Lock },
@@ -343,7 +344,10 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                             border: `1px solid ${withAlpha(selectedDetail.badgeBg, 0.6)}`,
                           }}
                         >
-                          <DetailIcon size={14} />
+                          {selectedDetail.custom
+                            ? <DetailIcon size={14} color={selectedDetail.badgeText} />
+                            : <DetailIcon size={14} />
+                          }
                           <span style={{ fontSize: 13, fontWeight: 500, lineHeight: 1, whiteSpace: 'nowrap' }}>
                             {selectedDetail.badgeLabel}
                           </span>

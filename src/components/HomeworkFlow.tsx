@@ -821,26 +821,18 @@ export default function HomeworkFlow({
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={SPRING}
-        className="flex flex-col"
-        style={{
-          borderRadius: 32,
-          overflow: 'hidden',
-          background: 'rgba(var(--glass-rgb), 0.98)',
-          border: '1px solid var(--color-border-glass)',
-          boxShadow: '0 24px 80px rgba(17, 12, 34, 0.12)',
-        }}
-      >
-      <div
-        className="grid grid-cols-1 lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)] items-stretch"
-        style={{ gap: 0 }}
+        className="grid grid-cols-1 lg:grid-cols-[minmax(260px,300px)_minmax(0,1fr)] items-start"
+        style={{ gap: 16 }}
       >
         <aside
           className="flex flex-col"
           style={{
             padding: 16,
-            gap: 16,
-            borderRight: '1px solid var(--color-border-soft)',
-            background: 'linear-gradient(180deg, rgba(250,250,252,0.98), rgba(245,245,247,0.98))',
+            gap: 12,
+            borderRadius: 28,
+            background: 'rgba(var(--glass-rgb), 0.98)',
+            border: '1px solid var(--color-border-glass)',
+            boxShadow: '0 8px 32px rgba(17, 12, 34, 0.08)',
           }}
         >
           <div
@@ -948,11 +940,7 @@ export default function HomeworkFlow({
 
         <main
           className="flex flex-col"
-          style={{
-            padding: 24,
-            gap: 20,
-            background: 'radial-gradient(circle at top right, rgba(197,139,255,0.10), transparent 28%), #F8F8FA',
-          }}
+          style={{ gap: 16 }}
         >
           {selectedLevel === 'basic' ? (
             <div className="flex flex-col" style={{ gap: 18 }}>
@@ -1414,7 +1402,6 @@ export default function HomeworkFlow({
             </div>
           )}
         </main>
-      </div>
       </motion.div>
     </div>
     </>

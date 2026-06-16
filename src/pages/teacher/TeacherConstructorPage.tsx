@@ -1770,9 +1770,28 @@ function CreatorView({
   const [assignStudentId, setAssignStudentId] = useState('')
   const [enrolling, setEnrolling] = useState(false)
   const [enrollMsg, setEnrollMsg] = useState('')
-  const [editingLessonIdx, setEditingLessonIdx] = useState<number | null>(null)
+  const [enrolledList, setEnrolledList] = useState<Array<{ id: string; name: string }>>([])
+
+  async function loadEnrolledStudents(dbId: string) {
+    const { data } = await supabase
+      .from('lesson_progress')
+      .select('student_id')
+      .eq('subject', dbId)
+    if (!data) return
+    const ids = [...new Set(data.map(r => r.student_id))]
+    const matched = enrollStudents.filter(s => ids.includes(s.id))
+    setEnrolledList(matched)
+  }
+
   // The Supabase course this constructor course maps to (published-to-DB).
   const enrollDbId = editCourse?.dbCourseId ?? (editCourse ? AP_DB_COURSE_BY_CONSTRUCTOR_ID[editCourse.id] : undefined)
+
+  useEffect(() => {
+    if (enrollDbId && enrollStudents.length > 0) loadEnrolledStudents(enrollDbId)
+    else setEnrolledList([])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enrollDbId, enrollStudents.length])
+  const [editingLessonIdx, setEditingLessonIdx] = useState<number | null>(null)
 
   async function enrollCourse() {
     if (!enrollDbId) return
@@ -1791,6 +1810,7 @@ function CreatorView({
     })))
     const { error } = await supabase.from('lesson_progress').upsert(rows, { onConflict: 'student_id,lesson_ref' })
     setEnrolling(false)
+    if (!error) loadEnrolledStudents(enrollDbId)
     setEnrollMsg(error ? `Ошибка: ${error.message}` : `✓ Зачислено: ${targets.length} ученик(ов) · ${lessons.length} уроков`)
   }
 
@@ -2097,6 +2117,7 @@ function CreatorView({
         id: editCourse?.id ?? uid(), title: cTitle, subject: cSubject, level: cLevel,
         description: cDesc, lessons: cLessons, status: cStatus,
         color: editCourse?.color ?? '#B98FFF', bg: editCourse?.bg ?? '#EFE0FF', lastEdited: dateStr,
+        dbCourseId: editCourse?.dbCourseId,
       }
       onSaveCourse(c)
     } else {
@@ -2333,6 +2354,20 @@ function CreatorView({
                     {enrolling ? 'Зачисляю…' : 'Зачислить'}
                   </button>
                   {enrollMsg && <div style={{ fontSize: 12, fontWeight: 600, color: enrollMsg.startsWith('✓') ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>{enrollMsg}</div>}
+                  {enrolledList.length > 0 && (
+                    <div style={{ marginTop: 4 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Зачислены ({enrolledList.length})
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        {enrolledList.map(s => (
+                          <div key={s.id} style={{ fontSize: 12, color: 'var(--color-text-2)', background: 'var(--color-bg-2)', borderRadius: 7, padding: '4px 8px' }}>
+                            {s.name}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.4 }}>
@@ -5627,6 +5662,42 @@ export default function TeacherConstructorPage() {
     setSelectedId(t.id)
   }
 
+  async function syncCourseToDb(c: Course) {
+    const shortId = c.dbCourseId ?? c.id
+    try {
+      const { data: dbCourse, error } = await supabase
+        .from('courses')
+        .upsert(
+          { short_id: shortId, title: c.title, subject: c.subject, level: c.level, description: c.description, status: c.status, color: c.color, bg: c.bg },
+          { onConflict: 'short_id' }
+        )
+        .select('id, short_id')
+        .single()
+      if (error || !dbCourse) { console.error('[syncCourseToDb] course upsert failed', error); return }
+
+      if (c.lessons.length > 0) {
+        const { error: lessErr } = await supabase.from('lessons').upsert(
+          c.lessons.map((l, i) => ({
+            short_id: `${shortId}-${i}`,
+            course_id: dbCourse.id,
+            title: l.title,
+            position: i,
+            lesson_number: i,
+          })),
+          { onConflict: 'short_id' }
+        )
+        if (lessErr) console.error('[syncCourseToDb] lessons upsert failed', lessErr)
+      }
+
+      // Stamp dbCourseId on the local course so enrollment + lesson editor unlock
+      setCourses(prev => prev.map(x => x.id === c.id ? { ...x, dbCourseId: shortId } : x))
+      // If the editor is still open for this course, unlock it in-place
+      setEditCourse(prev => prev?.id === c.id ? { ...prev, dbCourseId: shortId } : prev)
+    } catch (e) {
+      console.error('[syncCourseToDb] unexpected error', e)
+    }
+  }
+
   function handleSaveCourse(c: Course) {
     // Upsert: update in place when editing an existing course, else prepend.
     setCourses(prev => prev.some(x => x.id === c.id) ? prev.map(x => x.id === c.id ? c : x) : [c, ...prev])
@@ -5634,6 +5705,7 @@ export default function TeacherConstructorPage() {
     setEditCourse(null)
     setActiveTab('course')
     setSelectedId(null)
+    syncCourseToDb(c)
   }
 
   function handleOpenWidget(w: Widget) {
