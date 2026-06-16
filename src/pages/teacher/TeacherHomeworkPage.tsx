@@ -462,6 +462,8 @@ export default function TeacherHomeworkPage() {
   const [selectedHwId, setSelectedHwId] = useState<string | null>(null)
   const [showAssignForm, setShowAssignForm] = useState(false)
   const { groups } = useGroups()
+  const regularGroups = groups.filter(g => !g.isIndividual)
+  const individualGroups = groups.filter(g => g.isIndividual)
   const { homework: dbHomework, loading: hwLoading } = useHomework()
 
   // Use DB homework directly; merge local review counts from Zustand
@@ -495,10 +497,11 @@ export default function TeacherHomeworkPage() {
           progressive-blur strip instead of hard-clipping (student-page recipe) */}
       <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-        {/* Group strip: pinned "Создать ДЗ" action card + scrollable group cards */}
+        {/* Group strip: "Создать ДЗ" + groups + 1:1 individuals */}
         <motion.div {...fadeUp(0.08)}>
           <GroupStrip
-            groups={groups}
+            groups={regularGroups}
+            individualGroups={individualGroups}
             selectedGroupId={filterGroup}
             onSelectGroup={setFilterGroup}
             actionLabel={"Создать\nдомашку"}

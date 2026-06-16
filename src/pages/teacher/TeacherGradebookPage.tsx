@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Download, ClipboardList, X, Check } from 'lucide-react'
+import type { TabConfig } from '../../components/teacher/GroupStrip'
 import { useTeacher } from '../../store/teacherStore'
 import GroupStrip from '../../components/teacher/GroupStrip'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
@@ -569,58 +570,55 @@ export default function TeacherGradebookPage() {
   const setActiveGroupId = useTeacher(s => s.setSelectedGroupId)
   const [lessonModalOpen, setLessonModalOpen] = useState(false)
   const { groups } = useGroups()
+  const regularGroups = groups.filter(g => !g.isIndividual)
+  const individualGroups = groups.filter(g => g.isIndividual)
+
+  const tabConfig: TabConfig = {
+    tabs: [
+      { id: 'attendance', label: 'Посещаемость' },
+      { id: 'scores', label: 'Оценки' },
+    ],
+    activeTab,
+    onTabChange: (id) => setActiveTab(id as 'attendance' | 'scores'),
+    extraAction: { label: 'Проставить оценки', icon: ClipboardList, onClick: () => setLessonModalOpen(true) },
+  }
 
   return (
-    // Scroll pane lifted to the viewport top (marginTop:-100) and re-inset with
-    // paddingTop:100 so content scrolls UP under the floating topbar and melts
-    // into the progressive-blur strip instead of hard-clipping at the pane edge.
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-      {/* Group strip: pinned "Выставить оценки" action card + scrollable group cards */}
+      {/* Group strip: tab switcher on left + groups + 1:1 individuals */}
       <motion.div {...fadeUp(0.04)}>
         <GroupStrip
-          groups={groups}
+          groups={regularGroups}
+          individualGroups={individualGroups}
           selectedGroupId={activeGroupId}
           onSelectGroup={setActiveGroupId}
-          actionLabel={"Проставить\nоценки"}
-          actionIcon={ClipboardList}
-          onAction={() => setLessonModalOpen(true)}
+          tabConfig={tabConfig}
         />
       </motion.div>
 
-      {/* Tab bar + export */}
-      <motion.div {...fadeUp(0.08)} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        {/* Tabs */}
-        <div style={{
-          display: 'flex', background: 'var(--color-bg-3)', borderRadius: 14, padding: 4,
-        }}>
-          {([['attendance', 'Посещаемость'], ['scores', 'Оценки']] as const).map(([tab, label]) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{
-                padding: '7px 18px', borderRadius: 11, border: 'none', cursor: 'pointer',
-                fontSize: 13, fontWeight: 600,
-                background: activeTab === tab ? 'var(--color-surface)' : 'transparent',
-                color: activeTab === tab ? 'var(--color-text)' : 'var(--color-muted)',
-                boxShadow: activeTab === tab ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
-                transition: 'all 0.18s',
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
+      {/* Export + Проставить оценки row */}
+      <motion.div {...fadeUp(0.08)} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{ flex: 1 }} />
-
-        {/* Export */}
         <motion.button
-          whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+          onClick={() => setLessonModalOpen(true)}
           style={{
             display: 'flex', alignItems: 'center', gap: 7,
-            padding: '8px 16px', borderRadius: 14, border: 'none', cursor: 'pointer',
-            background: 'var(--color-bg)', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600,
+            padding: '8px 16px', borderRadius: 14, cursor: 'pointer',
+            background: 'rgba(155,109,255,0.12)', border: '1px solid rgba(155,109,255,0.25)',
+            color: '#9B6DFF', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
+          }}
+        >
+          <ClipboardList size={14} strokeWidth={2} />
+          Проставить оценки
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 7,
+            padding: '8px 16px', borderRadius: 14, border: '1px solid var(--color-border-soft)', cursor: 'pointer',
+            background: 'transparent', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
           }}
         >
           <Download size={14} strokeWidth={2} />

@@ -17,6 +17,7 @@ export type Group = {
   studentCount: number
   lessonsCompleted: number
   totalLessons: number
+  isIndividual?: boolean
 }
 
 export type Student = {

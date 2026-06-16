@@ -3,14 +3,15 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   BookOpen, Zap, Layers, Plus, Clock,
-  GraduationCap, FileText, X, Check,
+  GraduationCap, Brain, FileText, X, Check,
   Trash2, Link2, Database, Sparkles, ArrowUp, ArrowDown,
   CircleHelp, FlaskConical, Atom, Timer, Laugh,
   Image as ImageIcon, Key, ArrowLeft, Maximize2,
   ListChecks, Eye, EyeOff,
   CircleDot, Type as TypeIcon, Shuffle, ArrowUpDown, Table as TableIcon,
   AlignLeft, Pencil, ClipboardCopy, Target, ChevronDown, ChevronUp,
-  CheckCircle, Circle, Globe,
+  CheckCircle, Circle, Globe, Copy, Search, LayoutGrid,
+  Settings, TrendingUp, ArrowLeftRight, RotateCcw, Palette,
 } from 'lucide-react'
 import RichConditionEditor from '../../components/teacher/RichConditionEditor'
 import {
@@ -19,7 +20,11 @@ import {
   type DiagQuestion, type DiagSubject, type AnonDiagResult,
   DEFAULT_QUESTIONS,
 } from '../../data/diagnosticData'
-import { useAllStudents } from '../../lib/useGroups'
+import { useAllStudents, useGroups } from '../../lib/useGroups'
+import { supabase } from '../../lib/supabase'
+import { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from '../../data/apChemistry'
+import { AP_LESSON_CONTENT } from '../../data/apChemistryLessons'
+import type { LessonContentData, LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from '../../data/lessonContent'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { TrainerBankBrowser, TrainerBankFilterPanel, emptyTrainerFilters, type TrainerFilters } from '../../components/teacher/TrainerBank'
@@ -31,6 +36,12 @@ import {
   BIOLOGY_SECTIONS, CHEMISTRY_SECTIONS,
   BIOLOGY_TOPICS, CHEMISTRY_TOPICS, SOURCES,
 } from '../../data/taskBankData'
+import { AP_CHEM_COURSES, AP_CHEM_TRAINERS, AP_CHEM_WIDGETS, mergeById } from '../../data/apChemistry'
+import {
+  loadScreeningConfig, fetchScreeningConfig, saveScreeningConfig,
+  DEFAULT_SCREENING_CONFIG, activeDomains,
+  type ScreeningConfig, type DomainKey, type MatrixRuleKey, type SeriesType, type AnalogyItem, type MatchTask,
+} from '../../data/screeningConfig'
 
 type NewBankTask = Omit<BankTask, 'id'>
 const LETTERS = 'АБВГДЕЖЗИКЛМНОП'
@@ -48,45 +59,48 @@ const ANSWER_TYPES: { type: AnswerType; label: string; hint: string; Icon: React
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Tab = 'course' | 'trainer' | 'widget' | 'testing'
-type CourseStatus = 'published' | 'draft'
-type Difficulty = 'easy' | 'medium' | 'hard'
-type WidgetType = 'quiz' | 'facts' | 'reactions' | 'pomodoro' | 'memes' | 'qod'
-type QuestionType = 'choice' | 'free'
+export type CourseStatus = 'published' | 'draft'
+export type Difficulty = 'easy' | 'medium' | 'hard'
+export type WidgetType = 'quiz' | 'facts' | 'reactions' | 'pomodoro' | 'memes' | 'qod'
+export type QuestionType = 'choice' | 'free'
 
-interface AnswerKey {
+export interface AnswerKey {
   id: string
   keyword: string
   points: number
 }
 
-type ScoreMode = 'perOption' | 'criteria' | 'whole'
+export type ScoreMode = 'perOption' | 'criteria' | 'whole'
 
-interface Criterion {
+export interface Criterion {
   id: string
   text: string
   points: number
 }
 
-interface Lesson {
+export interface Lesson {
   id: string
   title: string
   trainerId: string | null
   widgetId: string | null
 }
 
-interface Course {
+export interface Course {
   id: string; title: string; subject: string; level: string
   description: string; lessons: Lesson[]
   color: string; bg: string; status: CourseStatus; lastEdited: string
+  /** short_id of the matching Supabase course, when this course is published to
+   *  the DB. Enrollment (writing lesson_progress) targets this course's lessons. */
+  dbCourseId?: string
 }
 
 interface BankQuestion {
   id: string; topic: string; text: string; answer: string; difficulty: Difficulty
 }
 
-interface TrainerAnswer { id: string; text: string; correct?: boolean; points?: number }
+export interface TrainerAnswer { id: string; text: string; correct?: boolean; points?: number }
 
-interface TrainerQ {
+export interface TrainerQ {
   id: string
   text: string
   answer: string
@@ -105,7 +119,7 @@ interface TrainerQ {
   imageUrl?: string
 }
 
-interface Trainer {
+export interface Trainer {
   id: string; title: string; topic: string; difficulty: Difficulty
   timePerQuestion: number; questions: TrainerQ[]
   // Shared-bank task numbers (useTaskBank ids) this trainer is built from. The
@@ -115,7 +129,7 @@ interface Trainer {
   color: string; bg: string; lastEdited: string
 }
 
-interface WidgetItem {
+export interface WidgetItem {
   id: string
   // quiz / qod
   question?: string; options?: string[]; correct?: number
@@ -129,7 +143,7 @@ interface WidgetItem {
   focusMin?: number; breakMin?: number
 }
 
-interface Widget {
+export interface Widget {
   id: string; title: string; type: WidgetType
   linkedTrainerId: string | null; items: WidgetItem[]
   color: string; bg: string; lastEdited: string
@@ -427,13 +441,13 @@ function CourseEditor({
           </div>
         </div>
         <div>
-          <TeacherSelect value={level} onChange={setLevel} placeholder="Уровень" options={['ЕГЭ', 'ОГЭ', 'Углублённый', 'Интенсив']} />
+          <TeacherSelect value={level} onChange={setLevel} placeholder="Уровень" options={['ЕГЭ', 'ОГЭ', 'AP', 'Углублённый', 'Интенсив']} />
         </div>
 
         {/* Description */}
         <div><Label>Описание</Label>
-          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2}
-            style={{ ...inputSt, resize: 'vertical', minHeight: 56 }} />
+          <textarea ref={el => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }} value={description} onChange={e => { setDescription(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+            style={{ ...inputSt, resize: 'none', minHeight: 56, overflow: 'hidden' }} />
         </div>
 
         {/* Status */}
@@ -451,7 +465,7 @@ function CourseEditor({
             {lessons.map((lesson, idx) => (
               <div key={lesson.id} style={{ background: 'var(--color-bg-2)', borderRadius: 12, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{lesson.title}</div>
+                  <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-purple-text)' }}>{lesson.title}</div>
                   <button onClick={() => moveLesson(idx, -1)} disabled={idx === 0}
                     style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: idx === 0 ? 0.3 : 1 }}>
                     <ArrowUp size={11} />
@@ -906,7 +920,41 @@ function WidgetEditor({
 
 // Shared card shell used by all three tab types.
 // accentColor may be hex (#3EC87A) or a CSS var — icon box and glow use accentBg to stay safe.
-function ContentCard({ accentColor, accentBg, isSelected, onClick, icon, iconBg, badge, title, subtitle, footerLeft, footerRight, extra }: {
+export interface CardActions {
+  onEdit?: () => void
+  onDuplicate?: () => void
+  onDelete?: () => void
+}
+
+// Hover-reveal action cluster (Редактировать / Дублировать / Удалить) shared by
+// every constructor card. Each button stops propagation so it never triggers the
+// card's own onClick (open editor).
+function CardActionBar({ actions, visible, accentColor }: { actions: CardActions; visible: boolean; accentColor: string }) {
+  const btn = (onClick: () => void, title: string, danger: boolean, children: React.ReactNode) => (
+    <button
+      title={title}
+      onClick={e => { e.stopPropagation(); onClick() }}
+      style={{
+        width: 26, height: 26, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        border: '1px solid var(--color-border-soft)', background: 'var(--color-surface)', cursor: 'pointer',
+        color: danger ? '#c0303a' : accentColor, padding: 0, transition: 'all 0.12s',
+      }}
+    >{children}</button>
+  )
+  return (
+    <div style={{
+      position: 'absolute', top: 10, right: 10, display: 'flex', gap: 5, zIndex: 6,
+      opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(-3px)',
+      pointerEvents: visible ? 'auto' : 'none', transition: 'opacity 0.14s, transform 0.14s',
+    }}>
+      {actions.onEdit && btn(actions.onEdit, 'Редактировать', false, <Pencil size={13} strokeWidth={2} />)}
+      {actions.onDuplicate && btn(actions.onDuplicate, 'Дублировать', false, <Copy size={13} strokeWidth={2} />)}
+      {actions.onDelete && btn(actions.onDelete, 'Удалить', true, <Trash2 size={13} strokeWidth={2} />)}
+    </div>
+  )
+}
+
+function ContentCard({ accentColor, accentBg, isSelected, onClick, icon, iconBg, badge, title, subtitle, footerLeft, footerRight, extra, actions }: {
   accentColor: string
   accentBg: string
   isSelected: boolean
@@ -919,11 +967,15 @@ function ContentCard({ accentColor, accentBg, isSelected, onClick, icon, iconBg,
   footerLeft: React.ReactNode
   footerRight: React.ReactNode
   extra?: React.ReactNode
+  actions?: CardActions
 }) {
+  const [hovered, setHovered] = useState(false)
   return (
     <motion.div
       whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} onClick={onClick}
+      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{
+        position: 'relative',
         background: isSelected ? accentBg : 'rgba(var(--glass-rgb), 0.88)',
         backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         border: isSelected ? `1.5px solid ${accentColor}` : '1px solid var(--color-border-glass)',
@@ -932,14 +984,15 @@ function ContentCard({ accentColor, accentBg, isSelected, onClick, icon, iconBg,
         display: 'flex', flexDirection: 'column', gap: 10, transition: 'all 0.18s',
       }}
     >
+      {actions && <CardActionBar actions={actions} visible={hovered} accentColor={accentColor} />}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
         <div style={{ width: 36, height: 36, borderRadius: 12, background: iconBg ?? 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           {icon}
         </div>
-        {badge}
+        <div style={{ opacity: actions && hovered ? 0 : 1, transition: 'opacity 0.14s' }}>{badge}</div>
       </div>
       <div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 4 }}>{title}</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 4, minHeight: '2.6em', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden' }}>{title}</div>
         <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{subtitle}</div>
         {extra}
       </div>
@@ -956,10 +1009,10 @@ const COURSE_BG       = 'var(--color-purple-soft)'
 const TRAINER_COLOR   = '#9B6DFF'
 const TRAINER_BG      = 'var(--color-purple-soft)'
 
-function CourseCard({ course, isSelected, onClick }: { course: Course; isSelected: boolean; onClick: () => void }) {
+function CourseCard({ course, isSelected, onClick, actions }: { course: Course; isSelected: boolean; onClick: () => void; actions?: CardActions }) {
   return (
     <ContentCard
-      accentColor={COURSE_COLOR} accentBg={COURSE_BG}
+      accentColor={COURSE_COLOR} accentBg={COURSE_BG} actions={actions}
       isSelected={isSelected} onClick={onClick}
       icon={<BookOpen size={17} strokeWidth={2} style={{ color: 'var(--color-purple-text)' }} />}
       badge={<span style={{ fontSize: 10, fontWeight: 700, color: STATUS_COLOR[course.status], background: STATUS_BG[course.status], borderRadius: 7, padding: '2px 8px' }}>{STATUS_LABEL[course.status]}</span>}
@@ -992,11 +1045,11 @@ function TrainerCard({ trainer, isSelected, onClick }: { trainer: Trainer; isSel
   )
 }
 
-function WidgetCard({ widget, isSelected, onClick }: { widget: Widget; isSelected: boolean; onClick: () => void }) {
+function WidgetCard({ widget, isSelected, onClick, actions }: { widget: Widget; isSelected: boolean; onClick: () => void; actions?: CardActions }) {
   const TypeIcon = WTYPE_ICON[widget.type]
   return (
     <ContentCard
-      accentColor={WTYPE_COLOR[widget.type]} accentBg={WTYPE_BG[widget.type]}
+      accentColor={WTYPE_COLOR[widget.type]} accentBg={WTYPE_BG[widget.type]} actions={actions}
       isSelected={isSelected} onClick={onClick}
       icon={<TypeIcon size={17} strokeWidth={2} style={{ color: WTYPE_COLOR[widget.type] }} />}
       badge={<span style={{ fontSize: 10, fontWeight: 700, color: WTYPE_COLOR[widget.type], background: WTYPE_BG[widget.type], borderRadius: 7, padding: '2px 8px' }}>{WTYPE_LABEL[widget.type]}</span>}
@@ -1009,6 +1062,222 @@ function WidgetCard({ widget, isSelected, onClick }: { widget: Widget; isSelecte
       }
       footerRight={<><Clock size={11} strokeWidth={2} />{widget.lastEdited}</>}
     />
+  )
+}
+
+// ─── Widget filter + groups ───────────────────────────────────────────────────
+export type WidgetSortMode = 'newest' | 'oldest' | 'az' | 'items'
+export type WidgetViewMode = 'cards' | 'groups'
+
+export interface WidgetFilters {
+  search: string
+  type: WidgetType | ''
+  linked: '' | 'linked' | 'unlinked'
+  sort: WidgetSortMode
+  viewMode: WidgetViewMode
+  activeGroup: WidgetType | ''
+}
+export const emptyWidgetFilters: WidgetFilters = {
+  search: '', type: '', linked: '', sort: 'newest', viewMode: 'cards', activeGroup: '',
+}
+
+const WIDGET_SORT_OPTS: [WidgetSortMode, string][] = [
+  ['newest', 'Новые'], ['oldest', 'Старые'], ['az', 'А → Я'], ['items', 'По элементам'],
+]
+
+function WidgetSortDropdown({ value, onChange }: { value: WidgetSortMode; onChange: (v: WidgetSortMode) => void }) {
+  const [open, setOpen] = useState(false)
+  const label = WIDGET_SORT_OPTS.find(([v]) => v === value)?.[1] ?? 'Новые'
+  return (
+    <div style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)} onBlur={() => setTimeout(() => setOpen(false), 120)}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 999,
+          background: 'rgba(var(--glass-rgb), 0.9)', border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
+          fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
+        <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
+        {label}
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
+          <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
+            style={{ position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 160,
+              background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              border: '1px solid var(--color-border-glass)', borderRadius: 14, boxShadow: '0 12px 32px rgba(0,0,0,0.12)', padding: 5 }}>
+            {WIDGET_SORT_OPTS.map(([val, lbl]) => (
+              <button key={val} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                  width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
+                  background: value === val ? 'rgba(26,122,63,0.07)' : 'transparent',
+                  fontSize: 13, fontWeight: value === val ? 700 : 400, color: 'var(--color-text)',
+                  cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
+                {lbl}
+                {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="var(--color-green-text)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+function WidgetFilterPanel({
+  filters, onChange, total,
+}: { filters: WidgetFilters; onChange: (f: Partial<WidgetFilters>) => void; total: number }) {
+  const accent = 'var(--color-green-text)'
+  const accentBg = 'var(--color-green-soft)'
+  const hasFilters = !!(filters.search || filters.type || filters.linked)
+  const inputSt: React.CSSProperties = {
+    width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: 11,
+    border: '1.5px solid var(--color-border-medium)', fontSize: 13, color: 'var(--color-text)',
+    background: 'var(--color-bg-2)', outline: 'none', fontFamily: 'inherit',
+  }
+  const pill = (active: boolean) => ({
+    padding: '5px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit',
+    background: active ? accentBg : 'var(--color-bg-3)', color: active ? accent : 'var(--color-muted)',
+  } as React.CSSProperties)
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }}
+      transition={{ duration: 0.22 }}
+      style={{
+        width: 264, flexShrink: 0, alignSelf: 'flex-start', position: 'sticky', top: 20,
+        background: 'rgba(var(--glass-rgb), 0.9)', backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        border: '1px solid var(--color-border-glass)', borderRadius: 18, boxShadow: '0 4px 20px rgba(0,0,0,0.06)', padding: 16,
+        display: 'flex', flexDirection: 'column', gap: 12,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Search size={15} style={{ color: accent }} />
+        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Фильтры</span>
+      </div>
+
+      <div style={{ position: 'relative' }}>
+        <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)' }} />
+        <input value={filters.search} onChange={e => onChange({ search: e.target.value })} placeholder="Поиск по названию…"
+          style={{ ...inputSt, paddingLeft: 30, paddingRight: filters.search ? 30 : undefined }} />
+        {filters.search && (
+          <button onClick={() => onChange({ search: '' })} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center' }}>
+            <X size={14} />
+          </button>
+        )}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Тип</span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+          <button onClick={() => onChange({ type: '' })} style={pill(filters.type === '')}>Все</button>
+          {(Object.entries(WTYPE_LABEL) as [WidgetType, string][]).map(([wt, label]) => (
+            <button key={wt} onClick={() => onChange({ type: filters.type === wt ? '' : wt })} style={pill(filters.type === wt)}>{label}</button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Привязка</span>
+        <div style={{ display: 'flex', gap: 5 }}>
+          {([['', 'Все'], ['linked', 'Из тренажёра'], ['unlinked', 'Вручную']] as [WidgetFilters['linked'], string][]).map(([v, l]) => (
+            <button key={v} onClick={() => onChange({ linked: v })}
+              style={{ ...pill(filters.linked === v), flex: 1, padding: '6px 0' }}>{l}</button>
+          ))}
+        </div>
+      </div>
+
+      {filters.viewMode === 'groups' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Группа</span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            <button onClick={() => onChange({ activeGroup: '' })} style={pill(filters.activeGroup === '')}>Все</button>
+            {(Object.entries(WTYPE_LABEL) as [WidgetType, string][]).map(([wt, label]) => (
+              <button key={wt} onClick={() => onChange({ activeGroup: filters.activeGroup === wt ? '' : wt })} style={pill(filters.activeGroup === wt)}>{label}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {hasFilters && (
+        <button onClick={() => onChange({ search: '', type: '', linked: '', activeGroup: '' })}
+          style={{ padding: '8px 0', borderRadius: 10, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <Trash2 size={12} /> Сбросить фильтры
+        </button>
+      )}
+
+      <div style={{ fontSize: 11, color: 'var(--color-text-3)', textAlign: 'center', paddingTop: 2 }}>{total} виджетов</div>
+    </motion.div>
+  )
+}
+
+// ─── Widget groups view (always-expanded sections) ────────────────────────────
+function WidgetGroupsView({
+  widgets, activeGroup, editMode, checkedIds, onToggleCheck, onOpenWidget, onDuplicateWidget, onDeleteWidget,
+}: {
+  widgets: Widget[]; activeGroup: WidgetType | ''
+  editMode: boolean; checkedIds: Set<string>
+  onToggleCheck: (id: string) => void; onOpenWidget: (w: Widget) => void
+  onDuplicateWidget: (w: Widget) => void; onDeleteWidget: (w: Widget) => void
+}) {
+  const groups = useMemo(() =>
+    (Object.keys(WTYPE_LABEL) as WidgetType[])
+      .map(wt => ({ wt, ws: widgets.filter(w => w.type === wt) }))
+      .filter(g => g.ws.length > 0),
+    [widgets])
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+      {groups.map(({ wt, ws }) => {
+        if (activeGroup && activeGroup !== wt) return null
+        const TypeIcon = WTYPE_ICON[wt]
+        return (
+          <div key={wt}>
+            {/* Section header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 9, background: WTYPE_BG[wt], display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <TypeIcon size={13} strokeWidth={2} style={{ color: WTYPE_COLOR[wt] }} />
+              </div>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{WTYPE_LABEL[wt]}</span>
+              <span style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 500 }}>{ws.length}</span>
+              <div style={{ flex: 1, height: 1, background: 'var(--color-border-soft)', marginLeft: 4 }} />
+            </div>
+            {/* Cards grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
+              {ws.map((w, i) => (
+                <motion.div key={w.id} style={{ position: 'relative' }}
+                  initial={{ opacity: 0, y: 14, scale: 0.94 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ delay: i * 0.03, type: 'spring', stiffness: 380, damping: 28 }}>
+                  <WidgetCard widget={w} isSelected={false}
+                    onClick={() => editMode ? onToggleCheck(w.id) : onOpenWidget(w)}
+                    actions={undefined} />
+                  {editMode && (
+                    <>
+                      <div onClick={() => onToggleCheck(w.id)} style={{
+                        position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
+                        border: checkedIds.has(w.id) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
+                        background: checkedIds.has(w.id) ? '#c0303a' : 'var(--color-bg-5)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', transition: 'all 0.14s', zIndex: 5, boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+                      }}>
+                        {checkedIds.has(w.id) && <Check size={13} strokeWidth={3} style={{ color: '#fff' }} />}
+                      </div>
+                      <button onClick={e => { e.stopPropagation(); onDuplicateWidget(w) }} title="Дублировать"
+                        style={{ position: 'absolute', top: 12, right: 12, width: 28, height: 28, borderRadius: 8, border: 'none',
+                          background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: '0 1px 6px rgba(0,0,0,0.14)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 5, color: 'var(--color-muted)' }}>
+                        <Copy size={13} strokeWidth={2} />
+                      </button>
+                    </>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
@@ -1155,6 +1424,199 @@ const CREATOR_CFG = {
   widget:  { label: 'Виджет',   Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)', accent: 'var(--color-blue-pill-text)' },
 }
 
+// ─── Lesson content editor (konspekt + homework, persisted to Supabase) ───────
+// Opens for a lesson that maps to a DB course (dbCourseId). Loads lessons.content
+// (or the code default as a starting point) and saves edits back to lessons.content,
+// which the student lesson page reads via getLessonDetail.
+interface LessonTimecodeRow { time: string; label: string; seconds: number }
+function parseSeconds(time: string): number {
+  const parts = time.split(':').map(n => parseInt(n, 10) || 0)
+  return parts.length === 3 ? parts[0] * 3600 + parts[1] * 60 + parts[2] : parts.length === 2 ? parts[0] * 60 + parts[1] : parts[0]
+}
+
+function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose }: {
+  dbCourseId: string
+  lessons: { title: string }[]
+  lessonIndex: number
+  onSwitch: (idx: number) => void
+  onClose: () => void
+}) {
+  const shortId = `${dbCourseId}-${lessonIndex}`
+  const lessonTitle = lessons[lessonIndex]?.title ?? ''
+  const emptyTask: HomeworkTeacherTask = { topic: '', prompt: '', teacherNote: '', placeholder: '', acceptedFormats: [] }
+  const [tab, setTab] = useState<'record' | 'lesson'>('lesson')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [msg, setMsg] = useState('')
+  // Урок (content)
+  const [paras, setParas] = useState<LessonParagraph[]>([])
+  const [quiz, setQuiz] = useState<HomeworkQuizQuestion[]>([])
+  const [hardTask, setHardTask] = useState<HomeworkTeacherTask>(emptyTask)
+  // Запись (recording / session)
+  const [videoUrl, setVideoUrl] = useState('')
+  const [description, setDescription] = useState('')
+  const [timecodes, setTimecodes] = useState<LessonTimecodeRow[]>([])
+
+  useEffect(() => {
+    let alive = true
+    setLoading(true); setMsg('')
+    supabase.from('lessons').select('content, youtube_url, description, timecodes').eq('short_id', shortId).single().then(({ data }) => {
+      if (!alive) return
+      const dbc = (data?.content ?? undefined) as LessonContentData | undefined
+      const src = (dbc && dbc.paragraphs?.length) ? dbc : AP_LESSON_CONTENT[shortId]
+      setParas((src?.paragraphs ?? [{ id: uid(), text: '' }]).map(p => ({ ...p })))
+      setQuiz((src?.quiz ?? []).map(q => ({ ...q, options: q.options.map(o => ({ ...o })) })))
+      setHardTask(src?.hardTask ? { ...src.hardTask } : emptyTask)
+      setVideoUrl(data?.youtube_url ?? '')
+      setDescription(data?.description ?? '')
+      setTimecodes(Array.isArray(data?.timecodes) ? (data!.timecodes as LessonTimecodeRow[]) : [])
+      setLoading(false)
+    })
+    return () => { alive = false }
+  }, [shortId])
+
+  async function save() {
+    setSaving(true); setMsg('')
+    const content: LessonContentData = { paragraphs: paras.filter(p => p.text.trim()), quiz, hardTask }
+    const patch = {
+      content,
+      youtube_url: videoUrl.trim() || null,
+      description: description.trim() || null,
+      timecodes: timecodes.filter(t => t.time.trim() || t.label.trim()).map(t => ({ ...t, seconds: parseSeconds(t.time) })),
+    }
+    // .select() returns affected rows — an empty array means RLS blocked the write
+    // (e.g. the teacher session expired); Postgres reports that without an error.
+    const { data, error } = await supabase.from('lessons').update(patch).eq('short_id', shortId).select('short_id')
+    setSaving(false)
+    if (error) setMsg(`Ошибка: ${error.message}`)
+    else if (!data || data.length === 0) setMsg('Не сохранено: нет прав. Войдите в аккаунт преподавателя заново.')
+    else setMsg('✓ Сохранено — ученики увидят обновление')
+  }
+
+  const setPara = (id: string, text: string) => setParas(prev => prev.map(p => p.id === id ? { ...p, text } : p))
+  const addQuestion = () => setQuiz(prev => [...prev, { id: uid(), prompt: '', options: [0, 1, 2].map(i => ({ id: `${uid()}${i}`, text: '' })), correctOptionId: '', explanation: '' }])
+  const setQ = (qi: number, patch: Partial<HomeworkQuizQuestion>) => setQuiz(prev => prev.map((q, i) => i === qi ? { ...q, ...patch } : q))
+  const setOpt = (qi: number, oid: string, text: string) => setQuiz(prev => prev.map((q, i) => i === qi ? { ...q, options: q.options.map(o => o.id === oid ? { ...o, text } : o) } : q))
+
+  const sectionTitle: React.CSSProperties = { fontSize: 12, fontWeight: 800, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase', margin: '6px 0' }
+  const miniBtn = (bg: string, color: string): React.CSSProperties => ({ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', background: bg, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 })
+  const dashBtn: React.CSSProperties = { alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 9, border: '1px dashed var(--color-border-medium)', background: 'transparent', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600, cursor: 'pointer', marginTop: 2 }
+
+  return createPortal(
+    <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--color-bg)', display: 'flex', flexDirection: 'column' }}>
+      {/* header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 24px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
+        <button onClick={onClose} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 14px 8px 10px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'var(--color-surface)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          <ArrowLeft size={15} /> Назад
+        </button>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lessonTitle || 'Урок'}</div>
+          <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>Связано с базой · {shortId}</div>
+        </div>
+        {msg && <span style={{ fontSize: 12, fontWeight: 600, color: msg.startsWith('✓') ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>{msg}</span>}
+        <button onClick={save} disabled={saving || loading}
+          style={{ padding: '9px 18px', borderRadius: 999, border: 'none', background: 'var(--color-accent)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+          {saving ? 'Сохраняю…' : 'Сохранить в базу'}
+        </button>
+      </div>
+
+      <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+        {/* CENTER — tabbed content */}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+          {/* tabs */}
+          <div style={{ display: 'flex', gap: 6, padding: '14px 24px 0' }}>
+            {([['lesson', 'Урок'], ['record', 'Запись']] as const).map(([k, label]) => (
+              <button key={k} onClick={() => setTab(k)}
+                style={{ padding: '9px 18px', borderRadius: 11, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+                  background: tab === k ? 'var(--color-purple-soft)' : 'transparent', color: tab === k ? 'var(--color-purple-text)' : 'var(--color-muted)' }}>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {loading ? (
+            <div style={{ padding: 40, color: 'var(--color-muted)', fontSize: 13 }}>Загрузка…</div>
+          ) : (
+            <div style={{ flex: 1, overflowY: 'auto', padding: '14px 24px 32px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {tab === 'lesson' && <>
+                <div style={sectionTitle}>Конспект</div>
+                {paras.map((p, i) => (
+                  <div key={p.id} style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: 11, color: 'var(--color-text-3)', width: 18, paddingTop: 10, flexShrink: 0 }}>{i + 1}</span>
+                    <textarea value={p.text} onChange={e => setPara(p.id, e.target.value)} rows={3} placeholder="Текст абзаца конспекта…" style={{ ...inputSt, resize: 'vertical', minHeight: 64, lineHeight: 1.5 }} />
+                    <button onClick={() => setParas(prev => prev.filter(x => x.id !== p.id))} style={miniBtn('var(--color-red-soft)', 'var(--color-red-text)')}><Trash2 size={13} /></button>
+                  </div>
+                ))}
+                <button onClick={() => setParas(prev => [...prev, { id: uid(), text: '' }])} style={dashBtn}><Plus size={13} /> Добавить абзац</button>
+
+                <div style={{ ...sectionTitle, marginTop: 16 }}>Домашка · базовый тест</div>
+                {quiz.map((q, qi) => (
+                  <div key={q.id} style={{ border: '1px solid var(--color-border-soft)', borderRadius: 12, padding: 12, display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 6 }}>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)' }}>Вопрос {qi + 1}</span>
+                      <div style={{ flex: 1 }} />
+                      <button onClick={() => setQuiz(prev => prev.filter((_, i) => i !== qi))} style={miniBtn('var(--color-red-soft)', 'var(--color-red-text)')}><Trash2 size={12} /></button>
+                    </div>
+                    <input value={q.prompt} onChange={e => setQ(qi, { prompt: e.target.value })} placeholder="Текст вопроса" style={inputSt} />
+                    {q.options.map(o => (
+                      <label key={o.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <input type="radio" name={`correct-${q.id}`} checked={q.correctOptionId === o.id} onChange={() => setQ(qi, { correctOptionId: o.id })} title="Верный ответ" />
+                        <input value={o.text} onChange={e => setOpt(qi, o.id, e.target.value)} placeholder="Вариант ответа" style={{ ...inputSt, flex: 1 }} />
+                      </label>
+                    ))}
+                    <input value={q.explanation} onChange={e => setQ(qi, { explanation: e.target.value })} placeholder="Пояснение (после ответа)" style={{ ...inputSt, fontSize: 12 }} />
+                  </div>
+                ))}
+                <button onClick={addQuestion} style={dashBtn}><Plus size={13} /> Добавить вопрос</button>
+
+                <div style={{ ...sectionTitle, marginTop: 16 }}>Домашка · хард-задание (на проверку преподавателю)</div>
+                <input value={hardTask.topic} onChange={e => setHardTask(t => ({ ...t, topic: e.target.value }))} placeholder="Тема задания" style={inputSt} />
+                <textarea value={hardTask.prompt} onChange={e => setHardTask(t => ({ ...t, prompt: e.target.value }))} rows={3} placeholder="Условие задания…" style={{ ...inputSt, resize: 'vertical', minHeight: 64, marginTop: 6 }} />
+              </>}
+
+              {tab === 'record' && <>
+                <div style={sectionTitle}>Видео записи урока</div>
+                <input value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="Ссылка RuTube / YouTube" style={inputSt} />
+
+                <div style={{ ...sectionTitle, marginTop: 16 }}>Таймкоды</div>
+                {timecodes.map((tc, ti) => (
+                  <div key={ti} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <input value={tc.time} onChange={e => setTimecodes(prev => prev.map((x, i) => i === ti ? { ...x, time: e.target.value } : x))} placeholder="00:00" style={{ ...inputSt, width: 80, flexShrink: 0 }} />
+                    <input value={tc.label} onChange={e => setTimecodes(prev => prev.map((x, i) => i === ti ? { ...x, label: e.target.value } : x))} placeholder="Название главы" style={{ ...inputSt, flex: 1 }} />
+                    <button onClick={() => setTimecodes(prev => prev.filter((_, i) => i !== ti))} style={miniBtn('var(--color-red-soft)', 'var(--color-red-text)')}><Trash2 size={13} /></button>
+                  </div>
+                ))}
+                <button onClick={() => setTimecodes(prev => [...prev, { time: '', label: '', seconds: 0 }])} style={dashBtn}><Plus size={13} /> Добавить таймкод</button>
+
+                <div style={{ ...sectionTitle, marginTop: 16 }}>Краткое описание урока</div>
+                <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} placeholder="Что разобрали, ключевые моменты…" style={{ ...inputSt, resize: 'vertical', minHeight: 88 }} />
+
+                <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 12, lineHeight: 1.5 }}>
+                  Расписание (дата/время) и получатели задаются при назначении урока группе/ученику — раздел «Зачислить на курс» и страница «Создать урок».
+                </div>
+              </>}
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT — lessons list panel */}
+        <div style={{ width: 280, flexShrink: 0, borderLeft: '1px solid var(--color-border-soft)', overflowY: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ ...sectionTitle, padding: '0 4px' }}>Уроки курса ({lessons.length})</div>
+          {lessons.map((l, i) => (
+            <button key={i} onClick={() => i !== lessonIndex && onSwitch(i)}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left', padding: '9px 10px', borderRadius: 10, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                background: i === lessonIndex ? 'var(--color-purple-soft)' : 'transparent' }}>
+              <span style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0, background: i === lessonIndex ? 'var(--color-purple-text)' : 'var(--color-bg-3)', color: i === lessonIndex ? '#fff' : 'var(--color-muted)', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 600, color: i === lessonIndex ? 'var(--color-purple-text)' : 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.title}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
 function CreatorView({
   initialMode,
   editCourse,
@@ -1299,6 +1761,38 @@ function CreatorView({
   const [cStatus, setCStatus] = useState<CourseStatus>(editCourse?.status ?? 'draft')
   const [cLessons, setCLessons] = useState<Lesson[]>(editCourse?.lessons ?? [])
   const [newLessonTitle, setNewLessonTitle] = useState('')
+
+  // ── Course enrollment ("зачислить через курс") ──
+  const { groups: enrollGroups } = useGroups()
+  const enrollStudents = useAllStudents()
+  const [assignMode, setAssignMode] = useState<'group' | 'student'>('group')
+  const [assignGroupId, setAssignGroupId] = useState('')
+  const [assignStudentId, setAssignStudentId] = useState('')
+  const [enrolling, setEnrolling] = useState(false)
+  const [enrollMsg, setEnrollMsg] = useState('')
+  const [editingLessonIdx, setEditingLessonIdx] = useState<number | null>(null)
+  // The Supabase course this constructor course maps to (published-to-DB).
+  const enrollDbId = editCourse?.dbCourseId ?? (editCourse ? AP_DB_COURSE_BY_CONSTRUCTOR_ID[editCourse.id] : undefined)
+
+  async function enrollCourse() {
+    if (!enrollDbId) return
+    const targets = assignMode === 'group'
+      ? enrollStudents.filter(s => s.groupId === assignGroupId)
+      : enrollStudents.filter(s => s.id === assignStudentId)
+    if (!targets.length) { setEnrollMsg('Выберите получателя'); return }
+    setEnrolling(true); setEnrollMsg('')
+    const { data: course } = await supabase
+      .from('courses').select('lessons(short_id, lesson_number)').eq('short_id', enrollDbId).single()
+    const lessons = ((course?.lessons ?? []) as Array<{ short_id: string; lesson_number: number }>)
+    if (!lessons.length) { setEnrolling(false); setEnrollMsg('В курсе нет уроков в БД'); return }
+    const rows = targets.flatMap(s => lessons.map(l => ({
+      student_id: s.id, lesson_ref: l.short_id, subject: enrollDbId,
+      status: l.lesson_number === 0 ? 'current' : 'unviewed',
+    })))
+    const { error } = await supabase.from('lesson_progress').upsert(rows, { onConflict: 'student_id,lesson_ref' })
+    setEnrolling(false)
+    setEnrollMsg(error ? `Ошибка: ${error.message}` : `✓ Зачислено: ${targets.length} ученик(ов) · ${lessons.length} уроков`)
+  }
 
   // ── Widget state ──
   const [wTitle, setWTitle] = useState(editWidget?.title ?? 'Новый виджет')
@@ -1805,17 +2299,46 @@ function CreatorView({
               </div>
             </div>
             <div>
-              <TeacherSelect value={cLevel} onChange={setCLevel} placeholder="Уровень" options={['ЕГЭ', 'ОГЭ', 'Углублённый', 'Интенсив']} />
+              <TeacherSelect value={cLevel} onChange={setCLevel} placeholder="Уровень" options={['ЕГЭ', 'ОГЭ', 'AP', 'Углублённый', 'Интенсив']} />
             </div>
             <div><Label>Описание</Label>
-              <textarea value={cDesc} onChange={e => setCDesc(e.target.value)} rows={3}
-                style={{ ...inputSt, resize: 'vertical' }} placeholder="Краткое описание курса…" />
+              <textarea ref={el => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }} value={cDesc} onChange={e => { setCDesc(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+                style={{ ...inputSt, resize: 'none', overflow: 'hidden' }} placeholder="Краткое описание курса…" />
             </div>
             <div><Label>Статус</Label>
               <div style={{ display: 'flex', gap: 6 }}>
                 <SegBtn label="Черновик" active={cStatus === 'draft'} color="var(--color-peach-text)" bg="var(--color-peach-soft)" onClick={() => setCStatus('draft')} />
                 <SegBtn label="Опубликован" active={cStatus === 'published'} color="var(--color-green-text)" bg="var(--color-green-soft)" onClick={() => setCStatus('published')} />
               </div>
+            </div>
+
+            {/* Зачисление — назначить курс группе или отдельному студенту */}
+            <div>
+              <Label>Зачислить на курс</Label>
+              {enrollDbId ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <SegBtn label="Группе" active={assignMode === 'group'} color="var(--color-accent)" bg="var(--color-purple-soft)" onClick={() => { setAssignMode('group'); setEnrollMsg('') }} />
+                    <SegBtn label="Студенту" active={assignMode === 'student'} color="var(--color-accent)" bg="var(--color-purple-soft)" onClick={() => { setAssignMode('student'); setEnrollMsg('') }} />
+                  </div>
+                  {assignMode === 'group' ? (
+                    <TeacherSelect value={assignGroupId} onChange={setAssignGroupId} placeholder="Выберите группу"
+                      options={enrollGroups.map(g => ({ value: g.id, label: g.name }))} />
+                  ) : (
+                    <TeacherSelect value={assignStudentId} onChange={setAssignStudentId} placeholder="Выберите студента"
+                      options={enrollStudents.map(s => ({ value: s.id, label: s.name }))} />
+                  )}
+                  <button onClick={enrollCourse} disabled={enrolling}
+                    style={{ padding: '9px 14px', borderRadius: 11, border: 'none', cursor: enrolling ? 'default' : 'pointer', background: 'var(--color-accent)', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', opacity: enrolling ? 0.6 : 1 }}>
+                    {enrolling ? 'Зачисляю…' : 'Зачислить'}
+                  </button>
+                  {enrollMsg && <div style={{ fontSize: 12, fontWeight: 600, color: enrollMsg.startsWith('✓') ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>{enrollMsg}</div>}
+                </div>
+              ) : (
+                <div style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.4 }}>
+                  Курс ещё не опубликован в базе — зачисление недоступно. Сейчас доступно для курсов AP Chemistry.
+                </div>
+              )}
             </div>
           </>}
 
@@ -2365,8 +2888,14 @@ function CreatorView({
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
                 {cLessons.map((lesson, idx) => (
                   <div key={lesson.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: 'var(--color-bg-input)', borderRadius: 12, border: '1px solid var(--color-border)' }}>
-                    <div style={{ width: 22, height: 22, borderRadius: 7, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#7B3FCC', flexShrink: 0 }}>{idx + 1}</div>
-                    <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{lesson.title}</div>
+                    <div style={{ width: 22, height: 22, borderRadius: 7, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'var(--color-purple-text)', flexShrink: 0 }}>{idx + 1}</div>
+                    <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-purple-text)' }}>{lesson.title}</div>
+                    {enrollDbId && (
+                      <button onClick={() => setEditingLessonIdx(idx)} title="Редактировать контент урока (конспект + ДЗ)"
+                        style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-purple-text)' }}>
+                        <FileText size={11} />
+                      </button>
+                    )}
                     <button onClick={() => setCLessons(prev => prev.map((l, i) => {
                       if (i === idx - 1) return cLessons[idx]
                       if (i === idx) return cLessons[idx - 1]
@@ -2383,10 +2912,20 @@ function CreatorView({
               <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
                 <LessonNameInput value={newLessonTitle} onChange={setNewLessonTitle} onAdd={addLessonByTitle} />
                 <motion.button whileTap={{ scale: 0.95 }} onClick={addLesson}
-                  style={{ width: 38, height: 38, borderRadius: 11, border: 'none', cursor: 'pointer', background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7B3FCC', flexShrink: 0 }}>
+                  style={{ width: 38, height: 38, borderRadius: 11, border: 'none', cursor: 'pointer', background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-purple-text)', flexShrink: 0 }}>
                   <Plus size={16} strokeWidth={2.4} />
                 </motion.button>
               </div>
+
+              {editingLessonIdx !== null && enrollDbId && (
+                <LessonFullEditor
+                  dbCourseId={enrollDbId}
+                  lessons={cLessons.map(l => ({ title: l.title }))}
+                  lessonIndex={editingLessonIdx}
+                  onSwitch={setEditingLessonIdx}
+                  onClose={() => setEditingLessonIdx(null)}
+                />
+              )}
             </div>
           )}
 
@@ -2598,6 +3137,37 @@ const SUBJECT_ICON_MAP: Record<DiagSubject, React.ElementType> = {
   'ap-chem-ru': Atom,
   'ap-chem-en': Globe,
 }
+
+// Runtime meta for custom user-created tests
+const CUSTOM_META = new Map<string, { label: string; accent: string; soft: string }>()
+function getSubjectMeta(subject: string) {
+  return (SUBJECT_META as Record<string, { label: string; accent: string; soft: string }>)[subject]
+    ?? CUSTOM_META.get(subject)
+    ?? { label: subject, accent: '#8B5CF6', soft: 'var(--color-purple-soft)' }
+}
+function getSubjectIcon(subject: string): React.ElementType {
+  return (SUBJECT_ICON_MAP as Record<string, React.ElementType>)[subject] ?? FileText
+}
+
+export interface CustomTest { id: string; label: string; accent: string }
+const CUSTOM_TESTS_KEY = 'constructor-custom-tests'
+function loadCustomTests(): CustomTest[] {
+  try { return JSON.parse(localStorage.getItem(CUSTOM_TESTS_KEY) ?? '[]') } catch { return [] }
+}
+function persistCustomTests(tests: CustomTest[]) { localStorage.setItem(CUSTOM_TESTS_KEY, JSON.stringify(tests)) }
+// Register loaded custom tests into CUSTOM_META so cards/editors pick them up
+function hydrateCustomMeta(tests: CustomTest[]) {
+  tests.forEach(t => CUSTOM_META.set(t.id, { label: t.label, accent: t.accent, soft: t.accent + '22' }))
+}
+
+const CREATOR_ACCENTS = [
+  { hex: '#8B5CF6', soft: 'var(--color-purple-soft)' },
+  { hex: '#22c55e', soft: 'var(--color-green-soft)'  },
+  { hex: '#ef4444', soft: 'rgba(239,68,68,0.1)'      },
+  { hex: '#3b82f6', soft: 'rgba(59,130,246,0.12)'    },
+  { hex: '#f59e0b', soft: 'rgba(245,158,11,0.11)'    },
+  { hex: '#ec4899', soft: 'rgba(236,72,153,0.12)'    },
+]
 
 function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
   const { label, accent, soft } = SUBJECT_META[subject]
@@ -3461,8 +4031,8 @@ function DiagResultStudentPanel({
 
 // ─── DiagnosticEditorFullPage — full-width editor replacing the side panel ─────
 function DiagnosticEditorFullPage({ subject, onClose }: { subject: DiagSubject; onClose: () => void }) {
-  const { label, accent, soft } = SUBJECT_META[subject]
-  const Icon = SUBJECT_ICON_MAP[subject]
+  const { label, accent, soft } = getSubjectMeta(subject)
+  const Icon = getSubjectIcon(subject)
   const [questions, setQuestions] = useState<DiagQuestion[]>(() => loadDiagQuestions(subject))
   const [editIdx, setEditIdx] = useState<number | null>(null)
   const [editText, setEditText] = useState('')
@@ -3655,10 +4225,932 @@ function DiagnosticEditorFullPage({ subject, onClose }: { subject: DiagSubject; 
   )
 }
 
+// ─── Screening Editor Full Page ───────────────────────────────────────────────
+const SCR_ACC = '#f59e0b'
+const SCR_SOFT = 'rgba(245,158,11,0.11)'
+
+const RULE_LABELS: Record<MatrixRuleKey, string> = {
+  shape: 'Форма', size: 'Размер', fill: 'Заливка',
+  rotation: 'Поворот', count: 'Количество', distribute3: 'Латинский квадрат', xor: 'XOR',
+}
+const ALL_RULES: MatrixRuleKey[] = ['shape','size','fill','rotation','count','distribute3','xor']
+
+const SERIES_LABELS: Record<SeriesType, string> = {
+  arithmetic: 'Арифметика', geometric: 'Геометрия',
+  fibonacci: 'Фибоначчи', alternating: 'Чередование', letters: 'Буквы',
+}
+const ALL_SERIES: SeriesType[] = ['arithmetic','geometric','fibonacci','alternating','letters']
+
+function ScrToggle({ on, label, onChange }: { on: boolean; label: string; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      onClick={() => onChange(!on)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px',
+        borderRadius: 10, border: `1.5px solid ${on ? SCR_ACC : 'var(--color-border-medium)'}`,
+        background: on ? SCR_SOFT : 'var(--color-bg-3)',
+        color: on ? SCR_ACC : 'var(--color-text-3)', fontSize: 13, fontWeight: 700,
+        cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+      }}
+    >
+      <div style={{ width: 14, height: 14, borderRadius: '50%', background: on ? SCR_ACC : 'var(--color-border-medium)', flexShrink: 0, transition: 'background 0.15s' }} />
+      {label}
+    </button>
+  )
+}
+
+function ScrNumInput({ label, value, min, max, step = 1, onChange }: {
+  label: string; value: number; min?: number; max?: number; step?: number; onChange: (v: number) => void
+}) {
+  return (
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
+      <input
+        type="number" value={value} min={min} max={max} step={step}
+        onChange={e => onChange(Number(e.target.value))}
+        style={{ width: 90, padding: '8px 12px', borderRadius: 10, border: `1.5px solid ${SCR_ACC}55`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }}
+      />
+    </div>
+  )
+}
+
+function ScrPills<T extends string>({ label, all, active, labelMap, onChange }: {
+  label: string; all: T[]; active: T[]; labelMap: Record<T, string>; onChange: (v: T[]) => void
+}) {
+  return (
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {all.map(key => {
+          const on = active.includes(key)
+          return (
+            <button key={key} onClick={() => onChange(on ? active.filter(k => k !== key) : [...active, key])}
+              style={{ padding: '5px 12px', borderRadius: 8, border: `1.5px solid ${on ? SCR_ACC : 'var(--color-border-medium)'}`, background: on ? SCR_SOFT : 'var(--color-bg-3)', color: on ? SCR_ACC : 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
+              {labelMap[key]}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function ScreeningDomainEditor({
+  domainKey, cfg, onPatch,
+}: {
+  domainKey: DomainKey
+  cfg: ScreeningConfig
+  onPatch: (key: DomainKey, p: Record<string, unknown>) => void
+}) {
+  const dom = cfg[domainKey]
+  const p = (patch: Record<string, unknown>) => onPatch(domainKey, patch)
+  const row: React.CSSProperties = { display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }
+
+  // common: count + adaptiveStopFails
+  const commonCount = (
+    <div style={row}>
+      {'count' in dom && (
+        <ScrNumInput label="Кол-во вопросов" value={(dom as { count: number }).count} min={1} max={40} onChange={v => p({ count: v })} />
+      )}
+      {dom.adaptive && (
+        <ScrNumInput label="Стоп после N ошибок" value={dom.adaptiveStopFails} min={1} max={5} onChange={v => p({ adaptiveStopFails: v })} />
+      )}
+    </div>
+  )
+
+  if (domainKey === 'matrices') {
+    const m = cfg.matrices
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {commonCount}
+        <div style={row}>
+          <ScrNumInput label="Мин. уровень" value={m.minLevel} min={1} max={5} onChange={v => p({ minLevel: v })} />
+          <ScrNumInput label="Макс. уровень" value={m.maxLevel} min={1} max={5} onChange={v => p({ maxLevel: v })} />
+        </div>
+        <ScrPills label="Правила генерации" all={ALL_RULES} active={m.rules} labelMap={RULE_LABELS}
+          onChange={v => p({ rules: v })} />
+      </div>
+    )
+  }
+
+  if (domainKey === 'series') {
+    const s = cfg.series
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {commonCount}
+        <div style={row}>
+          <ScrNumInput label="Мин. уровень" value={s.minLevel} min={1} max={5} onChange={v => p({ minLevel: v })} />
+          <ScrNumInput label="Макс. уровень" value={s.maxLevel} min={1} max={5} onChange={v => p({ maxLevel: v })} />
+        </div>
+        <ScrPills label="Типы рядов" all={ALL_SERIES} active={s.types} labelMap={SERIES_LABELS}
+          onChange={v => p({ types: v })} />
+      </div>
+    )
+  }
+
+  if (domainKey === 'analogies') {
+    const an = cfg.analogies
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {commonCount}
+        <ScreeningAnalogyEditor items={an.pool} onChange={pool => p({ pool })} />
+      </div>
+    )
+  }
+
+  if (domainKey === 'rotation') {
+    const ro = cfg.rotation
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {commonCount}
+        <div style={row}>
+          <ScrNumInput label="Мин. уровень" value={ro.minLevel} min={1} max={5} onChange={v => p({ minLevel: v })} />
+          <ScrNumInput label="Макс. уровень" value={ro.maxLevel} min={1} max={5} onChange={v => p({ maxLevel: v })} />
+        </div>
+      </div>
+    )
+  }
+
+  if (domainKey === 'memory') {
+    const mem = cfg.memory
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={row}>
+          <ScrNumInput label="Мин. спан" value={mem.minSpan} min={2} max={10} onChange={v => p({ minSpan: v })} />
+          <ScrNumInput label="Макс. спан" value={mem.maxSpan} min={2} max={12} onChange={v => p({ maxSpan: v })} />
+          <ScrNumInput label="Вспышка (мс)" value={mem.flashMs} min={200} max={2000} step={50} onChange={v => p({ flashMs: v })} />
+        </div>
+        <ScrToggle on={mem.backward} label="Обратный порядок" onChange={v => p({ backward: v })} />
+        {dom.adaptive && (
+          <ScrNumInput label="Стоп после N ошибок" value={dom.adaptiveStopFails} min={1} max={5} onChange={v => p({ adaptiveStopFails: v })} />
+        )}
+      </div>
+    )
+  }
+
+  if (domainKey === 'stroop') {
+    const st = cfg.stroop
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={row}>
+          <ScrNumInput label="Кол-во попыток" value={st.trials} min={4} max={40} onChange={v => p({ trials: v })} />
+          <ScrNumInput label="Дедлайн (мс, 0=нет)" value={st.deadlineMs} min={0} max={10000} step={100} onChange={v => p({ deadlineMs: v })} />
+          <ScrNumInput label="Конгруэнтных (%)" value={Math.round(st.congruentRatio * 100)} min={0} max={100} onChange={v => p({ congruentRatio: v / 100 })} />
+        </div>
+        <ScrToggle on={st.measureRT} label="Измерять время реакции" onChange={v => p({ measureRT: v })} />
+        <ScreeningColorEditor colors={st.colors} onChange={colors => p({ colors })} />
+      </div>
+    )
+  }
+
+  if (domainKey === 'speed') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <ScrNumInput label="Длительность (сек)" value={cfg.speed.durationSec} min={10} max={180} onChange={v => p({ durationSec: v })} />
+      </div>
+    )
+  }
+
+  if (domainKey === 'matching') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <ScreeningMatchEditor tasks={cfg.matching.tasks} onChange={tasks => p({ tasks })} />
+      </div>
+    )
+  }
+
+  return null
+}
+
+// Analogy pool editor
+function ScreeningAnalogyEditor({ items, onChange }: { items: AnalogyItem[]; onChange: (v: AnalogyItem[]) => void }) {
+  const [editId, setEditId] = useState<string | null>(null)
+  const [ea, setEa] = useState(''); const [eb, setEb] = useState(''); const [ec, setEc] = useState('')
+  const [eans, setEans] = useState(''); const [edist, setEdist] = useState(''); const [elv, setElv] = useState(1)
+
+  function startEdit(it: AnalogyItem) {
+    setEditId(it.id); setEa(it.a); setEb(it.b); setEc(it.c)
+    setEans(it.answer); setEdist(it.distractors.join(', ')); setElv(it.level)
+  }
+  function commitEdit() {
+    if (!editId) return
+    onChange(items.map(it => it.id === editId ? { ...it, a: ea, b: eb, c: ec, answer: eans, distractors: edist.split(',').map(s => s.trim()).filter(Boolean), level: elv } : it))
+    setEditId(null)
+  }
+  function addItem() {
+    const id = `an-${Date.now()}`
+    onChange([...items, { id, a: '', b: '', c: '', answer: '', distractors: [], level: 1 }])
+    startEdit({ id, a: '', b: '', c: '', answer: '', distractors: [], level: 1 })
+  }
+
+  const inputStyle: React.CSSProperties = { flex: 1, padding: '7px 10px', borderRadius: 9, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none', minWidth: 60 }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>Пул аналогий ({items.length})</div>
+      {items.map((it, idx) => (
+        <div key={it.id} style={{ borderRadius: 12, border: `1px solid ${editId === it.id ? SCR_ACC : 'var(--color-border)'}`, background: editId === it.id ? SCR_SOFT : 'var(--color-bg-2)', overflow: 'hidden' }}>
+          {editId === it.id ? (
+            <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <input value={ea} onChange={e => setEa(e.target.value)} placeholder="A" style={{ ...inputStyle, maxWidth: 100 }} />
+                <span style={{ alignSelf: 'center', color: 'var(--color-muted)', fontSize: 13 }}>→</span>
+                <input value={eb} onChange={e => setEb(e.target.value)} placeholder="B" style={{ ...inputStyle, maxWidth: 100 }} />
+                <span style={{ alignSelf: 'center', color: 'var(--color-muted)', fontSize: 13 }}>|</span>
+                <input value={ec} onChange={e => setEc(e.target.value)} placeholder="C" style={{ ...inputStyle, maxWidth: 100 }} />
+                <span style={{ alignSelf: 'center', color: 'var(--color-muted)', fontSize: 13 }}>→</span>
+                <input value={eans} onChange={e => setEans(e.target.value)} placeholder="Ответ" style={{ ...inputStyle, maxWidth: 120 }} />
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input value={edist} onChange={e => setEdist(e.target.value)} placeholder="Дистракторы через запятую" style={{ ...inputStyle }} />
+                <select value={elv} onChange={e => setElv(Number(e.target.value))} style={{ padding: '7px 10px', borderRadius: 9, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }}>
+                  {[1,2,3,4,5].map(l => <option key={l} value={l}>Ур. {l}</option>)}
+                </select>
+              </div>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button onClick={() => setEditId(null)} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Отмена</button>
+                <button onClick={() => onChange(items.filter(i => i.id !== it.id))} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Удалить</button>
+                <button onClick={commitEdit} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: SCR_ACC, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Сохранить</button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => startEdit(it)} style={{ width: '100%', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
+              <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: `${SCR_ACC}22`, color: SCR_ACC, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
+              <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {it.a} → {it.b} | {it.c} → <b>{it.answer || '?'}</b>
+              </div>
+              <span style={{ fontSize: 10, fontWeight: 700, color: SCR_ACC, background: SCR_SOFT, borderRadius: 6, padding: '2px 7px', flexShrink: 0 }}>Ур. {it.level}</span>
+            </button>
+          )}
+        </div>
+      ))}
+      <button onClick={addItem} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 14px', borderRadius: 10, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+        <Plus size={14} /> Добавить аналогию
+      </button>
+    </div>
+  )
+}
+
+// Stroop color editor
+function ScreeningColorEditor({ colors, onChange }: { colors: { name: string; hex: string }[]; onChange: (v: { name: string; hex: string }[]) => void }) {
+  const inputStyle: React.CSSProperties = { padding: '7px 10px', borderRadius: 9, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }
+  return (
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Цвета Струпа</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {colors.map((c, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 24, height: 24, borderRadius: 6, background: c.hex, flexShrink: 0, border: '1px solid rgba(0,0,0,0.1)' }} />
+            <input value={c.name} onChange={e => { const next = [...colors]; next[i] = { ...c, name: e.target.value }; onChange(next) }}
+              placeholder="НАЗВАНИЕ" style={{ ...inputStyle, width: 140 }} />
+            <input type="color" value={c.hex} onChange={e => { const next = [...colors]; next[i] = { ...c, hex: e.target.value }; onChange(next) }}
+              style={{ width: 44, height: 34, padding: 2, borderRadius: 8, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', cursor: 'pointer' }} />
+            {colors.length > 2 && (
+              <button onClick={() => onChange(colors.filter((_, j) => j !== i))}
+                style={{ padding: '4px 8px', borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <X size={12} />
+              </button>
+            )}
+          </div>
+        ))}
+        <button onClick={() => onChange([...colors, { name: '', hex: '#000000' }])}
+          style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <Plus size={13} /> Добавить цвет
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// Matching tasks editor
+function ScreeningMatchEditor({ tasks, onChange }: { tasks: MatchTask[]; onChange: (v: MatchTask[]) => void }) {
+  const [openId, setOpenId] = useState<string | null>(tasks[0]?.id ?? null)
+
+  function updateTask(id: string, patch: Partial<MatchTask>) {
+    onChange(tasks.map(t => t.id === id ? { ...t, ...patch } : t))
+  }
+  function addTask() {
+    const id = `mt-${Date.now()}`
+    const t: MatchTask = { id, title: '', pairs: [{ left: '', right: '' }] }
+    onChange([...tasks, t])
+    setOpenId(id)
+  }
+  function removeTask(id: string) { onChange(tasks.filter(t => t.id !== id)); if (openId === id) setOpenId(null) }
+  function updatePair(taskId: string, idx: number, side: 'left' | 'right', val: string) {
+    const task = tasks.find(t => t.id === taskId)!
+    const pairs = task.pairs.map((p, i) => i === idx ? { ...p, [side]: val } : p)
+    updateTask(taskId, { pairs })
+  }
+  function addPair(taskId: string) {
+    const task = tasks.find(t => t.id === taskId)!
+    updateTask(taskId, { pairs: [...task.pairs, { left: '', right: '' }] })
+  }
+  function removePair(taskId: string, idx: number) {
+    const task = tasks.find(t => t.id === taskId)!
+    updateTask(taskId, { pairs: task.pairs.filter((_, i) => i !== idx) })
+  }
+
+  const inputStyle: React.CSSProperties = { flex: 1, padding: '7px 10px', borderRadius: 9, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none', minWidth: 80 }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>Задания на сопоставление ({tasks.length})</div>
+      {tasks.map((task, ti) => (
+        <div key={task.id} style={{ borderRadius: 12, border: `1px solid ${openId === task.id ? SCR_ACC : 'var(--color-border)'}`, background: 'var(--color-bg-2)', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer' }} onClick={() => setOpenId(openId === task.id ? null : task.id)}>
+            <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: `${SCR_ACC}22`, color: SCR_ACC, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{ti + 1}</div>
+            <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.title || 'Без названия'}</div>
+            <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>{task.pairs.length} пар</span>
+            {openId === task.id ? <ChevronUp size={15} style={{ color: SCR_ACC, flexShrink: 0 }} /> : <ChevronDown size={15} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />}
+          </div>
+          {openId === task.id && (
+            <div style={{ padding: '0 14px 14px', borderTop: '1px solid var(--color-border-soft)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <input value={task.title} onChange={e => updateTask(task.id, { title: e.target.value })}
+                placeholder="Название задания" style={{ ...inputStyle, marginTop: 10 }} />
+              {task.pairs.map((pair, pi) => (
+                <div key={pi} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <input value={pair.left} onChange={e => updatePair(task.id, pi, 'left', e.target.value)} placeholder="Левая часть" style={inputStyle} />
+                  <span style={{ color: 'var(--color-muted)', fontSize: 14, flexShrink: 0 }}>→</span>
+                  <input value={pair.right} onChange={e => updatePair(task.id, pi, 'right', e.target.value)} placeholder="Правая часть" style={inputStyle} />
+                  {task.pairs.length > 1 && (
+                    <button onClick={() => removePair(task.id, pi)} style={{ padding: '5px', borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                      <X size={13} />
+                    </button>
+                  )}
+                </div>
+              ))}
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between' }}>
+                <button onClick={() => addPair(task.id)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  <Plus size={13} /> Пара
+                </button>
+                <button onClick={() => removeTask(task.id)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  <Trash2 size={13} /> Удалить задание
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+      <button onClick={addTask} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 14px', borderRadius: 10, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+        <Plus size={14} /> Добавить задание
+      </button>
+    </div>
+  )
+}
+
+function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
+  const [cfg, setCfg] = useState<ScreeningConfig>(() => loadScreeningConfig())
+  const [selectedDomain, setSelectedDomain] = useState<DomainKey | 'meta'>('meta')
+  const [dirty, setDirty] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [docked, setDocked] = useState(false)
+  const [editingTitle, setEditingTitle] = useState(false)
+
+  useEffect(() => { fetchScreeningConfig().then(c => { setCfg(c); setDirty(false) }) }, [])
+
+  function patchDomain(key: DomainKey, p: Record<string, unknown>) {
+    setCfg(prev => ({ ...prev, [key]: { ...prev[key], ...p } }))
+    setDirty(true)
+  }
+  function patchMeta(p: { title?: string; description?: string }) {
+    setCfg(prev => ({ ...prev, ...p }))
+    setDirty(true)
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    await saveScreeningConfig(cfg)
+    setSaving(false)
+    setDirty(false)
+  }
+
+  function resetToDefault() { setCfg(DEFAULT_SCREENING_CONFIG); setDirty(true) }
+
+  const savePillStyle: React.CSSProperties = teacherSaveStyle({ disabled: saving })
+  const dg = dockGlass
+
+  const dom = selectedDomain === 'meta' ? null : cfg[selectedDomain as DomainKey]
+  const info = dom?.info
+
+  return (
+    <motion.div
+      key="screening-editor"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onScroll={e => setDocked((e.currentTarget as HTMLElement).scrollTop > 64)}
+      style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', paddingTop: 100 }}
+    >
+      {/* Docked top bar */}
+      <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
+        <AnimatePresence>
+          {docked && (
+            <motion.div key="scr-dock"
+              initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: [0, 6, -3.5, 1.5, -0.5, 0] }}
+              exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
+              style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
+            >
+              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onClose}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, ...dg, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', pointerEvents: 'auto', fontFamily: 'inherit' }}>
+                <ArrowLeft size={15} strokeWidth={2} /> Назад
+              </motion.button>
+              <div style={{ flexShrink: 1, minWidth: 0, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '9px 16px', borderRadius: 999, ...dg, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto' }}>
+                {cfg.title || 'Скрининг мышления'}
+              </div>
+              <div style={{ flexGrow: 1 }} />
+              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={handleSave}
+                style={{ ...savePillStyle, flexShrink: 0, pointerEvents: 'auto' }}>
+                <Check size={14} strokeWidth={2.5} /> {saving ? 'Сохраняю…' : 'Сохранить'}
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', padding: '4px 0 48px' }}>
+        {/* In-flow header */}
+        <motion.div animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.2 }}
+          style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
+        >
+          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onClose}
+            style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <ArrowLeft size={15} strokeWidth={2} /> Назад
+          </motion.button>
+          <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', fontSize: 18, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
+            {cfg.title || 'Скрининг мышления'}
+          </div>
+          <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+            <button onClick={resetToDefault} style={{ padding: '9px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb),0.96)', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+              Сбросить к стандарту
+            </button>
+            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={handleSave} style={savePillStyle}>
+              <Check size={14} strokeWidth={2.5} /> {saving ? 'Сохраняю…' : dirty ? 'Сохранить' : 'Сохранено'}
+            </motion.button>
+          </div>
+        </motion.div>
+
+        {/* Body */}
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+
+          {/* LEFT: domain list */}
+          <div style={{ padding: '0 0 20px 24px', flexShrink: 0, position: 'sticky', top: 110, alignSelf: 'flex-start' }}>
+            <GlassCard style={{ width: 230, boxSizing: 'border-box', padding: 12, display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 'calc(100vh - 180px)', overflowY: 'auto' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', padding: '2px 4px 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {activeDomains(cfg).length} из {cfg.order.length} активных
+              </div>
+              <button onClick={() => setSelectedDomain('meta')}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer', background: selectedDomain === 'meta' ? SCR_SOFT : 'transparent', color: selectedDomain === 'meta' ? SCR_ACC : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s', marginBottom: 4 }}>
+                <Settings size={17} strokeWidth={2} style={{ flexShrink: 0, color: selectedDomain === 'meta' ? SCR_ACC : 'var(--color-text-2)' }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: selectedDomain === 'meta' ? 700 : 500 }}>Общие настройки</div>
+                  <div style={{ fontSize: 10, color: selectedDomain === 'meta' ? SCR_ACC : 'var(--color-muted)', marginTop: 1 }}>Название, описание</div>
+                </div>
+                {selectedDomain === 'meta' && <div style={{ width: 6, height: 6, borderRadius: '50%', background: SCR_ACC, flexShrink: 0 }} />}
+              </button>
+              <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '4px 0 8px' }} />
+              {cfg.order.map(key => {
+                const d = cfg[key]
+                const isSel = selectedDomain === key
+                return (
+                  <button key={key} onClick={() => setSelectedDomain(key)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer', background: isSel ? SCR_SOFT : 'transparent', color: isSel ? SCR_ACC : d.enabled ? 'var(--color-text)' : 'var(--color-text-3)', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s' }}
+                  >
+                    {(() => { const DomIcon = DOMAIN_ICONS[key]; return <DomIcon size={17} strokeWidth={2} style={{ flexShrink: 0, color: isSel ? SCR_ACC : d.enabled ? 'var(--color-text-2)' : 'var(--color-text-3)' }} /> })()}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: isSel ? 700 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.info.short}</div>
+                      <div style={{ fontSize: 10, color: d.enabled ? (isSel ? SCR_ACC : 'var(--color-muted)') : 'var(--color-text-3)', marginTop: 1 }}>{d.enabled ? 'активен' : 'выключен'}</div>
+                    </div>
+                    {isSel && <div style={{ width: 6, height: 6, borderRadius: '50%', background: SCR_ACC, flexShrink: 0 }} />}
+                  </button>
+                )
+              })}
+            </GlassCard>
+          </div>
+
+          {/* CENTER: domain editor */}
+          <div style={{ flex: 1, minWidth: 0, padding: '0 24px 0 16px' }}>
+            <AnimatePresence mode="wait">
+              <motion.div key={selectedDomain}
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.18 }}
+              >
+                {selectedDomain === 'meta' ? (
+                  <GlassCard style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ width: 48, height: 48, borderRadius: 14, background: SCR_SOFT, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Settings size={24} strokeWidth={2} style={{ color: SCR_ACC }} />
+                      </div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>Общие настройки</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Название теста</div>
+                      <input
+                        value={cfg.title}
+                        onChange={e => patchMeta({ title: e.target.value })}
+                        placeholder="Название скрининга…"
+                        style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: `1.5px solid ${SCR_ACC}66`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 15, fontWeight: 600, fontFamily: 'inherit', outline: 'none' }}
+                      />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Описание</div>
+                      <textarea
+                        value={cfg.description ?? ''}
+                        onChange={e => patchMeta({ description: e.target.value })}
+                        rows={4}
+                        placeholder="Краткое описание, для кого и зачем этот тест…"
+                        style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.6 }}
+                      />
+                    </div>
+                    <div style={{ padding: 14, borderRadius: 12, background: SCR_SOFT, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: SCR_ACC }}>Как работает скрининг</div>
+                      <div style={{ fontSize: 12, color: 'var(--color-text-2)', lineHeight: 1.6 }}>
+                        Включи или выключи нужные домены в списке слева. Для каждого домена настрой количество заданий, адаптивность и диапазон уровней. Порядок доменов в списке — порядок прохождения.
+                      </div>
+                    </div>
+                  </GlassCard>
+                ) : dom ? (
+                <GlassCard style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
+                  {/* Domain header */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+                    {(() => { const DomIcon = DOMAIN_ICONS[selectedDomain as DomainKey]; return (
+                      <div style={{ width: 56, height: 56, borderRadius: 16, background: SCR_SOFT, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <DomIcon size={28} strokeWidth={2} style={{ color: SCR_ACC }} />
+                      </div>
+                    ) })()}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>{info!.label}</div>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: SCR_ACC, background: SCR_SOFT, borderRadius: 7, padding: '2px 8px', letterSpacing: 0.3 }}>{info!.chc}</span>
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>{info!.dimension}</div>
+                      <div style={{ fontSize: 12, color: 'var(--color-text-2)', marginTop: 6, lineHeight: 1.5 }}>{info!.measures}</div>
+                    </div>
+                  </div>
+
+                  {/* Common: enabled + adaptive */}
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Включение</div>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                      <ScrToggle on={dom.enabled} label={dom.enabled ? 'Домен включён' : 'Домен выключен'}
+                        onChange={v => patchDomain(selectedDomain as DomainKey, { enabled: v })} />
+                      <ScrToggle on={dom.adaptive} label={dom.adaptive ? 'Адаптивный' : 'Фиксированный'}
+                        onChange={v => patchDomain(selectedDomain as DomainKey, { adaptive: v })} />
+                    </div>
+                  </div>
+
+                  {/* Domain-specific */}
+                  <ScreeningDomainEditor domainKey={selectedDomain as DomainKey} cfg={cfg} onPatch={patchDomain} />
+
+                  {/* Methodology — what this block measures, how it works, what it determines */}
+                  <div style={{ borderTop: '1px solid var(--color-border-soft)', paddingTop: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, borderRadius: '50%', border: `1.5px solid ${SCR_ACC}`, color: SCR_ACC, fontSize: 10, fontStyle: 'italic', fontWeight: 800 }}>i</span>
+                      Методология
+                    </div>
+                    {([
+                      ['Как устроено', info!.how],
+                      ['Что определяет', info!.determines],
+                      ['Научная основа', info!.science],
+                    ] as [string, string][]).map(([h, body]) => (
+                      <div key={h}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: SCR_ACC, marginBottom: 3 }}>{h}</div>
+                        <div style={{ fontSize: 12.5, color: 'var(--color-text-2)', lineHeight: 1.55 }}>{body}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                </GlassCard>
+                ) : null}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+// ─── Screening domain display meta for test creator ───────────────────────────
+const SCR_DOMAIN_META: Record<DomainKey, { short: string; emoji: string }> = {
+  matrices:  { short: 'Матрицы',   emoji: '🧩' },
+  series:    { short: 'Серии',     emoji: '📈' },
+  analogies: { short: 'Аналогии',  emoji: '🔀' },
+  rotation:  { short: 'Вращение',  emoji: '🔁' },
+  memory:    { short: 'Память',    emoji: '🧠' },
+  stroop:    { short: 'Струп',     emoji: '🎨' },
+  speed:     { short: 'Скорость',  emoji: '⚡' },
+  matching:  { short: 'Связи',     emoji: '🔗' },
+}
+const DOMAIN_ICONS: Record<DomainKey, React.ElementType> = {
+  matrices:  LayoutGrid,
+  series:    TrendingUp,
+  analogies: ArrowLeftRight,
+  rotation:  RotateCcw,
+  memory:    Brain,
+  stroop:    Palette,
+  speed:     Zap,
+  matching:  Link2,
+}
+
+// ─── Diagnostic Test Creator ─────────────────────────────────────────────────
+function DiagnosticTestCreator({ onSave, onCancel }: {
+  onSave: (id: string, label: string, accent: string) => void
+  onCancel: () => void
+}) {
+  const [title, setTitle] = useState('')
+  const [accent, setAccent] = useState(CREATOR_ACCENTS[0].hex)
+  const [questions, setQuestions] = useState<DiagQuestion[]>([])
+  const [editIdx, setEditIdx] = useState<number | null>(null)
+  const [editText, setEditText] = useState('')
+  const [editOpts, setEditOpts] = useState<string[]>(['', '', '', ''])
+  const [editCorrect, setEditCorrect] = useState(0)
+  const [editSection, setEditSection] = useState('')
+  const [editType, setEditType] = useState<'mc' | 'screening'>('mc')
+  const [editScrDomain, setEditScrDomain] = useState<DomainKey>('matrices')
+  const [editScrCount, setEditScrCount] = useState(5)
+  const [docked, setDocked] = useState(false)
+
+  const soft = CREATOR_ACCENTS.find(a => a.hex === accent)?.soft ?? accent + '22'
+  const canSave = title.trim().length > 0
+
+  function startEdit(idx: number, q?: DiagQuestion) {
+    const src = q ?? questions[idx]
+    setEditIdx(idx); setEditText(src.text); setEditOpts([...src.options]); setEditCorrect(src.correct); setEditSection(src.section ?? '')
+    const anyQ = src as DiagQuestion & { type?: string; screeningDomain?: string; screeningCount?: number }
+    setEditType((anyQ.type as 'mc' | 'screening') ?? 'mc')
+    setEditScrDomain((anyQ.screeningDomain as DomainKey) ?? 'matrices')
+    setEditScrCount(anyQ.screeningCount ?? 5)
+  }
+  function addQuestion() {
+    const newQ: DiagQuestion = { id: `q-${Date.now()}`, section: editSection || title || 'Раздел 1', text: '', options: ['', '', '', ''], correct: 0 }
+    setQuestions(prev => { const next = [...prev, newQ]; startEdit(next.length - 1, newQ); return next })
+  }
+  function commitEdit() {
+    if (editIdx === null) return
+    setQuestions(prev => prev.map((q, i) => {
+      if (i !== editIdx) return q
+      const base = { ...q, section: editSection || q.section }
+      if (editType === 'screening') {
+        return { ...base, type: 'screening', screeningDomain: editScrDomain, screeningCount: editScrCount,
+          text: `Блок: ${SCR_DOMAIN_META[editScrDomain].short} (${editScrCount} заданий)`, options: ['', '', '', ''] as string[], correct: 0 }
+      }
+      return { ...base, type: 'mc', text: editText, options: editOpts, correct: editCorrect }
+    }))
+    setEditIdx(null)
+  }
+  function removeQuestion(idx: number) { setQuestions(prev => prev.filter((_, i) => i !== idx)); if (editIdx === idx) setEditIdx(null) }
+
+  async function handleSave() {
+    if (!canSave) return
+    const id = `custom-${title.toLowerCase().replace(/[^a-zа-яё0-9]+/gi, '-')}-${Date.now()}`
+    const saved = editIdx !== null
+      ? questions.map((q, i) => i === editIdx ? { ...q, text: editText, options: editOpts, correct: editCorrect, section: editSection || q.section } : q)
+      : questions
+    await saveDiagQuestions(id as DiagSubject, saved)
+    onSave(id, title.trim(), accent)
+  }
+
+  const savePillStyle: React.CSSProperties = teacherSaveStyle({ disabled: !canSave })
+  const dg = dockGlass
+
+  return (
+    <motion.div
+      key="test-creator"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onScroll={e => setDocked((e.currentTarget as HTMLElement).scrollTop > 64)}
+      style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', paddingTop: 100 }}
+    >
+      <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
+        <AnimatePresence>
+          {docked && (
+            <motion.div key="creator-dock"
+              initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: [0, 6, -3.5, 1.5, -0.5, 0] }}
+              exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
+              style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
+            >
+              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onCancel}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, ...dg, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', pointerEvents: 'auto', fontFamily: 'inherit' }}>
+                <ArrowLeft size={15} strokeWidth={2} /> Назад
+              </motion.button>
+              <div style={{ flexShrink: 1, minWidth: 0, maxWidth: 280, padding: '9px 16px', borderRadius: 999, ...dg, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {title || 'Новый тест'}
+              </div>
+              <div style={{ flexGrow: 1 }} />
+              <motion.button whileHover={{ scale: canSave ? 1.03 : 1 }} whileTap={{ scale: canSave ? 0.97 : 1 }} onClick={handleSave}
+                style={{ ...savePillStyle, flexShrink: 0, pointerEvents: 'auto' }}>
+                <Check size={14} strokeWidth={2.5} /> Создать тест
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', padding: '4px 0 48px' }}>
+        <motion.div animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.2 }}
+          style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
+        >
+          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onCancel}
+            style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <ArrowLeft size={15} strokeWidth={2} /> Назад
+          </motion.button>
+          <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', fontSize: 18, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
+            {title || 'Новый тест'}
+          </div>
+          <motion.button whileHover={{ scale: canSave ? 1.03 : 1 }} whileTap={{ scale: canSave ? 0.97 : 1 }} onClick={handleSave} style={savePillStyle}>
+            <Check size={14} strokeWidth={2.5} /> Создать тест
+          </motion.button>
+        </motion.div>
+
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+          {/* LEFT: name + color + questions list */}
+          <div style={{ padding: '0 0 20px 24px', flexShrink: 0, position: 'sticky', top: 110, alignSelf: 'flex-start' }}>
+            <GlassCard style={{ width: 230, boxSizing: 'border-box', padding: 16, display: 'flex', flexDirection: 'column', gap: 16, maxHeight: 'calc(100vh - 180px)', overflowY: 'auto' }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Название теста</div>
+                <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Физика, Математика…" autoFocus
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: 10, border: `1.5px solid ${canSave ? accent + '66' : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none', transition: 'border 0.15s' }} />
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Цвет</div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {CREATOR_ACCENTS.map(a => (
+                    <button key={a.hex} onClick={() => setAccent(a.hex)}
+                      style={{ width: 28, height: 28, borderRadius: '50%', border: accent === a.hex ? '3px solid var(--color-text)' : '2px solid transparent', background: a.hex, cursor: 'pointer', outline: 'none', transition: 'border 0.15s', flexShrink: 0 }} />
+                  ))}
+                </div>
+              </div>
+              <div style={{ borderTop: '1px solid var(--color-border-soft)' }} />
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Вопросы {questions.length > 0 && `(${questions.length})`}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {questions.map((q, idx) => (
+                    <button key={q.id} onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s' }}>
+                      <div style={{ width: 20, height: 20, borderRadius: 5, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? '#fff' : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800 }}>{idx + 1}</div>
+                      <div style={{ flex: 1, fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: editIdx === idx ? 600 : 400 }}>{q.text || 'Без текста'}</div>
+                    </button>
+                  ))}
+                </div>
+                <button onClick={addQuestion}
+                  style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '7px 8px', borderRadius: 8, border: `1.5px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  <Plus size={13} /> Добавить вопрос
+                </button>
+              </div>
+            </GlassCard>
+          </div>
+
+          {/* CENTER: question editor */}
+          <div style={{ flex: 1, minWidth: 0, padding: '0 16px 0 16px' }}>
+            <AnimatePresence mode="wait">
+              {editIdx !== null ? (
+                <motion.div key={`edit-${editIdx}`}
+                  initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}
+                >
+                  <GlassCard style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, flexShrink: 0 }}>{editIdx + 1}</div>
+                      <div style={{ flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>Вопрос {editIdx + 1}</div>
+                      <button onClick={() => removeQuestion(editIdx)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                        <X size={13} /> Удалить
+                      </button>
+                    </div>
+                    {editType === 'screening' ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 20, borderRadius: 14, background: accent + '18', border: `1.5px solid ${accent}44` }}>
+                        {(() => { const DI = DOMAIN_ICONS[editScrDomain]; return <div style={{ width: 52, height: 52, borderRadius: 14, background: accent + '28', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><DI size={26} strokeWidth={2} style={{ color: accent }} /></div> })()}
+                        <div>
+                          <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>Скрининг-блок: {SCR_DOMAIN_META[editScrDomain].short}</div>
+                          <div style={{ fontSize: 12, color: 'var(--color-text-2)', lineHeight: 1.6 }}>
+                            {editScrCount} автоматически генерируемых заданий этого типа<br />будут вставлены в тест в этом месте.
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Раздел / тема</div>
+                          <input value={editSection} onChange={e => setEditSection(e.target.value)} placeholder="Например: Механика"
+                            style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: 10, border: `1.5px solid ${accent}44`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Текст вопроса</div>
+                          <textarea value={editText} onChange={e => setEditText(e.target.value)} rows={4} placeholder="Введите вопрос…"
+                            style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 12, border: `1.5px solid ${accent}55`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.5 }} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            Варианты ответов <span style={{ color: 'var(--color-muted)', fontWeight: 400, textTransform: 'none' }}>— нажми кружок чтобы отметить правильный</span>
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                            {editOpts.map((opt, oi) => (
+                              <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <button onClick={() => setEditCorrect(oi)}
+                                  style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'transparent', transition: 'all 0.14s', position: 'relative' }}>
+                                  {editCorrect === oi && <Check size={13} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff', strokeWidth: 3 }} />}
+                                </button>
+                                <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `1.5px solid ${editCorrect === oi ? accent + '88' : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
+                                  <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: editCorrect === oi ? '#fff' : 'var(--color-text-2)', flexShrink: 0 }}>{String.fromCharCode(65 + oi)}</div>
+                                  <input value={opt} onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o) }}
+                                    style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 4 }}>
+                      <button onClick={() => setEditIdx(null)} style={{ padding: '10px 20px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Отмена</button>
+                      <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={commitEdit}
+                        style={{ padding: '10px 24px', borderRadius: 12, border: 'none', background: accent, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'inherit' }}>
+                        <Check size={15} strokeWidth={2.5} /> Сохранить вопрос
+                      </motion.button>
+                    </div>
+                  </GlassCard>
+                </motion.div>
+              ) : (
+                <motion.div key="welcome" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <GlassCard style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, textAlign: 'center' }}>
+                    <div style={{ width: 64, height: 64, borderRadius: 20, background: soft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <FileText size={30} style={{ color: accent }} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)', marginBottom: 6 }}>{title || 'Назови тест слева'}</div>
+                      <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.6, maxWidth: 380 }}>
+                        Введи название, выбери цвет — потом добавляй вопросы.<br />
+                        Каждый вопрос: текст + 4 варианта + 1 правильный.
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 340 }}>
+                      {[['📝','Задай вопрос'],['🔘','4 варианта ответа'],['✅','Отметь правильный'],['🔗','Получи ссылку и отправь ученику']].map(([icon, text]) => (
+                        <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, background: 'var(--color-bg-2)', textAlign: 'left' }}>
+                          <span style={{ fontSize: 18 }}>{icon}</span>
+                          <span style={{ fontSize: 13, color: 'var(--color-text-2)', fontWeight: 500 }}>{text}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <button onClick={addQuestion}
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 28px', borderRadius: 14, border: 'none', background: accent, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      <Plus size={16} /> Добавить первый вопрос
+                    </button>
+                  </GlassCard>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* RIGHT: type selector + screening options */}
+          <div style={{ padding: '0 24px 20px 0', flexShrink: 0, position: 'sticky', top: 110, alignSelf: 'flex-start' }}>
+            <GlassCard style={{ width: 216, boxSizing: 'border-box', padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>Тип вопроса</div>
+              {(['mc', 'screening'] as const).map(t => (
+                <button key={t} onClick={() => editIdx !== null && setEditType(t)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 12px', borderRadius: 12, border: `2px solid ${editType === t && editIdx !== null ? accent : 'var(--color-border-medium)'}`, background: editType === t && editIdx !== null ? accent : 'var(--color-bg-2)', color: editType === t && editIdx !== null ? '#fff' : editIdx !== null ? 'var(--color-text-2)' : 'var(--color-muted)', fontWeight: 600, fontSize: 13, cursor: editIdx !== null ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'all 0.14s', textAlign: 'left' }}>
+                  {t === 'mc' ? <><FileText size={14} style={{ flexShrink: 0 }} /> Текст / выбор</> : <><Brain size={14} style={{ flexShrink: 0 }} /> Скрининг-блок</>}
+                </button>
+              ))}
+              {editType === 'screening' && editIdx !== null && (
+                <>
+                  <div style={{ borderTop: '1px solid var(--color-border-soft)', marginTop: 4, paddingTop: 12 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Домен</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
+                      {(Object.keys(SCR_DOMAIN_META) as DomainKey[]).map(k => {
+                        const DI = DOMAIN_ICONS[k]
+                        const isSel = editScrDomain === k
+                        return (
+                          <button key={k} onClick={() => setEditScrDomain(k)}
+                            style={{ padding: '8px 6px', borderRadius: 10, border: `2px solid ${isSel ? accent : 'var(--color-border-medium)'}`, background: isSel ? accent : 'var(--color-bg-2)', color: isSel ? '#fff' : 'var(--color-text-2)', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.12s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                            <DI size={18} strokeWidth={2} />
+                            <span style={{ fontSize: 9, fontWeight: 700, textAlign: 'center', lineHeight: 1.2 }}>{SCR_DOMAIN_META[k].short}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Кол-во: {editScrCount}</div>
+                    <input type="range" min={1} max={20} value={editScrCount} onChange={e => setEditScrCount(Number(e.target.value))}
+                      style={{ width: '100%', accentColor: accent }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--color-muted)', marginTop: 2 }}>
+                      <span>1</span><span>10</span><span>20</span>
+                    </div>
+                  </div>
+                  <div style={{ padding: 10, borderRadius: 10, background: accent + '18', border: `1px solid ${accent}40`, fontSize: 11, color: 'var(--color-text)', lineHeight: 1.5 }}>
+                    {(() => { const DI = DOMAIN_ICONS[editScrDomain]; return <strong style={{ color: accent, display: 'inline-flex', alignItems: 'center', gap: 5 }}><DI size={12} strokeWidth={2.5} /> {SCR_DOMAIN_META[editScrDomain].short}</strong> })()}{' '}— {editScrCount} заданий будут вставлены в этом месте.
+                  </div>
+                </>
+              )}
+            </GlassCard>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
 // ─── Diagnostic Card ─────────────────────────────────────────────────────────
 function DiagnosticCard({ subject, isSelected, onClick }: { subject: DiagSubject; isSelected: boolean; onClick: () => void }) {
-  const { label, accent, soft } = SUBJECT_META[subject]
-  const Icon = SUBJECT_ICON_MAP[subject]
+  const { label, accent, soft } = getSubjectMeta(subject)
+  const Icon = getSubjectIcon(subject)
   const [questions, setQuestions] = useState(() => loadDiagQuestions(subject))
   const [anonCount, setAnonCount] = useState(0)
   useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
@@ -3672,7 +5164,27 @@ function DiagnosticCard({ subject, isSelected, onClick }: { subject: DiagSubject
       icon={<Icon size={17} strokeWidth={2} style={{ color: accent }} />}
       badge={<span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-purple-text,#7B3FCC)', background: 'var(--color-purple-soft)', borderRadius: 7, padding: '2px 8px' }}>Диагностика</span>}
       title={label}
-      subtitle={`${questions.length} вопросов`}
+      subtitle={subject === 'logic' ? `${loadScreeningConfig().order.length} доменов` : `${questions.length} вопросов`}
+      footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount > 0 ? `${anonCount} прошли тест` : 'Нет сдач'}</span></>}
+      footerRight={<><Target size={11} strokeWidth={2} />{subject === 'logic' ? 'Скрининг' : 'Тест'}</>}
+    />
+  )
+}
+
+function CustomTestCard({ test, isSelected, onClick }: { test: CustomTest; isSelected: boolean; onClick: () => void }) {
+  const { label, accent } = test
+  const soft = accent + '22'
+  const [qCount, setQCount] = useState(0)
+  const [anonCount, setAnonCount] = useState(0)
+  useEffect(() => { loadAnonResults().then(all => { setAnonCount(all.filter(r => r.subject === test.id).length); setQCount(loadDiagQuestions(test.id as DiagSubject).length) }) }, [test.id])
+  return (
+    <ContentCard
+      accentColor={accent} accentBg={soft}
+      isSelected={isSelected} onClick={onClick}
+      icon={<FileText size={17} strokeWidth={2} style={{ color: accent }} />}
+      badge={<span style={{ fontSize: 10, fontWeight: 700, color: accent, background: soft, borderRadius: 7, padding: '2px 8px' }}>Свой тест</span>}
+      title={label}
+      subtitle={qCount > 0 ? `${qCount} вопросов` : 'Нет вопросов'}
       footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount > 0 ? `${anonCount} прошли тест` : 'Нет сдач'}</span></>}
       footerRight={<><Target size={11} strokeWidth={2} />Тест</>}
     />
@@ -3685,8 +5197,8 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
   onClose: () => void
   onEditTest: () => void
 }) {
-  const { label, accent, soft } = SUBJECT_META[subject]
-  const Icon = SUBJECT_ICON_MAP[subject]
+  const { label, accent, soft } = getSubjectMeta(subject)
+  const Icon = getSubjectIcon(subject)
   const [questions, setQuestions] = useState(() => loadDiagQuestions(subject))
   const [copied, setCopied] = useState(false)
   const [anonResults, setAnonResults] = useState<AnonDiagResult[]>([])
@@ -3923,7 +5435,13 @@ export default function TeacherConstructorPage() {
     if (selectedId) localStorage.setItem('constructor-selected-id', selectedId)
     else localStorage.removeItem('constructor-selected-id')
   }, [selectedId])
-  const [diagEditing, setDiagEditing] = useState<DiagSubject | null>(null)
+  const [diagEditing, setDiagEditing] = useState<string | null>(null)
+  const [diagCreating, setDiagCreating] = useState(false)
+  const [customTests, setCustomTests] = useState<CustomTest[]>(() => {
+    const loaded = loadCustomTests()
+    hydrateCustomMeta(loaded)
+    return loaded
+  })
   const [selectedResultId, setSelectedResultId] = useState<string | null>(null)
   const [diagAnonResults, setDiagAnonResults] = useState<AnonDiagResult[]>([])
   const diagAllStudents = useAllStudents()
@@ -3936,18 +5454,23 @@ export default function TeacherConstructorPage() {
   const [editWidget, setEditWidget] = useState<Widget | null>(null)
   const [selectedTrainerId, setSelectedTrainerId] = useState<string | null>(null)
   const [courses, setCourses] = useState<Course[]>(() => {
-    try { const s = localStorage.getItem('constructor-courses'); return s ? JSON.parse(s) : COURSES_INIT } catch { return COURSES_INIT }
+    let base: Course[]
+    try { const s = localStorage.getItem('constructor-courses'); base = s ? JSON.parse(s) : COURSES_INIT } catch { base = COURSES_INIT }
+    return mergeById(base, AP_CHEM_COURSES)
   })
   const [trainers, setTrainers] = useState<Trainer[]>(() => {
+    let base: Trainer[] = TRAINERS_INIT
     try {
       const s = localStorage.getItem('constructor-trainers')
       const v = localStorage.getItem('constructor-trainers-v')
-      if (s && v === '2') return JSON.parse(s)
+      if (s && v === '2') base = JSON.parse(s)
     } catch {}
-    return TRAINERS_INIT
+    return mergeById(base, AP_CHEM_TRAINERS)
   })
   const [widgets, setWidgets] = useState<Widget[]>(() => {
-    try { const s = localStorage.getItem('constructor-widgets'); return s ? JSON.parse(s) : WIDGETS_INIT } catch { return WIDGETS_INIT }
+    let base: Widget[]
+    try { const s = localStorage.getItem('constructor-widgets'); base = s ? JSON.parse(s) : WIDGETS_INIT } catch { base = WIDGETS_INIT }
+    return mergeById(base, AP_CHEM_WIDGETS)
   })
   const [editMode, setEditMode] = useState(false)
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set())
@@ -3957,7 +5480,21 @@ export default function TeacherConstructorPage() {
   useEffect(() => { try { localStorage.setItem('constructor-widgets', JSON.stringify(widgets)) } catch {} }, [widgets])
 
   const [bankFilters, setBankFilters] = useState<TrainerFilters>(emptyTrainerFilters)
+  const [widgetFilters, setWidgetFilters] = useState<WidgetFilters>(emptyWidgetFilters)
+  const filteredWidgets = useMemo(() => {
+    let ws = widgets
+    if (widgetFilters.search) ws = ws.filter(w => w.title.toLowerCase().includes(widgetFilters.search.toLowerCase()))
+    if (widgetFilters.type) ws = ws.filter(w => w.type === widgetFilters.type)
+    if (widgetFilters.linked === 'linked') ws = ws.filter(w => !!w.linkedTrainerId)
+    if (widgetFilters.linked === 'unlinked') ws = ws.filter(w => !w.linkedTrainerId)
+    const sorted = [...ws]
+    if (widgetFilters.sort === 'newest') return [...sorted].reverse()
+    if (widgetFilters.sort === 'az') return [...sorted].sort((a, b) => a.title.localeCompare(b.title, 'ru'))
+    if (widgetFilters.sort === 'items') return [...sorted].sort((a, b) => b.items.length - a.items.length)
+    return sorted
+  }, [widgets, widgetFilters])
   const removeTask = useTaskBank(s => s.removeTask)
+  const addBankTask = useTaskBank(s => s.addTask)
   const loadTasks = useTaskBank(s => s.load)
   useEffect(() => { loadTasks() }, [])
 
@@ -4011,13 +5548,13 @@ export default function TeacherConstructorPage() {
   function closeEditor() { setSelectedId(null); setDiagEditing(null); setSelectedResultId(null) }
 
   function handleTabChange(t: Tab) {
-    setActiveTab(t); setSelectedId(null); setDiagEditing(null); setSelectedResultId(null); setCreatorMode(null); setEditCourse(null); setEditTrainer(null); setEditWidget(null); setSelectedTrainerId(null)
+    setActiveTab(t); setSelectedId(null); setDiagEditing(null); setDiagCreating(false); setSelectedResultId(null); setCreatorMode(null); setEditCourse(null); setEditTrainer(null); setEditWidget(null); setSelectedTrainerId(null)
     setEditMode(false); setCheckedIds(new Set())
     if (t === 'testing') loadAnonResults().then(setDiagAnonResults)
   }
 
   function handlePlus() {
-    if (activeTab === 'testing') return
+    if (activeTab === 'testing') { setDiagCreating(true); return }
     setEditCourse(null); setEditTrainer(null); setEditWidget(null)
     setCreatorMode(activeTab)
     setSelectedId(null)
@@ -4041,9 +5578,30 @@ export default function TeacherConstructorPage() {
   function deleteChecked() {
     if (activeTab === 'course') setCourses(prev => prev.filter(c => !checkedIds.has(c.id)))
     else if (activeTab === 'trainer') checkedIds.forEach(id => removeTask(Number(id)))
+    else if (activeTab === 'testing') setCustomTests(prev => prev.filter(ct => !checkedIds.has(ct.id)))
     else setWidgets(prev => prev.filter(w => !checkedIds.has(w.id)))
     setCheckedIds(new Set())
     setEditMode(false)
+  }
+
+  function duplicateChecked() {
+    if (activeTab === 'course') {
+      courses.filter(c => checkedIds.has(c.id)).forEach(c => duplicateCourse(c))
+    } else if (activeTab === 'widget') {
+      widgets.filter(w => checkedIds.has(w.id)).forEach(w => duplicateWidget(w))
+    } else if (activeTab === 'trainer') {
+      allTasks.filter(t => checkedIds.has(String(t.id))).forEach(t => {
+        const { id: _drop, ...copy } = t as any
+        addBankTask({ ...copy, text: copy.text ? `${copy.text} (копия)` : copy.text })
+      })
+    } else if (activeTab === 'testing') {
+      customTests.filter(ct => checkedIds.has(ct.id)).forEach(ct => {
+        const copy: typeof ct = { ...ct, id: uid(), label: `${ct.label} (копия)` }
+        CUSTOM_META.set(copy.id, { label: copy.label, accent: copy.accent, soft: copy.accent + '22' })
+        setCustomTests(prev => { const next = [...prev, copy]; persistCustomTests(next); return next })
+      })
+    }
+    setCheckedIds(new Set())
   }
 
   // Trainer cards open straight into the full-screen bank-browser editor.
@@ -4092,6 +5650,29 @@ export default function TeacherConstructorPage() {
     setSelectedId(w.id)
   }
 
+  const stamp = () => new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
+
+  // Per-card actions: duplicate clones with fresh ids + "(копия)" as a draft;
+  // delete confirms first (irreversible).
+  function duplicateCourse(c: Course) {
+    const copy: Course = { ...c, id: uid(), title: `${c.title} (копия)`, status: 'draft', lessons: c.lessons.map(l => ({ ...l, id: uid() })), lastEdited: stamp() }
+    setCourses(prev => [copy, ...prev])
+  }
+  function deleteCourse(c: Course) {
+    if (!window.confirm(`Удалить курс «${c.title}»? Это действие необратимо.`)) return
+    setCourses(prev => prev.filter(x => x.id !== c.id))
+    if (selectedId === c.id) setSelectedId(null)
+  }
+  function duplicateWidget(w: Widget) {
+    const copy: Widget = { ...w, id: uid(), title: `${w.title} (копия)`, items: w.items.map(it => ({ ...it, id: uid() })), lastEdited: stamp() }
+    setWidgets(prev => [copy, ...prev])
+  }
+  function deleteWidget(w: Widget) {
+    if (!window.confirm(`Удалить виджет «${w.title}»?`)) return
+    setWidgets(prev => prev.filter(x => x.id !== w.id))
+    if (selectedId === w.id) setSelectedId(null)
+  }
+
   const tabCfg = {
     course:   { label: 'Курс',        Icon: BookOpen, color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)' },
     trainer:  { label: 'Тренажёр',    Icon: Zap,      color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)' },
@@ -4118,10 +5699,27 @@ export default function TeacherConstructorPage() {
             onSaveWidget={handleSaveWidget}
             onCancel={() => { setCreatorMode(null); setEditCourse(null); setEditTrainer(null); setEditingTask(null); setEditWidget(null) }}
           />
+        ) : diagCreating ? (
+          <DiagnosticTestCreator
+            onSave={(id, label, accent) => {
+              const newTest: CustomTest = { id, label, accent }
+              CUSTOM_META.set(id, { label, accent, soft: accent + '22' })
+              setCustomTests(prev => {
+                const next = [...prev, newTest]
+                persistCustomTests(next)
+                return next
+              })
+              setDiagCreating(false)
+              setDiagEditing(id)
+            }}
+            onCancel={() => setDiagCreating(false)}
+          />
+        ) : diagEditing === 'logic' ? (
+          <ScreeningEditorFullPage onClose={() => setDiagEditing(null)} />
         ) : diagEditing ? (
           <DiagnosticEditorFullPage
             key={`diag-editor-${diagEditing}`}
-            subject={diagEditing}
+            subject={diagEditing as DiagSubject}
             onClose={() => setDiagEditing(null)}
           />
         ) : (
@@ -4131,7 +5729,7 @@ export default function TeacherConstructorPage() {
             style={{ flex: 1, display: 'flex', minWidth: 0, overflow: 'hidden', position: 'relative' }}
           >
             <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', position: 'relative' }}>
                 {/* Edit-mode toggle — square button */}
                 <motion.button
                   whileTap={{ scale: 0.93 }}
@@ -4155,25 +5753,43 @@ export default function TeacherConstructorPage() {
                     onClick={() => t === activeTab ? handlePlus() : handleTabChange(t)} onPlus={handlePlus} />
                 })}
 
-                {/* Delete bar — shown when items are checked */}
+                {/* Action bar — inline, pushed right with auto margin, no layout shift */}
                 <AnimatePresence>
                   {editMode && checkedIds.size > 0 && (
-                    <motion.button
-                      initial={{ opacity: 0, scale: 0.92, x: -10 }}
-                      animate={{ opacity: 1, scale: 1, x: 0 }}
-                      exit={{ opacity: 0, scale: 0.92, x: -10 }}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.92 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.92 }}
                       transition={{ type: 'spring', stiffness: 360, damping: 28 }}
-                      onClick={deleteChecked}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 7,
-                        padding: '10px 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
-                        background: '#c0303a', color: '#fff', fontSize: 13, fontWeight: 700,
-                        boxShadow: '0 4px 14px rgba(192,48,58,0.32)',
-                      }}
+                      style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}
                     >
-                      <Trash2 size={14} strokeWidth={2.4} />
-                      Удалить {checkedIds.size}
-                    </motion.button>
+                      {(activeTab !== 'testing' || customTests.some(ct => checkedIds.has(ct.id))) && (
+                        <button
+                          onClick={duplicateChecked}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 7,
+                            padding: '10px 18px', borderRadius: 14, border: '1.5px solid var(--color-border-medium)', cursor: 'pointer',
+                            background: 'rgba(var(--glass-rgb),0.9)', color: 'var(--color-text)', fontSize: 13, fontWeight: 700,
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                          } as React.CSSProperties}
+                        >
+                          <Copy size={14} strokeWidth={2.4} />
+                          Дублировать {checkedIds.size}
+                        </button>
+                      )}
+                      <button
+                        onClick={deleteChecked}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 7,
+                          padding: '10px 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
+                          background: '#c0303a', color: '#fff', fontSize: 13, fontWeight: 700,
+                          boxShadow: '0 4px 14px rgba(192,48,58,0.32)',
+                        }}
+                      >
+                        <Trash2 size={14} strokeWidth={2.4} />
+                        Удалить {checkedIds.size}
+                      </button>
+                    </motion.div>
                   )}
                 </AnimatePresence>
               </div>
@@ -4201,51 +5817,154 @@ export default function TeacherConstructorPage() {
                   />
                 </div>
               )}
+              {activeTab === 'widget' && (
+                <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {/* Controls bar */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <WidgetSortDropdown value={widgetFilters.sort} onChange={v => setWidgetFilters(prev => ({ ...prev, sort: v }))} />
+                      <div style={{ display: 'flex', padding: 2, borderRadius: 9, background: 'var(--color-bg-3)', gap: 2 }}>
+                        <button onClick={() => setWidgetFilters(prev => ({ ...prev, viewMode: 'cards', activeGroup: '' }))}
+                          title="Карточками"
+                          style={{ padding: '5px 8px', borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                            background: widgetFilters.viewMode === 'cards' ? 'var(--color-surface)' : 'transparent',
+                            color: widgetFilters.viewMode === 'cards' ? 'var(--color-text)' : 'var(--color-text-3)',
+                            boxShadow: widgetFilters.viewMode === 'cards' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.14s' }}>
+                          <LayoutGrid size={13} />
+                        </button>
+                        <button onClick={() => setWidgetFilters(prev => ({ ...prev, viewMode: 'groups' }))}
+                          title="Группами"
+                          style={{ padding: '5px 8px', borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                            background: widgetFilters.viewMode === 'groups' ? 'var(--color-surface)' : 'transparent',
+                            color: widgetFilters.viewMode === 'groups' ? 'var(--color-text)' : 'var(--color-text-3)',
+                            boxShadow: widgetFilters.viewMode === 'groups' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.14s' }}>
+                          <Layers size={13} />
+                        </button>
+                      </div>
+                      <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>{filteredWidgets.length} виджетов</span>
+                    </div>
+
+                    {/* Cards view */}
+                    {widgetFilters.viewMode === 'cards' && (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+                        {filteredWidgets.map(w => (
+                          <div key={w.id} style={{ position: 'relative' }}>
+                            <WidgetCard widget={w} isSelected={false}
+                              onClick={() => editMode ? toggleCheck(w.id) : handleOpenWidget(w)}
+                              actions={undefined} />
+                            {editMode && (
+                              <>
+                                <div onClick={() => toggleCheck(w.id)} style={{
+                                  position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
+                                  border: checkedIds.has(w.id) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
+                                  background: checkedIds.has(w.id) ? '#c0303a' : 'var(--color-bg-5)',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  cursor: 'pointer', transition: 'all 0.14s', zIndex: 5, boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+                                }}>
+                                  {checkedIds.has(w.id) && <Check size={13} strokeWidth={3} style={{ color: '#fff' }} />}
+                                </div>
+                                <button onClick={e => { e.stopPropagation(); duplicateWidget(w) }} title="Дублировать"
+                                  style={{ position: 'absolute', top: 12, right: 12, width: 28, height: 28, borderRadius: 8, border: 'none',
+                                    background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: '0 1px 6px rgba(0,0,0,0.14)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 5, color: 'var(--color-muted)' }}>
+                                  <Copy size={13} strokeWidth={2} />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Groups view */}
+                    {widgetFilters.viewMode === 'groups' && (
+                      <WidgetGroupsView
+                        widgets={filteredWidgets}
+                        activeGroup={widgetFilters.activeGroup}
+                        editMode={editMode}
+                        checkedIds={checkedIds}
+                        onToggleCheck={toggleCheck}
+                        onOpenWidget={handleOpenWidget}
+                        onDuplicateWidget={duplicateWidget}
+                        onDeleteWidget={deleteWidget}
+                      />
+                    )}
+                  </div>
+                  <WidgetFilterPanel
+                    filters={widgetFilters}
+                    onChange={f => setWidgetFilters(prev => ({ ...prev, ...f }))}
+                    total={filteredWidgets.length}
+                  />
+                </div>
+              )}
               <div
-                style={{ display: activeTab === 'trainer' ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+                style={{ display: (activeTab === 'trainer' || activeTab === 'widget') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
                 {activeTab === 'course' && courses.map(c => (
                   <div key={c.id} style={{ position: 'relative' }}>
                     <CourseCard course={c} isSelected={false}
-                      onClick={() => editMode ? toggleCheck(c.id) : handleExpandCourse(c)} />
+                      onClick={() => editMode ? toggleCheck(c.id) : handleExpandCourse(c)}
+                      actions={undefined} />
                     {editMode && (
-                      <div onClick={() => toggleCheck(c.id)} style={{
-                        position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
-                        border: checkedIds.has(c.id) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
-                        background: checkedIds.has(c.id) ? '#c0303a' : 'var(--color-bg-5)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', transition: 'all 0.14s', zIndex: 5,
-                        boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
-                      }}>
-                        {checkedIds.has(c.id) && <Check size={13} strokeWidth={3} style={{ color: '#fff' }} />}
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {activeTab === 'widget' && widgets.map(w => (
-                  <div key={w.id} style={{ position: 'relative' }}>
-                    <WidgetCard widget={w} isSelected={false}
-                      onClick={() => editMode ? toggleCheck(w.id) : handleOpenWidget(w)} />
-                    {editMode && (
-                      <div onClick={() => toggleCheck(w.id)} style={{
-                        position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
-                        border: checkedIds.has(w.id) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
-                        background: checkedIds.has(w.id) ? '#c0303a' : 'var(--color-bg-5)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', transition: 'all 0.14s', zIndex: 5,
-                        boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
-                      }}>
-                        {checkedIds.has(w.id) && <Check size={13} strokeWidth={3} style={{ color: '#fff' }} />}
-                      </div>
+                      <>
+                        <div onClick={() => toggleCheck(c.id)} style={{
+                          position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
+                          border: checkedIds.has(c.id) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
+                          background: checkedIds.has(c.id) ? '#c0303a' : 'var(--color-bg-5)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          cursor: 'pointer', transition: 'all 0.14s', zIndex: 5,
+                          boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+                        }}>
+                          {checkedIds.has(c.id) && <Check size={13} strokeWidth={3} style={{ color: '#fff' }} />}
+                        </div>
+                        <button onClick={e => { e.stopPropagation(); duplicateCourse(c) }} title="Дублировать"
+                          style={{ position: 'absolute', top: 12, right: 12, width: 28, height: 28, borderRadius: 8, border: 'none',
+                            background: 'rgba(var(--glass-rgb), 0.92)', boxShadow: '0 1px 6px rgba(0,0,0,0.14)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 5, color: 'var(--color-muted)' }}>
+                          <Copy size={13} strokeWidth={2} />
+                        </button>
+                      </>
                     )}
                   </div>
                 ))}
                 {activeTab === 'testing' && DIAG_SUBJECTS.map(subject => (
-                  <DiagnosticCard
-                    key={subject}
-                    subject={subject}
-                    isSelected={selectedId === subject}
-                    onClick={() => openDiagCard(subject)}
-                  />
+                  <div key={subject} style={{ position: 'relative' }}>
+                    <DiagnosticCard
+                      subject={subject}
+                      isSelected={selectedId === subject}
+                      onClick={() => editMode ? toggleCheck(subject) : openDiagCard(subject)}
+                    />
+                    {editMode && (
+                      <div onClick={() => toggleCheck(subject)} style={{
+                        position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
+                        border: checkedIds.has(subject) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
+                        background: checkedIds.has(subject) ? '#c0303a' : 'var(--color-bg-5)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', transition: 'all 0.14s', zIndex: 5, boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+                      }}>
+                        {checkedIds.has(subject) && <Check size={13} strokeWidth={3} style={{ color: '#fff' }} />}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {activeTab === 'testing' && customTests.map(ct => (
+                  <div key={ct.id} style={{ position: 'relative' }}>
+                    <CustomTestCard
+                      test={ct}
+                      isSelected={selectedId === ct.id}
+                      onClick={() => editMode ? toggleCheck(ct.id) : openDiagCard(ct.id as DiagSubject)}
+                    />
+                    {editMode && (
+                      <div onClick={() => toggleCheck(ct.id)} style={{
+                        position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
+                        border: checkedIds.has(ct.id) ? '2px solid #c0303a' : '1.5px solid var(--color-border-medium)',
+                        background: checkedIds.has(ct.id) ? '#c0303a' : 'var(--color-bg-5)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', transition: 'all 0.14s', zIndex: 5, boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+                      }}>
+                        {checkedIds.has(ct.id) && <Check size={13} strokeWidth={3} style={{ color: '#fff' }} />}
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
 

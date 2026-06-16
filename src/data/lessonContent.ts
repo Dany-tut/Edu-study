@@ -1,5 +1,6 @@
 import { type Lesson } from './mockData'
 import { useStudentData } from '../store/studentDataStore'
+import { AP_LESSON_CONTENT, type ApLessonContent } from './apChemistryLessons'
 
 // ── Lesson page (screen 2) content ──────────────────────────────────────────
 
@@ -45,6 +46,13 @@ export interface LessonHomework {
  *  paragraph introduces a specific reaction from `courseReactions` and the
  *  lesson page can scroll to / highlight it on request. */
 export interface LessonParagraph { id: string; text: string; reactionId?: string }
+/** Authored, editable lesson body — konspekt paragraphs + homework. Stored per
+ *  lesson in Supabase (`lessons.content`); when empty we fall back to code. */
+export interface LessonContentData {
+  paragraphs: LessonParagraph[]
+  quiz: HomeworkQuizQuestion[]
+  hardTask: HomeworkTeacherTask
+}
 export interface LessonDetail {
   /** formatted lesson date, e.g. "06.05" */
   date: string
@@ -97,15 +105,74 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
   // Deterministic + stable per lesson number (no Date.now()/random).
   const day = (lesson.number % 28) + 1
   const month = ((lesson.number * 3) % 12) + 1
+  const dateStr = `${pad2(day)}.${pad2(month)}`
+
+  // "Запись" tab fields from the DB win over the placeholder video/timecodes.
+  const videoId = lesson.videoId ?? LESSON_VIDEO_ID
+  const timecodes = lesson.timecodes?.length ? lesson.timecodes : baseTimecodes
+
+  // Priority: DB-authored content (teacher edits in Конструктор) → code default
+  // (AP authored) → generic generator.
+  const ap = (lesson.content && lesson.content.paragraphs?.length ? lesson.content : null) ?? AP_LESSON_CONTENT[lesson.id]
+  if (ap) {
+    return {
+      date: dateStr,
+      duration: '25:12',
+      videoId,
+      timecodes,
+      materials: materialsBySubject.chemistry,
+      paragraphs: ap.paragraphs,
+      homework: buildApHomework(lesson, dateStr, ap),
+    }
+  }
+
   return {
-    date: `${pad2(day)}.${pad2(month)}`,
+    date: dateStr,
     // Real runtime of LESSON_VIDEO_ID (25:12).
     duration: '25:12',
-    videoId: LESSON_VIDEO_ID,
-    timecodes: baseTimecodes,
+    videoId,
+    timecodes,
     materials: materialsBySubject[lesson.subject] ?? materialsBySubject.chemistry,
     paragraphs: buildParagraphs(lesson),
-    homework: buildHomework(lesson, `${pad2(day)}.${pad2(month)}`),
+    homework: buildHomework(lesson, dateStr),
+  }
+}
+
+/** Wrap authored AP quiz + hard task into the full LessonHomework scaffold,
+ *  reusing the same level structure as the generic homework. */
+function buildApHomework(lesson: Lesson, dueDate: string, ap: ApLessonContent): LessonHomework {
+  const recommendationScore = 80
+  return {
+    title: `Домашка по теме «${lesson.title}»`,
+    subtitle: 'Базовый уровень проверяется сразу по ключам, хард уходит преподавателю на проверку.',
+    recommendationScore,
+    levels: [
+      {
+        id: 'basic',
+        title: '1 уровень',
+        shortLabel: 'База',
+        kind: 'quiz',
+        motivation: 'Проверим, насколько тема уложилась после урока, без лишней перегрузки.',
+        dueDate,
+        estimatedMinutes: 10,
+        peerCompletionRate: 78,
+        peerAverageScore: 74,
+        questions: ap.quiz,
+      },
+      {
+        id: 'hard',
+        title: '2 уровень',
+        shortLabel: 'Хард',
+        kind: 'teacher-review',
+        optional: true,
+        unlockScore: recommendationScore,
+        motivation: 'Хард не обязателен, но отлично подойдёт тем, кто хочет добрать глубину и получить комментарий преподавателя.',
+        dueDate,
+        estimatedMinutes: 20,
+        peerCompletionRate: 31,
+        teacherTask: ap.hardTask,
+      },
+    ],
   }
 }
 

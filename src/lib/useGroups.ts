@@ -12,6 +12,7 @@ type DbGroup = {
   color_soft: string
   start_date: string | null
   total_lessons: number
+  is_individual: boolean
   students: { count: number }[]
 }
 
@@ -37,6 +38,7 @@ export function useGroups() {
         studentCount: g.students?.[0]?.count ?? 0,
         lessonsCompleted: 0,
         totalLessons: g.total_lessons,
+        isIndividual: g.is_individual,
       })))
     }
     setLoading(false)
@@ -54,9 +56,50 @@ export function useGroups() {
       color_soft: g.colorSoft,
       start_date: g.startDate || null,
       total_lessons: g.totalLessons,
+      is_individual: g.isIndividual ?? false,
     }).select().single()
     if (!error && data) await load()
     return { data, error }
+  }
+
+  async function addIndividualStudent(s: {
+    name: string
+    subject: Group['subject']
+    icon: string
+    level: string
+    color: string
+    colorSoft: string
+    phone?: string
+    telegramLink?: string
+    parentContact?: string
+    desiredScore?: number
+    paymentAmount?: number
+  }) {
+    const { data: groupData, error: groupError } = await supabase.from('groups').insert({
+      name: s.name,
+      subject: s.subject,
+      icon: s.icon,
+      level: s.level,
+      color: s.color,
+      color_soft: s.colorSoft,
+      start_date: null,
+      total_lessons: 0,
+      is_individual: true,
+    }).select().single()
+    if (groupError || !groupData) return { error: groupError, inviteToken: null }
+
+    const { data: studentData, error: studentError } = await supabase.from('students').insert({
+      group_id: groupData.id,
+      name: s.name,
+      phone: s.phone ?? '',
+      telegram_link: s.telegramLink ?? '',
+      parent_contact: s.parentContact ?? '',
+      desired_score: s.desiredScore ?? 80,
+      payment_amount: s.paymentAmount ?? 0,
+    }).select('invite_token').single()
+
+    await load()
+    return { error: studentError, inviteToken: studentData?.invite_token as string | null }
   }
 
   async function deleteGroup(id: string) {
@@ -64,7 +107,7 @@ export function useGroups() {
     await load()
   }
 
-  return { groups, loading, addGroup, deleteGroup, reload: load }
+  return { groups, loading, addGroup, addIndividualStudent, deleteGroup, reload: load }
 }
 
 export function useStudents(groupId: string | null) {

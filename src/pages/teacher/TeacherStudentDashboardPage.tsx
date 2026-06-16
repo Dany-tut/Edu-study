@@ -1,10 +1,10 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft, Phone, Send, User, TrendingUp, ClipboardCheck, Clock,
   Award, Target, XCircle, CheckCircle2, Layers, BookOpen, Dumbbell,
   Star, Calendar, BarChart3, Download, CreditCard, MessageSquare,
-  CheckCheck, AlertCircle, Percent, FlaskConical, Atom, Brain,
+  CheckCheck, AlertCircle, Percent, FlaskConical, Atom, Brain, ChevronDown,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useGroups, useStudents } from '../../lib/useGroups'
@@ -69,18 +69,24 @@ function Avatar({ student, group, size = 56 }: { student: Student; group: Group;
   )
 }
 
-function SectionHeader({ icon: Icon, label }: { icon: React.FC<{ size?: number; style?: React.CSSProperties }>; label: string }) {
+function SectionHeader({ icon: Icon, label, accent }: { icon: React.FC<{ size?: number; style?: React.CSSProperties }>; label: string; accent?: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 14 }}>
-      <Icon size={14} style={{ color: 'var(--color-muted)' }} />
-      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{label}</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 16 }}>
+      <Icon size={13} style={{ color: accent ?? 'var(--color-text-3)' }} />
+      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', letterSpacing: 0.2, textTransform: 'uppercase' }}>{label}</span>
     </div>
   )
 }
 
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
-    <div style={{ padding: 20, borderRadius: 20, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', ...style }}>
+    <div style={{
+      padding: 22, borderRadius: 20,
+      background: 'var(--color-bg-card, rgba(var(--glass-rgb), 0.96))',
+      border: '1px solid var(--color-border-soft)',
+      boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+      ...style,
+    }}>
       {children}
     </div>
   )
@@ -146,6 +152,158 @@ function printStudentCard(studentName: string) {
   }, 500)
 }
 
+// ─── Diagnostic pill row ──────────────────────────────────────────────────────
+function DiagnosticPillRow({ results }: { results: AnonDiagResult[] }) {
+  const [expanded, setExpanded] = useState<string | null>(null)
+
+  function getAccent(r: AnonDiagResult) {
+    if (r.subject === 'logic') return '#f59e0b'
+    if (r.subject === 'biology') return '#22c55e'
+    return '#7c3aed'
+  }
+  function getSoft(r: AnonDiagResult) {
+    if (r.subject === 'logic') return 'rgba(245,166,35,0.12)'
+    if (r.subject === 'biology') return 'rgba(34,197,94,0.12)'
+    return 'rgba(124,58,237,0.12)'
+  }
+  function getLabel(r: AnonDiagResult) {
+    if (r.subject === 'logic') return 'Скрининг мышления'
+    if (r.subject === 'biology') return 'Биология'
+    return 'Химия'
+  }
+  function getIconComp(r: AnonDiagResult) {
+    if (r.subject === 'logic') return Brain
+    if (r.subject === 'biology') return FlaskConical
+    return Atom
+  }
+  function getPct(r: AnonDiagResult) {
+    const secs = Object.entries(r.results)
+    const total = secs.reduce((a, [, v]) => a + v.total, 0)
+    const correct = secs.reduce((a, [, v]) => a + v.correct, 0)
+    return total ? Math.round((correct / total) * 100) : 0
+  }
+
+  const expandedResult = results.find(r => r.id === expanded) ?? null
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      {/* Pills row */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+        padding: '10px 14px', borderRadius: 16,
+        background: 'transparent',
+      }}>
+        {results.map(r => {
+          const accent = getAccent(r)
+          const pct = getPct(r)
+          const pctColor = pct >= 70 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#ef4444'
+          const label = getLabel(r)
+          const Icon = getIconComp(r)
+          const date = new Date(r.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })
+          const isOpen = expanded === r.id
+          return (
+            <motion.button
+              key={r.id}
+              onClick={() => setExpanded(isOpen ? null : r.id)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '7px 14px', borderRadius: 999,
+                border: `1.5px solid ${isOpen ? accent + '70' : accent + '35'}`,
+                background: isOpen ? `${accent}1C` : `${accent}0D`,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              <Icon size={14} style={{ color: accent, flexShrink: 0 }} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{label}</span>
+              <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{date}</span>
+              <span style={{ fontSize: 15, fontWeight: 800, color: pctColor, marginLeft: 2 }}>{pct}%</span>
+              <ChevronDown size={12} style={{ color: 'var(--color-text-3)', transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }} />
+            </motion.button>
+          )
+        })}
+      </div>
+
+      {/* Expanded detail panel */}
+      <AnimatePresence mode="wait">
+        {expandedResult && (() => {
+          const r = expandedResult
+          const accent = getAccent(r)
+          const soft = getSoft(r)
+          const isLogic = r.subject === 'logic'
+          const sections = Object.entries(r.results)
+          const sortedSections = isLogic
+            ? [...sections].sort((a, b) => {
+                const pa = a[1].total ? a[1].correct / a[1].total : 0
+                const pb = b[1].total ? b[1].correct / b[1].total : 0
+                return pb - pa
+              })
+            : sections
+          const topSection = isLogic ? sortedSections[0] : null
+          const pct = getPct(r)
+          const pctColor = pct >= 70 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#ef4444'
+          const Icon = getIconComp(r)
+          const label = getLabel(r)
+          const date = new Date(r.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })
+          return (
+            <motion.div
+              key={r.id}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+              style={{ overflow: 'hidden' }}
+            >
+              <div style={{ marginTop: 8, borderRadius: 16, border: `1px solid ${accent}30`, overflow: 'hidden' }}>
+                {/* Header */}
+                <div style={{ padding: '14px 18px', background: soft, display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 11, background: `${accent}25`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon size={18} style={{ color: accent }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{label}</div>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>
+                      {date}
+                      {isLogic && topSection && (
+                        <span style={{ marginLeft: 8, color: accent, fontWeight: 600 }}>· сильнее: {topSection[0]}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 30, fontWeight: 900, color: pctColor, letterSpacing: -1 }}>{pct}%</div>
+                </div>
+                {/* Section bars grid */}
+                <div style={{ padding: '14px 18px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  {sortedSections.map(([sec, { correct: c, total: t }]) => {
+                    const p = t ? Math.round((c / t) * 100) : 0
+                    const col = p >= 70 ? '#22c55e' : p >= 40 ? '#f59e0b' : '#ef4444'
+                    return (
+                      <div key={sec}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                          <span style={{ fontSize: 12, color: 'var(--color-text-2)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '75%' }}>{sec}</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: col, flexShrink: 0 }}>{c}/{t}</span>
+                        </div>
+                        <div style={{ height: 5, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden' }}>
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${p}%` }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            style={{ height: '100%', borderRadius: 999, background: col }}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          )
+        })()}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function TeacherStudentDashboardPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
@@ -159,16 +317,17 @@ export default function TeacherStudentDashboardPage() {
   const group = groups.find(g => g.id === selectedGroupId) ?? null
   const student = students.find(s => s.id === selectedStudentId) ?? null
 
-  const [scrolled, setScrolled] = useState(false)
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const [docked, setDocked] = useState(false)
   const onScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    setScrolled((e.currentTarget as HTMLElement).scrollTop > 80)
+    setDocked((e.currentTarget as HTMLElement).scrollTop > 72)
   }, [])
 
   const [diagResults, setDiagResults] = useState<AnonDiagResult[]>([])
   useEffect(() => {
     loadAnonResults().then(all => setDiagResults(all.filter(r => r.linkedStudentId === selectedStudentId)))
   }, [selectedStudentId])
+
+  const [diagExpanded, setDiagExpanded] = useState(true)
 
   if (!student || !group) {
     return (
@@ -184,61 +343,74 @@ export default function TeacherStudentDashboardPage() {
   const hwAvg = MOCK_HW_HISTORY.filter(h => !h.returned).reduce((a, h) => a + (h.score / h.maxScore) * 100, 0) / MOCK_HW_HISTORY.filter(h => !h.returned).length
   const attendedCount = MOCK_LESSONS.filter(l => l.attended).length
 
+  // Student has meaningful activity beyond diagnostics
+  const hasStats = student.hwScore > 0 || student.testScore > 0 || student.attendance > 0 || student.trialScore != null || correctTrainer > 0
+
+  const dockGlass: React.CSSProperties = {
+    border: '1px solid var(--color-border-glass)',
+    background: 'rgba(var(--glass-rgb), 0.86)',
+    backdropFilter: 'blur(14px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+    boxShadow: 'var(--shadow-lg)',
+    fontFamily: 'inherit',
+  }
+
   return (
     <>
-      {/* Floating side buttons — outside motion.div so position:fixed works vs viewport */}
-      <AnimatePresence>
-        {scrolled && (
-          <>
-            <motion.button
-              key="side-back"
-              initial={{ opacity: 0, x: -16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -16 }}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              onClick={() => setActivePage('groups')}
-              style={{
-                position: 'fixed', left: 20, top: '50%', transform: 'translateY(-50%)',
-                zIndex: 200, display: 'flex', flexDirection: 'column', alignItems: 'center',
-                gap: 6, padding: '12px 10px', borderRadius: 16, border: 'none', cursor: 'pointer',
-                background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'blur(14px)',
-                boxShadow: '0 4px 18px rgba(0,0,0,0.14)', color: 'var(--color-text-3)',
-                fontSize: 10, fontWeight: 600, transition: 'color 0.15s',
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--color-text)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--color-text-3)' }}
+      {/* ── Docked pill row (fixed top, appears on scroll) ─────────────── */}
+      <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
+        <AnimatePresence>
+          {docked && (
+            <motion.div
+              key="student-dock"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: [0, 6, -3.5, 1.5, -0.5, 0] }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
+              style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
             >
-              <ArrowLeft size={16} />
-              <span style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: 0.3 }}>Назад</span>
-            </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
+                onClick={() => setActivePage('groups')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
+                  padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass,
+                  color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                  pointerEvents: 'auto',
+                }}
+              >
+                <ArrowLeft size={15} strokeWidth={2} /> Назад
+              </motion.button>
 
-            <motion.button
-              key="side-pdf"
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 16 }}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              onClick={() => printStudentCard(student.name)}
-              style={{
-                position: 'fixed', right: 20, top: '50%', transform: 'translateY(-50%)',
-                zIndex: 200, display: 'flex', flexDirection: 'column', alignItems: 'center',
-                gap: 6, padding: '12px 10px', borderRadius: 16, border: 'none', cursor: 'pointer',
-                background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'blur(14px)',
-                boxShadow: '0 4px 18px rgba(0,0,0,0.14)', color: 'var(--color-text-3)',
-                fontSize: 10, fontWeight: 600, transition: 'color 0.15s',
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = group.color }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--color-text-3)' }}
-            >
-              <Download size={16} />
-              <span style={{ writingMode: 'vertical-rl', letterSpacing: 0.3 }}>PDF</span>
-            </motion.button>
-          </>
-        )}
-      </AnimatePresence>
+              <div style={{
+                flexShrink: 1, minWidth: 0, maxWidth: 260, overflow: 'hidden',
+                textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                padding: '9px 16px', borderRadius: 999, ...dockGlass,
+                fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
+              }}>
+                {student.name}
+              </div>
+
+              <div style={{ flexGrow: 1 }} />
+
+              <motion.button
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
+                onClick={() => printStudentCard(student.name)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
+                  padding: '9px 18px 9px 14px', borderRadius: 999, ...dockGlass,
+                  color: group.color, fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                  pointerEvents: 'auto', border: `1px solid ${group.color}40`,
+                }}
+              >
+                <Download size={14} strokeWidth={2} /> Скачать PDF
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       <motion.div
-        ref={scrollRef}
         onScroll={onScroll}
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -289,11 +461,15 @@ export default function TeacherStudentDashboardPage() {
 
       <div style={{ padding: '0 64px 56px' }}>
 
-        {/* ── Toolbar ─────────────────────────────────────────────────── */}
-        <div style={{ paddingTop: 24, marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        {/* ── In-flow toolbar (fades when docked) ─────────────────────── */}
+        <motion.div
+          animate={{ opacity: docked ? 0 : 1 }}
+          transition={{ duration: 0.18 }}
+          style={{ paddingTop: 24, marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', pointerEvents: docked ? 'none' : 'auto' }}
+        >
           <button
             onClick={() => setActivePage('groups')}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 14px', borderRadius: 12, border: 'none', background: 'rgba(var(--glass-rgb), 0.80)', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, backdropFilter: 'blur(12px)', transition: 'color 0.15s' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 16px 8px 12px', borderRadius: 999, border: '1px solid var(--color-border-glass)', background: 'rgba(var(--glass-rgb), 0.80)', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, backdropFilter: 'blur(12px)', transition: 'color 0.15s', fontFamily: 'inherit' }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--color-text)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--color-text-3)' }}
           >
@@ -302,64 +478,150 @@ export default function TeacherStudentDashboardPage() {
           </button>
           <button
             onClick={() => printStudentCard(student.name)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 16px', borderRadius: 12, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.80)', cursor: 'pointer', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, backdropFilter: 'blur(12px)', transition: 'all 0.15s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = group.color; (e.currentTarget as HTMLElement).style.color = group.color }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border-soft)'; (e.currentTarget as HTMLElement).style.color = 'var(--color-text)' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 18px 8px 14px', borderRadius: 999, border: `1px solid ${group.color}40`, background: 'rgba(var(--glass-rgb), 0.80)', cursor: 'pointer', color: group.color, fontSize: 13, fontWeight: 600, backdropFilter: 'blur(12px)', transition: 'all 0.15s', fontFamily: 'inherit' }}
           >
             <Download size={14} />
             Скачать PDF
           </button>
-        </div>
+        </motion.div>
 
         {/* ── Hero ─────────────────────────────────────────────────────── */}
         <div style={{
-          padding: '28px 32px', borderRadius: 24, marginBottom: 20,
-          background: `linear-gradient(135deg, ${group.color}18, ${group.color}08)`,
-          border: `1px solid ${group.color}33`,
-          display: 'flex', alignItems: 'center', gap: 20,
+          padding: '24px 28px', borderRadius: 24, marginBottom: 20,
+          background: `linear-gradient(135deg, ${group.color}1A 0%, ${group.color}08 60%, transparent 100%)`,
+          border: `1.5px solid ${group.color}30`,
+          display: 'flex', alignItems: 'center', gap: 22,
+          boxShadow: `0 0 0 1px ${group.color}10, 0 4px 24px rgba(0,0,0,0.10)`,
         }}>
-          <Avatar student={student} group={group} size={72} />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 24, fontWeight: 750, color: 'var(--color-text)', marginBottom: 6 }}>{student.name}</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: group.color + '33', borderRadius: 8, padding: '3px 10px' }}>
-                <div style={{ width: 7, height: 7, borderRadius: '50%', background: group.color }} />
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</span>
+          <Avatar student={student} group={group} size={68} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', marginBottom: 8, letterSpacing: -0.3 }}>{student.name}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                background: group.color + '20', borderRadius: 8, padding: '3px 10px',
+                border: `1px solid ${group.color}30`,
+              }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: group.color }}>{group.name}</span>
               </div>
-              <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>с {student.startedAt}</span>
-              <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Цель: {student.desiredScore} баллов</span>
-              <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Последний вход: {student.lastVisit || '—'}</span>
+              {student.startedAt && <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>c {student.startedAt}</span>}
+              <span style={{
+                fontSize: 12, color: 'var(--color-text-3)',
+                padding: '2px 8px', borderRadius: 7,
+                background: 'rgba(var(--glass-rgb),0.5)', border: '1px solid var(--color-border-soft)',
+              }}>Цель: <b style={{ color: 'var(--color-text-2)', fontWeight: 700 }}>{student.desiredScore} б.</b></span>
+              {student.lastVisit && <span style={{ fontSize: 12, color: 'var(--color-text-4)' }}>вход: {student.lastVisit}</span>}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <a href={`tel:${student.phone}`} style={{ width: 38, height: 38, borderRadius: '50%', background: `${group.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: group.color, textDecoration: 'none' }} title={student.phone}><Phone size={15} /></a>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            {student.phone && (
+              <a href={`tel:${student.phone}`}
+                style={{ width: 36, height: 36, borderRadius: 12, background: `${group.color}18`, border: `1px solid ${group.color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: group.color, textDecoration: 'none', transition: 'background 0.15s' }}
+                title={student.phone}><Phone size={15} /></a>
+            )}
             {student.telegramLink && (
-              <a href={`https://t.me/${student.telegramLink}`} target="_blank" rel="noreferrer" style={{ width: 38, height: 38, borderRadius: '50%', background: `${group.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: group.color, textDecoration: 'none' }} title={`@${student.telegramLink}`}><Send size={15} /></a>
+              <a href={`https://t.me/${student.telegramLink}`} target="_blank" rel="noreferrer"
+                style={{ width: 36, height: 36, borderRadius: 12, background: `${group.color}18`, border: `1px solid ${group.color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: group.color, textDecoration: 'none', transition: 'background 0.15s' }}
+                title={`@${student.telegramLink}`}><Send size={15} /></a>
             )}
             {student.parentContact && (
-              <a href={`tel:${student.parentContact}`} style={{ width: 38, height: 38, borderRadius: '50%', background: `${group.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: group.color, textDecoration: 'none' }} title={`Родитель: ${student.parentContact}`}><User size={15} /></a>
+              <a href={`tel:${student.parentContact}`}
+                style={{ width: 36, height: 36, borderRadius: 12, background: `${group.color}18`, border: `1px solid ${group.color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: group.color, textDecoration: 'none', transition: 'background 0.15s' }}
+                title={`Родитель: ${student.parentContact}`}><User size={15} /></a>
             )}
           </div>
         </div>
 
+        {/* ── Priority: diagnostics-only student → show diag first ─────── */}
+        {!hasStats && diagResults.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <Target size={14} style={{ color: 'var(--color-accent)' }} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Результаты диагностики</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', borderRadius: 7, padding: '1px 8px' }}>{diagResults.length}</span>
+            </div>
+            <DiagnosticPillRow results={diagResults} />
+          </div>
+        )}
+
         {/* ── KPI summary row ───────────────────────────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 20 }}>
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12,
+          marginBottom: (hasStats && diagResults.length > 0) ? 0 : 20,
+          opacity: !hasStats && diagResults.length > 0 ? 0.45 : 1,
+          transition: 'opacity 0.2s',
+        }}>
           {[
             { icon: ClipboardCheck, label: 'ДЗ', value: `${student.hwScore}%`, color: '#5FD68A', bg: 'var(--color-green-soft)' },
-            { icon: TrendingUp,     label: 'Тесты', value: `${student.testScore}%`, color: '#B98FFF', bg: '#EFE0FF' },
-            { icon: Award,          label: 'Пробник', value: student.trialScore != null ? `${student.trialScore}%` : '—', color: '#F5A623', bg: '#FFF3D6' },
-            { icon: Clock,          label: 'Посещаемость', value: `${student.attendance}%`, color: student.attendance >= 90 ? '#34C877' : student.attendance >= 70 ? '#F5A623' : '#F48B91', bg: student.attendance >= 90 ? 'var(--color-green-soft)' : student.attendance >= 70 ? '#FFF3D6' : 'var(--color-red-soft)' },
-            { icon: Target,         label: 'Тренажёр', value: `${correctTrainer}/${totalTrainer}`, color: '#6D9BFF', bg: '#DCE8FF' },
+            { icon: TrendingUp,     label: 'Тесты', value: `${student.testScore}%`, color: '#B98FFF', bg: 'rgba(185,143,255,0.14)' },
+            { icon: Award,          label: 'Пробник', value: student.trialScore != null ? `${student.trialScore}%` : '—', color: '#F5A623', bg: 'rgba(245,166,35,0.12)' },
+            { icon: Clock,          label: 'Посещаемость', value: `${student.attendance}%`, color: student.attendance >= 90 ? '#34C877' : student.attendance >= 70 ? '#F5A623' : '#F48B91', bg: student.attendance >= 90 ? 'var(--color-green-soft)' : student.attendance >= 70 ? 'rgba(245,166,35,0.12)' : 'var(--color-red-soft)' },
+            { icon: Target,         label: 'Тренажёр', value: `${correctTrainer}/${totalTrainer}`, color: '#6D9BFF', bg: 'rgba(109,155,255,0.14)' },
           ].map(({ icon: Icon, label, value, color, bg }) => (
-            <div key={label} style={{ padding: '14px 16px', borderRadius: 16, background: bg, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div key={label} style={{ padding: '16px 18px', borderRadius: 16, background: bg, display: 'flex', flexDirection: 'column', gap: 7 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Icon size={12} style={{ color }} />
-                <span style={{ fontSize: 10, color, opacity: 0.75, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.3 }}>{label}</span>
+                <Icon size={13} style={{ color }} />
+                <span style={{ fontSize: 11, color, opacity: 0.85, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</span>
               </div>
-              <span style={{ fontSize: 22, fontWeight: 750, color, lineHeight: 1 }}>{value}</span>
+              <span style={{ fontSize: 26, fontWeight: 800, color, lineHeight: 1 }}>{value}</span>
             </div>
           ))}
         </div>
+
+        {/* ── Diagnostics second row (collapsible, shown only when student has stats) ── */}
+        {hasStats && diagResults.length > 0 && (
+          <>
+            {/* Chevron divider toggle */}
+            <motion.button
+              onClick={() => setDiagExpanded(v => !v)}
+              whileHover={{ opacity: 0.85 }}
+              whileTap={{ scale: 0.98 }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                padding: '8px 0', background: 'none', border: 'none', cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              <div style={{ flex: 1, height: 1, background: 'var(--color-border-soft)' }} />
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '4px 12px', borderRadius: 999,
+                background: 'var(--color-bg-card)', border: '1px solid var(--color-border-soft)',
+              }}>
+                <Target size={11} style={{ color: 'var(--color-accent)' }} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
+                  Диагностика · {diagResults.length}
+                </span>
+                <motion.div
+                  animate={{ rotate: diagExpanded ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  style={{ display: 'flex', alignItems: 'center' }}
+                >
+                  <ChevronDown size={13} style={{ color: 'var(--color-text-3)' }} />
+                </motion.div>
+              </div>
+              <div style={{ flex: 1, height: 1, background: 'var(--color-border-soft)' }} />
+            </motion.button>
+
+            <AnimatePresence initial={false}>
+              {diagExpanded && (
+                <motion.div
+                  key="diag-row"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div style={{ paddingTop: 8, paddingBottom: 4 }}>
+                    <DiagnosticPillRow results={diagResults} />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
+        )}
 
         {/* ── Two-column grid ───────────────────────────────────────────── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
@@ -371,11 +633,11 @@ export default function TeacherStudentDashboardPage() {
             <Card>
               <SectionHeader icon={BarChart3} label="Показатели" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <ScoreBar label="Домашние задания" icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" bg="#D6F5E3" />
-                <ScoreBar label="Тесты" icon={TrendingUp} value={student.testScore} color="#B98FFF" bg="#EFE0FF" />
-                {student.trialScore != null && <ScoreBar label="Пробный экзамен" icon={Award} value={student.trialScore} color="#F5A623" bg="#FFF3D6" />}
+                <ScoreBar label="Домашние задания" icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" bg="rgba(95,214,138,0.14)" />
+                <ScoreBar label="Тесты" icon={TrendingUp} value={student.testScore} color="#B98FFF" bg="rgba(185,143,255,0.14)" />
+                {student.trialScore != null && <ScoreBar label="Пробный экзамен" icon={Award} value={student.trialScore} color="#F5A623" bg="rgba(245,166,35,0.12)" />}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'var(--color-bg)', borderRadius: 12 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: student.attendance >= 90 ? '#D6F5E3' : student.attendance >= 70 ? '#FFF3D6' : '#FFE0E0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: student.attendance >= 90 ? 'rgba(95,214,138,0.14)' : student.attendance >= 70 ? 'rgba(245,166,35,0.12)' : 'rgba(244,139,145,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Clock size={13} strokeWidth={2} style={{ color: student.attendance >= 90 ? '#5FD68A' : student.attendance >= 70 ? '#F5A623' : '#F48B91' }} />
                   </div>
                   <span style={{ fontSize: 13, color: 'var(--color-text)', flex: 1 }}>Посещаемость</span>
@@ -508,7 +770,7 @@ export default function TeacherStudentDashboardPage() {
                   { val: totalTrainer, label: 'Задач', color: 'var(--color-text)', bg: 'var(--color-bg)' },
                   { val: correctTrainer, label: 'Верно', color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
                   { val: wrongTrainer, label: 'Ошибок', color: 'var(--color-red-text)', bg: 'var(--color-red-soft)' },
-                  { val: 7, label: 'Занятий', color: '#B98FFF', bg: '#EFE0FF' },
+                  { val: 7, label: 'Занятий', color: '#B98FFF', bg: 'rgba(185,143,255,0.14)' },
                 ].map(({ val, label, color, bg }) => (
                   <div key={label} style={{ padding: '10px 12px', borderRadius: 14, background: bg, textAlign: 'center' }}>
                     <div style={{ fontSize: 22, fontWeight: 750, color, lineHeight: 1 }}>{val}</div>
@@ -548,83 +810,6 @@ export default function TeacherStudentDashboardPage() {
               </div>
             </Card>
 
-            {/* Диагностика + Скрининг мышления */}
-            {diagResults.length > 0 && (
-              <Card>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 14 }}>
-                  <Target size={14} style={{ color: 'var(--color-accent)' }} />
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Диагностика и скрининг</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', borderRadius: 7, padding: '2px 8px' }}>{diagResults.length}</span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {diagResults.map(r => {
-                    const sections = Object.entries(r.results)
-                    const totalQ = sections.reduce((a, [, v]) => a + v.total, 0)
-                    const correct = sections.reduce((a, [, v]) => a + v.correct, 0)
-                    const pct = totalQ ? Math.round((correct / totalQ) * 100) : 0
-                    const isLogic = r.subject === 'logic'
-                    const accent = isLogic ? '#f59e0b' : r.subject === 'biology' ? '#22c55e' : '#7c3aed'
-                    const soft = isLogic ? '#fef3c7' : r.subject === 'biology' ? 'var(--color-green-soft)' : 'var(--color-purple-soft)'
-                    const label = isLogic ? 'Скрининг мышления' : r.subject === 'biology' ? 'Биология' : 'Химия'
-                    const date = new Date(r.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })
-                    const pctColor = pct >= 70 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#ef4444'
-
-                    // For logic test: sort sections by score desc, show top skill
-                    const sortedSections = isLogic
-                      ? [...sections].sort((a, b) => {
-                          const pa = a[1].total ? a[1].correct / a[1].total : 0
-                          const pb = b[1].total ? b[1].correct / b[1].total : 0
-                          return pb - pa
-                        })
-                      : sections
-                    const topSection = isLogic ? sortedSections[0] : null
-
-                    return (
-                      <div key={r.id} style={{ borderRadius: 14, border: `1px solid ${accent}22`, overflow: 'hidden' }}>
-                        {/* Header */}
-                        <div style={{ padding: '12px 14px', background: soft, display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <div style={{ width: 32, height: 32, borderRadius: 9, background: `${accent}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            {isLogic ? <Brain size={15} style={{ color: accent }} />
-                              : r.subject === 'biology' ? <FlaskConical size={15} style={{ color: accent }} />
-                              : <Atom size={15} style={{ color: accent }} />}
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{label}</div>
-                            <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>
-                              {date}
-                              {isLogic && topSection && (
-                                <span style={{ marginLeft: 6, color: accent, fontWeight: 600 }}>
-                                  · сильнее: {topSection[0]}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div style={{ fontSize: 22, fontWeight: 900, color: pctColor }}>{pct}%</div>
-                        </div>
-                        {/* Section bars */}
-                        <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                          {sortedSections.map(([sec, { correct: c, total: t }]) => {
-                            const p = t ? Math.round((c / t) * 100) : 0
-                            const col = p >= 70 ? '#22c55e' : p >= 40 ? '#f59e0b' : '#ef4444'
-                            return (
-                              <div key={sec}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
-                                  <span style={{ fontSize: 10, color: 'var(--color-text-3)', fontWeight: 500, maxWidth: '80%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sec}</span>
-                                  <span style={{ fontSize: 10, fontWeight: 700, color: col }}>{c}/{t}</span>
-                                </div>
-                                <div style={{ height: 4, borderRadius: 999, background: 'var(--color-bg-5)' }}>
-                                  <div style={{ height: '100%', borderRadius: 999, background: col, width: `${p}%` }} />
-                                </div>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </Card>
-            )}
 
             {/* Активность */}
             <Card>
@@ -632,13 +817,13 @@ export default function TeacherStudentDashboardPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
                 {Array.from({ length: 28 }, (_, i) => {
                   const heat = [0, 0, 1, 2, 0, 3, 1, 0, 0, 2, 1, 0, 0, 3, 2, 0, 1, 0, 2, 1, 0, 0, 3, 1, 0, 2, 0, 1][i] ?? 0
-                  const bg = heat === 0 ? 'var(--color-bg-5)' : heat === 1 ? '#C8EFD9' : heat === 2 ? '#7EDA9F' : '#34C877'
+                  const bg = heat === 0 ? 'var(--color-bg-5)' : heat === 1 ? 'rgba(52,200,119,0.18)' : heat === 2 ? 'rgba(52,200,119,0.45)' : '#34C877'
                   return <div key={i} style={{ height: 22, borderRadius: 5, background: bg }} />
                 })}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
                 <span style={{ fontSize: 10, color: 'var(--color-muted)' }}>Меньше</span>
-                {['var(--color-bg-5)', '#C8EFD9', '#7EDA9F', '#34C877'].map(c => (
+                {['var(--color-bg-5)', 'rgba(52,200,119,0.18)', 'rgba(52,200,119,0.45)', '#34C877'].map(c => (
                   <div key={c} style={{ width: 12, height: 12, borderRadius: 3, background: c }} />
                 ))}
                 <span style={{ fontSize: 10, color: 'var(--color-muted)' }}>Больше</span>
@@ -652,7 +837,7 @@ export default function TeacherStudentDashboardPage() {
                 {MOCK_TRAINER_SECTIONS.filter(s => s.correct / s.total < 0.5).map(s => {
                   const pct = Math.round((s.correct / s.total) * 100)
                   return (
-                    <div key={s.section} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 12, background: pct < 30 ? 'var(--color-red-soft)' : '#FFF3D6', border: `1px solid ${pct < 30 ? 'rgba(244,139,145,0.3)' : 'rgba(245,166,35,0.3)'}` }}>
+                    <div key={s.section} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 12, background: pct < 30 ? 'var(--color-red-soft)' : 'rgba(245,166,35,0.12)', border: `1px solid ${pct < 30 ? 'rgba(244,139,145,0.3)' : 'rgba(245,166,35,0.3)'}` }}>
                       <AlertCircle size={13} style={{ color: pct < 30 ? 'var(--color-red-text)' : 'var(--color-yellow-text)', flexShrink: 0 }} />
                       <span style={{ fontSize: 12, color: 'var(--color-text)', flex: 1 }}>{s.section}</span>
                       <span style={{ fontSize: 12, fontWeight: 700, color: pct < 30 ? 'var(--color-red-text)' : 'var(--color-yellow-text)' }}>{pct}%</span>

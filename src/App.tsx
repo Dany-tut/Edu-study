@@ -5,6 +5,7 @@ import TeacherLoginPage from './pages/teacher/TeacherLoginPage'
 import JoinPage from './pages/JoinPage'
 import StudentLoginPage from './pages/StudentLoginPage'
 import DiagnosticTestPage from './pages/DiagnosticTestPage'
+import ReviewSession from './components/ReviewSession'
 import { supabase } from './lib/supabase'
 import { getStudentSession } from './lib/studentSession'
 import type { Session } from '@supabase/supabase-js'
@@ -38,6 +39,16 @@ export default function App() {
 
   if (hash.startsWith('#/join')) return <JoinPage />
   if (hash.startsWith('#/diagnostic')) return <DiagnosticTestPage />
+  if (hash.startsWith('#/review')) {
+    const q = new URLSearchParams(hash.split('?')[1] ?? '')
+    const sid = getStudentSession()?.id
+    const owner = sid ? { studentId: sid } : { anonName: q.get('name') ?? undefined }
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 16px' }}>
+        <ReviewSession owner={owner} onDone={() => { window.location.hash = '#/' }} />
+      </div>
+    )
+  }
 
   if (hash.startsWith('#/teacher')) {
     if (session === undefined && !import.meta.env.DEV) return null
