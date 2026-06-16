@@ -334,14 +334,9 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                         <div
                           className="inline-flex items-center gap-1.5"
                           style={{
-                            borderRadius: 999,
-                            background: withAlpha(selectedDetail.badgeBg, 0.32),
-                            backdropFilter: 'blur(6px) saturate(140%)',
-                            WebkitBackdropFilter: 'blur(6px) saturate(140%)',
                             color: selectedDetail.badgeText,
-                            padding: '5px 12px',
+                            padding: '2px 0',
                             width: 'fit-content',
-                            border: `1px solid ${withAlpha(selectedDetail.badgeBg, 0.6)}`,
                           }}
                         >
                           {selectedDetail.custom
@@ -513,14 +508,9 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     <div
                       className="inline-flex items-center gap-1.5"
                       style={{
-                        borderRadius: 999,
-                        background: `${hardStyleData.bg}88`,
-                        backdropFilter: 'blur(6px) saturate(140%)',
-                        WebkitBackdropFilter: 'blur(6px) saturate(140%)',
                         color: hardStyleData.iconColor,
-                        padding: '5px 12px',
+                        padding: '2px 0',
                         width: 'fit-content',
-                        border: `1px solid ${hardStyleData.border}66`,
                       }}
                     >
                       {hardStatus === 'completed' ? <Star size={14} fill="currentColor" /> :
@@ -549,7 +539,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     </span>
 
                     {/* Score row if available */}
-                    {hardAssessment && hardStatus !== 'available' && (
+                    {hardAssessment && (hardStatus === 'completed' || hardStatus === 'returned') && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ fontSize: 18 }}>{EMOJI_STEPS[hardAssessment.emojiIndex].emoji}</span>
                         <span style={{ fontSize: 13, fontWeight: 700, color: '#7B3FCC' }}>{hardAssessment.score} баллов</span>
@@ -570,7 +560,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     <motion.button
                       whileHover={{ scale: 1.04 }}
                       whileTap={{ scale: 0.96 }}
-                      onClick={() => { setSelectedHardLessonId(null); openLesson(selectedHardLesson.id) }}
+                      onClick={() => { setSelectedHardLessonId(null); openHomeworkForLesson(selectedHardLesson.id) }}
                       style={{
                         fontSize: 13,
                         fontWeight: 700,

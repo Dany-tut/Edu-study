@@ -2,6 +2,19 @@ import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import type { HomeworkItem } from '../data/teacherMockData'
 
+export type HardSub = {
+  id: string
+  lessonRef: string
+  baseRef: string
+  lessonTitle: string
+  studentId: string
+  studentName: string
+  score: number
+  comment: string
+  status: 'submitted' | 'returned' | 'completed'
+  updatedAt: string
+}
+
 export type HwAssignment = HomeworkItem
 
 export type HwSubmission = {
@@ -80,6 +93,64 @@ export function useHomework() {
   }
 
   return { homework, loading, createHomework, closeHomework, reload: load }
+}
+
+export function useHardSubmissions() {
+  const [submissions, setSubmissions] = useState<HardSub[]>([])
+  const [loading, setLoading] = useState(true)
+
+  async function load() {
+    // Fetch hard submissions: new format (lesson_ref ends with '-hard')
+    // OR old format (comment non-empty, no '-hard' suffix)
+    const { data: rows } = await supabase
+      .from('lesson_progress')
+      .select('*, students(name)')
+      .or('lesson_ref.like.%-hard,and(comment.neq.,lesson_ref.not.like.%-hard)')
+      .in('status', ['submitted', 'returned', 'completed'])
+      .order('updated_at', { ascending: false })
+
+    if (!rows) { setLoading(false); return }
+
+    // Derive base lesson refs (strip '-hard' suffix if present)
+    const baseRefs = [...new Set(rows.map(r =>
+      r.lesson_ref.endsWith('-hard') ? r.lesson_ref.slice(0, -5) : r.lesson_ref
+    ))]
+
+    // Fetch lesson titles
+    const { data: lessons } = await supabase
+      .from('lessons')
+      .select('short_id, title')
+      .in('short_id', baseRefs)
+    const titleMap: Record<string, string> = Object.fromEntries(
+      (lessons ?? []).map(l => [l.short_id, l.title])
+    )
+
+    setSubmissions(rows.map(r => {
+      const base = r.lesson_ref.endsWith('-hard') ? r.lesson_ref.slice(0, -5) : r.lesson_ref
+      return {
+        id: r.id,
+        lessonRef: r.lesson_ref,
+        baseRef: base,
+        lessonTitle: titleMap[base] ?? base,
+        studentId: r.student_id,
+        studentName: (r.students as { name: string } | null)?.name ?? '',
+        score: r.score ?? 0,
+        comment: r.comment ?? '',
+        status: r.status as HardSub['status'],
+        updatedAt: r.updated_at ?? '',
+      }
+    }))
+    setLoading(false)
+  }
+
+  useEffect(() => { load() }, [])
+
+  async function reviewHard(id: string, verdict: 'completed' | 'returned') {
+    await supabase.from('lesson_progress').update({ status: verdict }).eq('id', id)
+    await load()
+  }
+
+  return { submissions, loading, reviewHard, reload: load }
 }
 
 export function useHomeworkSubmissions(hwId: string | null) {

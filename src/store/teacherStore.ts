@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type TeacherPage = 'home' | 'groups' | 'homework' | 'homework-create' | 'homework-review' | 'lesson-editor' | 'gradebook' | 'constructor' | 'student'
+export type TeacherPage = 'home' | 'groups' | 'homework' | 'homework-create' | 'homework-review' | 'lesson-editor' | 'gradebook' | 'constructor' | 'student' | 'course-editor'
 
 export type StudentTrainerStats = {
   doneCount: number
@@ -36,6 +36,11 @@ export type TeacherTask = {
 type TeacherStore = {
   activePage: TeacherPage
   setActivePage: (page: TeacherPage) => void
+  // Course editor — JSON-serialized course data passed between constructor and editor pages
+  editingCourseJson: string | null
+  openCourseEditor: (courseJson: string) => void
+  courseEditedJson: string | null
+  setCourseEdited: (json: string | null) => void
   // True while a page's fixed "docked twin" header occupies the topbar line —
   // the top-right widget slot hides so the docked controls aren't covered.
   headerDocked: boolean
@@ -86,6 +91,10 @@ function initialPage(): TeacherPage {
 export const useTeacher = create<TeacherStore>(set => ({
   activePage: initialPage(),
   setActivePage: page => set({ activePage: page, headerDocked: false }),
+  editingCourseJson: null,
+  openCourseEditor: courseJson => set({ editingCourseJson: courseJson, activePage: 'course-editor', headerDocked: false }),
+  courseEditedJson: null,
+  setCourseEdited: json => set({ courseEditedJson: json }),
   headerDocked: false,
   setHeaderDocked: docked => set({ headerDocked: docked }),
   editingScheduleId: null,

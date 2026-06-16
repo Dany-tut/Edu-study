@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, X, ClipboardCheck, Clock, CheckCircle2,
-  Circle, Users, AlertCircle, Send, ClipboardList,
+  Circle, Users, AlertCircle, Send, ClipboardList, Check, RotateCcw, Star,
 } from 'lucide-react'
 import {
   type HomeworkItem, type Group,
@@ -11,7 +11,7 @@ import { useTeacher } from '../../store/teacherStore'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import GroupStrip from '../../components/teacher/GroupStrip'
 import { useGroups, useStudents } from '../../lib/useGroups'
-import { useHomework } from '../../lib/useHomework'
+import { useHomework, useHardSubmissions, type HardSub } from '../../lib/useHomework'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -453,6 +453,209 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
   )
 }
 
+// ─── Hard submission detail panel ─────────────────────────────────────────────
+function HardSubDetail({ sub, onClose, onReview }: {
+  sub: HardSub
+  onClose: () => void
+  onReview: (id: string, verdict: 'completed' | 'returned') => Promise<void>
+}) {
+  const [busy, setBusy] = useState(false)
+  const initials = sub.studentName.split(' ').map((p: string) => p[0]).join('').slice(0, 2)
+  const date = sub.updatedAt ? new Date(sub.updatedAt).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''
+
+  async function act(verdict: 'completed' | 'returned') {
+    setBusy(true)
+    await onReview(sub.id, verdict)
+    setBusy(false)
+    onClose()
+  }
+
+  const statusLabel = sub.status === 'completed' ? 'Принято' : sub.status === 'returned' ? 'Возвращено' : 'На проверке'
+  const statusColor = sub.status === 'completed' ? 'var(--color-green-text)' : sub.status === 'returned' ? 'var(--color-peach-text)' : '#7B3FCC'
+  const statusBg = sub.status === 'completed' ? 'var(--color-green-soft)' : sub.status === 'returned' ? 'var(--color-peach-soft)' : 'var(--color-purple-soft)'
+
+  return (
+    <div style={{
+      width: 332, flexShrink: 0, flex: 1, minHeight: 0,
+      background: 'rgba(var(--glass-rgb), 0.96)',
+      backdropFilter: 'blur(20px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+      border: '1px solid var(--color-border)',
+      borderRadius: 20,
+      margin: '36px 12px 12px 0',
+      display: 'flex', flexDirection: 'column', overflow: 'hidden',
+      boxShadow: '0 8px 40px rgba(0,0,0,0.10)',
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: '18px 18px 14px', flexShrink: 0,
+        background: 'var(--color-purple-soft)',
+        borderBottom: '1px solid rgba(123,63,204,0.14)',
+        borderTopLeftRadius: 19, borderTopRightRadius: 19,
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8,
+      }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#7B3FCC', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 4 }}>
+            Хард-уровень · Проверка
+          </div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 6 }}>
+            {sub.lessonTitle || sub.baseRef}
+          </div>
+          <span style={{ fontSize: 11, fontWeight: 700, color: statusColor, background: statusBg, padding: '2px 8px', borderRadius: 7 }}>
+            {statusLabel}
+          </span>
+        </div>
+        <button onClick={onClose} style={{
+          width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer', flexShrink: 0,
+          background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)',
+        }}>
+          <X size={13} />
+        </button>
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {/* Student card */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)' }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: 13, flexShrink: 0,
+            background: 'linear-gradient(135deg, #9B6DFF, #7B3FCC)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 14, fontWeight: 700, color: '#fff',
+          }}>
+            {initials}
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{sub.studentName}</div>
+            <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2 }}>Сдано {date}</div>
+          </div>
+          <div style={{ marginLeft: 'auto', flexShrink: 0, textAlign: 'right' }}>
+            <div style={{ fontSize: 10, color: 'var(--color-text-3)', fontWeight: 700 }}>Базовая</div>
+            <div style={{ fontSize: 16, fontWeight: 760, color: '#7B3FCC' }}>2/2</div>
+          </div>
+        </div>
+
+        {/* Hard answer */}
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>
+            Ответ ученика
+          </div>
+          <div style={{
+            padding: '14px 16px', borderRadius: 14,
+            background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
+            fontSize: 13, lineHeight: 1.6, color: 'var(--color-text)',
+            whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+            minHeight: 80,
+          }}>
+            {sub.comment || <span style={{ color: 'var(--color-text-4)', fontStyle: 'italic' }}>Ответ пуст</span>}
+          </div>
+        </div>
+
+        {/* Action buttons (only if still pending) */}
+        {sub.status === 'submitted' && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <motion.button
+              whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
+              onClick={() => act('returned')}
+              disabled={busy}
+              style={{
+                flex: 1, padding: '11px 0', borderRadius: 14, border: '1px solid var(--color-border-medium)',
+                background: 'var(--color-bg-2)', color: 'var(--color-text)',
+                fontSize: 13, fontWeight: 700, cursor: busy ? 'default' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                opacity: busy ? 0.6 : 1,
+              }}
+            >
+              <RotateCcw size={14} />
+              На доработку
+            </motion.button>
+            <motion.button
+              whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
+              onClick={() => act('completed')}
+              disabled={busy}
+              style={{
+                flex: 1, padding: '11px 0', borderRadius: 14, border: 'none',
+                background: 'linear-gradient(135deg, #3FCC8A, #2A7D4F)',
+                color: '#fff', fontSize: 13, fontWeight: 700,
+                cursor: busy ? 'default' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                boxShadow: '0 6px 18px rgba(42,125,79,0.28)',
+                opacity: busy ? 0.6 : 1,
+              }}
+            >
+              <Check size={14} />
+              Принять
+            </motion.button>
+          </div>
+        )}
+
+        {/* Reviewed state */}
+        {sub.status !== 'submitted' && (
+          <div style={{
+            padding: '12px 14px', borderRadius: 14,
+            background: sub.status === 'completed' ? 'var(--color-green-soft)' : 'var(--color-peach-soft)',
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            {sub.status === 'completed'
+              ? <><Star size={16} style={{ color: 'var(--color-green-text)' }} fill="currentColor" />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-green-text)' }}>Работа принята</span></>
+              : <><RotateCcw size={16} style={{ color: 'var(--color-peach-text)' }} />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-peach-text)' }}>Отправлено на доработку</span></>
+            }
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Hard submissions section ──────────────────────────────────────────────────
+function HardSubRow({ sub, isSelected, onClick }: { sub: HardSub; isSelected: boolean; onClick: () => void }) {
+  const date = sub.updatedAt ? new Date(sub.updatedAt).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) : ''
+  const initials = sub.studentName.split(' ').map((p: string) => p[0]).join('').slice(0, 2)
+  const isPending = sub.status === 'submitted'
+
+  return (
+    <motion.div
+      onClick={onClick}
+      whileHover={{ backgroundColor: 'var(--color-bg-2)' }}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 12,
+        padding: '10px 14px', borderRadius: 12, cursor: 'pointer',
+        background: isSelected ? 'var(--color-purple-soft)' : 'transparent',
+        border: isSelected ? '1px solid rgba(123,63,204,0.2)' : '1px solid transparent',
+        transition: 'background 0.15s',
+      }}
+    >
+      <div style={{
+        width: 34, height: 34, borderRadius: 11, flexShrink: 0,
+        background: 'linear-gradient(135deg, #9B6DFF, #7B3FCC)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 11, fontWeight: 700, color: '#fff',
+      }}>
+        {initials}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {sub.studentName}
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--color-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {sub.lessonTitle || sub.baseRef}
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{date}</span>
+        <span style={{
+          fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 7,
+          background: isPending ? 'var(--color-purple-soft)' : sub.status === 'completed' ? 'var(--color-green-soft)' : 'var(--color-peach-soft)',
+          color: isPending ? '#7B3FCC' : sub.status === 'completed' ? 'var(--color-green-text)' : 'var(--color-peach-text)',
+        }}>
+          {isPending ? 'На проверке' : sub.status === 'completed' ? 'Принято' : 'На доработку'}
+        </span>
+      </div>
+    </motion.div>
+  )
+}
+
 // ─── Main page ─────────────────────────────────────────────────────────────────
 export default function TeacherHomeworkPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
@@ -460,11 +663,13 @@ export default function TeacherHomeworkPage() {
   const filterGroup = useTeacher(s => s.selectedGroupId)
   const setFilterGroup = useTeacher(s => s.setSelectedGroupId)
   const [selectedHwId, setSelectedHwId] = useState<string | null>(null)
+  const [selectedHardId, setSelectedHardId] = useState<string | null>(null)
   const [showAssignForm, setShowAssignForm] = useState(false)
   const { groups } = useGroups()
   const regularGroups = groups.filter(g => !g.isIndividual)
   const individualGroups = groups.filter(g => g.isIndividual)
   const { homework: dbHomework, loading: hwLoading } = useHomework()
+  const { submissions: hardSubs, reviewHard } = useHardSubmissions()
 
   // Use DB homework directly; merge local review counts from Zustand
   const homework: HomeworkItem[] = dbHomework.map(hw => {
@@ -481,11 +686,20 @@ export default function TeacherHomeworkPage() {
 
   const selectedHw = homework.find(hw => hw.id === selectedHwId) ?? null
   const selectedGroup = selectedHw ? groups.find(g => g.id === selectedHw.groupId) ?? null : null
+  const selectedHard = hardSubs.find(s => s.id === selectedHardId) ?? null
 
-  const panelOpen = showAssignForm || (!!selectedHw && !!selectedGroup)
+  const panelOpen = showAssignForm || (!!selectedHw && !!selectedGroup) || !!selectedHard
+  const pendingHardCount = hardSubs.filter(s => s.status === 'submitted').length
 
   function openHw(id: string) {
     setSelectedHwId(prev => prev === id ? null : id)
+    setSelectedHardId(null)
+    setShowAssignForm(false)
+  }
+
+  function openHard(id: string) {
+    setSelectedHardId(prev => prev === id ? null : id)
+    setSelectedHwId(null)
     setShowAssignForm(false)
   }
 
@@ -509,6 +723,41 @@ export default function TeacherHomeworkPage() {
             onAction={() => setActivePage('homework-create')}
           />
         </motion.div>
+
+        {/* Hard-level submissions */}
+        {hardSubs.length > 0 && (
+          <motion.div
+            {...fadeUp(0.12)}
+            style={{ marginRight: panelOpen ? 344 : 0, transition: 'margin-right 0.34s cubic-bezier(0.22,1,0.36,1)' }}
+          >
+            <Card style={{ padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '14px 18px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border-soft)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Star size={15} style={{ color: '#7B3FCC' }} />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Хард-уровень · Сданные работы</span>
+                </div>
+                {pendingHardCount > 0 && (
+                  <span style={{
+                    fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999,
+                    background: 'var(--color-purple-soft)', color: '#7B3FCC',
+                  }}>
+                    {pendingHardCount} на проверке
+                  </span>
+                )}
+              </div>
+              <div style={{ padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {hardSubs.map(sub => (
+                  <HardSubRow
+                    key={sub.id}
+                    sub={sub}
+                    isSelected={selectedHardId === sub.id}
+                    onClick={() => openHard(sub.id)}
+                  />
+                ))}
+              </div>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Table */}
         <motion.div
@@ -567,6 +816,13 @@ export default function TeacherHomeworkPage() {
           >
             {showAssignForm ? (
               <AssignForm onClose={() => setShowAssignForm(false)} />
+            ) : selectedHard ? (
+              <HardSubDetail
+                key={selectedHard.id}
+                sub={selectedHard}
+                onClose={() => setSelectedHardId(null)}
+                onReview={reviewHard}
+              />
             ) : selectedHw && selectedGroup ? (
               <HwDetail
                 key={selectedHw.id}

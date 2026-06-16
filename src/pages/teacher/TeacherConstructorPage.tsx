@@ -5538,6 +5538,11 @@ export default function TeacherConstructorPage() {
   const clearConstructorIntent = useTeacher(s => s.clearConstructorIntent)
   useEffect(() => {
     if (!constructorIntent) return
+    if (constructorIntent === 'course') {
+      clearConstructorIntent()
+      goToNewCourseEditor()
+      return
+    }
     setActiveTab(constructorIntent)
     setEditCourse(null)
     setCreatorMode(constructorIntent)
@@ -5560,6 +5565,59 @@ export default function TeacherConstructorPage() {
     setEditingTask(task)
     clearEditTaskIntent()
   }, [editTaskIntent, clearEditTaskIntent])
+
+  // ── Course editor page navigation ──────────────────────────────────────────
+  const openCourseEditor = useTeacher(s => s.openCourseEditor)
+  const courseEditedJson = useTeacher(s => s.courseEditedJson)
+  const setCourseEdited  = useTeacher(s => s.setCourseEdited)
+
+  // When the user returns from the course editor, sync the updated data back.
+  useEffect(() => {
+    if (!courseEditedJson) return
+    try {
+      const ed = JSON.parse(courseEditedJson) as {
+        id: string; title: string; subject: string; level: string
+        status: 'draft' | 'published'; color: string; bg: string
+        description?: string; dbCourseId?: string
+        lessons: Array<{ id: string; title: string; number?: number; videoUrl?: string; description?: string }>
+        modules: Array<{ id: string; label: string; lessonIds: string[] }>
+        groupIds?: string[]; studentIds?: string[]
+      }
+      const updated: Course = {
+        id: ed.id, title: ed.title, subject: ed.subject, level: ed.level,
+        description: ed.description ?? '', status: ed.status,
+        color: ed.color, bg: ed.bg, dbCourseId: ed.dbCourseId,
+        lastEdited: new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }),
+        lessons: ed.lessons.map(l => ({ id: l.id, title: l.title, trainerId: null, widgetId: null })),
+      }
+      setCourses(prev => prev.some(c => c.id === updated.id) ? prev.map(c => c.id === updated.id ? updated : c) : [updated, ...prev])
+    } catch {}
+    setCourseEdited(null)
+  }, [courseEditedJson])
+
+  function goToCourseEditor(course: Course) {
+    const edData = {
+      id: course.id, title: course.title, subject: course.subject, level: course.level,
+      status: course.status, color: course.color, bg: course.bg,
+      description: course.description ?? '', dbCourseId: course.dbCourseId,
+      groupIds: [], studentIds: [],
+      modules: [{ id: uid(), label: 'Модуль 1', expanded: true, lessonIds: course.lessons.map(l => l.id) }],
+      lessons: course.lessons.map((l, i) => ({ id: l.id, title: l.title, number: i + 1 })),
+    }
+    openCourseEditor(JSON.stringify(edData))
+  }
+
+  function goToNewCourseEditor() {
+    const id = uid()
+    const edData = {
+      id, title: '', subject: 'Химия', level: 'ЕГЭ', status: 'draft',
+      color: '#B98FFF', bg: 'var(--color-purple-soft)',
+      description: '', groupIds: [], studentIds: [],
+      modules: [{ id: uid(), label: 'Модуль 1', expanded: true, lessonIds: [] }],
+      lessons: [],
+    }
+    openCourseEditor(JSON.stringify(edData))
+  }
 
   const selectedCourse  = courses.find(c => c.id === selectedId) ?? null
   const selectedWidget  = widgets.find(w => w.id === selectedId) ?? null
@@ -5590,6 +5648,7 @@ export default function TeacherConstructorPage() {
 
   function handlePlus() {
     if (activeTab === 'testing') { setDiagCreating(true); return }
+    if (activeTab === 'course') { goToNewCourseEditor(); return }
     setEditCourse(null); setEditTrainer(null); setEditWidget(null)
     setCreatorMode(activeTab)
     setSelectedId(null)
@@ -5646,11 +5705,9 @@ export default function TeacherConstructorPage() {
     setSelectedId(null)
   }
 
-  // "Раскрыть на всю" — open the full-screen editor pre-loaded to edit this course.
+  // Course card click — open the new 3-column course editor page.
   function handleExpandCourse(c: Course) {
-    setEditCourse(c)
-    setCreatorMode('course')
-    setSelectedId(null)
+    goToCourseEditor(c)
   }
 
   function handleSaveTrainer(t: Trainer) {

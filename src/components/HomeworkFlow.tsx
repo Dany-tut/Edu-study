@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase'
 import { getStudentSession } from '../lib/studentSession'
 import { playUnlock, playPop, vibrate } from '../lib/sound'
 import { useDashboard } from '../store/dashboardStore'
+import { useStudentData } from '../store/studentDataStore'
 import HardStarLottie from './HardStarLottie'
 import PartyPopperLottie from './PartyPopperLottie'
 
@@ -601,17 +602,24 @@ export default function HomeworkFlow({
     setState(current => ({ ...current, hardFiles: [...current.hardFiles, fileName] }))
   }
 
-  async function submitToSupabase(_level: 'basic' | 'hard', score: number, comment: string) {
+  async function submitToSupabase(level: 'basic' | 'hard', score: number, comment: string) {
     const session = getStudentSession()
     if (!session?.id) return
+    // Basic level is auto-graded — mark completed immediately if score meets threshold.
+    // Hard level (essay) always goes to submitted and awaits teacher review.
+    const status = level === 'basic' && score >= homework.recommendationScore
+      ? 'completed'
+      : 'submitted'
+    const ref = level === 'hard' ? `${lessonId}-hard` : lessonId
     await supabase.from('lesson_progress').upsert({
       student_id: session.id,
-      lesson_ref: lessonId,
+      lesson_ref: ref,
       subject,
-      status: 'submitted',
+      status,
       score,
       comment,
     }, { onConflict: 'student_id,lesson_ref' })
+    useStudentData.getState().load()
   }
 
   const submitHard = () => {
@@ -921,11 +929,11 @@ export default function HomeworkFlow({
                   <span
                     key={item}
                     style={{
-                      padding: '9px 12px',
+                      padding: '5px 10px',
                       borderRadius: 999,
                       background: 'rgba(var(--glass-rgb), 0.82)',
                       color: 'var(--color-accent)',
-                      fontSize: 13,
+                      fontSize: 11,
                       fontWeight: 650,
                     }}
                   >

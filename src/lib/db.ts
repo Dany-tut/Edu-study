@@ -101,21 +101,22 @@ interface DbProgress {
   status: LessonStatus
   score: number
   comment: string
+  hard_submitted: boolean
 }
 
-export type ProgressMap = Record<string, { status: LessonStatus; score: number; comment: string }>
+export type ProgressMap = Record<string, { status: LessonStatus; score: number; comment: string; hardSubmitted: boolean }>
 
 export async function fetchLessonProgress(studentId: string): Promise<ProgressMap> {
   const { data, error } = await supabase
     .from('lesson_progress')
-    .select('lesson_ref, subject, status, score, comment')
+    .select('lesson_ref, subject, status, score, comment, hard_submitted')
     .eq('student_id', studentId)
 
   if (error || !data) return {}
 
   const map: ProgressMap = {}
   for (const row of data as DbProgress[]) {
-    map[row.lesson_ref] = { status: row.status, score: row.score, comment: row.comment }
+    map[row.lesson_ref] = { status: row.status, score: row.score, comment: row.comment, hardSubmitted: row.hard_submitted }
   }
   return map
 }
@@ -257,14 +258,18 @@ export interface StudentStats {
 export function computeStats(progress: ProgressMap): StudentStats {
   const entries = Object.values(progress)
   const completed = entries.filter(p => p.status === 'completed')
-  const withScore = completed.filter(p => p.score > 0)
-  const totalPoints = completed.reduce((s, p) => s + (p.score ?? 0), 0)
+  // Include submitted lessons in score stats — the student earned the score
+  // even before the teacher finalises the review.
+  const scored = entries.filter(p => p.status === 'completed' || p.status === 'submitted')
+  const withScore = scored.filter(p => p.score > 0)
+  const totalPoints = scored.reduce((s, p) => s + (p.score ?? 0), 0)
   const avgScore = withScore.length > 0
     ? Math.round(withScore.reduce((s, p) => s + p.score, 0) / withScore.length)
     : 0
   const totalTasks = entries.length
   const performance = totalTasks > 0 ? Math.round((completed.length / totalTasks) * 100) : 0
-  const stars = completed.filter(p => (p.score ?? 0) >= 90).length
+  // Stars are earned only for hard-level tasks (essay), not basic auto-graded tests.
+  const stars = entries.filter(p => p.hardSubmitted && (p.status === 'completed' || p.status === 'submitted')).length
 
   return {
     performance,
