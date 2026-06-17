@@ -43,7 +43,11 @@ function TrackForSubject({ subject }: { subject: Subject }) {
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null)
   const [selectedHardLessonId, setSelectedHardLessonId] = useState<string | null>(null)
   const now = useNow()
-  const modulePill = useFloatingPill(activeModuleId)
+  // activeModuleId from the store may not match a real module id on first paint,
+  // so resolve to an actually-rendered module — lets the pill appear without a click.
+  const effectiveModuleId =
+    subject.modules.find(m => m.id === activeModuleId)?.id ?? subject.modules[0]?.id
+  const modulePill = useFloatingPill(effectiveModuleId ?? '')
 
   // Mirror popover open state to the store so the layout can lift the track
   // above the quiz overlay (otherwise the quiz card's shadow covers the popover).
@@ -85,7 +89,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
 
   // Scope the track to the active module — clicking a module tab reveals how
   // much of *that* module is completed ("закрыто").
-  const activeModule = subject.modules.find(m => m.id === activeModuleId) ?? subject.modules[0]
+  const activeModule = subject.modules.find(m => m.id === effectiveModuleId) ?? subject.modules[0]
   const allLessons = activeModule?.lessons ?? []
   const selectedLesson = allLessons.find(lesson => lesson.id === selectedLessonId) ?? null
 
@@ -149,7 +153,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
             />
           )}
           {subject.modules.map((mod, modIndex) => {
-            const isActive = mod.id === activeModuleId
+            const isActive = mod.id === effectiveModuleId
             const totalLessons = mod.lessons.length
             const completedLessons = mod.lessons.filter(l => l.status === 'completed').length
             const isFullyDone = totalLessons > 0 && completedLessons === totalLessons
@@ -597,7 +601,14 @@ export default function CourseTrack() {
   const { activeSubjectId, setActiveSubject } = useDashboard()
   const subjects = useStudentData(s => s.subjects)
   const loaded = useStudentData(s => s.loaded)
-  const subjectPill = useFloatingPill(activeSubjectId)
+  // The store's default activeSubjectId may not match a real (DB) subject id yet,
+  // so resolve to the actually-rendered subject — this lets the pill appear on
+  // first paint without requiring a click.
+  const effectiveActiveId =
+    subjects.find(s => s.id === activeSubjectId)?.id ?? subjects[0]?.id ?? ''
+  const subjectPill = useFloatingPill(effectiveActiveId)
+  // Only show the switcher pill when there's more than one course to switch between.
+  const showPill = subjects.length > 1
 
   if (subjects.length === 0) {
     return (
@@ -623,7 +634,7 @@ export default function CourseTrack() {
         className="inline-flex items-center gap-2 flex-shrink-0"
         style={{ maxWidth: '100%', justifyContent: 'flex-start', paddingLeft: 32, paddingRight: 32, position: 'relative' }}
       >
-        {subjectPill.pillRect && (
+        {showPill && subjectPill.pillRect && (
           <motion.span
             animate={subjectPill.pillRect}
             transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.7 }}
@@ -641,7 +652,7 @@ export default function CourseTrack() {
           />
         )}
         {subjects.map(s => {
-          const isActive = activeSubjectId === s.id
+          const isActive = effectiveActiveId === s.id
           const allLessons = s.modules.flatMap(m => m.lessons)
           const completedAll = allLessons.filter(l => l.status === 'completed').length
           const subjectPct = allLessons.length > 0 ? Math.round((completedAll / allLessons.length) * 100) : 0
