@@ -1881,13 +1881,9 @@ function RightPanelLessons({
                 <span style={{ flex: 1, fontSize: 12, fontWeight: 700, color: isActive ? 'var(--color-accent)' : 'var(--color-text)', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {mod.label}
                 </span>
-                {dragging && isTarget && !mod.expanded ? (
+                {dragging && isTarget && !mod.expanded && (
                   <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-bg)', borderRadius: 999, padding: '2px 6px', flexShrink: 0 }}>
                     в конец
-                  </span>
-                ) : isActive && (
-                  <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-bg)', borderRadius: 999, padding: '2px 6px', flexShrink: 0 }}>
-                    сюда
                   </span>
                 )}
                 <span style={{ fontSize: 10, color: 'var(--color-muted)', flexShrink: 0 }}>{modLessons.length}</span>
@@ -2078,6 +2074,25 @@ export default function TeacherCourseEditorPage() {
     return () => { cancelled = true }
   }, [course.dbCourseId])
   const [savedFlash, setSavedFlash] = useState(false)
+
+  // ── Autosave ──────────────────────────────────────────────────────────────
+  // Persist edits ~900ms after the teacher stops changing things, so they never
+  // have to press "Сохранить" after every action. Keeps whatever status the
+  // course already has (a draft stays a draft, published stays published — we
+  // never auto-publish). Guarded to already-saved courses so a brand-new draft
+  // isn't written to the DB on the first keystroke, and the first render (the
+  // initial load from JSON) is skipped.
+  const autosaveArmed = useRef(false)
+  useEffect(() => {
+    if (!course.dbCourseId) return
+    if (!autosaveArmed.current) { autosaveArmed.current = true; return }
+    const t = setTimeout(() => {
+      setCourseEdited(JSON.stringify(course))
+      syncAccessToSupabase(course)
+      flash()
+    }, 900)
+    return () => clearTimeout(t)
+  }, [course])
 
   async function openLessonForStudents(lessonNumber: number) {
     if (!course.dbCourseId) return
@@ -2282,13 +2297,15 @@ export default function TeacherCourseEditorPage() {
     if (rows.length > 0) {
       // Delete stale entries for these lessons first, then insert fresh
       const lessonIds = [...new Set(rows.map((r: any) => r.lesson_id))]
-      await supabase
+      const { error: delErr } = await supabase
         .from('schedule_lessons')
         .delete()
         .in('lesson_id', lessonIds)
-      await supabase
+      if (delErr) console.error('schedule_lessons delete failed:', delErr)
+      const { error: insErr } = await supabase
         .from('schedule_lessons')
         .insert(rows)
+      if (insErr) console.error('schedule_lessons insert failed:', insErr)
     }
   }
 
