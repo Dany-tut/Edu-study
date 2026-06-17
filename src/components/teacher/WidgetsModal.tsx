@@ -187,7 +187,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
               onClick={onClose}
               style={{
                 padding: '10px 24px', borderRadius: 12, border: 'none',
-                background: 'var(--color-accent)', color: '#fff',
+                background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
                 fontSize: 14, fontWeight: 600, cursor: 'pointer',
               }}
             >

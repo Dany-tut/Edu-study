@@ -612,8 +612,8 @@ export default function TeacherHomeworkReviewPage() {
                       className="flex items-center cursor-pointer"
                       style={{
                         gap: 8, padding: '13px 22px', borderRadius: 16, border: 'none',
-                        background: 'var(--color-accent)',
-                        color: '#fff', fontSize: 14, fontWeight: 600,
+                        background: 'var(--color-purple-soft)',
+                        color: 'var(--color-accent)', fontSize: 14, fontWeight: 600,
                         boxShadow: '0 4px 16px rgba(124,58,237,0.25)',
                       }}
                     >

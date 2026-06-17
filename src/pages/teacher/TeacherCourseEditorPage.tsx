@@ -199,8 +199,8 @@ function CenterCourseMeta({
               <button key={tab} onClick={() => setAssignTab(tab)} style={{
                 padding: '6px 18px', borderRadius: 999, border: 'none', cursor: 'pointer',
                 fontSize: 12, fontWeight: 700,
-                background: assignTab === tab ? 'var(--color-accent)' : 'var(--color-bg-3)',
-                color: assignTab === tab ? '#fff' : 'var(--color-text-2)',
+                background: assignTab === tab ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
+                color: assignTab === tab ? 'var(--color-accent)' : 'var(--color-text-2)',
                 transition: 'all 0.15s', fontFamily: 'inherit',
               }}>
                 {tab === 'group' ? 'Группе' : 'Ученику'}
@@ -345,7 +345,7 @@ function CenterRecording({
               Отмена
             </button>
             <button onClick={() => { onSaveVideo(videoUrl); setLinkMode(false) }}
-              style={{ flex: 1, padding: '9px 18px', borderRadius: 12, border: 'none', background: 'var(--color-accent)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+              style={{ flex: 1, padding: '9px 18px', borderRadius: 12, border: 'none', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
               Сохранить
             </button>
           </div>
@@ -366,7 +366,7 @@ function CenterRecording({
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => setLinkMode(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: 'none', background: 'var(--color-accent)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: 'none', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
             <Link2 size={14} /> Вставить ссылку
           </button>
           <button style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -730,8 +730,8 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
                   <button key={idx} onClick={() => pickDay(day)} style={{
                     width: '100%', aspectRatio: '1', borderRadius: 8, border: 'none',
                     cursor: 'pointer', fontSize: 12, fontWeight: isSelected || isToday ? 700 : 400,
-                    background: isSelected ? 'var(--color-accent)' : isToday ? 'var(--color-purple-soft)' : 'transparent',
-                    color: isSelected ? '#fff' : isToday ? 'var(--color-accent)' : 'var(--color-text)',
+                    background: isSelected ? 'var(--color-purple-soft)' : isToday ? 'var(--color-purple-soft)' : 'transparent',
+                    color: isSelected ? 'var(--color-accent)' : isToday ? 'var(--color-accent)' : 'var(--color-text)',
                     transition: 'background 0.12s',
                   }}>
                     {day}
@@ -1165,8 +1165,8 @@ function CenterLessonStudents({
               <button key={tab} onClick={() => setAddTab(tab)} style={{
                 padding: '5px 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
                 fontSize: 11, fontWeight: 700,
-                background: addTab === tab ? 'var(--color-accent)' : 'var(--color-bg-3)',
-                color: addTab === tab ? '#fff' : 'var(--color-text-2)',
+                background: addTab === tab ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
+                color: addTab === tab ? 'var(--color-accent)' : 'var(--color-text-2)',
                 transition: 'all 0.15s', fontFamily: 'inherit',
               }}>
                 {tab === 'group' ? 'Группу' : 'Ученика'}

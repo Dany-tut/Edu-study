@@ -16,6 +16,9 @@ import { LayoutGroup, motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { findLessonById, getLessonDetail } from '../data/lessonContent'
 import { useStudentPrefsSync } from '../lib/useStudentPrefsSync'
+import { getStudentSession } from '../lib/studentSession'
+import { fetchStudentAssignments, checkAssignmentSubmitted, type TestAssignment } from '../data/diagnosticData'
+import { ClipboardList, ChevronRight } from 'lucide-react'
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024)
@@ -170,6 +173,11 @@ export default function DashboardPage() {
               <section style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', position: 'relative', zIndex: trackPopoverOpen ? 30 : 5 }}>
                 <CourseTrack />
               </section>
+
+              {/* Row 4: Assigned tests */}
+              <section style={{ flexShrink: 0 }}>
+                <AssignedTestsBlock />
+              </section>
             </main>
           </>
         ) : activePage === 'lesson' ? (
@@ -260,5 +268,70 @@ export default function DashboardPage() {
         )}
       </div>
     </>
+  )
+}
+
+// ─── Assigned tests block ─────────────────────────────────────────────────────
+const SUBJECT_LABEL: Record<string, string> = {
+  biology: 'Биология', chemistry: 'Химия', logic: 'Мышление',
+  'ap-chem-ru': 'AP Химия RU', 'ap-chem-en': 'AP Chemistry EN',
+}
+
+function AssignedTestsBlock() {
+  const session = getStudentSession()
+  const [assignments, setAssignments] = useState<(TestAssignment & { done: boolean })[]>([])
+
+  useEffect(() => {
+    if (!session?.id || !session?.groupId) return
+    fetchStudentAssignments(session.id, session.groupId).then(async list => {
+      const withDone = await Promise.all(
+        list.map(async a => ({ ...a, done: await checkAssignmentSubmitted(session.id, a.id) }))
+      )
+      setAssignments(withDone)
+    })
+  }, [session?.id, session?.groupId])
+
+  const pending = assignments.filter(a => !a.done)
+  if (pending.length === 0) return null
+
+  function openTest(a: TestAssignment) {
+    const name = encodeURIComponent(session?.name ?? 'Аноним')
+    window.location.hash = `#/diagnostic?subject=${a.subject}&assignment=${a.id}&sid=${session?.id}&sname=${name}`
+  }
+
+  return (
+    <div style={{ padding: '12px 0 4px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+        <ClipboardList size={14} style={{ color: 'var(--color-accent)' }} />
+        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: 0.4 }}>
+          Назначенные тесты
+        </span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', borderRadius: 6, padding: '1px 7px' }}>
+          {pending.length}
+        </span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {pending.map(a => (
+          <motion.div
+            key={a.id}
+            whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+            onClick={() => openTest(a)}
+            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 14, background: 'var(--color-bg-card)', border: '1.5px solid var(--color-accent)', cursor: 'pointer', boxShadow: '0 2px 12px rgba(123,63,204,0.08)' }}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{a.title}</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 2 }}>
+                {SUBJECT_LABEL[a.subject] ?? a.subject}
+                {a.dueDate && <span style={{ marginLeft: 8, color: 'var(--color-peach-text)' }}>до {a.dueDate}</span>}
+              </div>
+            </div>
+            <span style={{ padding: '3px 9px', borderRadius: 8, fontSize: 11, fontWeight: 700, background: a.assignType === 'trial' ? 'rgba(245,166,35,0.12)' : 'var(--color-purple-soft)', color: a.assignType === 'trial' ? '#F5A623' : 'var(--color-purple-text)' }}>
+              {a.assignType === 'trial' ? 'Пробник' : 'Тест'}
+            </span>
+            <ChevronRight size={15} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+          </motion.div>
+        ))}
+      </div>
+    </div>
   )
 }

@@ -46,8 +46,8 @@ export function buttonStyle(variant: ButtonVariant, opts?: { pair?: PairName; ac
   switch (variant) {
     case 'primary':
       return {
-        background: 'var(--color-accent)',
-        color: '#fff',
+        background: 'var(--color-purple-soft)',
+        color: 'var(--color-accent)',
         boxShadow: 'var(--shadow-md)',
         border: '1px solid transparent',
       }

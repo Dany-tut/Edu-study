@@ -866,14 +866,136 @@ export async function loadAnonResults(): Promise<AnonDiagResult[]> {
   return (data ?? []).map(rowToResult)
 }
 
-export async function appendAnonResult(r: Omit<AnonDiagResult, 'id' | 'timestamp'>): Promise<AnonDiagResult | null> {
+export async function appendAnonResult(
+  r: Omit<AnonDiagResult, 'id' | 'timestamp'>,
+  opts?: { studentId?: string; assignmentId?: string; scorePct?: number },
+): Promise<AnonDiagResult | null> {
   const { data, error } = await supabase
     .from('diag_results')
-    .insert({ name: r.name, subject: r.subject, results: r.results, answers: r.answers })
+    .insert({
+      name: r.name,
+      subject: r.subject,
+      results: r.results,
+      answers: r.answers,
+      linked_student_id: opts?.studentId ?? null,
+      student_id: opts?.studentId ?? null,
+      assignment_id: opts?.assignmentId ?? null,
+      score_pct: opts?.scorePct ?? null,
+    })
     .select()
     .single()
   if (error) { console.error('appendAnonResult:', error); return null }
+
+  // Auto-update student score field when submitted under an assignment
+  if (opts?.studentId && opts?.assignmentId && opts.scorePct != null) {
+    await updateStudentScoreFromAssignment(opts.studentId, opts.assignmentId, opts.scorePct)
+  }
+
   return rowToResult(data)
+}
+
+async function updateStudentScoreFromAssignment(studentId: string, assignmentId: string, scorePct: number) {
+  const { data: asgn } = await supabase
+    .from('test_assignments')
+    .select('assign_type')
+    .eq('id', assignmentId)
+    .single()
+  if (!asgn) return
+  const field = asgn.assign_type === 'trial' ? 'trial_score' : 'test_score'
+  await supabase.from('students').update({ [field]: scorePct }).eq('id', studentId)
+}
+
+// ─── Test assignment helpers ──────────────────────────────────────────────────
+export interface TestAssignment {
+  id: string
+  title: string
+  subject: string
+  assignType: 'test' | 'trial'
+  groupIds: string[]
+  studentIds: string[]
+  dueDate?: string
+  createdAt: string
+  closed: boolean
+}
+
+function rowToAssignment(row: Record<string, unknown>): TestAssignment {
+  return {
+    id: row.id as string,
+    title: row.title as string,
+    subject: row.subject as string,
+    assignType: (row.assign_type as 'test' | 'trial') ?? 'test',
+    groupIds: (row.group_ids as string[]) ?? [],
+    studentIds: (row.student_ids as string[]) ?? [],
+    dueDate: (row.due_date as string | null) ?? undefined,
+    createdAt: row.created_at as string,
+    closed: (row.closed as boolean) ?? false,
+  }
+}
+
+export async function createTestAssignment(a: Omit<TestAssignment, 'id' | 'createdAt'>): Promise<TestAssignment | null> {
+  const { data, error } = await supabase
+    .from('test_assignments')
+    .insert({
+      title: a.title,
+      subject: a.subject,
+      assign_type: a.assignType,
+      group_ids: a.groupIds,
+      student_ids: a.studentIds,
+      due_date: a.dueDate ?? null,
+      closed: false,
+    })
+    .select()
+    .single()
+  if (error) { console.error('createTestAssignment:', error); return null }
+  return rowToAssignment(data)
+}
+
+export async function loadTestAssignments(): Promise<TestAssignment[]> {
+  const { data } = await supabase
+    .from('test_assignments')
+    .select('*')
+    .order('created_at', { ascending: false })
+  return (data ?? []).map(rowToAssignment)
+}
+
+export async function deleteTestAssignment(id: string): Promise<void> {
+  await supabase.from('test_assignments').delete().eq('id', id)
+}
+
+// Fetch assignments visible to a student (by student id or group id)
+export async function fetchStudentAssignments(studentId: string, groupId: string): Promise<TestAssignment[]> {
+  const { data } = await supabase
+    .from('test_assignments')
+    .select('*')
+    .eq('closed', false)
+    .order('created_at', { ascending: false })
+  if (!data) return []
+
+  return data
+    .map(rowToAssignment)
+    .filter(a =>
+      a.groupIds.includes(groupId) || a.studentIds.includes(studentId)
+    )
+}
+
+// Check if a student already submitted a specific assignment
+export async function checkAssignmentSubmitted(studentId: string, assignmentId: string): Promise<boolean> {
+  const { count } = await supabase
+    .from('diag_results')
+    .select('id', { count: 'exact', head: true })
+    .eq('student_id', studentId)
+    .eq('assignment_id', assignmentId)
+  return (count ?? 0) > 0
+}
+
+// Load results for a specific assignment (for teacher view)
+export async function loadAssignmentResults(assignmentId: string): Promise<AnonDiagResult[]> {
+  const { data } = await supabase
+    .from('diag_results')
+    .select('*')
+    .eq('assignment_id', assignmentId)
+    .order('created_at', { ascending: false })
+  return (data ?? []).map(rowToResult)
 }
 
 export async function linkAnonResult(id: string, studentId: string): Promise<void> {

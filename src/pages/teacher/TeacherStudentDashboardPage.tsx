@@ -4,7 +4,7 @@ import {
   ArrowLeft, Phone, Send, User, TrendingUp, ClipboardCheck, Clock,
   Award, Target, XCircle, CheckCircle2, Layers, BookOpen, Dumbbell,
   Star, Calendar, BarChart3, Download, CreditCard, MessageSquare,
-  CheckCheck, AlertCircle, Percent, FlaskConical, Atom, Brain, ChevronDown,
+  CheckCheck, AlertCircle, Percent, FlaskConical, Atom, Brain, ChevronDown, Lightbulb,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useGroups, useStudents } from '../../lib/useGroups'
@@ -17,6 +17,8 @@ import {
   fetchStudentScoreDynamics,
   fetchStudentTrainerSections, type TrainerSection,
   fetchStudentWrongTasks, type WrongTask,
+  fetchStudentActivity,
+  fetchStudentSessionDays,
 } from '../../lib/db'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -313,6 +315,8 @@ export default function TeacherStudentDashboardPage() {
   const [scoreDynamics, setScoreDynamics] = useState<number[]>([])
   const [trainerSections, setTrainerSections] = useState<TrainerSection[]>([])
   const [wrongTasks, setWrongTasks] = useState<WrongTask[]>([])
+  const [activityHeat, setActivityHeat] = useState<number[]>(Array(28).fill(0))
+  const [sessionDays, setSessionDays] = useState(0)
 
   useEffect(() => {
     if (!student?.id) return
@@ -324,6 +328,8 @@ export default function TeacherStudentDashboardPage() {
     fetchStudentScoreDynamics(sid).then(setScoreDynamics)
     fetchStudentTrainerSections(sid, aid).then(setTrainerSections)
     fetchStudentWrongTasks(sid, aid).then(setWrongTasks)
+    fetchStudentActivity(sid, aid).then(setActivityHeat)
+    fetchStudentSessionDays(sid, aid).then(setSessionDays)
   }, [student?.id, student?.groupId])
 
   const [diagExpanded, setDiagExpanded] = useState(true)
@@ -340,13 +346,17 @@ export default function TeacherStudentDashboardPage() {
   const correctTrainer = studentTrainerStats?.doneCount ?? trainerSections.reduce((a, s) => a + s.correct, 0)
   const wrongTrainer = studentTrainerStats?.wrongCount ?? (totalTrainer - correctTrainer)
   const completedHw = hwHistory.filter(h => !h.returned)
+  // Use computed values from real DB activity; fall back to manually-set student fields
   const hwAvg = completedHw.length > 0
     ? completedHw.reduce((a, h) => a + (h.score / h.maxScore) * 100, 0) / completedHw.length
-    : 0
+    : student.hwScore
   const attendedCount = lessonHistory.filter(l => l.attended).length
+  const realAttendance = lessonHistory.length > 0
+    ? Math.round((attendedCount / lessonHistory.length) * 100)
+    : student.attendance
 
   // Student has meaningful activity beyond diagnostics
-  const hasStats = student.hwScore > 0 || student.testScore > 0 || student.attendance > 0 || student.trialScore != null || correctTrainer > 0
+  const hasStats = hwAvg > 0 || student.testScore > 0 || realAttendance > 0 || student.trialScore != null || correctTrainer > 0
 
   const dockGlass: React.CSSProperties = {
     border: '1px solid var(--color-border-glass)',
@@ -434,7 +444,7 @@ export default function TeacherStudentDashboardPage() {
               ['ДЗ (средний балл)', `${Math.round(hwAvg)}%`],
               ['Тесты', `${student.testScore}%`],
               student.trialScore != null ? ['Пробник', `${student.trialScore}%`] : null,
-              ['Посещаемость', `${student.attendance}%`],
+              ['Посещаемость', `${realAttendance}%`],
               ['Тренажёр: верно', `${correctTrainer} из ${totalTrainer}`],
               ['Тренажёр: ошибок', String(wrongTrainer)],
             ].filter(Boolean).map((row, i) => (
@@ -567,10 +577,10 @@ export default function TeacherStudentDashboardPage() {
           transition: 'opacity 0.2s',
         }}>
           {[
-            { icon: ClipboardCheck, label: 'ДЗ', value: `${student.hwScore}%`, color: '#5FD68A', bg: 'var(--color-green-soft)' },
+            { icon: ClipboardCheck, label: 'ДЗ', value: `${Math.round(hwAvg)}%`, color: '#5FD68A', bg: 'var(--color-green-soft)' },
             { icon: TrendingUp,     label: 'Тесты', value: `${student.testScore}%`, color: '#B98FFF', bg: 'rgba(185,143,255,0.14)' },
             { icon: Award,          label: 'Пробник', value: student.trialScore != null ? `${student.trialScore}%` : '—', color: '#F5A623', bg: 'rgba(245,166,35,0.12)' },
-            { icon: Clock,          label: 'Посещаемость', value: `${student.attendance}%`, color: student.attendance >= 90 ? '#34C877' : student.attendance >= 70 ? '#F5A623' : '#F48B91', bg: student.attendance >= 90 ? 'var(--color-green-soft)' : student.attendance >= 70 ? 'rgba(245,166,35,0.12)' : 'var(--color-red-soft)' },
+            { icon: Clock,          label: 'Посещаемость', value: `${realAttendance}%`, color: realAttendance >= 90 ? '#34C877' : realAttendance >= 70 ? '#F5A623' : '#F48B91', bg: realAttendance >= 90 ? 'var(--color-green-soft)' : realAttendance >= 70 ? 'rgba(245,166,35,0.12)' : 'var(--color-red-soft)' },
             { icon: Target,         label: 'Тренажёр', value: `${correctTrainer}/${totalTrainer}`, color: '#6D9BFF', bg: 'rgba(109,155,255,0.14)' },
           ].map(({ icon: Icon, label, value, color, bg }) => (
             <div key={label} style={{ padding: '16px 18px', borderRadius: 16, background: bg, display: 'flex', flexDirection: 'column', gap: 7 }}>
@@ -647,15 +657,15 @@ export default function TeacherStudentDashboardPage() {
             <Card>
               <SectionHeader icon={BarChart3} label="Показатели" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <ScoreBar label="Домашние задания" icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" bg="rgba(95,214,138,0.14)" />
+                <ScoreBar label="Домашние задания" icon={ClipboardCheck} value={Math.round(hwAvg)} color="#5FD68A" bg="rgba(95,214,138,0.14)" />
                 <ScoreBar label="Тесты" icon={TrendingUp} value={student.testScore} color="#B98FFF" bg="rgba(185,143,255,0.14)" />
                 {student.trialScore != null && <ScoreBar label="Пробный экзамен" icon={Award} value={student.trialScore} color="#F5A623" bg="rgba(245,166,35,0.12)" />}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'var(--color-bg)', borderRadius: 12 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: student.attendance >= 90 ? 'rgba(95,214,138,0.14)' : student.attendance >= 70 ? 'rgba(245,166,35,0.12)' : 'rgba(244,139,145,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Clock size={13} strokeWidth={2} style={{ color: student.attendance >= 90 ? '#5FD68A' : student.attendance >= 70 ? '#F5A623' : '#F48B91' }} />
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: realAttendance >= 90 ? 'rgba(95,214,138,0.14)' : realAttendance >= 70 ? 'rgba(245,166,35,0.12)' : 'rgba(244,139,145,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Clock size={13} strokeWidth={2} style={{ color: realAttendance >= 90 ? '#5FD68A' : realAttendance >= 70 ? '#F5A623' : '#F48B91' }} />
                   </div>
                   <span style={{ fontSize: 13, color: 'var(--color-text)', flex: 1 }}>Посещаемость</span>
-                  <span style={{ fontSize: 16, fontWeight: 750, color: student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)' }}>{student.attendance}%</span>
+                  <span style={{ fontSize: 16, fontWeight: 750, color: realAttendance >= 90 ? 'var(--color-green-text)' : realAttendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)' }}>{realAttendance}%</span>
                 </div>
               </div>
             </Card>
@@ -831,7 +841,7 @@ export default function TeacherStudentDashboardPage() {
                   { val: totalTrainer, label: 'Задач', color: 'var(--color-text)', bg: 'var(--color-bg)' },
                   { val: correctTrainer, label: 'Верно', color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
                   { val: wrongTrainer, label: 'Ошибок', color: 'var(--color-red-text)', bg: 'var(--color-red-soft)' },
-                  { val: 7, label: 'Занятий', color: '#B98FFF', bg: 'rgba(185,143,255,0.14)' },
+                  { val: sessionDays, label: 'Занятий', color: '#B98FFF', bg: 'rgba(185,143,255,0.14)' },
                 ].map(({ val, label, color, bg }) => (
                   <div key={label} style={{ padding: '10px 12px', borderRadius: 14, background: bg, textAlign: 'center' }}>
                     <div style={{ fontSize: 22, fontWeight: 750, color, lineHeight: 1 }}>{val}</div>
@@ -872,9 +882,11 @@ export default function TeacherStudentDashboardPage() {
                   </div>
                 ))}
               </div>
-              <div style={{ marginTop: 12, padding: '9px 12px', borderRadius: 12, background: 'rgba(155,109,255,0.08)', border: '1px solid rgba(155,109,255,0.2)', fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.6 }}>
-                💡 Данные появятся автоматически, когда ученик занимается в тренажёре под своим аккаунтом.
-              </div>
+              {wrongTasks.length === 0 && (
+                <div style={{ marginTop: 12, padding: '9px 12px', borderRadius: 12, background: 'rgba(155,109,255,0.08)', border: '1px solid rgba(155,109,255,0.2)', fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.6, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                  <Lightbulb size={12} style={{ flexShrink: 0, marginTop: 1, color: 'rgba(155,109,255,0.7)' }} /> Данные появятся автоматически, когда ученик занимается в тренажёре под своим аккаунтом.
+                </div>
+              )}
             </Card>
 
 
@@ -882,8 +894,7 @@ export default function TeacherStudentDashboardPage() {
             <Card>
               <SectionHeader icon={Star} label="Активность (28 дней)" />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
-                {Array.from({ length: 28 }, (_, i) => {
-                  const heat = [0, 0, 1, 2, 0, 3, 1, 0, 0, 2, 1, 0, 0, 3, 2, 0, 1, 0, 2, 1, 0, 0, 3, 1, 0, 2, 0, 1][i] ?? 0
+                {activityHeat.map((heat, i) => {
                   const bg = heat === 0 ? 'var(--color-bg-5)' : heat === 1 ? 'rgba(52,200,119,0.18)' : heat === 2 ? 'rgba(52,200,119,0.45)' : '#34C877'
                   return <div key={i} style={{ height: 22, borderRadius: 5, background: bg }} />
                 })}
@@ -901,7 +912,7 @@ export default function TeacherStudentDashboardPage() {
             <Card>
               <SectionHeader icon={Layers} label="Слабые темы для проработки" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {trainerSections.filter(s => s.correct / s.total < 0.5).map(s => {
+                {trainerSections.filter(s => s.total > 0 && s.correct / s.total < 0.5).map(s => {
                   const pct = Math.round((s.correct / s.total) * 100)
                   return (
                     <div key={s.section} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 12, background: pct < 30 ? 'var(--color-red-soft)' : 'rgba(245,166,35,0.12)', border: `1px solid ${pct < 30 ? 'rgba(244,139,145,0.3)' : 'rgba(245,166,35,0.3)'}` }}>
@@ -911,9 +922,9 @@ export default function TeacherStudentDashboardPage() {
                     </div>
                   )
                 })}
-                {trainerSections.filter(s => s.correct / s.total < 0.5).length === 0 && (
-                  <div style={{ padding: '10px 12px', borderRadius: 12, background: 'var(--color-green-soft)', fontSize: 12, color: 'var(--color-green-text)', fontWeight: 600 }}>
-                    ✓ Нет явно слабых тем — отличная равномерная подготовка
+                {trainerSections.filter(s => s.total > 0 && s.correct / s.total < 0.5).length === 0 && (
+                  <div style={{ padding: '10px 12px', borderRadius: 12, background: 'var(--color-green-soft)', fontSize: 12, color: 'var(--color-green-text)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <CheckCircle2 size={13} style={{ flexShrink: 0 }} /> Нет явно слабых тем — отличная равномерная подготовка
                   </div>
                 )}
               </div>

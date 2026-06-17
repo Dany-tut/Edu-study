@@ -160,7 +160,7 @@ export default function TeacherTopBar() {
                 padding: '0 16px', height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
                 fontSize: 14, fontWeight: isActive ? 600 : 500,
                 color: isActive ? '#fff' : 'var(--color-muted)',
-                background: isActive ? 'color-mix(in srgb, var(--color-accent) 80%, transparent)' : 'transparent',
+                background: isActive ? 'color-mix(in srgb, var(--color-accent) 50%, transparent)' : 'transparent',
                 transition: 'background 0.15s, color 0.15s',
                 whiteSpace: 'nowrap', position: 'relative',
               }}

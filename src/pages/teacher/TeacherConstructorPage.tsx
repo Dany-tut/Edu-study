@@ -12,12 +12,14 @@ import {
   AlignLeft, Pencil, ClipboardCopy, Target, ChevronDown, ChevronUp,
   CheckCircle, Circle, Globe, Copy, Search, LayoutGrid,
   Settings, TrendingUp, ArrowLeftRight, RotateCcw, Palette,
+  ChevronLeft, ChevronRight, Calendar,
 } from 'lucide-react'
 import RichConditionEditor from '../../components/teacher/RichConditionEditor'
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagQuestions,
   loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult,
-  type DiagQuestion, type DiagSubject, type AnonDiagResult,
+  createTestAssignment, loadTestAssignments, deleteTestAssignment, loadAssignmentResults,
+  type DiagQuestion, type DiagSubject, type AnonDiagResult, type TestAssignment,
   DEFAULT_QUESTIONS,
 } from '../../data/diagnosticData'
 import { useAllStudents, useGroups } from '../../lib/useGroups'
@@ -1458,7 +1460,7 @@ function LessonNameInput({ value, onChange, onAdd }: {
 // Creator chrome is unified on the purple accent to match the lesson editor
 // and homework-create pages; per-type colors stay only in the list view.
 const CREATOR_CFG = {
-  course:  { label: 'Курс',     Icon: BookOpen, color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)',   accent: 'var(--color-green-text)' },
+  course:  { label: 'Курс',     Icon: BookOpen, color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)',  accent: 'var(--color-accent)' },
   trainer: { label: 'Тренажёр', Icon: Zap,      color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)', accent: 'var(--color-accent)' },
   widget:  { label: 'Виджет',   Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)', accent: 'var(--color-blue-pill-text)' },
 }
@@ -1554,7 +1556,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
         </div>
         {msg && <span style={{ fontSize: 12, fontWeight: 600, color: msg.startsWith('✓') ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>{msg}</span>}
         <button onClick={save} disabled={saving || loading}
-          style={{ padding: '9px 18px', borderRadius: 999, border: 'none', background: 'var(--color-accent)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+          style={{ padding: '9px 18px', borderRadius: 999, border: 'none', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
           {saving ? 'Сохраняю…' : 'Сохранить в базу'}
         </button>
       </div>
@@ -2389,7 +2391,7 @@ function CreatorView({
                       options={enrollStudents.map(s => ({ value: s.id, label: s.name }))} />
                   )}
                   <button onClick={enrollCourse} disabled={enrolling}
-                    style={{ padding: '9px 14px', borderRadius: 11, border: 'none', cursor: enrolling ? 'default' : 'pointer', background: 'var(--color-accent)', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', opacity: enrolling ? 0.6 : 1 }}>
+                    style={{ padding: '9px 14px', borderRadius: 11, border: 'none', cursor: enrolling ? 'default' : 'pointer', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', opacity: enrolling ? 0.6 : 1 }}>
                     {enrolling ? 'Зачисляю…' : 'Зачислить'}
                   </button>
                   {enrollMsg && <div style={{ fontSize: 12, fontWeight: 600, color: enrollMsg.startsWith('✓') ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>{enrollMsg}</div>}
@@ -2551,7 +2553,7 @@ function CreatorView({
                           const active = tkImageSize === sz
                           return (
                             <button key={sz} title={titles[sz]} onClick={() => setTkImageSize(sz)}
-                              style={{ padding: '3px 10px', borderRadius: 8, border: `1px solid ${active ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: active ? 'var(--color-accent)' : 'var(--color-bg-2)', color: active ? '#fff' : 'var(--color-text-2)', fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.12s' }}>
+                              style={{ padding: '3px 10px', borderRadius: 8, border: `1px solid ${active ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', color: active ? 'var(--color-accent)' : 'var(--color-text-2)', fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.12s' }}>
                               {labels[sz]}
                             </button>
                           )
@@ -4103,8 +4105,121 @@ function DiagResultStudentPanel({
   )
 }
 
-// ─── DiagnosticEditorFullPage — full-width editor replacing the side panel ─────
-function DiagnosticEditorFullPage({ subject, onClose }: { subject: DiagSubject; onClose: () => void }) {
+// ─── Date/time picker helpers ─────────────────────────────────────────────────
+const RU_MONTHS_SHORT = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек']
+const RU_MONTHS_FULL  = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь']
+const RU_DAYS_SHORT   = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс']
+
+function parseDateISO(v: string): Date | null {
+  if (!v) return null
+  const [y, m, d] = v.split('-').map(Number)
+  if (!y || !m || !d) return null
+  return new Date(y, m - 1, d)
+}
+function formatDateISO(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+}
+function formatDateDisplay(iso: string): string {
+  const d = parseDateISO(iso)
+  if (!d) return ''
+  return `${String(d.getDate()).padStart(2,'0')} ${RU_MONTHS_SHORT[d.getMonth()]} ${d.getFullYear()}`
+}
+
+function generateTimeSlotsDiag() {
+  const s: string[] = []
+  for (let h = 0; h < 24; h++) for (const m of [0, 30]) s.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`)
+  return s
+}
+const TIME_SLOTS_DIAG = generateTimeSlotsDiag()
+
+const calNavBtn: React.CSSProperties = { width: 28, height: 28, borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-2)', flexShrink: 0 }
+
+function DiagCalendarPicker({ value, onChange, onClose }: { value: string; onChange: (v: string) => void; onClose: () => void }) {
+  const selected = parseDateISO(value)
+  const today = new Date()
+  const [viewYear, setViewYear] = useState(selected?.getFullYear() ?? today.getFullYear())
+  const [viewMonth, setViewMonth] = useState(selected?.getMonth() ?? today.getMonth())
+
+  function prevMonth() { if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1) } else setViewMonth(m => m - 1) }
+  function nextMonth() { if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1) } else setViewMonth(m => m + 1) }
+
+  const days: (Date | null)[] = []
+  const first = new Date(viewYear, viewMonth, 1)
+  let startDow = first.getDay() - 1; if (startDow < 0) startDow = 6
+  for (let i = 0; i < startDow; i++) days.push(null)
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
+  for (let i = 1; i <= daysInMonth; i++) days.push(new Date(viewYear, viewMonth, i))
+  while (days.length % 7 !== 0) days.push(null)
+
+  return (
+    <motion.div initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }} transition={{ duration: 0.15 }}
+      style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 200, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 16, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', padding: '12px 14px 14px', minWidth: 238, userSelect: 'none' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <button onClick={prevMonth} style={calNavBtn}><ChevronLeft size={14} /></button>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{RU_MONTHS_FULL[viewMonth]} {viewYear}</span>
+        <button onClick={nextMonth} style={calNavBtn}><ChevronRight size={14} /></button>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
+        {RU_DAYS_SHORT.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', paddingBottom: 4 }}>{d}</div>)}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
+        {days.map((d, i) => {
+          if (!d) return <div key={i} />
+          const sel = !!(selected && d.toDateString() === selected.toDateString())
+          const tod = d.toDateString() === today.toDateString()
+          return (
+            <button key={i} onClick={() => { onChange(formatDateISO(d)); onClose() }}
+              style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500, background: sel ? 'var(--color-accent)' : tod ? 'var(--color-purple-soft)' : 'transparent', color: sel ? '#fff' : tod ? 'var(--color-accent)' : 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s' }}>
+              {d.getDate()}
+            </button>
+          )
+        })}
+      </div>
+    </motion.div>
+  )
+}
+
+function DiagTimePicker({ value, onChange, onClose }: { value: string; onChange: (v: string) => void; onClose: () => void }) {
+  const listRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const idx = TIME_SLOTS_DIAG.indexOf(value)
+    if (idx !== -1 && listRef.current) (listRef.current.children[idx] as HTMLElement)?.scrollIntoView({ block: 'center' })
+  }, [value])
+  return (
+    <motion.div initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }} transition={{ duration: 0.15 }}
+      style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 200, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', overflow: 'hidden' }}>
+      <div style={{ position: 'relative' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 28, zIndex: 1, background: 'linear-gradient(to bottom, var(--color-bg-input), transparent)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 28, zIndex: 1, background: 'linear-gradient(to top, var(--color-bg-input), transparent)', pointerEvents: 'none' }} />
+        <div ref={listRef} style={{ maxHeight: 200, overflowY: 'auto', padding: '4px 6px', scrollbarWidth: 'none' }}>
+          {TIME_SLOTS_DIAG.map(t => {
+            const active = t === value
+            return (
+              <button key={t} onClick={() => { onChange(t); onClose() }}
+                style={{ width: '100%', border: 'none', background: active ? 'var(--color-accent)' : 'transparent', color: active ? '#fff' : 'var(--color-text)', padding: '7px 10px', textAlign: 'left', fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'block', borderRadius: 9, transition: 'background 0.18s, color 0.18s' }}>
+                {t}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+// ─── DiagnosticEditorFullPage — 2-column: left=assignment, right=questions ────
+function DiagnosticEditorFullPage({
+  subject, onClose,
+  groups, allStudents,
+  assignments, onAssign, onDeleteAssignment,
+}: {
+  subject: DiagSubject; onClose: () => void
+  groups: import('../../data/teacherMockData').Group[]
+  allStudents: import('../../data/teacherMockData').Student[]
+  assignments: TestAssignment[]
+  onAssign: (a: Omit<TestAssignment, 'id' | 'createdAt'>) => void
+  onDeleteAssignment: (id: string) => void
+}) {
   const { label, accent, soft } = getSubjectMeta(subject)
   const Icon = getSubjectIcon(subject)
   const [questions, setQuestions] = useState<DiagQuestion[]>(() => loadDiagQuestions(subject))
@@ -4114,6 +4229,50 @@ function DiagnosticEditorFullPage({ subject, onClose }: { subject: DiagSubject; 
   const [editCorrect, setEditCorrect] = useState(0)
   const [dirty, setDirty] = useState(false)
   const [docked, setDocked] = useState(false)
+
+  // ── Assignment panel state ──
+  const [assignType, setAssignType] = useState<'test' | 'trial'>('test')
+  const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(new Set())
+  const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(new Set())
+  const [dueDate, setDueDate] = useState('')
+  const [dueTime, setDueTime] = useState('')
+  const [calOpen, setCalOpen] = useState(false)
+  const [timeOpen, setTimeOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [expandedAssignId, setExpandedAssignId] = useState<string | null>(null)
+  const [assignResults, setAssignResults] = useState<AnonDiagResult[]>([])
+
+  const thisAssignments = assignments.filter(a => a.subject === subject)
+
+  useEffect(() => {
+    if (expandedAssignId) loadAssignmentResults(expandedAssignId).then(setAssignResults)
+    else setAssignResults([])
+  }, [expandedAssignId])
+
+  const toggleGroup = (id: string) => setSelectedGroupIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  const toggleStudent = (id: string) => setSelectedStudentIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+
+  async function handleAssign() {
+    if (selectedGroupIds.size === 0 && selectedStudentIds.size === 0) return
+    setSaving(true)
+    await onAssign({
+      title: `${label} · ${assignType === 'trial' ? 'Пробник' : 'Тест'}`,
+      subject, assignType,
+      groupIds: Array.from(selectedGroupIds),
+      studentIds: Array.from(selectedStudentIds),
+      dueDate: dueDate || undefined,
+      closed: false,
+    })
+    setSelectedGroupIds(new Set()); setSelectedStudentIds(new Set()); setDueDate('')
+    setSaving(false)
+  }
+
+  function copyLink() {
+    navigator.clipboard.writeText(`${BASE_URL}#/diagnostic?subject=${subject}`)
+      .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
+  }
+
   useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
 
   function save(qs: DiagQuestion[]) { setQuestions(qs); saveDiagQuestions(subject, qs); setDirty(false) }
@@ -4126,8 +4285,8 @@ function DiagnosticEditorFullPage({ subject, onClose }: { subject: DiagSubject; 
   function removeQuestion(idx: number) { save(questions.filter((_, i) => i !== idx)); if (editIdx === idx) setEditIdx(null) }
   function resetToDefault() { save(DEFAULT_QUESTIONS[subject]); setEditIdx(null) }
 
-  const dockGlass: React.CSSProperties = { border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', fontFamily: 'inherit' }
-  const savePillStyle: React.CSSProperties = teacherSaveStyle({ disabled: false })
+  const canAssign = selectedGroupIds.size > 0 || selectedStudentIds.size > 0
+  const [distMode, setDistMode] = useState<'assign' | 'link'>('assign')
 
   return (
     <motion.div
@@ -4136,7 +4295,7 @@ function DiagnosticEditorFullPage({ subject, onClose }: { subject: DiagSubject; 
       onScroll={e => setDocked((e.currentTarget as HTMLElement).scrollTop > 64)}
       style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', paddingTop: 100 }}
     >
-      {/* ── Docked top bar — fixed, appears on scroll ── */}
+      {/* ── Docked top bar ── */}
       <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
         <AnimatePresence>
           {docked && (
@@ -4152,71 +4311,218 @@ function DiagnosticEditorFullPage({ subject, onClose }: { subject: DiagSubject; 
                 style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', pointerEvents: 'auto' }}>
                 <ArrowLeft size={15} strokeWidth={2} /> Назад
               </motion.button>
-              <div style={{ flexShrink: 1, minWidth: 0, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '9px 16px', borderRadius: 999, ...dockGlass, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto' }}>
-                Редактор: {label}
-              </div>
-              <div style={{ flexGrow: 1, flexBasis: 0 }} />
-              <div style={{ flexShrink: 0, width: 248, display: 'flex', justifyContent: 'center' }}>
-                <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                  onClick={editIdx !== null ? commitEdit : undefined}
-                  style={{ ...savePillStyle, pointerEvents: 'auto' }}>
-                  <Check size={14} strokeWidth={2.5} /> Сохранить
-                </motion.button>
+              <div style={{ padding: '9px 16px', borderRadius: 999, ...dockGlass, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto' }}>
+                {label}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', padding: '4px 0 48px' }}>
-        {/* ── In-flow header — fades when docked ── */}
-        <motion.div
-          animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.2 }}
-          style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
-        >
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onClose}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-            <ArrowLeft size={15} strokeWidth={2} /> Назад
-          </motion.button>
-          <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', fontSize: 18, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
-            Редактор: {label}
+      {/* ── In-flow header ── */}
+      <motion.div
+        animate={{ opacity: docked ? 0 : 1 }} transition={{ duration: 0.2 }}
+        style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 24px 20px' }}
+      >
+        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={onClose}
+          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <ArrowLeft size={15} strokeWidth={2} /> Назад
+        </motion.button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 10, background: soft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon size={16} style={{ color: accent }} />
           </div>
-          <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
-            <button onClick={resetToDefault} style={{ padding: '9px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb),0.96)', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-              Сбросить к стандарту
-            </button>
-            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={editIdx !== null ? commitEdit : undefined}
-              style={savePillStyle}>
-              <Check size={14} strokeWidth={2.5} /> Сохранить
-            </motion.button>
-          </div>
-        </motion.div>
+          <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{label}</span>
+        </div>
+        <div style={{ marginLeft: 'auto' }}>
+          <button onClick={resetToDefault} style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+            Сбросить к стандарту
+          </button>
+        </div>
+      </motion.div>
 
-        {/* ── Body: left sticky panel + center ── */}
-        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+      {/* ── 2-column body ── */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, padding: '0 24px 48px' }}>
 
-          {/* LEFT: question list — sticky glass card */}
-          <div style={{ padding: '0 0 20px 24px', flexShrink: 0, position: 'sticky', top: 110, alignSelf: 'flex-start' }}>
-            <GlassCard style={{ width: 230, boxSizing: 'border-box', padding: 12, display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 'calc(100vh - 180px)', overflowY: 'auto' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', padding: '2px 4px 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                {questions.length} вопросов
-              </div>
-              {questions.map((q, idx) => (
-                <button
-                  key={q.id}
-                  onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s' }}
-                >
-                  <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? '#fff' : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
-                  <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: editIdx === idx ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.text}</div>
+        {/* ── LEFT: assignment panel ── */}
+        <div style={{ width: 300, flexShrink: 0, position: 'sticky', top: 110, alignSelf: 'flex-start', display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+          {/* 3-mode card */}
+          <GlassCard style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+            {/* Mode tabs */}
+            <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-3)' }}>
+              {([
+                { id: 'assign', icon: Target, label: 'Назначить' },
+                { id: 'link',   icon: Link2,  label: 'По ссылке' },
+              ] as const).map(({ id, icon: Icon2, label }) => (
+                <button key={id} onClick={() => setDistMode(id)}
+                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '7px 4px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 700, transition: 'all 0.14s',
+                    background: distMode === id ? 'var(--color-surface, var(--color-bg-input))' : 'transparent',
+                    color: distMode === id ? accent : 'var(--color-text-3)',
+                    boxShadow: distMode === id ? '0 1px 6px rgba(0,0,0,0.10)' : 'none',
+                  }}>
+                  <Icon2 size={12} /> {label}
                 </button>
               ))}
-            </GlassCard>
-          </div>
+            </div>
 
-          {/* CENTER: question editor */}
-          <div style={{ flex: 1, minWidth: 0, padding: '0 24px 0 16px' }}>
+            {/* ── Mode: Назначить ── */}
+            {distMode === 'assign' && (
+              <>
+                {/* Type toggle */}
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {(['test', 'trial'] as const).map(t => (
+                    <button key={t} onClick={() => setAssignType(t)}
+                      style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: `1.5px solid ${assignType === t ? accent : 'var(--color-border-medium)'}`, background: assignType === t ? soft : 'transparent', color: assignType === t ? accent : 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
+                      {t === 'test' ? 'Контрольная' : 'Пробник'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Groups */}
+                {groups.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 }}>Группы</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                      {groups.map(g => (
+                        <button key={g.id} onClick={() => toggleGroup(g.id)}
+                          style={{ padding: '4px 10px', borderRadius: 8, border: `1.5px solid ${selectedGroupIds.has(g.id) ? g.color : 'var(--color-border-soft)'}`, background: selectedGroupIds.has(g.id) ? g.color + '22' : 'transparent', color: selectedGroupIds.has(g.id) ? g.color : 'var(--color-text-3)', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
+                          {g.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Individual students */}
+                {allStudents.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 }}>Ученики</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, maxHeight: 100, overflowY: 'auto' }}>
+                      {allStudents.map(s => (
+                        <button key={s.id} onClick={() => toggleStudent(s.id)}
+                          style={{ padding: '4px 10px', borderRadius: 8, border: `1.5px solid ${selectedStudentIds.has(s.id) ? accent : 'var(--color-border-soft)'}`, background: selectedStudentIds.has(s.id) ? soft : 'transparent', color: selectedStudentIds.has(s.id) ? accent : 'var(--color-text-3)', fontSize: 11, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
+                          {s.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Due date + time */}
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 }}>Срок (необязательно)</div>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {/* Calendar trigger */}
+                    <div style={{ position: 'relative', flex: 1 }}>
+                      <button onClick={() => { setCalOpen(o => !o); setTimeOpen(false) }}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 7, padding: '8px 10px', borderRadius: 9, border: `1.5px solid ${calOpen ? accent : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', color: dueDate ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', transition: 'border-color 0.15s', fontWeight: dueDate ? 600 : 400 }}>
+                        <Calendar size={13} style={{ flexShrink: 0, color: accent }} />
+                        <span style={{ flex: 1, textAlign: 'left' }}>{dueDate ? formatDateDisplay(dueDate) : 'Дата'}</span>
+                        {dueDate && <button onClick={e => { e.stopPropagation(); setDueDate('') }} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-text-3)', lineHeight: 1, fontSize: 13, display: 'flex' }}>×</button>}
+                      </button>
+                      <AnimatePresence>
+                        {calOpen && <DiagCalendarPicker value={dueDate} onChange={v => { setDueDate(v); setCalOpen(false) }} onClose={() => setCalOpen(false)} />}
+                      </AnimatePresence>
+                    </div>
+                    {/* Time trigger */}
+                    <div style={{ position: 'relative', width: 80 }}>
+                      <button onClick={() => { setTimeOpen(o => !o); setCalOpen(false) }}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 5, padding: '8px 8px', borderRadius: 9, border: `1.5px solid ${timeOpen ? accent : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', color: dueTime ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', transition: 'border-color 0.15s', fontWeight: dueTime ? 600 : 400 }}>
+                        <Clock size={13} style={{ flexShrink: 0, color: accent }} />
+                        <span>{dueTime || 'Время'}</span>
+                      </button>
+                      <AnimatePresence>
+                        {timeOpen && <DiagTimePicker value={dueTime} onChange={v => { setDueTime(v); setTimeOpen(false) }} onClose={() => setTimeOpen(false)} />}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                </div>
+
+                <button onClick={handleAssign} disabled={saving || !canAssign}
+                  style={{ padding: '10px', borderRadius: 11, border: 'none', background: canAssign ? accent : 'var(--color-bg-5)', color: canAssign ? '#fff' : 'var(--color-text-3)', fontSize: 13, fontWeight: 700, cursor: canAssign ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'all 0.13s' }}>
+                  {saving ? 'Назначаем…' : 'Назначить тест'}
+                </button>
+              </>
+            )}
+
+            {/* ── Mode: По ссылке (новый ученик) ── */}
+            {distMode === 'link' && (
+              <>
+                <div style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.5 }}>
+                  Человек проходит тест по ссылке, вводит имя и появляется в таблице результатов. Подходит для первичной диагностики.
+                </div>
+                <button onClick={copyLink}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '11px 14px', borderRadius: 11, cursor: 'pointer', border: `1.5px solid ${copied ? 'var(--color-green-text)' : accent}`, fontFamily: 'inherit', background: copied ? 'var(--color-green-soft)' : soft, color: copied ? 'var(--color-green-text)' : accent, fontSize: 13, fontWeight: 700, transition: 'all 0.18s' }}>
+                  {copied ? <Check size={14} /> : <Link2 size={14} />}
+                  {copied ? 'Ссылка скопирована!' : 'Копировать ссылку'}
+                </button>
+                <div style={{ fontSize: 11, color: 'var(--color-muted)', textAlign: 'center' }}>
+                  После прохождения результат появится в таблице ниже
+                </div>
+              </>
+            )}
+
+          </GlassCard>
+
+          {/* Existing assignments for this test */}
+          {thisAssignments.length > 0 && (
+            <GlassCard style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                Назначения ({thisAssignments.length})
+              </div>
+              {thisAssignments.map(a => {
+                const isExp = expandedAssignId === a.id
+                const aGroups = groups.filter(g => a.groupIds.includes(g.id))
+                const aStudents = allStudents.filter(s => a.studentIds.includes(s.id))
+                return (
+                  <div key={a.id}>
+                    <div
+                      onClick={() => setExpandedAssignId(prev => prev === a.id ? null : a.id)}
+                      style={{ padding: '9px 12px', borderRadius: 10, background: isExp ? soft : 'var(--color-bg-2)', border: `1px solid ${isExp ? accent : 'var(--color-border)'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.13s' }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.title}</div>
+                        <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 2, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                          {aGroups.map(g => <span key={g.id} style={{ color: g.color }}>● {g.name}</span>)}
+                          {aStudents.map(s => <span key={s.id}>{s.name}</span>)}
+                          {a.dueDate && <span>до {a.dueDate}</span>}
+                        </div>
+                      </div>
+                      <button onClick={e => { e.stopPropagation(); onDeleteAssignment(a.id) }}
+                        style={{ width: 22, height: 22, borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}>
+                        <Trash2 size={10} />
+                      </button>
+                    </div>
+                    {isExp && (
+                      <div style={{ margin: '4px 0 2px 8px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        {assignResults.length === 0 ? (
+                          <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '6px 10px' }}>Никто ещё не сдал</div>
+                        ) : assignResults.map(r => {
+                          const pct = r.results ? Math.round(Object.values(r.results).reduce((acc, s) => acc + s.correct, 0) / Math.max(1, Object.values(r.results).reduce((acc, s) => acc + s.total, 0)) * 100) : 0
+                          const col = pct >= 70 ? '#34C877' : pct >= 40 ? '#F5A623' : '#F48B91'
+                          return (
+                            <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8, background: 'var(--color-bg)' }}>
+                              <span style={{ fontSize: 11, color: 'var(--color-text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
+                              <span style={{ fontSize: 12, fontWeight: 700, color: col }}>{pct}%</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </GlassCard>
+          )}
+        </div>
+
+        {/* ── RIGHT: editor + question list ── */}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+
+          {/* Question editor */}
+          <div style={{ flex: 1, minWidth: 0 }}>
             <AnimatePresence mode="wait">
               {editIdx !== null ? (
                 <motion.div
@@ -4225,7 +4531,6 @@ function DiagnosticEditorFullPage({ subject, onClose }: { subject: DiagSubject; 
                   transition={{ duration: 0.18 }}
                 >
                   <GlassCard style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
-                    {/* Header */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{ width: 36, height: 36, borderRadius: 10, background: accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, flexShrink: 0 }}>{editIdx + 1}</div>
                       <div style={{ flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>Редактирование вопроса</div>
@@ -4233,8 +4538,6 @@ function DiagnosticEditorFullPage({ subject, onClose }: { subject: DiagSubject; 
                         <X size={13} /> Удалить
                       </button>
                     </div>
-
-                    {/* Question text */}
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Текст вопроса</div>
                       <textarea
@@ -4242,33 +4545,24 @@ function DiagnosticEditorFullPage({ subject, onClose }: { subject: DiagSubject; 
                         style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 12, border: `1.5px solid ${accent}55`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.5 }}
                       />
                     </div>
-
-                    {/* Options */}
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Варианты ответов <span style={{ color: 'var(--color-muted)', fontWeight: 400, textTransform: 'none' }}>— нажми кружок чтобы отметить правильный</span></div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                         {editOpts.map((opt, oi) => (
                           <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            <button
-                              onClick={() => { setEditCorrect(oi); setDirty(true) }}
-                              title="Правильный ответ"
-                              style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'transparent', transition: 'all 0.14s', position: 'relative' }}
-                            >
+                            <button onClick={() => { setEditCorrect(oi); setDirty(true) }}
+                              style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'transparent', transition: 'all 0.14s', position: 'relative' }}>
                               {editCorrect === oi && <Check size={13} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff', strokeWidth: 3 }} />}
                             </button>
-                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 0, borderRadius: 12, border: `1.5px solid ${editCorrect === oi ? accent + '66' : 'var(--color-border-medium)'}`, background: editCorrect === oi ? soft : 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
+                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `1.5px solid ${editCorrect === oi ? accent + '66' : 'var(--color-border-medium)'}`, background: editCorrect === oi ? soft : 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
                               <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: editCorrect === oi ? accent : 'var(--color-muted)', flexShrink: 0 }}>{String.fromCharCode(65 + oi)}</div>
-                              <input
-                                value={opt} onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o); setDirty(true) }}
-                                style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }}
-                              />
+                              <input value={opt} onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o); setDirty(true) }}
+                                style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
-
-                    {/* Save row */}
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 4 }}>
                       <button onClick={() => setEditIdx(null)} style={{ padding: '10px 20px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Отмена</button>
                       <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={commitEdit}
@@ -4282,16 +4576,32 @@ function DiagnosticEditorFullPage({ subject, onClose }: { subject: DiagSubject; 
                 <motion.div
                   key="empty"
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', gap: 16, color: 'var(--color-muted)' }}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', gap: 16 }}
                 >
                   <div style={{ width: 56, height: 56, borderRadius: 16, background: soft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon size={26} style={{ color: accent }} />
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-3)' }}>Выбери вопрос слева чтобы редактировать</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-3)' }}>Выбери вопрос справа чтобы редактировать</div>
                   <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{questions.length} вопросов в тесте «{label}»</div>
                 </motion.div>
               )}
             </AnimatePresence>
+          </div>
+
+          {/* Question list — sticky on the right */}
+          <div style={{ width: 220, flexShrink: 0, position: 'sticky', top: 110, alignSelf: 'flex-start' }}>
+            <GlassCard style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 'calc(100vh - 180px)', overflowY: 'auto' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', padding: '2px 4px 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {questions.length} вопросов
+              </div>
+              {questions.map((q, idx) => (
+                <button key={q.id} onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s' }}>
+                  <div style={{ width: 20, height: 20, borderRadius: 6, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? '#fff' : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
+                  <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: editIdx === idx ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.text}</div>
+                </button>
+              ))}
+            </GlassCard>
           </div>
         </div>
       </div>
@@ -5519,9 +5829,26 @@ export default function TeacherConstructorPage() {
   const [selectedResultId, setSelectedResultId] = useState<string | null>(null)
   const [diagAnonResults, setDiagAnonResults] = useState<AnonDiagResult[]>([])
   const diagAllStudents = useAllStudents()
+  const { groups: diagGroups } = useGroups()
+  const [assignments, setAssignments] = useState<TestAssignment[]>([])
+  const [assignModal, setAssignModal] = useState<{ subject: string; title: string } | null>(null)
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null)
+  const [assignmentResults, setAssignmentResults] = useState<AnonDiagResult[]>([])
+
   useEffect(() => {
-    if (activeTab === 'testing') loadAnonResults().then(setDiagAnonResults)
+    if (activeTab === 'testing') {
+      loadAnonResults().then(setDiagAnonResults)
+      loadTestAssignments().then(setAssignments)
+    }
   }, [activeTab])
+
+  useEffect(() => {
+    if (selectedAssignmentId) {
+      loadAssignmentResults(selectedAssignmentId).then(setAssignmentResults)
+    } else {
+      setAssignmentResults([])
+    }
+  }, [selectedAssignmentId])
   const [creatorMode, setCreatorMode] = useState<Exclude<Tab, 'testing'> | null>(null)
   const [editCourse, setEditCourse] = useState<Course | null>(null)
   const [editTrainer, setEditTrainer] = useState<Trainer | null>(null)
@@ -5690,17 +6017,10 @@ export default function TeacherConstructorPage() {
 
   function openItem(id: string) { setSelectedId(prev => prev === id ? null : id) }
   function openDiagCard(subject: DiagSubject) {
-    if (selectedId === subject) {
-      // second click on same card → open full-page editor
-      setDiagEditing(subject)
-      setSelectedId(null)
-      setSelectedResultId(null)
-    } else {
-      setSelectedId(subject)
-      setSelectedResultId(null)
-      setDiagEditing(null)
-      loadAnonResults().then(setDiagAnonResults)
-    }
+    setDiagEditing(subject)
+    setSelectedId(null)
+    setSelectedResultId(null)
+    loadAnonResults().then(setDiagAnonResults)
   }
   function closeEditor() { setSelectedId(null); setDiagEditing(null); setSelectedResultId(null) }
 
@@ -5916,7 +6236,7 @@ export default function TeacherConstructorPage() {
   }
 
   const tabCfg = {
-    course:   { label: 'Курс',        Icon: BookOpen, color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)' },
+    course:   { label: 'Курс',        Icon: BookOpen, color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)' },
     trainer:  { label: 'Тренажёр',    Icon: Zap,      color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)' },
     widget:   { label: 'Виджет',      Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
     testing:  { label: 'Тестирование', Icon: Target,  color: 'var(--color-teal-pill-text,#0d9488)', bg: 'var(--color-teal-pill-bg,rgba(13,148,136,0.12))' },
@@ -5963,6 +6283,17 @@ export default function TeacherConstructorPage() {
             key={`diag-editor-${diagEditing}`}
             subject={diagEditing as DiagSubject}
             onClose={() => setDiagEditing(null)}
+            groups={diagGroups}
+            allStudents={diagAllStudents}
+            assignments={assignments}
+            onAssign={async (a) => {
+              const created = await createTestAssignment(a)
+              if (created) setAssignments(prev => [created, ...prev])
+            }}
+            onDeleteAssignment={async id => {
+              await deleteTestAssignment(id)
+              setAssignments(prev => prev.filter(a => a.id !== id))
+            }}
           />
         ) : (
           <motion.div
@@ -6253,6 +6584,209 @@ export default function TeacherConstructorPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+    </div>
+  )
+}
+
+// ─── Assign test modal ────────────────────────────────────────────────────────
+function AssignTestModal({
+  subject, title, groups, allStudents, onClose, onSave,
+}: {
+  subject: string; title: string
+  groups: import('../../data/teacherMockData').Group[]
+  allStudents: import('../../data/teacherMockData').Student[]
+  onClose: () => void
+  onSave: (a: Omit<TestAssignment, 'id' | 'createdAt'>) => void
+}) {
+  const [assignType, setAssignType] = useState<'test' | 'trial'>('test')
+  const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(new Set())
+  const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(new Set())
+  const [dueDate, setDueDate] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const toggleGroup = (id: string) => setSelectedGroupIds(prev => {
+    const next = new Set(prev)
+    next.has(id) ? next.delete(id) : next.add(id)
+    return next
+  })
+  const toggleStudent = (id: string) => setSelectedStudentIds(prev => {
+    const next = new Set(prev)
+    next.has(id) ? next.delete(id) : next.add(id)
+    return next
+  })
+
+  const canSave = selectedGroupIds.size > 0 || selectedStudentIds.size > 0
+
+  async function handleSave() {
+    if (!canSave) return
+    setSaving(true)
+    await onSave({
+      title: `${title} · ${assignType === 'trial' ? 'Пробник' : 'Тест'}`,
+      subject,
+      assignType,
+      groupIds: Array.from(selectedGroupIds),
+      studentIds: Array.from(selectedStudentIds),
+      dueDate: dueDate || undefined,
+      closed: false,
+    })
+    setSaving(false)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      style={{ position: 'fixed', inset: 0, zIndex: 600, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.94, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.94, y: 16 }}
+        transition={{ type: 'spring', stiffness: 360, damping: 32 }}
+        onClick={e => e.stopPropagation()}
+        style={{ width: '100%', maxWidth: 500, background: 'var(--color-bg-input)', borderRadius: 24, border: '1px solid var(--color-border-glass)', boxShadow: '0 32px 80px rgba(0,0,0,0.22)', overflow: 'hidden' }}
+      >
+        {/* Header */}
+        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--color-border-soft)', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)' }}>Назначить тест</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{title}</div>
+          </div>
+          <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'var(--color-bg-5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
+            <X size={14} />
+          </button>
+        </div>
+
+        <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {/* Type */}
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>Тип</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {(['test', 'trial'] as const).map(t => (
+                <button key={t} onClick={() => setAssignType(t)}
+                  style={{ padding: '7px 16px', borderRadius: 10, border: `1.5px solid ${assignType === t ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: assignType === t ? 'var(--color-purple-soft)' : 'transparent', color: assignType === t ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
+                  {t === 'test' ? 'Контрольная' : 'Пробник (ЕГЭ)'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Groups */}
+          {groups.length > 0 && (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>Группы</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {groups.map(g => (
+                  <button key={g.id} onClick={() => toggleGroup(g.id)}
+                    style={{ padding: '5px 12px', borderRadius: 8, border: `1.5px solid ${selectedGroupIds.has(g.id) ? g.color : 'var(--color-border-soft)'}`, background: selectedGroupIds.has(g.id) ? g.color + '22' : 'transparent', color: selectedGroupIds.has(g.id) ? g.color : 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
+                    {g.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Individual students */}
+          {allStudents.length > 0 && (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>Отдельные ученики</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 120, overflowY: 'auto' }}>
+                {allStudents.map(s => (
+                  <button key={s.id} onClick={() => toggleStudent(s.id)}
+                    style={{ padding: '4px 10px', borderRadius: 8, border: `1.5px solid ${selectedStudentIds.has(s.id) ? 'var(--color-accent)' : 'var(--color-border-soft)'}`, background: selectedStudentIds.has(s.id) ? 'var(--color-purple-soft)' : 'transparent', color: selectedStudentIds.has(s.id) ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 11, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
+                    {s.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Due date */}
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>Дедлайн (необязательно)</div>
+            <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
+              style={{ padding: '9px 12px', borderRadius: 10, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' }} />
+          </div>
+
+          <button onClick={handleSave} disabled={!canSave || saving}
+            style={{ padding: '12px', borderRadius: 12, border: 'none', background: canSave ? 'var(--color-purple-soft)' : 'var(--color-bg-5)', color: canSave ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 14, fontWeight: 700, cursor: canSave ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'all 0.13s' }}>
+            {saving ? 'Сохраняем…' : 'Назначить тест'}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ─── Assignments panel ────────────────────────────────────────────────────────
+function AssignmentsPanel({
+  assignments, allStudents, groups, selectedId, results, onSelect, onDelete,
+}: {
+  assignments: TestAssignment[]
+  allStudents: import('../../data/teacherMockData').Student[]
+  groups: import('../../data/teacherMockData').Group[]
+  selectedId: string | null
+  results: AnonDiagResult[]
+  onSelect: (id: string) => void
+  onDelete: (id: string) => void
+}) {
+  return (
+    <div style={{ padding: '24px 32px 0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+        <Target size={14} style={{ color: 'var(--color-teal-pill-text, #0d9488)' }} />
+        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: 0.4 }}>Назначенные тесты</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', borderRadius: 7, padding: '1px 8px' }}>{assignments.length}</span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {assignments.map(a => {
+          const assignedGroups = groups.filter(g => a.groupIds.includes(g.id))
+          const assignedStudents = allStudents.filter(s => a.studentIds.includes(s.id))
+          const isOpen = selectedId === a.id
+          const doneCount = isOpen ? results.length : 0
+          return (
+            <div key={a.id}>
+              <div
+                onClick={() => onSelect(a.id)}
+                style={{ padding: '12px 16px', borderRadius: 14, background: 'var(--color-bg-card)', border: `1.5px solid ${isOpen ? 'var(--color-accent)' : 'var(--color-border-soft)'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, transition: 'border-color 0.15s' }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 3 }}>{a.title}</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-3)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {assignedGroups.map(g => <span key={g.id} style={{ color: g.color }}>● {g.name}</span>)}
+                    {assignedStudents.map(s => <span key={s.id}>{s.name}</span>)}
+                    {a.dueDate && <span>до {a.dueDate}</span>}
+                  </div>
+                </div>
+                <span style={{ padding: '3px 9px', borderRadius: 8, fontSize: 11, fontWeight: 700, background: a.assignType === 'trial' ? 'rgba(245,166,35,0.12)' : 'var(--color-purple-soft)', color: a.assignType === 'trial' ? '#F5A623' : 'var(--color-purple-text)' }}>
+                  {a.assignType === 'trial' ? 'Пробник' : 'Тест'}
+                </span>
+                <button onClick={e => { e.stopPropagation(); onDelete(a.id) }}
+                  style={{ width: 26, height: 26, borderRadius: 8, border: 'none', background: 'var(--color-red-soft)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}>
+                  <Trash2 size={12} />
+                </button>
+              </div>
+
+              {/* Results for this assignment */}
+              {isOpen && (
+                <div style={{ margin: '8px 0 4px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {results.length === 0 ? (
+                    <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '8px 12px' }}>Никто ещё не сдал</div>
+                  ) : results.map(r => {
+                    const pct = r.results ? Math.round(Object.values(r.results).reduce((a, s) => a + s.correct, 0) / Math.max(1, Object.values(r.results).reduce((a, s) => a + s.total, 0)) * 100) : 0
+                    const col = pct >= 70 ? '#34C877' : pct >= 40 ? '#F5A623' : '#F48B91'
+                    return (
+                      <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 10, background: 'var(--color-bg)' }}>
+                        <span style={{ fontSize: 12, color: 'var(--color-text)', flex: 1 }}>{r.name}</span>
+                        <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{new Date(r.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: col, minWidth: 36, textAlign: 'right' }}>{pct}%</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

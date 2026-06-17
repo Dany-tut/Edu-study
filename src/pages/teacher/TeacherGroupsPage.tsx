@@ -14,7 +14,12 @@ import {
 } from '../../data/teacherMockData'
 import { useGroups, useStudents } from '../../lib/useGroups'
 import { useTeacher } from '../../store/teacherStore'
-import { fetchStudentActiveCourses, type StudentCourseInfo } from '../../lib/db'
+import {
+  fetchStudentActiveCourses, type StudentCourseInfo,
+  fetchStudentTrainerSections, type TrainerSection,
+  fetchStudentWrongTasks, type WrongTask,
+  fetchStudentSessionDays,
+} from '../../lib/db'
 
 // ─── Цвета для выбора группы ─────────────────────────────────────────────────
 const GROUP_COLORS = [
@@ -853,24 +858,21 @@ function StudentAvatar({
 }
 
 // ─── Mock trainer stats for a student (until Supabase trainer_sessions table) ──
-const MOCK_TRAINER_SECTIONS: { section: string; correct: number; total: number }[] = [
-  { section: 'Молекулярная биология',    correct: 12, total: 18 },
-  { section: 'Клеточная теория',         correct:  6, total: 11 },
-  { section: 'Обмен веществ',            correct:  2, total:  9 },
-  { section: 'Размножение организмов',   correct:  9, total: 12 },
-  { section: 'Основы генетики',          correct:  4, total: 14 },
-]
-const MOCK_WRONG_TASKS = [
-  { id: 1554, line: 24, topic: 'Процессы жизнедеятельности клетки' },
-  { id: 892,  line: 19, topic: 'АТФ и биологическое окисление' },
-  { id: 1102, line:  6, topic: 'Строение клеток эукариот' },
-  { id: 445,  line: 28, topic: 'Генетика — задачи' },
-  { id: 730,  line: 18, topic: 'Фотосинтез и хемосинтез' },
-]
 
 // ─── Full-screen student card ─────────────────────────────────────────────────
 function StudentFullCard({ student, group, onClose }: { student: Student; group: Group; onClose: () => void }) {
   const [tab, setTab] = useState<'main' | 'trainer'>('main')
+  const [trainerSections, setTrainerSections] = useState<TrainerSection[]>([])
+  const [wrongTasks, setWrongTasks] = useState<WrongTask[]>([])
+  const [sessionDays, setSessionDays] = useState(0)
+
+  useEffect(() => {
+    const sid = student.id
+    const aid = (student as any).authUserId ?? null
+    fetchStudentTrainerSections(sid, aid).then(setTrainerSections)
+    fetchStudentWrongTasks(sid, aid).then(setWrongTasks)
+    fetchStudentSessionDays(sid, aid).then(setSessionDays)
+  }, [student.id])
 
   return (
     <motion.div
@@ -972,12 +974,16 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                 style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 {/* Summary row */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-                  {[
-                    { val: 33, label: 'Всего задач', color: 'var(--color-text)', bg: 'var(--color-bg)' },
-                    { val: 33, label: 'Верно', color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
-                    { val: 31, label: 'Ошибок', color: 'var(--color-red-text)', bg: 'var(--color-red-soft)' },
-                    { val: '7', label: 'Занятий', color: '#B98FFF', bg: '#EFE0FF' },
-                  ].map(({ val, label, color, bg }) => (
+                  {(() => {
+                    const total = trainerSections.reduce((a, s) => a + s.total, 0)
+                    const correct = trainerSections.reduce((a, s) => a + s.correct, 0)
+                    return [
+                      { val: total, label: 'Всего задач', color: 'var(--color-text)', bg: 'var(--color-bg)' },
+                      { val: correct, label: 'Верно', color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
+                      { val: total - correct, label: 'Ошибок', color: 'var(--color-red-text)', bg: 'var(--color-red-soft)' },
+                      { val: sessionDays, label: 'Занятий', color: '#B98FFF', bg: '#EFE0FF' },
+                    ]
+                  })().map(({ val, label, color, bg }) => (
                     <div key={label} style={{ padding: '12px 14px', borderRadius: 14, background: bg, textAlign: 'center' }}>
                       <div style={{ fontSize: 24, fontWeight: 750, color, lineHeight: 1 }}>{val}</div>
                       <div style={{ fontSize: 11, color, opacity: 0.75, marginTop: 4 }}>{label}</div>
@@ -991,7 +997,10 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                     <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>По разделам</span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {MOCK_TRAINER_SECTIONS.map(({ section, correct, total }) => {
+                    {trainerSections.length === 0 && (
+                      <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '8px 0' }}>Нет данных — ученик ещё не занимался в тренажёре</div>
+                    )}
+                    {trainerSections.map(({ section, correct, total }) => {
                       const pct = total ? correct / total : 0
                       const color = pct >= 0.7 ? '#34C877' : pct >= 0.4 ? '#FAC775' : '#F09595'
                       return (
@@ -1021,7 +1030,10 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                     <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>Нажмите, чтобы дать похожие</span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {MOCK_WRONG_TASKS.map(t => (
+                    {wrongTasks.length === 0 && (
+                      <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '4px 0' }}>Нет ошибок — или ученик ещё не занимался в тренажёре</div>
+                    )}
+                    {wrongTasks.map(t => (
                       <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'var(--color-red-soft)', border: '1px solid rgba(244,139,145,0.25)', cursor: 'pointer' }}
                         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(244,139,145,0.18)' }}
                         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--color-red-soft)' }}>

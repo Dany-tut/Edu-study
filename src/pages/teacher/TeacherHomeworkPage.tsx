@@ -471,7 +471,7 @@ function HardSubDetail({ sub, onClose, onReview }: {
   }
 
   const statusLabel = sub.status === 'completed' ? 'Принято' : sub.status === 'returned' ? 'Возвращено' : 'На проверке'
-  const statusColor = sub.status === 'completed' ? 'var(--color-green-text)' : sub.status === 'returned' ? 'var(--color-peach-text)' : '#7B3FCC'
+  const statusColor = sub.status === 'completed' ? 'var(--color-green-text)' : sub.status === 'returned' ? 'var(--color-peach-text)' : 'var(--color-purple-text)'
   const statusBg = sub.status === 'completed' ? 'var(--color-green-soft)' : sub.status === 'returned' ? 'var(--color-peach-soft)' : 'var(--color-purple-soft)'
 
   return (
@@ -647,7 +647,7 @@ function HardSubRow({ sub, isSelected, onClick }: { sub: HardSub; isSelected: bo
         <span style={{
           fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 7,
           background: isPending ? 'var(--color-purple-soft)' : sub.status === 'completed' ? 'var(--color-green-soft)' : 'var(--color-peach-soft)',
-          color: isPending ? '#7B3FCC' : sub.status === 'completed' ? 'var(--color-green-text)' : 'var(--color-peach-text)',
+          color: isPending ? 'var(--color-purple-text)' : sub.status === 'completed' ? 'var(--color-green-text)' : 'var(--color-peach-text)',
         }}>
           {isPending ? 'На проверке' : sub.status === 'completed' ? 'Принято' : 'На доработку'}
         </span>

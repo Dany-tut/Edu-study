@@ -33,11 +33,17 @@ export default function DiagnosticTestPage() {
   const theme = THEME[knownSubject]
   const askConfidence = params.get('confidence') === '1'  // teacher enables via share link
 
+  // Assignment context: set when opened from student dashboard assigned test
+  const assignmentId = params.get('assignment') ?? undefined
+  const assignedStudentId = params.get('sid') ?? undefined
+  const assignedStudentName = params.get('sname') ? decodeURIComponent(params.get('sname')!) : undefined
+
   const [questions, setQuestions] = useState(() => loadDiagQuestions(subject))
   useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
 
-  const [step, setStep] = useState<'name' | 'test' | 'done'>('name')
-  const [studentName, setStudentName] = useState('')
+  // If opened via assignment, skip name entry and use student's name
+  const [step, setStep] = useState<'name' | 'test' | 'done'>(assignedStudentName ? 'test' : 'name')
+  const [studentName, setStudentName] = useState(assignedStudentName ?? '')
   const [current, setCurrent] = useState(0)
   const [chosen, setChosen] = useState<Record<string, number>>({})  // questionId → option index
   const [results, setResults] = useState<DiagResults>({})
@@ -72,10 +78,15 @@ export default function DiagnosticTestPage() {
       if (!res[dq.section]) res[dq.section] = { correct: 0, total: 0 }
       res[dq.section].total++
       if (answers[dq.id] === dq.correct) res[dq.section].correct++
-      // Wrong answers seed the spaced-repetition review deck.
       else captureMistake({ anonName: name, subject, source: 'diagnostic', prompt: dq.text, answer: dq.options[dq.correct], options: dq.options })
     }
-    await appendAnonResult({ name, subject, results: res, answers })
+    const totalQ = Object.values(res).reduce((a, s) => a + s.total, 0)
+    const correctQ = Object.values(res).reduce((a, s) => a + s.correct, 0)
+    const scorePct = totalQ > 0 ? Math.round((correctQ / totalQ) * 100) : 0
+    await appendAnonResult(
+      { name, subject, results: res, answers },
+      { studentId: assignedStudentId, assignmentId, scorePct },
+    )
     setResults(res)
     setStep('done')
   }

@@ -588,3 +588,60 @@ export async function fetchStudentWrongTasks(
     line: 0,
   }))
 }
+
+// ─── Teacher: trainer activity heatmap (last 28 days) ────────────────────────
+export async function fetchStudentActivity(
+  studentId: string,
+  authUserId?: string | null,
+): Promise<number[]> {
+  const ids = [studentId]
+  if (authUserId && authUserId !== studentId) ids.push(authUserId)
+
+  const since = new Date()
+  since.setDate(since.getDate() - 27)
+  since.setHours(0, 0, 0, 0)
+
+  const { data } = await supabase
+    .from('confidence_log')
+    .select('created_at')
+    .in('student_id', ids)
+    .gte('created_at', since.toISOString())
+
+  // Build a map: YYYY-MM-DD → count
+  const counts = new Map<string, number>()
+  for (const row of (data ?? []) as any[]) {
+    const day = new Date(row.created_at).toISOString().slice(0, 10)
+    counts.set(day, (counts.get(day) ?? 0) + 1)
+  }
+
+  // Return array of 28 heat levels (0–3), index 0 = oldest day
+  return Array.from({ length: 28 }, (_, i) => {
+    const d = new Date(since)
+    d.setDate(since.getDate() + i)
+    const key = d.toISOString().slice(0, 10)
+    const n = counts.get(key) ?? 0
+    if (n === 0) return 0
+    if (n <= 5) return 1
+    if (n <= 15) return 2
+    return 3
+  })
+}
+
+// ─── Teacher: unique trainer session days (activity days count) ───────────────
+export async function fetchStudentSessionDays(
+  studentId: string,
+  authUserId?: string | null,
+): Promise<number> {
+  const ids = [studentId]
+  if (authUserId && authUserId !== studentId) ids.push(authUserId)
+
+  const { data } = await supabase
+    .from('confidence_log')
+    .select('created_at')
+    .in('student_id', ids)
+
+  const days = new Set(
+    (data ?? []).map((row: any) => new Date(row.created_at).toISOString().slice(0, 10))
+  )
+  return days.size
+}
