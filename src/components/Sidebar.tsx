@@ -692,8 +692,9 @@ export default function Sidebar() {
                 // Inactive icons go darker in the compact dock for legibility on
                 // the bright glass over the dark video.
                 color: isActive ? '#fff' : (isCompact ? 'var(--color-text-2)' : 'var(--color-muted)'),
-                background: isActive ? 'color-mix(in srgb, var(--color-accent) 80%, transparent)' : 'transparent',
-                transition: 'background 0.15s, color 0.15s',
+                background: isActive ? 'var(--grad-purple)' : 'transparent',
+                boxShadow: isActive ? '0 4px 14px rgba(106,90,230,0.42)' : 'none',
+                transition: 'background 0.15s, color 0.15s, box-shadow 0.15s',
                 whiteSpace: 'nowrap',
               }}
               onMouseEnter={e => {

@@ -62,8 +62,8 @@
 
   /* ── Accent gradients (vivid; shared across themes) ───────── */
   /* Cool blue-purple base #786AD7 — the ONE purple CTA gradient */
-  --grad-purple:     linear-gradient(135deg, #9180E6, #6354CF);
-  --grad-purple-bar: linear-gradient(90deg, #6354CF, #9C8CF0);
+  --grad-purple:     linear-gradient(135deg, #9D8BFF, #6A5AE6);
+  --grad-purple-bar: linear-gradient(90deg, #6A5AE6, #A697FF);
   --grad-green:      linear-gradient(135deg, #34C877, #2A7D4F);
   --grad-green-bar:  linear-gradient(90deg, #6EE7A0, #3FCC8A);
   --grad-red:        linear-gradient(135deg, #F48B91, #A8282D);

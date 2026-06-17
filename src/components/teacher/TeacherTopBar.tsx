@@ -161,7 +161,7 @@ export default function TeacherTopBar() {
                 fontSize: 14, fontWeight: isActive ? 600 : 500,
                 color: isActive ? '#fff' : 'var(--color-muted)',
                 background: isActive ? 'var(--grad-purple)' : 'transparent',
-                boxShadow: isActive ? '0 4px 14px rgba(99,84,207,0.35)' : 'none',
+                boxShadow: isActive ? '0 4px 14px rgba(106,90,230,0.42)' : 'none',
                 transition: 'background 0.15s, color 0.15s, box-shadow 0.15s',
                 whiteSpace: 'nowrap', position: 'relative',
               }}
