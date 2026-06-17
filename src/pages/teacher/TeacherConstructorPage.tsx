@@ -5980,15 +5980,7 @@ export default function TeacherConstructorPage() {
         .single()
       if (dbCourse) {
         groupIds = dbCourse.group_ids ?? []
-        // auth_user_ids → students.id for the editor picker
-        const authIds: string[] = dbCourse.student_ids ?? []
-        if (authIds.length > 0) {
-          const { data: rows } = await supabase
-            .from('students')
-            .select('id')
-            .in('auth_user_id', authIds)
-          studentIds = (rows ?? []).map((r: any) => r.id as string)
-        }
+        studentIds = dbCourse.student_ids ?? []
       }
     }
 

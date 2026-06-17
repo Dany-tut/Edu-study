@@ -1633,17 +1633,6 @@ export default function TeacherCourseEditorPage() {
   async function syncAccessToSupabase(c: CourseEdData) {
     const shortId = c.dbCourseId ?? c.id
 
-    // studentIds in the editor are students.id — convert to auth_user_id for course filtering
-    let authStudentIds: string[] = []
-    if (c.studentIds.length > 0) {
-      const { data } = await supabase
-        .from('students')
-        .select('auth_user_id')
-        .in('id', c.studentIds)
-        .not('auth_user_id', 'is', null)
-      authStudentIds = (data ?? []).map((r: any) => r.auth_user_id as string)
-    }
-
     await supabase
       .from('courses')
       .upsert(
@@ -1652,7 +1641,7 @@ export default function TeacherCourseEditorPage() {
           title: c.title, subject: c.subject, level: c.level,
           description: c.description ?? '',
           status: c.status, color: c.color, bg: c.bg,
-          group_ids: c.groupIds, student_ids: authStudentIds,
+          group_ids: c.groupIds, student_ids: c.studentIds,
         },
         { onConflict: 'short_id' }
       )
