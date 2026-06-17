@@ -1,14 +1,36 @@
+import { useEffect, useRef, useState } from 'react'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
+import { useIsDesktop } from '../lib/useIsDesktop'
 import ScheduleCard from './ScheduleCard'
 
 // Side card widths by distance from center — must match ScheduleCard.
-const SLOT_WIDTH: Record<number, number> = { 1: 160, 2: 130, 3: 110 }
+const SLOT_WIDTH_DESKTOP: Record<number, number> = { 1: 160, 2: 130, 3: 110 }
+const SLOT_WIDTH_MOBILE: Record<number, number> = { 1: 84, 2: 60, 3: 44 }
 
 export default function ScheduleCarousel() {
   const { scheduleIndex, setScheduleIndex } = useDashboard()
   const scheduleDays = useStudentData(s => s.scheduleDays)
   const total = scheduleDays.length
+  const isDesktop = useIsDesktop()
+  const mobile = !isDesktop
+
+  // Measure the carousel width so the mobile centre card scales to the screen
+  // (it was a fixed 480px → clipped on a 375px phone). Desktop keeps 480.
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const [wrapW, setWrapW] = useState(0)
+  useEffect(() => {
+    const el = wrapRef.current
+    if (!el) return
+    const ro = new ResizeObserver(entries => setWrapW(Math.round(entries[0].contentRect.width)))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  const pad = mobile ? 22 : 56
+  const slotWidth = mobile ? SLOT_WIDTH_MOBILE : SLOT_WIDTH_DESKTOP
+  // Centre card fills the padded area, leaving a small peek of the side cards.
+  const centerWidth = mobile && wrapW ? Math.max(240, wrapW - pad * 2) : undefined
 
   // Always render 3 slots on each side of the selected day so it stays
   // centered. Out-of-range slots become invisible spacers that preserve
@@ -32,13 +54,13 @@ export default function ScheduleCarousel() {
   }
 
   return (
-    <div className="relative" style={{ height: 198 }}>
+    <div ref={wrapRef} className="relative" style={{ height: 198 }}>
       {/* Cards */}
       <div
         className="flex items-center gap-3"
         style={{
-          paddingLeft: 56,
-          paddingRight: 56,
+          paddingLeft: pad,
+          paddingRight: pad,
           justifyContent: 'center',
           height: '100%',
           // Clip side cards horizontally only — `overflow: hidden` would also
@@ -56,12 +78,14 @@ export default function ScheduleCarousel() {
               isCenter={slot.offset === 0}
               distance={Math.abs(slot.offset)}
               onClick={() => setScheduleIndex(slot.index)}
+              mobile={mobile}
+              centerWidth={centerWidth}
             />
           ) : (
             <div
               key={`spacer-${slot.offset}`}
               className="flex-shrink-0"
-              style={{ width: SLOT_WIDTH[Math.abs(slot.offset)] }}
+              style={{ width: slotWidth[Math.abs(slot.offset)] }}
               aria-hidden
             />
           ),

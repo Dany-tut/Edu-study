@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, ChevronRight } from 'lucide-react'
+import { X, ChevronRight, MessageSquare } from 'lucide-react'
 import type { Lesson } from '../data/mockData'
 
 interface Props {
@@ -59,8 +59,9 @@ export default function MobileLessonSheet({ lesson, onClose }: Props) {
                 </p>
               )}
               {lesson.comment && (
-                <p className="px-4 py-3 rounded-2xl mb-4" style={{ background: 'var(--color-yellow-soft)', color: '#7A6A00', fontSize: 14 }}>
-                  💬 {lesson.comment}
+                <p className="px-4 py-3 rounded-2xl mb-4 flex items-start gap-2" style={{ background: 'var(--color-yellow-soft)', color: 'var(--color-yellow-text)', fontSize: 14 }}>
+                  <MessageSquare size={16} strokeWidth={2.2} style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span>{lesson.comment}</span>
                 </p>
               )}
               <motion.button

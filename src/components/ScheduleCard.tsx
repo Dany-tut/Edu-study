@@ -14,9 +14,14 @@ interface Props {
   isCenter: boolean
   distance: number
   onClick: () => void
+  /** Mobile: shrink the side cards so the row fits a phone screen. */
+  mobile?: boolean
+  /** Mobile: explicit center-card width measured from the viewport so the
+      centre card never exceeds the screen (desktop keeps the fixed 480). */
+  centerWidth?: number
 }
 
-export default function ScheduleCard({ day, isCenter, distance, onClick }: Props) {
+export default function ScheduleCard({ day, isCenter, distance, onClick, mobile = false, centerWidth }: Props) {
   const openLesson = useDashboard(s => s.openLesson)
   const openCourses = useDashboard(s => s.openCourses)
   const setActiveSubject = useDashboard(s => s.setActiveSubject)
@@ -74,7 +79,9 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
 
   const scale = isCenter ? 1 : distance === 1 ? 0.90 : distance === 2 ? 0.82 : 0.74
   const opacity = isCenter ? 1 : distance === 1 ? 0.72 : distance === 2 ? 0.48 : 0.3
-  const missedPalette = { text: '#A8282D', soft: 'var(--color-red-soft)', accent: '#A8282D', onAccent: '#FFFFFF', ring: 'rgba(168,40,45,0.12)' }
+  // text uses the theme-aware red so it stays legible on the dark-red card in
+  // dark mode (light: #A8282D on pale red, dark: #F48B91 on dark red).
+  const missedPalette = { text: 'var(--color-red-text)', soft: 'var(--color-red-soft)', accent: '#C5323A', onAccent: '#FFFFFF', ring: 'rgba(248,99,107,0.22)' }
 
   const dateHeader = (fontSize: number, mb: number) => (
     <div className="flex items-center justify-between" style={{ marginBottom: mb }}>
@@ -97,7 +104,11 @@ export default function ScheduleCard({ day, isCenter, distance, onClick }: Props
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       onClick={onClick}
       className="flex-shrink-0 cursor-pointer h-full"
-      style={{ width: isCenter ? 480 : distance === 1 ? 160 : distance === 2 ? 130 : 110 }}
+      style={{
+        width: mobile
+          ? (isCenter ? (centerWidth ?? 300) : distance === 1 ? 84 : distance === 2 ? 60 : 44)
+          : (isCenter ? 480 : distance === 1 ? 160 : distance === 2 ? 130 : 110),
+      }}
     >
       {isCenter ? (
         <div
