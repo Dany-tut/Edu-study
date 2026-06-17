@@ -1646,8 +1646,16 @@ export default function TeacherCourseEditorPage() {
 
     await supabase
       .from('courses')
-      .update({ group_ids: c.groupIds, student_ids: authStudentIds, status: c.status })
-      .eq('short_id', shortId)
+      .upsert(
+        {
+          short_id: shortId,
+          title: c.title, subject: c.subject, level: c.level,
+          description: c.description ?? '',
+          status: c.status, color: c.color, bg: c.bg,
+          group_ids: c.groupIds, student_ids: authStudentIds,
+        },
+        { onConflict: 'short_id' }
+      )
 
     // Sync scheduled lessons to calendar
     const scheduledLessons = c.lessons.filter(l => l.scheduledDate && l.scheduledTime)

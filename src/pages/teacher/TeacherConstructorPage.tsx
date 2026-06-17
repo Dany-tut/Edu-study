@@ -5872,7 +5872,12 @@ export default function TeacherConstructorPage() {
       const t = tData ? tData.map(dbTrainerToLocal) : []
       const w = wData ? wData.map(dbWidgetToLocal) : []
       _cachedCourses = c; _cachedTrainers = t; _cachedWidgets = w
-      setCourses(c); setTrainers(t); setWidgets(w)
+      setCourses(prev => {
+        const dbIds = new Set(c.map((x: Course) => x.id))
+        const localOnly = prev.filter(x => !dbIds.has(x.id))
+        return [...localOnly, ...c]
+      })
+      setTrainers(t); setWidgets(w)
       setDbLoading(false)
     }
     loadAll()
