@@ -2266,39 +2266,47 @@ export default function TeacherCourseEditorPage() {
     const lessonShortId = lessonShortIdById[lessonId]
     if (!lessonShortId) return
     setOpeningLesson(true)
-    try {
-      // Flip any already-enrolled students' locked row for this lesson → current.
+
+    // Assigned students who should get this lesson opened (group members + direct).
+    const targetStudentIds = [...new Set([
+      ...allStudents.filter(s => course.groupIds.includes(s.groupId)).map(s => s.id),
+      ...course.studentIds,
+    ])]
+
+    // A diverged lesson is two track nodes: the lesson (short_id) and the
+    // recording (`${short_id}~rec`). Open BOTH so each is independently unlockable.
+    const el = course.lessons.find(l => l.id === lessonId)
+    const diverged = !!el?.lessonSchedManual && !!el?.recDate
+      && (el.recDate !== el.scheduledDate || el.recTime !== el.scheduledTime)
+    const refs = diverged ? [lessonShortId, `${lessonShortId}~rec`] : [lessonShortId]
+
+    // Unlock + seed one node ref for all target students (never clobbering
+    // existing progress like 'done'). Course assignment alone creates no
+    // lesson_progress rows, so we seed 'current' for anyone without a row yet.
+    async function openRef(ref: string) {
       await supabase
         .from('lesson_progress')
         .update({ status: 'current' })
-        .eq('lesson_ref', lessonShortId)
+        .eq('lesson_ref', ref)
         .eq('status', 'locked')
-
-      // Course assignment (courses.student_ids / group_ids) does NOT create
-      // lesson_progress rows — only enrollment does. So for a course whose
-      // students were assigned but never enrolled, the update above touches
-      // nothing and the open vanishes on reload. Seed a 'current' row for every
-      // assigned student that has no row for this lesson yet (never clobbering
-      // existing progress like 'done').
-      const targetStudentIds = [...new Set([
-        ...allStudents.filter(s => course.groupIds.includes(s.groupId)).map(s => s.id),
-        ...course.studentIds,
-      ])]
-      if (targetStudentIds.length > 0) {
-        const { data: existing } = await supabase
-          .from('lesson_progress')
-          .select('student_id')
-          .eq('lesson_ref', lessonShortId)
-          .in('student_id', targetStudentIds)
-        const have = new Set((existing ?? []).map((r: { student_id: string }) => r.student_id))
-        const newRows = targetStudentIds
-          .filter(id => !have.has(id))
-          .map(id => ({ student_id: id, lesson_ref: lessonShortId, subject: course.dbCourseId, status: 'current' }))
-        if (newRows.length > 0) {
-          const { error } = await supabase.from('lesson_progress').insert(newRows)
-          if (error) console.error('lesson_progress seed failed:', error)
-        }
+      if (targetStudentIds.length === 0) return
+      const { data: existing } = await supabase
+        .from('lesson_progress')
+        .select('student_id')
+        .eq('lesson_ref', ref)
+        .in('student_id', targetStudentIds)
+      const have = new Set((existing ?? []).map((r: { student_id: string }) => r.student_id))
+      const newRows = targetStudentIds
+        .filter(id => !have.has(id))
+        .map(id => ({ student_id: id, lesson_ref: ref, subject: course.dbCourseId, status: 'current' }))
+      if (newRows.length > 0) {
+        const { error } = await supabase.from('lesson_progress').insert(newRows)
+        if (error) console.error('lesson_progress seed failed:', error)
       }
+    }
+
+    try {
+      for (const ref of refs) await openRef(ref)
       setOpenLessonShortIds(prev => new Set(prev).add(lessonShortId))
     } finally {
       setOpeningLesson(false)
