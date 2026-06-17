@@ -27,6 +27,7 @@ interface DbScheduleLesson {
   subject: string
   lesson_title: string
   lesson_number: number
+  node_type?: 'lesson' | 'rec'
 }
 
 export async function fetchScheduleDays(groupId: string, studentId?: string): Promise<ScheduleDay[]> {
@@ -89,6 +90,7 @@ export async function fetchScheduleDays(groupId: string, studentId?: string): Pr
         lessonTitle: row.lesson_title,
         lessonNumber: row.lesson_number,
         time: row.time_start,
+        kind: row.node_type === 'rec' ? 'rec' as const : 'lesson' as const,
         passed: passed && !upcoming,
         upcoming: upcoming || undefined,
         minutesUntil: minutesUntil > 0 ? minutesUntil : undefined,
@@ -170,6 +172,11 @@ interface DbCourse {
       timecodes?: import('../data/lessonContent').LessonTimecode[]
       kind?: string | null
       test_tasks?: import('../data/mockData').TestTask[] | null
+      scheduled_date?: string | null
+      scheduled_time?: string | null
+      rec_date?: string | null
+      rec_time?: string | null
+      lesson_sched_manual?: boolean | null
     }>
   }>
 }
@@ -191,7 +198,7 @@ export async function fetchCourseStructure(studentId: string, groupId: string): 
       id, short_id, title, subject,
       course_modules (
         id, label, position,
-        lessons ( id, short_id, title, lesson_number, shape, content, youtube_url, timecodes, kind, test_tasks )
+        lessons ( id, short_id, title, lesson_number, shape, content, youtube_url, timecodes, kind, test_tasks, scheduled_date, scheduled_time, rec_date, rec_time, lesson_sched_manual )
       )
     `)
     .eq('status', 'published')
@@ -212,21 +219,33 @@ export async function fetchCourseStructure(studentId: string, groupId: string): 
         label: mod.label,
         lessons: [...mod.lessons]
           .sort((a, b) => a.lesson_number - b.lesson_number)
-          .map(l => ({
-            id: l.short_id,
-            title: l.title,
-            number: l.lesson_number,
-            status: 'locked' as LessonStatus,
-            shape: (l.shape as LessonShape) ?? 'circle',
-            kind: l.kind === 'test' ? 'test' as const : 'lesson' as const,
-            testTasks: Array.isArray(l.test_tasks) ? l.test_tasks : undefined,
-            subject: course.short_id,
-            content: l.content && (l.content as { paragraphs?: unknown[] }).paragraphs?.length
-              ? (l.content as import('../data/lessonContent').LessonContentData)
-              : undefined,
-            videoId: rutubeEmbedId(l.youtube_url),
-            timecodes: Array.isArray(l.timecodes) && l.timecodes.length ? l.timecodes : undefined,
-          })),
+          .flatMap(l => {
+            const base = {
+              title: l.title,
+              number: l.lesson_number,
+              status: 'locked' as LessonStatus,
+              kind: l.kind === 'test' ? 'test' as const : 'lesson' as const,
+              testTasks: Array.isArray(l.test_tasks) ? l.test_tasks : undefined,
+              subject: course.short_id,
+              content: l.content && (l.content as { paragraphs?: unknown[] }).paragraphs?.length
+                ? (l.content as import('../data/lessonContent').LessonContentData)
+                : undefined,
+              videoId: rutubeEmbedId(l.youtube_url),
+              timecodes: Array.isArray(l.timecodes) && l.timecodes.length ? l.timecodes : undefined,
+            }
+            // Recording date diverged from the lesson date → split into two nodes:
+            // a 🎥 «Запись» node (live session) and a 📖 «Урок» node, each tracked
+            // independently (progress keyed by the synthetic `~rec` ref).
+            const diverged = !!l.lesson_sched_manual && !!l.rec_date
+              && (l.rec_date !== l.scheduled_date || l.rec_time !== l.scheduled_time)
+            if (diverged) {
+              return [
+                { ...base, id: `${l.short_id}~rec`, shape: 'square' as LessonShape, nodeType: 'rec' as const, content: undefined },
+                { ...base, id: l.short_id, shape: (l.shape as LessonShape) ?? 'circle', nodeType: 'lesson' as const, videoId: undefined },
+              ]
+            }
+            return [{ ...base, id: l.short_id, shape: (l.shape as LessonShape) ?? 'circle' }]
+          }),
       })),
   }))
 }

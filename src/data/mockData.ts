@@ -27,6 +27,12 @@ export interface Lesson {
   subject: string
   /** Node kind: a normal lesson or a final test that opens a quiz. */
   kind?: 'lesson' | 'test'
+  /**
+   * Track node type. When a lesson's recording date diverges from its lesson
+   * date it splits into two track nodes: 'rec' (live session) and 'lesson'.
+   * Undefined = a single combined node (default).
+   */
+  nodeType?: 'rec' | 'lesson'
   /** Quiz tasks for a test node (kind === 'test'). */
   testTasks?: TestTask[]
   /** DB-authored konspekt + homework override (from lessons.content). */
@@ -57,6 +63,8 @@ export type ScheduleLesson = {
   lessonTitle: string
   lessonNumber: number
   time: string
+  /** 'rec' = live session / recording, 'lesson' = lesson opening. */
+  kind?: 'rec' | 'lesson'
   upcoming?: boolean
   minutesUntil?: number
   passed?: boolean

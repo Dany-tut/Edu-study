@@ -5993,7 +5993,7 @@ export default function TeacherConstructorPage() {
     if (course.dbCourseId) {
       const { data: dbCourse } = await supabase
         .from('courses')
-        .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration)')
+        .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual)')
         .eq('short_id', course.dbCourseId)
         .single()
       if (dbCourse) {
@@ -6012,6 +6012,10 @@ export default function TeacherConstructorPage() {
           scheduledDate: l.scheduled_date ?? undefined,
           scheduledTime: l.scheduled_time ?? undefined,
           scheduledDuration: l.scheduled_duration ?? undefined,
+          recDate: l.rec_date ?? undefined,
+          recTime: l.rec_time ?? undefined,
+          recDuration: l.rec_duration ?? undefined,
+          lessonSchedManual: l.lesson_sched_manual ?? false,
         }))
         if (dbModules.length > 0) {
           modules = dbModules.map((m: any) => ({

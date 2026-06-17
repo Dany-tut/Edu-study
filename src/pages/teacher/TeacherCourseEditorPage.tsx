@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft, Plus, Send, Video, Link2, Upload,
@@ -49,17 +49,33 @@ export interface CELesson {
   // lesson-level audience (extra students beyond course audience)
   extraStudentIds?: string[]
   extraGroupIds?: string[]
-  // homework per lesson
+  // homework for the LESSON (Урок) node
   hwTitle?: string
   hwTarget?: string
   hwDate?: string
   /** true once the teacher edits the homework due date by hand — stops it mirroring the lesson date. */
   hwDateManual?: boolean
   hwTasks?: HWTask[]
-  // calendar scheduling
+  // homework for the RECORDING (Запись) node
+  recHwTitle?: string
+  recHwTarget?: string
+  recHwDate?: string
+  recHwDateManual?: boolean
+  recHwTasks?: HWTask[]
+  // calendar scheduling — LESSON (Урок) event
   scheduledDate?: string   // DD.MM.YYYY
   scheduledTime?: string   // HH:MM
   scheduledDuration?: number // minutes (default 90)
+  // calendar scheduling — RECORDING (Запись / live session) event
+  recDate?: string   // DD.MM.YYYY
+  recTime?: string   // HH:MM
+  recDuration?: number // minutes (default 90)
+  /**
+   * true once the teacher sets the lesson (Урок) date by hand — detaches it from
+   * the recording date so the two become separate track nodes. While false, the
+   * lesson schedule mirrors the recording schedule (one node).
+   */
+  lessonSchedManual?: boolean
 }
 
 export interface CEModule {
@@ -299,15 +315,170 @@ function CenterCourseMeta({
 
 // ─── CENTER: Recording tab ────────────────────────────────────────────────────
 
+// ─── Reusable "Дата и время" glass card ──────────────────────────────────────
+// Used on BOTH the «Запись» and «Урок» tabs. scope='rec' edits the recording
+// (live-session) schedule; scope='lesson' edits the lesson schedule. Setting the
+// recording date/time/duration mirrors into the lesson schedule (date+time+
+// duration) until the teacher edits the lesson date by hand (lessonSchedManual) —
+// at which point the two diverge into separate track nodes.
+function ScheduleCard({
+  scope, lesson, onUpdate,
+}: {
+  scope: 'rec' | 'lesson'
+  lesson: CELesson
+  onUpdate: (updated: CELesson) => void
+}) {
+  const isRec = scope === 'rec'
+  const date = isRec ? lesson.recDate : lesson.scheduledDate
+  const time = isRec ? lesson.recTime : lesson.scheduledTime
+  const duration = isRec ? lesson.recDuration : lesson.scheduledDuration
+  const mirrors = !lesson.lessonSchedManual // recording → lesson mirror is active
+
+  function setDate(v: string) {
+    const next: CELesson = { ...lesson }
+    if (isRec) {
+      next.recDate = v || undefined
+      if (mirrors) {
+        next.scheduledDate = v || undefined
+        if (!lesson.hwDateManual) next.hwDate = v || undefined
+      }
+    } else {
+      next.scheduledDate = v || undefined
+      // Editing the lesson date by hand detaches it from the recording date;
+      // clearing it re-attaches (resumes mirroring the recording date).
+      next.lessonSchedManual = !!v
+      if (!v) {
+        next.scheduledDate = lesson.recDate
+        next.scheduledTime = lesson.recTime
+        next.scheduledDuration = lesson.recDuration
+      }
+      if (!lesson.hwDateManual) next.hwDate = next.scheduledDate
+    }
+    onUpdate(next)
+  }
+  function setTime(v: string) {
+    const next: CELesson = { ...lesson }
+    if (isRec) {
+      next.recTime = v || undefined
+      if (mirrors) next.scheduledTime = v || undefined
+    } else {
+      next.scheduledTime = v || undefined
+      if (v) next.lessonSchedManual = true
+    }
+    onUpdate(next)
+  }
+  function setDuration(v: number) {
+    const next: CELesson = { ...lesson }
+    if (isRec) {
+      next.recDuration = v
+      if (mirrors) next.scheduledDuration = v
+    } else {
+      next.scheduledDuration = v
+      next.lessonSchedManual = true
+    }
+    onUpdate(next)
+  }
+  function clearAll() {
+    if (isRec) {
+      const next: CELesson = { ...lesson, recDate: undefined, recTime: undefined, recDuration: undefined }
+      if (mirrors) {
+        next.scheduledDate = undefined; next.scheduledTime = undefined; next.scheduledDuration = undefined
+        if (!lesson.hwDateManual) next.hwDate = undefined
+      }
+      onUpdate(next)
+    } else {
+      // Clearing the lesson schedule re-attaches it to the recording schedule.
+      onUpdate({
+        ...lesson, lessonSchedManual: false,
+        scheduledDate: lesson.recDate, scheduledTime: lesson.recTime, scheduledDuration: lesson.recDuration,
+        ...(lesson.hwDateManual ? {} : { hwDate: lesson.recDate }),
+      })
+    }
+  }
+
+  const accent = isRec ? 'var(--color-accent)' : 'var(--color-purple)'
+  const footerText = isRec
+    ? (mirrors
+        ? `Появится у ученика как запись · урок зеркалит эту дату`
+        : `Появится у ученика как запись ${date} в ${time}`)
+    : (lesson.lessonSchedManual
+        ? `Отдельный узел «Урок» ${date} в ${time}`
+        : `Зеркалит «Запись» — пока даты совпадают, это один узел`)
+
+  return (
+    <div style={{
+      width: 248, flexShrink: 0,
+      background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)',
+      borderRadius: 18, padding: '16px 16px 18px',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 14 }}>
+        <Calendar size={14} style={{ color: date ? accent : 'var(--color-muted)' }} />
+        <span style={{ fontSize: 13, fontWeight: 700, color: date ? 'var(--color-text)' : 'var(--color-text-3)' }}>
+          {isRec ? 'Дата записи' : 'Дата урока'}
+        </span>
+        {date && (
+          <button
+            onClick={clearAll}
+            style={{ marginLeft: 'auto', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-4)', padding: 0 }}
+          >
+            <X size={13} />
+          </button>
+        )}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div>
+          <Label>Дата</Label>
+          <CalendarPicker value={date ?? ''} onChange={setDate} />
+        </div>
+        <div>
+          <Label>Начало</Label>
+          <PickerSelect
+            value={time ?? ''}
+            onChange={setTime}
+            icon={Clock}
+            placeholder="—"
+            allowEmpty
+            options={Array.from({ length: 32 }, (_, i) => {
+              const h = Math.floor(i / 2) + 7
+              const m = i % 2 === 0 ? '00' : '30'
+              const t = `${String(h).padStart(2, '0')}:${m}`
+              return { value: t, label: t }
+            })}
+          />
+        </div>
+        <div>
+          <Label>Длительность</Label>
+          <PickerSelect
+            value={String(duration ?? 90)}
+            onChange={v => setDuration(Number(v))}
+            options={[45, 60, 90, 120, 150, 180].map(m => ({
+              value: String(m),
+              label: m < 60 ? `${m} мин` : `${m / 60} ч${m % 60 ? ` ${m % 60} м` : ''}`,
+            }))}
+          />
+        </div>
+      </div>
+      {date && time && (
+        <div style={{ marginTop: 12, fontSize: 11, color: accent, display: 'flex', alignItems: 'flex-start', gap: 5, lineHeight: 1.4 }}>
+          <Check size={12} style={{ flexShrink: 0, marginTop: 1 }} />
+          <span>{footerText}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function CenterRecording({
-  lesson, onSaveVideo,
+  lesson, onSaveVideo, onUpdate,
 }: {
   lesson: CELesson
   onSaveVideo: (url: string) => void
+  onUpdate: (updated: CELesson) => void
 }) {
   const [linkMode, setLinkMode] = useState(false)
   const [videoUrl, setVideoUrl] = useState(lesson.videoUrl ?? '')
 
+  const content = (() => {
   if (lesson.videoUrl && !linkMode) {
     return (
       <div style={{ flex: 1, overflowY: 'auto', padding: '28px 36px' }}>
@@ -385,6 +556,20 @@ function CenterRecording({
       </div>
     </div>
   )
+  })()
+
+  return (
+    <div style={{ flex: 1, overflowY: 'auto', padding: '28px 36px' }}>
+      <div style={{ display: 'flex', gap: 18, maxWidth: 900, margin: '0 auto', alignItems: 'flex-start' }}>
+        {/* LEFT card — recording (live session) scheduling */}
+        <ScheduleCard scope="rec" lesson={lesson} onUpdate={onUpdate} />
+        {/* RIGHT column — recording link / upload */}
+        <div style={{ flex: 1, minWidth: 0, alignSelf: 'stretch', display: 'flex', flexDirection: 'column' }}>
+          {content}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // ─── CENTER: Lesson content tab ───────────────────────────────────────────────
@@ -432,75 +617,8 @@ function CenterLesson({
     <div style={{ flex: 1, overflowY: 'auto', padding: '28px 36px' }}>
       <div style={{ display: 'flex', gap: 18, maxWidth: 900, margin: '0 auto', alignItems: 'flex-start' }}>
 
-        {/* LEFT card — scheduling */}
-        <div style={{
-          width: 248, flexShrink: 0,
-          background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)',
-          borderRadius: 18, padding: '16px 16px 18px',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 14 }}>
-            <Calendar size={14} style={{ color: lesson.scheduledDate ? 'var(--color-accent)' : 'var(--color-muted)' }} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: lesson.scheduledDate ? 'var(--color-text)' : 'var(--color-text-3)' }}>
-              Дата и время
-            </span>
-            {lesson.scheduledDate && (
-              <button
-                onClick={() => onUpdate({ ...lesson, scheduledDate: undefined, scheduledTime: undefined, scheduledDuration: undefined, ...(lesson.hwDateManual ? {} : { hwDate: undefined }) })}
-                style={{ marginLeft: 'auto', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-4)', padding: 0 }}
-              >
-                <X size={13} />
-              </button>
-            )}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div>
-              <Label>Дата</Label>
-              <CalendarPicker
-                value={lesson.scheduledDate ?? ''}
-                onChange={v => {
-                  const next: CELesson = { ...lesson, scheduledDate: v || undefined }
-                  // Mirror the lesson date into the homework due date until the teacher
-                  // sets it by hand (hwDateManual). Cleared lesson date clears the mirror too.
-                  if (!lesson.hwDateManual) next.hwDate = v || undefined
-                  onUpdate(next)
-                }}
-              />
-            </div>
-            <div>
-              <Label>Начало</Label>
-              <PickerSelect
-                value={lesson.scheduledTime ?? ''}
-                onChange={v => onUpdate({ ...lesson, scheduledTime: v || undefined })}
-                icon={Clock}
-                placeholder="—"
-                allowEmpty
-                options={Array.from({ length: 32 }, (_, i) => {
-                  const h = Math.floor(i / 2) + 7
-                  const m = i % 2 === 0 ? '00' : '30'
-                  const t = `${String(h).padStart(2, '0')}:${m}`
-                  return { value: t, label: t }
-                })}
-              />
-            </div>
-            <div>
-              <Label>Длительность</Label>
-              <PickerSelect
-                value={String(lesson.scheduledDuration ?? 90)}
-                onChange={v => onUpdate({ ...lesson, scheduledDuration: Number(v) })}
-                options={[45, 60, 90, 120, 150, 180].map(m => ({
-                  value: String(m),
-                  label: m < 60 ? `${m} мин` : `${m / 60} ч${m % 60 ? ` ${m % 60} м` : ''}`,
-                }))}
-              />
-            </div>
-          </div>
-          {lesson.scheduledDate && lesson.scheduledTime && (
-            <div style={{ marginTop: 12, fontSize: 11, color: 'var(--color-accent)', display: 'flex', alignItems: 'flex-start', gap: 5, lineHeight: 1.4 }}>
-              <Check size={12} style={{ flexShrink: 0, marginTop: 1 }} />
-              <span>Появится в календаре ученика {lesson.scheduledDate} в {lesson.scheduledTime}</span>
-            </div>
-          )}
-        </div>
+        {/* LEFT card — lesson scheduling */}
+        <ScheduleCard scope="lesson" lesson={lesson} onUpdate={onUpdate} />
 
         {/* RIGHT column — lesson content */}
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -1033,7 +1151,15 @@ function CenterHomework({
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
 }) {
-  const tasks = lesson.hwTasks ?? []
+  // Each lesson can carry two independent homeworks — one for the «Урок» node
+  // and one for the «Запись» node. The toggle below switches which one we edit.
+  const [hwTab, setHwTab] = useState<'lesson' | 'rec'>('lesson')
+  const F = hwTab === 'rec'
+    ? { title: 'recHwTitle', date: 'recHwDate', dateManual: 'recHwDateManual', tasks: 'recHwTasks' } as const
+    : { title: 'hwTitle',    date: 'hwDate',    dateManual: 'hwDateManual',    tasks: 'hwTasks' } as const
+  const tasks = (lesson[F.tasks] as HWTask[] | undefined) ?? []
+
+  function patch(p: Partial<CELesson>) { onUpdate({ ...lesson, ...p }) }
 
   function addTask(type: HWTaskType, isHard: boolean) {
     const newTask: HWTask = {
@@ -1042,15 +1168,15 @@ function CenterHomework({
       correctChoices: type === 'choice' ? [0] : undefined,
       pairs: type === 'match' ? [{ left: '', right: '' }, { left: '', right: '' }] : undefined,
     }
-    onUpdate({ ...lesson, hwTasks: [...tasks, newTask] })
+    patch({ [F.tasks]: [...tasks, newTask] })
   }
 
   function removeTask(id: string) {
-    onUpdate({ ...lesson, hwTasks: tasks.filter(t => t.id !== id) })
+    patch({ [F.tasks]: tasks.filter(t => t.id !== id) })
   }
 
   function updateTask(updated: HWTask) {
-    onUpdate({ ...lesson, hwTasks: tasks.map(t => t.id === updated.id ? updated : t) })
+    patch({ [F.tasks]: tasks.map(t => t.id === updated.id ? updated : t) })
   }
 
   const hardTaskTypes = TASK_TYPES.filter(t => t.type === 'text' || t.type === 'choice')
@@ -1059,12 +1185,32 @@ function CenterHomework({
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* Homework meta — top bar */}
       <div style={{ padding: '16px 24px 12px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
+        {/* Target toggle: lesson HW vs recording HW */}
+        <div style={{ display: 'inline-flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-2)', marginBottom: 12 }}>
+          {([
+            { id: 'lesson', label: '📖 ДЗ урока', n: (lesson.hwTasks ?? []).length },
+            { id: 'rec',    label: '🎥 ДЗ записи', n: (lesson.recHwTasks ?? []).length },
+          ] as const).map(t => (
+            <button key={t.id} onClick={() => setHwTab(t.id)} style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 9,
+              border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700,
+              background: hwTab === t.id ? 'var(--color-purple-soft)' : 'transparent',
+              color: hwTab === t.id ? 'var(--color-accent)' : 'var(--color-text-3)',
+              transition: 'background 0.13s',
+            }}>
+              {t.label}
+              {t.n > 0 && (
+                <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: hwTab === t.id ? 'var(--color-accent)' : 'var(--color-bg-3)', color: hwTab === t.id ? '#fff' : 'var(--color-muted)' }}>{t.n}</span>
+              )}
+            </button>
+          ))}
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10, maxWidth: 500 }}>
           <div>
             <Label>Название задания</Label>
             <input
-              value={lesson.hwTitle ?? ''}
-              onChange={e => onUpdate({ ...lesson, hwTitle: e.target.value })}
+              value={(lesson[F.title] as string | undefined) ?? ''}
+              onChange={e => patch({ [F.title]: e.target.value })}
               style={{ ...inputSt, padding: '7px 10px', fontSize: 12 }}
               placeholder="Тема ДЗ"
             />
@@ -1072,10 +1218,10 @@ function CenterHomework({
           <div>
             <Label>Срок сдачи</Label>
             <CalendarPicker
-              value={lesson.hwDate ?? ''}
-              // Editing the due date by hand detaches it from the lesson date (saved separately);
-              // clearing it re-attaches so it resumes mirroring the lesson date.
-              onChange={v => onUpdate({ ...lesson, hwDate: v, hwDateManual: !!v })}
+              value={(lesson[F.date] as string | undefined) ?? ''}
+              // Editing the due date by hand detaches it from the lesson/recording date;
+              // clearing it re-attaches so it resumes mirroring that date.
+              onChange={v => patch({ [F.date]: v, [F.dateManual]: !!v })}
             />
           </div>
         </div>
@@ -1556,13 +1702,14 @@ function LessonRow({
 }
 
 function RightPanelLessons({
-  course, setCourse, selectedLessonId, onSelectLesson, openLessonNumbers,
+  course, setCourse, selectedLessonId, onSelectLesson, openLessonShortIds, lessonShortIdById,
 }: {
   course: CourseEdData
   setCourse: React.Dispatch<React.SetStateAction<CourseEdData>>
   selectedLessonId: string | null
   onSelectLesson: (id: string) => void
-  openLessonNumbers: Set<number>
+  openLessonShortIds: Set<string>
+  lessonShortIdById: Record<string, string>
 }) {
   const [newTitle, setNewTitle] = useState('')
   const [addingModule, setAddingModule] = useState(false)
@@ -1830,7 +1977,7 @@ function RightPanelLessons({
             onDragStart={() => setDragging(l.id)}
             style={{ cursor: 'grab' }}
           >
-            <LessonRow lesson={l} selected={l.id === selectedLessonId} isOpen={openLessonNumbers.has(l.number)} checked={selectedIds.has(l.id)} multiMode={multiMode} onClick={e => handleRowClick(l.id, e)} onDelete={() => deleteLesson(l.id)} />
+            <LessonRow lesson={l} selected={l.id === selectedLessonId} isOpen={openLessonShortIds.has(lessonShortIdById[l.id])} checked={selectedIds.has(l.id)} multiMode={multiMode} onClick={e => handleRowClick(l.id, e)} onDelete={() => deleteLesson(l.id)} />
           </div>
         ))}
 
@@ -1924,7 +2071,7 @@ function RightPanelLessons({
                               }}
                               style={{ cursor: 'grab' }}
                             >
-                              <LessonRow lesson={l} selected={l.id === selectedLessonId} isOpen={openLessonNumbers.has(l.number)} checked={selectedIds.has(l.id)} multiMode={multiMode} onClick={e => handleRowClick(l.id, e)} onDelete={() => deleteLesson(l.id)} />
+                              <LessonRow lesson={l} selected={l.id === selectedLessonId} isOpen={openLessonShortIds.has(lessonShortIdById[l.id])} checked={selectedIds.has(l.id)} multiMode={multiMode} onClick={e => handleRowClick(l.id, e)} onDelete={() => deleteLesson(l.id)} />
                             </div>
                           </div>
                         ))}
@@ -2043,7 +2190,29 @@ export default function TeacherCourseEditorPage() {
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null)
   const [lessonMode, setLessonMode] = useState<LessonMode>('recording')
   const [openingLesson, setOpeningLesson] = useState(false)
-  const [openLessonNumbers, setOpenLessonNumbers] = useState<Set<number>>(new Set())
+  // Lessons open to students, keyed by persisted short_id (not by `number` —
+  // CELesson.number is 1-based append order, while the persisted lesson short_id
+  // follows the 0-based module order, so number-matching mis-targets lessons).
+  const [openLessonShortIds, setOpenLessonShortIds] = useState<Set<string>>(new Set())
+
+  // Map each editor lesson → the short_id syncAccessToSupabase persists for it
+  // (`${shortId}-${orderedIndex}`), using the exact same module ordering so the
+  // open-badge and the open/seed write both address the right DB row.
+  const lessonShortIdById = useMemo(() => {
+    const shortId = course.dbCourseId ?? course.id
+    const mods = course.modules.length > 0
+      ? course.modules
+      : [{ id: 'm0', label: 'Модуль 1', expanded: true, lessonIds: course.lessons.map(l => l.id) }]
+    const order: string[] = []
+    const seen = new Set<string>()
+    for (const m of mods) for (const lid of m.lessonIds) {
+      if (course.lessons.some(l => l.id === lid) && !seen.has(lid)) { order.push(lid); seen.add(lid) }
+    }
+    for (const l of course.lessons) if (!seen.has(l.id)) { order.push(l.id); seen.add(l.id) }
+    const map: Record<string, string> = {}
+    order.forEach((id, i) => { map[id] = `${shortId}-${i}` })
+    return map
+  }, [course])
 
   // Load which lessons are already open for students (any non-locked progress).
   useEffect(() => {
@@ -2052,24 +2221,22 @@ export default function TeacherCourseEditorPage() {
     ;(async () => {
       const { data: courseRow } = await supabase
         .from('courses')
-        .select('lessons(short_id, lesson_number)')
+        .select('lessons(short_id)')
         .eq('short_id', course.dbCourseId)
         .single()
-      const lessons = (courseRow?.lessons ?? []) as Array<{ short_id: string; lesson_number: number }>
+      const lessons = (courseRow?.lessons ?? []) as Array<{ short_id: string }>
       if (lessons.length === 0) return
-      const refToNumber = new Map(lessons.map(l => [l.short_id, l.lesson_number]))
       const { data: progress } = await supabase
         .from('lesson_progress')
         .select('lesson_ref, status')
         .in('lesson_ref', lessons.map(l => l.short_id))
         .neq('status', 'locked')
       if (cancelled) return
-      const open = new Set<number>()
+      const open = new Set<string>()
       for (const row of (progress ?? []) as Array<{ lesson_ref: string; status: string }>) {
-        const n = refToNumber.get(row.lesson_ref)
-        if (n != null) open.add(n)
+        open.add(row.lesson_ref)
       }
-      setOpenLessonNumbers(open)
+      setOpenLessonShortIds(open)
     })()
     return () => { cancelled = true }
   }, [course.dbCourseId])
@@ -2094,24 +2261,45 @@ export default function TeacherCourseEditorPage() {
     return () => clearTimeout(t)
   }, [course])
 
-  async function openLessonForStudents(lessonNumber: number) {
+  async function openLessonForStudents(lessonId: string) {
     if (!course.dbCourseId) return
+    const lessonShortId = lessonShortIdById[lessonId]
+    if (!lessonShortId) return
     setOpeningLesson(true)
     try {
-      const { data: courseRow } = await supabase
-        .from('courses')
-        .select('lessons(short_id, lesson_number)')
-        .eq('short_id', course.dbCourseId)
-        .single()
-      const lessons = (courseRow?.lessons ?? []) as Array<{ short_id: string; lesson_number: number }>
-      const lessonShortId = lessons.find(l => l.lesson_number === lessonNumber)?.short_id
-      if (!lessonShortId) return
+      // Flip any already-enrolled students' locked row for this lesson → current.
       await supabase
         .from('lesson_progress')
         .update({ status: 'current' })
         .eq('lesson_ref', lessonShortId)
         .eq('status', 'locked')
-      setOpenLessonNumbers(prev => new Set(prev).add(lessonNumber))
+
+      // Course assignment (courses.student_ids / group_ids) does NOT create
+      // lesson_progress rows — only enrollment does. So for a course whose
+      // students were assigned but never enrolled, the update above touches
+      // nothing and the open vanishes on reload. Seed a 'current' row for every
+      // assigned student that has no row for this lesson yet (never clobbering
+      // existing progress like 'done').
+      const targetStudentIds = [...new Set([
+        ...allStudents.filter(s => course.groupIds.includes(s.groupId)).map(s => s.id),
+        ...course.studentIds,
+      ])]
+      if (targetStudentIds.length > 0) {
+        const { data: existing } = await supabase
+          .from('lesson_progress')
+          .select('student_id')
+          .eq('lesson_ref', lessonShortId)
+          .in('student_id', targetStudentIds)
+        const have = new Set((existing ?? []).map((r: { student_id: string }) => r.student_id))
+        const newRows = targetStudentIds
+          .filter(id => !have.has(id))
+          .map(id => ({ student_id: id, lesson_ref: lessonShortId, subject: course.dbCourseId, status: 'current' }))
+        if (newRows.length > 0) {
+          const { error } = await supabase.from('lesson_progress').insert(newRows)
+          if (error) console.error('lesson_progress seed failed:', error)
+        }
+      }
+      setOpenLessonShortIds(prev => new Set(prev).add(lessonShortId))
     } finally {
       setOpeningLesson(false)
     }
@@ -2227,6 +2415,10 @@ export default function TeacherCourseEditorPage() {
       scheduled_date: lesson.scheduledDate ?? null,
       scheduled_time: lesson.scheduledTime ?? null,
       scheduled_duration: lesson.scheduledDuration ?? null,
+      rec_date: lesson.recDate ?? null,
+      rec_time: lesson.recTime ?? null,
+      rec_duration: lesson.recDuration ?? null,
+      lesson_sched_manual: lesson.lessonSchedManual ?? false,
     }))
     if (lessonRows.length > 0) {
       await supabase.from('lessons').upsert(lessonRows, { onConflict: 'short_id' })
@@ -2241,8 +2433,10 @@ export default function TeacherCourseEditorPage() {
     const lessonIndexById: Record<string, number> = {}
     ordered.forEach(({ lesson }, i) => { lessonIndexById[lesson.id] = i })
 
-    // Sync scheduled lessons to calendar
-    const scheduledLessons = c.lessons.filter(l => l.scheduledDate && l.scheduledTime)
+    // Sync scheduled lessons to calendar. A lesson contributes a calendar event
+    // for its lesson schedule and/or its recording schedule.
+    const scheduledLessons = c.lessons.filter(l =>
+      (l.scheduledDate && l.scheduledTime) || (l.recDate && l.recTime))
     if (scheduledLessons.length === 0 || (c.groupIds.length === 0 && c.studentIds.length === 0)) return
 
     // Fetch course row + lessons from DB to get UUIDs
@@ -2271,26 +2465,32 @@ export default function TeacherCourseEditorPage() {
     for (const lesson of scheduledLessons) {
       const dbLesson = dbLessons.find(l => l.lesson_number === lessonIndexById[lesson.id])
       if (!dbLesson) continue
-      const isoDate = dotToIso(lesson.scheduledDate!)
-      const timeStart = lesson.scheduledTime!
-      const timeEnd = addMinutes(timeStart, lesson.scheduledDuration ?? 90)
-      const base = {
-        lesson_id: dbLesson.id,
-        date: isoDate,
-        time_start: timeStart,
-        time_end: timeEnd,
-        lesson_title: lesson.title || dbLesson.title,
-        lesson_number: lesson.number,
-        subject: c.subject,
-        status: 'upcoming',
+
+      // Emit one calendar event (group-scoped + student-scoped rows).
+      function pushEvent(date: string, time: string, dur: number | undefined, nodeType: 'lesson' | 'rec') {
+        const base = {
+          lesson_id: dbLesson!.id,
+          date: dotToIso(date),
+          time_start: time,
+          time_end: addMinutes(time, dur ?? 90),
+          lesson_title: lesson.title || dbLesson!.title,
+          lesson_number: lesson.number,
+          subject: c.subject,
+          status: 'upcoming',
+          node_type: nodeType,
+        }
+        for (const groupId of c.groupIds) rows.push({ ...base, group_id: groupId, student_id: null })
+        for (const studentId of c.studentIds) rows.push({ ...base, group_id: null, student_id: studentId })
       }
-      // Group-scoped rows (seen by every student in the group)…
-      for (const groupId of c.groupIds) {
-        rows.push({ ...base, group_id: groupId, student_id: null })
-      }
-      // …and rows for students assigned to the course directly.
-      for (const studentId of c.studentIds) {
-        rows.push({ ...base, group_id: null, student_id: studentId })
+
+      const hasLesson = !!(lesson.scheduledDate && lesson.scheduledTime)
+      const hasRec = !!(lesson.recDate && lesson.recTime)
+      // Recording diverged from the lesson → two distinct calendar events.
+      const diverged = hasRec && (lesson.recDate !== lesson.scheduledDate || lesson.recTime !== lesson.scheduledTime)
+
+      if (hasLesson) pushEvent(lesson.scheduledDate!, lesson.scheduledTime!, lesson.scheduledDuration, 'lesson')
+      if (diverged || (hasRec && !hasLesson)) {
+        pushEvent(lesson.recDate!, lesson.recTime!, lesson.recDuration, 'rec')
       }
     }
 
@@ -2471,12 +2671,12 @@ export default function TeacherCourseEditorPage() {
                       {selectedLesson.title || 'Урок без названия'}
                     </span>
                     {course.dbCourseId && (() => {
-                      const isOpened = openLessonNumbers.has(selectedLesson.number)
+                      const isOpened = openLessonShortIds.has(lessonShortIdById[selectedLesson.id])
                       return (
                         <motion.button
                           whileHover={{ scale: 1.04 }}
                           whileTap={{ scale: 0.95 }}
-                          onClick={() => openLessonForStudents(selectedLesson.number)}
+                          onClick={() => openLessonForStudents(selectedLesson.id)}
                           disabled={openingLesson}
                           style={{
                             display: 'flex', alignItems: 'center', gap: 6,
@@ -2532,6 +2732,7 @@ export default function TeacherCourseEditorPage() {
                       <CenterRecording
                         lesson={selectedLesson}
                         onSaveVideo={url => updateLesson({ ...selectedLesson, videoUrl: url })}
+                        onUpdate={updateLesson}
                       />
                     )}
                     {lessonMode === 'lesson' && (
@@ -2560,7 +2761,7 @@ export default function TeacherCourseEditorPage() {
           <RightPanelLessons
             course={course} setCourse={setCourse}
             selectedLessonId={selectedLessonId} onSelectLesson={handleSelectLesson}
-            openLessonNumbers={openLessonNumbers}
+            openLessonShortIds={openLessonShortIds} lessonShortIdById={lessonShortIdById}
           />
         </GlassCard>
 
