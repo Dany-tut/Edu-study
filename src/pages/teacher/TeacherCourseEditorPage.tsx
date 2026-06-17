@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft, Plus, Send, Video, Link2, Upload,
@@ -388,7 +388,7 @@ function CenterLesson({
   const refWorkbook = useRef<HTMLInputElement>(null)
   const refNotebook = useRef<HTMLInputElement>(null)
   const refMaterial = useRef<HTMLInputElement>(null)
-  const inputRefs: Record<FileField, React.RefObject<HTMLInputElement>> = {
+  const inputRefs: Record<FileField, React.RefObject<HTMLInputElement | null>> = {
     workbookFile: refWorkbook,
     notebookFile: refNotebook,
     materialFile: refMaterial,
@@ -573,7 +573,7 @@ function CenterHomework({
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* Homework meta — top bar */}
       <div style={{ padding: '16px 24px 12px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, maxWidth: 640 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10, maxWidth: 500 }}>
           <div>
             <Label>Название задания</Label>
             <input
@@ -581,15 +581,6 @@ function CenterHomework({
               onChange={e => onUpdate({ ...lesson, hwTitle: e.target.value })}
               style={{ ...inputSt, padding: '7px 10px', fontSize: 12 }}
               placeholder="Тема ДЗ"
-            />
-          </div>
-          <div>
-            <Label>Кому</Label>
-            <input
-              value={lesson.hwTarget ?? ''}
-              onChange={e => onUpdate({ ...lesson, hwTarget: e.target.value })}
-              style={{ ...inputSt, padding: '7px 10px', fontSize: 12 }}
-              placeholder="Группа или ученик"
             />
           </div>
           <div>
@@ -1133,6 +1124,7 @@ export default function TeacherCourseEditorPage() {
   const [lessonMode, setLessonMode] = useState<LessonMode>('recording')
   const [openingLesson, setOpeningLesson] = useState(false)
   const [openedLessonId, setOpenedLessonId] = useState<string | null>(null)
+  const [savedFlash, setSavedFlash] = useState(false)
 
   async function openLessonForStudents(lessonNumber: number) {
     if (!course.dbCourseId) return
@@ -1176,8 +1168,21 @@ export default function TeacherCourseEditorPage() {
     setActivePage('constructor')
   }
 
-  function handleSave() {
-    setCourseEdited(JSON.stringify(course))
+  function flash() {
+    setSavedFlash(true)
+    setTimeout(() => setSavedFlash(false), 2000)
+  }
+
+  function handleSave(overrideCourse?: CourseEdData) {
+    setCourseEdited(JSON.stringify(overrideCourse ?? course))
+    flash()
+  }
+
+  function handlePublish() {
+    const updated = { ...course, status: 'published' as const }
+    setCourse(updated)
+    setCourseEdited(JSON.stringify(updated))
+    flash()
   }
 
   const docked = useTeacher(s => s.headerDocked)
@@ -1219,11 +1224,17 @@ export default function TeacherCourseEditorPage() {
                 {courseTitle}
               </div>
               <div style={{ flexGrow: 1 }} />
-              <button onClick={handleSave} style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 999, ...dockGlass, cursor: 'pointer', fontSize: 13.5, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit', pointerEvents: 'auto' }}>
-                Черновик
-              </button>
-              <TeacherSaveButton label="Опубликовать" savedLabel="Опубликовано!" icon={<Send size={14} />} saved={false}
-                onClick={() => { setCourse(c => ({ ...c, status: 'published' })); handleSave() }}
+              {course.status !== 'published' && (
+                <button onClick={() => handleSave()} style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 999, ...dockGlass, cursor: 'pointer', fontSize: 13.5, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit', pointerEvents: 'auto' }}>
+                  Черновик
+                </button>
+              )}
+              <TeacherSaveButton
+                label={course.status === 'published' ? 'Сохранить' : 'Опубликовать'}
+                savedLabel={course.status === 'published' ? 'Сохранено!' : 'Опубликовано!'}
+                icon={<Send size={14} />}
+                saved={savedFlash}
+                onClick={course.status === 'published' ? () => handleSave() : handlePublish}
                 style={{ boxShadow: '0 6px 20px rgba(123,63,204,0.32)', pointerEvents: 'auto' }} />
             </motion.div>
           )}
@@ -1244,12 +1255,18 @@ export default function TeacherCourseEditorPage() {
           <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={handleSave}
-            style={{ padding: '9px 18px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
-            Черновик
-          </motion.button>
-          <TeacherSaveButton label="Опубликовать" savedLabel="Опубликовано!" icon={<Send size={14} />} saved={false}
-            onClick={() => { setCourse(c => ({ ...c, status: 'published' })); handleSave() }}
+          {course.status !== 'published' && (
+            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={() => handleSave()}
+              style={{ padding: '9px 18px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+              Черновик
+            </motion.button>
+          )}
+          <TeacherSaveButton
+            label={course.status === 'published' ? 'Сохранить' : 'Опубликовать'}
+            savedLabel={course.status === 'published' ? 'Сохранено!' : 'Опубликовано!'}
+            icon={<Send size={14} />}
+            saved={savedFlash}
+            onClick={course.status === 'published' ? () => handleSave() : handlePublish}
             style={{ boxShadow: '0 6px 20px rgba(123,63,204,0.32)' }} />
         </div>
       </motion.div>
