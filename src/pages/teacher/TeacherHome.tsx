@@ -474,23 +474,27 @@ export default function TeacherHome() {
       .order('time_start')
       .then(({ data }) => {
         if (!data) return
-        setTodaySchedule(data.map((s: any) => ({
-          id: String(s.id),
-          groupId: s.group_id,
-          groupName: s.groups?.name ?? '',
-          icon: s.groups?.icon ?? '📚',
-          time: (s.time_start ?? '').slice(0, 5),
-          endTime: (s.time_end ?? '').slice(0, 5),
-          topic: s.lesson_title ?? '',
-          lessonNumber: s.lesson_number ?? 0,
-          subject: s.subject ?? '',
-          status: (s.status ?? 'upcoming') as ScheduleItem['status'],
-          studentCount: s.groups?.students?.[0]?.count ?? 0,
-          color: s.groups?.color ?? 'var(--color-purple)',
-          colorSoft: s.groups?.color_soft ?? 'var(--color-bg-3)',
-        })))
+        setTodaySchedule(data.map((s: any) => {
+          // Rows scoped to a single student (group_id null) have no group join.
+          const stu = s.student_id ? allStudents.find(a => a.id === s.student_id) : null
+          return {
+            id: String(s.id),
+            groupId: s.group_id,
+            groupName: s.groups?.name ?? stu?.name ?? '',
+            icon: s.groups?.icon ?? '👤',
+            time: (s.time_start ?? '').slice(0, 5),
+            endTime: (s.time_end ?? '').slice(0, 5),
+            topic: s.lesson_title ?? '',
+            lessonNumber: s.lesson_number ?? 0,
+            subject: s.subject ?? '',
+            status: (s.status ?? 'upcoming') as ScheduleItem['status'],
+            studentCount: s.groups?.students?.[0]?.count ?? (stu ? 1 : 0),
+            color: s.groups?.color ?? 'var(--color-purple)',
+            colorSoft: s.groups?.color_soft ?? 'var(--color-bg-3)',
+          }
+        }))
       })
-  }, [groups])
+  }, [groups, allStudents])
 
   const pendingHomework = allHomework.filter(hw => hw.status === 'active')
   const totalStudents = groups.reduce((a, g) => a + g.studentCount, 0)

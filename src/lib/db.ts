@@ -29,7 +29,7 @@ interface DbScheduleLesson {
   lesson_number: number
 }
 
-export async function fetchScheduleDays(groupId: string): Promise<ScheduleDay[]> {
+export async function fetchScheduleDays(groupId: string, studentId?: string): Promise<ScheduleDay[]> {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const from = new Date(today); from.setDate(from.getDate() - 3)
@@ -38,10 +38,17 @@ export async function fetchScheduleDays(groupId: string): Promise<ScheduleDay[]>
   const pad2 = (n: number) => String(n).padStart(2, '0')
   const fmt  = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`
 
+  // A lesson reaches the student either through their group OR a direct
+  // (student-scoped) assignment. Match both.
+  const scope: string[] = []
+  if (groupId) scope.push(`group_id.eq.${groupId}`)
+  if (studentId) scope.push(`student_id.eq.${studentId}`)
+  if (scope.length === 0) return []
+
   const { data, error } = await supabase
     .from('schedule_lessons')
     .select('*')
-    .eq('group_id', groupId)
+    .or(scope.join(','))
     .gte('date', fmt(from))
     .lte('date', fmt(to))
     .order('date', { ascending: true })
@@ -49,9 +56,14 @@ export async function fetchScheduleDays(groupId: string): Promise<ScheduleDay[]>
 
   if (error || !data) return []
 
-  // Build ScheduleDay[] grouped by date
+  // Build ScheduleDay[] grouped by date. A student targeted via both their
+  // group and a direct assignment gets two rows for one lesson — dedup them.
   const byDate = new Map<string, DbScheduleLesson[]>()
+  const seen = new Set<string>()
   for (const row of data as DbScheduleLesson[]) {
+    const key = `${row.date}|${row.time_start}|${row.lesson_title}|${row.lesson_number}|${row.subject}`
+    if (seen.has(key)) continue
+    seen.add(key)
     if (!byDate.has(row.date)) byDate.set(row.date, [])
     byDate.get(row.date)!.push(row)
   }

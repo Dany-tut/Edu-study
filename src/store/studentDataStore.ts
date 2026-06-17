@@ -61,7 +61,7 @@ export const useStudentData = create<StudentDataState>((set) => ({
 
     const [progress, schedule, catalog, quizQ, facts, memes, reactions] = await Promise.all([
       fetchLessonProgress(session.id),
-      fetchScheduleDays(session.groupId),
+      fetchScheduleDays(session.groupId, session.id),
       fetchCourseStructure(session.id, session.groupId),
       fetchQuizQuestions(),
       fetchScienceFacts(),
