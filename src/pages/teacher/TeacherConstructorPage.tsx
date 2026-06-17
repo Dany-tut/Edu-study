@@ -252,6 +252,40 @@ const STATUS_LABEL: Record<CourseStatus, string> = { published: 'Опублик�
 const STATUS_COLOR: Record<CourseStatus, string> = { published: 'var(--color-green-text)', draft: 'var(--color-peach-text)' }
 const STATUS_BG:   Record<CourseStatus, string> = { published: 'var(--color-green-soft)', draft: 'var(--color-peach-soft)' }
 
+// ─── DB → local mappers ───────────────────────────────────────────────────────
+function fmtDate(iso: string | null | undefined) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return isNaN(d.getTime()) ? '' : d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
+}
+function dbCourseToLocal(c: any): Course {
+  const lessons = (c.lessons ?? [])
+    .sort((a: any, b: any) => a.lesson_number - b.lesson_number)
+    .map((l: any) => ({ id: l.short_id ?? l.id, title: l.title, trainerId: l.trainer_id ?? null, widgetId: l.widget_id ?? null }))
+  return {
+    id: c.short_id, title: c.title, subject: c.subject ?? 'Химия', level: c.level ?? 'ЕГЭ',
+    description: c.description ?? '', color: c.color ?? '#B98FFF', bg: c.bg ?? 'var(--color-purple-soft)',
+    status: (c.status as CourseStatus) ?? 'draft', lastEdited: fmtDate(c.updated_at ?? c.created_at),
+    dbCourseId: c.short_id, lessons,
+  }
+}
+function dbTrainerToLocal(t: any): Trainer {
+  return {
+    id: t.id, title: t.title, topic: t.topic ?? '', difficulty: (t.difficulty as Difficulty) ?? 'medium',
+    timePerQuestion: t.time_per_question ?? 30, questions: t.questions ?? [],
+    subject: t.subject, color: t.color ?? '#B98FFF', bg: t.bg ?? 'var(--color-purple-soft)',
+    lastEdited: fmtDate(t.updated_at ?? t.created_at),
+  }
+}
+function dbWidgetToLocal(w: any): Widget {
+  return {
+    id: w.id, title: w.title, type: w.type as WidgetType,
+    linkedTrainerId: w.linked_trainer_id ?? null, items: w.items ?? [],
+    color: w.color ?? '#B98FFF', bg: w.bg ?? 'var(--color-purple-soft)',
+    lastEdited: fmtDate(w.updated_at ?? w.created_at),
+  }
+}
+
 // ─── Shared UI ────────────────────────────────────────────────────────────────
 const inputSt: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box', padding: '9px 12px',
@@ -5488,31 +5522,27 @@ export default function TeacherConstructorPage() {
   const [editTrainer, setEditTrainer] = useState<Trainer | null>(null)
   const [editWidget, setEditWidget] = useState<Widget | null>(null)
   const [selectedTrainerId, setSelectedTrainerId] = useState<string | null>(null)
-  const [courses, setCourses] = useState<Course[]>(() => {
-    let base: Course[]
-    try { const s = localStorage.getItem('constructor-courses'); base = s ? JSON.parse(s) : COURSES_INIT } catch { base = COURSES_INIT }
-    return mergeById(base, AP_CHEM_COURSES)
-  })
-  const [trainers, setTrainers] = useState<Trainer[]>(() => {
-    let base: Trainer[] = TRAINERS_INIT
-    try {
-      const s = localStorage.getItem('constructor-trainers')
-      const v = localStorage.getItem('constructor-trainers-v')
-      if (s && v === '2') base = JSON.parse(s)
-    } catch {}
-    return mergeById(base, AP_CHEM_TRAINERS)
-  })
-  const [widgets, setWidgets] = useState<Widget[]>(() => {
-    let base: Widget[]
-    try { const s = localStorage.getItem('constructor-widgets'); base = s ? JSON.parse(s) : WIDGETS_INIT } catch { base = WIDGETS_INIT }
-    return mergeById(base, AP_CHEM_WIDGETS)
-  })
+  const [courses, setCourses] = useState<Course[]>([])
+  const [trainers, setTrainers] = useState<Trainer[]>([])
+  const [widgets, setWidgets] = useState<Widget[]>([])
+  const [dbLoading, setDbLoading] = useState(true)
   const [editMode, setEditMode] = useState(false)
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set())
 
-  useEffect(() => { try { localStorage.setItem('constructor-courses', JSON.stringify(courses)) } catch {} }, [courses])
-  useEffect(() => { try { localStorage.setItem('constructor-trainers', JSON.stringify(trainers)); localStorage.setItem('constructor-trainers-v', '2') } catch {} }, [trainers])
-  useEffect(() => { try { localStorage.setItem('constructor-widgets', JSON.stringify(widgets)) } catch {} }, [widgets])
+  useEffect(() => {
+    async function loadAll() {
+      const [{ data: cData }, { data: tData }, { data: wData }] = await Promise.all([
+        supabase.from('courses').select('*, lessons(*)').order('created_at'),
+        supabase.from('trainers').select('*').order('created_at'),
+        supabase.from('widgets').select('*').order('created_at'),
+      ])
+      setCourses(cData ? cData.map(dbCourseToLocal) : [])
+      setTrainers(tData ? tData.map(dbTrainerToLocal) : [])
+      setWidgets(wData ? wData.map(dbWidgetToLocal) : [])
+      setDbLoading(false)
+    }
+    loadAll()
+  }, [])
 
   const [bankFilters, setBankFilters] = useState<TrainerFilters>(emptyTrainerFilters)
   const [widgetFilters, setWidgetFilters] = useState<WidgetFilters>(emptyWidgetFilters)
@@ -5595,12 +5625,35 @@ export default function TeacherConstructorPage() {
     setCourseEdited(null)
   }, [courseEditedJson])
 
-  function goToCourseEditor(course: Course) {
+  async function goToCourseEditor(course: Course) {
+    let groupIds: string[] = []
+    let studentIds: string[] = []
+
+    if (course.dbCourseId) {
+      const { data: dbCourse } = await supabase
+        .from('courses')
+        .select('group_ids, student_ids')
+        .eq('short_id', course.dbCourseId)
+        .single()
+      if (dbCourse) {
+        groupIds = dbCourse.group_ids ?? []
+        // auth_user_ids → students.id for the editor picker
+        const authIds: string[] = dbCourse.student_ids ?? []
+        if (authIds.length > 0) {
+          const { data: rows } = await supabase
+            .from('students')
+            .select('id')
+            .in('auth_user_id', authIds)
+          studentIds = (rows ?? []).map((r: any) => r.id as string)
+        }
+      }
+    }
+
     const edData = {
       id: course.id, title: course.title, subject: course.subject, level: course.level,
       status: course.status, color: course.color, bg: course.bg,
       description: course.description ?? '', dbCourseId: course.dbCourseId,
-      groupIds: [], studentIds: [],
+      groupIds, studentIds,
       modules: [{ id: uid(), label: 'Модуль 1', expanded: true, lessonIds: course.lessons.map(l => l.id) }],
       lessons: course.lessons.map((l, i) => ({ id: l.id, title: l.title, number: i + 1 })),
     }
@@ -5669,11 +5722,26 @@ export default function TeacherConstructorPage() {
     })
   }
 
-  function deleteChecked() {
-    if (activeTab === 'course') setCourses(prev => prev.filter(c => !checkedIds.has(c.id)))
-    else if (activeTab === 'trainer') checkedIds.forEach(id => removeTask(Number(id)))
-    else if (activeTab === 'testing') setCustomTests(prev => prev.filter(ct => !checkedIds.has(ct.id)))
-    else setWidgets(prev => prev.filter(w => !checkedIds.has(w.id)))
+  async function deleteChecked() {
+    if (activeTab === 'course') {
+      const toDelete = courses.filter(c => checkedIds.has(c.id))
+      setCourses(prev => prev.filter(c => !checkedIds.has(c.id)))
+      await Promise.all(toDelete.map(c => {
+        const shortId = c.dbCourseId ?? (isUUID(c.id) ? c.id : null)
+        return shortId ? supabase.from('courses').delete().eq('short_id', shortId) : Promise.resolve()
+      }))
+    } else if (activeTab === 'trainer') {
+      checkedIds.forEach(id => removeTask(Number(id)))
+      const uuids = [...checkedIds].filter(id => isUUID(id))
+      if (uuids.length) await supabase.from('trainers').delete().in('id', uuids)
+    } else if (activeTab === 'testing') {
+      setCustomTests(prev => prev.filter(ct => !checkedIds.has(ct.id)))
+    } else {
+      const toDelete = widgets.filter(w => checkedIds.has(w.id))
+      setWidgets(prev => prev.filter(w => !checkedIds.has(w.id)))
+      const uuids = toDelete.map(w => w.id).filter(id => isUUID(id))
+      if (uuids.length) await supabase.from('widgets').delete().in('id', uuids)
+    }
     setCheckedIds(new Set())
     setEditMode(false)
   }
@@ -5711,12 +5779,42 @@ export default function TeacherConstructorPage() {
   }
 
   function handleSaveTrainer(t: Trainer) {
-    // Upsert: update in place when editing, else prepend.
     setTrainers(prev => prev.some(x => x.id === t.id) ? prev.map(x => x.id === t.id ? t : x) : [t, ...prev])
     setCreatorMode(null)
     setEditTrainer(null)
     setActiveTab('trainer')
     setSelectedId(t.id)
+    syncTrainerToDb(t)
+  }
+
+  function isUUID(s: string) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s) }
+
+  async function syncTrainerToDb(t: Trainer) {
+    const row: any = {
+      title: t.title, topic: t.topic, subject: t.subject ?? 'Химия',
+      difficulty: t.difficulty, time_per_question: t.timePerQuestion,
+      questions: t.questions, color: t.color, bg: t.bg,
+    }
+    if (isUUID(t.id)) row.id = t.id
+    const { data, error } = await supabase.from('trainers').upsert(row, { onConflict: 'id' }).select('id').single()
+    if (error) { console.error('[syncTrainerToDb]', error); return }
+    if (data && data.id !== t.id) {
+      setTrainers(prev => prev.map(x => x.id === t.id ? { ...x, id: data.id } : x))
+    }
+  }
+
+  async function syncWidgetToDb(w: Widget) {
+    const linkedUuid = w.linkedTrainerId && isUUID(w.linkedTrainerId) ? w.linkedTrainerId : null
+    const row: any = {
+      title: w.title, type: w.type, linked_trainer_id: linkedUuid,
+      items: w.items, color: w.color, bg: w.bg,
+    }
+    if (isUUID(w.id)) row.id = w.id
+    const { data, error } = await supabase.from('widgets').upsert(row, { onConflict: 'id' }).select('id').single()
+    if (error) { console.error('[syncWidgetToDb]', error); return }
+    if (data && data.id !== w.id) {
+      setWidgets(prev => prev.map(x => x.id === w.id ? { ...x, id: data.id } : x))
+    }
   }
 
   async function syncCourseToDb(c: Course) {
@@ -5777,6 +5875,7 @@ export default function TeacherConstructorPage() {
     setEditWidget(null)
     setActiveTab('widget')
     setSelectedId(w.id)
+    syncWidgetToDb(w)
   }
 
   const stamp = () => new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
@@ -5787,19 +5886,22 @@ export default function TeacherConstructorPage() {
     const copy: Course = { ...c, id: uid(), title: `${c.title} (копия)`, status: 'draft', lessons: c.lessons.map(l => ({ ...l, id: uid() })), lastEdited: stamp() }
     setCourses(prev => [copy, ...prev])
   }
-  function deleteCourse(c: Course) {
+  async function deleteCourse(c: Course) {
     if (!window.confirm(`Удалить курс «${c.title}»? Это действие необратимо.`)) return
     setCourses(prev => prev.filter(x => x.id !== c.id))
     if (selectedId === c.id) setSelectedId(null)
+    const shortId = c.dbCourseId ?? (isUUID(c.id) ? c.id : null)
+    if (shortId) await supabase.from('courses').delete().eq('short_id', shortId)
   }
   function duplicateWidget(w: Widget) {
     const copy: Widget = { ...w, id: uid(), title: `${w.title} (копия)`, items: w.items.map(it => ({ ...it, id: uid() })), lastEdited: stamp() }
     setWidgets(prev => [copy, ...prev])
   }
-  function deleteWidget(w: Widget) {
+  async function deleteWidget(w: Widget) {
     if (!window.confirm(`Удалить виджет «${w.title}»?`)) return
     setWidgets(prev => prev.filter(x => x.id !== w.id))
     if (selectedId === w.id) setSelectedId(null)
+    if (isUUID(w.id)) await supabase.from('widgets').delete().eq('id', w.id)
   }
 
   const tabCfg = {
@@ -6025,6 +6127,9 @@ export default function TeacherConstructorPage() {
                     total={filteredWidgets.length}
                   />
                 </div>
+              )}
+              {dbLoading && (
+                <div style={{ color: 'var(--color-text-3)', fontSize: 14, padding: '32px 0', textAlign: 'center' }}>Загрузка…</div>
               )}
               <div
                 style={{ display: (activeTab === 'trainer' || activeTab === 'widget') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>

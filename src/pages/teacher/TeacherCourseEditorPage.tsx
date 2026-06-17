@@ -1632,9 +1632,21 @@ export default function TeacherCourseEditorPage() {
 
   async function syncAccessToSupabase(c: CourseEdData) {
     const shortId = c.dbCourseId ?? c.id
+
+    // studentIds in the editor are students.id — convert to auth_user_id for course filtering
+    let authStudentIds: string[] = []
+    if (c.studentIds.length > 0) {
+      const { data } = await supabase
+        .from('students')
+        .select('auth_user_id')
+        .in('id', c.studentIds)
+        .not('auth_user_id', 'is', null)
+      authStudentIds = (data ?? []).map((r: any) => r.auth_user_id as string)
+    }
+
     await supabase
       .from('courses')
-      .update({ group_ids: c.groupIds, student_ids: c.studentIds, status: c.status })
+      .update({ group_ids: c.groupIds, student_ids: authStudentIds, status: c.status })
       .eq('short_id', shortId)
 
     // Sync scheduled lessons to calendar
