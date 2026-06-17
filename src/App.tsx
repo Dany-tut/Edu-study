@@ -41,7 +41,10 @@ export default function App() {
     const channel = supabase
       .channel('student-lesson-progress')
       .on('postgres_changes', {
-        event: 'UPDATE',
+        // '*' (not just UPDATE): opening a lesson for a not-yet-enrolled student
+        // INSERTs a fresh lesson_progress row, so an UPDATE-only filter would
+        // never re-sync the live student screen.
+        event: '*',
         schema: 'public',
         table: 'lesson_progress',
         filter: `student_id=eq.${sess.id}`,
