@@ -428,7 +428,74 @@ function CenterLesson({
 
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: '28px 36px' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 640, margin: '0 auto' }}>
+      <div style={{ display: 'flex', gap: 18, maxWidth: 900, margin: '0 auto', alignItems: 'flex-start' }}>
+
+        {/* LEFT card — scheduling */}
+        <div style={{
+          width: 248, flexShrink: 0,
+          background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)',
+          borderRadius: 18, padding: '16px 16px 18px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 14 }}>
+            <Calendar size={14} style={{ color: lesson.scheduledDate ? 'var(--color-accent)' : 'var(--color-muted)' }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: lesson.scheduledDate ? 'var(--color-text)' : 'var(--color-text-3)' }}>
+              Дата и время
+            </span>
+            {lesson.scheduledDate && (
+              <button
+                onClick={() => onUpdate({ ...lesson, scheduledDate: undefined, scheduledTime: undefined, scheduledDuration: undefined })}
+                style={{ marginLeft: 'auto', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-4)', padding: 0 }}
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div>
+              <Label>Дата</Label>
+              <CalendarPicker
+                value={lesson.scheduledDate ?? ''}
+                onChange={v => onUpdate({ ...lesson, scheduledDate: v || undefined })}
+              />
+            </div>
+            <div>
+              <Label>Начало</Label>
+              <PickerSelect
+                value={lesson.scheduledTime ?? ''}
+                onChange={v => onUpdate({ ...lesson, scheduledTime: v || undefined })}
+                icon={Clock}
+                placeholder="—"
+                allowEmpty
+                options={Array.from({ length: 32 }, (_, i) => {
+                  const h = Math.floor(i / 2) + 7
+                  const m = i % 2 === 0 ? '00' : '30'
+                  const t = `${String(h).padStart(2, '0')}:${m}`
+                  return { value: t, label: t }
+                })}
+              />
+            </div>
+            <div>
+              <Label>Длительность</Label>
+              <PickerSelect
+                value={String(lesson.scheduledDuration ?? 90)}
+                onChange={v => onUpdate({ ...lesson, scheduledDuration: Number(v) })}
+                options={[45, 60, 90, 120, 150, 180].map(m => ({
+                  value: String(m),
+                  label: m < 60 ? `${m} мин` : `${m / 60} ч${m % 60 ? ` ${m % 60} м` : ''}`,
+                }))}
+              />
+            </div>
+          </div>
+          {lesson.scheduledDate && lesson.scheduledTime && (
+            <div style={{ marginTop: 12, fontSize: 11, color: 'var(--color-accent)', display: 'flex', alignItems: 'flex-start', gap: 5, lineHeight: 1.4 }}>
+              <Check size={12} style={{ flexShrink: 0, marginTop: 1 }} />
+              <span>Появится в календаре ученика {lesson.scheduledDate} в {lesson.scheduledTime}</span>
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT column — lesson content */}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div>
           <Label>Название урока</Label>
           <input
@@ -497,70 +564,6 @@ function CenterLesson({
             placeholder="Краткое содержание урока, что разобрали, ключевые моменты…"
           />
         </div>
-
-        {/* ── Scheduling ─────────────────────────────────────────────── */}
-        <div style={{
-          borderRadius: 16, border: '1.5px solid var(--color-border-soft)',
-          padding: '16px 18px', background: 'var(--color-bg)',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 14 }}>
-            <Calendar size={14} style={{ color: lesson.scheduledDate ? 'var(--color-accent)' : 'var(--color-muted)' }} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: lesson.scheduledDate ? 'var(--color-text)' : 'var(--color-text-3)' }}>
-              Дата и время урока
-            </span>
-            {lesson.scheduledDate && (
-              <button
-                onClick={() => onUpdate({ ...lesson, scheduledDate: undefined, scheduledTime: undefined, scheduledDuration: undefined })}
-                style={{ marginLeft: 'auto', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-4)', padding: 0 }}
-              >
-                <X size={13} />
-              </button>
-            )}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 10, alignItems: 'end' }}>
-            <div>
-              <Label>Дата</Label>
-              <CalendarPicker
-                value={lesson.scheduledDate ?? ''}
-                onChange={v => onUpdate({ ...lesson, scheduledDate: v || undefined })}
-              />
-            </div>
-            <div>
-              <Label>Начало</Label>
-              <PickerSelect
-                value={lesson.scheduledTime ?? ''}
-                onChange={v => onUpdate({ ...lesson, scheduledTime: v || undefined })}
-                width={110}
-                icon={Clock}
-                placeholder="—"
-                allowEmpty
-                options={Array.from({ length: 32 }, (_, i) => {
-                  const h = Math.floor(i / 2) + 7
-                  const m = i % 2 === 0 ? '00' : '30'
-                  const t = `${String(h).padStart(2, '0')}:${m}`
-                  return { value: t, label: t }
-                })}
-              />
-            </div>
-            <div>
-              <Label>Длит.</Label>
-              <PickerSelect
-                value={String(lesson.scheduledDuration ?? 90)}
-                onChange={v => onUpdate({ ...lesson, scheduledDuration: Number(v) })}
-                width={104}
-                options={[45, 60, 90, 120, 150, 180].map(m => ({
-                  value: String(m),
-                  label: m < 60 ? `${m} мин` : `${m / 60} ч${m % 60 ? ` ${m % 60} м` : ''}`,
-                }))}
-              />
-            </div>
-          </div>
-          {lesson.scheduledDate && lesson.scheduledTime && (
-            <div style={{ marginTop: 10, fontSize: 12, color: 'var(--color-accent)', display: 'flex', alignItems: 'center', gap: 5 }}>
-              <Check size={12} />
-              Урок появится в календаре ученика {lesson.scheduledDate} в {lesson.scheduledTime}
-            </div>
-          )}
         </div>
       </div>
 
@@ -1679,9 +1682,14 @@ function RightPanelLessons({
                   cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.13s',
                 }}
               >
-                {mod.expanded
-                  ? <ChevronDown size={12} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-                  : <ChevronRight size={12} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />}
+                <ChevronDown
+                  size={13}
+                  style={{
+                    color: 'var(--color-muted)', flexShrink: 0,
+                    transform: mod.expanded ? 'rotate(0deg)' : 'rotate(-90deg)',
+                    transition: 'transform 0.18s ease',
+                  }}
+                />
                 <span style={{ flex: 1, fontSize: 12, fontWeight: 700, color: 'var(--color-text)', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {mod.label}
                 </span>
@@ -1976,6 +1984,9 @@ export default function TeacherCourseEditorPage() {
       description: lesson.description ?? null,
       kind: lesson.kind ?? 'lesson',
       test_tasks: lesson.testTasks ?? [],
+      scheduled_date: lesson.scheduledDate ?? null,
+      scheduled_time: lesson.scheduledTime ?? null,
+      scheduled_duration: lesson.scheduledDuration ?? null,
     }))
     if (lessonRows.length > 0) {
       await supabase.from('lessons').upsert(lessonRows, { onConflict: 'short_id' })
