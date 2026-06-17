@@ -61,7 +61,7 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
           Сводка по ученику
         </div>
         <ScoreBar label="ДЗ" icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" />
-        <ScoreBar label="Тесты" icon={TrendingUp} value={student.testScore} color="#B98FFF" />
+        <ScoreBar label="Тесты" icon={TrendingUp} value={student.testScore} color="var(--color-purple)" />
         {student.trialScore !== null && (
           <ScoreBar label="Пробник" icon={Award} value={student.trialScore} color="#F5A623" />
         )}

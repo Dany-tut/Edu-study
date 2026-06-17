@@ -77,7 +77,7 @@ const materialsBySubject: Record<string, LessonMaterial[]> = {
   ],
   biology: [
     { id: 'taxonomy', name: 'Систематика растений', emoji: '🌿', gradient: 'linear-gradient(135deg, #8FE06E, #2D9A45)' },
-    { id: 'cell', name: 'Строение клетки', emoji: '🔬', gradient: 'linear-gradient(135deg, #B98BFF, #6B3FD6)' },
+    { id: 'cell', name: 'Строение клетки', emoji: '🔬', gradient: 'var(--grad-purple)' },
   ],
 }
 

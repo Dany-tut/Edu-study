@@ -707,7 +707,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
             style={{
               position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 999, minWidth: 260,
               background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-medium)',
-              borderRadius: 16, boxShadow: '0 8px 32px rgba(123,63,204,0.14)', padding: '14px 12px 12px',
+              borderRadius: 16, boxShadow: '0 8px 32px rgba(99,84,207,0.14)', padding: '14px 12px 12px',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -1568,7 +1568,7 @@ export default function TeacherCourseEditorPage() {
     if (!editingCourseJson) {
       return {
         id: uid(), title: '', subject: 'Химия', level: 'ЕГЭ', status: 'draft',
-        color: '#B98FFF', bg: 'var(--color-purple-soft)',
+        color: 'var(--color-purple)', bg: 'var(--color-purple-soft)',
         groupIds: [], studentIds: [],
         modules: [{ id: uid(), label: 'Модуль 1', expanded: true, lessonIds: [] }],
         lessons: [],
@@ -1633,7 +1633,7 @@ export default function TeacherCourseEditorPage() {
   async function syncAccessToSupabase(c: CourseEdData) {
     const shortId = c.dbCourseId ?? c.id
 
-    await supabase
+    const { data: courseUpsert } = await supabase
       .from('courses')
       .upsert(
         {
@@ -1645,6 +1645,86 @@ export default function TeacherCourseEditorPage() {
         },
         { onConflict: 'short_id' }
       )
+      .select('id')
+      .single()
+
+    const courseDbId = courseUpsert?.id
+    if (!courseDbId) return
+
+    // ── Persist modules + lessons so the student track renders ──────────────
+    // The student reader (fetchCourseStructure) reads lessons through
+    // course_modules → lessons, so every lesson must live under a module.
+    // Build the ordered lesson list: module order, then each module's lessonIds,
+    // with any ungrouped lesson appended to the first module.
+    const editorModules = c.modules.length > 0
+      ? c.modules
+      : [{ id: 'm0', label: 'Модуль 1', expanded: true, lessonIds: c.lessons.map(l => l.id) }]
+    const firstModuleLocalId = editorModules[0].id
+
+    // 1. Reuse existing modules by position; create missing, drop extras.
+    const { data: existingMods } = await supabase
+      .from('course_modules')
+      .select('id, position')
+      .eq('course_id', courseDbId)
+      .order('position')
+    const existing = (existingMods ?? []) as Array<{ id: string; position: number }>
+    const moduleDbIdByLocalId: Record<string, string> = {}
+    for (let i = 0; i < editorModules.length; i++) {
+      const m = editorModules[i]
+      let dbId = existing[i]?.id
+      if (dbId) {
+        await supabase.from('course_modules').update({ label: m.label, position: i }).eq('id', dbId)
+      } else {
+        const { data: ins } = await supabase
+          .from('course_modules')
+          .insert({ course_id: courseDbId, label: m.label, position: i })
+          .select('id')
+          .single()
+        dbId = ins?.id
+      }
+      if (dbId) moduleDbIdByLocalId[m.id] = dbId
+    }
+    for (let i = editorModules.length; i < existing.length; i++) {
+      await supabase.from('course_modules').delete().eq('id', existing[i].id)
+    }
+
+    // 2. Order lessons (module order → lessonIds → ungrouped to first module).
+    const ordered: Array<{ lesson: CELesson; moduleLocalId: string }> = []
+    const seen = new Set<string>()
+    for (const m of editorModules) {
+      for (const lid of m.lessonIds) {
+        const lesson = c.lessons.find(l => l.id === lid)
+        if (lesson && !seen.has(lid)) { ordered.push({ lesson, moduleLocalId: m.id }); seen.add(lid) }
+      }
+    }
+    for (const lesson of c.lessons) {
+      if (!seen.has(lesson.id)) { ordered.push({ lesson, moduleLocalId: firstModuleLocalId }); seen.add(lesson.id) }
+    }
+
+    // 3. Upsert lessons with stable short_id (= `${shortId}-${globalIndex}`),
+    //    preserving lesson_progress (keyed by short_id, not FK).
+    const lessonRows = ordered.map(({ lesson, moduleLocalId }, i) => ({
+      short_id: `${shortId}-${i}`,
+      course_id: courseDbId,
+      module_id: moduleDbIdByLocalId[moduleLocalId] ?? null,
+      title: lesson.title,
+      position: i,
+      lesson_number: i,
+      youtube_url: lesson.videoUrl ?? null,
+      description: lesson.description ?? null,
+    }))
+    if (lessonRows.length > 0) {
+      await supabase.from('lessons').upsert(lessonRows, { onConflict: 'short_id' })
+    }
+    // 4. Drop lessons removed in the editor (schedule_lessons.lesson_id → SET NULL).
+    const keepShortIds = lessonRows.map(r => r.short_id)
+    let delQuery = supabase.from('lessons').delete().eq('course_id', courseDbId)
+    if (keepShortIds.length > 0) delQuery = delQuery.not('short_id', 'in', `(${keepShortIds.join(',')})`)
+    await delQuery
+
+    // Map each editor lesson to its persisted global index for scheduling below.
+    const lessonIndexById: Record<string, number> = {}
+    ordered.forEach(({ lesson }, i) => { lessonIndexById[lesson.id] = i })
 
     // Sync scheduled lessons to calendar
     const scheduledLessons = c.lessons.filter(l => l.scheduledDate && l.scheduledTime)
@@ -1674,7 +1754,7 @@ export default function TeacherCourseEditorPage() {
 
     const rows: object[] = []
     for (const lesson of scheduledLessons) {
-      const dbLesson = dbLessons.find(l => l.lesson_number === lesson.number)
+      const dbLesson = dbLessons.find(l => l.lesson_number === lessonIndexById[lesson.id])
       if (!dbLesson) continue
       const isoDate = dotToIso(lesson.scheduledDate!)
       const timeStart = lesson.scheduledTime!
@@ -1784,7 +1864,7 @@ export default function TeacherCourseEditorPage() {
                 icon={<Send size={14} />}
                 saved={savedFlash}
                 onClick={course.status === 'published' ? () => handleSave() : handlePublish}
-                style={{ boxShadow: '0 6px 20px rgba(123,63,204,0.32)', pointerEvents: 'auto' }} />
+                style={{ boxShadow: '0 6px 20px rgba(99,84,207,0.32)', pointerEvents: 'auto' }} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -1821,7 +1901,7 @@ export default function TeacherCourseEditorPage() {
             icon={<Send size={14} />}
             saved={savedFlash}
             onClick={course.status === 'published' ? () => handleSave() : handlePublish}
-            style={{ boxShadow: '0 6px 20px rgba(123,63,204,0.32)' }} />
+            style={{ boxShadow: '0 6px 20px rgba(99,84,207,0.32)' }} />
         </div>
       </motion.div>
 
@@ -1873,7 +1953,7 @@ export default function TeacherCourseEditorPage() {
                             padding: '6px 14px', borderRadius: 999, border: 'none',
                             background: isOpened
                               ? 'linear-gradient(135deg, #4ADE80, #22C55E)'
-                              : 'linear-gradient(135deg, #C58BFF, #7B61FF)',
+                              : 'var(--grad-purple)',
                             color: '#fff',
                             fontSize: 12, fontWeight: 700,
                             cursor: openingLesson ? 'wait' : 'pointer',

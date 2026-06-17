@@ -109,7 +109,7 @@ function SettingsRow({ icon: Icon, label, onClick, active = false, danger = fals
         borderRadius: 10,
         border: 'none',
         cursor: 'pointer',
-        background: active ? 'rgba(123,63,204,0.1)' : 'transparent',
+        background: active ? 'rgba(99,84,207,0.1)' : 'transparent',
         color: danger ? '#C53030' : 'var(--color-text)',
         fontSize: 14,
         fontWeight: 550,
@@ -488,7 +488,7 @@ export default function Sidebar() {
                               color: '#fff',
                               border: 'none',
                               boxShadow: selected
-                                ? 'inset 0 0 0 1px rgba(255,255,255,0.4), 0 0 0 2px #fff, 0 0 0 4px #7B3FCC'
+                                ? 'inset 0 0 0 1px rgba(255,255,255,0.4), 0 0 0 2px #fff, 0 0 0 4px var(--color-accent)'
                                 : 'inset 0 0 0 1px rgba(255,255,255,0.4)',
                             }}
                           >

@@ -178,7 +178,7 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
               width: i === page ? 22 : 7,
               height: 7,
               borderRadius: 999,
-              background: i === page ? '#7B61FF' : 'var(--color-text-4)',
+              background: i === page ? 'var(--color-accent)' : 'var(--color-text-4)',
               transition: 'width 0.3s ease, background 0.3s ease',
             }}
           />

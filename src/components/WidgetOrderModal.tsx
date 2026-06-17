@@ -228,7 +228,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                 onClick={apply}
                 style={{
                   padding: '0 22px', height: 42, borderRadius: 12, border: 'none', cursor: 'pointer',
-                  background: 'linear-gradient(135deg, #C58BFF, #7B61FF)', color: '#fff', fontSize: 14, fontWeight: 650,
+                  background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 650,
                 }}
               >
                 Готово

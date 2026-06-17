@@ -130,10 +130,10 @@ function ScheduleRow({ item }: { item: ScheduleItem }) {
           <CheckCircle2 size={18} strokeWidth={2} style={{ color: '#6EE7A0' }} />
         ) : item.status === 'live' ? (
           <>
-            <Circle size={18} strokeWidth={2} style={{ color: '#C58BFF' }} />
+            <Circle size={18} strokeWidth={2} style={{ color: 'var(--color-purple)' }} />
             <span style={{
               position: 'absolute', inset: 0, borderRadius: '50%',
-              background: 'rgba(197,139,255,0.3)', animation: 'ping 1.4s infinite',
+              background: 'rgba(156,140,240,0.3)', animation: 'ping 1.4s infinite',
             }} />
           </>
         ) : (
@@ -369,7 +369,7 @@ function MyTasksBlock() {
           {pending.length > 0 && (
             <span style={{
               marginLeft: 'auto',
-              fontSize: 11, fontWeight: 700, color: '#7B3FCC',
+              fontSize: 11, fontWeight: 700, color: 'var(--color-accent)',
               background: 'var(--color-purple-soft)', borderRadius: 8, padding: '2px 8px',
             }}>
               {pending.length}
@@ -398,8 +398,8 @@ function MyTasksBlock() {
                 onClick={e => { e.stopPropagation(); toggleTask(task.id) }}
                 style={{
                   width: 20, height: 20, borderRadius: 6, flexShrink: 0,
-                  border: `2px solid ${task.done ? '#7B3FCC' : '#C4B0F0'}`,
-                  background: task.done ? '#7B3FCC' : 'transparent',
+                  border: `2px solid ${task.done ? 'var(--color-accent)' : '#C4B0F0'}`,
+                  background: task.done ? 'var(--color-accent)' : 'transparent',
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   transition: 'all 0.15s',
                 }}
@@ -486,7 +486,7 @@ export default function TeacherHome() {
           subject: s.subject ?? '',
           status: (s.status ?? 'upcoming') as ScheduleItem['status'],
           studentCount: s.groups?.students?.[0]?.count ?? 0,
-          color: s.groups?.color ?? '#9B6DFF',
+          color: s.groups?.color ?? 'var(--color-purple)',
           colorSoft: s.groups?.color_soft ?? 'var(--color-bg-3)',
         })))
       })

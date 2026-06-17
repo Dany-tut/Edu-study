@@ -55,8 +55,8 @@ const configs: Record<LessonStatus, CardConfig> = {
   },
   current: {
     bg: 'var(--color-purple-soft)',
-    badgeBg: 'rgba(197,139,255,0.25)',
-    badgeText: '#7B3FCC',
+    badgeBg: 'rgba(156,140,240,0.25)',
+    badgeText: 'var(--color-accent)',
     badgeLabel: 'Текущий урок',
     icon: Lock,
     textColor: '#4A1A8A',

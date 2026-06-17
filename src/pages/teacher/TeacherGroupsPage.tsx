@@ -23,7 +23,7 @@ import {
 
 // ─── Цвета для выбора группы ─────────────────────────────────────────────────
 const GROUP_COLORS = [
-  { color: '#B98FFF', soft: '#EFE0FF' },
+  { color: 'var(--color-purple)', soft: '#EFE0FF' },
   { color: '#6DBB9A', soft: '#DAF2E8' },
   { color: '#FF8F6D', soft: '#FFE8DF' },
   { color: '#6D9BFF', soft: '#DCE8FF' },
@@ -138,7 +138,7 @@ function AddGroupModal({ onClose, onSave }: {
           disabled={!name.trim() || saving}
           style={{
             marginTop: 22, width: '100%', padding: '12px 0',
-            background: name.trim() ? '#9B6DFF' : 'rgba(155,109,255,0.35)',
+            background: name.trim() ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)',
             color: '#fff', fontWeight: 700, fontSize: 15,
             border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
           }}
@@ -220,7 +220,7 @@ function AddStudentModal({ onClose, onSave }: {
               onClick={copyLink}
               style={{
                 width: '100%', padding: '12px 0',
-                background: copied ? '#3FCC8A' : '#9B6DFF',
+                background: copied ? '#3FCC8A' : 'var(--color-purple)',
                 color: '#fff', fontWeight: 700, fontSize: 15,
                 border: 'none', borderRadius: 14, cursor: 'pointer',
                 transition: 'background 0.2s',
@@ -280,7 +280,7 @@ function AddStudentModal({ onClose, onSave }: {
           disabled={!name.trim() || saving}
           style={{
             marginTop: 22, width: '100%', padding: '12px 0',
-            background: name.trim() ? '#9B6DFF' : 'rgba(155,109,255,0.35)',
+            background: name.trim() ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)',
             color: '#fff', fontWeight: 700, fontSize: 15,
             border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
           }}
@@ -310,7 +310,7 @@ const SUBJECT_ICONS: Record<string, string> = {
 }
 
 const INDIV_COLORS = [
-  { color: '#B98FFF', soft: '#EFE0FF' },
+  { color: 'var(--color-purple)', soft: '#EFE0FF' },
   { color: '#6DBB9A', soft: '#DAF2E8' },
   { color: '#FF8F6D', soft: '#FFE8DF' },
   { color: '#6D9BFF', soft: '#DCE8FF' },
@@ -393,7 +393,7 @@ function AddIndividualStudentModal({ onClose, onSave }: {
             </div>
             <button onClick={copyLink} style={{
               width: '100%', padding: '12px 0',
-              background: copied ? '#3FCC8A' : '#9B6DFF',
+              background: copied ? '#3FCC8A' : 'var(--color-purple)',
               color: '#fff', fontWeight: 700, fontSize: 15,
               border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.2s',
             }}>
@@ -463,7 +463,7 @@ function AddIndividualStudentModal({ onClose, onSave }: {
               disabled={!name.trim() || saving}
               style={{
                 marginTop: 22, width: '100%', padding: '12px 0',
-                background: name.trim() ? '#9B6DFF' : 'rgba(155,109,255,0.35)',
+                background: name.trim() ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)',
                 color: '#fff', fontWeight: 700, fontSize: 15,
                 border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
               }}
@@ -954,7 +954,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                     <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>Показатели</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                       <ScoreBar label="ДЗ" icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" bg="#D6F5E3" />
-                      <ScoreBar label="Тесты" icon={TrendingUp} value={student.testScore} color="#B98FFF" bg="#EFE0FF" />
+                      <ScoreBar label="Тесты" icon={TrendingUp} value={student.testScore} color="var(--color-purple)" bg="#EFE0FF" />
                       {student.trialScore !== null && <ScoreBar label="Пробник" icon={Award} value={student.trialScore} color="#F5A623" bg="#FFF3D6" />}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', background: 'var(--color-bg)', borderRadius: 10 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
@@ -981,7 +981,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                       { val: total, label: 'Всего задач', color: 'var(--color-text)', bg: 'var(--color-bg)' },
                       { val: correct, label: 'Верно', color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
                       { val: total - correct, label: 'Ошибок', color: 'var(--color-red-text)', bg: 'var(--color-red-soft)' },
-                      { val: sessionDays, label: 'Занятий', color: '#B98FFF', bg: '#EFE0FF' },
+                      { val: sessionDays, label: 'Занятий', color: 'var(--color-purple)', bg: '#EFE0FF' },
                     ]
                   })().map(({ val, label, color, bg }) => (
                     <div key={label} style={{ padding: '12px 14px', borderRadius: 14, background: bg, textAlign: 'center' }}>
@@ -1211,7 +1211,7 @@ function StudentPanel({
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <ScoreBar label="ДЗ" icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" bg="#D6F5E3" />
-            <ScoreBar label="Тесты" icon={TrendingUp} value={student.testScore} color="#B98FFF" bg="#EFE0FF" />
+            <ScoreBar label="Тесты" icon={TrendingUp} value={student.testScore} color="var(--color-purple)" bg="#EFE0FF" />
             {student.trialScore !== null && (
               <ScoreBar label="Пробник" icon={Award} value={student.trialScore} color="#F5A623" bg="#FFF3D6" />
             )}
@@ -1336,7 +1336,7 @@ function ContactRow({ icon: Icon, label, href }: { icon: React.ElementType; labe
       onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-purple-soft)')}
       onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-bg)')}
     >
-      <Icon size={13} strokeWidth={2} style={{ color: '#7B3FCC', flexShrink: 0 }} />
+      <Icon size={13} strokeWidth={2} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
       <span style={{ flex: 1 }}>{label}</span>
       <ExternalLink size={11} style={{ color: 'var(--color-text-3)' }} />
     </a>

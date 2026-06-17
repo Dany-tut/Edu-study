@@ -12,7 +12,7 @@ const PILL_WIDTH = 320
 
 
 const META: Record<number, { kicker: string; accent: string }> = {
-  0: { kicker: 'Сегодня',    accent: '#7B3FCC' },
+  0: { kicker: 'Сегодня',    accent: 'var(--color-accent)' },
   1: { kicker: 'Расписание', accent: '#2D6BE0' },
   2: { kicker: 'Журнал',     accent: '#C47800' },
   3: { kicker: 'Заработок',  accent: '#1E9E63' },
@@ -107,7 +107,7 @@ function PendingHwPreview({ expanded }: { expanded: boolean }) {
         <div style={{
           width: '100%', height: '100%',
           background: toCheck > 0
-            ? 'linear-gradient(135deg, #C79BFF, #7B3FCC)'
+            ? 'var(--grad-purple)'
             : 'linear-gradient(135deg, #A8ECC0, #2A7D4F)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           color: '#fff', fontSize: 18, fontWeight: 800,
@@ -124,7 +124,7 @@ function PendingHwPreview({ expanded }: { expanded: boolean }) {
           style={{
             padding: 6, borderRadius: '50%',
             border: 'none', cursor: 'pointer',
-            background: 'none', color: '#7B3FCC',
+            background: 'none', color: 'var(--color-accent)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
@@ -135,7 +135,7 @@ function PendingHwPreview({ expanded }: { expanded: boolean }) {
         toCheck > 0 ? (
           <div style={{ display: 'flex', gap: 8 }}>
             <StatBadge label="На проверке" value={`${onReview} ДЗ`} color="#8B4900" bg="var(--color-peach-soft)" />
-            <StatBadge label="Нужно проверить" value={`${toCheck}`} color="#7B3FCC" bg="#EDE0FF" />
+            <StatBadge label="Нужно проверить" value={`${toCheck}`} color="var(--color-accent)" bg="#EDE0FF" />
           </div>
         ) : (
           <span style={{ color: 'var(--color-text-2)', lineHeight: 1.4 }}>
@@ -477,7 +477,7 @@ export default function TeacherCompactPill() {
     setExpanded(e => { tactile(); return !e })
   }
 
-  const accent = META[widgetId]?.accent ?? '#7B3FCC'
+  const accent = META[widgetId]?.accent ?? 'var(--color-accent)'
 
   return (
     <motion.div

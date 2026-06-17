@@ -138,7 +138,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
   const compact = quizState !== 'preview'
 
   const dotColor = (i: number) => {
-    if (i === current && quizState === 'active') return '#7B61FF'
+    if (i === current && quizState === 'active') return 'var(--color-accent)'
     if (results[i] === 'correct') return '#3FCC8A'
     if (results[i] === 'wrong' || results[i] === 'timeout') return '#F48B91'
     return 'var(--color-border-medium)'
@@ -187,7 +187,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
           onClick={handleRestart}
           style={{
             height: 40, padding: '0 20px', borderRadius: 14, border: 'none', cursor: 'pointer',
-            background: 'linear-gradient(135deg, #C58BFF, #7B61FF)',
+            background: 'var(--grad-purple)',
             color: '#fff', fontSize: 13.5, fontWeight: 650, lineHeight: 1,
           }}
         >
@@ -270,7 +270,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
             onClick={handleStart}
             style={{
               height: 44 * scale, padding: `0 ${22 * scale}px`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              background: 'linear-gradient(135deg, #C58BFF, #7B61FF)',
+              background: 'var(--grad-purple)',
               borderRadius: 16, color: '#fff', fontSize: 14 * scale, fontWeight: 650, lineHeight: 1, cursor: 'pointer',
             }}
           >

@@ -14,7 +14,7 @@ import type {
 } from '../pages/teacher/TeacherConstructorPage'
 
 const EDITED = '14.06'
-const PURPLE = { color: '#B98FFF', bg: 'var(--color-purple-soft)' }
+const PURPLE = { color: 'var(--color-purple)', bg: 'var(--color-purple-soft)' }
 const GREEN = { color: '#1E9E63', bg: 'var(--color-green-soft)' }
 
 /** Merge seed entities into an existing array, skipping any whose id already
@@ -695,13 +695,13 @@ export const AP_CHEM_COURSES: Course[] = [
   {
     id: 'ap-c-ru', title: 'AP Chemistry — Полный курс', subject: 'Химия', level: 'AP',
     description: 'Полная подготовка к экзамену AP Chemistry (College Board) на русском: 9 юнитов, лаборатория и стратегия экзамена.',
-    color: '#B98FFF', bg: 'var(--color-purple-soft)', status: 'draft', lastEdited: EDITED,
+    color: 'var(--color-purple)', bg: 'var(--color-purple-soft)', status: 'draft', lastEdited: EDITED,
     lessons: RU_LESSONS, dbCourseId: 'apchem-ru',
   },
   {
     id: 'ap-c-en', title: 'AP Chemistry — Full Course', subject: 'Химия', level: 'AP',
     description: 'Complete AP Chemistry (College Board) prep in English: 9 units, lab skills, and exam strategy.',
-    color: '#9B6DFF', bg: 'var(--color-purple-soft)', status: 'draft', lastEdited: EDITED,
+    color: 'var(--color-purple)', bg: 'var(--color-purple-soft)', status: 'draft', lastEdited: EDITED,
     lessons: EN_LESSONS, dbCourseId: 'apchem-en',
   },
 ]

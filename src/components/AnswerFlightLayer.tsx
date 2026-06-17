@@ -48,8 +48,8 @@ function FlightChip({
   }, [])
 
   const bg = correct
-    ? 'linear-gradient(135deg, #3FCC8A, #2A7D4F)'
-    : 'linear-gradient(135deg, #F48B91, #A8282D)'
+    ? 'var(--grad-green)'
+    : 'var(--grad-red)'
   const label = correct ? '✓' : '✗'
   const to = toRef.current
 

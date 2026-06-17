@@ -578,7 +578,7 @@ export default function TeacherStudentDashboardPage() {
         }}>
           {[
             { icon: ClipboardCheck, label: 'ДЗ', value: `${Math.round(hwAvg)}%`, color: '#5FD68A', bg: 'var(--color-green-soft)' },
-            { icon: TrendingUp,     label: 'Тесты', value: `${student.testScore}%`, color: '#B98FFF', bg: 'rgba(185,143,255,0.14)' },
+            { icon: TrendingUp,     label: 'Тесты', value: `${student.testScore}%`, color: 'var(--color-purple)', bg: 'rgba(185,143,255,0.14)' },
             { icon: Award,          label: 'Пробник', value: student.trialScore != null ? `${student.trialScore}%` : '—', color: '#F5A623', bg: 'rgba(245,166,35,0.12)' },
             { icon: Clock,          label: 'Посещаемость', value: `${realAttendance}%`, color: realAttendance >= 90 ? '#34C877' : realAttendance >= 70 ? '#F5A623' : '#F48B91', bg: realAttendance >= 90 ? 'var(--color-green-soft)' : realAttendance >= 70 ? 'rgba(245,166,35,0.12)' : 'var(--color-red-soft)' },
             { icon: Target,         label: 'Тренажёр', value: `${correctTrainer}/${totalTrainer}`, color: '#6D9BFF', bg: 'rgba(109,155,255,0.14)' },
@@ -658,7 +658,7 @@ export default function TeacherStudentDashboardPage() {
               <SectionHeader icon={BarChart3} label="Показатели" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <ScoreBar label="Домашние задания" icon={ClipboardCheck} value={Math.round(hwAvg)} color="#5FD68A" bg="rgba(95,214,138,0.14)" />
-                <ScoreBar label="Тесты" icon={TrendingUp} value={student.testScore} color="#B98FFF" bg="rgba(185,143,255,0.14)" />
+                <ScoreBar label="Тесты" icon={TrendingUp} value={student.testScore} color="var(--color-purple)" bg="rgba(185,143,255,0.14)" />
                 {student.trialScore != null && <ScoreBar label="Пробный экзамен" icon={Award} value={student.trialScore} color="#F5A623" bg="rgba(245,166,35,0.12)" />}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'var(--color-bg)', borderRadius: 12 }}>
                   <div style={{ width: 28, height: 28, borderRadius: 8, background: realAttendance >= 90 ? 'rgba(95,214,138,0.14)' : realAttendance >= 70 ? 'rgba(245,166,35,0.12)' : 'rgba(244,139,145,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -841,7 +841,7 @@ export default function TeacherStudentDashboardPage() {
                   { val: totalTrainer, label: 'Задач', color: 'var(--color-text)', bg: 'var(--color-bg)' },
                   { val: correctTrainer, label: 'Верно', color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
                   { val: wrongTrainer, label: 'Ошибок', color: 'var(--color-red-text)', bg: 'var(--color-red-soft)' },
-                  { val: sessionDays, label: 'Занятий', color: '#B98FFF', bg: 'rgba(185,143,255,0.14)' },
+                  { val: sessionDays, label: 'Занятий', color: 'var(--color-purple)', bg: 'rgba(185,143,255,0.14)' },
                 ].map(({ val, label, color, bg }) => (
                   <div key={label} style={{ padding: '10px 12px', borderRadius: 14, background: bg, textAlign: 'center' }}>
                     <div style={{ fontSize: 22, fontWeight: 750, color, lineHeight: 1 }}>{val}</div>

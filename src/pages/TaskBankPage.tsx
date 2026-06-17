@@ -181,7 +181,7 @@ function NumberBadge({ id, onCopied }: { id: number; onCopied: () => void }) {
           >
             <span style={{
               width: 18, height: 18, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #34C877 0%, #2A7D4F 100%)',
+              background: 'var(--grad-green)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0,
               boxShadow: '0 2px 6px rgba(42,125,79,0.35)',

@@ -98,7 +98,7 @@ function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number)
         <div style={{
           position: 'absolute', left: 0, height: 6, borderRadius: 999,
           width: `${(value / (EMOJI_STEPS.length - 1)) * 100}%`,
-          background: 'linear-gradient(90deg, #7B3FCC, #C59BFF)',
+          background: 'var(--grad-purple-bar)',
           transition: 'width 0.16s ease',
         }} />
         {EMOJI_STEPS.map((_, i) => (
@@ -108,7 +108,7 @@ function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number)
             transform: 'translateX(-50%)',
             width: i === value ? 0 : 7, height: i === value ? 0 : 7,
             borderRadius: '50%',
-            background: i <= value ? '#C59BFF' : 'var(--color-text-4)',
+            background: i <= value ? 'var(--color-purple)' : 'var(--color-text-4)',
             transition: 'all 0.14s ease',
             pointerEvents: 'none',
           }} />
@@ -123,9 +123,9 @@ function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number)
           left: `${(value / (EMOJI_STEPS.length - 1)) * 100}%`,
           transform: 'translateX(-50%)',
           width: 26, height: 26, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #9B5FE8, #7B3FCC)',
+          background: 'var(--grad-purple)',
           border: '3px solid var(--color-bg)',
-          boxShadow: '0 2px 12px rgba(123,63,204,0.45)',
+          boxShadow: '0 2px 12px rgba(99,84,207,0.45)',
           transition: 'left 0.16s ease',
           pointerEvents: 'none',
         }} />
@@ -213,7 +213,7 @@ function ConfettiCanvas({ active, bannerRef }: { active: boolean; bannerRef: Rea
 
     playVictorySound()
 
-    const COLORS = ['#7B3FCC', '#B98BFF', '#3FCC8A', '#F8A000', '#F06070', '#5AD4C5', '#FFD700', '#FF6B9D']
+    const COLORS = ['var(--color-accent)', '#B98BFF', '#3FCC8A', '#F8A000', '#F06070', '#5AD4C5', '#FFD700', '#FF6B9D']
     type Piece = {
       x: number; y: number; vx: number; vy: number
       w: number; h: number; angle: number; spin: number
@@ -364,7 +364,7 @@ function ResultModal({
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{
               fontSize: 12, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase',
-              color: context === 'hard' ? '#2A7D4F' : passed ? '#7B3FCC' : '#9A6000',
+              color: context === 'hard' ? '#2A7D4F' : passed ? 'var(--color-accent)' : '#9A6000',
               marginBottom: 6,
             }}>
               {context === 'hard' ? 'Работа отправлена' : 'Тест сдан'}
@@ -390,7 +390,7 @@ function ResultModal({
             <div style={{ flexShrink: 0, textAlign: 'right' }}>
               <span style={{
                 fontSize: 42, fontWeight: 760, lineHeight: 1,
-                color: passed ? '#7B3FCC' : '#9A6000',
+                color: passed ? 'var(--color-accent)' : '#9A6000',
               }}>{score}</span>
               <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', marginTop: 2 }}>баллов</p>
             </div>
@@ -448,7 +448,7 @@ function ResultModal({
                   background: PURPLE.gradient,
                   color: '#fff', fontSize: 15, fontWeight: 750,
                   cursor: 'pointer',
-                  boxShadow: '0 12px 32px rgba(123,63,204,0.32)',
+                  boxShadow: '0 12px 32px rgba(99,84,207,0.32)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2,
                   overflow: 'visible',
                 }}
@@ -470,7 +470,7 @@ function ResultModal({
                 background: PURPLE.gradient,
                 color: '#fff', fontSize: 15, fontWeight: 750,
                 cursor: 'pointer',
-                boxShadow: '0 12px 32px rgba(123,63,204,0.32)',
+                boxShadow: '0 12px 32px rgba(99,84,207,0.32)',
               }}
             >
               Продолжить
@@ -917,13 +917,13 @@ export default function HomeworkFlow({
                 padding: 16,
                 borderRadius: 16,
                 background: 'var(--color-purple-soft)',
-                border: '1px solid rgba(123,63,204,0.14)',
+                border: '1px solid rgba(99,84,207,0.14)',
                 gap: 10,
                 display: 'flex',
                 flexDirection: 'column',
               }}
             >
-              <p style={{ fontSize: 13, fontWeight: 700, color: '#7B3FCC' }}>Что можно приложить</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-accent)' }}>Что можно приложить</p>
               <div className="flex flex-wrap" style={{ gap: 8 }}>
                 {hardLevel.teacherTask.acceptedFormats.map(item => (
                   <span
@@ -962,7 +962,7 @@ export default function HomeworkFlow({
                       ? (basicScore >= homework.recommendationScore ? 'var(--color-purple-soft)' : 'var(--color-yellow-soft)')
                       : 'var(--color-bg-input)',
                     border: state.basicSubmitted
-                      ? `1px solid ${basicScore >= homework.recommendationScore ? 'rgba(123,63,204,0.18)' : 'rgba(248,201,145,0.42)'}`
+                      ? `1px solid ${basicScore >= homework.recommendationScore ? 'rgba(99,84,207,0.18)' : 'rgba(248,201,145,0.42)'}`
                       : '1px solid var(--color-border-medium)',
                     boxShadow: state.basicSubmitted ? 'none' : '0 8px 24px rgba(0,0,0,0.05)',
                   }}
@@ -972,10 +972,10 @@ export default function HomeworkFlow({
                       width: 44, height: 44, borderRadius: 14,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       background: state.basicSubmitted
-                        ? (basicScore >= homework.recommendationScore ? 'rgba(123,63,204,0.12)' : 'rgba(248,201,145,0.26)')
+                        ? (basicScore >= homework.recommendationScore ? 'rgba(99,84,207,0.12)' : 'rgba(248,201,145,0.26)')
                         : 'rgba(0,0,0,0.05)',
                       color: state.basicSubmitted
-                        ? (basicScore >= homework.recommendationScore ? '#7B3FCC' : 'var(--color-yellow-text)')
+                        ? (basicScore >= homework.recommendationScore ? 'var(--color-accent)' : 'var(--color-yellow-text)')
                         : 'var(--color-muted)',
                     }}>
                       {state.basicSubmitted
@@ -1018,7 +1018,7 @@ export default function HomeworkFlow({
                         style={{
                           padding: '12px 18px', borderRadius: 16, border: 'none',
                           background: PURPLE.gradient, color: '#fff', fontSize: 14, fontWeight: 700,
-                          boxShadow: '0 12px 28px rgba(123,63,204,0.2)',
+                          boxShadow: '0 12px 28px rgba(99,84,207,0.2)',
                         }}
                       >
                         Открыть хард
@@ -1032,7 +1032,7 @@ export default function HomeworkFlow({
                         style={{
                           padding: '13px 22px', borderRadius: 16, border: 'none',
                           background: PURPLE.gradient, color: '#fff', fontSize: 14, fontWeight: 750,
-                          boxShadow: '0 12px 28px rgba(123,63,204,0.28)',
+                          boxShadow: '0 12px 28px rgba(99,84,207,0.28)',
                           display: 'flex', alignItems: 'center', gap: 8,
                         }}
                       >
@@ -1118,7 +1118,7 @@ export default function HomeworkFlow({
                               border: `1px solid ${
                                 correctSelected ? '#6EE7A0'
                                   : wrongSelected ? '#F48B91'
-                                  : active ? 'rgba(123,63,204,0.38)'
+                                  : active ? 'rgba(99,84,207,0.38)'
                                   : 'var(--color-border)'
                               }`,
                               background: correctSelected ? 'var(--color-green-soft)'
@@ -1205,7 +1205,7 @@ export default function HomeworkFlow({
                       alignItems: 'center',
                       justifyContent: 'center',
                       background: 'var(--color-purple-soft)',
-                      color: '#7B3FCC',
+                      color: 'var(--color-accent)',
                       marginBottom: 18,
                     }}
                   >
@@ -1432,7 +1432,7 @@ function MetricPill({ label, value, accent = false }: { label: string; value: st
         padding: '10px 12px',
         borderRadius: 16,
         background: accent ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
-        border: accent ? '1px solid rgba(123,63,204,0.18)' : '1px solid var(--color-border-soft)',
+        border: accent ? '1px solid rgba(99,84,207,0.18)' : '1px solid var(--color-border-soft)',
         minWidth: 92,
       }}
     >
@@ -1478,7 +1478,7 @@ function ProgressStrip({
       <div className="flex items-center justify-between">
         <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Прогресс</p>
         {answeredCount > 0 && (
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#7B3FCC' }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-accent)' }}>
             {answeredCount}/{total}
           </span>
         )}
@@ -1508,7 +1508,7 @@ function ProgressStrip({
                     ? '0 4px 12px rgba(110,231,160,0.4)'
                     : isWrong
                       ? '0 4px 12px rgba(244,139,145,0.4)'
-                      : '0 4px 14px rgba(123,63,204,0.35)',
+                      : '0 4px 14px rgba(99,84,207,0.35)',
                 }}
               >
                 {index + 1}
@@ -1622,7 +1622,7 @@ function BottomProgressBar({
                     ? '0 2px 8px rgba(110,231,160,0.4)'
                     : isWrong
                       ? '0 2px 8px rgba(244,139,145,0.4)'
-                      : '0 2px 10px rgba(123,63,204,0.35)',
+                      : '0 2px 10px rgba(99,84,207,0.35)',
                 }}>
                   {index + 1}
                 </div>
@@ -1661,7 +1661,7 @@ function BottomProgressBar({
         {basicCompleted && submitted ? (
           <span style={{
             fontSize: 12, fontWeight: 800,
-            color: score >= recommendationScore ? '#7B3FCC' : '#9A6000',
+            color: score >= recommendationScore ? 'var(--color-accent)' : '#9A6000',
           }}>
             {score >= recommendationScore ? 'Сдано ✓' : `${score} / 100`}
           </span>
@@ -1675,7 +1675,7 @@ function BottomProgressBar({
               gap: 7, padding: '0', borderRadius: 0,
               background: 'transparent',
               border: 'none',
-              color: '#7B3FCC', fontSize: 13, fontWeight: 750,
+              color: 'var(--color-accent)', fontSize: 13, fontWeight: 750,
             }}
           >
             <Send size={13} />

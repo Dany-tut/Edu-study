@@ -38,7 +38,7 @@ function getShapeClass(_shape: LessonShape, _isSquare: boolean): string {
 type HardStatus = 'submitted' | 'returned' | 'completed'
 
 export const HARD_STYLE: Record<HardStatus | 'available', { bg: string; border: string; iconColor: string; label: string }> = {
-  available:  { bg: 'var(--color-purple-soft)', border: '#C58BFF', iconColor: '#C58BFF', label: 'Доступен хард' },
+  available:  { bg: 'var(--color-purple-soft)', border: 'var(--color-purple)', iconColor: 'var(--color-purple)', label: 'Доступен хард' },
   submitted:  { bg: 'var(--color-peach-soft)',  border: '#F8A84B', iconColor: '#F8A84B', label: 'На проверке' },
   returned:   { bg: 'var(--color-yellow-soft)', border: '#F0D060', iconColor: '#F0D060', label: 'Возвращён' },
   completed:  { bg: 'var(--color-yellow-soft)', border: '#F5C842', iconColor: '#F5C842', label: 'Сдан' },
@@ -108,7 +108,7 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
           boxShadow: isSelected
             ? `0 0 0 6px rgba(255,255,255,0.7), 0 0 0 10px ${style.border}26, 0 10px 28px ${style.border}4d`
             : displayStatus === 'current'
-              ? `0 0 0 4px rgba(197,139,255,0.18), 0 4px 20px rgba(197,139,255,0.22)`
+              ? `0 0 0 4px rgba(156,140,240,0.18), 0 4px 20px rgba(156,140,240,0.22)`
               : '0 2px 8px rgba(0,0,0,0.06)',
         }}
         transition={{

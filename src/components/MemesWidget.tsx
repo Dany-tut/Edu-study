@@ -137,7 +137,7 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
                 width: i === index ? 28 : 10,
                 height: 10,
                 borderRadius: 999,
-                background: i === index ? '#7B61FF' : 'var(--color-border-medium)',
+                background: i === index ? 'var(--color-accent)' : 'var(--color-border-medium)',
                 transition: 'width 0.3s ease, background 0.3s ease',
               }}
             />

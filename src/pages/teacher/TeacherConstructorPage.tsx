@@ -176,7 +176,7 @@ const COURSES_INIT: Course[] = [
   {
     id: 'c1', title: 'ЕГЭ по Химии — Полный курс', subject: 'Химия', level: 'ЕГЭ',
     description: 'Подготовка к ЕГЭ по химии с нуля до 90+ баллов',
-    color: '#B98FFF', bg: 'var(--color-purple-soft)', status: 'published', lastEdited: '09.06',
+    color: 'var(--color-purple)', bg: 'var(--color-purple-soft)', status: 'published', lastEdited: '09.06',
     lessons: [
       { id: 'l1', title: 'Периодический закон', trainerId: 't3', widgetId: 'w2' },
       { id: 'l2', title: 'Гидролиз солей',      trainerId: 't1', widgetId: null  },
@@ -186,7 +186,7 @@ const COURSES_INIT: Course[] = [
   {
     id: 'c2', title: 'ОГЭ по Химии — Базовый', subject: 'Химия', level: 'ОГЭ',
     description: 'Базовая подготовка к ОГЭ',
-    color: '#9B6DFF', bg: 'var(--color-purple-soft)', status: 'published', lastEdited: '07.06',
+    color: 'var(--color-purple)', bg: 'var(--color-purple-soft)', status: 'published', lastEdited: '07.06',
     lessons: [
       { id: 'l4', title: 'Кислоты и основания', trainerId: 't5', widgetId: 'w2' },
       { id: 'l5', title: 'Соли и реакции',      trainerId: null, widgetId: null  },
@@ -213,7 +213,7 @@ const TRAINERS_INIT: Trainer[] = []
 const WIDGETS_INIT: Widget[] = [
   {
     id: 'w1', title: 'Викторина: ЕГЭ Химия', type: 'quiz',
-    linkedTrainerId: 't1', color: '#7B3FCC', bg: 'var(--color-purple-soft)', lastEdited: '10.06',
+    linkedTrainerId: 't1', color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', lastEdited: '10.06',
     items: [
       { id: 'i1', question: 'Что происходит при гидролизе соли слабой кислоты?', options: ['pH > 7', 'pH < 7', 'pH = 7', 'Реакция не идёт'], correct: 0 },
       { id: 'i2', question: 'Сильный электролит — это?', options: ['Уксусная кислота', 'HCl', 'NH₃', 'Вода'], correct: 1 },
@@ -248,7 +248,7 @@ const WIDGETS_INIT: Widget[] = [
 // ─── Constants ────────────────────────────────────────────────────────────────
 const WTYPE_LABEL: Record<WidgetType, string> = { quiz: 'Викторина', facts: 'Научные факты', reactions: 'Реакции', pomodoro: 'Фокус', memes: 'Мемы', qod: 'Вопрос дня' }
 const WTYPE_ICON:  Record<WidgetType, React.ElementType> = { quiz: CircleHelp, facts: FlaskConical, reactions: Atom, pomodoro: Timer, memes: Laugh, qod: Sparkles }
-const WTYPE_COLOR: Record<WidgetType, string> = { quiz: 'var(--color-purple-text,#7B3FCC)', facts: 'var(--color-green-text)', reactions: 'var(--color-blue-pill-text)', pomodoro: 'var(--color-peach-text)', memes: 'var(--color-purple-text,#C58BFF)', qod: 'var(--color-teal-pill-text)' }
+const WTYPE_COLOR: Record<WidgetType, string> = { quiz: 'var(--color-purple-text,var(--color-accent))', facts: 'var(--color-green-text)', reactions: 'var(--color-blue-pill-text)', pomodoro: 'var(--color-peach-text)', memes: 'var(--color-purple-text,var(--color-purple))', qod: 'var(--color-teal-pill-text)' }
 const WTYPE_BG:    Record<WidgetType, string> = { quiz: 'var(--color-purple-soft)', facts: 'var(--color-green-soft)', reactions: 'var(--color-blue-pill-bg)', pomodoro: 'var(--color-peach-soft)', memes: 'var(--color-purple-soft)', qod: 'var(--color-teal-pill-bg)' }
 const STATUS_LABEL: Record<CourseStatus, string> = { published: 'Опубликован', draft: 'Черновик' }
 const STATUS_COLOR: Record<CourseStatus, string> = { published: 'var(--color-green-text)', draft: 'var(--color-peach-text)' }
@@ -271,7 +271,7 @@ function dbCourseToLocal(c: any): Course {
     .map((l: any) => ({ id: l.short_id ?? l.id, title: l.title, trainerId: l.trainer_id ?? null, widgetId: l.widget_id ?? null }))
   return {
     id: c.short_id, title: c.title, subject: c.subject ?? 'Химия', level: c.level ?? 'ЕГЭ',
-    description: c.description ?? '', color: c.color ?? '#B98FFF', bg: c.bg ?? 'var(--color-purple-soft)',
+    description: c.description ?? '', color: c.color ?? 'var(--color-purple)', bg: c.bg ?? 'var(--color-purple-soft)',
     status: (c.status as CourseStatus) ?? 'draft', lastEdited: fmtDate(c.updated_at ?? c.created_at),
     dbCourseId: c.short_id, lessons,
   }
@@ -280,7 +280,7 @@ function dbTrainerToLocal(t: any): Trainer {
   return {
     id: t.id, title: t.title, topic: t.topic ?? '', difficulty: (t.difficulty as Difficulty) ?? 'medium',
     timePerQuestion: t.time_per_question ?? 30, questions: t.questions ?? [],
-    subject: t.subject, color: t.color ?? '#B98FFF', bg: t.bg ?? 'var(--color-purple-soft)',
+    subject: t.subject, color: t.color ?? 'var(--color-purple)', bg: t.bg ?? 'var(--color-purple-soft)',
     lastEdited: fmtDate(t.updated_at ?? t.created_at),
   }
 }
@@ -288,7 +288,7 @@ function dbWidgetToLocal(w: any): Widget {
   return {
     id: w.id, title: w.title, type: w.type as WidgetType,
     linkedTrainerId: w.linked_trainer_id ?? null, items: w.items ?? [],
-    color: w.color ?? '#B98FFF', bg: w.bg ?? 'var(--color-purple-soft)',
+    color: w.color ?? 'var(--color-purple)', bg: w.bg ?? 'var(--color-purple-soft)',
     lastEdited: fmtDate(w.updated_at ?? w.created_at),
   }
 }
@@ -559,7 +559,7 @@ function CourseEditor({
           )}
         </AnimatePresence>
 
-        <SaveBtn accent="#7B3FCC" accentBg="#EEDBFF" onClick={handleSave} />
+        <SaveBtn accent="var(--color-accent)" accentBg="var(--color-purple-soft)" onClick={handleSave} />
       </div>
     </motion.div>
   )
@@ -1045,9 +1045,9 @@ function ContentCard({ accentColor, accentBg, isSelected, onClick, icon, iconBg,
   )
 }
 
-const COURSE_COLOR    = '#9B6DFF'            // hex — for border/shadow concatenation
+const COURSE_COLOR    = 'var(--color-purple)'            // hex — for border/shadow concatenation
 const COURSE_BG       = 'var(--color-purple-soft)'
-const TRAINER_COLOR   = '#9B6DFF'
+const TRAINER_COLOR   = 'var(--color-purple)'
 const TRAINER_BG      = 'var(--color-purple-soft)'
 
 function CourseCard({ course, isSelected, onClick, actions }: { course: Course; isSelected: boolean; onClick: () => void; actions?: CardActions }) {
@@ -2128,7 +2128,7 @@ function CreatorView({
 
       // Create a trainer card so the task appears in the Тренажёр list.
       const isBio = tkSubject === 'Биология'
-      const trainerColor = isBio ? '#5FD68A' : '#B98FFF'
+      const trainerColor = isBio ? '#5FD68A' : 'var(--color-purple)'
       const trainerBg    = isBio ? '#D6F5E3' : '#EFE0FF'
       const trainerTitle = (tkTopic || tkSection || stripHtml(tkQuestion).slice(0, 40)).trim() || 'Новое задание'
       const newTrainer: Trainer = {
@@ -2157,7 +2157,7 @@ function CreatorView({
       const c: Course = {
         id: editCourse?.id ?? uid(), title: cTitle, subject: cSubject, level: cLevel,
         description: cDesc, lessons: cLessons, status: cStatus,
-        color: editCourse?.color ?? '#B98FFF', bg: editCourse?.bg ?? '#EFE0FF', lastEdited: dateStr,
+        color: editCourse?.color ?? 'var(--color-purple)', bg: editCourse?.bg ?? '#EFE0FF', lastEdited: dateStr,
         dbCourseId: editCourse?.dbCourseId,
       }
       onSaveCourse(c)
@@ -3769,7 +3769,7 @@ function DiagnosticManagement({ onBack }: { onBack: () => void }) {
         <div style={{
           padding: '14px 18px', borderRadius: 14,
           background: 'var(--color-purple-soft)',
-          border: '1px solid rgba(123,63,204,0.2)',
+          border: '1px solid rgba(99,84,207,0.2)',
           display: 'flex', gap: 14, alignItems: 'flex-start',
         }}>
           <ClipboardCopy size={18} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: 2 }} />
@@ -5546,7 +5546,7 @@ function DiagnosticCard({ subject, isSelected, onClick }: { subject: DiagSubject
       accentColor={accent} accentBg={accent + '14'}
       isSelected={isSelected} onClick={onClick}
       icon={<Icon size={17} strokeWidth={2} style={{ color: accent }} />}
-      badge={<span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-purple-text,#7B3FCC)', background: 'var(--color-purple-soft)', borderRadius: 7, padding: '2px 8px' }}>Диагностика</span>}
+      badge={<span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-purple-text,var(--color-accent))', background: 'var(--color-purple-soft)', borderRadius: 7, padding: '2px 8px' }}>Диагностика</span>}
       title={label}
       subtitle={subject === 'logic' ? `${loadScreeningConfig().order.length} доменов` : `${questions.length} вопросов`}
       footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount > 0 ? `${anonCount} прошли тест` : 'Нет сдач'}</span></>}
@@ -5999,7 +5999,7 @@ export default function TeacherConstructorPage() {
     const id = uid()
     const edData = {
       id, title: '', subject: 'Химия', level: 'ЕГЭ', status: 'draft',
-      color: '#B98FFF', bg: 'var(--color-purple-soft)',
+      color: 'var(--color-purple)', bg: 'var(--color-purple-soft)',
       description: '', groupIds: [], studentIds: [],
       modules: [{ id: uid(), label: 'Модуль 1', expanded: true, lessonIds: [] }],
       lessons: [],

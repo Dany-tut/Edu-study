@@ -62,8 +62,8 @@ function renderHighlightedParagraph(text: string, reactionId?: string, activeRea
             inset: 0,
             transformOrigin: 'left center',
             borderRadius: 12,
-            background: 'rgba(197,139,255,0.42)',
-            boxShadow: 'inset 0 0 0 1px rgba(123,63,204,0.18)',
+            background: 'rgba(156,140,240,0.42)',
+            boxShadow: 'inset 0 0 0 1px rgba(99,84,207,0.18)',
             zIndex: 0,
           }}
         />
@@ -129,7 +129,7 @@ function DownloadTile({ icon: Icon, label }: { icon: typeof NotebookPen; label: 
           padding: 16,
           borderRadius: 18,
           background: 'rgba(var(--glass-rgb), 0.96)',
-          border: open ? '1px solid rgba(123,63,204,0.4)' : '1px solid var(--color-border-soft)',
+          border: open ? '1px solid rgba(99,84,207,0.4)' : '1px solid var(--color-border-soft)',
           boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
           minHeight: 92,
         }}
@@ -138,7 +138,7 @@ function DownloadTile({ icon: Icon, label }: { icon: typeof NotebookPen; label: 
           style={{
             width: 40, height: 40, borderRadius: 12, flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'var(--color-purple-soft)', color: '#7B3FCC',
+            background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
           }}
         >
           <Icon size={20} strokeWidth={1.9} />
@@ -221,7 +221,7 @@ function MaterialsTile({ materials }: { materials: LessonMaterial[] }) {
           padding: 16,
           borderRadius: 18,
           background: 'rgba(var(--glass-rgb), 0.96)',
-          border: open ? '1px solid rgba(123,63,204,0.4)' : '1px solid var(--color-border-soft)',
+          border: open ? '1px solid rgba(99,84,207,0.4)' : '1px solid var(--color-border-soft)',
           boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
           minHeight: 92,
         }}
@@ -230,7 +230,7 @@ function MaterialsTile({ materials }: { materials: LessonMaterial[] }) {
           style={{
             width: 40, height: 40, borderRadius: 12, flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'var(--color-purple-soft)', color: '#7B3FCC',
+            background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
           }}
         >
           <FolderOpen size={20} strokeWidth={1.9} />
@@ -370,7 +370,7 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
         padding: 8,
         gap: 6,
         borderRadius: 20,
-        background: 'linear-gradient(135deg, #C58BFF 0%, #7B61FF 100%)',
+        background: 'var(--grad-purple)',
         boxShadow: '0 12px 28px rgba(123,97,255,0.28)',
       }}
     >
@@ -415,8 +415,8 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
                   flexShrink: 0,
                   fontSize: 12,
                   fontWeight: 700,
-                  color: solidWhite ? '#7B3FCC' : 'rgba(255,255,255,0.92)',
-                  background: solidWhite ? 'rgba(123,63,204,0.10)' : 'rgba(255,255,255,0.18)',
+                  color: solidWhite ? 'var(--color-accent)' : 'rgba(255,255,255,0.92)',
+                  background: solidWhite ? 'rgba(99,84,207,0.10)' : 'rgba(255,255,255,0.18)',
                   borderRadius: 8,
                   padding: '2px 7px',
                 }}
@@ -427,7 +427,7 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
             {id === 'base' && !basicSubmitted && basicEstimatedTime != null && solidWhite && (
               <span
                 className="inline-flex items-center"
-                style={{ gap: 4, flexShrink: 0, fontSize: 12, fontWeight: 700, color: '#7B3FCC' }}
+                style={{ gap: 4, flexShrink: 0, fontSize: 12, fontWeight: 700, color: 'var(--color-accent)' }}
               >
                 <Clock size={13} />
                 ~{basicEstimatedTime} мин
@@ -851,7 +851,7 @@ export default function LessonPage() {
             }}
           >
             <div className="flex items-center" style={{ gap: 8, marginBottom: 6 }}>
-              <ListVideo size={17} style={{ color: '#7B3FCC' }} />
+              <ListVideo size={17} style={{ color: 'var(--color-accent)' }} />
               <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Таймкоды</span>
             </div>
             <div className="flex flex-col flex-1" style={{ gap: 2, overflowY: 'auto' }}>
@@ -919,7 +919,7 @@ export default function LessonPage() {
           }}
         >
           <div className="flex items-center" style={{ gap: 8 }}>
-            <FileText size={17} style={{ color: '#7B3FCC' }} />
+            <FileText size={17} style={{ color: 'var(--color-accent)' }} />
             <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Описание</span>
           </div>
           {detail.paragraphs.map(p => (

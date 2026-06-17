@@ -30,10 +30,10 @@ const PILL_WIDTH = 320
 
 // One-line "kicker" tags + accent colours per widget id.
 const META: Record<number, { kicker: string; accent: string }> = {
-  0: { kicker: 'Сегодня', accent: '#7B3FCC' },
+  0: { kicker: 'Сегодня', accent: 'var(--color-accent)' },
   1: { kicker: 'Научный факт', accent: '#2D6BE0' },
   2: { kicker: 'Реакция курса', accent: '#1E9E63' },
-  3: { kicker: 'Фокус', accent: '#7B61FF' },
+  3: { kicker: 'Фокус', accent: 'var(--color-accent)' },
   4: { kicker: 'Мем', accent: '#E0852D' },
   5: { kicker: 'Вопрос дня', accent: '#0E7A6F' },
 }
@@ -85,8 +85,8 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
           style={{
             width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
             background: lastCorrect
-              ? 'linear-gradient(135deg, #6EE7A0, #2A7D4F)'
-              : 'linear-gradient(135deg, #F48B91, #A8282D)',
+              ? 'var(--grad-green)'
+              : 'var(--grad-red)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: '#fff', fontSize: 15, fontWeight: 800,
             boxShadow: lastCorrect
@@ -166,8 +166,8 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
                 style={{
                   height: '100%', borderRadius: 999,
                   background: lastCorrect
-                    ? 'linear-gradient(90deg, #6EE7A0, #3FCC8A)'
-                    : 'linear-gradient(90deg, #F48B91, #F06070)',
+                    ? 'var(--grad-green-bar)'
+                    : 'var(--grad-red-bar)',
                 }}
               />
             </motion.div>
@@ -193,7 +193,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
   return (
     <PillContent
       avatar={
-        <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #B98BFF, #6B3FD6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20 }}>
+        <div style={{ width: '100%', height: '100%', background: 'var(--grad-purple)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20 }}>
           📊
         </div>
       }
@@ -283,7 +283,7 @@ function ReactionPreview({ expanded, paused }: { expanded: boolean; paused: bool
   )
 }
 
-const POMO_ACCENT = '#7B61FF'
+const POMO_ACCENT = 'var(--color-accent)'
 const POMO_PRESETS = [5, 10, 15, 20, 25]
 
 function fmtClock(total: number) {
@@ -411,7 +411,7 @@ function PomoPreview({ expanded }: { expanded: boolean }) {
             width: '100%', height: '100%',
             background: pomoRunning
               ? `linear-gradient(135deg, #B98BFF, ${POMO_ACCENT})`
-              : 'linear-gradient(135deg, #CDB8FF, #9A7BFF)',
+              : 'var(--grad-purple)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
           }}
         >
@@ -432,7 +432,7 @@ function MemePreview({ expanded, paused }: { expanded: boolean; paused: boolean 
   const m = scienceMemes[i]
   if (!m) return (
     <PillContent
-      avatar={<div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #F0A83F, #C58BFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20 }}>😄</div>}
+      avatar={<div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #F0A83F, var(--color-purple))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20 }}>😄</div>}
       kicker="Мем"
       title="—"
       expanded={expanded}
@@ -587,7 +587,7 @@ function QuestionOfDayPreview({ expanded }: { expanded: boolean }) {
           style={{
             width: '100%',
             height: '100%',
-            background: 'linear-gradient(135deg, #5AD4C5, #14A695)',
+            background: 'var(--grad-teal)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -864,7 +864,7 @@ function PreviewById({ widgetId, expanded }: { widgetId: number; expanded: boole
     case 6: return (
       <PillContent
         avatar={
-          <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #C79BFF, #7B3FCC)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20 }}>
+          <div style={{ width: '100%', height: '100%', background: 'var(--grad-purple)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20 }}>
             🧠
           </div>
         }
@@ -993,7 +993,7 @@ export default function CompactWidgetPill() {
 
   const total = widgetOrder.length
   const widgetId = widgetOrder[idx] ?? 0
-  const accent = META[widgetId]?.accent ?? '#7B61FF'
+  const accent = META[widgetId]?.accent ?? 'var(--color-accent)'
   // The Pomodoro widget gets a bare play/pause glyph on the right of the mini
   // capsule so the timer can be started without expanding the pill first.
   const showMiniPlay = !expanded && widgetId === 3

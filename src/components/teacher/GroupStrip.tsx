@@ -49,13 +49,13 @@ function TabPanel({ config }: { config: TabConfig }) {
               width: '100%', height: BTN_H, boxSizing: 'border-box',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: isActive
-                ? 'linear-gradient(135deg, #9B6DFF 0%, #7B3FCC 100%)'
+                ? 'var(--grad-purple)'
                 : 'rgba(var(--glass-rgb), 0.96)',
               border: isActive ? 'none' : '1px solid var(--color-border-glass)',
               borderRadius: 16, cursor: 'pointer',
               color: isActive ? '#fff' : 'var(--color-muted)',
               fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
-              boxShadow: isActive ? '0 3px 10px rgba(123,63,204,0.28)' : '0 1px 4px rgba(0,0,0,0.06)',
+              boxShadow: isActive ? '0 3px 10px rgba(99,84,207,0.28)' : '0 1px 4px rgba(0,0,0,0.06)',
               backdropFilter: isActive ? 'none' : 'blur(14px)',
               transition: 'background 0.18s, color 0.18s, box-shadow 0.18s',
             }}
@@ -107,10 +107,10 @@ function ActionPanel({
         style={{
           width: '100%', height: BTN_H, boxSizing: 'border-box',
           display: 'flex', alignItems: 'center', gap: 10,
-          background: 'linear-gradient(135deg, #9B6DFF 0%, #7B3FCC 100%)',
+          background: 'var(--grad-purple)',
           border: 'none', borderRadius: 16, cursor: 'pointer',
           padding: '0 16px', color: '#fff', fontFamily: 'inherit',
-          boxShadow: '0 3px 10px rgba(123,63,204,0.28)',
+          boxShadow: '0 3px 10px rgba(99,84,207,0.28)',
         }}
       >
         <div style={{ width: 26, height: 26, borderRadius: 8, background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -130,7 +130,7 @@ function ActionPanel({
           background: 'rgba(var(--glass-rgb), 0.96)',
           border: '1px solid rgba(155,109,255,0.35)',
           borderRadius: 16, cursor: 'pointer',
-          padding: '0 16px', color: '#9B6DFF', fontFamily: 'inherit',
+          padding: '0 16px', color: 'var(--color-purple)', fontFamily: 'inherit',
           backdropFilter: 'blur(14px)',
           boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
         }}
@@ -386,10 +386,10 @@ function LegacySingleAction({ label, icon: Icon, onClick }: { label: string; ico
         width: CARD_W, height: CARD_H, boxSizing: 'border-box',
         display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
         alignItems: 'flex-start', textAlign: 'left',
-        background: 'linear-gradient(135deg, #9B6DFF 0%, #7B3FCC 100%)',
+        background: 'var(--grad-purple)',
         border: 'none', borderRadius: 22, cursor: 'pointer',
         padding: '18px 20px', color: '#fff', fontFamily: 'inherit',
-        boxShadow: '0 4px 14px rgba(123,63,204,0.26), 7px 0 18px -8px rgba(30,20,60,0.18)',
+        boxShadow: '0 4px 14px rgba(99,84,207,0.26), 7px 0 18px -8px rgba(30,20,60,0.18)',
       }}
     >
       <div style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

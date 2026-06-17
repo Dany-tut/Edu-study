@@ -47,7 +47,7 @@ function CopyableIdBadge({ id }: { id: number }) {
             }}>
             <span style={{
               width: 18, height: 18, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #34C877 0%, #2A7D4F 100%)',
+              background: 'var(--grad-green)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               boxShadow: '0 2px 6px rgba(42,125,79,0.35)',
             }}>
@@ -98,7 +98,7 @@ function CopyableLineBadge({ line, accent, accentBg }: { line: number; accent: s
             }}>
             <span style={{
               width: 18, height: 18, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #34C877 0%, #2A7D4F 100%)',
+              background: 'var(--grad-green)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               boxShadow: '0 2px 6px rgba(42,125,79,0.35)',
             }}>
@@ -258,7 +258,7 @@ export function BankQuestionCard({
         display: 'flex', flexDirection: 'column', gap: compact ? 0 : 12,
         padding: compact ? '10px 14px' : 18, borderRadius: compact ? 16 : 22,
         background: 'rgba(var(--glass-rgb), 0.97)',
-        border: selected ? `1.5px solid ${accent}` : dirty ? '1.5px solid rgba(123,63,204,0.3)' : '1px solid var(--color-border-glass)',
+        border: selected ? `1.5px solid ${accent}` : dirty ? '1.5px solid rgba(99,84,207,0.3)' : '1px solid var(--color-border-glass)',
         boxShadow: compact ? '0 1px 6px rgba(0,0,0,0.05)' : '0 6px 20px rgba(0,0,0,0.04)', transition: 'border-color 0.2s',
       }}>
       {compact ? (
@@ -307,9 +307,9 @@ export function BankQuestionCard({
             <button onClick={onToggleSelected} title={selected ? 'Убрать из тренажёра' : 'Добавить в тренажёр'}
               style={{
                 flexShrink: 0, padding: '8px 14px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                background: selected ? accentBg : 'linear-gradient(135deg, #9B6DFF 0%, #7B3FCC 100%)',
+                background: selected ? accentBg : 'var(--grad-purple)',
                 color: selected ? accent : '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5,
-                boxShadow: selected ? 'none' : '0 3px 12px rgba(123,63,204,0.3)', whiteSpace: 'nowrap',
+                boxShadow: selected ? 'none' : '0 3px 12px rgba(99,84,207,0.3)', whiteSpace: 'nowrap',
               }}>
               {selected ? <><Check size={12} /> В тренажёре</> : <><Plus size={12} /> В тренажёр</>}
             </button>
@@ -457,8 +457,8 @@ function BankGridCard({
       whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}
       onClick={() => editMode ? onToggleSelected() : openEdit(task.id)}
       animate={isNew ? {
-        boxShadow: ['0 0 0 0px rgba(123,63,204,0)', '0 0 0 3px rgba(123,63,204,0.35)', '0 0 0 0px rgba(123,63,204,0)'],
-        borderColor: [undefined, '#9B6DFF', undefined],
+        boxShadow: ['0 0 0 0px rgba(99,84,207,0)', '0 0 0 3px rgba(99,84,207,0.35)', '0 0 0 0px rgba(99,84,207,0)'],
+        borderColor: [undefined, 'var(--color-purple)', undefined],
       } : {}}
       transition={{ duration: 1.2, ease: 'easeOut' }}
       style={{
@@ -509,7 +509,7 @@ function BankGridCard({
         <div style={{ display: 'flex', gap: 4 }}>
           {showSelect && (
             <button onClick={onToggleSelected} title={selected ? 'Убрать из тренажёра' : 'Добавить в тренажёр'}
-              style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? accentBg : 'linear-gradient(135deg, #9B6DFF, #7B3FCC)', color: selected ? accent : '#fff' }}>
+              style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? accentBg : 'var(--grad-purple)', color: selected ? accent : '#fff' }}>
               {selected ? <Check size={11} strokeWidth={3} /> : <Plus size={11} strokeWidth={3} />}
             </button>
           )}
@@ -558,15 +558,15 @@ function BankSortDropdown({ value, onChange }: { value: SortMode; onChange: (v: 
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
                 width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
-                background: value === val ? 'rgba(123,63,204,0.07)' : 'transparent',
+                background: value === val ? 'rgba(99,84,207,0.07)' : 'transparent',
                 fontSize: 13, fontWeight: value === val ? 700 : 400, color: 'var(--color-text)',
                 cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(123,63,204,0.07)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = value === val ? 'rgba(123,63,204,0.07)' : 'transparent' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99,84,207,0.07)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = value === val ? 'rgba(99,84,207,0.07)' : 'transparent' }}
             >
               {lbl}
-              {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#7B3FCC" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="var(--color-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
             </button>
           ))}
         </motion.div>

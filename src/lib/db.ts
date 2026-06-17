@@ -240,7 +240,9 @@ export function mergeSubjectsWithProgress(catalog: Subject[], progress: Progress
 
     return { ...subject, modules, activeModuleId, progress: progress_pct }
   }).filter(subject =>
-    subject.modules.some(m => m.lessons.some(l => l.status !== 'locked'))
+    // Show the whole track as soon as the course has any lessons — locked nodes
+    // included. The teacher unlocks individual lessons over time.
+    subject.modules.some(m => m.lessons.length > 0)
   )
 }
 

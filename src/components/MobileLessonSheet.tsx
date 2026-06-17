@@ -67,7 +67,7 @@ export default function MobileLessonSheet({ lesson, onClose }: Props) {
                 whileTap={{ scale: 0.97 }}
                 className="mt-2 w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-semibold cursor-pointer"
                 style={{
-                  background: 'linear-gradient(135deg, #C58BFF, #7B61FF)',
+                  background: 'var(--grad-purple)',
                   color: 'white',
                   fontSize: 16,
                   minHeight: 56,

@@ -151,7 +151,7 @@ export default function StatsQuizRow() {
                   <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
                     <span
                       className="flex-shrink-0"
-                      style={{ fontSize: 12, fontWeight: 650, color: '#7B3FCC', background: 'var(--color-purple-soft)', padding: '5px 12px', borderRadius: 999, lineHeight: 1 }}
+                      style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', padding: '5px 12px', borderRadius: 999, lineHeight: 1 }}
                     >
                       Викторина дня
                     </span>
@@ -203,7 +203,7 @@ export default function StatsQuizRow() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        background: 'linear-gradient(135deg, #C58BFF, #7B61FF)',
+                        background: 'var(--grad-purple)',
                         borderRadius: 16,
                         color: '#FFFFFF',
                         fontSize: 15,

@@ -131,7 +131,7 @@ export default function TeacherLoginPage({ onLogin }: { onLogin: () => void }) {
             style={{
               padding: '13px 24px',
               borderRadius: 14,
-              background: loading ? 'rgba(155,109,255,0.6)' : '#9B6DFF',
+              background: loading ? 'rgba(155,109,255,0.6)' : 'var(--color-purple)',
               color: '#fff',
               fontWeight: 700,
               fontSize: 15,
@@ -148,7 +148,7 @@ export default function TeacherLoginPage({ onLogin }: { onLogin: () => void }) {
           {mode === 'login' ? 'Нет аккаунта? ' : 'Уже есть аккаунт? '}
           <span
             onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-            style={{ color: '#9B6DFF', cursor: 'pointer', fontWeight: 600 }}
+            style={{ color: 'var(--color-purple)', cursor: 'pointer', fontWeight: 600 }}
           >
             {mode === 'login' ? 'Зарегистрироваться' : 'Войти'}
           </span>

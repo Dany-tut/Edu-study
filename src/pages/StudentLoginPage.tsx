@@ -107,7 +107,7 @@ export default function StudentLoginPage() {
           disabled={!email.trim() || !password || loading}
           style={{
             marginTop: 22, width: '100%', padding: '13px 0',
-            background: email.trim() && password ? '#9B6DFF' : 'rgba(155,109,255,0.35)',
+            background: email.trim() && password ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)',
             color: '#fff', fontWeight: 700, fontSize: 15,
             border: 'none', borderRadius: 14,
             cursor: email.trim() && password ? 'pointer' : 'not-allowed',

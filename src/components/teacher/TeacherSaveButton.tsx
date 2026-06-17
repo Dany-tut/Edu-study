@@ -15,7 +15,7 @@ export interface SaveAccent { gradient: string; shadow: string }
 
 // Per-type accents. `purple` is the default primary used by every plain "Сохранить".
 export const SAVE_ACCENTS = {
-  purple:  { gradient: 'linear-gradient(135deg, #9B6DFF 0%, #7B3FCC 100%)', shadow: 'rgba(123,63,204,0.30)' },
+  purple:  { gradient: 'var(--grad-purple)', shadow: 'rgba(99,84,207,0.30)' },
   trainer: { gradient: 'linear-gradient(135deg, #F6A93B 0%, #C2410C 100%)', shadow: 'rgba(194,65,12,0.28)' },
   widget:  { gradient: 'linear-gradient(135deg, #34D399 0%, #1A7A3F 100%)', shadow: 'rgba(26,122,63,0.28)' },
   success: { gradient: 'linear-gradient(135deg, #34D399 0%, #1A7A3F 100%)', shadow: 'rgba(26,122,63,0.30)' },

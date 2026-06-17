@@ -37,7 +37,7 @@ function mapRow(h: any): HwAssignment {
     groupId: h.group_id,
     groupName: h.groups?.name ?? '',
     icon: h.groups?.icon ?? '📚',
-    color: h.groups?.color ?? '#9B6DFF',
+    color: h.groups?.color ?? 'var(--color-purple)',
     title: h.title,
     assignedAt: h.assigned_at
       ? new Date(h.assigned_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })

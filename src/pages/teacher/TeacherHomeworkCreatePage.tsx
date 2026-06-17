@@ -165,7 +165,7 @@ function SaveToTrainerDialog({
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {[
-            { value: 'update' as const, label: 'Обновить в тренажере', desc: 'Заменить оригинал исправленным', color: '#7B3FCC', bg: 'var(--color-purple-soft)' },
+            { value: 'update' as const, label: 'Обновить в тренажере', desc: 'Заменить оригинал исправленным', color: 'var(--color-accent)', bg: 'var(--color-purple-soft)' },
             { value: 'both'   as const, label: 'Сохранить оба',        desc: 'Добавить как новое, оригинал сохранить', color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
             { value: 'skip'   as const, label: 'Только в домашку',     desc: 'В тренажер не добавлять',              color: 'var(--color-muted)', bg: 'var(--color-bg)' },
           ].map(opt => (
@@ -308,8 +308,8 @@ function TaskCard({
                             }}
                             style={{
                               width: 22, height: 22, borderRadius: 6, border: '2px solid',
-                              borderColor: (task.correctChoices ?? []).includes(ci) ? '#7B3FCC' : 'var(--color-border)',
-                              background: (task.correctChoices ?? []).includes(ci) ? '#7B3FCC' : 'transparent',
+                              borderColor: (task.correctChoices ?? []).includes(ci) ? 'var(--color-accent)' : 'var(--color-border)',
+                              background: (task.correctChoices ?? []).includes(ci) ? 'var(--color-accent)' : 'transparent',
                               cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
                             }}
                           >
@@ -572,7 +572,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
   const palette = {
     easy:   { accent: '#22C55E', soft: 'var(--color-green-soft)', text: 'var(--color-green-text)' },
     medium: { accent: '#F59E0B', soft: 'var(--color-peach-soft)', text: 'var(--color-peach-text)' },
-    hard:   { accent: '#7B3FCC', soft: 'var(--color-purple-soft)', text: '#7B3FCC' },
+    hard:   { accent: 'var(--color-accent)', soft: 'var(--color-purple-soft)', text: 'var(--color-accent)' },
   }[task.difficulty]
 
   const modified =
@@ -612,7 +612,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
         display: 'flex', flexDirection: 'column', gap: 14,
         padding: 20, borderRadius: 26,
         background: 'rgba(var(--glass-rgb), 0.96)',
-        border: modified ? '1px solid rgba(123,63,204,0.35)' : '1px solid var(--color-border-soft)',
+        border: modified ? '1px solid rgba(99,84,207,0.35)' : '1px solid var(--color-border-soft)',
         boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
         transition: 'border-color 0.2s',
       }}
@@ -621,13 +621,13 @@ function BankTaskCard({ task, index, added, onAdd }: {
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#7B3FCC' }}>Задание {index + 1}</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)' }}>Задание {index + 1}</span>
             <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
             <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>№{task.id}</span>
             <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>{task.line} линия</span>
             <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
             {modified && (
-              <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-purple-soft)', color: '#7B3FCC' }}>
+              <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-purple-soft)', color: 'var(--color-accent)' }}>
                 изменено
               </span>
             )}
@@ -648,10 +648,10 @@ function BankTaskCard({ task, index, added, onAdd }: {
             style={{
               padding: '8px 16px', borderRadius: 12, border: 'none',
               cursor: added ? 'default' : 'pointer',
-              background: added ? 'var(--color-green-soft)' : 'linear-gradient(135deg, #9B6DFF 0%, #7B3FCC 100%)',
+              background: added ? 'var(--color-green-soft)' : 'var(--grad-purple)',
               color: added ? 'var(--color-green-text)' : '#fff',
               fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5,
-              boxShadow: added ? 'none' : '0 3px 12px rgba(123,63,204,0.32)',
+              boxShadow: added ? 'none' : '0 3px 12px rgba(99,84,207,0.32)',
               transition: 'all 0.15s', whiteSpace: 'nowrap',
             }}
           >
@@ -822,7 +822,7 @@ function AutoTextarea({ value, onChange, placeholder, style }: {
         transition: 'background 0.15s, border-color 0.15s',
         ...style,
       }}
-      onFocus={e => { e.currentTarget.style.background = 'rgba(123,63,204,0.04)'; e.currentTarget.style.borderColor = 'rgba(123,63,204,0.25)' }}
+      onFocus={e => { e.currentTarget.style.background = 'rgba(99,84,207,0.04)'; e.currentTarget.style.borderColor = 'rgba(99,84,207,0.25)' }}
       onBlur={e => { e.currentTarget.style.background = restBg; e.currentTarget.style.borderColor = restBorder }}
     />
   )
@@ -960,7 +960,7 @@ function PreviewTab({
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8 }}>
                     {t.pairs.map((p, pi) => (
                       <div key={pi} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ flex: 1, padding: '5px 10px', borderRadius: 8, background: 'var(--color-purple-soft)', fontSize: 12, color: '#7B3FCC', fontWeight: 600 }}>
+                        <div style={{ flex: 1, padding: '5px 10px', borderRadius: 8, background: 'var(--color-purple-soft)', fontSize: 12, color: 'var(--color-accent)', fontWeight: 600 }}>
                           {p.left || `Левая ${pi + 1}`}
                         </div>
                         <span style={{ color: 'var(--color-text-4)' }}>↔</span>
@@ -1415,7 +1415,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
             style={{
               position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 999,
               background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-medium)', borderRadius: 16,
-              boxShadow: '0 8px 32px rgba(123,63,204,0.12)',
+              boxShadow: '0 8px 32px rgba(99,84,207,0.12)',
               padding: '14px 12px 12px',
             }}
           >
@@ -1447,8 +1447,8 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
                     style={{
                       width: '100%', aspectRatio: '1', borderRadius: 8, border: 'none',
                       cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: isSelected ? 700 : 400,
-                      background: isSelected ? '#7B3FCC' : isToday ? 'var(--color-purple-soft)' : 'transparent',
-                      color: isSelected ? '#fff' : isToday ? '#7B3FCC' : 'var(--color-text)',
+                      background: isSelected ? 'var(--color-accent)' : isToday ? 'var(--color-purple-soft)' : 'transparent',
+                      color: isSelected ? '#fff' : isToday ? 'var(--color-accent)' : 'var(--color-text)',
                       transition: 'background 0.12s',
                     }}
                   >
@@ -1517,7 +1517,7 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
             style={{
               position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 999,
               background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-medium)', borderRadius: 16,
-              boxShadow: '0 8px 32px rgba(123,63,204,0.12)',
+              boxShadow: '0 8px 32px rgba(99,84,207,0.12)',
               overflow: 'hidden',
             }}
           >
@@ -1539,10 +1539,10 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
                 }}>
                   <Users size={13} style={{ color: g.id === value ? 'var(--color-accent)' : 'var(--color-text-3)' }} />
                 </div>
-                <span style={{ fontSize: 13, fontWeight: g.id === value ? 700 : 500, color: g.id === value ? '#7B3FCC' : 'var(--color-text)' }}>
+                <span style={{ fontSize: 13, fontWeight: g.id === value ? 700 : 500, color: g.id === value ? 'var(--color-accent)' : 'var(--color-text)' }}>
                   {g.name}
                 </span>
-                {g.id === value && <Check size={13} style={{ marginLeft: 'auto', color: '#7B3FCC' }} />}
+                {g.id === value && <Check size={13} style={{ marginLeft: 'auto', color: 'var(--color-accent)' }} />}
               </button>
             ))}
           </motion.div>
@@ -1617,7 +1617,7 @@ function LessonPicker({
         <div style={{ flex: 1, minWidth: 0 }}>
           {selected ? (
             <>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#7B3FCC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.lessonTitle}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.lessonTitle}</div>
               <div style={{ fontSize: 10, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.courseTitle}</div>
             </>
           ) : (
@@ -1692,15 +1692,15 @@ function LessonPicker({
                     <X size={13} style={{ color: 'var(--color-text-3)' }} />
                   </div>
                   <span style={{ fontSize: 12, fontWeight: 600, color: !value ? 'var(--color-accent)' : 'var(--color-muted)' }}>Без привязки</span>
-                  {!value && <Check size={13} style={{ color: '#7B3FCC', marginLeft: 'auto' }} />}
+                  {!value && <Check size={13} style={{ color: 'var(--color-accent)', marginLeft: 'auto' }} />}
                 </button>
 
                 {/* Suggested section */}
                 {suggested.length > 0 && !query && (
                   <>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 8px 4px' }}>
-                      <Sparkles size={11} style={{ color: '#7B3FCC' }} />
-                      <span style={{ fontSize: 10, fontWeight: 700, color: '#7B3FCC', letterSpacing: 0.3 }}>ПОДХОДЯТ К ТЕМЕ</span>
+                      <Sparkles size={11} style={{ color: 'var(--color-accent)' }} />
+                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-accent)', letterSpacing: 0.3 }}>ПОДХОДЯТ К ТЕМЕ</span>
                     </div>
                     {suggested.map(l => (
                       <LessonOption key={l.id} lesson={l} active={value === l.id} suggested onClick={() => { onChange(l.id); setOpen(false) }} />
@@ -1746,14 +1746,14 @@ function LessonOption({ lesson, active, suggested, onClick }: {
       onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
     >
       <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <BookOpen size={13} style={{ color: '#7B3FCC' }} />
+        <BookOpen size={13} style={{ color: 'var(--color-accent)' }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lesson.lessonTitle}</div>
         <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lesson.courseTitle}</div>
       </div>
-      {suggested && <Sparkles size={12} style={{ color: '#7B3FCC', flexShrink: 0 }} />}
-      {active && <Check size={13} style={{ color: '#7B3FCC', flexShrink: 0 }} />}
+      {suggested && <Sparkles size={12} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />}
+      {active && <Check size={13} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />}
     </button>
   )
 }
@@ -2022,7 +2022,7 @@ export default function TeacherHomeworkCreatePage() {
               label="Опубликовать" savedLabel="Опубликовано!"
               icon={<Send size={14} />}
               saved={published} onClick={handlePublish}
-              style={{ boxShadow: '0 6px 20px rgba(123,63,204,0.32)', pointerEvents: 'auto' }}
+              style={{ boxShadow: '0 6px 20px rgba(99,84,207,0.32)', pointerEvents: 'auto' }}
             />
           </motion.div>
         )}
@@ -2249,7 +2249,7 @@ export default function TeacherHomeworkCreatePage() {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                   <div style={{ width: 38, height: 38, borderRadius: 12, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <BookOpen size={20} style={{ color: '#7B3FCC' }} />
+                    <BookOpen size={20} style={{ color: 'var(--color-accent)' }} />
                   </div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>Публикация домашки</div>
                 </div>
@@ -2257,7 +2257,7 @@ export default function TeacherHomeworkCreatePage() {
                   Домашнее задание будет привязано к уроку:
                 </div>
                 <div style={{ background: 'var(--color-purple-soft)', borderRadius: 12, padding: '10px 14px', marginBottom: 20 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#7B3FCC' }}>{lesson?.lessonTitle}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-accent)' }}>{lesson?.lessonTitle}</div>
                   <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 2 }}>{lesson?.courseTitle}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
@@ -2270,7 +2270,7 @@ export default function TeacherHomeworkCreatePage() {
                   <motion.button
                     whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                     onClick={doPublish}
-                    style={{ flex: 2, padding: '10px 0', borderRadius: 14, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg, #9B6DFF 0%, #7B3FCC 100%)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit', boxShadow: '0 4px 14px rgba(123,63,204,0.3)' }}
+                    style={{ flex: 2, padding: '10px 0', borderRadius: 14, border: 'none', cursor: 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit', boxShadow: '0 4px 14px rgba(99,84,207,0.3)' }}
                   >
                     <Send size={14} /> Опубликовать
                   </motion.button>

@@ -39,7 +39,7 @@ function SpoilerQuestion({ text }: { text: string }) {
             position: 'absolute',
             fontSize: 12,
             fontWeight: 600,
-            color: '#7B3FCC',
+            color: 'var(--color-accent)',
             background: 'var(--color-purple-soft)',
             borderRadius: 999,
             padding: '3px 10px',
@@ -113,7 +113,7 @@ export default function DailyQuiz() {
           <div>
             <span
               className="inline-block px-3 py-1 rounded-full text-xs font-semibold"
-              style={{ background: 'var(--color-purple-soft)', color: '#7B3FCC', fontSize: 12, fontWeight: 600 }}
+              style={{ background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600 }}
             >
               Викторина дня
             </span>
@@ -154,8 +154,8 @@ export default function DailyQuiz() {
                 className="h-full rounded-full"
                 style={{
                   background: timerPct < 30
-                    ? 'linear-gradient(to right, #F48B91, #FF6B6B)'
-                    : 'linear-gradient(to right, #6EE7A0, #3FCC8A)',
+                    ? 'var(--grad-red-bar)'
+                    : 'var(--grad-green-bar)',
                 }}
                 animate={{ width: `${timerPct}%` }}
                 transition={{ duration: 0.5, ease: 'linear' }}
@@ -172,7 +172,7 @@ export default function DailyQuiz() {
               whileTap={{ scale: 0.98 }}
               onClick={handleStart}
               className="px-6 py-3 rounded-[32px] text-white font-semibold cursor-pointer"
-              style={{ background: 'linear-gradient(135deg, #C58BFF, #7B61FF)', fontSize: 15 }}
+              style={{ background: 'var(--grad-purple)', fontSize: 15 }}
             >
               Начать
             </motion.button>

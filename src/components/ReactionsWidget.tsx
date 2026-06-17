@@ -132,7 +132,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
               </p>
               <p style={{ fontSize: 13 * sz.scale, fontWeight: 500, color: 'var(--color-muted)', marginTop: 4 }}>
                 {reaction.name} · <span
-                  style={{ color: '#7B61FF', fontWeight: 600, textDecoration: 'underline', textDecorationColor: 'rgba(123,97,255,0.4)', textUnderlineOffset: 3 }}
+                  style={{ color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'underline', textDecorationColor: 'rgba(123,97,255,0.4)', textUnderlineOffset: 3 }}
                 >Урок «{reaction.lesson}»</span>
               </p>
             </motion.div>
@@ -151,7 +151,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
                 width: i === index ? 28 : 10,
                 height: 10,
                 borderRadius: 999,
-                background: i === index ? '#7B61FF' : 'var(--color-border-medium)',
+                background: i === index ? 'var(--color-accent)' : 'var(--color-border-medium)',
                 transition: 'width 0.3s ease, background 0.3s ease',
               }}
             />

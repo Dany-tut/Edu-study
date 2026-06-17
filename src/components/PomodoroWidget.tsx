@@ -9,7 +9,7 @@ type Props = {
 }
 
 const MODE_LABEL: Record<PomoMode, string> = { focus: 'Фокус', break: 'Перерыв' }
-const ACCENT: Record<PomoMode, string> = { focus: '#7B61FF', break: '#1E9E63' }
+const ACCENT: Record<PomoMode, string> = { focus: 'var(--color-accent)', break: '#1E9E63' }
 
 function format(sec: number) {
   const m = Math.floor(sec / 60)

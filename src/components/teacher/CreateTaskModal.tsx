@@ -20,7 +20,7 @@ const TASK_TYPES: TaskType[] = [
   { id: 'meeting',      label: 'Встреча',  keywords: ['встреча', 'встречу'],       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', textColor: 'var(--color-green-text)' },
   { id: 'call',         label: 'Созвон',   keywords: ['созвон'],                    color: '#6C7BE8', bg: 'var(--color-blue-pill-bg)', textColor: '#3d4ecc' },
   { id: 'lesson',       label: 'Урок',     keywords: ['урок'],                      color: '#e07c2a', bg: 'var(--color-peach-soft)', textColor: '#b85e10' },
-  { id: 'homework',     label: 'Домашка',  keywords: ['домашка', 'домашку', 'дз'], color: '#9B6DCC', bg: 'var(--color-purple-soft)', textColor: '#7B3FCC' },
+  { id: 'homework',     label: 'Домашка',  keywords: ['домашка', 'домашку', 'дз'], color: '#9B6DCC', bg: 'var(--color-purple-soft)', textColor: 'var(--color-accent)' },
   { id: 'presentation', label: 'Преза',    keywords: ['преза', 'презентация'],      color: '#e0397a', bg: 'var(--color-red-soft)', textColor: '#c41f60' },
 ]
 
@@ -190,8 +190,8 @@ function CalendarPicker({ value, onChange, onClose }: { value: string; onChange:
               style={{
                 width: 30, height: 30, borderRadius: 8, border: 'none',
                 cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500,
-                background: sel ? '#7B3FCC' : tod ? 'var(--color-purple-soft)' : 'transparent',
-                color: sel ? '#fff' : tod ? '#7B3FCC' : 'var(--color-text)',
+                background: sel ? 'var(--color-accent)' : tod ? 'var(--color-purple-soft)' : 'transparent',
+                color: sel ? '#fff' : tod ? 'var(--color-accent)' : 'var(--color-text)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'background 0.1s',
               }}
@@ -270,7 +270,7 @@ function TimePicker({ value, onChange, onClose }: { value: string; onChange: (v:
               onClick={() => { onChange(t); onClose() }}
               style={{
                 width: '100%', border: 'none',
-                background: active ? '#7B3FCC' : 'transparent',
+                background: active ? 'var(--color-accent)' : 'transparent',
                 color: active ? '#fff' : 'var(--color-text)',
                 padding: '7px 10px', textAlign: 'left',
                 fontSize: 13, fontWeight: active ? 700 : 500,
@@ -507,7 +507,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                 border: '1.5px solid transparent',
                 transition: 'border-color 0.15s',
               }}
-                onFocusCapture={e => (e.currentTarget.style.borderColor = 'rgba(123,63,204,0.55)')}
+                onFocusCapture={e => (e.currentTarget.style.borderColor = 'rgba(99,84,207,0.55)')}
                 onBlurCapture={e => (e.currentTarget.style.borderColor = 'transparent')}
               >
                 <AnimatePresence>
@@ -587,7 +587,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                           background: ent.kind === 'group' ? 'var(--color-purple-soft)' : 'var(--color-blue-pill-bg)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: 13, fontWeight: 700,
-                          color: ent.kind === 'group' ? '#7B3FCC' : '#3a6fbf',
+                          color: ent.kind === 'group' ? 'var(--color-accent)' : '#3a6fbf',
                         }}>
                           {ent.kind === 'group' ? '👥' : ent.label.split(' ').map((w: string) => w[0]).slice(0,2).join('')}
                         </div>
@@ -640,7 +640,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                   onClick={() => { setShowCalendar(v => !v); setShowTimePicker(false) }}
                   style={{
                     padding: '9px 12px', borderRadius: 12,
-                    border: `1.5px solid ${showCalendar ? 'rgba(123,63,204,0.55)' : 'var(--color-border-medium)'}`,
+                    border: `1.5px solid ${showCalendar ? 'rgba(99,84,207,0.55)' : 'var(--color-border-medium)'}`,
                     background: 'var(--color-bg-3)', fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
                     cursor: 'pointer', textAlign: 'left', width: '100%',
                     transition: 'border-color 0.15s',
@@ -669,7 +669,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                   onClick={() => { setShowTimePicker(v => !v); setShowCalendar(false) }}
                   style={{
                     padding: '9px 12px', borderRadius: 12,
-                    border: `1.5px solid ${showTimePicker ? 'rgba(123,63,204,0.55)' : 'var(--color-border-medium)'}`,
+                    border: `1.5px solid ${showTimePicker ? 'rgba(99,84,207,0.55)' : 'var(--color-border-medium)'}`,
                     background: 'var(--color-bg-3)', fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
                     cursor: 'pointer', textAlign: 'left', width: '100%',
                     transition: 'border-color 0.15s',
@@ -706,7 +706,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                   outline: 'none', width: '100%', boxSizing: 'border-box',
                   resize: 'none', fontFamily: 'inherit', lineHeight: 1.5,
                 }}
-                onFocus={e => (e.target.style.borderColor = 'rgba(123,63,204,0.55)')}
+                onFocus={e => (e.target.style.borderColor = 'rgba(99,84,207,0.55)')}
                 onBlur={e => (e.target.style.borderColor = 'var(--color-border-medium)')}
               />
             </label>

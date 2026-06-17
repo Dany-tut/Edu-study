@@ -309,7 +309,7 @@ export default function TeacherTopBar() {
                 >
                   <div style={{
                     width: 32, height: 32, borderRadius: 9, flexShrink: 0,
-                    background: action.action === 'theme' ? (dark ? 'rgba(181,122,255,0.18)' : 'var(--color-purple-soft)') : action.bg,
+                    background: action.action === 'theme' ? (dark ? 'rgba(124,108,224,0.18)' : 'var(--color-purple-soft)') : action.bg,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
                     {action.action === 'theme'

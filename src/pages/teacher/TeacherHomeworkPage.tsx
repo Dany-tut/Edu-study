@@ -199,10 +199,10 @@ function AssignForm({ onClose }: { onClose: () => void }) {
             whileTap={{ scale: 0.98 }}
             style={{
               marginTop: 4, padding: '12px 0', borderRadius: 16, border: 'none', cursor: 'pointer',
-              background: 'linear-gradient(135deg, #9B6DFF 0%, #7B3FCC 100%)',
+              background: 'var(--grad-purple)',
               color: '#fff', fontSize: 14, fontWeight: 700,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              boxShadow: '0 4px 16px rgba(123,63,204,0.32)',
+              boxShadow: '0 4px 16px rgba(99,84,207,0.32)',
             }}
           >
             <Send size={15} strokeWidth={2} />
@@ -245,7 +245,7 @@ function HwRow({ hw, index, isSelected, onClick }: {
       style={{
         cursor: 'pointer',
         background: isSelected ? 'var(--color-purple-soft)' : 'transparent',
-        borderLeft: isSelected ? '3px solid #7B3FCC' : '3px solid transparent',
+        borderLeft: isSelected ? '3px solid var(--color-accent)' : '3px solid transparent',
         transition: 'background 0.15s',
       }}
       onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-2)' }}
@@ -280,7 +280,7 @@ function HwRow({ hw, index, isSelected, onClick }: {
       <td style={{ padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ flex: 1, height: 6, background: 'var(--color-bg-5)', borderRadius: 99, overflow: 'hidden', minWidth: 60 }}>
-            <div style={{ height: '100%', width: `${submittedPct}%`, background: '#9B6DFF', borderRadius: 99, transition: 'width 0.5s' }} />
+            <div style={{ height: '100%', width: `${submittedPct}%`, background: 'var(--color-purple)', borderRadius: 99, transition: 'width 0.5s' }} />
           </div>
           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', flexShrink: 0 }}>
             {hw.submittedCount}/{hw.totalCount}
@@ -361,7 +361,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
           {[
             { label: 'Назначено', value: hw.assignedAt, icon: Clock, color: 'var(--color-muted)', labelColor: 'var(--color-muted)', bg: 'var(--color-bg)' },
             { label: 'Дедлайн', value: hw.dueDate, icon: AlertCircle, color: 'var(--color-peach-text)', labelColor: 'var(--color-peach-text)', bg: 'var(--color-peach-soft)' },
-            { label: 'Сдали', value: `${hw.submittedCount}/${hw.totalCount}`, icon: ClipboardCheck, color: '#9B6DFF', labelColor: '#9B6DFF', bg: 'var(--color-purple-soft)' },
+            { label: 'Сдали', value: `${hw.submittedCount}/${hw.totalCount}`, icon: ClipboardCheck, color: 'var(--color-purple)', labelColor: 'var(--color-purple)', bg: 'var(--color-purple-soft)' },
             { label: 'Проверено', value: `${hw.reviewedCount}/${hw.submittedCount}`, icon: CheckCircle2, color: 'var(--color-green-text)', labelColor: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
           ].map(item => (
             <div key={item.label} style={{ background: item.bg, borderRadius: 12, padding: '10px 12px' }}>
@@ -380,11 +380,11 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               padding: '12px 0', borderRadius: 14, border: 'none', cursor: 'pointer',
               background: pendingReview > 0
-                ? 'linear-gradient(135deg, #9B6DFF 0%, #7B3FCC 100%)'
-                : 'rgba(123,63,204,0.10)',
-              color: pendingReview > 0 ? '#fff' : '#7B3FCC',
+                ? 'var(--grad-purple)'
+                : 'rgba(99,84,207,0.10)',
+              color: pendingReview > 0 ? '#fff' : 'var(--color-accent)',
               fontSize: 14, fontWeight: 700,
-              boxShadow: pendingReview > 0 ? '0 4px 16px rgba(123,63,204,0.32)' : 'none',
+              boxShadow: pendingReview > 0 ? '0 4px 16px rgba(99,84,207,0.32)' : 'none',
             }}
           >
             <ClipboardList size={16} strokeWidth={2.2} />
@@ -429,7 +429,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       background: submitted ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
                     }}>
-                      <ClipboardCheck size={12} strokeWidth={2.2} style={{ color: submitted ? '#7B3FCC' : 'var(--color-text-4)' }} />
+                      <ClipboardCheck size={12} strokeWidth={2.2} style={{ color: submitted ? 'var(--color-accent)' : 'var(--color-text-4)' }} />
                     </div>
                     {/* Reviewed by teacher */}
                     <div title={returned ? 'На доработку' : reviewed ? 'Проверено' : 'Не проверено'} style={{
@@ -490,12 +490,12 @@ function HardSubDetail({ sub, onClose, onReview }: {
       <div style={{
         padding: '18px 18px 14px', flexShrink: 0,
         background: 'var(--color-purple-soft)',
-        borderBottom: '1px solid rgba(123,63,204,0.14)',
+        borderBottom: '1px solid rgba(99,84,207,0.14)',
         borderTopLeftRadius: 19, borderTopRightRadius: 19,
         display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8,
       }}>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#7B3FCC', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 4 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 4 }}>
             Хард-уровень · Проверка
           </div>
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 6 }}>
@@ -518,7 +518,7 @@ function HardSubDetail({ sub, onClose, onReview }: {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)' }}>
           <div style={{
             width: 40, height: 40, borderRadius: 13, flexShrink: 0,
-            background: 'linear-gradient(135deg, #9B6DFF, #7B3FCC)',
+            background: 'var(--grad-purple)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 14, fontWeight: 700, color: '#fff',
           }}>
@@ -530,7 +530,7 @@ function HardSubDetail({ sub, onClose, onReview }: {
           </div>
           <div style={{ marginLeft: 'auto', flexShrink: 0, textAlign: 'right' }}>
             <div style={{ fontSize: 10, color: 'var(--color-text-3)', fontWeight: 700 }}>Базовая</div>
-            <div style={{ fontSize: 16, fontWeight: 760, color: '#7B3FCC' }}>2/2</div>
+            <div style={{ fontSize: 16, fontWeight: 760, color: 'var(--color-accent)' }}>2/2</div>
           </div>
         </div>
 
@@ -574,7 +574,7 @@ function HardSubDetail({ sub, onClose, onReview }: {
               disabled={busy}
               style={{
                 flex: 1, padding: '11px 0', borderRadius: 14, border: 'none',
-                background: 'linear-gradient(135deg, #3FCC8A, #2A7D4F)',
+                background: 'var(--grad-green)',
                 color: '#fff', fontSize: 13, fontWeight: 700,
                 cursor: busy ? 'default' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -622,13 +622,13 @@ function HardSubRow({ sub, isSelected, onClick }: { sub: HardSub; isSelected: bo
         display: 'flex', alignItems: 'center', gap: 12,
         padding: '10px 14px', borderRadius: 12, cursor: 'pointer',
         background: isSelected ? 'var(--color-purple-soft)' : 'transparent',
-        border: isSelected ? '1px solid rgba(123,63,204,0.2)' : '1px solid transparent',
+        border: isSelected ? '1px solid rgba(99,84,207,0.2)' : '1px solid transparent',
         transition: 'background 0.15s',
       }}
     >
       <div style={{
         width: 34, height: 34, borderRadius: 11, flexShrink: 0,
-        background: 'linear-gradient(135deg, #9B6DFF, #7B3FCC)',
+        background: 'var(--grad-purple)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: 11, fontWeight: 700, color: '#fff',
       }}>
@@ -733,13 +733,13 @@ export default function TeacherHomeworkPage() {
             <Card style={{ padding: 0, overflow: 'hidden' }}>
               <div style={{ padding: '14px 18px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border-soft)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Star size={15} style={{ color: '#7B3FCC' }} />
+                  <Star size={15} style={{ color: 'var(--color-accent)' }} />
                   <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Хард-уровень · Сданные работы</span>
                 </div>
                 {pendingHardCount > 0 && (
                   <span style={{
                     fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999,
-                    background: 'var(--color-purple-soft)', color: '#7B3FCC',
+                    background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
                   }}>
                     {pendingHardCount} на проверке
                   </span>

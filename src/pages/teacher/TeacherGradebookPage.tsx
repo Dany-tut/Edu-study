@@ -32,7 +32,7 @@ function ScorePill({ value }: { value: number | null }) {
 // Avatar/accent colour for a student, resolved from their own group.
 function useGroupColor(gid: string | null) {
   const { groups } = useGroups()
-  return gid ? (groups.find(g => g.id === gid)?.color ?? '#9B6DFF') : '#9B6DFF'
+  return gid ? (groups.find(g => g.id === gid)?.color ?? 'var(--color-purple)') : 'var(--color-purple)'
 }
 
 function ScrollFadeTable({ children }: { children: React.ReactNode }) {
@@ -130,7 +130,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                 ))}
                 <th style={{
                   padding: '10px 14px', textAlign: 'center', fontSize: 11, fontWeight: 700,
-                  color: '#7B3FCC', borderBottom: '1px solid var(--color-border-soft)', whiteSpace: 'nowrap',
+                  color: 'var(--color-accent)', borderBottom: '1px solid var(--color-border-soft)', whiteSpace: 'nowrap',
                 }}>
                   Итого
                 </th>
@@ -158,7 +158,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                         <div style={{
                           width: 28, height: 28, borderRadius: 9, flexShrink: 0,
-                          background: '#9B6DFF',
+                          background: 'var(--color-purple)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: 10, fontWeight: 700, color: '#fff',
                         }}>
@@ -267,7 +267,7 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                       <div style={{
                         width: 28, height: 28, borderRadius: 9, flexShrink: 0,
-                        background: '#9B6DFF',
+                        background: 'var(--color-purple)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 10, fontWeight: 700, color: '#fff',
                       }}>
@@ -296,11 +296,11 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
               )
             })}
             {/* Averages row */}
-            <tr style={{ background: 'rgba(123,63,204,0.04)', borderTop: '2px solid rgba(123,63,204,0.12)' }}>
+            <tr style={{ background: 'rgba(99,84,207,0.04)', borderTop: '2px solid rgba(99,84,207,0.12)' }}>
               <td style={{
                 padding: '10px 16px', position: 'sticky', left: 0,
                 background: 'rgba(238,219,255,0.5)', zIndex: 1,
-                fontSize: 11, fontWeight: 700, color: '#7B3FCC',
+                fontSize: 11, fontWeight: 700, color: 'var(--color-accent)',
               }}>
                 Среднее
               </td>
@@ -315,7 +315,7 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
               </td>
               <td style={{ padding: '10px 16px', textAlign: 'center' }}>—</td>
               <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#7B3FCC' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-accent)' }}>
                   {Math.round(groupStudents.reduce((a, s) => a + s.attendance, 0) / groupStudents.length)}%
                 </span>
               </td>
@@ -375,7 +375,7 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
   )
   const [saved, setSaved] = useState(false)
 
-  const accent = group?.color ?? '#7B3FCC'
+  const accent = group?.color ?? 'var(--color-accent)'
   const headerName = group?.name ?? 'Все группы'
 
   async function handleSave() {
@@ -482,7 +482,7 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                   <div style={{
                     width: 28, height: 28, borderRadius: 9, flexShrink: 0,
-                    background: isPresent ? '#9B6DFF' : 'var(--color-bg-5)',
+                    background: isPresent ? 'var(--color-purple)' : 'var(--color-bg-5)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 10, fontWeight: 700, color: '#fff',
                     transition: 'background 0.2s',
@@ -607,7 +607,7 @@ export default function TeacherGradebookPage() {
             display: 'flex', alignItems: 'center', gap: 7,
             padding: '8px 16px', borderRadius: 14, cursor: 'pointer',
             background: 'rgba(155,109,255,0.12)', border: '1px solid rgba(155,109,255,0.25)',
-            color: '#9B6DFF', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
+            color: 'var(--color-purple)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
           }}
         >
           <ClipboardList size={14} strokeWidth={2} />

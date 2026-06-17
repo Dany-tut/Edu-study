@@ -32,11 +32,11 @@ const BIOLOGY_DARK: SubjectPalette = {
 }
 
 const CHEMISTRY: SubjectPalette = {
-  text: '#7B3FCC',
-  soft: '#EEDBFF',
-  accent: '#7B3FCC',
+  text: 'var(--color-accent)',
+  soft: 'var(--color-purple-soft)',
+  accent: 'var(--color-accent)',
   onAccent: '#FFFFFF',
-  ring: 'rgba(123,63,204,0.16)',
+  ring: 'rgba(99,84,207,0.16)',
 }
 
 const CHEMISTRY_DARK: SubjectPalette = {
@@ -64,11 +64,11 @@ export function subjectTheme(subject: string | undefined, dark = false): Subject
 // Brand purple — reserved for "now / today / current focus" UI (today pill,
 // current lesson node, primary CTA). Not tied to a subject.
 export const PURPLE = {
-  text: '#7B3FCC',
-  soft: '#EEDBFF',
-  mid: '#C58BFF',
-  ring: 'rgba(123,63,204,0.14)',
-  gradient: 'linear-gradient(135deg, #C58BFF, #7B3FCC)',
+  text: 'var(--color-accent)',
+  soft: 'var(--color-purple-soft)',
+  mid: 'var(--color-purple)',
+  ring: 'rgba(99,84,207,0.14)',
+  gradient: 'var(--grad-purple)',
 } as const
 
 // Course track status palette — kept here so all status chrome (CourseNode,

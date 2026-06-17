@@ -262,7 +262,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     transform: 'translateY(-50%)',
                     height: 16,
                     borderRadius: 999,
-                    background: 'linear-gradient(to right, #6EE7A0, #3FCC8A)',
+                    background: 'var(--grad-green-bar)',
                     transformOrigin: 'left center',
                   }}
                   initial={{ width: 0 }}
@@ -374,7 +374,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                           return (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                               <span style={{ fontSize: 18 }}>{EMOJI_STEPS[a.emojiIndex].emoji}</span>
-                              <span style={{ fontSize: 13, fontWeight: 700, color: '#7B3FCC' }}>{a.score} баллов</span>
+                              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-accent)' }}>{a.score} баллов</span>
                               <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>· {EMOJI_STEPS[a.emojiIndex].label}</span>
                             </div>
                           )
@@ -424,7 +424,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                           fontSize: 13,
                           fontWeight: 600,
                           color: '#fff',
-                          background: 'linear-gradient(135deg, #C58BFF, #7B61FF)',
+                          background: 'var(--grad-purple)',
                           borderRadius: 12,
                           padding: '9px 18px',
                           whiteSpace: 'nowrap',
@@ -447,7 +447,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                               fontSize: 13,
                               fontWeight: 750,
                               color: '#fff',
-                              background: 'linear-gradient(135deg, #9B5FE8 0%, #7B3FCC 100%)',
+                              background: 'var(--grad-purple)',
                               border: 'none',
                               borderRadius: 14,
                               padding: '8px 16px 8px 8px',
@@ -458,7 +458,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                               alignItems: 'center',
                               justifyContent: 'center',
                               gap: 4,
-                              boxShadow: '0 6px 20px rgba(123,63,204,0.38), inset 0 1px 0 rgba(255,255,255,0.18)',
+                              boxShadow: '0 6px 20px rgba(99,84,207,0.38), inset 0 1px 0 rgba(255,255,255,0.18)',
                             }}
                           >
                             <HardStarLottie size={26} />
@@ -545,7 +545,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     {hardAssessment && (hardStatus === 'completed' || hardStatus === 'returned') && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ fontSize: 18 }}>{EMOJI_STEPS[hardAssessment.emojiIndex].emoji}</span>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: '#7B3FCC' }}>{hardAssessment.score} баллов</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-accent)' }}>{hardAssessment.score} баллов</span>
                         <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>· {EMOJI_STEPS[hardAssessment.emojiIndex].label}</span>
                         {hardStatus === 'completed' && <span style={{ marginLeft: 4, fontSize: 16 }}>🌟</span>}
                       </div>
@@ -568,13 +568,13 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                         fontSize: 13,
                         fontWeight: 700,
                         color: '#fff',
-                        background: 'linear-gradient(135deg, #9B5FE8 0%, #7B3FCC 100%)',
+                        background: 'var(--grad-purple)',
                         borderRadius: 12,
                         padding: '9px 18px',
                         whiteSpace: 'nowrap',
                         cursor: 'pointer',
                         width: '100%',
-                        boxShadow: '0 4px 14px rgba(123,63,204,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
+                        boxShadow: '0 4px 14px rgba(99,84,207,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
                       }}
                     >
                       Открыть урок
@@ -670,7 +670,7 @@ export default function CourseTrack() {
               }}
             >
               <span style={{ position: 'relative', zIndex: 1 }}>{s.name}</span>
-              <span style={{ position: 'relative', zIndex: 1, fontSize: 12, fontWeight: 500, color: '#C58BFF' }}>
+              <span style={{ position: 'relative', zIndex: 1, fontSize: 12, fontWeight: 500, color: 'var(--color-purple)' }}>
                 {subjectPct}%
               </span>
             </motion.button>
