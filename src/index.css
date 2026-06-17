@@ -53,19 +53,30 @@
   --color-red-soft: #FFE1E4;
   --color-peach: #F8C991;
   --color-peach-soft: #FFE4BD;
-  --color-purple: #C58BFF;
-  --color-purple-soft: #EEDBFF;
+  --color-purple: #9C8CF0;
+  --color-purple-soft: #E7E4FB;
   --color-rose-soft: #FFE1F0;
   --color-rose-text: #CC4B7B;
-  --color-accent: #7B3FCC;
+  --color-accent: #6354CF;
   --color-green-accent: #1a7a3f;
+
+  /* ── Accent gradients (vivid; shared across themes) ───────── */
+  /* Cool blue-purple base #786AD7 — the ONE purple CTA gradient */
+  --grad-purple:     linear-gradient(135deg, #9180E6, #6354CF);
+  --grad-purple-bar: linear-gradient(90deg, #6354CF, #9C8CF0);
+  --grad-green:      linear-gradient(135deg, #34C877, #2A7D4F);
+  --grad-green-bar:  linear-gradient(90deg, #6EE7A0, #3FCC8A);
+  --grad-red:        linear-gradient(135deg, #F48B91, #A8282D);
+  --grad-red-bar:    linear-gradient(90deg, #F48B91, #FF6B6B);
+  --grad-blue:       linear-gradient(135deg, #5A9BF0, #1F6FB8);
+  --grad-teal:       linear-gradient(135deg, #5AD4C5, #14A695);
 
   /* ── Semantic text-on-soft-bg colors ─────────────────────── */
   --color-green-text: #1A5C38;
   --color-red-text: #A8282D;
   --color-yellow-text: #7A6500;
   --color-peach-text: #8B4900;
-  --color-purple-text: #5B1FA8;
+  --color-purple-text: #3D33A0;
   --color-blue-pill-bg: #DCEEFB;
   --color-blue-pill-text: #1F6FB8;
   --color-teal-pill-bg: #CFF3EE;
@@ -131,7 +142,7 @@
   --color-yellow-soft: rgba(248,230,80,0.28);
   --color-red-soft: rgba(248,99,107,0.30);
   --color-peach-soft: rgba(248,180,100,0.32);
-  --color-purple-soft: rgba(181,122,255,0.48);
+  --color-purple-soft: rgba(124,108,224,0.46);
   --color-rose-soft: rgba(204,75,123,0.22);
   --color-rose-text: #FF80B0;
 
@@ -140,7 +151,7 @@
   --color-red-text: #F48B91;
   --color-yellow-text: #F0DC60;
   --color-peach-text: #F8C070;
-  --color-purple-text: #E8D0FF;
+  --color-purple-text: #DAD3FB;
   --color-blue-pill-bg: rgba(99,179,237,0.20);
   --color-blue-pill-text: #63B3ED;
   --color-teal-pill-bg: rgba(74,222,180,0.20);
@@ -149,7 +160,8 @@
   --color-pill-active-bg: var(--color-bg-5);
   --color-pill-active-shadow: 0 1px 4px rgba(0,0,0,0.30);
 
-  --color-accent: #C48BFF;
+  --color-purple: #B3A6F7;
+  --color-accent: #A99BF5;
   --color-green-accent: #4ADE80;
 
   /* ── Shadows (dark-theme glass cards) ────────────────────── */
@@ -266,7 +278,7 @@ a {
 
 /* Focus visible */
 *:focus-visible {
-  outline: 2px solid rgba(197,139,255,0.7);
+  outline: 2px solid rgba(145,128,230,0.7);
   outline-offset: 3px;
 }
 
