@@ -10,6 +10,7 @@ import { useTeacher } from '../../store/teacherStore'
 import { useGroups, useStudents } from '../../lib/useGroups'
 import type { Student, Group } from '../../data/teacherMockData'
 import { loadAnonResults, type AnonDiagResult } from '../../data/diagnosticData'
+import { fetchStudentActiveCourses, type StudentCourseInfo } from '../../lib/db'
 
 // ─── Mock data (until Supabase tables are ready) ──────────────────────────────
 const MOCK_TRAINER_SECTIONS = [
@@ -327,6 +328,12 @@ export default function TeacherStudentDashboardPage() {
     loadAnonResults().then(all => setDiagResults(all.filter(r => r.linkedStudentId === selectedStudentId)))
   }, [selectedStudentId])
 
+  const [studentCourses, setStudentCourses] = useState<StudentCourseInfo[]>([])
+  useEffect(() => {
+    if (!student?.authUserId || !student.groupId) return
+    fetchStudentActiveCourses(student.authUserId, student.groupId).then(setStudentCourses)
+  }, [student?.id, student?.authUserId, student?.groupId])
+
   const [diagExpanded, setDiagExpanded] = useState(true)
 
   if (!student || !group) {
@@ -512,6 +519,18 @@ export default function TeacherStudentDashboardPage() {
                 background: 'rgba(var(--glass-rgb),0.5)', border: '1px solid var(--color-border-soft)',
               }}>Цель: <b style={{ color: 'var(--color-text-2)', fontWeight: 700 }}>{student.desiredScore} б.</b></span>
               {student.lastVisit && <span style={{ fontSize: 12, color: 'var(--color-text-4)' }}>вход: {student.lastVisit}</span>}
+              {studentCourses.map(c => (
+                <span key={c.id} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                  fontSize: 12, color: group.color,
+                  padding: '2px 10px', borderRadius: 7,
+                  background: group.color + '18', border: `1px solid ${group.color}30`,
+                }}>
+                  <BookOpen size={11} />
+                  {c.title}
+                  <span style={{ fontSize: 11, opacity: 0.7 }}>{c.completedLessons}/{c.totalLessons}</span>
+                </span>
+              ))}
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
@@ -761,6 +780,43 @@ export default function TeacherStudentDashboardPage() {
 
           {/* RIGHT */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+            {/* Активные курсы */}
+            {studentCourses.length > 0 && (
+              <Card>
+                <SectionHeader icon={BookOpen} label="Активные курсы" accent={group.color} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {studentCourses.map(c => {
+                    const pct = c.totalLessons > 0 ? c.completedLessons / c.totalLessons : 0
+                    const pctColor = pct >= 0.7 ? '#34C877' : pct >= 0.4 ? '#F5A623' : group.color
+                    return (
+                      <div key={c.id} style={{ padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg)', border: `1px solid ${group.color}20` }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 2 }}>{c.title}</div>
+                            <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{c.subject}</div>
+                          </div>
+                          <span style={{ fontSize: 14, fontWeight: 800, color: pctColor, flexShrink: 0 }}>
+                            {Math.round(pct * 100)}%
+                          </span>
+                        </div>
+                        <div style={{ height: 6, background: 'var(--color-bg-5)', borderRadius: 99, overflow: 'hidden', marginBottom: 4 }}>
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct * 100}%` }}
+                            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                            style={{ height: '100%', background: pctColor, borderRadius: 99 }}
+                          />
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
+                          {c.completedLessons} из {c.totalLessons} уроков пройдено
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </Card>
+            )}
 
             {/* Тренажёр сводка */}
             <Card>
