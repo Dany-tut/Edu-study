@@ -6,7 +6,7 @@ import {
   PenLine, Star, ChevronRight, ChevronDown, Users,
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
-  ClipboardCheck,
+  ClipboardCheck, Clock,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
@@ -527,30 +527,32 @@ function CenterLesson({
             </div>
             <div>
               <Label>Начало</Label>
-              <select
+              <PickerSelect
                 value={lesson.scheduledTime ?? ''}
-                onChange={e => onUpdate({ ...lesson, scheduledTime: e.target.value || undefined })}
-                style={{ ...inputSt, width: 110, cursor: 'pointer' }}
-              >
-                <option value="">—</option>
-                {Array.from({ length: 32 }, (_, i) => {
+                onChange={v => onUpdate({ ...lesson, scheduledTime: v || undefined })}
+                width={110}
+                icon={Clock}
+                placeholder="—"
+                allowEmpty
+                options={Array.from({ length: 32 }, (_, i) => {
                   const h = Math.floor(i / 2) + 7
                   const m = i % 2 === 0 ? '00' : '30'
-                  return <option key={i} value={`${String(h).padStart(2,'0')}:${m}`}>{`${String(h).padStart(2,'0')}:${m}`}</option>
+                  const t = `${String(h).padStart(2, '0')}:${m}`
+                  return { value: t, label: t }
                 })}
-              </select>
+              />
             </div>
             <div>
               <Label>Длит.</Label>
-              <select
-                value={lesson.scheduledDuration ?? 90}
-                onChange={e => onUpdate({ ...lesson, scheduledDuration: Number(e.target.value) })}
-                style={{ ...inputSt, width: 100, cursor: 'pointer' }}
-              >
-                {[45, 60, 90, 120, 150, 180].map(m => (
-                  <option key={m} value={m}>{m < 60 ? `${m} мин` : `${m / 60} ч${m % 60 ? ` ${m % 60} м` : ''}`}</option>
-                ))}
-              </select>
+              <PickerSelect
+                value={String(lesson.scheduledDuration ?? 90)}
+                onChange={v => onUpdate({ ...lesson, scheduledDuration: Number(v) })}
+                width={104}
+                options={[45, 60, 90, 120, 150, 180].map(m => ({
+                  value: String(m),
+                  label: m < 60 ? `${m} мин` : `${m / 60} ч${m % 60 ? ` ${m % 60} м` : ''}`,
+                }))}
+              />
             </div>
           </div>
           {lesson.scheduledDate && lesson.scheduledTime && (
@@ -648,6 +650,84 @@ function formatDateDot(d: Date) {
 function todayDotStr() {
   const d = new Date()
   return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`
+}
+
+// Custom styled dropdown (matches CalendarPicker) — replaces native <select>.
+function pickerOptionStyle(active: boolean): React.CSSProperties {
+  return {
+    width: '100%', textAlign: 'left', padding: '8px 10px', borderRadius: 9, border: 'none',
+    cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: active ? 700 : 500,
+    background: active ? 'var(--color-purple-soft)' : 'transparent',
+    color: active ? 'var(--color-accent)' : 'var(--color-text)',
+  }
+}
+
+function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon, allowEmpty }: {
+  value: string
+  onChange: (v: string) => void
+  options: { value: string; label: string }[]
+  placeholder?: string
+  width?: number
+  icon?: React.ElementType
+  allowEmpty?: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [open])
+
+  const selected = options.find(o => o.value === value)
+
+  return (
+    <div ref={ref} style={{ position: 'relative', width: width ?? '100%' }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+          padding: '7px 10px', borderRadius: 11, border: '1.5px solid var(--color-border-medium)',
+          cursor: 'pointer', background: value ? 'var(--color-purple-soft)' : 'var(--color-bg-input)',
+          fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s', fontSize: 12,
+        }}
+      >
+        {Icon && <Icon size={13} style={{ flexShrink: 0, color: value ? 'var(--color-accent)' : 'var(--color-text-3)' }} />}
+        <span style={{ flex: 1, color: value ? 'var(--color-accent)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {selected?.label ?? placeholder ?? '—'}
+        </span>
+        <ChevronDown size={11} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ duration: 0.16 }}
+            style={{
+              position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 999, width: '100%',
+              minWidth: width ?? 110, maxHeight: 240, overflowY: 'auto',
+              background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-medium)',
+              borderRadius: 14, boxShadow: '0 8px 32px rgba(99,84,207,0.14)', padding: 6,
+              display: 'flex', flexDirection: 'column', gap: 2,
+            }}
+          >
+            {allowEmpty && (
+              <button onClick={() => { onChange(''); setOpen(false) }} style={pickerOptionStyle(value === '')}>—</button>
+            )}
+            {options.map(o => (
+              <button key={o.value} onClick={() => { onChange(o.value); setOpen(false) }} style={pickerOptionStyle(o.value === value)}>
+                {o.label}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
 }
 
 function CalendarPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
