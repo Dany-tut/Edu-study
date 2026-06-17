@@ -6,7 +6,7 @@ import {
   PenLine, Star, ChevronRight, ChevronDown, Users,
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
-  ClipboardCheck, Clock,
+  ClipboardCheck, Clock, Trash2,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
@@ -1448,9 +1448,9 @@ function CenterLessonStudents({
 // ─── RIGHT panel: always lesson list ─────────────────────────────────────────
 
 function LessonRow({
-  lesson, selected, onSelect,
+  lesson, selected, onSelect, onDelete,
 }: {
-  lesson: CELesson; selected: boolean; onSelect: () => void
+  lesson: CELesson; selected: boolean; onSelect: () => void; onDelete: () => void
 }) {
   return (
     <motion.button
@@ -1485,16 +1485,35 @@ function LessonRow({
       }}>
         {lesson.title || (lesson.kind === 'test' ? 'Тест без названия' : 'Урок без названия')}
       </span>
-      {/* indicator dots */}
-      <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
-        {lesson.kind === 'test'
-          ? (lesson.testTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title="Вопросы" />
-          : <>
-              {lesson.videoUrl && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-accent)', opacity: 0.7 }} title="Запись" />}
-              {(lesson.hwTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title="ДЗ" />}
-              {((lesson.extraStudentIds?.length ?? 0) + (lesson.extraGroupIds?.length ?? 0)) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#F59E0B', opacity: 0.7 }} title="Доп. ученики" />}
-            </>}
-      </div>
+      {/* When selected — trash to delete; otherwise indicator dots */}
+      {selected ? (
+        <div
+          role="button"
+          aria-label="Удалить"
+          title="Удалить"
+          onClick={e => { e.stopPropagation(); onDelete() }}
+          style={{
+            width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'var(--color-red-text)', background: 'rgba(192,48,58,0.12)', cursor: 'pointer',
+            transition: 'background 0.13s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(192,48,58,0.2)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(192,48,58,0.12)')}
+        >
+          <Trash2 size={13} />
+        </div>
+      ) : (
+        <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
+          {lesson.kind === 'test'
+            ? (lesson.testTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title="Вопросы" />
+            : <>
+                {lesson.videoUrl && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-accent)', opacity: 0.7 }} title="Запись" />}
+                {(lesson.hwTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title="ДЗ" />}
+                {((lesson.extraStudentIds?.length ?? 0) + (lesson.extraGroupIds?.length ?? 0)) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#F59E0B', opacity: 0.7 }} title="Доп. ученики" />}
+              </>}
+        </div>
+      )}
     </motion.button>
   )
 }
@@ -1567,6 +1586,15 @@ function RightPanelLessons({
     }))
   }
 
+  function deleteLesson(lessonId: string) {
+    setCourse(c => ({
+      ...c,
+      lessons: c.lessons.filter(l => l.id !== lessonId),
+      modules: c.modules.map(m => ({ ...m, lessonIds: m.lessonIds.filter(id => id !== lessonId) })),
+    }))
+    if (selectedLessonId === lessonId) onSelectLesson('')
+  }
+
   function moveLessonToModule(lessonId: string, targetModuleId: string, targetIndex: number) {
     setCourse(c => {
       const srcMod = c.modules.find(m => m.lessonIds.includes(lessonId))
@@ -1623,7 +1651,7 @@ function RightPanelLessons({
             onDragStart={() => setDragging(l.id)}
             style={{ cursor: 'grab' }}
           >
-            <LessonRow lesson={l} selected={l.id === selectedLessonId} onSelect={() => onSelectLesson(l.id)} />
+            <LessonRow lesson={l} selected={l.id === selectedLessonId} onSelect={() => onSelectLesson(l.id)} onDelete={() => deleteLesson(l.id)} />
           </div>
         ))}
 
@@ -1695,7 +1723,7 @@ function RightPanelLessons({
                               }}
                               style={{ cursor: 'grab' }}
                             >
-                              <LessonRow lesson={l} selected={l.id === selectedLessonId} onSelect={() => onSelectLesson(l.id)} />
+                              <LessonRow lesson={l} selected={l.id === selectedLessonId} onSelect={() => onSelectLesson(l.id)} onDelete={() => deleteLesson(l.id)} />
                             </div>
                           </div>
                         ))}
