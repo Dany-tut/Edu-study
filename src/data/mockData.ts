@@ -10,6 +10,12 @@ export interface Lesson {
   points?: number
   comment?: string
   subject: string
+  /** DB-authored konspekt + homework override (from lessons.content). */
+  content?: import('./lessonContent').LessonContentData
+  /** "Запись" tab — recording video (RuTube embed id parsed from the URL). */
+  videoId?: string
+  /** "Запись" tab — video chapter timecodes. */
+  timecodes?: import('./lessonContent').LessonTimecode[]
 }
 
 export interface Module {

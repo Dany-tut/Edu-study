@@ -4,11 +4,11 @@ import {
   Users, ChevronUp, ChevronDown, X, Trash2,
   Phone, Send, User,
   TrendingUp, ClipboardCheck, Clock, Award,
-  ChevronsUpDown, ExternalLink, Plus, Copy, Check,
+  ChevronsUpDown, ExternalLink, Copy, Check,
   BarChart2, Target, BookOpen, XCircle, CheckCircle2, Layers,
 } from 'lucide-react'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
-import GroupStrip from '../../components/teacher/GroupStrip'
+import GroupStrip, { type TabConfig } from '../../components/teacher/GroupStrip'
 import {
   type Group, type Student,
 } from '../../data/teacherMockData'
@@ -296,6 +296,179 @@ const inputStyle: React.CSSProperties = {
   padding: '10px 12px', borderRadius: 12,
   border: '1.5px solid var(--color-border-medium)', fontSize: 14,
   outline: 'none', background: 'var(--color-bg-4)', color: 'var(--color-text)',
+}
+
+const SUBJECT_ICONS: Record<string, string> = {
+  'Химия': '🧪', 'Биология': '🧬', 'Физика': '⚡', 'Математика': '📐',
+  'Русский': '📝', 'Литература': '📖', 'История': '🏛️', 'Английский': '🇬🇧',
+}
+
+const INDIV_COLORS = [
+  { color: '#B98FFF', soft: '#EFE0FF' },
+  { color: '#6DBB9A', soft: '#DAF2E8' },
+  { color: '#FF8F6D', soft: '#FFE8DF' },
+  { color: '#6D9BFF', soft: '#DCE8FF' },
+  { color: '#FFB96D', soft: '#FFF1DC' },
+]
+
+// ─── Модалка добавления индивидуального ученика ──────────────────────────────
+function AddIndividualStudentModal({ onClose, onSave }: {
+  onClose: () => void
+  onSave: (s: {
+    name: string; subject: string; icon: string; level: string; color: string; colorSoft: string;
+    phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number
+  }) => Promise<{ inviteToken: string | null }>
+}) {
+  const [name, setName] = useState('')
+  const [subject, setSubject] = useState('Химия')
+  const [level, setLevel] = useState('ЕГЭ')
+  const [colorIdx, setColorIdx] = useState(0)
+  const [phone, setPhone] = useState('')
+  const [telegram, setTelegram] = useState('')
+  const [parent, setParent] = useState('')
+  const [desiredScore, setDesiredScore] = useState(80)
+  const [paymentAmount, setPaymentAmount] = useState(0)
+  const [saving, setSaving] = useState(false)
+  const [inviteLink, setInviteLink] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  async function handleSave() {
+    if (!name.trim()) return
+    setSaving(true)
+    const c = INDIV_COLORS[colorIdx % INDIV_COLORS.length]
+    const { inviteToken } = await onSave({
+      name: name.trim(), subject, icon: SUBJECT_ICONS[subject] ?? '📚',
+      level, color: c.color, colorSoft: c.soft,
+      phone, telegramLink: telegram, parentContact: parent, desiredScore, paymentAmount,
+    })
+    setSaving(false)
+    if (inviteToken) {
+      setInviteLink(`${window.location.origin}${window.location.pathname}#/join?token=${inviteToken}`)
+    } else {
+      onClose()
+    }
+  }
+
+  function copyLink() {
+    if (!inviteLink) return
+    navigator.clipboard.writeText(inviteLink)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 1000,
+      background: 'rgba(0,0,0,0.32)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }} onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.94 }}
+        transition={{ duration: 0.22 }}
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: 'var(--color-bg-input)', borderRadius: 24, padding: 28,
+          width: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+          maxHeight: '90dvh', overflowY: 'auto',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>{inviteLink ? 'Ученик добавлен' : 'Новый ученик 1:1'}</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
+        </div>
+
+        {inviteLink ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ background: 'var(--color-bg-4)', borderRadius: 14, padding: '14px 16px' }}>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 6, fontWeight: 600 }}>ССЫЛКА ДЛЯ РЕГИСТРАЦИИ</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text)', wordBreak: 'break-all', lineHeight: 1.5 }}>{inviteLink}</div>
+            </div>
+            <button onClick={copyLink} style={{
+              width: '100%', padding: '12px 0',
+              background: copied ? '#3FCC8A' : '#9B6DFF',
+              color: '#fff', fontWeight: 700, fontSize: 15,
+              border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.2s',
+            }}>
+              {copied ? '✓ Скопировано' : 'Скопировать ссылку'}
+            </button>
+            <button onClick={onClose} style={{
+              width: '100%', padding: '10px 0',
+              background: 'transparent', color: 'var(--color-muted)', fontWeight: 600, fontSize: 14,
+              border: 'none', cursor: 'pointer',
+            }}>Закрыть</button>
+          </div>
+        ) : (
+          <>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <label style={labelStyle}>
+                Имя *
+                <input value={name} onChange={e => setName(e.target.value)} placeholder="Алиса Смирнова" style={inputStyle} />
+              </label>
+              <label style={labelStyle}>
+                Предмет
+                <TeacherSelect value={subject} onChange={setSubject} placeholder="Предмет" options={Object.keys(SUBJECT_ICONS)} />
+              </label>
+              <label style={labelStyle}>
+                Уровень
+                <TeacherSelect value={level} onChange={setLevel} placeholder="Уровень" options={['ЕГЭ', 'ОГЭ', 'Олимпиада', 'Школьная программа', 'Интенсив']} />
+              </label>
+              <label style={labelStyle}>
+                Телефон
+                <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+7 999 123 45 67" style={inputStyle} />
+              </label>
+              <label style={labelStyle}>
+                Telegram
+                <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder="https://t.me/username" style={inputStyle} />
+              </label>
+              <label style={labelStyle}>
+                Контакт родителя
+                <input value={parent} onChange={e => setParent(e.target.value)} placeholder="+7 999 765 43 21" style={inputStyle} />
+              </label>
+              <label style={labelStyle}>
+                Целевой балл
+                <input type="number" value={desiredScore} onChange={e => setDesiredScore(Number(e.target.value))} min={0} max={100} style={inputStyle} />
+              </label>
+              <label style={labelStyle}>
+                Стоимость занятия (₽)
+                <input
+                  type="number"
+                  value={paymentAmount === 0 ? '' : paymentAmount}
+                  onChange={e => setPaymentAmount(e.target.value === '' ? 0 : Number(e.target.value))}
+                  placeholder="0" min={0} style={inputStyle}
+                />
+              </label>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 8 }}>Цвет</div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  {INDIV_COLORS.map((c, i) => (
+                    <div key={i} onClick={() => setColorIdx(i)} style={{
+                      width: 28, height: 28, borderRadius: '50%', background: c.color,
+                      cursor: 'pointer', outline: colorIdx === i ? `3px solid ${c.color}` : 'none',
+                      outlineOffset: 2,
+                    }} />
+                  ))}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={handleSave}
+              disabled={!name.trim() || saving}
+              style={{
+                marginTop: 22, width: '100%', padding: '12px 0',
+                background: name.trim() ? '#9B6DFF' : 'rgba(155,109,255,0.35)',
+                color: '#fff', fontWeight: 700, fontSize: 15,
+                border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
+              }}
+            >
+              {saving ? 'Сохранение...' : 'Добавить ученика'}
+            </button>
+          </>
+        )}
+      </motion.div>
+    </div>
+  )
 }
 
 const fadeUp = (delay = 0) => ({
@@ -1143,10 +1316,12 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 export default function TeacherGroupsPage() {
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
-  const { groups, loading: groupsLoading, addGroup, deleteGroup } = useGroups()
+  const { groups, loading: groupsLoading, addGroup, addIndividualStudent, deleteGroup } = useGroups()
   const { students, addStudent, deleteStudent } = useStudents(selectedGroupId)
   const [showAddGroup, setShowAddGroup] = useState(false)
   const [showAddStudent, setShowAddStudent] = useState(false)
+  const [showAddIndividual, setShowAddIndividual] = useState(false)
+  const [activeStripTab, setActiveStripTab] = useState<'groups' | 'students'>('groups')
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [activeStudentId, setActiveStudentId] = useState<string | null>(null)
@@ -1170,6 +1345,26 @@ export default function TeacherGroupsPage() {
     }
   }, [openAddGroupModal])
 
+
+  const regularGroups = groups.filter(g => !g.isIndividual)
+  const individualGroups = groups.filter(g => g.isIndividual)
+
+  const stripTabConfig: TabConfig = {
+    tabs: [
+      { id: 'groups', label: 'Группы' },
+      { id: 'students', label: 'Ученики' },
+    ],
+    activeTab: activeStripTab,
+    onTabChange: (id) => {
+      setActiveStripTab(id as 'groups' | 'students')
+      setSelectedGroupId(null)
+      setActiveStudentId(null)
+    },
+    onTabPlusClick: (id) => {
+      if (id === 'groups') setShowAddGroup(true)
+      else setShowAddIndividual(true)
+    },
+  }
 
   const activeGroup = groups.find(g => g.id === selectedGroupId) ?? null
   const groupStudents = activeGroup
@@ -1204,15 +1399,14 @@ export default function TeacherGroupsPage() {
       <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <motion.div {...fadeUp(0.04)}>
           <GroupStrip
-            groups={groups}
+            groups={activeStripTab === 'groups' ? regularGroups : []}
+            individualGroups={activeStripTab === 'students' ? individualGroups : []}
             selectedGroupId={selectedGroupId}
             onSelectGroup={(id) => {
               if (!id) { setSelectedGroupId(null); setActiveStudentId(null) }
               else { setSelectedGroupId(id); setActiveStudentId(null); setSortKey('name'); setSortDir('asc') }
             }}
-            actionLabel={"Создать\nгруппу"}
-            actionIcon={Plus}
-            onAction={() => setShowAddGroup(true)}
+            tabConfig={stripTabConfig}
           />
         </motion.div>
 
@@ -1243,8 +1437,15 @@ export default function TeacherGroupsPage() {
                       <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
                         {activeGroup.name}
                       </span>
+                      {activeGroup.isIndividual && (
+                        <span style={{
+                          fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 6,
+                          background: `${activeGroup.color}22`, color: activeGroup.color,
+                          border: `1px solid ${activeGroup.color}44`,
+                        }}>1:1</span>
+                      )}
                       <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>
-                        · {groupStudents.length} студентов
+                        · {groupStudents.length} студент{groupStudents.length === 1 ? '' : 'ов'}
                       </span>
                     </div>
                   </div>
@@ -1418,6 +1619,15 @@ export default function TeacherGroupsPage() {
           <AddStudentModal
             onClose={() => setShowAddStudent(false)}
             onSave={async (s) => { const { inviteToken } = await addStudent(s); return { inviteToken: inviteToken ?? null } }}
+          />
+        )}
+        {showAddIndividual && (
+          <AddIndividualStudentModal
+            onClose={() => setShowAddIndividual(false)}
+            onSave={async (s) => {
+              const result = await addIndividualStudent(s as Parameters<typeof addIndividualStudent>[0])
+              return { inviteToken: result.inviteToken }
+            }}
           />
         )}
       </AnimatePresence>

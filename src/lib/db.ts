@@ -101,21 +101,22 @@ interface DbProgress {
   status: LessonStatus
   score: number
   comment: string
+  hard_submitted: boolean
 }
 
-export type ProgressMap = Record<string, { status: LessonStatus; score: number; comment: string }>
+export type ProgressMap = Record<string, { status: LessonStatus; score: number; comment: string; hardSubmitted: boolean }>
 
 export async function fetchLessonProgress(studentId: string): Promise<ProgressMap> {
   const { data, error } = await supabase
     .from('lesson_progress')
-    .select('lesson_ref, subject, status, score, comment')
+    .select('lesson_ref, subject, status, score, comment, hard_submitted')
     .eq('student_id', studentId)
 
   if (error || !data) return {}
 
   const map: ProgressMap = {}
   for (const row of data as DbProgress[]) {
-    map[row.lesson_ref] = { status: row.status, score: row.score, comment: row.comment }
+    map[row.lesson_ref] = { status: row.status, score: row.score, comment: row.comment, hardSubmitted: row.hard_submitted }
   }
   return map
 }
@@ -152,8 +153,21 @@ interface DbCourse {
       title: string
       lesson_number: number
       shape: string
+      content?: import('../data/lessonContent').LessonContentData | Record<string, never>
+      youtube_url?: string | null
+      timecodes?: import('../data/lessonContent').LessonTimecode[]
     }>
   }>
+}
+
+/** Extract a RuTube embed id from a pasted video URL (the student player embeds
+ *  rutube.ru/play/embed/<id>). Accepts /video/<id>/, /play/embed/<id>, or a bare id. */
+function rutubeEmbedId(url: string | null | undefined): string | undefined {
+  if (!url) return undefined
+  const m = url.match(/rutube\.ru\/(?:video|play\/embed)\/([0-9a-f]+)/i)
+  if (m) return m[1]
+  if (/^[0-9a-f]{16,}$/i.test(url.trim())) return url.trim()
+  return undefined
 }
 
 export async function fetchCourseStructure(): Promise<Subject[]> {
@@ -163,7 +177,7 @@ export async function fetchCourseStructure(): Promise<Subject[]> {
       id, short_id, title, subject,
       course_modules (
         id, label, position,
-        lessons ( id, short_id, title, lesson_number, shape )
+        lessons ( id, short_id, title, lesson_number, shape, content, youtube_url, timecodes )
       )
     `)
     .eq('status', 'published')
@@ -190,6 +204,11 @@ export async function fetchCourseStructure(): Promise<Subject[]> {
             status: 'locked' as LessonStatus,
             shape: (l.shape as LessonShape) ?? 'circle',
             subject: course.short_id,
+            content: l.content && (l.content as { paragraphs?: unknown[] }).paragraphs?.length
+              ? (l.content as import('../data/lessonContent').LessonContentData)
+              : undefined,
+            videoId: rutubeEmbedId(l.youtube_url),
+            timecodes: Array.isArray(l.timecodes) && l.timecodes.length ? l.timecodes : undefined,
           })),
       })),
   }))
@@ -239,14 +258,18 @@ export interface StudentStats {
 export function computeStats(progress: ProgressMap): StudentStats {
   const entries = Object.values(progress)
   const completed = entries.filter(p => p.status === 'completed')
-  const withScore = completed.filter(p => p.score > 0)
-  const totalPoints = completed.reduce((s, p) => s + (p.score ?? 0), 0)
+  // Include submitted lessons in score stats — the student earned the score
+  // even before the teacher finalises the review.
+  const scored = entries.filter(p => p.status === 'completed' || p.status === 'submitted')
+  const withScore = scored.filter(p => p.score > 0)
+  const totalPoints = scored.reduce((s, p) => s + (p.score ?? 0), 0)
   const avgScore = withScore.length > 0
     ? Math.round(withScore.reduce((s, p) => s + p.score, 0) / withScore.length)
     : 0
   const totalTasks = entries.length
   const performance = totalTasks > 0 ? Math.round((completed.length / totalTasks) * 100) : 0
-  const stars = completed.filter(p => (p.score ?? 0) >= 90).length
+  // Stars are earned only for hard-level tasks (essay), not basic auto-graded tests.
+  const stars = entries.filter(p => p.hardSubmitted && (p.status === 'completed' || p.status === 'submitted')).length
 
   return {
     performance,

@@ -128,10 +128,10 @@
   --color-border-glass: rgba(255,255,255,0);
 
   --color-green-soft: rgba(74,222,128,0.22);
-  --color-yellow-soft: rgba(248,230,80,0.18);
-  --color-red-soft: rgba(248,99,107,0.24);
-  --color-peach-soft: rgba(248,180,100,0.22);
-  --color-purple-soft: rgba(181,122,255,0.42);
+  --color-yellow-soft: rgba(248,230,80,0.28);
+  --color-red-soft: rgba(248,99,107,0.30);
+  --color-peach-soft: rgba(248,180,100,0.32);
+  --color-purple-soft: rgba(181,122,255,0.48);
   --color-rose-soft: rgba(204,75,123,0.22);
   --color-rose-text: #FF80B0;
 
@@ -402,6 +402,7 @@ a {
 }
 .stat-card { padding: 18px 24px; }
 .stat-value { font-size: 56px; }
+.stats-grid[data-triple='true'] .stat-value { font-size: 36px; }
 .stat-label { font-size: 13px; }
 
 /* Quiz answer options */

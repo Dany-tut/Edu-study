@@ -47,6 +47,7 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
       <div
         className="stats-grid h-full"
         data-testid="stats-grid"
+        data-triple={columns >= 3 ? 'true' : undefined}
         style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`, gridTemplateRows: columns >= 3 ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)' }}
       >
         {stats.map(s => (

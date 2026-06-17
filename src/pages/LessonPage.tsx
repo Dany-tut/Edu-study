@@ -764,130 +764,130 @@ export default function LessonPage() {
       </AnimatePresence>
       </div>
 
-      {/* ── Row 1: video + timecodes ── */}
-      <div
-        className="grid lg:grid-cols-[minmax(0,1fr)_320px] items-stretch"
-        style={{
-          gap: 16,
-        }}
-      >
-        {/* Video player */}
+      {/* ── Row 1: video + timecodes — only when recording exists ── */}
+      {detail.videoId && (
         <div
-          className="relative min-w-0"
-          style={{
-            width: '100%',
-            height: '54vh',
-            borderRadius: 24,
-            overflow: 'hidden',
-            background: 'linear-gradient(135deg, #2A2A2C, #111113)',
-            boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
-          }}
+          className="grid lg:grid-cols-[minmax(0,1fr)_320px] items-stretch"
+          style={{ gap: 16 }}
         >
-          {playing ? (
-            <iframe
-              ref={iframeRef}
-              src={`https://rutube.ru/play/embed/${detail.videoId}?t=${startSeconds}`}
-              title={`Видео урока: ${lesson.title}`}
-              allow="clipboard-write; autoplay; fullscreen; encrypted-media; picture-in-picture"
-              allowFullScreen
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }}
-            />
-          ) : (
-            <>
-              <span
-                style={{
-                  position: 'absolute', top: 16, left: 16, zIndex: 2,
-                  fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,0.9)', background: 'rgba(255,255,255,0.14)',
-                  padding: '5px 12px', borderRadius: 999, backdropFilter: 'blur(8px)',
-                }}
-              >
-                {lesson.subject === 'biology' ? 'Биология' : 'Химия'}
-              </span>
-
-              <button
-                onClick={() => playFrom(detail.timecodes[activeChapter]?.seconds ?? 0)}
-                aria-label="Смотреть"
-                className="absolute inset-0 flex items-center justify-center cursor-pointer"
-                style={{ border: 'none', background: 'transparent' }}
-              >
-                <motion.div
-                  whileHover={{ scale: 1.08 }}
-                  whileTap={{ scale: 0.94 }}
+          {/* Video player */}
+          <div
+            className="relative min-w-0"
+            style={{
+              width: '100%',
+              height: '54vh',
+              borderRadius: 24,
+              overflow: 'hidden',
+              background: 'linear-gradient(135deg, #2A2A2C, #111113)',
+              boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
+            }}
+          >
+            {playing ? (
+              <iframe
+                ref={iframeRef}
+                src={`https://rutube.ru/play/embed/${detail.videoId}?t=${startSeconds}`}
+                title={`Видео урока: ${lesson.title}`}
+                allow="clipboard-write; autoplay; fullscreen; encrypted-media; picture-in-picture"
+                allowFullScreen
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }}
+              />
+            ) : (
+              <>
+                <span
                   style={{
-                    width: 76, height: 76, borderRadius: '50%',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: 'rgba(var(--glass-rgb), 0.95)', color: 'var(--color-purple)',
-                    boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
+                    position: 'absolute', top: 16, left: 16, zIndex: 2,
+                    fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
+                    color: 'rgba(255,255,255,0.9)', background: 'rgba(255,255,255,0.14)',
+                    padding: '5px 12px', borderRadius: 999, backdropFilter: 'blur(8px)',
                   }}
                 >
-                  <Play size={30} fill="var(--color-purple)" style={{ marginLeft: 4 }} />
-                </motion.div>
-              </button>
+                  {lesson.subject === 'biology' ? 'Биология' : 'Химия'}
+                </span>
 
-              <span
-                style={{
-                  position: 'absolute', bottom: 16, right: 16, zIndex: 2,
-                  fontSize: 12, fontWeight: 600, color: '#fff',
-                  background: 'rgba(0,0,0,0.5)', padding: '4px 10px', borderRadius: 8,
-                }}
-              >
-                {detail.duration}
-              </span>
-            </>
-          )}
-        </div>
-
-        <div
-          className="flex flex-col h-full"
-          style={{
-            borderRadius: 24,
-            background: 'rgba(var(--glass-rgb), 0.96)',
-            border: '1px solid var(--color-border-soft)',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-            padding: 16,
-            gap: 6,
-            maxHeight: '54vh',
-          }}
-        >
-          <div className="flex items-center" style={{ gap: 8, marginBottom: 6 }}>
-            <ListVideo size={17} style={{ color: '#7B3FCC' }} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Таймкоды</span>
-          </div>
-          <div className="flex flex-col flex-1" style={{ gap: 2, overflowY: 'auto' }}>
-            {detail.timecodes.map((tc, i) => {
-              const active = i === activeChapter
-              return (
                 <button
-                  key={tc.time}
-                  onClick={() => { setActiveChapter(i); playFrom(tc.seconds) }}
-                  className="flex items-center cursor-pointer text-left"
-                  style={{
-                    gap: 10, padding: '9px 10px', borderRadius: 12, border: 'none',
-                    background: active ? 'var(--color-purple-soft)' : 'transparent',
-                    transition: 'background 0.15s ease',
-                  }}
-                  onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg)' }}
-                  onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                  onClick={() => playFrom(detail.timecodes[activeChapter]?.seconds ?? 0)}
+                  aria-label="Смотреть"
+                  className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                  style={{ border: 'none', background: 'transparent' }}
                 >
-                  <span
+                  <motion.div
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.94 }}
                     style={{
-                      fontSize: 12, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-                      color: active ? 'var(--color-accent)' : 'var(--color-text-3)', minWidth: 42, flexShrink: 0,
+                      width: 76, height: 76, borderRadius: '50%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'rgba(var(--glass-rgb), 0.95)', color: 'var(--color-purple)',
+                      boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
                     }}
                   >
-                    {tc.time}
-                  </span>
-                  <span style={{ fontSize: 13.5, fontWeight: active ? 600 : 500, color: active ? 'var(--color-text)' : '#4A4A52' }}>
-                    {tc.label}
-                  </span>
+                    <Play size={30} fill="var(--color-purple)" style={{ marginLeft: 4 }} />
+                  </motion.div>
                 </button>
-              )
-            })}
+
+                <span
+                  style={{
+                    position: 'absolute', bottom: 16, right: 16, zIndex: 2,
+                    fontSize: 12, fontWeight: 600, color: '#fff',
+                    background: 'rgba(0,0,0,0.5)', padding: '4px 10px', borderRadius: 8,
+                  }}
+                >
+                  {detail.duration}
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* Timecodes panel */}
+          <div
+            className="flex flex-col h-full"
+            style={{
+              borderRadius: 24,
+              background: 'rgba(var(--glass-rgb), 0.96)',
+              border: '1px solid var(--color-border-soft)',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+              padding: 16,
+              gap: 6,
+              maxHeight: '54vh',
+            }}
+          >
+            <div className="flex items-center" style={{ gap: 8, marginBottom: 6 }}>
+              <ListVideo size={17} style={{ color: '#7B3FCC' }} />
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Таймкоды</span>
+            </div>
+            <div className="flex flex-col flex-1" style={{ gap: 2, overflowY: 'auto' }}>
+              {detail.timecodes.map((tc, i) => {
+                const active = i === activeChapter
+                return (
+                  <button
+                    key={tc.time}
+                    onClick={() => { setActiveChapter(i); playFrom(tc.seconds) }}
+                    className="flex items-center cursor-pointer text-left"
+                    style={{
+                      gap: 10, padding: '9px 10px', borderRadius: 12, border: 'none',
+                      background: active ? 'var(--color-purple-soft)' : 'transparent',
+                      transition: 'background 0.15s ease',
+                    }}
+                    onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg)' }}
+                    onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 12, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+                        color: active ? 'var(--color-accent)' : 'var(--color-text-3)', minWidth: 42, flexShrink: 0,
+                      }}
+                    >
+                      {tc.time}
+                    </span>
+                    <span style={{ fontSize: 13.5, fontWeight: active ? 600 : 500, color: active ? 'var(--color-text)' : '#4A4A52' }}>
+                      {tc.label}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
         </div>
-
-      </div>
+      )}
 
       {/* ── Row 2: worksheet / notes / materials in a row, homeworks stacked in the 4th column ── */}
       <div

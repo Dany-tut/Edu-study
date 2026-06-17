@@ -1,0 +1,97 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Mobile Token Design System (TDS) — canonical color pairs + button variants.
+// Single source so mobile chips/buttons never hardcode hex or re-roll styles.
+// All values reference CSS vars from index.css → auto-adapt to light/dark.
+// See docs/MOBILE_SPEC.md §2.5 (pairs) / §2.6 (buttons).
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Semantic background-soft ↔ on-soft-text pairs. One pair per meaning — no dups. */
+export type PairName =
+  | 'success' | 'warning' | 'error' | 'review' | 'focus' | 'info' | 'accent2' | 'rose'
+
+export interface ColorPair {
+  /** Soft tinted surface — use as the chip/card background. */
+  bg: string
+  /** Text/icon color that sits on `bg` with AA contrast. */
+  text: string
+}
+
+export const PAIR: Record<PairName, ColorPair> = {
+  success: { bg: 'var(--color-green-soft)',   text: 'var(--color-green-text)' },
+  warning: { bg: 'var(--color-yellow-soft)',  text: 'var(--color-yellow-text)' },
+  error:   { bg: 'var(--color-red-soft)',     text: 'var(--color-red-text)' },
+  review:  { bg: 'var(--color-peach-soft)',   text: 'var(--color-peach-text)' },
+  focus:   { bg: 'var(--color-purple-soft)',  text: 'var(--color-purple-text)' },
+  info:    { bg: 'var(--color-blue-pill-bg)', text: 'var(--color-blue-pill-text)' },
+  accent2: { bg: 'var(--color-teal-pill-bg)', text: 'var(--color-teal-pill-text)' },
+  rose:    { bg: 'var(--color-rose-soft)',    text: 'var(--color-rose-text)' },
+}
+
+/** Map course-track lesson status → semantic pair (kills the cardStyle/TRACK_STATUS dup). */
+export const STATUS_PAIR = {
+  completed: PAIR.success,
+  returned:  PAIR.warning,
+  unviewed:  PAIR.error,
+  submitted: PAIR.review,
+  current:   PAIR.focus,
+} as const
+
+// ── Button variants (§2.6) ───────────────────────────────────────────────────
+export type ButtonVariant = 'primary' | 'glass' | 'ghost' | 'soft'
+
+import type { CSSProperties } from 'react'
+
+/** Returns the canonical style for a button/chip variant. `pair` only used by 'soft'. */
+export function buttonStyle(variant: ButtonVariant, opts?: { pair?: PairName; active?: boolean }): CSSProperties {
+  switch (variant) {
+    case 'primary':
+      return {
+        background: 'var(--color-accent)',
+        color: '#fff',
+        boxShadow: 'var(--shadow-md)',
+        border: '1px solid transparent',
+      }
+    case 'glass':
+      return {
+        background: 'rgba(var(--glass-rgb), 0.72)',
+        backdropFilter: 'blur(16px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        color: 'var(--color-text)',
+        boxShadow: 'var(--shadow-xs)',
+        border: '1px solid var(--color-border-glass)',
+      }
+    case 'ghost':
+      return {
+        background: 'transparent',
+        color: opts?.active ? 'var(--color-text)' : 'var(--color-muted)',
+        border: '1px solid transparent',
+      }
+    case 'soft': {
+      const p = PAIR[opts?.pair ?? 'focus']
+      return {
+        background: p.bg,
+        color: p.text,
+        border: '1px solid transparent',
+      }
+    }
+  }
+}
+
+/** Glass circle used for filter/sort affordances (§1.2) — round, blurred, bordered. */
+export const glassCircle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: 999,
+  background: 'rgba(var(--glass-rgb), 0.72)',
+  backdropFilter: 'blur(16px) saturate(180%)',
+  WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+  border: '1px solid var(--color-border-glass)',
+  boxShadow: 'var(--shadow-pill)',
+  color: 'var(--color-text-2)',
+}
+
+// ── Tactility presets (re-export canon from feedback.ts; never use sound.ts on mobile) ──
+export const JELLY_SPRING = { type: 'spring' as const, stiffness: 420, damping: 26 }
+export const JELLY_EASE = [0.34, 1.46, 0.64, 1] as const
+export const TAP_SCALE = 0.94

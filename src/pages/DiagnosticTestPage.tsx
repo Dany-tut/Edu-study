@@ -6,6 +6,8 @@ import {
   type DiagSubject, type DiagQuestion, type DiagResults,
 } from '../data/diagnosticData'
 import CognitiveScreeningPage from './CognitiveScreeningPage'
+import { captureMistake } from '../data/reviewDeck'
+import { logConfidence } from '../data/confidence'
 
 // ── Subject theme ──────────────────────────────────────────────────────────────
 const THEME: Record<Exclude<DiagSubject, 'logic'>, { accent: string; soft: string; label: string; sublabel: string }> = {
@@ -29,6 +31,7 @@ export default function DiagnosticTestPage() {
 
   const knownSubject = subject as Exclude<DiagSubject, 'logic'>
   const theme = THEME[knownSubject]
+  const askConfidence = params.get('confidence') === '1'  // teacher enables via share link
 
   const [questions, setQuestions] = useState(() => loadDiagQuestions(subject))
   useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
@@ -38,6 +41,7 @@ export default function DiagnosticTestPage() {
   const [current, setCurrent] = useState(0)
   const [chosen, setChosen] = useState<Record<string, number>>({})  // questionId → option index
   const [results, setResults] = useState<DiagResults>({})
+  const [confident, setConfident] = useState<boolean | null>(null)  // confidence for current question
 
   const q: DiagQuestion | undefined = questions[current]
   const total = questions.length
@@ -46,8 +50,13 @@ export default function DiagnosticTestPage() {
 
   function pick(idx: number) {
     if (!q || chosen[q.id] !== undefined) return
+    if (askConfidence && confident === null) return  // must rate confidence first
     setChosen(prev => ({ ...prev, [q!.id]: idx }))
+    if (askConfidence && confident !== null) {
+      logConfidence({ anonName: studentName.trim() || 'Аноним', subject, source: 'diagnostic', confident, correct: idx === q!.correct })
+    }
     setTimeout(() => {
+      setConfident(null)
       if (current < total - 1) {
         setCurrent(c => c + 1)
       } else {
@@ -58,12 +67,15 @@ export default function DiagnosticTestPage() {
 
   async function finishTest(answers: Record<string, number>) {
     const res: DiagResults = {}
+    const name = studentName.trim() || 'Аноним'
     for (const dq of questions) {
       if (!res[dq.section]) res[dq.section] = { correct: 0, total: 0 }
       res[dq.section].total++
       if (answers[dq.id] === dq.correct) res[dq.section].correct++
+      // Wrong answers seed the spaced-repetition review deck.
+      else captureMistake({ anonName: name, subject, source: 'diagnostic', prompt: dq.text, answer: dq.options[dq.correct], options: dq.options })
     }
-    await appendAnonResult({ name: studentName.trim() || 'Аноним', subject, results: res, answers })
+    await appendAnonResult({ name, subject, results: res, answers })
     setResults(res)
     setStep('done')
   }
@@ -323,8 +335,26 @@ export default function DiagnosticTestPage() {
               {q.text}
             </div>
 
+            {/* Confidence gate — shown when teacher enabled it; must pick before answering */}
+            {askConfidence && picked === undefined && (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 8 }}>Насколько уверен в ответе?</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {([[true, 'Уверен', '#22c55e'], [false, 'Не уверен', '#f59e0b']] as [boolean, string, string][]).map(([val, label, col]) => (
+                    <button key={label} onClick={() => setConfident(val)}
+                      style={{ flex: 1, padding: '10px 0', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
+                        border: `1.5px solid ${confident === val ? col : 'var(--color-border-medium)'}`,
+                        background: confident === val ? `${col}1a` : 'var(--color-bg-2)',
+                        color: confident === val ? col : 'var(--color-text-2)', transition: 'all 0.14s' }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Options */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, opacity: askConfidence && picked === undefined && confident === null ? 0.45 : 1, pointerEvents: askConfidence && picked === undefined && confident === null ? 'none' : 'auto', transition: 'opacity 0.15s' }}>
               {q.options.map((opt, idx) => {
                 const isChosen = picked === idx
                 const isCorrect = q.correct === idx

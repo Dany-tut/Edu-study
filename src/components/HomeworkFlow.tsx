@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase'
 import { getStudentSession } from '../lib/studentSession'
 import { playUnlock, playPop, vibrate } from '../lib/sound'
 import { useDashboard } from '../store/dashboardStore'
+import { useStudentData } from '../store/studentDataStore'
 import HardStarLottie from './HardStarLottie'
 import PartyPopperLottie from './PartyPopperLottie'
 
@@ -601,17 +602,24 @@ export default function HomeworkFlow({
     setState(current => ({ ...current, hardFiles: [...current.hardFiles, fileName] }))
   }
 
-  async function submitToSupabase(_level: 'basic' | 'hard', score: number, comment: string) {
+  async function submitToSupabase(level: 'basic' | 'hard', score: number, comment: string) {
     const session = getStudentSession()
     if (!session?.id) return
+    // Basic level is auto-graded — mark completed immediately if score meets threshold.
+    // Hard level (essay) always goes to submitted and awaits teacher review.
+    const status = level === 'basic' && score >= homework.recommendationScore
+      ? 'completed'
+      : 'submitted'
+    const ref = level === 'hard' ? `${lessonId}-hard` : lessonId
     await supabase.from('lesson_progress').upsert({
       student_id: session.id,
-      lesson_ref: lessonId,
+      lesson_ref: ref,
       subject,
-      status: 'submitted',
+      status,
       score,
       comment,
     }, { onConflict: 'student_id,lesson_ref' })
+    useStudentData.getState().load()
   }
 
   const submitHard = () => {
@@ -821,26 +829,18 @@ export default function HomeworkFlow({
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={SPRING}
-        className="flex flex-col"
-        style={{
-          borderRadius: 32,
-          overflow: 'hidden',
-          background: 'rgba(var(--glass-rgb), 0.98)',
-          border: '1px solid var(--color-border-glass)',
-          boxShadow: '0 24px 80px rgba(17, 12, 34, 0.12)',
-        }}
-      >
-      <div
-        className="grid grid-cols-1 lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)] items-stretch"
-        style={{ gap: 0 }}
+        className="grid grid-cols-1 lg:grid-cols-[minmax(260px,300px)_minmax(0,1fr)] items-start"
+        style={{ gap: 16 }}
       >
         <aside
           className="flex flex-col"
           style={{
             padding: 16,
-            gap: 16,
-            borderRight: '1px solid var(--color-border-soft)',
-            background: 'linear-gradient(180deg, rgba(250,250,252,0.98), rgba(245,245,247,0.98))',
+            gap: 12,
+            borderRadius: 28,
+            background: 'rgba(var(--glass-rgb), 0.98)',
+            border: '1px solid var(--color-border-glass)',
+            boxShadow: '0 8px 32px rgba(17, 12, 34, 0.08)',
           }}
         >
           <div
@@ -929,11 +929,11 @@ export default function HomeworkFlow({
                   <span
                     key={item}
                     style={{
-                      padding: '9px 12px',
+                      padding: '5px 10px',
                       borderRadius: 999,
                       background: 'rgba(var(--glass-rgb), 0.82)',
                       color: 'var(--color-accent)',
-                      fontSize: 13,
+                      fontSize: 11,
                       fontWeight: 650,
                     }}
                   >
@@ -948,11 +948,7 @@ export default function HomeworkFlow({
 
         <main
           className="flex flex-col"
-          style={{
-            padding: 24,
-            gap: 20,
-            background: 'radial-gradient(circle at top right, rgba(197,139,255,0.10), transparent 28%), #F8F8FA',
-          }}
+          style={{ gap: 16 }}
         >
           {selectedLevel === 'basic' ? (
             <div className="flex flex-col" style={{ gap: 18 }}>
@@ -1414,7 +1410,6 @@ export default function HomeworkFlow({
             </div>
           )}
         </main>
-      </div>
       </motion.div>
     </div>
     </>

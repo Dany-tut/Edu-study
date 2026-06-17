@@ -38,10 +38,10 @@ function getShapeClass(_shape: LessonShape, _isSquare: boolean): string {
 type HardStatus = 'submitted' | 'returned' | 'completed'
 
 export const HARD_STYLE: Record<HardStatus | 'available', { bg: string; border: string; iconColor: string; label: string }> = {
-  available:  { bg: 'var(--color-purple-soft)', border: '#C58BFF', iconColor: '#7B3FCC', label: 'Доступен хард' },
-  submitted:  { bg: 'var(--color-peach-soft)',  border: '#F8A84B', iconColor: '#8A4A00', label: 'На проверке' },
-  returned:   { bg: 'var(--color-yellow-soft)', border: '#F0D060', iconColor: '#7A6000', label: 'Возвращён' },
-  completed:  { bg: 'var(--color-yellow-soft)', border: '#F5C842', iconColor: '#7A5800', label: 'Сдан' },
+  available:  { bg: 'var(--color-purple-soft)', border: '#C58BFF', iconColor: '#C58BFF', label: 'Доступен хард' },
+  submitted:  { bg: 'var(--color-peach-soft)',  border: '#F8A84B', iconColor: '#F8A84B', label: 'На проверке' },
+  returned:   { bg: 'var(--color-yellow-soft)', border: '#F0D060', iconColor: '#F0D060', label: 'Возвращён' },
+  completed:  { bg: 'var(--color-yellow-soft)', border: '#F5C842', iconColor: '#F5C842', label: 'Сдан' },
 }
 
 interface Props {
@@ -118,17 +118,17 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
         }}
         className="absolute inset-0 flex items-center justify-center cursor-pointer focus-visible:outline-none"
         style={{
-          background: style.bg,
+          background: `linear-gradient(${style.bg}, ${style.bg}), var(--color-bg-3)`,
           border: `2px solid ${style.border}`,
           borderRadius: isDiamond ? 12 : isSquare ? 16 : 999,
           rotate: isDiamond ? '45deg' : '0deg',
         }}
         aria-label={`Урок ${lesson.number}: ${lesson.title}`}
       >
-        <div style={{ rotate: isDiamond ? '-45deg' : '0deg' }}>
+        <div style={{ rotate: isDiamond ? '-45deg' : '0deg', filter: 'brightness(1.9) saturate(1.1)' }}>
           {isCustom || isMissedCurrentLesson
-            ? <Icon color={style.iconColor} size={20} />
-            : <Icon size={20} style={{ color: style.iconColor }} strokeWidth={displayStatus === 'current' ? 2.5 : 2} />
+            ? <Icon color={style.iconColor} size={17} />
+            : <Icon size={17} style={{ color: style.iconColor }} strokeWidth={displayStatus === 'current' ? 2.5 : 2} />
           }
         </div>
       </motion.button>
