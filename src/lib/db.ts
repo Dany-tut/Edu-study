@@ -170,7 +170,7 @@ function rutubeEmbedId(url: string | null | undefined): string | undefined {
   return undefined
 }
 
-export async function fetchCourseStructure(): Promise<Subject[]> {
+export async function fetchCourseStructure(studentId: string, groupId: string): Promise<Subject[]> {
   const { data, error } = await supabase
     .from('courses')
     .select(`
@@ -181,6 +181,7 @@ export async function fetchCourseStructure(): Promise<Subject[]> {
       )
     `)
     .eq('status', 'published')
+    .or(`student_ids.cs.{${studentId}},group_ids.cs.{${groupId}}`)
     .order('created_at', { ascending: true })
 
   if (error || !data || data.length === 0) return []

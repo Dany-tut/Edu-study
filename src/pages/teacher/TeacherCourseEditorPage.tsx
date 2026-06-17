@@ -5,7 +5,7 @@ import {
   BookOpen, AlignLeft, CheckSquare, Type, Shuffle,
   PenLine, Star, ChevronRight, ChevronDown, Users,
   X, FileText, NotebookPen, FolderOpen, Layers,
-  GripVertical, ChevronLeft, Unlock, Check,
+  GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
@@ -23,6 +23,11 @@ interface HWTask {
   type: HWTaskType
   isHard: boolean
   label: string
+  question?: string
+  answer?: string
+  choices?: string[]
+  correctChoices?: number[]
+  pairs?: Array<{ left: string; right: string }>
 }
 
 export interface CELesson {
@@ -548,6 +553,313 @@ function CenterLesson({
   )
 }
 
+// ─── Calendar picker ─────────────────────────────────────────────────────────
+
+const navBtnSt: React.CSSProperties = {
+  width: 26, height: 26, borderRadius: 8, border: 'none',
+  background: 'var(--color-bg-2)', cursor: 'pointer', display: 'flex',
+  alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)',
+}
+const RU_MONTHS_CAL = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь']
+const RU_DAYS_SHORT = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс']
+
+function parseDateDot(s: string): Date | null {
+  const m = s.match(/^(\d{2})\.(\d{2})\.(\d{4})$/)
+  if (!m) return null
+  return new Date(+m[3], +m[2]-1, +m[1])
+}
+function formatDateDot(d: Date) {
+  return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`
+}
+function todayDotStr() {
+  const d = new Date()
+  return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`
+}
+
+function CalendarPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const parsed = parseDateDot(value)
+  const todayDate = parseDateDot(todayDotStr())!
+  const [viewYear, setViewYear] = useState(() => parsed ? parsed.getFullYear() : todayDate.getFullYear())
+  const [viewMonth, setViewMonth] = useState(() => parsed ? parsed.getMonth() : todayDate.getMonth())
+
+  useEffect(() => {
+    if (!open) return
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [open])
+
+  function prevMonth() { viewMonth === 0 ? (setViewMonth(11), setViewYear(y => y-1)) : setViewMonth(m => m-1) }
+  function nextMonth() { viewMonth === 11 ? (setViewMonth(0), setViewYear(y => y+1)) : setViewMonth(m => m+1) }
+
+  const firstDay = new Date(viewYear, viewMonth, 1)
+  const startOffset = (firstDay.getDay() + 6) % 7
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
+  const cells: (number | null)[] = [...Array(startOffset).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)]
+  while (cells.length % 7 !== 0) cells.push(null)
+
+  function pickDay(day: number) {
+    onChange(formatDateDot(new Date(viewYear, viewMonth, day)))
+    setOpen(false)
+  }
+
+  const todayStr = todayDotStr()
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+          padding: '7px 10px', borderRadius: 11, border: '1.5px solid var(--color-border-medium)',
+          cursor: 'pointer', background: value ? 'var(--color-purple-soft)' : 'var(--color-bg-input)',
+          fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s', fontSize: 12,
+        }}
+      >
+        <Calendar size={13} style={{ flexShrink: 0, color: value ? 'var(--color-accent)' : 'var(--color-text-3)' }} />
+        <span style={{ flex: 1, color: value ? 'var(--color-accent)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400 }}>
+          {value || 'Выберите дату'}
+        </span>
+        {value && (
+          <button onClick={e => { e.stopPropagation(); onChange('') }}
+            style={{ width: 18, height: 18, borderRadius: 5, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-accent)', flexShrink: 0, padding: 0 }}>
+            <X size={9} />
+          </button>
+        )}
+        <ChevronDown size={11} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ duration: 0.16 }}
+            style={{
+              position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 999, minWidth: 260,
+              background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-medium)',
+              borderRadius: 16, boxShadow: '0 8px 32px rgba(123,63,204,0.14)', padding: '14px 12px 12px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <button style={navBtnSt} onClick={prevMonth}><ChevronLeft size={13} /></button>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{RU_MONTHS_CAL[viewMonth]} {viewYear}</span>
+              <button style={navBtnSt} onClick={nextMonth}><ChevronRight size={13} /></button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
+              {RU_DAYS_SHORT.map(d => (
+                <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: 'var(--color-text-4)', padding: '2px 0' }}>{d}</div>
+              ))}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
+              {cells.map((day, idx) => {
+                if (!day) return <div key={idx} />
+                const thisStr = formatDateDot(new Date(viewYear, viewMonth, day))
+                const isSelected = thisStr === value
+                const isToday = thisStr === todayStr
+                return (
+                  <button key={idx} onClick={() => pickDay(day)} style={{
+                    width: '100%', aspectRatio: '1', borderRadius: 8, border: 'none',
+                    cursor: 'pointer', fontSize: 12, fontWeight: isSelected || isToday ? 700 : 400,
+                    background: isSelected ? 'var(--color-accent)' : isToday ? 'var(--color-purple-soft)' : 'transparent',
+                    color: isSelected ? '#fff' : isToday ? 'var(--color-accent)' : 'var(--color-text)',
+                    transition: 'background 0.12s',
+                  }}>
+                    {day}
+                  </button>
+                )
+              })}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10 }}>
+              <button onClick={() => { onChange(''); setOpen(false) }}
+                style={{ fontSize: 12, color: 'var(--color-muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+                Очистить
+              </button>
+              <button onClick={() => { onChange(todayStr); setOpen(false) }}
+                style={{ fontSize: 12, color: 'var(--color-accent)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700 }}>
+                Сегодня
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+// ─── Task card (inline editor, same design as TeacherHomeworkCreatePage) ─────
+
+function HWTaskCard({ task, index, onUpdate, onDelete }: {
+  task: HWTask; index: number
+  onUpdate: (t: HWTask) => void
+  onDelete: () => void
+}) {
+  const cfg = TASK_TYPES.find(x => x.type === task.type)!
+  const [expanded, setExpanded] = useState(true)
+  const choices = task.choices ?? ['', '', '', '']
+  const correctChoices = task.correctChoices ?? [0]
+  const pairs = task.pairs ?? [{ left: '', right: '' }, { left: '', right: '' }]
+
+  return (
+    <GlassCard style={{ overflow: 'hidden' }}>
+      {/* Header */}
+      <div
+        onClick={() => setExpanded(e => !e)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px',
+          borderBottom: expanded ? '1px solid var(--color-border-soft)' : 'none',
+          cursor: 'pointer',
+        }}
+      >
+        <GripVertical size={13} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} onClick={e => e.stopPropagation()} />
+        {task.isHard && <Star size={12} style={{ color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />}
+        <div style={{
+          fontSize: 11, fontWeight: 700, color: cfg.color, background: cfg.bg,
+          borderRadius: 7, padding: '2px 8px', flexShrink: 0,
+        }}>
+          {index + 1}. {cfg.label}
+        </div>
+        <div style={{ flex: 1, fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {task.question || <span style={{ fontStyle: 'italic' }}>без текста</span>}
+        </div>
+        <button
+          onClick={e => { e.stopPropagation(); onDelete() }}
+          style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+        >
+          <X size={12} />
+        </button>
+        <div style={{ color: 'var(--color-text-4)', flexShrink: 0 }}>
+          {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+        </div>
+      </div>
+
+      {/* Body */}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {/* Question */}
+              <textarea
+                value={task.question ?? ''}
+                onChange={e => onUpdate({ ...task, question: e.target.value })}
+                placeholder="Условие задания..."
+                style={{ ...inputSt, resize: 'none', minHeight: 72, fontSize: 13, lineHeight: 1.55 }}
+              />
+
+              {/* Choice options */}
+              {task.type === 'choice' && (
+                <div>
+                  <Label>Варианты ответа</Label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {choices.map((ch, ci) => (
+                      <div key={ci} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <button
+                          onClick={() => {
+                            const isCorrect = correctChoices.includes(ci)
+                            onUpdate({ ...task, correctChoices: isCorrect ? correctChoices.filter(x => x !== ci) : [...correctChoices, ci] })
+                          }}
+                          style={{
+                            width: 22, height: 22, borderRadius: 6, border: '2px solid',
+                            borderColor: correctChoices.includes(ci) ? 'var(--color-accent)' : 'var(--color-border)',
+                            background: correctChoices.includes(ci) ? 'var(--color-accent)' : 'transparent',
+                            cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          }}
+                        >
+                          {correctChoices.includes(ci) && <Check size={12} style={{ color: '#fff' }} />}
+                        </button>
+                        <input
+                          value={ch}
+                          onChange={e => { const next = [...choices]; next[ci] = e.target.value; onUpdate({ ...task, choices: next }) }}
+                          placeholder={`Вариант ${ci + 1}`}
+                          style={{ ...inputSt, flex: 1 }}
+                        />
+                        {choices.length > 2 && (
+                          <button
+                            onClick={() => {
+                              const next = choices.filter((_, i) => i !== ci)
+                              const correct = correctChoices.filter(i => i !== ci).map(i => i > ci ? i - 1 : i)
+                              onUpdate({ ...task, choices: next, correctChoices: correct })
+                            }}
+                            style={{ width: 22, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+                          >
+                            <X size={11} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => onUpdate({ ...task, choices: [...choices, ''] })}
+                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                    >
+                      <Plus size={12} /> Добавить вариант
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Match pairs */}
+              {task.type === 'match' && (
+                <div>
+                  <Label>Пары для сопоставления</Label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {pairs.map((pair, pi) => (
+                      <div key={pi} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <input
+                          value={pair.left}
+                          onChange={e => { const next = [...pairs]; next[pi] = { ...pair, left: e.target.value }; onUpdate({ ...task, pairs: next }) }}
+                          placeholder={`Левая ${pi + 1}`}
+                          style={{ ...inputSt, flex: 1 }}
+                        />
+                        <div style={{ color: 'var(--color-text-4)', fontSize: 16, flexShrink: 0 }}>↔</div>
+                        <input
+                          value={pair.right}
+                          onChange={e => { const next = [...pairs]; next[pi] = { ...pair, right: e.target.value }; onUpdate({ ...task, pairs: next }) }}
+                          placeholder={`Правая ${pi + 1}`}
+                          style={{ ...inputSt, flex: 1 }}
+                        />
+                        {pairs.length > 2 && (
+                          <button
+                            onClick={() => onUpdate({ ...task, pairs: pairs.filter((_, i) => i !== pi) })}
+                            style={{ width: 22, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+                          >
+                            <X size={11} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => onUpdate({ ...task, pairs: [...pairs, { left: '', right: '' }] })}
+                      style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+                    >
+                      <Plus size={12} /> Добавить пару
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Answer for text / fill */}
+              {(task.type === 'text' || task.type === 'fill') && (
+                <input
+                  value={task.answer ?? ''}
+                  onChange={e => onUpdate({ ...task, answer: e.target.value })}
+                  placeholder="Эталонный ответ..."
+                  style={inputSt}
+                />
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </GlassCard>
+  )
+}
+
 // ─── CENTER: Homework tab (left panel + task list) ────────────────────────────
 
 function CenterHomework({
@@ -559,12 +871,21 @@ function CenterHomework({
   const tasks = lesson.hwTasks ?? []
 
   function addTask(type: HWTaskType, isHard: boolean) {
-    const newTask: HWTask = { id: uid(), type, isHard, label: typeLabel[type] }
+    const newTask: HWTask = {
+      id: uid(), type, isHard, label: typeLabel[type],
+      choices: type === 'choice' ? ['', '', '', ''] : undefined,
+      correctChoices: type === 'choice' ? [0] : undefined,
+      pairs: type === 'match' ? [{ left: '', right: '' }, { left: '', right: '' }] : undefined,
+    }
     onUpdate({ ...lesson, hwTasks: [...tasks, newTask] })
   }
 
   function removeTask(id: string) {
     onUpdate({ ...lesson, hwTasks: tasks.filter(t => t.id !== id) })
+  }
+
+  function updateTask(updated: HWTask) {
+    onUpdate({ ...lesson, hwTasks: tasks.map(t => t.id === updated.id ? updated : t) })
   }
 
   const hardTaskTypes = TASK_TYPES.filter(t => t.type === 'text' || t.type === 'choice')
@@ -585,11 +906,9 @@ function CenterHomework({
           </div>
           <div>
             <Label>Срок сдачи</Label>
-            <input
-              type="date"
+            <CalendarPicker
               value={lesson.hwDate ?? ''}
-              onChange={e => onUpdate({ ...lesson, hwDate: e.target.value })}
-              style={{ ...inputSt, padding: '7px 10px', fontSize: 12 }}
+              onChange={v => onUpdate({ ...lesson, hwDate: v })}
             />
           </div>
         </div>
@@ -652,41 +971,26 @@ function CenterHomework({
         </div>
 
         {/* Right: task list */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px' }}>
           {tasks.length === 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 180, gap: 10 }}>
-              <BookOpen size={36} style={{ opacity: 0.2, color: 'var(--color-muted)' }} />
-              <span style={{ fontSize: 14, color: 'var(--color-muted)' }}>Нажмите «+ Задание», чтобы добавить</span>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, gap: 10 }}>
+              <BookOpen size={36} style={{ opacity: 0.15, color: 'var(--color-muted)' }} />
+              <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>Выберите тип задания слева</span>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {tasks.map((task, i) => {
-                const t = TASK_TYPES.find(x => x.type === task.type)
-                return (
-                  <div key={task.id} style={{
-                    display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px',
-                    background: 'var(--color-bg-2)', borderRadius: 14,
-                    border: task.isHard ? '1.5px solid var(--color-yellow-text,#B45309)' : '1px solid var(--color-border-soft)',
-                  }}>
-                    <GripVertical size={14} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-                    {task.isHard && <Star size={13} style={{ color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />}
-                    <div style={{ width: 28, height: 28, borderRadius: 8, background: t?.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      {t && <t.Icon size={13} style={{ color: t.color }} />}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>Задание {i + 1}</span>
-                      <span style={{ fontSize: 12, color: 'var(--color-muted)', marginLeft: 6 }}>
-                        {typeLabel[task.type]}{task.isHard && ' · Сложный уровень'}
-                      </span>
-                    </div>
-                    <button onClick={() => removeTask(task.id)}
-                      style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-muted)', display: 'flex', padding: 2 }}>
-                      <X size={13} />
-                    </button>
-                  </div>
-                )
-              })}
-            </div>
+            <AnimatePresence>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {tasks.map((task, i) => (
+                  <HWTaskCard
+                    key={task.id}
+                    task={task}
+                    index={i}
+                    onUpdate={updateTask}
+                    onDelete={() => removeTask(task.id)}
+                  />
+                ))}
+              </div>
+            </AnimatePresence>
           )}
         </div>
 
@@ -934,6 +1238,8 @@ function RightPanelLessons({
   const [newTitle, setNewTitle] = useState('')
   const [addingModule, setAddingModule] = useState(false)
   const [newModuleLabel, setNewModuleLabel] = useState('')
+  const [dragging, setDragging] = useState<string | null>(null)
+  const [dropTarget, setDropTarget] = useState<{ moduleId: string; index: number } | null>(null)
 
   function addLesson() {
     const t = newTitle.trim()
@@ -970,32 +1276,90 @@ function RightPanelLessons({
     }))
   }
 
+  function moveLessonToModule(lessonId: string, targetModuleId: string, targetIndex: number) {
+    setCourse(c => {
+      const srcMod = c.modules.find(m => m.lessonIds.includes(lessonId))
+      let insertIndex = targetIndex
+      if (srcMod?.id === targetModuleId) {
+        const srcIdx = srcMod.lessonIds.indexOf(lessonId)
+        if (targetIndex > srcIdx) insertIndex--
+      }
+      const mods = c.modules.map(m => ({ ...m, lessonIds: m.lessonIds.filter(id => id !== lessonId) }))
+      return {
+        ...c,
+        modules: mods.map(m => {
+          if (m.id !== targetModuleId) return m
+          const ids = [...m.lessonIds]
+          ids.splice(Math.max(0, insertIndex), 0, lessonId)
+          return { ...m, lessonIds: ids }
+        }),
+      }
+    })
+  }
+
+  function clearDrag() { setDragging(null); setDropTarget(null) }
+
+  const DropLine = () => (
+    <div style={{ height: 2, background: 'var(--color-accent)', borderRadius: 2, margin: '2px 0', pointerEvents: 'none' }} />
+  )
+
   const groupedIds = new Set(course.modules.flatMap(m => m.lessonIds))
   const ungrouped = course.lessons.filter(l => !groupedIds.has(l.id))
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div
+      style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+      onDragEnd={clearDrag}
+    >
       <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Уроки</span>
         <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>{course.lessons.length} шт.</span>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 10px' }}>
+      <div
+        style={{ flex: 1, overflowY: 'auto', padding: '8px 10px' }}
+        onDragOver={e => e.preventDefault()}
+        onDrop={e => {
+          e.preventDefault()
+          if (dragging && dropTarget) moveLessonToModule(dragging, dropTarget.moduleId, dropTarget.index)
+          clearDrag()
+        }}
+      >
         {ungrouped.map(l => (
-          <LessonRow key={l.id} lesson={l} selected={l.id === selectedLessonId} onSelect={() => onSelectLesson(l.id)} />
+          <div
+            key={l.id}
+            draggable
+            onDragStart={() => setDragging(l.id)}
+            style={{ cursor: 'grab' }}
+          >
+            <LessonRow lesson={l} selected={l.id === selectedLessonId} onSelect={() => onSelectLesson(l.id)} />
+          </div>
         ))}
 
         {course.modules.map(mod => {
           const modLessons = mod.lessonIds
             .map(id => course.lessons.find(l => l.id === id))
             .filter(Boolean) as CELesson[]
+          const isTarget = dropTarget?.moduleId === mod.id
           return (
             <div key={mod.id} style={{ marginBottom: 6 }}>
-              <button onClick={() => toggleModule(mod.id)} style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: 6,
-                padding: '7px 10px', borderRadius: 10, border: 'none',
-                background: 'var(--color-bg-2)', cursor: 'pointer', fontFamily: 'inherit',
-              }}>
+              <button
+                onClick={() => toggleModule(mod.id)}
+                onDragOver={e => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  if (!mod.expanded) {
+                    setCourse(c => ({ ...c, modules: c.modules.map(m => m.id === mod.id ? { ...m, expanded: true } : m) }))
+                  }
+                  setDropTarget({ moduleId: mod.id, index: modLessons.length })
+                }}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '7px 10px', borderRadius: 10, border: 'none',
+                  background: dragging && isTarget && !mod.expanded ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
+                  cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.13s',
+                }}
+              >
                 {mod.expanded
                   ? <ChevronDown size={12} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                   : <ChevronRight size={12} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />}
@@ -1012,14 +1376,40 @@ function RightPanelLessons({
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.18 }}
                     style={{ overflow: 'hidden', paddingLeft: 10 }}
+                    onDragOver={e => {
+                      e.preventDefault()
+                      if (dropTarget?.moduleId !== mod.id) {
+                        setDropTarget({ moduleId: mod.id, index: modLessons.length })
+                      }
+                    }}
                   >
-                    {modLessons.map(l => (
-                      <LessonRow key={l.id} lesson={l} selected={l.id === selectedLessonId} onSelect={() => onSelectLesson(l.id)} />
-                    ))}
-                    {modLessons.length === 0 && (
-                      <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '6px 10px', fontStyle: 'italic' }}>
-                        Нет уроков
-                      </div>
+                    {modLessons.length === 0 ? (
+                      isTarget
+                        ? <DropLine />
+                        : <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '6px 10px', fontStyle: 'italic' }}>Нет уроков</div>
+                    ) : (
+                      <>
+                        {modLessons.map((l, i) => (
+                          <div key={l.id}>
+                            {isTarget && dropTarget!.index === i && <DropLine />}
+                            <div
+                              draggable
+                              onDragStart={e => { e.stopPropagation(); setDragging(l.id) }}
+                              onDragOver={e => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                const rect = e.currentTarget.getBoundingClientRect()
+                                const index = e.clientY < rect.top + rect.height / 2 ? i : i + 1
+                                setDropTarget({ moduleId: mod.id, index })
+                              }}
+                              style={{ cursor: 'grab' }}
+                            >
+                              <LessonRow lesson={l} selected={l.id === selectedLessonId} onSelect={() => onSelectLesson(l.id)} />
+                            </div>
+                          </div>
+                        ))}
+                        {isTarget && dropTarget!.index === modLessons.length && <DropLine />}
+                      </>
                     )}
                   </motion.div>
                 )}
@@ -1173,8 +1563,18 @@ export default function TeacherCourseEditorPage() {
     setTimeout(() => setSavedFlash(false), 2000)
   }
 
+  async function syncAccessToSupabase(c: CourseEdData) {
+    const shortId = c.dbCourseId ?? c.id
+    await supabase
+      .from('courses')
+      .update({ group_ids: c.groupIds, student_ids: c.studentIds, status: c.status })
+      .eq('short_id', shortId)
+  }
+
   function handleSave(overrideCourse?: CourseEdData) {
-    setCourseEdited(JSON.stringify(overrideCourse ?? course))
+    const c = overrideCourse ?? course
+    setCourseEdited(JSON.stringify(c))
+    syncAccessToSupabase(c)
     flash()
   }
 
@@ -1182,6 +1582,7 @@ export default function TeacherCourseEditorPage() {
     const updated = { ...course, status: 'published' as const }
     setCourse(updated)
     setCourseEdited(JSON.stringify(updated))
+    syncAccessToSupabase(updated)
     flash()
   }
 
