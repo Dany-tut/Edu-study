@@ -6,7 +6,7 @@ import {
   PenLine, Star, ChevronRight, ChevronDown, Users,
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
-  ClipboardCheck, Clock, Trash2,
+  ClipboardCheck, Clock, Trash2, FolderInput,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
@@ -53,6 +53,8 @@ export interface CELesson {
   hwTitle?: string
   hwTarget?: string
   hwDate?: string
+  /** true once the teacher edits the homework due date by hand — stops it mirroring the lesson date. */
+  hwDateManual?: boolean
   hwTasks?: HWTask[]
   // calendar scheduling
   scheduledDate?: string   // DD.MM.YYYY
@@ -443,7 +445,7 @@ function CenterLesson({
             </span>
             {lesson.scheduledDate && (
               <button
-                onClick={() => onUpdate({ ...lesson, scheduledDate: undefined, scheduledTime: undefined, scheduledDuration: undefined })}
+                onClick={() => onUpdate({ ...lesson, scheduledDate: undefined, scheduledTime: undefined, scheduledDuration: undefined, ...(lesson.hwDateManual ? {} : { hwDate: undefined }) })}
                 style={{ marginLeft: 'auto', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-4)', padding: 0 }}
               >
                 <X size={13} />
@@ -455,7 +457,13 @@ function CenterLesson({
               <Label>Дата</Label>
               <CalendarPicker
                 value={lesson.scheduledDate ?? ''}
-                onChange={v => onUpdate({ ...lesson, scheduledDate: v || undefined })}
+                onChange={v => {
+                  const next: CELesson = { ...lesson, scheduledDate: v || undefined }
+                  // Mirror the lesson date into the homework due date until the teacher
+                  // sets it by hand (hwDateManual). Cleared lesson date clears the mirror too.
+                  if (!lesson.hwDateManual) next.hwDate = v || undefined
+                  onUpdate(next)
+                }}
               />
             </div>
             <div>
@@ -1065,7 +1073,9 @@ function CenterHomework({
             <Label>Срок сдачи</Label>
             <CalendarPicker
               value={lesson.hwDate ?? ''}
-              onChange={v => onUpdate({ ...lesson, hwDate: v })}
+              // Editing the due date by hand detaches it from the lesson date (saved separately);
+              // clearing it re-attaches so it resumes mirroring the lesson date.
+              onChange={v => onUpdate({ ...lesson, hwDate: v, hwDateManual: !!v })}
             />
           </div>
         </div>
@@ -1451,20 +1461,23 @@ function CenterLessonStudents({
 // ─── RIGHT panel: always lesson list ─────────────────────────────────────────
 
 function LessonRow({
-  lesson, selected, onSelect, onDelete,
+  lesson, selected, isOpen, checked, multiMode, onClick, onDelete,
 }: {
-  lesson: CELesson; selected: boolean; onSelect: () => void; onDelete: () => void
+  lesson: CELesson; selected: boolean; isOpen?: boolean
+  checked?: boolean; multiMode?: boolean
+  onClick: (e: React.MouseEvent) => void; onDelete: () => void
 }) {
   return (
     <motion.button
-      onClick={onSelect}
+      onClick={onClick}
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
       style={{
         width: '100%', display: 'flex', alignItems: 'center', gap: 8,
         padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
-        background: selected ? 'var(--color-purple-soft)' : 'transparent',
-        transition: 'background 0.13s', fontFamily: 'inherit', textAlign: 'left',
+        background: checked || selected ? 'var(--color-purple-soft)' : 'transparent',
+        boxShadow: checked ? 'inset 0 0 0 1.5px var(--color-accent)' : undefined,
+        transition: 'background 0.13s, box-shadow 0.13s', fontFamily: 'inherit', textAlign: 'left',
         marginBottom: 2,
       }}
     >
@@ -1488,8 +1501,29 @@ function LessonRow({
       }}>
         {lesson.title || (lesson.kind === 'test' ? 'Тест без названия' : 'Урок без названия')}
       </span>
-      {/* When selected — trash to delete; otherwise indicator dots */}
-      {selected ? (
+      {/* Open-for-students badge */}
+      {isOpen && (
+        <span title="Открыт ученикам" style={{
+          display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0,
+          padding: '2px 7px 2px 5px', borderRadius: 999,
+          background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
+          fontSize: 10, fontWeight: 700,
+        }}>
+          <Unlock size={9} strokeWidth={2.5} /> Открыт
+        </span>
+      )}
+      {/* Multi-select check → checkmark; selected → trash; otherwise indicator dots */}
+      {multiMode ? (
+        <div style={{
+          width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: checked ? 'var(--color-accent)' : 'transparent',
+          border: checked ? 'none' : '1.5px solid var(--color-border)',
+          color: '#fff', transition: 'background 0.13s',
+        }}>
+          {checked && <Check size={11} strokeWidth={3} />}
+        </div>
+      ) : selected ? (
         <div
           role="button"
           aria-label="Удалить"
@@ -1522,54 +1556,52 @@ function LessonRow({
 }
 
 function RightPanelLessons({
-  course, setCourse, selectedLessonId, onSelectLesson,
+  course, setCourse, selectedLessonId, onSelectLesson, openLessonNumbers,
 }: {
   course: CourseEdData
   setCourse: React.Dispatch<React.SetStateAction<CourseEdData>>
   selectedLessonId: string | null
   onSelectLesson: (id: string) => void
+  openLessonNumbers: Set<number>
 }) {
   const [newTitle, setNewTitle] = useState('')
   const [addingModule, setAddingModule] = useState(false)
   const [newModuleLabel, setNewModuleLabel] = useState('')
   const [dragging, setDragging] = useState<string | null>(null)
   const [dropTarget, setDropTarget] = useState<{ moduleId: string; index: number } | null>(null)
+  // Multi-select (Shift/Ctrl) + active-module target for new lessons
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [anchorId, setAnchorId] = useState<string | null>(null)
+  const [activeModuleId, setActiveModuleId] = useState<string | null>(null)
+  const [moveMenuOpen, setMoveMenuOpen] = useState(false)
+
+  // Append a new lesson into the active module (falls back to the last one).
+  function appendLesson(lesson: CELesson) {
+    setCourse(c => {
+      const updatedLessons = [...c.lessons, lesson]
+      if (c.modules.length === 0) return { ...c, lessons: updatedLessons }
+      const targetId = activeModuleId && c.modules.some(m => m.id === activeModuleId)
+        ? activeModuleId
+        : c.modules[c.modules.length - 1].id
+      const mods = c.modules.map(m =>
+        m.id === targetId ? { ...m, lessonIds: [...m.lessonIds, lesson.id] } : m
+      )
+      return { ...c, lessons: updatedLessons, modules: mods }
+    })
+  }
 
   function addLesson() {
     const t = newTitle.trim()
     if (!t) return
     const lessonId = uid()
-    const lesson: CELesson = { id: lessonId, title: t, number: course.lessons.length + 1 }
-    setCourse(c => {
-      const updatedLessons = [...c.lessons, lesson]
-      if (c.modules.length > 0) {
-        const mods = c.modules.map((m, i) =>
-          i === c.modules.length - 1 ? { ...m, lessonIds: [...m.lessonIds, lessonId] } : m
-        )
-        return { ...c, lessons: updatedLessons, modules: mods }
-      }
-      return { ...c, lessons: updatedLessons }
-    })
+    appendLesson({ id: lessonId, title: t, number: course.lessons.length + 1 })
     setNewTitle('')
     onSelectLesson(lessonId)
   }
 
   function addTest() {
     const lessonId = uid()
-    const test: CELesson = {
-      id: lessonId, title: 'Финальный тест', number: course.lessons.length + 1,
-      kind: 'test', testTasks: [],
-    }
-    setCourse(c => {
-      const updatedLessons = [...c.lessons, test]
-      if (c.modules.length > 0) {
-        const mods = c.modules.map((m, i) =>
-          i === c.modules.length - 1 ? { ...m, lessonIds: [...m.lessonIds, lessonId] } : m
-        )
-        return { ...c, lessons: updatedLessons, modules: mods }
-      }
-      return { ...c, lessons: updatedLessons }
-    })
+    appendLesson({ id: lessonId, title: 'Финальный тест', number: course.lessons.length + 1, kind: 'test', testTasks: [] })
     onSelectLesson(lessonId)
   }
 
@@ -1628,6 +1660,66 @@ function RightPanelLessons({
   const groupedIds = new Set(course.modules.flatMap(m => m.lessonIds))
   const ungrouped = course.lessons.filter(l => !groupedIds.has(l.id))
 
+  // Lesson ids in visual (top-to-bottom) order — drives Shift range-select.
+  const orderedIds = [
+    ...ungrouped.map(l => l.id),
+    ...course.modules.flatMap(m => m.lessonIds.filter(id => course.lessons.some(l => l.id === id))),
+  ]
+
+  const multiMode = selectedIds.size > 0
+
+  function clearSelection() { setSelectedIds(new Set()); setAnchorId(null); setMoveMenuOpen(false) }
+
+  // Click on a lesson row. Plain → open it. Ctrl/Cmd → toggle in selection.
+  // Shift → select the contiguous range from the anchor.
+  function handleRowClick(id: string, e: React.MouseEvent) {
+    if (e.shiftKey && anchorId) {
+      const a = orderedIds.indexOf(anchorId)
+      const b = orderedIds.indexOf(id)
+      if (a !== -1 && b !== -1) {
+        const [lo, hi] = a < b ? [a, b] : [b, a]
+        setSelectedIds(new Set(orderedIds.slice(lo, hi + 1)))
+      }
+      return
+    }
+    if (e.metaKey || e.ctrlKey) {
+      setSelectedIds(prev => {
+        const next = new Set(prev)
+        if (next.has(id)) next.delete(id)
+        else next.add(id)
+        return next
+      })
+      setAnchorId(id)
+      return
+    }
+    clearSelection()
+    setAnchorId(id)
+    onSelectLesson(id)
+  }
+
+  // Move every selected lesson into a module (appended, keeping their order).
+  function bulkMoveToModule(targetModuleId: string) {
+    const ids = orderedIds.filter(id => selectedIds.has(id))
+    setCourse(c => {
+      const mods = c.modules.map(m => ({ ...m, lessonIds: m.lessonIds.filter(id => !selectedIds.has(id)) }))
+      return {
+        ...c,
+        modules: mods.map(m => m.id === targetModuleId ? { ...m, lessonIds: [...m.lessonIds, ...ids] } : m),
+      }
+    })
+    clearSelection()
+  }
+
+  function bulkDelete() {
+    setCourse(c => ({
+      ...c,
+      lessons: c.lessons.filter(l => !selectedIds.has(l.id)),
+      modules: c.modules.map(m => ({ ...m, lessonIds: m.lessonIds.filter(id => !selectedIds.has(id)) })),
+    }))
+    if (selectedLessonId && selectedIds.has(selectedLessonId)) onSelectLesson('')
+    clearSelection()
+  }
+
   return (
     <div
       style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
@@ -1637,6 +1729,90 @@ function RightPanelLessons({
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Уроки</span>
         <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>{course.lessons.length} шт.</span>
       </div>
+
+      {/* Bulk-action bar — visible once one or more lessons are multi-selected */}
+      <AnimatePresence>
+        {multiMode && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.16 }}
+            style={{ flexShrink: 0, overflow: 'visible', borderBottom: '1px solid var(--color-border-soft)', position: 'relative', zIndex: 5 }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', background: 'var(--color-purple-soft)' }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', flex: 1 }}>
+                Выбрано: {selectedIds.size}
+              </span>
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setMoveMenuOpen(o => !o)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 4, padding: '5px 9px', borderRadius: 8,
+                    border: 'none', background: 'var(--color-accent)', color: '#fff', cursor: 'pointer',
+                    fontSize: 11, fontWeight: 700, fontFamily: 'inherit',
+                  }}
+                >
+                  <FolderInput size={12} /> В модуль
+                </button>
+                <AnimatePresence>
+                  {moveMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.13 }}
+                      style={{
+                        position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 20,
+                        minWidth: 160, maxHeight: 240, overflowY: 'auto', padding: 4,
+                        borderRadius: 10, background: 'var(--color-bg-card, var(--color-bg))',
+                        border: '1px solid var(--color-border)', boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
+                      }}
+                    >
+                      {course.modules.length === 0 ? (
+                        <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '8px 10px' }}>Нет модулей</div>
+                      ) : course.modules.map(m => (
+                        <button
+                          key={m.id}
+                          onClick={() => bulkMoveToModule(m.id)}
+                          style={{
+                            width: '100%', textAlign: 'left', padding: '7px 10px', borderRadius: 7,
+                            border: 'none', background: 'transparent', cursor: 'pointer',
+                            fontSize: 12, fontWeight: 600, color: 'var(--color-text)', fontFamily: 'inherit',
+                          }}
+                          onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-2)')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                        >
+                          {m.label}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              <button
+                onClick={bulkDelete}
+                title="Удалить выбранные"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 4, padding: '5px 9px', borderRadius: 8,
+                  border: 'none', background: 'rgba(192,48,58,0.14)', color: 'var(--color-red-text)',
+                  cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit',
+                }}
+              >
+                <Trash2 size={12} /> Удалить
+              </button>
+              <button
+                onClick={clearSelection}
+                title="Снять выделение"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26,
+                  borderRadius: 8, border: 'none', background: 'transparent', color: 'var(--color-text-3)', cursor: 'pointer',
+                }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div
         style={{ flex: 1, overflowY: 'auto', padding: '8px 10px' }}
@@ -1654,7 +1830,7 @@ function RightPanelLessons({
             onDragStart={() => setDragging(l.id)}
             style={{ cursor: 'grab' }}
           >
-            <LessonRow lesson={l} selected={l.id === selectedLessonId} onSelect={() => onSelectLesson(l.id)} onDelete={() => deleteLesson(l.id)} />
+            <LessonRow lesson={l} selected={l.id === selectedLessonId} isOpen={openLessonNumbers.has(l.number)} checked={selectedIds.has(l.id)} multiMode={multiMode} onClick={e => handleRowClick(l.id, e)} onDelete={() => deleteLesson(l.id)} />
           </div>
         ))}
 
@@ -1663,36 +1839,57 @@ function RightPanelLessons({
             .map(id => course.lessons.find(l => l.id === id))
             .filter(Boolean) as CELesson[]
           const isTarget = dropTarget?.moduleId === mod.id
+          const isActive = activeModuleId === mod.id
           return (
             <div key={mod.id} style={{ marginBottom: 6 }}>
               <button
-                onClick={() => toggleModule(mod.id)}
+                onClick={() => {
+                  setActiveModuleId(prev => prev === mod.id ? null : mod.id)
+                  if (!mod.expanded) toggleModule(mod.id)
+                }}
+                title="Новые уроки будут добавляться в этот модуль"
                 onDragOver={e => {
                   e.preventDefault()
                   e.stopPropagation()
-                  if (!mod.expanded) {
-                    setCourse(c => ({ ...c, modules: c.modules.map(m => m.id === mod.id ? { ...m, expanded: true } : m) }))
-                  }
+                  // Don't auto-expand collapsed modules — just mark this one as the
+                  // drop target (lesson lands at the end) and let the highlight show it.
                   setDropTarget({ moduleId: mod.id, index: modLessons.length })
                 }}
                 style={{
                   width: '100%', display: 'flex', alignItems: 'center', gap: 6,
                   padding: '7px 10px', borderRadius: 10, border: 'none',
-                  background: dragging && isTarget && !mod.expanded ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
-                  cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.13s',
+                  background: isActive || (dragging && isTarget) ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
+                  boxShadow: (dragging && isTarget) || isActive ? 'inset 0 0 0 1.5px var(--color-accent)' : undefined,
+                  cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.13s, box-shadow 0.13s',
                 }}
               >
-                <ChevronDown
-                  size={13}
-                  style={{
-                    color: 'var(--color-muted)', flexShrink: 0,
-                    transform: mod.expanded ? 'rotate(0deg)' : 'rotate(-90deg)',
-                    transition: 'transform 0.18s ease',
-                  }}
-                />
-                <span style={{ flex: 1, fontSize: 12, fontWeight: 700, color: 'var(--color-text)', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span
+                  role="button"
+                  aria-label={mod.expanded ? 'Свернуть' : 'Развернуть'}
+                  onClick={e => { e.stopPropagation(); toggleModule(mod.id) }}
+                  style={{ display: 'flex', flexShrink: 0, cursor: 'pointer', padding: 1, margin: -1 }}
+                >
+                  <ChevronDown
+                    size={13}
+                    style={{
+                      color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
+                      transform: mod.expanded ? 'rotate(0deg)' : 'rotate(-90deg)',
+                      transition: 'transform 0.18s ease',
+                    }}
+                  />
+                </span>
+                <span style={{ flex: 1, fontSize: 12, fontWeight: 700, color: isActive ? 'var(--color-accent)' : 'var(--color-text)', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {mod.label}
                 </span>
+                {dragging && isTarget && !mod.expanded ? (
+                  <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-bg)', borderRadius: 999, padding: '2px 6px', flexShrink: 0 }}>
+                    в конец
+                  </span>
+                ) : isActive && (
+                  <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-bg)', borderRadius: 999, padding: '2px 6px', flexShrink: 0 }}>
+                    сюда
+                  </span>
+                )}
                 <span style={{ fontSize: 10, color: 'var(--color-muted)', flexShrink: 0 }}>{modLessons.length}</span>
               </button>
               <AnimatePresence>
@@ -1731,7 +1928,7 @@ function RightPanelLessons({
                               }}
                               style={{ cursor: 'grab' }}
                             >
-                              <LessonRow lesson={l} selected={l.id === selectedLessonId} onSelect={() => onSelectLesson(l.id)} onDelete={() => deleteLesson(l.id)} />
+                              <LessonRow lesson={l} selected={l.id === selectedLessonId} isOpen={openLessonNumbers.has(l.number)} checked={selectedIds.has(l.id)} multiMode={multiMode} onClick={e => handleRowClick(l.id, e)} onDelete={() => deleteLesson(l.id)} />
                             </div>
                           </div>
                         ))}
@@ -1850,7 +2047,36 @@ export default function TeacherCourseEditorPage() {
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null)
   const [lessonMode, setLessonMode] = useState<LessonMode>('recording')
   const [openingLesson, setOpeningLesson] = useState(false)
-  const [openedLessonId, setOpenedLessonId] = useState<string | null>(null)
+  const [openLessonNumbers, setOpenLessonNumbers] = useState<Set<number>>(new Set())
+
+  // Load which lessons are already open for students (any non-locked progress).
+  useEffect(() => {
+    if (!course.dbCourseId) return
+    let cancelled = false
+    ;(async () => {
+      const { data: courseRow } = await supabase
+        .from('courses')
+        .select('lessons(short_id, lesson_number)')
+        .eq('short_id', course.dbCourseId)
+        .single()
+      const lessons = (courseRow?.lessons ?? []) as Array<{ short_id: string; lesson_number: number }>
+      if (lessons.length === 0) return
+      const refToNumber = new Map(lessons.map(l => [l.short_id, l.lesson_number]))
+      const { data: progress } = await supabase
+        .from('lesson_progress')
+        .select('lesson_ref, status')
+        .in('lesson_ref', lessons.map(l => l.short_id))
+        .neq('status', 'locked')
+      if (cancelled) return
+      const open = new Set<number>()
+      for (const row of (progress ?? []) as Array<{ lesson_ref: string; status: string }>) {
+        const n = refToNumber.get(row.lesson_ref)
+        if (n != null) open.add(n)
+      }
+      setOpenLessonNumbers(open)
+    })()
+    return () => { cancelled = true }
+  }, [course.dbCourseId])
   const [savedFlash, setSavedFlash] = useState(false)
 
   async function openLessonForStudents(lessonNumber: number) {
@@ -1870,8 +2096,7 @@ export default function TeacherCourseEditorPage() {
         .update({ status: 'current' })
         .eq('lesson_ref', lessonShortId)
         .eq('status', 'locked')
-      setOpenedLessonId(selectedLessonId)
-      setTimeout(() => setOpenedLessonId(null), 3000)
+      setOpenLessonNumbers(prev => new Set(prev).add(lessonNumber))
     } finally {
       setOpeningLesson(false)
     }
@@ -2003,7 +2228,7 @@ export default function TeacherCourseEditorPage() {
 
     // Sync scheduled lessons to calendar
     const scheduledLessons = c.lessons.filter(l => l.scheduledDate && l.scheduledTime)
-    if (scheduledLessons.length === 0 || c.groupIds.length === 0) return
+    if (scheduledLessons.length === 0 || (c.groupIds.length === 0 && c.studentIds.length === 0)) return
 
     // Fetch course row + lessons from DB to get UUIDs
     const { data: courseRow } = await supabase
@@ -2034,18 +2259,23 @@ export default function TeacherCourseEditorPage() {
       const isoDate = dotToIso(lesson.scheduledDate!)
       const timeStart = lesson.scheduledTime!
       const timeEnd = addMinutes(timeStart, lesson.scheduledDuration ?? 90)
+      const base = {
+        lesson_id: dbLesson.id,
+        date: isoDate,
+        time_start: timeStart,
+        time_end: timeEnd,
+        lesson_title: lesson.title || dbLesson.title,
+        lesson_number: lesson.number,
+        subject: c.subject,
+        status: 'upcoming',
+      }
+      // Group-scoped rows (seen by every student in the group)…
       for (const groupId of c.groupIds) {
-        rows.push({
-          lesson_id: dbLesson.id,
-          group_id: groupId,
-          date: isoDate,
-          time_start: timeStart,
-          time_end: timeEnd,
-          lesson_title: lesson.title || dbLesson.title,
-          lesson_number: lesson.number,
-          subject: c.subject,
-          status: 'scheduled',
-        })
+        rows.push({ ...base, group_id: groupId, student_id: null })
+      }
+      // …and rows for students assigned to the course directly.
+      for (const studentId of c.studentIds) {
+        rows.push({ ...base, group_id: null, student_id: studentId })
       }
     }
 
@@ -2224,7 +2454,7 @@ export default function TeacherCourseEditorPage() {
                       {selectedLesson.title || 'Урок без названия'}
                     </span>
                     {course.dbCourseId && (() => {
-                      const isOpened = openedLessonId === selectedLesson.id
+                      const isOpened = openLessonNumbers.has(selectedLesson.number)
                       return (
                         <motion.button
                           whileHover={{ scale: 1.04 }}
@@ -2313,6 +2543,7 @@ export default function TeacherCourseEditorPage() {
           <RightPanelLessons
             course={course} setCourse={setCourse}
             selectedLessonId={selectedLessonId} onSelectLesson={handleSelectLesson}
+            openLessonNumbers={openLessonNumbers}
           />
         </GlassCard>
 
