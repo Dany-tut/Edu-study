@@ -252,6 +252,11 @@ const STATUS_LABEL: Record<CourseStatus, string> = { published: 'Опублик�
 const STATUS_COLOR: Record<CourseStatus, string> = { published: 'var(--color-green-text)', draft: 'var(--color-peach-text)' }
 const STATUS_BG:   Record<CourseStatus, string> = { published: 'var(--color-green-soft)', draft: 'var(--color-peach-soft)' }
 
+// Module-level cache — survives page remounts (navigate away and back)
+let _cachedCourses: Course[] | null = null
+let _cachedTrainers: Trainer[] | null = null
+let _cachedWidgets: Widget[] | null = null
+
 // ─── DB → local mappers ───────────────────────────────────────────────────────
 function fmtDate(iso: string | null | undefined) {
   if (!iso) return ''
@@ -5522,10 +5527,10 @@ export default function TeacherConstructorPage() {
   const [editTrainer, setEditTrainer] = useState<Trainer | null>(null)
   const [editWidget, setEditWidget] = useState<Widget | null>(null)
   const [selectedTrainerId, setSelectedTrainerId] = useState<string | null>(null)
-  const [courses, setCourses] = useState<Course[]>([])
-  const [trainers, setTrainers] = useState<Trainer[]>([])
-  const [widgets, setWidgets] = useState<Widget[]>([])
-  const [dbLoading, setDbLoading] = useState(true)
+  const [courses, setCourses] = useState<Course[]>(_cachedCourses ?? [])
+  const [trainers, setTrainers] = useState<Trainer[]>(_cachedTrainers ?? [])
+  const [widgets, setWidgets] = useState<Widget[]>(_cachedWidgets ?? [])
+  const [dbLoading, setDbLoading] = useState(_cachedCourses === null)
   const [editMode, setEditMode] = useState(false)
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set())
 
@@ -5536,13 +5541,19 @@ export default function TeacherConstructorPage() {
         supabase.from('trainers').select('*').order('created_at'),
         supabase.from('widgets').select('*').order('created_at'),
       ])
-      setCourses(cData ? cData.map(dbCourseToLocal) : [])
-      setTrainers(tData ? tData.map(dbTrainerToLocal) : [])
-      setWidgets(wData ? wData.map(dbWidgetToLocal) : [])
+      const c = cData ? cData.map(dbCourseToLocal) : []
+      const t = tData ? tData.map(dbTrainerToLocal) : []
+      const w = wData ? wData.map(dbWidgetToLocal) : []
+      _cachedCourses = c; _cachedTrainers = t; _cachedWidgets = w
+      setCourses(c); setTrainers(t); setWidgets(w)
       setDbLoading(false)
     }
     loadAll()
   }, [])
+
+  useEffect(() => { _cachedCourses = courses }, [courses])
+  useEffect(() => { _cachedTrainers = trainers }, [trainers])
+  useEffect(() => { _cachedWidgets = widgets }, [widgets])
 
   const [bankFilters, setBankFilters] = useState<TrainerFilters>(emptyTrainerFilters)
   const [widgetFilters, setWidgetFilters] = useState<WidgetFilters>(emptyWidgetFilters)

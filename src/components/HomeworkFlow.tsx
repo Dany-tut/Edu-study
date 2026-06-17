@@ -948,7 +948,7 @@ export default function HomeworkFlow({
 
         <main
           className="flex flex-col"
-          style={{ gap: 16 }}
+          style={{ gap: 16, paddingBottom: 100 }}
         >
           {selectedLevel === 'basic' ? (
             <div className="flex flex-col" style={{ gap: 18 }}>
@@ -975,8 +975,8 @@ export default function HomeworkFlow({
                         ? (basicScore >= homework.recommendationScore ? 'rgba(123,63,204,0.12)' : 'rgba(248,201,145,0.26)')
                         : 'rgba(0,0,0,0.05)',
                       color: state.basicSubmitted
-                        ? (basicScore >= homework.recommendationScore ? '#7B3FCC' : '#8A4A00')
-                        : '#50505A',
+                        ? (basicScore >= homework.recommendationScore ? '#7B3FCC' : 'var(--color-yellow-text)')
+                        : 'var(--color-muted)',
                     }}>
                       {state.basicSubmitted
                         ? (basicScore >= homework.recommendationScore ? <Trophy size={20} /> : <CircleAlert size={20} />)
@@ -1085,7 +1085,7 @@ export default function HomeworkFlow({
                             padding: '9px 12px',
                             borderRadius: 14,
                             background: isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
-                            color: isCorrect ? '#2A7D4F' : '#A8282D',
+                            color: isCorrect ? 'var(--color-green-text)' : 'var(--color-red-text)',
                             fontSize: 13,
                             fontWeight: 700,
                             maxWidth: 220,
@@ -1144,15 +1144,15 @@ export default function HomeworkFlow({
                         style={{
                           padding: '14px 16px',
                           borderRadius: 18,
-                          background: isCorrect ? 'rgba(223,248,214,0.42)' : 'rgba(255,225,228,0.44)',
-                          border: '1px solid var(--color-border-soft)',
+                          background: isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
+                          border: `1px solid ${isCorrect ? 'rgba(110,231,160,0.38)' : 'rgba(244,139,145,0.38)'}`,
                         }}
                       >
                         <p
                           style={{
                             fontSize: 12,
                             fontWeight: 800,
-                            color: isCorrect ? '#2A7D4F' : '#A8282D',
+                            color: isCorrect ? 'var(--color-green-text)' : 'var(--color-red-text)',
                             marginBottom: 6,
                           }}
                         >
