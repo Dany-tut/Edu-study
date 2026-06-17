@@ -380,3 +380,61 @@ export function findChemistryLessonByTitle(
   }
   return null
 }
+
+// ─── Teacher: student active courses ─────────────────────────────────────────
+export interface StudentCourseInfo {
+  id: string
+  title: string
+  subject: string
+  totalLessons: number
+  completedLessons: number
+}
+
+export async function fetchStudentActiveCourses(
+  authUserId: string,
+  groupId: string,
+): Promise<StudentCourseInfo[]> {
+  const { data: courses } = await supabase
+    .from('courses')
+    .select('id, title, subject')
+    .or(`student_ids.cs.{${authUserId}},group_ids.cs.{${groupId}}`)
+
+  if (!courses || courses.length === 0) return []
+
+  const results: StudentCourseInfo[] = []
+  for (const course of courses) {
+    const { count: totalLessons } = await supabase
+      .from('lessons')
+      .select('id', { count: 'exact', head: true })
+      .eq('course_id', course.id)
+
+    const { data: lessonRefs } = await supabase
+      .from('lessons')
+      .select('short_id')
+      .eq('course_id', course.id)
+      .not('short_id', 'is', null)
+
+    const shortIds = (lessonRefs ?? []).map((l: any) => l.short_id as string)
+
+    let completedLessons = 0
+    if (shortIds.length > 0) {
+      const { count } = await supabase
+        .from('lesson_progress')
+        .select('id', { count: 'exact', head: true })
+        .eq('student_id', authUserId)
+        .eq('status', 'done')
+        .in('lesson_ref', shortIds)
+      completedLessons = count ?? 0
+    }
+
+    results.push({
+      id: course.id,
+      title: course.title,
+      subject: course.subject ?? '',
+      totalLessons: totalLessons ?? 0,
+      completedLessons,
+    })
+  }
+
+  return results
+}

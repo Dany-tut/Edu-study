@@ -22,6 +22,7 @@ export type Group = {
 
 export type Student = {
   id: string
+  authUserId?: string
   groupId: string
   name: string
   phone: string

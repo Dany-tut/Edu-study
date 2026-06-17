@@ -147,6 +147,7 @@ export function useStudents(groupId: string | null) {
         inviteToken: s.invite_token ?? null,
         email: s.email ?? '',
         tempPassword: s.temp_password ?? '',
+        authUserId: s.auth_user_id ?? null,
       })))
     }
     setLoading(false)

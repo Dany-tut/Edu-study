@@ -14,6 +14,7 @@ import {
 } from '../../data/teacherMockData'
 import { useGroups, useStudents } from '../../lib/useGroups'
 import { useTeacher } from '../../store/teacherStore'
+import { fetchStudentActiveCourses, type StudentCourseInfo } from '../../lib/db'
 
 // ─── Цвета для выбора группы ─────────────────────────────────────────────────
 const GROUP_COLORS = [
@@ -1044,6 +1045,57 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
   )
 }
 
+function StudentCoursesSection({ student, group }: { student: Student; group: Group }) {
+  const [courses, setCourses] = useState<StudentCourseInfo[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!student.authUserId) { setLoading(false); return }
+    fetchStudentActiveCourses(student.authUserId, student.groupId)
+      .then(c => { setCourses(c); setLoading(false) })
+  }, [student.id, student.authUserId, student.groupId])
+
+  if (!student.authUserId && !loading) return null
+
+  return (
+    <section>
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
+        Активные курсы
+      </div>
+      {loading ? (
+        <div style={{ fontSize: 12, color: 'var(--color-text-3)', padding: '8px 0' }}>Загрузка...</div>
+      ) : courses.length === 0 ? (
+        <div style={{ fontSize: 12, color: 'var(--color-text-3)', padding: '8px 0' }}>Нет активных курсов</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {courses.map(c => {
+            const pct = c.totalLessons > 0 ? c.completedLessons / c.totalLessons : 0
+            return (
+              <div key={c.id} style={{ background: 'var(--color-bg)', borderRadius: 12, padding: '10px 12px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, flex: 1 }}>{c.title}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: group.color, flexShrink: 0 }}>
+                    {c.completedLessons}/{c.totalLessons}
+                  </span>
+                </div>
+                <div style={{ height: 5, background: 'var(--color-bg-5)', borderRadius: 99, overflow: 'hidden' }}>
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pct * 100}%` }}
+                    transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ height: '100%', background: group.color, borderRadius: 99 }}
+                  />
+                </div>
+                <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 3 }}>{Math.round(pct * 100)}% пройдено</div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </section>
+  )
+}
+
 function StudentPanel({
   student, group, onClose, onDelete, onOpenFullCard,
 }: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void }) {
@@ -1171,6 +1223,9 @@ function StudentPanel({
             </div>
           </div>
         </section>
+
+        {/* Active courses */}
+        <StudentCoursesSection student={student} group={group} />
 
         {/* Goal */}
         <section>
