@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo, useRef, useEffect, type ReactNode } from 'react'
 import ScrollFade from '../components/ScrollFade'
 import { useFloatingPill } from '../lib/useFloatingPill'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -16,6 +16,13 @@ import { useDashboard } from '../store/dashboardStore'
 import { useTrainerProgress } from '../store/trainerProgressStore'
 import { subjectTheme, PURPLE } from '../lib/theme'
 import { useTheme } from '../store/themeStore'
+import { useIsDesktop } from '../lib/useIsDesktop'
+import MobileScreen from '../components/MobileScreen'
+import MobileBottomNav from '../components/MobileBottomNav'
+import MobileSheet from '../components/MobileSheet'
+import MobilePill from '../components/MobilePill'
+import { glassCircle } from '../lib/mobileTokens'
+import { tactile } from '../lib/feedback'
 
 type StatusFilter = 'all' | 'done' | 'undone'
 type SortMode = 'newest' | 'oldest' | 'subject' | 'line'
@@ -1078,6 +1085,8 @@ function ProgressModal({
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function TaskBankPage() {
   const { dark } = useTheme()
+  const isDesktop = useIsDesktop()
+  const [sheet, setSheet] = useState<'filters' | 'sort' | 'search' | null>(null)
   const setActivePage = useDashboard(s => s.setActivePage)
   const docked        = useDashboard(s => s.lessonScrolled)
   const activeSubjectId = useDashboard(s => s.activeSubjectId)

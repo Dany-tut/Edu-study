@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft, Plus, Send, Video, Link2, Upload,
@@ -137,6 +138,44 @@ function GlassCard({ children, style }: { children: React.ReactNode; style?: Rea
   )
 }
 
+// ─── Scroll-fade: top/bottom gradient masks that appear only while scrollable ──
+// Top fade shows once scrolled down; bottom fade shows while more content lies
+// below. Neither is painted when the content fits (no permanent edge fade).
+// Uses ResizeObserver + a per-render sync (Claude Preview never fires rAF).
+
+function useScrollFade() {
+  const ref = useRef<HTMLDivElement>(null)
+  const [fade, setFade] = useState({ top: false, bottom: false })
+  const update = () => {
+    const el = ref.current
+    if (!el) return
+    const top = el.scrollTop > 1
+    const bottom = el.scrollTop + el.clientHeight < el.scrollHeight - 1
+    setFade(f => (f.top === top && f.bottom === bottom) ? f : { top, bottom })
+  }
+  // Runs after every render so added/removed/expanded rows re-evaluate overflow.
+  useEffect(() => { update() })
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  return { ref, fade, update }
+}
+
+function ScrollFadeMask({ side, show }: { side: 'top' | 'bottom'; show: boolean }) {
+  return (
+    <div style={{
+      position: 'absolute', left: 0, right: 0, height: 28, pointerEvents: 'none', zIndex: 3,
+      [side]: 0,
+      background: `linear-gradient(to ${side === 'top' ? 'bottom' : 'top'}, rgba(var(--glass-rgb), 0.95), rgba(var(--glass-rgb), 0))`,
+      opacity: show ? 1 : 0, transition: 'opacity 0.18s ease',
+    }} />
+  )
+}
+
 // ─── Task type definitions ────────────────────────────────────────────────────
 
 const TASK_TYPES: { type: HWTaskType; label: string; hint: string; Icon: React.ElementType; color: string; bg: string }[] = [
@@ -152,9 +191,49 @@ const typeLabel: Record<HWTaskType, string> = {
   fill: 'Вписать слово', match: 'Сопоставление', whiteboard: 'Доска',
 }
 
-// ─── CENTER: Course meta (no lesson selected) ────────────────────────────────
+// ─── LEFT: Course title + description (no lesson selected) ───────────────────
 
-function CenterCourseMeta({
+function LeftCourseMeta({
+  course, setCourse,
+}: {
+  course: CourseEdData
+  setCourse: React.Dispatch<React.SetStateAction<CourseEdData>>
+}) {
+  // Title is a textarea so long names wrap onto a 2nd line instead of clipping;
+  // auto-grow it to fit its content (1–2+ lines) on mount and on edit.
+  const titleRef = useRef<HTMLTextAreaElement>(null)
+  useLayoutEffect(() => {
+    const el = titleRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [course.title])
+  return (
+    <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* Title */}
+      <textarea
+        ref={titleRef}
+        rows={1}
+        value={course.title}
+        onChange={e => setCourse(c => ({ ...c, title: e.target.value }))}
+        style={{ ...inputSt, fontSize: 14, fontWeight: 600, padding: '11px 14px', lineHeight: 1.35, resize: 'none', overflow: 'hidden' }}
+        placeholder="Название курса"
+      />
+
+      {/* Description */}
+      <textarea
+        value={course.description ?? ''}
+        onChange={e => setCourse(c => ({ ...c, description: e.target.value }))}
+        style={{ ...inputSt, resize: 'none', minHeight: 160, lineHeight: 1.6 }}
+        placeholder="Описание курса — что разберём, для кого курс, что получит ученик…"
+      />
+    </div>
+  )
+}
+
+// ─── CENTER: Course access — who gets the course (no lesson selected) ─────────
+
+function CenterCourseAccess({
   course, setCourse, groups, allStudents,
 }: {
   course: CourseEdData
@@ -182,39 +261,14 @@ function CenterCourseMeta({
   const assignedStudents = allStudents.filter(s => course.studentIds.includes(s.id))
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '32px 40px' }}>
-      <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 22 }}>
-
-        {/* Title */}
-        <div>
-          <Label>Название курса</Label>
-          <input
-            value={course.title}
-            onChange={e => setCourse(c => ({ ...c, title: e.target.value }))}
-            style={{ ...inputSt, fontSize: 16, fontWeight: 600, padding: '11px 14px' }}
-            placeholder="Например: ЕГЭ по Химии"
-          />
-        </div>
-
-        {/* Description */}
-        <div>
-          <Label>Описание курса</Label>
-          <textarea
-            value={course.description ?? ''}
-            onChange={e => setCourse(c => ({ ...c, description: e.target.value }))}
-            style={{ ...inputSt, resize: 'none', minHeight: 90, lineHeight: 1.6 }}
-            placeholder="Краткое описание — что разберём, для кого курс, что получит ученик…"
-          />
-        </div>
-
-        {/* Divider */}
-        <div style={{ height: 1, background: 'var(--color-border-soft)' }} />
+    <div style={{ flex: 1, overflowY: 'auto', padding: '32px 48px' }}>
+      <div style={{ maxWidth: 860, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 22 }}>
 
         {/* Who gets the course */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <Users size={15} style={{ color: 'var(--color-accent)' }} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Ученики курса</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Кому дать доступ</span>
             <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>— кому виден весь курс</span>
           </div>
 
@@ -243,7 +297,13 @@ function CenterCourseMeta({
                   background: course.groupIds.includes(g.id) ? 'var(--color-purple-soft)' : 'transparent',
                   cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
                 }}>
-                  <Users size={13} style={{ color: course.groupIds.includes(g.id) ? 'var(--color-accent)' : 'var(--color-muted)', flexShrink: 0 }} />
+                  <div style={{
+                    width: 26, height: 26, borderRadius: '50%',
+                    background: course.groupIds.includes(g.id) ? 'var(--color-accent)' : 'var(--color-bg-3)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>
+                    <Users size={13} style={{ color: course.groupIds.includes(g.id) ? '#fff' : 'var(--color-muted)' }} />
+                  </div>
                   <span style={{ fontSize: 13, fontWeight: 600, color: course.groupIds.includes(g.id) ? 'var(--color-accent)' : 'var(--color-text)', flex: 1, textAlign: 'left' }}>
                     {g.name}
                   </span>
@@ -408,7 +468,11 @@ function ScheduleCard({
   return (
     <div style={{
       width: 248, flexShrink: 0,
-      background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)',
+      background: 'rgba(var(--glass-rgb), 0.88)',
+      backdropFilter: 'blur(16px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      border: '1px solid var(--color-border-glass)',
+      boxShadow: 'var(--shadow-sm-page)',
       borderRadius: 18, padding: '16px 16px 18px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 14 }}>
@@ -425,38 +489,30 @@ function ScheduleCard({
           </button>
         )}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div>
-          <Label>Дата</Label>
-          <CalendarPicker value={date ?? ''} onChange={setDate} />
-        </div>
-        <div>
-          <Label>Начало</Label>
-          <PickerSelect
-            value={time ?? ''}
-            onChange={setTime}
-            icon={Clock}
-            placeholder="—"
-            allowEmpty
-            options={Array.from({ length: 32 }, (_, i) => {
-              const h = Math.floor(i / 2) + 7
-              const m = i % 2 === 0 ? '00' : '30'
-              const t = `${String(h).padStart(2, '0')}:${m}`
-              return { value: t, label: t }
-            })}
-          />
-        </div>
-        <div>
-          <Label>Длительность</Label>
-          <PickerSelect
-            value={String(duration ?? 90)}
-            onChange={v => setDuration(Number(v))}
-            options={[45, 60, 90, 120, 150, 180].map(m => ({
-              value: String(m),
-              label: m < 60 ? `${m} мин` : `${m / 60} ч${m % 60 ? ` ${m % 60} м` : ''}`,
-            }))}
-          />
-        </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <CalendarPicker value={date ?? ''} onChange={setDate} placeholder="Дата" />
+        <PickerSelect
+          value={time ?? ''}
+          onChange={setTime}
+          icon={Clock}
+          placeholder="Начало"
+          allowEmpty
+          options={Array.from({ length: 32 }, (_, i) => {
+            const h = Math.floor(i / 2) + 7
+            const m = i % 2 === 0 ? '00' : '30'
+            const t = `${String(h).padStart(2, '0')}:${m}`
+            return { value: t, label: t }
+          })}
+        />
+        <PickerSelect
+          value={String(duration ?? 90)}
+          onChange={v => setDuration(Number(v))}
+          icon={Clock}
+          options={[45, 60, 90, 120, 150, 180].map(m => ({
+            value: String(m),
+            label: m < 60 ? `${m} мин` : `${m / 60} ч${m % 60 ? ` ${m % 60} м` : ''}`,
+          }))}
+        />
       </div>
       {date && time && (
         <div style={{ marginTop: 12, fontSize: 11, color: accent, display: 'flex', alignItems: 'flex-start', gap: 5, lineHeight: 1.4 }}>
@@ -469,11 +525,10 @@ function ScheduleCard({
 }
 
 function CenterRecording({
-  lesson, onSaveVideo, onUpdate,
+  lesson, onSaveVideo,
 }: {
   lesson: CELesson
   onSaveVideo: (url: string) => void
-  onUpdate: (updated: CELesson) => void
 }) {
   const [linkMode, setLinkMode] = useState(false)
   const [videoUrl, setVideoUrl] = useState(lesson.videoUrl ?? '')
@@ -559,15 +614,8 @@ function CenterRecording({
   })()
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '28px 36px' }}>
-      <div style={{ display: 'flex', gap: 18, maxWidth: 900, margin: '0 auto', alignItems: 'flex-start' }}>
-        {/* LEFT card — recording (live session) scheduling */}
-        <ScheduleCard scope="rec" lesson={lesson} onUpdate={onUpdate} />
-        {/* RIGHT column — recording link / upload */}
-        <div style={{ flex: 1, minWidth: 0, alignSelf: 'stretch', display: 'flex', flexDirection: 'column' }}>
-          {content}
-        </div>
-      </div>
+    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+      {content}
     </div>
   )
 }
@@ -615,13 +663,7 @@ function CenterLesson({
 
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: '28px 36px' }}>
-      <div style={{ display: 'flex', gap: 18, maxWidth: 900, margin: '0 auto', alignItems: 'flex-start' }}>
-
-        {/* LEFT card — lesson scheduling */}
-        <ScheduleCard scope="lesson" lesson={lesson} onUpdate={onUpdate} />
-
-        {/* RIGHT column — lesson content */}
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div>
           <Label>Название урока</Label>
           <input
@@ -689,7 +731,6 @@ function CenterLesson({
             style={{ ...inputSt, resize: 'none', minHeight: 100, lineHeight: 1.6 }}
             placeholder="Краткое содержание урока, что разобрали, ключевые моменты…"
           />
-        </div>
         </div>
       </div>
 
@@ -802,11 +843,31 @@ function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const popRef = useRef<HTMLDivElement>(null)
+  // Dropdown is portaled to <body> so the rail's overflow:hidden can't clip it.
+  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null)
+
+  useLayoutEffect(() => {
+    if (!open) return
+    function place() {
+      const r = ref.current?.getBoundingClientRect()
+      if (r) setPos({ top: r.bottom + 6, left: r.left, width: r.width })
+    }
+    place()
+    window.addEventListener('scroll', place, true)
+    window.addEventListener('resize', place)
+    return () => {
+      window.removeEventListener('scroll', place, true)
+      window.removeEventListener('resize', place)
+    }
+  }, [open])
 
   useEffect(() => {
     if (!open) return
     function onDown(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      const t = e.target as Node
+      if (ref.current?.contains(t) || popRef.current?.contains(t)) return
+      setOpen(false)
     }
     document.addEventListener('mousedown', onDown)
     return () => document.removeEventListener('mousedown', onDown)
@@ -831,13 +892,15 @@ function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon
         </span>
         <ChevronDown size={11} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
       </button>
-      <AnimatePresence>
-        {open && (
+      {createPortal(
+        <AnimatePresence>
+        {open && pos && (
           <motion.div
+            ref={popRef}
             initial={{ opacity: 0, y: -6, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ duration: 0.16 }}
             style={{
-              position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 999, width: '100%',
+              position: 'fixed', top: pos.top, left: pos.left, zIndex: 4000, width: pos.width,
               minWidth: width ?? 110, maxHeight: 240, overflowY: 'auto',
               background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-medium)',
               borderRadius: 14, boxShadow: '0 8px 32px rgba(99,84,207,0.14)', padding: 6,
@@ -854,23 +917,45 @@ function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon
             ))}
           </motion.div>
         )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body,
+      )}
     </div>
   )
 }
 
-function CalendarPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function CalendarPicker({ value, onChange, placeholder = 'Выберите дату' }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const popRef = useRef<HTMLDivElement>(null)
+  // Dropdown is portaled to <body> so the rail's overflow:hidden can't clip it.
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
   const parsed = parseDateDot(value)
   const todayDate = parseDateDot(todayDotStr())!
   const [viewYear, setViewYear] = useState(() => parsed ? parsed.getFullYear() : todayDate.getFullYear())
   const [viewMonth, setViewMonth] = useState(() => parsed ? parsed.getMonth() : todayDate.getMonth())
 
+  useLayoutEffect(() => {
+    if (!open) return
+    function place() {
+      const r = ref.current?.getBoundingClientRect()
+      if (r) setPos({ top: r.bottom + 6, left: r.left })
+    }
+    place()
+    window.addEventListener('scroll', place, true)
+    window.addEventListener('resize', place)
+    return () => {
+      window.removeEventListener('scroll', place, true)
+      window.removeEventListener('resize', place)
+    }
+  }, [open])
+
   useEffect(() => {
     if (!open) return
     function onDown(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      const t = e.target as Node
+      if (ref.current?.contains(t) || popRef.current?.contains(t)) return
+      setOpen(false)
     }
     document.addEventListener('mousedown', onDown)
     return () => document.removeEventListener('mousedown', onDown)
@@ -905,23 +990,26 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
       >
         <Calendar size={13} style={{ flexShrink: 0, color: value ? 'var(--color-accent)' : 'var(--color-text-3)' }} />
         <span style={{ flex: 1, color: value ? 'var(--color-accent)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400 }}>
-          {value || 'Выберите дату'}
+          {value || placeholder}
         </span>
-        {value && (
+        {value ? (
           <button onClick={e => { e.stopPropagation(); onChange('') }}
-            style={{ width: 18, height: 18, borderRadius: 5, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-accent)', flexShrink: 0, padding: 0 }}>
-            <X size={9} />
+            style={{ width: 18, height: 18, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-accent-soft, rgba(120,106,215,0.18))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-accent)', flexShrink: 0, padding: 0 }}>
+            <X size={10} />
           </button>
+        ) : (
+          <ChevronDown size={11} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
         )}
-        <ChevronDown size={11} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
       </button>
-      <AnimatePresence>
-        {open && (
+      {createPortal(
+        <AnimatePresence>
+        {open && pos && (
           <motion.div
+            ref={popRef}
             initial={{ opacity: 0, y: -6, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ duration: 0.16 }}
             style={{
-              position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 999, minWidth: 260,
+              position: 'fixed', top: pos.top, left: pos.left, zIndex: 4000, minWidth: 260,
               background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-medium)',
               borderRadius: 16, boxShadow: '0 8px 32px rgba(99,84,207,0.14)', padding: '14px 12px 12px',
             }}
@@ -967,7 +1055,9 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body,
+      )}
     </div>
   )
 }
@@ -1143,20 +1233,27 @@ function HWTaskCard({ task, index, onUpdate, onDelete }: {
   )
 }
 
-// ─── CENTER: Homework tab (left panel + task list) ────────────────────────────
+// ─── Homework field map ───────────────────────────────────────────────────────
+// Each lesson carries two independent homeworks — one for the «Урок» node and one
+// for the «Запись» node. The hwTab toggle (lifted to the page) picks which.
 
-function CenterHomework({
-  lesson, onUpdate,
+function hwFields(hwTab: 'lesson' | 'rec') {
+  return hwTab === 'rec'
+    ? { title: 'recHwTitle', date: 'recHwDate', dateManual: 'recHwDateManual', tasks: 'recHwTasks' } as const
+    : { title: 'hwTitle',    date: 'hwDate',    dateManual: 'hwDateManual',    tasks: 'hwTasks' } as const
+}
+
+// ─── LEFT: Homework meta + task-type picker ──────────────────────────────────
+
+function HomeworkLeftPanel({
+  lesson, onUpdate, hwTab, setHwTab,
 }: {
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
+  hwTab: 'lesson' | 'rec'
+  setHwTab: (t: 'lesson' | 'rec') => void
 }) {
-  // Each lesson can carry two independent homeworks — one for the «Урок» node
-  // and one for the «Запись» node. The toggle below switches which one we edit.
-  const [hwTab, setHwTab] = useState<'lesson' | 'rec'>('lesson')
-  const F = hwTab === 'rec'
-    ? { title: 'recHwTitle', date: 'recHwDate', dateManual: 'recHwDateManual', tasks: 'recHwTasks' } as const
-    : { title: 'hwTitle',    date: 'hwDate',    dateManual: 'hwDateManual',    tasks: 'hwTasks' } as const
+  const F = hwFields(hwTab)
   const tasks = (lesson[F.tasks] as HWTask[] | undefined) ?? []
 
   function patch(p: Partial<CELesson>) { onUpdate({ ...lesson, ...p }) }
@@ -1171,143 +1268,146 @@ function CenterHomework({
     patch({ [F.tasks]: [...tasks, newTask] })
   }
 
-  function removeTask(id: string) {
-    patch({ [F.tasks]: tasks.filter(t => t.id !== id) })
-  }
-
-  function updateTask(updated: HWTask) {
-    patch({ [F.tasks]: tasks.map(t => t.id === updated.id ? updated : t) })
-  }
-
   const hardTaskTypes = TASK_TYPES.filter(t => t.type === 'text' || t.type === 'choice')
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      {/* Homework meta — top bar */}
-      <div style={{ padding: '16px 24px 12px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
-        {/* Target toggle: lesson HW vs recording HW */}
-        <div style={{ display: 'inline-flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-2)', marginBottom: 12 }}>
-          {([
-            { id: 'lesson', label: '📖 ДЗ урока', n: (lesson.hwTasks ?? []).length },
-            { id: 'rec',    label: '🎥 ДЗ записи', n: (lesson.recHwTasks ?? []).length },
-          ] as const).map(t => (
-            <button key={t.id} onClick={() => setHwTab(t.id)} style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 9,
-              border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700,
-              background: hwTab === t.id ? 'var(--color-purple-soft)' : 'transparent',
-              color: hwTab === t.id ? 'var(--color-accent)' : 'var(--color-text-3)',
-              transition: 'background 0.13s',
-            }}>
-              {t.label}
-              {t.n > 0 && (
-                <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: hwTab === t.id ? 'var(--color-accent)' : 'var(--color-bg-3)', color: hwTab === t.id ? '#fff' : 'var(--color-muted)' }}>{t.n}</span>
-              )}
-            </button>
-          ))}
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10, maxWidth: 500 }}>
-          <div>
-            <Label>Название задания</Label>
-            <input
-              value={(lesson[F.title] as string | undefined) ?? ''}
-              onChange={e => patch({ [F.title]: e.target.value })}
-              style={{ ...inputSt, padding: '7px 10px', fontSize: 12 }}
-              placeholder="Тема ДЗ"
-            />
-          </div>
-          <div>
-            <Label>Срок сдачи</Label>
-            <CalendarPicker
-              value={(lesson[F.date] as string | undefined) ?? ''}
-              // Editing the due date by hand detaches it from the lesson/recording date;
-              // clearing it re-attaches so it resumes mirroring that date.
-              onChange={v => patch({ [F.date]: v, [F.dateManual]: !!v })}
-            />
-          </div>
-        </div>
+    <div style={{
+      width: 248, flexShrink: 0,
+      background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)',
+      borderRadius: 18, padding: '16px 14px 18px',
+      display: 'flex', flexDirection: 'column', gap: 12,
+      maxHeight: 'calc(100vh - 120px)', overflowY: 'auto',
+    }}>
+      {/* Target toggle: lesson HW vs recording HW */}
+      <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-2)' }}>
+        {([
+          { id: 'lesson', label: 'ДЗ урока', icon: BookOpen, n: (lesson.hwTasks ?? []).length },
+          { id: 'rec',    label: 'ДЗ записи', icon: Video, n: (lesson.recHwTasks ?? []).length },
+        ] as const).map(t => (
+          <button key={t.id} onClick={() => setHwTab(t.id)} style={{
+            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '6px 8px', borderRadius: 9,
+            border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11.5, fontWeight: 700,
+            background: hwTab === t.id ? 'var(--color-purple-soft)' : 'transparent',
+            color: hwTab === t.id ? 'var(--color-accent)' : 'var(--color-text-3)',
+            transition: 'background 0.13s',
+          }}>
+            <t.icon size={14} strokeWidth={2.2} style={{ flexShrink: 0 }} />
+            {t.label}
+            {t.n > 0 && (
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: hwTab === t.id ? 'var(--color-accent)' : 'var(--color-bg-3)', color: hwTab === t.id ? '#fff' : 'var(--color-muted)' }}>{t.n}</span>
+            )}
+          </button>
+        ))}
       </div>
 
-      {/* Two-column body */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      <div>
+        <input
+          value={(lesson[F.title] as string | undefined) ?? ''}
+          onChange={e => patch({ [F.title]: e.target.value })}
+          style={{ ...inputSt, padding: '7px 10px', fontSize: 12 }}
+          placeholder="Название задания"
+        />
+      </div>
+      <div>
+        <CalendarPicker
+          value={(lesson[F.date] as string | undefined) ?? ''}
+          placeholder="Дата сдачи"
+          // Editing the due date by hand detaches it from the lesson/recording date;
+          // clearing it re-attaches so it resumes mirroring that date.
+          onChange={v => patch({ [F.date]: v, [F.dateManual]: !!v })}
+        />
+      </div>
 
-        {/* Left: task type picker */}
-        <div style={{
-          width: 212, flexShrink: 0,
-          borderRight: '1px solid var(--color-border-soft)',
-          overflowY: 'auto', padding: '14px 10px',
-          display: 'flex', flexDirection: 'column', gap: 4,
-        }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, padding: '0 4px', marginBottom: 4 }}>
-            ТИП ЗАДАНИЯ
+      <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '2px 0' }} />
+
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, padding: '0 4px' }}>
+        ТИП ЗАДАНИЯ
+      </div>
+      {TASK_TYPES.map(t => (
+        <button key={t.type} onClick={() => addTask(t.type, false)} style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '10px 10px', borderRadius: 13,
+          border: 'none', background: 'var(--color-bg-2)',
+          cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%',
+          transition: 'opacity 0.12s',
+        }}
+        onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
+        onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+        >
+          <div style={{ width: 34, height: 34, borderRadius: 9, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <t.Icon size={15} style={{ color: t.color }} />
           </div>
-          {TASK_TYPES.map(t => (
-            <button key={t.type} onClick={() => addTask(t.type, false)} style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '10px 10px', borderRadius: 13,
-              border: 'none', background: 'var(--color-bg-2)',
-              cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%',
-              transition: 'opacity 0.12s',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
-            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-            >
-              <div style={{ width: 34, height: 34, borderRadius: 9, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <t.Icon size={15} style={{ color: t.color }} />
-              </div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t.label}</div>
-                <div style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 1 }}>{t.hint}</div>
-              </div>
-            </button>
-          ))}
-
-          <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '6px 4px' }} />
-
-          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, padding: '0 4px', marginBottom: 4 }}>
-            СЛОЖНОЕ ЗАДАНИЕ
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t.label}</div>
+            <div style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 1 }}>{t.hint}</div>
           </div>
-          {hardTaskTypes.map(t => (
-            <button key={t.type + '_hard'} onClick={() => addTask(t.type, true)} style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              padding: '10px 12px', borderRadius: 13,
-              border: 'none', background: 'rgba(245,158,11,0.1)',
-              cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%',
-              transition: 'opacity 0.12s',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
-            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-            >
-              <Star size={14} style={{ color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#B45309' }}>{t.label}</span>
-            </button>
-          ))}
+        </button>
+      ))}
+
+      <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '4px 4px' }} />
+
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, padding: '0 4px' }}>
+        СЛОЖНОЕ ЗАДАНИЕ
+      </div>
+      {hardTaskTypes.map(t => (
+        <button key={t.type + '_hard'} onClick={() => addTask(t.type, true)} style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '10px 12px', borderRadius: 13,
+          border: 'none', background: 'rgba(245,158,11,0.1)',
+          cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%',
+          transition: 'opacity 0.12s',
+        }}
+        onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
+        onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+        >
+          <Star size={14} style={{ color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#B45309' }}>{t.label}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+// ─── CENTER: Homework task list only ─────────────────────────────────────────
+
+function CenterHomework({
+  lesson, onUpdate, hwTab,
+}: {
+  lesson: CELesson
+  onUpdate: (updated: CELesson) => void
+  hwTab: 'lesson' | 'rec'
+}) {
+  const F = hwFields(hwTab)
+  const tasks = (lesson[F.tasks] as HWTask[] | undefined) ?? []
+
+  function patch(p: Partial<CELesson>) { onUpdate({ ...lesson, ...p }) }
+  function removeTask(id: string) { patch({ [F.tasks]: tasks.filter(t => t.id !== id) }) }
+  function updateTask(updated: HWTask) { patch({ [F.tasks]: tasks.map(t => t.id === updated.id ? updated : t) }) }
+
+  return (
+    <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+      {tasks.length === 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 280, gap: 10 }}>
+          <BookOpen size={36} style={{ opacity: 0.15, color: 'var(--color-muted)' }} />
+          <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>Выберите тип задания слева</span>
         </div>
-
-        {/* Right: task list */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px' }}>
-          {tasks.length === 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, gap: 10 }}>
-              <BookOpen size={36} style={{ opacity: 0.15, color: 'var(--color-muted)' }} />
-              <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>Выберите тип задания слева</span>
+      ) : (
+        <div style={{ maxWidth: 760, margin: '0 auto' }}>
+          <AnimatePresence>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {tasks.map((task, i) => (
+                <HWTaskCard
+                  key={task.id}
+                  task={task}
+                  index={i}
+                  onUpdate={updateTask}
+                  onDelete={() => removeTask(task.id)}
+                />
+              ))}
             </div>
-          ) : (
-            <AnimatePresence>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {tasks.map((task, i) => (
-                  <HWTaskCard
-                    key={task.id}
-                    task={task}
-                    index={i}
-                    onUpdate={updateTask}
-                    onDelete={() => removeTask(task.id)}
-                  />
-                ))}
-              </div>
-            </AnimatePresence>
-          )}
+          </AnimatePresence>
         </div>
-
-      </div>
+      )}
     </div>
   )
 }
@@ -1421,7 +1521,170 @@ function CenterTestView({
   )
 }
 
-// ─── CENTER: Lesson-level students tab ───────────────────────────────────────
+// ─── Students audience helpers (shared by left rail + center roster) ─────────
+
+function useLessonAudience(
+  lesson: CELesson,
+  course: CourseEdData,
+  groups: Array<{ id: string; name: string }>,
+  allStudents: Array<{ id: string; name: string; groupId?: string }>,
+) {
+  const extraGroupIds = lesson.extraGroupIds ?? []
+  const extraStudentIds = lesson.extraStudentIds ?? []
+
+  const courseGroups = groups.filter(g => course.groupIds.includes(g.id))
+  const courseStudents = allStudents.filter(s => course.studentIds.includes(s.id))
+  const extraGroups = groups.filter(g => extraGroupIds.includes(g.id))
+  const extraStudentsList = allStudents.filter(s => extraStudentIds.includes(s.id))
+
+  const courseGroupStudents = allStudents.filter(s => courseGroups.some(g => g.id === s.groupId))
+  const totalBaseline = new Set([...courseGroupStudents.map(s => s.id), ...courseStudents.map(s => s.id)])
+
+  return { extraGroupIds, extraStudentIds, courseGroups, courseStudents, extraGroups, extraStudentsList, courseGroupStudents, totalBaseline }
+}
+
+// ─── LEFT rail: students — search + add controls ─────────────────────────────
+
+function StudentsLeftPanel({
+  lesson, onUpdate, course, groups, allStudents,
+}: {
+  lesson: CELesson
+  onUpdate: (updated: CELesson) => void
+  course: CourseEdData
+  groups: Array<{ id: string; name: string }>
+  allStudents: Array<{ id: string; name: string; groupId?: string }>
+}) {
+  const [addTab, setAddTab] = useState<'group' | 'student'>('student')
+  const [query, setQuery] = useState('')
+
+  const { extraGroupIds, extraStudentIds, totalBaseline } = useLessonAudience(lesson, course, groups, allStudents)
+
+  function toggleExtraGroup(id: string) {
+    onUpdate({
+      ...lesson,
+      extraGroupIds: extraGroupIds.includes(id) ? extraGroupIds.filter(x => x !== id) : [...extraGroupIds, id],
+    })
+  }
+  function toggleExtraStudent(id: string) {
+    onUpdate({
+      ...lesson,
+      extraStudentIds: extraStudentIds.includes(id) ? extraStudentIds.filter(x => x !== id) : [...extraStudentIds, id],
+    })
+  }
+
+  const q = query.trim().toLowerCase()
+  const studentChoices = allStudents
+    .filter(s => !totalBaseline.has(s.id))
+    .filter(s => !q || s.name.toLowerCase().includes(q))
+  const groupChoices = groups
+    .filter(g => !course.groupIds.includes(g.id))
+    .filter(g => !q || g.name.toLowerCase().includes(q))
+
+  return (
+    <div style={{
+      width: 248, flexShrink: 0,
+      background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)',
+      borderRadius: 18, padding: '16px 14px 14px',
+      display: 'flex', flexDirection: 'column', gap: 12,
+      maxHeight: 'calc(100vh - 120px)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+        <Users size={14} style={{ color: 'var(--color-accent)' }} />
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Добавить к уроку</span>
+      </div>
+
+      {/* student / group toggle */}
+      <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-2)' }}>
+        {(['student', 'group'] as const).map(tab => (
+          <button key={tab} onClick={() => setAddTab(tab)} style={{
+            flex: 1, padding: '6px 8px', borderRadius: 9, border: 'none', cursor: 'pointer',
+            fontSize: 11.5, fontWeight: 700, fontFamily: 'inherit',
+            background: addTab === tab ? 'var(--color-purple-soft)' : 'transparent',
+            color: addTab === tab ? 'var(--color-accent)' : 'var(--color-text-3)',
+            transition: 'background 0.13s',
+          }}>
+            {tab === 'group' ? 'Группа' : 'Ученик'}
+          </button>
+        ))}
+      </div>
+
+      {/* search */}
+      <input
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+        placeholder={addTab === 'student' ? 'Поиск ученика…' : 'Поиск группы…'}
+        style={{ ...inputSt, padding: '7px 10px', fontSize: 12 }}
+      />
+
+      {/* choices list */}
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 5 }}>
+        {addTab === 'student' && studentChoices.map(s => {
+          const on = extraStudentIds.includes(s.id)
+          return (
+            <button key={s.id} onClick={() => toggleExtraStudent(s.id)} style={{
+              display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+              padding: '7px 10px', borderRadius: 11,
+              border: on ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border)',
+              background: on ? 'var(--color-purple-soft)' : 'transparent',
+              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
+            }}>
+              <div style={{
+                width: 24, height: 24, borderRadius: '50%',
+                background: on ? 'var(--color-accent)' : 'var(--color-bg-3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 11, fontWeight: 700,
+                color: on ? '#fff' : 'var(--color-muted)', flexShrink: 0,
+              }}>
+                {s.name.slice(0, 1).toUpperCase()}
+              </div>
+              <span style={{ fontSize: 12.5, fontWeight: 600, flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: on ? 'var(--color-accent)' : 'var(--color-text)' }}>
+                {s.name}
+              </span>
+              {on ? <Check size={12} style={{ color: 'var(--color-accent)', flexShrink: 0 }} /> : <Plus size={12} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
+            </button>
+          )
+        })}
+        {addTab === 'student' && studentChoices.length === 0 && (
+          <span style={{ fontSize: 11.5, color: 'var(--color-muted)', padding: '4px 2px' }}>
+            {q ? 'Никого не найдено' : 'Все ученики уже в базовой аудитории'}
+          </span>
+        )}
+
+        {addTab === 'group' && groupChoices.map(g => {
+          const on = extraGroupIds.includes(g.id)
+          return (
+            <button key={g.id} onClick={() => toggleExtraGroup(g.id)} style={{
+              display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+              padding: '7px 10px', borderRadius: 11,
+              border: on ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border)',
+              background: on ? 'var(--color-purple-soft)' : 'transparent',
+              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
+            }}>
+              <div style={{
+                width: 24, height: 24, borderRadius: '50%',
+                background: on ? 'var(--color-accent)' : 'var(--color-bg-3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <Users size={13} style={{ color: on ? '#fff' : 'var(--color-muted)' }} />
+              </div>
+              <span style={{ fontSize: 12.5, fontWeight: 600, flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: on ? 'var(--color-accent)' : 'var(--color-text)' }}>
+                {g.name}
+              </span>
+              {on ? <Check size={12} style={{ color: 'var(--color-accent)', flexShrink: 0 }} /> : <Plus size={12} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
+            </button>
+          )
+        })}
+        {addTab === 'group' && groupChoices.length === 0 && (
+          <span style={{ fontSize: 11.5, color: 'var(--color-muted)', padding: '4px 2px' }}>
+            {q ? 'Ничего не найдено' : 'Все группы уже в базовой аудитории'}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── CENTER: Lesson-level students tab — who actually has access ─────────────
 
 function CenterLessonStudents({
   lesson, onUpdate, course, groups, allStudents,
@@ -1432,37 +1695,46 @@ function CenterLessonStudents({
   groups: Array<{ id: string; name: string }>
   allStudents: Array<{ id: string; name: string; groupId?: string }>
 }) {
-  const [addTab, setAddTab] = useState<'group' | 'student'>('student')
+  const {
+    extraGroupIds, extraStudentIds,
+    courseGroups, courseStudents, extraGroups, extraStudentsList, totalBaseline,
+  } = useLessonAudience(lesson, course, groups, allStudents)
 
-  const extraGroupIds = lesson.extraGroupIds ?? []
-  const extraStudentIds = lesson.extraStudentIds ?? []
-
-  function toggleExtraGroup(id: string) {
-    onUpdate({
-      ...lesson,
-      extraGroupIds: extraGroupIds.includes(id) ? extraGroupIds.filter(x => x !== id) : [...extraGroupIds, id],
-    })
+  function removeExtraGroup(id: string) {
+    onUpdate({ ...lesson, extraGroupIds: extraGroupIds.filter(x => x !== id) })
+  }
+  function removeExtraStudent(id: string) {
+    onUpdate({ ...lesson, extraStudentIds: extraStudentIds.filter(x => x !== id) })
   }
 
-  function toggleExtraStudent(id: string) {
-    onUpdate({
-      ...lesson,
-      extraStudentIds: extraStudentIds.includes(id) ? extraStudentIds.filter(x => x !== id) : [...extraStudentIds, id],
-    })
-  }
+  // total reach: baseline + extra students + students inside extra groups
+  const extraGroupStudentIds = allStudents.filter(s => extraGroups.some(g => g.id === s.groupId)).map(s => s.id)
+  const totalReach = new Set([...totalBaseline, ...extraStudentIds, ...extraGroupStudentIds])
 
-  const courseGroups = groups.filter(g => course.groupIds.includes(g.id))
-  const courseStudents = allStudents.filter(s => course.studentIds.includes(s.id))
-  const extraGroups = groups.filter(g => extraGroupIds.includes(g.id))
-  const extraStudentsList = allStudents.filter(s => extraStudentIds.includes(s.id))
-
-  // Students who are in course groups
-  const courseGroupStudents = allStudents.filter(s => courseGroups.some(g => g.id === s.groupId))
-  const totalBaseline = new Set([...courseGroupStudents.map(s => s.id), ...courseStudents.map(s => s.id)])
+  const baselineEmpty = totalBaseline.size === 0
+  const extraEmpty = extraGroups.length === 0 && extraStudentsList.length === 0
+  const n = totalReach.size
+  const reachWord = n === 1 ? 'ученик' : n >= 2 && n <= 4 ? 'ученика' : 'учеников'
 
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: '24px 36px' }}>
-      <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 22 }}>
+
+        {/* Total reach headline */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14,
+          background: 'var(--color-purple-soft)', border: '1px solid var(--color-border-glass)',
+        }}>
+          <div style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Users size={18} style={{ color: '#fff' }} />
+          </div>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-accent)', lineHeight: 1.1 }}>
+              {n} {reachWord}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>видят этот урок</div>
+          </div>
+        </div>
 
         {/* Baseline inherited from course */}
         <div>
@@ -1473,30 +1745,31 @@ function CenterLessonStudents({
             </span>
             <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>· {totalBaseline.size} уч.</span>
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {courseGroups.map(g => (
-              <div key={g.id} style={{
-                padding: '4px 11px', borderRadius: 999,
-                background: 'var(--color-bg-3)', fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)',
-                display: 'flex', alignItems: 'center', gap: 5,
-              }}>
-                <Users size={10} /> {g.name}
-              </div>
-            ))}
-            {courseStudents.map(s => (
-              <div key={s.id} style={{
-                padding: '4px 11px', borderRadius: 999,
-                background: 'var(--color-bg-3)', fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)',
-              }}>
-                {s.name}
-              </div>
-            ))}
-            {totalBaseline.size === 0 && (
-              <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>
-                Никто не назначен на курс — задайте аудиторию в настройках курса
-              </span>
-            )}
-          </div>
+          {baselineEmpty ? (
+            <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>
+              Никто не назначен на курс — задайте аудиторию в настройках курса
+            </span>
+          ) : (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {courseGroups.map(g => (
+                <div key={g.id} style={{
+                  padding: '4px 11px', borderRadius: 999,
+                  background: 'var(--color-bg-3)', fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)',
+                  display: 'flex', alignItems: 'center', gap: 5,
+                }}>
+                  <Users size={10} /> {g.name}
+                </div>
+              ))}
+              {courseStudents.map(s => (
+                <div key={s.id} style={{
+                  padding: '4px 11px', borderRadius: 999,
+                  background: 'var(--color-bg-3)', fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)',
+                }}>
+                  {s.name}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Divider */}
@@ -1504,96 +1777,52 @@ function CenterLessonStudents({
 
         {/* Extra audience for this lesson */}
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-accent)' }} />
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
               Дополнительно для этого урока
             </span>
-          </div>
-          <p style={{ fontSize: 12, color: 'var(--color-muted)', margin: '0 0 12px', lineHeight: 1.5 }}>
-            Добавьте учеников или группы, которые получат доступ к этому уроку сверх базовой аудитории курса.
-          </p>
-
-          {/* Tabs */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-            {(['student', 'group'] as const).map(tab => (
-              <button key={tab} onClick={() => setAddTab(tab)} style={{
-                padding: '5px 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                fontSize: 11, fontWeight: 700,
-                background: addTab === tab ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
-                color: addTab === tab ? 'var(--color-accent)' : 'var(--color-text-2)',
-                transition: 'all 0.15s', fontFamily: 'inherit',
-              }}>
-                {tab === 'group' ? 'Группу' : 'Ученика'}
-              </button>
-            ))}
+            {!extraEmpty && (
+              <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>
+                · {extraGroups.length + extraStudentsList.length}
+              </span>
+            )}
           </div>
 
-          {addTab === 'student' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              {allStudents.filter(s => !totalBaseline.has(s.id)).map(s => (
-                <button key={s.id} onClick={() => toggleExtraStudent(s.id)} style={{
-                  display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                  padding: '8px 12px', borderRadius: 11,
-                  border: extraStudentIds.includes(s.id) ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border)',
-                  background: extraStudentIds.includes(s.id) ? 'var(--color-purple-soft)' : 'transparent',
-                  cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
-                }}>
-                  <div style={{
-                    width: 26, height: 26, borderRadius: '50%',
-                    background: extraStudentIds.includes(s.id) ? 'var(--color-accent)' : 'var(--color-bg-3)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 11, fontWeight: 700,
-                    color: extraStudentIds.includes(s.id) ? '#fff' : 'var(--color-muted)', flexShrink: 0,
-                  }}>
-                    {s.name.slice(0, 1).toUpperCase()}
-                  </div>
-                  <span style={{ fontSize: 13, fontWeight: 600, flex: 1, textAlign: 'left', color: extraStudentIds.includes(s.id) ? 'var(--color-accent)' : 'var(--color-text)' }}>
-                    {s.name}
-                  </span>
-                  {extraStudentIds.includes(s.id) && <X size={11} style={{ color: 'var(--color-accent)' }} />}
-                </button>
-              ))}
-              {allStudents.filter(s => !totalBaseline.has(s.id)).length === 0 && (
-                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Все ученики уже в базовой аудитории</span>
-              )}
+          {extraEmpty ? (
+            <div style={{
+              padding: '16px 14px', borderRadius: 12, border: '1.5px dashed var(--color-border-medium)',
+              fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5, textAlign: 'center',
+            }}>
+              Добавьте учеников или группы в панели слева — они получат доступ к&nbsp;этому уроку сверх базовой аудитории курса.
             </div>
-          )}
-
-          {addTab === 'group' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              {groups.filter(g => !course.groupIds.includes(g.id)).map(g => (
-                <button key={g.id} onClick={() => toggleExtraGroup(g.id)} style={{
-                  display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                  padding: '8px 12px', borderRadius: 11,
-                  border: extraGroupIds.includes(g.id) ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border)',
-                  background: extraGroupIds.includes(g.id) ? 'var(--color-purple-soft)' : 'transparent',
-                  cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
-                }}>
-                  <Users size={13} style={{ color: extraGroupIds.includes(g.id) ? 'var(--color-accent)' : 'var(--color-muted)', flexShrink: 0 }} />
-                  <span style={{ fontSize: 13, fontWeight: 600, flex: 1, textAlign: 'left', color: extraGroupIds.includes(g.id) ? 'var(--color-accent)' : 'var(--color-text)' }}>
-                    {g.name}
-                  </span>
-                  {extraGroupIds.includes(g.id) && <X size={11} style={{ color: 'var(--color-accent)' }} />}
-                </button>
-              ))}
-              {groups.filter(g => !course.groupIds.includes(g.id)).length === 0 && (
-                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Все группы уже в базовой аудитории</span>
-              )}
-            </div>
-          )}
-
-          {/* Extra summary chips */}
-          {(extraGroups.length > 0 || extraStudentsList.length > 0) && (
-            <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {extraGroups.map(g => (
-                <div key={g.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 999, background: 'var(--color-purple-soft)', fontSize: 12, fontWeight: 600, color: 'var(--color-accent)' }}>
-                  <Users size={10} /> {g.name}
+                <div key={g.id} style={{
+                  display: 'flex', alignItems: 'center', gap: 9, padding: '8px 12px', borderRadius: 12,
+                  background: 'var(--color-purple-soft)', border: '1px solid var(--color-border-glass)',
+                }}>
+                  <Users size={14} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, fontWeight: 600, flex: 1, color: 'var(--color-accent)' }}>{g.name}</span>
+                  <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--color-accent)', opacity: 0.7 }}>группа</span>
+                  <button onClick={() => removeExtraGroup(g.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-accent)', padding: 0, display: 'flex', flexShrink: 0 }}>
+                    <X size={13} />
+                  </button>
                 </div>
               ))}
               {extraStudentsList.map(s => (
-                <div key={s.id} style={{ padding: '4px 10px', borderRadius: 999, background: 'var(--color-purple-soft)', fontSize: 12, fontWeight: 600, color: 'var(--color-accent)' }}>
-                  {s.name}
+                <div key={s.id} style={{
+                  display: 'flex', alignItems: 'center', gap: 9, padding: '8px 12px', borderRadius: 12,
+                  background: 'var(--color-purple-soft)', border: '1px solid var(--color-border-glass)',
+                }}>
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                    {s.name.slice(0, 1).toUpperCase()}
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 600, flex: 1, color: 'var(--color-accent)' }}>{s.name}</span>
+                  <button onClick={() => removeExtraStudent(s.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-accent)', padding: 0, display: 'flex', flexShrink: 0 }}>
+                    <X size={13} />
+                  </button>
                 </div>
               ))}
             </div>
@@ -1615,9 +1844,11 @@ function LessonRow({
 }) {
   return (
     <motion.button
+      className="lesson-row"
       onClick={onClick}
-      whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
+      onMouseEnter={e => { if (!selected && !checked) e.currentTarget.style.background = 'var(--color-bg-2)' }}
+      onMouseLeave={e => { if (!selected && !checked) e.currentTarget.style.background = 'transparent' }}
       style={{
         width: '100%', display: 'flex', alignItems: 'center', gap: 8,
         padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
@@ -1721,6 +1952,10 @@ function RightPanelLessons({
   const [anchorId, setAnchorId] = useState<string | null>(null)
   const [activeModuleId, setActiveModuleId] = useState<string | null>(null)
   const [moveMenuOpen, setMoveMenuOpen] = useState(false)
+  // Double-click a module header to rename it inline.
+  const [editingModuleId, setEditingModuleId] = useState<string | null>(null)
+  const [editingModuleLabel, setEditingModuleLabel] = useState('')
+  const { ref: scrollRef, fade, update: onScrollFade } = useScrollFade()
 
   // Append a new lesson into the active module (falls back to the last one).
   function appendLesson(lesson: CELesson) {
@@ -1765,6 +2000,15 @@ function RightPanelLessons({
     setCourse(c => ({
       ...c,
       modules: c.modules.map(m => m.id === id ? { ...m, expanded: !m.expanded } : m),
+    }))
+  }
+
+  function renameModule(id: string, label: string) {
+    const trimmed = label.trim()
+    if (!trimmed) return
+    setCourse(c => ({
+      ...c,
+      modules: c.modules.map(m => m.id === id ? { ...m, label: trimmed } : m),
     }))
   }
 
@@ -1869,7 +2113,7 @@ function RightPanelLessons({
 
   return (
     <div
-      style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+      style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}
       onDragEnd={clearDrag}
     >
       <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -1961,15 +2205,27 @@ function RightPanelLessons({
         )}
       </AnimatePresence>
 
-      <div
-        style={{ flex: 1, overflowY: 'auto', padding: '8px 10px' }}
-        onDragOver={e => e.preventDefault()}
-        onDrop={e => {
-          e.preventDefault()
-          if (dragging && dropTarget) moveLessonToModule(dragging, dropTarget.moduleId, dropTarget.index)
-          clearDrag()
-        }}
-      >
+      <div style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex' }}>
+        <ScrollFadeMask side="top" show={fade.top} />
+        <ScrollFadeMask side="bottom" show={fade.bottom} />
+        {/* Click on the empty area (not a row/module) clears every selection. */}
+        <div
+          ref={scrollRef}
+          onScroll={onScrollFade}
+          style={{ flex: 1, overflowY: 'auto', padding: '8px 10px', scrollbarGutter: 'stable' }}
+          onClick={e => {
+            if (e.target !== e.currentTarget) return
+            clearSelection()
+            setActiveModuleId(null)
+            if (selectedLessonId) onSelectLesson('')
+          }}
+          onDragOver={e => e.preventDefault()}
+          onDrop={e => {
+            e.preventDefault()
+            if (dragging && dropTarget) moveLessonToModule(dragging, dropTarget.moduleId, dropTarget.index)
+            clearDrag()
+          }}
+        >
         {ungrouped.map(l => (
           <div
             key={l.id}
@@ -2025,9 +2281,33 @@ function RightPanelLessons({
                     }}
                   />
                 </span>
-                <span style={{ flex: 1, fontSize: 12, fontWeight: 700, color: isActive ? 'var(--color-accent)' : 'var(--color-text)', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {mod.label}
-                </span>
+                {editingModuleId === mod.id ? (
+                  <input
+                    autoFocus
+                    value={editingModuleLabel}
+                    onChange={e => setEditingModuleLabel(e.target.value)}
+                    onClick={e => e.stopPropagation()}
+                    onBlur={() => { renameModule(mod.id, editingModuleLabel); setEditingModuleId(null) }}
+                    onKeyDown={e => {
+                      e.stopPropagation()
+                      if (e.key === 'Enter') { renameModule(mod.id, editingModuleLabel); setEditingModuleId(null) }
+                      else if (e.key === 'Escape') setEditingModuleId(null)
+                    }}
+                    style={{
+                      flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+                      color: 'var(--color-text)', background: 'var(--color-bg)',
+                      border: '1.5px solid var(--color-accent)', borderRadius: 6, padding: '2px 6px', outline: 'none',
+                    }}
+                  />
+                ) : (
+                  <span
+                    onDoubleClick={e => { e.stopPropagation(); setEditingModuleLabel(mod.label); setEditingModuleId(mod.id) }}
+                    title="Двойной клик — переименовать"
+                    style={{ flex: 1, fontSize: 12, fontWeight: 700, color: isActive ? 'var(--color-accent)' : 'var(--color-text)', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  >
+                    {mod.label}
+                  </span>
+                )}
                 {dragging && isTarget && !mod.expanded && (
                   <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-bg)', borderRadius: 999, padding: '2px 6px', flexShrink: 0 }}>
                     в конец
@@ -2042,7 +2322,7 @@ function RightPanelLessons({
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.18 }}
-                    style={{ overflow: 'hidden', paddingLeft: 10 }}
+                    style={{ overflow: 'hidden', paddingLeft: 10, paddingTop: 3, paddingBottom: 3 }}
                     onDragOver={e => {
                       e.preventDefault()
                       if (dropTarget?.moduleId !== mod.id) {
@@ -2090,6 +2370,7 @@ function RightPanelLessons({
             Уроки ещё не добавлены
           </div>
         )}
+        </div>
       </div>
 
       <div style={{ padding: '10px 12px', borderTop: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
@@ -2161,8 +2442,8 @@ function RightPanelLessons({
 // ─── Lesson mode tabs ─────────────────────────────────────────────────────────
 
 const LESSON_MODES: { id: LessonMode; label: string }[] = [
-  { id: 'recording', label: 'Запись' },
   { id: 'lesson',    label: 'Урок' },
+  { id: 'recording', label: 'Запись' },
   { id: 'homework',  label: 'Домашки' },
   { id: 'students',  label: 'Ученики' },
 ]
@@ -2187,8 +2468,39 @@ export default function TeacherCourseEditorPage() {
     return JSON.parse(editingCourseJson) as CourseEdData
   })
 
-  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null)
-  const [lessonMode, setLessonMode] = useState<LessonMode>('recording')
+  // Remember which lesson + tab the teacher was on, so a page refresh lands them
+  // back where they were (per-tab, keyed by course).
+  const posKey = `ce-pos:${course.dbCourseId ?? course.id}`
+  const savedPos = (() => {
+    try {
+      const raw = sessionStorage.getItem(posKey)
+      return raw ? (JSON.parse(raw) as { lessonId?: string; mode?: LessonMode }) : null
+    } catch { return null }
+  })()
+
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(
+    savedPos?.lessonId && course.lessons.some(l => l.id === savedPos.lessonId) ? savedPos.lessonId : null
+  )
+  const [lessonMode, setLessonMode] = useState<LessonMode>(savedPos?.mode ?? 'lesson')
+
+  useEffect(() => {
+    try {
+      if (selectedLessonId) {
+        sessionStorage.setItem(posKey, JSON.stringify({ lessonId: selectedLessonId, mode: lessonMode }))
+      } else {
+        sessionStorage.removeItem(posKey)
+      }
+    } catch { /* sessionStorage unavailable — non-fatal */ }
+  }, [selectedLessonId, lessonMode, posKey])
+
+  // Keep the editor session JSON in sync with live edits, so a refresh restores
+  // the latest course state (not just the snapshot from when the editor opened).
+  useEffect(() => {
+    try { sessionStorage.setItem('ce-session', JSON.stringify(course)) } catch { /* non-fatal */ }
+  }, [course])
+  // Homework target toggle (ДЗ урока vs ДЗ записи) — lifted here so the left
+  // meta rail and the center task list stay in sync.
+  const [hwTab, setHwTab] = useState<'lesson' | 'rec'>('lesson')
   const [openingLesson, setOpeningLesson] = useState(false)
   // Lessons open to students, keyed by persisted short_id (not by `number` —
   // CELesson.number is 1-based append order, while the persisted lesson short_id
@@ -2323,7 +2635,7 @@ export default function TeacherCourseEditorPage() {
 
   function handleSelectLesson(id: string) {
     setSelectedLessonId(id)
-    setLessonMode('recording')
+    setLessonMode('lesson')
   }
 
   function handleBack() {
@@ -2606,10 +2918,25 @@ export default function TeacherCourseEditorPage() {
         transition={{ duration: 0.2, ease: 'easeOut' }}
         style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
       >
-        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={handleBack}
-          style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-          <ArrowLeft size={15} strokeWidth={2} /> Назад
-        </motion.button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={handleBack}
+            style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <ArrowLeft size={15} strokeWidth={2} /> Назад
+          </motion.button>
+          <AnimatePresence>
+            {selectedLesson && selectedLesson.kind !== 'test' && (
+              <motion.button
+                key="back-to-course"
+                initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -8 }}
+                transition={{ duration: 0.16 }}
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
+                onClick={() => setSelectedLessonId(null)}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <ChevronLeft size={15} strokeWidth={2} /> Курс
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
         <div style={{ position: 'absolute', left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' }}>
           <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</span>
         </div>
@@ -2635,17 +2962,90 @@ export default function TeacherCourseEditorPage() {
         </div>
       </motion.div>
 
-      {/* ── 2-column body ── */}
+      {/* ── 3-column body ── */}
       <div style={{ display: 'flex', gap: 14, padding: '4px 20px 24px', minHeight: 'calc(100vh - 100px)' }}>
 
-        {/* CENTER */}
-        <GlassCard style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <AnimatePresence mode="wait">
+        {/* LEFT rail — single column whose WIDTH animates between the course
+            card (320), the lesson rail (248) and collapsed (0, for a test).
+            One element with mode="wait" → course↔lesson glides instead of
+            snapping; within a lesson the inner card cross-fades per tab. */}
+        <AnimatePresence mode="wait" initial={false}>
+          {!selectedLesson ? (
+            <motion.div
+              key="meta-rail"
+              initial={{ opacity: 0, width: 0 }}
+              animate={{ opacity: 1, width: 248 }}
+              exit={{ opacity: 0, width: 0 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              style={{ flexShrink: 0, alignSelf: 'flex-start', overflow: 'hidden' }}
+            >
+              {/* Hugs its content, same 248 width as the lesson rail. */}
+              <div style={{ width: 248 }}>
+                <GlassCard style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                  <LeftCourseMeta course={course} setCourse={setCourse} />
+                </GlassCard>
+              </div>
+            </motion.div>
+          ) : selectedLesson.kind !== 'test' ? (
+            <motion.div
+              key="lesson-rail"
+              initial={{ opacity: 0, width: 0 }}
+              animate={{ opacity: 1, width: 248 }}
+              exit={{ opacity: 0, width: 0 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              style={{ flexShrink: 0, alignSelf: 'flex-start', overflow: 'hidden' }}
+            >
+              {/* Inner fixed-width so the rail content never reflows while the
+                  outer width animates. Per-tab card cross-fades. */}
+              <div style={{ width: 248 }}>
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={lessonMode === 'homework' ? 'rail-hw' : lessonMode === 'students' ? 'rail-students' : 'rail-sched'}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    transition={{ duration: 0.13 }}
+                  >
+                    {(lessonMode === 'recording' || lessonMode === 'lesson') && (
+                      <ScheduleCard
+                        scope={lessonMode === 'recording' ? 'rec' : 'lesson'}
+                        lesson={selectedLesson}
+                        onUpdate={updateLesson}
+                      />
+                    )}
+                    {lessonMode === 'homework' && (
+                      <HomeworkLeftPanel
+                        lesson={selectedLesson}
+                        onUpdate={updateLesson}
+                        hwTab={hwTab}
+                        setHwTab={setHwTab}
+                      />
+                    )}
+                    {lessonMode === 'students' && (
+                      <StudentsLeftPanel
+                        lesson={selectedLesson}
+                        onUpdate={updateLesson}
+                        course={course}
+                        groups={groups}
+                        allStudents={allStudents}
+                      />
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+
+        {/* CENTER — no `layout`: flexbox already reflows it smoothly as the
+            left rail width animates; an extra layout anim would fight that. */}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <AnimatePresence mode="wait" initial={false}>
             {!selectedLesson ? (
               /* ── Course meta view ── */
               <motion.div key="course-meta" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}
                 style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <CenterCourseMeta
+                <CenterCourseAccess
                   course={course} setCourse={setCourse}
                   groups={groups} allStudents={allStudents}
                 />
@@ -2666,15 +3066,6 @@ export default function TeacherCourseEditorPage() {
                 {/* Lesson header: back + tabs */}
                 <div style={{ padding: '10px 16px 12px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                    <button onClick={() => setSelectedLessonId(null)} style={{
-                      display: 'flex', alignItems: 'center', gap: 4,
-                      padding: '5px 10px', borderRadius: 999, border: 'none',
-                      background: 'var(--color-bg-3)', cursor: 'pointer',
-                      fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)',
-                      fontFamily: 'inherit',
-                    }}>
-                      <ChevronLeft size={13} /> Курс
-                    </button>
                     <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                       {selectedLesson.title || 'Урок без названия'}
                     </span>
@@ -2690,14 +3081,14 @@ export default function TeacherCourseEditorPage() {
                             display: 'flex', alignItems: 'center', gap: 6,
                             padding: '6px 14px', borderRadius: 999, border: 'none',
                             background: isOpened
-                              ? 'linear-gradient(135deg, #4ADE80, #22C55E)'
+                              ? 'var(--grad-green-open)'
                               : 'var(--grad-purple)',
                             color: '#fff',
                             fontSize: 12, fontWeight: 700,
                             cursor: openingLesson ? 'wait' : 'pointer',
                             fontFamily: 'inherit', flexShrink: 0,
                             boxShadow: isOpened
-                              ? '0 4px 14px rgba(74,222,128,0.35)'
+                              ? 'var(--glow-green-open)'
                               : '0 4px 14px rgba(123,97,255,0.35)',
                             transition: 'background 0.3s, box-shadow 0.3s',
                             opacity: openingLesson ? 0.7 : 1,
@@ -2740,14 +3131,13 @@ export default function TeacherCourseEditorPage() {
                       <CenterRecording
                         lesson={selectedLesson}
                         onSaveVideo={url => updateLesson({ ...selectedLesson, videoUrl: url })}
-                        onUpdate={updateLesson}
                       />
                     )}
                     {lessonMode === 'lesson' && (
                       <CenterLesson lesson={selectedLesson} onUpdate={updateLesson} />
                     )}
                     {lessonMode === 'homework' && (
-                      <CenterHomework lesson={selectedLesson} onUpdate={updateLesson} />
+                      <CenterHomework lesson={selectedLesson} onUpdate={updateLesson} hwTab={hwTab} />
                     )}
                     {lessonMode === 'students' && (
                       <CenterLessonStudents
@@ -2762,10 +3152,10 @@ export default function TeacherCourseEditorPage() {
               </motion.div>
             )}
           </AnimatePresence>
-        </GlassCard>
+        </div>
 
         {/* RIGHT: always lesson list */}
-        <GlassCard style={{ width: 288, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <GlassCard style={{ width: 288, flexShrink: 0, alignSelf: 'flex-start', position: 'sticky', top: 4, maxHeight: 'calc(100vh - 190px)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <RightPanelLessons
             course={course} setCourse={setCourse}
             selectedLessonId={selectedLessonId} onSelectLesson={handleSelectLesson}

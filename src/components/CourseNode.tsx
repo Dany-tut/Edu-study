@@ -154,7 +154,9 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
             width: 28,
             height: 28,
             borderRadius: 999,
-            background: hardStyle.bg,
+            // Opaque underlay (same pattern as the main node) so the green track
+            // line behind doesn't bleed through the translucent soft fill.
+            background: `linear-gradient(${hardStyle.bg}, ${hardStyle.bg}), var(--color-bg-3)`,
             border: `2px solid ${hardStyle.border}`,
             right: -12,
             bottom: -6,

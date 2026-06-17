@@ -66,6 +66,10 @@
   --grad-purple-bar: linear-gradient(90deg, #6A5AE6, #A697FF);
   --grad-green:      linear-gradient(135deg, #34C877, #2A7D4F);
   --grad-green-bar:  linear-gradient(90deg, #6EE7A0, #3FCC8A);
+  /* "Открыт" / success solid button — toned ~60% down from neon (#4ADE80/#22C55E)
+     to a deeper, less vivid green so white text reads with proper contrast */
+  --grad-green-open: linear-gradient(135deg, #33B86C, #1E8C4D);
+  --glow-green-open: 0 4px 12px rgba(30,140,77,0.28);
   --grad-red:        linear-gradient(135deg, #F48B91, #A8282D);
   --grad-red-bar:    linear-gradient(90deg, #F48B91, #FF6B6B);
   --grad-blue:       linear-gradient(135deg, #5A9BF0, #1F6FB8);
@@ -280,6 +284,11 @@ a {
 *:focus-visible {
   outline: 2px solid rgba(145,128,230,0.7);
   outline-offset: 3px;
+}
+/* Lesson rows live inside an overflow-clipped scroll list, so the default
+   outward focus ring gets sliced. Draw it inside the row instead. */
+.lesson-row:focus-visible {
+  outline-offset: -2px;
 }
 
 /* Dashboard layout — fills the screen with no scroll when the viewport is tall

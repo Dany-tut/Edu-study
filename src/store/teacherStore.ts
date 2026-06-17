@@ -84,15 +84,30 @@ const HASH_TO_PAGE: Record<string, TeacherPage> = {
   '#/teacher/constructor': 'constructor',
 }
 
+// The course editor is a sub-page with no URL hash of its own. To survive a page
+// refresh (so the teacher lands back in the course/lesson they were editing) we
+// stash the live course JSON in sessionStorage while the editor is open.
+const EDITOR_SESSION_KEY = 'ce-session'
+function readEditorSession(): string | null {
+  try { return sessionStorage.getItem(EDITOR_SESSION_KEY) } catch { return null }
+}
+function clearEditorSession() {
+  try { sessionStorage.removeItem(EDITOR_SESSION_KEY) } catch { /* unavailable — non-fatal */ }
+}
+
 function initialPage(): TeacherPage {
+  if (readEditorSession()) return 'course-editor'
   return HASH_TO_PAGE[window.location.hash] ?? 'home'
 }
 
 export const useTeacher = create<TeacherStore>(set => ({
   activePage: initialPage(),
-  setActivePage: page => set({ activePage: page, headerDocked: false }),
-  editingCourseJson: null,
-  openCourseEditor: courseJson => set({ editingCourseJson: courseJson, activePage: 'course-editor', headerDocked: false }),
+  setActivePage: page => { clearEditorSession(); set({ activePage: page, headerDocked: false }) },
+  editingCourseJson: readEditorSession(),
+  openCourseEditor: courseJson => {
+    try { sessionStorage.setItem(EDITOR_SESSION_KEY, courseJson) } catch { /* non-fatal */ }
+    set({ editingCourseJson: courseJson, activePage: 'course-editor', headerDocked: false })
+  },
   courseEditedJson: null,
   setCourseEdited: json => set({ courseEditedJson: json }),
   headerDocked: false,

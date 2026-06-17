@@ -35,8 +35,11 @@ export default function TeacherDashboardPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const headerDocked = useTeacher(s => s.headerDocked)
 
-  // Restore page from hash on mount
+  // Restore page from hash on mount — but if the store already opened straight
+  // into the course editor (restored from a persisted edit session on refresh),
+  // keep that so the teacher lands back where they were.
   useEffect(() => {
+    if (useTeacher.getState().activePage === 'course-editor') return
     const page = TEACHER_HASH_TO_PAGE[window.location.hash]
     setActivePage(page ?? 'home')
   // eslint-disable-next-line react-hooks/exhaustive-deps
