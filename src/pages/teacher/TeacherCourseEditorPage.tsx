@@ -1,19 +1,29 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft, Plus, Send, Video, Link2, Upload,
   BookOpen, AlignLeft, CheckSquare, Type, Shuffle,
   PenLine, Star, ChevronRight, ChevronDown, Users,
   X, FileText, NotebookPen, FolderOpen, Layers,
-  GripVertical,
+  GripVertical, ChevronLeft, Unlock, Check,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
-import TeacherSelect from '../../components/teacher/TeacherSelect'
+import TeacherSaveButton, { teacherSaveStyle } from '../../components/teacher/TeacherSaveButton'
+import { supabase } from '../../lib/supabase'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type LessonMode = 'recording' | 'lesson' | 'homework' | 'students'
+
+type HWTaskType = 'text' | 'choice' | 'fill' | 'match' | 'whiteboard'
+
+interface HWTask {
+  id: string
+  type: HWTaskType
+  isHard: boolean
+  label: string
+}
 
 export interface CELesson {
   id: string
@@ -24,6 +34,14 @@ export interface CELesson {
   notebookFile?: string
   workbookFile?: string
   materialFile?: string
+  // lesson-level audience (extra students beyond course audience)
+  extraStudentIds?: string[]
+  extraGroupIds?: string[]
+  // homework per lesson
+  hwTitle?: string
+  hwTarget?: string
+  hwDate?: string
+  hwTasks?: HWTask[]
 }
 
 export interface CEModule {
@@ -48,15 +66,6 @@ export interface CourseEdData {
   description?: string
   dbCourseId?: string
   lastEdited?: string
-}
-
-type HWTaskType = 'text' | 'choice' | 'fill' | 'match' | 'whiteboard'
-
-interface HWTask {
-  id: string
-  type: HWTaskType
-  isHard: boolean
-  label: string
 }
 
 function uid() { return Math.random().toString(36).slice(2, 8) }
@@ -109,14 +118,15 @@ const typeLabel: Record<HWTaskType, string> = {
   fill: 'Вписать слово', match: 'Сопоставление', whiteboard: 'Доска',
 }
 
-// ─── Left panel — default (course meta) ──────────────────────────────────────
+// ─── CENTER: Course meta (no lesson selected) ────────────────────────────────
 
-function LeftPanelCourse({
-  course, setCourse, groups,
+function CenterCourseMeta({
+  course, setCourse, groups, allStudents,
 }: {
   course: CourseEdData
   setCourse: React.Dispatch<React.SetStateAction<CourseEdData>>
   groups: Array<{ id: string; name: string }>
+  allStudents: Array<{ id: string; name: string; groupId?: string }>
 }) {
   const [assignTab, setAssignTab] = useState<'group' | 'student'>('group')
 
@@ -127,143 +137,186 @@ function LeftPanelCourse({
     }))
   }
 
-  const assigned = groups.filter(g => course.groupIds.includes(g.id))
+  function toggleStudent(id: string) {
+    setCourse(c => ({
+      ...c,
+      studentIds: c.studentIds.includes(id) ? c.studentIds.filter(x => x !== id) : [...c.studentIds, id],
+    }))
+  }
+
+  const assignedGroups = groups.filter(g => course.groupIds.includes(g.id))
+  const assignedStudents = allStudents.filter(s => course.studentIds.includes(s.id))
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '18px 16px' }}>
-      <div>
-        <Label>Название курса</Label>
-        <input
-          value={course.title}
-          onChange={e => setCourse(c => ({ ...c, title: e.target.value }))}
-          style={inputSt}
-          placeholder="Например: ЕГЭ по Химии"
-        />
-      </div>
+    <div style={{ flex: 1, overflowY: 'auto', padding: '32px 40px' }}>
+      <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 22 }}>
 
-      <div>
-        <Label>Кому</Label>
-        <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-          {(['group', 'student'] as const).map(tab => (
-            <button key={tab} onClick={() => setAssignTab(tab)} style={{
-              flex: 1, padding: '6px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
-              fontSize: 12, fontWeight: 700,
-              background: assignTab === tab ? 'var(--color-accent)' : 'var(--color-bg-3)',
-              color: assignTab === tab ? '#fff' : 'var(--color-text-2)',
-              transition: 'all 0.15s', fontFamily: 'inherit',
-            }}>
-              {tab === 'group' ? 'Группе' : 'Ученику'}
-            </button>
-          ))}
+        {/* Title */}
+        <div>
+          <Label>Название курса</Label>
+          <input
+            value={course.title}
+            onChange={e => setCourse(c => ({ ...c, title: e.target.value }))}
+            style={{ ...inputSt, fontSize: 16, fontWeight: 600, padding: '11px 14px' }}
+            placeholder="Например: ЕГЭ по Химии"
+          />
         </div>
-        {assignTab === 'group' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-            {groups.map(g => (
-              <button key={g.id} onClick={() => toggleGroup(g.id)} style={{
-                display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                padding: '8px 12px', borderRadius: 11,
-                border: course.groupIds.includes(g.id) ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border)',
-                background: course.groupIds.includes(g.id) ? 'var(--color-purple-soft)' : 'transparent',
-                cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
+
+        {/* Description */}
+        <div>
+          <Label>Описание курса</Label>
+          <textarea
+            value={course.description ?? ''}
+            onChange={e => setCourse(c => ({ ...c, description: e.target.value }))}
+            style={{ ...inputSt, resize: 'none', minHeight: 90, lineHeight: 1.6 }}
+            placeholder="Краткое описание — что разберём, для кого курс, что получит ученик…"
+          />
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: 1, background: 'var(--color-border-soft)' }} />
+
+        {/* Who gets the course */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+            <Users size={15} style={{ color: 'var(--color-accent)' }} />
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Ученики курса</span>
+            <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>— кому виден весь курс</span>
+          </div>
+
+          {/* Tabs */}
+          <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+            {(['group', 'student'] as const).map(tab => (
+              <button key={tab} onClick={() => setAssignTab(tab)} style={{
+                padding: '6px 18px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                fontSize: 12, fontWeight: 700,
+                background: assignTab === tab ? 'var(--color-accent)' : 'var(--color-bg-3)',
+                color: assignTab === tab ? '#fff' : 'var(--color-text-2)',
+                transition: 'all 0.15s', fontFamily: 'inherit',
               }}>
-                <Users size={13} style={{ color: course.groupIds.includes(g.id) ? 'var(--color-accent)' : 'var(--color-muted)', flexShrink: 0 }} />
-                <span style={{ fontSize: 12, fontWeight: 600, color: course.groupIds.includes(g.id) ? 'var(--color-accent)' : 'var(--color-text)' }}>
-                  {g.name}
-                </span>
-                {course.groupIds.includes(g.id) && (
-                  <X size={11} style={{ color: 'var(--color-accent)', marginLeft: 'auto' }} />
-                )}
+                {tab === 'group' ? 'Группе' : 'Ученику'}
               </button>
             ))}
           </div>
-        )}
-      </div>
 
-      {assigned.length > 0 && (
-        <div>
-          <Label>Зачислено</Label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-            {assigned.map(g => (
-              <div key={g.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 11px', background: 'var(--color-bg-2)', borderRadius: 11 }}>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-accent)', flexShrink: 0 }} />
-                <span style={{ flex: 1, fontSize: 12, fontWeight: 600, color: 'var(--color-text)' }}>{g.name}</span>
-                <button onClick={() => toggleGroup(g.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: 2, display: 'flex' }}>
-                  <X size={11} />
+          {assignTab === 'group' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {groups.map(g => (
+                <button key={g.id} onClick={() => toggleGroup(g.id)} style={{
+                  display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                  padding: '9px 14px', borderRadius: 12,
+                  border: course.groupIds.includes(g.id) ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border)',
+                  background: course.groupIds.includes(g.id) ? 'var(--color-purple-soft)' : 'transparent',
+                  cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
+                }}>
+                  <Users size={13} style={{ color: course.groupIds.includes(g.id) ? 'var(--color-accent)' : 'var(--color-muted)', flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, fontWeight: 600, color: course.groupIds.includes(g.id) ? 'var(--color-accent)' : 'var(--color-text)', flex: 1, textAlign: 'left' }}>
+                    {g.name}
+                  </span>
+                  {course.groupIds.includes(g.id) && <X size={11} style={{ color: 'var(--color-accent)' }} />}
                 </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+              ))}
+            </div>
+          )}
 
-      <div>
-        <Label>Описание курса</Label>
-        <textarea
-          value={course.description ?? ''}
-          onChange={e => setCourse(c => ({ ...c, description: e.target.value }))}
-          style={{ ...inputSt, resize: 'none', minHeight: 72, lineHeight: 1.5 }}
-          placeholder="Краткое описание…"
-        />
+          {assignTab === 'student' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {allStudents.map(s => (
+                <button key={s.id} onClick={() => toggleStudent(s.id)} style={{
+                  display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                  padding: '9px 14px', borderRadius: 12,
+                  border: course.studentIds.includes(s.id) ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border)',
+                  background: course.studentIds.includes(s.id) ? 'var(--color-purple-soft)' : 'transparent',
+                  cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
+                }}>
+                  <div style={{
+                    width: 26, height: 26, borderRadius: '50%',
+                    background: course.studentIds.includes(s.id) ? 'var(--color-accent)' : 'var(--color-bg-3)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 11, fontWeight: 700,
+                    color: course.studentIds.includes(s.id) ? '#fff' : 'var(--color-muted)', flexShrink: 0,
+                  }}>
+                    {s.name.slice(0, 1).toUpperCase()}
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: course.studentIds.includes(s.id) ? 'var(--color-accent)' : 'var(--color-text)', flex: 1, textAlign: 'left' }}>
+                    {s.name}
+                  </span>
+                  {course.studentIds.includes(s.id) && <X size={11} style={{ color: 'var(--color-accent)' }} />}
+                </button>
+              ))}
+              {allStudents.length === 0 && (
+                <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '12px 0' }}>Ученики не найдены</div>
+              )}
+            </div>
+          )}
+
+          {/* Summary chips */}
+          {(assignedGroups.length > 0 || assignedStudents.length > 0) && (
+            <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {assignedGroups.map(g => (
+                <div key={g.id} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                  padding: '4px 10px', borderRadius: 999,
+                  background: 'var(--color-purple-soft)', fontSize: 12, fontWeight: 600, color: 'var(--color-accent)',
+                }}>
+                  <Users size={10} /> {g.name}
+                </div>
+              ))}
+              {assignedStudents.map(s => (
+                <div key={s.id} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                  padding: '4px 10px', borderRadius: 999,
+                  background: 'var(--color-bg-3)', fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)',
+                }}>
+                  {s.name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
 }
 
-// ─── Left panel — homework mode ───────────────────────────────────────────────
-
-function LeftPanelHomework({
-  hwTitle, setHwTitle, hwTarget, setHwTarget,
-  hwDate, setHwDate, hwTimeStart, setHwTimeStart, hwTimeEnd, setHwTimeEnd,
-  groups,
-}: {
-  hwTitle: string; setHwTitle: (v: string) => void
-  hwTarget: string; setHwTarget: (v: string) => void
-  hwDate: string; setHwDate: (v: string) => void
-  hwTimeStart: string; setHwTimeStart: (v: string) => void
-  hwTimeEnd: string; setHwTimeEnd: (v: string) => void
-  groups: Array<{ id: string; name: string }>
-}) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '18px 16px' }}>
-      <div>
-        <Label>Название задания</Label>
-        <input value={hwTitle} onChange={e => setHwTitle(e.target.value)} style={inputSt} placeholder="Тема задания" />
-      </div>
-      <div>
-        <Label>Кому</Label>
-        <TeacherSelect
-          value={hwTarget}
-          onChange={setHwTarget}
-          placeholder="Группа или ученик"
-          options={groups.map(g => ({ value: g.id, label: g.name }))}
-        />
-      </div>
-      <div>
-        <Label>Дата</Label>
-        <input type="date" value={hwDate} onChange={e => setHwDate(e.target.value)} style={inputSt} />
-      </div>
-      <div>
-        <Label>Время</Label>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6 }}>
-          <input value={hwTimeStart} onChange={e => setHwTimeStart(e.target.value)} placeholder="09:00" style={inputSt} />
-          <span style={{ color: 'var(--color-muted)', fontSize: 13 }}>—</span>
-          <input value={hwTimeEnd} onChange={e => setHwTimeEnd(e.target.value)} placeholder="10:30" style={inputSt} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── Center: Recording mode ───────────────────────────────────────────────────
+// ─── CENTER: Recording tab ────────────────────────────────────────────────────
 
 function CenterRecording({
   lesson, onSaveVideo,
 }: {
-  lesson: CELesson | null
+  lesson: CELesson
   onSaveVideo: (url: string) => void
 }) {
   const [linkMode, setLinkMode] = useState(false)
-  const [videoUrl, setVideoUrl] = useState(lesson?.videoUrl ?? '')
+  const [videoUrl, setVideoUrl] = useState(lesson.videoUrl ?? '')
+
+  if (lesson.videoUrl && !linkMode) {
+    return (
+      <div style={{ flex: 1, overflowY: 'auto', padding: '28px 36px' }}>
+        <div style={{ maxWidth: 640, margin: '0 auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <Label>Запись урока</Label>
+            <button onClick={() => { setVideoUrl(lesson.videoUrl ?? ''); setLinkMode(true) }}
+              style={{ fontSize: 11, color: 'var(--color-accent)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+              Изменить
+            </button>
+          </div>
+          <div style={{
+            padding: '14px 16px', borderRadius: 14, background: 'var(--color-bg-2)',
+            border: '1.5px solid var(--color-border-medium)',
+            display: 'flex', alignItems: 'center', gap: 10,
+          }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Video size={16} style={{ color: 'var(--color-accent)' }} />
+            </div>
+            <span style={{ fontSize: 13, color: 'var(--color-text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {lesson.videoUrl}
+            </span>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (linkMode) {
     return (
@@ -278,7 +331,8 @@ function CenterRecording({
             autoFocus
           />
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => setLinkMode(false)} style={{ padding: '9px 18px', borderRadius: 12, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={() => setLinkMode(false)}
+              style={{ padding: '9px 18px', borderRadius: 12, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
               Отмена
             </button>
             <button onClick={() => { onSaveVideo(videoUrl); setLinkMode(false) }}
@@ -302,7 +356,8 @@ function CenterRecording({
           <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>После созвона — вставьте ссылку RuTube / YouTube</div>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={() => setLinkMode(true)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: 'none', background: 'var(--color-accent)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={() => setLinkMode(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: 'none', background: 'var(--color-accent)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
             <Link2 size={14} /> Вставить ссылку
           </button>
           <button style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -314,25 +369,49 @@ function CenterRecording({
   )
 }
 
-// ─── Center: Lesson mode ──────────────────────────────────────────────────────
+// ─── CENTER: Lesson content tab ───────────────────────────────────────────────
+
+type FileField = 'workbookFile' | 'notebookFile' | 'materialFile'
+
+const FILE_CARDS: Array<{ field: FileField; Icon: React.ElementType; label: string }> = [
+  { field: 'workbookFile', Icon: NotebookPen, label: 'Рабочая тетрадь' },
+  { field: 'notebookFile', Icon: FileText,    label: 'Конспект' },
+  { field: 'materialFile', Icon: FolderOpen,  label: 'Материалы' },
+]
 
 function CenterLesson({
   lesson, onUpdate,
 }: {
-  lesson: CELesson | null
+  lesson: CELesson
   onUpdate: (updated: CELesson) => void
 }) {
-  if (!lesson) {
-    return (
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-        <BookOpen size={36} style={{ opacity: 0.25, color: 'var(--color-muted)' }} />
-        <span style={{ fontSize: 14, color: 'var(--color-muted)' }}>Выберите урок из списка справа</span>
-      </div>
-    )
+  const refWorkbook = useRef<HTMLInputElement>(null)
+  const refNotebook = useRef<HTMLInputElement>(null)
+  const refMaterial = useRef<HTMLInputElement>(null)
+  const inputRefs: Record<FileField, React.RefObject<HTMLInputElement>> = {
+    workbookFile: refWorkbook,
+    notebookFile: refNotebook,
+    materialFile: refMaterial,
+  }
+  const [pastePicker, setPastePicker] = useState<File | null>(null)
+
+  function applyFile(field: FileField, file: File) {
+    onUpdate({ ...lesson, [field]: file.name })
   }
 
+  useEffect(() => {
+    function onPaste(e: ClipboardEvent) {
+      const file = e.clipboardData?.files?.[0]
+      if (!file) return
+      e.preventDefault()
+      setPastePicker(file)
+    }
+    document.addEventListener('paste', onPaste)
+    return () => document.removeEventListener('paste', onPaste)
+  }, [])
+
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
+    <div style={{ flex: 1, overflowY: 'auto', padding: '28px 36px' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 640, margin: '0 auto' }}>
         <div>
           <Label>Название урока</Label>
@@ -344,26 +423,53 @@ function CenterLesson({
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-          {[
-            { Icon: NotebookPen, label: 'Рабочая тетрадь', sub: 'Загрузить файл' },
-            { Icon: FileText,    label: 'Конспект',        sub: 'Загрузить файл' },
-            { Icon: FolderOpen,  label: 'Материалы',       sub: 'Загрузить файл' },
-          ].map(({ Icon, label, sub }) => (
-            <button key={label} style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-              padding: '16px 12px', borderRadius: 16,
-              border: '1.5px dashed var(--color-border-medium)',
-              background: 'transparent', cursor: 'pointer', fontFamily: 'inherit',
-            }}>
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Icon size={18} style={{ color: 'var(--color-accent)' }} />
+          {FILE_CARDS.map(({ field, Icon, label }) => {
+            const fileName = lesson[field] as string | undefined
+            return (
+              <div key={field} style={{ position: 'relative' }}>
+                <input
+                  ref={inputRefs[field]}
+                  type="file"
+                  style={{ display: 'none' }}
+                  onChange={e => { const f = e.target.files?.[0]; if (f) applyFile(field, f); e.target.value = '' }}
+                />
+                <button
+                  onClick={() => inputRefs[field].current?.click()}
+                  style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                    padding: '16px 12px', borderRadius: 16, width: '100%',
+                    border: fileName ? '1.5px solid var(--color-accent)' : '1.5px dashed var(--color-border-medium)',
+                    background: fileName ? 'var(--color-purple-soft)' : 'transparent',
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon size={18} style={{ color: 'var(--color-accent)' }} />
+                  </div>
+                  <div style={{ textAlign: 'center', width: '100%', minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: fileName ? 'var(--color-accent)' : 'var(--color-text-2)' }}>{label}</div>
+                    <div style={{ fontSize: 10, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: fileName ? 'var(--color-accent)' : 'var(--color-muted)' }}>
+                      {fileName ?? 'Загрузить файл'}
+                    </div>
+                  </div>
+                </button>
+                {fileName && (
+                  <button
+                    onClick={e => { e.stopPropagation(); onUpdate({ ...lesson, [field]: undefined }) }}
+                    style={{
+                      position: 'absolute', top: 6, right: 6,
+                      border: 'none', background: 'var(--color-purple-soft)',
+                      borderRadius: '50%', width: 18, height: 18,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer', color: 'var(--color-accent)', padding: 0,
+                    }}
+                  >
+                    <X size={10} />
+                  </button>
+                )}
               </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)' }}>{label}</div>
-                <div style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 2 }}>{sub}</div>
-              </div>
-            </button>
-          ))}
+            )
+          })}
         </div>
 
         <div>
@@ -376,132 +482,412 @@ function CenterLesson({
           />
         </div>
       </div>
+
+      {/* Ctrl+V paste picker */}
+      <AnimatePresence>
+        {pastePicker && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 300,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)',
+            }}
+            onClick={() => setPastePicker(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 12 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 8 }}
+              transition={{ duration: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: 'var(--color-bg-card, var(--color-bg))',
+                border: '1px solid var(--color-border-glass)',
+                borderRadius: 20, padding: '20px 20px 16px',
+                display: 'flex', flexDirection: 'column', gap: 8,
+                width: 290, boxShadow: '0 24px 64px rgba(0,0,0,0.35)',
+              }}
+            >
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', marginBottom: 2 }}>Куда добавить файл?</div>
+              <div style={{
+                fontSize: 11, color: 'var(--color-muted)', wordBreak: 'break-all',
+                padding: '6px 10px', borderRadius: 8, background: 'var(--color-bg-3)', marginBottom: 4,
+              }}>
+                {pastePicker.name}
+              </div>
+              {FILE_CARDS.map(({ field, Icon, label }) => (
+                <button key={field}
+                  onClick={() => { applyFile(field, pastePicker); setPastePicker(null) }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '10px 12px', borderRadius: 12,
+                    border: '1.5px solid var(--color-border)',
+                    background: lesson[field] ? 'var(--color-purple-soft)' : 'transparent',
+                    cursor: 'pointer', fontFamily: 'inherit',
+                    color: lesson[field] ? 'var(--color-accent)' : 'var(--color-text)',
+                    fontSize: 13, fontWeight: 600,
+                  }}
+                >
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon size={14} style={{ color: 'var(--color-accent)' }} />
+                  </div>
+                  {label}
+                  {lesson[field] && <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--color-muted)', fontWeight: 400 }}>заменить</span>}
+                </button>
+              ))}
+              <button onClick={() => setPastePicker(null)}
+                style={{ padding: '7px', borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-muted)', fontSize: 12, fontFamily: 'inherit', marginTop: 2 }}>
+                Отмена
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
 
-// ─── Center: Homework mode ────────────────────────────────────────────────────
+// ─── CENTER: Homework tab (left panel + task list) ────────────────────────────
 
 function CenterHomework({
-  lesson, tasks, onRemoveTask,
+  lesson, onUpdate,
 }: {
-  lesson: CELesson | null
-  tasks: HWTask[]
-  onRemoveTask: (id: string) => void
+  lesson: CELesson
+  onUpdate: (updated: CELesson) => void
 }) {
-  if (!lesson) {
-    return (
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-        <AlignLeft size={36} style={{ opacity: 0.25, color: 'var(--color-muted)' }} />
-        <span style={{ fontSize: 14, color: 'var(--color-muted)' }}>Выберите урок справа, чтобы добавить домашку</span>
-      </div>
-    )
+  const tasks = lesson.hwTasks ?? []
+
+  function addTask(type: HWTaskType, isHard: boolean) {
+    const newTask: HWTask = { id: uid(), type, isHard, label: typeLabel[type] }
+    onUpdate({ ...lesson, hwTasks: [...tasks, newTask] })
   }
 
+  function removeTask(id: string) {
+    onUpdate({ ...lesson, hwTasks: tasks.filter(t => t.id !== id) })
+  }
+
+  const hardTaskTypes = TASK_TYPES.filter(t => t.type === 'text' || t.type === 'choice')
+
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
-      {tasks.length === 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 220, gap: 10 }}>
-          <BookOpen size={40} style={{ opacity: 0.2, color: 'var(--color-muted)' }} />
-          <span style={{ fontSize: 14, color: 'var(--color-muted)' }}>Выберите тип задания справа</span>
-          <span style={{ fontSize: 12, color: 'var(--color-muted)', opacity: 0.7 }}>и оно появится здесь</span>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {/* Homework meta — top bar */}
+      <div style={{ padding: '16px 24px 12px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, maxWidth: 640 }}>
+          <div>
+            <Label>Название задания</Label>
+            <input
+              value={lesson.hwTitle ?? ''}
+              onChange={e => onUpdate({ ...lesson, hwTitle: e.target.value })}
+              style={{ ...inputSt, padding: '7px 10px', fontSize: 12 }}
+              placeholder="Тема ДЗ"
+            />
+          </div>
+          <div>
+            <Label>Кому</Label>
+            <input
+              value={lesson.hwTarget ?? ''}
+              onChange={e => onUpdate({ ...lesson, hwTarget: e.target.value })}
+              style={{ ...inputSt, padding: '7px 10px', fontSize: 12 }}
+              placeholder="Группа или ученик"
+            />
+          </div>
+          <div>
+            <Label>Срок сдачи</Label>
+            <input
+              type="date"
+              value={lesson.hwDate ?? ''}
+              onChange={e => onUpdate({ ...lesson, hwDate: e.target.value })}
+              style={{ ...inputSt, padding: '7px 10px', fontSize: 12 }}
+            />
+          </div>
         </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 640, margin: '0 auto' }}>
-          {tasks.map((task, i) => {
-            const t = TASK_TYPES.find(x => x.type === task.type)
-            return (
-              <div key={task.id} style={{
-                display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px',
-                background: 'var(--color-bg-2)', borderRadius: 14,
-                border: task.isHard ? '1.5px solid var(--color-yellow-text,#B45309)' : '1px solid var(--color-border-soft)',
-              }}>
-                <GripVertical size={14} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-                {task.isHard && <Star size={13} style={{ color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />}
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: t?.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  {t && <t.Icon size={13} style={{ color: t.color }} />}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>
-                    Задание {i + 1}
-                  </span>
-                  <span style={{ fontSize: 12, color: 'var(--color-muted)', marginLeft: 6 }}>
-                    {typeLabel[task.type]}
-                    {task.isHard && ' · Сложный уровень'}
-                  </span>
-                </div>
-                <button onClick={() => onRemoveTask(task.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-muted)', display: 'flex', padding: 2 }}>
-                  <X size={13} />
-                </button>
+      </div>
+
+      {/* Two-column body */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+
+        {/* Left: task type picker */}
+        <div style={{
+          width: 212, flexShrink: 0,
+          borderRight: '1px solid var(--color-border-soft)',
+          overflowY: 'auto', padding: '14px 10px',
+          display: 'flex', flexDirection: 'column', gap: 4,
+        }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, padding: '0 4px', marginBottom: 4 }}>
+            ТИП ЗАДАНИЯ
+          </div>
+          {TASK_TYPES.map(t => (
+            <button key={t.type} onClick={() => addTask(t.type, false)} style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '10px 10px', borderRadius: 13,
+              border: 'none', background: 'var(--color-bg-2)',
+              cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%',
+              transition: 'opacity 0.12s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
+            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+            >
+              <div style={{ width: 34, height: 34, borderRadius: 9, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <t.Icon size={15} style={{ color: t.color }} />
               </div>
-            )
-          })}
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t.label}</div>
+                <div style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 1 }}>{t.hint}</div>
+              </div>
+            </button>
+          ))}
+
+          <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '6px 4px' }} />
+
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, padding: '0 4px', marginBottom: 4 }}>
+            СЛОЖНОЕ ЗАДАНИЕ
+          </div>
+          {hardTaskTypes.map(t => (
+            <button key={t.type + '_hard'} onClick={() => addTask(t.type, true)} style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '10px 12px', borderRadius: 13,
+              border: 'none', background: 'rgba(245,158,11,0.1)',
+              cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%',
+              transition: 'opacity 0.12s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
+            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+            >
+              <Star size={14} style={{ color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#B45309' }}>{t.label}</span>
+            </button>
+          ))}
         </div>
-      )}
+
+        {/* Right: task list */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+          {tasks.length === 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 180, gap: 10 }}>
+              <BookOpen size={36} style={{ opacity: 0.2, color: 'var(--color-muted)' }} />
+              <span style={{ fontSize: 14, color: 'var(--color-muted)' }}>Нажмите «+ Задание», чтобы добавить</span>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {tasks.map((task, i) => {
+                const t = TASK_TYPES.find(x => x.type === task.type)
+                return (
+                  <div key={task.id} style={{
+                    display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px',
+                    background: 'var(--color-bg-2)', borderRadius: 14,
+                    border: task.isHard ? '1.5px solid var(--color-yellow-text,#B45309)' : '1px solid var(--color-border-soft)',
+                  }}>
+                    <GripVertical size={14} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                    {task.isHard && <Star size={13} style={{ color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />}
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: t?.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      {t && <t.Icon size={13} style={{ color: t.color }} />}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>Задание {i + 1}</span>
+                      <span style={{ fontSize: 12, color: 'var(--color-muted)', marginLeft: 6 }}>
+                        {typeLabel[task.type]}{task.isHard && ' · Сложный уровень'}
+                      </span>
+                    </div>
+                    <button onClick={() => removeTask(task.id)}
+                      style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-muted)', display: 'flex', padding: 2 }}>
+                      <X size={13} />
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+      </div>
     </div>
   )
 }
 
-// ─── Center: Students mode ────────────────────────────────────────────────────
+// ─── CENTER: Lesson-level students tab ───────────────────────────────────────
 
-function CenterStudents({
-  course, groups, allStudents,
+function CenterLessonStudents({
+  lesson, onUpdate, course, groups, allStudents,
 }: {
+  lesson: CELesson
+  onUpdate: (updated: CELesson) => void
   course: CourseEdData
-  groups: Array<{ id: string; name: string; studentCount?: number }>
+  groups: Array<{ id: string; name: string }>
   allStudents: Array<{ id: string; name: string; groupId?: string }>
 }) {
-  const assignedGroups = groups.filter(g => course.groupIds.includes(g.id))
+  const [addTab, setAddTab] = useState<'group' | 'student'>('student')
 
-  if (assignedGroups.length === 0) {
-    return (
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-        <Users size={36} style={{ opacity: 0.25, color: 'var(--color-muted)' }} />
-        <span style={{ fontSize: 14, color: 'var(--color-muted)' }}>Добавьте группы через левую панель</span>
-      </div>
-    )
+  const extraGroupIds = lesson.extraGroupIds ?? []
+  const extraStudentIds = lesson.extraStudentIds ?? []
+
+  function toggleExtraGroup(id: string) {
+    onUpdate({
+      ...lesson,
+      extraGroupIds: extraGroupIds.includes(id) ? extraGroupIds.filter(x => x !== id) : [...extraGroupIds, id],
+    })
   }
 
+  function toggleExtraStudent(id: string) {
+    onUpdate({
+      ...lesson,
+      extraStudentIds: extraStudentIds.includes(id) ? extraStudentIds.filter(x => x !== id) : [...extraStudentIds, id],
+    })
+  }
+
+  const courseGroups = groups.filter(g => course.groupIds.includes(g.id))
+  const courseStudents = allStudents.filter(s => course.studentIds.includes(s.id))
+  const extraGroups = groups.filter(g => extraGroupIds.includes(g.id))
+  const extraStudentsList = allStudents.filter(s => extraStudentIds.includes(s.id))
+
+  // Students who are in course groups
+  const courseGroupStudents = allStudents.filter(s => courseGroups.some(g => g.id === s.groupId))
+  const totalBaseline = new Set([...courseGroupStudents.map(s => s.id), ...courseStudents.map(s => s.id)])
+
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
-      {assignedGroups.map(g => {
-        const students = allStudents.filter(s => s.groupId === g.id)
-        return (
-          <div key={g.id} style={{ marginBottom: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-accent)' }} />
-              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{g.name}</span>
-              <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>· {students.length} студентов</span>
-            </div>
-            <div style={{ background: 'rgba(var(--glass-rgb), 0.6)', border: '1px solid var(--color-border-glass)', borderRadius: 14, overflow: 'hidden' }}>
-              {students.length === 0 ? (
-                <div style={{ padding: '16px', fontSize: 12, color: 'var(--color-muted)', textAlign: 'center' }}>
-                  Студенты не найдены
-                </div>
-              ) : students.map((s, i) => (
-                <div key={s.id} style={{
-                  display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
-                  borderBottom: i < students.length - 1 ? '1px solid var(--color-border-soft)' : 'none',
+    <div style={{ flex: 1, overflowY: 'auto', padding: '24px 36px' }}>
+      <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+        {/* Baseline inherited from course */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-muted)' }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>
+              Базовая аудитория курса
+            </span>
+            <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>· {totalBaseline.size} уч.</span>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {courseGroups.map(g => (
+              <div key={g.id} style={{
+                padding: '4px 11px', borderRadius: 999,
+                background: 'var(--color-bg-3)', fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)',
+                display: 'flex', alignItems: 'center', gap: 5,
+              }}>
+                <Users size={10} /> {g.name}
+              </div>
+            ))}
+            {courseStudents.map(s => (
+              <div key={s.id} style={{
+                padding: '4px 11px', borderRadius: 999,
+                background: 'var(--color-bg-3)', fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)',
+              }}>
+                {s.name}
+              </div>
+            ))}
+            {totalBaseline.size === 0 && (
+              <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>
+                Никто не назначен на курс — задайте аудиторию в настройках курса
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: 1, background: 'var(--color-border-soft)' }} />
+
+        {/* Extra audience for this lesson */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-accent)' }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
+              Дополнительно для этого урока
+            </span>
+          </div>
+          <p style={{ fontSize: 12, color: 'var(--color-muted)', margin: '0 0 12px', lineHeight: 1.5 }}>
+            Добавьте учеников или группы, которые получат доступ к этому уроку сверх базовой аудитории курса.
+          </p>
+
+          {/* Tabs */}
+          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+            {(['student', 'group'] as const).map(tab => (
+              <button key={tab} onClick={() => setAddTab(tab)} style={{
+                padding: '5px 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                fontSize: 11, fontWeight: 700,
+                background: addTab === tab ? 'var(--color-accent)' : 'var(--color-bg-3)',
+                color: addTab === tab ? '#fff' : 'var(--color-text-2)',
+                transition: 'all 0.15s', fontFamily: 'inherit',
+              }}>
+                {tab === 'group' ? 'Группу' : 'Ученика'}
+              </button>
+            ))}
+          </div>
+
+          {addTab === 'student' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {allStudents.filter(s => !totalBaseline.has(s.id)).map(s => (
+                <button key={s.id} onClick={() => toggleExtraStudent(s.id)} style={{
+                  display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                  padding: '8px 12px', borderRadius: 11,
+                  border: extraStudentIds.includes(s.id) ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border)',
+                  background: extraStudentIds.includes(s.id) ? 'var(--color-purple-soft)' : 'transparent',
+                  cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
                 }}>
                   <div style={{
-                    width: 32, height: 32, borderRadius: '50%', background: 'var(--color-purple-soft)',
+                    width: 26, height: 26, borderRadius: '50%',
+                    background: extraStudentIds.includes(s.id) ? 'var(--color-accent)' : 'var(--color-bg-3)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 13, fontWeight: 700, color: 'var(--color-accent)', flexShrink: 0,
+                    fontSize: 11, fontWeight: 700,
+                    color: extraStudentIds.includes(s.id) ? '#fff' : 'var(--color-muted)', flexShrink: 0,
                   }}>
                     {s.name.slice(0, 1).toUpperCase()}
                   </div>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{s.name}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, flex: 1, textAlign: 'left', color: extraStudentIds.includes(s.id) ? 'var(--color-accent)' : 'var(--color-text)' }}>
+                    {s.name}
+                  </span>
+                  {extraStudentIds.includes(s.id) && <X size={11} style={{ color: 'var(--color-accent)' }} />}
+                </button>
+              ))}
+              {allStudents.filter(s => !totalBaseline.has(s.id)).length === 0 && (
+                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Все ученики уже в базовой аудитории</span>
+              )}
+            </div>
+          )}
+
+          {addTab === 'group' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {groups.filter(g => !course.groupIds.includes(g.id)).map(g => (
+                <button key={g.id} onClick={() => toggleExtraGroup(g.id)} style={{
+                  display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                  padding: '8px 12px', borderRadius: 11,
+                  border: extraGroupIds.includes(g.id) ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border)',
+                  background: extraGroupIds.includes(g.id) ? 'var(--color-purple-soft)' : 'transparent',
+                  cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
+                }}>
+                  <Users size={13} style={{ color: extraGroupIds.includes(g.id) ? 'var(--color-accent)' : 'var(--color-muted)', flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, fontWeight: 600, flex: 1, textAlign: 'left', color: extraGroupIds.includes(g.id) ? 'var(--color-accent)' : 'var(--color-text)' }}>
+                    {g.name}
+                  </span>
+                  {extraGroupIds.includes(g.id) && <X size={11} style={{ color: 'var(--color-accent)' }} />}
+                </button>
+              ))}
+              {groups.filter(g => !course.groupIds.includes(g.id)).length === 0 && (
+                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Все группы уже в базовой аудитории</span>
+              )}
+            </div>
+          )}
+
+          {/* Extra summary chips */}
+          {(extraGroups.length > 0 || extraStudentsList.length > 0) && (
+            <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {extraGroups.map(g => (
+                <div key={g.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 999, background: 'var(--color-purple-soft)', fontSize: 12, fontWeight: 600, color: 'var(--color-accent)' }}>
+                  <Users size={10} /> {g.name}
+                </div>
+              ))}
+              {extraStudentsList.map(s => (
+                <div key={s.id} style={{ padding: '4px 10px', borderRadius: 999, background: 'var(--color-purple-soft)', fontSize: 12, fontWeight: 600, color: 'var(--color-accent)' }}>
+                  {s.name}
                 </div>
               ))}
             </div>
-          </div>
-        )
-      })}
+          )}
+        </div>
+      </div>
     </div>
   )
 }
 
-// ─── Right panel: Lesson list ─────────────────────────────────────────────────
+// ─── RIGHT panel: always lesson list ─────────────────────────────────────────
 
 function LessonRow({
   lesson, selected, onSelect,
@@ -536,6 +922,12 @@ function LessonRow({
       }}>
         {lesson.title || 'Урок без названия'}
       </span>
+      {/* indicator dots */}
+      <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
+        {lesson.videoUrl && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-accent)', opacity: 0.7 }} title="Запись" />}
+        {(lesson.hwTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title="ДЗ" />}
+        {((lesson.extraStudentIds?.length ?? 0) + (lesson.extraGroupIds?.length ?? 0)) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#F59E0B', opacity: 0.7 }} title="Доп. ученики" />}
+      </div>
     </motion.button>
   )
 }
@@ -592,13 +984,11 @@ function RightPanelLessons({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Header */}
       <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Уроки</span>
         <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>{course.lessons.length} шт.</span>
       </div>
 
-      {/* Scrollable lesson list */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 10px' }}>
         {ungrouped.map(l => (
           <LessonRow key={l.id} lesson={l} selected={l.id === selectedLessonId} onSelect={() => onSelectLesson(l.id)} />
@@ -654,7 +1044,6 @@ function RightPanelLessons({
         )}
       </div>
 
-      {/* Add controls */}
       <div style={{ padding: '10px 12px', borderTop: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
         {addingModule ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -667,10 +1056,12 @@ function RightPanelLessons({
               onKeyDown={e => { if (e.key === 'Enter') addModule(); if (e.key === 'Escape') setAddingModule(false) }}
             />
             <div style={{ display: 'flex', gap: 6 }}>
-              <button onClick={() => setAddingModule(false)} style={{ flex: 1, padding: '6px 0', borderRadius: 9, border: '1.5px solid var(--color-border)', background: 'transparent', cursor: 'pointer', fontSize: 11, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit' }}>
+              <button onClick={() => setAddingModule(false)}
+                style={{ flex: 1, padding: '6px 0', borderRadius: 9, border: '1.5px solid var(--color-border)', background: 'transparent', cursor: 'pointer', fontSize: 11, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit' }}>
                 Отмена
               </button>
-              <button onClick={addModule} style={{ flex: 1, padding: '6px 0', borderRadius: 9, border: 'none', background: 'var(--color-purple-soft)', cursor: 'pointer', fontSize: 11, fontWeight: 700, color: 'var(--color-accent)', fontFamily: 'inherit' }}>
+              <button onClick={addModule}
+                style={{ flex: 1, padding: '6px 0', borderRadius: 9, border: 'none', background: 'var(--color-purple-soft)', cursor: 'pointer', fontSize: 11, fontWeight: 700, color: 'var(--color-accent)', fontFamily: 'inherit' }}>
                 Создать
               </button>
             </div>
@@ -709,76 +1100,9 @@ function RightPanelLessons({
   )
 }
 
-// ─── Right panel: Homework task types ────────────────────────────────────────
+// ─── Lesson mode tabs ─────────────────────────────────────────────────────────
 
-function RightPanelHomework({
-  onAdd, onAddHard,
-}: {
-  onAdd: (type: HWTaskType) => void
-  onAddHard: (type: HWTaskType) => void
-}) {
-  const [flash, setFlash] = useState<string | null>(null)
-
-  function handle(type: HWTaskType, hard: boolean) {
-    const key = `${hard ? 'hard-' : ''}${type}`
-    setFlash(key)
-    setTimeout(() => setFlash(null), 280)
-    hard ? onAddHard(type) : onAdd(type)
-  }
-
-  return (
-    <div style={{ padding: '14px 12px', display: 'flex', flexDirection: 'column', gap: 5, overflowY: 'auto', height: '100%' }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 4 }}>
-        ТИП ЗАДАНИЯ
-      </div>
-      {TASK_TYPES.map(t => (
-        <button
-          key={t.type}
-          onClick={() => handle(t.type, false)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
-            borderRadius: 13, border: `1.5px solid ${flash === t.type ? t.color : 'transparent'}`,
-            background: flash === t.type ? t.bg : 'var(--color-bg-2)',
-            cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.13s',
-          }}
-          onMouseEnter={e => { if (flash !== t.type) (e.currentTarget as HTMLButtonElement).style.background = t.bg }}
-          onMouseLeave={e => { if (flash !== t.type) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-2)' }}
-        >
-          <div style={{ width: 32, height: 32, borderRadius: 9, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <t.Icon size={15} style={{ color: t.color }} />
-          </div>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t.label}</div>
-            <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 1 }}>{t.hint}</div>
-          </div>
-        </button>
-      ))}
-
-      <div style={{ height: 1, background: 'var(--color-border)', margin: '6px 0 2px' }} />
-      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 2 }}>
-        СЛОЖНОЕ ЗАДАНИЕ
-      </div>
-      {TASK_TYPES.slice(0, 2).map(t => {
-        const key = `hard-${t.type}`
-        return (
-          <button key={key} onClick={() => handle(t.type, true)} style={{
-            display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px',
-            borderRadius: 11, border: '1.5px solid transparent',
-            background: flash === key ? 'var(--color-yellow-soft,rgba(245,158,11,0.1))' : 'var(--color-yellow-soft,rgba(245,158,11,0.08))',
-            cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.13s',
-          }}>
-            <Star size={13} style={{ color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#B45309' }}>{t.label}</span>
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-// ─── Mode tabs ────────────────────────────────────────────────────────────────
-
-const MODES: { id: LessonMode; label: string }[] = [
+const LESSON_MODES: { id: LessonMode; label: string }[] = [
   { id: 'recording', label: 'Запись' },
   { id: 'lesson',    label: 'Урок' },
   { id: 'homework',  label: 'Домашки' },
@@ -805,16 +1129,34 @@ export default function TeacherCourseEditorPage() {
     return JSON.parse(editingCourseJson) as CourseEdData
   })
 
-  const [mode, setMode] = useState<LessonMode>('recording')
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null)
+  const [lessonMode, setLessonMode] = useState<LessonMode>('recording')
+  const [openingLesson, setOpeningLesson] = useState(false)
+  const [openedLessonId, setOpenedLessonId] = useState<string | null>(null)
 
-  // Homework fields
-  const [hwTitle, setHwTitle] = useState('')
-  const [hwTarget, setHwTarget] = useState('')
-  const [hwDate, setHwDate] = useState('')
-  const [hwTimeStart, setHwTimeStart] = useState('')
-  const [hwTimeEnd, setHwTimeEnd] = useState('')
-  const [hwTasks, setHwTasks] = useState<HWTask[]>([])
+  async function openLessonForStudents(lessonNumber: number) {
+    if (!course.dbCourseId) return
+    setOpeningLesson(true)
+    try {
+      const { data: courseRow } = await supabase
+        .from('courses')
+        .select('lessons(short_id, lesson_number)')
+        .eq('short_id', course.dbCourseId)
+        .single()
+      const lessons = (courseRow?.lessons ?? []) as Array<{ short_id: string; lesson_number: number }>
+      const lessonShortId = lessons.find(l => l.lesson_number === lessonNumber)?.short_id
+      if (!lessonShortId) return
+      await supabase
+        .from('lesson_progress')
+        .update({ status: 'current' })
+        .eq('lesson_ref', lessonShortId)
+        .eq('status', 'locked')
+      setOpenedLessonId(selectedLessonId)
+      setTimeout(() => setOpenedLessonId(null), 3000)
+    } finally {
+      setOpeningLesson(false)
+    }
+  }
 
   const selectedLesson = selectedLessonId
     ? course.lessons.find(l => l.id === selectedLessonId) ?? null
@@ -824,12 +1166,9 @@ export default function TeacherCourseEditorPage() {
     setCourse(c => ({ ...c, lessons: c.lessons.map(l => l.id === updated.id ? updated : l) }))
   }
 
-  function addHwTask(type: HWTaskType, hard = false) {
-    setHwTasks(prev => [...prev, { id: uid(), type, isHard: hard, label: typeLabel[type] }])
-  }
-
-  function removeHwTask(id: string) {
-    setHwTasks(prev => prev.filter(t => t.id !== id))
+  function handleSelectLesson(id: string) {
+    setSelectedLessonId(id)
+    setLessonMode('recording')
   }
 
   function handleBack() {
@@ -841,135 +1180,204 @@ export default function TeacherCourseEditorPage() {
     setCourseEdited(JSON.stringify(course))
   }
 
-  const isHomework = mode === 'homework'
+  const docked = useTeacher(s => s.headerDocked)
+  const setDocked = useTeacher(s => s.setHeaderDocked)
+  useEffect(() => () => setDocked(false), [])
+
+  const dockGlass = {
+    border: '1px solid var(--color-border-glass)',
+    background: 'rgba(var(--glass-rgb), 0.86)',
+    backdropFilter: 'blur(14px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+    boxShadow: 'var(--shadow-lg)',
+  } as const
+
+  const courseTitle = course.title || 'Создать курс'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      {/* ── Top bar ── */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 14, padding: '14px 24px 14px',
-        borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0,
-      }}>
-        <motion.button onClick={handleBack} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} style={{
-          display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 12,
-          border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)',
-          fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
-        }}>
-          <ArrowLeft size={14} /> Назад
-        </motion.button>
-
-        <span style={{ flex: 1, fontSize: 17, fontWeight: 700, color: 'var(--color-text)', textAlign: 'center' }}>
-          {course.title || 'Создать курс'}
-        </span>
-
-        <motion.button onClick={handleSave} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} style={{
-          padding: '7px 18px', borderRadius: 12, border: '1.5px solid var(--color-border)',
-          background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600,
-          cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
-        }}>
-          Черновик
-        </motion.button>
-        <motion.button onClick={() => { setCourse(c => ({ ...c, status: 'published' })); handleSave() }}
-          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} style={{
-          display: 'flex', alignItems: 'center', gap: 7, padding: '7px 20px', borderRadius: 12,
-          border: 'none', background: 'var(--color-accent)', color: '#fff',
-          fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
-        }}>
-          <Send size={13} /> Опубликовать
-        </motion.button>
+    <div
+      onScroll={e => setDocked((e.currentTarget as HTMLElement).scrollTop > 64)}
+      style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}
+    >
+      {/* ── Docked twin ── */}
+      <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
+        <AnimatePresence>
+          {docked && (
+            <motion.div
+              key="course-editor-dock"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: [0, 6, -3.5, 1.5, -0.5, 0] }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
+              style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
+            >
+              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={handleBack}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', pointerEvents: 'auto' }}>
+                <ArrowLeft size={15} strokeWidth={2} /> Назад
+              </motion.button>
+              <div style={{ flexShrink: 1, minWidth: 0, maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '9px 16px', borderRadius: 999, ...dockGlass, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto' }}>
+                {courseTitle}
+              </div>
+              <div style={{ flexGrow: 1 }} />
+              <button onClick={handleSave} style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 999, ...dockGlass, cursor: 'pointer', fontSize: 13.5, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit', pointerEvents: 'auto' }}>
+                Черновик
+              </button>
+              <TeacherSaveButton label="Опубликовать" savedLabel="Опубликовано!" icon={<Send size={14} />} saved={false}
+                onClick={() => { setCourse(c => ({ ...c, status: 'published' })); handleSave() }}
+                style={{ boxShadow: '0 6px 20px rgba(123,63,204,0.32)', pointerEvents: 'auto' }} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* ── 3-column body ── */}
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', gap: 14, padding: '14px 20px 20px', overflow: 'hidden' }}>
+      {/* ── At-rest header ── */}
+      <motion.div
+        animate={{ opacity: docked ? 0 : 1 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
+      >
+        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={handleBack}
+          style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <ArrowLeft size={15} strokeWidth={2} /> Назад
+        </motion.button>
+        <div style={{ position: 'absolute', left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' }}>
+          <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={handleSave}
+            style={{ padding: '9px 18px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+            Черновик
+          </motion.button>
+          <TeacherSaveButton label="Опубликовать" savedLabel="Опубликовано!" icon={<Send size={14} />} saved={false}
+            onClick={() => { setCourse(c => ({ ...c, status: 'published' })); handleSave() }}
+            style={{ boxShadow: '0 6px 20px rgba(123,63,204,0.32)' }} />
+        </div>
+      </motion.div>
 
-        {/* LEFT PANEL */}
-        <GlassCard style={{ width: 264, flexShrink: 0, overflowY: 'auto' }}>
-          <AnimatePresence mode="wait">
-            {isHomework ? (
-              <motion.div key="hw-left" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.15 }}>
-                <LeftPanelHomework
-                  hwTitle={hwTitle} setHwTitle={setHwTitle}
-                  hwTarget={hwTarget} setHwTarget={setHwTarget}
-                  hwDate={hwDate} setHwDate={setHwDate}
-                  hwTimeStart={hwTimeStart} setHwTimeStart={setHwTimeStart}
-                  hwTimeEnd={hwTimeEnd} setHwTimeEnd={setHwTimeEnd}
-                  groups={groups}
-                />
-              </motion.div>
-            ) : (
-              <motion.div key="course-left" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.15 }}>
-                <LeftPanelCourse course={course} setCourse={setCourse} groups={groups} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </GlassCard>
+      {/* ── 2-column body ── */}
+      <div style={{ display: 'flex', gap: 14, padding: '4px 20px 24px', minHeight: 'calc(100vh - 100px)' }}>
 
         {/* CENTER */}
         <GlassCard style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          {/* Mode tabs */}
-          <div style={{
-            display: 'flex', gap: 4, padding: '12px 16px', borderBottom: '1px solid var(--color-border-soft)',
-            flexShrink: 0,
-          }}>
-            {MODES.map(m => (
-              <button key={m.id} onClick={() => setMode(m.id)} style={{
-                padding: '7px 20px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                background: mode === m.id ? 'var(--color-accent)' : 'var(--color-bg-3)',
-                color: mode === m.id ? '#fff' : 'var(--color-text-2)',
-                fontSize: 13, fontWeight: 600, transition: 'all 0.15s', fontFamily: 'inherit',
-              }}>
-                {m.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Mode content */}
           <AnimatePresence mode="wait">
-            <motion.div
-              key={mode}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.18 }}
-              style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-            >
-              {mode === 'recording' && (
-                <CenterRecording
-                  lesson={selectedLesson}
-                  onSaveVideo={url => selectedLesson && updateLesson({ ...selectedLesson, videoUrl: url })}
+            {!selectedLesson ? (
+              /* ── Course meta view ── */
+              <motion.div key="course-meta" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}
+                style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <CenterCourseMeta
+                  course={course} setCourse={setCourse}
+                  groups={groups} allStudents={allStudents}
                 />
-              )}
-              {mode === 'lesson' && (
-                <CenterLesson lesson={selectedLesson} onUpdate={updateLesson} />
-              )}
-              {mode === 'homework' && (
-                <CenterHomework lesson={selectedLesson} tasks={hwTasks} onRemoveTask={removeHwTask} />
-              )}
-              {mode === 'students' && (
-                <CenterStudents course={course} groups={groups} allStudents={allStudents} />
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </GlassCard>
-
-        {/* RIGHT PANEL */}
-        <GlassCard style={{ width: 288, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <AnimatePresence mode="wait">
-            {isHomework ? (
-              <motion.div key="hw-right" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.18 }}
-                style={{ flex: 1, overflow: 'hidden' }}>
-                <RightPanelHomework onAdd={t => addHwTask(t, false)} onAddHard={t => addHwTask(t, true)} />
               </motion.div>
             ) : (
-              <motion.div key="lessons-right" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.18 }}
+              /* ── Lesson editor view ── */
+              <motion.div key={`lesson-${selectedLesson.id}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}
                 style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <RightPanelLessons
-                  course={course} setCourse={setCourse}
-                  selectedLessonId={selectedLessonId} onSelectLesson={setSelectedLessonId}
-                />
+
+                {/* Lesson header: back + tabs */}
+                <div style={{ padding: '10px 16px 12px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                    <button onClick={() => setSelectedLessonId(null)} style={{
+                      display: 'flex', alignItems: 'center', gap: 4,
+                      padding: '5px 10px', borderRadius: 999, border: 'none',
+                      background: 'var(--color-bg-3)', cursor: 'pointer',
+                      fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)',
+                      fontFamily: 'inherit',
+                    }}>
+                      <ChevronLeft size={13} /> Курс
+                    </button>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                      {selectedLesson.title || 'Урок без названия'}
+                    </span>
+                    {course.dbCourseId && (() => {
+                      const isOpened = openedLessonId === selectedLesson.id
+                      return (
+                        <motion.button
+                          whileHover={{ scale: 1.04 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => openLessonForStudents(selectedLesson.number)}
+                          disabled={openingLesson}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 6,
+                            padding: '6px 14px', borderRadius: 999, border: 'none',
+                            background: isOpened
+                              ? 'linear-gradient(135deg, #4ADE80, #22C55E)'
+                              : 'linear-gradient(135deg, #C58BFF, #7B61FF)',
+                            color: '#fff',
+                            fontSize: 12, fontWeight: 700,
+                            cursor: openingLesson ? 'wait' : 'pointer',
+                            fontFamily: 'inherit', flexShrink: 0,
+                            boxShadow: isOpened
+                              ? '0 4px 14px rgba(74,222,128,0.35)'
+                              : '0 4px 14px rgba(123,97,255,0.35)',
+                            transition: 'background 0.3s, box-shadow 0.3s',
+                            opacity: openingLesson ? 0.7 : 1,
+                          }}
+                        >
+                          {isOpened
+                            ? <><Check size={13} /> Открыт</>
+                            : <><Unlock size={13} /> Открыть урок</>
+                          }
+                        </motion.button>
+                      )
+                    })()}
+                  </div>
+                  <div style={{ display: 'flex', background: 'var(--color-bg-3)', borderRadius: 12, padding: 3, gap: 2 }}>
+                    {LESSON_MODES.map(m => (
+                      <button key={m.id} onClick={() => setLessonMode(m.id)} style={{
+                        flex: 1, padding: '7px 10px', borderRadius: 9,
+                        border: 'none', cursor: 'pointer',
+                        background: lessonMode === m.id ? 'var(--color-purple-soft)' : 'transparent',
+                        color: lessonMode === m.id ? 'var(--color-accent)' : 'var(--color-text)',
+                        fontSize: 13, fontWeight: 600, transition: 'all 0.15s', fontFamily: 'inherit',
+                      }}>
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tab content */}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={lessonMode}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.16 }}
+                    style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+                  >
+                    {lessonMode === 'recording' && (
+                      <CenterRecording
+                        lesson={selectedLesson}
+                        onSaveVideo={url => updateLesson({ ...selectedLesson, videoUrl: url })}
+                      />
+                    )}
+                    {lessonMode === 'lesson' && (
+                      <CenterLesson lesson={selectedLesson} onUpdate={updateLesson} />
+                    )}
+                    {lessonMode === 'homework' && (
+                      <CenterHomework lesson={selectedLesson} onUpdate={updateLesson} />
+                    )}
+                    {lessonMode === 'students' && (
+                      <CenterLessonStudents
+                        lesson={selectedLesson} onUpdate={updateLesson}
+                        course={course} groups={groups} allStudents={allStudents}
+                      />
+                    )}
+                  </motion.div>
+                </AnimatePresence>
               </motion.div>
             )}
           </AnimatePresence>
+        </GlassCard>
+
+        {/* RIGHT: always lesson list */}
+        <GlassCard style={{ width: 288, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <RightPanelLessons
+            course={course} setCourse={setCourse}
+            selectedLessonId={selectedLessonId} onSelectLesson={handleSelectLesson}
+          />
         </GlassCard>
 
       </div>

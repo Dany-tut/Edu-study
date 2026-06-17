@@ -148,27 +148,36 @@ function TrackForSubject({ subject }: { subject: Subject }) {
               }}
             />
           )}
-          {subject.modules.map(mod => {
+          {subject.modules.map((mod, modIndex) => {
             const isActive = mod.id === activeModuleId
             const totalLessons = mod.lessons.length
             const completedLessons = mod.lessons.filter(l => l.status === 'completed').length
             const isFullyDone = totalLessons > 0 && completedLessons === totalLessons
             const pct = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
 
-            const textColor = isFullyDone ? 'var(--color-green-text)' : 'var(--color-text)'
+            // A module is locked until the previous module's last lesson is completed
+            const prevMod = modIndex > 0 ? subject.modules[modIndex - 1] : null
+            const isLocked = prevMod != null && prevMod.lessons.length > 0
+              && prevMod.lessons[prevMod.lessons.length - 1].status !== 'completed'
+
+            const textColor = isLocked
+              ? 'var(--color-muted)'
+              : isFullyDone
+                ? 'var(--color-green-text)'
+                : 'var(--color-text)'
 
             return (
               <motion.button
                 key={mod.id}
-                ref={modulePill.registerItem(mod.id)}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
+                ref={isLocked ? undefined : modulePill.registerItem(mod.id)}
+                whileHover={isLocked ? {} : { scale: 1.04 }}
+                whileTap={isLocked ? {} : { scale: 0.96 }}
                 onClick={() => {
-                  if (mod.id === activeModuleId) return
+                  if (isLocked || mod.id === activeModuleId) return
                   playTransitionDrop()
                   setActiveModule(mod.id)
                 }}
-                className="cursor-pointer inline-flex items-center gap-1.5"
+                className="inline-flex items-center gap-1.5"
                 style={{
                   position: 'relative',
                   zIndex: 1,
@@ -179,11 +188,14 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                   background: 'transparent',
                   color: textColor,
                   border: '1px solid transparent',
-                  transition: 'color 0.16s ease, font-weight 0.16s ease',
+                  cursor: isLocked ? 'default' : 'pointer',
+                  opacity: isLocked ? 0.5 : 1,
+                  transition: 'color 0.16s ease, opacity 0.16s ease',
                 }}
               >
+                {isLocked && <Lock size={11} style={{ position: 'relative', zIndex: 1 }} />}
                 <span style={{ position: 'relative', zIndex: 1 }}>{mod.label}</span>
-                {pct > 0 && (
+                {pct > 0 && !isLocked && (
                   <span
                     style={{
                       position: 'relative',
@@ -203,11 +215,6 @@ function TrackForSubject({ subject }: { subject: Subject }) {
           })}
         </div>
 
-        {/* Subject name + progress */}
-        <span style={{ fontSize: 18, fontWeight: 650, color: 'var(--color-text)', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
-          {subject.name}{' '}
-          <span style={{ color: '#C58BFF' }}>{subject.progress}%</span>
-        </span>
       </div>
 
       {/* ── Track body: auto height, centered content ── */}
@@ -311,11 +318,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     left: detailLeft,
                     width: detailCardWidth,
                     borderRadius: 20,
-                    // Softer glass — lower alpha + lighter blur so the
-                    // course track underneath shows through with visible
-                    // refraction, reading as real glass rather than frosted
-                    // plastic.
-                    background: `linear-gradient(to bottom, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.22) 55%, ${withAlpha(selectedDetail.bg, 0.32)} 100%)`,
+                    background: `rgba(var(--glass-rgb), 0.97)`,
                     backdropFilter: 'blur(8px) saturate(150%)',
                     WebkitBackdropFilter: 'blur(8px) saturate(150%)',
                     border: '1px solid var(--color-border-glass)',
@@ -421,7 +424,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                           fontSize: 13,
                           fontWeight: 600,
                           color: '#fff',
-                          background: 'var(--color-text)',
+                          background: 'linear-gradient(135deg, #C58BFF, #7B61FF)',
                           borderRadius: 12,
                           padding: '9px 18px',
                           whiteSpace: 'nowrap',
@@ -490,7 +493,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     left: hardDetailLeft,
                     width: hardCardWidth,
                     borderRadius: 20,
-                    background: `linear-gradient(to bottom, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.22) 55%, rgba(243,234,255,0.32) 100%)`,
+                    background: `rgba(var(--glass-rgb), 0.97)`,
                     backdropFilter: 'blur(8px) saturate(150%)',
                     WebkitBackdropFilter: 'blur(8px) saturate(150%)',
                     border: '1px solid var(--color-border-glass)',
@@ -637,6 +640,9 @@ export default function CourseTrack() {
         )}
         {subjects.map(s => {
           const isActive = activeSubjectId === s.id
+          const allLessons = s.modules.flatMap(m => m.lessons)
+          const completedAll = allLessons.filter(l => l.status === 'completed').length
+          const subjectPct = allLessons.length > 0 ? Math.round((completedAll / allLessons.length) * 100) : 0
           return (
             <motion.button
               key={s.id}
@@ -648,6 +654,7 @@ export default function CourseTrack() {
                 playTransitionDrop()
                 setActiveSubject(s.id)
               }}
+              className="inline-flex items-center gap-1.5"
               style={{
                 position: 'relative',
                 zIndex: 1,
@@ -663,6 +670,9 @@ export default function CourseTrack() {
               }}
             >
               <span style={{ position: 'relative', zIndex: 1 }}>{s.name}</span>
+              <span style={{ position: 'relative', zIndex: 1, fontSize: 12, fontWeight: 500, color: '#C58BFF' }}>
+                {subjectPct}%
+              </span>
             </motion.button>
           )
         })}

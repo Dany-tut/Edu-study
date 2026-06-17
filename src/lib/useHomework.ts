@@ -143,7 +143,14 @@ export function useHardSubmissions() {
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    load()
+    const channel = supabase
+      .channel('hard-submissions')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_progress' }, () => load())
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [])
 
   async function reviewHard(id: string, verdict: 'completed' | 'returned') {
     await supabase.from('lesson_progress').update({ status: verdict }).eq('id', id)

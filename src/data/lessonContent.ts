@@ -58,8 +58,8 @@ export interface LessonDetail {
   date: string
   /** total runtime, e.g. "24:18" */
   duration: string
-  /** RuTube video id for the embedded player (rutube.ru/play/embed/<id>) */
-  videoId: string
+  /** RuTube video id for the embedded player — undefined when recording not yet added */
+  videoId?: string
   timecodes: LessonTimecode[]
   materials: LessonMaterial[]
   /** Body of the lesson's "Конспект" — a handful of paragraphs, with any
@@ -107,8 +107,8 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
   const month = ((lesson.number * 3) % 12) + 1
   const dateStr = `${pad2(day)}.${pad2(month)}`
 
-  // "Запись" tab fields from the DB win over the placeholder video/timecodes.
-  const videoId = lesson.videoId ?? LESSON_VIDEO_ID
+  // Use DB video/timecodes only — no mock fallback.
+  const videoId = lesson.videoId
   const timecodes = lesson.timecodes?.length ? lesson.timecodes : baseTimecodes
 
   // Priority: DB-authored content (teacher edits in Конструктор) → code default

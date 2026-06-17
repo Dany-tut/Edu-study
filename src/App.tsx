@@ -34,7 +34,20 @@ export default function App() {
 
   // Load real Supabase data whenever a student session exists
   useEffect(() => {
-    if (getStudentSession()) loadStudentData()
+    const sess = getStudentSession()
+    if (!sess) return
+    loadStudentData()
+    // Realtime: re-sync when teacher opens a lesson (lesson_progress changes for this student)
+    const channel = supabase
+      .channel('student-lesson-progress')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'lesson_progress',
+        filter: `student_id=eq.${sess.id}`,
+      }, () => loadStudentData())
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
   }, [loadStudentData])
 
   if (hash.startsWith('#/join')) return <JoinPage />

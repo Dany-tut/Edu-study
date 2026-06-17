@@ -1806,7 +1806,7 @@ function CreatorView({
     if (!lessons.length) { setEnrolling(false); setEnrollMsg('В курсе нет уроков в БД'); return }
     const rows = targets.flatMap(s => lessons.map(l => ({
       student_id: s.id, lesson_ref: l.short_id, subject: enrollDbId,
-      status: l.lesson_number === 0 ? 'current' : 'unviewed',
+      status: l.lesson_number === 0 ? 'current' : 'locked',
     })))
     const { error } = await supabase.from('lesson_progress').upsert(rows, { onConflict: 'student_id,lesson_ref' })
     setEnrolling(false)
@@ -2421,7 +2421,7 @@ function CreatorView({
             boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
             border: '1px solid var(--color-border-glass)',
           }}>
-            {(['course', 'trainer', 'widget'] as const).map(t => {
+            {(['trainer', 'widget'] as const).map(t => {
               const c = CREATOR_CFG[t]
               const isActive = mode === t
               return (
@@ -6121,11 +6121,6 @@ export default function TeacherConstructorPage() {
             </div>
 
             <AnimatePresence>
-              {selectedCourse && activeTab === 'course' && (
-                <CourseEditor key={selectedCourse.id} course={selectedCourse} trainers={trainers} widgets={widgets}
-                  onSave={c => setCourses(prev => prev.map(x => x.id === c.id ? c : x))} onClose={closeEditor}
-                  onExpand={() => handleExpandCourse(selectedCourse)} />
-              )}
               {activeTab === 'testing' && selectedResultId && (() => {
                 const result = diagAnonResults.find(r => r.id === selectedResultId)
                 return result ? (
