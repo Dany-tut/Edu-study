@@ -47,6 +47,10 @@ export interface CELesson {
   hwTarget?: string
   hwDate?: string
   hwTasks?: HWTask[]
+  // calendar scheduling
+  scheduledDate?: string   // DD.MM.YYYY
+  scheduledTime?: string   // HH:MM
+  scheduledDuration?: number // minutes (default 90)
 }
 
 export interface CEModule {
@@ -485,6 +489,69 @@ function CenterLesson({
             style={{ ...inputSt, resize: 'none', minHeight: 100, lineHeight: 1.6 }}
             placeholder="Краткое содержание урока, что разобрали, ключевые моменты…"
           />
+        </div>
+
+        {/* ── Scheduling ─────────────────────────────────────────────── */}
+        <div style={{
+          borderRadius: 16, border: '1.5px solid var(--color-border-soft)',
+          padding: '16px 18px', background: 'var(--color-bg)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 14 }}>
+            <Calendar size={14} style={{ color: lesson.scheduledDate ? 'var(--color-accent)' : 'var(--color-muted)' }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: lesson.scheduledDate ? 'var(--color-text)' : 'var(--color-text-3)' }}>
+              Дата и время урока
+            </span>
+            {lesson.scheduledDate && (
+              <button
+                onClick={() => onUpdate({ ...lesson, scheduledDate: undefined, scheduledTime: undefined, scheduledDuration: undefined })}
+                style={{ marginLeft: 'auto', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-4)', padding: 0 }}
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 10, alignItems: 'end' }}>
+            <div>
+              <Label>Дата</Label>
+              <CalendarPicker
+                value={lesson.scheduledDate ?? ''}
+                onChange={v => onUpdate({ ...lesson, scheduledDate: v || undefined })}
+              />
+            </div>
+            <div>
+              <Label>Начало</Label>
+              <select
+                value={lesson.scheduledTime ?? ''}
+                onChange={e => onUpdate({ ...lesson, scheduledTime: e.target.value || undefined })}
+                style={{ ...inputSt, width: 110, cursor: 'pointer' }}
+              >
+                <option value="">—</option>
+                {Array.from({ length: 32 }, (_, i) => {
+                  const h = Math.floor(i / 2) + 7
+                  const m = i % 2 === 0 ? '00' : '30'
+                  return <option key={i} value={`${String(h).padStart(2,'0')}:${m}`}>{`${String(h).padStart(2,'0')}:${m}`}</option>
+                })}
+              </select>
+            </div>
+            <div>
+              <Label>Длит.</Label>
+              <select
+                value={lesson.scheduledDuration ?? 90}
+                onChange={e => onUpdate({ ...lesson, scheduledDuration: Number(e.target.value) })}
+                style={{ ...inputSt, width: 100, cursor: 'pointer' }}
+              >
+                {[45, 60, 90, 120, 150, 180].map(m => (
+                  <option key={m} value={m}>{m < 60 ? `${m} мин` : `${m / 60} ч${m % 60 ? ` ${m % 60} м` : ''}`}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          {lesson.scheduledDate && lesson.scheduledTime && (
+            <div style={{ marginTop: 10, fontSize: 12, color: 'var(--color-accent)', display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Check size={12} />
+              Урок появится в календаре ученика {lesson.scheduledDate} в {lesson.scheduledTime}
+            </div>
+          )}
         </div>
       </div>
 
@@ -1569,6 +1636,66 @@ export default function TeacherCourseEditorPage() {
       .from('courses')
       .update({ group_ids: c.groupIds, student_ids: c.studentIds, status: c.status })
       .eq('short_id', shortId)
+
+    // Sync scheduled lessons to calendar
+    const scheduledLessons = c.lessons.filter(l => l.scheduledDate && l.scheduledTime)
+    if (scheduledLessons.length === 0 || c.groupIds.length === 0) return
+
+    // Fetch course row + lessons from DB to get UUIDs
+    const { data: courseRow } = await supabase
+      .from('courses')
+      .select('id, lessons(id, lesson_number, title)')
+      .eq('short_id', shortId)
+      .single()
+    if (!courseRow) return
+
+    const dbLessons = (courseRow.lessons ?? []) as Array<{ id: string; lesson_number: number; title: string }>
+
+    // Helper: DD.MM.YYYY → YYYY-MM-DD
+    function dotToIso(d: string) {
+      const [dd, mm, yyyy] = d.split('.')
+      return `${yyyy}-${mm}-${dd}`
+    }
+    // Helper: add minutes to HH:MM
+    function addMinutes(time: string, mins: number) {
+      const [h, m] = time.split(':').map(Number)
+      const total = h * 60 + m + mins
+      return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+    }
+
+    const rows: object[] = []
+    for (const lesson of scheduledLessons) {
+      const dbLesson = dbLessons.find(l => l.lesson_number === lesson.number)
+      if (!dbLesson) continue
+      const isoDate = dotToIso(lesson.scheduledDate!)
+      const timeStart = lesson.scheduledTime!
+      const timeEnd = addMinutes(timeStart, lesson.scheduledDuration ?? 90)
+      for (const groupId of c.groupIds) {
+        rows.push({
+          lesson_id: dbLesson.id,
+          group_id: groupId,
+          date: isoDate,
+          time_start: timeStart,
+          time_end: timeEnd,
+          lesson_title: lesson.title || dbLesson.title,
+          lesson_number: lesson.number,
+          subject: c.subject,
+          status: 'scheduled',
+        })
+      }
+    }
+
+    if (rows.length > 0) {
+      // Delete stale entries for these lessons first, then insert fresh
+      const lessonIds = [...new Set(rows.map((r: any) => r.lesson_id))]
+      await supabase
+        .from('schedule_lessons')
+        .delete()
+        .in('lesson_id', lessonIds)
+      await supabase
+        .from('schedule_lessons')
+        .insert(rows)
+    }
   }
 
   function handleSave(overrideCourse?: CourseEdData) {
