@@ -6,8 +6,11 @@ import {
   PenLine, Star, ChevronRight, ChevronDown, Users,
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
+  ClipboardCheck,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
+import { useTaskBank } from '../../store/taskBankStore'
+import type { Task as BankTask } from '../../data/taskBankData'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
 import TeacherSaveButton, { teacherSaveStyle } from '../../components/teacher/TeacherSaveButton'
 import { supabase } from '../../lib/supabase'
@@ -34,6 +37,10 @@ export interface CELesson {
   id: string
   title: string
   number: number
+  /** Node kind: a normal lesson, or a final test that opens a quiz. */
+  kind?: 'lesson' | 'test'
+  /** Quiz tasks when kind === 'test'. */
+  testTasks?: HWTask[]
   videoUrl?: string
   description?: string
   notebookFile?: string
@@ -1066,6 +1073,115 @@ function CenterHomework({
   )
 }
 
+// ─── CENTER: Test node editor (final test quiz) ───────────────────────────────
+
+function CenterTestView({
+  lesson, onUpdate, onBack,
+}: {
+  lesson: CELesson
+  onUpdate: (updated: CELesson) => void
+  onBack: () => void
+}) {
+  const tasks = lesson.testTasks ?? []
+  const [bankOpen, setBankOpen] = useState(false)
+  const [bankSearch, setBankSearch] = useState('')
+  const bankTasks = useTaskBank(s => s.tasks)
+  const loadBank = useTaskBank(s => s.load)
+  useEffect(() => { loadBank() }, [loadBank])
+
+  function addTask(type: HWTaskType) {
+    const newTask: HWTask = {
+      id: uid(), type, isHard: false, label: typeLabel[type],
+      choices: type === 'choice' ? ['', '', '', ''] : undefined,
+      correctChoices: type === 'choice' ? [0] : undefined,
+      pairs: type === 'match' ? [{ left: '', right: '' }, { left: '', right: '' }] : undefined,
+    }
+    onUpdate({ ...lesson, testTasks: [...tasks, newTask] })
+  }
+  function addFromBank(bt: BankTask) {
+    const newTask: HWTask = { id: uid(), type: 'text', isHard: false, label: typeLabel.text, question: bt.question, answer: bt.answer }
+    onUpdate({ ...lesson, testTasks: [...tasks, newTask] })
+  }
+  function removeTask(id: string) { onUpdate({ ...lesson, testTasks: tasks.filter(t => t.id !== id) }) }
+  function updateTask(updated: HWTask) { onUpdate({ ...lesson, testTasks: tasks.map(t => t.id === updated.id ? updated : t) }) }
+
+  const filteredBank = bankSearch.trim()
+    ? bankTasks.filter(t => t.question.toLowerCase().includes(bankSearch.toLowerCase()))
+    : bankTasks
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{ padding: '10px 16px 12px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+          <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 999, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit' }}>
+            <ChevronLeft size={13} /> Курс
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 11px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 11, fontWeight: 700 }}>
+            <ClipboardCheck size={12} /> Финальный тест
+          </div>
+        </div>
+        <Label>Название теста</Label>
+        <input value={lesson.title} onChange={e => onUpdate({ ...lesson, title: e.target.value })} style={{ ...inputSt, padding: '8px 11px', fontSize: 13 }} placeholder="Например: Контрольная по модулю 1" />
+        <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+          <Unlock size={11} /> Откроется у студента автоматически после прохождения предыдущего модуля
+        </div>
+      </div>
+
+      {/* Two-column body */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        {/* Left: question pickers */}
+        <div style={{ width: 212, flexShrink: 0, borderRight: '1px solid var(--color-border-soft)', overflowY: 'auto', padding: '14px 10px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, padding: '0 4px', marginBottom: 4 }}>СОСТАВИТЬ ВОПРОС</div>
+          {TASK_TYPES.map(t => (
+            <button key={t.type} onClick={() => addTask(t.type)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px', borderRadius: 13, border: 'none', background: 'var(--color-bg-2)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%' }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <t.Icon size={15} style={{ color: t.color }} />
+              </div>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)' }}>{t.label}</span>
+            </button>
+          ))}
+          <button onClick={() => setBankOpen(o => !o)} style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', borderRadius: 13, border: '1.5px dashed var(--color-border)', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)' }}>
+            <BookOpen size={13} /> {bankOpen ? 'Скрыть банк' : 'Из тренажёра'}
+          </button>
+          {bankOpen && (
+            <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <input value={bankSearch} onChange={e => setBankSearch(e.target.value)} placeholder="Поиск…" style={{ ...inputSt, fontSize: 11, padding: '6px 9px' }} />
+              <div style={{ maxHeight: 240, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {filteredBank.slice(0, 60).map(bt => (
+                  <button key={bt.id} onClick={() => addFromBank(bt)} style={{ textAlign: 'left', padding: '7px 8px', borderRadius: 9, border: 'none', background: 'var(--color-bg-2)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, color: 'var(--color-text-2)', display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+                    <Plus size={11} style={{ flexShrink: 0, marginTop: 1, color: 'var(--color-accent)' }} />
+                    <span style={{ overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{bt.question || 'Без текста'}</span>
+                  </button>
+                ))}
+                {filteredBank.length === 0 && <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '6px 8px' }}>Банк пуст</div>}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right: task list */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px' }}>
+          {tasks.length === 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, gap: 10 }}>
+              <ClipboardCheck size={36} style={{ opacity: 0.15, color: 'var(--color-muted)' }} />
+              <span style={{ fontSize: 13, color: 'var(--color-muted)', textAlign: 'center', maxWidth: 240 }}>Добавьте вопросы слева — составьте сами или возьмите из тренажёра</span>
+            </div>
+          ) : (
+            <AnimatePresence>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {tasks.map((task, i) => (
+                  <HWTaskCard key={task.id} task={task} index={i} onUpdate={updateTask} onDelete={() => removeTask(task.id)} />
+                ))}
+              </div>
+            </AnimatePresence>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── CENTER: Lesson-level students tab ───────────────────────────────────────
 
 function CenterLessonStudents({
@@ -1271,24 +1387,33 @@ function LessonRow({
     >
       <div style={{
         width: 24, height: 24, borderRadius: 7, flexShrink: 0,
-        background: selected ? 'var(--color-accent)' : 'var(--color-bg-3)',
+        background: lesson.kind === 'test'
+          ? (selected ? 'var(--color-green-text)' : 'var(--color-green-soft)')
+          : (selected ? 'var(--color-accent)' : 'var(--color-bg-3)'),
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 10, fontWeight: 700, color: selected ? '#fff' : 'var(--color-muted)',
+        fontSize: 10, fontWeight: 700,
+        color: lesson.kind === 'test'
+          ? (selected ? '#fff' : 'var(--color-green-text)')
+          : (selected ? '#fff' : 'var(--color-muted)'),
       }}>
-        {lesson.number}
+        {lesson.kind === 'test' ? <ClipboardCheck size={13} /> : lesson.number}
       </div>
       <span style={{
         flex: 1, fontSize: 12, fontWeight: selected ? 700 : 500,
-        color: selected ? 'var(--color-accent)' : 'var(--color-text)',
+        color: selected ? (lesson.kind === 'test' ? 'var(--color-green-text)' : 'var(--color-accent)') : 'var(--color-text)',
         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}>
-        {lesson.title || 'Урок без названия'}
+        {lesson.title || (lesson.kind === 'test' ? 'Тест без названия' : 'Урок без названия')}
       </span>
       {/* indicator dots */}
       <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
-        {lesson.videoUrl && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-accent)', opacity: 0.7 }} title="Запись" />}
-        {(lesson.hwTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title="ДЗ" />}
-        {((lesson.extraStudentIds?.length ?? 0) + (lesson.extraGroupIds?.length ?? 0)) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#F59E0B', opacity: 0.7 }} title="Доп. ученики" />}
+        {lesson.kind === 'test'
+          ? (lesson.testTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title="Вопросы" />
+          : <>
+              {lesson.videoUrl && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-accent)', opacity: 0.7 }} title="Запись" />}
+              {(lesson.hwTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title="ДЗ" />}
+              {((lesson.extraStudentIds?.length ?? 0) + (lesson.extraGroupIds?.length ?? 0)) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#F59E0B', opacity: 0.7 }} title="Доп. ученики" />}
+            </>}
       </div>
     </motion.button>
   )
@@ -1324,6 +1449,25 @@ function RightPanelLessons({
       return { ...c, lessons: updatedLessons }
     })
     setNewTitle('')
+    onSelectLesson(lessonId)
+  }
+
+  function addTest() {
+    const lessonId = uid()
+    const test: CELesson = {
+      id: lessonId, title: 'Финальный тест', number: course.lessons.length + 1,
+      kind: 'test', testTasks: [],
+    }
+    setCourse(c => {
+      const updatedLessons = [...c.lessons, test]
+      if (c.modules.length > 0) {
+        const mods = c.modules.map((m, i) =>
+          i === c.modules.length - 1 ? { ...m, lessonIds: [...m.lessonIds, lessonId] } : m
+        )
+        return { ...c, lessons: updatedLessons, modules: mods }
+      }
+      return { ...c, lessons: updatedLessons }
+    })
     onSelectLesson(lessonId)
   }
 
@@ -1533,14 +1677,24 @@ function RightPanelLessons({
                 <Plus size={14} />
               </button>
             </div>
-            <button onClick={() => setAddingModule(true)} style={{
-              width: '100%', padding: '6px 0', borderRadius: 9,
-              border: '1.5px dashed var(--color-border)', background: 'transparent',
-              cursor: 'pointer', fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontFamily: 'inherit',
-            }}>
-              <Layers size={11} /> Создать модуль
-            </button>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => setAddingModule(true)} style={{
+                flex: 1, padding: '6px 0', borderRadius: 9,
+                border: '1.5px dashed var(--color-border)', background: 'transparent',
+                cursor: 'pointer', fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontFamily: 'inherit',
+              }}>
+                <Layers size={11} /> Модуль
+              </button>
+              <button onClick={addTest} style={{
+                flex: 1, padding: '6px 0', borderRadius: 9,
+                border: '1.5px dashed var(--color-green-text)', background: 'transparent',
+                cursor: 'pointer', fontSize: 11, fontWeight: 600, color: 'var(--color-green-text)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontFamily: 'inherit',
+              }}>
+                <ClipboardCheck size={11} /> Тест
+              </button>
+            </div>
           </>
         )}
       </div>
@@ -1712,6 +1866,8 @@ export default function TeacherCourseEditorPage() {
       lesson_number: i,
       youtube_url: lesson.videoUrl ?? null,
       description: lesson.description ?? null,
+      kind: lesson.kind ?? 'lesson',
+      test_tasks: lesson.testTasks ?? [],
     }))
     if (lessonRows.length > 0) {
       await supabase.from('lessons').upsert(lessonRows, { onConflict: 'short_id' })
@@ -1925,6 +2081,14 @@ export default function TeacherCourseEditorPage() {
               <motion.div key={`lesson-${selectedLesson.id}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}
                 style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
+                {selectedLesson.kind === 'test' ? (
+                  <CenterTestView
+                    lesson={selectedLesson}
+                    onUpdate={updateLesson}
+                    onBack={() => setSelectedLessonId(null)}
+                  />
+                ) : (
+                <>
                 {/* Lesson header: back + tabs */}
                 <div style={{ padding: '10px 16px 12px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
@@ -2018,6 +2182,8 @@ export default function TeacherCourseEditorPage() {
                     )}
                   </motion.div>
                 </AnimatePresence>
+                </>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

@@ -10,6 +10,7 @@ import CoursesPage from './CoursesPage'
 import LessonPage from './LessonPage'
 import TaskBankPage from './TaskBankPage'
 import HomeworkFlow from '../components/HomeworkFlow'
+import TestFlow from '../components/TestFlow'
 import AnswerFlightLayer from '../components/AnswerFlightLayer'
 import { useDashboard } from '../store/dashboardStore'
 import { LayoutGroup, motion, AnimatePresence } from 'framer-motion'
@@ -53,6 +54,7 @@ export default function DashboardPage() {
   const currentLessonId = useDashboard(s => s.currentLessonId)
   const setLessonScrolled = useDashboard(s => s.setLessonScrolled)
   const closeHomework = useDashboard(s => s.closeHomework)
+  const closeLesson = useDashboard(s => s.closeLesson)
   const lesson = currentLessonId ? findLessonById(currentLessonId) : null
   const homework = lesson ? getLessonDetail(lesson).homework : null
 
@@ -199,7 +201,9 @@ export default function DashboardPage() {
               paddingTop: 100,
             }}
           >
-            <LessonPage />
+            {lesson?.kind === 'test'
+              ? <TestFlow lesson={lesson} onBack={closeLesson} />
+              : <LessonPage />}
           </main>
         ) : activePage === 'homework' && lesson && homework ? (
           /* Homework — mirrors the lesson pane: the page scrolls up under the
@@ -249,7 +253,9 @@ export default function DashboardPage() {
         ) : (
           <div style={{ minHeight: '100vh', background: 'var(--color-bg)', padding: '24px 24px 100px' }}>
             {activePage === 'lesson' ? (
-              <LessonPage />
+              lesson?.kind === 'test'
+                ? <TestFlow lesson={lesson} onBack={closeLesson} />
+                : <LessonPage />
             ) : activePage === 'homework' && lesson && homework ? (
               <HomeworkFlow
                 lessonId={lesson.id}

@@ -67,11 +67,13 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
   const displayStatus = getDisplayLessonStatus(lesson, now)
   const isMissedCurrentLesson = lesson.status === 'current' && displayStatus === 'unviewed'
   const style = statusStyle[displayStatus]
-  const isTestShape = lesson.shape === 'diamond' || lesson.shape === 'square'
+  const isTest = lesson.kind === 'test'
+  const isTestShape = lesson.shape === 'diamond' || lesson.shape === 'square' || isTest
   const Icon = isMissedCurrentLesson
     ? IconMissedLesson
+    : (isTest && displayStatus !== 'completed') ? IconTest
     : (displayStatus === 'unviewed' && isTestShape) ? IconTest : style.icon
-  const isCustom = (displayStatus === 'unviewed' && isTestShape) || style.custom
+  const isCustom = (isTest && displayStatus !== 'completed') || (displayStatus === 'unviewed' && isTestShape) || style.custom
   const size = 56
 
   const hardStatus = assessment?.hardStatus as HardStatus | undefined
@@ -81,7 +83,7 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
   const effectiveHardStatus: HardStatus | 'available' = hardStatus ?? 'available'
   const hardStyle = HARD_STYLE[effectiveHardStatus]
 
-  const isDiamond = lesson.shape === 'diamond'
+  const isDiamond = lesson.shape === 'diamond' || isTest
   const isSquare = lesson.shape === 'square'
 
   return (

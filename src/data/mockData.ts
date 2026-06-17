@@ -1,6 +1,21 @@
 export type LessonStatus = 'completed' | 'returned' | 'unviewed' | 'submitted' | 'current' | 'locked'
 export type LessonShape = 'circle' | 'square' | 'diamond'
 
+export type TestTaskType = 'text' | 'choice' | 'fill' | 'match' | 'whiteboard'
+
+/** A single quiz task on a course test node. Mirrors the teacher editor's HWTask. */
+export interface TestTask {
+  id: string
+  type: TestTaskType
+  isHard: boolean
+  label: string
+  question?: string
+  answer?: string
+  choices?: string[]
+  correctChoices?: number[]
+  pairs?: Array<{ left: string; right: string }>
+}
+
 export interface Lesson {
   id: string
   title: string
@@ -10,6 +25,10 @@ export interface Lesson {
   points?: number
   comment?: string
   subject: string
+  /** Node kind: a normal lesson or a final test that opens a quiz. */
+  kind?: 'lesson' | 'test'
+  /** Quiz tasks for a test node (kind === 'test'). */
+  testTasks?: TestTask[]
   /** DB-authored konspekt + homework override (from lessons.content). */
   content?: import('./lessonContent').LessonContentData
   /** "Запись" tab — recording video (RuTube embed id parsed from the URL). */

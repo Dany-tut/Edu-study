@@ -424,7 +424,9 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                           fontSize: 13,
                           fontWeight: 600,
                           color: '#fff',
-                          background: 'var(--grad-purple)',
+                          background: selectedLesson.kind === 'test'
+                            ? 'linear-gradient(135deg, #34C877, #2A7D4F)'
+                            : 'var(--grad-purple)',
                           borderRadius: 12,
                           padding: '9px 18px',
                           whiteSpace: 'nowrap',
@@ -432,7 +434,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                           flex: 1,
                         }}
                       >
-                        Открыть урок
+                        {selectedLesson.kind === 'test' ? 'Пройти тест' : 'Открыть урок'}
                       </motion.button>
                       {(() => {
                         const a = lessonAssessments[selectedLesson.id]

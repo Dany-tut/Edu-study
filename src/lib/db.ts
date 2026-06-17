@@ -156,6 +156,8 @@ interface DbCourse {
       content?: import('../data/lessonContent').LessonContentData | Record<string, never>
       youtube_url?: string | null
       timecodes?: import('../data/lessonContent').LessonTimecode[]
+      kind?: string | null
+      test_tasks?: import('../data/mockData').TestTask[] | null
     }>
   }>
 }
@@ -177,7 +179,7 @@ export async function fetchCourseStructure(studentId: string, groupId: string): 
       id, short_id, title, subject,
       course_modules (
         id, label, position,
-        lessons ( id, short_id, title, lesson_number, shape, content, youtube_url, timecodes )
+        lessons ( id, short_id, title, lesson_number, shape, content, youtube_url, timecodes, kind, test_tasks )
       )
     `)
     .eq('status', 'published')
@@ -204,6 +206,8 @@ export async function fetchCourseStructure(studentId: string, groupId: string): 
             number: l.lesson_number,
             status: 'locked' as LessonStatus,
             shape: (l.shape as LessonShape) ?? 'circle',
+            kind: l.kind === 'test' ? 'test' as const : 'lesson' as const,
+            testTasks: Array.isArray(l.test_tasks) ? l.test_tasks : undefined,
             subject: course.short_id,
             content: l.content && (l.content as { paragraphs?: unknown[] }).paragraphs?.length
               ? (l.content as import('../data/lessonContent').LessonContentData)
@@ -227,6 +231,20 @@ export function mergeSubjectsWithProgress(catalog: Subject[], progress: Progress
         return { ...lesson, status: p.status, points: p.score > 0 ? p.score : undefined, comment: p.comment || undefined }
       }),
     }))
+
+    // Gate test nodes: a final test auto-unlocks once every non-test lesson
+    // before it is completed. Already-taken tests keep their progress status.
+    {
+      const flat = modules.flatMap(m => m.lessons)
+      let allPrevDone = true
+      for (const l of flat) {
+        if (l.kind === 'test') {
+          if (l.status === 'locked') l.status = allPrevDone ? 'current' : 'locked'
+        } else if (l.status !== 'completed') {
+          allPrevDone = false
+        }
+      }
+    }
 
     // Compute activeModuleId: first module with an active lesson, otherwise module 1
     const allLessons = modules.flatMap(m => m.lessons.map(l => ({ ...l, moduleId: m.id })))

@@ -5971,26 +5971,54 @@ export default function TeacherConstructorPage() {
   async function goToCourseEditor(course: Course) {
     let groupIds: string[] = []
     let studentIds: string[] = []
+    let modules: Array<{ id: string; label: string; expanded: boolean; lessonIds: string[] }> = []
+    let lessons: Array<Record<string, unknown>> = []
 
     if (course.dbCourseId) {
       const { data: dbCourse } = await supabase
         .from('courses')
-        .select('group_ids, student_ids')
+        .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, description, kind, test_tasks)')
         .eq('short_id', course.dbCourseId)
         .single()
       if (dbCourse) {
-        groupIds = dbCourse.group_ids ?? []
-        studentIds = dbCourse.student_ids ?? []
+        groupIds = (dbCourse as any).group_ids ?? []
+        studentIds = (dbCourse as any).student_ids ?? []
+        const dbModules = [...((dbCourse as any).course_modules ?? [])].sort((a, b) => a.position - b.position)
+        const dbLessons = [...((dbCourse as any).lessons ?? [])].sort((a, b) => (a.lesson_number ?? a.position ?? 0) - (b.lesson_number ?? b.position ?? 0))
+        lessons = dbLessons.map((l: any, i: number) => ({
+          id: l.short_id,
+          title: l.title,
+          number: (l.lesson_number ?? i) + 1,
+          kind: l.kind === 'test' ? 'test' : 'lesson',
+          testTasks: Array.isArray(l.test_tasks) ? l.test_tasks : [],
+          videoUrl: l.youtube_url ?? undefined,
+          description: l.description ?? undefined,
+        }))
+        if (dbModules.length > 0) {
+          modules = dbModules.map((m: any) => ({
+            id: m.id, label: m.label, expanded: true,
+            lessonIds: dbLessons.filter((l: any) => l.module_id === m.id).map((l: any) => l.short_id),
+          }))
+          const grouped = new Set(modules.flatMap(m => m.lessonIds))
+          const ungrouped = dbLessons.filter((l: any) => !grouped.has(l.short_id)).map((l: any) => l.short_id)
+          if (ungrouped.length) modules[0].lessonIds.push(...ungrouped)
+        }
       }
+    }
+
+    // Fallbacks when the course isn't persisted to the DB yet.
+    if (lessons.length === 0) {
+      lessons = course.lessons.map((l, i) => ({ id: l.id, title: l.title, number: i + 1 }))
+    }
+    if (modules.length === 0) {
+      modules = [{ id: uid(), label: 'Модуль 1', expanded: true, lessonIds: lessons.map(l => l.id as string) }]
     }
 
     const edData = {
       id: course.id, title: course.title, subject: course.subject, level: course.level,
       status: course.status, color: course.color, bg: course.bg,
       description: course.description ?? '', dbCourseId: course.dbCourseId,
-      groupIds, studentIds,
-      modules: [{ id: uid(), label: 'Модуль 1', expanded: true, lessonIds: course.lessons.map(l => l.id) }],
-      lessons: course.lessons.map((l, i) => ({ id: l.id, title: l.title, number: i + 1 })),
+      groupIds, studentIds, modules, lessons,
     }
     openCourseEditor(JSON.stringify(edData))
   }
