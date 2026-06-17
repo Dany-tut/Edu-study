@@ -4284,6 +4284,12 @@ function DiagnosticEditorFullPage({
   }
   function removeQuestion(idx: number) { save(questions.filter((_, i) => i !== idx)); if (editIdx === idx) setEditIdx(null) }
   function resetToDefault() { save(DEFAULT_QUESTIONS[subject]); setEditIdx(null) }
+  function addQuestion() {
+    const newQ: DiagQuestion = { id: `q-${Date.now()}`, section: questions[questions.length - 1]?.section ?? 'Раздел 1', text: '', options: ['', '', '', ''], correct: 0 }
+    const next = [...questions, newQ]
+    save(next)
+    setEditIdx(next.length - 1); setEditText(''); setEditOpts(['', '', '', '']); setEditCorrect(0); setDirty(true)
+  }
 
   const canAssign = selectedGroupIds.size > 0 || selectedStudentIds.size > 0
   const [distMode, setDistMode] = useState<'assign' | 'link'>('assign')
@@ -4598,9 +4604,13 @@ function DiagnosticEditorFullPage({
                 <button key={q.id} onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
                   style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s' }}>
                   <div style={{ width: 20, height: 20, borderRadius: 6, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? '#fff' : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
-                  <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: editIdx === idx ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.text}</div>
+                  <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: editIdx === idx ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.text || 'Без текста'}</div>
                 </button>
               ))}
+              <button onClick={addQuestion}
+                style={{ marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', padding: '8px', borderRadius: 10, border: `1.5px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <Plus size={13} /> Добавить вопрос
+              </button>
             </GlassCard>
           </div>
         </div>
@@ -5263,8 +5273,11 @@ function DiagnosticTestCreator({ onSave, onCancel }: {
     setEditScrDomain((anyQ.screeningDomain as DomainKey) ?? 'matrices')
     setEditScrCount(anyQ.screeningCount ?? 5)
   }
-  function addQuestion() {
-    const newQ: DiagQuestion = { id: `q-${Date.now()}`, section: editSection || title || 'Раздел 1', text: '', options: ['', '', '', ''], correct: 0 }
+  function addQuestion(type: 'mc' | 'screening' = 'mc') {
+    const base: DiagQuestion = { id: `q-${Date.now()}`, section: editSection || title || 'Раздел 1', text: '', options: ['', '', '', ''], correct: 0 }
+    const newQ = type === 'screening'
+      ? { ...base, type: 'screening', screeningDomain: 'matrices', screeningCount: 5, text: `Блок: ${SCR_DOMAIN_META.matrices.short} (5 заданий)` }
+      : { ...base, type: 'mc' }
     setQuestions(prev => { const next = [...prev, newQ]; startEdit(next.length - 1, newQ); return next })
   }
   function commitEdit() {
@@ -5375,7 +5388,7 @@ function DiagnosticTestCreator({ onSave, onCancel }: {
                     </button>
                   ))}
                 </div>
-                <button onClick={addQuestion}
+                <button onClick={() => addQuestion()}
                   style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '7px 8px', borderRadius: 8, border: `1.5px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                   <Plus size={13} /> Добавить вопрос
                 </button>
@@ -5464,18 +5477,21 @@ function DiagnosticTestCreator({ onSave, onCancel }: {
                         Каждый вопрос: текст + 4 варианта + 1 правильный.
                       </div>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 340 }}>
-                      {[['📝','Задай вопрос'],['🔘','4 варианта ответа'],['✅','Отметь правильный'],['🔗','Получи ссылку и отправь ученику']].map(([icon, text]) => (
-                        <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, background: 'var(--color-bg-2)', textAlign: 'left' }}>
-                          <span style={{ fontSize: 18 }}>{icon}</span>
-                          <span style={{ fontSize: 13, color: 'var(--color-text-2)', fontWeight: 500 }}>{text}</span>
-                        </div>
-                      ))}
+                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>С чего начнём?</div>
+                    <div style={{ display: 'flex', gap: 12, width: '100%', maxWidth: 420 }}>
+                      <button onClick={() => addQuestion('mc')}
+                        style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '18px 14px', borderRadius: 16, border: `2px solid ${accent}55`, background: soft, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center', transition: 'all 0.14s' }}>
+                        <FileText size={24} style={{ color: accent }} />
+                        <span style={{ fontSize: 14, fontWeight: 700 }}>Обычный вопрос</span>
+                        <span style={{ fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.4 }}>Текст + 4 варианта,<br />один правильный</span>
+                      </button>
+                      <button onClick={() => addQuestion('screening')}
+                        style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '18px 14px', borderRadius: 16, border: `2px solid ${accent}55`, background: soft, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center', transition: 'all 0.14s' }}>
+                        <Brain size={24} style={{ color: accent }} />
+                        <span style={{ fontSize: 14, fontWeight: 700 }}>Скрининг-блок</span>
+                        <span style={{ fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.4 }}>Авто-генерируемые<br />когнитивные задания</span>
+                      </button>
                     </div>
-                    <button onClick={addQuestion}
-                      style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 28px', borderRadius: 14, border: 'none', background: accent, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                      <Plus size={16} /> Добавить первый вопрос
-                    </button>
                   </GlassCard>
                 </motion.div>
               )}
@@ -5977,7 +5993,7 @@ export default function TeacherConstructorPage() {
     if (course.dbCourseId) {
       const { data: dbCourse } = await supabase
         .from('courses')
-        .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, description, kind, test_tasks)')
+        .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration)')
         .eq('short_id', course.dbCourseId)
         .single()
       if (dbCourse) {
@@ -5993,6 +6009,9 @@ export default function TeacherConstructorPage() {
           testTasks: Array.isArray(l.test_tasks) ? l.test_tasks : [],
           videoUrl: l.youtube_url ?? undefined,
           description: l.description ?? undefined,
+          scheduledDate: l.scheduled_date ?? undefined,
+          scheduledTime: l.scheduled_time ?? undefined,
+          scheduledDuration: l.scheduled_duration ?? undefined,
         }))
         if (dbModules.length > 0) {
           modules = dbModules.map((m: any) => ({
