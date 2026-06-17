@@ -438,3 +438,153 @@ export async function fetchStudentActiveCourses(
 
   return results
 }
+
+// ─── Teacher: student HW history ─────────────────────────────────────────────
+export interface StudentHwItem {
+  title: string
+  date: string
+  score: number
+  maxScore: number
+  returned: boolean
+}
+
+export async function fetchStudentHwHistory(studentId: string): Promise<StudentHwItem[]> {
+  const { data } = await supabase
+    .from('homework_submissions')
+    .select('submitted_at, verdict, score, hw_id, homework(title)')
+    .eq('student_id', studentId)
+    .order('submitted_at', { ascending: false })
+    .limit(20)
+
+  if (!data || data.length === 0) return []
+
+  return (data as any[]).map(row => {
+    const hwTitle = row.homework?.title ?? `ДЗ #${row.hw_id?.slice(0, 6)}`
+    const dateObj = new Date(row.submitted_at)
+    const dateStr = dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '')
+    return {
+      title: hwTitle,
+      date: dateStr,
+      score: row.score ?? 0,
+      maxScore: 10,
+      returned: row.verdict === 'returned',
+    }
+  })
+}
+
+// ─── Teacher: student lesson attendance history ───────────────────────────────
+export interface StudentLessonItem {
+  date: string
+  topic: string
+  attended: boolean
+}
+
+export async function fetchStudentLessonHistory(studentId: string, groupId: string): Promise<StudentLessonItem[]> {
+  const { data: attendance } = await supabase
+    .from('lesson_attendance')
+    .select('lesson_date, present, group_id')
+    .eq('student_id', studentId)
+    .order('lesson_date', { ascending: false })
+    .limit(20)
+
+  if (!attendance || attendance.length === 0) return []
+
+  const dates = attendance.map((a: any) => a.lesson_date as string)
+  const { data: scheduled } = await supabase
+    .from('schedule_lessons')
+    .select('date, lesson_title')
+    .eq('group_id', groupId)
+    .in('date', dates)
+
+  const topicByDate = new Map<string, string>()
+  for (const s of (scheduled ?? []) as any[]) {
+    topicByDate.set(s.date, s.lesson_title)
+  }
+
+  return (attendance as any[]).map(a => {
+    const dateObj = new Date(a.lesson_date)
+    const dateStr = dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '')
+    return {
+      date: dateStr,
+      topic: topicByDate.get(a.lesson_date) ?? a.lesson_date,
+      attended: a.present ?? false,
+    }
+  })
+}
+
+// ─── Teacher: score dynamics (avg HW score per submission) ───────────────────
+export async function fetchStudentScoreDynamics(studentId: string): Promise<number[]> {
+  const { data } = await supabase
+    .from('homework_submissions')
+    .select('score, submitted_at')
+    .eq('student_id', studentId)
+    .not('verdict', 'eq', 'returned')
+    .order('submitted_at', { ascending: true })
+    .limit(20)
+
+  if (!data || data.length === 0) return []
+  return (data as any[]).map(row => Math.round(((row.score ?? 0) / 10) * 100))
+}
+
+// ─── Teacher: trainer topic sections from confidence_log ─────────────────────
+export interface TrainerSection {
+  section: string
+  correct: number
+  total: number
+}
+
+export interface WrongTask {
+  id: number
+  topic: string
+  line: number
+}
+
+export async function fetchStudentTrainerSections(
+  studentId: string,
+  authUserId?: string | null,
+): Promise<TrainerSection[]> {
+  // confidence_log.student_id is TEXT — may be auth_user_id or student UUID
+  const ids = [studentId]
+  if (authUserId && authUserId !== studentId) ids.push(authUserId)
+
+  const { data } = await supabase
+    .from('confidence_log')
+    .select('source, correct')
+    .in('student_id', ids)
+
+  if (!data || data.length === 0) return []
+
+  const bySource = new Map<string, { correct: number; total: number }>()
+  for (const row of data as any[]) {
+    const key = row.source ?? 'Другое'
+    if (!bySource.has(key)) bySource.set(key, { correct: 0, total: 0 })
+    const s = bySource.get(key)!
+    s.total++
+    if (row.correct) s.correct++
+  }
+
+  return Array.from(bySource.entries()).map(([section, { correct, total }]) => ({ section, correct, total }))
+}
+
+export async function fetchStudentWrongTasks(
+  studentId: string,
+  authUserId?: string | null,
+): Promise<WrongTask[]> {
+  const ids = [studentId]
+  if (authUserId && authUserId !== studentId) ids.push(authUserId)
+
+  const { data } = await supabase
+    .from('confidence_log')
+    .select('id, subject, source')
+    .in('student_id', ids)
+    .eq('correct', false)
+    .limit(10)
+
+  if (!data || data.length === 0) return []
+
+  return (data as any[]).map((row, i) => ({
+    id: typeof row.id === 'number' ? row.id : i + 1000,
+    topic: row.source ?? row.subject ?? 'Неизвестная тема',
+    line: 0,
+  }))
+}

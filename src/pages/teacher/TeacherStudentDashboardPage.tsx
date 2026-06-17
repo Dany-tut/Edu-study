@@ -10,40 +10,14 @@ import { useTeacher } from '../../store/teacherStore'
 import { useGroups, useStudents } from '../../lib/useGroups'
 import type { Student, Group } from '../../data/teacherMockData'
 import { loadAnonResults, type AnonDiagResult } from '../../data/diagnosticData'
-import { fetchStudentActiveCourses, type StudentCourseInfo } from '../../lib/db'
-
-// ─── Mock data (until Supabase tables are ready) ──────────────────────────────
-const MOCK_TRAINER_SECTIONS = [
-  { section: 'Молекулярная биология',    correct: 12, total: 18 },
-  { section: 'Клеточная теория',         correct:  6, total: 11 },
-  { section: 'Обмен веществ',            correct:  2, total:  9 },
-  { section: 'Размножение организмов',   correct:  9, total: 12 },
-  { section: 'Основы генетики',          correct:  4, total: 14 },
-]
-const MOCK_WRONG_TASKS = [
-  { id: 1554, line: 24, topic: 'Процессы жизнедеятельности клетки' },
-  { id: 892,  line: 19, topic: 'АТФ и биологическое окисление' },
-  { id: 1102, line:  6, topic: 'Строение клеток эукариот' },
-  { id: 445,  line: 28, topic: 'Генетика — задачи' },
-  { id: 730,  line: 18, topic: 'Фотосинтез и хемосинтез' },
-]
-const MOCK_HW_HISTORY = [
-  { title: 'ДЗ №12 — Митоз и мейоз', date: '10 июн', score: 9, maxScore: 10, returned: false },
-  { title: 'ДЗ №11 — Фотосинтез', date: '3 июн', score: 7, maxScore: 10, returned: false },
-  { title: 'ДЗ №10 — Генетика', date: '27 мая', score: 0, maxScore: 10, returned: true },
-  { title: 'ДЗ №9 — Клетка', date: '20 мая', score: 8, maxScore: 10, returned: false },
-  { title: 'ДЗ №8 — Ткани', date: '13 мая', score: 10, maxScore: 10, returned: false },
-  { title: 'ДЗ №7 — Органоиды', date: '6 мая', score: 6, maxScore: 10, returned: false },
-]
-const MOCK_LESSONS = [
-  { date: '10 июн', topic: 'Митоз и мейоз', attended: true },
-  { date: '3 июн',  topic: 'Фотосинтез', attended: true },
-  { date: '27 мая', topic: 'Генетика', attended: false },
-  { date: '20 мая', topic: 'Строение клетки', attended: true },
-  { date: '13 мая', topic: 'Ткани', attended: true },
-  { date: '6 мая',  topic: 'Органоиды', attended: true },
-]
-const MOCK_SCORE_DYNAMICS = [62, 65, 70, 68, 73, 71, 75, 78, 80]
+import {
+  fetchStudentActiveCourses, type StudentCourseInfo,
+  fetchStudentHwHistory, type StudentHwItem,
+  fetchStudentLessonHistory, type StudentLessonItem,
+  fetchStudentScoreDynamics,
+  fetchStudentTrainerSections, type TrainerSection,
+  fetchStudentWrongTasks, type WrongTask,
+} from '../../lib/db'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function nameInitials(name: string) {
@@ -334,6 +308,24 @@ export default function TeacherStudentDashboardPage() {
     fetchStudentActiveCourses(student.id, student.groupId ?? '').then(setStudentCourses)
   }, [student?.id, student?.groupId])
 
+  const [hwHistory, setHwHistory] = useState<StudentHwItem[]>([])
+  const [lessonHistory, setLessonHistory] = useState<StudentLessonItem[]>([])
+  const [scoreDynamics, setScoreDynamics] = useState<number[]>([])
+  const [trainerSections, setTrainerSections] = useState<TrainerSection[]>([])
+  const [wrongTasks, setWrongTasks] = useState<WrongTask[]>([])
+
+  useEffect(() => {
+    if (!student?.id) return
+    const sid = student.id
+    const gid = student.groupId ?? ''
+    const aid = (student as any).authUserId ?? null
+    fetchStudentHwHistory(sid).then(setHwHistory)
+    fetchStudentLessonHistory(sid, gid).then(setLessonHistory)
+    fetchStudentScoreDynamics(sid).then(setScoreDynamics)
+    fetchStudentTrainerSections(sid, aid).then(setTrainerSections)
+    fetchStudentWrongTasks(sid, aid).then(setWrongTasks)
+  }, [student?.id, student?.groupId])
+
   const [diagExpanded, setDiagExpanded] = useState(true)
 
   if (!student || !group) {
@@ -344,11 +336,14 @@ export default function TeacherStudentDashboardPage() {
     )
   }
 
-  const totalTrainer = studentTrainerStats?.totalCount ?? MOCK_TRAINER_SECTIONS.reduce((a, s) => a + s.total, 0)
-  const correctTrainer = studentTrainerStats?.doneCount ?? MOCK_TRAINER_SECTIONS.reduce((a, s) => a + s.correct, 0)
+  const totalTrainer = studentTrainerStats?.totalCount ?? trainerSections.reduce((a, s) => a + s.total, 0)
+  const correctTrainer = studentTrainerStats?.doneCount ?? trainerSections.reduce((a, s) => a + s.correct, 0)
   const wrongTrainer = studentTrainerStats?.wrongCount ?? (totalTrainer - correctTrainer)
-  const hwAvg = MOCK_HW_HISTORY.filter(h => !h.returned).reduce((a, h) => a + (h.score / h.maxScore) * 100, 0) / MOCK_HW_HISTORY.filter(h => !h.returned).length
-  const attendedCount = MOCK_LESSONS.filter(l => l.attended).length
+  const completedHw = hwHistory.filter(h => !h.returned)
+  const hwAvg = completedHw.length > 0
+    ? completedHw.reduce((a, h) => a + (h.score / h.maxScore) * 100, 0) / completedHw.length
+    : 0
+  const attendedCount = lessonHistory.filter(l => l.attended).length
 
   // Student has meaningful activity beyond diagnostics
   const hasStats = student.hwScore > 0 || student.testScore > 0 || student.attendance > 0 || student.trialScore != null || correctTrainer > 0
@@ -451,14 +446,14 @@ export default function TeacherStudentDashboardPage() {
           </tbody>
         </table>
         <h2 style={{ fontSize: 15, marginBottom: 8 }}>Тренажёр — по разделам</h2>
-        {MOCK_TRAINER_SECTIONS.map(s => (
+        {trainerSections.map(s => (
           <div key={s.section} style={{ marginBottom: 6 }}>
             <span>{s.section}: </span>
             <strong>{s.correct}/{s.total} ({Math.round(s.correct / s.total * 100)}%)</strong>
           </div>
         ))}
         <h2 style={{ fontSize: 15, marginBottom: 8, marginTop: 16 }}>История домашних работ</h2>
-        {MOCK_HW_HISTORY.map((h, i) => (
+        {hwHistory.map((h, i) => (
           <div key={i} style={{ marginBottom: 4 }}>
             {h.title} · {h.date} — {h.returned ? 'Возвращено' : `${h.score}/${h.maxScore}`}
           </div>
@@ -669,9 +664,11 @@ export default function TeacherStudentDashboardPage() {
             <Card>
               <SectionHeader icon={Percent} label="Динамика балла" />
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 64 }}>
-                {MOCK_SCORE_DYNAMICS.map((val, i) => {
+                {scoreDynamics.length === 0 ? (
+                <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '16px 0', textAlign: 'center' }}>Нет данных по оценкам</div>
+              ) : scoreDynamics.map((val, i) => {
                   const h = (val / 100) * 64
-                  const isLast = i === MOCK_SCORE_DYNAMICS.length - 1
+                  const isLast = i === scoreDynamics.length - 1
                   return (
                     <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', gap: 3 }}>
                       <motion.div
@@ -695,7 +692,10 @@ export default function TeacherStudentDashboardPage() {
             <Card>
               <SectionHeader icon={BookOpen} label="История домашних работ" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {MOCK_HW_HISTORY.map((hw, i) => {
+                {hwHistory.length === 0 && (
+                  <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '8px 0' }}>Нет сданных домашних работ</div>
+                )}
+                {hwHistory.map((hw, i) => {
                   const pct = hw.returned ? 0 : Math.round((hw.score / hw.maxScore) * 100)
                   const color = hw.returned ? '#F48B91' : pct >= 80 ? '#34C877' : pct >= 50 ? '#F5A623' : '#F48B91'
                   return (
@@ -727,10 +727,13 @@ export default function TeacherStudentDashboardPage() {
                   <Calendar size={14} style={{ color: 'var(--color-muted)' }} />
                   <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>История занятий</span>
                 </div>
-                <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>Посетил {attendedCount}/{MOCK_LESSONS.length}</span>
+                <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>Посетил {attendedCount}/{lessonHistory.length}</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                {MOCK_LESSONS.map((l, i) => (
+                {lessonHistory.length === 0 && (
+                  <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '8px 0' }}>Нет данных о посещаемости</div>
+                )}
+                {lessonHistory.map((l, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 10px', borderRadius: 10, background: l.attended ? 'var(--color-bg)' : 'var(--color-red-soft)' }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: l.attended ? '#34C877' : '#F48B91', flexShrink: 0 }} />
                     <span style={{ fontSize: 12, color: 'var(--color-text)', flex: 1 }}>{l.topic}</span>
@@ -837,7 +840,10 @@ export default function TeacherStudentDashboardPage() {
                 ))}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {MOCK_TRAINER_SECTIONS.map(s => <SectionRow key={s.section} {...s} />)}
+                {trainerSections.length === 0 && (
+                  <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>Нет данных — ученик ещё не занимался в тренажёре</div>
+                )}
+                {trainerSections.map(s => <SectionRow key={s.section} {...s} />)}
               </div>
             </Card>
 
@@ -851,7 +857,10 @@ export default function TeacherStudentDashboardPage() {
                 <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>Нажмите → дать похожие</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {MOCK_WRONG_TASKS.map(t => (
+                {wrongTasks.length === 0 && (
+                  <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '4px 0' }}>Нет ошибок — или ученик ещё не занимался в тренажёре</div>
+                )}
+                {wrongTasks.map(t => (
                   <div key={t.id}
                     style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, background: 'var(--color-red-soft)', border: '1px solid rgba(244,139,145,0.25)', cursor: 'pointer' }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(244,139,145,0.18)' }}
@@ -892,7 +901,7 @@ export default function TeacherStudentDashboardPage() {
             <Card>
               <SectionHeader icon={Layers} label="Слабые темы для проработки" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {MOCK_TRAINER_SECTIONS.filter(s => s.correct / s.total < 0.5).map(s => {
+                {trainerSections.filter(s => s.correct / s.total < 0.5).map(s => {
                   const pct = Math.round((s.correct / s.total) * 100)
                   return (
                     <div key={s.section} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 12, background: pct < 30 ? 'var(--color-red-soft)' : 'rgba(245,166,35,0.12)', border: `1px solid ${pct < 30 ? 'rgba(244,139,145,0.3)' : 'rgba(245,166,35,0.3)'}` }}>
@@ -902,7 +911,7 @@ export default function TeacherStudentDashboardPage() {
                     </div>
                   )
                 })}
-                {MOCK_TRAINER_SECTIONS.filter(s => s.correct / s.total < 0.5).length === 0 && (
+                {trainerSections.filter(s => s.correct / s.total < 0.5).length === 0 && (
                   <div style={{ padding: '10px 12px', borderRadius: 12, background: 'var(--color-green-soft)', fontSize: 12, color: 'var(--color-green-text)', fontWeight: 600 }}>
                     ✓ Нет явно слабых тем — отличная равномерная подготовка
                   </div>
