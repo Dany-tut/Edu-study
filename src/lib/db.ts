@@ -391,23 +391,22 @@ export interface StudentCourseInfo {
 }
 
 export async function fetchStudentActiveCourses(
-  authUserId: string,
+  studentId: string,
   groupId: string,
 ): Promise<StudentCourseInfo[]> {
+  const orClause = groupId
+    ? `student_ids.cs.{${studentId}},group_ids.cs.{${groupId}}`
+    : `student_ids.cs.{${studentId}}`
+
   const { data: courses } = await supabase
     .from('courses')
     .select('id, title, subject')
-    .or(`student_ids.cs.{${authUserId}},group_ids.cs.{${groupId}}`)
+    .or(orClause)
 
   if (!courses || courses.length === 0) return []
 
   const results: StudentCourseInfo[] = []
   for (const course of courses) {
-    const { count: totalLessons } = await supabase
-      .from('lessons')
-      .select('id', { count: 'exact', head: true })
-      .eq('course_id', course.id)
-
     const { data: lessonRefs } = await supabase
       .from('lessons')
       .select('short_id')
@@ -415,14 +414,15 @@ export async function fetchStudentActiveCourses(
       .not('short_id', 'is', null)
 
     const shortIds = (lessonRefs ?? []).map((l: any) => l.short_id as string)
+    const totalLessons = shortIds.length
 
     let completedLessons = 0
     if (shortIds.length > 0) {
       const { count } = await supabase
         .from('lesson_progress')
         .select('id', { count: 'exact', head: true })
-        .eq('student_id', authUserId)
-        .eq('status', 'done')
+        .eq('student_id', studentId)
+        .in('status', ['done', 'submitted'])
         .in('lesson_ref', shortIds)
       completedLessons = count ?? 0
     }
@@ -431,7 +431,7 @@ export async function fetchStudentActiveCourses(
       id: course.id,
       title: course.title,
       subject: course.subject ?? '',
-      totalLessons: totalLessons ?? 0,
+      totalLessons,
       completedLessons,
     })
   }

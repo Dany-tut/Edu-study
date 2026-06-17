@@ -1050,12 +1050,9 @@ function StudentCoursesSection({ student, group }: { student: Student; group: Gr
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!student.authUserId) { setLoading(false); return }
-    fetchStudentActiveCourses(student.authUserId, student.groupId)
+    fetchStudentActiveCourses(student.id, student.groupId ?? '')
       .then(c => { setCourses(c); setLoading(false) })
-  }, [student.id, student.authUserId, student.groupId])
-
-  if (!student.authUserId && !loading) return null
+  }, [student.id, student.groupId])
 
   return (
     <section>

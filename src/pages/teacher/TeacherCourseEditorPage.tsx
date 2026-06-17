@@ -1725,6 +1725,14 @@ export default function TeacherCourseEditorPage() {
     flash()
   }
 
+  function handleUnpublish() {
+    const updated = { ...course, status: 'draft' as const }
+    setCourse(updated)
+    setCourseEdited(JSON.stringify(updated))
+    syncAccessToSupabase(updated)
+    flash()
+  }
+
   const docked = useTeacher(s => s.headerDocked)
   const setDocked = useTeacher(s => s.setHeaderDocked)
   useEffect(() => () => setDocked(false), [])
@@ -1764,9 +1772,13 @@ export default function TeacherCourseEditorPage() {
                 {courseTitle}
               </div>
               <div style={{ flexGrow: 1 }} />
-              {course.status !== 'published' && (
+              {course.status !== 'published' ? (
                 <button onClick={() => handleSave()} style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 999, ...dockGlass, cursor: 'pointer', fontSize: 13.5, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit', pointerEvents: 'auto' }}>
                   Черновик
+                </button>
+              ) : (
+                <button onClick={handleUnpublish} style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 999, ...dockGlass, cursor: 'pointer', fontSize: 13.5, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit', pointerEvents: 'auto' }}>
+                  В черновик
                 </button>
               )}
               <TeacherSaveButton
@@ -1795,10 +1807,15 @@ export default function TeacherCourseEditorPage() {
           <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {course.status !== 'published' && (
+          {course.status !== 'published' ? (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={() => handleSave()}
               style={{ padding: '9px 18px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
               Черновик
+            </motion.button>
+          ) : (
+            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={handleUnpublish}
+              style={{ padding: '9px 18px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+              В черновик
             </motion.button>
           )}
           <TeacherSaveButton

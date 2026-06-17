@@ -330,9 +330,9 @@ export default function TeacherStudentDashboardPage() {
 
   const [studentCourses, setStudentCourses] = useState<StudentCourseInfo[]>([])
   useEffect(() => {
-    if (!student?.authUserId || !student.groupId) return
-    fetchStudentActiveCourses(student.authUserId, student.groupId).then(setStudentCourses)
-  }, [student?.id, student?.authUserId, student?.groupId])
+    if (!student?.id) return
+    fetchStudentActiveCourses(student.id, student.groupId ?? '').then(setStudentCourses)
+  }, [student?.id, student?.groupId])
 
   const [diagExpanded, setDiagExpanded] = useState(true)
 
@@ -782,9 +782,11 @@ export default function TeacherStudentDashboardPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
             {/* Активные курсы */}
-            {studentCourses.length > 0 && (
-              <Card>
-                <SectionHeader icon={BookOpen} label="Активные курсы" accent={group.color} />
+            <Card>
+              <SectionHeader icon={BookOpen} label="Активные курсы" accent={group.color} />
+              {studentCourses.length === 0 ? (
+                <div style={{ fontSize: 13, color: 'var(--color-text-3)', padding: '4px 0' }}>Курс не назначен</div>
+              ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {studentCourses.map(c => {
                     const pct = c.totalLessons > 0 ? c.completedLessons / c.totalLessons : 0
@@ -815,8 +817,8 @@ export default function TeacherStudentDashboardPage() {
                     )
                   })}
                 </div>
-              </Card>
-            )}
+              )}
+            </Card>
 
             {/* Тренажёр сводка */}
             <Card>
