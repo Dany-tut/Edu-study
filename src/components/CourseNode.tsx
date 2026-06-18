@@ -10,6 +10,7 @@ import { playClick } from '../lib/sound'
 import { TRACK_STATUS } from '../lib/theme'
 import { useNow } from '../lib/useNow'
 import { useDashboard } from '../store/dashboardStore'
+import { useTheme } from '../store/themeStore'
 import { EMOJI_STEPS } from './HomeworkFlow'
 import HardSatelliteLottie from './HardSatelliteLottie'
 
@@ -20,6 +21,17 @@ type AnyIcon = ElementType | CustomIcon
 const ts = (s: keyof typeof TRACK_STATUS) => ({
   bg: TRACK_STATUS[s].bg, border: TRACK_STATUS[s].border, iconColor: TRACK_STATUS[s].icon,
 })
+
+// Flash-ring tint per status (matches each node's border colour) — see the
+// `--flash-rgb` driven `courseNodeFlashRing` keyframes in index.css.
+const FLASH_RGB: Record<LessonStatus, string> = {
+  completed: '110,231,160',
+  returned:  '248,239,140',
+  unviewed:  '244,139,145',
+  submitted: '248,201,145',
+  current:   '99,84,207',
+  locked:    '150,150,160',
+}
 
 const statusStyle: Record<LessonStatus, { bg: string; border: string; iconColor: string; icon: AnyIcon; custom?: boolean }> = {
   completed: { ...ts('completed'), icon: CheckCircle2 },
@@ -56,6 +68,7 @@ interface Props {
 export default function CourseNode({ lesson, index, isSelected = false, isHighlighted = false, onSelect, onHardSelect }: Props) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const now = useNow()
+  const dark = useTheme(s => s.dark)
   const assessment = useDashboard(s => s.lessonAssessments[lesson.id])
 
   useEffect(() => {
@@ -88,12 +101,25 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
   const isDiamond = lesson.shape === 'diamond' || isTest
   const isSquare = lesson.shape === 'square'
 
+  // Active = the node the popover is anchored to, or the in-progress lesson.
+  const nodeRgb = FLASH_RGB[displayStatus]
+  const isActive = isSelected || displayStatus === 'current'
+  const nodeRadius = isDiamond ? 12 : isSquare ? 16 : 999
+
   return (
     <div ref={wrapperRef} className="relative flex-shrink-0" style={{ width: size, height: size }}>
       {isHighlighted && (
         <div
           className="course-node-flash-ring"
-          style={{ borderRadius: isDiamond ? 12 : isSquare ? 16 : 999 }}
+          style={{ borderRadius: nodeRadius, ['--flash-rgb' as string]: FLASH_RGB[displayStatus] }}
+        />
+      )}
+
+      {/* Dark-theme active ring: soft, breathing, tinted to the node colour. */}
+      {dark && isActive && !isHighlighted && (
+        <div
+          className="course-node-pulse-ring"
+          style={{ borderRadius: nodeRadius, ['--node-rgb' as string]: nodeRgb }}
         />
       )}
 
@@ -109,11 +135,17 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
         animate={{
           opacity: 1,
           scale: isSelected ? 1.06 : 1,
-          boxShadow: isSelected
-            ? `0 0 0 6px rgba(255,255,255,0.7), 0 0 0 10px ${style.border}26, 0 10px 28px ${style.border}4d`
-            : displayStatus === 'current'
-              ? `0 0 0 4px rgba(156,140,240,0.18), 0 4px 20px rgba(156,140,240,0.22)`
-              : '0 2px 8px rgba(0,0,0,0.06)',
+          boxShadow: dark
+            // Dark theme: let the breathing `.course-node-pulse-ring` carry the
+            // active glow; keep the button shadow flat so the two don't clash.
+            ? (isSelected
+                ? `0 0 0 2px rgba(${nodeRgb},0.55), 0 8px 22px rgba(0,0,0,0.45)`
+                : '0 2px 10px rgba(0,0,0,0.4)')
+            : isSelected
+              ? `0 0 0 6px rgba(255,255,255,0.7), 0 0 0 10px ${style.border}26, 0 10px 28px ${style.border}4d`
+              : displayStatus === 'current'
+                ? `0 0 0 4px rgba(156,140,240,0.18), 0 4px 20px rgba(156,140,240,0.22)`
+                : '0 2px 8px rgba(0,0,0,0.06)',
         }}
         transition={{
           boxShadow: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },

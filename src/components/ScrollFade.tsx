@@ -13,11 +13,19 @@ export default function ScrollFade({
   maxHeight,
   bg = 'var(--color-bg)',
   fadeHeight = 24,
+  scrollClassName,
+  style,
+  scrollStyle,
 }: {
   children: React.ReactNode
   maxHeight: number
   bg?: string
   fadeHeight?: number
+  scrollClassName?: string
+  /** Merged into the outer (relative) wrapper. */
+  style?: React.CSSProperties
+  /** Merged into the inner scrollable element. */
+  scrollStyle?: React.CSSProperties
 }) {
   const [edges, setEdges] = useState({ top: false, bottom: false })
 
@@ -28,11 +36,12 @@ export default function ScrollFade({
   }
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', ...style }}>
       <div
+        className={scrollClassName}
         ref={el => { if (el) update(el) }}
         onScroll={e => update(e.currentTarget)}
-        style={{ maxHeight, overflowY: 'auto', overscrollBehavior: 'contain' }}
+        style={{ maxHeight, overflowY: 'auto', overscrollBehavior: 'contain', ...scrollStyle }}
       >
         {children}
       </div>

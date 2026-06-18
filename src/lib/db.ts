@@ -232,6 +232,7 @@ export async function fetchCourseStructure(studentId: string, groupId: string): 
                 : undefined,
               videoId: rutubeEmbedId(l.youtube_url),
               timecodes: Array.isArray(l.timecodes) && l.timecodes.length ? l.timecodes : undefined,
+              scheduledDate: l.scheduled_date ?? undefined,
             }
             // Recording date diverged from the lesson date → split into two nodes:
             // a 🎥 «Запись» node (live session) and a 📖 «Урок» node, each tracked
@@ -240,7 +241,7 @@ export async function fetchCourseStructure(studentId: string, groupId: string): 
               && (l.rec_date !== l.scheduled_date || l.rec_time !== l.scheduled_time)
             if (diverged) {
               return [
-                { ...base, id: `${l.short_id}~rec`, shape: 'square' as LessonShape, nodeType: 'rec' as const, content: undefined },
+                { ...base, id: `${l.short_id}~rec`, shape: 'square' as LessonShape, nodeType: 'rec' as const, content: undefined, scheduledDate: l.rec_date ?? undefined },
                 { ...base, id: l.short_id, shape: (l.shape as LessonShape) ?? 'circle', nodeType: 'lesson' as const, videoId: undefined },
               ]
             }

@@ -21,6 +21,18 @@ const TRACK_SIDE_PADDING = 36
 // Vertical breathing room above the row so the selected node's glow ring isn't clipped.
 const GLOW_PAD = 24
 
+// Format a lesson's scheduled date as "18 июня" to match the schedule calendar.
+// The DB stores dates as "DD.MM.YYYY" text; also tolerate ISO "YYYY-MM-DD".
+const LESSON_DATE_FMT = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' })
+function fmtLessonDate(raw?: string): string | null {
+  if (!raw) return null
+  const dmy = raw.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/)
+  const d = dmy
+    ? new Date(Number(dmy[3]), Number(dmy[2]) - 1, Number(dmy[1]))
+    : new Date(`${raw}T00:00:00`)
+  return isNaN(d.getTime()) ? null : LESSON_DATE_FMT.format(d)
+}
+
 function withAlpha(hex: string, alpha: number) {
   const h = hex.replace('#', '')
   const r = parseInt(h.slice(0, 2), 16)
@@ -193,7 +205,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                   color: textColor,
                   border: '1px solid transparent',
                   cursor: isLocked ? 'default' : 'pointer',
-                  opacity: isLocked ? 0.5 : 1,
+                  opacity: isLocked ? 0.7 : 1,
                   transition: 'color 0.16s ease, opacity 0.16s ease',
                 }}
               >
@@ -322,9 +334,17 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     left: detailLeft,
                     width: detailCardWidth,
                     borderRadius: 20,
-                    background: `rgba(var(--glass-rgb), 0.82)`,
-                    backdropFilter: 'blur(18px) saturate(150%)',
-                    WebkitBackdropFilter: 'blur(18px) saturate(150%)',
+                    // Layered: (1) very light radial glow rising from the bottom,
+                    // tinted to the node's circle colour and centred horizontally
+                    // OVER the selected node (arrowX) so it sits above the circle,
+                    // not the card centre; (2) vertical glass gradient — 80% opaque
+                    // at the bottom fading to 40% at the top. Blur stays 18px.
+                    background: [
+                      `radial-gradient(130% 85% at ${arrowX}px 112%, color-mix(in srgb, ${selectedDetail.badgeText} 16%, transparent), transparent 62%)`,
+                      `linear-gradient(to top, rgba(var(--glass-rgb), 0.40), rgba(var(--glass-rgb), 0.20))`,
+                    ].join(', '),
+                    backdropFilter: 'blur(10px) saturate(150%)',
+                    WebkitBackdropFilter: 'blur(10px) saturate(150%)',
                     border: '1px solid var(--color-border-glass)',
                     boxShadow: 'var(--shadow-md)',
                     padding: 16,
@@ -357,6 +377,9 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <span style={{ fontSize: 12, fontWeight: 500, color: selectedDetail.badgeText, lineHeight: 1 }}>
                             Занятие #{selectedLesson.number}
+                            {fmtLessonDate(selectedLesson.scheduledDate) && (
+                              <span style={{ color: 'var(--color-muted)', fontWeight: 500 }}> · {fmtLessonDate(selectedLesson.scheduledDate)}</span>
+                            )}
                           </span>
                           <span
                             style={{
@@ -499,9 +522,14 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     left: hardDetailLeft,
                     width: hardCardWidth,
                     borderRadius: 20,
-                    background: `rgba(var(--glass-rgb), 0.82)`,
-                    backdropFilter: 'blur(18px) saturate(150%)',
-                    WebkitBackdropFilter: 'blur(18px) saturate(150%)',
+                    // Same as the lesson card: light radial glow (tinted to the hard
+                    // node's colour) over a 80%→40% vertical glass gradient. Blur 18px.
+                    background: [
+                      `radial-gradient(130% 85% at 50% 112%, color-mix(in srgb, ${hardStyleData.border} 16%, transparent), transparent 62%)`,
+                      `linear-gradient(to top, rgba(var(--glass-rgb), 0.40), rgba(var(--glass-rgb), 0.20))`,
+                    ].join(', '),
+                    backdropFilter: 'blur(10px) saturate(150%)',
+                    WebkitBackdropFilter: 'blur(10px) saturate(150%)',
                     border: '1px solid var(--color-border-glass)',
                     boxShadow: 'var(--shadow-md)',
                     padding: 16,

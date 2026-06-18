@@ -143,7 +143,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
                 fontSize: 10.5, fontWeight: 750,
                 padding: '2px 7px', borderRadius: 999,
                 background: pct >= 60 ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
-                color: pct >= 60 ? '#2A7D4F' : '#A8282D',
+                color: pct >= 60 ? 'var(--color-green-text)' : 'var(--color-red-text)',
               }}>
                 {correct}/{total}
               </span>

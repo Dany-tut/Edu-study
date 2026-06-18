@@ -12,7 +12,7 @@ import {
   AlignLeft, Pencil, ClipboardCopy, Target, ChevronDown, ChevronUp,
   CheckCircle, Circle, Globe, Copy, Search, LayoutGrid,
   Settings, TrendingUp, ArrowLeftRight, RotateCcw, Palette,
-  ChevronLeft, ChevronRight, Calendar,
+  ChevronLeft, ChevronRight, Calendar, Users,
 } from 'lucide-react'
 import RichConditionEditor from '../../components/teacher/RichConditionEditor'
 import {
@@ -1050,7 +1050,47 @@ const COURSE_BG       = 'var(--color-purple-soft)'
 const TRAINER_COLOR   = 'var(--color-purple)'
 const TRAINER_BG      = 'var(--color-purple-soft)'
 
-function CourseCard({ course, isSelected, onClick, actions }: { course: Course; isSelected: boolean; onClick: () => void; actions?: CardActions }) {
+// Footer chip: enrolled-students icon + count with a hover popup listing names.
+function StudentsBadge({ students }: { students: { id: string; name: string }[] }) {
+  const [open, setOpen] = useState(false)
+  const count = students.length
+  return (
+    <span
+      onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}
+      onClick={e => e.stopPropagation()}
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 4, cursor: count ? 'default' : 'inherit' }}
+    >
+      <Users size={13} strokeWidth={1.8} />
+      <span>{count}</span>
+      <AnimatePresence>
+        {open && count > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 4, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 4, scale: 0.97 }}
+            transition={{ duration: 0.14 }}
+            style={{
+              position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
+              zIndex: 20, minWidth: 150, maxWidth: 220, maxHeight: 220, overflowY: 'auto',
+              background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              border: '1px solid var(--color-border-glass)', borderRadius: 12, padding: '8px 10px',
+              boxShadow: '0 8px 28px rgba(0,0,0,0.16)', cursor: 'default',
+            }}
+          >
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 6 }}>
+              Зачислены · {count}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {students.map(s => (
+                <div key={s.id} style={{ fontSize: 12, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </span>
+  )
+}
+
+function CourseCard({ course, isSelected, onClick, actions, students }: { course: Course; isSelected: boolean; onClick: () => void; actions?: CardActions; students?: { id: string; name: string }[] }) {
   return (
     <ContentCard
       accentColor={COURSE_COLOR} accentBg={COURSE_BG} actions={actions}
@@ -1059,7 +1099,17 @@ function CourseCard({ course, isSelected, onClick, actions }: { course: Course; 
       badge={<span style={{ fontSize: 10, fontWeight: 700, color: STATUS_COLOR[course.status], background: STATUS_BG[course.status], borderRadius: 7, padding: '2px 8px' }}>{STATUS_LABEL[course.status]}</span>}
       title={course.title}
       subtitle={`${course.subject} · ${course.level}`}
-      footerLeft={<><GraduationCap size={13} strokeWidth={1.8} /><span>{course.lessons.length} уроков</span></>}
+      footerLeft={
+        <>
+          <GraduationCap size={13} strokeWidth={1.8} /><span>{course.lessons.length} уроков</span>
+          {students && students.length > 0 && (
+            <>
+              <span style={{ opacity: 0.4 }}>·</span>
+              <StudentsBadge students={students} />
+            </>
+          )}
+        </>
+      }
       footerRight={<><Clock size={11} strokeWidth={2} />{course.lastEdited}</>}
     />
   )
@@ -1136,7 +1186,12 @@ function WidgetSortDropdown({ value, onChange }: { value: WidgetSortMode; onChan
           background: 'rgba(var(--glass-rgb), 0.9)', border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
           fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
         <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
-        {label}
+        <span style={{ display: 'grid', justifyItems: 'start' }}>
+          {WIDGET_SORT_OPTS.map(([, lbl]) => (
+            <span key={lbl} aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden' }}>{lbl}</span>
+          ))}
+          <span style={{ gridArea: '1 / 1' }}>{label}</span>
+        </span>
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
           <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
@@ -1161,6 +1216,80 @@ function WidgetSortDropdown({ value, onChange }: { value: WidgetSortMode; onChan
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  )
+}
+
+type CourseSortMode = 'newest' | 'oldest' | 'az'
+const COURSE_SORT_OPTS: [CourseSortMode, string][] = [
+  ['newest', 'Новые'], ['oldest', 'Старые'], ['az', 'А → Я'],
+]
+
+function CourseSortDropdown({ value, onChange }: { value: CourseSortMode; onChange: (v: CourseSortMode) => void }) {
+  const [open, setOpen] = useState(false)
+  const label = COURSE_SORT_OPTS.find(([v]) => v === value)?.[1] ?? 'Новые'
+  return (
+    <div style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)} onBlur={() => setTimeout(() => setOpen(false), 120)}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 999,
+          background: 'rgba(var(--glass-rgb), 0.9)', border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
+          fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
+        <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
+        <span style={{ display: 'grid', justifyItems: 'start' }}>
+          {COURSE_SORT_OPTS.map(([, lbl]) => (
+            <span key={lbl} aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden' }}>{lbl}</span>
+          ))}
+          <span style={{ gridArea: '1 / 1' }}>{label}</span>
+        </span>
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
+          <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
+            style={{ position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 160,
+              background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              border: '1px solid var(--color-border-glass)', borderRadius: 14, boxShadow: '0 12px 32px rgba(0,0,0,0.12)', padding: 5 }}>
+            {COURSE_SORT_OPTS.map(([val, lbl]) => (
+              <button key={val} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                  width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
+                  background: value === val ? 'rgba(26,122,63,0.07)' : 'transparent',
+                  fontSize: 13, fontWeight: value === val ? 700 : 400, color: 'var(--color-text)',
+                  cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
+                {lbl}
+                {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="var(--color-green-text)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+// Segmented status filter: Все / Черновик / Опубликован.
+function CourseStatusFilter({ value, onChange }: { value: '' | CourseStatus; onChange: (v: '' | CourseStatus) => void }) {
+  const opts: ['' | CourseStatus, string][] = [['', 'Все'], ['draft', 'Черновик'], ['published', 'Опубликован']]
+  return (
+    <div style={{ display: 'flex', padding: 2, borderRadius: 999, background: 'var(--color-bg-3)', gap: 2 }}>
+      {opts.map(([val, lbl]) => {
+        const active = value === val
+        return (
+          <button key={val || 'all'} onClick={() => onChange(val)}
+            style={{ padding: '5px 12px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+              fontSize: 12, fontWeight: active ? 700 : 500,
+              background: active ? 'var(--color-surface)' : 'transparent',
+              color: active ? (val === 'published' ? 'var(--color-green-text)' : val === 'draft' ? 'var(--color-peach-text)' : 'var(--color-text)') : 'var(--color-text-3)',
+              boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.14s' }}>
+            <span style={{ display: 'grid', justifyItems: 'center' }}>
+              <span aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden', fontWeight: 700 }}>{lbl}</span>
+              <span style={{ gridArea: '1 / 1' }}>{lbl}</span>
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -2352,13 +2481,8 @@ function CreatorView({
             <div><Label>Название</Label>
               <input value={cTitle} onChange={e => setCTitle(e.target.value)} style={inputSt} />
             </div>
-            <div>
-              <Label>Предмет</Label>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {(['Химия', 'Биология'] as const).map(s => (
-                  <SegBtn key={s} label={s} active={cSubject === s} color="var(--color-purple-text)" bg="var(--color-purple-soft)" onClick={() => setCSubject(s)} />
-                ))}
-              </div>
+            <div><Label>Предмет</Label>
+              <input value={cSubject} onChange={e => setCSubject(e.target.value)} style={inputSt} placeholder="Например, Химия" />
             </div>
             <div>
               <TeacherSelect value={cLevel} onChange={setCLevel} placeholder="Уровень" options={['ЕГЭ', 'ОГЭ', 'AP', 'Углублённый', 'Интенсив']} />
@@ -5899,6 +6023,32 @@ export default function TeacherConstructorPage() {
     loadAll()
   }, [])
 
+  // Enrolled students per course (subject = course.dbCourseId in lesson_progress).
+  const [enrollmentByCourse, setEnrollmentByCourse] = useState<Record<string, { id: string; name: string }[]>>({})
+  useEffect(() => {
+    if (!courses.length || !diagAllStudents.length) return
+    let cancelled = false
+    ;(async () => {
+      const { data } = await supabase.from('lesson_progress').select('student_id, subject')
+      if (!data || cancelled) return
+      const bySubject: Record<string, Set<string>> = {}
+      for (const r of data as Array<{ student_id: string; subject: string | null }>) {
+        if (!r.subject) continue
+        ;(bySubject[r.subject] ??= new Set()).add(r.student_id)
+      }
+      const nameById = new Map(diagAllStudents.map(s => [s.id, s.name]))
+      const map: Record<string, { id: string; name: string }[]> = {}
+      for (const c of courses) {
+        const dbId = c.dbCourseId ?? AP_DB_COURSE_BY_CONSTRUCTOR_ID[c.id]
+        const ids = dbId ? bySubject[dbId] : undefined
+        if (!ids) continue
+        map[c.id] = [...ids].filter(id => nameById.has(id)).map(id => ({ id, name: nameById.get(id)! }))
+      }
+      if (!cancelled) setEnrollmentByCourse(map)
+    })()
+    return () => { cancelled = true }
+  }, [courses, diagAllStudents.length])
+
   useEffect(() => { _cachedCourses = courses }, [courses])
   useEffect(() => { _cachedTrainers = trainers }, [trainers])
   useEffect(() => { _cachedWidgets = widgets }, [widgets])
@@ -5917,6 +6067,16 @@ export default function TeacherConstructorPage() {
     if (widgetFilters.sort === 'items') return [...sorted].sort((a, b) => b.items.length - a.items.length)
     return sorted
   }, [widgets, widgetFilters])
+  const [courseSort, setCourseSort] = useState<CourseSortMode>('newest')
+  const [courseStatus, setCourseStatus] = useState<'' | CourseStatus>('')
+  const filteredCourses = useMemo(() => {
+    let cs = courses
+    if (courseStatus) cs = cs.filter(c => c.status === courseStatus)
+    const sorted = [...cs]
+    if (courseSort === 'newest') return sorted.reverse()
+    if (courseSort === 'az') return sorted.sort((a, b) => a.title.localeCompare(b.title, 'ru'))
+    return sorted
+  }, [courses, courseSort, courseStatus])
   const removeTask = useTaskBank(s => s.removeTask)
   const addBankTask = useTaskBank(s => s.addTask)
   const loadTasks = useTaskBank(s => s.load)
@@ -6521,11 +6681,19 @@ export default function TeacherConstructorPage() {
               {dbLoading && (
                 <div style={{ color: 'var(--color-text-3)', fontSize: 14, padding: '32px 0', textAlign: 'center' }}>Загрузка…</div>
               )}
+              {activeTab === 'course' && !dbLoading && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                  <CourseSortDropdown value={courseSort} onChange={setCourseSort} />
+                  <CourseStatusFilter value={courseStatus} onChange={setCourseStatus} />
+                  <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>{filteredCourses.length} курсов</span>
+                </div>
+              )}
               <div
                 style={{ display: (activeTab === 'trainer' || activeTab === 'widget') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
-                {activeTab === 'course' && courses.map(c => (
+                {activeTab === 'course' && filteredCourses.map(c => (
                   <div key={c.id} style={{ position: 'relative' }}>
                     <CourseCard course={c} isSelected={false}
+                      students={enrollmentByCourse[c.id]}
                       onClick={() => editMode ? toggleCheck(c.id) : handleExpandCourse(c)}
                       actions={undefined} />
                     {editMode && (

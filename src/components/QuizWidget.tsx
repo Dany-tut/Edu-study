@@ -206,7 +206,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
       <div className="flex items-start justify-between gap-4" style={{ marginBottom: compact ? 8 : 0, flexShrink: 0 }}>
         <div className="flex min-w-0 flex-1 flex-col items-start" style={{ gap: compact ? 6 : 8 }}>
           {!compact && (
-            <span style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', padding: '5px 12px', borderRadius: 999, lineHeight: 1, flexShrink: 0 }}>
+            <span style={{ fontSize: 12 * scale, fontWeight: 650, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', padding: '5px 12px', borderRadius: 999, lineHeight: 1, flexShrink: 0 }}>
               Викторина дня
             </span>
           )}

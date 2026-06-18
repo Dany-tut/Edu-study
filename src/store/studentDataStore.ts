@@ -12,6 +12,7 @@ import {
   type StudentStats,
 } from '../lib/db'
 import { getStudentSession } from '../lib/studentSession'
+import { useDashboard } from './dashboardStore'
 import {
   type Subject,
   type ScheduleDay,
@@ -44,7 +45,7 @@ const defaultStats: StudentStats = {
   stars: 0,
 }
 
-export const useStudentData = create<StudentDataState>((set) => ({
+export const useStudentData = create<StudentDataState>((set, get) => ({
   loaded: false,
   subjects: [],
   scheduleDays: [],
@@ -58,6 +59,10 @@ export const useStudentData = create<StudentDataState>((set) => ({
   load: async () => {
     const session = getStudentSession()
     if (!session) return
+
+    // First load after a (re)mount — used to seed the active subject/module from
+    // the freshly-loaded data. Realtime re-syncs leave the user's current tab put.
+    const firstLoad = !get().loaded
 
     const [progress, schedule, catalog, quizQ, facts, memes, reactions] = await Promise.all([
       fetchLessonProgress(session.id),
@@ -84,5 +89,16 @@ export const useStudentData = create<StudentDataState>((set) => ({
       scienceMemes: memes,
       courseReactions: reactions,
     })
+
+    // The dashboard store's active subject/module aren't persisted, so on every
+    // refresh they reset to placeholder defaults (`activeModuleId: 1`, which —
+    // since module ids are positions — always points at the FIRST module). Seed
+    // them from the loaded data so the track lands on the module that actually
+    // holds the current lesson instead of always snapping back to Module 1.
+    if (firstLoad && mergedSubjects.length > 0) {
+      const dash = useDashboard.getState()
+      const target = mergedSubjects.find(s => s.id === dash.activeSubjectId) ?? mergedSubjects[0]
+      dash.setActiveSubject(target.id)
+    }
   },
 }))

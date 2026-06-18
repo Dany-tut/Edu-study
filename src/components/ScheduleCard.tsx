@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { CalendarX2, Video } from 'lucide-react'
+import { CalendarX2 } from 'lucide-react'
 import { type ScheduleDay, type ScheduleLesson } from '../data/mockData'
 import { resolveScheduleLesson } from '../lib/db'
 import { useStudentData } from '../store/studentDataStore'
@@ -8,6 +8,7 @@ import { IconMissedLesson } from './icons'
 import { useDashboard } from '../store/dashboardStore'
 import { PURPLE, subjectTheme } from '../lib/theme'
 import { useNow, lessonTimeState } from '../lib/useNow'
+import ScrollFade from './ScrollFade'
 
 interface Props {
   day: ScheduleDay
@@ -123,7 +124,9 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
           }}
         >
           {dateHeader(13, 10)}
-          <div className="flex flex-col" style={{ gap: 10 }}>
+          {(() => {
+            const lessonsList = (
+              <div className="flex flex-col" style={{ gap: 10 }}>
             {day.lessons.length > 0 ? (
               day.lessons.map(lesson => {
                 const isSelected = selectedLessonId === lesson.id
@@ -191,11 +194,10 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                     <span style={{ fontSize: 18, fontWeight: 700, color: (isUpcoming || isMissed) ? pal.text : 'var(--color-text)', lineHeight: 1, minWidth: 54, textAlign: 'right' }}>
                       {lesson.time}
                     </span>
-                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: (isUpcoming || isMissed) ? pal.ring : 'var(--color-bg-4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {isMissed
-                        ? <IconMissedLesson size={11} color={pal.text} />
-                        : <Video size={11} color={isUpcoming ? pal.text : 'var(--color-muted)'} />
-                      }
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: isMissed ? 'rgba(248,99,107,0.30)' : isUpcoming ? 'rgba(120,106,215,0.26)' : 'var(--color-bg-4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {/* Same camera-with-bars glyph in every state — only the
+                          colour changes (missed/upcoming → palette text, else muted). */}
+                      <IconMissedLesson size={11} color={isMissed || isUpcoming ? pal.text : 'var(--color-muted)'} />
                     </div>
                   </div>
                 </motion.div>
@@ -211,7 +213,26 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                 <p style={{ fontSize: 12, marginTop: 3 }}>Преподаватель еще не проставил уроки</p>
               </div>
             )}
-          </div>
+              </div>
+            )
+            // 3+ lessons: clip into a scrollable list (hidden scrollbar) with edge fades.
+            return day.lessons.length > 2
+              ? (
+                // ~2.3 rows tall: two full lessons + a peek of the third under the
+                // fade, signalling there's more to scroll. Clips cleanly (no overflow).
+                // The negative margin + matching padding give the lesson rows room to
+                // grow on hover (scale 1.01) without being clipped by overflow, while
+                // keeping them aligned with the date header.
+                <ScrollFade
+                  maxHeight={154} fadeHeight={22} bg="rgba(var(--glass-rgb), 0.85)" scrollClassName="no-scrollbar"
+                  style={{ marginInline: -8, marginBlock: -4 }}
+                  scrollStyle={{ paddingInline: 8, paddingBlock: 4 }}
+                >
+                  {lessonsList}
+                </ScrollFade>
+              )
+              : lessonsList
+          })()}
         </div>
       ) : (
         <div

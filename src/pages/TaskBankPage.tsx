@@ -112,13 +112,13 @@ function FilterField({ label, options, value, onChange, accent }: {
             boxShadow: 'var(--shadow-modal-sm)', overflow: 'hidden',
           }}
         >
-          <ScrollFade maxHeight={190} bg="rgba(var(--glass-rgb), 0.9)">
+          <ScrollFade maxHeight={190} bg="rgba(var(--glass-rgb), 0.9)" scrollClassName="no-scrollbar">
             {/* Inset the rows so the active/hover fill floats inside the glass
                 with a margin off the edges and rounded corners. */}
             <div style={{ padding: 5, display: 'flex', flexDirection: 'column' }}>
               {value && (
                 <button onMouseDown={e => { e.preventDefault(); onChange(''); setOpen(false) }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-bg-5)' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                   style={{ width: '100%', padding: '8px 8px', borderRadius: 9, textAlign: 'left', background: 'transparent', border: 'none', fontSize: 12, color: 'var(--color-text-3)', cursor: 'pointer', transition: 'background 0.13s ease' }}>
                   — Сбросить
@@ -569,7 +569,12 @@ function SortDropdown({ value, onChange }: { value: SortMode; onChange: (v: Sort
         }}
       >
         <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
-        {label}
+        <span style={{ display: 'grid', justifyItems: 'start' }}>
+          {SORT_OPTIONS.map(([, lbl]) => (
+            <span key={lbl} aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden' }}>{lbl}</span>
+          ))}
+          <span style={{ gridArea: '1 / 1' }}>{label}</span>
+        </span>
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
           <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
@@ -591,12 +596,12 @@ function SortDropdown({ value, onChange }: { value: SortMode; onChange: (v: Sort
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
                 width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
-                background: value === val ? 'rgba(0,0,0,0.05)' : 'transparent',
+                background: value === val ? 'var(--color-bg-5)' : 'transparent',
                 fontSize: 13, fontWeight: value === val ? 700 : 400, color: 'var(--color-text)',
                 cursor: 'pointer', textAlign: 'left',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = value === val ? 'rgba(0,0,0,0.05)' : 'transparent' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-bg-5)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = value === val ? 'var(--color-bg-5)' : 'transparent' }}
             >
               {label}
               {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
@@ -666,7 +671,10 @@ function StatusTabs({ value, onChange }: { value: StatusFilter; onChange: (v: St
             transition: 'color 0.16s ease',
           }}
         >
-          {label}
+          <span style={{ display: 'grid', justifyItems: 'center' }}>
+            <span aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden', fontWeight: 700 }}>{label}</span>
+            <span style={{ gridArea: '1 / 1' }}>{label}</span>
+          </span>
         </button>
       ))}
     </div>
@@ -1529,8 +1537,13 @@ export default function TaskBankPage() {
       {/* ── Separated layout: sticky left card + independent scrolling center ── */}
       <div className="flex flex-col lg:flex-row lg:items-start" style={{ gap: 20 }}>
 
-        {/* Left sidebar — standalone sticky card */}
-        <div className="lg:sticky" style={{ top: 60, flexShrink: 0 }}>
+        {/* Left sidebar — standalone sticky card.
+            top must equal the card's natural flow offset inside the scroll pane
+            (paddingTop 100 + the row's start ≈ 157px from the pane top → 57).
+            If it's larger, sticky pins the card 3px BELOW its rest position, so
+            it visibly twitches whenever the result list shrinks below the fold
+            and the pane stops scrolling (sticky disengages back to flow). */}
+        <div className="lg:sticky" style={{ top: 57, flexShrink: 0 }}>
         <aside className="flex flex-col" style={{
           width: 300, padding: 16, gap: 16,
           borderRadius: 24,
@@ -1640,7 +1653,7 @@ export default function TaskBankPage() {
             <SortDropdown value={sortMode} onChange={setSortMode} />
 
             <button onClick={() => setShowFavOnly(f => !f)}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 14px', borderRadius: 999, background: showFavOnly ? 'rgba(248,239,140,0.28)' : 'rgba(var(--glass-rgb), 0.88)', border: `1px solid ${showFavOnly ? 'rgba(248,239,140,0.55)' : 'var(--color-border-medium)'}`, fontSize: 12, cursor: 'pointer', color: showFavOnly ? '#8A7800' : 'var(--color-text-3)', fontWeight: showFavOnly ? 700 : 400 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 14px', borderRadius: 999, background: showFavOnly ? (dark ? 'rgba(248,239,140,0.18)' : 'rgba(248,239,140,0.28)') : 'rgba(var(--glass-rgb), 0.88)', border: `1px solid ${showFavOnly ? (dark ? 'rgba(248,239,140,0.45)' : 'rgba(248,239,140,0.55)') : 'var(--color-border-medium)'}`, fontSize: 12, cursor: 'pointer', color: showFavOnly ? (dark ? '#F4E97A' : '#8A7800') : 'var(--color-text-3)', fontWeight: showFavOnly ? 700 : 400 }}>
               <Bookmark size={13} fill={showFavOnly ? 'currentColor' : 'none'} />
               {showFavOnly ? `Избранное (${favorites.size})` : 'Избранное'}
             </button>

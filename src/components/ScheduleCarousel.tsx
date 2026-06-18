@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
@@ -35,6 +36,11 @@ export default function ScheduleCarousel() {
   // Always render 3 slots on each side of the selected day so it stays
   // centered. Out-of-range slots become invisible spacers that preserve
   // the symmetric layout.
+  // Fixed strip height for every day so switching between a 3+-lesson card
+  // (which scrolls internally above the fade) and a 1–2-lesson card never makes
+  // the whole strip grow/shrink — keeping the tallest height avoids the jump.
+  const stripHeight = 210
+
   const offsets = [-3, -2, -1, 0, 1, 2, 3]
   const slots = offsets.map(offset => {
     const index = scheduleIndex + offset
@@ -54,7 +60,13 @@ export default function ScheduleCarousel() {
   }
 
   return (
-    <div ref={wrapRef} className="relative" style={{ height: 198 }}>
+    <motion.div
+      ref={wrapRef}
+      className="relative"
+      initial={false}
+      animate={{ height: stripHeight }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+    >
       {/* Cards */}
       <div
         className="flex items-center gap-3"
@@ -91,6 +103,6 @@ export default function ScheduleCarousel() {
           ),
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }

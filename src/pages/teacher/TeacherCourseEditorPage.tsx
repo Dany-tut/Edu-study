@@ -220,6 +220,28 @@ function LeftCourseMeta({
         placeholder="Название курса"
       />
 
+      {/* Subject + level */}
+      <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <Label>Предмет</Label>
+          <input
+            value={course.subject}
+            onChange={e => setCourse(c => ({ ...c, subject: e.target.value }))}
+            style={inputSt}
+            placeholder="Например, Химия"
+          />
+        </div>
+        <div style={{ flex: 1 }}>
+          <Label>Уровень</Label>
+          <input
+            value={course.level}
+            onChange={e => setCourse(c => ({ ...c, level: e.target.value }))}
+            style={inputSt}
+            placeholder="Например, ЕГЭ"
+          />
+        </div>
+      </div>
+
       {/* Description */}
       <textarea
         value={course.description ?? ''}

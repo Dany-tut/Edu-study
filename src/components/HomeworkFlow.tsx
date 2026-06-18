@@ -688,7 +688,13 @@ export default function HomeworkFlow({
     <span
       className="flex-shrink-0"
       style={{
-        padding: compact ? '3px 8px' : '4px 10px',
+        // Same outer height as before (vertical total kept), but 1px shifted
+        // off the bottom onto the top so the label reads optically centred;
+        // inline-flex centring keeps the right gap equal to the left.
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: compact ? '2px 8px 4px' : '3px 10px 5px',
         borderRadius: 999,
         border: `1px solid ${palette.accent}`,
         background: palette.soft,
@@ -790,7 +796,7 @@ export default function HomeworkFlow({
               style={{
                 fontSize: 14, fontWeight: 700, color: 'var(--color-text)', flexShrink: 1,
                 maxWidth: dockTitleMax, gap: 8,
-                padding: '9px 16px', borderRadius: 999,
+                padding: '9px 10px 9px 16px', borderRadius: 999,
                 ...dockGlass, pointerEvents: 'auto',
               }}
             >

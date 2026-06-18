@@ -41,6 +41,8 @@ export interface Lesson {
   videoId?: string
   /** "Запись" tab — video chapter timecodes. */
   timecodes?: import('./lessonContent').LessonTimecode[]
+  /** Scheduled calendar date (ISO "YYYY-MM-DD") — shown on the track to match the schedule. */
+  scheduledDate?: string
 }
 
 export interface Module {

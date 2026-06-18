@@ -131,8 +131,8 @@
 
   --color-text: #F0F0F2;
   --color-text-2: #C2C2C8;
-  --color-muted: #8A8A94;
-  --color-text-3: #6F6F76;
+  --color-muted: #9C9CA6;
+  --color-text-3: #8C8C95;
   --color-text-4: #3A3A40;
   --color-text-5: #2A2A30;
 
@@ -448,13 +448,14 @@ a {
   mask-image: linear-gradient(to bottom, transparent, black 24px, black calc(100% - 24px), transparent);
 }
 
-/* Flash highlight ring around a course node */
+/* Flash highlight ring around a course node — color comes from --flash-rgb
+   (set per node to match its status), falling back to the purple accent. */
 @keyframes courseNodeFlashRing {
-  0%   { box-shadow: 0 0 0 0 rgba(99,84,207,0.0), 0 0 0 0 rgba(99,84,207,0.0); opacity: 0; transform: scale(0.9); }
-  15%  { box-shadow: 0 0 0 10px rgba(99,84,207,0.45), 0 0 0 22px rgba(99,84,207,0.18); opacity: 1; transform: scale(1.15); }
-  50%  { box-shadow: 0 0 0  8px rgba(99,84,207,0.30), 0 0 0 18px rgba(99,84,207,0.12); opacity: 1; transform: scale(1.05); }
-  80%  { box-shadow: 0 0 0 10px rgba(99,84,207,0.40), 0 0 0 22px rgba(99,84,207,0.16); opacity: 0.9; transform: scale(1.12); }
-  100% { box-shadow: 0 0 0 0 rgba(99,84,207,0.0), 0 0 0 0 rgba(99,84,207,0.0); opacity: 0; transform: scale(1); }
+  0%   { box-shadow: 0 0 0 0 rgba(var(--flash-rgb, 99,84,207),0.0), 0 0 0 0 rgba(var(--flash-rgb, 99,84,207),0.0); opacity: 0; transform: scale(0.9); }
+  15%  { box-shadow: 0 0 0 10px rgba(var(--flash-rgb, 99,84,207),0.45), 0 0 0 22px rgba(var(--flash-rgb, 99,84,207),0.18); opacity: 1; transform: scale(1.15); }
+  50%  { box-shadow: 0 0 0  8px rgba(var(--flash-rgb, 99,84,207),0.30), 0 0 0 18px rgba(var(--flash-rgb, 99,84,207),0.12); opacity: 1; transform: scale(1.05); }
+  80%  { box-shadow: 0 0 0 10px rgba(var(--flash-rgb, 99,84,207),0.40), 0 0 0 22px rgba(var(--flash-rgb, 99,84,207),0.16); opacity: 0.9; transform: scale(1.12); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--flash-rgb, 99,84,207),0.0), 0 0 0 0 rgba(var(--flash-rgb, 99,84,207),0.0); opacity: 0; transform: scale(1); }
 }
 .course-node-flash-ring {
   position: absolute;
@@ -463,6 +464,31 @@ a {
   pointer-events: none;
   z-index: 5;
   animation: courseNodeFlashRing 2s ease-in-out;
+}
+
+/* Active/selected course node (dark theme): soft ring that breathes in the
+   node's own colour via the `--node-rgb` var set by CourseNode. */
+@keyframes courseNodePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 3px rgba(var(--node-rgb, 99,84,207),0.34),
+                0 0 0 7px rgba(var(--node-rgb, 99,84,207),0.10),
+                0 0 16px 2px rgba(var(--node-rgb, 99,84,207),0.20);
+    opacity: 0.85;
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(var(--node-rgb, 99,84,207),0.55),
+                0 0 0 10px rgba(var(--node-rgb, 99,84,207),0.18),
+                0 0 26px 5px rgba(var(--node-rgb, 99,84,207),0.40);
+    opacity: 1;
+  }
+}
+.course-node-pulse-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 4;
+  animation: courseNodePulse 2.4s ease-in-out infinite;
 }
 
 /* Hard-done node: animated green gradient */
