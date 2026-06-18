@@ -74,9 +74,20 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       fetchCourseReactions(),
     ])
 
-    const mergedSubjects = mergeSubjectsWithProgress(catalog, progress)
-    const stats = computeStats(progress)
-    const todayIdx = schedule.findIndex(d => d.isToday)
+    let mergedSubjects = mergeSubjectsWithProgress(catalog, progress)
+    let stats = computeStats(progress)
+    let scheduleDays = schedule
+
+    // DEV-only: if the teacher hasn't authored a course yet, seed demo data so
+    // the UI can be reviewed locally. Real data always wins; prod never seeds.
+    if (import.meta.env.DEV && mergedSubjects.length === 0) {
+      const { DEMO_SUBJECTS, DEMO_SCHEDULE, DEMO_STATS } = await import('../data/devStudentDemo')
+      mergedSubjects = DEMO_SUBJECTS
+      scheduleDays = DEMO_SCHEDULE
+      stats = DEMO_STATS
+    }
+
+    const todayIdx = scheduleDays.findIndex(d => d.isToday)
 
     // Reconcile hard-level (essay) verdicts from `lesson_progress` into the
     // dashboard store. The hard status (satellite badge + homework screen) is
@@ -96,7 +107,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     set({
       loaded: true,
       subjects: mergedSubjects,
-      scheduleDays: schedule,
+      scheduleDays,
       scheduleTodayIndex: todayIdx >= 0 ? todayIdx : 3,
       stats,
       quizQuestions: quizQ,

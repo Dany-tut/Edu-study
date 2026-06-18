@@ -396,7 +396,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                             {selectedLesson.title}
                           </span>
                         </div>
-                        {lessonAssessments[selectedLesson.id] && (() => {
+                        {lessonAssessments[selectedLesson.id] && EMOJI_STEPS[lessonAssessments[selectedLesson.id].emojiIndex] && (() => {
                           const a = lessonAssessments[selectedLesson.id]
                           return (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -576,12 +576,12 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     </span>
 
                     {/* Score row if available */}
-                    {hardAssessment && (hardStatus === 'completed' || hardStatus === 'returned') && (
+                    {hardAssessment && (hardStatus === 'completed' || hardStatus === 'returned') && EMOJI_STEPS[hardAssessment.emojiIndex] && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ fontSize: 18 }}>{EMOJI_STEPS[hardAssessment.emojiIndex].emoji}</span>
                         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-accent)' }}>{hardAssessment.score} баллов</span>
                         <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>· {EMOJI_STEPS[hardAssessment.emojiIndex].label}</span>
-                        {hardStatus === 'completed' && <span style={{ marginLeft: 4, fontSize: 16 }}>🌟</span>}
+                        {hardStatus === 'completed' && <Star size={15} fill="currentColor" style={{ marginLeft: 4, color: 'var(--color-yellow-text)' }} />}
                       </div>
                     )}
 

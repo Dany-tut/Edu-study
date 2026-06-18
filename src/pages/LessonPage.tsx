@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, Play, ListVideo, NotebookPen, FileText,
   FolderOpen, GraduationCap, Download, ChevronDown, Calendar,
-  ChevronRight, Clock, Lock, CheckCircle2,
+  ChevronRight, Clock, Lock, CheckCircle2, RotateCcw, Star,
 } from 'lucide-react'
 import { useDashboard } from '../store/dashboardStore'
 import { findLessonById, getLessonDetail, type LessonMaterial, type LessonHomework } from '../data/lessonContent'
@@ -356,9 +356,9 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
   const basicEstimatedTime = homework.levels.find(level => level.id === 'basic')?.estimatedMinutes
 
   const hardStatusLabel =
-    hardStatus === 'submitted' ? { emoji: '🔶', text: 'На проверке', color: '#8A4A00' } :
-    hardStatus === 'returned'  ? { emoji: '🔁', text: 'Возвращён',  color: '#7A6A00' } :
-    hardStatus === 'completed' ? { emoji: '🌟', text: 'Сдан',       color: 'var(--color-green-text)' } :
+    hardStatus === 'submitted' ? { icon: Clock,     text: 'На проверке', color: 'var(--color-peach-text)' } :
+    hardStatus === 'returned'  ? { icon: RotateCcw, text: 'Возвращён',   color: 'var(--color-yellow-text)' } :
+    hardStatus === 'completed' ? { icon: Star,      text: 'Сдан',        color: 'var(--color-green-text)' } :
     null
 
   return (
@@ -450,7 +450,7 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
                   padding: '2px 7px',
                 }}
               >
-                <span style={{ fontSize: 13 }}>{hardStatusLabel.emoji}</span>
+                <hardStatusLabel.icon size={13} strokeWidth={2.2} style={{ flexShrink: 0 }} />
                 {hardStatusLabel.text}
               </span>
             )}

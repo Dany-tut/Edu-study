@@ -1,41 +1,43 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Search, X, Lock } from 'lucide-react'
+import {
+  FlaskConical, Star, Bell, Lock, ChevronRight, Zap,
+  CheckCircle2, Play, RotateCcw, Clock, Video,
+} from 'lucide-react'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
 import MobileHScroll from './MobileHScroll'
 import MobilePill from './MobilePill'
+import { DynamicIsland, GlassPill, GlassIconButton } from './mobileChrome'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
-import { STATUS_PAIR } from '../lib/mobileTokens'
 import { tactile } from '../lib/feedback'
 import { useNow } from '../lib/useNow'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import type { Lesson, LessonStatus } from '../data/mockData'
 
-// MOBILE ONLY courses catalogue. Desktop CoursesPage stays untouched.
-// Top: glass search + subject chips. Body: module chips (h-scroll, fades) +
-// lesson list (1 column, full width). Tap → openLesson (existing flow).
+// MOBILE ONLY course (v2) — premium lesson cards (плашки) + level/XP layer.
+// Desktop CoursesPage untouched. Concept: each lesson is a rich card with a
+// status thumbnail, title, status chip and reward; a level/XP hero on top.
 
 const ALL = 'all' as const
+const XP_PER_LEVEL = 200
+const RANKS = ['Старт', 'Атомы', 'Молекулы', 'Реакции', 'Растворы', 'Эксперт', 'Мастер']
 
-const LOCKED_PAIR = { bg: 'var(--color-bg-3)', text: 'var(--color-muted)' }
-const STATUS_LABEL: Record<LessonStatus, string> = {
-  completed: 'Выполнено',
-  returned: 'Возврат',
-  unviewed: 'Запись',
-  submitted: 'Проверка',
-  current: 'Текущий',
-  locked: 'Закрыт',
-}
-
-function pairFor(status: LessonStatus) {
-  return status === 'locked' ? LOCKED_PAIR : STATUS_PAIR[status]
+type StatusVisual = { icon: typeof CheckCircle2; tintBg: string; tint: string; label: string }
+const STATUS_VISUAL: Record<LessonStatus, StatusVisual> = {
+  completed: { icon: CheckCircle2, tintBg: 'var(--color-green-soft)',  tint: 'var(--color-green-text)',  label: 'Выполнено' },
+  current:   { icon: Play,         tintBg: 'var(--color-purple-soft)', tint: 'var(--color-purple-text)', label: 'Сейчас' },
+  returned:  { icon: RotateCcw,    tintBg: 'var(--color-yellow-soft)', tint: 'var(--color-yellow-text)', label: 'Возврат' },
+  submitted: { icon: Clock,        tintBg: 'var(--color-peach-soft)',  tint: 'var(--color-peach-text)',  label: 'Проверка' },
+  unviewed:  { icon: Video,        tintBg: 'var(--color-red-soft)',    tint: 'var(--color-red-text)',    label: 'Запись' },
+  locked:    { icon: Lock,         tintBg: 'var(--color-bg-3)',        tint: 'var(--color-muted)',       label: 'Закрыт' },
 }
 
 export default function MobileCourses() {
   const subjects = useStudentData(s => s.subjects)
   const loaded = useStudentData(s => s.loaded)
+  const stats = useStudentData(s => s.stats)
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
   const setActiveSubject = useDashboard(s => s.setActiveSubject)
   const activeModuleId = useDashboard(s => s.activeModuleId)
@@ -45,96 +47,57 @@ export default function MobileCourses() {
   const now = useNow()
 
   const [moduleTab, setModuleTab] = useState<number | typeof ALL>(activeModuleId)
-  const [search, setSearch] = useState('')
 
   const subject = subjects.find(s => s.id === activeSubjectId) ?? subjects[0]
 
   const lessons = useMemo<Lesson[]>(() => {
     if (!subject) return []
-    const base = moduleTab === ALL
+    return moduleTab === ALL
       ? subject.modules.flatMap(m => m.lessons)
       : (subject.modules.find(m => m.id === moduleTab)?.lessons ?? [])
-    const q = search.trim().toLowerCase()
-    if (!q) return base
-    return base.filter(l => l.title.toLowerCase().includes(q) || String(l.number).includes(q))
-  }, [subject, moduleTab, search])
+  }, [subject, moduleTab])
 
   const moduleTabs: Array<{ id: number | typeof ALL; label: string }> = subject
     ? [{ id: ALL, label: 'Все' }, ...subject.modules.map(m => ({ id: m.id, label: m.label }))]
     : []
 
-  // ── Top zone: glass search + subject chips ──────────────────────────────────
-  const topZone = (
-    <div
-      style={{
-        borderRadius: 22,
-        background: 'rgba(var(--glass-rgb), 0.72)',
-        backdropFilter: 'blur(18px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(18px) saturate(180%)',
-        border: '1px solid var(--color-border-glass)',
-        boxShadow: 'var(--shadow-bar)',
-        padding: 10,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
-      }}
-    >
-      <div
-        className="flex items-center"
-        style={{
-          gap: 8, height: 38, padding: '0 14px', borderRadius: 999,
-          background: 'var(--color-bg-input)', border: '1px solid var(--color-border-soft)',
-        }}
-      >
-        <Search size={16} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Поиск урока"
-          style={{
-            flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
-            fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
-          }}
-        />
-        {search && (
-          <button
-            onClick={() => setSearch('')}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', flexShrink: 0 }}
-          >
-            <X size={14} />
-          </button>
-        )}
-      </div>
+  // Level / XP from points.
+  const level = Math.floor(stats.totalPoints / XP_PER_LEVEL) + 1
+  const xpInLevel = stats.totalPoints % XP_PER_LEVEL
+  const rank = RANKS[Math.min(level - 1, RANKS.length - 1)]
 
-      {subjects.length > 1 && (
-        <MobileHScroll padX={2} fade="rgba(var(--glass-rgb), 0.95)">
-          {subjects.map(s => (
-            <MobilePill
-              key={s.id}
-              size="sm"
-              active={s.id === activeSubjectId}
-              onClick={() => setActiveSubject(s.id)}
-            >
-              {s.name}
-            </MobilePill>
-          ))}
-        </MobileHScroll>
-      )}
+  const cycleSubject = () => {
+    if (subjects.length < 2) return
+    const idx = subjects.findIndex(s => s.id === subject?.id)
+    const next = subjects[(idx + 1) % subjects.length]
+    setActiveSubject(next.id)
+  }
+
+  const topZone = (
+    <div className="flex items-center justify-between" style={{ gap: 8 }}>
+      <GlassPill onClick={subjects.length > 1 ? cycleSubject : undefined}>
+        <FlaskConical size={15} style={{ color: 'var(--color-accent)' }} />
+        {subject?.name ?? 'Курс'}
+      </GlassPill>
+      <div className="flex items-center" style={{ gap: 8 }}>
+        <GlassPill>
+          <Star size={14} style={{ color: '#F8A23B' }} />
+          {level} Lvl
+        </GlassPill>
+        <GlassIconButton icon={<Bell size={16} />} dot ariaLabel="Уведомления" />
+      </div>
     </div>
   )
 
-  // topPad: search row (38) + subject row (~34) + paddings ≈ 110; +8 if single subject.
-  const topPad = subjects.length > 1 ? 116 : 78
-
   return (
     <>
-      <MobileScreen topZone={topZone} topPad={topPad} scrollKey={`${activeSubjectId}-${moduleTab}`}>
+      <MobileScreen topZone={topZone} topPad={72} scrollKey={`${activeSubjectId}-${moduleTab}`}>
         {!subject ? (
           <div className="flex flex-col items-center justify-center text-center" style={{ minHeight: 240, gap: 6 }}>
             {loaded ? (
               <>
                 <Lock size={22} style={{ color: 'var(--color-muted)', marginBottom: 4 }} />
-                <p style={{ fontSize: 16, fontWeight: 650, color: 'var(--color-text)' }}>Курсы ещё не добавлены</p>
+                <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>Курс ещё не открыт</p>
                 <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Преподаватель откроет доступ к урокам</p>
               </>
             ) : (
@@ -143,7 +106,20 @@ export default function MobileCourses() {
           </div>
         ) : (
           <div className="flex flex-col" style={{ gap: 14 }}>
-            {/* Module chips — horizontal scroll with edge fades */}
+            {/* Level / XP hero */}
+            <div style={{ borderRadius: 20, padding: '14px 16px', background: 'var(--color-purple-soft)' }}>
+              <div className="flex items-center justify-between" style={{ marginBottom: 9 }}>
+                <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-purple-text)' }}>Уровень {level} · {rank}</span>
+                <span className="flex items-center" style={{ gap: 4, fontSize: 12, fontWeight: 700, color: 'var(--color-purple-text)' }}>
+                  <Zap size={13} />{xpInLevel}/{XP_PER_LEVEL} XP
+                </span>
+              </div>
+              <div style={{ height: 8, background: 'rgba(var(--glass-rgb),0.5)', borderRadius: 99, overflow: 'hidden' }}>
+                <div style={{ width: `${Math.round((xpInLevel / XP_PER_LEVEL) * 100)}%`, height: '100%', background: 'linear-gradient(90deg,#9B6FE8,#C58BFF)', borderRadius: 99 }} />
+              </div>
+            </div>
+
+            {/* Module chips */}
             <div style={{ marginLeft: -16, marginRight: -16 }}>
               <MobileHScroll>
                 {moduleTabs.map(tab => {
@@ -152,20 +128,11 @@ export default function MobileCourses() {
                   const done = module?.lessons.filter(l => l.status === 'completed').length ?? 0
                   const pct = total > 0 ? Math.round((done / total) * 100) : 0
                   return (
-                    <MobilePill
-                      key={tab.id}
-                      size="sm"
-                      active={moduleTab === tab.id}
-                      onClick={() => {
-                        setModuleTab(tab.id)
-                        if (tab.id !== ALL) setActiveModule(tab.id)
-                      }}
-                    >
+                    <MobilePill key={tab.id} size="sm" active={moduleTab === tab.id}
+                      onClick={() => { setModuleTab(tab.id); if (tab.id !== ALL) setActiveModule(tab.id) }}>
                       {tab.label}
                       {module && pct > 0 && (
-                        <span style={{ marginLeft: 5, fontSize: 11, fontWeight: 600, color: pct === 100 ? 'var(--color-green-text)' : 'var(--color-muted)' }}>
-                          {pct}%
-                        </span>
+                        <span style={{ marginLeft: 5, fontSize: 11, fontWeight: 600, color: pct === 100 ? 'var(--color-green-text)' : 'var(--color-muted)' }}>{pct}%</span>
                       )}
                     </MobilePill>
                   )
@@ -173,73 +140,17 @@ export default function MobileCourses() {
               </MobileHScroll>
             </div>
 
-            {/* Lesson list — one column, full width */}
+            {/* Lesson cards */}
             {lessons.length > 0 ? (
               <div className="flex flex-col" style={{ gap: 10 }}>
-                {lessons.map((lesson, i) => {
-                  const status = getDisplayLessonStatus(lesson, now)
-                  const isLocked = status === 'locked'
-                  const pair = pairFor(status)
-                  const isFocused = lesson.id === focusLessonId
-                  return (
-                    <motion.button
-                      key={lesson.id}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1], delay: Math.min(i * 0.02, 0.25) }}
-                      whileTap={isLocked ? undefined : { scale: 0.985 }}
-                      onClick={() => {
-                        if (isLocked) return
-                        tactile()
-                        openLesson(lesson.id)
-                      }}
-                      className="flex items-center text-left"
-                      style={{
-                        gap: 12,
-                        width: '100%',
-                        padding: '14px 16px',
-                        borderRadius: 18,
-                        background: pair.bg,
-                        border: '1px solid transparent',
-                        cursor: isLocked ? 'not-allowed' : 'pointer',
-                        boxShadow: isFocused ? '0 0 0 2px var(--color-accent)' : 'none',
-                        opacity: isLocked ? 0.6 : 1,
-                      }}
-                    >
-                      <div className="flex flex-col min-w-0" style={{ flex: 1, gap: 3 }}>
-                        <span style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.15 }}>
-                          Занятие №{lesson.number + 1}
-                        </span>
-                        <span className="line-clamp-1" style={{ fontSize: 13, fontWeight: 500, color: pair.text, lineHeight: 1.2 }}>
-                          {lesson.title}
-                        </span>
-                      </div>
-                      {lesson.points !== undefined && !isLocked && (
-                        <span style={{ flexShrink: 0, fontSize: 16, fontWeight: 750, color: pair.text }}>
-                          {lesson.points}
-                        </span>
-                      )}
-                      <span
-                        style={{
-                          flexShrink: 0, fontSize: 11, fontWeight: 650, color: pair.text,
-                          padding: '4px 10px', borderRadius: 999,
-                          background: 'rgba(var(--glass-rgb), 0.5)',
-                        }}
-                      >
-                        {STATUS_LABEL[status]}
-                      </span>
-                    </motion.button>
-                  )
-                })}
+                {lessons.map((lesson, i) => (
+                  <LessonCard key={lesson.id} lesson={lesson} status={getDisplayLessonStatus(lesson, now)} index={i}
+                    focused={lesson.id === focusLessonId} onOpen={() => openLesson(lesson.id)} />
+                ))}
               </div>
             ) : (
-              <div
-                className="flex flex-col items-center justify-center text-center"
-                style={{ minHeight: 180, borderRadius: 20, background: 'var(--color-bg-3)', color: 'var(--color-muted)', gap: 4 }}
-              >
-                <Search size={20} style={{ marginBottom: 4 }} />
-                <p style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)' }}>Ничего не найдено</p>
-                <p style={{ fontSize: 13 }}>Измените запрос или модуль</p>
+              <div className="flex flex-col items-center justify-center text-center" style={{ minHeight: 160, color: 'var(--color-muted)', gap: 4 }}>
+                <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)' }}>В модуле пока нет уроков</p>
               </div>
             )}
           </div>
@@ -247,5 +158,51 @@ export default function MobileCourses() {
       </MobileScreen>
       <MobileBottomNav />
     </>
+  )
+}
+
+function LessonCard({ lesson, status, index, focused, onOpen }: { lesson: Lesson; status: LessonStatus; index: number; focused: boolean; onOpen: () => void }) {
+  const v = STATUS_VISUAL[status]
+  const Icon = v.icon
+  const isLocked = status === 'locked'
+  const isCurrent = status === 'current'
+
+  return (
+    <motion.button
+      whileTap={isLocked ? undefined : { scale: 0.985 }}
+      onClick={() => { if (!isLocked) { tactile(); onOpen() } }}
+      className="flex items-center text-left"
+      style={{
+        gap: 12, width: '100%', padding: 12, borderRadius: 20,
+        background: 'var(--color-surface)',
+        border: isCurrent ? '1.5px solid var(--color-accent)' : '1px solid var(--color-border-glass)',
+        boxShadow: isCurrent ? '0 0 0 4px rgba(123,63,204,0.12), var(--shadow-sm)' : 'var(--shadow-sm)',
+        cursor: isLocked ? 'not-allowed' : 'pointer',
+        opacity: isLocked ? 0.6 : 1,
+      }}
+    >
+      {/* thumbnail */}
+      <div className="flex items-center justify-center flex-shrink-0" style={{ width: 52, height: 52, borderRadius: 14, background: v.tintBg }}>
+        <Icon size={22} style={{ color: v.tint }} {...(isCurrent ? { fill: v.tint } : {})} />
+      </div>
+      {/* body */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center" style={{ gap: 6, marginBottom: 4 }}>
+          <span className="truncate" style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-text)' }}>
+            #{lesson.number} {lesson.title}
+          </span>
+          {status === 'completed' && lesson.points != null && (
+            <span className="flex items-center flex-shrink-0" style={{ marginLeft: 'auto', gap: 3, fontSize: 11, fontWeight: 700, color: '#B07A00', background: 'var(--color-yellow-soft)', padding: '3px 8px', borderRadius: 999 }}>
+              <Zap size={11} />+{lesson.points}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center" style={{ gap: 8 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: v.tint }}>{isLocked ? 'Откроется позже' : v.label}</span>
+        </div>
+      </div>
+      {/* trailing */}
+      {!isLocked && <ChevronRight size={18} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
+    </motion.button>
   )
 }
