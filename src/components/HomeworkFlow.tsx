@@ -557,6 +557,32 @@ export default function HomeworkFlow({
   const [showResultModal, setShowResultModal] = useState<'basic' | 'hard' | null>(null)
   const setLessonAssessment = useDashboard(s => s.setLessonAssessment)
   const setHardCompleted = useDashboard(s => s.setHardCompleted)
+  // Teacher's verdict on the hard essay, synced from `lesson_progress` on load.
+  // Drives the submitted-panel badge so an accept/return actually shows here.
+  const hardVerdict = useDashboard(s => s.lessonAssessments[lessonId]?.hardStatus)
+  const hardPanel = hardVerdict === 'completed'
+    ? {
+        iconBg: 'var(--color-green-soft)', iconColor: 'var(--color-green-text)',
+        heading: 'Работа принята преподавателем',
+        sub: 'Преподаватель посмотрел решение и засчитал хард-уровень.',
+        badgeBg: 'var(--color-green-soft)', badgeColor: 'var(--color-green-text)', badge: 'Принято',
+        statusValue: 'Принято', statusDesc: 'Преподаватель принял хард-уровень.', statusTone: 'success' as const,
+      }
+    : hardVerdict === 'returned'
+    ? {
+        iconBg: 'var(--color-peach-soft)', iconColor: '#8A4A00',
+        heading: 'Работа отправлена на доработку',
+        sub: 'Преподаватель вернул решение. Посмотри комментарий и отправь снова.',
+        badgeBg: 'var(--color-peach-soft)', badgeColor: '#8A4A00', badge: 'На доработку',
+        statusValue: 'Возвращено', statusDesc: 'Преподаватель вернул работу на доработку.', statusTone: 'warning' as const,
+      }
+    : {
+        iconBg: 'var(--color-green-soft)', iconColor: 'var(--color-green-text)',
+        heading: 'Работа отправлена преподавателю',
+        sub: 'Статус домашки поменялся на “На проверке”. Когда преподаватель посмотрит решение, здесь появятся комментарий и итоговый балл.',
+        badgeBg: 'var(--color-peach-soft)', badgeColor: '#8A4A00', badge: 'На проверке',
+        statusValue: 'Отправлено', statusDesc: 'Домашка уже ушла преподавателю на ручную проверку.', statusTone: 'success' as const,
+      }
 
   useEffect(() => {
     window.localStorage.setItem(getStorageKey(lessonId), JSON.stringify(state))
@@ -1246,19 +1272,18 @@ export default function HomeworkFlow({
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          background: 'var(--color-green-soft)',
-                          color: 'var(--color-green-text)',
+                          background: hardPanel.iconBg,
+                          color: hardPanel.iconColor,
                         }}
                       >
                         <Send size={22} />
                       </div>
                       <div>
                         <p style={{ fontSize: 20, fontWeight: 760, color: 'var(--color-text)', marginBottom: 6 }}>
-                          Работа отправлена преподавателю
+                          {hardPanel.heading}
                         </p>
                         <p style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--color-muted)', maxWidth: 640 }}>
-                          Статус домашки поменялся на “На проверке”. Когда преподаватель посмотрит решение,
-                          здесь можно будет показать комментарий и итоговый балл.
+                          {hardPanel.sub}
                         </p>
                       </div>
                     </div>
@@ -1267,13 +1292,13 @@ export default function HomeworkFlow({
                       style={{
                         padding: '10px 14px',
                         borderRadius: 999,
-                        background: 'var(--color-peach-soft)',
-                        color: '#8A4A00',
+                        background: hardPanel.badgeBg,
+                        color: hardPanel.badgeColor,
                         fontSize: 13,
                         fontWeight: 700,
                       }}
                     >
-                      На проверке
+                      {hardPanel.badge}
                     </div>
                   </div>
 
@@ -1286,9 +1311,9 @@ export default function HomeworkFlow({
                     />
                     <StatusCard
                       title="Статус"
-                      value="Отправлено"
-                      description="Домашка уже ушла преподавателю на ручную проверку."
-                      tone="success"
+                      value={hardPanel.statusValue}
+                      description={hardPanel.statusDesc}
+                      tone={hardPanel.statusTone}
                     />
                     <StatusCard
                       title="Ожидание"
@@ -1334,7 +1359,7 @@ export default function HomeworkFlow({
                     placeholder={hardLevel.teacherTask?.placeholder}
                     style={{
                       minHeight: 220,
-                      resize: 'vertical',
+                      resize: 'none',
                       borderRadius: 24,
                       border: '1px solid var(--color-border-medium)',
                       background: 'var(--color-bg-input)',
@@ -1648,51 +1673,53 @@ function BottomProgressBar({
       </div>
 
       {/* right side */}
-      <div
-        style={{
-          flexShrink: 0,
-          minHeight: 44,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '0 16px',
-          borderRadius: 18,
-          background: 'rgba(var(--glass-rgb), 0.62)',
-          border: '1px solid var(--color-border-glass)',
-          backdropFilter: 'blur(16px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-          boxShadow: 'var(--shadow-sm)',
-        }}
-      >
-        {basicCompleted && submitted ? (
-          <span style={{
-            fontSize: 12, fontWeight: 800,
-            color: score >= recommendationScore ? 'var(--color-accent)' : '#9A6000',
-          }}>
-            {score >= recommendationScore ? 'Сдано ✓' : `${score} / 100`}
-          </span>
-        ) : basicCompleted ? (
-          <motion.button
-            whileHover={{ y: -1 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={onSubmit}
-            className="cursor-pointer flex items-center"
+      {(() => {
+        const isSubmitButton = basicCompleted && !submitted
+        return (
+          <motion.div
+            whileHover={isSubmitButton ? { y: -1 } : undefined}
+            whileTap={isSubmitButton ? { scale: 0.97 } : undefined}
+            onClick={isSubmitButton ? onSubmit : undefined}
+            role={isSubmitButton ? 'button' : undefined}
+            className={isSubmitButton ? 'cursor-pointer' : undefined}
             style={{
-              gap: 7, padding: '0', borderRadius: 0,
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--color-accent)', fontSize: 13, fontWeight: 750,
+              flexShrink: 0,
+              minHeight: 44,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0 16px',
+              borderRadius: 18,
+              background: 'rgba(var(--glass-rgb), 0.62)',
+              border: '1px solid var(--color-border-glass)',
+              backdropFilter: 'blur(16px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
-            <Send size={13} />
-            Сдать домашку
-          </motion.button>
-        ) : (
-          <span style={{ fontSize: 12, color: 'var(--color-muted)', fontWeight: 600 }}>
-            {answeredCount} / {total}
-          </span>
-        )}
-      </div>
+            {basicCompleted && submitted ? (
+              <span style={{
+                fontSize: 12, fontWeight: 800,
+                color: score >= recommendationScore ? 'var(--color-accent)' : '#9A6000',
+              }}>
+                {score >= recommendationScore ? 'Сдано ✓' : `${score} / 100`}
+              </span>
+            ) : basicCompleted ? (
+              <span
+                className="flex items-center"
+                style={{ gap: 7, color: 'var(--color-accent)', fontSize: 13, fontWeight: 750 }}
+              >
+                <Send size={13} />
+                Сдать домашку
+              </span>
+            ) : (
+              <span style={{ fontSize: 12, color: 'var(--color-muted)', fontWeight: 600 }}>
+                {answeredCount} / {total}
+              </span>
+            )}
+          </motion.div>
+        )
+      })()}
     </div>
   )
 }

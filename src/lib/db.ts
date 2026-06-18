@@ -321,8 +321,9 @@ export function computeStats(progress: ProgressMap): StudentStats {
     : 0
   const totalTasks = entries.length
   const performance = totalTasks > 0 ? Math.round((completed.length / totalTasks) * 100) : 0
-  // Stars are earned only for hard-level tasks (essay), not basic auto-graded tests.
-  const stars = entries.filter(p => p.hardSubmitted && (p.status === 'completed' || p.status === 'submitted')).length
+  // Stars are earned for hard-level essays the teacher accepted — each lives in
+  // its own `${lessonId}-hard` lesson_progress row with status 'completed'.
+  const stars = Object.entries(progress).filter(([ref, p]) => ref.endsWith('-hard') && p.status === 'completed').length
 
   return {
     performance,

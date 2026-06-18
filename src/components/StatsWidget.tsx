@@ -66,7 +66,7 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
           <span className="stat-value" style={{ fontWeight: 650, color: 'var(--color-text)', lineHeight: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
             {hasData ? (
               <>
-                <span style={{ display: 'flex', transform: 'translateY(-6px)' }}><StarStickerLottie size={36} /></span>
+                <span style={{ display: 'flex', transform: 'translateY(-1px)' }}><StarStickerLottie size={36} /></span>
                 <span style={{ display: 'block', lineHeight: 1, transform: 'translateY(-1px)' }}>{dbStats.stars}</span>
               </>
             ) : (

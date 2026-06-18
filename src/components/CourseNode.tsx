@@ -159,7 +159,7 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
           borderRadius: isDiamond ? 12 : isSquare ? 16 : 999,
           rotate: isDiamond ? '45deg' : '0deg',
         }}
-        aria-label={`Урок ${lesson.number}: ${lesson.title}`}
+        aria-label={`Урок ${lesson.number + 1}: ${lesson.title}`}
       >
         <div style={{ rotate: isDiamond ? '-45deg' : '0deg', filter: 'brightness(1.9) saturate(1.1)' }}>
           {isCustom || isMissedCurrentLesson
@@ -213,7 +213,7 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
         style={{ top: 'calc(100% + 7px)' }}
       >
         <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
-          #{lesson.number}
+          #{lesson.number + 1}
         </span>
       </div>
 

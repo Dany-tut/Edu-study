@@ -350,7 +350,7 @@ export default function CoursesPage() {
                   </span>
                 )}
                 <span style={{ fontSize: 15, fontWeight: 650, color: st.label, lineHeight: 1.2 }}>
-                  Занятие №{lesson.number}
+                  Занятие №{lesson.number + 1}
                 </span>
                 <span
                   className="line-clamp-2"

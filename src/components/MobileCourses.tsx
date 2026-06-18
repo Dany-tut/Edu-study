@@ -208,7 +208,7 @@ export default function MobileCourses() {
                     >
                       <div className="flex flex-col min-w-0" style={{ flex: 1, gap: 3 }}>
                         <span style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.15 }}>
-                          Занятие №{lesson.number}
+                          Занятие №{lesson.number + 1}
                         </span>
                         <span className="line-clamp-1" style={{ fontSize: 13, fontWeight: 500, color: pair.text, lineHeight: 1.2 }}>
                           {lesson.title}

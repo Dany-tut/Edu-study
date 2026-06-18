@@ -44,7 +44,7 @@ export default function HardSatelliteLottie({ size = 18 }: { size?: number }) {
       animationData={yellowData}
       loop
       autoplay
-      style={{ width: size, height: size, flexShrink: 0 }}
+      style={{ width: size, height: size, flexShrink: 0, marginTop: -2 }}
     />
   )
 }

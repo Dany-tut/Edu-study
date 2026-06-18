@@ -18,6 +18,8 @@
   --color-bg-4: #FAFAFA;
   --color-bg-5: #EBEBEF;
   --color-bg-input: #ffffff;
+  /* Idle/upcoming schedule-lesson row fill (subtle, theme-aware) */
+  --color-schedule-row: rgba(0,0,0,0.025);
   --color-table-header-bg: #E3E2E9;
   --color-table-cell-bg: #F1F1F4;
 
@@ -118,6 +120,8 @@
   --color-bg-4: #1E1E20;
   --color-bg-5: #2A2A2C;
   --color-bg-input: #202022;
+  /* Lighter than the card so idle/upcoming rows read on the dark glass */
+  --color-schedule-row: rgba(255,255,255,0.055);
   --color-table-header-bg: rgba(255,255,255,0.30);
   --color-table-cell-bg: rgba(255,255,255,0.10);
 

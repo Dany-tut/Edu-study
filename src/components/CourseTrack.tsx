@@ -376,7 +376,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <span style={{ fontSize: 12, fontWeight: 500, color: selectedDetail.badgeText, lineHeight: 1 }}>
-                            Занятие #{selectedLesson.number}
+                            Занятие #{selectedLesson.number + 1}
                             {fmtLessonDate(selectedLesson.scheduledDate) && (
                               <span style={{ color: 'var(--color-muted)', fontWeight: 500 }}> · {fmtLessonDate(selectedLesson.scheduledDate)}</span>
                             )}

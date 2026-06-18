@@ -135,7 +135,7 @@ export default function MobileHome() {
                         key={lesson.id}
                         status={status}
                         title={lesson.title}
-                        lessonNumber={lesson.number}
+                        lessonNumber={lesson.number + 1}
                         points={status === 'completed' || status === 'submitted' ? lesson.points : undefined}
                         index={i}
                       />

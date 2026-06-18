@@ -666,7 +666,7 @@ export default function LessonPage() {
           className="flex-1 min-w-0 truncate text-center"
           style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}
         >
-          Занятие #{lesson.number} {lesson.title}
+          Занятие #{lesson.number + 1} {lesson.title}
         </h1>
 
         <div

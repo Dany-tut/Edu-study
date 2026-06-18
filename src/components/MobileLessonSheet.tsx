@@ -51,7 +51,7 @@ export default function MobileLessonSheet({ lesson, onClose }: Props) {
                 </button>
               </div>
               <h3 style={{ fontSize: 22, fontWeight: 650, color: 'var(--color-text)', marginBottom: 16 }}>
-                Занятие #{lesson.number} {lesson.title}
+                Занятие #{lesson.number + 1} {lesson.title}
               </h3>
               {lesson.points != null && (
                 <p style={{ fontSize: 16, color: 'var(--color-muted)', marginBottom: 8 }}>

@@ -27,8 +27,14 @@ export function getDisplayLessonStatus(lesson: Lesson, now: Date = new Date()): 
   // Not on the calendar → keep the raw status (locked stays locked).
   if (!slot) return lesson.status
 
-  // On the calendar: an upcoming/today slot reads as the active lesson (purple
-  // ▶); once its time has passed it becomes a missed recording. This applies to
-  // lessons the teacher placed in the schedule but hasn't explicitly unlocked.
+  // A scheduled lesson only unlocks on its own day — not tomorrow, not a week
+  // ahead. Future slots stay locked until the date arrives; this is the
+  // schedule-driven equivalent of the teacher's explicit "Открыть урок".
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+  if (slot.date > today) return lesson.status
+
+  // Today (or earlier): an upcoming slot reads as the active lesson (purple ▶);
+  // once its time has passed it becomes a missed recording.
   return lessonTimeState(slot.date, slot.time, now).passed ? 'unviewed' : 'current'
 }

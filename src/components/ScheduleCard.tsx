@@ -157,7 +157,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                     minHeight: 58,
                     padding: '9px 12px 9px 14px',
                     gap: 14,
-                    background: (isUpcoming || isMissed) ? pal.soft : 'rgba(0,0,0,0.025)',
+                    background: (isUpcoming || isMissed) ? pal.soft : 'var(--color-schedule-row)',
                     opacity: isMissed ? 1 : isPassed ? 0.55 : 1,
                     outline: isSelected ? `2px solid ${pal.accent}` : '2px solid transparent',
                     outlineOffset: isSelected ? 2 : 0,

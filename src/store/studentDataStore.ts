@@ -78,6 +78,21 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     const stats = computeStats(progress)
     const todayIdx = schedule.findIndex(d => d.isToday)
 
+    // Reconcile hard-level (essay) verdicts from `lesson_progress` into the
+    // dashboard store. The hard status (satellite badge + homework screen) is
+    // otherwise local-only — set to 'submitted' when the student submits — so
+    // the teacher's accept/return (which updates the `${ref}-hard` row) would
+    // never reach the student without this sync.
+    {
+      const dash = useDashboard.getState()
+      for (const [ref, p] of Object.entries(progress)) {
+        if (!ref.endsWith('-hard')) continue
+        if (p.status === 'submitted' || p.status === 'returned' || p.status === 'completed') {
+          dash.setHardStatus(ref.slice(0, -'-hard'.length), p.status)
+        }
+      }
+    }
+
     set({
       loaded: true,
       subjects: mergedSubjects,
