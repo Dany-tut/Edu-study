@@ -343,7 +343,7 @@ function ResultModal({
             ? 'var(--color-green-soft)'
             : passed
               ? 'var(--color-purple-soft)'
-              : 'linear-gradient(135deg, #FFF6DB, #FDECC5)',
+              : 'var(--color-yellow-soft)',
           display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: 16,
         }}>
           {passed ? (
@@ -357,7 +357,7 @@ function ResultModal({
               background: context === 'hard'
                 ? 'rgba(42,125,79,0.14)'
                 : 'rgba(248,160,0,0.14)',
-              color: context === 'hard' ? '#2A7D4F' : '#9A6000',
+              color: context === 'hard' ? 'var(--color-green-text)' : 'var(--color-yellow-text)',
             }}>
               {context === 'hard' ? <Send size={24} /> : <CircleAlert size={24} />}
             </div>
@@ -365,7 +365,7 @@ function ResultModal({
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{
               fontSize: 12, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase',
-              color: context === 'hard' ? '#2A7D4F' : passed ? 'var(--color-accent)' : '#9A6000',
+              color: context === 'hard' ? 'var(--color-green-text)' : passed ? 'var(--color-accent)' : 'var(--color-yellow-text)',
               marginBottom: 6,
             }}>
               {context === 'hard' ? 'Работа отправлена' : 'Тест сдан'}
@@ -391,7 +391,7 @@ function ResultModal({
             <div style={{ flexShrink: 0, textAlign: 'right' }}>
               <span style={{
                 fontSize: 42, fontWeight: 760, lineHeight: 1,
-                color: passed ? 'var(--color-accent)' : '#9A6000',
+                color: passed ? 'var(--color-accent)' : 'var(--color-yellow-text)',
               }}>{score}</span>
               <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', marginTop: 2 }}>баллов</p>
             </div>
