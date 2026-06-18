@@ -12,7 +12,7 @@ import { useStudentData } from '../store/studentDataStore'
 // Soft surface colours per status — mirrors the course-track palette so a lesson
 // reads the same here as it does on the track / in the detail popover.
 const cardStyle: Record<LessonStatus, { bg: string; ring: string; label: string; subText: string }> = {
-  completed: { bg: 'var(--color-green-soft)', ring: '#6EE7A0', label: 'var(--color-text)', subText: '#4C804F' },
+  completed: { bg: 'var(--color-green-soft)', ring: '#6EE7A0', label: 'var(--color-text)', subText: 'var(--color-green-text)' },
   returned:  { bg: 'var(--color-yellow-soft)', ring: '#F8EF8C', label: 'var(--color-text)', subText: 'var(--color-yellow-text)' },
   unviewed:  { bg: 'var(--color-red-soft)', ring: '#F48B91', label: 'var(--color-text)', subText: 'var(--color-red-text)' },
   submitted: { bg: 'var(--color-peach-soft)', ring: '#F8C991', label: 'var(--color-text)', subText: 'var(--color-peach-text)' },
@@ -138,7 +138,7 @@ export default function CoursesPage() {
             style={{
               position: 'absolute',
               borderRadius: 999,
-              background: 'rgba(var(--glass-rgb), 0.55)',
+              background: 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.55)',
               backdropFilter: 'blur(16px) saturate(180%)',
               WebkitBackdropFilter: 'blur(16px) saturate(180%)',
               boxShadow: 'var(--shadow-xs)',
@@ -170,7 +170,7 @@ export default function CoursesPage() {
                   fontWeight: 600,
                   background: 'transparent',
                   color: 'var(--color-text)',
-                  border: isActive ? '1px solid transparent' : '1px solid var(--color-border-medium)',
+                  border: '1px solid transparent',
                   outline: 'none',
                   appearance: 'none',
                   WebkitAppearance: 'none',
@@ -202,7 +202,7 @@ export default function CoursesPage() {
             style={{
               position: 'absolute',
               borderRadius: 999,
-              background: 'rgba(var(--glass-rgb), 0.55)',
+              background: 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.55)',
               backdropFilter: 'blur(16px) saturate(180%)',
               WebkitBackdropFilter: 'blur(16px) saturate(180%)',
               boxShadow: 'var(--shadow-xs)',
@@ -324,7 +324,7 @@ export default function CoursesPage() {
                   border: '1px solid transparent',
                   cursor: isLocked ? 'not-allowed' : 'pointer',
                   boxShadow: isFocused
-                    ? `0 0 0 2px #fff, 0 0 0 4px ${st.ring}, 0 6px 20px ${st.ring}66`
+                    ? `0 0 0 2px var(--color-bg), 0 0 0 4px ${st.ring}, 0 6px 20px ${st.ring}66`
                     : 'none',
                   transition: 'box-shadow 0.2s ease',
                 }}
@@ -338,7 +338,7 @@ export default function CoursesPage() {
                       minWidth: 34,
                       padding: '3px 8px',
                       borderRadius: 999,
-                      background: 'rgba(255,255,255,0.68)',
+                      background: 'var(--lesson-badge-bg)',
                       color: st.subText,
                       fontSize: 11,
                       fontWeight: 750,

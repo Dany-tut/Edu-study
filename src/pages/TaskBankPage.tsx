@@ -11,6 +11,7 @@ import {
   Task, Subject,
   BIOLOGY_SECTION_LINE_MAP, BIOLOGY_DIAGNOSTIC_SAMPLE_LINES, BIOLOGY_ROUTE,
   linesForSelection, lineNamesForSubject,
+  sectionsForSubject, topicsForSelection, sectionsForParts, partsForSections,
 } from '../data/taskBankData'
 import MultiSelectField from '../components/MultiSelectField'
 import { useCurriculum } from '../store/curriculumStore'
@@ -556,9 +557,28 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
 // ── Sort dropdown ─────────────────────────────────────────────────────────────
 function SortDropdown({ value, onChange }: { value: SortMode; onChange: (v: SortMode) => void }) {
   const [open, setOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
   const label = SORT_OPTIONS.find(([v]) => v === value)?.[1] ?? 'Новые'
+  // While the menu is open: swallow wheel events over the dropdown so the page
+  // behind it doesn't scroll (native listener — React's wheel handler is passive
+  // and can't preventDefault); but if the wheel happens anywhere else on the
+  // page, gently close the menu.
+  useEffect(() => {
+    const el = wrapRef.current
+    if (!open || !el) return
+    const block = (e: WheelEvent) => e.preventDefault()
+    const closeOnOutsideWheel = (e: WheelEvent) => {
+      if (!el.contains(e.target as Node)) setOpen(false)
+    }
+    el.addEventListener('wheel', block, { passive: false })
+    window.addEventListener('wheel', closeOnOutsideWheel, { capture: true, passive: true })
+    return () => {
+      el.removeEventListener('wheel', block)
+      window.removeEventListener('wheel', closeOnOutsideWheel, { capture: true })
+    }
+  }, [open])
   return (
-    <div style={{ position: 'relative' }}>
+    <div ref={wrapRef} style={{ position: 'relative' }}>
       <button
         onClick={() => setOpen(o => !o)}
         onBlur={() => setTimeout(() => setOpen(false), 120)}
@@ -583,14 +603,15 @@ function SortDropdown({ value, onChange }: { value: SortMode; onChange: (v: Sort
           <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </button>
+      <AnimatePresence>
       {open && (
         <motion.div
-          initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.12 }}
+          initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
           style={{
             position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 150,
             background: 'rgba(var(--glass-rgb), 0.96)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            border: '1px solid var(--color-border-glass)', borderRadius: 14,
-            boxShadow: '0 12px 32px rgba(0,0,0,0.12)', overflow: 'hidden', padding: 5,
+            border: '1px solid var(--color-border)', borderRadius: 14,
+            boxShadow: 'var(--shadow-dropdown)', overflow: 'hidden', padding: 5,
           }}
         >
           {SORT_OPTIONS.map(([val, label]) => (
@@ -613,6 +634,7 @@ function SortDropdown({ value, onChange }: { value: SortMode; onChange: (v: Sort
           ))}
         </motion.div>
       )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -650,7 +672,7 @@ function StatusTabs({ value, onChange }: { value: StatusFilter; onChange: (v: St
             width: pill.pillRect.width,
             height: pill.pillRect.height,
             borderRadius: 999,
-            background: 'rgba(var(--glass-rgb), 0.82)',
+            background: 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.82)',
             backdropFilter: 'blur(16px) saturate(180%)',
             WebkitBackdropFilter: 'blur(16px) saturate(180%)',
             boxShadow: 'var(--shadow-tab-pill)',
@@ -1172,21 +1194,34 @@ export default function TaskBankPage() {
   const lineNames    = useMemo(() => lineNamesForSubject(subject), [subject, curriculumVersion])
   const merge        = useOptionMerger()
   const subjectTasks = useMemo(() => tasks.filter(t => t.subject === subject), [tasks, subject])
-  const baseSections = useMemo(() => [...new Set(subjectTasks.map(t => t.section).filter(Boolean))].sort(), [subjectTasks])
+  // Options mirror the teacher's PROGRAM (curriculum), not just the tasks that
+  // happen to exist — so the student sees every раздел/тема/линия/часть the
+  // teacher defined. Picking Часть N then narrows them via the curriculum map.
+  const baseSections = useMemo(() => {
+    const all = [...new Set([...sectionsForSubject(subject), ...subjectTasks.map(t => t.section).filter(Boolean)])]
+    if (!parts.length) return all.sort()
+    const inPart = new Set(sectionsForParts(subject, parts))
+    return all.filter(s => inPart.has(s)).sort()
+  }, [subject, subjectTasks, parts, curriculumVersion])
   const sectionOptions = merge(baseSections, sectionScope(subject))
   const baseTopics   = useMemo(() => {
-    const src = sections.length ? subjectTasks.filter(t => sections.includes(t.section)) : subjectTasks
-    return [...new Set(src.map(t => t.topic).filter(Boolean))].sort()
-  }, [subjectTasks, sections])
+    const taskTopics = (sections.length ? subjectTasks.filter(t => sections.includes(t.section)) : subjectTasks).map(t => t.topic).filter(Boolean)
+    return [...new Set([...topicsForSelection(subject, sections), ...taskTopics])].sort()
+  }, [subject, subjectTasks, sections, curriculumVersion])
   const topicOptions = merge(baseTopics, sections.length ? sections.map(s => topicScope(subject, s)) : topicScope(subject, ''))
-  // Lines cascade off the chosen sections + parts (curriculum map), then narrow
-  // to lines that actually have tasks in the bank.
-  const cascadeLineSet = useMemo(() => new Set(linesForSelection(subject, sections, parts)), [subject, sections, parts])
+  // Reverse cascade: which parts the program defines within the chosen sections —
+  // so a Часть with no content greys out (and auto-clears if it was selected).
+  const availableParts = useMemo(() => partsForSections(subject, sections), [subject, sections, curriculumVersion])
+  useEffect(() => {
+    if (parts.some(p => !availableParts.includes(p as '1' | '2'))) {
+      setParts(parts.filter(p => availableParts.includes(p as '1' | '2')))
+    }
+  }, [availableParts]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Lines come straight from the curriculum map for the chosen sections + parts
+  // (every program line, whether or not a task exists for it yet).
   const allLines     = useMemo(() => {
-    const nums = [...new Set(subjectTasks.map(t => t.line))].sort((a, b) => a - b)
-    const constrained = (sections.length || parts.length) ? nums.filter(n => cascadeLineSet.has(n)) : nums
-    return constrained.map(n => `${n} · ${lineNames[n] ?? `Линия ${n}`}`)
-  }, [subjectTasks, lineNames, sections, parts, cascadeLineSet])
+    return linesForSelection(subject, sections, parts).map(n => `${n} · ${lineNames[n] ?? `Линия ${n}`}`)
+  }, [subject, lineNames, sections, parts, curriculumVersion])
   const baseSources  = useMemo(() => [...new Set(tasks.map(t => t.source).filter(Boolean))].sort(), [tasks])
   const allSources   = merge(baseSources, SOURCE_SCOPE)
 
@@ -1364,12 +1399,14 @@ export default function TaskBankPage() {
             <div style={{ display: 'flex', gap: 8 }}>
               {['1', '2'].map(p => {
                 const active = parts.includes(p)
+                const avail = availableParts.includes(p as '1' | '2')
                 return (
-                <button key={p} onClick={() => setParts(active ? parts.filter(x => x !== p) : [...parts, p])} style={{
-                  flex: 1, padding: '11px 12px', borderRadius: 13, fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                <button key={p} disabled={!avail} onClick={() => setParts(active ? parts.filter(x => x !== p) : [...parts, p])} style={{
+                  flex: 1, padding: '11px 12px', borderRadius: 13, fontSize: 14, fontWeight: 600, cursor: avail ? 'pointer' : 'not-allowed',
                   background: active ? `${palette.accent}22` : 'var(--color-bg-input)',
                   border: `1px solid ${active ? palette.accent : 'var(--color-border-soft)'}`,
                   color: active ? palette.accent : 'var(--color-muted)',
+                  opacity: avail ? 1 : 0.4,
                 }}>
                   Часть {p}
                 </button>
@@ -1626,13 +1663,15 @@ export default function TaskBankPage() {
               <div style={{ display: 'flex', gap: 6 }}>
                 {['1', '2'].map(p => {
                   const active = parts.includes(p)
+                  const avail = availableParts.includes(p as '1' | '2')
                   return (
-                  <button key={p} onClick={() => setParts(active ? parts.filter(x => x !== p) : [...parts, p])} style={{
-                    flex: 1, padding: '9px 12px', borderRadius: 13, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  <button key={p} disabled={!avail} onClick={() => setParts(active ? parts.filter(x => x !== p) : [...parts, p])} style={{
+                    flex: 1, padding: '9px 12px', borderRadius: 13, fontSize: 13, fontWeight: 600, cursor: avail ? 'pointer' : 'not-allowed',
                     background: active ? `${palette.accent}22` : 'var(--color-bg-input)',
                     border: `1px solid ${active ? palette.accent : 'var(--color-border-soft)'}`,
                     boxShadow: active ? `0 0 0 3px ${palette.accent}22` : 'none',
                     color: active ? palette.accent : 'var(--color-muted)',
+                    opacity: avail ? 1 : 0.4,
                     transition: 'all 0.15s ease',
                   }}>
                     Часть {p}

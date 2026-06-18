@@ -364,6 +364,62 @@ export function partOfLine(subject: Subject, line: number): 1 | 2 {
   return 1
 }
 
+// ── Smart part↔section/topic/line relationships (derived from real tasks) ─────
+// These power the "intellectual" cascade in the student trainer: picking Часть 2
+// narrows the section / topic / line options to only what actually has Part-2
+// tasks, and vice-versa. "Empty selection = no constraint" throughout.
+function inParts(part: 1 | 2, parts: string[]): boolean {
+  return parts.length === 0 || parts.includes(String(part))
+}
+
+/** Sections that have ≥1 task in the chosen parts. */
+export function sectionsInTasks(tasks: Task[], parts: string[]): string[] {
+  return [...new Set(tasks.filter(t => inParts(t.part, parts)).map(t => t.section).filter(Boolean))].sort()
+}
+
+/** Topics that have ≥1 task within the chosen sections + parts. */
+export function topicsInTasks(tasks: Task[], sections: string[], parts: string[]): string[] {
+  return [...new Set(
+    tasks
+      .filter(t => (sections.length === 0 || sections.includes(t.section)) && inParts(t.part, parts))
+      .map(t => t.topic)
+      .filter(Boolean),
+  )].sort()
+}
+
+/** Which exam parts ('1'/'2') actually have tasks within the chosen sections + topics. */
+export function partsInTasks(tasks: Task[], sections: string[], topics: string[]): ('1' | '2')[] {
+  const have = new Set<'1' | '2'>()
+  for (const t of tasks) {
+    if (sections.length && !sections.includes(t.section)) continue
+    if (topics.length && !topics.includes(t.topic)) continue
+    have.add(String(t.part) as '1' | '2')
+  }
+  return [...have].sort()
+}
+
+/** Which exam parts ('1'/'2') the curriculum defines within the chosen sections. Empty = all sections. */
+export function partsForSections(subject: Subject, sections: string[]): ('1' | '2')[] {
+  const map = sectionLineMap(subject)
+  const entries = sections.length ? sections.map(s => map[s]).filter(Boolean) : Object.values(map)
+  const have = new Set<'1' | '2'>()
+  for (const e of entries) {
+    if (e.lines.length) have.add('1')
+    if (e.part2Lines.length) have.add('2')
+  }
+  return [...have].sort()
+}
+
+/** Curriculum view of the section↔part relationship (works even for lines with no tasks yet). */
+export function sectionsForParts(subject: Subject, parts: string[]): string[] {
+  const map = sectionLineMap(subject)
+  const want1 = parts.length === 0 || parts.includes('1')
+  const want2 = parts.length === 0 || parts.includes('2')
+  return Object.entries(map)
+    .filter(([, e]) => (want1 && e.lines.length > 0) || (want2 && e.part2Lines.length > 0))
+    .map(([s]) => s)
+}
+
 // Lines to sample for diagnostic (one rep per major topic cluster)
 export const BIOLOGY_DIAGNOSTIC_SAMPLE_LINES = [1, 3, 5, 7, 9, 14, 16, 18, 20, 22]
 

@@ -244,7 +244,7 @@ export default function TeacherSelect({
                   </button>
                 )
               )}
-              <ScrollFade maxHeight={220} bg="rgba(var(--glass-rgb), 0.96)">
+              <ScrollFade maxHeight={220} bg="rgba(var(--glass-rgb), 0.96)" overlayScrollbar>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {filtered.length === 0 ? (
                     <div style={{ padding: '8px 11px', fontSize: 12, color: 'var(--color-text-3)' }}>Ничего не найдено</div>

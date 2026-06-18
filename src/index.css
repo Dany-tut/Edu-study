@@ -107,7 +107,11 @@
   --shadow-bar-hi:   inset 0 1px 1px rgba(255,255,255,0.9), 0 6px 24px rgba(21,18,31,0.10), 0 2px 6px rgba(21,18,31,0.05);
   --shadow-dropdown: inset 0 1px 0 rgba(255,255,255,0.85), 0 12px 40px rgba(0,0,0,0.10);
   --shadow-tab-pill: inset 0 1px 0 rgba(255,255,255,0.85), 0 2px 8px rgba(0,0,0,0.06);
+  /* Active segmented-tab pill — subtle accent tint so it never blends into the track */
+  --tab-pill-active: rgba(120,106,215,0.12);
   --shadow-filter:   0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.85);
+  /* Floating points badge on lesson cards — light contrasting pill */
+  --lesson-badge-bg: rgba(255,255,255,0.68);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -189,7 +193,11 @@
   --shadow-bar-hi:   inset 0 1px 0 rgba(255,255,255,0.12), 0 8px 32px rgba(0,0,0,0.50), 0 2px 8px rgba(0,0,0,0.22);
   --shadow-dropdown: inset 0 1px 0 rgba(255,255,255,0.08), 0 14px 48px rgba(0,0,0,0.55), 0 4px 12px rgba(0,0,0,0.25);
   --shadow-tab-pill: inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 10px rgba(0,0,0,0.35);
+  /* Stronger tint in dark so the active pill lifts off the near-black track */
+  --tab-pill-active: rgba(140,128,235,0.30);
   --shadow-filter:   inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 36px rgba(0,0,0,0.45);
+  /* Darker translucent pill so the points badge sits on the card, not floats white above it */
+  --lesson-badge-bg: rgba(0,0,0,0.28);
 }
 
 /* Upgrade all backdrop-filter surfaces in dark mode to use saturate —
@@ -271,6 +279,11 @@ a {
 [data-theme="dark"] * {
   scrollbar-color: rgba(255,255,255,0.08) transparent;
 }
+
+/* Floating overlay-scrollbar thumb colour (drawn by ScrollFade as a div on top
+   of the content, so row hover/active runs full-width under the scroll line). */
+:root { --scroll-thumb: rgba(0,0,0,0.22); }
+[data-theme="dark"] { --scroll-thumb: rgba(255,255,255,0.20); }
 
 /* Hide the scrollbar entirely (scroll still works) — used where scroll fades
    replace the visible track. */

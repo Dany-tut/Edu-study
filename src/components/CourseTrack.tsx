@@ -154,7 +154,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
               style={{
                 position: 'absolute',
                 borderRadius: 999,
-                background: 'rgba(var(--glass-rgb), 0.55)',
+                background: 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.55)',
                 backdropFilter: 'blur(16px) saturate(180%)',
                 WebkitBackdropFilter: 'blur(16px) saturate(180%)',
                 boxShadow: 'var(--shadow-xs)',
@@ -669,7 +669,7 @@ export default function CourseTrack() {
             style={{
               position: 'absolute',
               borderRadius: 999,
-              background: 'rgba(var(--glass-rgb), 0.55)',
+              background: 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.55)',
               backdropFilter: 'blur(16px) saturate(180%)',
               WebkitBackdropFilter: 'blur(16px) saturate(180%)',
               boxShadow: 'var(--shadow-xs)',
