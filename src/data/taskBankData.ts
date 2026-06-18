@@ -287,6 +287,83 @@ export const BIOLOGY_SECTION_LINE_MAP: Record<string, { lines: number[]; part2Li
   'Задания части 2':           { lines: [],                        part2Lines: [23, 24, 25, 26, 27, 28, 29] },
 }
 
+// ── Smart filter: chemistry section → lines (mirrors biology) ────────────────
+export const CHEMISTRY_SECTION_LINE_MAP: Record<string, { lines: number[]; part2Lines: number[] }> = {
+  'Строение вещества':    { lines: [1, 2, 3, 4],                 part2Lines: [] },
+  'Неорганическая химия': { lines: [5, 6, 7, 8, 9],              part2Lines: [31] },
+  'Органическая химия':   { lines: [10, 11, 12, 13, 14, 15, 16], part2Lines: [30] },
+  'Химические реакции':   { lines: [17, 18, 19, 20, 21, 22],     part2Lines: [32, 33] },
+  'Расчётные задачи':     { lines: [23, 24, 25, 26, 27, 28, 29], part2Lines: [34] },
+  'Задания части 2':      { lines: [],                           part2Lines: [30, 31, 32, 33, 34] },
+}
+
+// ── Curriculum registry — the live taxonomy behind every trainer filter ──────
+// Seeded from the static maps above, but the teacher's "Банк заданий" tab can
+// override it at runtime (persisted in curriculumStore). Every cascade helper
+// and option list reads through here, so edits propagate to both trainers.
+export type SubjectCurriculum = {
+  sections: string[]
+  topics: Record<string, string[]>
+  lineNames: Record<number, string>
+  sectionLineMap: Record<string, { lines: number[]; part2Lines: number[] }>
+}
+
+const STATIC_CURRICULUM: Record<Subject, SubjectCurriculum> = {
+  biology:   { sections: BIOLOGY_SECTIONS,   topics: BIOLOGY_TOPICS,   lineNames: BIOLOGY_LINES,   sectionLineMap: BIOLOGY_SECTION_LINE_MAP },
+  chemistry: { sections: CHEMISTRY_SECTIONS, topics: CHEMISTRY_TOPICS, lineNames: CHEMISTRY_LINES, sectionLineMap: CHEMISTRY_SECTION_LINE_MAP },
+}
+const runtimeCurriculum: Record<Subject, SubjectCurriculum> = {
+  biology:   STATIC_CURRICULUM.biology,
+  chemistry: STATIC_CURRICULUM.chemistry,
+}
+/** Replace the live taxonomy for a subject (called by curriculumStore). */
+export function setRuntimeCurriculum(subject: Subject, c: SubjectCurriculum) { runtimeCurriculum[subject] = c }
+export function getStaticCurriculum(subject: Subject): SubjectCurriculum { return STATIC_CURRICULUM[subject] }
+
+// ── Cascade helpers — shared by the student & teacher trainers ───────────────
+// All selection arrays use "empty = no constraint" semantics.
+export function sectionsForSubject(subject: Subject): string[] {
+  return runtimeCurriculum[subject].sections
+}
+export function sectionLineMap(subject: Subject): Record<string, { lines: number[]; part2Lines: number[] }> {
+  return runtimeCurriculum[subject].sectionLineMap
+}
+export function topicsForSubject(subject: Subject): Record<string, string[]> {
+  return runtimeCurriculum[subject].topics
+}
+export function lineNamesForSubject(subject: Subject): Record<number, string> {
+  return runtimeCurriculum[subject].lineNames
+}
+
+/** Line numbers implied by the chosen sections + parts. Empty selection = unconstrained. */
+export function linesForSelection(subject: Subject, sections: string[], parts: string[]): number[] {
+  const map = sectionLineMap(subject)
+  const want1 = parts.length === 0 || parts.includes('1')
+  const want2 = parts.length === 0 || parts.includes('2')
+  const entries = sections.length ? sections.map(s => map[s]).filter(Boolean) : Object.values(map)
+  const set = new Set<number>()
+  for (const e of entries) {
+    if (want1) e.lines.forEach(n => set.add(n))
+    if (want2) e.part2Lines.forEach(n => set.add(n))
+  }
+  return [...set].sort((a, b) => a - b)
+}
+
+/** Topics implied by the chosen sections (union). Empty selection = all topics. */
+export function topicsForSelection(subject: Subject, sections: string[]): string[] {
+  const map = topicsForSubject(subject)
+  const src = sections.length ? sections.flatMap(s => map[s] ?? []) : Object.values(map).flat()
+  return [...new Set(src)]
+}
+
+/** Which exam part (1 or 2) a line belongs to, per the curriculum map. */
+export function partOfLine(subject: Subject, line: number): 1 | 2 {
+  for (const e of Object.values(sectionLineMap(subject))) {
+    if (e.part2Lines.includes(line)) return 2
+  }
+  return 1
+}
+
 // Lines to sample for diagnostic (one rep per major topic cluster)
 export const BIOLOGY_DIAGNOSTIC_SAMPLE_LINES = [1, 3, 5, 7, 9, 14, 16, 18, 20, 22]
 

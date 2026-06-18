@@ -8,10 +8,14 @@ export default function WhiteboardCanvas({
   readOnly = false,
   compact = false,
   onSave,
+  initialData,
 }: {
   readOnly?: boolean
   compact?: boolean
   onSave?: (data: string) => void
+  // PNG data URL to render on mount — resume a student draft, or let the teacher
+  // view what the student drew (with readOnly).
+  initialData?: string
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [tool, setTool] = useState<'pen' | 'eraser'>('pen')
@@ -31,7 +35,12 @@ export default function WhiteboardCanvas({
     const ctx = c.getContext('2d')!
     ctx.fillStyle = '#FFFFFF'
     ctx.fillRect(0, 0, c.width, c.height)
-  }, [])
+    if (initialData) {
+      const img = new Image()
+      img.onload = () => ctx.drawImage(img, 0, 0, c.width, c.height)
+      img.src = initialData
+    }
+  }, [initialData])
 
   function getXY(e: React.PointerEvent<HTMLCanvasElement>): [number, number] {
     const c = canvasRef.current!

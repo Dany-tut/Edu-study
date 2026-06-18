@@ -12,6 +12,7 @@ import type { TeacherTask } from '../../store/teacherStore'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
 import { useHomework } from '../../lib/useHomework'
 import { supabase } from '../../lib/supabase'
+import { mskToVietnam } from '../../lib/utils'
 
 const SPRING = { type: 'spring', stiffness: 340, damping: 30 } as const
 const fadeUp = (delay = 0) => ({
@@ -141,18 +142,24 @@ function ScheduleRow({ item }: { item: ScheduleItem }) {
         )}
       </div>
 
-      {/* Time */}
-      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-muted)', flexShrink: 0, width: 38 }}>
-        {item.time}
+      {/* Time — МСК with Vietnam underneath */}
+      <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15, flexShrink: 0, width: 56 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-muted)' }}>{item.time}</span>
+        {item.time && (
+          <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-4)' }}>
+            {mskToVietnam(item.time)} ВН
+          </span>
+        )}
       </span>
 
-      {/* Group chip */}
+      {/* Group chip — theme-safe tint so text always contrasts (stored colorSoft was authored for light theme) */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 5,
-        background: item.colorSoft, borderRadius: 8, padding: '3px 9px', flexShrink: 0,
+        background: `color-mix(in srgb, ${item.color} 18%, transparent)`,
+        borderRadius: 8, padding: '3px 9px', flexShrink: 0,
       }}>
         <span style={{ fontSize: 13, lineHeight: 1 }}>{item.icon}</span>
-        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{item.groupName}</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: item.color }}>{item.groupName}</span>
       </div>
 
       {/* Topic */}
@@ -545,7 +552,7 @@ export default function TeacherHome() {
           />
           <StatCard
             icon={Clock} label="Уроков сегодня" value={todaySchedule.length}
-            sub={nextLesson ? `следующий в ${nextLesson.time}` : 'все завершены'}
+            sub={nextLesson ? `следующий в ${nextLesson.time} МСК (${mskToVietnam(nextLesson.time)} ВН)` : 'все завершены'}
             accentBg="var(--color-purple-soft)" accentColor="var(--color-accent)" delay={0.15}
           />
           <EarningsCard delay={0.2} />

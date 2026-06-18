@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, X, ClipboardCheck, Clock, CheckCircle2,
   Circle, Users, AlertCircle, Send, ClipboardList, Check, RotateCcw, Star,
+  BookOpen,
 } from 'lucide-react'
 import {
   type HomeworkItem, type Group,
@@ -12,6 +13,7 @@ import TeacherSelect from '../../components/teacher/TeacherSelect'
 import GroupStrip from '../../components/teacher/GroupStrip'
 import { useGroups, useStudents } from '../../lib/useGroups'
 import { useHomework, useHardSubmissions, type HardSub } from '../../lib/useHomework'
+import { openLessonInCourseEditor } from '../../lib/teacherNav'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -259,10 +261,28 @@ function HwRow({ hw, index, isSelected, onClick }: {
         </div>
       </td>
 
-      {/* Title */}
-      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-soft)', maxWidth: 260 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {hw.title}
+      {/* Title + two inline segments: основное / сложное */}
+      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-soft)', maxWidth: 280 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 5 }}>
+          {hw.title || <span style={{ color: 'var(--color-text-4)', fontStyle: 'italic' }}>Без названия</span>}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 7,
+            background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
+          }}>
+            <ClipboardCheck size={11} strokeWidth={2.4} /> Основное
+          </span>
+          {(hw.hardTotal ?? hw.hardTaskIds?.length ?? 0) > 0 && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 7,
+              background: 'var(--color-yellow-soft)', color: 'var(--color-yellow-text)',
+            }}>
+              <Star size={10} strokeWidth={0} fill="currentColor" /> Сложное
+            </span>
+          )}
         </div>
       </td>
 
@@ -318,10 +338,22 @@ function HwRow({ hw, index, isSelected, onClick }: {
 // ─── Homework detail panel ─────────────────────────────────────────────────────
 function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onClose: () => void }) {
   const status = hwStatus(hw)
-  const { students: groupStudents } = useStudents(hw.groupId)
+  const { students: dbStudents } = useStudents(hw.groupId)
   const openHomeworkReview = useTeacher(s => s.openHomeworkReview)
+  const openCourseEditor = useTeacher(s => s.openCourseEditor)
+  const openHomeworkEdit = useTeacher(s => s.openHomeworkEdit)
   const hwReviews = useTeacher(s => s.reviews[hw.id]) ?? {}
   const pendingReview = hw.submittedCount - hw.reviewedCount
+  const [lessonBusy, setLessonBusy] = useState(false)
+  const hardCount = hw.hardTotal ?? hw.hardTaskIds?.length ?? 0
+  const hasHard = hardCount > 0
+  // Auto-created 1:1 groups have no enrolled student row — show the named
+  // student (the group is named after them) so the card isn't empty.
+  const groupStudents: { id: string; name: string }[] = dbStudents.length > 0
+    ? dbStudents
+    : group.isIndividual
+      ? [{ id: hw.id + '-self', name: group.name }]
+      : dbStudents
 
   return (
     <div
@@ -370,6 +402,60 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
             </div>
           ))}
         </div>
+
+        {/* Two inline segments: основное / сложное (not separate sections) */}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ flex: 1, background: 'var(--color-purple-soft)', borderRadius: 12, padding: '10px 12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+              <ClipboardCheck size={12} strokeWidth={2.4} style={{ color: 'var(--color-accent)' }} />
+              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-accent)' }}>Основное</span>
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 750, color: 'var(--color-accent)' }}>{hw.submittedCount}/{hw.totalCount}</div>
+          </div>
+          <div style={{
+            flex: 1, borderRadius: 12, padding: '10px 12px',
+            background: hasHard ? 'var(--color-yellow-soft)' : 'var(--color-bg)',
+            opacity: hasHard ? 1 : 0.6,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+              <Star size={11} strokeWidth={0} fill="currentColor" style={{ color: hasHard ? 'var(--color-yellow-text)' : 'var(--color-text-4)' }} />
+              <span style={{ fontSize: 10, fontWeight: 700, color: hasHard ? 'var(--color-yellow-text)' : 'var(--color-text-4)' }}>Сложное</span>
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 750, color: hasHard ? 'var(--color-yellow-text)' : 'var(--color-text-4)' }}>
+              {hasHard ? `${hardCount} зад.` : '—'}
+            </div>
+          </div>
+        </div>
+
+        {/* Open something to review / tweak: the linked lesson when one is
+            attached, otherwise the homework itself (homework can exist without
+            a lesson). */}
+        <motion.button
+          whileHover={{ scale: lessonBusy ? 1 : 1.02 }} whileTap={{ scale: lessonBusy ? 1 : 0.98 }}
+          onClick={async () => {
+            if (hw.lessonId) {
+              setLessonBusy(true)
+              await openLessonInCourseEditor(hw.lessonId, openCourseEditor)
+              setLessonBusy(false)
+            } else {
+              // No lesson — open this homework in the composer for editing.
+              openHomeworkEdit(hw.id)
+            }
+          }}
+          disabled={lessonBusy}
+          style={{
+            width: '100%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            padding: '11px 0', borderRadius: 14, border: '1px solid var(--color-border-medium)',
+            cursor: lessonBusy ? 'default' : 'pointer', background: 'var(--color-bg-2)', color: 'var(--color-text)',
+            fontSize: 13, fontWeight: 700, fontFamily: 'inherit', opacity: lessonBusy ? 0.6 : 1,
+          }}
+        >
+          {hw.lessonId
+            ? <BookOpen size={15} strokeWidth={2.2} style={{ color: 'var(--color-accent)' }} />
+            : <ClipboardList size={15} strokeWidth={2.2} style={{ color: 'var(--color-accent)' }} />}
+          {lessonBusy ? 'Открываю…' : hw.lessonId ? 'Открыть урок' : 'Открыть домашку'}
+        </motion.button>
 
         {/* Continue / start review */}
         {hw.submittedCount > 0 && (
@@ -453,161 +539,6 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
   )
 }
 
-// ─── Hard submission detail panel ─────────────────────────────────────────────
-function HardSubDetail({ sub, onClose, onReview }: {
-  sub: HardSub
-  onClose: () => void
-  onReview: (id: string, verdict: 'completed' | 'returned') => Promise<void>
-}) {
-  const [busy, setBusy] = useState(false)
-  const initials = sub.studentName.split(' ').map((p: string) => p[0]).join('').slice(0, 2)
-  const date = sub.updatedAt ? new Date(sub.updatedAt).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''
-
-  async function act(verdict: 'completed' | 'returned') {
-    setBusy(true)
-    await onReview(sub.id, verdict)
-    setBusy(false)
-    onClose()
-  }
-
-  const statusLabel = sub.status === 'completed' ? 'Принято' : sub.status === 'returned' ? 'Возвращено' : 'На проверке'
-  const statusColor = sub.status === 'completed' ? 'var(--color-green-text)' : sub.status === 'returned' ? 'var(--color-peach-text)' : 'var(--color-purple-text)'
-  const statusBg = sub.status === 'completed' ? 'var(--color-green-soft)' : sub.status === 'returned' ? 'var(--color-peach-soft)' : 'var(--color-purple-soft)'
-
-  return (
-    <div style={{
-      width: 332, flexShrink: 0, flex: 1, minHeight: 0,
-      background: 'rgba(var(--glass-rgb), 0.96)',
-      backdropFilter: 'blur(20px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-      border: '1px solid var(--color-border)',
-      borderRadius: 20,
-      margin: '36px 12px 12px 0',
-      display: 'flex', flexDirection: 'column', overflow: 'hidden',
-      boxShadow: '0 8px 40px rgba(0,0,0,0.10)',
-    }}>
-      {/* Header */}
-      <div style={{
-        padding: '18px 18px 14px', flexShrink: 0,
-        background: 'var(--color-purple-soft)',
-        borderBottom: '1px solid rgba(99,84,207,0.14)',
-        borderTopLeftRadius: 19, borderTopRightRadius: 19,
-        display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8,
-      }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 4 }}>
-            Хард-уровень · Проверка
-          </div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 6 }}>
-            {sub.lessonTitle || sub.baseRef}
-          </div>
-          <span style={{ fontSize: 11, fontWeight: 700, color: statusColor, background: statusBg, padding: '2px 8px', borderRadius: 7 }}>
-            {statusLabel}
-          </span>
-        </div>
-        <button onClick={onClose} style={{
-          width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer', flexShrink: 0,
-          background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)',
-        }}>
-          <X size={13} />
-        </button>
-      </div>
-
-      <div style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {/* Student card */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)' }}>
-          <div style={{
-            width: 40, height: 40, borderRadius: 13, flexShrink: 0,
-            background: 'var(--grad-purple)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 14, fontWeight: 700, color: '#fff',
-          }}>
-            {initials}
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{sub.studentName}</div>
-            <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2 }}>Сдано {date}</div>
-          </div>
-          <div style={{ marginLeft: 'auto', flexShrink: 0, textAlign: 'right' }}>
-            <div style={{ fontSize: 10, color: 'var(--color-text-3)', fontWeight: 700 }}>Базовая</div>
-            <div style={{ fontSize: 16, fontWeight: 760, color: 'var(--color-accent)' }}>2/2</div>
-          </div>
-        </div>
-
-        {/* Hard answer */}
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>
-            Ответ ученика
-          </div>
-          <div style={{
-            padding: '14px 16px', borderRadius: 14,
-            background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
-            fontSize: 13, lineHeight: 1.6, color: 'var(--color-text)',
-            whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-            minHeight: 80,
-          }}>
-            {sub.comment || <span style={{ color: 'var(--color-text-4)', fontStyle: 'italic' }}>Ответ пуст</span>}
-          </div>
-        </div>
-
-        {/* Action buttons (only if still pending) */}
-        {sub.status === 'submitted' && (
-          <div style={{ display: 'flex', gap: 8 }}>
-            <motion.button
-              whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
-              onClick={() => act('returned')}
-              disabled={busy}
-              style={{
-                flex: 1, padding: '11px 0', borderRadius: 14, border: '1px solid var(--color-border-medium)',
-                background: 'var(--color-bg-2)', color: 'var(--color-text)',
-                fontSize: 13, fontWeight: 700, cursor: busy ? 'default' : 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                opacity: busy ? 0.6 : 1,
-              }}
-            >
-              <RotateCcw size={14} />
-              На доработку
-            </motion.button>
-            <motion.button
-              whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
-              onClick={() => act('completed')}
-              disabled={busy}
-              style={{
-                flex: 1, padding: '11px 0', borderRadius: 14, border: 'none',
-                background: 'var(--grad-green)',
-                color: '#fff', fontSize: 13, fontWeight: 700,
-                cursor: busy ? 'default' : 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                boxShadow: '0 6px 18px rgba(42,125,79,0.28)',
-                opacity: busy ? 0.6 : 1,
-              }}
-            >
-              <Check size={14} />
-              Принять
-            </motion.button>
-          </div>
-        )}
-
-        {/* Reviewed state */}
-        {sub.status !== 'submitted' && (
-          <div style={{
-            padding: '12px 14px', borderRadius: 14,
-            background: sub.status === 'completed' ? 'var(--color-green-soft)' : 'var(--color-peach-soft)',
-            display: 'flex', alignItems: 'center', gap: 8,
-          }}>
-            {sub.status === 'completed'
-              ? <><Star size={16} style={{ color: 'var(--color-green-text)' }} fill="currentColor" />
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-green-text)' }}>Работа принята</span></>
-              : <><RotateCcw size={16} style={{ color: 'var(--color-peach-text)' }} />
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-peach-text)' }}>Отправлено на доработку</span></>
-            }
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
 // ─── Hard submissions section ──────────────────────────────────────────────────
 function HardSubRow({ sub, isSelected, onClick }: { sub: HardSub; isSelected: boolean; onClick: () => void }) {
   const date = sub.updatedAt ? new Date(sub.updatedAt).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) : ''
@@ -658,18 +589,18 @@ function HardSubRow({ sub, isSelected, onClick }: { sub: HardSub; isSelected: bo
 
 // ─── Main page ─────────────────────────────────────────────────────────────────
 export default function TeacherHomeworkPage() {
-  const setActivePage = useTeacher(s => s.setActivePage)
+  const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
+  const openHardReview = useTeacher(s => s.openHardReview)
   const reviews = useTeacher(s => s.reviews)
   const filterGroup = useTeacher(s => s.selectedGroupId)
   const setFilterGroup = useTeacher(s => s.setSelectedGroupId)
   const [selectedHwId, setSelectedHwId] = useState<string | null>(null)
-  const [selectedHardId, setSelectedHardId] = useState<string | null>(null)
   const [showAssignForm, setShowAssignForm] = useState(false)
   const { groups } = useGroups()
   const regularGroups = groups.filter(g => !g.isIndividual)
   const individualGroups = groups.filter(g => g.isIndividual)
   const { homework: dbHomework, loading: hwLoading } = useHomework()
-  const { submissions: hardSubs, reviewHard } = useHardSubmissions()
+  const { submissions: hardSubs } = useHardSubmissions()
 
   // Use DB homework directly; merge local review counts from Zustand
   const homework: HomeworkItem[] = dbHomework.map(hw => {
@@ -686,20 +617,12 @@ export default function TeacherHomeworkPage() {
 
   const selectedHw = homework.find(hw => hw.id === selectedHwId) ?? null
   const selectedGroup = selectedHw ? groups.find(g => g.id === selectedHw.groupId) ?? null : null
-  const selectedHard = hardSubs.find(s => s.id === selectedHardId) ?? null
 
-  const panelOpen = showAssignForm || (!!selectedHw && !!selectedGroup) || !!selectedHard
+  const panelOpen = showAssignForm || (!!selectedHw && !!selectedGroup)
   const pendingHardCount = hardSubs.filter(s => s.status === 'submitted').length
 
   function openHw(id: string) {
     setSelectedHwId(prev => prev === id ? null : id)
-    setSelectedHardId(null)
-    setShowAssignForm(false)
-  }
-
-  function openHard(id: string) {
-    setSelectedHardId(prev => prev === id ? null : id)
-    setSelectedHwId(null)
     setShowAssignForm(false)
   }
 
@@ -720,7 +643,7 @@ export default function TeacherHomeworkPage() {
             onSelectGroup={setFilterGroup}
             actionLabel={"Создать\nдомашку"}
             actionIcon={Plus}
-            onAction={() => setActivePage('homework-create')}
+            onAction={openHomeworkCreate}
           />
         </motion.div>
 
@@ -750,8 +673,8 @@ export default function TeacherHomeworkPage() {
                   <HardSubRow
                     key={sub.id}
                     sub={sub}
-                    isSelected={selectedHardId === sub.id}
-                    onClick={() => openHard(sub.id)}
+                    isSelected={false}
+                    onClick={() => openHardReview(sub.id)}
                   />
                 ))}
               </div>
@@ -801,7 +724,7 @@ export default function TeacherHomeworkPage() {
 
       {/* Right panels — absolute overlay so the table simply shifts under them */}
       <AnimatePresence>
-        {(showAssignForm || (selectedHw && selectedGroup) || selectedHard) && (
+        {(showAssignForm || (selectedHw && selectedGroup)) && (
           <motion.div
             key="hw-panel"
             initial={{ x: 360, opacity: 0 }}
@@ -816,13 +739,6 @@ export default function TeacherHomeworkPage() {
           >
             {showAssignForm ? (
               <AssignForm onClose={() => setShowAssignForm(false)} />
-            ) : selectedHard ? (
-              <HardSubDetail
-                key={selectedHard.id}
-                sub={selectedHard}
-                onClose={() => setSelectedHardId(null)}
-                onReview={reviewHard}
-              />
             ) : selectedHw && selectedGroup ? (
               <HwDetail
                 key={selectedHw.id}

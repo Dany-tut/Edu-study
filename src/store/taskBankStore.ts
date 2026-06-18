@@ -8,10 +8,14 @@ type NewTask = Omit<Task, 'id'>
 type TaskBankStore = {
   tasks: Task[]
   loaded: boolean
+  // Last task edited via "Заменить"/constructor — the browser pins it to the top
+  // and flashes it for ~3s when the teacher returns. Cleared by clearRecentlyEdited.
+  recentlyEditedId: number | null
   load: (force?: boolean) => Promise<void>
   addTask: (t: NewTask) => Promise<number>
   replaceTask: (id: number, patch: Partial<Task>) => Promise<void>
   removeTask: (id: number) => Promise<void>
+  clearRecentlyEdited: () => void
 }
 
 function dbToTask(row: Record<string, unknown>): Task {
@@ -99,6 +103,8 @@ if (DEV && typeof window !== 'undefined') {
 export const useTaskBank = create<TaskBankStore>((set, get) => ({
   tasks: [],
   loaded: false,
+  recentlyEditedId: null,
+  clearRecentlyEdited: () => set({ recentlyEditedId: null }),
 
   load: async (force = false) => {
     if (!force && get().loaded && get().tasks.length > 0) return
@@ -143,7 +149,7 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
     if (DEV) {
       const tasks = lsLoad().map(t => t.id === id ? { ...t, ...patch } : t)
       lsSave(tasks)
-      set({ tasks })
+      set({ tasks, recentlyEditedId: id })
       return
     }
     const { error } = await supabase
@@ -151,7 +157,7 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
       .update(taskToDb(patch))
       .eq('id', id)
     if (error) throw error
-    set(s => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, ...patch } : t) }))
+    set(s => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, ...patch } : t), recentlyEditedId: id }))
   },
 
   removeTask: async (id) => {

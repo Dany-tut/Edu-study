@@ -2575,6 +2575,7 @@ export default function TeacherCourseEditorPage() {
     return () => { cancelled = true }
   }, [course.dbCourseId])
   const [savedFlash, setSavedFlash] = useState(false)
+  const [publishErr, setPublishErr] = useState<string | null>(null)
 
   // ── Autosave ──────────────────────────────────────────────────────────────
   // Persist edits ~900ms after the teacher stops changing things, so they never
@@ -2599,6 +2600,20 @@ export default function TeacherCourseEditorPage() {
     if (!course.dbCourseId) return
     const lessonShortId = lessonShortIdById[lessonId]
     if (!lessonShortId) return
+
+    // Gate per-lesson publish the same way as the course: needs an audience and
+    // a date+time. Otherwise only saving to draft is allowed.
+    const lesson = course.lessons.find(l => l.id === lessonId)
+    const hasAudience = course.groupIds.length > 0 || course.studentIds.length > 0
+    if (!hasAudience) {
+      setPublishErr('Выберите, кому виден курс (группа или ученик) — иначе урок нельзя открыть.')
+      return
+    }
+    if (lesson && !lessonScheduled(lesson)) {
+      setPublishErr(`Укажите дату и время для урока «${lesson.title || `Урок ${lesson.number}`}» — иначе его нельзя открыть.`)
+      return
+    }
+    setPublishErr(null)
     setOpeningLesson(true)
 
     // Assigned students who should get this lesson opened (group members + direct).
@@ -2858,7 +2873,34 @@ export default function TeacherCourseEditorPage() {
     flash()
   }
 
+  // A lesson counts as "scheduled" when it has both a date and a time on either
+  // the Урок event or the Запись event. Test nodes don't need scheduling.
+  function lessonScheduled(l: CELesson): boolean {
+    if (l.kind === 'test') return true
+    return !!((l.scheduledDate && l.scheduledTime) || (l.recDate && l.recTime))
+  }
+
+  // Returns an error string if the course can't be published yet, else null.
+  // Publish requires an audience (кому/для кого) and a date+time for every lesson.
+  function publishBlocker(c: CourseEdData): string | null {
+    const hasAudience = c.groupIds.length > 0 || c.studentIds.length > 0
+    if (!hasAudience) return 'Выберите, кому виден курс (группа или ученик) — иначе можно только сохранить в черновик.'
+    const unscheduled = c.lessons.filter(l => !lessonScheduled(l))
+    if (unscheduled.length > 0) {
+      const names = unscheduled.map(l => l.title || `Урок ${l.number}`).slice(0, 3).join(', ')
+      const more = unscheduled.length > 3 ? ` и ещё ${unscheduled.length - 3}` : ''
+      return `Укажите дату и время для уроков: ${names}${more}.`
+    }
+    return null
+  }
+
   function handlePublish() {
+    const blocker = publishBlocker(course)
+    if (blocker) {
+      setPublishErr(blocker)
+      return
+    }
+    setPublishErr(null)
     const updated = { ...course, status: 'published' as const }
     setCourse(updated)
     setCourseEdited(JSON.stringify(updated))
@@ -2885,6 +2927,20 @@ export default function TeacherCourseEditorPage() {
     WebkitBackdropFilter: 'blur(14px) saturate(180%)',
     boxShadow: 'var(--shadow-lg)',
   } as const
+
+  // Highlighted "Черновик" look — shown while the course IS a draft, so it reads
+  // as the current state rather than a muted secondary action.
+  const draftActiveStyle = {
+    border: '1.5px solid var(--color-yellow-text)',
+    background: 'var(--color-yellow-soft)',
+    color: 'var(--color-yellow-text)',
+    fontWeight: 700,
+  } as const
+
+  // Live publish gate — drives the disabled state of the Опубликовать button.
+  const liveBlocker = course.status === 'published' ? null : publishBlocker(course)
+  // Clear a shown error once the teacher fixes what was missing.
+  useEffect(() => { if (!liveBlocker) setPublishErr(null) }, [liveBlocker])
 
   const courseTitle = course.title || 'Создать курс'
 
@@ -2914,8 +2970,8 @@ export default function TeacherCourseEditorPage() {
               </div>
               <div style={{ flexGrow: 1 }} />
               {course.status !== 'published' ? (
-                <button onClick={() => handleSave()} style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 999, ...dockGlass, cursor: 'pointer', fontSize: 13.5, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit', pointerEvents: 'auto' }}>
-                  Черновик
+                <button onClick={() => handleSave()} style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 999, ...dockGlass, ...draftActiveStyle, cursor: 'pointer', fontSize: 13.5, fontFamily: 'inherit', pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--color-yellow-text)', flexShrink: 0 }} /> Черновик
                 </button>
               ) : (
                 <button onClick={handleUnpublish} style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 999, ...dockGlass, cursor: 'pointer', fontSize: 13.5, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit', pointerEvents: 'auto' }}>
@@ -2965,8 +3021,8 @@ export default function TeacherCourseEditorPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {course.status !== 'published' ? (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={() => handleSave()}
-              style={{ padding: '9px 18px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
-              Черновик
+              style={{ padding: '9px 18px', borderRadius: 999, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', ...draftActiveStyle, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 7 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--color-yellow-text)', flexShrink: 0 }} /> Черновик
             </motion.button>
           ) : (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={handleUnpublish}
@@ -2983,6 +3039,26 @@ export default function TeacherCourseEditorPage() {
             style={{ boxShadow: '0 6px 20px rgba(99,84,207,0.32)' }} />
         </div>
       </motion.div>
+
+      {/* ── Publish-blocked banner ── */}
+      <AnimatePresence>
+        {publishErr && (
+          <motion.div
+            key="publish-err"
+            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              margin: '0 24px 8px', padding: '10px 14px', borderRadius: 12,
+              border: '1px solid var(--color-red-soft)', background: 'var(--color-red-soft)',
+              color: 'var(--color-red-text)', fontSize: 13, fontWeight: 600,
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}
+          >
+            <span style={{ flexShrink: 0 }}>⚠️</span>
+            <span>{publishErr}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── 3-column body ── */}
       <div style={{ display: 'flex', gap: 14, padding: '4px 20px 24px', minHeight: 'calc(100vh - 100px)' }}>

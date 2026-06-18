@@ -1,12 +1,13 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
 import {
-  CheckCircle2, ChevronLeft, CircleAlert, Clock, FileUp, GraduationCap,
-  Lock, Send, Sparkles, Trophy,
+  CheckCircle2, ChevronLeft, CircleAlert, Clock, GraduationCap,
+  Lock, Send, Sparkles, Trophy, Image as ImageIcon, PenLine, X,
 } from 'lucide-react'
 import type { LessonHomework } from '../data/lessonContent'
 import { PURPLE, subjectTheme } from '../lib/theme'
 import { supabase } from '../lib/supabase'
+import WhiteboardCanvas from './teacher/WhiteboardCanvas'
 import { getStudentSession } from '../lib/studentSession'
 import { playUnlock, playPop, vibrate } from '../lib/sound'
 import { useDashboard } from '../store/dashboardStore'
@@ -499,6 +500,8 @@ interface PersistedHomeworkState {
   hardDraft: string
   hardSubmitted: boolean
   hardFiles: string[]
+  hardPhotos: string[]       // attached photos as data URLs
+  hardBoard: string | null   // whiteboard drawing as a PNG data URL
   basicSubmitted: boolean
   selfAssessmentValue: number | null
 }
@@ -518,6 +521,8 @@ function getInitialState(): PersistedHomeworkState {
     hardDraft: '',
     hardSubmitted: false,
     hardFiles: [],
+    hardPhotos: [],
+    hardBoard: null,
     basicSubmitted: false,
     selfAssessmentValue: null,
   }
@@ -555,11 +560,14 @@ export default function HomeworkFlow({
     }
   })
   const [showResultModal, setShowResultModal] = useState<'basic' | 'hard' | null>(null)
+  const photoInputRef = useRef<HTMLInputElement>(null)
+  const [showBoard, setShowBoard] = useState(false)
   const setLessonAssessment = useDashboard(s => s.setLessonAssessment)
   const setHardCompleted = useDashboard(s => s.setHardCompleted)
   // Teacher's verdict on the hard essay, synced from `lesson_progress` on load.
   // Drives the submitted-panel badge so an accept/return actually shows here.
   const hardVerdict = useDashboard(s => s.lessonAssessments[lessonId]?.hardStatus)
+  const hardComment = useDashboard(s => s.lessonAssessments[lessonId]?.hardComment)
   const hardPanel = hardVerdict === 'completed'
     ? {
         iconBg: 'var(--color-green-soft)', iconColor: 'var(--color-green-text)',
@@ -570,17 +578,17 @@ export default function HomeworkFlow({
       }
     : hardVerdict === 'returned'
     ? {
-        iconBg: 'var(--color-peach-soft)', iconColor: '#8A4A00',
+        iconBg: 'var(--color-peach-soft)', iconColor: 'var(--color-peach-text)',
         heading: 'Работа отправлена на доработку',
         sub: 'Преподаватель вернул решение. Посмотри комментарий и отправь снова.',
-        badgeBg: 'var(--color-peach-soft)', badgeColor: '#8A4A00', badge: 'На доработку',
+        badgeBg: 'var(--color-peach-soft)', badgeColor: 'var(--color-peach-text)', badge: 'На доработку',
         statusValue: 'Возвращено', statusDesc: 'Преподаватель вернул работу на доработку.', statusTone: 'warning' as const,
       }
     : {
         iconBg: 'var(--color-green-soft)', iconColor: 'var(--color-green-text)',
         heading: 'Работа отправлена преподавателю',
         sub: 'Статус домашки поменялся на “На проверке”. Когда преподаватель посмотрит решение, здесь появятся комментарий и итоговый балл.',
-        badgeBg: 'var(--color-peach-soft)', badgeColor: '#8A4A00', badge: 'На проверке',
+        badgeBg: 'var(--color-peach-soft)', badgeColor: 'var(--color-peach-text)', badge: 'На проверке',
         statusValue: 'Отправлено', statusDesc: 'Домашка уже ушла преподавателю на ручную проверку.', statusTone: 'success' as const,
       }
 
@@ -619,16 +627,27 @@ export default function HomeworkFlow({
     selectedLevel === 'basic' ? basicLevel.estimatedMinutes : hardLevel.estimatedMinutes
   )
 
-  const addMockFile = () => {
-    const nextIndex = state.hardFiles.length + 1
-    const ext = subject === 'biology' ? 'jpg' : 'pdf'
-    const fileName = subject === 'biology'
-      ? `evidence-${nextIndex}.${ext}`
-      : `solution-${nextIndex}.${ext}`
-    setState(current => ({ ...current, hardFiles: [...current.hardFiles, fileName] }))
+  const addPhotos = (files: FileList | null) => {
+    if (!files) return
+    Array.from(files).forEach(file => {
+      const reader = new FileReader()
+      reader.onload = ev => {
+        const src = ev.target?.result as string
+        if (src) setState(current => ({ ...current, hardPhotos: [...current.hardPhotos, src] }))
+      }
+      reader.readAsDataURL(file)
+    })
   }
 
-  async function submitToSupabase(level: 'basic' | 'hard', score: number, comment: string) {
+  const removePhoto = (idx: number) =>
+    setState(current => ({ ...current, hardPhotos: current.hardPhotos.filter((_, i) => i !== idx) }))
+
+  async function submitToSupabase(
+    level: 'basic' | 'hard',
+    score: number,
+    comment: string,
+    attachments?: { photos: string[]; board: string | null },
+  ) {
     const session = getStudentSession()
     if (!session?.id) return
     // Basic level is auto-graded — mark completed immediately if score meets threshold.
@@ -644,15 +663,19 @@ export default function HomeworkFlow({
       status,
       score,
       comment,
+      attachments: attachments ?? {},
     }, { onConflict: 'student_id,lesson_ref' })
     useStudentData.getState().load()
   }
 
+  // The hard answer can be text, a photo, a whiteboard drawing — or any mix.
+  const hasHardSubmission = !!(state.hardDraft.trim() || state.hardPhotos.length || state.hardBoard)
+
   const submitHard = () => {
-    if (!state.hardDraft.trim()) return
+    if (!hasHardSubmission) return
     setState(current => ({ ...current, hardSubmitted: true }))
     setHardCompleted(lessonId)
-    submitToSupabase('hard', 100, state.hardDraft)
+    submitToSupabase('hard', 100, state.hardDraft, { photos: state.hardPhotos, board: state.hardBoard })
     setTimeout(() => setShowResultModal('hard'), 400)
   }
 
@@ -1302,6 +1325,24 @@ export default function HomeworkFlow({
                     </div>
                   </div>
 
+                  {hardVerdict === 'returned' && hardComment && (
+                    <div
+                      style={{
+                        padding: 18,
+                        borderRadius: 20,
+                        background: 'var(--color-peach-soft)',
+                        border: '1px solid var(--color-border-soft)',
+                      }}
+                    >
+                      <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-peach-text)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>
+                        Комментарий преподавателя
+                      </p>
+                      <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                        {hardComment}
+                      </p>
+                    </div>
+                  )}
+
                   <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
                     <StatusCard
                       title="Черновик сохранён"
@@ -1370,63 +1411,96 @@ export default function HomeworkFlow({
                     }}
                   />
 
+                  {/* Photo thumbnails */}
+                  {state.hardPhotos.length > 0 && (
+                    <div className="flex flex-wrap" style={{ gap: 10 }}>
+                      {state.hardPhotos.map((src, i) => (
+                        <div key={i} style={{ position: 'relative', width: 96, height: 96, borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-soft)' }}>
+                          <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <button
+                            onClick={() => removePhoto(i)}
+                            style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.55)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Whiteboard (доска) — toggled on demand */}
+                  {showBoard && (
+                    <div>
+                      <WhiteboardCanvas
+                        initialData={state.hardBoard ?? undefined}
+                        onSave={data => setState(current => ({ ...current, hardBoard: data }))}
+                      />
+                    </div>
+                  )}
+
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    style={{ display: 'none' }}
+                    onChange={e => { addPhotos(e.target.files); e.target.value = '' }}
+                  />
+
                   <div className="flex flex-wrap items-center justify-between" style={{ gap: 12 }}>
                     <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
                       <motion.button
                         whileHover={{ y: -1 }}
                         whileTap={{ scale: 0.99 }}
-                        onClick={addMockFile}
+                        onClick={() => photoInputRef.current?.click()}
                         className="cursor-pointer"
                         style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          padding: '11px 14px',
-                          borderRadius: 16,
+                          display: 'flex', alignItems: 'center', gap: 8,
+                          padding: '11px 14px', borderRadius: 16,
                           border: '1px solid var(--color-border-medium)',
                           background: 'rgba(var(--glass-rgb), 0.96)',
-                          color: 'var(--color-text)',
-                          fontSize: 13,
-                          fontWeight: 700,
+                          color: 'var(--color-text)', fontSize: 13, fontWeight: 700,
                         }}
                       >
-                        <FileUp size={16} />
-                        Прикрепить файл
+                        <ImageIcon size={16} />
+                        Прикрепить фото
                       </motion.button>
 
-                      {state.hardFiles.map(file => (
-                        <span
-                          key={file}
-                          style={{
-                            padding: '10px 12px',
-                            borderRadius: 999,
-                            background: 'var(--color-bg-3)',
-                            color: 'var(--color-text-2)',
-                            fontSize: 13,
-                            fontWeight: 650,
-                          }}
-                        >
-                          {file}
-                        </span>
-                      ))}
+                      <motion.button
+                        whileHover={{ y: -1 }}
+                        whileTap={{ scale: 0.99 }}
+                        onClick={() => setShowBoard(v => !v)}
+                        className="cursor-pointer"
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 8,
+                          padding: '11px 14px', borderRadius: 16,
+                          border: '1px solid var(--color-border-medium)',
+                          background: showBoard ? palette.soft : 'rgba(var(--glass-rgb), 0.96)',
+                          color: showBoard ? palette.text : 'var(--color-text)',
+                          fontSize: 13, fontWeight: 700,
+                        }}
+                      >
+                        <PenLine size={16} />
+                        {showBoard ? 'Скрыть доску' : (state.hardBoard ? 'Доска ✓' : 'Доска')}
+                      </motion.button>
                     </div>
 
                     <motion.button
                       whileHover={{ y: -1 }}
                       whileTap={{ scale: 0.99 }}
-                      disabled={!state.hardDraft.trim()}
+                      disabled={!hasHardSubmission}
                       onClick={submitHard}
                       className="cursor-pointer"
                       style={{
                         padding: '14px 20px',
                         borderRadius: 18,
                         border: 'none',
-                        background: state.hardDraft.trim() ? palette.accent : 'var(--color-bg-5)',
+                        background: hasHardSubmission ? palette.accent : 'var(--color-bg-5)',
                         color: '#fff',
                         fontSize: 15,
                         fontWeight: 750,
                         minWidth: 220,
-                        boxShadow: state.hardDraft.trim() ? `0 14px 32px ${palette.ring}` : 'none',
+                        boxShadow: hasHardSubmission ? `0 14px 32px ${palette.ring}` : 'none',
                       }}
                     >
                       Отправить на проверку
@@ -1738,7 +1812,7 @@ function StatusCard({
   const map = {
     neutral: { bg: 'var(--color-bg-3)', color: 'var(--color-text-2)' },
     success: { bg: 'var(--color-green-soft)', color: 'var(--color-green-accent)' },
-    warning: { bg: 'var(--color-yellow-soft)', color: 'var(--color-text-2)' },
+    warning: { bg: 'var(--color-yellow-soft)', color: 'var(--color-yellow-text)' },
   } as const
   const toneStyle = map[tone]
   return (

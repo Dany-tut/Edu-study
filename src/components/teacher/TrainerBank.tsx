@@ -8,11 +8,14 @@ import {
 } from 'lucide-react'
 import TeacherSelect from './TeacherSelect'
 import {
-  BIOLOGY_SECTIONS, CHEMISTRY_SECTIONS, BIOLOGY_TOPICS, CHEMISTRY_TOPICS, SOURCES,
-  type Task, type QuestionType, type ScoreMode, type TaskChoice, type TaskAnswerKey, type TaskCriterion,
+  SOURCES, linesForSelection, sectionsForSubject, topicsForSubject,
+  type Task, type Subject, type QuestionType, type ScoreMode, type TaskChoice, type TaskAnswerKey, type TaskCriterion,
 } from '../../data/taskBankData'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useTeacher } from '../../store/teacherStore'
+import { useCurriculum } from '../../store/curriculumStore'
+import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
+import MultiSelectField from '../MultiSelectField'
 
 // ─── Copyable №-badge (glass tooltip) ────────────────────────────────────────
 function CopyableIdBadge({ id }: { id: number }) {
@@ -116,10 +119,10 @@ function CopyableLineBadge({ line, accent, accentBg }: { line: number; accent: s
 
 // ─── Shared filter shape ───────────────────────────────────────────────────────
 export type TrainerFilters = {
-  search: string; subject: string; section: string; topic: string; parts: string[]; line: string; source: string
+  search: string; subject: string; sections: string[]; topics: string[]; parts: string[]; lines: string[]; source: string
 }
 export const emptyTrainerFilters: TrainerFilters = {
-  search: '', subject: '', section: '', topic: '', parts: [], line: '', source: '',
+  search: '', subject: '', sections: [], topics: [], parts: [], lines: [], source: '',
 }
 
 type SortMode = 'newest' | 'oldest' | 'subject' | 'line'
@@ -165,7 +168,7 @@ function editableOf(t: Task) {
 
 // ─── Rich, editable question card ───────────────────────────────────────────────
 export function BankQuestionCard({
-  task, index, selected, onToggleSelected, onForkSelected, onDelete, showSelect = true, compact = false, accent = 'var(--color-peach-text)', accentBg = 'var(--color-peach-soft)',
+  task, index, selected, onToggleSelected, onForkSelected, onDelete, showSelect = true, compact = false, accent = 'var(--color-peach-text)', accentBg = 'var(--color-peach-soft)', isEdited = false,
 }: {
   task: Task
   index: number
@@ -177,6 +180,7 @@ export function BankQuestionCard({
   compact?: boolean
   accent?: string
   accentBg?: string
+  isEdited?: boolean
 }) {
   const replaceTaskInBank = useTaskBank(s => s.replaceTask)
   const addTaskToBank = useTaskBank(s => s.addTask)
@@ -253,12 +257,16 @@ export function BankQuestionCard({
     <motion.div
       onHoverStart={() => setHovered(true)}
       onHoverEnd={() => setHovered(false)}
+      animate={isEdited ? {
+        boxShadow: ['0 0 0 0px rgba(99,84,207,0)', '0 0 0 3px rgba(99,84,207,0.5)', '0 0 0 3px rgba(99,84,207,0.5)', '0 0 0 0px rgba(99,84,207,0)'],
+      } : {}}
+      transition={isEdited ? { duration: 2, ease: 'easeOut', times: [0, 0.1, 0.8, 1] } : {}}
       style={{
         position: 'relative',
         display: 'flex', flexDirection: 'column', gap: compact ? 0 : 12,
         padding: compact ? '10px 14px' : 18, borderRadius: compact ? 16 : 22,
-        background: 'rgba(var(--glass-rgb), 0.97)',
-        border: selected ? `1.5px solid ${accent}` : dirty ? '1.5px solid rgba(99,84,207,0.3)' : '1px solid var(--color-border-glass)',
+        background: isEdited ? 'rgba(238,219,255,0.22)' : 'rgba(var(--glass-rgb), 0.97)',
+        border: isEdited ? '1.5px solid var(--color-purple)' : selected ? `1.5px solid ${accent}` : dirty ? '1.5px solid rgba(99,84,207,0.3)' : '1px solid var(--color-border-glass)',
         boxShadow: compact ? '0 1px 6px rgba(0,0,0,0.05)' : '0 6px 20px rgba(0,0,0,0.04)', transition: 'border-color 0.2s',
       }}>
       {compact ? (
@@ -441,9 +449,9 @@ function iconBtn(bg: string, color: string): React.CSSProperties {
 
 // ─── Compact grid tile (4 per row) ──────────────────────────────────────────────
 function BankGridCard({
-  task, selected, onToggleSelected, onForkSelected, onDelete, showSelect, accent, accentBg, isNew, editMode,
+  task, selected, onToggleSelected, onForkSelected, onDelete, showSelect, accent, accentBg, isNew, isEdited, editMode,
 }: {
-  task: Task; selected: boolean; isNew?: boolean
+  task: Task; selected: boolean; isNew?: boolean; isEdited?: boolean
   onToggleSelected: () => void; onForkSelected: (newId: number) => void
   onDelete?: () => void; showSelect: boolean; accent: string; accentBg: string; editMode?: boolean
 }) {
@@ -456,20 +464,32 @@ function BankGridCard({
     <motion.div
       whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}
       onClick={() => editMode ? onToggleSelected() : openEdit(task.id)}
-      animate={isNew ? {
+      animate={isEdited ? {
+        boxShadow: ['0 0 0 0px rgba(99,84,207,0)', '0 0 0 3px rgba(99,84,207,0.5)', '0 0 0 3px rgba(99,84,207,0.5)', '0 0 0 0px rgba(99,84,207,0)'],
+        borderColor: ['var(--color-purple)', 'var(--color-purple)', 'var(--color-purple)', 'var(--color-border-glass)'],
+      } : isNew ? {
         boxShadow: ['0 0 0 0px rgba(99,84,207,0)', '0 0 0 3px rgba(99,84,207,0.35)', '0 0 0 0px rgba(99,84,207,0)'],
         borderColor: [undefined, 'var(--color-purple)', undefined],
       } : {}}
-      transition={{ duration: 1.2, ease: 'easeOut' }}
+      transition={isEdited ? { duration: 2, ease: 'easeOut', times: [0, 0.1, 0.8, 1] } : { duration: 1.2, ease: 'easeOut' }}
       style={{
         position: 'relative',
         display: 'flex', flexDirection: 'column', gap: 10, padding: '18px 18px 12px', borderRadius: 20,
-        background: isNew ? 'rgba(238,219,255,0.18)' : 'rgba(var(--glass-rgb), 0.97)',
+        background: isEdited ? 'rgba(238,219,255,0.28)' : isNew ? 'rgba(238,219,255,0.18)' : 'rgba(var(--glass-rgb), 0.97)',
         border: selected ? `1.5px solid ${accent}` : '1px solid var(--color-border-glass)',
         boxShadow: selected ? `0 0 0 3px ${accent}22, 0 6px 24px rgba(0,0,0,0.08)` : '0 3px 16px rgba(0,0,0,0.06)', height: '100%', boxSizing: 'border-box',
         transition: 'background 0.4s ease', cursor: 'pointer',
       }}
     >
+      {isEdited && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+          style={{ position: 'absolute', top: 10, right: 10, zIndex: 6, padding: '3px 9px', borderRadius: 999,
+            background: 'var(--color-purple)', color: '#fff', fontSize: 10, fontWeight: 800, letterSpacing: 0.2,
+            boxShadow: '0 2px 10px rgba(99,84,207,0.45)', whiteSpace: 'nowrap' }}>
+          Изменено
+        </motion.div>
+      )}
       {editMode && (
         <div onClick={e => { e.stopPropagation(); onToggleSelected() }} style={{
           position: 'absolute', top: 10, left: 10, width: 22, height: 22, borderRadius: 7, zIndex: 5,
@@ -596,9 +616,12 @@ export function TrainerBankBrowser({
   editMode?: boolean
 }) {
   const tasks = useTaskBank(s => s.tasks)
+  const recentlyEditedId = useTaskBank(s => s.recentlyEditedId)
+  const clearRecentlyEdited = useTaskBank(s => s.clearRecentlyEdited)
   const [sortMode, setSortMode] = useState<SortMode>('newest')
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [newlyAddedId, setNewlyAddedId] = useState<number | null>(null)
+  const [editedFlashId, setEditedFlashId] = useState<number | null>(null)
   const prevTaskIds = useRef<Set<number>>(new Set(tasks.map(t => t.id)))
 
   // Detect newly added task and flash it for 2s
@@ -614,13 +637,23 @@ export function TrainerBankBrowser({
     prevTaskIds.current = currentIds
   }, [tasks])
 
+  // When the teacher returns after editing a card ("Заменить"/constructor),
+  // pin it to the very top and flash it for 3s, then clear the marker.
+  useEffect(() => {
+    if (recentlyEditedId == null) return
+    setEditedFlashId(recentlyEditedId)
+    clearRecentlyEdited()
+    const t = setTimeout(() => setEditedFlashId(null), 2000)
+    return () => clearTimeout(t)
+  }, [recentlyEditedId, clearRecentlyEdited])
+
   const filtered = useMemo(() => {
     let list = tasks.filter(t => {
       if (filters.subject && t.subject !== filters.subject) return false
-      if (filters.section && t.section !== filters.section) return false
-      if (filters.topic && t.topic !== filters.topic) return false
+      if (filters.sections.length && !filters.sections.includes(t.section)) return false
+      if (filters.topics.length && !filters.topics.includes(t.topic)) return false
       if (filters.parts.length && !filters.parts.includes(String(t.part))) return false
-      if (filters.line && t.line !== Number(filters.line)) return false
+      if (filters.lines.length && !filters.lines.includes(String(t.line))) return false
       if (filters.source && t.source !== filters.source) return false
       if (filters.search) {
         const q = filters.search.toLowerCase().replace(/^№/, '')
@@ -628,7 +661,7 @@ export function TrainerBankBrowser({
       }
       return true
     })
-    return [...list].sort((a, b) => {
+    const sorted = [...list].sort((a, b) => {
       switch (sortMode) {
         case 'oldest':     return a.id - b.id
         case 'subject':    return a.subject.localeCompare(b.subject) || a.id - b.id
@@ -636,7 +669,13 @@ export function TrainerBankBrowser({
         default:           return b.id - a.id
       }
     })
-  }, [tasks, filters, sortMode])
+    // Lift the just-edited card to the very top so the teacher sees their change.
+    if (editedFlashId != null) {
+      const i = sorted.findIndex(t => t.id === editedFlashId)
+      if (i > 0) sorted.unshift(sorted.splice(i, 1)[0])
+    }
+    return sorted
+  }, [tasks, filters, sortMode, editedFlashId])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -668,7 +707,7 @@ export function TrainerBankBrowser({
               onForkSelected={newId => onForkSelected(t.id, newId)}
               onDelete={onDeleteTask ? () => onDeleteTask(t.id) : undefined}
               showSelect={showSelect} accent={accent} accentBg={accentBg}
-              isNew={t.id === newlyAddedId} editMode={editMode} />
+              isNew={t.id === newlyAddedId} isEdited={t.id === editedFlashId} editMode={editMode} />
           ))}
         </div>
       ) : (
@@ -678,7 +717,8 @@ export function TrainerBankBrowser({
             onToggleSelected={() => onToggleSelected(t.id)}
             onForkSelected={newId => onForkSelected(t.id, newId)}
             onDelete={onDeleteTask ? () => onDeleteTask(t.id) : undefined}
-            showSelect={showSelect} compact={false} accent={accent} accentBg={accentBg} />
+            showSelect={showSelect} compact={false} accent={accent} accentBg={accentBg}
+            isEdited={t.id === editedFlashId} />
         ))
       )}
     </div>
@@ -695,11 +735,29 @@ export function TrainerBankFilterPanel({
   accentBg?: string
 }) {
   const tasks = useTaskBank(s => s.tasks)
-  const sections = filters.subject === 'chemistry' ? CHEMISTRY_SECTIONS : BIOLOGY_SECTIONS
-  const topicsMap = filters.subject === 'chemistry' ? CHEMISTRY_TOPICS : BIOLOGY_TOPICS
-  const topicOptions = filters.section ? (topicsMap[filters.section] ?? []) : Object.values(topicsMap).flat()
-  const allLines = [...new Set(tasks.filter(t => !filters.subject || t.subject === filters.subject).map(t => t.line))].sort((a, b) => a - b).map(String)
-  const hasFilters = !!(filters.section || filters.topic || filters.parts.length || filters.line || filters.source)
+  const merge = useOptionMerger()
+  useCurriculum(s => s.version) // re-render when the taxonomy is edited
+  const subjScopes = filters.subject ? [filters.subject] : ['biology', 'chemistry']
+  const sectionOptions = merge(
+    sectionsForSubject((filters.subject || 'biology') as Subject),
+    subjScopes.map(s => sectionScope(s)),
+  )
+  const topicsMap = topicsForSubject((filters.subject || 'biology') as Subject)
+  const baseTopicOptions = filters.sections.length
+    ? [...new Set(filters.sections.flatMap(s => topicsMap[s] ?? []))]
+    : Object.values(topicsMap).flat()
+  const topicOptions = merge(baseTopicOptions, filters.sections.length ? filters.sections.map(s => topicScope(filters.subject, s)) : subjScopes.map(s => topicScope(s, '')))
+  // Lines: cascade off sections+parts when a subject is chosen; otherwise list
+  // every line present in the bank.
+  const allLines = useMemo(() => {
+    const nums = [...new Set(tasks.filter(t => !filters.subject || t.subject === filters.subject).map(t => t.line))].sort((a, b) => a - b)
+    if (filters.subject && (filters.sections.length || filters.parts.length)) {
+      const set = new Set(linesForSelection(filters.subject as Subject, filters.sections, filters.parts))
+      return nums.filter(n => set.has(n)).map(String)
+    }
+    return nums.map(String)
+  }, [tasks, filters.subject, filters.sections, filters.parts])
+  const hasFilters = !!(filters.sections.length || filters.topics.length || filters.parts.length || filters.lines.length || filters.source)
 
   return (
     <motion.div
@@ -731,14 +789,14 @@ export function TrainerBankFilterPanel({
       {/* Subject pills */}
       <div style={{ display: 'flex', gap: 6 }}>
         {([['', 'Все'], ['biology', 'Биология'], ['chemistry', 'Химия']] as [string, string][]).map(([v, l]) => (
-          <button key={v} onClick={() => onChange({ subject: v, section: '', topic: '', line: '' })}
+          <button key={v} onClick={() => onChange({ subject: v, sections: [], topics: [], lines: [] })}
             style={{ flex: 1, padding: '7px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
               background: filters.subject === v ? accentBg : 'var(--color-bg-3)', color: filters.subject === v ? 'var(--color-purple-text)' : 'var(--color-muted)' }}>{l}</button>
         ))}
       </div>
 
-      <FilterField label="Раздел" value={filters.section} options={sections} onChange={v => onChange({ section: v, topic: '' })} />
-      <FilterField label="Тема" value={filters.topic} options={topicOptions} onChange={v => onChange({ topic: v })} />
+      <MultiSelectField label="Раздел" values={filters.sections} options={sectionOptions} onChange={v => onChange({ sections: v })} accent={accent} accentBg={accentBg} />
+      <MultiSelectField label="Тема" values={filters.topics} options={topicOptions} onChange={v => onChange({ topics: v })} accent={accent} accentBg={accentBg} />
       <div style={{ display: 'flex', gap: 6 }}>
         {(['1', '2'] as string[]).map(p => {
           const active = filters.parts.includes(p)
@@ -752,11 +810,11 @@ export function TrainerBankFilterPanel({
           )
         })}
       </div>
-      <FilterField label="Линия" value={filters.line} options={allLines} onChange={v => onChange({ line: v })} />
-      <FilterField label="Источник" value={filters.source} options={SOURCES} onChange={v => onChange({ source: v })} />
+      <MultiSelectField label="Линия" values={filters.lines} options={allLines} onChange={v => onChange({ lines: v })} accent={accent} accentBg={accentBg} />
+      <FilterField label="Источник" value={filters.source} options={merge(SOURCES, SOURCE_SCOPE)} onChange={v => onChange({ source: v })} />
 
       {hasFilters && (
-        <button onClick={() => onChange({ section: '', topic: '', parts: [], line: '', source: '' })}
+        <button onClick={() => onChange({ sections: [], topics: [], parts: [], lines: [], source: '' })}
           style={{ padding: '8px 0', borderRadius: 10, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           <Trash2 size={12} /> Сбросить фильтры
         </button>

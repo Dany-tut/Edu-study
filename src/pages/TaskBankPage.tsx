@@ -8,10 +8,14 @@ import {
   LayoutGrid, List, ArrowUpDown, ArrowUp, X, TrendingUp,
 } from 'lucide-react'
 import {
-  Task, Subject, CHEMISTRY_LINES, BIOLOGY_LINES,
+  Task, Subject,
   BIOLOGY_SECTION_LINE_MAP, BIOLOGY_DIAGNOSTIC_SAMPLE_LINES, BIOLOGY_ROUTE,
+  linesForSelection, lineNamesForSubject,
 } from '../data/taskBankData'
+import MultiSelectField from '../components/MultiSelectField'
+import { useCurriculum } from '../store/curriculumStore'
 import { useTaskBank } from '../store/taskBankStore'
+import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../store/taskMetaStore'
 import { useDashboard } from '../store/dashboardStore'
 import { useTrainerProgress } from '../store/trainerProgressStore'
 import { subjectTheme, PURPLE } from '../lib/theme'
@@ -1109,10 +1113,10 @@ export default function TaskBankPage() {
   })()
   const [subject, setSubject]   = useState<Subject>(defaultSubject)
   const setSubjectPersist = (s: Subject) => { localStorage.setItem('taskbank_subject', s); setSubject(s) }
-  const [section, setSection]   = useState('')
-  const [topic, setTopic]       = useState('')
-  const [part, setPart]         = useState('')
-  const [line, setLine]         = useState('')
+  const [sections, setSections] = useState<string[]>([])
+  const [topics, setTopics]     = useState<string[]>([])
+  const [parts, setParts]       = useState<string[]>([])
+  const [lines, setLines]       = useState<string[]>([])
   const [source, setSource]     = useState('')
   const [search, setSearch]     = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
@@ -1164,15 +1168,27 @@ export default function TaskBankPage() {
   }
 
   const palette      = subjectTheme(subject, dark)
-  const lineNames    = subject === 'chemistry' ? CHEMISTRY_LINES : BIOLOGY_LINES
+  const curriculumVersion = useCurriculum(s => s.version) // re-render when the teacher edits the taxonomy
+  const lineNames    = useMemo(() => lineNamesForSubject(subject), [subject, curriculumVersion])
+  const merge        = useOptionMerger()
   const subjectTasks = useMemo(() => tasks.filter(t => t.subject === subject), [tasks, subject])
-  const sections     = useMemo(() => [...new Set(subjectTasks.map(t => t.section).filter(Boolean))].sort(), [subjectTasks])
-  const topicOptions = useMemo(() => {
-    const src = section ? subjectTasks.filter(t => t.section === section) : subjectTasks
+  const baseSections = useMemo(() => [...new Set(subjectTasks.map(t => t.section).filter(Boolean))].sort(), [subjectTasks])
+  const sectionOptions = merge(baseSections, sectionScope(subject))
+  const baseTopics   = useMemo(() => {
+    const src = sections.length ? subjectTasks.filter(t => sections.includes(t.section)) : subjectTasks
     return [...new Set(src.map(t => t.topic).filter(Boolean))].sort()
-  }, [subjectTasks, section])
-  const allLines     = useMemo(() => [...new Set(subjectTasks.map(t => t.line))].sort((a, b) => a - b).map(n => `${n} · ${lineNames[n] ?? `Линия ${n}`}`), [subjectTasks, lineNames])
-  const allSources   = useMemo(() => [...new Set(tasks.map(t => t.source).filter(Boolean))].sort(), [tasks])
+  }, [subjectTasks, sections])
+  const topicOptions = merge(baseTopics, sections.length ? sections.map(s => topicScope(subject, s)) : topicScope(subject, ''))
+  // Lines cascade off the chosen sections + parts (curriculum map), then narrow
+  // to lines that actually have tasks in the bank.
+  const cascadeLineSet = useMemo(() => new Set(linesForSelection(subject, sections, parts)), [subject, sections, parts])
+  const allLines     = useMemo(() => {
+    const nums = [...new Set(subjectTasks.map(t => t.line))].sort((a, b) => a - b)
+    const constrained = (sections.length || parts.length) ? nums.filter(n => cascadeLineSet.has(n)) : nums
+    return constrained.map(n => `${n} · ${lineNames[n] ?? `Линия ${n}`}`)
+  }, [subjectTasks, lineNames, sections, parts, cascadeLineSet])
+  const baseSources  = useMemo(() => [...new Set(tasks.map(t => t.source).filter(Boolean))].sort(), [tasks])
+  const allSources   = merge(baseSources, SOURCE_SCOPE)
 
   function toggleFav(id: number) {
     setFavorites(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
@@ -1187,10 +1203,13 @@ export default function TaskBankPage() {
     let list = search
       ? tasks
       : tasks.filter(t => t.subject === subject)
-    if (!search && section) list = list.filter(t => t.section === section)
-    if (!search && topic)   list = list.filter(t => t.topic === topic)
-    if (!search && part)    list = list.filter(t => t.part === Number(part))
-    if (!search && line)    list = list.filter(t => t.line === Number(line.split(' · ')[0]))
+    if (!search && sections.length) list = list.filter(t => sections.includes(t.section))
+    if (!search && topics.length)   list = list.filter(t => topics.includes(t.topic))
+    if (!search && parts.length)    list = list.filter(t => parts.includes(String(t.part)))
+    if (!search && lines.length) {
+      const lineNums = new Set(lines.map(l => Number(l.split(' · ')[0])))
+      list = list.filter(t => lineNums.has(t.line))
+    }
     if (!search && source)  list = list.filter(t => t.source === source)
     if (search) {
       const q = search.toLowerCase().replace(/^№/, '')
@@ -1209,7 +1228,7 @@ export default function TaskBankPage() {
         default:           return b.id - a.id  // newest
       }
     })
-  }, [tasks, subject, section, topic, part, line, source, search, statusFilter, showFavOnly, showWrongOnly, wrongSimilarLines, answered, favorites, sortMode])
+  }, [tasks, subject, sections, topics, parts, lines, source, search, statusFilter, showFavOnly, showWrongOnly, wrongSimilarLines, answered, favorites, sortMode])
 
   // Auto-switch subject tab when search results all belong to one subject
   useEffect(() => {
@@ -1217,7 +1236,7 @@ export default function TaskBankPage() {
     const subjects = new Set(filtered.map(t => t.subject))
     if (subjects.size === 1) {
       const only = [...subjects][0] as Subject
-      if (only !== subject) { setSubjectPersist(only); setSection(''); setTopic('') }
+      if (only !== subject) { setSubjectPersist(only); setSections([]); setTopics([]); setLines([]) }
     }
   }, [search, filtered])
 
@@ -1238,7 +1257,9 @@ export default function TaskBankPage() {
     if (openModal) { setShowProgressModal(true); setOpenModal(false) }
   }, [openModal])
 
-  const hasFilters = !!(section || topic || part || line || source)
+  const hasFilters = !!(sections.length || topics.length || parts.length || lines.length || source)
+  const clearFilters = () => { setSections([]); setTopics([]); setParts([]); setLines([]); setSource('') }
+  const resetOnSubject = () => { setSections([]); setTopics([]); setLines([]) }
 
   const dockGlass = {
     border: '1px solid var(--color-border-glass)',
@@ -1253,7 +1274,7 @@ export default function TaskBankPage() {
   // circles at the bottom that open bottom-sheets (§1.2). Desktop sidebar/dock
   // never renders here.
   if (!isDesktop) {
-    const activeFilters = [section, topic, part, line, source].filter(Boolean).length
+    const activeFilters = sections.length + topics.length + parts.length + lines.length + (source ? 1 : 0)
     const dockCircle = (key: string, icon: ReactNode, onClick: () => void, opts: { label: string; badge?: number; active?: boolean } = { label: '' }) => (
       <motion.button
         key={key}
@@ -1279,7 +1300,7 @@ export default function TaskBankPage() {
               tasks={subjectTasks} answered={answered} favorites={favorites} palette={palette} lineNames={lineNames}
               onClose={() => setShowProgressModal(false)}
               onRetryMistakes={() => { setShowWrongOnly(true); setWrongSimilarLines(new Set()); setShowProgressModal(false) }}
-              onSimilarTasks={lines => { setWrongSimilarLines(new Set(lines)); setShowWrongOnly(false); setSection(''); setLine(''); setShowProgressModal(false) }}
+              onSimilarTasks={lines => { setWrongSimilarLines(new Set(lines)); setShowWrongOnly(false); setSections([]); setLines([]); setShowProgressModal(false) }}
             />
           )}
         </AnimatePresence>
@@ -1290,8 +1311,8 @@ export default function TaskBankPage() {
           topZone={
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, borderRadius: 20, background: 'var(--color-surface)', backdropFilter: 'blur(18px) saturate(180%)', WebkitBackdropFilter: 'blur(18px) saturate(180%)', border: '1px solid var(--color-border-glass)', boxShadow: 'var(--shadow-md)', padding: '8px 10px 8px 12px' }}>
               <div style={{ display: 'flex', gap: 6 }}>
-                <MobilePill size="sm" active={subject === 'biology'} onClick={() => { setSubjectPersist('biology'); setSection(''); setTopic('') }}>Биология</MobilePill>
-                <MobilePill size="sm" active={subject === 'chemistry'} onClick={() => { setSubjectPersist('chemistry'); setSection(''); setTopic('') }}>Химия</MobilePill>
+                <MobilePill size="sm" active={subject === 'biology'} onClick={() => { setSubjectPersist('biology'); resetOnSubject() }}>Биология</MobilePill>
+                <MobilePill size="sm" active={subject === 'chemistry'} onClick={() => { setSubjectPersist('chemistry'); resetOnSubject() }}>Химия</MobilePill>
               </div>
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)', paddingRight: 6 }}>{filtered.length}</span>
             </div>
@@ -1338,25 +1359,27 @@ export default function TaskBankPage() {
         {/* Filters sheet */}
         <MobileSheet open={sheet === 'filters'} onClose={() => setSheet(null)} title="Фильтры">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <FilterField label="Раздел" options={sections} value={section} onChange={v => { setSection(v); setTopic('') }} accent={palette.accent} />
-            <FilterField label="Тема" options={topicOptions} value={topic} onChange={setTopic} accent={palette.accent} />
+            <MultiSelectField label="Раздел" options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={palette.soft} />
+            <MultiSelectField label="Тема" options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={palette.soft} />
             <div style={{ display: 'flex', gap: 8 }}>
-              {['1', '2'].map(p => (
-                <button key={p} onClick={() => setPart(part === p ? '' : p)} style={{
+              {['1', '2'].map(p => {
+                const active = parts.includes(p)
+                return (
+                <button key={p} onClick={() => setParts(active ? parts.filter(x => x !== p) : [...parts, p])} style={{
                   flex: 1, padding: '11px 12px', borderRadius: 13, fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                  background: part === p ? `${palette.accent}22` : 'var(--color-bg-input)',
-                  border: `1px solid ${part === p ? palette.accent : 'var(--color-border-soft)'}`,
-                  color: part === p ? palette.accent : 'var(--color-muted)',
+                  background: active ? `${palette.accent}22` : 'var(--color-bg-input)',
+                  border: `1px solid ${active ? palette.accent : 'var(--color-border-soft)'}`,
+                  color: active ? palette.accent : 'var(--color-muted)',
                 }}>
                   Часть {p}
                 </button>
-              ))}
+              )})}
             </div>
-            <FilterField label="Линия" options={allLines} value={line} onChange={setLine} accent={palette.accent} />
+            <MultiSelectField label="Линия" options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={palette.soft} />
             <FilterField label="Источник" options={allSources} value={source} onChange={setSource} accent={palette.accent} />
             <StatusTabs value={statusFilter} onChange={setStatusFilter} />
             {hasFilters && (
-              <button onClick={() => { setSection(''); setTopic(''); setPart(''); setLine(''); setSource('') }}
+              <button onClick={clearFilters}
                 style={{ marginTop: 2, padding: '11px', borderRadius: 12, background: 'rgba(176,48,64,0.10)', border: '1px solid rgba(176,48,64,0.18)', fontSize: 13, color: 'rgba(176,48,64,0.85)', cursor: 'pointer', fontWeight: 600 }}>
                 Сбросить фильтры
               </button>
@@ -1396,7 +1419,7 @@ export default function TaskBankPage() {
             lineNames={lineNames}
             onClose={() => setShowProgressModal(false)}
             onRetryMistakes={() => { setShowWrongOnly(true); setWrongSimilarLines(new Set()); setShowProgressModal(false) }}
-            onSimilarTasks={lines => { setWrongSimilarLines(new Set(lines)); setShowWrongOnly(false); setSection(''); setLine(''); setShowProgressModal(false) }}
+            onSimilarTasks={lines => { setWrongSimilarLines(new Set(lines)); setShowWrongOnly(false); setSections([]); setLines([]); setShowProgressModal(false) }}
           />
         )}
       </AnimatePresence>
@@ -1554,7 +1577,7 @@ export default function TaskBankPage() {
 
           {/* Subject gradient card — clicking it toggles between biology and chemistry */}
           <div
-            onClick={() => { setSubjectPersist(subject === 'biology' ? 'chemistry' : 'biology'); setSection(''); setTopic('') }}
+            onClick={() => { setSubjectPersist(subject === 'biology' ? 'chemistry' : 'biology'); resetOnSubject() }}
             style={{ padding: 16, borderRadius: 16, background: `linear-gradient(135deg, ${palette.accent}cc, ${palette.text}cc)`, color: '#fff', boxShadow: `0 18px 44px ${palette.ring}`, cursor: 'pointer', userSelect: 'none' }}
           >
             <div className="flex items-center" style={{ gap: 8, marginBottom: 10 }}>
@@ -1563,7 +1586,7 @@ export default function TaskBankPage() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
               {(['biology', 'chemistry'] as Subject[]).map(s => (
-                <button key={s} onClick={e => { e.stopPropagation(); setSubjectPersist(s); setSection(''); setTopic('') }}
+                <button key={s} onClick={e => { e.stopPropagation(); setSubjectPersist(s); resetOnSubject() }}
                   style={{
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     height: 28, padding: '0 12px', borderRadius: 999, border: '1.5px solid',
@@ -1588,37 +1611,39 @@ export default function TaskBankPage() {
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Фильтры</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <FilterField label="Раздел"   options={sections}     value={section} onChange={v => { setSection(v); setTopic('') }} accent={palette.accent} />
+              <MultiSelectField label="Раздел" options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={palette.soft} />
               <AnimatePresence>
-                {section && subject === 'biology' && (
+                {sections.length > 0 && subject === 'biology' && (
                   <SuggestBox
-                    section={section}
+                    section={sections[sections.length - 1]}
                     lineNames={lineNames}
-                    onPickLine={v => { setLine(v) }}
+                    onPickLine={v => { setLines(prev => prev.includes(v) ? prev : [...prev, v]) }}
                     accent={palette.accent}
                   />
                 )}
               </AnimatePresence>
-              <FilterField label="Тема"     options={topicOptions} value={topic}   onChange={setTopic} accent={palette.accent} />
+              <MultiSelectField label="Тема" options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={palette.soft} />
               <div style={{ display: 'flex', gap: 6 }}>
-                {['1', '2'].map(p => (
-                  <button key={p} onClick={() => setPart(part === p ? '' : p)} style={{
+                {['1', '2'].map(p => {
+                  const active = parts.includes(p)
+                  return (
+                  <button key={p} onClick={() => setParts(active ? parts.filter(x => x !== p) : [...parts, p])} style={{
                     flex: 1, padding: '9px 12px', borderRadius: 13, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                    background: part === p ? `${palette.accent}22` : 'var(--color-bg-input)',
-                    border: `1px solid ${part === p ? palette.accent : 'var(--color-border-soft)'}`,
-                    boxShadow: part === p ? `0 0 0 3px ${palette.accent}22` : 'none',
-                    color: part === p ? palette.accent : 'var(--color-muted)',
+                    background: active ? `${palette.accent}22` : 'var(--color-bg-input)',
+                    border: `1px solid ${active ? palette.accent : 'var(--color-border-soft)'}`,
+                    boxShadow: active ? `0 0 0 3px ${palette.accent}22` : 'none',
+                    color: active ? palette.accent : 'var(--color-muted)',
                     transition: 'all 0.15s ease',
                   }}>
                     Часть {p}
                   </button>
-                ))}
+                )})}
               </div>
-              <FilterField label="Линия"    options={allLines}     value={line}    onChange={setLine} accent={palette.accent} />
+              <MultiSelectField label="Линия" options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={palette.soft} />
               <FilterField label="Источник" options={allSources}  value={source}  onChange={setSource} accent={palette.accent} />
             </div>
             {hasFilters && (
-              <button onClick={() => { setSection(''); setTopic(''); setPart(''); setLine(''); setSource('') }}
+              <button onClick={clearFilters}
                 style={{ padding: '8px 0', borderRadius: 12, background: 'rgba(176,48,64,0.10)', border: '1px solid rgba(176,48,64,0.18)', fontSize: 12, color: 'rgba(176,48,64,0.75)', cursor: 'pointer', fontWeight: 600 }}>
                 Сбросить фильтры
               </button>

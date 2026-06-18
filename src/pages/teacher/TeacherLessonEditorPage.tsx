@@ -1149,6 +1149,7 @@ export default function TeacherLessonEditorPage() {
   const [hardHw, setHardHw] = useState<HomeworkTemplate | null>(null)
   const [description, setDescription] = useState('')
   const [published, setPublished] = useState(false)
+  const [publishErr, setPublishErr] = useState<string | null>(null)
 
   // Scroll-driven header dock — same logic as the student lesson/homework pages:
   // a single boolean threshold (scrollTop > 64) flips the rest-state header row
@@ -1161,6 +1162,17 @@ export default function TeacherLessonEditorPage() {
   function updateMeta(p: Partial<Meta>) { setMeta(m => ({ ...m, ...p })) }
 
   async function handlePublish() {
+    // Gate publish: needs an audience (кому/для кого) and a date + time.
+    // Otherwise the teacher can still save it as a draft.
+    if (meta.recipients.length === 0) {
+      setPublishErr('Выберите, кому назначить урок (группа или ученик) — иначе можно только сохранить черновик.')
+      return
+    }
+    if (!meta.date || !meta.startTime) {
+      setPublishErr('Укажите дату и время урока — иначе можно только сохранить черновик.')
+      return
+    }
+    setPublishErr(null)
     const parts = meta.date.split('.')
     const isoDate = parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : meta.date
     const groupRecipients = meta.recipients.filter(r => r.kind === 'group')
@@ -1209,6 +1221,14 @@ export default function TeacherLessonEditorPage() {
     </>
   )
   const draftLabel = 'Черновик'
+  // Highlighted "Черновик" look — the lesson is a draft until published.
+  const draftActiveStyle = {
+    border: '1.5px solid var(--color-yellow-text)',
+    background: 'var(--color-yellow-soft)',
+    color: 'var(--color-yellow-text)',
+    fontWeight: 700,
+  } as const
+  const draftDot = <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--color-yellow-text)', flexShrink: 0 }} />
 
   return (
     // Single scroll container. The teacher shell wrapper sits 100px down (topbar
@@ -1255,12 +1275,12 @@ export default function TeacherLessonEditorPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
             <button
               style={{
-                padding: '9px 18px', borderRadius: 999, border: '1px solid var(--color-border-medium)',
-                background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', cursor: 'pointer',
-                fontSize: 13.5, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit',
+                padding: '9px 18px', borderRadius: 999, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', cursor: 'pointer',
+                fontSize: 13.5, fontFamily: 'inherit', ...(published ? { border: '1px solid var(--color-border-medium)', background: 'rgba(var(--glass-rgb), 0.96)', color: 'var(--color-muted)', fontWeight: 600 } : draftActiveStyle),
+                display: 'flex', alignItems: 'center', gap: 7,
               }}
             >
-              {draftLabel}
+              {!published && draftDot} {draftLabel}
             </button>
             <TeacherSaveButton
               label="Опубликовать урок" savedLabel="Опубликовано!"
@@ -1314,11 +1334,12 @@ export default function TeacherLessonEditorPage() {
               <button
                 style={{
                   flexShrink: 0, padding: '9px 16px', borderRadius: 999, ...dockGlass,
-                  cursor: 'pointer', fontSize: 13.5, fontWeight: 600, color: 'var(--color-muted)',
-                  fontFamily: 'inherit', pointerEvents: 'auto',
+                  ...(published ? { color: 'var(--color-muted)', fontWeight: 600 } : draftActiveStyle),
+                  cursor: 'pointer', fontSize: 13.5,
+                  fontFamily: 'inherit', pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 7,
                 }}
               >
-                {draftLabel}
+                {!published && draftDot} {draftLabel}
               </button>
               <TeacherSaveButton
                 label="Опубликовать урок" savedLabel="Опубликовано!"
@@ -1330,6 +1351,26 @@ export default function TeacherLessonEditorPage() {
           )}
         </AnimatePresence>
         </div>
+
+        {/* ── Publish-blocked banner ── */}
+        <AnimatePresence>
+          {publishErr && (
+            <motion.div
+              key="publish-err"
+              initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              style={{
+                margin: '0 0 14px', padding: '10px 14px', borderRadius: 12,
+                border: '1px solid var(--color-red-soft)', background: 'var(--color-red-soft)',
+                color: 'var(--color-red-text)', fontSize: 13, fontWeight: 600,
+                display: 'flex', alignItems: 'center', gap: 8,
+              }}
+            >
+              <span style={{ flexShrink: 0 }}>⚠️</span>
+              <span>{publishErr}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── Body ── */}
         <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>

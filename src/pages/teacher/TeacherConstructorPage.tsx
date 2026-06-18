@@ -30,8 +30,10 @@ import type { LessonContentData, LessonParagraph, HomeworkQuizQuestion, Homework
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { TrainerBankBrowser, TrainerBankFilterPanel, emptyTrainerFilters, type TrainerFilters } from '../../components/teacher/TrainerBank'
+import CurriculumManager from '../../components/teacher/CurriculumManager'
 import { useCourseLessons } from '../../lib/useCourseLessons'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
+import { useTaskMeta, mergeOptions, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
 import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
 import {
   type AnswerType, type Task as BankTask, type TaskChoice, type Subject,
@@ -60,7 +62,7 @@ const ANSWER_TYPES: { type: AnswerType; label: string; hint: string; Icon: React
 ]
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Tab = 'course' | 'trainer' | 'widget' | 'testing'
+type Tab = 'course' | 'trainer' | 'widget' | 'testing' | 'bank'
 export type CourseStatus = 'published' | 'draft'
 export type Difficulty = 'easy' | 'medium' | 'hard'
 export type WidgetType = 'quiz' | 'facts' | 'reactions' | 'pomodoro' | 'memes' | 'qod'
@@ -94,6 +96,9 @@ export interface Course {
   /** short_id of the matching Supabase course, when this course is published to
    *  the DB. Enrollment (writing lesson_progress) targets this course's lessons. */
   dbCourseId?: string
+  /** Access assignment saved on the course (group_ids / student_ids in the DB).
+   *  Distinct from enrollment (lesson_progress) — these are "кому дать доступ". */
+  groupIds?: string[]; studentIds?: string[]
 }
 
 interface BankQuestion {
@@ -274,6 +279,7 @@ function dbCourseToLocal(c: any): Course {
     description: c.description ?? '', color: c.color ?? 'var(--color-purple)', bg: c.bg ?? 'var(--color-purple-soft)',
     status: (c.status as CourseStatus) ?? 'draft', lastEdited: fmtDate(c.updated_at ?? c.created_at),
     dbCourseId: c.short_id, lessons,
+    groupIds: c.group_ids ?? [], studentIds: c.student_ids ?? [],
   }
 }
 function dbTrainerToLocal(t: any): Trainer {
@@ -1050,17 +1056,28 @@ const COURSE_BG       = 'var(--color-purple-soft)'
 const TRAINER_COLOR   = 'var(--color-purple)'
 const TRAINER_BG      = 'var(--color-purple-soft)'
 
-// Footer chip: enrolled-students icon + count with a hover popup listing names.
-function StudentsBadge({ students }: { students: { id: string; name: string }[] }) {
+// Footer chip: one unified access badge. Count = people with access ("кому дан
+// доступ", group_ids + student_ids). A green check overlay means lessons are
+// already opened for at least one of them (enrolled — lesson_progress exists).
+function StudentsBadge({ access, enrolled }: { access: { id: string; name: string }[]; enrolled: { id: string; name: string }[] }) {
   const [open, setOpen] = useState(false)
-  const count = students.length
+  const count = access.length
+  const enrolledIds = new Set(enrolled.map(s => s.id))
+  const opened = enrolledIds.size > 0
   return (
     <span
       onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}
       onClick={e => e.stopPropagation()}
-      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 4, cursor: count ? 'default' : 'inherit' }}
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 4, cursor: count ? 'default' : 'inherit', color: opened ? 'var(--color-purple-text)' : undefined }}
     >
-      <Users size={13} strokeWidth={1.8} />
+      <span style={{ position: 'relative', display: 'inline-flex' }}>
+        <Users size={13} strokeWidth={1.8} />
+        {opened && (
+          <span style={{ position: 'absolute', right: -4, bottom: -3, width: 8, height: 8, borderRadius: '50%', background: 'var(--color-green-text)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            <CheckCircle size={8} strokeWidth={3} style={{ color: '#fff' }} />
+          </span>
+        )}
+      </span>
       <span>{count}</span>
       <AnimatePresence>
         {open && count > 0 && (
@@ -1069,19 +1086,27 @@ function StudentsBadge({ students }: { students: { id: string; name: string }[] 
             transition={{ duration: 0.14 }}
             style={{
               position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
-              zIndex: 20, minWidth: 150, maxWidth: 220, maxHeight: 220, overflowY: 'auto',
+              zIndex: 20, minWidth: 170, maxWidth: 240, maxHeight: 240, overflowY: 'auto',
               background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
               border: '1px solid var(--color-border-glass)', borderRadius: 12, padding: '8px 10px',
               boxShadow: '0 8px 28px rgba(0,0,0,0.16)', cursor: 'default',
             }}
           >
             <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 6 }}>
-              Зачислены · {count}
+              Доступ · {count}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {students.map(s => (
-                <div key={s.id} style={{ fontSize: 12, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</div>
+              {access.map(s => (
+                <div key={s.id} style={{ fontSize: 12, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {enrolledIds.has(s.id)
+                    ? <CheckCircle size={11} strokeWidth={2.5} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
+                    : <Circle size={11} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />}
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</span>
+                </div>
               ))}
+            </div>
+            <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <CheckCircle size={9} strokeWidth={2.5} style={{ color: 'var(--color-green-text)' }} /> уроки открыты
             </div>
           </motion.div>
         )}
@@ -1090,7 +1115,7 @@ function StudentsBadge({ students }: { students: { id: string; name: string }[] 
   )
 }
 
-function CourseCard({ course, isSelected, onClick, actions, students }: { course: Course; isSelected: boolean; onClick: () => void; actions?: CardActions; students?: { id: string; name: string }[] }) {
+function CourseCard({ course, isSelected, onClick, actions, students, access }: { course: Course; isSelected: boolean; onClick: () => void; actions?: CardActions; students?: { id: string; name: string }[]; access?: { id: string; name: string }[] }) {
   return (
     <ContentCard
       accentColor={COURSE_COLOR} accentBg={COURSE_BG} actions={actions}
@@ -1102,10 +1127,10 @@ function CourseCard({ course, isSelected, onClick, actions, students }: { course
       footerLeft={
         <>
           <GraduationCap size={13} strokeWidth={1.8} /><span>{course.lessons.length} уроков</span>
-          {students && students.length > 0 && (
+          {access && access.length > 0 && (
             <>
               <span style={{ opacity: 0.4 }}>·</span>
-              <StudentsBadge students={students} />
+              <StudentsBadge access={access} enrolled={students ?? []} />
             </>
           )}
         </>
@@ -1800,7 +1825,7 @@ function CreatorView({
   onSaveWidget,
   onCancel,
 }: {
-  initialMode: Exclude<Tab, 'testing'>
+  initialMode: Exclude<Tab, 'testing' | 'bank'>
   editCourse?: Course | null
   editTrainer?: Trainer | null
   editingTask?: BankTask | null
@@ -1812,7 +1837,7 @@ function CreatorView({
   onSaveWidget: (w: Widget) => void
   onCancel: () => void
 }) {
-  const [mode, setMode] = useState<Exclude<Tab, 'testing'>>(initialMode)
+  const [mode, setMode] = useState<Exclude<Tab, 'testing' | 'bank'>>(initialMode)
   const addTask = useTaskBank(s => s.addTask)
   const replaceTask = useTaskBank(s => s.replaceTask)
 
@@ -1920,8 +1945,19 @@ function CreatorView({
 
   const isChoiceType = tkAnswerType === 'single' || tkAnswerType === 'multi'
   const tkTopicMap = tkSubject === 'Химия' ? CHEMISTRY_TOPICS : BIOLOGY_TOPICS
-  const tkSectionList = tkSubject === 'Химия' ? CHEMISTRY_SECTIONS : BIOLOGY_SECTIONS
-  const tkTopicList = tkSection ? (tkTopicMap[tkSection] ?? []) : Object.values(tkTopicMap).flat()
+  // Teacher-editable option scopes (built-ins layered with added/removed edits).
+  const metaAddOption = useTaskMeta(s => s.addOption)
+  const metaRemoveOption = useTaskMeta(s => s.removeOption)
+  const metaAdded = useTaskMeta(s => s.added)
+  const metaRemoved = useTaskMeta(s => s.removed)
+  const metaState = { added: metaAdded, removed: metaRemoved }
+  const tkSubjKey = tkSubject === 'Химия' ? 'chemistry' : 'biology'
+  const sectionScopeKey = sectionScope(tkSubjKey)
+  const topicScopeKey = topicScope(tkSubjKey, tkSection)
+  const tkSectionList = mergeOptions(tkSubject === 'Химия' ? CHEMISTRY_SECTIONS : BIOLOGY_SECTIONS, sectionScopeKey, metaState)
+  const baseTopicList = tkSection ? (tkTopicMap[tkSection] ?? []) : Object.values(tkTopicMap).flat()
+  const tkTopicList = mergeOptions(baseTopicList, topicScopeKey, metaState)
+  const tkSourceList = mergeOptions(SOURCES, SOURCE_SCOPE, metaState)
 
   // ── Course state (pre-filled when editing an existing course) ──
   const [cTitle, setCTitle] = useState(editCourse?.title ?? 'Новый курс')
@@ -2443,11 +2479,15 @@ function CreatorView({
             </div>
             <div>
               <TeacherSelect value={tkSection} onChange={v => { setTkSection(v); setTkTopic('') }} placeholder="Раздел"
-                options={tkSectionList} />
+                options={tkSectionList}
+                onAddOption={l => metaAddOption(sectionScopeKey, l)}
+                onDeleteOption={v => metaRemoveOption(sectionScopeKey, v)} />
             </div>
             <div>
               <TeacherSelect value={tkTopic} onChange={setTkTopic} placeholder="Тема"
-                options={tkTopicList} />
+                options={tkTopicList}
+                onAddOption={l => metaAddOption(topicScopeKey, l)}
+                onDeleteOption={v => metaRemoveOption(topicScopeKey, v)} />
             </div>
             <div>
               <Label>Часть</Label>
@@ -2464,7 +2504,9 @@ function CreatorView({
                 onChange={e => setTkLine(Math.max(1, Number(e.target.value)))} style={inputSt} />
             </div>
             <div>
-              <TeacherSelect value={tkSource} onChange={setTkSource} placeholder="Источник" options={SOURCES} />
+              <TeacherSelect value={tkSource} onChange={setTkSource} placeholder="Источник" options={tkSourceList}
+                onAddOption={l => metaAddOption(SOURCE_SCOPE, l)}
+                onDeleteOption={v => metaRemoveOption(SOURCE_SCOPE, v)} />
             </div>
             <div style={{ background: canSave ? 'var(--color-green-soft)' : 'var(--color-bg-2)', borderRadius: 12, padding: '10px 12px' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: canSave ? 'var(--color-green-text)' : 'var(--color-text-3)', marginBottom: 4 }}>
@@ -4704,15 +4746,51 @@ function DiagnosticEditorFullPage({
                 </motion.div>
               ) : (
                 <motion.div
-                  key="empty"
+                  key="preview"
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', gap: 16 }}
+                  style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
                 >
-                  <div style={{ width: 56, height: 56, borderRadius: 16, background: soft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Icon size={26} style={{ color: accent }} />
+                  {/* Preview header — full read-only run-through before sending / assigning */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '2px 2px 2px' }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 12, background: soft, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Icon size={20} style={{ color: accent }} />
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>Превью теста «{label}»</div>
+                      <div style={{ fontSize: 12.5, color: 'var(--color-muted)' }}>
+                        {questions.length} вопросов · нажми вопрос справа, чтобы редактировать
+                      </div>
+                    </div>
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-3)' }}>Выбери вопрос справа чтобы редактировать</div>
-                  <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{questions.length} вопросов в тесте «{label}»</div>
+
+                  {questions.length === 0 ? (
+                    <GlassCard style={{ padding: '40px 24px', textAlign: 'center', fontSize: 13, color: 'var(--color-muted)' }}>
+                      Пока нет вопросов — добавь первый справа.
+                    </GlassCard>
+                  ) : (
+                    questions.map((q, idx) => (
+                      <GlassCard key={q.id} style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                          <div style={{ width: 28, height: 28, borderRadius: 8, background: `${accent}22`, color: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, flexShrink: 0 }}>{idx + 1}</div>
+                          <div style={{ flex: 1, fontSize: 14.5, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.5, paddingTop: 3 }}>{q.text || 'Без текста'}</div>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 40 }}>
+                          {q.options.map((opt, oi) => {
+                            const isCorrect = q.correct === oi
+                            return (
+                              <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 10, borderRadius: 11, border: `1.5px solid ${isCorrect ? accent + '66' : 'var(--color-border-medium)'}`, background: isCorrect ? soft : 'var(--color-bg-input)', padding: '9px 12px' }}>
+                                <div style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, border: `2px solid ${isCorrect ? accent : 'var(--color-border-medium)'}`, background: isCorrect ? accent : 'transparent', position: 'relative' }}>
+                                  {isCorrect && <Check size={12} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff', strokeWidth: 3 }} />}
+                                </div>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: isCorrect ? accent : 'var(--color-muted)', flexShrink: 0 }}>{String.fromCharCode(65 + oi)}</div>
+                                <div style={{ flex: 1, fontSize: 13.5, color: 'var(--color-text)' }}>{opt || <span style={{ color: 'var(--color-text-4)' }}>—</span>}</div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </GlassCard>
+                    ))
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -5989,7 +6067,7 @@ export default function TeacherConstructorPage() {
       setAssignmentResults([])
     }
   }, [selectedAssignmentId])
-  const [creatorMode, setCreatorMode] = useState<Exclude<Tab, 'testing'> | null>(null)
+  const [creatorMode, setCreatorMode] = useState<Exclude<Tab, 'testing' | 'bank'> | null>(null)
   const [editCourse, setEditCourse] = useState<Course | null>(null)
   const [editTrainer, setEditTrainer] = useState<Trainer | null>(null)
   const [editWidget, setEditWidget] = useState<Widget | null>(null)
@@ -6048,6 +6126,22 @@ export default function TeacherConstructorPage() {
     })()
     return () => { cancelled = true }
   }, [courses, diagAllStudents.length])
+
+  // People with access per course — group_ids expanded to members + direct
+  // student_ids, deduped. This is "кому дан доступ" (видимость курса).
+  const accessByCourse = useMemo(() => {
+    const map: Record<string, { id: string; name: string }[]> = {}
+    for (const c of courses) {
+      const groupIds = c.groupIds ?? []
+      const studentIds = c.studentIds ?? []
+      if (!groupIds.length && !studentIds.length) continue
+      const ids = new Set<string>(studentIds)
+      for (const s of diagAllStudents) if (s.groupId && groupIds.includes(s.groupId)) ids.add(s.id)
+      const people = diagAllStudents.filter(s => ids.has(s.id)).map(s => ({ id: s.id, name: s.name }))
+      if (people.length) map[c.id] = people
+    }
+    return map
+  }, [courses, diagAllStudents])
 
   useEffect(() => { _cachedCourses = courses }, [courses])
   useEffect(() => { _cachedTrainers = trainers }, [trainers])
@@ -6138,6 +6232,7 @@ export default function TeacherConstructorPage() {
         color: ed.color, bg: ed.bg, dbCourseId: ed.dbCourseId,
         lastEdited: new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }),
         lessons: ed.lessons.map(l => ({ id: l.id, title: l.title, trainerId: null, widgetId: null })),
+        groupIds: ed.groupIds ?? [], studentIds: ed.studentIds ?? [],
       }
       setCourses(prev => prev.some(c => c.id === updated.id) ? prev.map(c => c.id === updated.id ? updated : c) : [updated, ...prev])
     } catch {}
@@ -6239,6 +6334,7 @@ export default function TeacherConstructorPage() {
   }
 
   function handlePlus() {
+    if (activeTab === 'bank') return // the bank tab manages taxonomy inline; nothing to create
     if (activeTab === 'testing') { setDiagCreating(true); return }
     if (activeTab === 'course') { goToNewCourseEditor(); return }
     setEditCourse(null); setEditTrainer(null); setEditWidget(null)
@@ -6448,6 +6544,7 @@ export default function TeacherConstructorPage() {
     trainer:  { label: 'Тренажёр',    Icon: Zap,      color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)' },
     widget:   { label: 'Виджет',      Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
     testing:  { label: 'Тестирование', Icon: Target,  color: 'var(--color-teal-pill-text,#0d9488)', bg: 'var(--color-teal-pill-bg,rgba(13,148,136,0.12))' },
+    bank:     { label: 'Банк заданий', Icon: Database, color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)' },
   }
 
   return (
@@ -6528,7 +6625,7 @@ export default function TeacherConstructorPage() {
                   {editMode ? <X size={17} strokeWidth={2.4} /> : <Pencil size={16} strokeWidth={2} />}
                 </motion.button>
 
-                {(['course', 'trainer', 'widget', 'testing'] as const).map(t => {
+                {(['course', 'trainer', 'widget', 'testing', 'bank'] as const).map(t => {
                   const cfg = tabCfg[t]
                   return <TabBtn key={t} tab={t} activeTab={activeTab} label={cfg.label} icon={cfg.Icon} color={cfg.color} bg={cfg.bg}
                     onClick={() => t === activeTab ? handlePlus() : handleTabChange(t)} onPlus={handlePlus} />
@@ -6598,6 +6695,7 @@ export default function TeacherConstructorPage() {
                   />
                 </div>
               )}
+              {activeTab === 'bank' && <CurriculumManager />}
               {activeTab === 'widget' && (
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -6689,11 +6787,12 @@ export default function TeacherConstructorPage() {
                 </div>
               )}
               <div
-                style={{ display: (activeTab === 'trainer' || activeTab === 'widget') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+                style={{ display: (activeTab === 'trainer' || activeTab === 'widget' || activeTab === 'bank') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
                 {activeTab === 'course' && filteredCourses.map(c => (
                   <div key={c.id} style={{ position: 'relative' }}>
                     <CourseCard course={c} isSelected={false}
                       students={enrollmentByCourse[c.id]}
+                      access={accessByCourse[c.id]}
                       onClick={() => editMode ? toggleCheck(c.id) : handleExpandCourse(c)}
                       actions={undefined} />
                     {editMode && (

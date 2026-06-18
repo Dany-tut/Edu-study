@@ -5,6 +5,7 @@ import { useTeacher } from '../../store/teacherStore'
 import { useHomework } from '../../lib/useHomework'
 import { useScheduleToday } from '../../lib/useScheduleToday'
 import { tactile } from '../../lib/feedback'
+import { mskToVietnam } from '../../lib/utils'
 
 const TOPBAR_H = 60
 const COLLAPSED_H = TOPBAR_H
@@ -183,7 +184,7 @@ function SchedulePreview({ expanded }: { expanded: boolean }) {
         </div>
       }
       kicker="Расписание · сегодня"
-      title={next ? `${next.time} · ${next.groupName}` : 'Занятий больше нет'}
+      title={next ? `${next.time} МСК (${mskToVietnam(next.time)} ВН) · ${next.groupName}` : 'Занятий больше нет'}
       expanded={expanded}
       detail={
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -196,9 +197,12 @@ function SchedulePreview({ expanded }: { expanded: boolean }) {
                 opacity: past ? 0.45 : 1,
               }}>
                 <span style={{
-                  fontSize: 11, fontWeight: 700, color: 'var(--color-blue-pill-text)',
-                  width: 36, flexShrink: 0,
-                }}>{s.time}</span>
+                  display: 'flex', flexDirection: 'column', lineHeight: 1.1,
+                  width: 52, flexShrink: 0,
+                }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-blue-pill-text)' }}>{s.time}</span>
+                  <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--color-text-3)' }}>{mskToVietnam(s.time)} ВН</span>
+                </span>
                 <span style={{ fontSize: 12, color: 'var(--color-text)', fontWeight: 500 }}>{s.groupName}</span>
                 {s.topic && (
                   <span style={{
@@ -267,8 +271,9 @@ function PendingGradesPreview({ expanded }: { expanded: boolean }) {
                     background: s.colorSoft,
                   }}
                 >
-                  <span style={{ fontSize: 11, fontWeight: 700, color: s.color, width: 38, flexShrink: 0 }}>
-                    {s.time}
+                  <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1, width: 52, flexShrink: 0 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: s.color }}>{s.time}</span>
+                    <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--color-text-3)' }}>{mskToVietnam(s.time)} ВН</span>
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

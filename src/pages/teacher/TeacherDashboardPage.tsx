@@ -8,6 +8,7 @@ import TeacherGradebookPage from './TeacherGradebookPage'
 import TeacherConstructorPage from './TeacherConstructorPage'
 import TeacherHomeworkCreatePage from './TeacherHomeworkCreatePage'
 import TeacherHomeworkReviewPage from './TeacherHomeworkReviewPage'
+import TeacherHardReviewPage from './TeacherHardReviewPage'
 import TeacherLessonEditorPage from './TeacherLessonEditorPage'
 import TeacherCompactPill from '../../components/teacher/TeacherCompactPill'
 import ReviewNavPill from '../../components/teacher/ReviewNavPill'
@@ -99,13 +100,14 @@ export default function TeacherDashboardPage() {
           // Pages whose scroll pane lifts up under the topbar (marginTop:-100 +
           // paddingTop:100 — the progressive-blur recipe) must not be clipped
           // by this wrapper, so their overflow stays visible.
-          style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['lesson-editor', 'constructor', 'course-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'student', 'groups'].includes(activePage) ? 'visible' : 'hidden' }}
+          style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['lesson-editor', 'constructor', 'course-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups'].includes(activePage) ? 'visible' : 'hidden' }}
         >
           {activePage === 'home'            && <TeacherHome />}
           {activePage === 'groups'          && <TeacherGroupsPage />}
           {activePage === 'homework'        && <TeacherHomeworkPage />}
           {activePage === 'homework-create' && <TeacherHomeworkCreatePage />}
           {activePage === 'homework-review' && <TeacherHomeworkReviewPage />}
+          {activePage === 'hard-review'     && <TeacherHardReviewPage />}
           {activePage === 'lesson-editor'   && <TeacherLessonEditorPage />}
           {activePage === 'gradebook'       && <TeacherGradebookPage />}
           {activePage === 'constructor'     && <TeacherConstructorPage />}

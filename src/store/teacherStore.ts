@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type TeacherPage = 'home' | 'groups' | 'homework' | 'homework-create' | 'homework-review' | 'lesson-editor' | 'gradebook' | 'constructor' | 'student' | 'course-editor'
+export type TeacherPage = 'home' | 'groups' | 'homework' | 'homework-create' | 'homework-review' | 'hard-review' | 'lesson-editor' | 'gradebook' | 'constructor' | 'student' | 'course-editor'
 
 export type StudentTrainerStats = {
   doneCount: number
@@ -57,6 +57,13 @@ type TeacherStore = {
   clearEditTaskIntent: () => void
   reviewingHwId: string | null
   openHomeworkReview: (hwId: string) => void
+  // Homework composer: null id = create new, set id = edit existing.
+  editingHomeworkId: string | null
+  openHomeworkCreate: () => void
+  openHomeworkEdit: (hwId: string) => void
+  // Full-screen hard-submission review (lesson_progress id).
+  reviewingHardId: string | null
+  openHardReview: (hardId: string) => void
   reviewIdx: number
   setReviewIdx: (idx: number) => void
   // hwId -> studentId -> verdict the teacher gave while reviewing
@@ -122,6 +129,11 @@ export const useTeacher = create<TeacherStore>(set => ({
   clearEditTaskIntent: () => set({ editTaskIntent: null }),
   reviewingHwId: null,
   openHomeworkReview: hwId => set({ reviewingHwId: hwId, activePage: 'homework-review', reviewIdx: 0, headerDocked: false }),
+  editingHomeworkId: null,
+  openHomeworkCreate: () => set({ activePage: 'homework-create', editingHomeworkId: null, headerDocked: false }),
+  openHomeworkEdit: hwId => set({ activePage: 'homework-create', editingHomeworkId: hwId, headerDocked: false }),
+  reviewingHardId: null,
+  openHardReview: hardId => set({ reviewingHardId: hardId, activePage: 'hard-review', headerDocked: false }),
   reviewIdx: 0,
   setReviewIdx: idx => set({ reviewIdx: idx }),
   reviews: {},

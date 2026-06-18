@@ -81,6 +81,15 @@ export type HomeworkItem = {
   color: string
   status?: string
   tasks?: HwTask[]
+  // Linked course lesson (lessons.id) — lets the teacher reopen it to re-review.
+  lessonId?: string | null
+  // Bank task ids that make up the optional "Сложное задание" (hard layer).
+  hardTaskIds?: number[]
+  // Total hard tasks (bank + custom) — drives the "Сложное" segment even when
+  // the hard tasks are hand-written and have no bank id.
+  hardTotal?: number
+  // True when this homework belongs to a 1:1 (individual) student group.
+  isIndividual?: boolean
 }
 
 export type Reminder = {

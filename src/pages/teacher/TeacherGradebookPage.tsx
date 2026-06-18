@@ -5,7 +5,8 @@ import type { TabConfig } from '../../components/teacher/GroupStrip'
 import { useTeacher } from '../../store/teacherStore'
 import GroupStrip from '../../components/teacher/GroupStrip'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
-import { useGroups, useStudents, useAttendance } from '../../lib/useGroups'
+import { useGroups, useStudents, useAttendance, useGroupLessons, useLessonRoster } from '../../lib/useGroups'
+import TeacherSelect from '../../components/teacher/TeacherSelect'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -360,34 +361,54 @@ function GradeButton({ value, selected, onClick }: { value: Grade; selected: boo
 
 function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClose: () => void }) {
   const { groups } = useGroups()
-  const { students: groupStudents } = useStudents(groupId)
   const { saveLesson } = useAttendance(groupId)
-  const group = groupId ? groups.find(g => g.id === groupId) ?? null : null
-  const today = new Date()
-  const isoDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-  const dateLabel = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}`
+  const lessons = useGroupLessons(groupId)
 
-  const [present, setPresent] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(groupStudents.map(s => [s.id, true]))
-  )
-  const [grades, setGrades] = useState<Record<string, Grade>>(() =>
-    Object.fromEntries(groupStudents.map(s => [s.id, null]))
-  )
+  // Which lesson are we grading? Defaults to the most recent scheduled lesson.
+  const [lessonId, setLessonId] = useState<string>('')
+  const selectedLesson = lessons.find(l => l.id === lessonId) ?? lessons[0] ?? null
+  useEffect(() => {
+    if (!lessonId && lessons.length) setLessonId(lessons[0].id)
+  }, [lessons, lessonId])
+
+  // Roster + accent derive from the chosen lesson, not the page filter — so
+  // grading works even from the "Все группы" view.
+  const groupStudents = useLessonRoster(selectedLesson)
+  const lessonGroup = selectedLesson?.groupId ? groups.find(g => g.id === selectedLesson.groupId) ?? null : null
+
+  const today = new Date()
+  const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  const isoDate = selectedLesson?.date ?? todayIso
+  const dateLabel = (() => {
+    const [, m, d] = isoDate.split('-')
+    return `${d}.${m}`
+  })()
+  const lessonTitle = selectedLesson?.title ?? ''
+
+  const [present, setPresent] = useState<Record<string, boolean>>({})
+  const [grades, setGrades] = useState<Record<string, Grade>>({})
   const [saved, setSaved] = useState(false)
 
-  const accent = group?.color ?? 'var(--color-accent)'
-  const headerName = group?.name ?? 'Все группы'
+  const accent = lessonGroup?.color ?? 'var(--color-accent)'
+  const headerName = selectedLesson?.scopeName || lessonGroup?.name || 'Все группы'
+
+  const isPresent = (id: string) => present[id] ?? true
 
   async function handleSave() {
-    if (!groupId) return
-    const entries = groupStudents.map(s => ({ studentId: s.id, present: !!present[s.id] }))
-    await saveLesson(groupId, isoDate, entries)
+    if (!selectedLesson || groupStudents.length === 0) return
+    // One click writes both fields: present → attendance, grade → grade.
+    const entries = groupStudents.map(s => ({
+      studentId: s.id,
+      present: isPresent(s.id),
+      grade: grades[s.id] ?? null,
+    }))
+    await saveLesson(selectedLesson.groupId, isoDate, entries, lessonTitle)
     setSaved(true)
     setTimeout(onClose, 900)
   }
 
-  const presentCount = Object.values(present).filter(Boolean).length
-  const gradedCount = Object.values(grades).filter(v => v !== null).length
+  const presentCount = groupStudents.filter(s => isPresent(s.id)).length
+  const gradedCount = groupStudents.filter(s => grades[s.id] != null).length
 
   return (
     <div
@@ -445,6 +466,30 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
           </button>
         </div>
 
+        {/* Lesson picker — grades & attendance are recorded against this lesson */}
+        <div style={{ padding: '12px 24px', borderBottom: '1px solid var(--color-border-soft)' }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3, display: 'block', marginBottom: 6 }}>
+            УРОК
+          </span>
+          {lessons.length === 0 ? (
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>
+              Нет уроков в расписании — оценки запишутся на сегодня ({dateLabel})
+            </div>
+          ) : (
+            <TeacherSelect
+              value={lessonId}
+              onChange={setLessonId}
+              placeholder="Выберите урок"
+              options={lessons.map(l => {
+                const [, m, d] = l.date.split('-')
+                const titlePart = l.title && l.title !== String(l.lessonNumber) ? ` — ${l.title}` : ''
+                const scopePart = l.scopeName ? ` · ${l.scopeName}` : ''
+                return { value: l.id, label: `${d}.${m} · Урок ${l.lessonNumber}${titlePart}${scopePart}` }
+              })}
+            />
+          )}
+        </div>
+
         {/* Column headers */}
         <div style={{
           padding: '8px 24px',
@@ -461,7 +506,7 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
         <div style={{ overflowY: 'auto', scrollbarGutter: 'stable', flex: 1 }}>
           {groupStudents.map((student, si) => {
             const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
-            const isPresent = present[student.id]
+            const studentPresent = isPresent(student.id)
 
             return (
               <motion.div
@@ -474,7 +519,7 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
                   alignItems: 'center',
                   padding: '10px 24px',
                   borderBottom: '1px solid var(--color-border-soft)',
-                  background: isPresent ? 'transparent' : 'rgba(192,48,58,0.025)',
+                  background: studentPresent ? 'transparent' : 'rgba(192,48,58,0.025)',
                   transition: 'background 0.2s',
                 }}
               >
@@ -482,7 +527,7 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                   <div style={{
                     width: 28, height: 28, borderRadius: 9, flexShrink: 0,
-                    background: isPresent ? 'var(--color-purple)' : 'var(--color-bg-5)',
+                    background: studentPresent ? 'var(--color-purple)' : 'var(--color-bg-5)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 10, fontWeight: 700, color: '#fff',
                     transition: 'background 0.2s',
@@ -491,7 +536,7 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
                   </div>
                   <span style={{
                     fontSize: 13, fontWeight: 600,
-                    color: isPresent ? 'var(--color-text)' : '#A0A0A8',
+                    color: studentPresent ? 'var(--color-text)' : '#A0A0A8',
                     transition: 'color 0.2s',
                   }}>
                     {student.name}
@@ -502,17 +547,19 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
                   <button
                     onClick={() => {
-                      setPresent(p => ({ ...p, [student.id]: !p[student.id] }))
-                      if (!present[student.id] === false) setGrades(g => ({ ...g, [student.id]: null }))
+                      const next = !studentPresent
+                      setPresent(p => ({ ...p, [student.id]: next }))
+                      // Clearing presence drops any grade — can't grade an absentee.
+                      if (!next) setGrades(g => ({ ...g, [student.id]: null }))
                     }}
                     style={{
                       width: 32, height: 32, borderRadius: 9, border: 'none', cursor: 'pointer',
-                      background: isPresent ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
+                      background: studentPresent ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       transition: 'all 0.15s',
                     }}
                   >
-                    {isPresent
+                    {studentPresent
                       ? <Check size={14} strokeWidth={2.5} color="#1a7a3f" />
                       : <X size={13} strokeWidth={2.5} color="#c0303a" />
                     }
@@ -522,7 +569,7 @@ function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClos
                 {/* Grade selector */}
                 <div style={{
                   display: 'flex', gap: 4, paddingLeft: 16,
-                  opacity: isPresent ? 1 : 0.3, pointerEvents: isPresent ? 'auto' : 'none',
+                  opacity: studentPresent ? 1 : 0.3, pointerEvents: studentPresent ? 'auto' : 'none',
                   transition: 'opacity 0.2s',
                 }}>
                   {([1, 2, 3, 4, 5] as const).map(g => (

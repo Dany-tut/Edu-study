@@ -10,16 +10,18 @@ import {
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
-import { useGroups, useStudents, useAllStudents } from '../../lib/useGroups'
+import { supabase } from '../../lib/supabase'
+import { useGroups, useStudents, useAllStudents, resolveIndividualGroup } from '../../lib/useGroups'
 import { useHomework } from '../../lib/useHomework'
 import { useCourseLessons, type CourseLesson } from '../../lib/useCourseLessons'
 import {
-  BIOLOGY_SECTIONS, CHEMISTRY_SECTIONS,
-  BIOLOGY_TOPICS, CHEMISTRY_TOPICS,
-  SOURCES,
+  SOURCES, linesForSelection, sectionsForSubject, topicsForSubject,
 } from '../../data/taskBankData'
-import type { Task as BankTask } from '../../data/taskBankData'
+import type { Task as BankTask, Subject } from '../../data/taskBankData'
+import { useCurriculum } from '../../store/curriculumStore'
+import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
+import MultiSelectField from '../../components/MultiSelectField'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import WhiteboardCanvas from '../../components/teacher/WhiteboardCanvas'
 import RichConditionEditor from '../../components/teacher/RichConditionEditor'
@@ -193,6 +195,9 @@ function SaveToTrainerDialog({
 
 // ─── Single task card (editable) ───────────────────────────────────────────────
 
+const stripHtml = (html: string) =>
+  html.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim()
+
 function TaskCard({
   task, index, onUpdate, onDelete,
 }: {
@@ -257,7 +262,7 @@ function TaskCard({
             </div>
           )}
           <div style={{ flex: 1, fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {task.question || <span style={{ fontStyle: 'italic' }}>без текста</span>}
+            {stripHtml(task.question) || <span style={{ fontStyle: 'italic' }}>без текста</span>}
           </div>
           <button
             onClick={e => { e.stopPropagation(); onDelete() }}
@@ -830,7 +835,7 @@ function AutoTextarea({ value, onChange, placeholder, style }: {
 
 // ─── Trainer tab (bank picker) ─────────────────────────────────────────────────
 
-type TrainerFilters = { search: string; subject: string; section: string; topic: string; parts: string[]; line: string; source: string }
+type TrainerFilters = { search: string; subject: string; sections: string[]; topics: string[]; parts: string[]; lines: string[]; source: string }
 
 function TrainerTab({
   addedIds, filters, onAdd,
@@ -842,10 +847,10 @@ function TrainerTab({
   const bankTasks = useTaskBank(s => s.tasks)
   const filtered = bankTasks.filter(t => {
     if (filters.subject && t.subject !== filters.subject) return false
-    if (filters.section && t.section !== filters.section) return false
-    if (filters.topic && t.topic !== filters.topic) return false
+    if (filters.sections.length && !filters.sections.includes(t.section)) return false
+    if (filters.topics.length && !filters.topics.includes(t.topic)) return false
     if (filters.parts.length && !filters.parts.includes(String(t.part))) return false
-    if (filters.line && t.line !== Number(filters.line)) return false
+    if (filters.lines.length && !filters.lines.includes(String(t.line))) return false
     if (filters.source && t.source !== filters.source) return false
     if (filters.search) {
       const q = filters.search.toLowerCase()
@@ -932,7 +937,7 @@ function PreviewTab({
                   )}
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--color-text)', lineHeight: 1.55, marginBottom: 8 }}>
-                  {t.question || <span style={{ color: 'var(--color-text-4)', fontStyle: 'italic' }}>Без текста</span>}
+                  {stripHtml(t.question) || <span style={{ color: 'var(--color-text-4)', fontStyle: 'italic' }}>Без текста</span>}
                 </div>
 
                 {t.type === 'choice' && t.choices && (
@@ -1012,14 +1017,30 @@ function TrainerFilterPanel({
   onChange: (f: Partial<TrainerFilters>) => void
 }) {
   const bankTasks = useTaskBank(s => s.tasks)
-  const sections = filters.subject === 'chemistry' ? CHEMISTRY_SECTIONS : BIOLOGY_SECTIONS
-  const topicsMap = filters.subject === 'chemistry' ? CHEMISTRY_TOPICS : BIOLOGY_TOPICS
-  const topicOptions = filters.section ? (topicsMap[filters.section] ?? []) : Object.values(topicsMap).flat()
-  const allLines = [...new Set(bankTasks
-    .filter(t => !filters.subject || t.subject === filters.subject)
-    .map(t => t.line))].sort((a, b) => a - b).map(String)
+  const merge = useOptionMerger()
+  useCurriculum(s => s.version) // re-render when the taxonomy is edited
+  const subjScopes = filters.subject ? [filters.subject] : ['biology', 'chemistry']
+  const sectionOptions = merge(
+    sectionsForSubject((filters.subject || 'biology') as Subject),
+    subjScopes.map(s => sectionScope(s)),
+  )
+  const topicsMap = topicsForSubject((filters.subject || 'biology') as Subject)
+  const baseTopicOptions = filters.sections.length
+    ? [...new Set(filters.sections.flatMap(s => topicsMap[s] ?? []))]
+    : Object.values(topicsMap).flat()
+  const topicOptions = merge(baseTopicOptions, filters.sections.length ? filters.sections.map(s => topicScope(filters.subject, s)) : subjScopes.map(s => topicScope(s, '')))
+  const allLines = (() => {
+    const nums = [...new Set(bankTasks
+      .filter(t => !filters.subject || t.subject === filters.subject)
+      .map(t => t.line))].sort((a, b) => a - b)
+    if (filters.subject && (filters.sections.length || filters.parts.length)) {
+      const set = new Set(linesForSelection(filters.subject as Subject, filters.sections, filters.parts))
+      return nums.filter(n => set.has(n)).map(String)
+    }
+    return nums.map(String)
+  })()
 
-  const hasFilters = !!(filters.section || filters.topic || filters.parts.length || filters.line || filters.source)
+  const hasFilters = !!(filters.sections.length || filters.topics.length || filters.parts.length || filters.lines.length || filters.source)
 
   return (
     <motion.div
@@ -1051,7 +1072,7 @@ function TrainerFilterPanel({
         {[{ v: '', l: 'Все' }, { v: 'biology', l: 'Биология' }, { v: 'chemistry', l: 'Химия' }].map(opt => (
           <button
             key={opt.v}
-            onClick={() => onChange({ subject: opt.v, section: '', topic: '' })}
+            onClick={() => onChange({ subject: opt.v, sections: [], topics: [], lines: [] })}
             style={{
               flex: 1, padding: '6px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
               fontSize: 11, fontWeight: 600,
@@ -1066,10 +1087,10 @@ function TrainerFilterPanel({
       </div>
 
       {/* Dropdown filters */}
-      <FilterSelect label="Раздел" options={sections} value={filters.section}
-        onChange={v => onChange({ section: v, topic: '' })} />
-      <FilterSelect label="Тема" options={topicOptions} value={filters.topic}
-        onChange={v => onChange({ topic: v })} />
+      <MultiSelectField label="Раздел" options={sectionOptions} values={filters.sections}
+        onChange={v => onChange({ sections: v })} small />
+      <MultiSelectField label="Тема" options={topicOptions} values={filters.topics}
+        onChange={v => onChange({ topics: v })} small />
       <div>
         <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Часть</div>
         <div style={{ display: 'flex', gap: 6 }}>
@@ -1086,14 +1107,14 @@ function TrainerFilterPanel({
           })}
         </div>
       </div>
-      <FilterSelect label="Линия" options={allLines} value={filters.line}
-        onChange={v => onChange({ line: v })} />
-      <FilterSelect label="Источник" options={SOURCES} value={filters.source}
+      <MultiSelectField label="Линия" options={allLines} values={filters.lines}
+        onChange={v => onChange({ lines: v })} small />
+      <FilterSelect label="Источник" options={merge(SOURCES, SOURCE_SCOPE)} value={filters.source}
         onChange={v => onChange({ source: v })} />
 
       {hasFilters && (
         <button
-          onClick={() => onChange({ section: '', topic: '', parts: [], line: '', source: '' })}
+          onClick={() => onChange({ sections: [], topics: [], parts: [], lines: [], source: '' })}
           style={{ padding: '8px 0', borderRadius: 12, background: 'var(--color-red-soft)', border: 'none', fontSize: 12, color: 'var(--color-red-text)', cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit' }}
         >
           Сбросить фильтры
@@ -1122,7 +1143,7 @@ function HardTaskAccordion({
   const [assignTo, setAssignTo] = useState<'all' | 'selected'>('all')
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set())
   const [tab, setTab] = useState<'compose' | 'trainer'>('compose')
-  const [trainerFilters, setTrainerFilters] = useState<TrainerFilters>({ search: '', subject: '', section: '', topic: '', parts: [], line: '', source: '' })
+  const [trainerFilters, setTrainerFilters] = useState<TrainerFilters>({ search: '', subject: '', sections: [], topics: [], parts: [], lines: [], source: '' })
   const [addedIds, setAddedIds] = useState<Set<number>>(new Set())
 
   const { students: groupStudents } = useStudents(groupId)
@@ -1395,12 +1416,15 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
           {value || 'Выберите дату'}
         </div>
         {value && (
-          <button
+          <span
+            role="button"
+            tabIndex={0}
             onClick={e => { e.stopPropagation(); onChange('') }}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onChange('') } }}
             style={{ width: 20, height: 20, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
           >
             <X size={10} />
-          </button>
+          </span>
         )}
         <ChevronDown size={13} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
       </button>
@@ -1497,12 +1521,15 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
           {selected ? selected.name : 'Группа'}
         </div>
         {selected && (
-          <button
+          <span
+            role="button"
+            tabIndex={0}
             onClick={e => { e.stopPropagation(); onChange('') }}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onChange('') } }}
             style={{ width: 20, height: 20, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
           >
             <X size={10} />
-          </button>
+          </span>
         )}
         <ChevronDown size={13} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
       </button>
@@ -1625,12 +1652,15 @@ function LessonPicker({
           )}
         </div>
         {selected && (
-          <button
+          <span
+            role="button"
+            tabIndex={0}
             onClick={e => { e.stopPropagation(); onChange('') }}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onChange('') } }}
             style={{ width: 20, height: 20, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
           >
             <X size={10} />
-          </button>
+          </span>
         )}
         <ChevronDown size={13} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
       </button>
@@ -1847,8 +1877,12 @@ type MainTab = 'compose' | 'trainer' | 'preview'
 export default function TeacherHomeworkCreatePage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const selectedGroupId = useTeacher(s => s.selectedGroupId)
+  const editingHomeworkId = useTeacher(s => s.editingHomeworkId)
+  const isEditing = !!editingHomeworkId
   const allCourseLessons = useCourseLessons()
-  const { createHomework } = useHomework()
+  const { createHomework, updateHomework } = useHomework()
+  const bankTasks = useTaskBank(s => s.tasks)
+  const loadBank = useTaskBank(s => s.load)
 
   const [meta, setMeta] = useState<Meta>({
     // Prefill the group picked on the homework page; empty = assign to all.
@@ -1859,7 +1893,53 @@ export default function TeacherHomeworkCreatePage() {
   const [activeTab, setActiveTab] = useState<MainTab>('compose')
   const [hwTasks, setHwTasks] = useState<HWTask[]>([])
   const [hardTasks, setHardTasks] = useState<HWTask[]>([])
-  const [trainerFilters, setTrainerFilters] = useState<TrainerFilters>({ search: '', subject: '', section: '', topic: '', parts: [], line: '', source: '' })
+
+  // Edit mode — step 1: fetch the homework once, prefill meta immediately, stash
+  // its task ids, and kick off a task-bank load (the composer doesn't load it on
+  // its own). Step 2 (below) rebuilds the task cards once the bank arrives.
+  const prefilledRef = useRef(false)
+  const tasksBuiltRef = useRef(false)
+  const [editTaskIds, setEditTaskIds] = useState<{ regular: number[]; hard: number[] } | null>(null)
+  useEffect(() => {
+    if (!editingHomeworkId || prefilledRef.current) return
+    prefilledRef.current = true
+    loadBank()
+    supabase
+      .from('homework')
+      .select('group_id, title, due_date, task_ids, hard_task_ids, lesson_id')
+      .eq('id', editingHomeworkId)
+      .single()
+      .then(({ data }) => {
+        if (!data) return
+        const hardIds: number[] = Array.isArray(data.hard_task_ids) ? data.hard_task_ids : []
+        const allIds: number[] = Array.isArray(data.task_ids) ? data.task_ids : []
+        setEditTaskIds({ regular: allIds.filter(id => !hardIds.includes(id)), hard: hardIds })
+        const due = data.due_date
+          ? (() => { const [y, m, d] = String(data.due_date).split('-'); return `${d}.${m}.${y}` })()
+          : ''
+        setMeta(mm => ({
+          ...mm,
+          assignTo: 'group',
+          groupId: data.group_id ?? '',
+          dueDate: due,
+          title: data.title ?? '',
+          lessonId: data.lesson_id ?? '',
+        }))
+      })
+  }, [editingHomeworkId, loadBank])
+
+  // Step 2: reconstruct the task cards from bank ids, once the bank is loaded.
+  useEffect(() => {
+    if (!editTaskIds || tasksBuiltRef.current || bankTasks.length === 0) return
+    tasksBuiltRef.current = true
+    const buildFrom = (ids: number[]) => ids
+      .map(id => bankTasks.find(b => b.id === id))
+      .filter((b): b is BankTask => !!b)
+      .map(taskFromBank)
+    setHwTasks(buildFrom(editTaskIds.regular))
+    setHardTasks(buildFrom(editTaskIds.hard))
+  }, [editTaskIds, bankTasks])
+  const [trainerFilters, setTrainerFilters] = useState<TrainerFilters>({ search: '', subject: '', sections: [], topics: [], parts: [], lines: [], source: '' })
   const [trainerAddedIds, setTrainerAddedIds] = useState<Set<number>>(new Set())
   const [trainerDialogTaskId, setTrainerDialogTaskId] = useState<string | null>(null)
   const [published, setPublished] = useState(false)
@@ -1940,21 +2020,38 @@ export default function TeacherHomeworkCreatePage() {
 
   async function doPublish() {
     setShowPublishConfirm(false)
-    if (meta.groupId) {
-      const taskIds = [
-        ...hwTasks.filter(t => t.bankId != null).map(t => t.bankId!),
-        ...hardTasks.filter(t => t.bankId != null).map(t => t.bankId!),
-      ]
+
+    // Resolve the target group + roster size. For "Студенту" we attach the
+    // homework to the student's personal 1:1 group (reuse or auto-create), so it
+    // shows up as a card under their name on the homework page.
+    let targetGroupId = meta.assignTo === 'group' ? meta.groupId : ''
+    let totalStudents = groupStudents.length
+    if (meta.assignTo === 'student' && meta.studentId) {
+      targetGroupId = (await resolveIndividualGroup(meta.studentId)) ?? ''
+      totalStudents = 1
+    }
+
+    if (targetGroupId) {
+      const regularIds = hwTasks.filter(t => t.bankId != null).map(t => t.bankId!)
+      const hardIds = hardTasks.filter(t => t.bankId != null).map(t => t.bankId!)
       const parts = meta.dueDate.split('.')
       const isoDate = parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : meta.dueDate
-      await createHomework({
-        groupId: meta.groupId,
+      const payload = {
+        groupId: targetGroupId,
         title: meta.title,
         dueDate: isoDate,
-        taskIds,
-        totalStudents: groupStudents.length,
-      })
+        taskIds: [...regularIds, ...hardIds],
+        totalStudents,
+        lessonId: meta.lessonId || null,
+        hardTaskIds: hardIds,
+        hardTotal: hardTasks.length,
+      }
+      if (editingHomeworkId) await updateHomework(editingHomeworkId, payload)
+      else await createHomework(payload)
     }
+    // For edit mode the roster size shouldn't change just because the composer
+    // resolved a fresh 1:1 group — keep the existing group (handled above by
+    // assignTo defaulting to 'group' with the loaded groupId).
     setPublished(true)
     setTimeout(() => setActivePage('homework'), 1600)
   }
@@ -2004,7 +2101,7 @@ export default function TeacherHomeworkCreatePage() {
               padding: '9px 16px', borderRadius: 999, ...dockGlass,
               fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
             }}>
-              {meta.title || 'Создать домашнее задание'}
+              {meta.title || (isEditing ? 'Редактировать домашку' : 'Создать домашнее задание')}
             </div>
 
             <div style={{ flexGrow: 1, flexBasis: 0 }} />
@@ -2019,7 +2116,7 @@ export default function TeacherHomeworkCreatePage() {
               {draftLabel}
             </button>
             <TeacherSaveButton
-              label="Опубликовать" savedLabel="Опубликовано!"
+              label={isEditing ? 'Сохранить' : 'Опубликовать'} savedLabel={isEditing ? 'Сохранено!' : 'Опубликовано!'}
               icon={<Send size={14} />}
               saved={published} onClick={handlePublish}
               style={{ boxShadow: '0 6px 20px rgba(99,84,207,0.32)', pointerEvents: 'auto' }}
@@ -2059,7 +2156,7 @@ export default function TeacherHomeworkCreatePage() {
             maxWidth: '44%', pointerEvents: 'none',
             fontSize: 18, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center',
           }}>
-            Создать домашнее задание
+            {isEditing ? 'Редактировать домашку' : 'Создать домашнее задание'}
             {meta.title && <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}> — {meta.title}</span>}
           </div>
 
@@ -2077,7 +2174,7 @@ export default function TeacherHomeworkCreatePage() {
               {draftLabel}
             </button>
             <TeacherSaveButton
-              label="Опубликовать" savedLabel="Опубликовано!"
+              label={isEditing ? 'Сохранить' : 'Опубликовать'} savedLabel={isEditing ? 'Сохранено!' : 'Опубликовано!'}
               icon={<Send size={14} />}
               saved={published} onClick={handlePublish}
             />

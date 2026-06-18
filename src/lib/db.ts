@@ -115,22 +115,23 @@ interface DbProgress {
   status: LessonStatus
   score: number
   comment: string
+  review_comment: string | null
   hard_submitted: boolean
 }
 
-export type ProgressMap = Record<string, { status: LessonStatus; score: number; comment: string; hardSubmitted: boolean }>
+export type ProgressMap = Record<string, { status: LessonStatus; score: number; comment: string; reviewComment: string; hardSubmitted: boolean }>
 
 export async function fetchLessonProgress(studentId: string): Promise<ProgressMap> {
   const { data, error } = await supabase
     .from('lesson_progress')
-    .select('lesson_ref, subject, status, score, comment, hard_submitted')
+    .select('lesson_ref, subject, status, score, comment, review_comment, hard_submitted')
     .eq('student_id', studentId)
 
   if (error || !data) return {}
 
   const map: ProgressMap = {}
   for (const row of data as DbProgress[]) {
-    map[row.lesson_ref] = { status: row.status, score: row.score, comment: row.comment, hardSubmitted: row.hard_submitted }
+    map[row.lesson_ref] = { status: row.status, score: row.score, comment: row.comment, reviewComment: row.review_comment ?? '', hardSubmitted: row.hard_submitted }
   }
   return map
 }
