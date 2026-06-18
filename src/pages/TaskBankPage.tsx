@@ -294,23 +294,25 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           <img key="image" src={task.questionImage} alt="" style={{ maxWidth: `${task.questionImageSize ?? 100}%`, borderRadius: 14, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', display: 'block' }} />
         )
         if (blockKey === 'table' && task.questionTable) return (
-          <div key="table" style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', width: '50%' }}>
-            <table style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'fixed', fontSize: 13 }}>
+          <div key="table" style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', maxWidth: '100%' }}>
+            <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 13 }}>
               <thead>
-                <tr>{task.questionTable.headers.map(h => (
-                  <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '9px 16px', fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left' }}>{h}</th>
+                <tr>{task.questionTable.headers.map((h, hi, arr) => (
+                  <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: hi < arr.length - 1 ? '1px solid var(--color-border-medium)' : undefined, padding: '10px 16px', fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}</tr>
               </thead>
               <tbody>
                 {task.questionTable.rows.map((row, i) => (
-                  <tr key={i}>{row.map((cell, j) => {
-                    const isEmpty = !!task.questionTable!.emptyCells?.[`${i},${j}`]
-                    return (
-                      <td key={j} style={{ borderTop: i > 0 ? '1px solid var(--color-border)' : undefined, borderRight: '1px solid var(--color-border)', padding: '9px 16px', background: 'var(--color-table-cell-bg)', minWidth: isEmpty ? 80 : undefined }}>
-                        {isEmpty ? ' ' : cell}
-                      </td>
-                    )
-                  })}</tr>
+                  <tr key={i} style={{ background: i % 2 === 1 ? 'rgba(0,0,0,0.02)' : undefined }}>
+                    {row.map((cell, j) => {
+                      const isEmpty = !!task.questionTable!.emptyCells?.[`${i},${j}`]
+                      return (
+                        <td key={j} style={{ borderTop: '1px solid var(--color-border)', borderRight: j < row.length - 1 ? '1px solid var(--color-border)' : undefined, padding: '9px 16px', background: isEmpty ? 'rgba(var(--glass-rgb),0.6)' : undefined, minWidth: isEmpty ? 80 : undefined, color: 'var(--color-text)' }}>
+                          {isEmpty ? ' ' : cell}
+                        </td>
+                      )
+                    })}
+                  </tr>
                 ))}
               </tbody>
             </table>
@@ -321,54 +323,57 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
 
       {/* Choice options */}
       {task.choices && task.choices.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
           {task.choices.map((c, i) => (
-            <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)' }}>
-              <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: 'var(--color-muted)' }}>{'АБВГДЕЖЗИК'[i]}</span>
-              <span style={{ fontSize: 16, color: 'var(--color-text)' }}>{c.text}</span>
+            <div key={c.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', borderRadius: 12, background: 'rgba(var(--glass-rgb),0.7)', border: '1px solid var(--color-border-soft)', minHeight: 42 }}>
+              <span style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)', marginTop: 1 }}>{'АБВГДЕЖЗИК'[i]}</span>
+              <span style={{ fontSize: 15, color: 'var(--color-text)', lineHeight: 1.45, paddingTop: 2 }}>{c.text}</span>
             </div>
           ))}
-          <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{task.answerType === 'multi' ? 'Введите буквы всех верных вариантов, напр. АБГ' : 'Введите букву верного варианта'}</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{task.answerType === 'multi' ? 'Введите буквы всех верных вариантов, напр. АБГ' : 'Введите букву верного варианта'}</div>
         </div>
       )}
 
       {/* Matching */}
-      {task.matchLeft && task.matchRight && (
-        <div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {task.matchLeft.map((l, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)' }}>
-                  <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: 'var(--color-muted)' }}>{'АБВГДЕЖЗИК'[i]}</span>
-                  <span style={{ fontSize: 16, color: 'var(--color-text)' }}>{l}</span>
+      {task.matchLeft && task.matchRight && (() => {
+        const maxLen = Math.max(task.matchLeft.length, task.matchRight.length)
+        return (
+          <div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {Array.from({ length: maxLen }).map((_, i) => (
+                <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'stretch' }}>
+                  {task.matchLeft![i] !== undefined ? (
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', borderRadius: 12, background: 'rgba(var(--glass-rgb),0.7)', border: '1px solid var(--color-border-soft)', minHeight: 42 }}>
+                      <span style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)', marginTop: 1 }}>{'АБВГДЕЖЗИК'[i]}</span>
+                      <span style={{ fontSize: 15, color: 'var(--color-text)', lineHeight: 1.45, paddingTop: 2 }}>{task.matchLeft![i]}</span>
+                    </div>
+                  ) : <div />}
+                  {task.matchRight![i] !== undefined ? (
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', borderRadius: 12, background: 'rgba(0,0,0,0.03)', border: '1px solid var(--color-border-soft)', minHeight: 42 }}>
+                      <span style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'rgba(var(--glass-rgb),0.9)', border: '1px solid var(--color-border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)', marginTop: 1 }}>{i + 1}</span>
+                      <span style={{ fontSize: 15, color: 'var(--color-text)', lineHeight: 1.45, paddingTop: 2 }}>{task.matchRight![i]}</span>
+                    </div>
+                  ) : <div />}
                 </div>
               ))}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {task.matchRight.map((r, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)' }}>
-                  <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: 'var(--color-muted)' }}>{i + 1}</span>
-                  <span style={{ fontSize: 16, color: 'var(--color-text)' }}>{r}</span>
-                </div>
-              ))}
-            </div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 6 }}>Сопоставьте и введите, напр. А2 Б1 В3</div>
           </div>
-          <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>Сопоставьте и введите, напр. А2 Б1 В3</div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Sequence */}
       {task.sequenceItems && task.sequenceItems.length > 0 && (
         <div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             {[...task.sequenceItems].sort((a, b) => a.localeCompare(b, 'ru')).map((s, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)' }}>
-                <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: 'var(--color-muted)' }}>{i + 1}</span>
-                <span style={{ fontSize: 16, color: 'var(--color-text)' }}>{s}</span>
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', borderRadius: 12, background: 'rgba(var(--glass-rgb),0.7)', border: '1px solid var(--color-border-soft)', minHeight: 42 }}>
+                <span style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)', marginTop: 1 }}>{i + 1}</span>
+                <span style={{ fontSize: 15, color: 'var(--color-text)', lineHeight: 1.45, paddingTop: 2 }}>{s}</span>
               </div>
             ))}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>Введите порядок цифрами, напр. 3142</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 6 }}>Введите порядок цифрами, напр. 3142</div>
         </div>
       )}
 

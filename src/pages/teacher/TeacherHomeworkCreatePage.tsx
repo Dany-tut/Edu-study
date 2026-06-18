@@ -1878,6 +1878,8 @@ export default function TeacherHomeworkCreatePage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const selectedGroupId = useTeacher(s => s.selectedGroupId)
   const editingHomeworkId = useTeacher(s => s.editingHomeworkId)
+  const hwPresetStudentId = useTeacher(s => s.hwPresetStudentId)
+  const clearHwPreset = useTeacher(s => s.clearHwPreset)
   const isEditing = !!editingHomeworkId
   const allCourseLessons = useCourseLessons()
   const { createHomework, updateHomework } = useHomework()
@@ -1885,10 +1887,15 @@ export default function TeacherHomeworkCreatePage() {
   const loadBank = useTaskBank(s => s.load)
 
   const [meta, setMeta] = useState<Meta>({
-    // Prefill the group picked on the homework page; empty = assign to all.
-    assignTo: 'group', groupId: selectedGroupId ?? '', studentId: '',
+    // "ДЗ допом" from the roster pre-scopes a single student; otherwise prefill
+    // the group picked on the homework page (empty = assign to all).
+    assignTo: hwPresetStudentId ? 'student' : 'group',
+    groupId: hwPresetStudentId ? '' : (selectedGroupId ?? ''),
+    studentId: hwPresetStudentId ?? '',
     title: '', description: '', dueDate: '', lessonId: '',
   })
+  // Consume the preset once so re-entering the composer normally doesn't re-trigger it.
+  useEffect(() => { if (hwPresetStudentId) clearHwPreset() }, [hwPresetStudentId, clearHwPreset])
   const { students: groupStudents } = useStudents(meta.groupId || null)
   const [activeTab, setActiveTab] = useState<MainTab>('compose')
   const [hwTasks, setHwTasks] = useState<HWTask[]>([])
