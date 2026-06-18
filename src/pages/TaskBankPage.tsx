@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, Search, BookOpen, CheckCircle2, XCircle,
   Bookmark, Share2, AlertTriangle, Eye, Sparkles, Target, Filter,
-  LayoutGrid, List, ArrowUpDown, ArrowUp, X, TrendingUp,
+  LayoutGrid, List, ArrowUpDown, ArrowUp, X, TrendingUp, FlaskConical, Bell,
 } from 'lucide-react'
 import {
   Task, Subject,
@@ -25,7 +25,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import MobileScreen from '../components/MobileScreen'
 import MobileBottomNav from '../components/MobileBottomNav'
 import MobileSheet from '../components/MobileSheet'
-import MobilePill from '../components/MobilePill'
+import { GlassPill, GlassIconButton } from '../components/mobileChrome'
 import { glassCircle } from '../lib/mobileTokens'
 import { tactile } from '../lib/feedback'
 
@@ -1344,12 +1344,18 @@ export default function TaskBankPage() {
           topPad={74}
           scrollKey={subject}
           topZone={
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, borderRadius: 20, background: 'var(--color-surface)', backdropFilter: 'blur(18px) saturate(180%)', WebkitBackdropFilter: 'blur(18px) saturate(180%)', border: '1px solid var(--color-border-glass)', boxShadow: 'var(--shadow-md)', padding: '8px 10px 8px 12px' }}>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <MobilePill size="sm" active={subject === 'biology'} onClick={() => { setSubjectPersist('biology'); resetOnSubject() }}>Биология</MobilePill>
-                <MobilePill size="sm" active={subject === 'chemistry'} onClick={() => { setSubjectPersist('chemistry'); resetOnSubject() }}>Химия</MobilePill>
+            <div className="flex items-center justify-between" style={{ gap: 8 }}>
+              <GlassPill onClick={() => { setSubjectPersist(subject === 'biology' ? 'chemistry' : 'biology'); resetOnSubject() }}>
+                <FlaskConical size={15} style={{ color: 'var(--color-accent)' }} />
+                {subject === 'biology' ? 'Биология' : 'Химия'}
+              </GlassPill>
+              <div className="flex items-center" style={{ gap: 8 }}>
+                <GlassPill>
+                  <BookOpen size={14} style={{ color: 'var(--color-accent)' }} />
+                  {filtered.length}
+                </GlassPill>
+                <GlassIconButton icon={<Bell size={16} />} dot ariaLabel="Уведомления" />
               </div>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)', paddingRight: 6 }}>{filtered.length}</span>
             </div>
           }
         >
