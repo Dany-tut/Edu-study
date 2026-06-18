@@ -801,7 +801,7 @@ export default function TeacherHomeworkPage() {
 
       {/* Right panels — absolute overlay so the table simply shifts under them */}
       <AnimatePresence>
-        {(showAssignForm || (selectedHw && selectedGroup)) && (
+        {(showAssignForm || (selectedHw && selectedGroup) || selectedHard) && (
           <motion.div
             key="hw-panel"
             initial={{ x: 360, opacity: 0 }}

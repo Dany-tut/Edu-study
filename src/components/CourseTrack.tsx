@@ -402,7 +402,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                       </div>
                     </div>
                   {/* Bottom row: full-width buttons */}
-                  {selectedLesson.status === 'locked' ? (
+                  {selectedLessonStatus === 'locked' ? (
                     <span
                       style={{
                         fontSize: 13,

@@ -390,25 +390,37 @@ export async function fetchCourseReactions(): Promise<CourseReaction[]> {
 
 // ─── Catalog utilities (pure, work with live subjects) ───────────────────────
 
-const subjectNameToId = (subjects: Subject[]) =>
-  Object.fromEntries(subjects.map(s => [s.name.toLowerCase(), s.id]))
-
 export function resolveScheduleLesson(
   s: ScheduleLesson,
   subjects: Subject[],
 ): { subjectId: string | null; lesson: Lesson | null } {
-  const nameMap = subjectNameToId(subjects)
-  const subjectId = nameMap[s.subject.toLowerCase()] ?? null
-  const subject = subjects.find(su => su.id === subjectId)
-  if (!subject) return { subjectId, lesson: null }
+  // Several courses can share the same subject name (e.g. two "Химия"
+  // courses), so a name→id map would collapse them and resolve to the wrong
+  // course. Search every course whose name matches instead.
+  const wantSubject = s.subject.toLowerCase().trim()
+  const candidates = subjects.filter(su => su.name.toLowerCase().trim() === wantSubject)
+  const pool = candidates.length > 0 ? candidates : subjects
+  const fallbackSubjectId = candidates[0]?.id ?? null
 
-  const want = s.lessonTitle.toLowerCase()
-  const all = subject.modules.flatMap(m => m.lessons)
-  const match = all.find(l => {
-    const t = l.title.toLowerCase()
-    return want.includes(t) || t.includes(want)
-  })
-  return { subjectId, lesson: match ?? null }
+  const wantTitle = s.lessonTitle.toLowerCase().trim()
+  const isRec = s.kind === 'rec'
+
+  for (const subject of pool) {
+    const all = subject.modules.flatMap(m => m.lessons)
+    // Prefer the authoritative lesson_number the teacher scheduled (a diverged
+    // recording/lesson pair shares a number, so also match the node kind).
+    const byNumber = all.find(l =>
+      l.number === s.lessonNumber && (isRec ? l.nodeType === 'rec' : l.nodeType !== 'rec'))
+    const byTitle = wantTitle
+      ? all.find(l => {
+          const t = l.title.toLowerCase().trim()
+          return t === wantTitle || t.includes(wantTitle) || wantTitle.includes(t)
+        })
+      : undefined
+    const match = byNumber ?? byTitle
+    if (match) return { subjectId: subject.id, lesson: match }
+  }
+  return { subjectId: fallbackSubjectId, lesson: null }
 }
 
 export function findChemistryLessonByTitle(

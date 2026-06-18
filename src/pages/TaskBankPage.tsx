@@ -1240,6 +1240,140 @@ export default function TaskBankPage() {
     boxShadow: 'var(--shadow-lg)',
   } as const
 
+  // ── Mobile layout (MOBILE ONLY; desktop return below is untouched) ──────────
+  // Tasks are primary (full-width list); filters/sort/search live in glass
+  // circles at the bottom that open bottom-sheets (§1.2). Desktop sidebar/dock
+  // never renders here.
+  if (!isDesktop) {
+    const activeFilters = [section, topic, part, line, source].filter(Boolean).length
+    const dockCircle = (key: string, icon: ReactNode, onClick: () => void, opts: { label: string; badge?: number; active?: boolean } = { label: '' }) => (
+      <motion.button
+        key={key}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => { tactile(); onClick() }}
+        aria-label={opts.label}
+        style={{ ...glassCircle, width: 50, height: 50, position: 'relative', color: opts.active ? 'var(--color-accent)' : 'var(--color-text-2)' }}
+      >
+        {icon}
+        {!!opts.badge && opts.badge > 0 && (
+          <span style={{ position: 'absolute', top: -2, right: -2, minWidth: 18, height: 18, padding: '0 4px', borderRadius: 999, background: 'var(--color-accent)', color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {opts.badge}
+          </span>
+        )}
+      </motion.button>
+    )
+
+    return (
+      <>
+        <AnimatePresence>
+          {showProgressModal && (
+            <ProgressModal
+              tasks={subjectTasks} answered={answered} favorites={favorites} palette={palette} lineNames={lineNames}
+              onClose={() => setShowProgressModal(false)}
+              onRetryMistakes={() => { setShowWrongOnly(true); setWrongSimilarLines(new Set()); setShowProgressModal(false) }}
+              onSimilarTasks={lines => { setWrongSimilarLines(new Set(lines)); setShowWrongOnly(false); setSection(''); setLine(''); setShowProgressModal(false) }}
+            />
+          )}
+        </AnimatePresence>
+
+        <MobileScreen
+          topPad={74}
+          scrollKey={subject}
+          topZone={
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, borderRadius: 20, background: 'var(--color-surface)', backdropFilter: 'blur(18px) saturate(180%)', WebkitBackdropFilter: 'blur(18px) saturate(180%)', border: '1px solid var(--color-border-glass)', boxShadow: 'var(--shadow-md)', padding: '8px 10px 8px 12px' }}>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <MobilePill size="sm" active={subject === 'biology'} onClick={() => { setSubjectPersist('biology'); setSection(''); setTopic('') }}>Биология</MobilePill>
+                <MobilePill size="sm" active={subject === 'chemistry'} onClick={() => { setSubjectPersist('chemistry'); setSection(''); setTopic('') }}>Химия</MobilePill>
+              </div>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)', paddingRight: 6 }}>{filtered.length}</span>
+            </div>
+          }
+        >
+          {filtered.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '56px 0', color: 'var(--color-text-3)', fontSize: 14 }}>
+              Заданий не найдено — измените фильтры
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {filtered.map((task, i) => (
+                <TaskCard key={task.id} task={task} index={i} palette={palette}
+                  favorites={favorites} onFavorite={toggleFav}
+                  answered={answered} onAnswer={setAnswer}
+                  onCopyId={handleCopyId} lineNames={lineNames}
+                />
+              ))}
+            </div>
+          )}
+        </MobileScreen>
+
+        {/* Control dock — glass circles, sits above the bottom nav */}
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)', zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+          <div style={{ display: 'flex', gap: 12, pointerEvents: 'auto' }}>
+            {dockCircle('search', <Search size={20} />, () => setSheet('search'), { label: 'Поиск', badge: search ? 1 : 0, active: !!search })}
+            {dockCircle('filter', <Filter size={20} />, () => setSheet('filters'), { label: 'Фильтры', badge: activeFilters })}
+            {dockCircle('sort', <ArrowUpDown size={20} />, () => setSheet('sort'), { label: 'Сортировка' })}
+            {dockCircle('fav', <Bookmark size={20} fill={showFavOnly ? 'currentColor' : 'none'} />, () => setShowFavOnly(f => !f), { label: 'Избранное', active: showFavOnly })}
+          </div>
+        </div>
+
+        {/* Search sheet */}
+        <MobileSheet open={sheet === 'search'} onClose={() => setSheet(null)} title="Поиск">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 14px', height: 46, borderRadius: 999, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-soft)' }}>
+            <Search size={16} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
+            <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder="По тексту или №..."
+              style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 15, color: 'var(--color-text)' }} />
+            {search && <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', flexShrink: 0 }}><X size={16} /></button>}
+          </div>
+          <div style={{ marginTop: 12, fontSize: 13, color: 'var(--color-muted)' }}>Найдено заданий: {filtered.length}</div>
+        </MobileSheet>
+
+        {/* Filters sheet */}
+        <MobileSheet open={sheet === 'filters'} onClose={() => setSheet(null)} title="Фильтры">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <FilterField label="Раздел" options={sections} value={section} onChange={v => { setSection(v); setTopic('') }} accent={palette.accent} />
+            <FilterField label="Тема" options={topicOptions} value={topic} onChange={setTopic} accent={palette.accent} />
+            <div style={{ display: 'flex', gap: 8 }}>
+              {['1', '2'].map(p => (
+                <button key={p} onClick={() => setPart(part === p ? '' : p)} style={{
+                  flex: 1, padding: '11px 12px', borderRadius: 13, fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                  background: part === p ? `${palette.accent}22` : 'var(--color-bg-input)',
+                  border: `1px solid ${part === p ? palette.accent : 'var(--color-border-soft)'}`,
+                  color: part === p ? palette.accent : 'var(--color-muted)',
+                }}>
+                  Часть {p}
+                </button>
+              ))}
+            </div>
+            <FilterField label="Линия" options={allLines} value={line} onChange={setLine} accent={palette.accent} />
+            <FilterField label="Источник" options={allSources} value={source} onChange={setSource} accent={palette.accent} />
+            <StatusTabs value={statusFilter} onChange={setStatusFilter} />
+            {hasFilters && (
+              <button onClick={() => { setSection(''); setTopic(''); setPart(''); setLine(''); setSource('') }}
+                style={{ marginTop: 2, padding: '11px', borderRadius: 12, background: 'rgba(176,48,64,0.10)', border: '1px solid rgba(176,48,64,0.18)', fontSize: 13, color: 'rgba(176,48,64,0.85)', cursor: 'pointer', fontWeight: 600 }}>
+                Сбросить фильтры
+              </button>
+            )}
+          </div>
+        </MobileSheet>
+
+        {/* Sort sheet */}
+        <MobileSheet open={sheet === 'sort'} onClose={() => setSheet(null)} title="Сортировка">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {SORT_OPTIONS.map(([mode, label]) => (
+              <button key={mode} onClick={() => { setSortMode(mode); setSheet(null) }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: sortMode === mode ? 'var(--color-purple-soft)' : 'transparent', color: sortMode === mode ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 15, fontWeight: 600 }}>
+                {label}
+                {sortMode === mode && <CheckCircle2 size={18} />}
+              </button>
+            ))}
+          </div>
+        </MobileSheet>
+
+        <MobileBottomNav />
+      </>
+    )
+  }
+
   return (
     <div className="flex flex-col" style={{ gap: 16 }}>
 

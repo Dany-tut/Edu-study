@@ -13,14 +13,22 @@ export function getDisplayLessonStatus(lesson: Lesson, now: Date = new Date()): 
     if (assessment?.score != null) return 'completed'
   }
 
-  if (lesson.status !== 'current') return lesson.status
+  // Locked and current lessons both depend on whether the lesson sits on the
+  // calendar, so resolve its scheduled slot (any day in the window) once.
+  if (lesson.status !== 'locked' && lesson.status !== 'current') return lesson.status
 
   const { scheduleDays, subjects } = useStudentData.getState()
-  const today = scheduleDays.find(day => day.isToday)
-  if (!today) return lesson.status
+  let slot: { date: string; time: string } | null = null
+  for (const day of scheduleDays) {
+    const entry = day.lessons.find(e => resolveScheduleLesson(e, subjects).lesson?.id === lesson.id)
+    if (entry) { slot = { date: day.date, time: entry.time }; break }
+  }
 
-  const scheduledLesson = today.lessons.find(entry => resolveScheduleLesson(entry, subjects).lesson?.id === lesson.id)
-  if (!scheduledLesson) return lesson.status
+  // Not on the calendar → keep the raw status (locked stays locked).
+  if (!slot) return lesson.status
 
-  return lessonTimeState(today.date, scheduledLesson.time, now).passed ? 'unviewed' : lesson.status
+  // On the calendar: an upcoming/today slot reads as the active lesson (purple
+  // ▶); once its time has passed it becomes a missed recording. This applies to
+  // lessons the teacher placed in the schedule but hasn't explicitly unlocked.
+  return lessonTimeState(slot.date, slot.time, now).passed ? 'unviewed' : 'current'
 }
