@@ -23,9 +23,13 @@ export function useFloatingPill<T extends string | number>(activeId: T) {
     const containerRect = container.getBoundingClientRect()
     const activeRect = activeEl.getBoundingClientRect()
 
+    // getBoundingClientRect is measured from the container's border-box (outer
+    // edge), but an absolutely-positioned child resolves top/left against the
+    // padding-box (inside the border). Subtract the border (clientTop/clientLeft)
+    // so the pill isn't offset by the container's border width.
     setPillRect({
-      left: activeRect.left - containerRect.left,
-      top: activeRect.top - containerRect.top,
+      left: activeRect.left - containerRect.left - container.clientLeft,
+      top: activeRect.top - containerRect.top - container.clientTop,
       width: activeRect.width,
       height: activeRect.height,
     })

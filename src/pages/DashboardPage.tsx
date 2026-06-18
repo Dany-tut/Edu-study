@@ -6,6 +6,7 @@ import CourseTrack from '../components/CourseTrack'
 import MobileBottomNav from '../components/MobileBottomNav'
 import MobileHome from '../components/MobileHome'
 import MobileCourses from '../components/MobileCourses'
+import MobileProfilePage from '../components/MobileProfilePage'
 import CoursesPage from './CoursesPage'
 import LessonPage from './LessonPage'
 import TaskBankPage from './TaskBankPage'
@@ -250,6 +251,8 @@ export default function DashboardPage() {
           <MobileHome />
         ) : activePage === 'courses' ? (
           <MobileCourses />
+        ) : activePage === 'profile' ? (
+          <MobileProfilePage />
         ) : (
           <div style={{ minHeight: '100vh', background: 'var(--color-bg)', padding: '24px 24px 100px' }}>
             {activePage === 'lesson' ? (

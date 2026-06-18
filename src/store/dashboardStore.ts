@@ -8,7 +8,7 @@ import { DEFAULT_WIDGET_ORDER } from '../data/widgets'
 // The top-level views the navigation switches between. 'home' is the dashboard,
 // 'courses' is the lesson catalogue (screen 3), 'lesson' is a single lesson with
 // its player + materials (screen 2), 'homework' is the dedicated homework page.
-export type AppPage = 'home' | 'courses' | 'lesson' | 'homework' | 'trainer'
+export type AppPage = 'home' | 'courses' | 'lesson' | 'homework' | 'trainer' | 'profile'
 
 export interface HomeworkWidgetFeedback {
   lessonTitle: string

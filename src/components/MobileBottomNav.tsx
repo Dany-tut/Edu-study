@@ -33,6 +33,10 @@ export default function MobileBottomNav() {
       setScheduleIndex(scheduleTodayIndex)
     } else if (id === 'courses') {
       openCourses()
+    } else if (id === 'trainer') {
+      setActivePage('trainer')
+    } else if (id === 'profile') {
+      setActivePage('profile')
     }
   }
 

@@ -1,155 +1,184 @@
 import { motion } from 'framer-motion'
-import { Calendar, Lock, type LucideIcon } from 'lucide-react'
+import { Flame, Zap, Bell, Play, ChevronRight, Dumbbell, BookOpen, Lock, Calendar } from 'lucide-react'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
-import ScheduleCarousel from './ScheduleCarousel'
-import WidgetCarousel from './WidgetCarousel'
-import CourseTrack from './CourseTrack'
-import LessonStatusCard from './LessonStatusCard'
-import { getStudentSession } from '../lib/studentSession'
+import { DynamicIsland, GlassIconButton } from './mobileChrome'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
+import { useNow, lessonTimeState } from '../lib/useNow'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
-import type { LessonStatus } from '../data/mockData'
+import { tactile } from '../lib/feedback'
+import type { Lesson } from '../data/mockData'
 
-// MOBILE ONLY home. Desktop keeps its own layout in DashboardPage untouched.
-// Top: glass greeting widget (real student name). Content scrolls under it.
-// Statuses come from the active subject's real lessons (no hardcoded list).
-//
-// One-screen rule (§1.1): the heavy desktop carousels (schedule/track) render
-// only when they have data; empty accounts get a compact one-line note instead
-// of a 198px void, so nothing reads as "broken/empty".
+// MOBILE ONLY home (v2). Desktop layout in DashboardPage is untouched.
+// Concept: not a dashboard — a "today + continue" screen.
+//   · Dynamic Island pill (streak + live info)
+//   · Hero "Продолжить" — the one primary action
+//   · "Сегодня" — compact schedule list
+//   · Quick actions — trainer / courses
+// Desktop widgets (StatsWidget/CourseTrack/LessonStatusCard/WidgetCarousel) are
+// no longer crammed in here.
 
-// Statuses worth surfacing on the home hub (skip plain locked/future lessons).
-const SURFACED: LessonStatus[] = ['returned', 'submitted', 'current', 'completed']
-
-// Compact empty-state row — replaces the tall placeholder blocks on mobile.
-function CompactNote({ icon: Icon, title, sub }: { icon: LucideIcon; title: string; sub: string }) {
-  return (
-    <div
-      className="flex items-center"
-      style={{
-        gap: 12,
-        padding: '14px 16px',
-        borderRadius: 16,
-        background: 'var(--color-bg-3)',
-        border: '1px solid var(--color-border-soft)',
-      }}
-    >
-      <Icon size={20} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-      <div className="min-w-0">
-        <div style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.2 }}>{title}</div>
-        <div style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.2 }}>{sub}</div>
-      </div>
-    </div>
-  )
-}
-
-function Greeting() {
-  const name = getStudentSession()?.name?.trim().split(/\s+/)[0] || 'Ученик'
-  const initial = name.charAt(0).toUpperCase()
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className="flex items-center"
-      style={{
-        gap: 12,
-        borderRadius: 20,
-        // Opaque surface + lift so the card reads clearly on a light page bg
-        // (translucent glass was invisible white-on-white in light theme).
-        background: 'var(--color-surface)',
-        backdropFilter: 'blur(18px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(18px) saturate(180%)',
-        border: '1px solid var(--color-border-glass)',
-        boxShadow: 'var(--shadow-md)',
-        padding: '12px 16px',
-      }}
-    >
-      <div
-        className="flex items-center justify-center flex-shrink-0"
-        style={{
-          width: 40, height: 40, borderRadius: 999,
-          background: 'var(--color-accent)', color: '#fff',
-          fontSize: 18, fontWeight: 700,
-        }}
-      >
-        {initial}
-      </div>
-      <div className="min-w-0">
-        <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.1 }}>
-          Привет, {name} 👋
-        </div>
-        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', marginTop: 2 }}>
-          Готов учиться сегодня?
-        </div>
-      </div>
-    </motion.div>
-  )
+function fmtUntil(mins: number) {
+  if (mins <= 0) return 'идёт сейчас'
+  if (mins < 60) return `через ${mins} мин`
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  return m ? `через ${h} ч ${m} мин` : `через ${h} ч`
 }
 
 export default function MobileHome() {
   const subjects = useStudentData(s => s.subjects)
   const scheduleDays = useStudentData(s => s.scheduleDays)
-  const activeSubjectId = useDashboard(s => s.activeSubjectId)
+  const stats = useStudentData(s => s.stats)
+  const openLesson = useDashboard(s => s.openLesson)
+  const openCourses = useDashboard(s => s.openCourses)
+  const setActivePage = useDashboard(s => s.setActivePage)
+  const now = useNow(30_000)
 
-  const subject = subjects.find(s => s.id === activeSubjectId) ?? subjects[0]
-  const allLessons = subject ? subject.modules.flatMap(m => m.lessons) : []
-  const hasSchedule = scheduleDays.length > 0
-  const hasCourses = subjects.length > 0
+  // Continue target: the current lesson, else first unlocked-incomplete lesson.
+  const continueInfo = (() => {
+    for (const subj of subjects) {
+      const lessons = subj.modules.flatMap(m => m.lessons)
+      const cur = lessons.find(l => l.status === 'current')
+      if (cur) return { lesson: cur, subject: subj }
+    }
+    for (const subj of subjects) {
+      const lessons = subj.modules.flatMap(m => m.lessons)
+      const next = lessons.find(l => l.status !== 'locked' && l.status !== 'completed')
+      if (next) return { lesson: next, subject: subj }
+    }
+    return null
+  })()
 
-  // Real, recent, actionable lessons → status cards. Newest first, max 4.
-  const statusCards = allLessons
-    .map(l => ({ lesson: l, status: getDisplayLessonStatus(l) }))
-    .filter(({ status }) => SURFACED.includes(status))
-    .slice(-4)
-    .reverse()
+  const todayLessons = scheduleDays.find(d => d.isToday)?.lessons ?? []
+
+  // Dynamic Island: soonest upcoming lesson today, else streak summary.
+  const nextToday = todayLessons
+    .map(l => ({ l, st: lessonTimeState(scheduleDays.find(d => d.isToday)!.date, l.time, now) }))
+    .filter(x => !x.st.passed)
+    .sort((a, b) => a.st.minutesUntil - b.st.minutesUntil)[0]
+
+  const topZone = (
+    <div className="flex items-center justify-between" style={{ gap: 8 }}>
+      <div style={{ width: 38, flexShrink: 0 }} />
+      <DynamicIsland>
+        {nextToday ? (
+          <>
+            <Calendar size={15} style={{ color: 'var(--color-accent)' }} />
+            <span>Урок {fmtUntil(nextToday.st.minutesUntil)}</span>
+          </>
+        ) : (
+          <>
+            <Flame size={15} style={{ color: '#F8A23B' }} />
+            <span>{stats.streak} дней</span>
+            <span style={{ opacity: 0.35 }}>·</span>
+            <Zap size={14} style={{ color: 'var(--color-accent)' }} />
+            <span>{stats.totalPoints}</span>
+          </>
+        )}
+      </DynamicIsland>
+      <GlassIconButton icon={<Bell size={16} />} dot ariaLabel="Уведомления" />
+    </div>
+  )
 
   return (
     <>
-      <MobileScreen topZone={<Greeting />}>
-        <div className="flex flex-col" style={{ gap: 16 }}>
-          {/* Schedule — compact note when empty, real carousel when there's data */}
-          {hasSchedule ? (
-            <ScheduleCarousel />
+      <MobileScreen topZone={topZone} topPad={72}>
+        <div className="flex flex-col" style={{ gap: 14 }}>
+          {/* Hero — Продолжить */}
+          {continueInfo ? (
+            <HeroContinue lesson={continueInfo.lesson} subjectName={continueInfo.subject.name} progress={continueInfo.subject.progress} onContinue={() => openLesson(continueInfo.lesson.id)} />
           ) : (
-            <CompactNote icon={Calendar} title="Расписание не добавлено" sub="Появится, когда преподаватель добавит уроки" />
+            <div className="flex flex-col items-center justify-center text-center" style={{ gap: 8, padding: '40px 16px', borderRadius: 22, background: 'var(--color-bg-3)' }}>
+              <Lock size={22} style={{ color: 'var(--color-muted)' }} />
+              <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>Курс ещё не открыт</p>
+              <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Преподаватель скоро добавит уроки</p>
+            </div>
           )}
 
-          {/* One widget per screen, full width */}
-          <WidgetCarousel columnsOverride={1} />
-
-          {/* Course track + statuses — only when the student has a course */}
-          {hasCourses ? (
-            <>
-              <CourseTrack />
-              {statusCards.length > 0 && (
-                <div>
-                  <h2 style={{ fontSize: 17, fontWeight: 650, color: 'var(--color-text)', marginBottom: 10 }}>
-                    Статусы уроков
-                  </h2>
-                  <div className="flex flex-col" style={{ gap: 12 }}>
-                    {statusCards.map(({ lesson, status }, i) => (
-                      <LessonStatusCard
-                        key={lesson.id}
-                        status={status}
-                        title={lesson.title}
-                        lessonNumber={lesson.number + 1}
-                        points={status === 'completed' || status === 'submitted' ? lesson.points : undefined}
-                        index={i}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <CompactNote icon={Lock} title="Курсы ещё не добавлены" sub="Преподаватель откроет доступ к урокам" />
+          {/* Сегодня */}
+          {todayLessons.length > 0 && (
+            <div style={{ borderRadius: 20, background: 'var(--color-surface)', border: '1px solid var(--color-border-glass)', boxShadow: 'var(--shadow-sm)', padding: 14 }}>
+              <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
+                <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-text)' }}>Сегодня</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)' }}>{todayLessons.length} занятия</span>
+              </div>
+              <div className="flex flex-col">
+                {todayLessons.map((l, i) => (
+                  <button
+                    key={l.id}
+                    onClick={() => { tactile(); openCourses() }}
+                    className="flex items-center text-left"
+                    style={{ gap: 10, padding: '9px 0', borderTop: i === 0 ? 'none' : '1px solid var(--color-border-soft)', background: 'none', border: 'none', cursor: 'pointer', width: '100%' }}
+                  >
+                    <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-accent)', minWidth: 44 }}>{l.time}</span>
+                    <span className="flex-1 min-w-0 truncate" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{l.lessonTitle}</span>
+                    <ChevronRight size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
+
+          {/* Быстрые действия */}
+          <div className="flex" style={{ gap: 12 }}>
+            <QuickTile icon={<Dumbbell size={20} />} title="Тренажёр" sub="Решай задания" bg="var(--color-green-soft)" fg="var(--color-green-text)" onClick={() => setActivePage('trainer')} />
+            <QuickTile icon={<BookOpen size={20} />} title="Курс" sub="Уроки и путь" bg="var(--color-purple-soft)" fg="var(--color-purple-text)" onClick={() => openCourses()} />
+          </div>
         </div>
       </MobileScreen>
       <MobileBottomNav />
     </>
+  )
+}
+
+function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: Lesson; subjectName: string; progress: number; onContinue: () => void }) {
+  const status = getDisplayLessonStatus(lesson)
+  const label = status === 'current' ? 'Продолжить' : 'Начать'
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      style={{ borderRadius: 24, padding: 18, color: '#fff', background: 'linear-gradient(135deg, #9B6FE8, #6F3FBF)', boxShadow: '0 12px 28px rgba(123,63,204,0.35)' }}
+    >
+      <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        {label} · {subjectName}
+      </div>
+      <div style={{ fontSize: 18, fontWeight: 800, margin: '7px 0 14px', lineHeight: 1.2 }}>
+        Занятие #{lesson.number} · {lesson.title}
+      </div>
+      <div style={{ height: 6, background: 'rgba(255,255,255,0.25)', borderRadius: 99, overflow: 'hidden', marginBottom: 14 }}>
+        <div style={{ width: `${Math.max(4, progress)}%`, height: '100%', background: '#fff', borderRadius: 99 }} />
+      </div>
+      <div className="flex items-center justify-between">
+        <span style={{ fontSize: 12, opacity: 0.85 }}>{progress}% пройдено</span>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => { tactile(); onContinue() }}
+          className="flex items-center cursor-pointer"
+          style={{ gap: 6, background: '#fff', color: '#7B3FCC', fontWeight: 800, fontSize: 13, padding: '9px 18px', borderRadius: 999, border: 'none' }}
+        >
+          <Play size={15} fill="#7B3FCC" />
+          {label}
+        </motion.button>
+      </div>
+    </motion.div>
+  )
+}
+
+function QuickTile({ icon, title, sub, bg, fg, onClick }: { icon: React.ReactNode; title: string; sub: string; bg: string; fg: string; onClick: () => void }) {
+  return (
+    <motion.button
+      whileTap={{ scale: 0.96 }}
+      onClick={() => { tactile(); onClick() }}
+      className="flex flex-col text-left cursor-pointer"
+      style={{ flex: 1, minWidth: 0, gap: 4, padding: 14, borderRadius: 18, background: bg, border: 'none' }}
+    >
+      <span style={{ color: fg }}>{icon}</span>
+      <span style={{ fontSize: 14, fontWeight: 800, color: fg, marginTop: 4 }}>{title}</span>
+      <span style={{ fontSize: 11, fontWeight: 500, color: fg, opacity: 0.8 }}>{sub}</span>
+    </motion.button>
   )
 }
