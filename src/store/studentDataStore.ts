@@ -78,9 +78,14 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     let stats = computeStats(progress)
     let scheduleDays = schedule
 
-    // DEV-only: if the teacher hasn't authored a course yet, seed demo data so
-    // the UI can be reviewed locally. Real data always wins; prod never seeds.
-    if (import.meta.env.DEV && mergedSubjects.length === 0) {
+    // Demo data so the UI can be reviewed without a teacher-authored course.
+    // Shown in local dev, OR in any build when the URL carries ?demo (so the
+    // mobile redesign can be previewed on a real phone via the deployed site).
+    // Only kicks in when there's no real course — real data always wins.
+    const demoFlag = (() => {
+      try { return new URLSearchParams(window.location.search).has('demo') } catch { return false }
+    })()
+    if ((import.meta.env.DEV || demoFlag) && mergedSubjects.length === 0) {
       const { DEMO_SUBJECTS, DEMO_SCHEDULE, DEMO_STATS } = await import('../data/devStudentDemo')
       mergedSubjects = DEMO_SUBJECTS
       scheduleDays = DEMO_SCHEDULE
