@@ -24,11 +24,15 @@ function useHashRoute() {
 export default function App() {
   const hash = useHashRoute()
   const [session, setSession] = useState<Session | null | undefined>(undefined)
+  const [recovery, setRecovery] = useState(false)
   const loadStudentData = useStudentData(s => s.load)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((e, s) => {
+      if (e === 'PASSWORD_RECOVERY') setRecovery(true)
+      setSession(s)
+    })
     return () => subscription.unsubscribe()
   }, [])
 
@@ -67,6 +71,7 @@ export default function App() {
   }
 
   if (hash.startsWith('#/teacher')) {
+    if (recovery) return <TeacherLoginPage onLogin={() => setRecovery(false)} recovery />
     if (session === undefined && !import.meta.env.DEV) return null
     if (!session && !import.meta.env.DEV) return <TeacherLoginPage onLogin={() => {}} />
     return <TeacherDashboardPage />

@@ -1,36 +1,70 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 
-export default function TeacherLoginPage({ onLogin }: { onLogin: () => void }) {
+export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogin: () => void; recovery?: boolean }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
-  const [mode, setMode] = useState<'login' | 'register'>('login')
+  const [mode, setMode] = useState<'login' | 'register' | 'reset' | 'newpassword'>(
+    recovery ? 'newpassword' : 'login',
+  )
   const [showPassword, setShowPassword] = useState(false)
+
+  function switchMode(next: 'login' | 'register' | 'reset') {
+    setMode(next)
+    setError('')
+    setNotice('')
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setNotice('')
     try {
       if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
-      } else {
+        onLogin()
+      } else if (mode === 'register') {
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: { data: { role: 'teacher', name: email.split('@')[0] } },
         })
         if (error) throw error
+        onLogin()
+      } else if (mode === 'reset') {
+        const redirectTo = `${window.location.origin}${window.location.pathname}#/teacher`
+        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
+        if (error) throw error
+        setNotice('Письмо для сброса пароля отправлено. Проверьте почту.')
+      } else if (mode === 'newpassword') {
+        const { error } = await supabase.auth.updateUser({ password })
+        if (error) throw error
+        setNotice('Пароль обновлён. Входим…')
+        onLogin()
       }
-      onLogin()
     } catch (err: any) {
       setError(err.message)
     } finally {
       setLoading(false)
     }
+  }
+
+  const titles: Record<typeof mode, string> = {
+    login: 'Войдите в аккаунт',
+    register: 'Создайте аккаунт',
+    reset: 'Сброс пароля',
+    newpassword: 'Новый пароль',
+  }
+  const buttonLabels: Record<typeof mode, string> = {
+    login: 'Войти',
+    register: 'Зарегистрироваться',
+    reset: 'Отправить письмо',
+    newpassword: 'Сохранить пароль',
   }
 
   return (
@@ -57,34 +91,37 @@ export default function TeacherLoginPage({ onLogin }: { onLogin: () => void }) {
           Платформа учителя
         </h1>
         <p style={{ color: 'var(--color-muted)', fontSize: 14, margin: '0 0 28px' }}>
-          {mode === 'login' ? 'Войдите в аккаунт' : 'Создайте аккаунт'}
+          {titles[mode]}
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            autoComplete="email"
-            required
-            style={{
-              padding: '12px 16px',
-              borderRadius: 14,
-              border: '1.5px solid var(--color-border-medium)',
-              fontSize: 15,
-              outline: 'none',
-              color: 'var(--color-text)',
-              background: 'var(--color-bg-input)',
-            }}
-          />
+          {mode !== 'newpassword' && (
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              autoComplete="email"
+              required
+              style={{
+                padding: '12px 16px',
+                borderRadius: 14,
+                border: '1.5px solid var(--color-border-medium)',
+                fontSize: 15,
+                outline: 'none',
+                color: 'var(--color-text)',
+                background: 'var(--color-bg-input)',
+              }}
+            />
+          )}
+          {mode !== 'reset' && (
           <div style={{ position: 'relative' }}>
             <input
               type={showPassword ? 'text' : 'password'}
-              placeholder="Пароль"
+              placeholder={mode === 'newpassword' ? 'Новый пароль' : 'Пароль'}
               value={password}
               onChange={e => setPassword(e.target.value)}
-              autoComplete="current-password"
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               required
               style={{
                 width: '100%',
@@ -118,10 +155,25 @@ export default function TeacherLoginPage({ onLogin }: { onLogin: () => void }) {
               {showPassword ? '🙈' : '👁'}
             </button>
           </div>
+          )}
+
+          {mode === 'login' && (
+            <span
+              onClick={() => switchMode('reset')}
+              style={{ alignSelf: 'flex-end', color: 'var(--color-purple)', cursor: 'pointer', fontSize: 13, fontWeight: 600, marginTop: -4 }}
+            >
+              Забыли пароль?
+            </span>
+          )}
 
           {error && (
             <div style={{ color: 'var(--color-red-text)', fontSize: 13, padding: '8px 12px', background: 'var(--color-red-soft)', borderRadius: 10 }}>
               {error}
+            </div>
+          )}
+          {notice && (
+            <div style={{ color: 'var(--color-purple)', fontSize: 13, padding: '8px 12px', background: 'rgba(155,109,255,0.12)', borderRadius: 10 }}>
+              {notice}
             </div>
           )}
 
@@ -140,19 +192,29 @@ export default function TeacherLoginPage({ onLogin }: { onLogin: () => void }) {
               marginTop: 4,
             }}
           >
-            {loading ? 'Загрузка...' : mode === 'login' ? 'Войти' : 'Зарегистрироваться'}
+            {loading ? 'Загрузка...' : buttonLabels[mode]}
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--color-muted)' }}>
-          {mode === 'login' ? 'Нет аккаунта? ' : 'Уже есть аккаунт? '}
-          <span
-            onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-            style={{ color: 'var(--color-purple)', cursor: 'pointer', fontWeight: 600 }}
-          >
-            {mode === 'login' ? 'Зарегистрироваться' : 'Войти'}
-          </span>
-        </p>
+        {mode !== 'newpassword' && (
+          <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--color-muted)' }}>
+            {mode === 'reset' ? (
+              <span onClick={() => switchMode('login')} style={{ color: 'var(--color-purple)', cursor: 'pointer', fontWeight: 600 }}>
+                ← Назад ко входу
+              </span>
+            ) : (
+              <>
+                {mode === 'login' ? 'Нет аккаунта? ' : 'Уже есть аккаунт? '}
+                <span
+                  onClick={() => switchMode(mode === 'login' ? 'register' : 'login')}
+                  style={{ color: 'var(--color-purple)', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  {mode === 'login' ? 'Зарегистрироваться' : 'Войти'}
+                </span>
+              </>
+            )}
+          </p>
+        )}
       </div>
     </div>
   )
