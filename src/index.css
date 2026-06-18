@@ -151,9 +151,9 @@
   --color-border-glass: rgba(255,255,255,0);
 
   --color-green-soft: rgba(74,222,128,0.22);
-  --color-yellow-soft: rgba(248,230,80,0.28);
+  --color-yellow-soft: rgba(248,230,80,0.16);
   --color-red-soft: rgba(248,99,107,0.30);
-  --color-peach-soft: rgba(248,180,100,0.32);
+  --color-peach-soft: rgba(248,180,100,0.18);
   --color-purple-soft: rgba(124,108,224,0.46);
   --color-rose-soft: rgba(204,75,123,0.22);
   --color-rose-text: #FF80B0;
@@ -161,8 +161,8 @@
   /* ── Semantic text-on-soft-bg colors (dark overrides) ────── */
   --color-green-text: #4ADE80;
   --color-red-text: #F48B91;
-  --color-yellow-text: #F0DC60;
-  --color-peach-text: #F8C070;
+  --color-yellow-text: #F6E47A;
+  --color-peach-text: #FFCE92;
   --color-purple-text: #DAD3FB;
   --color-blue-pill-bg: rgba(99,179,237,0.20);
   --color-blue-pill-text: #63B3ED;
