@@ -10,7 +10,7 @@ import type { ScheduleItem, Reminder, Group, Student } from '../../data/teacherM
 import { useTeacher } from '../../store/teacherStore'
 import type { TeacherTask } from '../../store/teacherStore'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
-import { useHomework } from '../../lib/useHomework'
+import { useHomework, useHardSubmissions } from '../../lib/useHomework'
 import { supabase } from '../../lib/supabase'
 import { mskToVietnam } from '../../lib/utils'
 
@@ -521,6 +521,7 @@ export default function TeacherHome() {
   const reviews = useTeacher(s => s.reviews)
   const { groups } = useGroups()
   const { homework: allHomework } = useHomework()
+  const { submissions: hardSubs } = useHardSubmissions()
   const allStudents = useAllStudents()
 
   const [todaySchedule, setTodaySchedule] = useState<ScheduleItem[]>([])
@@ -560,7 +561,12 @@ export default function TeacherHome() {
   const TODAY = new Date().toISOString().split('T')[0]
 
   const reviewedFor = (hwId: string) => Object.keys(reviews[hwId] ?? {}).length
-  const pendingCount = pendingHomework.reduce((a, hw) => a + Math.max(0, hw.submittedCount - reviewedFor(hw.id)), 0)
+  // Hard tasks (сложное ДЗ) live in lesson_progress, not homework_submissions —
+  // a fresh submission has status 'submitted' until the teacher reviews it.
+  const pendingHard = hardSubs.filter(s => s.status === 'submitted')
+  const pendingCount =
+    pendingHomework.reduce((a, hw) => a + Math.max(0, hw.submittedCount - reviewedFor(hw.id)), 0) +
+    pendingHard.length
 
   const reminders: Reminder[] = [
     ...pendingHomework.filter(hw => hw.submittedCount > 0).map(hw => ({
@@ -568,6 +574,13 @@ export default function TeacherHome() {
       type: 'check-hw' as Reminder['type'],
       text: `Проверить ДЗ — ${hw.groupName}`,
       detail: `${hw.submittedCount} из ${hw.totalCount} сдали`,
+      urgency: 'high' as Reminder['urgency'],
+    })),
+    ...pendingHard.map(s => ({
+      id: `hard-${s.id}`,
+      type: 'check-hw' as Reminder['type'],
+      text: `Сложное ДЗ — ${s.studentName.split(' ')[0]}`,
+      detail: s.lessonTitle,
       urgency: 'high' as Reminder['urgency'],
     })),
     ...allStudents.filter(s => s.paymentDue && diffDays(s.paymentDue, TODAY) <= 7).map(s => ({

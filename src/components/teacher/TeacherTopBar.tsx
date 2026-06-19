@@ -7,7 +7,7 @@ import {
 import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useTeacher, type TeacherPage } from '../../store/teacherStore'
-import { useHomework } from '../../lib/useHomework'
+import { useHomework, useHardSubmissions } from '../../lib/useHomework'
 import { useJournalPending } from '../../lib/useGroups'
 import { lockSnap, lockRelease, springTopbar } from '../../lib/feedback'
 import CreateTaskModal from './CreateTaskModal'
@@ -53,10 +53,14 @@ export default function TeacherTopBar() {
   const teacherBarRef = useRef<HTMLDivElement>(null)
   const snapMountRef  = useRef(false)
   const { homework } = useHomework()
+  const { submissions: hardSubs } = useHardSubmissions()
   const reviews = useTeacher(s => s.reviews)
+  // Regular homework (homework_submissions) + hard tasks (lesson_progress, status
+  // 'submitted') — both feed the ДЗ tab badge so nothing waiting slips by unseen.
   const pendingHwCount = homework
     .filter(hw => hw.status === 'active')
     .reduce((acc, hw) => acc + Math.max(0, hw.submittedCount - Object.keys(reviews[hw.id] ?? {}).length), 0)
+    + hardSubs.filter(s => s.status === 'submitted').length
   const pendingJournalCount = useJournalPending(null).length
   const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [widgetsOpen, setWidgetsOpen] = useState(false)

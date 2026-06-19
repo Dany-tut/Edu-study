@@ -447,7 +447,7 @@ export default function WhiteboardCanvas({
               width: `${(sel.w / CANVAS_W) * 100}%`, height: `${(sel.h / pxH) * 100}%`,
               border: '1.5px dashed var(--color-accent)', boxSizing: 'border-box',
               cursor: 'move', pointerEvents: 'auto', touchAction: 'none', borderRadius: 2,
-              boxShadow: '0 0 0 9999px rgba(0,0,0,0.03)',
+              background: 'rgba(120,106,215,0.06)',
             }}
           >
             {HANDLES.map(cid => (

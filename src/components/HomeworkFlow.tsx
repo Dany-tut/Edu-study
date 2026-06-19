@@ -1433,6 +1433,8 @@ export default function HomeworkFlow({
                     value={state.hardDraft}
                     onChange={html => setState(current => ({ ...current, hardDraft: html }))}
                     placeholder={hardLevel.teacherTask?.placeholder}
+                    autoGrow
+                    minHeight={220}
                     inputSt={{
                       width: '100%',
                       boxSizing: 'border-box',
@@ -1534,7 +1536,7 @@ export default function HomeworkFlow({
                         fontSize: 15,
                         fontWeight: 750,
                         minWidth: 220,
-                        boxShadow: hasHardSubmission ? `0 14px 32px ${palette.ring}` : 'none',
+                        boxShadow: hasHardSubmission ? `0 6px 16px ${palette.ring}` : 'none',
                       }}
                     >
                       Отправить на проверку

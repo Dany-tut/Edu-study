@@ -111,10 +111,6 @@ export default function DashboardPage() {
       {/* Desktop no-scroll layout */}
       <LayoutGroup>
       <div className="dashboard-root" style={{ display: isDesktop ? 'flex' : 'none' }}>
-        {/* Full-width progressive blur+fade strip pinned to the top, behind the
-            floating topbar pill — content scrolls up under a soft blurred band. */}
-        <div aria-hidden className="edge-progressive-blur--top" />
-
         {/* Top bar — Sidebar pill is centered; on non-home pages the widget
             carousel collapses into a pill that flies up beside the topbar. */}
         <div className="topbar-row">

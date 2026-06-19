@@ -57,12 +57,15 @@ const DEFAULT_INPUT_ST: React.CSSProperties = {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function RichConditionEditor({
-  value, onChange, inputSt, placeholder,
+  value, onChange, inputSt, placeholder, autoGrow = false, minHeight = 120,
 }: {
   value: string
   onChange: (html: string) => void
   inputSt?: React.CSSProperties
   placeholder?: string
+  // autoGrow: the editor expands with its content (no inner scroll, never clips).
+  autoGrow?: boolean
+  minHeight?: number
 }) {
   const editorRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -293,16 +296,19 @@ export default function RichConditionEditor({
           onPaste={handlePaste}
           style={{
             ...st,
-            minHeight: 120,
+            minHeight,
             fontSize: 16,
             padding: '12px 16px',
             paddingBottom: focused ? 56 : 12,
             lineHeight: 1.6,
-            overflowY: 'auto',
+            // autoGrow → grow with content (height auto, no inner scrollbar);
+            // otherwise keep the scroll-and-resize behaviour.
+            overflowY: autoGrow ? 'visible' : 'auto',
+            height: autoGrow ? 'auto' : undefined,
             wordBreak: 'break-word',
             transition: 'padding-bottom 0.18s ease',
             cursor: 'text',
-            resize: 'vertical',
+            resize: autoGrow ? 'none' : 'vertical',
           }}
         />
 
