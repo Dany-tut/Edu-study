@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion'
-import { Flame, Zap, Bell, Play, ChevronRight, Dumbbell, BookOpen, Lock, Calendar } from 'lucide-react'
+import { Flame, Zap, Bell, Play, ChevronRight, Dumbbell, BookOpen, Lock, Calendar, ClipboardList, HelpCircle, Atom, Star } from 'lucide-react'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
+import MobileHScroll from './MobileHScroll'
 import { DynamicIsland, GlassIconButton } from './mobileChrome'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
 import { useNow, lessonTimeState } from '../lib/useNow'
@@ -31,6 +32,9 @@ export default function MobileHome() {
   const subjects = useStudentData(s => s.subjects)
   const scheduleDays = useStudentData(s => s.scheduleDays)
   const stats = useStudentData(s => s.stats)
+  const quizQuestions = useStudentData(s => s.quizQuestions)
+  const scienceFacts = useStudentData(s => s.scienceFacts)
+  const scienceMemes = useStudentData(s => s.scienceMemes)
   const openLesson = useDashboard(s => s.openLesson)
   const openCourses = useDashboard(s => s.openCourses)
   const setActivePage = useDashboard(s => s.setActivePage)
@@ -121,11 +125,46 @@ export default function MobileHome() {
             </div>
           )}
 
+          {/* Домашнее задание */}
+          <PendingHWCard subjects={subjects} onOpenHW={() => setActivePage('homework')} />
+
           {/* Быстрые действия */}
           <div className="flex" style={{ gap: 12 }}>
             <QuickTile icon={<Dumbbell size={20} />} title="Тренажёр" sub="Решай задания" bg="var(--color-green-soft)" fg="var(--color-green-text)" onClick={() => setActivePage('trainer')} />
             <QuickTile icon={<BookOpen size={20} />} title="Курс" sub="Уроки и путь" bg="var(--color-purple-soft)" fg="var(--color-purple-text)" onClick={() => openCourses()} />
           </div>
+
+          {/* Виджеты дня */}
+          {(quizQuestions.length > 0 || scienceFacts.length > 0 || scienceMemes.length > 0) && (
+            <div>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Виджеты дня</p>
+              <div style={{ marginLeft: -16, marginRight: -16 }}>
+                <MobileHScroll padX={16} gap={10}>
+                  {quizQuestions[0] && (
+                    <WidgetCard
+                      tag="Вопрос дня" icon={<HelpCircle size={15} />}
+                      accent="var(--color-purple-text)" bg="var(--color-purple-soft)"
+                      text={quizQuestions[0].title}
+                    />
+                  )}
+                  {scienceFacts[0] && (
+                    <WidgetCard
+                      tag="Факт дня" icon={<Atom size={15} />}
+                      accent="var(--color-green-text)" bg="var(--color-green-soft)"
+                      text={scienceFacts[0].text}
+                    />
+                  )}
+                  {scienceMemes[0] && (
+                    <WidgetCard
+                      tag="Мем дня" icon={<Star size={15} />}
+                      accent="#B07A00" bg="var(--color-yellow-soft)"
+                      text={scienceMemes[0].setup}
+                    />
+                  )}
+                </MobileHScroll>
+              </div>
+            </div>
+          )}
         </div>
       </MobileScreen>
       <MobileBottomNav />
@@ -180,5 +219,60 @@ function QuickTile({ icon, title, sub, bg, fg, onClick }: { icon: React.ReactNod
       <span style={{ fontSize: 14, fontWeight: 800, color: fg, marginTop: 4 }}>{title}</span>
       <span style={{ fontSize: 11, fontWeight: 500, color: fg, opacity: 0.8 }}>{sub}</span>
     </motion.button>
+  )
+}
+
+import type { Subject } from '../data/mockData'
+
+function PendingHWCard({ subjects, onOpenHW }: { subjects: Subject[]; onOpenHW: () => void }) {
+  const pending = subjects.flatMap(s =>
+    s.modules.flatMap(m => m.lessons
+      .filter(l => l.status === 'current' || l.status === 'returned')
+      .map(l => ({ lesson: l, subjectName: s.name }))
+    )
+  )
+  if (pending.length === 0) return null
+  const first = pending[0]
+  return (
+    <motion.button
+      whileTap={{ scale: 0.985 }}
+      onClick={() => { tactile(); onOpenHW() }}
+      className="flex items-center text-left cursor-pointer"
+      style={{
+        gap: 12, padding: '12px 14px', borderRadius: 18, border: '1px solid rgba(248,200,50,0.3)', width: '100%',
+        background: 'var(--color-yellow-soft)',
+      }}
+    >
+      <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(248,162,59,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <ClipboardList size={20} style={{ color: '#B07A00' }} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#B07A00', marginBottom: 2 }}>Домашнее задание</div>
+        <div className="truncate" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>
+          {first.lesson.title} · {first.subjectName}
+        </div>
+        {pending.length > 1 && (
+          <div style={{ fontSize: 11, color: '#B07A00', marginTop: 2 }}>+{pending.length - 1} ещё</div>
+        )}
+      </div>
+      <ChevronRight size={16} style={{ color: '#B07A00', flexShrink: 0 }} />
+    </motion.button>
+  )
+}
+
+function WidgetCard({ tag, icon, accent, bg, text }: { tag: string; icon: React.ReactNode; accent: string; bg: string; text: string }) {
+  return (
+    <div style={{
+      width: 150, flexShrink: 0, padding: 14, borderRadius: 18,
+      background: bg, border: '1px solid transparent',
+    }}>
+      <div className="flex items-center" style={{ gap: 5, marginBottom: 7, color: accent }}>
+        {icon}
+        <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{tag}</span>
+      </div>
+      <p style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-text)', margin: 0, display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+        {text}
+      </p>
+    </div>
   )
 }
