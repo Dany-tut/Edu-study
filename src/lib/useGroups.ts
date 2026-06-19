@@ -388,6 +388,27 @@ export function useAttendance(groupId: string | null) {
     await supabase
       .from('lesson_attendance')
       .upsert(rows, { onConflict: 'student_id,lesson_date' })
+
+    // Single source of truth: recompute each affected student's attendance %
+    // straight from lesson_attendance and write it back to students.attendance,
+    // so the roster / Оценки tab stop reading a stale denormalised snapshot.
+    const affected = [...new Set(entries.map(e => e.studentId))]
+    if (affected.length) {
+      const { data: att } = await supabase
+        .from('lesson_attendance')
+        .select('student_id, present')
+        .in('student_id', affected)
+      const tally = new Map<string, { present: number; total: number }>()
+      for (const r of att ?? []) {
+        const cur = tally.get(r.student_id) ?? { present: 0, total: 0 }
+        cur.total++; if (r.present) cur.present++
+        tally.set(r.student_id, cur)
+      }
+      await Promise.all([...tally].map(([id, { present, total }]) =>
+        supabase.from('students').update({ attendance: total ? Math.round((present / total) * 100) : 0 }).eq('id', id)
+      ))
+    }
+
     await load()
   }
 
