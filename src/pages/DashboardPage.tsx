@@ -244,8 +244,10 @@ export default function DashboardPage() {
       </div>
       </LayoutGroup>
 
-      {/* Mobile layout (separate). Home uses the MobileScreen shell; the other
-          pages keep their padded scroll wrapper until they're converted (T4/T5). */}
+      {/* Mobile layout (separate). Screens that own a MobileScreen shell
+          (Home/Courses/Profile/Trainer) render standalone — they bring their own
+          safe-area, top chrome and bottom nav. Lesson/ДЗ flows keep a padded
+          scroll wrapper with safe-area top + bottom-nav clearance. */}
       <div style={{ display: isDesktop ? 'none' : 'block' }}>
         {activePage === 'home' ? (
           <MobileHome />
@@ -253,8 +255,16 @@ export default function DashboardPage() {
           <MobileCourses />
         ) : activePage === 'profile' ? (
           <MobileProfilePage />
+        ) : activePage === 'trainer' ? (
+          <TaskBankPage />
         ) : (
-          <div style={{ minHeight: '100vh', background: 'var(--color-bg)', padding: '24px 24px 100px' }}>
+          <div style={{
+            minHeight: '100dvh', background: 'var(--color-bg)',
+            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+            paddingLeft: 16, paddingRight: 16,
+            paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 110px)',
+            overflowX: 'clip', overscrollBehavior: 'contain',
+          }}>
             {activePage === 'lesson' ? (
               lesson?.kind === 'test'
                 ? <TestFlow lesson={lesson} onBack={closeLesson} />
@@ -267,8 +277,6 @@ export default function DashboardPage() {
                 homework={homework}
                 onBack={closeHomework}
               />
-            ) : activePage === 'trainer' ? (
-              <TaskBankPage />
             ) : (
               <CoursesPage />
             )}

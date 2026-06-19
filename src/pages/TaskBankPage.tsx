@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, Search, BookOpen, CheckCircle2, XCircle,
   Bookmark, Share2, AlertTriangle, Eye, Sparkles, Target, Filter,
-  LayoutGrid, List, ArrowUpDown, ArrowUp, X, TrendingUp,
+  LayoutGrid, List, ArrowUpDown, ArrowUp, X, TrendingUp, FlaskConical, Bell,
 } from 'lucide-react'
 import {
   Task, Subject,
@@ -25,7 +25,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import MobileScreen from '../components/MobileScreen'
 import MobileBottomNav from '../components/MobileBottomNav'
 import MobileSheet from '../components/MobileSheet'
-import MobilePill from '../components/MobilePill'
+import { GlassPill, GlassIconButton } from '../components/mobileChrome'
 import { glassCircle } from '../lib/mobileTokens'
 import { tactile } from '../lib/feedback'
 
@@ -211,13 +211,14 @@ function NumberBadge({ id, onCopied }: { id: number; onCopied: () => void }) {
 }
 
 // ── Task card — same visual language as HomeworkFlow questions ───────────────
-function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAnswer, onCopyId, lineNames }: {
+function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAnswer, onCopyId, lineNames, mobile }: {
   task: Task; index: number; palette: ReturnType<typeof subjectTheme>
   lineNames: Record<number, string>
   favorites: Set<number>; onFavorite: (id: number) => void
   answered: Map<number, { value: string; correct: boolean | null }>
   onAnswer: (id: number, value: string, correct: boolean | null) => void
   onCopyId: () => void
+  mobile?: boolean
 }) {
   const [showSolution, setShowSolution] = useState(false)
   const [inputVal, setInputVal] = useState(answered.get(task.id)?.value ?? '')
@@ -231,7 +232,10 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
   const isCorrect = state?.correct === true
   const isWrong   = state?.correct === false
 
+  // Tactility is mobile-only — desktop trainer shouldn't blip/vibrate on every click.
+  const tap = () => { if (mobile) tactile() }
   function check() {
+    tap()
     onAnswer(task.id, inputVal, inputVal.trim().toLowerCase() === task.answer.toLowerCase())
   }
   function share() {
@@ -262,7 +266,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             </span>
             <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
           </div>
-          <div style={{ fontSize: 16, lineHeight: 1.45, fontWeight: 650, color: 'var(--color-text)' }}
+          <div style={{ fontSize: mobile ? 13 : 16, lineHeight: 1.45, fontWeight: 650, color: 'var(--color-text)' }}
             dangerouslySetInnerHTML={{ __html: task.question }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
@@ -273,7 +277,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             </div>
           )}
           <button
-            onClick={() => onFavorite(task.id)}
+            onClick={() => { tap(); onFavorite(task.id) }}
             style={{
               width: 36, height: 36, borderRadius: 12,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -294,23 +298,25 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           <img key="image" src={task.questionImage} alt="" style={{ maxWidth: `${task.questionImageSize ?? 100}%`, borderRadius: 14, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', display: 'block' }} />
         )
         if (blockKey === 'table' && task.questionTable) return (
-          <div key="table" style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', width: '50%' }}>
-            <table style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'fixed', fontSize: 13 }}>
+          <div key="table" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: 16, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', maxWidth: '100%' }}>
+            <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: mobile ? 12 : 13, minWidth: mobile ? 240 : undefined }}>
               <thead>
-                <tr>{task.questionTable.headers.map(h => (
-                  <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '9px 16px', fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left' }}>{h}</th>
+                <tr>{task.questionTable.headers.map((h, hi, arr) => (
+                  <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: hi < arr.length - 1 ? '1px solid var(--color-border-medium)' : undefined, padding: mobile ? '7px 10px' : '10px 16px', fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}</tr>
               </thead>
               <tbody>
                 {task.questionTable.rows.map((row, i) => (
-                  <tr key={i}>{row.map((cell, j) => {
-                    const isEmpty = !!task.questionTable!.emptyCells?.[`${i},${j}`]
-                    return (
-                      <td key={j} style={{ borderTop: i > 0 ? '1px solid var(--color-border)' : undefined, borderRight: '1px solid var(--color-border)', padding: '9px 16px', background: 'var(--color-table-cell-bg)', minWidth: isEmpty ? 80 : undefined }}>
-                        {isEmpty ? ' ' : cell}
-                      </td>
-                    )
-                  })}</tr>
+                  <tr key={i} style={{ background: i % 2 === 1 ? 'rgba(0,0,0,0.02)' : undefined }}>
+                    {row.map((cell, j) => {
+                      const isEmpty = !!task.questionTable!.emptyCells?.[`${i},${j}`]
+                      return (
+                        <td key={j} style={{ borderTop: '1px solid var(--color-border)', borderRight: j < row.length - 1 ? '1px solid var(--color-border)' : undefined, padding: mobile ? '7px 10px' : '9px 16px', background: isEmpty ? 'rgba(var(--glass-rgb),0.6)' : undefined, minWidth: isEmpty ? 56 : undefined, color: 'var(--color-text)' }}>
+                          {isEmpty ? ' ' : cell}
+                        </td>
+                      )
+                    })}
+                  </tr>
                 ))}
               </tbody>
             </table>
@@ -321,54 +327,57 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
 
       {/* Choice options */}
       {task.choices && task.choices.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
           {task.choices.map((c, i) => (
-            <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)' }}>
-              <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: 'var(--color-muted)' }}>{'АБВГДЕЖЗИК'[i]}</span>
-              <span style={{ fontSize: 16, color: 'var(--color-text)' }}>{c.text}</span>
+            <div key={c.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', borderRadius: 12, background: 'rgba(var(--glass-rgb),0.7)', border: '1px solid var(--color-border-soft)', minHeight: 42 }}>
+              <span style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)', marginTop: 1 }}>{'АБВГДЕЖЗИК'[i]}</span>
+              <span style={{ fontSize: mobile ? 13 : 15, color: 'var(--color-text)', lineHeight: 1.45, paddingTop: 2 }}>{c.text}</span>
             </div>
           ))}
-          <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{task.answerType === 'multi' ? 'Введите буквы всех верных вариантов, напр. АБГ' : 'Введите букву верного варианта'}</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{task.answerType === 'multi' ? 'Введите буквы всех верных вариантов, напр. АБГ' : 'Введите букву верного варианта'}</div>
         </div>
       )}
 
       {/* Matching */}
-      {task.matchLeft && task.matchRight && (
-        <div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {task.matchLeft.map((l, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)' }}>
-                  <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: 'var(--color-muted)' }}>{'АБВГДЕЖЗИК'[i]}</span>
-                  <span style={{ fontSize: 16, color: 'var(--color-text)' }}>{l}</span>
+      {task.matchLeft && task.matchRight && (() => {
+        const maxLen = Math.max(task.matchLeft.length, task.matchRight.length)
+        return (
+          <div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {Array.from({ length: maxLen }).map((_, i) => (
+                <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'stretch' }}>
+                  {task.matchLeft![i] !== undefined ? (
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', borderRadius: 12, background: 'rgba(var(--glass-rgb),0.7)', border: '1px solid var(--color-border-soft)', minHeight: 42 }}>
+                      <span style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)', marginTop: 1 }}>{'АБВГДЕЖЗИК'[i]}</span>
+                      <span style={{ fontSize: mobile ? 13 : 15, color: 'var(--color-text)', lineHeight: 1.45, paddingTop: 2 }}>{task.matchLeft![i]}</span>
+                    </div>
+                  ) : <div />}
+                  {task.matchRight![i] !== undefined ? (
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', borderRadius: 12, background: 'rgba(0,0,0,0.03)', border: '1px solid var(--color-border-soft)', minHeight: 42 }}>
+                      <span style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'rgba(var(--glass-rgb),0.9)', border: '1px solid var(--color-border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)', marginTop: 1 }}>{i + 1}</span>
+                      <span style={{ fontSize: mobile ? 13 : 15, color: 'var(--color-text)', lineHeight: 1.45, paddingTop: 2 }}>{task.matchRight![i]}</span>
+                    </div>
+                  ) : <div />}
                 </div>
               ))}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {task.matchRight.map((r, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)' }}>
-                  <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: 'var(--color-muted)' }}>{i + 1}</span>
-                  <span style={{ fontSize: 16, color: 'var(--color-text)' }}>{r}</span>
-                </div>
-              ))}
-            </div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 6 }}>Сопоставьте и введите, напр. А2 Б1 В3</div>
           </div>
-          <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>Сопоставьте и введите, напр. А2 Б1 В3</div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Sequence */}
       {task.sequenceItems && task.sequenceItems.length > 0 && (
         <div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             {[...task.sequenceItems].sort((a, b) => a.localeCompare(b, 'ru')).map((s, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.025)', border: '1px solid var(--color-border-soft)' }}>
-                <span style={{ width: 24, height: 24, borderRadius: 7, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid rgba(0,0,0,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: 'var(--color-muted)' }}>{i + 1}</span>
-                <span style={{ fontSize: 16, color: 'var(--color-text)' }}>{s}</span>
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', borderRadius: 12, background: 'rgba(var(--glass-rgb),0.7)', border: '1px solid var(--color-border-soft)', minHeight: 42 }}>
+                <span style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)', marginTop: 1 }}>{i + 1}</span>
+                <span style={{ fontSize: mobile ? 13 : 15, color: 'var(--color-text)', lineHeight: 1.45, paddingTop: 2 }}>{s}</span>
               </div>
             ))}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>Введите порядок цифрами, напр. 3142</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 6 }}>Введите порядок цифрами, напр. 3142</div>
         </div>
       )}
 
@@ -425,7 +434,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                 <CheckCircle2 size={14} />Проверить
               </button>
               {state !== undefined && (
-                <button onClick={() => setShowSolution(s => !s)} style={{
+                <button onClick={() => { tap(); setShowSolution(s => !s) }} style={{
                   display: 'flex', alignItems: 'center', gap: 6, padding: '11px 18px', borderRadius: 16,
                   background: showSolution ? palette.soft : 'rgba(var(--glass-rgb), 0.88)',
                   border: showSolution ? 'none' : '1px solid var(--color-border-medium)',
@@ -1116,6 +1125,110 @@ function ProgressModal({
   )
 }
 
+// ── Mobile progress bottom sheet (replaces centered modal on phone) ────────
+function MobileProgressSheet({ open, onClose, tasks, answered, favorites, palette, lineNames, onRetryMistakes, onSimilarTasks }: {
+  open: boolean; onClose: () => void
+  tasks: Task[]
+  answered: Map<number, { value: string; correct: boolean | null; date?: string }>
+  favorites: Set<number>
+  palette: ReturnType<typeof subjectTheme>
+  lineNames: Record<number, string>
+  onRetryMistakes: () => void
+  onSimilarTasks: (lines: number[]) => void
+}) {
+  const today = new Date().toISOString().slice(0, 10)
+  const totalCorrect = useMemo(() => [...answered.values()].filter(a => a.correct === true).length, [answered])
+  const totalWrong   = useMemo(() => [...answered.values()].filter(a => a.correct === false).length, [answered])
+  const todayCorrect = useMemo(() => [...answered.values()].filter(a => a.correct === true  && a.date === today).length, [answered, today])
+  const wrongTasks   = useMemo(() => tasks.filter(t => answered.get(t.id)?.correct === false), [tasks, answered])
+  const wrongLines   = useMemo(() => [...new Set(wrongTasks.map(t => t.line))], [wrongTasks])
+
+  const sectionStats = useMemo(() => {
+    const s: Record<string, { correct: number; wrong: number }> = {}
+    tasks.forEach(t => {
+      const ans = answered.get(t.id)
+      if (!ans || ans.correct === null) return
+      const sec = t.section || 'Без раздела'
+      if (!s[sec]) s[sec] = { correct: 0, wrong: 0 }
+      ans.correct ? s[sec].correct++ : s[sec].wrong++
+    })
+    return Object.entries(s).sort((a, b) => (b[1].correct + b[1].wrong) - (a[1].correct + a[1].wrong)).slice(0, 6)
+  }, [tasks, answered])
+
+  return (
+    <MobileSheet open={open} onClose={onClose} title="Мой прогресс">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {/* Stats row */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+          {[
+            { val: totalCorrect, label: 'Верно', bg: 'var(--color-green-soft)', color: 'var(--color-green-text)' },
+            { val: totalWrong,   label: 'Ошибок', bg: 'var(--color-red-soft)',   color: 'var(--color-red-text)' },
+            { val: favorites.size, label: 'Избранное', bg: `${palette.accent}18`, color: palette.text },
+          ].map(({ val, label, bg, color }) => (
+            <div key={label} style={{ padding: '10px 8px', borderRadius: 14, background: bg, textAlign: 'center' }}>
+              <div style={{ fontSize: 22, fontWeight: 750, color, lineHeight: 1 }}>{val}</div>
+              <div style={{ fontSize: 10, color, opacity: 0.75, marginTop: 3 }}>{label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Today */}
+        {todayCorrect > 0 && (
+          <div style={{ padding: '10px 12px', borderRadius: 12, background: 'var(--color-green-soft)' }}>
+            <span style={{ fontSize: 12, color: 'var(--color-green-text)', fontWeight: 700 }}>Сегодня верно: {todayCorrect}</span>
+          </div>
+        )}
+
+        {/* By section */}
+        {sectionStats.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>По разделам</div>
+            {sectionStats.map(([sec, s]) => {
+              const total = s.correct + s.wrong
+              const pct = total ? s.correct / total : 0
+              return (
+                <div key={sec}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                    <span style={{ fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{sec}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, flexShrink: 0, marginLeft: 8, color: pct === 1 ? 'var(--color-green-text)' : s.wrong > 0 ? 'var(--color-red-text)' : 'var(--color-text-3)' }}>{s.correct}/{total}</span>
+                  </div>
+                  <div style={{ height: 5, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden', display: 'flex' }}>
+                    <div style={{ width: `${pct * 100}%`, height: '100%', background: 'var(--color-green-accent)', flexShrink: 0 }} />
+                    <div style={{ width: `${(s.wrong / total) * 100}%`, height: '100%', background: '#F48B91', flexShrink: 0 }} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Actions */}
+        {wrongTasks.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 4 }}>
+            <button onClick={onRetryMistakes}
+              style={{ width: '100%', padding: '13px', borderRadius: 14, border: 'none', background: palette.accent, color: palette.onAccent, fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: `0 4px 14px ${palette.ring}` }}>
+              <XCircle size={15} />Повторить ошибки ({wrongTasks.length})
+            </button>
+            {wrongLines.length > 0 && (
+              <button onClick={() => onSimilarTasks(wrongLines)}
+                style={{ width: '100%', padding: '13px', borderRadius: 14, border: `1px solid ${palette.accent}44`, background: `${palette.accent}14`, fontSize: 14, fontWeight: 600, cursor: 'pointer', color: palette.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <Target size={15} />Похожие задания
+              </button>
+            )}
+          </div>
+        )}
+
+        {answered.size === 0 && (
+          <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--color-text-3)' }}>
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Ещё нет решённых заданий</div>
+            <div style={{ fontSize: 12 }}>Начни отвечать — здесь появится статистика</div>
+          </div>
+        )}
+      </div>
+    </MobileSheet>
+  )
+}
+
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function TaskBankPage() {
   const { dark } = useTheme()
@@ -1142,6 +1255,7 @@ export default function TaskBankPage() {
   const [source, setSource]     = useState('')
   const [search, setSearch]     = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement>(null)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [sortMode, setSortMode]         = useState<SortMode>('newest')
   const viewMode: ViewMode = 'list'
@@ -1329,27 +1443,30 @@ export default function TaskBankPage() {
 
     return (
       <>
-        <AnimatePresence>
-          {showProgressModal && (
-            <ProgressModal
-              tasks={subjectTasks} answered={answered} favorites={favorites} palette={palette} lineNames={lineNames}
-              onClose={() => setShowProgressModal(false)}
-              onRetryMistakes={() => { setShowWrongOnly(true); setWrongSimilarLines(new Set()); setShowProgressModal(false) }}
-              onSimilarTasks={lines => { setWrongSimilarLines(new Set(lines)); setShowWrongOnly(false); setSections([]); setLines([]); setShowProgressModal(false) }}
-            />
-          )}
-        </AnimatePresence>
+        <MobileProgressSheet
+          open={showProgressModal}
+          onClose={() => setShowProgressModal(false)}
+          tasks={subjectTasks} answered={answered} favorites={favorites} palette={palette} lineNames={lineNames}
+          onRetryMistakes={() => { setShowWrongOnly(true); setWrongSimilarLines(new Set()); setShowProgressModal(false) }}
+          onSimilarTasks={lines => { setWrongSimilarLines(new Set(lines)); setShowWrongOnly(false); setSections([]); setLines([]); setShowProgressModal(false) }}
+        />
 
         <MobileScreen
           topPad={74}
           scrollKey={subject}
           topZone={
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, borderRadius: 20, background: 'var(--color-surface)', backdropFilter: 'blur(18px) saturate(180%)', WebkitBackdropFilter: 'blur(18px) saturate(180%)', border: '1px solid var(--color-border-glass)', boxShadow: 'var(--shadow-md)', padding: '8px 10px 8px 12px' }}>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <MobilePill size="sm" active={subject === 'biology'} onClick={() => { setSubjectPersist('biology'); resetOnSubject() }}>Биология</MobilePill>
-                <MobilePill size="sm" active={subject === 'chemistry'} onClick={() => { setSubjectPersist('chemistry'); resetOnSubject() }}>Химия</MobilePill>
+            <div className="flex items-center justify-between" style={{ gap: 8 }}>
+              <GlassPill onClick={() => { setSubjectPersist(subject === 'biology' ? 'chemistry' : 'biology'); resetOnSubject() }}>
+                <FlaskConical size={15} style={{ color: 'var(--color-accent)' }} />
+                {subject === 'biology' ? 'Биология' : 'Химия'}
+              </GlassPill>
+              <div className="flex items-center" style={{ gap: 8 }}>
+                <GlassPill>
+                  <BookOpen size={14} style={{ color: 'var(--color-accent)' }} />
+                  {filtered.length}
+                </GlassPill>
+                <GlassIconButton icon={<Bell size={16} />} dot ariaLabel="Уведомления" />
               </div>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)', paddingRight: 6 }}>{filtered.length}</span>
             </div>
           }
         >
@@ -1363,7 +1480,7 @@ export default function TaskBankPage() {
                 <TaskCard key={task.id} task={task} index={i} palette={palette}
                   favorites={favorites} onFavorite={toggleFav}
                   answered={answered} onAnswer={setAnswer}
-                  onCopyId={handleCopyId} lineNames={lineNames}
+                  onCopyId={handleCopyId} lineNames={lineNames} mobile
                 />
               ))}
             </div>
@@ -1401,7 +1518,7 @@ export default function TaskBankPage() {
                 const active = parts.includes(p)
                 const avail = availableParts.includes(p as '1' | '2')
                 return (
-                <button key={p} disabled={!avail} onClick={() => setParts(active ? parts.filter(x => x !== p) : [...parts, p])} style={{
+                <button key={p} disabled={!avail} onClick={() => { tactile(); setParts(active ? parts.filter(x => x !== p) : [...parts, p]) }} style={{
                   flex: 1, padding: '11px 12px', borderRadius: 13, fontSize: 14, fontWeight: 600, cursor: avail ? 'pointer' : 'not-allowed',
                   background: active ? `${palette.accent}22` : 'var(--color-bg-input)',
                   border: `1px solid ${active ? palette.accent : 'var(--color-border-soft)'}`,
@@ -1416,7 +1533,7 @@ export default function TaskBankPage() {
             <FilterField label="Источник" options={allSources} value={source} onChange={setSource} accent={palette.accent} />
             <StatusTabs value={statusFilter} onChange={setStatusFilter} />
             {hasFilters && (
-              <button onClick={clearFilters}
+              <button onClick={() => { tactile(); clearFilters() }}
                 style={{ marginTop: 2, padding: '11px', borderRadius: 12, background: 'rgba(176,48,64,0.10)', border: '1px solid rgba(176,48,64,0.18)', fontSize: 13, color: 'rgba(176,48,64,0.85)', cursor: 'pointer', fontWeight: 600 }}>
                 Сбросить фильтры
               </button>
@@ -1428,7 +1545,7 @@ export default function TaskBankPage() {
         <MobileSheet open={sheet === 'sort'} onClose={() => setSheet(null)} title="Сортировка">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {SORT_OPTIONS.map(([mode, label]) => (
-              <button key={mode} onClick={() => { setSortMode(mode); setSheet(null) }}
+              <button key={mode} onClick={() => { tactile(); setSortMode(mode); setSheet(null) }}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: sortMode === mode ? 'var(--color-purple-soft)' : 'transparent', color: sortMode === mode ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 15, fontWeight: 600 }}>
                 {label}
                 {sortMode === mode && <CheckCircle2 size={18} />}
@@ -1698,10 +1815,11 @@ export default function TaskBankPage() {
           {/* Controls row */}
           <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
             <div
-              onClick={() => { if (!searchOpen) setSearchOpen(true); }}
+              onClick={() => { setSearchOpen(true); searchInputRef.current?.focus(); }}
               style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', background: 'rgba(var(--glass-rgb), 0.96)', border: `1px solid ${searchOpen || search ? 'var(--color-accent, #7c3aed)' : 'var(--color-border-medium)'}`, borderRadius: 999, width: searchOpen || search ? 260 : 112, transition: 'width 0.22s cubic-bezier(.4,0,.2,1), border-color 0.15s', overflow: 'hidden', cursor: searchOpen || search ? 'text' : 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', flexShrink: 0 }}>
               <Search size={14} style={{ color: searchOpen || search ? 'var(--color-text)' : 'var(--color-text-3)', flexShrink: 0 }} />
               <input
+                ref={searchInputRef}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 onFocus={() => setSearchOpen(true)}

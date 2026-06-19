@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Users, User, Plus } from 'lucide-react'
 import type { Group } from '../../data/teacherMockData'
+import { useStudents } from '../../lib/useGroups'
 
 export type TabConfig = {
   tabs: { id: string; label: string }[]
@@ -202,10 +203,25 @@ function GroupMiniCard({
 }
 
 // ─── Individual (1:1) student card ────────────────────────────────────────────
+const attColor = (a: number) => a >= 90 ? 'var(--color-green-text)' : a >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
+const hwColor = (h: number) => h >= 80 ? 'var(--color-green-text)' : h >= 60 ? 'var(--color-yellow-text)' : 'var(--color-red-text)'
+
+function MetricCell({ label, value, color, divider }: { label: string; value: string; color: string; divider?: boolean }) {
+  return (
+    <div style={{ flex: 1, textAlign: 'center', borderLeft: divider ? '1px solid var(--color-border-soft)' : undefined }}>
+      <div style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--color-text-3)' }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 800, color, marginTop: 1 }}>{value}</div>
+    </div>
+  )
+}
+
 function IndividualCard({
   group, isActive, onClick,
 }: { group: Group; isActive: boolean; onClick: () => void }) {
   const initials = group.name.split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase()
+  // The 1:1 group owns one student row — pull its metrics for the status footer.
+  const { students } = useStudents(group.id)
+  const stu = students[0] ?? null
   return (
     <motion.div
       whileHover={{ y: -2, boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }}
@@ -221,27 +237,30 @@ function IndividualCard({
         borderRadius: 22,
         boxShadow: isActive ? `0 0 0 3px ${group.color}33, 0 4px 20px rgba(0,0,0,0.06)` : 'var(--shadow-sm-page)',
         cursor: 'pointer', userSelect: 'none',
-        padding: '18px 20px',
+        padding: '15px 16px',
         transition: 'background 0.18s, border 0.18s, box-shadow 0.18s',
         overflow: 'hidden',
         position: 'relative',
       }}
     >
-      {/* 1:1 badge */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      {/* 1:1 + level badges */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 11 }}>
         <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: group.color, background: group.color + '22', padding: '2px 8px', borderRadius: 7, border: `1px solid ${group.color}33` }}>
           1:1
         </span>
-        <User size={13} strokeWidth={1.8} style={{ color: 'var(--color-text-4)' }} />
+        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', background: 'var(--color-bg-5)', padding: '2px 8px', borderRadius: 6 }}>
+          {group.level}
+        </span>
+        <User size={13} strokeWidth={1.8} style={{ color: 'var(--color-text-4)', marginLeft: 'auto' }} />
       </div>
 
-      {/* Avatar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
+      {/* Avatar + name + subject */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minHeight: 0 }}>
         <div style={{
-          width: 44, height: 44, borderRadius: 14, flexShrink: 0,
+          width: 42, height: 42, borderRadius: 13, flexShrink: 0,
           background: `linear-gradient(135deg, ${group.color}, ${group.color}cc)`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 16, fontWeight: 800, color: '#fff',
+          fontSize: 15, fontWeight: 800, color: '#fff',
           boxShadow: `0 2px 8px ${group.color}44`,
         }}>
           {initials}
@@ -250,17 +269,17 @@ function IndividualCard({
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {group.name}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 3 }}>
+          <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {group.icon} {group.subject}
           </div>
         </div>
       </div>
 
-      {/* Level + subject footer */}
-      <div style={{ marginTop: 12 }}>
-        <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)', background: 'var(--color-bg-5)', padding: '3px 8px', borderRadius: 6 }}>
-          {group.level}
-        </span>
+      {/* Status footer: live metrics from the student record */}
+      <div style={{ display: 'flex', gap: 6, marginTop: 11, paddingTop: 10, borderTop: '1px solid var(--color-border-soft)' }}>
+        <MetricCell label="Посещ." value={stu ? `${stu.attendance}%` : '—'} color={stu ? attColor(stu.attendance) : 'var(--color-text-4)'} />
+        <MetricCell label="ДЗ" value={stu ? `${stu.hwScore}` : '—'} color={stu ? hwColor(stu.hwScore) : 'var(--color-text-4)'} divider />
+        <MetricCell label="Цель" value={stu?.desiredScore ? `${stu.desiredScore}` : '—'} color="var(--color-accent)" divider />
       </div>
     </motion.div>
   )

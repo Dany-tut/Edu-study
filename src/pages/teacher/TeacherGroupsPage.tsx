@@ -6,6 +6,7 @@ import {
   TrendingUp, ClipboardCheck, Clock, Award,
   ChevronsUpDown, ExternalLink, Copy, Check,
   BarChart2, Target, BookOpen, XCircle, CheckCircle2, Layers,
+  Search, Plus,
 } from 'lucide-react'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import GroupStrip, { type TabConfig } from '../../components/teacher/GroupStrip'
@@ -651,10 +652,50 @@ function GroupCard({
 }
 
 // ─── Sort helpers ─────────────────────────────────────────────────────────────
-type SortKey = 'name' | 'lastVisit' | 'hwScore' | 'testScore' | 'trialScore' | 'attendance' | 'lastPayment' | 'debt'
+type SortKey = 'attention' | 'name' | 'lastVisit' | 'hwScore' | 'testScore' | 'trialScore' | 'attendance' | 'lastPayment' | 'debt'
 type SortDir = 'asc' | 'desc'
+type RosterFilter = 'all' | 'debtors' | 'fading' | 'nohw'
+
+// Days since a "dd.mm.yyyy" date string; large fallback when unparseable/empty.
+function daysSinceVisit(v?: string): number {
+  if (!v || !v.includes('.')) return 999
+  const [d, m, y] = v.split('.').map(Number)
+  if (!d || !m || !y) return 999
+  const then = new Date(y, m - 1, d).getTime()
+  return Math.floor((Date.now() - then) / 86_400_000)
+}
+
+// Heuristic "needs attention" score from the fields we already have on Student.
+// Higher = more urgent; used for the default sort so problem students float up.
+function attentionScore(s: Student): number {
+  let score = 0
+  const debt = s.debt ?? 0
+  if (debt > 0) score += 4 + Math.min(3, debt / 2000)
+  if (s.attendance < 70) score += 3
+  else if (s.attendance < 85) score += 1
+  if (s.hwScore === 0) score += 3
+  else if (s.hwScore < 60) score += 2
+  const stale = daysSinceVisit(s.lastVisit)
+  if (stale > 14) score += 3
+  else if (stale > 7) score += 1.5
+  return score
+}
+
+const filterPredicate: Record<RosterFilter, (s: Student) => boolean> = {
+  all: () => true,
+  debtors: s => (s.debt ?? 0) > 0,
+  fading: s => daysSinceVisit(s.lastVisit) > 7 || s.attendance < 70,
+  nohw: s => s.hwScore === 0,
+}
 
 function sortStudents(list: Student[], key: SortKey, dir: SortDir) {
+  if (key === 'attention') {
+    // Always urgent-first regardless of dir toggle; tie-break by name.
+    return [...list].sort((a, b) => {
+      const diff = attentionScore(b) - attentionScore(a)
+      return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ru')
+    })
+  }
   return [...list].sort((a, b) => {
     let av: number | string = (a as Record<string, unknown>)[key] as number | string ?? -1
     let bv: number | string = (b as Record<string, unknown>)[key] as number | string ?? -1
@@ -1106,10 +1147,19 @@ function StudentCoursesSection({ student, group }: { student: Student; group: Gr
 }
 
 function StudentPanel({
-  student, group, onClose, onDelete, onOpenFullCard,
-}: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void }) {
+  student, group, onClose, onDelete, onOpenFullCard, onAddHomework, onSaveComment,
+}: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void; onAddHomework: () => void; onSaveComment: (text: string) => Promise<void> }) {
   const [comment, setComment] = useState(student.comment ?? '')
+  const [commentSaved, setCommentSaved] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  // Re-sync the editor when switching to another student.
+  useEffect(() => { setComment(student.comment ?? ''); setCommentSaved(false) }, [student.id])
+  async function saveComment() {
+    if (comment === (student.comment ?? '')) return
+    await onSaveComment(comment)
+    setCommentSaved(true)
+    setTimeout(() => setCommentSaved(false), 2000)
+  }
   return (
     <div
       style={{
@@ -1264,13 +1314,20 @@ function StudentPanel({
 
         {/* Comment */}
         <section>
-          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
-            Комментарий
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+              Заметка преподавателя
+            </div>
+            {commentSaved && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)' }}>
+                <Check size={11} /> сохранено
+              </span>
+            )}
           </div>
           <textarea
             value={comment}
             onChange={e => setComment(e.target.value)}
-            placeholder="Добавить комментарий..."
+            placeholder="Добавить заметку..."
             rows={3}
             style={{
               width: '100%', boxSizing: 'border-box',
@@ -1287,14 +1344,30 @@ function StudentPanel({
             onBlur={e => {
               e.currentTarget.style.borderColor = 'transparent'
               e.currentTarget.style.background = 'var(--color-bg)'
+              saveComment()
             }}
           />
         </section>
 
       </div>
 
-      {/* Sticky footer: delete */}
-      <div style={{ padding: '12px 20px 16px', flexShrink: 0, borderTop: '1px solid var(--color-border-soft)' }}>
+      {/* Sticky footer: assign extra homework + delete */}
+      <div style={{ padding: '12px 20px 16px', flexShrink: 0, borderTop: '1px solid var(--color-border-soft)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <button
+          onClick={onAddHomework}
+          style={{
+            width: '100%', padding: '11px 0',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+            background: 'var(--color-accent)', border: 'none',
+            borderRadius: 12, cursor: 'pointer',
+            fontSize: 13, fontWeight: 700, color: '#fff',
+            transition: 'filter 0.15s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.08)' }}
+          onMouseLeave={e => { e.currentTarget.style.filter = 'none' }}
+        >
+          <Plus size={15} strokeWidth={2.4} /> Выдать ДЗ допом
+        </button>
         <button
           disabled={deleting}
           onClick={async () => {
@@ -1380,15 +1453,18 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 export default function TeacherGroupsPage() {
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
+  const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
   const { groups, loading: groupsLoading, addGroup, addIndividualStudent, deleteGroup } = useGroups()
-  const { students, addStudent, deleteStudent } = useStudents(selectedGroupId)
+  const { students, addStudent, deleteStudent, updateStudent } = useStudents(selectedGroupId)
   const [showAddGroup, setShowAddGroup] = useState(false)
   const [showAddStudent, setShowAddStudent] = useState(false)
   const [showAddIndividual, setShowAddIndividual] = useState(false)
   const [activeStripTab, setActiveStripTab] = useState<'groups' | 'students'>('groups')
-  const [sortKey, setSortKey] = useState<SortKey>('name')
-  const [sortDir, setSortDir] = useState<SortDir>('asc')
+  const [sortKey, setSortKey] = useState<SortKey>('attention')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [activeStudentId, setActiveStudentId] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [rosterFilter, setRosterFilter] = useState<RosterFilter>('all')
   const tableRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -1431,9 +1507,22 @@ export default function TeacherGroupsPage() {
   }
 
   const activeGroup = groups.find(g => g.id === selectedGroupId) ?? null
-  const groupStudents = activeGroup
-    ? sortStudents(students.filter(s => s.groupId === activeGroup.id), sortKey, sortDir)
-    : []
+  // Full roster of the active group (drives chip counts), then narrowed by the
+  // search box + active quick-filter, then sorted for display.
+  const rosterAll = activeGroup ? students.filter(s => s.groupId === activeGroup.id) : []
+  const q = searchQuery.trim().toLowerCase()
+  const groupStudents = sortStudents(
+    rosterAll
+      .filter(s => !q || s.name.toLowerCase().includes(q))
+      .filter(filterPredicate[rosterFilter]),
+    sortKey, sortDir,
+  )
+  const filterCounts: Record<RosterFilter, number> = {
+    all: rosterAll.length,
+    debtors: rosterAll.filter(filterPredicate.debtors).length,
+    fading: rosterAll.filter(filterPredicate.fading).length,
+    nohw: rosterAll.filter(filterPredicate.nohw).length,
+  }
   const activeStudent = activeStudentId ? students.find(s => s.id === activeStudentId) ?? null : null
   const activeStudentGroup = activeStudent ? groups.find(g => g.id === activeStudent.groupId) ?? null : null
 
@@ -1444,8 +1533,8 @@ export default function TeacherGroupsPage() {
     } else {
       setSelectedGroupId(group.id)
       setActiveStudentId(null)
-      setSortKey('name')
-      setSortDir('asc')
+      setSortKey('attention')
+      setSortDir('desc')
     }
   }
 
@@ -1468,7 +1557,7 @@ export default function TeacherGroupsPage() {
             selectedGroupId={selectedGroupId}
             onSelectGroup={(id) => {
               if (!id) { setSelectedGroupId(null); setActiveStudentId(null) }
-              else { setSelectedGroupId(id); setActiveStudentId(null); setSortKey('name'); setSortDir('asc') }
+              else { setSelectedGroupId(id); setActiveStudentId(null); setSortKey('attention'); setSortDir('desc'); setSearchQuery(''); setRosterFilter('all') }
             }}
             tabConfig={stripTabConfig}
           />
@@ -1488,30 +1577,94 @@ export default function TeacherGroupsPage() {
               <Card style={{ padding: 0, overflow: 'hidden' }}>
                 {/* Table header */}
                 <div style={{
-                  padding: '14px 20px 0',
-                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '14px 20px 12px',
+                  display: 'flex', flexDirection: 'column', gap: 12,
                   borderBottom: '1px solid var(--color-border-soft)',
-                  paddingBottom: 0,
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                       <div style={{
-                        width: 10, height: 10, borderRadius: '50%', background: activeGroup.color,
+                        width: 10, height: 10, borderRadius: '50%', background: activeGroup.color, flex: 'none',
                       }} />
-                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {activeGroup.name}
                       </span>
                       {activeGroup.isIndividual && (
                         <span style={{
-                          fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 6,
+                          fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 6, flex: 'none',
                           background: `${activeGroup.color}22`, color: activeGroup.color,
                           border: `1px solid ${activeGroup.color}44`,
                         }}>1:1</span>
                       )}
-                      <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>
+                      <span style={{ fontSize: 12, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flex: 'none' }}>
                         · {groupStudents.length} студент{groupStudents.length === 1 ? '' : 'ов'}
                       </span>
                     </div>
+
+                    {/* Search box */}
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: 7, flex: 'none',
+                      background: 'var(--color-bg)', border: '1px solid var(--color-border-soft)',
+                      borderRadius: 10, padding: '7px 11px', width: 200, maxWidth: '40vw',
+                    }}>
+                      <Search size={14} style={{ color: 'var(--color-text-3)', flex: 'none' }} />
+                      <input
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        placeholder="Поиск ученика…"
+                        style={{
+                          flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
+                          fontSize: 13, color: 'var(--color-text)',
+                        }}
+                      />
+                      {searchQuery && (
+                        <X size={13} style={{ color: 'var(--color-text-3)', cursor: 'pointer', flex: 'none' }} onClick={() => setSearchQuery('')} />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Quick filters */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                    {([
+                      { id: 'all', label: 'Все' },
+                      { id: 'debtors', label: 'Должники' },
+                      { id: 'fading', label: 'Пропадают' },
+                      { id: 'nohw', label: 'Не сдали ДЗ' },
+                    ] as { id: RosterFilter; label: string }[]).map(f => {
+                      const active = rosterFilter === f.id
+                      const count = filterCounts[f.id]
+                      return (
+                        <button
+                          key={f.id}
+                          onClick={() => setRosterFilter(f.id)}
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 6,
+                            padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
+                            fontSize: 12.5, fontWeight: 600,
+                            background: active ? 'var(--color-purple-soft)' : 'var(--color-bg)',
+                            color: active ? 'var(--color-accent)' : 'var(--color-muted)',
+                            border: `1px solid ${active ? 'transparent' : 'var(--color-border-soft)'}`,
+                          }}
+                        >
+                          {f.label}
+                          <span style={{
+                            fontSize: 11, fontWeight: 700, opacity: active ? 1 : 0.7,
+                            color: f.id !== 'all' && count > 0 && !active ? 'var(--color-accent)' : 'inherit',
+                          }}>{count}</span>
+                        </button>
+                      )
+                    })}
+                    <button
+                      onClick={() => { setSortKey('attention'); setSortDir('desc') }}
+                      title="Сортировать по вниманию"
+                      style={{
+                        marginLeft: 'auto', fontSize: 11.5, whiteSpace: 'nowrap', cursor: 'pointer',
+                        background: 'none', border: 'none', padding: 0,
+                        color: sortKey === 'attention' ? 'var(--color-accent)' : 'var(--color-text-3)',
+                      }}
+                    >
+                      сортировка: <span style={{ fontWeight: 600 }}>{sortKey === 'attention' ? 'по вниманию' : 'по столбцу'}</span>
+                    </button>
                   </div>
                 </div>
 
@@ -1667,6 +1820,8 @@ export default function TeacherGroupsPage() {
                 setActiveStudentId(null)
               }}
               onOpenFullCard={() => openStudentDashboard(activeStudentId, activeStudentGroup.id)}
+              onAddHomework={() => openHomeworkCreate(activeStudentId)}
+              onSaveComment={async (text) => { await updateStudent(activeStudentId, { comment: text }) }}
             />
           </motion.div>
         )}

@@ -219,7 +219,25 @@ export function useStudents(groupId: string | null) {
     await load()
   }
 
-  return { students, loading, addStudent, deleteStudent, reload: load }
+  // Patch arbitrary student fields (camelCase keys → snake_case columns).
+  // Optimistically updates local state so the panel reflects the edit instantly.
+  async function updateStudent(id: string, patch: Partial<Student>) {
+    const colMap: Record<string, string> = {
+      name: 'name', phone: 'phone', telegramLink: 'telegram_link', parentContact: 'parent_contact',
+      desiredScore: 'desired_score', comment: 'comment', paymentDue: 'payment_due',
+      paymentAmount: 'payment_amount', lastPayment: 'last_payment', debt: 'debt',
+    }
+    const row: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(patch)) {
+      if (colMap[k]) row[colMap[k]] = v
+    }
+    if (Object.keys(row).length === 0) return { error: null }
+    setStudents(prev => prev.map(s => s.id === id ? { ...s, ...patch } : s))
+    const { error } = await supabase.from('students').update(row).eq('id', id)
+    return { error }
+  }
+
+  return { students, loading, addStudent, deleteStudent, updateStudent, reload: load }
 }
 
 export type AttendanceRecord = {
@@ -370,10 +388,113 @@ export function useAttendance(groupId: string | null) {
     await supabase
       .from('lesson_attendance')
       .upsert(rows, { onConflict: 'student_id,lesson_date' })
+
+    // Single source of truth: recompute each affected student's attendance %
+    // straight from lesson_attendance and write it back to students.attendance,
+    // so the roster / Оценки tab stop reading a stale denormalised snapshot.
+    const affected = [...new Set(entries.map(e => e.studentId))]
+    if (affected.length) {
+      const { data: att } = await supabase
+        .from('lesson_attendance')
+        .select('student_id, present')
+        .in('student_id', affected)
+      const tally = new Map<string, { present: number; total: number }>()
+      for (const r of att ?? []) {
+        const cur = tally.get(r.student_id) ?? { present: 0, total: 0 }
+        cur.total++; if (r.present) cur.present++
+        tally.set(r.student_id, cur)
+      }
+      await Promise.all([...tally].map(([id, { present, total }]) =>
+        supabase.from('students').update({ attendance: total ? Math.round((present / total) * 100) : 0 }).eq('id', id)
+      ))
+    }
+
     await load()
   }
 
   return { records, loading, saveLesson, reload: load }
+}
+
+export type PendingJournal = {
+  scheduleId: string
+  date: string        // 'YYYY-MM-DD'
+  title: string
+  timeStart: string
+  groupId: string | null
+  studentId: string | null
+  scopeName: string
+}
+
+// "Журнал не заполнен" — a scheduled lesson whose start time + buffer has passed
+// but has no lesson_attendance rows yet. Pass a groupId to scope, or null for all
+// groups (drives the nav badge). Lessons become eligible HOURS_AFTER hours after
+// their start, so the teacher is nudged a bit after the lesson, not during it.
+const JOURNAL_GRACE_HOURS = 2
+export function useJournalPending(groupId: string | null, reloadKey = 0) {
+  const [pending, setPending] = useState<PendingJournal[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const now = Date.now()
+      const todayStr = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD, local
+      const fromStr = new Date(now - 30 * 86_400_000).toLocaleDateString('en-CA')
+
+      let query = supabase
+        .from('schedule_lessons')
+        .select('id, date, lesson_title, time_start, group_id, student_id, groups(name), students(name, group_id)')
+        .gte('date', fromStr)
+        .lte('date', todayStr)
+
+      if (groupId) {
+        const { data: studs } = await supabase.from('students').select('id').eq('group_id', groupId)
+        const studentIds = (studs ?? []).map((s: any) => s.id)
+        const scope = [`group_id.eq.${groupId}`]
+        if (studentIds.length) scope.push(`student_id.in.(${studentIds.join(',')})`)
+        query = query.or(scope.join(','))
+      }
+
+      const { data } = await query.order('date', { ascending: false }).order('time_start', { ascending: false })
+      if (cancelled || !data) return
+
+      const { data: att } = await supabase
+        .from('lesson_attendance')
+        .select('group_id, student_id, lesson_date')
+        .gte('lesson_date', fromStr)
+      const filledByGroupDate = new Set((att ?? []).map((a: any) => `${a.group_id}|${a.lesson_date}`))
+      const filledByStudentDate = new Set((att ?? []).map((a: any) => `${a.student_id}|${a.lesson_date}`))
+
+      const seen = new Set<string>()
+      const out: PendingJournal[] = []
+      for (const r of data as any[]) {
+        // Grace gate: only surface once the lesson has had time to finish.
+        const start = new Date(`${r.date}T${(r.time_start || '00:00')}:00`).getTime()
+        if (Number.isFinite(start) && start + JOURNAL_GRACE_HOURS * 3_600_000 > now) continue
+
+        const gid: string | null = r.group_id ?? r.students?.group_id ?? null
+        const filled = r.group_id
+          ? filledByGroupDate.has(`${r.group_id}|${r.date}`)
+          : r.student_id
+            ? filledByStudentDate.has(`${r.student_id}|${r.date}`)
+            : false
+        if (filled) continue
+
+        // One entry per lesson event (group+date or student+date).
+        const key = `${r.group_id ?? r.student_id}|${r.date}`
+        if (seen.has(key)) continue
+        seen.add(key)
+        out.push({
+          scheduleId: r.id, date: r.date, title: r.lesson_title ?? '', timeStart: r.time_start ?? '',
+          groupId: gid, studentId: r.student_id,
+          scopeName: r.groups?.name ?? r.students?.name ?? '',
+        })
+      }
+      setPending(out)
+    })()
+    return () => { cancelled = true }
+  }, [groupId, reloadKey])
+
+  return pending
 }
 
 export function useAllStudents() {

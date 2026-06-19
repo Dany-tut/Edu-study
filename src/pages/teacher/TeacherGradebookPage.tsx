@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Download, ClipboardList, X, Check } from 'lucide-react'
+import { Download, ClipboardList, X, Check, Clock } from 'lucide-react'
 import type { TabConfig } from '../../components/teacher/GroupStrip'
 import { useTeacher } from '../../store/teacherStore'
 import GroupStrip from '../../components/teacher/GroupStrip'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
-import { useGroups, useStudents, useAttendance, useGroupLessons, useLessonRoster } from '../../lib/useGroups'
+import { useGroups, useStudents, useAttendance, useGroupLessons, useLessonRoster, useJournalPending } from '../../lib/useGroups'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 
 const fadeUp = (delay = 0) => ({
@@ -13,6 +13,14 @@ const fadeUp = (delay = 0) => ({
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.34, delay, ease: [0.22, 1, 0.36, 1] },
 })
+
+// Russian plural: pluralRu(1,'урок','урока','уроков') → урок / урока / уроков
+function pluralRu(n: number, one: string, few: string, many: string) {
+  const m10 = n % 10, m100 = n % 100
+  if (m10 === 1 && m100 !== 11) return one
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few
+  return many
+}
 
 function ScorePill({ value }: { value: number | null }) {
   if (value === null) return <span style={{ color: 'var(--color-text-4)', fontSize: 12 }}>—</span>
@@ -359,13 +367,14 @@ function GradeButton({ value, selected, onClick }: { value: Grade; selected: boo
   )
 }
 
-function LessonGradeModal({ groupId, onClose }: { groupId: string | null; onClose: () => void }) {
+function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: string | null; onClose: () => void; initialLessonId?: string }) {
   const { groups } = useGroups()
   const { saveLesson } = useAttendance(groupId)
   const lessons = useGroupLessons(groupId)
 
-  // Which lesson are we grading? Defaults to the most recent scheduled lesson.
-  const [lessonId, setLessonId] = useState<string>('')
+  // Which lesson are we grading? When opened from the "журнал не заполнен"
+  // banner we preselect that lesson; otherwise the most recent scheduled one.
+  const [lessonId, setLessonId] = useState<string>(initialLessonId ?? '')
   const selectedLesson = lessons.find(l => l.id === lessonId) ?? lessons[0] ?? null
   useEffect(() => {
     if (!lessonId && lessons.length) setLessonId(lessons[0].id)
@@ -616,9 +625,24 @@ export default function TeacherGradebookPage() {
   const activeGroupId = useTeacher(s => s.selectedGroupId)
   const setActiveGroupId = useTeacher(s => s.setSelectedGroupId)
   const [lessonModalOpen, setLessonModalOpen] = useState(false)
+  // When opening the modal from the "журнал не заполнен" banner we preselect a lesson.
+  const [gradeLessonId, setGradeLessonId] = useState<string | undefined>(undefined)
+  const [journalReloadKey, setJournalReloadKey] = useState(0)
   const { groups } = useGroups()
   const regularGroups = groups.filter(g => !g.isIndividual)
   const individualGroups = groups.filter(g => g.isIndividual)
+  const pendingJournals = useJournalPending(activeGroupId, journalReloadKey)
+
+  function openJournalFor(p: { groupId: string | null; scheduleId: string }) {
+    if (p.groupId) setActiveGroupId(p.groupId)
+    setGradeLessonId(p.scheduleId)
+    setLessonModalOpen(true)
+  }
+  function closeGradeModal() {
+    setLessonModalOpen(false)
+    setGradeLessonId(undefined)
+    setJournalReloadKey(k => k + 1) // refresh the pending list after marking
+  }
 
   const tabConfig: TabConfig = {
     tabs: [
@@ -627,7 +651,7 @@ export default function TeacherGradebookPage() {
     ],
     activeTab,
     onTabChange: (id) => setActiveTab(id as 'attendance' | 'scores'),
-    extraAction: { label: 'Проставить оценки', icon: ClipboardList, onClick: () => setLessonModalOpen(true) },
+    extraAction: { label: 'Проставить оценки', icon: ClipboardList, onClick: () => { setGradeLessonId(undefined); setLessonModalOpen(true) } },
   }
 
   return (
@@ -644,12 +668,64 @@ export default function TeacherGradebookPage() {
         />
       </motion.div>
 
+      {/* "Журнал не заполнен" — lessons that finished without attendance recorded */}
+      <AnimatePresence>
+        {pendingJournals.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+            style={{
+              borderRadius: 18, padding: '14px 18px',
+              background: 'var(--color-peach-soft)', border: '1px solid var(--color-border-soft)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 11 }}>
+              <Clock size={17} style={{ color: 'var(--color-peach-text)' }} />
+              <span style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--color-text)' }}>
+                Журнал не заполнен · {pendingJournals.length} {pluralRu(pendingJournals.length, 'урок', 'урока', 'уроков')}
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+              {pendingJournals.slice(0, 5).map(p => {
+                const [, mm, dd] = p.date.split('-')
+                return (
+                  <div key={p.scheduleId} style={{
+                    display: 'flex', alignItems: 'center', gap: 11,
+                    background: 'rgba(var(--glass-rgb), 0.55)', border: '1px solid var(--color-border-soft)',
+                    borderRadius: 11, padding: '10px 13px',
+                  }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-peach-text)', flex: 'none' }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {p.scopeName || p.title || 'Урок'}
+                      </div>
+                      <div style={{ fontSize: 11.5, color: 'var(--color-muted)' }}>
+                        {dd}.{mm}{p.timeStart ? ` · ${p.timeStart}` : ''}{p.title && p.scopeName ? ` · ${p.title}` : ''}
+                      </div>
+                    </div>
+                    <motion.button
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => openJournalFor(p)}
+                      style={{
+                        flex: 'none', padding: '8px 15px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                        background: 'var(--grad-purple)', color: '#fff', fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
+                      }}
+                    >
+                      Заполнить
+                    </motion.button>
+                  </div>
+                )
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Export + Проставить оценки row */}
       <motion.div {...fadeUp(0.08)} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{ flex: 1 }} />
         <motion.button
           whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-          onClick={() => setLessonModalOpen(true)}
+          onClick={() => { setGradeLessonId(undefined); setLessonModalOpen(true) }}
           style={{
             display: 'flex', alignItems: 'center', gap: 7,
             padding: '8px 16px', borderRadius: 14, cursor: 'pointer',
@@ -686,7 +762,8 @@ export default function TeacherGradebookPage() {
         {lessonModalOpen && (
           <LessonGradeModal
             groupId={activeGroupId}
-            onClose={() => setLessonModalOpen(false)}
+            initialLessonId={gradeLessonId}
+            onClose={closeGradeModal}
           />
         )}
       </AnimatePresence>

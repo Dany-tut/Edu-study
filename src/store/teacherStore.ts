@@ -59,7 +59,10 @@ type TeacherStore = {
   openHomeworkReview: (hwId: string) => void
   // Homework composer: null id = create new, set id = edit existing.
   editingHomeworkId: string | null
-  openHomeworkCreate: () => void
+  // Optional student to pre-scope a fresh "ДЗ допом" to (consumed by the composer on mount).
+  hwPresetStudentId: string | null
+  openHomeworkCreate: (presetStudentId?: string) => void
+  clearHwPreset: () => void
   openHomeworkEdit: (hwId: string) => void
   // Full-screen hard-submission review (lesson_progress id).
   reviewingHardId: string | null
@@ -130,8 +133,10 @@ export const useTeacher = create<TeacherStore>(set => ({
   reviewingHwId: null,
   openHomeworkReview: hwId => set({ reviewingHwId: hwId, activePage: 'homework-review', reviewIdx: 0, headerDocked: false }),
   editingHomeworkId: null,
-  openHomeworkCreate: () => set({ activePage: 'homework-create', editingHomeworkId: null, headerDocked: false }),
-  openHomeworkEdit: hwId => set({ activePage: 'homework-create', editingHomeworkId: hwId, headerDocked: false }),
+  hwPresetStudentId: null,
+  openHomeworkCreate: presetStudentId => set({ activePage: 'homework-create', editingHomeworkId: null, hwPresetStudentId: presetStudentId ?? null, headerDocked: false }),
+  clearHwPreset: () => set({ hwPresetStudentId: null }),
+  openHomeworkEdit: hwId => set({ activePage: 'homework-create', editingHomeworkId: hwId, hwPresetStudentId: null, headerDocked: false }),
   reviewingHardId: null,
   openHardReview: hardId => set({ reviewingHardId: hardId, activePage: 'hard-review', headerDocked: false }),
   reviewIdx: 0,

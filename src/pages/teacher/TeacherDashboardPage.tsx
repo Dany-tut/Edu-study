@@ -14,6 +14,8 @@ import TeacherCompactPill from '../../components/teacher/TeacherCompactPill'
 import ReviewNavPill from '../../components/teacher/ReviewNavPill'
 import TeacherStudentDashboardPage from './TeacherStudentDashboardPage'
 import TeacherCourseEditorPage from './TeacherCourseEditorPage'
+import MobileTeacherApp from '../../components/teacher/mobile/MobileTeacherApp'
+import { useIsDesktop } from '../../lib/useIsDesktop'
 import { useTeacher } from '../../store/teacherStore'
 
 const TEACHER_HASH_TO_PAGE: Record<string, 'home' | 'groups' | 'homework' | 'gradebook' | 'constructor'> = {
@@ -35,6 +37,7 @@ export default function TeacherDashboardPage() {
   const activePage = useTeacher(s => s.activePage)
   const setActivePage = useTeacher(s => s.setActivePage)
   const headerDocked = useTeacher(s => s.headerDocked)
+  const isDesktop = useIsDesktop()
 
   // Restore page from hash on mount — but if the store already opened straight
   // into the course editor (restored from a persisted edit session on refresh),
@@ -55,7 +58,8 @@ export default function TeacherDashboardPage() {
   }, [activePage])
 
   return (
-    <div className="dashboard-root hidden lg:flex">
+    <>
+    <div className="dashboard-root hidden lg:flex" style={{ display: isDesktop ? 'flex' : 'none' }}>
       {/* Progressive blur strip behind topbar */}
       <div aria-hidden className="edge-progressive-blur--top" />
 
@@ -116,8 +120,10 @@ export default function TeacherDashboardPage() {
         </motion.div>
       </AnimatePresence>
 
-      {/* Mobile stub */}
-      <div className="lg:hidden" style={{ display: 'none' }} />
     </div>
+
+    {/* Mobile teacher app — fully separate layout, mounted only below lg. */}
+    {!isDesktop && <MobileTeacherApp />}
+    </>
   )
 }

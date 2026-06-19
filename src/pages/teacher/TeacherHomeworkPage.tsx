@@ -21,6 +21,27 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 0.34, delay, ease: [0.22, 1, 0.36, 1] },
 })
 
+// Russian plural: pluralRu(1,'работа','работы','работ')
+function pluralRu(n: number, one: string, few: string, many: string) {
+  const m10 = n % 10, m100 = n % 100
+  if (m10 === 1 && m100 !== 11) return one
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few
+  return many
+}
+
+// "сдано 2 ч назад" style relative time from an ISO/date string.
+function timeAgo(iso?: string): string {
+  if (!iso) return 'недавно'
+  const diff = Date.now() - new Date(iso).getTime()
+  if (!Number.isFinite(diff) || diff < 0) return 'недавно'
+  const mins = Math.floor(diff / 60000)
+  if (mins < 60) return `${mins} мин назад`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs} ${pluralRu(hrs, 'час', 'часа', 'часов')} назад`
+  const days = Math.floor(hrs / 24)
+  return `${days} ${pluralRu(days, 'день', 'дня', 'дней')} назад`
+}
+
 function hwStatus(hw: HomeworkItem): 'done' | 'reviewing' | 'waiting' | 'overdue' {
   if (hw.reviewedCount === hw.submittedCount && hw.submittedCount === hw.totalCount) return 'done'
   if (hw.reviewedCount < hw.submittedCount) return 'reviewing'
@@ -591,6 +612,7 @@ function HardSubRow({ sub, isSelected, onClick }: { sub: HardSub; isSelected: bo
 export default function TeacherHomeworkPage() {
   const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
   const openHardReview = useTeacher(s => s.openHardReview)
+  const openHomeworkReview = useTeacher(s => s.openHomeworkReview)
   const reviews = useTeacher(s => s.reviews)
   const filterGroup = useTeacher(s => s.selectedGroupId)
   const setFilterGroup = useTeacher(s => s.setSelectedGroupId)
@@ -621,6 +643,43 @@ export default function TeacherHomeworkPage() {
   const panelOpen = showAssignForm || (!!selectedHw && !!selectedGroup)
   const pendingHardCount = hardSubs.filter(s => s.status === 'submitted').length
 
+  // ── Unified "Нужно проверить" queue: basic homeworks with pending submissions
+  // + hard submissions awaiting review, urgent-first (overdue → soonest). ──────
+  const parseDdMm = (s: string): number => {
+    const [d, m] = (s || '').split('.').map(Number)
+    if (!d || !m) return Number.MAX_SAFE_INTEGER
+    return new Date(new Date().getFullYear(), m - 1, d).getTime()
+  }
+  const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0)
+  type QueueItem = {
+    key: string; kind: 'basic' | 'hard'; who: string; color: string
+    title: string; meta: string; due: string; ts: number; overdue: boolean; onClick: () => void
+  }
+  const queue: QueueItem[] = [
+    ...filtered
+      .filter(hw => hw.status === 'active' && hw.submittedCount - hw.reviewedCount > 0)
+      .map(hw => {
+        const pending = hw.submittedCount - hw.reviewedCount
+        const ts = parseDdMm(hw.dueDate)
+        return {
+          key: `hw-${hw.id}`, kind: 'basic' as const, who: hw.groupName, color: hw.color,
+          title: hw.title || 'Без названия', meta: `${pending} ${pluralRu(pending, 'работа', 'работы', 'работ')} на проверке`,
+          due: hw.dueDate ? `дедлайн ${hw.dueDate}` : '', ts,
+          overdue: ts < startOfToday.getTime(),
+          onClick: () => openHomeworkReview(hw.id),
+        }
+      }),
+    ...hardSubs
+      .filter(s => s.status === 'submitted')
+      .map(sub => ({
+        key: `hard-${sub.id}`, kind: 'hard' as const, who: sub.studentName, color: 'var(--color-accent)',
+        title: sub.lessonTitle || 'Хард-задание', meta: `сдано ${timeAgo(sub.updatedAt)}`,
+        due: '', ts: sub.updatedAt ? new Date(sub.updatedAt).getTime() : 0,
+        overdue: false,
+        onClick: () => openHardReview(sub.id),
+      })),
+  ].sort((a, b) => (Number(b.overdue) - Number(a.overdue)) || (a.ts - b.ts))
+
   function openHw(id: string) {
     setSelectedHwId(prev => prev === id ? null : id)
     setShowAssignForm(false)
@@ -646,6 +705,69 @@ export default function TeacherHomeworkPage() {
             onAction={openHomeworkCreate}
           />
         </motion.div>
+
+        {/* Нужно проверить — unified queue (basic + hard), urgent-first */}
+        {queue.length > 0 && (
+          <motion.div
+            {...fadeUp(0.10)}
+            style={{ marginRight: panelOpen ? 344 : 0, transition: 'margin-right 0.34s cubic-bezier(0.22,1,0.36,1)' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '2px 4px 11px' }}>
+              <span style={{ fontSize: 16, fontWeight: 760, color: 'var(--color-text)' }}>Нужно проверить</span>
+              <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 9px', borderRadius: 999, background: 'var(--color-peach-soft)', color: 'var(--color-peach-text)' }}>{queue.length}</span>
+              <span style={{ marginLeft: 'auto', fontSize: 11.5, color: 'var(--color-text-3)' }}>по дедлайну</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {queue.map(item => (
+                <div
+                  key={item.key}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    background: 'rgba(var(--glass-rgb), 0.96)',
+                    border: '1px solid var(--color-border-soft)',
+                    borderLeft: `3px solid ${item.overdue ? 'var(--color-red-text)' : 'transparent'}`,
+                    borderRadius: 14, padding: '11px 14px',
+                  }}
+                >
+                  <div style={{
+                    width: 34, height: 34, borderRadius: 10, flex: 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: item.kind === 'hard' ? 'var(--color-yellow-soft)' : 'var(--color-purple-soft)',
+                    color: item.kind === 'hard' ? 'var(--color-yellow-text)' : 'var(--color-accent)',
+                  }}>
+                    {item.kind === 'hard' ? <Star size={15} strokeWidth={0} fill="currentColor" /> : <ClipboardCheck size={16} />}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 2 }}>
+                      <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.who}</span>
+                      <span style={{
+                        flex: 'none', fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 6,
+                        background: item.kind === 'hard' ? 'var(--color-yellow-soft)' : 'var(--color-purple-soft)',
+                        color: item.kind === 'hard' ? 'var(--color-yellow-text)' : 'var(--color-accent)',
+                      }}>{item.kind === 'hard' ? '★ Сложное' : 'Основное'}</span>
+                    </div>
+                    <div style={{ fontSize: 11.5, color: 'var(--color-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.title} · {item.meta}
+                    </div>
+                  </div>
+                  <div style={{ flex: 'none', fontSize: 11.5, fontWeight: 600, textAlign: 'right', color: item.overdue ? 'var(--color-red-text)' : 'var(--color-text-3)', marginRight: 4, whiteSpace: 'nowrap' }}>
+                    {item.overdue ? 'просрочено' : item.due || ''}
+                  </div>
+                  <motion.button
+                    whileTap={{ scale: 0.96 }}
+                    onClick={item.onClick}
+                    style={{
+                      flex: 'none', padding: '9px 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                      background: 'var(--grad-purple)', color: '#fff', fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
+                    }}
+                  >
+                    Проверить
+                  </motion.button>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {/* Hard-level submissions */}
         {hardSubs.length > 0 && (
