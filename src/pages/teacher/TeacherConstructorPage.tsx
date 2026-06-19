@@ -6778,7 +6778,7 @@ export default function TeacherConstructorPage() {
                 <div style={{ color: 'var(--color-text-3)', fontSize: 14, padding: '32px 0', textAlign: 'center' }}>Загрузка…</div>
               )}
               {activeTab === 'course' && !dbLoading && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10 }}>
                   <CourseSortDropdown value={courseSort} onChange={setCourseSort} />
                   <CourseStatusFilter value={courseStatus} onChange={setCourseStatus} />
                   <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>{filteredCourses.length} курсов</span>

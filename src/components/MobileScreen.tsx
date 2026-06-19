@@ -49,7 +49,9 @@ export default function MobileScreen({
         height: '100dvh',
         overflowX: 'clip',
         overflowY: 'hidden',
-        background: 'var(--color-bg)',
+        // No solid fill — content scrolls edge-to-edge under the floating bars
+        // and Safari tints the safe-area zones natively (body provides the base).
+        background: 'transparent',
       }}
     >
       {/* TOP — floating glass widget zone. pointer-events pass through empty areas.

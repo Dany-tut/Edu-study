@@ -57,7 +57,9 @@ export default function MobileBottomNav() {
         className="mx-4 mb-4 flex items-center justify-around px-2 py-3"
         style={{
           borderRadius: '28px',
-          background: 'var(--color-surface)',
+          background: 'rgba(var(--glass-rgb), 0.72)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
           border: '1px solid var(--color-border-glass)',
           boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
           height: 72,
