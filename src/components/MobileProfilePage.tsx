@@ -1,16 +1,20 @@
 import { motion } from 'framer-motion'
-import { LogOut, Flame, CheckCircle2, Star, TrendingUp } from 'lucide-react'
+import { LogOut, Flame, CheckCircle2, Star, TrendingUp, Zap, Bell } from 'lucide-react'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
 import ThemeToggleBtn from './ThemeToggleBtn'
+import { DynamicIsland, GlassIconButton } from './mobileChrome'
 import { getStudentSession, clearStudentSession } from '../lib/studentSession'
 import { useStudentData } from '../store/studentDataStore'
 import { PAIR } from '../lib/mobileTokens'
 import { tactile } from '../lib/feedback'
 import type { LucideIcon } from 'lucide-react'
 
-// MOBILE ONLY profile. Desktop has no profile screen. Avatar + name, stats,
-// theme toggle, logout.
+// MOBILE ONLY profile. Desktop has no profile screen. Floating glass chrome
+// (Dynamic Island streak/XP) + identity + level/XP hero + stats + settings.
+
+const XP_PER_LEVEL = 200
+const RANKS = ['Старт', 'Атомы', 'Молекулы', 'Реакции', 'Растворы', 'Эксперт', 'Мастер']
 
 function StatCard({ icon: Icon, value, label, pair }: { icon: LucideIcon; value: string | number; label: string; pair: { bg: string; text: string } }) {
   return (
@@ -30,6 +34,10 @@ export default function MobileProfilePage() {
 
   const subjectLine = subjects.length > 0 ? subjects.map(s => s.name).join(' · ') : 'Ученик'
 
+  const level = Math.floor(stats.totalPoints / XP_PER_LEVEL) + 1
+  const xpInLevel = stats.totalPoints % XP_PER_LEVEL
+  const rank = RANKS[Math.min(level - 1, RANKS.length - 1)]
+
   const logout = () => {
     tactile()
     clearStudentSession()
@@ -37,21 +45,48 @@ export default function MobileProfilePage() {
     window.location.reload()
   }
 
+  const topZone = (
+    <div className="flex items-center justify-between" style={{ gap: 8 }}>
+      <div style={{ width: 38, flexShrink: 0 }} />
+      <DynamicIsland>
+        <Flame size={15} style={{ color: '#F8A23B' }} />
+        <span>{stats.streak} дней</span>
+        <span style={{ opacity: 0.35 }}>·</span>
+        <Zap size={14} style={{ color: 'var(--color-accent)' }} />
+        <span>{stats.totalPoints}</span>
+      </DynamicIsland>
+      <GlassIconButton icon={<Bell size={16} />} dot ariaLabel="Уведомления" />
+    </div>
+  )
+
   return (
     <>
-      <MobileScreen>
-        <div className="flex flex-col" style={{ gap: 18 }}>
+      <MobileScreen topZone={topZone} topPad={72}>
+        <div className="flex flex-col" style={{ gap: 16 }}>
           {/* Identity */}
           <div className="flex items-center" style={{ gap: 14, paddingTop: 4 }}>
             <div
               className="flex items-center justify-center flex-shrink-0"
-              style={{ width: 64, height: 64, borderRadius: 999, background: 'var(--color-accent)', color: '#fff', fontSize: 28, fontWeight: 700, boxShadow: 'var(--shadow-md)' }}
+              style={{ width: 64, height: 64, borderRadius: 999, background: 'linear-gradient(135deg, #9B6FE8, #6F3FBF)', color: '#fff', fontSize: 28, fontWeight: 700, boxShadow: '0 8px 22px rgba(123,63,204,0.3)' }}
             >
               {initial}
             </div>
             <div className="min-w-0">
               <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.1 }}>{name}</div>
               <div className="truncate" style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-muted)', marginTop: 3 }}>{subjectLine}</div>
+            </div>
+          </div>
+
+          {/* Level / XP hero */}
+          <div style={{ borderRadius: 20, padding: '14px 16px', background: 'var(--color-purple-soft)' }}>
+            <div className="flex items-center justify-between" style={{ marginBottom: 9 }}>
+              <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-purple-text)' }}>Уровень {level} · {rank}</span>
+              <span className="flex items-center" style={{ gap: 4, fontSize: 12, fontWeight: 700, color: 'var(--color-purple-text)' }}>
+                <Zap size={13} />{xpInLevel}/{XP_PER_LEVEL} XP
+              </span>
+            </div>
+            <div style={{ height: 8, background: 'rgba(var(--glass-rgb),0.5)', borderRadius: 99, overflow: 'hidden' }}>
+              <div style={{ width: `${Math.round((xpInLevel / XP_PER_LEVEL) * 100)}%`, height: '100%', background: 'linear-gradient(90deg,#9B6FE8,#C58BFF)', borderRadius: 99 }} />
             </div>
           </div>
 
@@ -69,8 +104,8 @@ export default function MobileProfilePage() {
 
           {/* Settings */}
           <div className="flex flex-col" style={{ gap: 10 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, padding: '4px 2px' }}>
-              НАСТРОЙКИ
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', padding: '4px 2px' }}>
+              Настройки
             </div>
             <div
               className="flex items-center justify-between"

@@ -736,17 +736,17 @@ function BankTaskCard({ task, index, added, onAdd }: {
           <img key="image" src={task.questionImage} alt="" style={{ maxWidth: `${task.questionImageSize ?? 100}%`, borderRadius: 14, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', display: 'block' }} />
         )
         if (blockKey === 'table' && task.questionTable) return (
-          <div key="table" style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', minWidth: '50%', maxWidth: '100%' }}>
-            <table style={{ borderCollapse: 'collapse', fontSize: 13 }}>
+          <div key="table" style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', maxWidth: '100%' }}>
+            <table style={{ borderCollapse: 'collapse', fontSize: 13, width: '100%' }}>
               <thead>
-                <tr>{task.questionTable.headers.map(h => (
-                  <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: '1px solid var(--color-border-medium)', padding: '9px 16px', fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left' }}>{h}</th>
+                <tr>{task.questionTable.headers.map((h, hi, arr) => (
+                  <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: hi < arr.length - 1 ? '1px solid var(--color-border-medium)' : undefined, padding: '10px 16px', fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}</tr>
               </thead>
               <tbody>
                 {task.questionTable.rows.map((row, ri) => (
-                  <tr key={ri}>{row.map((cell, ci) => (
-                    <td key={ci} style={{ borderTop: ri > 0 ? '1px solid var(--color-border)' : undefined, borderRight: '1px solid var(--color-border)', padding: '9px 16px', background: 'var(--color-table-cell-bg)' }}>{cell}</td>
+                  <tr key={ri} style={{ background: ri % 2 === 1 ? 'rgba(0,0,0,0.02)' : undefined }}>{row.map((cell, ci) => (
+                    <td key={ci} style={{ borderTop: '1px solid var(--color-border)', borderRight: ci < row.length - 1 ? '1px solid var(--color-border)' : undefined, padding: '9px 16px', color: 'var(--color-text)' }}>{cell}</td>
                   ))}</tr>
                 ))}
               </tbody>

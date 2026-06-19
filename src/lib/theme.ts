@@ -31,10 +31,12 @@ const BIOLOGY_DARK: SubjectPalette = {
   ring: 'rgba(42,189,138,0.25)',
 }
 
+// Literal hex (not CSS vars): these values get hex-alpha suffixes appended at
+// call sites — e.g. `${palette.accent}cc` — which is invalid against a var().
 const CHEMISTRY: SubjectPalette = {
-  text: 'var(--color-accent)',
-  soft: 'var(--color-purple-soft)',
-  accent: 'var(--color-accent)',
+  text: '#3D33A0',
+  soft: '#E7E4FB',
+  accent: '#6354CF',
   onAccent: '#FFFFFF',
   ring: 'rgba(99,84,207,0.16)',
 }

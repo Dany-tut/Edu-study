@@ -1252,6 +1252,7 @@ export default function TaskBankPage() {
   const [source, setSource]     = useState('')
   const [search, setSearch]     = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement>(null)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [sortMode, setSortMode]         = useState<SortMode>('newest')
   const viewMode: ViewMode = 'list'
@@ -1811,10 +1812,11 @@ export default function TaskBankPage() {
           {/* Controls row */}
           <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
             <div
-              onClick={() => { if (!searchOpen) setSearchOpen(true); }}
+              onClick={() => { setSearchOpen(true); searchInputRef.current?.focus(); }}
               style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', background: 'rgba(var(--glass-rgb), 0.96)', border: `1px solid ${searchOpen || search ? 'var(--color-accent, #7c3aed)' : 'var(--color-border-medium)'}`, borderRadius: 999, width: searchOpen || search ? 260 : 112, transition: 'width 0.22s cubic-bezier(.4,0,.2,1), border-color 0.15s', overflow: 'hidden', cursor: searchOpen || search ? 'text' : 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', flexShrink: 0 }}>
               <Search size={14} style={{ color: searchOpen || search ? 'var(--color-text)' : 'var(--color-text-3)', flexShrink: 0 }} />
               <input
+                ref={searchInputRef}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 onFocus={() => setSearchOpen(true)}
