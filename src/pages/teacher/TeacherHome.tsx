@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import CreateTaskModal from '../../components/teacher/CreateTaskModal'
 import {
   Users, ClipboardCheck, BookOpen, TrendingUp,
-  Clock, CheckCircle2, Circle, Plus, Send, Download, UserPlus,
+  Clock, CheckCircle2, Plus, Send, Download, UserPlus,
   AlertCircle, Layers, Bell, Banknote,
 } from 'lucide-react'
 import type { ScheduleItem, Reminder, Group, Student } from '../../data/teacherMockData'
@@ -112,39 +112,67 @@ function StatCard({
 }
 
 // ─── Schedule row ───────────────────────────────────────────────────────────
-function ScheduleRow({ item }: { item: ScheduleItem }) {
+// Current wall-clock in Moscow (lessons are stored in МСК), as "HH:MM".
+function nowMskHHMM(): string {
+  try {
+    return new Intl.DateTimeFormat('ru-RU', {
+      timeZone: 'Europe/Moscow', hour: '2-digit', minute: '2-digit', hour12: false,
+    }).format(new Date())
+  } catch {
+    return new Date().toTimeString().slice(0, 5)
+  }
+}
+
+// One stop on the day's timeline. The left rail draws the connecting line + status dot;
+// `isFirst`/`isLast` trim the line so it doesn't dangle past the ends.
+function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: boolean; isLast: boolean }) {
   const openLessonEditor = useTeacher(s => s.openLessonEditor)
+  const isLive = item.status === 'live'
+  const isDone = item.status === 'completed'
+
+  // Dot rendered inside the rail; line color leans on the group accent for live/upcoming.
+  const dot = isDone ? (
+    <CheckCircle2 size={17} strokeWidth={2.2} style={{ color: 'var(--color-green-text)', background: 'var(--color-bg)', borderRadius: '50%' }} />
+  ) : isLive ? (
+    <span style={{ position: 'relative', display: 'flex' }}>
+      <span style={{ width: 13, height: 13, borderRadius: '50%', background: item.color, boxShadow: `0 0 0 3px color-mix(in srgb, ${item.color} 28%, transparent)` }} />
+      <span style={{ position: 'absolute', inset: -1, borderRadius: '50%', background: item.color, opacity: 0.35, animation: 'ping 1.4s infinite' }} />
+    </span>
+  ) : (
+    <span style={{ width: 12, height: 12, borderRadius: '50%', background: 'var(--color-bg)', border: `2px solid ${item.color}` }} />
+  )
+
   return (
     <motion.button
-      whileHover={{ backgroundColor: 'rgba(0,0,0,0.025)' }}
+      whileHover={{ backgroundColor: 'var(--color-bg-2)' }}
       whileTap={{ scale: 0.99 }}
       onClick={() => openLessonEditor(item.id)}
       style={{
-        width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-        padding: '10px 12px', borderRadius: 14, border: 'none', cursor: 'pointer',
-        background: 'transparent', textAlign: 'left', transition: 'background 0.15s',
+        width: '100%', display: 'flex', alignItems: 'stretch', gap: 12,
+        padding: '8px 12px 8px 4px', borderRadius: 14, border: 'none', cursor: 'pointer',
+        background: isLive ? `color-mix(in srgb, ${item.color} 9%, transparent)` : 'transparent',
+        textAlign: 'left', transition: 'background 0.15s', position: 'relative',
+        opacity: isDone ? 0.62 : 1,
       }}
     >
-      {/* Status dot */}
-      <div style={{ flexShrink: 0, position: 'relative' }}>
-        {item.status === 'completed' ? (
-          <CheckCircle2 size={18} strokeWidth={2} style={{ color: '#6EE7A0' }} />
-        ) : item.status === 'live' ? (
-          <>
-            <Circle size={18} strokeWidth={2} style={{ color: 'var(--color-purple)' }} />
-            <span style={{
-              position: 'absolute', inset: 0, borderRadius: '50%',
-              background: 'rgba(156,140,240,0.3)', animation: 'ping 1.4s infinite',
-            }} />
-          </>
-        ) : (
-          <Circle size={18} strokeWidth={1.8} style={{ color: 'var(--color-text-4)' }} />
-        )}
+      {/* Rail: connecting line + status dot */}
+      <div style={{ position: 'relative', width: 22, flexShrink: 0, alignSelf: 'stretch' }}>
+        <span style={{
+          position: 'absolute', left: '50%', transform: 'translateX(-50%)', width: 2,
+          top: isFirst ? 'calc(50% - 2px)' : 0,
+          bottom: isLast ? 'calc(50% - 2px)' : 0,
+          background: 'var(--color-border-medium)',
+        }} />
+        <span style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', display: 'flex' }}>
+          {dot}
+        </span>
       </div>
 
-      {/* Time — МСК with Vietnam underneath */}
-      <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15, flexShrink: 0, width: 56 }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-muted)' }}>{item.time}</span>
+      {/* Time — МСК primary, Vietnam (студент Галя) below */}
+      <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15, flexShrink: 0, width: 62, alignSelf: 'center' }}>
+        <span style={{ fontSize: 14, fontWeight: 700, color: isLive ? 'var(--color-text)' : 'var(--color-text-2)' }}>
+          {item.time}{item.endTime ? `–${item.endTime}` : ''}
+        </span>
         {item.time && (
           <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-4)' }}>
             {mskToVietnam(item.time)} ВН
@@ -152,27 +180,51 @@ function ScheduleRow({ item }: { item: ScheduleItem }) {
         )}
       </span>
 
-      {/* Group chip — theme-safe tint so text always contrasts (stored colorSoft was authored for light theme) */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 5,
-        background: `color-mix(in srgb, ${item.color} 18%, transparent)`,
-        borderRadius: 8, padding: '3px 9px', flexShrink: 0,
-      }}>
-        <span style={{ fontSize: 13, lineHeight: 1 }}>{item.icon}</span>
-        <span style={{ fontSize: 12, fontWeight: 700, color: item.color }}>{item.groupName}</span>
-      </div>
-
-      {/* Topic */}
-      <span style={{ fontSize: 13, color: 'var(--color-text-2)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {item.topic}
+      {/* Main: group chip + subject/topic line */}
+      <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3, alignSelf: 'center' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            background: `color-mix(in srgb, ${item.color} 16%, transparent)`,
+            borderRadius: 8, padding: '3px 9px', flexShrink: 0, maxWidth: '100%',
+          }}>
+            <span style={{ fontSize: 13, lineHeight: 1 }}>{item.icon}</span>
+            <span style={{ fontSize: 12.5, fontWeight: 700, color: item.color, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.groupName}</span>
+          </span>
+          {isLive && (
+            <span style={{ fontSize: 10.5, fontWeight: 700, color: item.color, letterSpacing: 0.3, flexShrink: 0 }}>
+              ИДЁТ СЕЙЧАС
+            </span>
+          )}
+        </span>
+        {(item.subject || item.topic || item.lessonNumber > 0) && (
+          <span style={{ fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {[item.subject, item.lessonNumber > 0 ? `Урок ${item.lessonNumber}` : '', item.topic].filter(Boolean).join(' · ')}
+          </span>
+        )}
       </span>
 
       {/* Student count */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, color: 'var(--color-text-3)' }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, color: 'var(--color-text-3)', alignSelf: 'center' }}>
         <Users size={13} strokeWidth={1.8} />
         <span style={{ fontSize: 12, fontWeight: 600 }}>{item.studentCount}</span>
-      </div>
+      </span>
     </motion.button>
+  )
+}
+
+// Thin divider that marks the current moment between finished and upcoming lessons.
+function NowMarker({ time }: { time: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '2px 12px 2px 4px' }}>
+      <div style={{ width: 22, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+        <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-red-text)', boxShadow: '0 0 0 3px var(--color-red-soft)' }} />
+      </div>
+      <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 0.4, color: 'var(--color-red-text)', flexShrink: 0 }}>
+        СЕЙЧАС · {time}
+      </span>
+      <span style={{ flex: 1, height: 1, background: 'linear-gradient(to right, var(--color-red-soft), transparent)' }} />
+    </div>
   )
 }
 
@@ -532,6 +584,12 @@ export default function TeacherHome() {
     pendingHomework.some(hw => r.text.includes(hw.groupName) && reviewedFor(hw.id) >= hw.submittedCount)
 
   const nextLesson = todaySchedule.find(s => s.status === 'upcoming')
+  const doneCount = todaySchedule.filter(s => s.status === 'completed').length
+  // "Сейчас" sits before the first upcoming lesson — but only when something has already
+  // finished and nothing is live (a live row already signals the present moment).
+  const firstUpcomingIdx = todaySchedule.findIndex(s => s.status === 'upcoming')
+  const hasLive = todaySchedule.some(s => s.status === 'live')
+  const nowMarkerIndex = !hasLive && firstUpcomingIdx > 0 ? firstUpcomingIdx : -1
 
   return (
     // Scroll container lifted to viewport top — content scrolls under the topbar
@@ -576,10 +634,25 @@ export default function TeacherHome() {
               <CardTitle>
                 <Clock size={14} strokeWidth={2} />
                 Расписание сегодня
+                {todaySchedule.length > 0 && (
+                  <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, letterSpacing: 0 }}>
+                    <span style={{ color: 'var(--color-green-text)' }}>{doneCount} провед.</span>
+                    <span style={{ color: 'var(--color-text-4)' }}>·</span>
+                    <span style={{ color: 'var(--color-accent)' }}>{todaySchedule.length - doneCount} впереди</span>
+                  </span>
+                )}
               </CardTitle>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {todaySchedule.map(item => (
-                  <ScheduleRow key={item.id} item={item} />
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {todaySchedule.length === 0 ? (
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: 'var(--color-text-4)', padding: '24px 0' }}>
+                    <Clock size={26} strokeWidth={1.5} />
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>Сегодня уроков нет</span>
+                  </div>
+                ) : todaySchedule.map((item, i) => (
+                  <div key={item.id}>
+                    {i === nowMarkerIndex && <NowMarker time={nowMskHHMM()} />}
+                    <ScheduleRow item={item} isFirst={i === 0} isLast={i === todaySchedule.length - 1} />
+                  </div>
                 ))}
               </div>
               {/* Pending HW summary */}

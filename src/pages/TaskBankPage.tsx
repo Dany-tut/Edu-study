@@ -266,8 +266,10 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             </span>
             <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
           </div>
-          <div style={{ fontSize: mobile ? 13 : 16, lineHeight: 1.45, fontWeight: 650, color: 'var(--color-text)' }}
-            dangerouslySetInnerHTML={{ __html: task.question }} />
+          {!mobile && (
+            <div style={{ fontSize: 16, lineHeight: 1.45, fontWeight: 650, color: 'var(--color-text)' }}
+              dangerouslySetInnerHTML={{ __html: task.question }} />
+          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
           {state !== undefined && (
@@ -291,6 +293,13 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           </button>
         </div>
       </div>
+
+      {/* On mobile the question spans the full card width (below the header row),
+          so the result badge + bookmark don't squeeze it into a narrow column. */}
+      {mobile && (
+        <div style={{ fontSize: 14, lineHeight: 1.5, fontWeight: 650, color: 'var(--color-text)', marginTop: -4 }}
+          dangerouslySetInnerHTML={{ __html: task.question }} />
+      )}
 
       {/* Image / table blocks in teacher-configured order */}
       {(task.blockOrder ?? ['image', 'table']).map(blockKey => {
@@ -397,7 +406,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             placeholder="Введи ответ"
             style={{
               width: '100%', boxSizing: 'border-box',
-              padding: '11px 16px', borderRadius: 16, fontSize: 14, outline: 'none',
+              padding: '11px 16px', borderRadius: 16, fontSize: mobile ? 16 : 14, outline: 'none',
               border: `1px solid ${state ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'var(--color-border-medium)'}`,
               background: state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : 'var(--color-bg-input)',
             }}
@@ -1501,8 +1510,9 @@ export default function TaskBankPage() {
         <MobileSheet open={sheet === 'search'} onClose={() => setSheet(null)} title="Поиск">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 14px', height: 46, borderRadius: 999, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-soft)' }}>
             <Search size={16} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
+            {/* fontSize 16 prevents iOS auto-zoom on focus */}
             <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder="По тексту или №..."
-              style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 15, color: 'var(--color-text)' }} />
+              style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: 'var(--color-text)' }} />
             {search && <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', flexShrink: 0 }}><X size={16} /></button>}
           </div>
           <div style={{ marginTop: 12, fontSize: 13, color: 'var(--color-muted)' }}>Найдено заданий: {filtered.length}</div>

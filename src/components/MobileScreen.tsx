@@ -20,6 +20,7 @@ const DEFAULT_TOP_PAD = 96
 export default function MobileScreen({
   topZone,
   topPad = DEFAULT_TOP_PAD,
+  topRaise = 44,
   bottomDock,
   children,
   scrollKey,
@@ -28,6 +29,9 @@ export default function MobileScreen({
   topZone?: ReactNode
   /** Height the top zone occupies — body padding + fade height match it. */
   topPad?: number
+  /** How many px to pull the top chrome up into the safe-area band (0 = sit
+   *  fully below the notch). Default 44 tucks it against the status-bar edge. */
+  topRaise?: number
   /** Bottom dock: page controls + nav. Rendered fixed, 44px off edge + safe-area. */
   bottomDock?: ReactNode
   children: ReactNode
@@ -36,9 +40,9 @@ export default function MobileScreen({
 }) {
   const TOP_ZONE = topPad
   const [scrolled, setScrolled] = useState(false)
-  // Pull the floating top chrome up by 44px into the status-bar zone so there's
-  // no empty safe-area band above it (clamped so non-notch devices stay at 0).
-  const TOP_INSET = 'max(0px, calc(env(safe-area-inset-top, 0px) - 44px))'
+  // Pull the floating top chrome up into the status-bar zone so there's no empty
+  // safe-area band above it (clamped so non-notch devices stay at 0).
+  const TOP_INSET = `max(0px, calc(env(safe-area-inset-top, 0px) - ${topRaise}px))`
 
   return (
     <div

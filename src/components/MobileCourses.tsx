@@ -91,7 +91,7 @@ export default function MobileCourses() {
 
   return (
     <>
-      <MobileScreen topZone={topZone} topPad={72} scrollKey={`${activeSubjectId}-${moduleTab}`}>
+      <MobileScreen topZone={topZone} topPad={72} topRaise={0} scrollKey={`${activeSubjectId}-${moduleTab}`}>
         {!subject ? (
           <div className="flex flex-col items-center justify-center text-center" style={{ minHeight: 240, gap: 6 }}>
             {loaded ? (
