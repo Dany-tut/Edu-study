@@ -8,6 +8,7 @@ import type { LessonHomework } from '../data/lessonContent'
 import { PURPLE, subjectTheme } from '../lib/theme'
 import { supabase } from '../lib/supabase'
 import WhiteboardCanvas from './teacher/WhiteboardCanvas'
+import RichConditionEditor from './teacher/RichConditionEditor'
 import { getStudentSession } from '../lib/studentSession'
 import { playUnlock, playPop, vibrate } from '../lib/sound'
 import { useDashboard } from '../store/dashboardStore'
@@ -672,8 +673,10 @@ export default function HomeworkFlow({
     useStudentData.getState().load()
   }
 
-  // The hard answer can be text, a photo, a whiteboard drawing — or any mix.
-  const hasHardSubmission = !!(state.hardDraft.trim() || state.hardPhotos.length || state.hardBoard)
+  // The hard answer can be rich text, a photo, a whiteboard drawing — or any mix.
+  // hardDraft now holds HTML, so strip tags to detect real text (but keep inline images as content).
+  const hardDraftText = state.hardDraft.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
+  const hasHardSubmission = !!(hardDraftText || /<img/i.test(state.hardDraft) || state.hardPhotos.length || state.hardBoard)
 
   const submitHard = () => {
     if (!hasHardSubmission) return
@@ -1426,20 +1429,19 @@ export default function HomeworkFlow({
                     </p>
                   </div>
 
-                  <textarea
+                  <RichConditionEditor
                     value={state.hardDraft}
-                    onChange={event => setState(current => ({ ...current, hardDraft: event.target.value }))}
+                    onChange={html => setState(current => ({ ...current, hardDraft: html }))}
                     placeholder={hardLevel.teacherTask?.placeholder}
-                    style={{
-                      minHeight: 220,
-                      resize: 'none',
+                    inputSt={{
+                      width: '100%',
+                      boxSizing: 'border-box',
                       borderRadius: 24,
                       border: '1px solid var(--color-border-medium)',
                       background: 'var(--color-bg-input)',
-                      padding: 18,
-                      fontSize: 15,
-                      lineHeight: 1.65,
                       color: 'var(--color-text)',
+                      outline: 'none',
+                      fontFamily: 'inherit',
                     }}
                   />
 

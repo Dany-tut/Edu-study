@@ -160,9 +160,17 @@ export default function TeacherHardReviewPage() {
           {sub.comment && (
             <div>
               <SectionLabel>Ответ ученика</SectionLabel>
-              <div style={{ padding: '18px 20px', borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', fontSize: 15, lineHeight: 1.7, color: 'var(--color-text)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                {sub.comment}
-              </div>
+              {/<\/?[a-z][\s\S]*>/i.test(sub.comment) ? (
+                <div
+                  className="rich-answer"
+                  style={{ padding: '18px 20px', borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', fontSize: 15, lineHeight: 1.7, color: 'var(--color-text)', wordBreak: 'break-word' }}
+                  dangerouslySetInnerHTML={{ __html: sub.comment }}
+                />
+              ) : (
+                <div style={{ padding: '18px 20px', borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', fontSize: 15, lineHeight: 1.7, color: 'var(--color-text)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                  {sub.comment}
+                </div>
+              )}
             </div>
           )}
 

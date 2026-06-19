@@ -187,12 +187,12 @@ function LessonCard({ lesson, status, index, focused, onOpen }: { lesson: Lesson
       </div>
       {/* body */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center" style={{ gap: 6, marginBottom: 4 }}>
-          <span className="truncate" style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-text)' }}>
+        <div className="flex items-start" style={{ gap: 6, marginBottom: 4 }}>
+          <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
             #{lesson.number} {lesson.title}
           </span>
           {status === 'completed' && lesson.points != null && (
-            <span className="flex items-center flex-shrink-0" style={{ marginLeft: 'auto', gap: 3, fontSize: 11, fontWeight: 700, color: '#B07A00', background: 'var(--color-yellow-soft)', padding: '3px 8px', borderRadius: 999 }}>
+            <span className="flex items-center flex-shrink-0" style={{ gap: 3, fontSize: 11, fontWeight: 700, color: '#B07A00', background: 'var(--color-yellow-soft)', padding: '3px 8px', borderRadius: 999, marginTop: 1 }}>
               <Zap size={11} />+{lesson.points}
             </span>
           )}

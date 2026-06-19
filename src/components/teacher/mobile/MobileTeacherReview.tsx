@@ -47,7 +47,11 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
         </div>
       )}
       {photoCount === 0 && sub.comment && (
-        <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.4, padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg-4)' }}>{sub.comment}</div>
+        /<\/?[a-z][\s\S]*>/i.test(sub.comment) ? (
+          <div className="rich-answer" style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.4, padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg-4)', wordBreak: 'break-word' }} dangerouslySetInnerHTML={{ __html: sub.comment }} />
+        ) : (
+          <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.4, padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg-4)' }}>{sub.comment}</div>
+        )
       )}
 
       <input
