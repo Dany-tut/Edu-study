@@ -146,18 +146,15 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
               </tr>
             </thead>
             <tbody>
-              {groupStudents.map((student, si) => {
+              {groupStudents.map((student) => {
                 const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
                 const studentRecords = records.filter(r => r.studentId === student.id)
                 const presentCount = studentRecords.filter(r => r.present).length
                 const pct = dates.length ? Math.round((presentCount / dates.length) * 100) : null
 
                 return (
-                  <motion.tr
+                  <tr
                     key={student.id}
-                    initial={{ opacity: 0, x: -6 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.22, delay: si * 0.04 }}
                     style={{ borderBottom: '1px solid var(--color-border-soft)' }}
                   >
                     <td style={{
@@ -215,7 +212,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                         </span>
                       )}
                     </td>
-                  </motion.tr>
+                  </tr>
                 )
               })}
             </tbody>
@@ -259,14 +256,11 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
             </tr>
           </thead>
           <tbody>
-            {groupStudents.map((student, si) => {
+            {groupStudents.map((student) => {
               const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
               return (
-                <motion.tr
+                <tr
                   key={student.id}
-                  initial={{ opacity: 0, x: -6 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.22, delay: si * 0.04 }}
                   style={{ borderBottom: '1px solid var(--color-border-soft)' }}
                 >
                   <td style={{
@@ -301,7 +295,7 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
                       {student.attendance}%
                     </span>
                   </td>
-                </motion.tr>
+                </tr>
               )
             })}
             {/* Averages row */}
@@ -707,8 +701,9 @@ export default function TeacherGradebookPage() {
                       whileTap={{ scale: 0.96 }}
                       onClick={() => openJournalFor(p)}
                       style={{
-                        flex: 'none', padding: '8px 15px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                        background: 'var(--grad-purple)', color: '#fff', fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
+                        flex: 'none', padding: '8px 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                        background: 'var(--color-accent)', color: '#fff', fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
+                        boxShadow: '0 2px 10px rgba(99,84,207,0.45)',
                       }}
                     >
                       Заполнить
@@ -728,8 +723,8 @@ export default function TeacherGradebookPage() {
           whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
           style={{
             display: 'flex', alignItems: 'center', gap: 7,
-            padding: '8px 16px', borderRadius: 14, border: '1px solid var(--color-border-soft)', cursor: 'pointer',
-            background: 'transparent', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
+            padding: '8px 16px', borderRadius: 14, border: '1px solid var(--color-border)', cursor: 'pointer',
+            background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
           }}
         >
           <Download size={14} strokeWidth={2} />
@@ -737,8 +732,13 @@ export default function TeacherGradebookPage() {
         </motion.button>
       </motion.div>
 
-      {/* Table */}
-      <motion.div {...fadeUp(0.12)}>
+      {/* Table — single smooth fade per selection (no per-row stagger = no jank) */}
+      <motion.div
+        key={`${activeTab}:${activeGroupId ?? 'all'}`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+      >
         {activeTab === 'attendance'
           ? <AttendanceTab groupId={activeGroupId} />
           : <ScoresTab groupId={activeGroupId} />
