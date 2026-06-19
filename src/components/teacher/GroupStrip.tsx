@@ -15,8 +15,10 @@ const PAGE_BG = 'var(--color-bg)'
 const CARD_W = 190
 const CARD_H = 172
 const GAP = 14
-const PAD_TOP = 12
-const PAD_BOTTOM = 10
+// Room for the active card's glow (3px ring + ~20px shadow blur + hover lift) —
+// overflowX:auto forces overflowY:auto, so without this padding the shadow clips.
+const PAD_TOP = 26
+const PAD_BOTTOM = 22
 const BTN_GAP = 8
 const BTN_H = (CARD_H - BTN_GAP) / 2
 
