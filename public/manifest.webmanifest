@@ -1,0 +1,15 @@
+{
+  "name": "Edu Platform — Кабинет",
+  "short_name": "Edu",
+  "description": "Учебная платформа: курсы, тренажёр, домашки",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#111113",
+  "theme_color": "#111113",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
