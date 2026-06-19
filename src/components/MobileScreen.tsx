@@ -1,15 +1,11 @@
-import { useState, type ReactNode, type CSSProperties } from 'react'
+import { useRef, useState, type ReactNode, type CSSProperties } from 'react'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MobileScreen — the reusable phone shell (MOBILE ONLY; desktop never imports).
-// Layout model (docs/MOBILE_SPEC.md §1.1, approved):
-//   TOP    → floating glass widget/context; content scrolls UNDER it (fade).
-//   MIDDLE → scroll body: one-screen rule, overscroll contained, no h-overflow.
-//   BOTTOM → page controls (glass circles) + nav, 44px off the screen edge + safe-area.
-//
-// Honors: scroll-under + top fade (§1.3), no horizontal scroll (§1.3), overscroll
-// contain (§1.3), shadows/glows not clipped (§1.4, overflow-x visible padding),
-// safe-area top & bottom (§1.1).
+// Top-bar logic mirrors the portfolio top-nav: a single floating glass pill
+// pinned just below the safe-area edge (small gap), NO separate blur/shadow band
+// (the pill's own backdrop-blur handles scroll-under), and a scroll-collapse —
+// the bar hides on scroll-down and returns on scroll-up / at the top.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Distance the bottom dock floats off the screen edge (px), on top of safe-area. */
@@ -27,38 +23,37 @@ export default function MobileScreen({
 }: {
   /** Floating glass widget/context pinned to the top. Content scrolls under it. */
   topZone?: ReactNode
-  /** Height the top zone occupies — body padding + fade height match it. */
+  /** Height the top zone occupies — body padding matches it. */
   topPad?: number
-  /** How many px to pull the top chrome up into the safe-area band (0 = sit
-   *  fully below the notch). Default 44 tucks it against the status-bar edge. */
+  /** How many px to pull the top chrome up into the safe-area band (0 = sit just
+   *  below the notch). */
   topRaise?: number
   /** Bottom dock: page controls + nav. Rendered fixed, 44px off edge + safe-area. */
   bottomDock?: ReactNode
   children: ReactNode
-  /** Change to reset scroll fade state when the page swaps. */
+  /** Change to reset scroll state when the page swaps. */
   scrollKey?: string | number
 }) {
   const TOP_ZONE = topPad
-  const [scrolled, setScrolled] = useState(false)
-  // Pull the floating top chrome up into the status-bar zone so there's no empty
-  // safe-area band above it (clamped so non-notch devices stay at 0).
-  const TOP_INSET = `max(0px, calc(env(safe-area-inset-top, 0px) - ${topRaise}px))`
+  // Collapse the floating bar on scroll-down, restore on scroll-up / at top.
+  const [collapsed, setCollapsed] = useState(false)
+  const lastYRef = useRef(0)
+  // Sit just below the safe-area edge with a small gap (portfolio: env + 0.35rem).
+  const TOP_INSET = `calc(max(0px, calc(env(safe-area-inset-top, 0px) - ${topRaise}px)) + 6px)`
 
   return (
     <div
       style={{
         position: 'relative',
         height: '100dvh',
-        // overflow-x clip prevents accidental horizontal scroll without clipping
-        // vertical shadows/glows of inner cards (which extend up/down, not sideways).
         overflowX: 'clip',
         overflowY: 'hidden',
         background: 'var(--color-bg)',
-        // Reserve the top notch area, less 44px so the bar tucks up near the edge.
-        paddingTop: TOP_INSET,
+        paddingTop: 'max(0px, env(safe-area-inset-top, 0px))',
       }}
     >
-      {/* TOP — floating glass widget zone. pointer-events pass through empty areas. */}
+      {/* TOP — floating glass widget zone. pointer-events pass through empty areas.
+          Collapses upward on scroll-down (portfolio scroll-collapse). */}
       {topZone != null && (
         <div
           style={{
@@ -67,38 +62,28 @@ export default function MobileScreen({
             left: 0,
             right: 0,
             zIndex: 60,
-            padding: '12px 16px 0',
+            padding: '0 16px',
             pointerEvents: 'none',
+            transform: collapsed ? 'translateY(-150%)' : 'translateY(0)',
+            opacity: collapsed ? 0 : 1,
+            transition: 'transform 0.34s cubic-bezier(0.16,1,0.3,1), opacity 0.24s ease',
           }}
         >
           <div style={{ pointerEvents: 'auto' }}>{topZone}</div>
         </div>
       )}
 
-      {/* TOP solid strip — content scrolls under the floating bar against a clean
-          bg fill (no blur, no gradient — per user request). Only shows on scroll. */}
-      <div
-        style={{
-          position: 'absolute',
-          top: TOP_INSET,
-          left: 0,
-          right: 0,
-          height: TOP_ZONE,
-          zIndex: 50,
-          pointerEvents: 'none',
-          background: 'var(--color-bg)',
-          opacity: scrolled ? 1 : 0,
-          transition: 'opacity 0.2s ease',
-        }}
-      />
-
       {/* MIDDLE — scroll body. scroll-under: paddingTop lifts content below the
           top zone; paddingBottom clears the bottom dock. */}
       <div
         key={scrollKey}
         onScroll={e => {
-          const next = e.currentTarget.scrollTop > 4
-          setScrolled(prev => (prev === next ? prev : next))
+          const y = e.currentTarget.scrollTop
+          const dy = y - lastYRef.current
+          lastYRef.current = y
+          if (y <= 8) setCollapsed(false)
+          else if (dy > 6) setCollapsed(true)
+          else if (dy < -6) setCollapsed(false)
         }}
         className="no-scrollbar"
         style={{
