@@ -222,6 +222,9 @@ html, body, #root {
    sideways the moment a scrollbar appears on short windows. */
 html {
   scrollbar-gutter: stable;
+  /* Paint the root canvas (not just body) so the safe-area zones under iOS bars
+     are never a transparent/default band — they match the app bg exactly. */
+  background-color: var(--color-bg);
 }
 
 body {
