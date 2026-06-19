@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode, type CSSProperties } from 'react'
+import { type ReactNode, type CSSProperties } from 'react'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MobileScreen — the reusable phone shell (MOBILE ONLY; desktop never imports).
@@ -35,9 +35,6 @@ export default function MobileScreen({
   scrollKey?: string | number
 }) {
   const TOP_ZONE = topPad
-  // Collapse the floating bar on scroll-down, restore on scroll-up / at top.
-  const [collapsed, setCollapsed] = useState(false)
-  const lastYRef = useRef(0)
   // No top safe-area gap — the bar sits near the top edge (lowered 20px per request).
   void topRaise
   const TOP_INSET = '26px'
@@ -54,8 +51,7 @@ export default function MobileScreen({
         background: 'transparent',
       }}
     >
-      {/* TOP — floating glass widget zone. pointer-events pass through empty areas.
-          Collapses upward on scroll-down (portfolio scroll-collapse). */}
+      {/* TOP — floating glass widget zone. pointer-events pass through empty areas. */}
       {topZone != null && (
         <div
           style={{
@@ -66,9 +62,6 @@ export default function MobileScreen({
             zIndex: 60,
             padding: '0 16px',
             pointerEvents: 'none',
-            transform: collapsed ? 'translateY(-150%)' : 'translateY(0)',
-            opacity: collapsed ? 0 : 1,
-            transition: 'transform 0.34s cubic-bezier(0.16,1,0.3,1), opacity 0.24s ease',
           }}
         >
           <div style={{ pointerEvents: 'auto' }}>{topZone}</div>
@@ -79,14 +72,6 @@ export default function MobileScreen({
           top zone; paddingBottom clears the bottom dock. */}
       <div
         key={scrollKey}
-        onScroll={e => {
-          const y = e.currentTarget.scrollTop
-          const dy = y - lastYRef.current
-          lastYRef.current = y
-          if (y <= 8) setCollapsed(false)
-          else if (dy > 6) setCollapsed(true)
-          else if (dy < -6) setCollapsed(false)
-        }}
         className="no-scrollbar"
         style={{
           height: '100%',
