@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence, useMotionValue, useDragControls } from 'framer-motion'
 import type { ReactNode, PointerEvent as ReactPointerEvent } from 'react'
 
@@ -18,9 +19,24 @@ export default function MobileSheet({
 }) {
   const y = useMotionValue(0)
   const dragControls = useDragControls()
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   // Only the handle/header initiates the drag, so inner scrolling still works.
   const startDrag = (e: ReactPointerEvent) => dragControls.start(e)
+
+  // Lock the page behind the sheet: swallow any touch-move that isn't scrolling
+  // the sheet's own (overflowing) content. overscroll-behavior alone doesn't help
+  // when the sheet content fits — the gesture then chains to the page scroller.
+  useEffect(() => {
+    if (!open) return
+    const onTouchMove = (e: TouchEvent) => {
+      const sc = scrollRef.current
+      const insideScroll = sc && sc.contains(e.target as Node) && sc.scrollHeight > sc.clientHeight
+      if (!insideScroll) e.preventDefault()
+    }
+    document.addEventListener('touchmove', onTouchMove, { passive: false })
+    return () => document.removeEventListener('touchmove', onTouchMove)
+  }, [open])
 
   return (
     <AnimatePresence>
@@ -76,6 +92,7 @@ export default function MobileSheet({
               )}
             </div>
             <div
+              ref={scrollRef}
               className="no-scrollbar"
               style={{
                 overflowY: 'auto',
