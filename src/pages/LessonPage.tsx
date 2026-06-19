@@ -8,6 +8,7 @@ import {
 import { useDashboard } from '../store/dashboardStore'
 import { findLessonById, getLessonDetail, type LessonMaterial, type LessonHomework } from '../data/lessonContent'
 import { useStudentData } from '../store/studentDataStore'
+import { useIsDesktop } from '../lib/useIsDesktop'
 import type { CourseReaction } from '../data/mockData'
 import { EMOJI_STEPS } from '../components/HomeworkFlow'
 
@@ -497,6 +498,7 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
 }
 
 export default function LessonPage() {
+  const isDesktop = useIsDesktop()
   const courseReactions = useStudentData(s => s.courseReactions)
   const currentLessonId = useDashboard(s => s.currentLessonId)
   const closeLesson = useDashboard(s => s.closeLesson)
@@ -686,7 +688,7 @@ export default function LessonPage() {
           container's top padding so it sits ON the topbar row (mini topbar
           centred between Back+title on the left and the date on the right).
           Glass pills to match the topbar; fades / slides in on scroll. */}
-      <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
+      <div className="docked-pills-row" style={{ position: 'fixed', top: isDesktop ? 30 : 'calc(env(safe-area-inset-top, 0px) + 14px)', left: isDesktop ? 32 : 16, right: isDesktop ? 32 : 16, zIndex: 80, pointerEvents: 'none' }}>
       <AnimatePresence>
         {docked && (
           <motion.div

@@ -557,12 +557,7 @@ function BankSortDropdown({ value, onChange }: { value: SortMode; onChange: (v: 
         }}
       >
         <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
-        <span style={{ display: 'grid', justifyItems: 'start' }}>
-          {SORT_OPTS.map(([, lbl]) => (
-            <span key={lbl} aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden' }}>{lbl}</span>
-          ))}
-          <span style={{ gridArea: '1 / 1' }}>{label}</span>
-        </span>
+        <span style={{ minWidth: 88, textAlign: 'left' }}>{label}</span>
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
           <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>

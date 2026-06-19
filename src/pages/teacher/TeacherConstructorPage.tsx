@@ -1204,6 +1204,8 @@ const WIDGET_SORT_OPTS: [WidgetSortMode, string][] = [
 function WidgetSortDropdown({ value, onChange }: { value: WidgetSortMode; onChange: (v: WidgetSortMode) => void }) {
   const [open, setOpen] = useState(false)
   const label = WIDGET_SORT_OPTS.find(([v]) => v === value)?.[1] ?? 'Новые'
+  const accent = 'var(--color-blue-pill-text)'
+  const accentSoft = 'color-mix(in srgb, var(--color-blue-pill-text) 11%, transparent)'
   return (
     <div style={{ position: 'relative' }}>
       <button onClick={() => setOpen(o => !o)} onBlur={() => setTimeout(() => setOpen(false), 120)}
@@ -1211,12 +1213,7 @@ function WidgetSortDropdown({ value, onChange }: { value: WidgetSortMode; onChan
           background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.9)', border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
           fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
         <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
-        <span style={{ display: 'grid', justifyItems: 'start' }}>
-          {WIDGET_SORT_OPTS.map(([, lbl]) => (
-            <span key={lbl} aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden' }}>{lbl}</span>
-          ))}
-          <span style={{ gridArea: '1 / 1' }}>{label}</span>
-        </span>
+        <span style={{ minWidth: 88, textAlign: 'left' }}>{label}</span>
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
           <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
@@ -1231,13 +1228,13 @@ function WidgetSortDropdown({ value, onChange }: { value: WidgetSortMode; onChan
               <button key={val} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
                   width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
-                  background: value === val ? 'rgba(99,84,207,0.07)' : 'transparent',
+                  background: value === val ? accentSoft : 'transparent',
                   fontSize: 13, fontWeight: value === val ? 700 : 400, color: 'var(--color-text)',
                   cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99,84,207,0.07)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = value === val ? 'rgba(99,84,207,0.07)' : 'transparent' }}>
+                onMouseEnter={e => { e.currentTarget.style.background = accentSoft }}
+                onMouseLeave={e => { e.currentTarget.style.background = value === val ? accentSoft : 'transparent' }}>
                 {lbl}
-                {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="var(--color-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               </button>
             ))}
           </motion.div>
@@ -1255,6 +1252,8 @@ const COURSE_SORT_OPTS: [CourseSortMode, string][] = [
 function CourseSortDropdown({ value, onChange }: { value: CourseSortMode; onChange: (v: CourseSortMode) => void }) {
   const [open, setOpen] = useState(false)
   const label = COURSE_SORT_OPTS.find(([v]) => v === value)?.[1] ?? 'Новые'
+  const accent = 'var(--color-green-text)'
+  const accentSoft = 'color-mix(in srgb, var(--color-green-text) 11%, transparent)'
   return (
     <div style={{ position: 'relative' }}>
       <button onClick={() => setOpen(o => !o)} onBlur={() => setTimeout(() => setOpen(false), 120)}
@@ -1262,12 +1261,7 @@ function CourseSortDropdown({ value, onChange }: { value: CourseSortMode; onChan
           background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.9)', border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
           fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
         <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
-        <span style={{ display: 'grid', justifyItems: 'start' }}>
-          {COURSE_SORT_OPTS.map(([, lbl]) => (
-            <span key={lbl} aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden' }}>{lbl}</span>
-          ))}
-          <span style={{ gridArea: '1 / 1' }}>{label}</span>
-        </span>
+        <span style={{ minWidth: 88, textAlign: 'left' }}>{label}</span>
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
           <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
@@ -1282,13 +1276,13 @@ function CourseSortDropdown({ value, onChange }: { value: CourseSortMode; onChan
               <button key={val} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
                   width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
-                  background: value === val ? 'rgba(99,84,207,0.07)' : 'transparent',
+                  background: value === val ? accentSoft : 'transparent',
                   fontSize: 13, fontWeight: value === val ? 700 : 400, color: 'var(--color-text)',
                   cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99,84,207,0.07)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = value === val ? 'rgba(99,84,207,0.07)' : 'transparent' }}>
+                onMouseEnter={e => { e.currentTarget.style.background = accentSoft }}
+                onMouseLeave={e => { e.currentTarget.style.background = value === val ? accentSoft : 'transparent' }}>
                 {lbl}
-                {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="var(--color-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               </button>
             ))}
           </motion.div>
@@ -1326,8 +1320,8 @@ function CourseStatusFilter({ value, onChange }: { value: '' | CourseStatus; onC
 function WidgetFilterPanel({
   filters, onChange, total,
 }: { filters: WidgetFilters; onChange: (f: Partial<WidgetFilters>) => void; total: number }) {
-  const accent = 'var(--color-green-text)'
-  const accentBg = 'var(--color-green-soft)'
+  const accent = 'var(--color-blue-pill-text)'
+  const accentBg = 'var(--color-blue-pill-bg)'
   const hasFilters = !!(filters.search || filters.type || filters.linked)
   const inputSt: React.CSSProperties = {
     width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: 11,
@@ -6544,11 +6538,11 @@ export default function TeacherConstructorPage() {
   }
 
   const tabCfg = {
-    course:   { label: 'Курс',        Icon: BookOpen, color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)' },
+    course:   { label: 'Курс',        Icon: BookOpen, color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)' },
     trainer:  { label: 'Тренажёр',    Icon: Zap,      color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)' },
     widget:   { label: 'Виджет',      Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
     testing:  { label: 'Тестирование', Icon: Target,  color: 'var(--color-teal-pill-text,#0d9488)', bg: 'var(--color-teal-pill-bg,rgba(13,148,136,0.12))' },
-    bank:     { label: 'Банк заданий', Icon: Database, color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)' },
+    bank:     { label: 'Банк заданий', Icon: Database, color: 'var(--color-peach-text)',     bg: 'var(--color-peach-soft)' },
   }
 
   return (

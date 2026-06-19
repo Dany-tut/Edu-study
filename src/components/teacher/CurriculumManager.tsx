@@ -1,12 +1,10 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ChevronDown, Plus, Trash2, X, Check, RotateCcw, Layers, Hash, BookOpen, GripVertical,
+  ChevronDown, Plus, Trash2, X, Check, RotateCcw, Database, Hash, BookOpen, GripVertical,
   Cloud, CloudOff, Loader2,
 } from 'lucide-react'
 import { useCurriculum } from '../../store/curriculumStore'
-import { subjectTheme } from '../../lib/theme'
-import { useTheme } from '../../store/themeStore'
 import type { Subject } from '../../data/taskBankData'
 
 // ── Reveal-on-right-hover ─────────────────────────────────────────────────────
@@ -278,7 +276,6 @@ function SectionCard({ subject, section, accent, accentBg, partFilter }: {
 
 // ── Curriculum manager (the "Банк заданий" tab body) ─────────────────────────
 export default function CurriculumManager() {
-  const { dark } = useTheme()
   const [subject, setSubject] = useState<Subject>('biology')
   const [partFilter, setPartFilter] = useState<0 | 1 | 2>(0)
   const data = useCurriculum(s => s.data[subject])
@@ -287,8 +284,9 @@ export default function CurriculumManager() {
   const saveState = useCurriculum(s => s.saveState)
   const load = useCurriculum(s => s.load)
   useEffect(() => { load() }, [load])
-  const palette = subjectTheme(subject, dark)
-  const accent = palette.accent, accentBg = palette.soft
+  // Bank заданий has its own identity colour (orange/peach), independent of the
+  // per-subject palette — the Биология/Химия pills below still carry subject colour.
+  const accent = 'var(--color-peach-text)', accentBg = 'var(--color-peach-soft)'
 
   const totalLines = data.lines.length
   const totalTopics = Object.values(data.topics).reduce((s, t) => s + t.length, 0)
@@ -299,7 +297,7 @@ export default function CurriculumManager() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
           <div style={{ width: 38, height: 38, borderRadius: 12, background: accentBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: accent }}>
-            <Layers size={19} />
+            <Database size={19} />
           </div>
           <div>
             <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)' }}>Банк заданий — структура</div>
