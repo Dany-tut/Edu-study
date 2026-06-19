@@ -1,11 +1,26 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Flame, ClipboardCheck, Image as ImageIcon, Users, ChevronRight, AlertTriangle, BookOpen } from 'lucide-react'
+import { Flame, ClipboardCheck, Image as ImageIcon, Users, ChevronRight, AlertTriangle, BookOpen, Link2, Copy, Check } from 'lucide-react'
 import MobileScreen from '../../MobileScreen'
+import MobileSheet from '../../MobileSheet'
 import { GlassPill } from '../../mobileChrome'
 import { PAIR } from '../../../lib/mobileTokens'
+import { tactile } from '../../../lib/feedback'
 import { useHomework, useHardSubmissions } from '../../../lib/useHomework'
 import { useGroups } from '../../../lib/useGroups'
+import { loadTestAssignments, type TestAssignment } from '../../../data/diagnosticData'
 import type { MTab } from './MobileTeacherNav'
+
+const BASE_URL = window.location.origin + window.location.pathname
+const DIAG_SUBJECTS: { id: string; label: string }[] = [
+  { id: 'biology', label: 'Биология' },
+  { id: 'chemistry', label: 'Химия' },
+  { id: 'logic', label: 'Мышление' },
+  { id: 'ap-chem-ru', label: 'AP Химия RU' },
+  { id: 'ap-chem-en', label: 'AP Chemistry EN' },
+]
+const diagLink = (subject: string, assignmentId?: string) =>
+  `${BASE_URL}#/diagnostic?subject=${subject}${assignmentId ? `&assignment=${assignmentId}` : ''}`
 
 // MOBILE ONLY teacher home — "command center": quick stats + a "сделать сейчас"
 // list that routes to the actionable tabs. Heavy authoring stays on desktop.
@@ -39,10 +54,50 @@ function TodoCard({ icon, title, sub, pair, onClick }: {
   )
 }
 
+// Row inside the "Ссылки на тесты" sheet: label + copy-to-clipboard button.
+function LinkRow({ label, sub, url }: { label: string; sub?: string; url: string }) {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    tactile()
+    navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1600)
+  }
+  return (
+    <button
+      onClick={copy}
+      className="flex items-center cursor-pointer text-left"
+      style={{ gap: 11, width: '100%', padding: '12px 13px', borderRadius: 14, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}
+    >
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="truncate" style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{label}</div>
+        {sub && <div className="truncate" style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 2 }}>{sub}</div>}
+      </div>
+      <span
+        className="flex items-center flex-shrink-0"
+        style={{
+          gap: 5, padding: '7px 12px', borderRadius: 999,
+          background: copied ? 'var(--color-green-soft)' : 'var(--color-accent)',
+          color: copied ? 'var(--color-green-text)' : '#fff',
+          fontSize: 12, fontWeight: 700, transition: 'background 0.18s',
+        }}
+      >
+        {copied ? <Check size={13} /> : <Copy size={13} />}
+        {copied ? 'Готово' : 'Копировать'}
+      </span>
+    </button>
+  )
+}
+
 export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MTab) => void }) {
   const { homework } = useHomework()
   const { submissions } = useHardSubmissions()
   const { groups } = useGroups()
+  const [linksOpen, setLinksOpen] = useState(false)
+  const [assignments, setAssignments] = useState<TestAssignment[]>([])
+
+  useEffect(() => { loadTestAssignments().then(setAssignments).catch(() => {}) }, [])
+  const activeAssignments = assignments.filter(a => !a.closed)
 
   const hwPending = homework
     .filter(h => h.status !== 'closed')
@@ -122,16 +177,58 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
             pair={PAIR.warning}
             onClick={() => onNavigate('gradebook')}
           />
+
+          <TodoCard
+            icon={<Link2 size={18} />}
+            title="Ссылки на тесты"
+            sub="скопировать ученикам — диагностики и назначения"
+            pair={PAIR.success}
+            onClick={() => { tactile(); setLinksOpen(true) }}
+          />
         </div>
 
         {/* Desktop-only hint */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
           <BookOpen size={17} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
           <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-muted)', lineHeight: 1.35 }}>
-            Конструктор курсов, тренажёров и редактор уроков доступны на компьютере.
+            Полный конструктор курсов, тренажёров и редактор уроков — на компьютере.
           </span>
         </div>
       </div>
+
+      {/* Test links sheet — copy diagnostic + assignment links for students */}
+      <MobileSheet open={linksOpen} onClose={() => setLinksOpen(false)} title="Ссылки на тесты">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 8 }}>
+          {activeAssignments.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                Активные назначения
+              </div>
+              {activeAssignments.map(a => (
+                <LinkRow
+                  key={a.id}
+                  label={a.title}
+                  sub={`${a.assignType === 'trial' ? 'Пробник' : 'Тест'}${a.dueDate ? ` · до ${a.dueDate}` : ''}`}
+                  url={diagLink(a.subject, a.id)}
+                />
+              ))}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+              Диагностики по предметам
+            </div>
+            {DIAG_SUBJECTS.map(s => (
+              <LinkRow key={s.id} label={s.label} sub="открытая диагностика" url={diagLink(s.id)} />
+            ))}
+          </div>
+
+          <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.4, padding: '0 2px' }}>
+            Ссылку можно отправить ученику в любом мессенджере — он откроет тест по ней.
+          </div>
+        </div>
+      </MobileSheet>
     </MobileScreen>
   )
 }
