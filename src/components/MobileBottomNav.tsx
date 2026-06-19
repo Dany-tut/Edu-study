@@ -51,7 +51,7 @@ export default function MobileBottomNav() {
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
-      style={{ paddingBottom: 0 }}
+      style={{ paddingBottom: 20 }}
     >
       <div
         className="mx-4 mb-4 flex items-center justify-around px-2 py-3"
