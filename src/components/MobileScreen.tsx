@@ -20,7 +20,7 @@ const DEFAULT_TOP_PAD = 96
 export default function MobileScreen({
   topZone,
   topPad = DEFAULT_TOP_PAD,
-  topRaise = 44,
+  topRaise = 0,
   bottomDock,
   children,
   scrollKey,
