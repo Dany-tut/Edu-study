@@ -12,7 +12,7 @@ import {
   AlignLeft, Pencil, ClipboardCopy, Target, ChevronDown, ChevronUp,
   CheckCircle, Circle, Globe, Copy, Search, LayoutGrid,
   Settings, TrendingUp, ArrowLeftRight, RotateCcw, Palette,
-  ChevronLeft, ChevronRight, Calendar, Users,
+  ChevronLeft, ChevronRight, Calendar, Users, UsersRound,
 } from 'lucide-react'
 import RichConditionEditor from '../../components/teacher/RichConditionEditor'
 import {
@@ -1071,10 +1071,14 @@ function StudentsBadge({ access, enrolled }: { access: { id: string; name: strin
       style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 4, cursor: count ? 'default' : 'inherit', color: opened ? 'var(--color-purple-text)' : undefined }}
     >
       <span style={{ position: 'relative', display: 'inline-flex' }}>
-        <Users size={13} strokeWidth={1.8} />
+        <UsersRound size={14} strokeWidth={1.9} />
         {opened && (
-          <span style={{ position: 'absolute', right: -4, bottom: -3, width: 8, height: 8, borderRadius: '50%', background: 'var(--color-green-text)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-            <CheckCircle size={8} strokeWidth={3} style={{ color: '#fff' }} />
+          <span style={{
+            position: 'absolute', right: -4, bottom: -3, width: 9, height: 9, borderRadius: '50%',
+            background: 'var(--color-green-text)', border: '1.5px solid var(--color-bg)',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'content-box',
+          }}>
+            <Check size={6} strokeWidth={4} style={{ color: '#fff' }} />
           </span>
         )}
       </span>

@@ -35,9 +35,13 @@ export default function MobileScreen({
   scrollKey?: string | number
 }) {
   const TOP_ZONE = topPad
-  // No top safe-area gap — the bar sits near the top edge (lowered 20px per request).
+  // Portfolio top-nav logic: the bar floats just below the safe-area edge, and
+  // content scrolls EDGE-TO-EDGE under it (paddingTop = safe-area + bar height),
+  // so the notch/home-indicator zones are filled by content, never an empty band.
   void topRaise
-  const TOP_INSET = '26px'
+  const SAFE_TOP = 'env(safe-area-inset-top, 0px)'
+  const SAFE_BOTTOM = 'env(safe-area-inset-bottom, 0px)'
+  const TOP_INSET = `calc(${SAFE_TOP} + 8px)`
 
   return (
     <div
@@ -79,11 +83,11 @@ export default function MobileScreen({
           overflowX: 'clip',
           overscrollBehavior: 'contain',
           WebkitOverflowScrolling: 'touch',
-          paddingTop: topZone != null ? TOP_ZONE : 16,
+          paddingTop: topZone != null ? `calc(${SAFE_TOP} + ${TOP_ZONE}px)` : `calc(${SAFE_TOP} + 16px)`,
           paddingLeft: 16,
           paddingRight: 16,
-          // Bottom: dock height (~64) + controls headroom + 44 edge (no safe-area).
-          paddingBottom: `${MOBILE_EDGE + 92}px`,
+          // Bottom: home-indicator safe-area + dock/nav clearance.
+          paddingBottom: `calc(${SAFE_BOTTOM} + ${MOBILE_EDGE + 92}px)`,
         }}
       >
         {children}

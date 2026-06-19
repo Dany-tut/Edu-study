@@ -819,7 +819,7 @@ export default function HomeworkFlow({
 
       {/* Docked twin — fixed at the topbar line so the Back/title pills sit ON
           the topbar row (mini topbar centred between them and the widget pill). */}
-      <div className="docked-pills-row" style={{ position: 'fixed', top: isMobile ? 'calc(0px + 14px)' : 30, left: isMobile ? 16 : 32, right: isMobile ? 16 : 32, zIndex: 80, pointerEvents: 'none' }}>
+      <div className="docked-pills-row" style={{ position: 'fixed', top: isMobile ? 'calc(env(safe-area-inset-top, 0px) + 14px)' : 30, left: isMobile ? 16 : 32, right: isMobile ? 16 : 32, zIndex: 80, pointerEvents: 'none' }}>
       <AnimatePresence>
         {docked && (
           <motion.div
@@ -1230,7 +1230,7 @@ export default function HomeworkFlow({
                   </section>
                 )
               })}
-              <div style={{ position: 'fixed', bottom: isMobile ? 'calc(0px + 104px)' : 24, left: '50%', transform: 'translateX(-50%)', zIndex: 100, width: 'min(560px, calc(100vw - 48px))' }}>
+              <div style={{ position: 'fixed', bottom: isMobile ? 'calc(env(safe-area-inset-bottom, 0px) + 104px)' : 24, left: '50%', transform: 'translateX(-50%)', zIndex: 100, width: 'min(560px, calc(100vw - 48px))' }}>
                 <BottomProgressBar
                   total={basicQuestions.length}
                   answers={state.basicAnswers}
