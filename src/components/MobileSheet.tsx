@@ -77,7 +77,16 @@ export default function MobileSheet({
             </div>
             <div
               className="no-scrollbar"
-              style={{ overflowY: 'auto', overscrollBehavior: 'contain', padding: '0 20px 8px' }}
+              style={{
+                overflowY: 'auto',
+                overscrollBehavior: 'contain',
+                padding: '10px 20px 8px',
+                // Content melts under the grabber/header instead of hard-cutting:
+                // the top edge fades out as rows scroll up to it. paddingTop above
+                // keeps the first row at full opacity while at rest.
+                maskImage: 'linear-gradient(to bottom, transparent 0, black 12px)',
+                WebkitMaskImage: 'linear-gradient(to bottom, transparent 0, black 12px)',
+              }}
             >
               {children}
             </div>
