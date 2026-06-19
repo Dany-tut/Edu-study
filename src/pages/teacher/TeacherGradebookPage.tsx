@@ -14,6 +14,14 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 0.34, delay, ease: [0.22, 1, 0.36, 1] },
 })
 
+// Russian plural: pluralRu(1,'урок','урока','уроков') → урок / урока / уроков
+function pluralRu(n: number, one: string, few: string, many: string) {
+  const m10 = n % 10, m100 = n % 100
+  if (m10 === 1 && m100 !== 11) return one
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few
+  return many
+}
+
 function ScorePill({ value }: { value: number | null }) {
   if (value === null) return <span style={{ color: 'var(--color-text-4)', fontSize: 12 }}>—</span>
   const pct = value / 100
@@ -673,7 +681,7 @@ export default function TeacherGradebookPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 11 }}>
               <Clock size={17} style={{ color: 'var(--color-peach-text)' }} />
               <span style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--color-text)' }}>
-                Журнал не заполнен · {pendingJournals.length} {pendingJournals.length === 1 ? 'урок' : 'урока/ов'}
+                Журнал не заполнен · {pendingJournals.length} {pluralRu(pendingJournals.length, 'урок', 'урока', 'уроков')}
               </span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
