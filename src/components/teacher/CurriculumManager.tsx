@@ -294,7 +294,7 @@ export default function CurriculumManager() {
   const totalTopics = Object.values(data.topics).reduce((s, t) => s + t.length, 0)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 920 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 960, margin: '0 auto' }}>
       {/* Intro / controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
