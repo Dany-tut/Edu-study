@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Download, ClipboardList, X, Check, Clock } from 'lucide-react'
+import { Download, X, Check, Clock } from 'lucide-react'
 import type { TabConfig } from '../../components/teacher/GroupStrip'
 import { useTeacher } from '../../store/teacherStore'
 import GroupStrip from '../../components/teacher/GroupStrip'
@@ -244,7 +244,7 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
               <th style={{
                 padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700,
                 color: 'var(--color-text-3)', borderBottom: '1px solid var(--color-border-soft)',
-                position: 'sticky', left: 0, background: 'rgba(249,249,251,0.97)', zIndex: 1,
+                position: 'sticky', left: 0, background: 'var(--color-bg-2)', zIndex: 1,
               }}>
                 Студент
               </th>
@@ -305,10 +305,10 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
               )
             })}
             {/* Averages row */}
-            <tr style={{ background: 'rgba(99,84,207,0.04)', borderTop: '2px solid rgba(99,84,207,0.12)' }}>
+            <tr style={{ background: 'var(--color-purple-soft)', borderTop: '2px solid var(--color-border-soft)' }}>
               <td style={{
                 padding: '10px 16px', position: 'sticky', left: 0,
-                background: 'rgba(238,219,255,0.5)', zIndex: 1,
+                background: 'var(--color-purple-soft)', zIndex: 1,
                 fontSize: 11, fontWeight: 700, color: 'var(--color-accent)',
               }}>
                 Среднее
@@ -651,7 +651,8 @@ export default function TeacherGradebookPage() {
     ],
     activeTab,
     onTabChange: (id) => setActiveTab(id as 'attendance' | 'scores'),
-    extraAction: { label: 'Проставить оценки', icon: ClipboardList, onClick: () => { setGradeLessonId(undefined); setLessonModalOpen(true) } },
+    // Roster-style: first click selects the tab, clicking the active tab (hover shows ＋) opens the marking modal.
+    onTabPlusClick: () => { setGradeLessonId(undefined); setLessonModalOpen(true) },
   }
 
   return (
@@ -720,22 +721,9 @@ export default function TeacherGradebookPage() {
         )}
       </AnimatePresence>
 
-      {/* Export + Проставить оценки row */}
+      {/* Export row */}
       <motion.div {...fadeUp(0.08)} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{ flex: 1 }} />
-        <motion.button
-          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-          onClick={() => { setGradeLessonId(undefined); setLessonModalOpen(true) }}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 7,
-            padding: '8px 16px', borderRadius: 14, cursor: 'pointer',
-            background: 'rgba(155,109,255,0.12)', border: '1px solid rgba(155,109,255,0.25)',
-            color: 'var(--color-purple)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
-          }}
-        >
-          <ClipboardList size={14} strokeWidth={2} />
-          Проставить оценки
-        </motion.button>
         <motion.button
           whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
           style={{

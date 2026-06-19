@@ -36,6 +36,9 @@ export default function MobileScreen({
 }) {
   const TOP_ZONE = topPad
   const [scrolled, setScrolled] = useState(false)
+  // Pull the floating top chrome up by 44px into the status-bar zone so there's
+  // no empty safe-area band above it (clamped so non-notch devices stay at 0).
+  const TOP_INSET = 'max(0px, calc(env(safe-area-inset-top, 0px) - 44px))'
 
   return (
     <div
@@ -47,8 +50,8 @@ export default function MobileScreen({
         overflowX: 'clip',
         overflowY: 'hidden',
         background: 'var(--color-bg)',
-        // Reserve the top notch/Dynamic-Island area.
-        paddingTop: 'env(safe-area-inset-top, 0px)',
+        // Reserve the top notch area, less 44px so the bar tucks up near the edge.
+        paddingTop: TOP_INSET,
       }}
     >
       {/* TOP — floating glass widget zone. pointer-events pass through empty areas. */}
@@ -56,7 +59,7 @@ export default function MobileScreen({
         <div
           style={{
             position: 'absolute',
-            top: 'env(safe-area-inset-top, 0px)',
+            top: TOP_INSET,
             left: 0,
             right: 0,
             zIndex: 60,
@@ -73,7 +76,7 @@ export default function MobileScreen({
       <div
         style={{
           position: 'absolute',
-          top: 'env(safe-area-inset-top, 0px)',
+          top: TOP_INSET,
           left: 0,
           right: 0,
           height: TOP_ZONE,

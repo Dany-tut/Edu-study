@@ -5,7 +5,7 @@ import {
   BookOpen, Zap, Layers, Plus, Clock,
   GraduationCap, Brain, FileText, X, Check,
   Trash2, Link2, Database, Sparkles, ArrowUp, ArrowDown,
-  CircleHelp, FlaskConical, Atom, Timer, Laugh,
+  CircleHelp, FlaskConical, Atom, Dna, Timer, Laugh,
   Image as ImageIcon, Key, ArrowLeft, Maximize2,
   ListChecks, Eye, EyeOff,
   CircleDot, Type as TypeIcon, Shuffle, ArrowUpDown, Table as TableIcon,
@@ -3371,10 +3371,10 @@ const SUBJECT_META: Record<DiagSubject, { label: string; accent: string; soft: s
 }
 const DIAG_SUBJECTS: DiagSubject[] = ['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en']
 const SUBJECT_ICON_MAP: Record<DiagSubject, React.ElementType> = {
-  biology: FlaskConical,
-  chemistry: Atom,
+  biology: Dna,
+  chemistry: FlaskConical,
   logic: Target,
-  'ap-chem-ru': Atom,
+  'ap-chem-ru': FlaskConical,
   'ap-chem-en': Globe,
 }
 

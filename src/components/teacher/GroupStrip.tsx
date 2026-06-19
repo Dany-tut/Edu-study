@@ -9,7 +9,6 @@ export type TabConfig = {
   activeTab: string
   onTabChange: (id: string) => void
   onTabPlusClick?: (tabId: string) => void
-  extraAction?: { label: string; icon?: React.ElementType; onClick: () => void }
 }
 
 const PAGE_BG = 'var(--color-bg)'
