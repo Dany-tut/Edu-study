@@ -38,9 +38,9 @@ export default function MobileScreen({
   // Collapse the floating bar on scroll-down, restore on scroll-up / at top.
   const [collapsed, setCollapsed] = useState(false)
   const lastYRef = useRef(0)
-  // No top safe-area gap — the bar sits at the very top edge (small fixed offset).
+  // No top safe-area gap — the bar sits near the top edge (lowered 20px per request).
   void topRaise
-  const TOP_INSET = '6px'
+  const TOP_INSET = '26px'
 
   return (
     <div
