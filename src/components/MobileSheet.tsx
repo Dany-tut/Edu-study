@@ -62,7 +62,7 @@ export default function MobileSheet({
               WebkitBackdropFilter: 'blur(24px) saturate(180%)',
               borderRadius: '28px 28px 0 0',
               boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
-              paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
+              paddingBottom: 'calc(0px + 20px)',
               maxHeight: '85dvh',
               display: 'flex', flexDirection: 'column',
             }}

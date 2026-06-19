@@ -1497,7 +1497,7 @@ export default function TaskBankPage() {
         </MobileScreen>
 
         {/* Control dock — glass circles, sits above the bottom nav */}
-        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)', zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 'calc(0px + 96px)', zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
           <div style={{ display: 'flex', gap: 12, pointerEvents: 'auto' }}>
             {dockCircle('search', <Search size={20} />, () => setSheet('search'), { label: 'Поиск', badge: search ? 1 : 0, active: !!search })}
             {dockCircle('filter', <Filter size={20} />, () => setSheet('filters'), { label: 'Фильтры', badge: activeFilters })}

@@ -95,8 +95,8 @@ export default function MobileScreen({
           paddingTop: topZone != null ? TOP_ZONE : 16,
           paddingLeft: 16,
           paddingRight: 16,
-          // Bottom: dock height (~64) + controls headroom + 44 edge + safe-area.
-          paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + ${MOBILE_EDGE + 92}px)`,
+          // Bottom: dock height (~64) + controls headroom + 44 edge (no safe-area).
+          paddingBottom: `${MOBILE_EDGE + 92}px`,
         }}
       >
         {children}
@@ -111,7 +111,7 @@ export default function MobileScreen({
             right: 0,
             bottom: 0,
             zIndex: 70,
-            paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + ${MOBILE_EDGE - 16}px)`,
+            paddingBottom: `${MOBILE_EDGE - 16}px`,
             paddingLeft: 16,
             paddingRight: 16,
             pointerEvents: 'none',

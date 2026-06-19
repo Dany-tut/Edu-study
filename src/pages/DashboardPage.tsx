@@ -256,9 +256,9 @@ export default function DashboardPage() {
         ) : (
           <div style={{
             minHeight: '100dvh', background: 'var(--color-bg)',
-            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+            paddingTop: 'calc(0px + 16px)',
             paddingLeft: 16, paddingRight: 16,
-            paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 110px)',
+            paddingBottom: 'calc(0px + 110px)',
             overflowX: 'clip', overscrollBehavior: 'contain',
           }}>
             {activePage === 'lesson' ? (
