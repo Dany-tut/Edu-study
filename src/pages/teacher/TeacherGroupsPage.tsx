@@ -1147,10 +1147,19 @@ function StudentCoursesSection({ student, group }: { student: Student; group: Gr
 }
 
 function StudentPanel({
-  student, group, onClose, onDelete, onOpenFullCard, onAddHomework,
-}: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void; onAddHomework: () => void }) {
+  student, group, onClose, onDelete, onOpenFullCard, onAddHomework, onSaveComment,
+}: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void; onAddHomework: () => void; onSaveComment: (text: string) => Promise<void> }) {
   const [comment, setComment] = useState(student.comment ?? '')
+  const [commentSaved, setCommentSaved] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  // Re-sync the editor when switching to another student.
+  useEffect(() => { setComment(student.comment ?? ''); setCommentSaved(false) }, [student.id])
+  async function saveComment() {
+    if (comment === (student.comment ?? '')) return
+    await onSaveComment(comment)
+    setCommentSaved(true)
+    setTimeout(() => setCommentSaved(false), 2000)
+  }
   return (
     <div
       style={{
@@ -1305,13 +1314,20 @@ function StudentPanel({
 
         {/* Comment */}
         <section>
-          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
-            Комментарий
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+              Заметка преподавателя
+            </div>
+            {commentSaved && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)' }}>
+                <Check size={11} /> сохранено
+              </span>
+            )}
           </div>
           <textarea
             value={comment}
             onChange={e => setComment(e.target.value)}
-            placeholder="Добавить комментарий..."
+            placeholder="Добавить заметку..."
             rows={3}
             style={{
               width: '100%', boxSizing: 'border-box',
@@ -1328,6 +1344,7 @@ function StudentPanel({
             onBlur={e => {
               e.currentTarget.style.borderColor = 'transparent'
               e.currentTarget.style.background = 'var(--color-bg)'
+              saveComment()
             }}
           />
         </section>
@@ -1438,7 +1455,7 @@ export default function TeacherGroupsPage() {
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
   const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
   const { groups, loading: groupsLoading, addGroup, addIndividualStudent, deleteGroup } = useGroups()
-  const { students, addStudent, deleteStudent } = useStudents(selectedGroupId)
+  const { students, addStudent, deleteStudent, updateStudent } = useStudents(selectedGroupId)
   const [showAddGroup, setShowAddGroup] = useState(false)
   const [showAddStudent, setShowAddStudent] = useState(false)
   const [showAddIndividual, setShowAddIndividual] = useState(false)
@@ -1804,6 +1821,7 @@ export default function TeacherGroupsPage() {
               }}
               onOpenFullCard={() => openStudentDashboard(activeStudentId, activeStudentGroup.id)}
               onAddHomework={() => openHomeworkCreate(activeStudentId)}
+              onSaveComment={async (text) => { await updateStudent(activeStudentId, { comment: text }) }}
             />
           </motion.div>
         )}

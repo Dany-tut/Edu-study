@@ -8,6 +8,7 @@ import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useTeacher, type TeacherPage } from '../../store/teacherStore'
 import { useHomework } from '../../lib/useHomework'
+import { useJournalPending } from '../../lib/useGroups'
 import { lockSnap, lockRelease, springTopbar } from '../../lib/feedback'
 import CreateTaskModal from './CreateTaskModal'
 import WidgetsModal from './WidgetsModal'
@@ -56,6 +57,7 @@ export default function TeacherTopBar() {
   const pendingHwCount = homework
     .filter(hw => hw.status === 'active')
     .reduce((acc, hw) => acc + Math.max(0, hw.submittedCount - Object.keys(reviews[hw.id] ?? {}).length), 0)
+  const pendingJournalCount = useJournalPending(null).length
   const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [widgetsOpen, setWidgetsOpen] = useState(false)
   const [notifOpen, setNotifOpen]       = useState(false)
@@ -135,7 +137,8 @@ export default function TeacherTopBar() {
       <nav style={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
         {navItems.map(item => {
           const isActive = activePage === item.id
-          const showBadge = item.id === 'homework' && pendingHwCount > 0
+          const badgeCount = item.id === 'homework' ? pendingHwCount : item.id === 'gradebook' ? pendingJournalCount : 0
+          const showBadge = badgeCount > 0
           return (
             <motion.button
               key={item.id}
@@ -190,7 +193,7 @@ export default function TeacherTopBar() {
                   fontSize: 9, fontWeight: 700,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  {pendingHwCount}
+                  {badgeCount}
                 </span>
               )}
             </motion.button>
