@@ -15,6 +15,8 @@ export type HardSub = {
   status: 'submitted' | 'returned' | 'completed'
   updatedAt: string
   attachments: { photos: string[]; board: string | null }
+  // Teacher's attachments left when returning the work (photos / whiteboard).
+  reviewAttachments: { photos: string[]; board: string | null }
 }
 
 export type HwAssignment = HomeworkItem
@@ -181,6 +183,10 @@ export function useHardSubmissions() {
           photos: Array.isArray(r.attachments?.photos) ? r.attachments.photos : [],
           board: r.attachments?.board ?? null,
         },
+        reviewAttachments: {
+          photos: Array.isArray(r.review_attachments?.photos) ? r.review_attachments.photos : [],
+          board: r.review_attachments?.board ?? null,
+        },
       }
     }))
     setLoading(false)
@@ -199,8 +205,18 @@ export function useHardSubmissions() {
     return () => { supabase.removeChannel(channel) }
   }, [])
 
-  async function reviewHard(id: string, verdict: 'completed' | 'returned', comment = '') {
-    await supabase.from('lesson_progress').update({ status: verdict, review_comment: comment || null }).eq('id', id)
+  async function reviewHard(
+    id: string,
+    verdict: 'completed' | 'returned',
+    comment = '',
+    reviewAttachments?: { photos: string[]; board: string | null },
+  ) {
+    const hasAtt = reviewAttachments && (reviewAttachments.photos.length || reviewAttachments.board)
+    await supabase.from('lesson_progress').update({
+      status: verdict,
+      review_comment: comment || null,
+      review_attachments: hasAtt ? reviewAttachments : null,
+    }).eq('id', id)
     await load()
   }
 

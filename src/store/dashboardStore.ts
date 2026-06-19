@@ -119,10 +119,10 @@ interface DashboardState {
   setTrackPopoverOpen: (v: boolean) => void
 
   // Homework self-assessment results, keyed by lessonId.
-  lessonAssessments: Record<string, { score: number; emojiIndex: number; hardAvailable?: boolean; hardCompleted?: boolean; hardStatus?: 'submitted' | 'returned' | 'completed'; hardComment?: string }>
+  lessonAssessments: Record<string, { score: number; emojiIndex: number; hardAvailable?: boolean; hardCompleted?: boolean; hardStatus?: 'submitted' | 'returned' | 'completed'; hardComment?: string; hardReviewPhotos?: string[]; hardReviewBoard?: string | null }>
   setLessonAssessment: (lessonId: string, score: number, emojiIndex: number, hardAvailable?: boolean) => void
   setHardCompleted: (lessonId: string) => void
-  setHardStatus: (lessonId: string, status: 'submitted' | 'returned' | 'completed', comment?: string) => void
+  setHardStatus: (lessonId: string, status: 'submitted' | 'returned' | 'completed', comment?: string, reviewAttachments?: { photos: string[]; board: string | null }) => void
 
   // Pomodoro focus timer. Kept in the store (with a module-level interval) so it
   // keeps ticking even when the widget is swiped off-screen and unmounts.
@@ -280,13 +280,20 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   trackPopoverOpen: false,
   setTrackPopoverOpen: (v) => set({ trackPopoverOpen: v }),
 
-  lessonAssessments: {} as Record<string, { score: number; emojiIndex: number; hardAvailable?: boolean; hardCompleted?: boolean; hardStatus?: 'submitted' | 'returned' | 'completed'; hardComment?: string }>,
+  lessonAssessments: {} as Record<string, { score: number; emojiIndex: number; hardAvailable?: boolean; hardCompleted?: boolean; hardStatus?: 'submitted' | 'returned' | 'completed'; hardComment?: string; hardReviewPhotos?: string[]; hardReviewBoard?: string | null }>,
   setLessonAssessment: (lessonId, score, emojiIndex, hardAvailable) =>
     set((s) => ({ lessonAssessments: { ...s.lessonAssessments, [lessonId]: { ...s.lessonAssessments[lessonId], score, emojiIndex, hardAvailable } } })),
   setHardCompleted: (lessonId) =>
     set((s) => ({ lessonAssessments: { ...s.lessonAssessments, [lessonId]: { ...s.lessonAssessments[lessonId], hardCompleted: true, hardStatus: 'submitted' as const } } })),
-  setHardStatus: (lessonId, status, comment) =>
-    set((s) => ({ lessonAssessments: { ...s.lessonAssessments, [lessonId]: { ...s.lessonAssessments[lessonId], hardStatus: status, hardCompleted: status === 'completed', hardComment: comment ?? s.lessonAssessments[lessonId]?.hardComment } } })),
+  setHardStatus: (lessonId, status, comment, reviewAttachments) =>
+    set((s) => ({ lessonAssessments: { ...s.lessonAssessments, [lessonId]: {
+      ...s.lessonAssessments[lessonId],
+      hardStatus: status,
+      hardCompleted: status === 'completed',
+      hardComment: comment ?? s.lessonAssessments[lessonId]?.hardComment,
+      hardReviewPhotos: reviewAttachments ? reviewAttachments.photos : s.lessonAssessments[lessonId]?.hardReviewPhotos,
+      hardReviewBoard: reviewAttachments ? reviewAttachments.board : s.lessonAssessments[lessonId]?.hardReviewBoard,
+    } } })),
 
   pomoMode: 'focus',
   pomoTimerMode: 'timer',

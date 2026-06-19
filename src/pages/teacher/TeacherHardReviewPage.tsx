@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Star, RotateCcw, Check, ClipboardList, PenLine, Image as ImageIcon } from 'lucide-react'
+import { ArrowLeft, Star, RotateCcw, Check, ClipboardList, PenLine, Image as ImageIcon, Upload, X } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useHardSubmissions } from '../../lib/useHomework'
 import { openHardSubHomework } from '../../lib/teacherNav'
@@ -32,6 +32,23 @@ export default function TeacherHardReviewPage() {
   const [hwBusy, setHwBusy] = useState(false)
   const [hwMissing, setHwMissing] = useState(false)
   const [zoom, setZoom] = useState<string | null>(null)
+  // Teacher's own attachments left on a return: photos + a whiteboard drawing.
+  const [reviewPhotos, setReviewPhotos] = useState<string[]>([])
+  const [reviewBoard, setReviewBoard] = useState<string | null>(null)
+  const [showBoard, setShowBoard] = useState(false)
+  const reviewFileRef = useRef<HTMLInputElement>(null)
+
+  function addReviewPhotos(files: FileList | null) {
+    if (!files) return
+    Array.from(files).forEach(file => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        const src = reader.result as string
+        if (src) setReviewPhotos(prev => [...prev, src])
+      }
+      reader.readAsDataURL(file)
+    })
+  }
 
   if (!sub) {
     return (
@@ -55,7 +72,7 @@ export default function TeacherHardReviewPage() {
   async function act(verdict: 'completed' | 'returned') {
     if (verdict === 'returned' && !reviewComment.trim()) { setReturnError(true); return }
     setBusy(true)
-    await reviewHard(sub!.id, verdict, reviewComment.trim())
+    await reviewHard(sub!.id, verdict, reviewComment.trim(), { photos: reviewPhotos, board: reviewBoard })
     setBusy(false)
     setActivePage('homework')
   }
@@ -203,6 +220,44 @@ export default function TeacherHardReviewPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Teacher attachments to the return: photos + whiteboard */}
+                <div>
+                  <SectionLabel>Приложить к ответу</SectionLabel>
+                  <input ref={reviewFileRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
+                    onChange={e => { addReviewPhotos(e.target.files); if (reviewFileRef.current) reviewFileRef.current.value = '' }} />
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => reviewFileRef.current?.click()}
+                      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      <Upload size={14} /> Фото
+                    </button>
+                    <button onClick={() => setShowBoard(v => !v)}
+                      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: `1px solid ${showBoard || reviewBoard ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: showBoard || reviewBoard ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', color: showBoard || reviewBoard ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      <PenLine size={14} /> {reviewBoard ? 'Доска ✓' : 'Доска'}
+                    </button>
+                  </div>
+
+                  {reviewPhotos.length > 0 && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 10 }}>
+                      {reviewPhotos.map((src, i) => (
+                        <div key={i} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--color-border-soft)' }}>
+                          <img src={src} alt="" onClick={() => setZoom(src)} style={{ width: '100%', height: 64, objectFit: 'cover', display: 'block', cursor: 'zoom-in' }} />
+                          <button onClick={() => setReviewPhotos(prev => prev.filter((_, j) => j !== i))}
+                            style={{ position: 'absolute', top: 3, right: 3, width: 20, height: 20, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {showBoard && (
+                    <div style={{ marginTop: 10 }}>
+                      <WhiteboardCanvas initialData={reviewBoard ?? undefined} onSave={data => setReviewBoard(data)} />
+                    </div>
+                  )}
+                </div>
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <motion.button
                     whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
@@ -243,6 +298,24 @@ export default function TeacherHardReviewPage() {
                     <div style={{ padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', fontSize: 13, lineHeight: 1.6, color: 'var(--color-text)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                       {sub.reviewComment}
                     </div>
+                  </div>
+                )}
+                {sub.reviewAttachments.photos.length > 0 && (
+                  <div>
+                    <SectionLabel><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ImageIcon size={13} /> Фото от преподавателя</span></SectionLabel>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                      {sub.reviewAttachments.photos.map((src, i) => (
+                        <button key={i} onClick={() => setZoom(src)} style={{ padding: 0, border: '1px solid var(--color-border-soft)', borderRadius: 10, overflow: 'hidden', cursor: 'zoom-in', background: 'var(--color-bg-2)' }}>
+                          <img src={src} alt="" style={{ width: '100%', height: 64, objectFit: 'cover', display: 'block' }} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {sub.reviewAttachments.board && (
+                  <div>
+                    <SectionLabel><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><PenLine size={13} /> Доска преподавателя</span></SectionLabel>
+                    <WhiteboardCanvas readOnly initialData={sub.reviewAttachments.board} />
                   </div>
                 )}
               </>

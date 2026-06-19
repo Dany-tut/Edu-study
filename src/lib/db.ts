@@ -116,22 +116,32 @@ interface DbProgress {
   score: number
   comment: string
   review_comment: string | null
+  review_attachments: { photos?: string[]; board?: string | null } | null
   hard_submitted: boolean
 }
 
-export type ProgressMap = Record<string, { status: LessonStatus; score: number; comment: string; reviewComment: string; hardSubmitted: boolean }>
+export type ReviewAttachments = { photos: string[]; board: string | null }
+export type ProgressMap = Record<string, { status: LessonStatus; score: number; comment: string; reviewComment: string; reviewAttachments: ReviewAttachments; hardSubmitted: boolean }>
 
 export async function fetchLessonProgress(studentId: string): Promise<ProgressMap> {
   const { data, error } = await supabase
     .from('lesson_progress')
-    .select('lesson_ref, subject, status, score, comment, review_comment, hard_submitted')
+    .select('lesson_ref, subject, status, score, comment, review_comment, review_attachments, hard_submitted')
     .eq('student_id', studentId)
 
   if (error || !data) return {}
 
   const map: ProgressMap = {}
   for (const row of data as DbProgress[]) {
-    map[row.lesson_ref] = { status: row.status, score: row.score, comment: row.comment, reviewComment: row.review_comment ?? '', hardSubmitted: row.hard_submitted }
+    map[row.lesson_ref] = {
+      status: row.status, score: row.score, comment: row.comment,
+      reviewComment: row.review_comment ?? '',
+      reviewAttachments: {
+        photos: Array.isArray(row.review_attachments?.photos) ? row.review_attachments!.photos! : [],
+        board: row.review_attachments?.board ?? null,
+      },
+      hardSubmitted: row.hard_submitted,
+    }
   }
   return map
 }

@@ -570,6 +570,8 @@ export default function HomeworkFlow({
   // Drives the submitted-panel badge so an accept/return actually shows here.
   const hardVerdict = useDashboard(s => s.lessonAssessments[lessonId]?.hardStatus)
   const hardComment = useDashboard(s => s.lessonAssessments[lessonId]?.hardComment)
+  const hardReviewPhotos = useDashboard(s => s.lessonAssessments[lessonId]?.hardReviewPhotos)
+  const hardReviewBoard = useDashboard(s => s.lessonAssessments[lessonId]?.hardReviewBoard)
   const hardPanel = hardVerdict === 'completed'
     ? {
         iconBg: 'var(--color-green-soft)', iconColor: 'var(--color-green-text)',
@@ -1345,6 +1347,34 @@ export default function HomeworkFlow({
                     </div>
                   )}
 
+                  {/* Teacher's attachments on the return — photos + whiteboard */}
+                  {hardVerdict === 'returned' && (hardReviewPhotos?.length || hardReviewBoard) && (
+                    <div style={{ padding: 18, borderRadius: 20, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                      {!!hardReviewPhotos?.length && (
+                        <div>
+                          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-peach-text)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>
+                            Фото от преподавателя
+                          </p>
+                          <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
+                            {hardReviewPhotos.map((src, i) => (
+                              <button key={i} onClick={() => window.open(src, '_blank')} style={{ padding: 0, border: '1px solid var(--color-border-soft)', borderRadius: 12, overflow: 'hidden', cursor: 'zoom-in', background: 'var(--color-bg)' }}>
+                                <img src={src} alt="" style={{ width: '100%', display: 'block', maxHeight: 200, objectFit: 'contain' }} />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {hardReviewBoard && (
+                        <div>
+                          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-peach-text)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>
+                            Доска преподавателя
+                          </p>
+                          <WhiteboardCanvas readOnly initialData={hardReviewBoard} />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
                     <StatusCard
                       title="Черновик сохранён"
@@ -1736,7 +1766,7 @@ function BottomProgressBar({
               )
             }
 
-            const bg = isCorrect ? '#6EE7A0' : isWrong ? '#F48B91' : '#E4E4E9'
+            const bg = isCorrect ? '#6EE7A0' : isWrong ? '#F48B91' : 'var(--color-border-strong)'
             return (
               <div key={index} style={{
                 flex: 1, height: index < active ? 6 : 4,

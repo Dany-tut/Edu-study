@@ -104,7 +104,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       for (const [ref, p] of Object.entries(progress)) {
         if (!ref.endsWith('-hard')) continue
         if (p.status === 'submitted' || p.status === 'returned' || p.status === 'completed') {
-          dash.setHardStatus(ref.slice(0, -'-hard'.length), p.status, p.reviewComment)
+          dash.setHardStatus(ref.slice(0, -'-hard'.length), p.status, p.reviewComment, p.reviewAttachments)
         }
       }
     }
