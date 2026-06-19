@@ -1,11 +1,11 @@
-import { motion } from 'framer-motion'
-import { LogOut, Flame, CheckCircle2, Star, TrendingUp, Zap, Bell } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { LogOut, Flame, CheckCircle2, Star, TrendingUp, Zap, Bell, Moon, Sun } from 'lucide-react'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
-import ThemeToggleBtn from './ThemeToggleBtn'
 import { DynamicIsland, GlassIconButton } from './mobileChrome'
 import { getStudentSession, clearStudentSession } from '../lib/studentSession'
 import { useStudentData } from '../store/studentDataStore'
+import { useTheme } from '../store/themeStore'
 import { PAIR } from '../lib/mobileTokens'
 import { tactile } from '../lib/feedback'
 import type { LucideIcon } from 'lucide-react'
@@ -31,6 +31,7 @@ export default function MobileProfilePage() {
   const initial = name.charAt(0).toUpperCase()
   const stats = useStudentData(s => s.stats)
   const subjects = useStudentData(s => s.subjects)
+  const { dark, toggle } = useTheme()
 
   const subjectLine = subjects.length > 0 ? subjects.map(s => s.name).join(' · ') : 'Ученик'
 
@@ -107,13 +108,37 @@ export default function MobileProfilePage() {
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', padding: '4px 2px' }}>
               Настройки
             </div>
-            <div
-              className="flex items-center justify-between"
-              style={{ padding: '12px 16px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}
+            <motion.button
+              whileTap={{ scale: 0.985 }}
+              onClick={() => { tactile(); toggle() }}
+              className="flex items-center justify-between cursor-pointer"
+              style={{ width: '100%', padding: '12px 16px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}
             >
               <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>Тема оформления</span>
-              <ThemeToggleBtn />
-            </div>
+              <span
+                className="flex items-center"
+                style={{
+                  gap: 6, height: 34, paddingLeft: 10, paddingRight: 12, borderRadius: 12,
+                  background: dark ? 'rgba(124,108,224,0.16)' : 'var(--color-bg-5)',
+                  color: dark ? 'var(--color-accent)' : 'var(--color-muted)',
+                  transition: 'background 0.25s, color 0.25s',
+                }}
+              >
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={String(dark)}
+                    initial={{ rotate: dark ? -120 : 120, scale: 0.4, opacity: 0 }}
+                    animate={{ rotate: 0, scale: 1, opacity: 1 }}
+                    exit={{ opacity: 0, scale: 0.4 }}
+                    transition={{ type: 'spring', stiffness: 380, damping: 22 }}
+                    className="flex items-center"
+                  >
+                    {dark ? <Moon size={16} strokeWidth={1.8} /> : <Sun size={16} strokeWidth={1.8} />}
+                  </motion.span>
+                </AnimatePresence>
+                <span style={{ fontSize: 13, fontWeight: 650 }}>{dark ? 'Тёмная' : 'Светлая'}</span>
+              </span>
+            </motion.button>
 
             <motion.button
               whileTap={{ scale: 0.97 }}
