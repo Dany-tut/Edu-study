@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Download, X, Check, Clock } from 'lucide-react'
+import { Download, X, Check, Clock, CalendarClock } from 'lucide-react'
 import type { TabConfig } from '../../components/teacher/GroupStrip'
 import { useTeacher } from '../../store/teacherStore'
 import GroupStrip from '../../components/teacher/GroupStrip'
@@ -669,12 +669,12 @@ export default function TeacherGradebookPage() {
           <motion.div
             initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
             style={{
-              borderRadius: 18, padding: '14px 18px',
-              background: 'var(--color-peach-soft)', border: '1px solid var(--color-border-soft)',
+              borderRadius: 16, padding: 14,
+              background: 'var(--color-yellow-soft)', border: '1px solid var(--color-border-soft)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 11 }}>
-              <Clock size={17} style={{ color: 'var(--color-peach-text)' }} />
+              <Clock size={17} style={{ color: 'var(--color-yellow-text)' }} />
               <span style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--color-text)' }}>
                 Журнал не заполнен · {pendingJournals.length} {pluralRu(pendingJournals.length, 'урок', 'урока', 'уроков')}
               </span>
@@ -686,9 +686,15 @@ export default function TeacherGradebookPage() {
                   <div key={p.scheduleId} style={{
                     display: 'flex', alignItems: 'center', gap: 11,
                     background: 'rgba(var(--glass-rgb), 0.55)', border: '1px solid var(--color-border-soft)',
-                    borderRadius: 11, padding: '10px 13px',
+                    borderRadius: 10, padding: '10px 12px',
                   }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-peach-text)', flex: 'none' }} />
+                    <div style={{
+                      width: 34, height: 34, borderRadius: 10, flex: 'none',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'var(--color-yellow-soft)', color: 'var(--color-yellow-text)',
+                    }}>
+                      <CalendarClock size={17} strokeWidth={2} />
+                    </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {p.scopeName || p.title || 'Урок'}
@@ -701,9 +707,9 @@ export default function TeacherGradebookPage() {
                       whileTap={{ scale: 0.96 }}
                       onClick={() => openJournalFor(p)}
                       style={{
-                        flex: 'none', padding: '8px 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                        background: 'var(--color-accent)', color: '#fff', fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
-                        boxShadow: '0 2px 10px rgba(99,84,207,0.45)',
+                        flex: 'none', padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                        background: 'var(--color-yellow-text)', color: 'var(--color-bg)', fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
+                        boxShadow: '0 2px 10px rgba(246,228,122,0.35)',
                       }}
                     >
                       Заполнить

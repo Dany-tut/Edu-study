@@ -86,10 +86,14 @@ export default function MobileScreen({
           height: TOP_ZONE,
           zIndex: 50,
           pointerEvents: 'none',
-          backdropFilter: 'blur(14px)',
-          WebkitBackdropFilter: 'blur(14px)',
-          WebkitMaskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)',
-          maskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)',
+          // Blur + a soft bg-colour gradient (NOT a hard stripe) so solid-colour
+          // content (e.g. the Course level hero) melts cleanly under the bar
+          // instead of peeking through the glass pills. Masked to fade out fully.
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          background: 'linear-gradient(to bottom, var(--color-bg) 0%, rgba(var(--glass-rgb),0.4) 42%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 46%, transparent 100%)',
+          maskImage: 'linear-gradient(to bottom, black 0%, black 46%, transparent 100%)',
           opacity: scrolled ? 1 : 0,
           transition: 'opacity 0.2s ease',
         }}
