@@ -263,6 +263,7 @@ export default function DashboardPage() {
             paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
             paddingLeft: 16, paddingRight: 16,
             paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 110px)',
+            overflowX: 'clip', overscrollBehavior: 'contain',
           }}>
             {activePage === 'lesson' ? (
               lesson?.kind === 'test'

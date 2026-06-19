@@ -232,7 +232,10 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
   const isCorrect = state?.correct === true
   const isWrong   = state?.correct === false
 
+  // Tactility is mobile-only — desktop trainer shouldn't blip/vibrate on every click.
+  const tap = () => { if (mobile) tactile() }
   function check() {
+    tap()
     onAnswer(task.id, inputVal, inputVal.trim().toLowerCase() === task.answer.toLowerCase())
   }
   function share() {
@@ -274,7 +277,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             </div>
           )}
           <button
-            onClick={() => onFavorite(task.id)}
+            onClick={() => { tap(); onFavorite(task.id) }}
             style={{
               width: 36, height: 36, borderRadius: 12,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -431,7 +434,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                 <CheckCircle2 size={14} />Проверить
               </button>
               {state !== undefined && (
-                <button onClick={() => setShowSolution(s => !s)} style={{
+                <button onClick={() => { tap(); setShowSolution(s => !s) }} style={{
                   display: 'flex', alignItems: 'center', gap: 6, padding: '11px 18px', borderRadius: 16,
                   background: showSolution ? palette.soft : 'rgba(var(--glass-rgb), 0.88)',
                   border: showSolution ? 'none' : '1px solid var(--color-border-medium)',
@@ -1515,7 +1518,7 @@ export default function TaskBankPage() {
                 const active = parts.includes(p)
                 const avail = availableParts.includes(p as '1' | '2')
                 return (
-                <button key={p} disabled={!avail} onClick={() => setParts(active ? parts.filter(x => x !== p) : [...parts, p])} style={{
+                <button key={p} disabled={!avail} onClick={() => { tactile(); setParts(active ? parts.filter(x => x !== p) : [...parts, p]) }} style={{
                   flex: 1, padding: '11px 12px', borderRadius: 13, fontSize: 14, fontWeight: 600, cursor: avail ? 'pointer' : 'not-allowed',
                   background: active ? `${palette.accent}22` : 'var(--color-bg-input)',
                   border: `1px solid ${active ? palette.accent : 'var(--color-border-soft)'}`,
@@ -1530,7 +1533,7 @@ export default function TaskBankPage() {
             <FilterField label="Источник" options={allSources} value={source} onChange={setSource} accent={palette.accent} />
             <StatusTabs value={statusFilter} onChange={setStatusFilter} />
             {hasFilters && (
-              <button onClick={clearFilters}
+              <button onClick={() => { tactile(); clearFilters() }}
                 style={{ marginTop: 2, padding: '11px', borderRadius: 12, background: 'rgba(176,48,64,0.10)', border: '1px solid rgba(176,48,64,0.18)', fontSize: 13, color: 'rgba(176,48,64,0.85)', cursor: 'pointer', fontWeight: 600 }}>
                 Сбросить фильтры
               </button>
@@ -1542,7 +1545,7 @@ export default function TaskBankPage() {
         <MobileSheet open={sheet === 'sort'} onClose={() => setSheet(null)} title="Сортировка">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {SORT_OPTIONS.map(([mode, label]) => (
-              <button key={mode} onClick={() => { setSortMode(mode); setSheet(null) }}
+              <button key={mode} onClick={() => { tactile(); setSortMode(mode); setSheet(null) }}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: sortMode === mode ? 'var(--color-purple-soft)' : 'transparent', color: sortMode === mode ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 15, fontWeight: 600 }}>
                 {label}
                 {sortMode === mode && <CheckCircle2 size={18} />}
