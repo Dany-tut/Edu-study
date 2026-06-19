@@ -75,8 +75,8 @@ export default function MobileScreen({
         </div>
       )}
 
-      {/* TOP fade strip — content melts under the widget. Fades from pixel 0 (never
-          a hard band). Only visible once the body has scrolled. */}
+      {/* TOP solid strip — content scrolls under the floating bar against a clean
+          bg fill (no blur, no gradient — per user request). Only shows on scroll. */}
       <div
         style={{
           position: 'absolute',
@@ -86,14 +86,7 @@ export default function MobileScreen({
           height: TOP_ZONE,
           zIndex: 50,
           pointerEvents: 'none',
-          // Blur + a soft bg-colour gradient (NOT a hard stripe) so solid-colour
-          // content (e.g. the Course level hero) melts cleanly under the bar
-          // instead of peeking through the glass pills. Masked to fade out fully.
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          background: 'linear-gradient(to bottom, var(--color-bg) 0%, rgba(var(--glass-rgb),0.4) 42%, transparent 100%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 46%, transparent 100%)',
-          maskImage: 'linear-gradient(to bottom, black 0%, black 46%, transparent 100%)',
+          background: 'var(--color-bg)',
           opacity: scrolled ? 1 : 0,
           transition: 'opacity 0.2s ease',
         }}
