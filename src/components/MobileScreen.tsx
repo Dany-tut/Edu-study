@@ -38,8 +38,9 @@ export default function MobileScreen({
   // Collapse the floating bar on scroll-down, restore on scroll-up / at top.
   const [collapsed, setCollapsed] = useState(false)
   const lastYRef = useRef(0)
-  // Sit just below the safe-area edge with a small gap (portfolio: env + 0.35rem).
-  const TOP_INSET = `calc(max(0px, calc(env(safe-area-inset-top, 0px) - ${topRaise}px)) + 6px)`
+  // No top safe-area gap — the bar sits at the very top edge (small fixed offset).
+  void topRaise
+  const TOP_INSET = '6px'
 
   return (
     <div
@@ -49,7 +50,6 @@ export default function MobileScreen({
         overflowX: 'clip',
         overflowY: 'hidden',
         background: 'var(--color-bg)',
-        paddingTop: 'max(0px, env(safe-area-inset-top, 0px))',
       }}
     >
       {/* TOP — floating glass widget zone. pointer-events pass through empty areas.
