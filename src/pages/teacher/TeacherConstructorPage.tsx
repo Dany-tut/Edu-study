@@ -1208,7 +1208,7 @@ function WidgetSortDropdown({ value, onChange }: { value: WidgetSortMode; onChan
     <div style={{ position: 'relative' }}>
       <button onClick={() => setOpen(o => !o)} onBlur={() => setTimeout(() => setOpen(false), 120)}
         style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 999,
-          background: 'rgba(var(--glass-rgb), 0.9)', border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
+          background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.9)', border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
           fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
         <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
         <span style={{ display: 'grid', justifyItems: 'start' }}>
@@ -1231,11 +1231,13 @@ function WidgetSortDropdown({ value, onChange }: { value: WidgetSortMode; onChan
               <button key={val} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
                   width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
-                  background: value === val ? 'rgba(26,122,63,0.07)' : 'transparent',
+                  background: value === val ? 'rgba(99,84,207,0.07)' : 'transparent',
                   fontSize: 13, fontWeight: value === val ? 700 : 400, color: 'var(--color-text)',
-                  cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
+                  cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99,84,207,0.07)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = value === val ? 'rgba(99,84,207,0.07)' : 'transparent' }}>
                 {lbl}
-                {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="var(--color-green-text)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="var(--color-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               </button>
             ))}
           </motion.div>
@@ -1257,7 +1259,7 @@ function CourseSortDropdown({ value, onChange }: { value: CourseSortMode; onChan
     <div style={{ position: 'relative' }}>
       <button onClick={() => setOpen(o => !o)} onBlur={() => setTimeout(() => setOpen(false), 120)}
         style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 999,
-          background: 'rgba(var(--glass-rgb), 0.9)', border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
+          background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.9)', border: `1px solid ${open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
           fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
         <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
         <span style={{ display: 'grid', justifyItems: 'start' }}>
@@ -1280,11 +1282,13 @@ function CourseSortDropdown({ value, onChange }: { value: CourseSortMode; onChan
               <button key={val} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
                   width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
-                  background: value === val ? 'rgba(26,122,63,0.07)' : 'transparent',
+                  background: value === val ? 'rgba(99,84,207,0.07)' : 'transparent',
                   fontSize: 13, fontWeight: value === val ? 700 : 400, color: 'var(--color-text)',
-                  cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
+                  cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99,84,207,0.07)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = value === val ? 'rgba(99,84,207,0.07)' : 'transparent' }}>
                 {lbl}
-                {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="var(--color-green-text)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="var(--color-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               </button>
             ))}
           </motion.div>
