@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { motion } from 'framer-motion'
-import { Database, HardDrive, ImageIcon, RefreshCw, AlertTriangle } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Database, HardDrive, ImageIcon, RefreshCw, AlertTriangle, ChevronDown } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
 // Mirrors the JSON returned by the `storage_stats()` Postgres RPC.
@@ -67,6 +67,7 @@ export default function StorageUsagePanel() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [open, setOpen] = useState(true)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -94,11 +95,21 @@ export default function StorageUsagePanel() {
 
   return (
     <div style={cardStyle}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)', letterSpacing: 0.2, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)', letterSpacing: 0.2, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}
+      >
         <Database size={14} strokeWidth={2} />
         Хранилище базы данных
+        <motion.span
+          animate={{ rotate: open ? 0 : -90 }}
+          transition={{ duration: 0.2 }}
+          style={{ display: 'flex', color: 'var(--color-text-4)' }}
+        >
+          <ChevronDown size={15} strokeWidth={2.2} />
+        </motion.span>
         <button
-          onClick={load}
+          onClick={e => { e.stopPropagation(); load() }}
           title="Обновить"
           style={{ marginLeft: 'auto', width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}
         >
@@ -106,6 +117,16 @@ export default function StorageUsagePanel() {
         </button>
       </div>
 
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{ paddingTop: 16 }}>
       {error ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-text-3)', fontSize: 12.5, padding: '12px 0' }}>
           <AlertTriangle size={15} /> Не удалось загрузить статистику
@@ -159,6 +180,10 @@ export default function StorageUsagePanel() {
           )}
         </div>
       )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )

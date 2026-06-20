@@ -706,6 +706,11 @@ export default function TeacherHome() {
 
           <MyTasksBlock />
 
+          {/* Storage / DB usage */}
+          <motion.div {...fadeUp(0.24)} style={{ flexShrink: 0 }}>
+            <StorageUsagePanel />
+          </motion.div>
+
         </div>
 
         {/* Right column: reminders + quick actions */}
@@ -731,11 +736,6 @@ export default function TeacherHome() {
                 </div>
               </div>
             </Card>
-          </motion.div>
-
-          {/* Storage / DB usage */}
-          <motion.div {...fadeUp(0.24)} style={{ flexShrink: 0 }}>
-            <StorageUsagePanel />
           </motion.div>
 
         </div>
