@@ -12,7 +12,7 @@ import { useTeacher } from '../../store/teacherStore'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import GroupStrip from '../../components/teacher/GroupStrip'
 import { useGroups, useStudents } from '../../lib/useGroups'
-import { useHomework, useHardSubmissions, type HardSub } from '../../lib/useHomework'
+import { useHomework, useHardSubmissions, hardSubTimeline, type HardSub, type HardTimelineStep } from '../../lib/useHomework'
 import { openLessonInCourseEditor } from '../../lib/teacherNav'
 
 const fadeUp = (delay = 0) => ({
@@ -40,6 +40,19 @@ function timeAgo(iso?: string): string {
   if (hrs < 24) return `${hrs} ${pluralRu(hrs, 'час', 'часа', 'часов')} назад`
   const days = Math.floor(hrs / 24)
   return `${days} ${pluralRu(days, 'день', 'дня', 'дней')} назад`
+}
+
+// Компактное относительное время для чипов хронологии: «5 мин», «2 ч», «3 д».
+function shortAgo(iso?: string): string {
+  if (!iso) return ''
+  const diff = Date.now() - new Date(iso).getTime()
+  if (!Number.isFinite(diff) || diff < 0) return 'только что'
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'только что'
+  if (mins < 60) return `${mins} мин`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs} ч`
+  return `${Math.floor(hrs / 24)} д`
 }
 
 function hwStatus(hw: HomeworkItem): 'done' | 'reviewing' | 'waiting' | 'overdue' {
@@ -654,6 +667,8 @@ export default function TeacherHomeworkPage() {
   type QueueItem = {
     key: string; kind: 'basic' | 'hard'; who: string; color: string
     title: string; meta: string; due: string; ts: number; overdue: boolean; onClick: () => void
+    // У хардов с историей доработок — лента событий (сдано → возвращено → …).
+    steps?: HardTimelineStep[]
   }
   const queue: QueueItem[] = [
     ...filtered
@@ -671,13 +686,19 @@ export default function TeacherHomeworkPage() {
       }),
     ...hardSubs
       .filter(s => s.status === 'submitted')
-      .map(sub => ({
-        key: `hard-${sub.id}`, kind: 'hard' as const, who: sub.studentName, color: 'var(--color-accent)',
-        title: sub.lessonTitle || 'Хард-задание', meta: `сдано ${timeAgo(sub.updatedAt)}`,
-        due: '', ts: sub.updatedAt ? new Date(sub.updatedAt).getTime() : 0,
-        overdue: false,
-        onClick: () => openHardReview(sub.id),
-      })),
+      .map(sub => {
+        const steps = hardSubTimeline(sub.taskBlocks, sub.reviewBlocks)
+        return {
+          key: `hard-${sub.id}`, kind: 'hard' as const, who: sub.studentName, color: 'var(--color-accent)',
+          title: sub.lessonTitle || 'Хард-задание', meta: `сдано ${timeAgo(sub.updatedAt)}`,
+          // Лента событий показываем только когда была доработка (>1 шага);
+          // одиночная сдача остаётся коротким «сдано N назад».
+          steps: steps.length > 1 ? steps : undefined,
+          due: '', ts: sub.updatedAt ? new Date(sub.updatedAt).getTime() : 0,
+          overdue: false,
+          onClick: () => openHardReview(sub.id),
+        }
+      }),
   ].sort((a, b) => (Number(b.overdue) - Number(a.overdue)) || (a.ts - b.ts))
 
   function openHw(id: string) {
@@ -746,8 +767,27 @@ export default function TeacherHomeworkPage() {
                         color: item.kind === 'hard' ? 'var(--color-yellow-text)' : 'var(--color-accent)',
                       }}>{item.kind === 'hard' ? '★ Сложное' : 'Основное'}</span>
                     </div>
-                    <div style={{ fontSize: 11.5, color: 'var(--color-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {item.title} · {item.meta}
+                    <div style={{ fontSize: 11.5, color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{item.title}</span>
+                      <span style={{ flex: 'none', color: 'var(--color-text-3)' }}>·</span>
+                      {item.steps ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, flex: 'none' }}>
+                          {item.steps.map((s, i) => (
+                            <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              {i > 0 && <span style={{ color: 'var(--color-text-3)', opacity: 0.7 }}>→</span>}
+                              <span
+                                title={s.kind === 'returned' ? 'Возвращено на доработку' : i === 0 ? 'Отправлено на проверку' : 'Отправлено повторно'}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: s.kind === 'returned' ? 'var(--color-peach-text)' : 'var(--color-muted)' }}
+                              >
+                                {s.kind === 'returned' ? <RotateCcw size={11} /> : <Send size={11} />}
+                                {shortAgo(s.at)}
+                              </span>
+                            </span>
+                          ))}
+                        </span>
+                      ) : (
+                        <span style={{ flex: 'none' }}>{item.meta}</span>
+                      )}
                     </div>
                   </div>
                   <div style={{ flex: 'none', fontSize: 11.5, fontWeight: 600, textAlign: 'right', color: item.overdue ? 'var(--color-red-text)' : 'var(--color-text-3)', marginRight: 4, whiteSpace: 'nowrap' }}>

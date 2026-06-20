@@ -168,6 +168,35 @@ export function hardTaskScore(rb?: HardTaskReviewBlock | null): number | null {
   return typeof last?.score === 'number' ? last.score : null
 }
 
+// Хронология всей хард-работы для очереди «Нужно проверить»: одна лента
+// круговоротов по всем заданиям, схлопнутая по типу события. Решение ученика →
+// «отправлено на проверку», вердикт «returned» → «возвращено». «completed» не
+// показываем — принятые работы из очереди уходят. Подряд идущие одинаковые
+// события сливаются в одно (берём последнее время).
+export type HardTimelineStep = { kind: 'submitted' | 'returned'; at: string }
+
+export function hardSubTimeline(
+  sbs: HardTaskStudentBlock[],
+  rbs: HardTaskReviewBlock[],
+): HardTimelineStep[] {
+  const rbByKey = new Map(rbs.map(b => [b.key, b]))
+  const raw: HardTimelineStep[] = []
+  for (const sb of sbs) {
+    for (const ev of mergeTaskEvents(sb, rbByKey.get(sb.key))) {
+      if (ev.kind === 'solution') raw.push({ kind: 'submitted', at: ev.at })
+      else if (ev.verdict === 'returned') raw.push({ kind: 'returned', at: ev.at })
+    }
+  }
+  raw.sort((a, b) => (a.at || '').localeCompare(b.at || ''))
+  const out: HardTimelineStep[] = []
+  for (const e of raw) {
+    const last = out[out.length - 1]
+    if (last && last.kind === e.kind) last.at = e.at
+    else out.push({ ...e })
+  }
+  return out
+}
+
 // Статус всей хард-работы по задачам (для очереди учителя и бейджа ученика).
 export function deriveHardRowStatus(
   sbs: HardTaskStudentBlock[],
