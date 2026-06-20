@@ -12,7 +12,7 @@ import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { supabase } from '../../lib/supabase'
 import { useGroups, useStudents, useAllStudents, resolveIndividualGroup } from '../../lib/useGroups'
-import { useHomework } from '../../lib/useHomework'
+import { useHomework, type HardTaskDef } from '../../lib/useHomework'
 import { useCourseLessons, type CourseLesson } from '../../lib/useCourseLessons'
 import {
   SOURCES, linesForSelection, sectionsForSubject, topicsForSubject,
@@ -39,6 +39,7 @@ type HWTask = {
   type: HWTaskType
   question: string
   answer: string
+  image?: string | null   // условие-картинка из банка (для сложных заданий у ученика)
   choices?: string[]
   correctChoices?: number[]
   pairs?: { left: string; right: string }[]
@@ -61,7 +62,21 @@ function taskFromBank(bt: BankTask): HWTask {
     id: Math.random().toString(36).slice(2),
     source: 'bank', bankId: bt.id, modified: false,
     type: 'text', question: bt.question, answer: bt.answer,
+    image: bt.questionImage ?? null,
   }
+}
+
+// Собрать определения сложных заданий для ученика: и банковские, и свободные.
+// `key` стабилен — связывает определение ⇄ ответ ученика ⇄ ревью учителя.
+function buildHardTaskDefs(tasks: HWTask[]): HardTaskDef[] {
+  return tasks.map(t => ({
+    key: t.bankId != null ? `b${t.bankId}` : `c${t.id}`,
+    source: t.source,
+    bankId: t.bankId,
+    statement: t.question,
+    image: t.image ?? null,
+    answer: t.answer,
+  }))
 }
 
 // ─── Style helpers ─────────────────────────────────────────────────────────────
@@ -1907,19 +1922,21 @@ export default function TeacherHomeworkCreatePage() {
   const prefilledRef = useRef(false)
   const tasksBuiltRef = useRef(false)
   const [editTaskIds, setEditTaskIds] = useState<{ regular: number[]; hard: number[] } | null>(null)
+  const [editHardDefs, setEditHardDefs] = useState<HardTaskDef[] | null>(null)
   useEffect(() => {
     if (!editingHomeworkId || prefilledRef.current) return
     prefilledRef.current = true
     loadBank()
     supabase
       .from('homework')
-      .select('group_id, title, due_date, task_ids, hard_task_ids, lesson_id')
+      .select('group_id, title, due_date, task_ids, hard_task_ids, hard_tasks, lesson_id')
       .eq('id', editingHomeworkId)
       .single()
       .then(({ data }) => {
         if (!data) return
         const hardIds: number[] = Array.isArray(data.hard_task_ids) ? data.hard_task_ids : []
         const allIds: number[] = Array.isArray(data.task_ids) ? data.task_ids : []
+        setEditHardDefs(Array.isArray(data.hard_tasks) ? (data.hard_tasks as HardTaskDef[]) : [])
         setEditTaskIds({ regular: allIds.filter(id => !hardIds.includes(id)), hard: hardIds })
         const due = data.due_date
           ? (() => { const [y, m, d] = String(data.due_date).split('-'); return `${d}.${m}.${y}` })()
@@ -1944,8 +1961,19 @@ export default function TeacherHomeworkCreatePage() {
       .filter((b): b is BankTask => !!b)
       .map(taskFromBank)
     setHwTasks(buildFrom(editTaskIds.regular))
-    setHardTasks(buildFrom(editTaskIds.hard))
-  }, [editTaskIds, bankTasks])
+    // Сложные задания восстанавливаем из hard_tasks (банк + свободные); если их
+    // нет (старое ДЗ до перехода) — падаем на банковские id, как раньше.
+    if (editHardDefs && editHardDefs.length > 0) {
+      setHardTasks(editHardDefs.map(d => ({
+        id: d.key.startsWith('c') ? d.key.slice(1) : Math.random().toString(36).slice(2),
+        source: d.source, bankId: d.bankId, modified: false,
+        type: 'text' as HWTaskType, question: d.statement, answer: d.answer ?? '',
+        image: d.image ?? null,
+      })))
+    } else {
+      setHardTasks(buildFrom(editTaskIds.hard))
+    }
+  }, [editTaskIds, bankTasks, editHardDefs])
   const [trainerFilters, setTrainerFilters] = useState<TrainerFilters>({ search: '', subject: '', sections: [], topics: [], parts: [], lines: [], source: '' })
   const [trainerAddedIds, setTrainerAddedIds] = useState<Set<number>>(new Set())
   const [trainerDialogTaskId, setTrainerDialogTaskId] = useState<string | null>(null)
@@ -2052,6 +2080,9 @@ export default function TeacherHomeworkCreatePage() {
         lessonId: meta.lessonId || null,
         hardTaskIds: hardIds,
         hardTotal: hardTasks.length,
+        // Полные определения сложных заданий (банк + свободные) — источник правды
+        // для пер-задачного рендера у ученика.
+        hardTasks: buildHardTaskDefs(hardTasks),
       }
       if (editingHomeworkId) await updateHomework(editingHomeworkId, payload)
       else await createHomework(payload)

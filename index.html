@@ -8,15 +8,33 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Edu" />
+    <meta name="apple-mobile-web-app-title" content="Искра" />
     <!-- theme-color matches the page bg exactly (per theme) so Safari's status/
          address bars blend with the content — no visible "fill" band. -->
     <meta name="theme-color" content="#F5F5F6" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#111113" media="(prefers-color-scheme: dark)" />
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="icon" type="image/svg+xml" href="./icon.svg" />
-    <link rel="apple-touch-icon" href="./icon.svg" />
-    <title>Edu Platform — Кабинет ученика</title>
+    <link rel="icon" id="app-favicon" type="image/svg+xml" href="./icon.svg?v=2" />
+    <link rel="apple-touch-icon" id="app-touch-icon" href="./icon.svg?v=2" />
+    <title>Искра — Кабинет ученика</title>
+    <!-- Фавикон + заголовок переключаются по маршруту: ученик (книга) / учитель (искра) -->
+    <script>
+      (function () {
+        function syncIcon() {
+          var teacher = location.hash.indexOf('#/teacher') === 0
+          var href = teacher ? './icon-teacher.svg?v=2' : './icon.svg?v=2'
+          var fav = document.getElementById('app-favicon')
+          var touch = document.getElementById('app-touch-icon')
+          if (fav) fav.href = href
+          if (touch) touch.href = href
+          document.title = teacher
+            ? 'Искра — Кабинет учителя'
+            : 'Искра — Кабинет ученика'
+        }
+        window.addEventListener('hashchange', syncIcon)
+        syncIcon()
+      })()
+    </script>
     <!-- Microsoft Clarity: добавь VITE_CLARITY_ID в .env и пересобери, или вставь ID напрямую ниже -->
     <script>
       (function(c,l,a,r,i,t,y){

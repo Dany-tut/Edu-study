@@ -2,9 +2,16 @@ import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Star, RotateCcw, Check, ClipboardList, PenLine, Image as ImageIcon, Upload, X } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
-import { useHardSubmissions } from '../../lib/useHomework'
+import {
+  useHardSubmissions, type Annotation as HardAnnotation,
+  type HardComment, type HardReviewNew,
+  teacherComments, deriveHardRowStatus, deriveHardScore, hardId,
+} from '../../lib/useHomework'
 import { openHardSubHomework } from '../../lib/teacherNav'
 import WhiteboardCanvas from '../../components/teacher/WhiteboardCanvas'
+import AnnotationLayer, { type Annotation } from '../../components/teacher/AnnotationLayer'
+import AnswerBody from '../../components/teacher/AnswerBody'
+import HardConversation, { type HardTabVM, type ReviewPayload } from '../../components/teacher/HardConversation'
 
 const glass: React.CSSProperties = {
   background: 'rgba(var(--glass-rgb), 0.88)',
@@ -23,7 +30,7 @@ export default function TeacherHardReviewPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const openHomeworkEdit = useTeacher(s => s.openHomeworkEdit)
   const reviewingHardId = useTeacher(s => s.reviewingHardId)
-  const { submissions, reviewHard } = useHardSubmissions()
+  const { submissions, reviewHard, reviewHardMulti } = useHardSubmissions()
   const sub = submissions.find(s => s.id === reviewingHardId) ?? null
 
   const [busy, setBusy] = useState(false)
@@ -37,6 +44,13 @@ export default function TeacherHardReviewPage() {
   const [reviewBoard, setReviewBoard] = useState<string | null>(null)
   const [showBoard, setShowBoard] = useState(false)
   const reviewFileRef = useRef<HTMLInputElement>(null)
+  // Живая разметка поверх ответа ученика.
+  const [annotating, setAnnotating] = useState(false)
+  const [reviewAnnotation, setReviewAnnotation] = useState<Annotation | null>(null)
+
+  // ─── Per-task ревью с раундами (вкладки) ─────────────────────────────────────
+  // Активная вкладка задания. Пустая строка → берём первую в HardConversation.
+  const [activeKey, setActiveKey] = useState<string>('')
 
   function addReviewPhotos(files: FileList | null) {
     if (!files) return
@@ -72,10 +86,62 @@ export default function TeacherHardReviewPage() {
   async function act(verdict: 'completed' | 'returned') {
     if (verdict === 'returned' && !reviewComment.trim()) { setReturnError(true); return }
     setBusy(true)
-    await reviewHard(sub!.id, verdict, reviewComment.trim(), { photos: reviewPhotos, board: reviewBoard })
+    await reviewHard(sub!.id, verdict, reviewComment.trim(), { photos: reviewPhotos, board: reviewBoard, annotation: reviewAnnotation ?? sub!.reviewAttachments.annotation ?? null })
     setBusy(false)
     setActivePage('homework')
   }
+
+  const isMulti = sub.isMultiTask
+
+  // Вкладки = задания, присланные учеником (снапшот условия лежит в блоке).
+  const tabs: HardTabVM[] = sub.taskBlocks.map((tb, i) => ({
+    key: tb.key,
+    title: `Задание ${i + 1}`,
+    statement: tb.statement,
+  }))
+
+  // Ревью одной вкладки: дописываем новый круг-комментарий в её историю,
+  // пересчитываем статус всей работы и сумму оценок, пишем review_attachments.
+  async function reviewTab(key: string, p: ReviewPayload) {
+    const round: HardComment = {
+      id: hardId('cmt'),
+      at: new Date().toISOString(),
+      comment: p.comment,
+      photos: p.photos,
+      board: p.board,
+      boardMode: p.boardMode,
+      annotation: p.annotation as HardAnnotation | null,
+      verdict: p.verdict,
+      score: p.verdict === 'completed' ? p.score : null,
+    }
+    const prevByKey = new Map(sub!.reviewBlocks.map(b => [b.key, b]))
+    const tasks = sub!.taskBlocks.map(tb => ({
+      key: tb.key,
+      comments: [...teacherComments(prevByKey.get(tb.key)), ...(tb.key === key ? [round] : [])],
+    }))
+    const review: HardReviewNew = { v: 2, tasks }
+    const status = deriveHardRowStatus(sub!.taskBlocks, tasks)
+    const score = deriveHardScore(tasks)
+    setBusy(true)
+    await reviewHardMulti(sub!.id, review, status, score)
+    setBusy(false)
+  }
+
+  const multiPanel = isMulti ? (
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <HardConversation
+        tabs={tabs}
+        studentBlocks={sub.taskBlocks}
+        reviewBlocks={sub.reviewBlocks}
+        role="teacher"
+        activeKey={activeKey || tabs[0]?.key || ''}
+        onSelectTab={setActiveKey}
+        onZoomPhoto={setZoom}
+        onReview={reviewTab}
+        busy={busy}
+      />
+    </div>
+  ) : null
 
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
@@ -154,47 +220,46 @@ export default function TeacherHardReviewPage() {
           </div>
         </div>
 
-        {/* Center — the answer content */}
-        <div style={{ flex: 1, minWidth: 0, ...glass, padding: 22, display: 'flex', flexDirection: 'column', gap: 22 }}>
-          {/* Text */}
-          {sub.comment && (
-            <div>
-              <SectionLabel>Ответ ученика</SectionLabel>
-              {/<\/?[a-z][\s\S]*>/i.test(sub.comment) ? (
-                <div
-                  className="rich-answer"
-                  style={{ padding: '18px 20px', borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', fontSize: 15, lineHeight: 1.7, color: 'var(--color-text)', wordBreak: 'break-word' }}
-                  dangerouslySetInnerHTML={{ __html: sub.comment }}
-                />
-              ) : (
-                <div style={{ padding: '18px 20px', borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', fontSize: 15, lineHeight: 1.7, color: 'var(--color-text)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                  {sub.comment}
-                </div>
-              )}
-            </div>
-          )}
+        {multiPanel}
 
-          {/* Photos */}
-          {photos.length > 0 && (
-            <div>
-              <SectionLabel><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ImageIcon size={13} /> Фото · {photos.length}</span></SectionLabel>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
-                {photos.map((src, i) => (
-                  <button key={i} onClick={() => setZoom(src)} style={{ padding: 0, border: '1px solid var(--color-border-soft)', borderRadius: 14, overflow: 'hidden', cursor: 'zoom-in', background: 'var(--color-bg-2)' }}>
-                    <img src={src} alt="" style={{ width: '100%', display: 'block', maxHeight: 260, objectFit: 'contain' }} />
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+        {/* Center — the answer content (legacy single-essay) */}
+        {!isMulti && (
+        <div style={{ flex: 1, minWidth: 0, ...glass, padding: 22, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Header: label + «разметить поверх работы» */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase' }}>Ответ ученика</div>
+            {hasAnything && (
+              <button
+                onClick={() => setAnnotating(a => !a)}
+                title="Рисовать прямо по работе ученика — что верно, а что нет"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
+                  padding: '7px 12px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+                  fontSize: 12, fontWeight: 700,
+                  border: `1px solid ${annotating ? 'transparent' : 'var(--color-border-medium)'}`,
+                  background: annotating ? 'var(--color-green-soft)' : 'var(--color-bg-2)',
+                  color: annotating ? 'var(--color-green-text)' : 'var(--color-text)',
+                }}
+              >
+                {annotating ? <><Check size={14} strokeWidth={2.4} /> Готово</> : <><PenLine size={14} strokeWidth={2.2} /> Разметить</>}
+              </button>
+            )}
+          </div>
 
-          {/* Whiteboard */}
-          {board && (
-            <div>
-              <SectionLabel><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><PenLine size={13} /> Доска</span></SectionLabel>
-              <WhiteboardCanvas readOnly initialData={board} />
-            </div>
-          )}
+          {/* Ответ ученика + живая разметка поверх него */}
+          <AnnotationLayer
+            active={annotating}
+            value={reviewAnnotation ?? sub.reviewAttachments.annotation ?? null}
+            onChange={setReviewAnnotation}
+          >
+            <AnswerBody
+              comment={sub.comment}
+              photos={photos}
+              board={board}
+              onZoomPhoto={setZoom}
+              photosClickable={!annotating}
+            />
+          </AnnotationLayer>
 
           {!hasAnything && (
             <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--color-text-4)', fontSize: 14, fontStyle: 'italic' }}>
@@ -202,8 +267,11 @@ export default function TeacherHardReviewPage() {
             </div>
           )}
         </div>
+        )}
 
-        {/* Right — review actions */}
+
+        {/* Right — review actions (legacy) */}
+        {!isMulti && (
         <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 14, position: 'sticky', top: 20 }}>
           <div style={{ ...glass, padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
             {sub.status === 'submitted' ? (
@@ -330,6 +398,7 @@ export default function TeacherHardReviewPage() {
             )}
           </div>
         </div>
+        )}
       </div>
 
       {/* Photo zoom overlay */}

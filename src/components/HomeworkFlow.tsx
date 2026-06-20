@@ -6,10 +6,18 @@ import {
 } from 'lucide-react'
 import type { LessonHomework } from '../data/lessonContent'
 import { PURPLE, subjectTheme } from '../lib/theme'
+import { useTheme } from '../store/themeStore'
 import { supabase } from '../lib/supabase'
 import WhiteboardCanvas from './teacher/WhiteboardCanvas'
+import AnnotationLayer from './teacher/AnnotationLayer'
+import AnswerBody from './teacher/AnswerBody'
 import RichConditionEditor from './teacher/RichConditionEditor'
 import { getStudentSession } from '../lib/studentSession'
+import type {
+  HardTaskDef, HardTaskStudentBlock, HardTaskReviewBlock, HardSolution, HardAttachmentsNew, HardReviewNew,
+} from '../lib/useHomework'
+import { isNewHard, hardId, studentSolutions } from '../lib/useHomework'
+import HardConversation, { type HardTabVM } from './teacher/HardConversation'
 import { playUnlock, playPop, vibrate } from '../lib/sound'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
@@ -496,17 +504,28 @@ interface HomeworkFlowProps {
   onBack: () => void
 }
 
+// Ответ ученика по одному сложному заданию (per-task).
+interface HardTaskDraft {
+  answer: string
+  photos: string[]
+  board: string | null
+}
+
 interface PersistedHomeworkState {
   selectedLevel: HomeworkLevelId
   basicAnswers: Record<string, string>
   hardDraft: string
   hardSubmitted: boolean
   hardFiles: string[]
-  hardPhotos: string[]       // attached photos as data URLs
-  hardBoard: string | null   // whiteboard drawing as a PNG data URL
+  hardPhotos: string[]       // attached photos as data URLs (legacy single-essay)
+  hardBoard: string | null   // whiteboard drawing as a PNG data URL (legacy)
+  // Новый per-task формат: ответ + фото + доска по каждому заданию, ключ = HardTaskDef.key.
+  hardTaskDrafts: Record<string, HardTaskDraft>
   basicSubmitted: boolean
   selfAssessmentValue: number | null
 }
+
+const emptyDraft = (): HardTaskDraft => ({ answer: '', photos: [], board: null })
 
 const SPRING = { type: 'spring', stiffness: 240, damping: 26 } as const
 
@@ -525,6 +544,7 @@ function getInitialState(): PersistedHomeworkState {
     hardFiles: [],
     hardPhotos: [],
     hardBoard: null,
+    hardTaskDrafts: {},
     basicSubmitted: false,
     selfAssessmentValue: null,
   }
@@ -538,7 +558,8 @@ export default function HomeworkFlow({
   onBack,
 }: HomeworkFlowProps) {
   const isMobile = !useIsDesktop()
-  const palette = subjectTheme(subject)
+  const { dark } = useTheme()
+  const palette = subjectTheme(subject, dark)
   const setHomeworkWidgetFeedback = useDashboard(s => s.setHomeworkWidgetFeedback)
   const clearHomeworkWidgetFeedback = useDashboard(s => s.clearHomeworkWidgetFeedback)
   const setAnswerFlight = useDashboard(s => s.setAnswerFlight)
@@ -565,6 +586,64 @@ export default function HomeworkFlow({
   const [showResultModal, setShowResultModal] = useState<'basic' | 'hard' | null>(null)
   const photoInputRef = useRef<HTMLInputElement>(null)
   const [showBoard, setShowBoard] = useState(false)
+  // Определения сложных заданий (per-task), назначенных на этот урок группе ученика.
+  // Пусто → нет назначенного ДЗ или старый формат → используем legacy teacherTask.
+  const [hardDefs, setHardDefs] = useState<HardTaskDef[]>([])
+  const [openBoards, setOpenBoards] = useState<Set<string>>(new Set())
+  useEffect(() => {
+    let cancelled = false
+    const session = getStudentSession()
+    supabase
+      .from('homework')
+      .select('hard_tasks, group_id, created_at')
+      .eq('lesson_id', lessonId)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (cancelled || !data) return
+        const rows = data as { hard_tasks?: HardTaskDef[]; group_id?: string }[]
+        const withDefs = rows.filter(r => Array.isArray(r.hard_tasks) && r.hard_tasks.length > 0)
+        const mine = withDefs.find(r => r.group_id === session?.groupId) ?? withDefs[0]
+        setHardDefs(mine?.hard_tasks ?? [])
+      })
+    return () => { cancelled = true }
+  }, [lessonId])
+
+  // Серверная переписка по сложным заданиям: решения ученика (attachments.tasks)
+  // + комментарии преподавателя (review_attachments.tasks). Тянем строку
+  // `${lessonId}-hard` и слушаем её изменения — чтобы вердикт учителя появлялся
+  // у ученика сразу, а история раундов не терялась.
+  const [hardRow, setHardRow] = useState<{ attachments: unknown; review_attachments: unknown } | null>(null)
+  const [hardBusy, setHardBusy] = useState(false)
+  const [hardActiveKey, setHardActiveKey] = useState('')
+  const reloadHardRow = React.useCallback(async () => {
+    const session = getStudentSession()
+    if (!session?.id) return
+    const { data } = await supabase
+      .from('lesson_progress')
+      .select('attachments, review_attachments')
+      .eq('student_id', session.id)
+      .eq('lesson_ref', `${lessonId}-hard`)
+      .maybeSingle()
+    setHardRow(data ?? null)
+  }, [lessonId])
+  useEffect(() => {
+    reloadHardRow()
+    const session = getStudentSession()
+    if (!session?.id) return
+    const channel = supabase
+      .channel(`hw-hard-${lessonId}-${session.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_progress', filter: `student_id=eq.${session.id}` }, payload => {
+        const ref = (payload.new as { lesson_ref?: string } | null)?.lesson_ref
+        if (ref === `${lessonId}-hard`) reloadHardRow()
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [lessonId, reloadHardRow])
+
+  // Full-screen image viewer. A base64 data URL can't be opened in a new tab —
+  // browsers block top-level navigation to data: URLs — so we show it inline.
+  const [lightbox, setLightbox] = useState<string | null>(null)
   const setLessonAssessment = useDashboard(s => s.setLessonAssessment)
   const setHardCompleted = useDashboard(s => s.setHardCompleted)
   // Teacher's verdict on the hard essay, synced from `lesson_progress` on load.
@@ -573,6 +652,8 @@ export default function HomeworkFlow({
   const hardComment = useDashboard(s => s.lessonAssessments[lessonId]?.hardComment)
   const hardReviewPhotos = useDashboard(s => s.lessonAssessments[lessonId]?.hardReviewPhotos)
   const hardReviewBoard = useDashboard(s => s.lessonAssessments[lessonId]?.hardReviewBoard)
+  const hardReviewAnnotation = useDashboard(s => s.lessonAssessments[lessonId]?.hardReviewAnnotation)
+  const hardReviewBlocks = useDashboard(s => s.lessonAssessments[lessonId]?.hardReviewBlocks)
   const hardPanel = hardVerdict === 'completed'
     ? {
         iconBg: 'var(--color-green-soft)', iconColor: 'var(--color-green-text)',
@@ -647,11 +728,41 @@ export default function HomeworkFlow({
   const removePhoto = (idx: number) =>
     setState(current => ({ ...current, hardPhotos: current.hardPhotos.filter((_, i) => i !== idx) }))
 
+  // ─── Per-task drafts (новый формат сложных заданий) ──────────────────────────
+  const getDraft = (key: string): HardTaskDraft => state.hardTaskDrafts[key] ?? emptyDraft()
+  const patchDraft = (key: string, patch: Partial<HardTaskDraft>) =>
+    setState(cur => {
+      const d = cur.hardTaskDrafts[key] ?? emptyDraft()
+      return { ...cur, hardTaskDrafts: { ...cur.hardTaskDrafts, [key]: { ...d, ...patch } } }
+    })
+  const addTaskPhotos = (key: string, files: FileList | null) => {
+    if (!files) return
+    Array.from(files).forEach(file => {
+      const reader = new FileReader()
+      reader.onload = ev => {
+        const src = ev.target?.result as string
+        if (!src) return
+        setState(cur => {
+          const d = cur.hardTaskDrafts[key] ?? emptyDraft()
+          return { ...cur, hardTaskDrafts: { ...cur.hardTaskDrafts, [key]: { ...d, photos: [...d.photos, src] } } }
+        })
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+  const removeTaskPhoto = (key: string, idx: number) =>
+    setState(cur => {
+      const d = cur.hardTaskDrafts[key] ?? emptyDraft()
+      return { ...cur, hardTaskDrafts: { ...cur.hardTaskDrafts, [key]: { ...d, photos: d.photos.filter((_, i) => i !== idx) } } }
+    })
+  const toggleBoard = (key: string) =>
+    setOpenBoards(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n })
+
   async function submitToSupabase(
     level: 'basic' | 'hard',
     score: number,
     comment: string,
-    attachments?: { photos: string[]; board: string | null },
+    attachments?: { photos: string[]; board: string | null } | { v: 2; tasks: HardTaskStudentBlock[] },
   ) {
     const session = getStudentSession()
     if (!session?.id) return
@@ -673,16 +784,85 @@ export default function HomeworkFlow({
     useStudentData.getState().load()
   }
 
+  // Per-task формат активен, когда на урок назначены сложные задания.
+  const isMultiHard = hardDefs.length > 0
+
+  // Переписка по заданиям (с сервера): вкладки + блоки решений/комментариев.
+  const studentBlocks: HardTaskStudentBlock[] = isNewHard(hardRow?.attachments)
+    ? (hardRow!.attachments as HardAttachmentsNew).tasks : []
+  const reviewBlocks: HardTaskReviewBlock[] = isNewHard(hardRow?.review_attachments)
+    ? (hardRow!.review_attachments as HardReviewNew).tasks : []
+  const hardTabs: HardTabVM[] = hardDefs.map((d, i) => ({
+    key: d.key, title: `Задание ${i + 1}`, statement: d.statement, image: d.image,
+  }))
+
+  // Отправка решения по одной вкладке: дописываем НОВЫЙ круг в её историю,
+  // сохраняя предыдущие решения и не трогая остальные задания / ревью учителя.
+  async function submitTabSolution(key: string, payload: { answer: string; photos: string[]; board: string | null }) {
+    const session = getStudentSession()
+    if (!session?.id) return
+    setHardBusy(true)
+    const ref = `${lessonId}-hard`
+    const { data } = await supabase
+      .from('lesson_progress')
+      .select('attachments')
+      .eq('student_id', session.id)
+      .eq('lesson_ref', ref)
+      .maybeSingle()
+    const prevTasks: HardTaskStudentBlock[] = isNewHard(data?.attachments)
+      ? (data!.attachments as HardAttachmentsNew).tasks : []
+    const prevByKey = new Map(prevTasks.map(t => [t.key, t]))
+    const round: HardSolution = { id: hardId('sol'), at: new Date().toISOString(), ...payload }
+    const tasks: HardTaskStudentBlock[] = hardDefs.map(d => {
+      const sols = studentSolutions(prevByKey.get(d.key))
+      return { key: d.key, statement: d.statement, solutions: d.key === key ? [...sols, round] : sols }
+    })
+    const summary = tasks
+      .map(t => (studentSolutions(t).slice(-1)[0]?.answer || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').trim())
+      .filter(Boolean).join('\n\n')
+    // score / review_attachments не трогаем — сохраняем накопленную оценку учителя.
+    await supabase.from('lesson_progress').upsert({
+      student_id: session.id,
+      lesson_ref: ref,
+      subject,
+      status: 'submitted',
+      comment: summary,
+      attachments: { v: 2, tasks },
+    }, { onConflict: 'student_id,lesson_ref' })
+    setState(current => ({ ...current, hardSubmitted: true }))
+    setHardCompleted(lessonId)
+    await reloadHardRow()
+    useStudentData.getState().load()
+    setHardBusy(false)
+  }
+
   // The hard answer can be rich text, a photo, a whiteboard drawing — or any mix.
   // hardDraft now holds HTML, so strip tags to detect real text (but keep inline images as content).
-  const hardDraftText = state.hardDraft.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
-  const hasHardSubmission = !!(hardDraftText || /<img/i.test(state.hardDraft) || state.hardPhotos.length || state.hardBoard)
+  const hasDraftContent = (html: string, photos: string[], board: string | null) => {
+    const txt = (html || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
+    return !!(txt || /<img/i.test(html || '') || photos.length || board)
+  }
+  const hasHardSubmission = isMultiHard
+    ? hardDefs.every(d => { const dr = getDraft(d.key); return hasDraftContent(dr.answer, dr.photos, dr.board) })
+    : hasDraftContent(state.hardDraft, state.hardPhotos, state.hardBoard)
 
   const submitHard = () => {
     if (!hasHardSubmission) return
     setState(current => ({ ...current, hardSubmitted: true }))
     setHardCompleted(lessonId)
-    submitToSupabase('hard', 100, state.hardDraft, { photos: state.hardPhotos, board: state.hardBoard })
+    if (isMultiHard) {
+      const tasks: HardTaskStudentBlock[] = hardDefs.map(d => {
+        const dr = getDraft(d.key)
+        return { key: d.key, statement: d.statement, answer: dr.answer, photos: dr.photos, board: dr.board }
+      })
+      // comment = текстовая выжимка ответов — чтобы legacy-превью списков не пустовали.
+      const summary = tasks
+        .map(t => (t.answer || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').trim())
+        .filter(Boolean).join('\n\n')
+      submitToSupabase('hard', 100, summary, { v: 2, tasks })
+    } else {
+      submitToSupabase('hard', 100, state.hardDraft, { photos: state.hardPhotos, board: state.hardBoard })
+    }
     setTimeout(() => setShowResultModal('hard'), 400)
   }
 
@@ -1281,6 +1461,32 @@ export default function HomeworkFlow({
                     и отправляет на проверку только тем, кто уже хорошо справился с базой.
                   </p>
                 </section>
+              ) : isMultiHard ? (
+                /* Сложные задания — вкладки + датированная переписка (решение →
+                   комментарий → … → принято) с полем для нового решения. */
+                <section
+                  className="flex flex-col"
+                  style={{
+                    gap: 18,
+                    padding: 22,
+                    borderRadius: 28,
+                    background: 'rgba(var(--glass-rgb), 0.96)',
+                    border: '1px solid var(--color-border-soft)',
+                  }}
+                >
+                  <HardConversation
+                    tabs={hardTabs}
+                    studentBlocks={studentBlocks}
+                    reviewBlocks={reviewBlocks}
+                    role="student"
+                    activeKey={hardActiveKey || hardTabs[0]?.key || ''}
+                    onSelectTab={setHardActiveKey}
+                    onZoomPhoto={setLightbox}
+                    onSubmitSolution={submitTabSolution}
+                    busy={hardBusy}
+                    palette={{ accent: palette.accent, soft: palette.soft, text: palette.text, ring: palette.ring }}
+                  />
+                </section>
               ) : state.hardSubmitted ? (
                 <section
                   className="flex flex-col"
@@ -1350,8 +1556,69 @@ export default function HomeworkFlow({
                     </div>
                   )}
 
+                  {/* Per-task разбор: каждое задание — твой ответ + комментарий,
+                      фото и доска преподавателя (поверх или рядом). */}
+                  {isMultiHard && hardDefs.map((def, idx) => {
+                    const dr = getDraft(def.key)
+                    const rev = (hardReviewBlocks ?? []).find(b => b.key === def.key)
+                    const studentBody = (
+                      <AnswerBody comment={dr.answer} photos={dr.photos} board={dr.board} onZoomPhoto={setLightbox} />
+                    )
+                    return (
+                      <div key={def.key} style={{ padding: 18, borderRadius: 20, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: palette.text }}>Задание {idx + 1} из {hardDefs.length}</p>
+                        <div className="rich-answer" style={{ fontSize: 15, lineHeight: 1.5, fontWeight: 600, color: 'var(--color-text)', wordBreak: 'break-word' }} dangerouslySetInnerHTML={{ __html: def.statement }} />
+                        {/* Твой ответ — с разметкой преподавателя поверх, если есть */}
+                        {rev?.annotation
+                          ? <AnnotationLayer value={rev.annotation}>{studentBody}</AnnotationLayer>
+                          : studentBody}
+                        {rev?.comment && (
+                          <div style={{ padding: '12px 14px', borderRadius: 14, background: 'var(--color-peach-soft)', border: '1px solid var(--color-border-soft)' }}>
+                            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-peach-text)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 6 }}>Комментарий преподавателя</p>
+                            <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{rev.comment}</p>
+                          </div>
+                        )}
+                        {!!rev?.photos?.length && (
+                          <div>
+                            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-peach-text)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>Фото от преподавателя</p>
+                            <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
+                              {rev.photos.map((src, i) => (
+                                <button key={i} onClick={() => setLightbox(src)} style={{ padding: 0, border: '1px solid var(--color-border-soft)', borderRadius: 12, overflow: 'hidden', cursor: 'zoom-in', background: 'var(--color-bg)' }}>
+                                  <img src={src} alt="" style={{ width: '100%', display: 'block', maxHeight: 200, objectFit: 'contain' }} />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {rev?.board && (
+                          <div>
+                            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-peach-text)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>Доска преподавателя</p>
+                            <WhiteboardCanvas readOnly initialData={rev.board} />
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+
+                  {/* Разбор преподавателя поверх твоей работы (живая разметка) */}
+                  {!isMultiHard && hardReviewAnnotation && (
+                    <div style={{ padding: 18, borderRadius: 20, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)' }}>
+                      <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-peach-text)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 12 }}>
+                        Разбор преподавателя
+                      </p>
+                      <AnnotationLayer value={hardReviewAnnotation}>
+                        <AnswerBody
+                          comment={state.hardDraft}
+                          photos={state.hardPhotos}
+                          board={state.hardBoard}
+                          photosClickable={false}
+                        />
+                      </AnnotationLayer>
+                    </div>
+                  )}
+
                   {/* Teacher's attachments on the return — photos + whiteboard */}
-                  {hardVerdict === 'returned' && (hardReviewPhotos?.length || hardReviewBoard) && (
+                  {!isMultiHard && hardVerdict === 'returned' && (hardReviewPhotos?.length || hardReviewBoard) && (
                     <div style={{ padding: 18, borderRadius: 20, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', display: 'flex', flexDirection: 'column', gap: 14 }}>
                       {!!hardReviewPhotos?.length && (
                         <div>
@@ -1360,7 +1627,7 @@ export default function HomeworkFlow({
                           </p>
                           <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
                             {hardReviewPhotos.map((src, i) => (
-                              <button key={i} onClick={() => window.open(src, '_blank')} style={{ padding: 0, border: '1px solid var(--color-border-soft)', borderRadius: 12, overflow: 'hidden', cursor: 'zoom-in', background: 'var(--color-bg)' }}>
+                              <button key={i} onClick={() => setLightbox(src)} style={{ padding: 0, border: '1px solid var(--color-border-soft)', borderRadius: 12, overflow: 'hidden', cursor: 'zoom-in', background: 'var(--color-bg)' }}>
                                 <img src={src} alt="" style={{ width: '100%', display: 'block', maxHeight: 200, objectFit: 'contain' }} />
                               </button>
                             ))}
@@ -1410,6 +1677,111 @@ export default function HomeworkFlow({
                     border: '1px solid var(--color-border-soft)',
                   }}
                 >
+                  {isMultiHard ? (
+                    /* Новый per-task формат: список сложных заданий, у каждого свой
+                       ответ + фото + доска. */
+                    <div className="flex flex-col" style={{ gap: 16 }}>
+                      {hardDefs.map((def, idx) => {
+                        const dr = getDraft(def.key)
+                        const boardOpen = openBoards.has(def.key)
+                        return (
+                          <div key={def.key} style={{ padding: 20, borderRadius: 24, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                            <div>
+                              <p style={{ fontSize: 12, fontWeight: 700, color: palette.text, marginBottom: 8 }}>
+                                Задание {idx + 1} из {hardDefs.length}
+                              </p>
+                              <div
+                                className="rich-answer"
+                                style={{ fontSize: 16, lineHeight: 1.5, fontWeight: 600, color: 'var(--color-text)', wordBreak: 'break-word' }}
+                                dangerouslySetInnerHTML={{ __html: def.statement }}
+                              />
+                              {def.image && (
+                                <img
+                                  src={def.image}
+                                  alt=""
+                                  onClick={() => setLightbox(def.image!)}
+                                  style={{ marginTop: 12, maxWidth: '100%', borderRadius: 14, border: '1px solid var(--color-border-medium)', cursor: 'zoom-in', display: 'block' }}
+                                />
+                              )}
+                            </div>
+
+                            <RichConditionEditor
+                              value={dr.answer}
+                              onChange={html => patchDraft(def.key, { answer: html })}
+                              placeholder="Твоё решение…"
+                              autoGrow
+                              minHeight={140}
+                              inputSt={{
+                                width: '100%', boxSizing: 'border-box', borderRadius: 20,
+                                border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)',
+                                color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit',
+                              }}
+                            />
+
+                            {dr.photos.length > 0 && (
+                              <div className="flex flex-wrap" style={{ gap: 10 }}>
+                                {dr.photos.map((src, i) => (
+                                  <div key={i} style={{ position: 'relative', width: 96, height: 96, borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-soft)' }}>
+                                    <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <button
+                                      onClick={() => removeTaskPhoto(def.key, i)}
+                                      style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.55)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                    >
+                                      <X size={12} />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {boardOpen && (
+                              <WhiteboardCanvas
+                                compact={isMobile}
+                                initialData={dr.board ?? undefined}
+                                onSave={data => patchDraft(def.key, { board: data })}
+                              />
+                            )}
+
+                            <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
+                              <label
+                                className="cursor-pointer"
+                                style={{
+                                  display: 'flex', alignItems: 'center', gap: 8,
+                                  padding: '10px 13px', borderRadius: 14,
+                                  border: '1px solid var(--color-border-medium)',
+                                  background: 'rgba(var(--glass-rgb), 0.96)',
+                                  color: 'var(--color-text)', fontSize: 13, fontWeight: 700,
+                                }}
+                              >
+                                <ImageIcon size={16} />
+                                Фото
+                                <input
+                                  type="file" accept="image/*" multiple style={{ display: 'none' }}
+                                  onChange={e => { addTaskPhotos(def.key, e.target.files); e.target.value = '' }}
+                                />
+                              </label>
+                              <button
+                                onClick={() => toggleBoard(def.key)}
+                                className="cursor-pointer"
+                                style={{
+                                  display: 'flex', alignItems: 'center', gap: 8,
+                                  padding: '10px 13px', borderRadius: 14,
+                                  border: '1px solid var(--color-border-medium)',
+                                  background: boardOpen ? palette.soft : 'rgba(var(--glass-rgb), 0.96)',
+                                  color: boardOpen ? palette.text : 'var(--color-text)',
+                                  fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+                                }}
+                              >
+                                <PenLine size={16} />
+                                {boardOpen ? 'Скрыть доску' : (dr.board ? 'Доска ✓' : 'Доска')}
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <>
                   <div
                     style={{
                       padding: 20,
@@ -1482,8 +1854,11 @@ export default function HomeworkFlow({
                     style={{ display: 'none' }}
                     onChange={e => { addPhotos(e.target.files); e.target.value = '' }}
                   />
+                    </>
+                  )}
 
                   <div className="flex flex-wrap items-center justify-between" style={{ gap: 12 }}>
+                    {!isMultiHard && (
                     <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
                       <motion.button
                         whileHover={{ y: -1 }}
@@ -1520,6 +1895,7 @@ export default function HomeworkFlow({
                         {showBoard ? 'Скрыть доску' : (state.hardBoard ? 'Доска ✓' : 'Доска')}
                       </motion.button>
                     </div>
+                    )}
 
                     <motion.button
                       whileHover={{ y: -1 }}
@@ -1553,6 +1929,39 @@ export default function HomeworkFlow({
         </main>
       </motion.div>
     </div>
+
+    {/* Full-screen image viewer for teacher's attached photos */}
+    <AnimatePresence>
+      {lightbox && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setLightbox(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.85)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+            cursor: 'zoom-out', backdropFilter: 'blur(4px)',
+          }}
+        >
+          <button
+            onClick={() => setLightbox(null)}
+            style={{ position: 'absolute', top: 20, right: 20, width: 40, height: 40, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(255,255,255,0.14)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <X size={20} />
+          </button>
+          <motion.img
+            src={lightbox}
+            alt=""
+            initial={{ scale: 0.92 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0.92 }}
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: 12, cursor: 'default', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
     </>
   )
 }

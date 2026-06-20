@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { Pencil, Eraser, Undo2, Trash2, MousePointer2, BoxSelect, Check, GripHorizontal } from 'lucide-react'
+import { Pencil, Eraser, Undo2, Trash2, MousePointer2, BoxSelect, GripHorizontal } from 'lucide-react'
 
 const WB_COLORS = ['#0B0B0D', '#E53E3E', '#3182CE', '#38A169', '#D69E2E', '#805AD5', '#DD6B20']
 
@@ -61,6 +61,20 @@ export default function WhiteboardCanvas({
     const c = canvasRef.current
     if (!c) return
     const ctx = c.getContext('2d')!
+    if (readOnly && initialData) {
+      // View-only (e.g. студент смотрит доску преподавателя): adopt the saved
+      // image's own dimensions and draw it 1:1, so nothing gets stretched. The
+      // canvas keeps its natural aspect ratio and CSS (height:auto) sizes it.
+      const img = new Image()
+      img.onload = () => {
+        if (img.width && img.height) { c.width = img.width; c.height = img.height }
+        ctx.fillStyle = '#FFFFFF'
+        ctx.fillRect(0, 0, c.width, c.height)
+        ctx.drawImage(img, 0, 0)
+      }
+      img.src = initialData
+      return
+    }
     ctx.fillStyle = '#FFFFFF'
     ctx.fillRect(0, 0, c.width, c.height)
     if (initialData) {
@@ -68,7 +82,7 @@ export default function WhiteboardCanvas({
       img.onload = () => ctx.drawImage(img, 0, 0, c.width, c.height)
       img.src = initialData
     }
-  }, [initialData])
+  }, [initialData, readOnly])
 
   function clientToCanvas(clientX: number, clientY: number): [number, number] {
     const c = canvasRef.current!
@@ -353,6 +367,10 @@ export default function WhiteboardCanvas({
           {WB_COLORS.map(c => (
             <button key={c} onClick={() => { setColor(c); chooseTool('pen') }} style={{ width: 16, height: 16, borderRadius: '50%', border: color === c && tool === 'pen' ? '2.5px solid var(--color-blue-pill-text)' : '2px solid var(--color-border)', background: c, cursor: 'pointer', flexShrink: 0 }} />
           ))}
+          {/* Слайдер кисти не нужен в режиме «Выбор» — прячем, чтобы появление
+              «Готово» не переносило строки панели. */}
+          {tool !== 'select' && (
+          <>
           <div style={{ width: 1, height: 16, background: 'var(--color-border-medium)' }} />
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <input
@@ -383,6 +401,8 @@ export default function WhiteboardCanvas({
               style={{ width: 56 }}
             />
           </div>
+          </>
+          )}
 
           {tool === 'select' && (
             <>
@@ -391,8 +411,8 @@ export default function WhiteboardCanvas({
                 <BoxSelect size={12} /> Всё
               </button>
               {sel && (
-                <button title="Готово" onClick={commitSelection} style={{ height: 26, padding: '0 8px', borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
-                  <Check size={12} /> Готово
+                <button title="Готово" onClick={commitSelection} style={{ height: 26, padding: '0 10px', borderRadius: 7, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                  Готово
                 </button>
               )}
             </>
@@ -418,7 +438,7 @@ export default function WhiteboardCanvas({
           onPointerUp={onUp}
           onPointerLeave={onUp}
           style={{
-            width: '100%', height: boardH, display: 'block', background: '#fff',
+            width: '100%', height: readOnly ? 'auto' : boardH, display: 'block', background: '#fff',
             cursor: readOnly ? 'default' : tool === 'select' ? 'crosshair' : tool === 'pen' ? 'crosshair' : 'cell',
             touchAction: 'none', borderRadius: readOnly ? 12 : 0,
           }}

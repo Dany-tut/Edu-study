@@ -1,6 +1,6 @@
 {
-  "name": "Edu Platform — Кабинет",
-  "short_name": "Edu",
+  "name": "Искра — Учебная платформа",
+  "short_name": "Искра",
   "description": "Учебная платформа: курсы, тренажёр, домашки",
   "start_url": "./?source=pwa",
   "scope": "./",

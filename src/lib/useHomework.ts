@@ -15,8 +15,174 @@ export type HardSub = {
   status: 'submitted' | 'returned' | 'completed'
   updatedAt: string
   attachments: { photos: string[]; board: string | null }
-  // Teacher's attachments left when returning the work (photos / whiteboard).
-  reviewAttachments: { photos: string[]; board: string | null }
+  // Teacher's attachments left when returning the work (photos / whiteboard /
+  // живая разметка поверх ответа ученика).
+  reviewAttachments: { photos: string[]; board: string | null; annotation?: Annotation | null }
+  // Новый per-task формат: каждое сложное задание — свой блок ответа ученика и
+  // свой блок ревью учителя. Для старых (одно-эссе) работ оба массива пусты и
+  // isMultiTask = false → рендерим legacy-вид по полям выше.
+  isMultiTask: boolean
+  taskBlocks: HardTaskStudentBlock[]
+  reviewBlocks: HardTaskReviewBlock[]
+}
+
+// Прозрачный оверлей-разметка учителя поверх ответа ученика (см. AnnotationLayer).
+export type Annotation = { image: string; w: number; h: number }
+
+// ─── Per-task «сложные задания» ───────────────────────────────────────────────
+// Определение одного сложного задания (хранится в homework.hard_tasks). `key` —
+// стабильный ключ, связывающий определение ⇄ ответ ученика ⇄ ревью учителя.
+export type HardTaskDef = {
+  key: string
+  source: 'bank' | 'custom'
+  bankId?: number
+  statement: string
+  image?: string | null
+  answer?: string
+}
+
+// ─── Раунды (хронология) ──────────────────────────────────────────────────────
+// Сложное задание — это переписка: ученик шлёт решение → учитель отвечает
+// комментарием с вердиктом → если «на доработку», ученик шлёт НОВОЕ решение → …
+// → «принято» с оценкой. История не перезаписывается: каждый круг — отдельная
+// запись с датой. Решения ученика лежат в attachments.tasks[].solutions[],
+// комментарии учителя — в review_attachments.tasks[].comments[] (раздельные
+// колонки → ученик и учитель не конфликтуют при записи), а на экране оба массива
+// сливаются по времени в одну ленту.
+
+// Одно решение ученика.
+export type HardSolution = {
+  id: string
+  at: string            // ISO timestamp — для хронологии
+  answer: string
+  photos: string[]
+  board: string | null
+}
+
+// Один комментарий учителя (закрывает круг вердиктом).
+export type HardComment = {
+  id: string
+  at: string
+  comment: string
+  photos: string[]
+  board: string | null
+  boardMode: 'over' | 'beside'
+  annotation: Annotation | null
+  verdict?: 'returned' | 'completed'
+  score?: number | null  // оценка 1–5 при принятии
+}
+
+// Ответ ученика по одному заданию (lesson_progress.attachments.tasks[]).
+// `solutions` — новый формат с раундами; `answer/photos/board` — legacy одно-круг.
+export type HardTaskStudentBlock = {
+  key: string
+  statement?: string   // снапшот условия — чтобы блок читался даже если ДЗ переписали
+  solutions?: HardSolution[]
+  answer?: string
+  photos?: string[]
+  board?: string | null
+}
+
+// Ревью учителя по одному заданию (lesson_progress.review_attachments.tasks[]).
+// `comments` — новый формат с раундами; остальные поля — legacy одно-ревью.
+// boardMode='over' → разметка поверх через AnnotationLayer (annotation);
+// boardMode='beside' → отдельная доска рядом (board).
+export type HardTaskReviewBlock = {
+  key: string
+  comments?: HardComment[]
+  comment?: string
+  photos?: string[]
+  board?: string | null
+  boardMode?: 'over' | 'beside'
+  annotation?: Annotation | null
+}
+
+export type HardAttachmentsNew = { v: 2; tasks: HardTaskStudentBlock[] }
+export type HardReviewNew = { v: 2; tasks: HardTaskReviewBlock[] }
+
+// Единое правило обратной совместимости: новая форма всегда содержит массив tasks.
+export const isNewHard = (att: unknown): boolean =>
+  Array.isArray((att as { tasks?: unknown })?.tasks)
+
+// ─── id ────────────────────────────────────────────────────────────────────────
+export function hardId(prefix: string): string {
+  const rnd = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID().slice(0, 8)
+    : Math.random().toString(36).slice(2, 10)
+  return `${prefix}-${rnd}`
+}
+
+// ─── Чтение раундов (с legacy-fallback) ───────────────────────────────────────
+export function studentSolutions(b?: HardTaskStudentBlock | null): HardSolution[] {
+  if (!b) return []
+  if (Array.isArray(b.solutions)) return b.solutions
+  if (b.answer || b.photos?.length || b.board) {
+    return [{ id: 'legacy', at: '', answer: b.answer ?? '', photos: b.photos ?? [], board: b.board ?? null }]
+  }
+  return []
+}
+
+export function teacherComments(b?: HardTaskReviewBlock | null): HardComment[] {
+  if (!b) return []
+  if (Array.isArray(b.comments)) return b.comments
+  if (b.comment || b.photos?.length || b.board || b.annotation) {
+    return [{ id: 'legacy', at: '', comment: b.comment ?? '', photos: b.photos ?? [], board: b.board ?? null, boardMode: b.boardMode ?? 'over', annotation: b.annotation ?? null }]
+  }
+  return []
+}
+
+// Слитая по времени лента событий одного задания.
+export type HardEvent =
+  | ({ kind: 'solution' } & HardSolution)
+  | ({ kind: 'comment' } & HardComment)
+
+export function mergeTaskEvents(sb?: HardTaskStudentBlock | null, rb?: HardTaskReviewBlock | null): HardEvent[] {
+  const evs: HardEvent[] = [
+    ...studentSolutions(sb).map(s => ({ kind: 'solution' as const, ...s })),
+    ...teacherComments(rb).map(c => ({ kind: 'comment' as const, ...c })),
+  ]
+  return evs.sort((a, b) => (a.at || '').localeCompare(b.at || ''))
+}
+
+// Последнее решение ученика — то, к чему относится комментарий/разметка.
+export function lastSolutionOf(sb?: HardTaskStudentBlock | null): HardSolution | null {
+  const s = studentSolutions(sb)
+  return s.length ? s[s.length - 1] : null
+}
+
+export type HardTaskStatus = 'in_progress' | 'submitted' | 'returned' | 'completed'
+
+export function taskStatus(sb?: HardTaskStudentBlock | null, rb?: HardTaskReviewBlock | null): HardTaskStatus {
+  const evs = mergeTaskEvents(sb, rb)
+  if (evs.length === 0) return 'in_progress'
+  const last = evs[evs.length - 1]
+  if (last.kind === 'solution') return 'submitted'      // ждёт проверки
+  if (last.verdict === 'completed') return 'completed'
+  if (last.verdict === 'returned') return 'returned'    // ждёт нового решения
+  return 'submitted'
+}
+
+export function hardTaskScore(rb?: HardTaskReviewBlock | null): number | null {
+  const accepted = teacherComments(rb).filter(c => c.verdict === 'completed')
+  const last = accepted[accepted.length - 1]
+  return typeof last?.score === 'number' ? last.score : null
+}
+
+// Статус всей хард-работы по задачам (для очереди учителя и бейджа ученика).
+export function deriveHardRowStatus(
+  sbs: HardTaskStudentBlock[],
+  rbs: HardTaskReviewBlock[],
+): 'submitted' | 'returned' | 'completed' {
+  const rbByKey = new Map(rbs.map(b => [b.key, b]))
+  const statuses = sbs.map(sb => taskStatus(sb, rbByKey.get(sb.key)))
+  if (statuses.some(s => s === 'submitted')) return 'submitted'
+  if (statuses.length > 0 && statuses.every(s => s === 'completed')) return 'completed'
+  return 'returned'
+}
+
+// Сумма принятых оценок (1–5 за задание) → score строки lesson_progress.
+export function deriveHardScore(rbs: HardTaskReviewBlock[]): number {
+  return rbs.reduce((sum, rb) => sum + (hardTaskScore(rb) ?? 0), 0)
 }
 
 export type HwAssignment = HomeworkItem
@@ -84,6 +250,7 @@ export function useHomework() {
     lessonId?: string | null
     hardTaskIds?: number[]
     hardTotal?: number
+    hardTasks?: HardTaskDef[]
   }) {
     const { data, error } = await supabase.from('homework').insert({
       group_id: hw.groupId,
@@ -96,6 +263,7 @@ export function useHomework() {
       lesson_id: hw.lessonId || null,
       hard_task_ids: hw.hardTaskIds ?? [],
       hard_total: hw.hardTotal ?? (hw.hardTaskIds?.length ?? 0),
+      hard_tasks: hw.hardTasks ?? [],
     }).select().single()
     if (!error) await load()
     return { data, error }
@@ -110,6 +278,7 @@ export function useHomework() {
     lessonId?: string | null
     hardTaskIds?: number[]
     hardTotal?: number
+    hardTasks?: HardTaskDef[]
   }) {
     const { error } = await supabase.from('homework').update({
       group_id: hw.groupId,
@@ -120,6 +289,7 @@ export function useHomework() {
       lesson_id: hw.lessonId || null,
       hard_task_ids: hw.hardTaskIds ?? [],
       hard_total: hw.hardTotal ?? (hw.hardTaskIds?.length ?? 0),
+      hard_tasks: hw.hardTasks ?? [],
     }).eq('id', id)
     if (!error) await load()
     return { error }
@@ -167,6 +337,7 @@ export function useHardSubmissions() {
 
     setSubmissions(rows.map(r => {
       const base = r.lesson_ref.endsWith('-hard') ? r.lesson_ref.slice(0, -5) : r.lesson_ref
+      const isMulti = isNewHard(r.attachments)
       return {
         id: r.id,
         lessonRef: r.lesson_ref,
@@ -179,13 +350,17 @@ export function useHardSubmissions() {
         reviewComment: r.review_comment ?? '',
         status: r.status as HardSub['status'],
         updatedAt: r.updated_at ?? '',
+        isMultiTask: isMulti,
+        taskBlocks: isMulti ? (r.attachments.tasks as HardTaskStudentBlock[]) : [],
+        reviewBlocks: isNewHard(r.review_attachments) ? (r.review_attachments.tasks as HardTaskReviewBlock[]) : [],
         attachments: {
-          photos: Array.isArray(r.attachments?.photos) ? r.attachments.photos : [],
-          board: r.attachments?.board ?? null,
+          photos: !isMulti && Array.isArray(r.attachments?.photos) ? r.attachments.photos : [],
+          board: !isMulti ? (r.attachments?.board ?? null) : null,
         },
         reviewAttachments: {
           photos: Array.isArray(r.review_attachments?.photos) ? r.review_attachments.photos : [],
           board: r.review_attachments?.board ?? null,
+          annotation: r.review_attachments?.annotation ?? null,
         },
       }
     }))
@@ -209,9 +384,15 @@ export function useHardSubmissions() {
     id: string,
     verdict: 'completed' | 'returned',
     comment = '',
-    reviewAttachments?: { photos: string[]; board: string | null },
+    reviewAttachments?: HardReviewNew | { photos: string[]; board: string | null; annotation?: Annotation | null },
   ) {
-    const hasAtt = reviewAttachments && (reviewAttachments.photos.length || reviewAttachments.board)
+    const hasAtt = !!reviewAttachments && (
+      isNewHard(reviewAttachments)
+        ? (reviewAttachments as HardReviewNew).tasks.length > 0
+        : !!((reviewAttachments as { photos: string[]; board: string | null; annotation?: Annotation | null }).photos.length
+            || (reviewAttachments as { board: string | null }).board
+            || (reviewAttachments as { annotation?: Annotation | null }).annotation)
+    )
     await supabase.from('lesson_progress').update({
       status: verdict,
       review_comment: comment || null,
@@ -220,7 +401,24 @@ export function useHardSubmissions() {
     await load()
   }
 
-  return { submissions, loading, reviewHard, reload: load }
+  // Per-task ревью с раундами: пишем весь обновлённый review_attachments
+  // (история комментариев) + статус строки, выведенный из задач, + сумму оценок.
+  async function reviewHardMulti(
+    id: string,
+    review: HardReviewNew,
+    status: 'submitted' | 'returned' | 'completed',
+    score: number,
+  ) {
+    await supabase.from('lesson_progress').update({
+      status,
+      score,
+      review_comment: null,
+      review_attachments: review,
+    }).eq('id', id)
+    await load()
+  }
+
+  return { submissions, loading, reviewHard, reviewHardMulti, reload: load }
 }
 
 export function useHomeworkSubmissions(hwId: string | null) {

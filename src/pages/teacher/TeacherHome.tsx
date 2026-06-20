@@ -10,6 +10,7 @@ import type { ScheduleItem, Reminder, Group, Student } from '../../data/teacherM
 import { useTeacher } from '../../store/teacherStore'
 import type { TeacherTask } from '../../store/teacherStore'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
+import StorageUsagePanel from '../../components/teacher/StorageUsagePanel'
 import { useHomework, useHardSubmissions } from '../../lib/useHomework'
 import { supabase } from '../../lib/supabase'
 import { mskToVietnam } from '../../lib/utils'
@@ -730,6 +731,11 @@ export default function TeacherHome() {
                 </div>
               </div>
             </Card>
+          </motion.div>
+
+          {/* Storage / DB usage */}
+          <motion.div {...fadeUp(0.24)} style={{ flexShrink: 0 }}>
+            <StorageUsagePanel />
           </motion.div>
 
         </div>

@@ -3,6 +3,7 @@
  * All functions return typed data; errors are swallowed and return null/[].
  */
 import { supabase } from './supabase'
+import type { HardTaskStudentBlock, HardTaskReviewBlock } from './useHomework'
 import {
   type Subject,
   type Lesson,
@@ -116,17 +117,24 @@ interface DbProgress {
   score: number
   comment: string
   review_comment: string | null
-  review_attachments: { photos?: string[]; board?: string | null } | null
+  attachments: { tasks?: HardTaskStudentBlock[] } | null
+  review_attachments: { photos?: string[]; board?: string | null; annotation?: { image: string; w: number; h: number } | null; tasks?: HardTaskReviewBlock[] } | null
   hard_submitted: boolean
 }
 
-export type ReviewAttachments = { photos: string[]; board: string | null }
-export type ProgressMap = Record<string, { status: LessonStatus; score: number; comment: string; reviewComment: string; reviewAttachments: ReviewAttachments; hardSubmitted: boolean }>
+export type ReviewAttachments = { photos: string[]; board: string | null; annotation?: { image: string; w: number; h: number } | null }
+export type ProgressMap = Record<string, {
+  status: LessonStatus; score: number; comment: string; reviewComment: string;
+  reviewAttachments: ReviewAttachments; hardSubmitted: boolean;
+  // Per-task сложные задания: ответы ученика и ревью учителя (пусто для legacy).
+  hardTaskBlocks: HardTaskStudentBlock[];
+  hardReviewBlocks: HardTaskReviewBlock[];
+}>
 
 export async function fetchLessonProgress(studentId: string): Promise<ProgressMap> {
   const { data, error } = await supabase
     .from('lesson_progress')
-    .select('lesson_ref, subject, status, score, comment, review_comment, review_attachments, hard_submitted')
+    .select('lesson_ref, subject, status, score, comment, review_comment, attachments, review_attachments, hard_submitted')
     .eq('student_id', studentId)
 
   if (error || !data) return {}
@@ -139,7 +147,10 @@ export async function fetchLessonProgress(studentId: string): Promise<ProgressMa
       reviewAttachments: {
         photos: Array.isArray(row.review_attachments?.photos) ? row.review_attachments!.photos! : [],
         board: row.review_attachments?.board ?? null,
+        annotation: row.review_attachments?.annotation ?? null,
       },
+      hardTaskBlocks: Array.isArray(row.attachments?.tasks) ? row.attachments!.tasks! : [],
+      hardReviewBlocks: Array.isArray(row.review_attachments?.tasks) ? row.review_attachments!.tasks! : [],
       hardSubmitted: row.hard_submitted,
     }
   }

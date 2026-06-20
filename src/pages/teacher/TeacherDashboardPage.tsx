@@ -60,6 +60,10 @@ export default function TeacherDashboardPage() {
   return (
     <>
     <div className="dashboard-root hidden lg:flex" style={{ display: isDesktop ? 'flex' : 'none' }}>
+      {/* Progressive blur+fade strip behind the floating topbar — masks content
+          scrolling up through the gaps around the pills. */}
+      <div aria-hidden className="edge-progressive-blur--top" />
+
       {/* Topbar row — 3-col grid: empty | topbar (always centered) | widget */}
       <div className="topbar-row">
         {/* Left spacer */}
