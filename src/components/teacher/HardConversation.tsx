@@ -80,9 +80,9 @@ function TabBar({ tabs, statuses, activeKey, onSelect }: {
 function SolutionCard({ ev, onZoomPhoto }: { ev: HardEvent & { kind: 'solution' }; onZoomPhoto?: (src: string) => void }) {
   return (
     <div style={{ borderRadius: 18, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)', padding: 18 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 10 }}>
-        <Label color="var(--color-purple-text)"><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Send size={12} /> Решение ученика</span></Label>
-        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-4)', flexShrink: 0 }}>{fmtDate(ev.at)}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-purple-text)', letterSpacing: 0.4, textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: 6 }}><Send size={12} /> Решение ученика</span>
+        {fmtDate(ev.at) && <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-4)' }}>· {fmtDate(ev.at)}</span>}
       </div>
       <AnswerBody comment={ev.answer} photos={ev.photos} board={ev.board} onZoomPhoto={onZoomPhoto} photosClickable={!!onZoomPhoto} />
     </div>
@@ -94,16 +94,14 @@ function CommentCard({ ev, repliesTo, onZoomPhoto }: { ev: HardEvent & { kind: '
   const tone = accepted ? 'green' : 'peach'
   return (
     <div style={{ borderRadius: 18, border: `1px solid var(--color-${tone}-soft)`, background: `var(--color-${tone}-soft)`, padding: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-        <Label color={`var(--color-${tone}-text)`}><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><MessageSquare size={12} /> Комментарий преподавателя</span></Label>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          {ev.verdict && (
-            <span style={{ fontSize: 11, fontWeight: 700, color: `var(--color-${tone}-text)`, background: 'rgba(var(--glass-rgb),0.7)', padding: '3px 9px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              {accepted ? <><Star size={11} fill="currentColor" /> Принято{typeof ev.score === 'number' ? ` · ${ev.score}/5` : ''}</> : <><RotateCcw size={11} /> На доработку</>}
-            </span>
-          )}
-          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-4)' }}>{fmtDate(ev.at)}</span>
-        </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: `var(--color-${tone}-text)`, letterSpacing: 0.4, textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: 6 }}><MessageSquare size={12} /> Комментарий преподавателя</span>
+        {fmtDate(ev.at) && <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-4)' }}>· {fmtDate(ev.at)}</span>}
+        {ev.verdict && (
+          <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: `var(--color-${tone}-text)`, background: 'rgba(var(--glass-rgb),0.7)', padding: '3px 9px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            {accepted ? <><Star size={11} fill="currentColor" /> Принято{typeof ev.score === 'number' ? ` · ${ev.score}/5` : ''}</> : <><RotateCcw size={11} /> На доработку</>}
+          </span>
+        )}
       </div>
 
       {ev.comment && <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0 }}>{ev.comment}</p>}
