@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Star, RotateCcw, Check, ClipboardList, PenLine, Image as ImageIcon, Upload, X } from 'lucide-react'
+import { ArrowLeft, Star, ClipboardList } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import {
   useHardSubmissions, type Annotation as HardAnnotation,
@@ -8,11 +8,7 @@ import {
   teacherComments, deriveHardRowStatus, deriveHardScore, hardId,
 } from '../../lib/useHomework'
 import { openHardSubHomework } from '../../lib/teacherNav'
-import WhiteboardCanvas from '../../components/teacher/WhiteboardCanvas'
-import AnnotationLayer, { type Annotation } from '../../components/teacher/AnnotationLayer'
-import AnswerBody from '../../components/teacher/AnswerBody'
 import HardConversation, { type HardTabVM, type ReviewPayload } from '../../components/teacher/HardConversation'
-import { optimizePhoto } from '../../lib/imageOptim'
 
 const glass: React.CSSProperties = {
   background: 'rgba(var(--glass-rgb), 0.88)',
@@ -23,43 +19,19 @@ const glass: React.CSSProperties = {
   boxShadow: 'var(--shadow-sm-page)',
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 10 }}>{children}</div>
-}
-
 export default function TeacherHardReviewPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const openHomeworkEdit = useTeacher(s => s.openHomeworkEdit)
   const reviewingHardId = useTeacher(s => s.reviewingHardId)
-  const { submissions, reviewHard, reviewHardMulti } = useHardSubmissions()
+  const { submissions, reviewHardMulti } = useHardSubmissions()
   const sub = submissions.find(s => s.id === reviewingHardId) ?? null
 
   const [busy, setBusy] = useState(false)
-  const [reviewComment, setReviewComment] = useState('')
-  const [returnError, setReturnError] = useState(false)
   const [hwBusy, setHwBusy] = useState(false)
   const [hwMissing, setHwMissing] = useState(false)
   const [zoom, setZoom] = useState<string | null>(null)
-  // Teacher's own attachments left on a return: photos + a whiteboard drawing.
-  const [reviewPhotos, setReviewPhotos] = useState<string[]>([])
-  const [reviewBoard, setReviewBoard] = useState<string | null>(null)
-  const [showBoard, setShowBoard] = useState(false)
-  const reviewFileRef = useRef<HTMLInputElement>(null)
-  // Живая разметка поверх ответа ученика.
-  const [annotating, setAnnotating] = useState(false)
-  const [reviewAnnotation, setReviewAnnotation] = useState<Annotation | null>(null)
-
-  // ─── Per-task ревью с раундами (вкладки) ─────────────────────────────────────
   // Активная вкладка задания. Пустая строка → берём первую в HardConversation.
   const [activeKey, setActiveKey] = useState<string>('')
-
-  function addReviewPhotos(files: FileList | null) {
-    if (!files) return
-    Array.from(files).forEach(async file => {
-      const src = await optimizePhoto(file)
-      if (src) setReviewPhotos(prev => [...prev, src])
-    })
-  }
 
   if (!sub) {
     return (
@@ -75,20 +47,6 @@ export default function TeacherHardReviewPage() {
   const statusLabel = sub.status === 'completed' ? 'Принято' : sub.status === 'returned' ? 'Возвращено' : 'На проверке'
   const statusColor = sub.status === 'completed' ? 'var(--color-green-text)' : sub.status === 'returned' ? 'var(--color-peach-text)' : 'var(--color-purple-text)'
   const statusBg = sub.status === 'completed' ? 'var(--color-green-soft)' : sub.status === 'returned' ? 'var(--color-peach-soft)' : 'var(--color-purple-soft)'
-
-  const photos = sub.attachments?.photos ?? []
-  const board = sub.attachments?.board ?? null
-  const hasAnything = !!(sub.comment || photos.length || board)
-
-  async function act(verdict: 'completed' | 'returned') {
-    if (verdict === 'returned' && !reviewComment.trim()) { setReturnError(true); return }
-    setBusy(true)
-    await reviewHard(sub!.id, verdict, reviewComment.trim(), { photos: reviewPhotos, board: reviewBoard, annotation: reviewAnnotation ?? sub!.reviewAttachments.annotation ?? null })
-    setBusy(false)
-    setActivePage('homework')
-  }
-
-  const isMulti = sub.isMultiTask
 
   // Вкладки = задания, присланные учеником (снапшот условия лежит в блоке).
   const tabs: HardTabVM[] = sub.taskBlocks.map((tb, i) => ({
@@ -124,22 +82,6 @@ export default function TeacherHardReviewPage() {
     setBusy(false)
   }
 
-  const multiPanel = isMulti ? (
-    <div style={{ flex: 1, minWidth: 0 }}>
-      <HardConversation
-        tabs={tabs}
-        studentBlocks={sub.taskBlocks}
-        reviewBlocks={sub.reviewBlocks}
-        role="teacher"
-        activeKey={activeKey || tabs[0]?.key || ''}
-        onSelectTab={setActiveKey}
-        onZoomPhoto={setZoom}
-        onReview={reviewTab}
-        busy={busy}
-      />
-    </div>
-  ) : null
-
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
       {/* Header */}
@@ -167,9 +109,8 @@ export default function TeacherHardReviewPage() {
         </div>
       </div>
 
-      {/* Three columns */}
+      {/* Left column (student) + conversation */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, padding: '0 24px 40px' }}>
-        {/* Left — student + open homework */}
         <div style={{ width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 14, position: 'sticky', top: 20 }}>
           <div style={{ ...glass, padding: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
@@ -217,185 +158,19 @@ export default function TeacherHardReviewPage() {
           </div>
         </div>
 
-        {multiPanel}
-
-        {/* Center — the answer content (legacy single-essay) */}
-        {!isMulti && (
-        <div style={{ flex: 1, minWidth: 0, ...glass, padding: 22, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Header: label + «разметить поверх работы» */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase' }}>Ответ ученика</div>
-            {hasAnything && (
-              <button
-                onClick={() => setAnnotating(a => !a)}
-                title="Рисовать прямо по работе ученика — что верно, а что нет"
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
-                  padding: '7px 12px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
-                  fontSize: 12, fontWeight: 700,
-                  border: `1px solid ${annotating ? 'transparent' : 'var(--color-border-medium)'}`,
-                  background: annotating ? 'var(--color-green-soft)' : 'var(--color-bg-2)',
-                  color: annotating ? 'var(--color-green-text)' : 'var(--color-text)',
-                }}
-              >
-                {annotating ? <><Check size={14} strokeWidth={2.4} /> Готово</> : <><PenLine size={14} strokeWidth={2.2} /> Разметить</>}
-              </button>
-            )}
-          </div>
-
-          {/* Ответ ученика + живая разметка поверх него */}
-          <AnnotationLayer
-            active={annotating}
-            value={reviewAnnotation ?? sub.reviewAttachments.annotation ?? null}
-            onChange={setReviewAnnotation}
-          >
-            <AnswerBody
-              comment={sub.comment}
-              photos={photos}
-              board={board}
-              onZoomPhoto={setZoom}
-              photosClickable={!annotating}
-            />
-          </AnnotationLayer>
-
-          {!hasAnything && (
-            <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--color-text-4)', fontSize: 14, fontStyle: 'italic' }}>
-              Ученик ничего не приложил
-            </div>
-          )}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <HardConversation
+            tabs={tabs}
+            studentBlocks={sub.taskBlocks}
+            reviewBlocks={sub.reviewBlocks}
+            role="teacher"
+            activeKey={activeKey || tabs[0]?.key || ''}
+            onSelectTab={setActiveKey}
+            onZoomPhoto={setZoom}
+            onReview={reviewTab}
+            busy={busy}
+          />
         </div>
-        )}
-
-
-        {/* Right — review actions (legacy) */}
-        {!isMulti && (
-        <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 14, position: 'sticky', top: 20 }}>
-          <div style={{ ...glass, padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {sub.status === 'submitted' ? (
-              <>
-                <div>
-                  <SectionLabel>Комментарий преподавателя</SectionLabel>
-                  <textarea
-                    value={reviewComment}
-                    onChange={e => { setReviewComment(e.target.value); if (returnError) setReturnError(false) }}
-                    placeholder="Что исправить? Обязательно при отправке на доработку…"
-                    rows={5}
-                    style={{
-                      width: '100%', boxSizing: 'border-box', resize: 'vertical',
-                      padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg-2)',
-                      border: `1px solid ${returnError ? 'var(--color-peach-text)' : 'var(--color-border-soft)'}`,
-                      fontSize: 13, lineHeight: 1.5, color: 'var(--color-text)', fontFamily: 'inherit', outline: 'none',
-                    }}
-                  />
-                  {returnError && (
-                    <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-peach-text)', marginTop: 6 }}>
-                      Добавьте комментарий, чтобы вернуть работу на доработку.
-                    </div>
-                  )}
-                </div>
-
-                {/* Teacher attachments to the return: photos + whiteboard */}
-                <div>
-                  <SectionLabel>Приложить к ответу</SectionLabel>
-                  <input ref={reviewFileRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
-                    onChange={e => { addReviewPhotos(e.target.files); if (reviewFileRef.current) reviewFileRef.current.value = '' }} />
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={() => reviewFileRef.current?.click()}
-                      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                      <Upload size={14} /> Фото
-                    </button>
-                    <button onClick={() => setShowBoard(v => !v)}
-                      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: `1px solid ${showBoard || reviewBoard ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: showBoard || reviewBoard ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', color: showBoard || reviewBoard ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                      <PenLine size={14} /> {reviewBoard ? 'Доска ✓' : 'Доска'}
-                    </button>
-                  </div>
-
-                  {reviewPhotos.length > 0 && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 10 }}>
-                      {reviewPhotos.map((src, i) => (
-                        <div key={i} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--color-border-soft)' }}>
-                          <img src={src} alt="" onClick={() => setZoom(src)} style={{ width: '100%', height: 64, objectFit: 'cover', display: 'block', cursor: 'zoom-in' }} />
-                          <button onClick={() => setReviewPhotos(prev => prev.filter((_, j) => j !== i))}
-                            style={{ position: 'absolute', top: 3, right: 3, width: 20, height: 20, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                            <X size={12} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {showBoard && (
-                    <div style={{ marginTop: 10 }}>
-                      <WhiteboardCanvas initialData={reviewBoard ?? undefined} onSave={data => setReviewBoard(data)} />
-                    </div>
-                  )}
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <motion.button
-                    whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
-                    onClick={() => act('completed')} disabled={busy}
-                    style={{
-                      padding: '13px 0', borderRadius: 14, border: 'none', background: 'var(--grad-green)',
-                      color: '#fff', fontSize: 14, fontWeight: 700, cursor: busy ? 'default' : 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      boxShadow: '0 6px 18px rgba(42,125,79,0.28)', opacity: busy ? 0.6 : 1,
-                    }}
-                  >
-                    <Check size={15} /> Принять
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
-                    onClick={() => act('returned')} disabled={busy}
-                    style={{
-                      padding: '13px 0', borderRadius: 14, border: '1px solid var(--color-border-medium)',
-                      background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 14, fontWeight: 700,
-                      cursor: busy ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      opacity: busy ? 0.6 : 1,
-                    }}
-                  >
-                    <RotateCcw size={14} /> На доработку
-                  </motion.button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div style={{ padding: '12px 14px', borderRadius: 14, background: sub.status === 'completed' ? 'var(--color-green-soft)' : 'var(--color-peach-soft)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {sub.status === 'completed'
-                    ? <><Star size={16} style={{ color: 'var(--color-green-text)' }} fill="currentColor" /><span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-green-text)' }}>Работа принята</span></>
-                    : <><RotateCcw size={16} style={{ color: 'var(--color-peach-text)' }} /><span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-peach-text)' }}>Отправлено на доработку</span></>}
-                </div>
-                {sub.reviewComment && (
-                  <div>
-                    <SectionLabel>Комментарий преподавателя</SectionLabel>
-                    <div style={{ padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', fontSize: 13, lineHeight: 1.6, color: 'var(--color-text)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                      {sub.reviewComment}
-                    </div>
-                  </div>
-                )}
-                {sub.reviewAttachments.photos.length > 0 && (
-                  <div>
-                    <SectionLabel><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ImageIcon size={13} /> Фото от преподавателя</span></SectionLabel>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-                      {sub.reviewAttachments.photos.map((src, i) => (
-                        <button key={i} onClick={() => setZoom(src)} style={{ padding: 0, border: '1px solid var(--color-border-soft)', borderRadius: 10, overflow: 'hidden', cursor: 'zoom-in', background: 'var(--color-bg-2)' }}>
-                          <img src={src} alt="" style={{ width: '100%', height: 64, objectFit: 'cover', display: 'block' }} />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {sub.reviewAttachments.board && (
-                  <div>
-                    <SectionLabel><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><PenLine size={13} /> Доска преподавателя</span></SectionLabel>
-                    <WhiteboardCanvas readOnly initialData={sub.reviewAttachments.board} />
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-        )}
       </div>
 
       {/* Photo zoom overlay */}
