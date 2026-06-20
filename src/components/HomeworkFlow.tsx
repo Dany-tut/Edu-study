@@ -1496,7 +1496,7 @@ export default function HomeworkFlow({
                     palette={{ accent: palette.accent, soft: palette.soft, text: palette.text, ring: palette.ring }}
                   />
                 </section>
-              ) : state.hardSubmitted ? (
+              ) : (state.hardSubmitted || hardVerdict) ? (
                 <section
                   className="flex flex-col"
                   style={{
@@ -1654,6 +1654,66 @@ export default function HomeworkFlow({
                     </div>
                   )}
 
+                  {/* Доработка: поле для нового решения прямо под разбором. */}
+                  {hardVerdict === 'returned' ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 4 }}>
+                      <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)', letterSpacing: 0.4, textTransform: 'uppercase' }}>
+                        Новое решение
+                      </p>
+                      <RichConditionEditor
+                        value={state.hardDraft}
+                        onChange={html => setState(current => ({ ...current, hardDraft: html }))}
+                        placeholder="Исправь решение по комментарию преподавателя и отправь снова…"
+                        autoGrow
+                        minHeight={180}
+                        inputSt={{
+                          width: '100%', boxSizing: 'border-box', borderRadius: 24,
+                          border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)',
+                          color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit',
+                        }}
+                      />
+
+                      {state.hardPhotos.length > 0 && (
+                        <div className="flex flex-wrap" style={{ gap: 10 }}>
+                          {state.hardPhotos.map((src, i) => (
+                            <div key={i} style={{ position: 'relative', width: 96, height: 96, borderRadius: 14, overflow: 'hidden', border: '1px solid var(--color-border-soft)' }}>
+                              <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <button onClick={() => removePhoto(i)} style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.55)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <X size={12} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {showBoard && (
+                        <WhiteboardCanvas
+                          initialData={state.hardBoard ?? undefined}
+                          onSave={data => setState(current => ({ ...current, hardBoard: data }))}
+                        />
+                      )}
+
+                      <input ref={photoInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
+                        onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
+
+                      <div className="flex flex-wrap items-center justify-between" style={{ gap: 12 }}>
+                        <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
+                          <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.99 }} onClick={() => photoInputRef.current?.click()} className="cursor-pointer"
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', borderRadius: 16, border: '1px solid var(--color-border-medium)', background: 'rgba(var(--glass-rgb), 0.96)', color: 'var(--color-text)', fontSize: 13, fontWeight: 700 }}>
+                            <ImageIcon size={16} /> Прикрепить фото
+                          </motion.button>
+                          <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.99 }} onClick={() => setShowBoard(v => !v)} className="cursor-pointer"
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', borderRadius: 16, border: '1px solid var(--color-border-medium)', background: showBoard ? palette.soft : 'rgba(var(--glass-rgb), 0.96)', color: showBoard ? palette.text : 'var(--color-text)', fontSize: 13, fontWeight: 700 }}>
+                            <PenLine size={16} /> {showBoard ? 'Скрыть доску' : (state.hardBoard ? 'Доска ✓' : 'Доска')}
+                          </motion.button>
+                        </div>
+                        <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.99 }} disabled={!hasHardSubmission} onClick={submitHard} className="cursor-pointer"
+                          style={{ padding: '14px 20px', borderRadius: 18, border: 'none', background: hasHardSubmission ? palette.accent : 'var(--color-bg-5)', color: '#fff', fontSize: 15, fontWeight: 750, minWidth: 220, boxShadow: hasHardSubmission ? `0 6px 16px ${palette.ring}` : 'none' }}>
+                          Отправить новое решение
+                        </motion.button>
+                      </div>
+                    </div>
+                  ) : (
                   <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
                     <StatusCard
                       title="Черновик сохранён"
@@ -1674,6 +1734,7 @@ export default function HomeworkFlow({
                       tone="warning"
                     />
                   </div>
+                  )}
                 </section>
               ) : (
                 <section
