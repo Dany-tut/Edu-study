@@ -1086,10 +1086,11 @@ function CalendarPicker({ value, onChange, placeholder = 'Выберите да�
 
 // ─── Task card (inline editor, same design as TeacherHomeworkCreatePage) ─────
 
-function HWTaskCard({ task, index, onUpdate, onDelete }: {
+function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
   task: HWTask; index: number
   onUpdate: (t: HWTask) => void
   onDelete: () => void
+  onGripDown?: () => void
 }) {
   const cfg = TASK_TYPES.find(x => x.type === task.type)!
   const [expanded, setExpanded] = useState(true)
@@ -1108,7 +1109,12 @@ function HWTaskCard({ task, index, onUpdate, onDelete }: {
           cursor: 'pointer',
         }}
       >
-        <GripVertical size={13} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} onClick={e => e.stopPropagation()} />
+        <GripVertical
+          size={13}
+          style={{ color: 'var(--color-text-4)', flexShrink: 0, cursor: 'grab' }}
+          onClick={e => e.stopPropagation()}
+          onMouseDown={() => onGripDown?.()}
+        />
         {task.isHard && <Star size={12} style={{ color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />}
         <div style={{
           fontSize: 11, fontWeight: 700, color: cfg.color, background: cfg.bg,
@@ -1402,9 +1408,33 @@ function CenterHomework({
   const F = hwFields(hwTab)
   const tasks = (lesson[F.tasks] as HWTask[] | undefined) ?? []
 
+  // Drag-to-reorder. The whole card can't be `draggable` (it would block text
+  // selection inside the textareas), so dragging is «armed» only on grip
+  // mousedown and disarmed on dragend.
+  const [armedId, setArmedId] = useState<string | null>(null)
+  const [dragId, setDragId] = useState<string | null>(null)
+  const [dropIdx, setDropIdx] = useState<number | null>(null)
+  const clearDrag = () => { setDragId(null); setDropIdx(null); setArmedId(null) }
+
   function patch(p: Partial<CELesson>) { onUpdate({ ...lesson, ...p }) }
   function removeTask(id: string) { patch({ [F.tasks]: tasks.filter(t => t.id !== id) }) }
   function updateTask(updated: HWTask) { patch({ [F.tasks]: tasks.map(t => t.id === updated.id ? updated : t) }) }
+
+  function commitDrop() {
+    if (dragId == null || dropIdx == null) { clearDrag(); return }
+    const cur = [...tasks]
+    const from = cur.findIndex(t => t.id === dragId)
+    if (from === -1) { clearDrag(); return }
+    const [moved] = cur.splice(from, 1)
+    const insertAt = from < dropIdx ? dropIdx - 1 : dropIdx
+    cur.splice(insertAt, 0, moved)
+    patch({ [F.tasks]: cur })
+    clearDrag()
+  }
+
+  const DropLine = () => (
+    <div style={{ height: 2, background: 'var(--color-accent)', borderRadius: 2, margin: '-4px 0', pointerEvents: 'none' }} />
+  )
 
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
@@ -1415,19 +1445,37 @@ function CenterHomework({
         </div>
       ) : (
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
-          <AnimatePresence>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {tasks.map((task, i) => (
+          <div
+            style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
+            onDrop={e => { e.preventDefault(); commitDrop() }}
+            onDragOver={e => e.preventDefault()}
+          >
+            {tasks.map((task, i) => (
+              <div
+                key={task.id}
+                draggable={armedId === task.id}
+                onDragStart={e => { e.dataTransfer.effectAllowed = 'move'; setDragId(task.id) }}
+                onDragEnd={clearDrag}
+                onDragOver={e => {
+                  if (dragId == null) return
+                  e.preventDefault()
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  setDropIdx(e.clientY < rect.top + rect.height / 2 ? i : i + 1)
+                }}
+                style={{ opacity: dragId === task.id ? 0.4 : 1 }}
+              >
+                {dragId != null && dropIdx === i && <DropLine />}
                 <HWTaskCard
-                  key={task.id}
                   task={task}
                   index={i}
                   onUpdate={updateTask}
                   onDelete={() => removeTask(task.id)}
+                  onGripDown={() => setArmedId(task.id)}
                 />
-              ))}
-            </div>
-          </AnimatePresence>
+                {dragId != null && dropIdx === tasks.length && i === tasks.length - 1 && <DropLine />}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

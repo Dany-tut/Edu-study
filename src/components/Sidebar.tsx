@@ -16,6 +16,7 @@ import WidgetOrderModal from './WidgetOrderModal'
 import { useTheme } from '../store/themeStore'
 import { useStudentData } from '../store/studentDataStore'
 import NotificationBell from './NotificationBell'
+import NotificationPopup from './NotificationPopup'
 
 const navItems = [
   { id: 'home',    label: 'Главная',  icon: Home },
@@ -176,7 +177,8 @@ export default function Sidebar() {
   const snapMountRef = useRef(false)
   // Viewport coords for the portaled popover, measured from the avatar.
   const [anchor, setAnchor] = useState<{ top: number; left: number } | null>(null)
-  const bellRef = useRef<HTMLButtonElement>(null)
+  const bellRef = useRef<HTMLDivElement>(null)
+  const [notifOpen, setNotifOpen] = useState(false)
   const { dark, toggle: toggleTheme } = useTheme()
   const session = getStudentSession()
   const displayName = session?.name ?? ''
@@ -742,7 +744,10 @@ export default function Sidebar() {
 
       {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginLeft: 8 }}>
-        <NotificationBell />
+        <div ref={bellRef} style={{ display: 'inline-flex' }}>
+          <NotificationBell onClick={() => setNotifOpen(o => !o)} />
+        </div>
+        <NotificationPopup open={notifOpen} anchorRef={bellRef} onClose={() => setNotifOpen(false)} />
 
         <motion.button
           whileHover={{ scale: 1.08 }}

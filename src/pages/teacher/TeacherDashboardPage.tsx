@@ -1,6 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import TeacherTopBar from '../../components/teacher/TeacherTopBar'
+import NotificationToastContainer from '../../components/NotificationToast'
+import { useNotificationsInit } from '../../lib/notificationsSync'
+import { supabase } from '../../lib/supabase'
 import TeacherHome from './TeacherHome'
 import TeacherGroupsPage from './TeacherGroupsPage'
 import TeacherHomeworkPage from './TeacherHomeworkPage'
@@ -39,6 +42,13 @@ export default function TeacherDashboardPage() {
   const headerDocked = useTeacher(s => s.headerDocked)
   const isDesktop = useIsDesktop()
 
+  // Teacher is identified by their Supabase auth user id (matches notifications.recipient_id).
+  const [teacherId, setTeacherId] = useState<string | null>(null)
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setTeacherId(data.user?.id ?? null))
+  }, [])
+  useNotificationsInit(teacherId)
+
   // Restore page from hash on mount — but if the store already opened straight
   // into the course editor (restored from a persisted edit session on refresh),
   // keep that so the teacher lands back where they were.
@@ -59,6 +69,7 @@ export default function TeacherDashboardPage() {
 
   return (
     <>
+    <NotificationToastContainer />
     <div className="dashboard-root hidden lg:flex" style={{ display: isDesktop ? 'flex' : 'none' }}>
       {/* Progressive blur+fade strip behind the floating topbar — masks content
           scrolling up through the gaps around the pills. */}

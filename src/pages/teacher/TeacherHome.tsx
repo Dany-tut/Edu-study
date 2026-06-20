@@ -4,7 +4,7 @@ import CreateTaskModal from '../../components/teacher/CreateTaskModal'
 import {
   Users, ClipboardCheck, BookOpen, TrendingUp,
   Clock, CheckCircle2, Plus, Send, Download, UserPlus,
-  AlertCircle, Layers, Bell, Banknote,
+  AlertCircle, Layers, Bell, Banknote, ChevronRight,
 } from 'lucide-react'
 import type { ScheduleItem, Reminder, Group, Student } from '../../data/teacherMockData'
 import { useTeacher } from '../../store/teacherStore'
@@ -320,16 +320,24 @@ const reminderIcons: Record<Reminder['type'], React.ElementType> = {
 const urgencyColor = { high: '#F48B91', medium: '#F8C991', low: 'var(--color-text-4)' }
 const urgencyBg = { high: 'var(--color-red-soft)', medium: 'var(--color-peach-soft)', low: 'var(--color-bg)' }
 
-function ReminderRow({ item, done }: { item: Reminder; done?: boolean }) {
+function ReminderRow({ item, done, onAction }: { item: Reminder; done?: boolean; onAction?: () => void }) {
   const Icon = done ? CheckCircle2 : reminderIcons[item.type]
+  // Кликабельно только пока есть куда вести и дело не закрыто.
+  const clickable = !done && !!onAction
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 10,
-      padding: '8px 10px', borderRadius: 12,
-      background: done ? 'var(--color-green-soft)' : urgencyBg[item.urgency],
-      opacity: done ? 0.85 : 1,
-      transition: 'background 0.25s, opacity 0.25s',
-    }}>
+    <motion.div
+      onClick={clickable ? onAction : undefined}
+      whileHover={clickable ? { x: 2 } : undefined}
+      whileTap={clickable ? { scale: 0.99 } : undefined}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '8px 10px', borderRadius: 12,
+        background: done ? 'var(--color-green-soft)' : urgencyBg[item.urgency],
+        opacity: done ? 0.85 : 1,
+        cursor: clickable ? 'pointer' : 'default',
+        transition: 'background 0.25s, opacity 0.25s',
+      }}
+    >
       <div style={{
         width: 28, height: 28, borderRadius: 9, flexShrink: 0,
         background: done ? 'rgba(74,222,128,0.18)' : urgencyColor[item.urgency] + '44',
@@ -353,7 +361,10 @@ function ReminderRow({ item, done }: { item: Reminder; done?: boolean }) {
       {!done && item.urgency === 'high' && (
         <AlertCircle size={13} strokeWidth={2} style={{ color: '#F48B91', flexShrink: 0 }} />
       )}
-    </div>
+      {clickable && (
+        <ChevronRight size={15} strokeWidth={2} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
+      )}
+    </motion.div>
   )
 }
 
@@ -520,6 +531,9 @@ function MyTasksBlock() {
 export default function TeacherHome() {
   const { setActivePage } = useTeacher()
   const reviews = useTeacher(s => s.reviews)
+  const openHardReview = useTeacher(s => s.openHardReview)
+  const openHomeworkReview = useTeacher(s => s.openHomeworkReview)
+  const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
   const { groups } = useGroups()
   const { homework: allHomework } = useHomework()
   const { submissions: hardSubs } = useHardSubmissions()
@@ -596,6 +610,19 @@ export default function TeacherHome() {
   const reminderDone = (r: Reminder) =>
     r.type === 'check-hw' &&
     pendingHomework.some(hw => r.text.includes(hw.groupName) && reviewedFor(hw.id) >= hw.submittedCount)
+
+  // Куда ведёт напоминание — по префиксу id (см. формирование reminders выше):
+  // hard- → проверка сложного ДЗ, hw- → проверка обычного ДЗ, pay- → карточка ученика.
+  const reminderAction = (r: Reminder): (() => void) | undefined => {
+    if (r.id.startsWith('hard-')) { const id = r.id.slice(5); return () => openHardReview(id) }
+    if (r.id.startsWith('hw-')) { const id = r.id.slice(3); return () => openHomeworkReview(id) }
+    if (r.id.startsWith('pay-')) {
+      const sid = r.id.slice(4)
+      const stu = allStudents.find(s => s.id === sid)
+      return stu ? () => openStudentDashboard(sid, stu.groupId) : undefined
+    }
+    return undefined
+  }
 
   const nextLesson = todaySchedule.find(s => s.status === 'upcoming')
   const doneCount = todaySchedule.filter(s => s.status === 'completed').length
@@ -730,7 +757,7 @@ export default function TeacherHome() {
                   paddingBlock: 8,
                 }}>
                   {reminders.map(r => (
-                    <ReminderRow key={r.id} item={r} done={reminderDone(r)} />
+                    <ReminderRow key={r.id} item={r} done={reminderDone(r)} onAction={reminderAction(r)} />
                   ))}
                   <PaymentBlock students={allStudents} groups={groups} />
                 </div>

@@ -1,5 +1,8 @@
+import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Flame, Zap, Bell, Play, ChevronRight, Dumbbell, BookOpen, Lock, Calendar, ClipboardList, HelpCircle, Atom, Star } from 'lucide-react'
+import NotificationPopup from './NotificationPopup'
+import { useNotificationsStore } from '../store/notificationsStore'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
 import MobileHScroll from './MobileHScroll'
@@ -39,6 +42,9 @@ export default function MobileHome() {
   const openCourses = useDashboard(s => s.openCourses)
   const setActivePage = useDashboard(s => s.setActivePage)
   const now = useNow(30_000)
+  const notifUnread = useNotificationsStore(s => s.notifications.filter(n => !n.read).length)
+  const [notifOpen, setNotifOpen] = useState(false)
+  const bellRef = useRef<HTMLDivElement>(null)
 
   // Continue target: the current lesson, else first unlocked-incomplete lesson.
   const continueInfo = (() => {
@@ -82,7 +88,10 @@ export default function MobileHome() {
           </>
         )}
       </DynamicIsland>
-      <GlassIconButton icon={<Bell size={16} />} dot ariaLabel="Уведомления" />
+      <div ref={bellRef} style={{ display: 'inline-flex' }}>
+        <GlassIconButton icon={<Bell size={16} />} dot={notifUnread > 0} ariaLabel="Уведомления" onClick={() => setNotifOpen(o => !o)} />
+      </div>
+      <NotificationPopup open={notifOpen} anchorRef={bellRef} onClose={() => setNotifOpen(false)} />
     </div>
   )
 

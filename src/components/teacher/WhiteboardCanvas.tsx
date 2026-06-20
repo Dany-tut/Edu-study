@@ -44,6 +44,10 @@ export default function WhiteboardCanvas({
   // Stretchable board height (CSS display height + tracked internal-pixel height).
   const [boardH, setBoardH] = useState(baseDispH)
   const [pxH, setPxH] = useState(basePxH)
+  // Read-only display height — reproduces the editor's vertical density so the
+  // saved board renders exactly as it was drawn (no vertical stretch). The buffer
+  // is CANVAS_W × pxH at DENSITY scale; matching that here keeps the aspect 1:1.
+  const [roH, setRoH] = useState(baseDispH)
 
   // Selection ("Выбор") state.
   const [sel, setSel] = useState<Rect | null>(null)
@@ -68,7 +72,10 @@ export default function WhiteboardCanvas({
       // canvas keeps its natural aspect ratio and CSS (height:auto) sizes it.
       const img = new Image()
       img.onload = () => {
-        if (img.width && img.height) { c.width = img.width; c.height = img.height }
+        if (img.width && img.height) {
+          c.width = img.width; c.height = img.height
+          setRoH(img.height / DENSITY)  // match editor's vertical scale → no stretch
+        }
         ctx.fillStyle = '#FFFFFF'
         ctx.fillRect(0, 0, c.width, c.height)
         ctx.drawImage(img, 0, 0)
@@ -439,7 +446,7 @@ export default function WhiteboardCanvas({
           onPointerUp={onUp}
           onPointerLeave={onUp}
           style={{
-            width: '100%', height: readOnly ? 'auto' : boardH, display: 'block', background: '#fff',
+            width: '100%', height: readOnly ? roH : boardH, display: 'block', background: '#fff',
             cursor: readOnly ? 'default' : tool === 'select' ? 'crosshair' : tool === 'pen' ? 'crosshair' : 'cell',
             touchAction: 'none', borderRadius: readOnly ? 12 : 0,
           }}

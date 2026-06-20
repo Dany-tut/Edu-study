@@ -124,10 +124,10 @@ interface DashboardState {
   setTrackPopoverOpen: (v: boolean) => void
 
   // Homework self-assessment results, keyed by lessonId.
-  lessonAssessments: Record<string, { score: number; emojiIndex: number; hardAvailable?: boolean; hardCompleted?: boolean; hardStatus?: 'submitted' | 'returned' | 'completed'; hardComment?: string; hardReviewPhotos?: string[]; hardReviewBoard?: string | null; hardReviewAnnotation?: { image: string; w: number; h: number } | null; hardReviewBlocks?: HardTaskReviewBlock[] }>
+  lessonAssessments: Record<string, { score: number; emojiIndex: number; hardAvailable?: boolean; hardCompleted?: boolean; hardStatus?: 'submitted' | 'returned' | 'completed'; hardScore?: number | null; hardComment?: string; hardReviewPhotos?: string[]; hardReviewBoard?: string | null; hardReviewAnnotation?: { image: string; w: number; h: number } | null; hardReviewBlocks?: HardTaskReviewBlock[] }>
   setLessonAssessment: (lessonId: string, score: number, emojiIndex: number, hardAvailable?: boolean) => void
   setHardCompleted: (lessonId: string) => void
-  setHardStatus: (lessonId: string, status: 'submitted' | 'returned' | 'completed', comment?: string, reviewAttachments?: { photos: string[]; board: string | null; annotation?: { image: string; w: number; h: number } | null }, reviewBlocks?: HardTaskReviewBlock[]) => void
+  setHardStatus: (lessonId: string, status: 'submitted' | 'returned' | 'completed', comment?: string, reviewAttachments?: { photos: string[]; board: string | null; annotation?: { image: string; w: number; h: number } | null }, reviewBlocks?: HardTaskReviewBlock[], score?: number | null) => void
 
   // Pomodoro focus timer. Kept in the store (with a module-level interval) so it
   // keeps ticking even when the widget is swiped off-screen and unmounts.
@@ -287,16 +287,18 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   trackPopoverOpen: false,
   setTrackPopoverOpen: (v) => set({ trackPopoverOpen: v }),
 
-  lessonAssessments: {} as Record<string, { score: number; emojiIndex: number; hardAvailable?: boolean; hardCompleted?: boolean; hardStatus?: 'submitted' | 'returned' | 'completed'; hardComment?: string; hardReviewPhotos?: string[]; hardReviewBoard?: string | null; hardReviewAnnotation?: { image: string; w: number; h: number } | null; hardReviewBlocks?: HardTaskReviewBlock[] }>,
+  lessonAssessments: {} as Record<string, { score: number; emojiIndex: number; hardAvailable?: boolean; hardCompleted?: boolean; hardStatus?: 'submitted' | 'returned' | 'completed'; hardScore?: number | null; hardComment?: string; hardReviewPhotos?: string[]; hardReviewBoard?: string | null; hardReviewAnnotation?: { image: string; w: number; h: number } | null; hardReviewBlocks?: HardTaskReviewBlock[] }>,
   setLessonAssessment: (lessonId, score, emojiIndex, hardAvailable) =>
     set((s) => ({ lessonAssessments: { ...s.lessonAssessments, [lessonId]: { ...s.lessonAssessments[lessonId], score, emojiIndex, hardAvailable } } })),
   setHardCompleted: (lessonId) =>
     set((s) => ({ lessonAssessments: { ...s.lessonAssessments, [lessonId]: { ...s.lessonAssessments[lessonId], hardCompleted: true, hardStatus: 'submitted' as const } } })),
-  setHardStatus: (lessonId, status, comment, reviewAttachments, reviewBlocks) =>
+  setHardStatus: (lessonId, status, comment, reviewAttachments, reviewBlocks, score) =>
     set((s) => ({ lessonAssessments: { ...s.lessonAssessments, [lessonId]: {
       ...s.lessonAssessments[lessonId],
       hardStatus: status,
       hardCompleted: status === 'completed',
+      // Teacher's 1–5 verdict, kept only once accepted (cleared on return/resubmit).
+      hardScore: status === 'completed' ? (score ?? s.lessonAssessments[lessonId]?.hardScore ?? null) : null,
       hardComment: comment ?? s.lessonAssessments[lessonId]?.hardComment,
       hardReviewPhotos: reviewAttachments ? reviewAttachments.photos : s.lessonAssessments[lessonId]?.hardReviewPhotos,
       hardReviewBoard: reviewAttachments ? reviewAttachments.board : s.lessonAssessments[lessonId]?.hardReviewBoard,

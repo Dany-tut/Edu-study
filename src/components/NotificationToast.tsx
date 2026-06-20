@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, X, ChevronDown, ChevronUp, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, Bell } from 'lucide-react'
+import { ArrowRight, X, ChevronDown, ChevronUp, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, Bell, RotateCcw, Banknote } from 'lucide-react'
 import { useNotificationsStore, type Notification } from '../store/notificationsStore'
 import type { NotifType } from '../store/notificationsStore'
 
@@ -14,6 +14,11 @@ const ICON_MAP: Record<NotifType, React.ReactNode> = {
   student_joined:       <UserPlus      size={16} />,
   deadline_approaching: <Clock         size={16} />,
   achievement:          <Trophy        size={16} />,
+  hw_returned:          <RotateCcw     size={16} />,
+  hw_graded:            <CheckCircle2  size={16} />,
+  hw_submitted:         <FileText      size={16} />,
+  test_assigned:        <Brain         size={16} />,
+  payment_due:          <Banknote      size={16} />,
 }
 
 function getIcon(type: string) {

@@ -67,7 +67,15 @@ export default function StorageUsagePanel() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
-  const [open, setOpen] = useState(true)
+  // Детали (заметка о фото + разбивка по таблицам) свёрнуты по умолчанию и
+  // помнят своё состояние между перезагрузками. Полоски использования видны
+  // всегда. Обновление данных свёрнутость не трогает.
+  const [open, setOpen] = useState<boolean>(() => {
+    try { return localStorage.getItem('storagePanelOpen') === '1' } catch { return false }
+  })
+  useEffect(() => {
+    try { localStorage.setItem('storagePanelOpen', open ? '1' : '0') } catch { /* private mode */ }
+  }, [open])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -117,73 +125,77 @@ export default function StorageUsagePanel() {
         </button>
       </div>
 
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            style={{ overflow: 'hidden' }}
-          >
-            <div style={{ paddingTop: 16 }}>
       {error ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-text-3)', fontSize: 12.5, padding: '12px 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-text-3)', fontSize: 12.5, padding: '16px 0 4px' }}>
           <AlertTriangle size={15} /> Не удалось загрузить статистику
         </div>
       ) : !stats ? (
-        <div style={{ color: 'var(--color-text-4)', fontSize: 12.5, padding: '12px 0' }}>Загрузка…</div>
+        <div style={{ color: 'var(--color-text-4)', fontSize: 12.5, padding: '16px 0 4px' }}>Загрузка…</div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-          <UsageBar
-            icon={Database} label="База данных (Postgres)"
-            used={stats.db_bytes} limit={stats.db_limit_bytes}
-            hint={`свободно ${fmtBytes(stats.db_limit_bytes - stats.db_bytes)}`}
-          />
-          <UsageBar
-            icon={HardDrive} label="Файлы (Storage)"
-            used={stats.storage_bytes} limit={stats.storage_limit_bytes}
-            hint={`${stats.storage_objects} объект.`}
-          />
-
-          {/* Where photos & whiteboards actually live */}
-          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
-            <ImageIcon size={15} strokeWidth={2} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: 1 }} />
-            <div style={{ fontSize: 11.5, color: 'var(--color-text-2)', lineHeight: 1.5 }}>
-              Фото и рисунки доски сейчас хранятся прямо в базе (внутри строк ДЗ): <b style={{ color: 'var(--color-text)' }}>{fmtBytes(stats.attachments_bytes)}</b> в {stats.attachments_rows} записях.
-            </div>
+        <>
+          {/* Полоски использования — видны всегда (даже в свёрнутом виде) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18, paddingTop: 16 }}>
+            <UsageBar
+              icon={Database} label="База данных (Postgres)"
+              used={stats.db_bytes} limit={stats.db_limit_bytes}
+              hint={`свободно ${fmtBytes(stats.db_limit_bytes - stats.db_bytes)}`}
+            />
+            <UsageBar
+              icon={HardDrive} label="Файлы (Storage)"
+              used={stats.storage_bytes} limit={stats.storage_limit_bytes}
+              hint={`${stats.storage_objects} объект.`}
+            />
           </div>
 
-          {/* Per-table breakdown */}
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
-              По таблицам
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {[...stats.tables].sort((a, b) => b.bytes - a.bytes).slice(0, 6).map(t => (
-                <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 11.5, color: 'var(--color-text-2)', width: 120, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
-                  <div style={{ flex: 1, height: 6, borderRadius: 4, background: 'var(--color-bg-4)', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${(t.bytes / maxTableBytes) * 100}%`, borderRadius: 4, background: 'var(--color-accent)', opacity: 0.7 }} />
+          {/* Детали (заметка + разбивка по таблицам) — сворачиваются */}
+          <AnimatePresence initial={false}>
+            {open && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                style={{ overflow: 'hidden' }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 18, paddingTop: 18 }}>
+                  {/* Where photos & whiteboards actually live */}
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
+                    <ImageIcon size={15} strokeWidth={2} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: 1 }} />
+                    <div style={{ fontSize: 11.5, color: 'var(--color-text-2)', lineHeight: 1.5 }}>
+                      Фото и рисунки доски сейчас хранятся прямо в базе (внутри строк ДЗ): <b style={{ color: 'var(--color-text)' }}>{fmtBytes(stats.attachments_bytes)}</b> в {stats.attachments_rows} записях.
+                    </div>
                   </div>
-                  <span style={{ fontSize: 11, color: 'var(--color-text-3)', width: 58, textAlign: 'right', flexShrink: 0 }}>{fmtBytes(t.bytes)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
 
-          {dbPct >= 60 && (
-            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', padding: '10px 12px', borderRadius: 12, background: 'var(--color-peach-soft)', fontSize: 11.5, color: 'var(--color-peach-text)', lineHeight: 1.5 }}>
-              <AlertTriangle size={14} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-              База заполнена на {dbPct.toFixed(0)}%. Стоит перенести фото и доски в Storage, чтобы разгрузить Postgres.
-            </div>
-          )}
-        </div>
+                  {/* Per-table breakdown */}
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                      По таблицам
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {[...stats.tables].sort((a, b) => b.bytes - a.bytes).slice(0, 6).map(t => (
+                        <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span style={{ fontSize: 11.5, color: 'var(--color-text-2)', width: 120, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
+                          <div style={{ flex: 1, height: 6, borderRadius: 4, background: 'var(--color-bg-4)', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${(t.bytes / maxTableBytes) * 100}%`, borderRadius: 4, background: 'var(--color-accent)', opacity: 0.7 }} />
+                          </div>
+                          <span style={{ fontSize: 11, color: 'var(--color-text-3)', width: 58, textAlign: 'right', flexShrink: 0 }}>{fmtBytes(t.bytes)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {dbPct >= 60 && (
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', padding: '10px 12px', borderRadius: 12, background: 'var(--color-peach-soft)', fontSize: 11.5, color: 'var(--color-peach-text)', lineHeight: 1.5 }}>
+                      <AlertTriangle size={14} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+                      База заполнена на {dbPct.toFixed(0)}%. Стоит перенести фото и доски в Storage, чтобы разгрузить Postgres.
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
       )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )

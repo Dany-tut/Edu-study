@@ -13,6 +13,8 @@ import TaskBankPage from './TaskBankPage'
 import HomeworkFlow from '../components/HomeworkFlow'
 import TestFlow from '../components/TestFlow'
 import AnswerFlightLayer from '../components/AnswerFlightLayer'
+import NotificationToastContainer from '../components/NotificationToast'
+import { useNotificationsInit } from '../lib/notificationsSync'
 import { useDashboard } from '../store/dashboardStore'
 import { LayoutGroup, motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
@@ -48,6 +50,7 @@ const PAGE_TO_HASH: Record<string, string> = {
 
 export default function DashboardPage() {
   useStudentPrefsSync()
+  useNotificationsInit(getStudentSession()?.id)
   const isDesktop = useIsDesktop()
   const trackPopoverOpen = useDashboard(s => s.trackPopoverOpen)
   const activePage = useDashboard(s => s.activePage)
@@ -108,6 +111,7 @@ export default function DashboardPage() {
   return (
     <>
       <AnswerFlightLayer />
+      <NotificationToastContainer />
       {/* Desktop no-scroll layout */}
       <LayoutGroup>
       <div className="dashboard-root" style={{ display: isDesktop ? 'flex' : 'none' }}>

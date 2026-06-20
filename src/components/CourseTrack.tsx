@@ -581,9 +581,26 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                       Сложный уровень · {selectedHardLesson.title}
                     </span>
 
-                    {/* Score row — показываем только когда учитель выставил оценку при приёмке.
-                        hardAssessment.score — это авто-процент за основной тест, а не оценка учителя,
-                        поэтому для сложного задания его не показываем. */}
+                    {/* Score row — оценка 1–5, которую учитель выставил при приёмке хард-задания.
+                        Берём hardAssessment.hardScore (score строки `${ref}-hard`), а НЕ
+                        hardAssessment.score (авто-процент за основной тест). */}
+                    {hardStatus === 'completed' && hardAssessment?.hardScore != null && hardAssessment.hardScore > 0 && (
+                      <div className="inline-flex items-center" style={{ gap: 6, width: 'fit-content' }}>
+                        <div className="inline-flex items-center" style={{ gap: 2 }}>
+                          {[1, 2, 3, 4, 5].map(i => (
+                            <Star
+                              key={i}
+                              size={15}
+                              fill={i <= hardAssessment.hardScore! ? '#F5C842' : 'transparent'}
+                              color={i <= hardAssessment.hardScore! ? '#F5C842' : 'var(--color-border-medium)'}
+                            />
+                          ))}
+                        </div>
+                        <span style={{ fontSize: 14, fontWeight: 800, color: '#F5C842' }}>
+                          {hardAssessment.hardScore}/5
+                        </span>
+                      </div>
+                    )}
 
                     {/* Description */}
                     <span style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5 }}>
