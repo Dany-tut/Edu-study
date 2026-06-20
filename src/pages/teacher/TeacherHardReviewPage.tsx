@@ -12,6 +12,7 @@ import WhiteboardCanvas from '../../components/teacher/WhiteboardCanvas'
 import AnnotationLayer, { type Annotation } from '../../components/teacher/AnnotationLayer'
 import AnswerBody from '../../components/teacher/AnswerBody'
 import HardConversation, { type HardTabVM, type ReviewPayload } from '../../components/teacher/HardConversation'
+import { optimizePhoto } from '../../lib/imageOptim'
 
 const glass: React.CSSProperties = {
   background: 'rgba(var(--glass-rgb), 0.88)',
@@ -54,13 +55,9 @@ export default function TeacherHardReviewPage() {
 
   function addReviewPhotos(files: FileList | null) {
     if (!files) return
-    Array.from(files).forEach(file => {
-      const reader = new FileReader()
-      reader.onload = () => {
-        const src = reader.result as string
-        if (src) setReviewPhotos(prev => [...prev, src])
-      }
-      reader.readAsDataURL(file)
+    Array.from(files).forEach(async file => {
+      const src = await optimizePhoto(file)
+      if (src) setReviewPhotos(prev => [...prev, src])
     })
   }
 

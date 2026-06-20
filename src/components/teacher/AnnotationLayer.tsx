@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useLayoutEffect } from 'react'
 import { Pencil, Eraser, Undo2, Trash2, Highlighter } from 'lucide-react'
+import { optimizeCanvas } from '../../lib/imageOptim'
 
 // Живой оверлей-разметка: прозрачный холст ПОВЕРХ настоящего ответа ученика.
 // Учитель рисует прямо по «Дано»/«Решению» — красным/зелёным, что верно, а что нет.
@@ -139,7 +140,7 @@ export default function AnnotationLayer({
 
   function commit() {
     const c = canvasRef.current!
-    const data = c.toDataURL()
+    const data = optimizeCanvas(c)
     lastImage.current = data
     onChange?.({ image: data, w: c.width, h: c.height })
   }

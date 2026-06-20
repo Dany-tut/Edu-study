@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Pencil, Eraser, Undo2, Trash2, MousePointer2, BoxSelect, GripHorizontal } from 'lucide-react'
+import { optimizeCanvas } from '../../lib/imageOptim'
 
 const WB_COLORS = ['#0B0B0D', '#E53E3E', '#3182CE', '#38A169', '#D69E2E', '#805AD5', '#DD6B20']
 
@@ -144,7 +145,7 @@ export default function WhiteboardCanvas({
     selCanvasRef.current = null
     baseRef.current = null
     setSel(null)
-    onSave?.(canvasRef.current!.toDataURL())
+    onSave?.(optimizeCanvas(canvasRef.current!))
   }
 
   function selectAll() {
@@ -231,7 +232,7 @@ export default function WhiteboardCanvas({
       return
     }
     lastPt.current = null
-    onSave?.(canvasRef.current!.toDataURL())
+    onSave?.(optimizeCanvas(canvasRef.current!))
   }
 
   // ─── Move / scale an active selection ───────────────────────────────────────
@@ -275,7 +276,7 @@ export default function WhiteboardCanvas({
   function dragEnd() {
     if (dragRef.current) {
       dragRef.current = null
-      onSave?.(canvasRef.current!.toDataURL())
+      onSave?.(optimizeCanvas(canvasRef.current!))
     }
   }
 
@@ -312,7 +313,7 @@ export default function WhiteboardCanvas({
   function resizeUp() {
     if (resizeRef.current) {
       resizeRef.current = null
-      onSave?.(canvasRef.current!.toDataURL())
+      onSave?.(optimizeCanvas(canvasRef.current!))
     }
   }
 
@@ -326,7 +327,7 @@ export default function WhiteboardCanvas({
     if (prev) {
       ctx.putImageData(prev, 0, 0)
       setCanUndo(history.current.length > 0)
-      onSave?.(c.toDataURL())
+      onSave?.(optimizeCanvas(c))
     }
   }
 
@@ -339,7 +340,7 @@ export default function WhiteboardCanvas({
     pushHistory()
     ctx.fillStyle = '#FFFFFF'
     ctx.fillRect(0, 0, c.width, c.height)
-    onSave?.(c.toDataURL())
+    onSave?.(optimizeCanvas(c))
   }
 
   const divider = <div style={{ width: 1, height: 16, background: 'var(--color-border-medium)', flexShrink: 0 }} />

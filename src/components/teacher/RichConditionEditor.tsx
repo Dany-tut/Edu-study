@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Image as ImageIcon, PenLine } from 'lucide-react'
 import { useTheme } from '../../store/themeStore'
 import WhiteboardCanvas from './WhiteboardCanvas'
+import { optimizePhoto } from '../../lib/imageOptim'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -177,9 +178,8 @@ export default function RichConditionEditor({
   }
 
   const insertImageFile = (file: File, savedRange?: Range | null) => {
-    const reader = new FileReader()
-    reader.onload = ev => {
-      const src = ev.target?.result as string
+    optimizePhoto(file).then(src => {
+      if (!src) return
       editorRef.current?.focus()
       const sel = window.getSelection()
       if (!sel) return
@@ -201,8 +201,7 @@ export default function RichConditionEditor({
       sel.removeAllRanges()
       sel.addRange(range)
       emit()
-    }
-    reader.readAsDataURL(file)
+    })
   }
 
   const applyFontSize = (size: string) => {

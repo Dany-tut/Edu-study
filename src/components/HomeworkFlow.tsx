@@ -17,6 +17,7 @@ import type {
   HardTaskDef, HardTaskStudentBlock, HardTaskReviewBlock, HardSolution, HardAttachmentsNew, HardReviewNew,
 } from '../lib/useHomework'
 import { isNewHard, hardId, studentSolutions } from '../lib/useHomework'
+import { optimizePhoto } from '../lib/imageOptim'
 import HardConversation, { type HardTabVM } from './teacher/HardConversation'
 import { playUnlock, playPop, vibrate } from '../lib/sound'
 import { useDashboard } from '../store/dashboardStore'
@@ -715,13 +716,9 @@ export default function HomeworkFlow({
 
   const addPhotos = (files: FileList | null) => {
     if (!files) return
-    Array.from(files).forEach(file => {
-      const reader = new FileReader()
-      reader.onload = ev => {
-        const src = ev.target?.result as string
-        if (src) setState(current => ({ ...current, hardPhotos: [...current.hardPhotos, src] }))
-      }
-      reader.readAsDataURL(file)
+    Array.from(files).forEach(async file => {
+      const src = await optimizePhoto(file)
+      if (src) setState(current => ({ ...current, hardPhotos: [...current.hardPhotos, src] }))
     })
   }
 
@@ -737,17 +734,13 @@ export default function HomeworkFlow({
     })
   const addTaskPhotos = (key: string, files: FileList | null) => {
     if (!files) return
-    Array.from(files).forEach(file => {
-      const reader = new FileReader()
-      reader.onload = ev => {
-        const src = ev.target?.result as string
-        if (!src) return
-        setState(cur => {
-          const d = cur.hardTaskDrafts[key] ?? emptyDraft()
-          return { ...cur, hardTaskDrafts: { ...cur.hardTaskDrafts, [key]: { ...d, photos: [...d.photos, src] } } }
-        })
-      }
-      reader.readAsDataURL(file)
+    Array.from(files).forEach(async file => {
+      const src = await optimizePhoto(file)
+      if (!src) return
+      setState(cur => {
+        const d = cur.hardTaskDrafts[key] ?? emptyDraft()
+        return { ...cur, hardTaskDrafts: { ...cur.hardTaskDrafts, [key]: { ...d, photos: [...d.photos, src] } } }
+      })
     })
   }
   const removeTaskPhoto = (key: string, idx: number) =>

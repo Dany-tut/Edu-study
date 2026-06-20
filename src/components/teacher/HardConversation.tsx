@@ -7,6 +7,7 @@ import RichConditionEditor from './RichConditionEditor'
 import WhiteboardCanvas from './WhiteboardCanvas'
 import AnnotationLayer, { type Annotation } from './AnnotationLayer'
 import AnswerBody from './AnswerBody'
+import { optimizePhoto } from '../../lib/imageOptim'
 import {
   type HardTaskStudentBlock, type HardTaskReviewBlock, type HardEvent, type HardSolution,
   mergeTaskEvents, taskStatus, hardTaskScore, lastSolutionOf, type HardTaskStatus,
@@ -172,10 +173,9 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
 
   function addPhotos(files: FileList | null) {
     if (!files) return
-    Array.from(files).forEach(file => {
-      const reader = new FileReader()
-      reader.onload = e => { const src = e.target?.result as string; if (src) setPhotos(p => [...p, src]) }
-      reader.readAsDataURL(file)
+    Array.from(files).forEach(async file => {
+      const src = await optimizePhoto(file)
+      if (src) setPhotos(p => [...p, src])
     })
   }
 
@@ -238,10 +238,9 @@ function TeacherComposer({ solution, busy, onReview }: {
 
   function addPhotos(files: FileList | null) {
     if (!files) return
-    Array.from(files).forEach(file => {
-      const reader = new FileReader()
-      reader.onload = e => { const src = e.target?.result as string; if (src) setPhotos(p => [...p, src]) }
-      reader.readAsDataURL(file)
+    Array.from(files).forEach(async file => {
+      const src = await optimizePhoto(file)
+      if (src) setPhotos(p => [...p, src])
     })
   }
 

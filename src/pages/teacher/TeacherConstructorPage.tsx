@@ -24,6 +24,7 @@ import {
 } from '../../data/diagnosticData'
 import { useAllStudents, useGroups } from '../../lib/useGroups'
 import { supabase } from '../../lib/supabase'
+import { optimizePhoto } from '../../lib/imageOptim'
 import { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from '../../data/apChemistry'
 import { AP_LESSON_CONTENT } from '../../data/apChemistryLessons'
 import type { LessonContentData, LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from '../../data/lessonContent'
@@ -2160,9 +2161,7 @@ function CreatorView({
   function onPickImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => setTkImage(String(reader.result))
-    reader.readAsDataURL(file)
+    optimizePhoto(file).then(src => { if (src) setTkImage(src) })
   }
 
   function resetTaskForm() {
@@ -3080,11 +3079,7 @@ function CreatorView({
                     imageItems.forEach(item => {
                       const file = item.getAsFile()
                       if (!file) return
-                      const reader = new FileReader()
-                      reader.onload = ev => {
-                        if (ev.target?.result) setExplPhotos(prev => [...prev, ev.target!.result as string])
-                      }
-                      reader.readAsDataURL(file)
+                      optimizePhoto(file).then(src => { if (src) setExplPhotos(prev => [...prev, src]) })
                     })
                   }}
                   placeholder="Почему этот ответ верный…"
@@ -3109,11 +3104,7 @@ function CreatorView({
                     <input type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => {
                       const files = Array.from(e.target.files || [])
                       files.forEach(file => {
-                        const reader = new FileReader()
-                        reader.onload = ev => {
-                          if (ev.target?.result) setExplPhotos(prev => [...prev, ev.target!.result as string])
-                        }
-                        reader.readAsDataURL(file)
+                        optimizePhoto(file).then(src => { if (src) setExplPhotos(prev => [...prev, src]) })
                       })
                       e.target.value = ''
                     }} />
@@ -3328,9 +3319,7 @@ function CreatorView({
                             e.preventDefault()
                             const file = imgItem.getAsFile()
                             if (!file) return
-                            const reader = new FileReader()
-                            reader.onload = ev => { setTkImage(String(ev.target?.result)); setCondImgPickerOpen(false) }
-                            reader.readAsDataURL(file)
+                            optimizePhoto(file).then(src => { if (src) setTkImage(src); setCondImgPickerOpen(false) })
                           }}
                           style={{ padding: '12px 10px', textAlign: 'center', fontSize: 12, color: 'var(--color-text-3)', outline: 'none', cursor: 'default', background: 'var(--color-bg-2)' }}
                         >
