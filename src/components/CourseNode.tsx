@@ -49,11 +49,12 @@ function getShapeClass(_shape: LessonShape, _isSquare: boolean): string {
 
 type HardStatus = 'submitted' | 'returned' | 'completed'
 
-export const HARD_STYLE: Record<HardStatus | 'available', { bg: string; border: string; iconColor: string; label: string }> = {
+export const HARD_STYLE: Record<HardStatus | 'available' | 'locked', { bg: string; border: string; iconColor: string; label: string }> = {
   available:  { bg: 'var(--color-purple-soft)', border: 'var(--color-purple)', iconColor: 'var(--color-purple)', label: 'Доступен хард' },
   submitted:  { bg: 'var(--color-peach-soft)',  border: '#F8A84B', iconColor: '#F8A84B', label: 'На проверке' },
   returned:   { bg: 'var(--color-yellow-soft)', border: '#F0D060', iconColor: '#F0D060', label: 'Возвращён' },
   completed:  { bg: 'var(--color-yellow-soft)', border: '#F5C842', iconColor: '#F5C842', label: 'Сдан' },
+  locked:     { bg: TRACK_STATUS.locked.bg, border: TRACK_STATUS.locked.border, iconColor: TRACK_STATUS.locked.icon, label: 'Недоступно' },
 }
 
 interface Props {
@@ -95,12 +96,14 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
   // hardAvailable is set authoritatively at submit time from the homework's
   // recommendationScore; fall back to the 80 default for legacy rows.
   const hardAvailable = assessment?.hardAvailable || (assessment?.score != null && assessment.score >= 80)
-  // Hard rule: if the basic homework was submitted below the threshold, the hard
-  // level is never surfaced in the track — even if a stale hard status lingers in
-  // the data. The score is the master gate. Legacy rows with a status but no
-  // recorded basic score still show, so we don't hide already-submitted work.
-  const showHardSatellite = hardAvailable || (!!hardStatus && assessment?.score == null)
-  const effectiveHardStatus: HardStatus | 'available' = hardStatus ?? 'available'
+  const basicSubmitted = assessment?.score != null
+  // Hard rule: the basic score is the master gate. If the basic homework was
+  // submitted below the threshold, the hard level shows as LOCKED (замочек,
+  // «недоступно») — visible but unavailable — overriding any stale hard status.
+  const hardLocked = basicSubmitted && !hardAvailable
+  const showHardSatellite = hardAvailable || hardLocked || (!!hardStatus && !basicSubmitted)
+  const effectiveHardStatus: HardStatus | 'available' | 'locked' =
+    hardLocked ? 'locked' : (hardStatus ?? 'available')
   const hardStyle = HARD_STYLE[effectiveHardStatus]
 
   const isDiamond = lesson.shape === 'diamond' || isTest
@@ -202,7 +205,9 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
           }}
           aria-label="Сложный уровень"
         >
-          {effectiveHardStatus === 'returned' ? (
+          {effectiveHardStatus === 'locked' ? (
+            <Lock size={12} color={hardStyle.iconColor} strokeWidth={2.5} />
+          ) : effectiveHardStatus === 'returned' ? (
             <RotateCcw size={13} color={hardStyle.iconColor} strokeWidth={2.5} />
           ) : effectiveHardStatus === 'completed' ? (
             <HardSatelliteLottie size={20} />

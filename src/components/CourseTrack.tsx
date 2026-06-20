@@ -135,7 +135,12 @@ function TrackForSubject({ subject }: { subject: Subject }) {
   const hardDetailLeft = Math.max(0, Math.min(hardCenter - hardCardWidth / 2, Math.max(0, containerW - hardCardWidth)))
   const hardArrowX = Math.max(16, Math.min(hardCenter - hardDetailLeft, hardCardWidth - 16))
   const hardAssessment = selectedHardLesson ? lessonAssessments[selectedHardLesson.id] : null
-  const hardStatus = (hardAssessment?.hardStatus as 'submitted' | 'returned' | 'completed' | undefined) ?? 'available'
+  const hardUnlocked = hardAssessment?.hardAvailable || (hardAssessment?.score != null && hardAssessment.score >= 80)
+  // Basic submitted below the threshold → hard is locked, overriding any stale status.
+  const hardLockedPopover = hardAssessment?.score != null && !hardUnlocked
+  const hardStatus: 'submitted' | 'returned' | 'completed' | 'available' | 'locked' = hardLockedPopover
+    ? 'locked'
+    : ((hardAssessment?.hardStatus as 'submitted' | 'returned' | 'completed' | undefined) ?? 'available')
   const hardStyleData = HARD_STYLE[hardStatus]
 
   return (
@@ -553,6 +558,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                       {hardStatus === 'completed' ? <Star size={14} fill="currentColor" /> :
                        hardStatus === 'returned'  ? <RotateCcw size={14} /> :
                        hardStatus === 'submitted' ? <Clock size={14} /> :
+                       hardStatus === 'locked'    ? <Lock size={14} /> :
                                                     <HardStarLottie size={20} />}
                       <span style={{ fontSize: 13, fontWeight: 500, lineHeight: 1, whiteSpace: 'nowrap' }}>
                         {hardStyleData.label}
@@ -585,9 +591,11 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                       {hardStatus === 'submitted' && 'Работа отправлена на проверку. Преподаватель проверит её и даст обратную связь.'}
                       {hardStatus === 'returned' && 'Преподаватель вернул работу на доработку. Открой урок, чтобы прочитать комментарии и исправить ошибки.'}
                       {hardStatus === 'completed' && 'Сложный уровень принят! Ты отлично справился с заданием повышенной сложности.'}
+                      {hardStatus === 'locked' && 'Сложный уровень откроется, когда ты сдашь базовую домашку на 80 баллов или выше. Пересдай основное задание, чтобы разблокировать хард.'}
                     </span>
 
-                    {/* Action button */}
+                    {/* Action button — скрыт для locked: хард недоступен, пока базовая < 80 */}
+                    {hardStatus !== 'locked' && (
                     <motion.button
                       whileHover={{ scale: 1.04 }}
                       whileTap={{ scale: 0.96 }}
@@ -607,6 +615,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     >
                       Открыть урок
                     </motion.button>
+                    )}
                   </div>
                 </motion.div>
               )}
