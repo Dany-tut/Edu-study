@@ -476,11 +476,11 @@ a {
 /* Flash highlight ring around a course node — color comes from --flash-rgb
    (set per node to match its status), falling back to the purple accent. */
 @keyframes courseNodeFlashRing {
-  0%   { box-shadow: 0 0 0 0 rgba(var(--flash-rgb, 99,84,207),0.0), 0 0 0 0 rgba(var(--flash-rgb, 99,84,207),0.0); opacity: 0; transform: scale(0.9); }
-  15%  { box-shadow: 0 0 0 10px rgba(var(--flash-rgb, 99,84,207),0.45), 0 0 0 22px rgba(var(--flash-rgb, 99,84,207),0.18); opacity: 1; transform: scale(1.15); }
-  50%  { box-shadow: 0 0 0  8px rgba(var(--flash-rgb, 99,84,207),0.30), 0 0 0 18px rgba(var(--flash-rgb, 99,84,207),0.12); opacity: 1; transform: scale(1.05); }
-  80%  { box-shadow: 0 0 0 10px rgba(var(--flash-rgb, 99,84,207),0.40), 0 0 0 22px rgba(var(--flash-rgb, 99,84,207),0.16); opacity: 0.9; transform: scale(1.12); }
-  100% { box-shadow: 0 0 0 0 rgba(var(--flash-rgb, 99,84,207),0.0), 0 0 0 0 rgba(var(--flash-rgb, 99,84,207),0.0); opacity: 0; transform: scale(1); }
+  0%   { box-shadow: 0 0 0 0 rgba(var(--flash-rgb, 99,84,207),0.0), 0 0 0 0 rgba(var(--flash-rgb, 99,84,207),0.0); opacity: 0; transform: rotate(var(--node-rotate, 0deg)) scale(0.9); }
+  15%  { box-shadow: 0 0 0 10px rgba(var(--flash-rgb, 99,84,207),0.45), 0 0 0 22px rgba(var(--flash-rgb, 99,84,207),0.18); opacity: 1; transform: rotate(var(--node-rotate, 0deg)) scale(1.15); }
+  50%  { box-shadow: 0 0 0  8px rgba(var(--flash-rgb, 99,84,207),0.30), 0 0 0 18px rgba(var(--flash-rgb, 99,84,207),0.12); opacity: 1; transform: rotate(var(--node-rotate, 0deg)) scale(1.05); }
+  80%  { box-shadow: 0 0 0 10px rgba(var(--flash-rgb, 99,84,207),0.40), 0 0 0 22px rgba(var(--flash-rgb, 99,84,207),0.16); opacity: 0.9; transform: rotate(var(--node-rotate, 0deg)) scale(1.12); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--flash-rgb, 99,84,207),0.0), 0 0 0 0 rgba(var(--flash-rgb, 99,84,207),0.0); opacity: 0; transform: rotate(var(--node-rotate, 0deg)) scale(1); }
 }
 .course-node-flash-ring {
   position: absolute;

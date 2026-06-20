@@ -119,7 +119,13 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
       {isHighlighted && (
         <div
           className="course-node-flash-ring"
-          style={{ borderRadius: nodeRadius, ['--flash-rgb' as string]: FLASH_RGB[displayStatus] }}
+          style={{
+            borderRadius: nodeRadius,
+            ['--flash-rgb' as string]: FLASH_RGB[displayStatus],
+            // Diamond nodes are rotated 45°, so the ring must match or it reads
+            // as a crooked square behind the diamond.
+            ['--node-rotate' as string]: isDiamond ? '45deg' : '0deg',
+          }}
         />
       )}
 
@@ -127,7 +133,11 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
       {dark && isActive && !isHighlighted && (
         <div
           className="course-node-pulse-ring"
-          style={{ borderRadius: nodeRadius, ['--node-rgb' as string]: nodeRgb }}
+          style={{
+            borderRadius: nodeRadius,
+            ['--node-rgb' as string]: nodeRgb,
+            transform: isDiamond ? 'rotate(45deg)' : undefined,
+          }}
         />
       )}
 
