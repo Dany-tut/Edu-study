@@ -80,9 +80,9 @@ function TabBar({ tabs, statuses, activeKey, onSelect }: {
 function SolutionCard({ ev, onZoomPhoto }: { ev: HardEvent & { kind: 'solution' }; onZoomPhoto?: (src: string) => void }) {
   return (
     <div style={{ borderRadius: 18, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)', padding: 18 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+      <div style={{ marginBottom: 12 }}>
         <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-purple-text)', letterSpacing: 0.4, textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: 6 }}><Send size={12} /> Решение ученика</span>
-        {fmtDate(ev.at) && <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)' }}>· {fmtDate(ev.at)}</span>}
+        {fmtDate(ev.at) && <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginTop: 4 }}>{fmtDate(ev.at)}</div>}
       </div>
       <AnswerBody comment={ev.answer} photos={ev.photos} board={ev.board} onZoomPhoto={onZoomPhoto} photosClickable={!!onZoomPhoto} />
     </div>
@@ -94,11 +94,13 @@ function CommentCard({ ev, repliesTo, onZoomPhoto }: { ev: HardEvent & { kind: '
   const tone = accepted ? 'green' : 'peach'
   return (
     <div style={{ borderRadius: 18, border: `1px solid var(--color-${tone}-soft)`, background: `var(--color-${tone}-soft)`, padding: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: `var(--color-${tone}-text)`, letterSpacing: 0.4, textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: 6 }}><MessageSquare size={12} /> Комментарий преподавателя</span>
-        {fmtDate(ev.at) && <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)' }}>· {fmtDate(ev.at)}</span>}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+        <div>
+          <span style={{ fontSize: 11, fontWeight: 700, color: `var(--color-${tone}-text)`, letterSpacing: 0.4, textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: 6 }}><MessageSquare size={12} /> Комментарий преподавателя</span>
+          {fmtDate(ev.at) && <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginTop: 4 }}>{fmtDate(ev.at)}</div>}
+        </div>
         {ev.verdict && (
-          <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: `var(--color-${tone}-text)`, background: 'rgba(var(--glass-rgb),0.7)', padding: '3px 9px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 700, color: `var(--color-${tone}-text)`, background: 'rgba(var(--glass-rgb),0.7)', padding: '3px 9px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
             {accepted ? <><Star size={11} fill="currentColor" /> Принято{typeof ev.score === 'number' ? ` · ${ev.score}/5` : ''}</> : <><RotateCcw size={11} /> На доработку</>}
           </span>
         )}
