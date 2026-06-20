@@ -4,7 +4,7 @@ import {
   CheckCircle2, ChevronLeft, CircleAlert, Clock, GraduationCap,
   Lock, Send, Sparkles, Trophy, Image as ImageIcon, PenLine, X,
 } from 'lucide-react'
-import type { LessonHomework } from '../data/lessonContent'
+import type { LessonHomework, HomeworkQuizQuestion } from '../data/lessonContent'
 import { PURPLE, subjectTheme } from '../lib/theme'
 import { useTheme } from '../store/themeStore'
 import { supabase } from '../lib/supabase'
@@ -543,6 +543,32 @@ function getStorageKey(lessonId: string) {
   return `student-dashboard:homework:${lessonId}`
 }
 
+// ─── Generalized basic-level grading ─────────────────────────────────────────
+// The basic level historically held only auto-graded multiple-choice. Teacher-
+// authored homework (course editor «Домашки» tab) can also carry text / fill /
+// match / whiteboard tasks, so grading mirrors TestFlow: choice and text/fill
+// auto-check, the rest are recorded for teacher review.
+const normAnswer = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ')
+function questionIsChoice(q: HomeworkQuizQuestion) {
+  return !q.type || q.type === 'choice'
+}
+function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
+  return questionIsChoice(q) ? !!ans : !!(ans && ans.trim())
+}
+function questionAutoGradable(q: HomeworkQuizQuestion) {
+  if (questionIsChoice(q)) return q.options.length > 0 && !!q.correctOptionId
+  if (q.type === 'text' || q.type === 'fill') return !!q.referenceAnswer?.trim()
+  return false
+}
+function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
+  if (!ans) return false
+  if (questionIsChoice(q)) return ans === q.correctOptionId
+  if (q.type === 'text' || q.type === 'fill') {
+    return questionAutoGradable(q) && normAnswer(ans) === normAnswer(q.referenceAnswer!)
+  }
+  return false
+}
+
 function getInitialState(): PersistedHomeworkState {
   return {
     selectedLevel: 'basic',
@@ -688,15 +714,22 @@ export default function HomeworkFlow({
   }, [docked, topBarBox, state.selectedLevel])
 
   const basicQuestions = basicLevel?.questions ?? []
-  const answeredCount = basicQuestions.filter(question => state.basicAnswers[question.id]).length
+  const answeredCount = basicQuestions.filter(question => questionAnswered(question, state.basicAnswers[question.id])).length
   const basicCompleted = basicQuestions.length > 0 && answeredCount === basicQuestions.length
 
   const basicCorrectCount = useMemo(() => {
-    return basicQuestions.filter(question => state.basicAnswers[question.id] === question.correctOptionId).length
+    return basicQuestions.filter(question => questionCorrect(question, state.basicAnswers[question.id])).length
   }, [basicQuestions, state.basicAnswers])
-  const basicScore = basicQuestions.length > 0
-    ? Math.round((basicCorrectCount / basicQuestions.length) * 100)
-    : 0
+  // Score over the auto-gradable subset (choice + text/fill with an эталон),
+  // mirroring TestFlow. When nothing is auto-gradable (all teacher-reviewed),
+  // submitting the answers counts as a full pass so the hard level can open.
+  const basicGradableCount = useMemo(
+    () => basicQuestions.filter(questionAutoGradable).length,
+    [basicQuestions],
+  )
+  const basicScore = basicGradableCount > 0
+    ? Math.round((basicCorrectCount / basicGradableCount) * 100)
+    : (basicCompleted ? 100 : 0)
   // Хард открыт, если база сдана на нужный балл ЛИБО на сервере уже есть статус
   // хард-работы (submitted/returned/completed) — иначе после возврата на другом
   // устройстве (нет локальных ответов) хард показался бы «закрытым».
@@ -806,8 +839,8 @@ export default function HomeworkFlow({
 
     const correct = optionId === question.correctOptionId
     const nextAnswers = { ...state.basicAnswers, [questionId]: optionId }
-    const nextAnswered = basicQuestions.filter(item => nextAnswers[item.id]).length
-    const nextCorrect = basicQuestions.filter(item => nextAnswers[item.id] === item.correctOptionId).length
+    const nextAnswered = basicQuestions.filter(item => questionAnswered(item, nextAnswers[item.id])).length
+    const nextCorrect = basicQuestions.filter(item => questionCorrect(item, nextAnswers[item.id])).length
 
     playPop()
     vibrate(correct ? [10, 30, 10] : 22)
@@ -839,6 +872,16 @@ export default function HomeworkFlow({
         fromY: rect.top + rect.height * 0.35,
       })
     }
+  }
+
+  // Free-text answer (text / fill / match / whiteboard authored tasks). Unlike
+  // choice, these stay editable until the homework is submitted.
+  const setFreeAnswer = (questionId: string, value: string) => {
+    if (state.basicSubmitted) return
+    setState(current => ({
+      ...current,
+      basicAnswers: { ...current.basicAnswers, [questionId]: value },
+    }))
   }
 
   const levelLabel = selectedLevel === 'basic' ? basicLevel.title : hardLevel.title
@@ -1221,9 +1264,15 @@ export default function HomeworkFlow({
 
               {basicQuestions.map((question, index) => {
                 const selectedAnswer = state.basicAnswers[question.id]
-                const answered = !!selectedAnswer
-                const isCorrect = answered && selectedAnswer === question.correctOptionId
-                const selectedOptionText = answered ? question.options.find(o => o.id === selectedAnswer)?.text : undefined
+                const isChoice = questionIsChoice(question)
+                const answered = questionAnswered(question, selectedAnswer)
+                const autoGradable = questionAutoGradable(question)
+                // Choice locks + grades on click; free-text reveals its verdict
+                // only after the whole homework is submitted.
+                const graded = answered && (isChoice || state.basicSubmitted)
+                const isCorrect = questionCorrect(question, selectedAnswer)
+                const showVerdict = graded && autoGradable
+                const showReview = graded && !autoGradable
                 return (
                   <section
                     key={question.id}
@@ -1234,10 +1283,10 @@ export default function HomeworkFlow({
                       padding: 20,
                       borderRadius: 26,
                       background: 'rgba(var(--glass-rgb), 0.96)',
-                      border: answered
+                      border: showVerdict
                         ? `1px solid ${isCorrect ? 'rgba(110,231,160,0.58)' : 'rgba(244,139,145,0.5)'}`
                         : '1px solid var(--color-border-soft)',
-                      boxShadow: answered
+                      boxShadow: showVerdict
                         ? `0 12px 34px ${isCorrect ? 'rgba(110,231,160,0.14)' : 'rgba(244,139,145,0.12)'}`
                         : '0 8px 24px rgba(0,0,0,0.04)',
                     }}
@@ -1252,7 +1301,7 @@ export default function HomeworkFlow({
                         </h4>
                       </div>
 
-                      {answered && (
+                      {showVerdict && (
                         <div
                           className="flex items-start"
                           style={{
@@ -1273,8 +1322,22 @@ export default function HomeworkFlow({
                           </span>
                         </div>
                       )}
+                      {showReview && (
+                        <div
+                          className="flex items-start"
+                          style={{
+                            gap: 8, padding: '9px 12px', borderRadius: 14,
+                            background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
+                            fontSize: 13, fontWeight: 700, maxWidth: 220, lineHeight: 1.4,
+                          }}
+                        >
+                          <Send size={15} style={{ flexShrink: 0, marginTop: 1 }} />
+                          <span>На проверке у преподавателя</span>
+                        </div>
+                      )}
                     </div>
 
+                    {isChoice ? (
                     <div className="grid" style={{ gap: 10 }}>
                       {question.options.map(option => {
                         const active = selectedAnswer === option.id
@@ -1313,8 +1376,50 @@ export default function HomeworkFlow({
                         )
                       })}
                     </div>
+                    ) : (
+                    <div className="flex flex-col" style={{ gap: 10 }}>
+                      {question.type === 'match' && (question.pairs?.length ?? 0) > 0 && (
+                        <div className="flex flex-col" style={{ gap: 6 }}>
+                          {question.pairs!.map((pair, pi) => (
+                            <div key={pi} className="flex items-center" style={{ gap: 8, fontSize: 13, color: 'var(--color-text-2)' }}>
+                              <span style={{ fontWeight: 600 }}>{pair.left}</span>
+                              <span style={{ color: 'var(--color-muted)' }}>→</span>
+                              <span>{pair.right}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <textarea
+                        value={selectedAnswer ?? ''}
+                        onChange={e => setFreeAnswer(question.id, e.target.value)}
+                        disabled={state.basicSubmitted}
+                        rows={question.type === 'fill' ? 2 : 4}
+                        placeholder={
+                          question.type === 'fill' ? 'Впиши слово или фразу…'
+                            : question.type === 'whiteboard' ? 'Опиши решение (рисунок на доске приложишь учителю)…'
+                            : question.type === 'match' ? 'Запиши соответствия…'
+                            : 'Развёрнутый ответ…'
+                        }
+                        style={{
+                          width: '100%', boxSizing: 'border-box', padding: '12px 14px',
+                          borderRadius: 16, resize: 'vertical', fontFamily: 'inherit',
+                          fontSize: 14, lineHeight: 1.5, color: 'var(--color-text)',
+                          background: 'var(--color-bg-input)', outline: 'none',
+                          border: `1px solid ${showVerdict ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'var(--color-border)'}`,
+                          opacity: state.basicSubmitted ? 0.85 : 1,
+                        }}
+                      />
+                    </div>
+                    )}
 
-                    {answered && (
+                    {showVerdict && !isChoice && !isCorrect && question.referenceAnswer && (
+                      <div style={{ padding: '12px 14px', borderRadius: 16, background: 'var(--color-green-soft)', border: '1px solid rgba(110,231,160,0.38)' }}>
+                        <p style={{ fontSize: 12, fontWeight: 800, color: 'var(--color-green-text)', marginBottom: 4 }}>Эталонный ответ</p>
+                        <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--color-text-2)' }}>{question.referenceAnswer}</p>
+                      </div>
+                    )}
+
+                    {showVerdict && question.explanation && (
                       <div
                         style={{
                           padding: '14px 16px',
@@ -1348,7 +1453,7 @@ export default function HomeworkFlow({
                   total={basicQuestions.length}
                   answers={state.basicAnswers}
                   questions={basicQuestions}
-                  activeIndex={basicQuestions.findIndex(q => !state.basicAnswers[q.id])}
+                  activeIndex={basicQuestions.findIndex(q => !questionAnswered(q, state.basicAnswers[q.id]))}
                   submitted={state.basicSubmitted}
                   score={basicScore}
                   recommendationScore={homework.recommendationScore}
@@ -1501,14 +1606,17 @@ function ProgressStrip({
 }: {
   total: number
   answers: Record<string, string>
-  questions: Array<{ id: string; correctOptionId: string }>
+  questions: HomeworkQuizQuestion[]
   activeIndex: number
 }) {
   if (total === 0) return null
   // -1 means all answered; treat last question as "active" display position
   const active = activeIndex === -1 ? total - 1 : activeIndex
-  const answeredCount = questions.filter(q => answers[q.id]).length
-  const correctCount = questions.filter(q => answers[q.id] === q.correctOptionId).length
+  const answeredCount = questions.filter(q => questionAnswered(q, answers[q.id])).length
+  const correctCount = questions.filter(q => questionCorrect(q, answers[q.id])).length
+  // Auto-gradable answered questions — only these can read "wrong"; free-text
+  // pending teacher review is neither correct nor wrong.
+  const gradedCount = questions.filter(q => questionAnswered(q, answers[q.id]) && questionAutoGradable(q)).length
 
   return (
     <div
@@ -1536,8 +1644,9 @@ function ProgressStrip({
         {Array.from({ length: total }).map((_, index) => {
           const question = questions[index]
           const answer = question ? answers[question.id] : undefined
-          const isCorrect = !!question && !!answer && answer === question.correctOptionId
-          const isWrong = !!question && !!answer && answer !== question.correctOptionId
+          const gradable = !!question && questionAutoGradable(question)
+          const isCorrect = !!question && gradable && questionCorrect(question, answer)
+          const isWrong = !!question && gradable && questionAnswered(question, answer) && !questionCorrect(question, answer)
           const isActive = index === active
 
           if (isActive) {
@@ -1588,12 +1697,12 @@ function ProgressStrip({
               ✓ {correctCount} верно
             </span>
           )}
-          {(answeredCount - correctCount) > 0 && (
+          {(gradedCount - correctCount) > 0 && (
             <span style={{
               fontSize: 11, fontWeight: 700, color: '#A8282D',
               background: 'var(--color-red-soft)', padding: '3px 8px', borderRadius: 999,
             }}>
-              ✗ {answeredCount - correctCount} нет
+              ✗ {gradedCount - correctCount} нет
             </span>
           )}
         </div>
@@ -1614,7 +1723,7 @@ function BottomProgressBar({
 }: {
   total: number
   answers: Record<string, string>
-  questions: Array<{ id: string; correctOptionId: string }>
+  questions: HomeworkQuizQuestion[]
   activeIndex: number
   submitted: boolean
   score: number
@@ -1622,7 +1731,7 @@ function BottomProgressBar({
   onSubmit: () => void
 }) {
   const active = activeIndex === -1 ? total - 1 : activeIndex
-  const answeredCount = questions.filter(q => answers[q.id]).length
+  const answeredCount = questions.filter(q => questionAnswered(q, answers[q.id])).length
   const basicCompleted = answeredCount === total && total > 0
 
   return (
@@ -1653,8 +1762,9 @@ function BottomProgressBar({
           {Array.from({ length: total }).map((_, index) => {
             const question = questions[index]
             const answer = question ? answers[question.id] : undefined
-            const isCorrect = !!question && !!answer && answer === question.correctOptionId
-            const isWrong = !!question && !!answer && answer !== question.correctOptionId
+            const gradable = !!question && questionAutoGradable(question)
+            const isCorrect = !!question && gradable && questionCorrect(question, answer)
+            const isWrong = !!question && gradable && questionAnswered(question, answer) && !questionCorrect(question, answer)
             const isActive = index === active
 
             if (isActive) {

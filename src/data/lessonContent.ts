@@ -13,6 +13,40 @@ export interface HomeworkQuizQuestion {
   options: HomeworkQuizOption[]
   correctOptionId: string
   explanation: string
+  /** Authored task type. Absent / 'choice' → multiple-choice (default). The
+   *  remaining types render a free-text answer, mirroring TestFlow. */
+  type?: 'text' | 'choice' | 'fill' | 'match' | 'whiteboard'
+  /** Эталон for text/fill — when set, the answer is auto-checked against it. */
+  referenceAnswer?: string
+  /** Pairs for a 'match' task (shown read-only as reference). */
+  pairs?: Array<{ left: string; right: string }>
+}
+
+/** One task as persisted by the course editor's «Домашки» tab
+ *  (lessons.homework JSONB). Mirrors the teacher editor's HWTask / TestTask. */
+export interface AuthoredHomeworkTask {
+  id: string
+  type: 'text' | 'choice' | 'fill' | 'match' | 'whiteboard'
+  isHard: boolean
+  label?: string
+  question?: string
+  answer?: string
+  choices?: string[]
+  correctChoices?: number[]
+  pairs?: Array<{ left: string; right: string }>
+}
+/** Teacher-authored homework attached to a lesson (lessons.homework JSONB). */
+export interface AuthoredHomework {
+  hwTitle?: string | null
+  hwTarget?: string | null
+  hwDate?: string | null
+  hwDateManual?: boolean
+  hwTasks?: AuthoredHomeworkTask[]
+  recHwTitle?: string | null
+  recHwTarget?: string | null
+  recHwDate?: string | null
+  recHwDateManual?: boolean
+  recHwTasks?: AuthoredHomeworkTask[]
 }
 export interface HomeworkTeacherTask {
   topic: string
@@ -111,6 +145,13 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
   const videoId = lesson.videoId
   const timecodes = lesson.timecodes?.length ? lesson.timecodes : baseTimecodes
 
+  // Homework priority: teacher-authored homework from the course editor's
+  // «Домашки» tab (lessons.homework JSONB) → AP/generic fallback. Authored
+  // homework always wins so the student sees the real tasks, not a placeholder.
+  const authoredHw = lesson.homework?.hwTasks?.length
+    ? buildAuthoredHomework(lesson, dateStr)
+    : null
+
   // Priority: DB-authored content (teacher edits in Конструктор) → code default
   // (AP authored) → generic generator.
   const ap = (lesson.content && lesson.content.paragraphs?.length ? lesson.content : null) ?? AP_LESSON_CONTENT[lesson.id]
@@ -122,7 +163,7 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
       timecodes,
       materials: materialsBySubject.chemistry,
       paragraphs: ap.paragraphs,
-      homework: buildApHomework(lesson, dateStr, ap),
+      homework: authoredHw ?? buildApHomework(lesson, dateStr, ap),
     }
   }
 
@@ -134,7 +175,86 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
     timecodes,
     materials: materialsBySubject[lesson.subject] ?? materialsBySubject.chemistry,
     paragraphs: buildParagraphs(lesson),
-    homework: buildHomework(lesson, dateStr),
+    homework: authoredHw ?? buildHomework(lesson, dateStr),
+  }
+}
+
+/** Map one persisted authored task → a homework question. Choice tasks become
+ *  auto-graded multiple-choice; the rest become free-text answers (text/fill
+ *  auto-check against the эталон, match/whiteboard are teacher-reviewed). */
+function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): HomeworkQuizQuestion {
+  const prompt = t.question?.trim() || t.label || `Задание ${i + 1}`
+  if (t.type === 'choice') {
+    const options = (t.choices ?? []).map((text, ci) => ({ id: String(ci), text: text || `Вариант ${ci + 1}` }))
+    const correctIdx = (t.correctChoices ?? [])[0]
+    return {
+      id: t.id, prompt, options,
+      correctOptionId: correctIdx != null ? String(correctIdx) : '',
+      explanation: '', type: 'choice',
+    }
+  }
+  return {
+    id: t.id, prompt, options: [], correctOptionId: '', explanation: '',
+    type: t.type,
+    referenceAnswer: t.answer?.trim() || undefined,
+    pairs: t.type === 'match' ? t.pairs : undefined,
+  }
+}
+
+/** Build the student's LessonHomework from teacher-authored tasks. The basic
+ *  level holds the non-hard tasks; hard tasks (isHard) feed the teacher-review
+ *  level. HomeworkFlow requires both a basic and a hard level, so the hard
+ *  level always exists (falling back to a generic prompt when none authored). */
+function buildAuthoredHomework(lesson: Lesson, fallbackDate: string): LessonHomework {
+  const hw = lesson.homework!
+  const all = hw.hwTasks ?? []
+  const basicTasks = all.filter(t => !t.isHard)
+  const hardTasks = all.filter(t => t.isHard)
+  const dueDate = hw.hwDate?.trim() || fallbackDate
+  const recommendationScore = 80
+
+  const hardTeacherTask: HomeworkTeacherTask = hardTasks.length > 0
+    ? {
+        topic: hardTasks[0].label || 'Сложное задание',
+        prompt: hardTasks
+          .map((t, i) => t.question?.trim() || t.label || `Сложное задание ${i + 1}`)
+          .join('\n\n'),
+        teacherNote: 'Преподаватель проверит решение и оставит развёрнутый комментарий.',
+        placeholder: 'Запиши решение здесь…',
+        acceptedFormats: ['текст', 'фото', 'доска'],
+      }
+    : getChemistryHardTask(lesson.title)
+
+  return {
+    title: hw.hwTitle?.trim() || `Домашка по теме «${lesson.title}»`,
+    subtitle: 'Базовый уровень — задания от преподавателя; хард уходит на проверку.',
+    recommendationScore,
+    levels: [
+      {
+        id: 'basic',
+        title: '1 уровень',
+        shortLabel: 'База',
+        kind: 'quiz',
+        motivation: 'Проверим, насколько тема уложилась после урока, без лишней перегрузки.',
+        dueDate,
+        estimatedMinutes: Math.max(5, basicTasks.length * 3),
+        peerCompletionRate: 78,
+        questions: basicTasks.map(authoredTaskToQuestion),
+      },
+      {
+        id: 'hard',
+        title: '2 уровень',
+        shortLabel: 'Хард',
+        kind: 'teacher-review',
+        optional: true,
+        unlockScore: recommendationScore,
+        motivation: 'Необязательный уровень с проверкой преподавателем — для тех, кто уверенно прошёл базу.',
+        dueDate,
+        estimatedMinutes: Math.max(10, Math.max(hardTasks.length, 1) * 8),
+        peerCompletionRate: 31,
+        teacherTask: hardTeacherTask,
+      },
+    ],
   }
 }
 

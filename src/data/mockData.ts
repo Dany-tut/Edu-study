@@ -37,6 +37,10 @@ export interface Lesson {
   testTasks?: TestTask[]
   /** DB-authored konspekt + homework override (from lessons.content). */
   content?: import('./lessonContent').LessonContentData
+  /** Teacher-authored homework from the course editor's «Домашки» tab
+   *  (lessons.homework JSONB). When set with tasks, the student homework page
+   *  renders these instead of the generic placeholder homework. */
+  homework?: import('./lessonContent').AuthoredHomework
   /** "Запись" tab — recording video (RuTube embed id parsed from the URL). */
   videoId?: string
   /** "Запись" tab — video chapter timecodes. */

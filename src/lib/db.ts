@@ -194,6 +194,7 @@ interface DbCourse {
       timecodes?: import('../data/lessonContent').LessonTimecode[]
       kind?: string | null
       test_tasks?: import('../data/mockData').TestTask[] | null
+      homework?: import('../data/lessonContent').AuthoredHomework | null
       scheduled_date?: string | null
       scheduled_time?: string | null
       rec_date?: string | null
@@ -220,7 +221,7 @@ export async function fetchCourseStructure(studentId: string, groupId: string): 
       id, short_id, title, subject,
       course_modules (
         id, label, position,
-        lessons ( id, short_id, title, lesson_number, shape, content, youtube_url, timecodes, kind, test_tasks, scheduled_date, scheduled_time, rec_date, rec_time, lesson_sched_manual )
+        lessons ( id, short_id, title, lesson_number, shape, content, youtube_url, timecodes, kind, test_tasks, homework, scheduled_date, scheduled_time, rec_date, rec_time, lesson_sched_manual )
       )
     `)
     .eq('status', 'published')
@@ -251,6 +252,9 @@ export async function fetchCourseStructure(studentId: string, groupId: string): 
               subject: course.short_id,
               content: l.content && (l.content as { paragraphs?: unknown[] }).paragraphs?.length
                 ? (l.content as import('../data/lessonContent').LessonContentData)
+                : undefined,
+              homework: l.homework && (l.homework.hwTasks?.length || l.homework.recHwTasks?.length)
+                ? l.homework
                 : undefined,
               videoId: rutubeEmbedId(l.youtube_url),
               timecodes: Array.isArray(l.timecodes) && l.timecodes.length ? l.timecodes : undefined,

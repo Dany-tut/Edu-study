@@ -2824,6 +2824,21 @@ export default function TeacherCourseEditorPage() {
       rec_time: lesson.recTime ?? null,
       rec_duration: lesson.recDuration ?? null,
       lesson_sched_manual: lesson.lessonSchedManual ?? false,
+      // Homework («Домашки» tab) lives only in editor state — persist it as a
+      // JSONB blob so it survives a re-entry. Hard tasks live inline in the
+      // task arrays via the isHard flag.
+      homework: {
+        hwTitle: lesson.hwTitle ?? null,
+        hwTarget: lesson.hwTarget ?? null,
+        hwDate: lesson.hwDate ?? null,
+        hwDateManual: lesson.hwDateManual ?? false,
+        hwTasks: lesson.hwTasks ?? [],
+        recHwTitle: lesson.recHwTitle ?? null,
+        recHwTarget: lesson.recHwTarget ?? null,
+        recHwDate: lesson.recHwDate ?? null,
+        recHwDateManual: lesson.recHwDateManual ?? false,
+        recHwTasks: lesson.recHwTasks ?? [],
+      },
     }))
     if (lessonRows.length > 0) {
       await supabase.from('lessons').upsert(lessonRows, { onConflict: 'short_id' })

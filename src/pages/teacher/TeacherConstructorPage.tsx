@@ -6239,7 +6239,7 @@ export default function TeacherConstructorPage() {
     if (course.dbCourseId) {
       const { data: dbCourse } = await supabase
         .from('courses')
-        .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual)')
+        .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, homework)')
         .eq('short_id', course.dbCourseId)
         .single()
       if (dbCourse) {
@@ -6262,6 +6262,17 @@ export default function TeacherConstructorPage() {
           recTime: l.rec_time ?? undefined,
           recDuration: l.rec_duration ?? undefined,
           lessonSchedManual: l.lesson_sched_manual ?? false,
+          // Homework («Домашки» tab) — restore from the persisted JSONB blob.
+          hwTitle: l.homework?.hwTitle ?? undefined,
+          hwTarget: l.homework?.hwTarget ?? undefined,
+          hwDate: l.homework?.hwDate ?? undefined,
+          hwDateManual: l.homework?.hwDateManual ?? false,
+          hwTasks: Array.isArray(l.homework?.hwTasks) ? l.homework.hwTasks : [],
+          recHwTitle: l.homework?.recHwTitle ?? undefined,
+          recHwTarget: l.homework?.recHwTarget ?? undefined,
+          recHwDate: l.homework?.recHwDate ?? undefined,
+          recHwDateManual: l.homework?.recHwDateManual ?? false,
+          recHwTasks: Array.isArray(l.homework?.recHwTasks) ? l.homework.recHwTasks : [],
         }))
         if (dbModules.length > 0) {
           modules = dbModules.map((m: any) => ({
