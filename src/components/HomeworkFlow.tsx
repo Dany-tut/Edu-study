@@ -650,11 +650,20 @@ export default function HomeworkFlow({
   // Teacher's verdict on the hard essay, synced from `lesson_progress` on load.
   // Drives the submitted-panel badge so an accept/return actually shows here.
   const hardVerdict = useDashboard(s => s.lessonAssessments[lessonId]?.hardStatus)
+  // Какой уровень открыть при входе (карточка «Сложный уровень» открывает хард).
+  const homeworkInitialLevel = useDashboard(s => s.homeworkInitialLevel)
+  const clearHomeworkInitialLevel = useDashboard(s => s.clearHomeworkInitialLevel)
   const hardComment = useDashboard(s => s.lessonAssessments[lessonId]?.hardComment)
   const hardReviewPhotos = useDashboard(s => s.lessonAssessments[lessonId]?.hardReviewPhotos)
   const hardReviewBoard = useDashboard(s => s.lessonAssessments[lessonId]?.hardReviewBoard)
   const hardReviewAnnotation = useDashboard(s => s.lessonAssessments[lessonId]?.hardReviewAnnotation)
   const hardReviewBlocks = useDashboard(s => s.lessonAssessments[lessonId]?.hardReviewBlocks)
+  // Открытие домашки на конкретном уровне (хард-карточка → сразу хард).
+  useEffect(() => {
+    if (!homeworkInitialLevel) return
+    setState(current => (current.selectedLevel === homeworkInitialLevel ? current : { ...current, selectedLevel: homeworkInitialLevel }))
+    clearHomeworkInitialLevel()
+  }, [homeworkInitialLevel, clearHomeworkInitialLevel])
   const hardPanel = hardVerdict === 'completed'
     ? {
         iconBg: 'var(--color-green-soft)', iconColor: 'var(--color-green-text)',
@@ -705,7 +714,10 @@ export default function HomeworkFlow({
   const basicScore = basicQuestions.length > 0
     ? Math.round((basicCorrectCount / basicQuestions.length) * 100)
     : 0
-  const hardUnlocked = basicCompleted && basicScore >= homework.recommendationScore
+  // Хард открыт, если база сдана на нужный балл ЛИБО на сервере уже есть статус
+  // хард-работы (submitted/returned/completed) — иначе после возврата на другом
+  // устройстве (нет локальных ответов) хард показался бы «закрытым».
+  const hardUnlocked = (basicCompleted && basicScore >= homework.recommendationScore) || !!hardVerdict
   const selectedLevel = state.selectedLevel
 
   if (!basicLevel || !hardLevel) return null

@@ -62,7 +62,11 @@ interface DashboardState {
   // Open homework as its own page, preserving the current lesson context so the
   // student can return to the same lesson via the top bar.
   openHomework: () => void
-  openHomeworkForLesson: (lessonId: string) => void
+  openHomeworkForLesson: (lessonId: string, level?: 'basic' | 'hard') => void
+  // Какой уровень домашки открыть при входе (напр. карточка «Сложный уровень ·
+  // Возвращён» должна сразу открыть хард, а не базу). Сбрасывается в HomeworkFlow.
+  homeworkInitialLevel: 'basic' | 'hard' | null
+  clearHomeworkInitialLevel: () => void
   closeHomework: () => void
   homeworkWidgetFeedback: HomeworkWidgetFeedback | null
   setHomeworkWidgetFeedback: (feedback: HomeworkWidgetFeedback) => void
@@ -210,10 +214,12 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
       ? { activePage: 'homework', lessonScrolled: false }
       : { activePage: s.activePage }
   )),
-  openHomeworkForLesson: (lessonId) => {
+  openHomeworkForLesson: (lessonId, level) => {
     useDashboard.getState().openLesson(lessonId)
-    set({ activePage: 'homework', lessonScrolled: false })
+    set({ activePage: 'homework', lessonScrolled: false, homeworkInitialLevel: level ?? null })
   },
+  homeworkInitialLevel: null,
+  clearHomeworkInitialLevel: () => set({ homeworkInitialLevel: null }),
   closeHomework: () => set((s) => (
     s.currentLessonId
       ? { activePage: 'lesson', lessonScrolled: false }

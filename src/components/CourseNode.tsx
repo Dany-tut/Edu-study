@@ -92,9 +92,14 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
   const size = 56
 
   const hardStatus = assessment?.hardStatus as HardStatus | undefined
+  // hardAvailable is set authoritatively at submit time from the homework's
+  // recommendationScore; fall back to the 80 default for legacy rows.
   const hardAvailable = assessment?.hardAvailable || (assessment?.score != null && assessment.score >= 80)
-  // Show satellite if hard task is available (even before submitting) or has a status
-  const showHardSatellite = !!(hardStatus || hardAvailable)
+  // Hard rule: if the basic homework was submitted below the threshold, the hard
+  // level is never surfaced in the track — even if a stale hard status lingers in
+  // the data. The score is the master gate. Legacy rows with a status but no
+  // recorded basic score still show, so we don't hide already-submitted work.
+  const showHardSatellite = hardAvailable || (!!hardStatus && assessment?.score == null)
   const effectiveHardStatus: HardStatus | 'available' = hardStatus ?? 'available'
   const hardStyle = HARD_STYLE[effectiveHardStatus]
 

@@ -591,7 +591,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                     <motion.button
                       whileHover={{ scale: 1.04 }}
                       whileTap={{ scale: 0.96 }}
-                      onClick={() => { setSelectedHardLessonId(null); openHomeworkForLesson(selectedHardLesson.id) }}
+                      onClick={() => { setSelectedHardLessonId(null); openHomeworkForLesson(selectedHardLesson.id, 'hard') }}
                       style={{
                         fontSize: 13,
                         fontWeight: 700,
