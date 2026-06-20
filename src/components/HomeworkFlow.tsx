@@ -632,8 +632,12 @@ export default function HomeworkFlow({
     reloadHardRow()
     const session = getStudentSession()
     if (!session?.id) return
+    // Unique channel name per mount — Supabase caches channels by name and throws
+    // if `.on()` is called on an already-subscribed instance (React StrictMode
+    // double-invokes effects). Mirrors useHardSubmissions' per-instance naming.
+    const channelName = `hw-hard-${lessonId}-${session.id}-${Math.random().toString(36).slice(2)}`
     const channel = supabase
-      .channel(`hw-hard-${lessonId}-${session.id}`)
+      .channel(channelName)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_progress', filter: `student_id=eq.${session.id}` }, payload => {
         const ref = (payload.new as { lesson_ref?: string } | null)?.lesson_ref
         if (ref === `${lessonId}-hard`) reloadHardRow()
