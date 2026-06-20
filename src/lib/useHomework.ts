@@ -185,6 +185,50 @@ export function deriveHardScore(rbs: HardTaskReviewBlock[]): number {
   return rbs.reduce((sum, rb) => sum + (hardTaskScore(rb) ?? 0), 0)
 }
 
+// Ключ синтетической одной вкладки для legacy одиночного харда (из урока, без
+// banked hard_tasks). Связывает старые поля строки с per-task/раунд-моделью.
+export const LEGACY_HARD_KEY = 'main'
+
+// Legacy одиночный хард (ответ в `comment`/`attachments`, ревью в
+// `review_comment`/`review_attachments`) → синтетическая 1-вкладка с одним
+// раундом решения и одним раундом комментария. Чтобы история (тред) показывалась
+// единообразно с новым per-task хардом. Не пишет в БД — только читает; первая
+// новая запись (решение ученика / ревью учителя) уже сохраняется в v2.
+export function legacyHardToBlocks(row: {
+  comment?: string | null
+  attachments?: { photos?: string[]; board?: string | null } | null
+  review_comment?: string | null
+  review_attachments?: { photos?: string[]; board?: string | null; annotation?: Annotation | null } | null
+  status?: string | null
+  updated_at?: string | null
+}): { taskBlocks: HardTaskStudentBlock[]; reviewBlocks: HardTaskReviewBlock[] } {
+  const at = row.updated_at ?? ''
+  const aPhotos = Array.isArray(row.attachments?.photos) ? row.attachments!.photos! : []
+  const aBoard = row.attachments?.board ?? null
+  const hasAnswer = !!(row.comment || aPhotos.length || aBoard)
+  const taskBlocks: HardTaskStudentBlock[] = hasAnswer
+    ? [{ key: LEGACY_HARD_KEY, solutions: [{ id: 'legacy-sol', at, answer: row.comment ?? '', photos: aPhotos, board: aBoard }] }]
+    : []
+
+  const rPhotos = Array.isArray(row.review_attachments?.photos) ? row.review_attachments!.photos! : []
+  const rBoard = row.review_attachments?.board ?? null
+  const rAnn = row.review_attachments?.annotation ?? null
+  const hasReview = !!(row.review_comment || rPhotos.length || rBoard || rAnn)
+  const verdict = row.status === 'completed' ? 'completed' : row.status === 'returned' ? 'returned' : undefined
+  const reviewBlocks: HardTaskReviewBlock[] = hasReview
+    ? [{
+        key: LEGACY_HARD_KEY,
+        comments: [{
+          id: 'legacy-cmt', at, comment: row.review_comment ?? '',
+          photos: rPhotos, board: rBoard, boardMode: rAnn ? 'over' : 'beside',
+          annotation: rAnn, verdict, score: null,
+        }],
+      }]
+    : []
+
+  return { taskBlocks, reviewBlocks }
+}
+
 export type HwAssignment = HomeworkItem
 
 export type HwSubmission = {
@@ -337,7 +381,12 @@ export function useHardSubmissions() {
 
     setSubmissions(rows.map(r => {
       const base = r.lesson_ref.endsWith('-hard') ? r.lesson_ref.slice(0, -5) : r.lesson_ref
-      const isMulti = isNewHard(r.attachments)
+      // Единая per-task/раунд-модель: v2 берём как есть, legacy одиночный хард
+      // синтезируем в одну вкладку с одним раундом — чтобы тред показывался везде.
+      const lg = legacyHardToBlocks(r)
+      const taskBlocks = isNewHard(r.attachments) ? (r.attachments.tasks as HardTaskStudentBlock[]) : lg.taskBlocks
+      const reviewBlocks = isNewHard(r.review_attachments) ? (r.review_attachments.tasks as HardTaskReviewBlock[]) : lg.reviewBlocks
+      const isMulti = taskBlocks.length > 0
       return {
         id: r.id,
         lessonRef: r.lesson_ref,
@@ -351,8 +400,8 @@ export function useHardSubmissions() {
         status: r.status as HardSub['status'],
         updatedAt: r.updated_at ?? '',
         isMultiTask: isMulti,
-        taskBlocks: isMulti ? (r.attachments.tasks as HardTaskStudentBlock[]) : [],
-        reviewBlocks: isNewHard(r.review_attachments) ? (r.review_attachments.tasks as HardTaskReviewBlock[]) : [],
+        taskBlocks,
+        reviewBlocks,
         attachments: {
           photos: !isMulti && Array.isArray(r.attachments?.photos) ? r.attachments.photos : [],
           board: !isMulti ? (r.attachments?.board ?? null) : null,

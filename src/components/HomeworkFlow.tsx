@@ -16,7 +16,7 @@ import { getStudentSession } from '../lib/studentSession'
 import type {
   HardTaskDef, HardTaskStudentBlock, HardTaskReviewBlock, HardSolution, HardAttachmentsNew, HardReviewNew,
 } from '../lib/useHomework'
-import { isNewHard, hardId, studentSolutions } from '../lib/useHomework'
+import { isNewHard, hardId, studentSolutions, legacyHardToBlocks, LEGACY_HARD_KEY } from '../lib/useHomework'
 import { optimizePhoto } from '../lib/imageOptim'
 import HardConversation, { type HardTabVM } from './teacher/HardConversation'
 import { playUnlock, playPop, vibrate } from '../lib/sound'
@@ -528,6 +528,17 @@ interface PersistedHomeworkState {
 
 const emptyDraft = (): HardTaskDraft => ({ answer: '', photos: [], board: null })
 
+// Сырая строка lesson_progress `${lessonId}-hard` — для миграции legacy одиночного
+// харда в раунд-модель (см. legacyHardToBlocks).
+type LegacyHardRow = {
+  comment?: string | null
+  attachments?: { photos?: string[]; board?: string | null; v?: number; tasks?: HardTaskStudentBlock[] } | null
+  review_comment?: string | null
+  review_attachments?: { photos?: string[]; board?: string | null; annotation?: { image: string; w: number; h: number } | null; v?: number; tasks?: HardTaskReviewBlock[] } | null
+  status?: string | null
+  updated_at?: string | null
+}
+
 const SPRING = { type: 'spring', stiffness: 240, damping: 26 } as const
 
 const formatEstimatedTime = (minutes: number) => `~${minutes} мин`
@@ -614,7 +625,7 @@ export default function HomeworkFlow({
   // + комментарии преподавателя (review_attachments.tasks). Тянем строку
   // `${lessonId}-hard` и слушаем её изменения — чтобы вердикт учителя появлялся
   // у ученика сразу, а история раундов не терялась.
-  const [hardRow, setHardRow] = useState<{ attachments: unknown; review_attachments: unknown } | null>(null)
+  const [hardRow, setHardRow] = useState<LegacyHardRow | null>(null)
   const [hardBusy, setHardBusy] = useState(false)
   const [hardActiveKey, setHardActiveKey] = useState('')
   const reloadHardRow = React.useCallback(async () => {
@@ -622,11 +633,12 @@ export default function HomeworkFlow({
     if (!session?.id) return
     const { data } = await supabase
       .from('lesson_progress')
-      .select('attachments, review_attachments')
+      // comment/review_comment/status/updated_at нужны для миграции legacy-харда в раунды.
+      .select('comment, attachments, review_comment, review_attachments, status, updated_at')
       .eq('student_id', session.id)
       .eq('lesson_ref', `${lessonId}-hard`)
       .maybeSingle()
-    setHardRow(data ?? null)
+    setHardRow((data as LegacyHardRow) ?? null)
   }, [lessonId])
   useEffect(() => {
     reloadHardRow()
@@ -793,15 +805,24 @@ export default function HomeworkFlow({
     useStudentData.getState().load()
   }
 
-  // Per-task формат активен, когда на урок назначены сложные задания.
-  const isMultiHard = hardDefs.length > 0
+  // Все хард-задания — единый per-task/раунд-формат. Если учитель назначил
+  // banked hard_tasks — берём их; иначе синтезируем ОДНУ вкладку из задания урока
+  // (hardLevel.teacherTask), чтобы тред (решение → комментарий → …) был везде.
+  const effectiveDefs: HardTaskDef[] = hardDefs.length > 0
+    ? hardDefs
+    : (hardLevel.teacherTask
+        ? [{ key: LEGACY_HARD_KEY, source: 'custom', statement: hardLevel.teacherTask.prompt ?? hardLevel.teacherTask.topic ?? '' }]
+        : [])
+  const isMultiHard = effectiveDefs.length > 0
 
-  // Переписка по заданиям (с сервера): вкладки + блоки решений/комментариев.
+  // Переписка по заданиям (с сервера): v2 — как есть; legacy одиночный — синтез
+  // в одну вкладку с одним раундом (старое решение + комментарий учителя).
+  const hardLegacy = hardRow ? legacyHardToBlocks(hardRow) : { taskBlocks: [], reviewBlocks: [] }
   const studentBlocks: HardTaskStudentBlock[] = isNewHard(hardRow?.attachments)
-    ? (hardRow!.attachments as HardAttachmentsNew).tasks : []
+    ? (hardRow!.attachments as HardAttachmentsNew).tasks : hardLegacy.taskBlocks
   const reviewBlocks: HardTaskReviewBlock[] = isNewHard(hardRow?.review_attachments)
-    ? (hardRow!.review_attachments as HardReviewNew).tasks : []
-  const hardTabs: HardTabVM[] = hardDefs.map((d, i) => ({
+    ? (hardRow!.review_attachments as HardReviewNew).tasks : hardLegacy.reviewBlocks
+  const hardTabs: HardTabVM[] = effectiveDefs.map((d, i) => ({
     key: d.key, title: `Задание ${i + 1}`, statement: d.statement, image: d.image,
   }))
 
@@ -814,15 +835,18 @@ export default function HomeworkFlow({
     const ref = `${lessonId}-hard`
     const { data } = await supabase
       .from('lesson_progress')
-      .select('attachments')
+      // comment/review/status нужны, чтобы при первой пере-отправке мигрировать
+      // legacy одиночное решение в первый раунд (не потерять прошлый ответ).
+      .select('comment, attachments, review_attachments, status, updated_at')
       .eq('student_id', session.id)
       .eq('lesson_ref', ref)
       .maybeSingle()
     const prevTasks: HardTaskStudentBlock[] = isNewHard(data?.attachments)
-      ? (data!.attachments as HardAttachmentsNew).tasks : []
+      ? (data!.attachments as HardAttachmentsNew).tasks
+      : (data ? legacyHardToBlocks(data as LegacyHardRow).taskBlocks : [])
     const prevByKey = new Map(prevTasks.map(t => [t.key, t]))
     const round: HardSolution = { id: hardId('sol'), at: new Date().toISOString(), ...payload }
-    const tasks: HardTaskStudentBlock[] = hardDefs.map(d => {
+    const tasks: HardTaskStudentBlock[] = effectiveDefs.map(d => {
       const sols = studentSolutions(prevByKey.get(d.key))
       return { key: d.key, statement: d.statement, solutions: d.key === key ? [...sols, round] : sols }
     })
