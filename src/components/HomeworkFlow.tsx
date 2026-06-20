@@ -1149,7 +1149,7 @@ export default function HomeworkFlow({
             }}
           >
             <div className="flex items-center" style={{ gap: 8 }}>
-              <Sparkles size={16} style={{ color: palette.text }} />
+              <Sparkles size={16} style={{ color: 'var(--color-accent)' }} />
               <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Как это работает</p>
             </div>
             <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--color-muted)' }}>
@@ -1320,7 +1320,7 @@ export default function HomeworkFlow({
                   >
                     <div className="flex flex-wrap items-start justify-between" style={{ gap: 12 }}>
                       <div>
-                        <p style={{ fontSize: 12, fontWeight: 700, color: palette.text, marginBottom: 6 }}>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', marginBottom: 6 }}>
                           Вопрос {index + 1}
                         </p>
                         <h4 style={{ fontSize: 18, lineHeight: 1.35, fontWeight: 720, color: 'var(--color-text)' }}>
@@ -1575,7 +1575,7 @@ export default function HomeworkFlow({
                     )
                     return (
                       <div key={def.key} style={{ padding: 18, borderRadius: 20, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                        <p style={{ fontSize: 12, fontWeight: 700, color: palette.text }}>Задание {idx + 1} из {hardDefs.length}</p>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-accent)' }}>Задание {idx + 1} из {hardDefs.length}</p>
                         <div className="rich-answer" style={{ fontSize: 15, lineHeight: 1.5, fontWeight: 600, color: 'var(--color-text)', wordBreak: 'break-word' }} dangerouslySetInnerHTML={{ __html: def.statement }} />
                         {/* Твой ответ — с разметкой преподавателя поверх, если есть */}
                         {rev?.annotation
@@ -1696,7 +1696,7 @@ export default function HomeworkFlow({
                         return (
                           <div key={def.key} style={{ padding: 20, borderRadius: 24, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', display: 'flex', flexDirection: 'column', gap: 14 }}>
                             <div>
-                              <p style={{ fontSize: 12, fontWeight: 700, color: palette.text, marginBottom: 8 }}>
+                              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', marginBottom: 8 }}>
                                 Задание {idx + 1} из {hardDefs.length}
                               </p>
                               <div
@@ -1799,7 +1799,7 @@ export default function HomeworkFlow({
                       border: '1px solid var(--color-border-soft)',
                     }}
                   >
-                    <p style={{ fontSize: 12, fontWeight: 700, color: palette.text, marginBottom: 8 }}>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', marginBottom: 8 }}>
                       {hardLevel.teacherTask?.topic}
                     </p>
                     <h4 style={{ fontSize: 20, lineHeight: 1.35, fontWeight: 760, color: 'var(--color-text)', marginBottom: 12 }}>
