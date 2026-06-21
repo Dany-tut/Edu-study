@@ -7,7 +7,7 @@ import {
   PenLine, Star, ChevronRight, ChevronDown, Users,
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
-  ClipboardCheck, Clock, Trash2, FolderInput,
+  ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
@@ -20,7 +20,7 @@ import { supabase } from '../../lib/supabase'
 
 type LessonMode = 'recording' | 'lesson' | 'homework' | 'students'
 
-type HWTaskType = 'text' | 'choice' | 'fill' | 'match' | 'whiteboard'
+type HWTaskType = 'text' | 'choice' | 'fill' | 'match' | 'whiteboard' | 'table'
 
 interface HWTask {
   id: string
@@ -32,6 +32,12 @@ interface HWTask {
   choices?: string[]
   correctChoices?: number[]
   pairs?: Array<{ left: string; right: string }>
+  /** Таблица — заголовки колонок + строки-эталон (для type === 'table'). */
+  table?: { headers: string[]; rows: string[][] }
+  /** Условие-картинка, перенесённая из тренажёра. */
+  image?: string
+  /** id исходного задания в тренажёре (если задание добавлено «из тренажёра»). */
+  bankId?: number
 }
 
 export interface CELesson {
@@ -183,12 +189,41 @@ const TASK_TYPES: { type: HWTaskType; label: string; hint: string; Icon: React.E
   { type: 'choice',     label: 'Выбор ответа',    hint: 'Один или несколько', Icon: CheckSquare, color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)' },
   { type: 'fill',       label: 'Вписать слово',   hint: 'Слово / фраза',      Icon: Type,        color: 'var(--color-peach-text)',     bg: 'var(--color-peach-soft)' },
   { type: 'match',      label: 'Сопоставление',   hint: 'Таблица А1 Б2 В3',   Icon: Shuffle,     color: 'var(--color-rose-text)',      bg: 'var(--color-rose-soft)' },
+  { type: 'table',      label: 'Таблица',          hint: 'Заполнить таблицу',  Icon: TableIcon,   color: 'var(--color-teal-text, var(--color-green-text))', bg: 'var(--color-teal-soft, var(--color-green-soft))' },
   { type: 'whiteboard', label: 'Доска',            hint: 'Рисунок на доске',   Icon: PenLine,     color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
 ]
 
 const typeLabel: Record<HWTaskType, string> = {
   text: 'Текстовый ответ', choice: 'Выбор ответа',
-  fill: 'Вписать слово', match: 'Сопоставление', whiteboard: 'Доска',
+  fill: 'Вписать слово', match: 'Сопоставление', whiteboard: 'Доска', table: 'Таблица',
+}
+
+// Свежее задание с дефолтами по типу — общая фабрика для всех мест добавления.
+function makeHWTask(type: HWTaskType, isHard: boolean): HWTask {
+  return {
+    id: uid(), type, isHard, label: typeLabel[type],
+    choices: type === 'choice' ? ['', '', '', ''] : undefined,
+    correctChoices: type === 'choice' ? [0] : undefined,
+    pairs: type === 'match' ? [{ left: '', right: '' }, { left: '', right: '' }] : undefined,
+    table: type === 'table' ? { headers: ['Колонка 1', 'Колонка 2'], rows: [['', ''], ['', '']] } : undefined,
+  }
+}
+
+// Задание «из тренажёра»: переносим условие + ответ, а табличные задания —
+// сразу как тип «Таблица».
+function hwTaskFromBank(bt: BankTask, isHard: boolean): HWTask {
+  const hasTable = !!bt.questionTable && bt.questionTable.headers.length > 0
+  return {
+    id: uid(),
+    type: hasTable ? 'table' : 'text',
+    isHard,
+    label: hasTable ? typeLabel.table : typeLabel.text,
+    question: bt.question,
+    answer: bt.answer,
+    table: hasTable ? { headers: [...bt.questionTable!.headers], rows: bt.questionTable!.rows.map(r => [...r]) } : undefined,
+    image: bt.questionImage ?? undefined,
+    bankId: bt.id,
+  }
 }
 
 // ─── LEFT: Course title + description (no lesson selected) ───────────────────
@@ -1084,6 +1119,107 @@ function CalendarPicker({ value, onChange, placeholder = 'Выберите да�
   )
 }
 
+// ─── Table builder (headers + rows; teacher fills the reference table) ───────
+
+function TableBuilder({ table, onChange }: {
+  table: { headers: string[]; rows: string[][] }
+  onChange: (t: { headers: string[]; rows: string[][] }) => void
+}) {
+  const cols = table.headers.length
+
+  const cellSt: React.CSSProperties = {
+    ...inputSt, padding: '6px 8px', fontSize: 12, borderRadius: 8,
+    minWidth: 90, width: '100%',
+  }
+  const miniBtn: React.CSSProperties = {
+    width: 22, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)',
+    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    color: 'var(--color-text-3)', flexShrink: 0,
+  }
+
+  function setHeader(ci: number, v: string) {
+    const headers = [...table.headers]; headers[ci] = v
+    onChange({ ...table, headers })
+  }
+  function setCell(ri: number, ci: number, v: string) {
+    const rows = table.rows.map(r => [...r]); rows[ri][ci] = v
+    onChange({ ...table, rows })
+  }
+  function addColumn() {
+    onChange({ headers: [...table.headers, `Колонка ${cols + 1}`], rows: table.rows.map(r => [...r, '']) })
+  }
+  function removeColumn(ci: number) {
+    if (cols <= 1) return
+    onChange({ headers: table.headers.filter((_, i) => i !== ci), rows: table.rows.map(r => r.filter((_, i) => i !== ci)) })
+  }
+  function addRow() {
+    onChange({ ...table, rows: [...table.rows, Array(cols).fill('')] })
+  }
+  function removeRow(ri: number) {
+    if (table.rows.length <= 1) return
+    onChange({ ...table, rows: table.rows.filter((_, i) => i !== ri) })
+  }
+
+  return (
+    <div>
+      <Label>Таблица</Label>
+      <div style={{ overflowX: 'auto', borderRadius: 12, border: '1px solid var(--color-border-soft)' }}>
+        <table style={{ borderCollapse: 'separate', borderSpacing: 4, width: '100%' }}>
+          <thead>
+            <tr>
+              {table.headers.map((h, ci) => (
+                <th key={ci} style={{ padding: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                    <input
+                      value={h}
+                      onChange={e => setHeader(ci, e.target.value)}
+                      placeholder={`Колонка ${ci + 1}`}
+                      style={{ ...cellSt, fontWeight: 700 }}
+                    />
+                    {cols > 1 && (
+                      <button onClick={() => removeColumn(ci)} style={miniBtn} title="Удалить колонку"><X size={11} /></button>
+                    )}
+                  </div>
+                </th>
+              ))}
+              <th style={{ padding: 0, width: 28 }}>
+                <button onClick={addColumn} style={{ ...miniBtn, background: 'var(--color-purple-soft)', color: 'var(--color-accent)' }} title="Добавить колонку"><Plus size={12} /></button>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {table.rows.map((row, ri) => (
+              <tr key={ri}>
+                {row.map((cell, ci) => (
+                  <td key={ci} style={{ padding: 0 }}>
+                    <input
+                      value={cell}
+                      onChange={e => setCell(ri, ci, e.target.value)}
+                      placeholder="—"
+                      style={cellSt}
+                    />
+                  </td>
+                ))}
+                <td style={{ padding: 0, width: 28 }}>
+                  {table.rows.length > 1 && (
+                    <button onClick={() => removeRow(ri)} style={miniBtn} title="Удалить строку"><X size={11} /></button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <button
+        onClick={addRow}
+        style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
+      >
+        <Plus size={12} /> Добавить строку
+      </button>
+    </div>
+  )
+}
+
 // ─── Task card (inline editor, same design as TeacherHomeworkCreatePage) ─────
 
 function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
@@ -1152,6 +1288,11 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 placeholder="Условие задания..."
                 style={{ ...inputSt, resize: 'none', minHeight: 72, fontSize: 13, lineHeight: 1.55 }}
               />
+
+              {/* Условие-картинка из тренажёра */}
+              {task.image && (
+                <img src={task.image} alt="" style={{ maxWidth: '100%', borderRadius: 12, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', display: 'block' }} />
+              )}
 
               {/* Choice options */}
               {task.type === 'choice' && (
@@ -1244,6 +1385,28 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 </div>
               )}
 
+              {/* Table builder */}
+              {task.type === 'table' && (
+                <TableBuilder
+                  table={task.table ?? { headers: ['Колонка 1', 'Колонка 2'], rows: [['', ''], ['', '']] }}
+                  onChange={table => onUpdate({ ...task, table })}
+                />
+              )}
+
+              {/* Whiteboard — ученик нарисует ответ */}
+              {task.type === 'whiteboard' && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 9, padding: '12px 14px',
+                  borderRadius: 12, border: '1.5px dashed var(--color-border)',
+                  background: 'var(--color-blue-pill-bg)',
+                }}>
+                  <PenLine size={15} style={{ color: 'var(--color-blue-pill-text)', flexShrink: 0 }} />
+                  <span style={{ fontSize: 12, color: 'var(--color-blue-pill-text)', fontWeight: 600 }}>
+                    Ученик нарисует решение по этому вопросу на доске
+                  </span>
+                </div>
+              )}
+
               {/* Answer for text / fill */}
               {(task.type === 'text' || task.type === 'fill') && (
                 <input
@@ -1271,6 +1434,75 @@ function hwFields(hwTab: 'lesson' | 'rec') {
     : { title: 'hwTitle',    date: 'hwDate',    dateManual: 'hwDateManual',    tasks: 'hwTasks' } as const
 }
 
+// ─── Bank picker (collapsible «Из тренажёра» list) ───────────────────────────
+
+function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: boolean }) {
+  const bankTasks = useTaskBank(s => s.tasks)
+  const loadBank = useTaskBank(s => s.load)
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  useEffect(() => { loadBank() }, [loadBank])
+
+  const filtered = search.trim()
+    ? bankTasks.filter(t => t.question.toLowerCase().includes(search.toLowerCase()))
+    : bankTasks
+
+  const accent = hard ? '#B45309' : 'var(--color-text-2)'
+  const accentBg = hard ? 'rgba(245,158,11,0.1)' : 'transparent'
+  const border = hard ? 'rgba(245,158,11,0.4)' : 'var(--color-border)'
+
+  return (
+    <div>
+      <button onClick={() => setOpen(o => !o)} style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, width: '100%',
+        padding: '10px 12px', borderRadius: 13, border: `1.5px dashed ${border}`,
+        background: accentBg, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, color: accent,
+      }}>
+        <BookOpen size={14} /> {open ? 'Скрыть тренажёр' : 'Из тренажёра'}
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }} style={{ overflow: 'hidden' }}
+          >
+            <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <div style={{ position: 'relative' }}>
+                <Search size={12} style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-4)' }} />
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Поиск задания…"
+                  style={{ ...inputSt, fontSize: 11.5, padding: '6px 9px 6px 26px' }}
+                />
+              </div>
+              <div style={{ maxHeight: 260, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {filtered.slice(0, 80).map(bt => (
+                  <button
+                    key={bt.id}
+                    onClick={() => onPick(bt)}
+                    style={{ textAlign: 'left', padding: '7px 9px', borderRadius: 9, border: 'none', background: 'var(--color-bg-2)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11.5, color: 'var(--color-text-2)', display: 'flex', gap: 6, alignItems: 'flex-start' }}
+                  >
+                    <Plus size={11} style={{ flexShrink: 0, marginTop: 2, color: 'var(--color-accent)' }} />
+                    <span style={{ overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                      {bt.questionTable ? '📊 ' : ''}{bt.question || 'Без текста'}
+                    </span>
+                  </button>
+                ))}
+                {filtered.length === 0 && (
+                  <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '6px 8px' }}>
+                    {bankTasks.length === 0 ? 'Банк пуст' : 'Ничего не найдено'}
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 // ─── LEFT: Homework meta + task-type picker ──────────────────────────────────
 
 function HomeworkLeftPanel({
@@ -1284,19 +1516,23 @@ function HomeworkLeftPanel({
   const F = hwFields(hwTab)
   const tasks = (lesson[F.tasks] as HWTask[] | undefined) ?? []
 
+  // Аккордеон: открыта ровно одна секция (по умолчанию — обычные типы).
+  const [openSection, setOpenSection] = useState<'basic' | 'hard'>('basic')
+  const basicCount = tasks.filter(t => !t.isHard).length
+  const hardCount = tasks.filter(t => t.isHard).length
+
   function patch(p: Partial<CELesson>) { onUpdate({ ...lesson, ...p }) }
 
   function addTask(type: HWTaskType, isHard: boolean) {
-    const newTask: HWTask = {
-      id: uid(), type, isHard, label: typeLabel[type],
-      choices: type === 'choice' ? ['', '', '', ''] : undefined,
-      correctChoices: type === 'choice' ? [0] : undefined,
-      pairs: type === 'match' ? [{ left: '', right: '' }, { left: '', right: '' }] : undefined,
-    }
-    patch({ [F.tasks]: [...tasks, newTask] })
+    patch({ [F.tasks]: [...tasks, makeHWTask(type, isHard)] })
   }
 
-  const hardTaskTypes = TASK_TYPES.filter(t => t.type === 'text' || t.type === 'choice')
+  function addFromBank(bt: BankTask, isHard: boolean) {
+    patch({ [F.tasks]: [...tasks, hwTaskFromBank(bt, isHard)] })
+  }
+
+  // Сложные задания: развёрнутый ответ, выбор и доска (ребёнок рисует решение).
+  const hardTaskTypes = TASK_TYPES.filter(t => t.type === 'text' || t.type === 'choice' || t.type === 'whiteboard')
 
   return (
     <div style={{
@@ -1306,20 +1542,19 @@ function HomeworkLeftPanel({
       display: 'flex', flexDirection: 'column', gap: 12,
       maxHeight: 'calc(100vh - 120px)', overflowY: 'auto',
     }}>
-      {/* Target toggle: lesson HW vs recording HW */}
+      {/* Target toggle: lesson HW vs recording HW — single line, no icons */}
       <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-2)' }}>
         {([
-          { id: 'lesson', label: 'ДЗ урока', icon: BookOpen, n: (lesson.hwTasks ?? []).length },
-          { id: 'rec',    label: 'ДЗ записи', icon: Video, n: (lesson.recHwTasks ?? []).length },
+          { id: 'lesson', label: 'ДЗ урока', n: (lesson.hwTasks ?? []).length },
+          { id: 'rec',    label: 'ДЗ записи', n: (lesson.recHwTasks ?? []).length },
         ] as const).map(t => (
           <button key={t.id} onClick={() => setHwTab(t.id)} style={{
-            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '6px 8px', borderRadius: 9,
-            border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11.5, fontWeight: 700,
+            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '7px 8px', borderRadius: 9,
+            border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
             background: hwTab === t.id ? 'var(--color-purple-soft)' : 'transparent',
             color: hwTab === t.id ? 'var(--color-accent)' : 'var(--color-text-3)',
             transition: 'background 0.13s',
           }}>
-            <t.icon size={14} strokeWidth={2.2} style={{ flexShrink: 0 }} />
             {t.label}
             {t.n > 0 && (
               <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: hwTab === t.id ? 'var(--color-accent)' : 'var(--color-bg-3)', color: hwTab === t.id ? '#fff' : 'var(--color-muted)' }}>{t.n}</span>
@@ -1348,50 +1583,116 @@ function HomeworkLeftPanel({
 
       <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '2px 0' }} />
 
-      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, padding: '0 4px' }}>
-        ТИП ЗАДАНИЯ
-      </div>
-      {TASK_TYPES.map(t => (
-        <button key={t.type} onClick={() => addTask(t.type, false)} style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          padding: '10px 10px', borderRadius: 13,
-          border: 'none', background: 'var(--color-bg-2)',
-          cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%',
-          transition: 'opacity 0.12s',
-        }}
-        onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
-        onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-        >
-          <div style={{ width: 34, height: 34, borderRadius: 9, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <t.Icon size={15} style={{ color: t.color }} />
-          </div>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t.label}</div>
-            <div style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 1 }}>{t.hint}</div>
-          </div>
-        </button>
-      ))}
+      {/* Аккордеон: открыта всегда ровно одна секция (тип / сложное). */}
+      <AccordionSection
+        title="ТИП ЗАДАНИЯ"
+        count={basicCount}
+        open={openSection === 'basic'}
+        onToggle={() => setOpenSection(s => s === 'basic' ? 'hard' : 'basic')}
+      >
+        {TASK_TYPES.map(t => (
+          <button key={t.type} onClick={() => addTask(t.type, false)} title={t.hint} style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '10px 10px', borderRadius: 13,
+            border: 'none', background: 'var(--color-bg-2)',
+            cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%',
+            transition: 'opacity 0.12s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
+          onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+          >
+            <div style={{ width: 34, height: 34, borderRadius: 9, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <t.Icon size={15} style={{ color: t.color }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t.label}</div>
+              <div style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 1 }}>{t.hint}</div>
+            </div>
+          </button>
+        ))}
+        <BankPicker onPick={bt => addFromBank(bt, false)} />
+      </AccordionSection>
 
-      <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '4px 4px' }} />
+      <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '2px 4px' }} />
 
-      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, padding: '0 4px' }}>
-        СЛОЖНОЕ ЗАДАНИЕ
-      </div>
-      {hardTaskTypes.map(t => (
-        <button key={t.type + '_hard'} onClick={() => addTask(t.type, true)} style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          padding: '10px 12px', borderRadius: 13,
-          border: 'none', background: 'rgba(245,158,11,0.1)',
-          cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%',
-          transition: 'opacity 0.12s',
+      <AccordionSection
+        title="СЛОЖНОЕ ЗАДАНИЕ"
+        count={hardCount}
+        accent="#B45309"
+        open={openSection === 'hard'}
+        onToggle={() => setOpenSection(s => s === 'hard' ? 'basic' : 'hard')}
+      >
+        {hardTaskTypes.map(t => (
+          <button key={t.type + '_hard'} onClick={() => addTask(t.type, true)} style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '10px 12px', borderRadius: 13,
+            border: 'none', background: 'rgba(245,158,11,0.1)',
+            cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%',
+            transition: 'opacity 0.12s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
+          onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+          >
+            <Star size={14} style={{ color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#B45309' }}>{t.label}</span>
+          </button>
+        ))}
+        <BankPicker hard onPick={bt => addFromBank(bt, true)} />
+      </AccordionSection>
+    </div>
+  )
+}
+
+// ─── Collapsible section header (mutually-exclusive accordion) ───────────────
+
+function AccordionSection({ title, count, open, onToggle, accent, children }: {
+  title: string
+  count: number
+  open: boolean
+  onToggle: () => void
+  accent?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div>
+      <button
+        onClick={onToggle}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+          padding: '8px 8px', borderRadius: 11, border: 'none',
+          background: open ? 'var(--color-bg-2)' : 'transparent',
+          cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.13s',
         }}
-        onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
-        onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-        >
-          <Star size={14} style={{ color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#B45309' }}>{t.label}</span>
-        </button>
-      ))}
+        onMouseEnter={e => { if (!open) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-2)' }}
+        onMouseLeave={e => { if (!open) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+      >
+        <span style={{ flex: 1, textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: 0.8, color: accent ?? 'var(--color-text-3)' }}>
+          {title}
+        </span>
+        {count > 0 && (
+          <span style={{
+            fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 999,
+            background: accent ? 'rgba(245,158,11,0.15)' : 'var(--color-bg-3)',
+            color: accent ?? 'var(--color-muted)',
+          }}>{count}</span>
+        )}
+        <ChevronDown size={15} style={{ flexShrink: 0, color: accent ?? 'var(--color-text-3)', transform: open ? 'none' : 'rotate(-90deg)', transition: 'transform 0.18s' }} />
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 8 }}>
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -1499,17 +1800,10 @@ function CenterTestView({
   useEffect(() => { loadBank() }, [loadBank])
 
   function addTask(type: HWTaskType) {
-    const newTask: HWTask = {
-      id: uid(), type, isHard: false, label: typeLabel[type],
-      choices: type === 'choice' ? ['', '', '', ''] : undefined,
-      correctChoices: type === 'choice' ? [0] : undefined,
-      pairs: type === 'match' ? [{ left: '', right: '' }, { left: '', right: '' }] : undefined,
-    }
-    onUpdate({ ...lesson, testTasks: [...tasks, newTask] })
+    onUpdate({ ...lesson, testTasks: [...tasks, makeHWTask(type, false)] })
   }
   function addFromBank(bt: BankTask) {
-    const newTask: HWTask = { id: uid(), type: 'text', isHard: false, label: typeLabel.text, question: bt.question, answer: bt.answer }
-    onUpdate({ ...lesson, testTasks: [...tasks, newTask] })
+    onUpdate({ ...lesson, testTasks: [...tasks, hwTaskFromBank(bt, false)] })
   }
   function removeTask(id: string) { onUpdate({ ...lesson, testTasks: tasks.filter(t => t.id !== id) }) }
   function updateTask(updated: HWTask) { onUpdate({ ...lesson, testTasks: tasks.map(t => t.id === updated.id ? updated : t) }) }
@@ -3138,7 +3432,7 @@ export default function TeacherCourseEditorPage() {
               animate={{ opacity: 1, width: 248 }}
               exit={{ opacity: 0, width: 0 }}
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              style={{ flexShrink: 0, alignSelf: 'flex-start', overflow: 'hidden' }}
+              style={{ flexShrink: 0, alignSelf: 'flex-start', overflow: 'hidden', position: 'sticky', top: 4 }}
             >
               {/* Hugs its content, same 248 width as the lesson rail. */}
               <div style={{ width: 248 }}>
@@ -3154,7 +3448,7 @@ export default function TeacherCourseEditorPage() {
               animate={{ opacity: 1, width: 248 }}
               exit={{ opacity: 0, width: 0 }}
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              style={{ flexShrink: 0, alignSelf: 'flex-start', overflow: 'hidden' }}
+              style={{ flexShrink: 0, alignSelf: 'flex-start', overflow: 'hidden', position: 'sticky', top: 4 }}
             >
               {/* Inner fixed-width so the rail content never reflows while the
                   outer width animates. Per-tab card cross-fades. */}
