@@ -376,8 +376,20 @@ export function useAttendance(groupId: string | null) {
     entries: { studentId: string; present: boolean; grade?: number | null }[],
     lessonTitle = ''
   ) {
+    // A personal lesson given to a group member (student-scoped schedule row,
+    // groupId null) still belongs to that student's GROUP journal — just as a
+    // single personal entry, not a whole-group one. So resolve each student's own
+    // group and file the row under it. Truly group-less students keep group_id
+    // null (the column is nullable). The entry is "personal" implicitly: only the
+    // graded student gets a row for that date, the rest of the group is untouched.
+    const groupByStudent = new Map<string, string>()
+    if (!groupId) {
+      const ids = [...new Set(entries.map(e => e.studentId))]
+      const { data: studs } = await supabase.from('students').select('id, group_id').in('id', ids)
+      for (const s of studs ?? []) if (s.group_id) groupByStudent.set(s.id, s.group_id)
+    }
     const rows = entries.map(e => ({
-      group_id: groupId,
+      group_id: groupId ?? groupByStudent.get(e.studentId) ?? null,
       student_id: e.studentId,
       lesson_date: lessonDate,
       present: e.present,
@@ -385,9 +397,13 @@ export function useAttendance(groupId: string | null) {
       grade: e.present ? (e.grade ?? null) : null,
       lesson_title: lessonTitle,
     }))
-    await supabase
+    const { error: upsertError } = await supabase
       .from('lesson_attendance')
       .upsert(rows, { onConflict: 'student_id,lesson_date' })
+    if (upsertError) {
+      console.error('saveLesson: lesson_attendance upsert failed', upsertError, rows)
+      throw upsertError
+    }
 
     // Single source of truth: recompute each affected student's attendance %
     // straight from lesson_attendance and write it back to students.attendance,
