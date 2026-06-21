@@ -69,6 +69,10 @@ export interface HomeworkLevel {
   peerAverageScore?: number
   questions?: HomeworkQuizQuestion[]
   teacherTask?: HomeworkTeacherTask
+  /** Per-task hard definitions (course-editor «Домашки»): each authored hard
+   *  task becomes its own «Задание N» tab in HomeworkFlow's HardConversation,
+   *  instead of being merged into one teacherTask prompt. */
+  authoredHardDefs?: { key: string; statement: string }[]
 }
 export interface LessonHomework {
   title: string
@@ -213,12 +217,17 @@ function buildAuthoredHomework(lesson: Lesson, fallbackDate: string): LessonHome
   const dueDate = hw.hwDate?.trim() || fallbackDate
   const recommendationScore = 80
 
+  // Each authored hard task → its own «Задание N» tab (NOT merged into one
+  // prompt). teacherTask stays only for the aside (formats / topic).
+  const authoredHardDefs = hardTasks.map((t, i) => ({
+    key: t.id,
+    statement: t.question?.trim() || t.label || `Сложное задание ${i + 1}`,
+  }))
+
   const hardTeacherTask: HomeworkTeacherTask = hardTasks.length > 0
     ? {
-        topic: hardTasks[0].label || 'Сложное задание',
-        prompt: hardTasks
-          .map((t, i) => t.question?.trim() || t.label || `Сложное задание ${i + 1}`)
-          .join('\n\n'),
+        topic: 'Сложные задания',
+        prompt: authoredHardDefs[0]?.statement ?? '',
         teacherNote: 'Преподаватель проверит решение и оставит развёрнутый комментарий.',
         placeholder: 'Запиши решение здесь…',
         acceptedFormats: ['текст', 'фото', 'доска'],
@@ -253,6 +262,7 @@ function buildAuthoredHomework(lesson: Lesson, fallbackDate: string): LessonHome
         estimatedMinutes: Math.max(10, Math.max(hardTasks.length, 1) * 8),
         peerCompletionRate: 31,
         teacherTask: hardTeacherTask,
+        authoredHardDefs: authoredHardDefs.length > 0 ? authoredHardDefs : undefined,
       },
     ],
   }

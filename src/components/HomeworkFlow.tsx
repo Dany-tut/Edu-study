@@ -773,7 +773,12 @@ export default function HomeworkFlow({
   // (hardLevel.teacherTask), чтобы тред (решение → комментарий → …) был везде.
   const effectiveDefs: HardTaskDef[] = hardDefs.length > 0
     ? hardDefs
-    : [{ key: LEGACY_HARD_KEY, source: 'custom', statement: hardLevel.teacherTask?.prompt ?? hardLevel.teacherTask?.topic ?? '' }]
+    // Course-editor «Домашки» homework has no `homework` table row, so fall back
+    // to its per-task authored defs (one «Задание N» tab each); only when there
+    // are none do we synthesize a single legacy tab from teacherTask.
+    : (hardLevel.authoredHardDefs?.length
+        ? hardLevel.authoredHardDefs.map(d => ({ key: d.key, source: 'custom' as const, statement: d.statement }))
+        : [{ key: LEGACY_HARD_KEY, source: 'custom', statement: hardLevel.teacherTask?.prompt ?? hardLevel.teacherTask?.topic ?? '' }])
   // Хард всегда идёт через тред-вид (effectiveDefs не пуст), legacy-ветки мертвы.
   const isMultiHard = effectiveDefs.length > 0
 
