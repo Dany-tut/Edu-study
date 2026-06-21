@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNotificationsStore, type Notification } from '../store/notificationsStore'
 import type { NotifType } from '../store/notificationsStore'
+import { useDashboard } from '../store/dashboardStore'
+import { findLessonById } from '../data/lessonContent'
 import { Bell, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, RotateCcw, Banknote } from 'lucide-react'
 
 const ICON_MAP: Record<NotifType, React.ReactNode> = {
@@ -33,12 +35,12 @@ function timeAgo(ts: number) {
   return `${Math.floor(diff / 86400)} д назад`
 }
 
-function NotifRow({ n, onRead }: { n: Notification; onRead: (id: string) => void }) {
+function NotifRow({ n, onActivate }: { n: Notification; onActivate: (n: Notification) => void }) {
   return (
     <motion.button
       whileHover={{ background: 'rgba(155,109,255,0.07)' }}
       whileTap={{ scale: 0.98 }}
-      onClick={() => onRead(n.id)}
+      onClick={() => onActivate(n)}
       style={{
         width: '100%', display: 'flex', alignItems: 'flex-start', gap: 10,
         padding: '10px 14px', border: 'none', cursor: 'pointer', textAlign: 'left',
@@ -87,8 +89,22 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
   const notifications = useNotificationsStore(s => s.notifications)
   const markRead      = useNotificationsStore(s => s.markRead)
   const markAllRead   = useNotificationsStore(s => s.markAllRead)
+  const openLesson    = useDashboard(s => s.openLesson)
   const popupRef      = useRef<HTMLDivElement>(null)
   const unread        = notifications.filter(n => !n.read).length
+
+  // Click a row → mark read, then deep-link to its lesson (if any) and close.
+  const activate = (n: Notification) => {
+    if (!n.read) markRead(n.id)
+    const ref = n.link?.lessonRef
+    if (ref) {
+      const base = ref.endsWith('-hard') ? ref.slice(0, -5) : ref
+      if (findLessonById(base)) {
+        openLesson(base)
+        onClose()
+      }
+    }
+  }
 
   // Capture position at open time (avoids transform issues on parent)
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
@@ -150,7 +166,6 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '14px 14px 10px',
-            borderBottom: '1px solid var(--color-border)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
               <Bell size={15} style={{ color: 'var(--color-muted)' }} />
@@ -183,7 +198,7 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
                 Нет уведомлений
               </div>
             ) : (
-              notifications.map(n => <NotifRow key={n.id} n={n} onRead={markRead} />)
+              notifications.map(n => <NotifRow key={n.id} n={n} onActivate={activate} />)
             )}
           </div>
         </motion.div>

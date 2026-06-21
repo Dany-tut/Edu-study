@@ -18,6 +18,8 @@ export type NotifType =
   | 'test_assigned'
   | 'payment_due'
 
+export type NotifLink = { page?: string; lessonRef?: string; subject?: string; studentId?: string; assignmentId?: string }
+
 export type Notification = {
   id: string
   type: NotifType
@@ -27,6 +29,8 @@ export type Notification = {
   read: boolean
   live: boolean
   action?: { label: string; page?: string }
+  /** Deep-link payload (e.g. lessonRef) — used by the popup to navigate on click. */
+  link?: NotifLink | null
 }
 
 /** Row shape coming from public.notifications (DB / realtime payload). */
@@ -57,6 +61,7 @@ function rowToNotif(row: NotifRow, live: boolean): Notification {
     read: row.read,
     live,
     action,
+    link: row.link,
   }
 }
 
