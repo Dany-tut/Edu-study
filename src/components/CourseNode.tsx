@@ -84,9 +84,8 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
   const isTest = lesson.kind === 'test'
   const isRecNode = lesson.nodeType === 'rec'
   const isTestShape = lesson.shape === 'diamond' || lesson.shape === 'square' || isTest
-  const Icon = isMissedCurrentLesson
-    ? IconMissedLesson
-    : (isRecNode && displayStatus !== 'completed') ? IconLessonRecording
+  const Icon = (isRecNode && displayStatus !== 'completed') ? IconLessonRecording
+    : isMissedCurrentLesson ? IconMissedLesson
     : (isTest && displayStatus !== 'completed') ? IconTest
     : (displayStatus === 'unviewed' && isTestShape) ? IconTest : style.icon
   const isCustom = (isRecNode && displayStatus !== 'completed') || (isTest && displayStatus !== 'completed') || (displayStatus === 'unviewed' && isTestShape) || style.custom
