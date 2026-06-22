@@ -376,7 +376,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                             : <DetailIcon size={14} />
                           }
                           <span style={{ fontSize: 13, fontWeight: 500, lineHeight: 1, whiteSpace: 'nowrap' }}>
-                            {selectedDetail.badgeLabel}
+                            {selectedLesson.kind === 'test' ? 'финальный тест' : selectedDetail.badgeLabel}
                           </span>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

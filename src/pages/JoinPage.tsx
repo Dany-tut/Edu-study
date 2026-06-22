@@ -71,6 +71,10 @@ export default function JoinPage() {
     }
 
     // Create local session and go to dashboard
+    await supabase.rpc('seed_student_progress', {
+      p_student_id: studentId,
+      p_group_id: groupId,
+    })
     setStudentSession({ id: studentId, name: studentName, groupId })
     window.location.assign(window.location.origin + window.location.pathname + '#/')
   }

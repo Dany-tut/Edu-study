@@ -2181,10 +2181,10 @@ function CenterLessonStudents({
 // ─── RIGHT panel: always lesson list ─────────────────────────────────────────
 
 function LessonRow({
-  lesson, selected, isOpen, checked, multiMode, onClick, onDelete,
+  lesson, selected, isOpen, checked, multiMode, displayIndex, onClick, onDelete,
 }: {
   lesson: CELesson; selected: boolean; isOpen?: boolean
-  checked?: boolean; multiMode?: boolean
+  checked?: boolean; multiMode?: boolean; displayIndex?: number
   onClick: (e: React.MouseEvent) => void; onDelete: () => void
 }) {
   return (
@@ -2214,7 +2214,7 @@ function LessonRow({
           ? (selected ? '#fff' : 'var(--color-green-text)')
           : (selected ? '#fff' : 'var(--color-muted)'),
       }}>
-        {lesson.kind === 'test' ? <ClipboardCheck size={13} /> : lesson.number}
+        {lesson.kind === 'test' ? <ClipboardCheck size={13} /> : (displayIndex ?? lesson.number)}
       </div>
       <span style={{
         flex: 1, fontSize: 12, fontWeight: selected ? 700 : 500,
@@ -2401,6 +2401,9 @@ function RightPanelLessons({
     ...ungrouped.map(l => l.id),
     ...course.modules.flatMap(m => m.lessonIds.filter(id => course.lessons.some(l => l.id === id))),
   ]
+  // 1-based display position per lesson (follows visual order, not creation order).
+  const displayIndexById: Record<string, number> = {}
+  orderedIds.forEach((id, i) => { displayIndexById[id] = i + 1 })
 
   const multiMode = selectedIds.size > 0
 
@@ -2578,7 +2581,7 @@ function RightPanelLessons({
             onDragStart={() => setDragging(l.id)}
             style={{ cursor: 'grab' }}
           >
-            <LessonRow lesson={l} selected={l.id === selectedLessonId} isOpen={openLessonShortIds.has(lessonShortIdById[l.id])} checked={selectedIds.has(l.id)} multiMode={multiMode} onClick={e => handleRowClick(l.id, e)} onDelete={() => deleteLesson(l.id)} />
+            <LessonRow lesson={l} selected={l.id === selectedLessonId} isOpen={openLessonShortIds.has(lessonShortIdById[l.id])} checked={selectedIds.has(l.id)} multiMode={multiMode} displayIndex={displayIndexById[l.id]} onClick={e => handleRowClick(l.id, e)} onDelete={() => deleteLesson(l.id)} />
           </div>
         ))}
 
@@ -2696,7 +2699,7 @@ function RightPanelLessons({
                               }}
                               style={{ cursor: 'grab' }}
                             >
-                              <LessonRow lesson={l} selected={l.id === selectedLessonId} isOpen={openLessonShortIds.has(lessonShortIdById[l.id])} checked={selectedIds.has(l.id)} multiMode={multiMode} onClick={e => handleRowClick(l.id, e)} onDelete={() => deleteLesson(l.id)} />
+                              <LessonRow lesson={l} selected={l.id === selectedLessonId} isOpen={openLessonShortIds.has(lessonShortIdById[l.id])} checked={selectedIds.has(l.id)} multiMode={multiMode} displayIndex={displayIndexById[l.id]} onClick={e => handleRowClick(l.id, e)} onDelete={() => deleteLesson(l.id)} />
                             </div>
                           </div>
                         ))}

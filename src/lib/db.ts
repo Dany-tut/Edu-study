@@ -299,7 +299,11 @@ export function mergeSubjectsWithProgress(catalog: Subject[], progress: Progress
       let allPrevDone = true
       for (const l of flat) {
         if (l.kind === 'test') {
-          if (l.status === 'locked') l.status = allPrevDone ? 'current' : 'locked'
+          // Always enforce the gate — even if a stale progress row gave the test
+          // a non-locked status, re-lock it until all prior lessons are done.
+          // Exception: keep completed/submitted/returned (student already acted).
+          const done = l.status === 'completed' || l.status === 'submitted' || l.status === 'returned'
+          if (!done) l.status = allPrevDone ? 'current' : 'locked'
         } else if (l.status !== 'completed') {
           allPrevDone = false
         }
