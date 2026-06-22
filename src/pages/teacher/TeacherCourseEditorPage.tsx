@@ -7,20 +7,23 @@ import {
   PenLine, Star, ChevronRight, ChevronDown, Users,
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
-  ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search,
+  ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera,
 } from 'lucide-react'
+import { optimizePhoto } from '../../lib/imageOptim'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import type { Task as BankTask } from '../../data/taskBankData'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
 import TeacherSaveButton, { teacherSaveStyle } from '../../components/teacher/TeacherSaveButton'
+import TableEditor from '../../components/teacher/TableEditor'
+import { typeVisual } from '../../data/taskTypeVisuals'
 import { supabase } from '../../lib/supabase'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type LessonMode = 'recording' | 'lesson' | 'homework' | 'students'
 
-type HWTaskType = 'text' | 'choice' | 'fill' | 'match' | 'whiteboard' | 'table'
+type HWTaskType = 'text' | 'choice' | 'fill' | 'match' | 'whiteboard' | 'table' | 'sequence'
 
 interface HWTask {
   id: string
@@ -32,10 +35,14 @@ interface HWTask {
   choices?: string[]
   correctChoices?: number[]
   pairs?: Array<{ left: string; right: string }>
-  /** Таблица — заголовки колонок + строки-эталон (для type === 'table'). */
-  table?: { headers: string[]; rows: string[][] }
-  /** Условие-картинка, перенесённая из тренажёра. */
+  /** Последовательность — элементы в правильном порядке (для type === 'sequence'). */
+  sequenceItems?: string[]
+  /** Таблица — заголовки колонок + строки-эталон + помеченные «?» ячейки + фото в ячейках. */
+  table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; cellImages?: Record<string, string>; cellImageSizes?: Record<string, number> }
+  /** Условие-картинка. */
   image?: string
+  /** Размер условия-картинки в % (10–100). */
+  imageSize?: number
   /** id исходного задания в тренажёре (если задание добавлено «из тренажёра»). */
   bankId?: number
 }
@@ -184,18 +191,22 @@ function ScrollFadeMask({ side, show }: { side: 'top' | 'bottom'; show: boolean 
 
 // ─── Task type definitions ────────────────────────────────────────────────────
 
+// Colours come from the shared per-type palette (taskTypeVisuals) so a given
+// concept looks identical here and in the trainer creator.
 const TASK_TYPES: { type: HWTaskType; label: string; hint: string; Icon: React.ElementType; color: string; bg: string }[] = [
-  { type: 'text',       label: 'Текстовый ответ', hint: 'Развёрнутый ответ',  Icon: AlignLeft,   color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)' },
-  { type: 'choice',     label: 'Выбор ответа',    hint: 'Один или несколько', Icon: CheckSquare, color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)' },
-  { type: 'fill',       label: 'Вписать слово',   hint: 'Слово / фраза',      Icon: Type,        color: 'var(--color-peach-text)',     bg: 'var(--color-peach-soft)' },
-  { type: 'match',      label: 'Сопоставление',   hint: 'Таблица А1 Б2 В3',   Icon: Shuffle,     color: 'var(--color-rose-text)',      bg: 'var(--color-rose-soft)' },
-  { type: 'table',      label: 'Таблица',          hint: 'Заполнить таблицу',  Icon: TableIcon,   color: 'var(--color-teal-text, var(--color-green-text))', bg: 'var(--color-teal-soft, var(--color-green-soft))' },
-  { type: 'whiteboard', label: 'Доска',            hint: 'Рисунок на доске',   Icon: PenLine,     color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
+  { type: 'text',       label: 'Текстовый ответ', hint: 'Развёрнутый ответ',  Icon: AlignLeft,   ...typeVisual('text') },
+  { type: 'choice',     label: 'Выбор ответа',    hint: 'Один или несколько', Icon: CheckSquare, ...typeVisual('choice') },
+  { type: 'fill',       label: 'Вписать слово',   hint: 'Слово / фраза',      Icon: Type,        ...typeVisual('fill') },
+  { type: 'match',      label: 'Сопоставление',   hint: 'Таблица А1 Б2 В3',   Icon: Shuffle,     ...typeVisual('match') },
+  { type: 'sequence',   label: 'Последовательность', hint: 'Расставить порядок', Icon: ArrowUpDown, ...typeVisual('sequence') },
+  { type: 'table',      label: 'Таблица',          hint: 'Заполнить таблицу',  Icon: TableIcon,   ...typeVisual('table') },
+  { type: 'whiteboard', label: 'Доска',            hint: 'Рисунок на доске',   Icon: PenLine,     ...typeVisual('whiteboard') },
 ]
 
 const typeLabel: Record<HWTaskType, string> = {
   text: 'Текстовый ответ', choice: 'Выбор ответа',
   fill: 'Вписать слово', match: 'Сопоставление', whiteboard: 'Доска', table: 'Таблица',
+  sequence: 'Последовательность',
 }
 
 // Свежее задание с дефолтами по типу — общая фабрика для всех мест добавления.
@@ -205,7 +216,8 @@ function makeHWTask(type: HWTaskType, isHard: boolean): HWTask {
     choices: type === 'choice' ? ['', '', '', ''] : undefined,
     correctChoices: type === 'choice' ? [0] : undefined,
     pairs: type === 'match' ? [{ left: '', right: '' }, { left: '', right: '' }] : undefined,
-    table: type === 'table' ? { headers: ['Колонка 1', 'Колонка 2'], rows: [['', ''], ['', '']] } : undefined,
+    sequenceItems: type === 'sequence' ? ['', ''] : undefined,
+    table: type === 'table' ? { headers: ['Заголовок 1', 'Заголовок 2'], rows: [['', ''], ['', '']] } : undefined,
   }
 }
 
@@ -259,12 +271,15 @@ function LeftCourseMeta({
       <div style={{ display: 'flex', gap: 10 }}>
         <div style={{ flex: 1 }}>
           <Label>Предмет</Label>
-          <input
+          <select
             value={course.subject}
             onChange={e => setCourse(c => ({ ...c, subject: e.target.value }))}
-            style={inputSt}
-            placeholder="Например, Химия"
-          />
+            style={{ ...inputSt, cursor: 'pointer' }}
+          >
+            {['Химия', 'Биология', 'Физика', 'Математика', 'Русский язык', 'Обществознание', 'История', 'Информатика', 'Английский язык', 'Другое'].map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
         </div>
         <div style={{ flex: 1 }}>
           <Label>Уровень</Label>
@@ -1119,108 +1134,14 @@ function CalendarPicker({ value, onChange, placeholder = 'Выберите да�
   )
 }
 
-// ─── Table builder (headers + rows; teacher fills the reference table) ───────
-
-function TableBuilder({ table, onChange }: {
-  table: { headers: string[]; rows: string[][] }
-  onChange: (t: { headers: string[]; rows: string[][] }) => void
-}) {
-  const cols = table.headers.length
-
-  const cellSt: React.CSSProperties = {
-    ...inputSt, padding: '6px 8px', fontSize: 12, borderRadius: 8,
-    minWidth: 90, width: '100%',
-  }
-  const miniBtn: React.CSSProperties = {
-    width: 22, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)',
-    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    color: 'var(--color-text-3)', flexShrink: 0,
-  }
-
-  function setHeader(ci: number, v: string) {
-    const headers = [...table.headers]; headers[ci] = v
-    onChange({ ...table, headers })
-  }
-  function setCell(ri: number, ci: number, v: string) {
-    const rows = table.rows.map(r => [...r]); rows[ri][ci] = v
-    onChange({ ...table, rows })
-  }
-  function addColumn() {
-    onChange({ headers: [...table.headers, `Колонка ${cols + 1}`], rows: table.rows.map(r => [...r, '']) })
-  }
-  function removeColumn(ci: number) {
-    if (cols <= 1) return
-    onChange({ headers: table.headers.filter((_, i) => i !== ci), rows: table.rows.map(r => r.filter((_, i) => i !== ci)) })
-  }
-  function addRow() {
-    onChange({ ...table, rows: [...table.rows, Array(cols).fill('')] })
-  }
-  function removeRow(ri: number) {
-    if (table.rows.length <= 1) return
-    onChange({ ...table, rows: table.rows.filter((_, i) => i !== ri) })
-  }
-
-  return (
-    <div>
-      <Label>Таблица</Label>
-      <div style={{ overflowX: 'auto', borderRadius: 12, border: '1px solid var(--color-border-soft)' }}>
-        <table style={{ borderCollapse: 'separate', borderSpacing: 4, width: '100%' }}>
-          <thead>
-            <tr>
-              {table.headers.map((h, ci) => (
-                <th key={ci} style={{ padding: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                    <input
-                      value={h}
-                      onChange={e => setHeader(ci, e.target.value)}
-                      placeholder={`Колонка ${ci + 1}`}
-                      style={{ ...cellSt, fontWeight: 700 }}
-                    />
-                    {cols > 1 && (
-                      <button onClick={() => removeColumn(ci)} style={miniBtn} title="Удалить колонку"><X size={11} /></button>
-                    )}
-                  </div>
-                </th>
-              ))}
-              <th style={{ padding: 0, width: 28 }}>
-                <button onClick={addColumn} style={{ ...miniBtn, background: 'var(--color-purple-soft)', color: 'var(--color-accent)' }} title="Добавить колонку"><Plus size={12} /></button>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {table.rows.map((row, ri) => (
-              <tr key={ri}>
-                {row.map((cell, ci) => (
-                  <td key={ci} style={{ padding: 0 }}>
-                    <input
-                      value={cell}
-                      onChange={e => setCell(ri, ci, e.target.value)}
-                      placeholder="—"
-                      style={cellSt}
-                    />
-                  </td>
-                ))}
-                <td style={{ padding: 0, width: 28 }}>
-                  {table.rows.length > 1 && (
-                    <button onClick={() => removeRow(ri)} style={miniBtn} title="Удалить строку"><X size={11} /></button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <button
-        onClick={addRow}
-        style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
-      >
-        <Plus size={12} /> Добавить строку
-      </button>
-    </div>
-  )
-}
-
 // ─── Task card (inline editor, same design as TeacherHomeworkCreatePage) ─────
+
+const IMG_SIZES: { label: string; value: number }[] = [
+  { label: 'S', value: 25 },
+  { label: 'M', value: 50 },
+  { label: 'L', value: 75 },
+  { label: '↔', value: 100 },
+]
 
 function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
   task: HWTask; index: number
@@ -1230,6 +1151,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
 }) {
   const cfg = TASK_TYPES.find(x => x.type === task.type)!
   const [expanded, setExpanded] = useState(true)
+  const imgInputRef = useRef<HTMLInputElement>(null)
   const choices = task.choices ?? ['', '', '', '']
   const correctChoices = task.correctChoices ?? [0]
   const pairs = task.pairs ?? [{ left: '', right: '' }, { left: '', right: '' }]
@@ -1289,9 +1211,40 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 style={{ ...inputSt, resize: 'none', minHeight: 72, fontSize: 13, lineHeight: 1.55 }}
               />
 
-              {/* Условие-картинка из тренажёра */}
-              {task.image && (
-                <img src={task.image} alt="" style={{ maxWidth: '100%', borderRadius: 12, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', display: 'block' }} />
+              {/* Условие-картинка */}
+              <input ref={imgInputRef} type="file" accept="image/*" style={{ display: 'none' }}
+                onChange={e => {
+                  const file = e.target.files?.[0]; if (!file) return
+                  optimizePhoto(file).then(url => onUpdate({ ...task, image: url, imageSize: task.imageSize ?? 100 }))
+                  e.target.value = ''
+                }}
+              />
+              {task.image ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {IMG_SIZES.map(s => (
+                      <button key={s.value} onClick={() => onUpdate({ ...task, imageSize: s.value })}
+                        style={{ padding: '3px 9px', borderRadius: 7, border: `1.5px solid ${(task.imageSize ?? 100) === s.value ? cfg.color : 'var(--color-border-medium)'}`, background: (task.imageSize ?? 100) === s.value ? cfg.bg : 'var(--color-bg-2)', color: (task.imageSize ?? 100) === s.value ? cfg.color : 'var(--color-text-3)', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit' }}>
+                        {s.label}
+                      </button>
+                    ))}
+                    <span style={{ fontSize: 11, color: 'var(--color-text-3)', marginLeft: 2 }}>{task.imageSize ?? 100}%</span>
+                    <button onClick={() => imgInputRef.current?.click()} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 11, color: 'var(--color-text-3)', fontFamily: 'inherit' }}>
+                      <Camera size={12} /> Заменить
+                    </button>
+                    <button onClick={() => onUpdate({ ...task, image: undefined, imageSize: undefined })} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', color: 'var(--color-text-3)' }}>
+                      <X size={12} />
+                    </button>
+                  </div>
+                  <div style={{ alignSelf: 'flex-start', width: `${task.imageSize ?? 100}%` }}>
+                    <img src={task.image} alt="" style={{ display: 'block', width: '100%', borderRadius: 10, border: '1px solid var(--color-border-medium)' }} />
+                  </div>
+                </div>
+              ) : (
+                <button onClick={() => imgInputRef.current?.click()}
+                  style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: '1.5px dashed var(--color-border-medium)', background: 'var(--color-bg-2)', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-3)', fontFamily: 'inherit' }}>
+                  <Camera size={13} /> Добавить фото к условию
+                </button>
               )}
 
               {/* Choice options */}
@@ -1385,12 +1338,51 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 </div>
               )}
 
+              {/* Sequence — items stored in the correct order */}
+              {task.type === 'sequence' && (() => {
+                const items = task.sequenceItems ?? ['', '']
+                const setItems = (next: string[]) => onUpdate({ ...task, sequenceItems: next })
+                const reorderBtn = (disabled: boolean): React.CSSProperties => ({
+                  width: 24, height: 24, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)',
+                  cursor: disabled ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'var(--color-text-3)', flexShrink: 0, opacity: disabled ? 0.4 : 1,
+                })
+                return (
+                  <div>
+                    <Label>Элементы в правильном порядке</Label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {items.map((it, i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{i + 1}</span>
+                          <input value={it} onChange={e => { const n = [...items]; n[i] = e.target.value; setItems(n) }} placeholder={`Шаг ${i + 1}`} style={{ ...inputSt, flex: 1 }} />
+                          <button onClick={() => { if (i > 0) { const n = [...items];[n[i - 1], n[i]] = [n[i], n[i - 1]]; setItems(n) } }} disabled={i === 0} style={reorderBtn(i === 0)} title="Выше"><ArrowUp size={12} /></button>
+                          <button onClick={() => { if (i < items.length - 1) { const n = [...items];[n[i + 1], n[i]] = [n[i], n[i + 1]]; setItems(n) } }} disabled={i === items.length - 1} style={reorderBtn(i === items.length - 1)} title="Ниже"><ArrowDown size={12} /></button>
+                          {items.length > 2 && (
+                            <button onClick={() => setItems(items.filter((_, j) => j !== i))} style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}><X size={11} /></button>
+                          )}
+                        </div>
+                      ))}
+                      <button onClick={() => setItems([...items, ''])} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}>
+                        <Plus size={12} /> Добавить шаг
+                      </button>
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>Ученик увидит элементы вперемешку и расставит их в этом порядке.</div>
+                  </div>
+                )
+              })()}
+
               {/* Table builder */}
               {task.type === 'table' && (
-                <TableBuilder
-                  table={task.table ?? { headers: ['Колонка 1', 'Колонка 2'], rows: [['', ''], ['', '']] }}
-                  onChange={table => onUpdate({ ...task, table })}
-                />
+                <div>
+                  <Label>Таблица — отметьте «Пусто» в проверяемых ячейках</Label>
+                  <TableEditor
+                    value={task.table ?? { headers: ['Заголовок 1', 'Заголовок 2'], rows: [['', ''], ['', '']] }}
+                    onChange={table => onUpdate({ ...task, table })}
+                    accent={cfg.color}
+                    accentBg={cfg.bg}
+                    allowCellImages
+                  />
+                </div>
               )}
 
               {/* Whiteboard — ученик нарисует ответ */}
@@ -1793,24 +1785,8 @@ function CenterTestView({
   onBack: () => void
 }) {
   const tasks = lesson.testTasks ?? []
-  const [bankOpen, setBankOpen] = useState(false)
-  const [bankSearch, setBankSearch] = useState('')
-  const bankTasks = useTaskBank(s => s.tasks)
-  const loadBank = useTaskBank(s => s.load)
-  useEffect(() => { loadBank() }, [loadBank])
-
-  function addTask(type: HWTaskType) {
-    onUpdate({ ...lesson, testTasks: [...tasks, makeHWTask(type, false)] })
-  }
-  function addFromBank(bt: BankTask) {
-    onUpdate({ ...lesson, testTasks: [...tasks, hwTaskFromBank(bt, false)] })
-  }
   function removeTask(id: string) { onUpdate({ ...lesson, testTasks: tasks.filter(t => t.id !== id) }) }
   function updateTask(updated: HWTask) { onUpdate({ ...lesson, testTasks: tasks.map(t => t.id === updated.id ? updated : t) }) }
-
-  const filteredBank = bankSearch.trim()
-    ? bankTasks.filter(t => t.question.toLowerCase().includes(bankSearch.toLowerCase()))
-    : bankTasks
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -1831,56 +1807,61 @@ function CenterTestView({
         </div>
       </div>
 
-      {/* Two-column body */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        {/* Left: question pickers */}
-        <div style={{ width: 212, flexShrink: 0, borderRight: '1px solid var(--color-border-soft)', overflowY: 'auto', padding: '14px 10px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, padding: '0 4px', marginBottom: 4 }}>СОСТАВИТЬ ВОПРОС</div>
-          {TASK_TYPES.map(t => (
-            <button key={t.type} onClick={() => addTask(t.type)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px', borderRadius: 13, border: 'none', background: 'var(--color-bg-2)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%' }}>
-              <div style={{ width: 28, height: 28, borderRadius: 8, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <t.Icon size={15} style={{ color: t.color }} />
-              </div>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)' }}>{t.label}</span>
-            </button>
-          ))}
-          <button onClick={() => setBankOpen(o => !o)} style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', borderRadius: 13, border: '1.5px dashed var(--color-border)', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)' }}>
-            <BookOpen size={13} /> {bankOpen ? 'Скрыть банк' : 'Из тренажёра'}
-          </button>
-          {bankOpen && (
-            <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <input value={bankSearch} onChange={e => setBankSearch(e.target.value)} placeholder="Поиск…" style={{ ...inputSt, fontSize: 11, padding: '6px 9px' }} />
-              <div style={{ maxHeight: 240, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {filteredBank.slice(0, 60).map(bt => (
-                  <button key={bt.id} onClick={() => addFromBank(bt)} style={{ textAlign: 'left', padding: '7px 8px', borderRadius: 9, border: 'none', background: 'var(--color-bg-2)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, color: 'var(--color-text-2)', display: 'flex', gap: 6, alignItems: 'flex-start' }}>
-                    <Plus size={11} style={{ flexShrink: 0, marginTop: 1, color: 'var(--color-accent)' }} />
-                    <span style={{ overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{bt.question || 'Без текста'}</span>
-                  </button>
-                ))}
-                {filteredBank.length === 0 && <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '6px 8px' }}>Банк пуст</div>}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Right: task list */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px' }}>
-          {tasks.length === 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, gap: 10 }}>
-              <ClipboardCheck size={36} style={{ opacity: 0.15, color: 'var(--color-muted)' }} />
-              <span style={{ fontSize: 13, color: 'var(--color-muted)', textAlign: 'center', maxWidth: 240 }}>Добавьте вопросы слева — составьте сами или возьмите из тренажёра</span>
-            </div>
-          ) : (
-            <AnimatePresence>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {tasks.map((task, i) => (
-                  <HWTaskCard key={task.id} task={task} index={i} onUpdate={updateTask} onDelete={() => removeTask(task.id)} />
-                ))}
-              </div>
-            </AnimatePresence>
-          )}
-        </div>
+      {/* Task list — centred, same shape as the homework editor */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+        {tasks.length === 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 280, gap: 10 }}>
+            <ClipboardCheck size={36} style={{ opacity: 0.15, color: 'var(--color-muted)' }} />
+            <span style={{ fontSize: 13, color: 'var(--color-muted)', textAlign: 'center', maxWidth: 240 }}>Выберите тип вопроса слева — составьте сами или возьмите из тренажёра</span>
+          </div>
+        ) : (
+          <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {tasks.map((task, i) => (
+              <HWTaskCard key={task.id} task={task} index={i} onUpdate={updateTask} onDelete={() => removeTask(task.id)} />
+            ))}
+          </div>
+        )}
       </div>
+    </div>
+  )
+}
+
+// ─── LEFT: Test question-type picker (matches HomeworkLeftPanel as a rail card) ─
+function TestLeftPanel({ lesson, onUpdate }: {
+  lesson: CELesson
+  onUpdate: (updated: CELesson) => void
+}) {
+  const tasks = lesson.testTasks ?? []
+  const addTask = (type: HWTaskType) => onUpdate({ ...lesson, testTasks: [...tasks, makeHWTask(type, false)] })
+  const addFromBank = (bt: BankTask) => onUpdate({ ...lesson, testTasks: [...tasks, hwTaskFromBank(bt, false)] })
+  return (
+    <div style={{
+      width: 248, flexShrink: 0,
+      background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)',
+      borderRadius: 18, padding: '16px 14px 18px',
+      display: 'flex', flexDirection: 'column', gap: 10,
+      maxHeight: 'calc(100vh - 120px)', overflowY: 'auto',
+    }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, padding: '0 4px' }}>СОСТАВИТЬ ВОПРОС</div>
+      {TASK_TYPES.map(t => (
+        <button key={t.type} onClick={() => addTask(t.type)} title={t.hint} style={{
+          display: 'flex', alignItems: 'center', gap: 10, padding: '10px 10px', borderRadius: 13,
+          border: 'none', background: 'var(--color-bg-2)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%',
+          transition: 'opacity 0.12s',
+        }}
+          onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
+          onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+        >
+          <div style={{ width: 34, height: 34, borderRadius: 9, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <t.Icon size={15} style={{ color: t.color }} />
+          </div>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t.label}</div>
+            <div style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 1 }}>{t.hint}</div>
+          </div>
+        </button>
+      ))}
+      <BankPicker onPick={addFromBank} />
     </div>
   )
 }
@@ -2871,22 +2852,15 @@ export default function TeacherCourseEditorPage() {
   // follows the 0-based module order, so number-matching mis-targets lessons).
   const [openLessonShortIds, setOpenLessonShortIds] = useState<Set<string>>(new Set())
 
-  // Map each editor lesson → the short_id syncAccessToSupabase persists for it
-  // (`${shortId}-${orderedIndex}`), using the exact same module ordering so the
-  // open-badge and the open/seed write both address the right DB row.
+  // Map each editor lesson → the short_id syncAccessToSupabase persists for it.
+  // Uses lesson.number (1-based creation order) so short_id stays stable when
+  // lessons are reordered — otherwise open-badge would follow position, not lesson.
   const lessonShortIdById = useMemo(() => {
     const shortId = course.dbCourseId ?? course.id
-    const mods = course.modules.length > 0
-      ? course.modules
-      : [{ id: 'm0', label: 'Модуль 1', expanded: true, lessonIds: course.lessons.map(l => l.id) }]
-    const order: string[] = []
-    const seen = new Set<string>()
-    for (const m of mods) for (const lid of m.lessonIds) {
-      if (course.lessons.some(l => l.id === lid) && !seen.has(lid)) { order.push(lid); seen.add(lid) }
-    }
-    for (const l of course.lessons) if (!seen.has(l.id)) { order.push(l.id); seen.add(l.id) }
     const map: Record<string, string> = {}
-    order.forEach((id, i) => { map[id] = `${shortId}-${i}` })
+    course.lessons.forEach((l, fallbackIdx) => {
+      map[l.id] = `${shortId}-${l.number ?? (fallbackIdx + 1)}`
+    })
     return map
   }, [course])
 
@@ -3098,10 +3072,10 @@ export default function TeacherCourseEditorPage() {
       if (!seen.has(lesson.id)) { ordered.push({ lesson, moduleLocalId: firstModuleLocalId }); seen.add(lesson.id) }
     }
 
-    // 3. Upsert lessons with stable short_id (= `${shortId}-${globalIndex}`),
-    //    preserving lesson_progress (keyed by short_id, not FK).
+    // 3. Upsert lessons with stable short_id (= `${shortId}-${lesson.number}`),
+    //    preserving lesson_progress across reorders (keyed by short_id, not FK).
     const lessonRows = ordered.map(({ lesson, moduleLocalId }, i) => ({
-      short_id: `${shortId}-${i}`,
+      short_id: `${shortId}-${lesson.number ?? (i + 1)}`,
       course_id: courseDbId,
       module_id: moduleDbIdByLocalId[moduleLocalId] ?? null,
       title: lesson.title,
@@ -3238,15 +3212,14 @@ export default function TeacherCourseEditorPage() {
   }
 
   // Returns an error string if the course can't be published yet, else null.
-  // Publish requires an audience (кому/для кого) and a date+time for every lesson.
+  // Publish requires an audience (кому/для кого) and a date+time for AT LEAST ONE
+  // lesson — остальные уроки можно оставить без расписания.
   function publishBlocker(c: CourseEdData): string | null {
     const hasAudience = c.groupIds.length > 0 || c.studentIds.length > 0
     if (!hasAudience) return 'Выберите, кому виден курс (группа или ученик) — иначе можно только сохранить в черновик.'
-    const unscheduled = c.lessons.filter(l => !lessonScheduled(l))
-    if (unscheduled.length > 0) {
-      const names = unscheduled.map(l => l.title || `Урок ${l.number}`).slice(0, 3).join(', ')
-      const more = unscheduled.length > 3 ? ` и ещё ${unscheduled.length - 3}` : ''
-      return `Укажите дату и время для уроков: ${names}${more}.`
+    const realLessons = c.lessons.filter(l => l.kind !== 'test')
+    if (realLessons.length > 0 && !realLessons.some(lessonScheduled)) {
+      return 'Укажите дату и время хотя бы для одного урока — иначе можно только сохранить в черновик.'
     }
     return null
   }
@@ -3489,7 +3462,20 @@ export default function TeacherCourseEditorPage() {
                 </AnimatePresence>
               </div>
             </motion.div>
-          ) : null}
+          ) : (
+            <motion.div
+              key="test-rail"
+              initial={{ opacity: 0, width: 0 }}
+              animate={{ opacity: 1, width: 248 }}
+              exit={{ opacity: 0, width: 0 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              style={{ flexShrink: 0, alignSelf: 'flex-start', overflow: 'hidden', position: 'sticky', top: 4 }}
+            >
+              <div style={{ width: 248 }}>
+                <TestLeftPanel lesson={selectedLesson} onUpdate={updateLesson} />
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
 
         {/* CENTER — no `layout`: flexbox already reflows it smoothly as the

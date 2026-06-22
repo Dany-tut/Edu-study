@@ -72,7 +72,7 @@ export default function JoinPage() {
 
     // Create local session and go to dashboard
     setStudentSession({ id: studentId, name: studentName, groupId })
-    window.location.hash = '#/'
+    window.location.assign(window.location.origin + window.location.pathname + '#/')
   }
 
   return (

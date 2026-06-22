@@ -903,7 +903,7 @@ export default function LessonPage() {
         <DownloadTile icon={NotebookPen} label="Рабочая тетрадь" />
         <DownloadTile icon={FileText} label="Конспект" />
         <MaterialsTile materials={detail.materials} />
-        <HomeworkCard lessonId={lesson.id} homework={detail.homework} onOpen={openHomework} />
+        {detail.homework && <HomeworkCard lessonId={lesson.id} homework={detail.homework} onOpen={openHomework} />}
       </div>
 
       {/* ── Конспект: lesson notes, with reaction paragraphs highlighted on

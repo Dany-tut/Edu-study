@@ -102,12 +102,38 @@ export function useGroups() {
     return { error: studentError, inviteToken: studentData?.invite_token as string | null }
   }
 
+  async function addStudentToGroup(targetGroupId: string, s: Partial<Student>) {
+    const { data, error } = await supabase.from('students').insert({
+      group_id: targetGroupId,
+      name: s.name ?? '',
+      phone: s.phone ?? '',
+      telegram_link: s.telegramLink ?? '',
+      parent_contact: s.parentContact ?? '',
+      started_at: s.startedAt || null,
+      desired_score: s.desiredScore ?? 80,
+      comment: s.comment ?? '',
+      payment_due: s.paymentDue || null,
+      payment_amount: s.paymentAmount ?? 0,
+      debt: s.debt ?? 0,
+      email: s.email ?? null,
+      temp_password: s.tempPassword ?? null,
+    }).select('id, invite_token').single()
+    if (!error && data?.id) {
+      await supabase.rpc('seed_student_progress', {
+        p_student_id: data.id,
+        p_group_id: targetGroupId,
+      })
+    }
+    await load()
+    return { error, inviteToken: data?.invite_token as string | null }
+  }
+
   async function deleteGroup(id: string) {
     await supabase.from('groups').delete().eq('id', id)
     await load()
   }
 
-  return { groups, loading, addGroup, addIndividualStudent, deleteGroup, reload: load }
+  return { groups, loading, addGroup, addIndividualStudent, addStudentToGroup, deleteGroup, reload: load }
 }
 
 // Resolve the individual (1:1) group a single-student homework should attach to.

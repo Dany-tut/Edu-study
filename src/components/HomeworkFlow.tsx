@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
 import {
   CheckCircle2, ChevronLeft, CircleAlert, Clock, GraduationCap,
   Lock, Send, Sparkles, Trophy, Image as ImageIcon, PenLine, X,
+  ChevronUp, ChevronDown,
 } from 'lucide-react'
 import type { LessonHomework, HomeworkQuizQuestion } from '../data/lessonContent'
 import { PURPLE, subjectTheme } from '../lib/theme'
@@ -558,6 +559,9 @@ function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
 function questionAutoGradable(q: HomeworkQuizQuestion) {
   if (questionIsChoice(q)) return q.options.length > 0 && !!q.correctOptionId
   if (q.type === 'text' || q.type === 'fill') return !!q.referenceAnswer?.trim()
+  if (q.type === 'sequence') return (q.sequenceItems?.length ?? 0) >= 2
+  // 'table' is filled interactively but reviewed by the teacher (no per-cell
+  // reference is stored), so it is not auto-graded.
   return false
 }
 function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
@@ -566,7 +570,119 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
   if (q.type === 'text' || q.type === 'fill') {
     return questionAutoGradable(q) && normAnswer(ans) === normAnswer(q.referenceAnswer!)
   }
+  if (q.type === 'sequence') {
+    const items = q.sequenceItems ?? []
+    const order = ans.split(',').map(Number)
+    if (order.length !== items.length || order.some(n => Number.isNaN(n))) return false
+    // The authored order is [0,1,2,…]; the answer holds the student's arrangement
+    // as a list of authored indices, so it's correct when already in that order.
+    return order.every((v, i) => v === i)
+  }
   return false
+}
+
+// ─── Sequence solver ─────────────────────────────────────────────────────────
+// Items are presented shuffled (deterministic alphabetical order) and the student
+// reorders them. The answer is the current arrangement as a list of authored
+// indices — correct when it equals [0,1,2,…] (the authored order).
+function SequenceSolver({ items, value, disabled, showVerdict, onChange }: {
+  items: string[]
+  value: string | undefined
+  disabled: boolean
+  showVerdict: boolean
+  onChange: (v: string) => void
+}) {
+  const initial = useMemo(
+    () => items.map((_, i) => i).sort((a, b) => items[a].localeCompare(items[b], 'ru')),
+    [items],
+  )
+  // Seed the stored answer with the initial arrangement so the question reads as
+  // "answered" (the shown order IS a valid answer the student can keep or change).
+  useEffect(() => {
+    if (!value) onChange(initial.join(','))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  const parsed = value ? value.split(',').map(Number) : initial
+  const order = parsed.length === items.length && !parsed.some(Number.isNaN) ? parsed : initial
+
+  const move = (pos: number, dir: -1 | 1) => {
+    const to = pos + dir
+    if (to < 0 || to >= order.length) return
+    const n = [...order];[n[pos], n[to]] = [n[to], n[pos]]
+    onChange(n.join(','))
+  }
+  const arrowBtn = (off: boolean): React.CSSProperties => ({
+    width: 26, height: 22, borderRadius: 7, border: 'none', cursor: off ? 'default' : 'pointer',
+    background: 'var(--color-bg-3)', color: 'var(--color-text-3)', display: 'flex',
+    alignItems: 'center', justifyContent: 'center', opacity: off ? 0.4 : 1,
+  })
+  return (
+    <div className="flex flex-col" style={{ gap: 8 }}>
+      {order.map((itemIdx, pos) => {
+        const rightSpot = showVerdict && itemIdx === pos
+        return (
+          <div key={itemIdx} style={{
+            display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 14,
+            border: `1px solid ${showVerdict ? (rightSpot ? '#6EE7A0' : '#F48B91') : 'var(--color-border)'}`,
+            background: showVerdict ? (rightSpot ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : 'var(--color-bg-input)',
+          }}>
+            <span style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-purple-soft)', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 }}>{pos + 1}</span>
+            <span style={{ flex: 1, fontSize: 14, lineHeight: 1.4, color: 'var(--color-text)' }}>{items[itemIdx]}</span>
+            {!disabled && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <button onClick={() => move(pos, -1)} disabled={pos === 0} style={arrowBtn(pos === 0)}><ChevronUp size={14} /></button>
+                <button onClick={() => move(pos, 1)} disabled={pos === order.length - 1} style={arrowBtn(pos === order.length - 1)}><ChevronDown size={14} /></button>
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ─── Table solver ────────────────────────────────────────────────────────────
+// Renders the reference table; cells marked «пусто» become inputs the student
+// fills. Answers are stored as a JSON map "r,c" → value (teacher-reviewed).
+function TableSolver({ table, value, disabled, onChange }: {
+  table: NonNullable<HomeworkQuizQuestion['table']>
+  value: string | undefined
+  disabled: boolean
+  onChange: (v: string) => void
+}) {
+  let vals: Record<string, string> = {}
+  try { if (value) vals = JSON.parse(value) } catch { vals = {} }
+  const setCell = (key: string, v: string) => onChange(JSON.stringify({ ...vals, [key]: v }))
+  const isEmpty = (r: number, c: number) => !!table.emptyCells?.[`${r},${c}`]
+  return (
+    <div style={{ overflowX: 'auto', borderRadius: 12, border: '1px solid var(--color-border)' }}>
+      <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 13 }}>
+        <thead><tr>{table.headers.map((h, c) => (
+          <th key={c} style={{ borderRight: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)', background: 'var(--color-bg-2)', padding: '8px 10px', textAlign: 'left', fontWeight: 700, color: 'var(--color-text)', minWidth: 90 }}>{h}</th>
+        ))}</tr></thead>
+        <tbody>{table.rows.map((row, r) => (
+          <tr key={r}>{row.map((cell, c) => {
+            const key = `${r},${c}`
+            return (
+              <td key={c} style={{ borderRight: '1px solid var(--color-border)', borderTop: '1px solid var(--color-border)', padding: 0, background: isEmpty(r, c) ? 'var(--color-bg-input)' : 'transparent' }}>
+                {isEmpty(r, c) ? (
+                  <input
+                    value={vals[key] ?? ''}
+                    onChange={e => setCell(key, e.target.value)}
+                    disabled={disabled}
+                    placeholder="Впиши…"
+                    style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: '8px 10px', fontFamily: 'inherit', fontSize: 13, color: 'var(--color-accent)', fontWeight: 600 }}
+                  />
+                ) : (
+                  <div style={{ padding: '8px 10px', color: 'var(--color-text-2)' }}>{cell || '—'}</div>
+                )}
+              </td>
+            )
+          })}</tr>
+        ))}</tbody>
+      </table>
+    </div>
+  )
 }
 
 function getInitialState(): PersistedHomeworkState {
@@ -1381,6 +1497,21 @@ export default function HomeworkFlow({
                         )
                       })}
                     </div>
+                    ) : question.type === 'sequence' && (question.sequenceItems?.length ?? 0) > 0 ? (
+                    <SequenceSolver
+                      items={question.sequenceItems!}
+                      value={selectedAnswer}
+                      disabled={state.basicSubmitted}
+                      showVerdict={showVerdict}
+                      onChange={v => setFreeAnswer(question.id, v)}
+                    />
+                    ) : question.type === 'table' && question.table ? (
+                    <TableSolver
+                      table={question.table}
+                      value={selectedAnswer}
+                      disabled={state.basicSubmitted}
+                      onChange={v => setFreeAnswer(question.id, v)}
+                    />
                     ) : (
                     <div className="flex flex-col" style={{ gap: 10 }}>
                       {question.type === 'match' && (question.pairs?.length ?? 0) > 0 && (

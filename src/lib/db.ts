@@ -200,6 +200,7 @@ interface DbCourse {
       rec_date?: string | null
       rec_time?: string | null
       lesson_sched_manual?: boolean | null
+      description?: string | null
     }>
   }>
 }
@@ -221,7 +222,7 @@ export async function fetchCourseStructure(studentId: string, groupId: string): 
       id, short_id, title, subject,
       course_modules (
         id, label, position,
-        lessons ( id, short_id, title, lesson_number, shape, content, youtube_url, timecodes, kind, test_tasks, homework, scheduled_date, scheduled_time, rec_date, rec_time, lesson_sched_manual )
+        lessons ( id, short_id, title, lesson_number, shape, content, youtube_url, timecodes, kind, test_tasks, homework, scheduled_date, scheduled_time, rec_date, rec_time, lesson_sched_manual, description )
       )
     `)
     .eq('status', 'published')
@@ -232,7 +233,7 @@ export async function fetchCourseStructure(studentId: string, groupId: string): 
 
   return (data as unknown as DbCourse[]).map(course => ({
     id: course.short_id,
-    name: course.subject,
+    name: course.title,
     progress: 0,
     activeModuleId: 1,
     modules: [...course.course_modules]
@@ -256,6 +257,7 @@ export async function fetchCourseStructure(studentId: string, groupId: string): 
               homework: l.homework && (l.homework.hwTasks?.length || l.homework.recHwTasks?.length)
                 ? l.homework
                 : undefined,
+              description: l.description ?? undefined,
               videoId: rutubeEmbedId(l.youtube_url),
               timecodes: Array.isArray(l.timecodes) && l.timecodes.length ? l.timecodes : undefined,
               scheduledDate: l.scheduled_date ?? undefined,
@@ -356,7 +358,7 @@ export function computeStats(progress: ProgressMap): StudentStats {
     completedTasks: completed.length,
     totalTasks,
     avgScore,
-    streak: 5,
+    streak: 0,
     totalPoints,
     stars,
   }

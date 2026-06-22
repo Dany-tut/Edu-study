@@ -39,7 +39,7 @@ const quickActions: QuickItem[] = [
   { icon: CheckSquare,      label: 'Создать задачу',    sub: 'встреча, урок…',   color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', action: 'create-task' },
   { type: 'separator' },
   { icon: Users,            label: 'Создать группу',    sub: 'новая группа',     color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', action: 'create-group' },
-  { icon: UserPlus,         label: 'Добавить студента', sub: 'в группу',         color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', action: 'add-student' },
+  { icon: UserPlus,         label: 'Добавить студента', sub: 'в группу / 1:1',   color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', action: 'add-student' },
   { type: 'separator' },
   { icon: LayoutDashboard,  label: 'Настроить виджеты', sub: 'как у учеников',   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)', action: 'widgets' },
   { icon: Moon,             label: 'Тема',              sub: 'светлая / тёмная', color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)', action: 'theme' },

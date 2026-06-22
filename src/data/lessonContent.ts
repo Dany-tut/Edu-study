@@ -14,19 +14,25 @@ export interface HomeworkQuizQuestion {
   correctOptionId: string
   explanation: string
   /** Authored task type. Absent / 'choice' → multiple-choice (default). The
-   *  remaining types render a free-text answer, mirroring TestFlow. */
-  type?: 'text' | 'choice' | 'fill' | 'match' | 'whiteboard'
+   *  remaining types render a free-text answer, mirroring TestFlow — except
+   *  'sequence' and 'table', which render their own interactive solvers. */
+  type?: 'text' | 'choice' | 'fill' | 'match' | 'whiteboard' | 'sequence' | 'table'
   /** Эталон for text/fill — when set, the answer is auto-checked against it. */
   referenceAnswer?: string
   /** Pairs for a 'match' task (shown read-only as reference). */
   pairs?: Array<{ left: string; right: string }>
+  /** Items in the correct order for a 'sequence' task (shown shuffled). */
+  sequenceItems?: string[]
+  /** Reference table for a 'table' task; emptyCells «r,c» are the cells the
+   *  student fills, checked against the matching reference cell. */
+  table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; cellImages?: Record<string, string>; cellImageSizes?: Record<string, number> }
 }
 
 /** One task as persisted by the course editor's «Домашки» tab
  *  (lessons.homework JSONB). Mirrors the teacher editor's HWTask / TestTask. */
 export interface AuthoredHomeworkTask {
   id: string
-  type: 'text' | 'choice' | 'fill' | 'match' | 'whiteboard'
+  type: 'text' | 'choice' | 'fill' | 'match' | 'whiteboard' | 'sequence' | 'table'
   isHard: boolean
   label?: string
   question?: string
@@ -34,6 +40,10 @@ export interface AuthoredHomeworkTask {
   choices?: string[]
   correctChoices?: number[]
   pairs?: Array<{ left: string; right: string }>
+  sequenceItems?: string[]
+  table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; cellImages?: Record<string, string>; cellImageSizes?: Record<string, number> }
+  image?: string
+  imageSize?: number
 }
 /** Teacher-authored homework attached to a lesson (lessons.homework JSONB). */
 export interface AuthoredHomework {
@@ -103,7 +113,7 @@ export interface LessonDetail {
   /** Body of the lesson's "Конспект" — a handful of paragraphs, with any
    *  reactions from `courseReactions` woven in as their own paragraphs. */
   paragraphs: LessonParagraph[]
-  homework: LessonHomework
+  homework?: LessonHomework
 }
 
 // Reference downloadable materials, keyed by subject id. Mirrors the prototype's
@@ -171,15 +181,19 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
     }
   }
 
+  // Use teacher-authored description if available; otherwise hide the section.
+  const descParagraphs: LessonParagraph[] = lesson.description?.trim()
+    ? [{ id: 'description', text: lesson.description.trim() }]
+    : []
+
   return {
     date: dateStr,
-    // Real runtime of LESSON_VIDEO_ID (25:12).
     duration: '25:12',
     videoId,
     timecodes,
     materials: materialsBySubject[lesson.subject] ?? materialsBySubject.chemistry,
-    paragraphs: buildParagraphs(lesson),
-    homework: authoredHw ?? buildHomework(lesson, dateStr),
+    paragraphs: descParagraphs,
+    homework: authoredHw ?? undefined,
   }
 }
 
@@ -202,6 +216,8 @@ function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): HomeworkQui
     type: t.type,
     referenceAnswer: t.answer?.trim() || undefined,
     pairs: t.type === 'match' ? t.pairs : undefined,
+    sequenceItems: t.type === 'sequence' ? (t.sequenceItems ?? []).filter(s => s.trim()) : undefined,
+    table: t.type === 'table' ? t.table : undefined,
   }
 }
 

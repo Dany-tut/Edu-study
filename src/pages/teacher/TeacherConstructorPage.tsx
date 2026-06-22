@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -15,6 +15,8 @@ import {
   ChevronLeft, ChevronRight, Calendar, Users, UsersRound,
 } from 'lucide-react'
 import RichConditionEditor from '../../components/teacher/RichConditionEditor'
+import TableEditor from '../../components/teacher/TableEditor'
+import { typeVisual } from '../../data/taskTypeVisuals'
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagQuestions,
   loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult,
@@ -384,33 +386,6 @@ function SaveBtn({ accent, onClick }: { accent: string; accentBg?: string; onCli
 }
 
 function uid() { return Math.random().toString(36).slice(2, 8) }
-
-// "+" insert control with its OWN hover zone in the gutter: the circle only
-// appears when the cursor enters this handle's zone (passed via `style`), so
-// neighbouring "+"s don't all light up together.
-function InsertHandle({ accent, title, onClick, style }: {
-  accent: string; title: string; onClick: () => void; style: React.CSSProperties
-}) {
-  const [h, setH] = useState(false)
-  return (
-    <div
-      title={title}
-      onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
-      onClick={e => { e.preventDefault(); e.stopPropagation(); onClick() }}
-      style={{ position: 'absolute', zIndex: 6, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', ...style }}
-    >
-      <div style={{
-        width: 18, height: 18, borderRadius: '50%', background: accent, color: '#fff',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.28)', pointerEvents: 'none',
-        opacity: h ? 1 : 0, transform: h ? 'scale(1)' : 'scale(0.6)',
-        transition: 'opacity 0.12s ease, transform 0.12s ease',
-      }}>
-        <Plus size={12} strokeWidth={3} />
-      </div>
-    </div>
-  )
-}
 
 // ─── Course Editor ────────────────────────────────────────────────────────────
 function CourseEditor({
@@ -1862,7 +1837,6 @@ function CreatorView({
   const [tkTableHeaders, setTkTableHeaders] = useState<string[]>(editingTask?.questionTable?.headers ?? ['', ''])
   const [tkTableRows, setTkTableRows] = useState<string[][]>(editingTask?.questionTable?.rows ?? [['', ''], ['', '']])
   const [tkEmptyCells, setTkEmptyCells] = useState<Record<string, boolean>>(editingTask?.questionTable?.emptyCells ?? {})
-  const [tkActiveCell, setTkActiveCell] = useState<string | null>(null)
   const [tkBlockOrder, setTkBlockOrder] = useState<Array<'image' | 'table'>>(editingTask?.blockOrder ?? ['image', 'table'])
   const [tkImageCollapsed, setTkImageCollapsed] = useState(false)
   const [tkTableCollapsed, setTkTableCollapsed] = useState(false)
@@ -1904,36 +1878,6 @@ function CreatorView({
   const condImgPasteZoneRef = useRef<HTMLDivElement>(null)
   const [savedFlash, setSavedFlash] = useState(false)
   const [savedTaskId, setSavedTaskId] = useState<number | null>(null)
-  // Clicked cell → selects its row/column for deletion.
-  const [sel, setSel] = useState<{ type: 'row' | 'col'; index: number } | null>(null)
-  // Measured gridline boundary positions (relative to the bordered table box) so
-  // the "+" handles can live OUTSIDE the table while the table itself stays clipped.
-  const tblBoxRef = useRef<HTMLDivElement>(null)
-  const [tblBounds, setTblBounds] = useState<{ colX: number[]; rowY: number[]; w: number; h: number }>({ colX: [], rowY: [], w: 0, h: 0 })
-  useLayoutEffect(() => {
-    const el = tblBoxRef.current
-    if (!tkHasTable || !el) return
-    const measure = () => {
-      const er = el.getBoundingClientRect()
-      const colX: number[] = []
-      el.querySelectorAll('thead th').forEach((th, i) => {
-        const r = (th as HTMLElement).getBoundingClientRect()
-        if (i === 0) colX.push(r.left - er.left)
-        colX.push(r.right - er.left)
-      })
-      const rowY: number[] = []
-      el.querySelectorAll('tbody tr').forEach((tr, i) => {
-        const r = (tr as HTMLElement).getBoundingClientRect()
-        if (i === 0) rowY.push(r.top - er.top)
-        rowY.push(r.bottom - er.top)
-      })
-      setTblBounds({ colX, rowY, w: er.width, h: er.height })
-    }
-    measure()
-    const ro = new ResizeObserver(measure)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [tkHasTable, tkTableHeaders.length, tkTableRows.length])
 
   // ── Scoring (shared across answer types) ──
   const [trMaxPoints, setTrMaxPoints] = useState(editingTask?.maxPoints ?? 1)
@@ -2041,7 +1985,12 @@ function CreatorView({
     editWidget?.type === 'pomodoro' && editWidget.items[0] ? (editWidget.items[0] as { breakMin: number }).breakMin : 5
   )
 
-  const cfg = CREATOR_CFG[mode]
+  // In trainer mode the editor accent follows the selected answer type's own
+  // colour (per-type palette), so the body matches its picker tile. Other modes
+  // keep their fixed creator accent.
+  const cfg = mode === 'trainer'
+    ? { ...CREATOR_CFG.trainer, ...typeVisual(tkAnswerType) }
+    : CREATOR_CFG[mode]
 
   function addKey() {
     if (!newKw.trim()) return
@@ -2098,64 +2047,6 @@ function CreatorView({
       if (to < 0 || to >= prev.length) return prev
       const next = [...prev];[next[i], next[to]] = [next[to], next[i]]; return next
     })
-  }
-
-  // Paste a full table from clipboard (e.g. copied from a website) into the top-left header cell.
-  function handleTablePaste(e: React.ClipboardEvent<HTMLInputElement>) {
-    const text = e.clipboardData.getData('text/plain')
-    const lines = text.split(/\r?\n/).filter(l => l.trim() !== '')
-    if (lines.length < 1) return
-    const parsed = lines.map(l => l.split('\t'))
-    const colCount = Math.max(...parsed.map(r => r.length))
-    if (colCount < 2 && lines.length < 2) return // looks like a plain word, don't intercept
-    e.preventDefault()
-    const headers = parsed[0].map(c => c.trim())
-    // pad headers to colCount
-    while (headers.length < colCount) headers.push('')
-    const rows = parsed.slice(1).map(row => {
-      const cells = row.map(c => c.trim())
-      while (cells.length < colCount) cells.push('')
-      return cells
-    })
-    if (rows.length === 0) rows.push(headers.map(() => ''))
-    setTkTableHeaders(headers)
-    setTkTableRows(rows)
-    setTkEmptyCells({})
-    setTkActiveCell(null)
-  }
-
-  // table-block cell helpers
-  function setTableCell(r: number, c: number, v: string) {
-    setTkTableRows(prev => prev.map((row, ri) => ri === r ? row.map((cell, ci) => ci === c ? v : cell) : row))
-  }
-  function setTableHeader(c: number, v: string) { setTkTableHeaders(prev => prev.map((h, ci) => ci === c ? v : h)) }
-  // Insert a row/column at an explicit boundary index (Notion-style hover handles).
-  function insertTableRow(index: number) {
-    setTkTableRows(prev => {
-      const blank = (prev[0] ?? ['', '']).map(() => '')
-      const n = [...prev]; n.splice(index, 0, blank); return n
-    })
-  }
-  function insertTableCol(index: number) {
-    setTkTableHeaders(prev => { const n = [...prev]; n.splice(index, 0, ''); return n })
-    setTkTableRows(prev => prev.map(row => { const n = [...row]; n.splice(index, 0, ''); return n }))
-  }
-  function removeTableRow(r: number) { setTkTableRows(prev => prev.length > 1 ? prev.filter((_, ri) => ri !== r) : prev); setSel(null) }
-  function removeTableCol(c: number) {
-    if (tkTableHeaders.length <= 1) return
-    setTkTableHeaders(prev => prev.filter((_, i) => i !== c))
-    setTkTableRows(prev => prev.map(row => row.filter((_, i) => i !== c)))
-    setSel(null)
-  }
-  // Delete/Backspace removes the selected row/column. While a cell with text is
-  // being edited we let the key edit the text instead (only act on empty fields).
-  function onTableKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
-    if (!sel || (e.key !== 'Delete' && e.key !== 'Backspace')) return
-    const el = e.target as HTMLElement
-    if (el.tagName === 'INPUT' && (el as HTMLInputElement).value.length > 0) return
-    e.preventDefault()
-    if (sel.type === 'row') removeTableRow(sel.index)
-    else removeTableCol(sel.index)
   }
 
   function onPickImage(e: React.ChangeEvent<HTMLInputElement>) {
@@ -2707,7 +2598,7 @@ function CreatorView({
                       style={{ width: 22, height: 22, borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
                     >{collapsed ? '▸' : '▾'}</button>
                     {!isImage && (
-                      <button onClick={() => { setTkHasTable(false); setSel(null) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, padding: 0 }}>Убрать</button>
+                      <button onClick={() => setTkHasTable(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, padding: 0 }}>Убрать</button>
                     )}
                   </div>
                   {!collapsed && isImage && (
@@ -2756,84 +2647,12 @@ function CreatorView({
                     </div>
                   )}
                   {!collapsed && !isImage && (
-                    <>
-                      {/* Outer wrapper with gutters on every side; the table is clipped for
-                          clean rounded corners, the "+" handles sit OUTSIDE it in the gutters. */}
-                      <div onKeyDown={onTableKeyDown} onClick={() => setSel(null)} style={{ position: 'relative', padding: 20 }}>
-                        <div ref={tblBoxRef} style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--color-border-strong)' }}>
-                          <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 13 }}>
-                            <thead><tr>{tkTableHeaders.map((h, c) => {
-                              const colSel = sel?.type === 'col' && sel.index === c
-                              return (
-                                <th key={c} onDoubleClick={() => setSel({ type: 'col', index: c })}
-                                  style={{ borderRight: '1px solid var(--color-border-medium)', borderBottom: '1px solid var(--color-border-strong)', background: colSel ? cfg.bg : 'var(--color-table-header-bg)', padding: 0, cursor: 'text', transition: 'background 0.12s', minWidth: 90 }}>
-                                  <input value={h} onChange={e => setTableHeader(c, e.target.value)} placeholder={`Заголовок ${c + 1}`}
-                                    onPaste={c === 0 ? handleTablePaste : undefined}
-                                    style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', color: 'var(--color-text)', padding: '8px 10px', fontWeight: 700, fontFamily: 'inherit', fontSize: 13 }} />
-                                </th>
-                              )
-                            })}</tr></thead>
-                            <tbody>{tkTableRows.map((row, r) => (
-                              <tr key={r}>{row.map((cell, c) => {
-                                const hl = (sel?.type === 'row' && sel.index === r) || (sel?.type === 'col' && sel.index === c)
-                                const key = `${r},${c}`
-                                const isExplicitlyEmpty = !!tkEmptyCells[key]
-                                const isActive = tkActiveCell === key
-                                const showChoice = !isExplicitlyEmpty && !isActive && cell === ''
-                                return (
-                                  <td key={c}
-                                    onClick={() => { if (showChoice) setTkActiveCell(key) }}
-                                    onDoubleClick={() => setSel({ type: 'row', index: r })}
-                                    style={{ borderRight: '1px solid var(--color-border)', borderTop: r > 0 ? '1px solid var(--color-border)' : undefined, padding: 0, cursor: showChoice ? 'pointer' : 'text', background: hl ? cfg.bg : 'var(--color-table-cell-bg)', transition: 'background 0.12s', position: 'relative' }}>
-                                    {isExplicitlyEmpty ? (
-                                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', minHeight: 34, gap: 4 }}>
-                                        <span style={{ fontSize: 11, color: 'var(--color-text-4)', fontStyle: 'italic' }}>пусто</span>
-                                        <button
-                                          onMouseDown={e => { e.stopPropagation(); setTkEmptyCells(prev => { const n = { ...prev }; delete n[key]; return n }); setTkActiveCell(key) }}
-                                          style={{ fontSize: 10, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 4px', borderRadius: 4, lineHeight: 1 }}
-                                          title="Вписать"
-                                        >✎</button>
-                                      </div>
-                                    ) : showChoice ? (
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', minHeight: 34 }}>
-                                        <button
-                                          onMouseDown={e => { e.stopPropagation(); setTkActiveCell(key) }}
-                                          style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: `1px solid ${cfg.color}55`, background: cfg.bg, color: cfg.color, cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
-                                        >Вписать</button>
-                                        <button
-                                          onMouseDown={e => { e.stopPropagation(); setTkEmptyCells(prev => ({ ...prev, [key]: true })) }}
-                                          style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
-                                        >Пусто</button>
-                                      </div>
-                                    ) : (
-                                      <input
-                                        autoFocus={isActive}
-                                        value={cell}
-                                        onChange={e => setTableCell(r, c, e.target.value)}
-                                        onFocus={() => setTkActiveCell(key)}
-                                        onBlur={() => { if (cell === '') setTkActiveCell(null) }}
-                                        placeholder="—"
-                                        style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: '8px 10px', fontFamily: 'inherit', fontSize: 13, color: 'var(--color-text)' }}
-                                      />
-                                    )}
-                                  </td>
-                                )
-                              })}</tr>
-                            ))}</tbody>
-                          </table>
-                        </div>
-                        {/* column "+" in the TOP gutter, row "+" in the LEFT gutter — measured boundaries */}
-                        {tblBounds.colX.map((x, i) => (
-                          <InsertHandle key={`c${i}`} accent={cfg.color} title="Добавить столбец" onClick={() => insertTableCol(i)}
-                            style={{ left: 20 + x - 18, top: 0, width: 36, height: 20 }} />
-                        ))}
-                        {tblBounds.rowY.map((y, j) => (
-                          <InsertHandle key={`r${j}`} accent={cfg.color} title="Добавить строку" onClick={() => insertTableRow(j)}
-                            style={{ left: 0, top: 20 + y - 18, width: 20, height: 36 }} />
-                        ))}
-                      </div>
-                      <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>Внутри таблицы клик выделяет строку (по ячейке) или столбец (по заголовку), удалить выделенное — клавишей Delete. Кружки «+» по краям: сверху добавляют столбец, слева — строку.</div>
-                    </>
+                    <TableEditor
+                      value={{ headers: tkTableHeaders, rows: tkTableRows, emptyCells: tkEmptyCells }}
+                      onChange={v => { setTkTableHeaders(v.headers); setTkTableRows(v.rows); setTkEmptyCells(v.emptyCells ?? {}) }}
+                      accent={cfg.color}
+                      accentBg={cfg.bg}
+                    />
                   )}
                 </div>
               )
@@ -3271,6 +3090,7 @@ function CreatorView({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {ANSWER_TYPES.map(({ type, label, hint, Icon }) => {
                     const active = tkAnswerType === type
+                    const v = typeVisual(type)
                     return (
                       <button key={type} onClick={() => {
                         setTkAnswerType(type)
@@ -3278,14 +3098,17 @@ function CreatorView({
                         if (type === 'multi' && tkCorrect.length === 0) setTkCorrect([0])
                         if (type === 'single' && tkCorrect.length > 1) setTkCorrect([tkCorrect[0]])
                       }} style={{
-                        display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 11,
-                        border: active ? `1.5px solid ${cfg.color}` : '1.5px solid var(--color-border)',
-                        background: active ? cfg.bg : 'var(--color-bg-2)', cursor: 'pointer', textAlign: 'left', width: '100%',
+                        display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px', borderRadius: 13,
+                        border: active ? `1.5px solid ${v.color}` : '1.5px solid transparent',
+                        background: active ? v.bg : 'var(--color-bg-2)', cursor: 'pointer', textAlign: 'left', width: '100%',
+                        transition: 'background 0.12s, border-color 0.12s',
                       }}>
-                        <Icon size={15} strokeWidth={2} style={{ color: active ? cfg.color : 'var(--color-text-3)', flexShrink: 0 }} />
+                        <div style={{ width: 32, height: 32, borderRadius: 9, background: v.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <Icon size={15} strokeWidth={2} style={{ color: v.color }} />
+                        </div>
                         <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: 12.5, fontWeight: 700, color: active ? cfg.color : 'var(--color-text)' }}>{label}</div>
-                          <div style={{ fontSize: 10.5, color: active ? 'var(--color-accent)' : 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: active ? 0.75 : 1 }}>{hint}</div>
+                          <div style={{ fontSize: 12.5, fontWeight: 700, color: active ? v.color : 'var(--color-text)' }}>{label}</div>
+                          <div style={{ fontSize: 10.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{hint}</div>
                         </div>
                       </button>
                     )

@@ -25,6 +25,32 @@ function getIcon(type: string) {
   return (ICON_MAP as Record<string, React.ReactNode>)[type] ?? <Bell size={16} />
 }
 
+// Color accent per notification type: [accentHex, bgAlpha]
+const TYPE_COLOR: Record<string, string> = {
+  student_joined:       '#786AD7',
+  achievement:          '#786AD7',
+  lesson_unlocked:      '#786AD7',
+  quiz_available:       '#786AD7',
+  homework_assigned:    '#F59E0B',
+  deadline_approaching: '#F59E0B',
+  payment_due:          '#F59E0B',
+  homework_graded:      '#3FCC8A',
+  homework_submitted:   '#3FCC8A',
+  hw_graded:            '#3FCC8A',
+  hw_submitted:         '#3FCC8A',
+  hw_returned:          '#F59E0B',
+  test_assigned:        '#786AD7',
+}
+function getColor(type: string): string {
+  return TYPE_COLOR[type] ?? '#FF5A5A'
+}
+
+function dedupBody(body: string): string {
+  const parts = body.split(' · ')
+  if (parts.length === 2 && parts[0].trim() === parts[1].trim()) return parts[0].trim()
+  return body
+}
+
 function NotifRow({ n, onAction, onRead }: {
   n: Notification
   onRead: (id: string) => void
@@ -108,7 +134,14 @@ export default function NotificationToastContainer() {
 
   const widget = (
     <AnimatePresence>
-      {live.length > 0 && latest && (
+      {live.length > 0 && latest && (() => {
+        const accent = getColor(latest.type)
+        const hexToRgb = (h: string) => {
+          const r = parseInt(h.slice(1,3),16), g = parseInt(h.slice(3,5),16), b = parseInt(h.slice(5,7),16)
+          return `${r},${g},${b}`
+        }
+        const rgb = hexToRgb(accent)
+        return (
         // Outer: handles enter / exit only — no y movement to avoid flash
         <motion.div
           key="notif-widget"
@@ -135,11 +168,11 @@ export default function NotificationToastContainer() {
               borderRadius: 20,
               overflow: 'hidden',
               cursor: 'pointer',
-              background: 'radial-gradient(ellipse at top left, rgba(255,90,90,0.22) 0%, rgba(var(--glass-rgb),0.96) 55%)',
+              background: `radial-gradient(ellipse at top left, rgba(${rgb},0.18) 0%, rgba(var(--glass-rgb),0.96) 55%)`,
               backdropFilter: 'blur(20px) saturate(180%)',
               WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-              border: '1px solid rgba(255,90,90,0.25)',
-              boxShadow: '0 8px 32px rgba(255,90,90,0.14), 0 2px 10px rgba(0,0,0,0.08)',
+              border: `1px solid rgba(${rgb},0.22)`,
+              boxShadow: `0 8px 32px rgba(${rgb},0.12), 0 2px 10px rgba(0,0,0,0.08)`,
             }}
           >
             {/* Top row */}
@@ -149,9 +182,9 @@ export default function NotificationToastContainer() {
             >
               <span style={{
                 width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-                background: 'rgba(255,90,90,0.15)',
+                background: `rgba(${rgb},0.14)`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#FF5A5A',
+                color: accent,
               }}>
                 {getIcon(latest.type)}
               </span>
@@ -163,13 +196,13 @@ export default function NotificationToastContainer() {
                 {!expanded && (
                   <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 1,
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {latest.body}
+                    {dedupBody(latest.body)}
                   </div>
                 )}
               </div>
               {live.length > 1 && !expanded && (
                 <span style={{
-                  fontSize: 10, fontWeight: 700, color: '#fff', background: '#FF5A5A',
+                  fontSize: 10, fontWeight: 700, color: '#fff', background: accent,
                   borderRadius: 99, padding: '2px 6px', flexShrink: 0,
                 }}>
                   +{live.length - 1}
@@ -199,7 +232,7 @@ export default function NotificationToastContainer() {
                   transition={{ duration: 0.22, ease: 'easeOut' }}
                   style={{ overflow: 'hidden' }}
                 >
-                  <div style={{ padding: '0 14px 14px', borderTop: '1px solid rgba(255,90,90,0.15)', paddingTop: 10 }}>
+                  <div style={{ padding: '0 14px 14px', borderTop: `1px solid rgba(${rgb},0.15)`, paddingTop: 10 }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                       {live.map((n, i) => (
                         <div key={n.id}>
@@ -211,7 +244,7 @@ export default function NotificationToastContainer() {
                     {live.length > 1 && (
                       <button onClick={dismissAll} style={{
                         marginTop: 10, width: '100%', padding: '7px 0', borderRadius: 10,
-                        border: '1px solid rgba(255,90,90,0.2)', background: 'none', cursor: 'pointer',
+                        border: `1px solid rgba(${rgb},0.2)`, background: 'none', cursor: 'pointer',
                         fontSize: 11.5, fontWeight: 600, color: 'var(--color-muted)',
                       }}>
                         Закрыть все
@@ -228,11 +261,12 @@ export default function NotificationToastContainer() {
               initial={{ scaleX: 1 }}
               animate={{ scaleX: 0 }}
               transition={{ duration: 30, ease: 'linear' }}
-              style={{ height: 2, background: 'rgba(255,90,90,0.5)', transformOrigin: 'left' }}
+              style={{ height: 2, background: `rgba(${rgb},0.5)`, transformOrigin: 'left' }}
             />
           </motion.div>
         </motion.div>
-      )}
+        )
+      })()}
     </AnimatePresence>
   )
 

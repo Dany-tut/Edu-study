@@ -152,10 +152,89 @@ function AddGroupModal({ onClose, onSave }: {
 }
 
 // ─── Модалка добавления ученика ───────────────────────────────────────────────
-function AddStudentModal({ onClose, onSave }: {
+function AddStudentTypePicker({ groups, onPickGroup, onPickIndividual, onClose }: {
+  groups: Group[]
+  onPickGroup: () => void
+  onPickIndividual: () => void
   onClose: () => void
-  onSave: (s: { name: string; phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number }) => Promise<{ inviteToken: string | null }>
 }) {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 1000,
+      background: 'rgba(0,0,0,0.32)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }} onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.94 }}
+        transition={{ duration: 0.2 }}
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: 'var(--color-bg-input)', borderRadius: 24, padding: 28,
+          width: 380, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>Добавить ученика</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <button
+            onClick={groups.length > 0 ? onPickGroup : undefined}
+            disabled={groups.length === 0}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
+              background: 'var(--color-bg-4)', border: '1.5px solid var(--color-border-medium)',
+              borderRadius: 16, cursor: groups.length > 0 ? 'pointer' : 'not-allowed',
+              opacity: groups.length === 0 ? 0.45 : 1, textAlign: 'left',
+            }}
+          >
+            <div style={{
+              width: 40, height: 40, borderRadius: 12,
+              background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Users size={18} color="var(--color-accent)" />
+            </div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>В группу</div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>
+                {groups.length === 0 ? 'Сначала создайте группу' : `${groups.length} ${groups.length === 1 ? 'группа' : 'групп'}`}
+              </div>
+            </div>
+          </button>
+          <button
+            onClick={onPickIndividual}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
+              background: 'var(--color-bg-4)', border: '1.5px solid var(--color-border-medium)',
+              borderRadius: 16, cursor: 'pointer', textAlign: 'left',
+            }}
+          >
+            <div style={{
+              width: 40, height: 40, borderRadius: 12,
+              background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <User size={18} color="var(--color-green-text)" />
+            </div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>1:1 занятие</div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>Индивидуальный ученик</div>
+            </div>
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
+  onClose: () => void
+  onSave: (groupId: string, s: { name: string; phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number }) => Promise<{ inviteToken: string | null }>
+  groups: Group[]
+  initialGroupId: string | null
+}) {
+  const [selectedGroup, setSelectedGroup] = useState<string>(initialGroupId ?? groups[0]?.id ?? '')
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [telegram, setTelegram] = useState('')
@@ -167,9 +246,9 @@ function AddStudentModal({ onClose, onSave }: {
   const [copied, setCopied] = useState(false)
 
   async function handleSave() {
-    if (!name.trim()) return
+    if (!name.trim() || !selectedGroup) return
     setSaving(true)
-    const { inviteToken } = await onSave({ name: name.trim(), phone, telegramLink: telegram, parentContact: parent, desiredScore, paymentAmount })
+    const { inviteToken } = await onSave(selectedGroup, { name: name.trim(), phone, telegramLink: telegram, parentContact: parent, desiredScore, paymentAmount })
     setSaving(false)
     if (inviteToken) {
       setInviteLink(`${window.location.origin}${window.location.pathname}#/join?token=${inviteToken}`)
@@ -243,6 +322,20 @@ function AddStudentModal({ onClose, onSave }: {
         ) : (
           <>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {groups.length > 0 && (
+            <label style={labelStyle}>
+              Группа *
+              <select
+                value={selectedGroup}
+                onChange={e => setSelectedGroup(e.target.value)}
+                style={{ ...inputStyle, appearance: 'none' }}
+              >
+                {groups.map(g => (
+                  <option key={g.id} value={g.id}>{g.icon} {g.name}</option>
+                ))}
+              </select>
+            </label>
+          )}
           <label style={labelStyle}>
             Имя *
             <input value={name} onChange={e => setName(e.target.value)} placeholder="Алиса Смирнова" style={inputStyle} />
@@ -281,9 +374,9 @@ function AddStudentModal({ onClose, onSave }: {
           disabled={!name.trim() || saving}
           style={{
             marginTop: 22, width: '100%', padding: '12px 0',
-            background: name.trim() ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)',
+            background: (name.trim() && selectedGroup) ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)',
             color: '#fff', fontWeight: 700, fontSize: 15,
-            border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
+            border: 'none', borderRadius: 14, cursor: (name.trim() && selectedGroup) ? 'pointer' : 'not-allowed',
           }}
         >
           {saving ? 'Сохранение...' : 'Добавить ученика'}
@@ -1454,9 +1547,10 @@ export default function TeacherGroupsPage() {
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
   const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
-  const { groups, loading: groupsLoading, addGroup, addIndividualStudent, deleteGroup } = useGroups()
-  const { students, addStudent, deleteStudent, updateStudent } = useStudents(selectedGroupId)
+  const { groups, loading: groupsLoading, addGroup, addIndividualStudent, addStudentToGroup, deleteGroup } = useGroups()
+  const { students, deleteStudent, updateStudent } = useStudents(selectedGroupId)
   const [showAddGroup, setShowAddGroup] = useState(false)
+  const [showAddStudentPicker, setShowAddStudentPicker] = useState(false)
   const [showAddStudent, setShowAddStudent] = useState(false)
   const [showAddIndividual, setShowAddIndividual] = useState(false)
   const [activeStripTab, setActiveStripTab] = useState<'groups' | 'students'>('groups')
@@ -1476,7 +1570,7 @@ export default function TeacherGroupsPage() {
   const openAddGroupModal = useCallback(() => setShowAddGroup(true), [])
 
   useEffect(() => {
-    const onAddStudent = () => setShowAddStudent(true)
+    const onAddStudent = () => setShowAddStudentPicker(true)
     window.addEventListener('teacher:open-add-group', openAddGroupModal)
     window.addEventListener('teacher:open-add-student', onAddStudent)
     return () => {
@@ -1502,7 +1596,7 @@ export default function TeacherGroupsPage() {
     },
     onTabPlusClick: (id) => {
       if (id === 'groups') setShowAddGroup(true)
-      else setShowAddIndividual(true)
+      else setShowAddStudentPicker(true)
     },
   }
 
@@ -1834,10 +1928,23 @@ export default function TeacherGroupsPage() {
             onSave={async (g) => { await addGroup(g) }}
           />
         )}
-        {showAddStudent && selectedGroupId && (
+        {showAddStudentPicker && (
+          <AddStudentTypePicker
+            groups={regularGroups}
+            onPickGroup={() => { setShowAddStudentPicker(false); setShowAddStudent(true) }}
+            onPickIndividual={() => { setShowAddStudentPicker(false); setShowAddIndividual(true) }}
+            onClose={() => setShowAddStudentPicker(false)}
+          />
+        )}
+        {showAddStudent && (
           <AddStudentModal
+            groups={regularGroups}
+            initialGroupId={selectedGroupId}
             onClose={() => setShowAddStudent(false)}
-            onSave={async (s) => { const { inviteToken } = await addStudent(s); return { inviteToken: inviteToken ?? null } }}
+            onSave={async (groupId, s) => {
+              const { inviteToken } = await addStudentToGroup(groupId, s)
+              return { inviteToken: inviteToken ?? null }
+            }}
           />
         )}
         {showAddIndividual && (

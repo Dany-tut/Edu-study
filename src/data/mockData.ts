@@ -41,6 +41,8 @@ export interface Lesson {
    *  (lessons.homework JSONB). When set with tasks, the student homework page
    *  renders these instead of the generic placeholder homework. */
   homework?: import('./lessonContent').AuthoredHomework
+  /** Short lesson description from the teacher editor (lessons.description). */
+  description?: string
   /** "Запись" tab — recording video (RuTube embed id parsed from the URL). */
   videoId?: string
   /** "Запись" tab — video chapter timecodes. */

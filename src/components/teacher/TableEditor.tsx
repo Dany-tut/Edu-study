@@ -1,0 +1,309 @@
+import { useState, useRef, useLayoutEffect } from 'react'
+import { Plus, Camera, X } from 'lucide-react'
+import { optimizePhoto } from '../../lib/imageOptim'
+
+// ─── Shared table editor (Notion-style) ──────────────────────────────────────
+// Extracted from the trainer creator so the course constructor uses the exact
+// same widget: rounded clipped table, "+" handles in the gutters, per-cell
+// «Вписать / Пусто» marking, click-to-select row/column + Delete, paste-from-
+// Excel. Fully controlled: holds only ephemeral UI state (selection, the cell
+// being edited, measured gridline positions).
+
+export interface TableEditorValue {
+  headers: string[]
+  rows: string[][]
+  /** Keys "r,c" marked as the checked/empty cell (the «?» the student fills). */
+  emptyCells?: Record<string, boolean>
+  /** Keys "r,c" → base64 data URL — image content for that cell. */
+  cellImages?: Record<string, string>
+  /** Keys "r,c" → percentage (10–100) for cell image display width. */
+  cellImageSizes?: Record<string, number>
+}
+
+// "+" insert control with its OWN hover zone in the gutter: the circle only
+// appears when the cursor enters this handle's zone (passed via `style`), so
+// neighbouring "+"s don't all light up together.
+function InsertHandle({ accent, title, onClick, style }: {
+  accent: string; title: string; onClick: () => void; style: React.CSSProperties
+}) {
+  const [h, setH] = useState(false)
+  return (
+    <div
+      title={title}
+      onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
+      onClick={e => { e.preventDefault(); e.stopPropagation(); onClick() }}
+      style={{ position: 'absolute', zIndex: 6, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', ...style }}
+    >
+      <div style={{
+        width: 18, height: 18, borderRadius: '50%', background: accent, color: '#fff',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.28)', pointerEvents: 'none',
+        opacity: h ? 1 : 0, transform: h ? 'scale(1)' : 'scale(0.6)',
+        transition: 'opacity 0.12s ease, transform 0.12s ease',
+      }}>
+        <Plus size={12} strokeWidth={3} />
+      </div>
+    </div>
+  )
+}
+
+const CELL_IMG_SIZES: { label: string; value: number }[] = [
+  { label: 'S', value: 25 },
+  { label: 'M', value: 50 },
+  { label: 'L', value: 75 },
+  { label: '↔', value: 100 },
+]
+
+export default function TableEditor({ value, onChange, accent, accentBg, allowEmptyCells = true, allowCellImages = false, hint = true }: {
+  value: TableEditorValue
+  onChange: (next: TableEditorValue) => void
+  accent: string
+  accentBg: string
+  /** When false the «Вписать / Пусто» chooser is hidden (plain reference table). */
+  allowEmptyCells?: boolean
+  /** When true, cells also offer a camera icon for inserting an image. */
+  allowCellImages?: boolean
+  hint?: boolean
+}) {
+  const headers = value.headers
+  const rows = value.rows
+  const emptyCells = value.emptyCells ?? {}
+  const cellImages = value.cellImages ?? {}
+  const cellImageSizes = value.cellImageSizes ?? {}
+  const cellImgInputRef = useRef<HTMLInputElement>(null)
+  const pendingCellKey = useRef<string | null>(null)
+
+  const [activeCell, setActiveCell] = useState<string | null>(null)
+  const [sel, setSel] = useState<{ type: 'row' | 'col'; index: number } | null>(null)
+
+  // Measured gridline boundary positions (relative to the bordered table box) so
+  // the "+" handles can live OUTSIDE the table while the table itself stays clipped.
+  const boxRef = useRef<HTMLDivElement>(null)
+  const [bounds, setBounds] = useState<{ colX: number[]; rowY: number[] }>({ colX: [], rowY: [] })
+  useLayoutEffect(() => {
+    const el = boxRef.current
+    if (!el) return
+    const measure = () => {
+      const er = el.getBoundingClientRect()
+      const colX: number[] = []
+      el.querySelectorAll('thead th').forEach((th, i) => {
+        const r = (th as HTMLElement).getBoundingClientRect()
+        if (i === 0) colX.push(r.left - er.left)
+        colX.push(r.right - er.left)
+      })
+      const rowY: number[] = []
+      el.querySelectorAll('tbody tr').forEach((tr, i) => {
+        const r = (tr as HTMLElement).getBoundingClientRect()
+        if (i === 0) rowY.push(r.top - er.top)
+        rowY.push(r.bottom - er.top)
+      })
+      setBounds({ colX, rowY })
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [headers.length, rows.length])
+
+  function emit(next: Partial<TableEditorValue>) {
+    onChange({ headers, rows, emptyCells, ...next })
+  }
+  function setHeader(c: number, v: string) {
+    emit({ headers: headers.map((h, ci) => ci === c ? v : h) })
+  }
+  function setCell(r: number, c: number, v: string) {
+    emit({ rows: rows.map((row, ri) => ri === r ? row.map((cell, ci) => ci === c ? v : cell) : row) })
+  }
+  function insertRow(index: number) {
+    const blank = (rows[0] ?? headers).map(() => '')
+    const n = [...rows]; n.splice(index, 0, blank); emit({ rows: n })
+  }
+  function insertCol(index: number) {
+    const h = [...headers]; h.splice(index, 0, '')
+    const r = rows.map(row => { const n = [...row]; n.splice(index, 0, ''); return n })
+    emit({ headers: h, rows: r })
+  }
+  function removeRow(r: number) {
+    if (rows.length <= 1) return
+    emit({ rows: rows.filter((_, ri) => ri !== r) }); setSel(null)
+  }
+  function removeCol(c: number) {
+    if (headers.length <= 1) return
+    emit({ headers: headers.filter((_, i) => i !== c), rows: rows.map(row => row.filter((_, i) => i !== c)) })
+    setSel(null)
+  }
+  function setEmpty(key: string, on: boolean) {
+    const n = { ...emptyCells }
+    if (on) n[key] = true; else delete n[key]
+    emit({ emptyCells: n })
+  }
+  function setCellImage(key: string, url: string) {
+    const n = { ...cellImages, [key]: url }
+    emit({ cellImages: n })
+  }
+  function removeCellImage(key: string) {
+    const n = { ...cellImages }; delete n[key]
+    const s = { ...cellImageSizes }; delete s[key]
+    emit({ cellImages: n, cellImageSizes: s })
+  }
+  function setCellImageSize(key: string, size: number) {
+    emit({ cellImageSizes: { ...cellImageSizes, [key]: size } })
+  }
+  function pickCellImage(key: string) {
+    pendingCellKey.current = key
+    cellImgInputRef.current?.click()
+  }
+
+  // Paste a full table from clipboard (e.g. copied from a website) into the top-left header cell.
+  function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    const text = e.clipboardData.getData('text/plain')
+    const lines = text.split(/\r?\n/).filter(l => l.trim() !== '')
+    if (lines.length < 1) return
+    const parsed = lines.map(l => l.split('\t'))
+    const colCount = Math.max(...parsed.map(r => r.length))
+    if (colCount < 2 && lines.length < 2) return // looks like a plain word, don't intercept
+    e.preventDefault()
+    const h = parsed[0].map(c => c.trim())
+    while (h.length < colCount) h.push('')
+    const r = parsed.slice(1).map(row => {
+      const cells = row.map(c => c.trim())
+      while (cells.length < colCount) cells.push('')
+      return cells
+    })
+    if (r.length === 0) r.push(h.map(() => ''))
+    onChange({ headers: h, rows: r, emptyCells: {} })
+    setActiveCell(null)
+  }
+
+  // Delete/Backspace removes the selected row/column. While a cell with text is
+  // being edited we let the key edit the text instead (only act on empty fields).
+  function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (!sel || (e.key !== 'Delete' && e.key !== 'Backspace')) return
+    const el = e.target as HTMLElement
+    if (el.tagName === 'INPUT' && (el as HTMLInputElement).value.length > 0) return
+    e.preventDefault()
+    if (sel.type === 'row') removeRow(sel.index)
+    else removeCol(sel.index)
+  }
+
+  return (
+    <>
+      {/* Hidden file input for cell image uploads */}
+      <input ref={cellImgInputRef} type="file" accept="image/*" style={{ display: 'none' }}
+        onChange={e => {
+          const file = e.target.files?.[0]; if (!file || !pendingCellKey.current) return
+          const key = pendingCellKey.current
+          optimizePhoto(file).then(url => {
+            setCellImage(key, url)
+            if (!cellImageSizes[key]) setCellImageSize(key, 100)
+          })
+          e.target.value = ''
+        }}
+      />
+      {/* Outer wrapper with gutters on every side; the table is clipped for clean
+          rounded corners, the "+" handles sit OUTSIDE it in the gutters. */}
+      <div onKeyDown={onKeyDown} onClick={() => setSel(null)} style={{ position: 'relative', padding: 20 }}>
+        <div ref={boxRef} style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--color-border-strong)' }}>
+          <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 13 }}>
+            <thead><tr>{headers.map((h, c) => {
+              const colSel = sel?.type === 'col' && sel.index === c
+              return (
+                <th key={c} onDoubleClick={() => setSel({ type: 'col', index: c })}
+                  style={{ borderRight: '1px solid var(--color-border-medium)', borderBottom: '1px solid var(--color-border-strong)', background: colSel ? accentBg : 'var(--color-table-header-bg)', padding: 0, cursor: 'text', transition: 'background 0.12s', minWidth: 90 }}>
+                  <input value={h} onChange={e => setHeader(c, e.target.value)} placeholder={`Заголовок ${c + 1}`}
+                    onPaste={c === 0 ? handlePaste : undefined}
+                    style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', color: 'var(--color-text)', padding: '8px 10px', fontWeight: 700, fontFamily: 'inherit', fontSize: 13 }} />
+                </th>
+              )
+            })}</tr></thead>
+            <tbody>{rows.map((row, r) => (
+              <tr key={r}>{row.map((cell, c) => {
+                const hl = (sel?.type === 'row' && sel.index === r) || (sel?.type === 'col' && sel.index === c)
+                const key = `${r},${c}`
+                const isExplicitlyEmpty = !!emptyCells[key]
+                const isActive = activeCell === key
+                const cellImg = cellImages[key]
+                const showChoice = allowEmptyCells && !isExplicitlyEmpty && !isActive && cell === '' && !cellImg
+                return (
+                  <td key={c}
+                    onClick={() => { if (showChoice) setActiveCell(key) }}
+                    onDoubleClick={() => setSel({ type: 'row', index: r })}
+                    style={{ borderRight: '1px solid var(--color-border)', borderTop: r > 0 ? '1px solid var(--color-border)' : undefined, padding: 0, cursor: showChoice ? 'pointer' : 'text', background: hl ? accentBg : 'var(--color-table-cell-bg)', transition: 'background 0.12s', position: 'relative' }}>
+                    {cellImg ? (
+                      <div style={{ padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: 5 }}>
+                        {/* Size controls for cell image */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                          {CELL_IMG_SIZES.map(s => (
+                            <button key={s.value} onMouseDown={e => { e.stopPropagation(); setCellImageSize(key, s.value) }}
+                              style={{ padding: '1px 6px', borderRadius: 5, border: `1px solid ${(cellImageSizes[key] ?? 100) === s.value ? accent : 'var(--color-border-medium)'}`, background: (cellImageSizes[key] ?? 100) === s.value ? accentBg : 'transparent', color: (cellImageSizes[key] ?? 100) === s.value ? accent : 'var(--color-text-4)', cursor: 'pointer', fontSize: 10, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1.4 }}>
+                              {s.label}
+                            </button>
+                          ))}
+                          <button onMouseDown={e => { e.stopPropagation(); removeCellImage(key) }}
+                            style={{ marginLeft: 2, width: 18, height: 18, borderRadius: 5, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
+                            <X size={9} />
+                          </button>
+                        </div>
+                        <img src={cellImg} alt="" style={{ display: 'block', width: `${cellImageSizes[key] ?? 100}%`, borderRadius: 6 }} />
+                      </div>
+                    ) : isExplicitlyEmpty ? (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', minHeight: 34, gap: 4 }}>
+                        <span style={{ fontSize: 11, color: 'var(--color-text-4)', fontStyle: 'italic' }}>пусто</span>
+                        <button
+                          onMouseDown={e => { e.stopPropagation(); setEmpty(key, false); setActiveCell(key) }}
+                          style={{ fontSize: 10, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 4px', borderRadius: 4, lineHeight: 1 }}
+                          title="Вписать"
+                        >✎</button>
+                      </div>
+                    ) : showChoice ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', minHeight: 34, flexWrap: 'wrap' }}>
+                        <button
+                          onMouseDown={e => { e.stopPropagation(); setActiveCell(key) }}
+                          style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: `1px solid ${accent}55`, background: accentBg, color: accent, cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
+                        >Вписать</button>
+                        <button
+                          onMouseDown={e => { e.stopPropagation(); setEmpty(key, true) }}
+                          style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
+                        >Пусто</button>
+                        {allowCellImages && (
+                          <button
+                            onMouseDown={e => { e.stopPropagation(); pickCellImage(key) }}
+                            style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
+                          ><Camera size={10} /> Фото</button>
+                        )}
+                      </div>
+                    ) : (
+                      <input
+                        autoFocus={isActive}
+                        value={cell}
+                        onChange={e => setCell(r, c, e.target.value)}
+                        onFocus={() => setActiveCell(key)}
+                        onBlur={() => { if (cell === '') setActiveCell(null) }}
+                        placeholder="—"
+                        style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: '8px 10px', fontFamily: 'inherit', fontSize: 13, color: 'var(--color-text)' }}
+                      />
+                    )}
+                  </td>
+                )
+              })}</tr>
+            ))}</tbody>
+          </table>
+        </div>
+        {/* column "+" in the TOP gutter, row "+" in the LEFT gutter — measured boundaries */}
+        {bounds.colX.map((x, i) => (
+          <InsertHandle key={`c${i}`} accent={accent} title="Добавить столбец" onClick={() => insertCol(i)}
+            style={{ left: 20 + x - 18, top: 0, width: 36, height: 20 }} />
+        ))}
+        {bounds.rowY.map((y, j) => (
+          <InsertHandle key={`r${j}`} accent={accent} title="Добавить строку" onClick={() => insertRow(j)}
+            style={{ left: 0, top: 20 + y - 18, width: 20, height: 36 }} />
+        ))}
+      </div>
+      {hint && (
+        <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>
+          Внутри таблицы клик выделяет строку (по ячейке) или столбец (по заголовку), удалить выделенное — клавишей Delete. Кружки «+» по краям: сверху добавляют столбец, слева — строку.
+        </div>
+      )}
+    </>
+  )
+}
