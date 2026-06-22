@@ -49,7 +49,8 @@ export type ScheduleItem = {
   id: string
   time: string
   endTime: string
-  groupId: string
+  groupId: string | null
+  studentId?: string | null
   groupName: string
   subject: string
   icon: string
@@ -94,7 +95,7 @@ export type HomeworkItem = {
 
 export type Reminder = {
   id: string
-  type: 'check-hw' | 'fill-widget' | 'make-trainer' | 'send-push' | 'payment-debt'
+  type: 'check-hw' | 'fill-widget' | 'make-trainer' | 'send-push' | 'payment-debt' | 'fill-journal'
   text: string
   detail?: string
   urgency: 'high' | 'medium' | 'low'

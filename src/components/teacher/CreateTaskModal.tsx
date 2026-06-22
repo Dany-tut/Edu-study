@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Calendar, Clock, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAllStudents, useGroups } from '../../lib/useGroups'
 import TeacherSaveButton from './TeacherSaveButton'
+import ScrollFade from '../ScrollFade'
 
 // ─── Task types ───────────────────────────────────────────────────────────────
 
@@ -18,10 +19,10 @@ type TaskType = {
 
 const TASK_TYPES: TaskType[] = [
   { id: 'meeting',      label: 'Встреча',  keywords: ['встреча', 'встречу'],       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', textColor: 'var(--color-green-text)' },
-  { id: 'call',         label: 'Созвон',   keywords: ['созвон'],                    color: '#6C7BE8', bg: 'var(--color-blue-pill-bg)', textColor: '#3d4ecc' },
-  { id: 'lesson',       label: 'Урок',     keywords: ['урок'],                      color: '#e07c2a', bg: 'var(--color-peach-soft)', textColor: '#b85e10' },
-  { id: 'homework',     label: 'Домашка',  keywords: ['домашка', 'домашку', 'дз'], color: '#9B6DCC', bg: 'var(--color-purple-soft)', textColor: 'var(--color-accent)' },
-  { id: 'presentation', label: 'Преза',    keywords: ['преза', 'презентация'],      color: '#e0397a', bg: 'var(--color-red-soft)', textColor: '#c41f60' },
+  { id: 'call',         label: 'Созвон',   keywords: ['созвон'],                    color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)', textColor: 'var(--color-blue-pill-text)' },
+  { id: 'lesson',       label: 'Урок',     keywords: ['урок'],                      color: 'var(--color-peach-text)', bg: 'var(--color-peach-soft)', textColor: 'var(--color-peach-text)' },
+  { id: 'homework',     label: 'Домашка',  keywords: ['домашка', 'домашку', 'дз'], color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', textColor: 'var(--color-accent)' },
+  { id: 'presentation', label: 'Преза',    keywords: ['преза', 'презентация'],      color: 'var(--color-red-text)', bg: 'var(--color-red-soft)', textColor: 'var(--color-red-text)' },
 ]
 
 function detectType(text: string): { type: TaskType; rest: string } | null {
@@ -155,10 +156,12 @@ function CalendarPicker({ value, onChange, onClose }: { value: string; onChange:
       transition={{ duration: 0.15 }}
       style={{
         position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 100,
-        background: 'var(--color-bg-input)',
-        border: '1.5px solid #EDEAF5',
+        background: 'rgba(var(--glass-rgb), 0.96)',
+        backdropFilter: 'blur(16px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        border: '1px solid var(--color-border-medium)',
         borderRadius: 16,
-        boxShadow: '0 12px 40px rgba(0,0,0,0.14)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
         padding: '12px 14px 14px',
         minWidth: 232,
         userSelect: 'none',
@@ -225,10 +228,9 @@ function TimePicker({ value, onChange, onClose }: { value: string; onChange: (v:
 
   useEffect(() => {
     const idx = TIME_SLOTS.indexOf(value)
-    if (idx !== -1 && listRef.current) {
-      const item = listRef.current.children[idx] as HTMLElement
-      item?.scrollIntoView({ block: 'center' })
-    }
+    if (idx === -1 || !listRef.current) return
+    const item = listRef.current.children[idx] as HTMLElement
+    item?.scrollIntoView({ block: 'center' })
   }, [value])
 
   return (
@@ -239,54 +241,42 @@ function TimePicker({ value, onChange, onClose }: { value: string; onChange: (v:
       transition={{ duration: 0.15 }}
       style={{
         position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 100,
-        background: 'var(--color-bg-input)',
-        border: '1.5px solid #EDEAF5',
+        background: 'rgba(var(--glass-rgb), 0.96)',
+        backdropFilter: 'blur(16px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        border: '1px solid var(--color-border-medium)',
         borderRadius: 14,
-        boxShadow: '0 12px 40px rgba(0,0,0,0.14)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
         overflow: 'hidden',
       }}
     >
-      <div style={{ position: 'relative' }}>
-        {/* top fade */}
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: 32, zIndex: 1,
-          background: 'linear-gradient(to bottom, var(--color-surface) 0%, transparent 100%)',
-          pointerEvents: 'none',
-          borderRadius: '14px 14px 0 0',
-        }} />
-        {/* bottom fade */}
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0, height: 32, zIndex: 1,
-          background: 'linear-gradient(to top, var(--color-surface) 0%, transparent 100%)',
-          pointerEvents: 'none',
-          borderRadius: '0 0 14px 14px',
-        }} />
-      <div ref={listRef} style={{ maxHeight: 200, overflowY: 'auto', padding: '4px 6px', scrollbarWidth: 'none' }}>
-        {TIME_SLOTS.map(t => {
-          const active = t === value
-          return (
-            <button
-              key={t}
-              onClick={() => { onChange(t); onClose() }}
-              style={{
-                width: '100%', border: 'none',
-                background: active ? 'var(--color-accent)' : 'transparent',
-                color: active ? '#fff' : 'var(--color-text)',
-                padding: '7px 10px', textAlign: 'left',
-                fontSize: 13, fontWeight: active ? 700 : 500,
-                cursor: 'pointer', display: 'block',
-                borderRadius: 9,
-                transition: 'background 0.18s, color 0.18s',
-              }}
-              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--color-purple-soft)' }}
-              onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-            >
-              {t}
-            </button>
-          )
-        })}
-      </div>
-      </div>
+      <ScrollFade maxHeight={200} bg='rgba(var(--glass-rgb), 0.96)' scrollStyle={{ padding: '4px 6px' }}>
+        <div ref={listRef}>
+          {TIME_SLOTS.map(t => {
+              const active = t === value
+              return (
+                <button
+                  key={t}
+                  onClick={() => { onChange(t); onClose() }}
+                  style={{
+                    width: '100%', border: 'none',
+                    background: active ? '#786AD7' : 'transparent',
+                    color: active ? '#fff' : 'var(--color-text)',
+                    padding: '7px 10px', textAlign: 'left',
+                    fontSize: 13, fontWeight: active ? 700 : 500,
+                    cursor: 'pointer', display: 'block',
+                    borderRadius: 9,
+                    transition: 'background 0.18s, color 0.18s',
+                  }}
+                  onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
+                  onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                >
+                  {t}
+                </button>
+              )
+            })}
+          </div>
+        </ScrollFade>
     </motion.div>
   )
 }
@@ -295,25 +285,29 @@ function TimePicker({ value, onChange, onClose }: { value: string; onChange: (v:
 
 function TypePill({ type, onRemove }: { type: TaskType; onRemove: () => void }) {
   return (
-    <motion.span
-      initial={{ opacity: 0, maxWidth: 0, paddingLeft: 0, paddingRight: 0 }}
-      animate={{ opacity: 1, maxWidth: 120, paddingLeft: 10, paddingRight: 10 }}
-      exit={{ opacity: 0, maxWidth: 0, paddingLeft: 0, paddingRight: 0 }}
-      transition={{ duration: 0.15, ease: 'easeInOut' }}
-      onClick={onRemove}
-      style={{
-        display: 'inline-flex', alignItems: 'center',
-        overflow: 'hidden', whiteSpace: 'nowrap',
-        padding: '2px 10px',
-        borderRadius: 8, flexShrink: 0,
-        background: type.bg, color: type.textColor,
-        fontSize: 13, fontWeight: 650, lineHeight: 1,
-        border: `1.5px solid ${type.color}33`,
-        userSelect: 'none', cursor: 'pointer',
-      }}
+    <motion.div
+      initial={{ maxWidth: 0, opacity: 0 }}
+      animate={{ maxWidth: 150, opacity: 1 }}
+      exit={{ maxWidth: 0, opacity: 0 }}
+      transition={{ duration: 0.18, ease: 'easeInOut' }}
+      style={{ overflow: 'hidden', flexShrink: 0 }}
     >
-      {type.label}
-    </motion.span>
+      <span
+        onClick={onRemove}
+        style={{
+          display: 'inline-flex', alignItems: 'center',
+          whiteSpace: 'nowrap',
+          padding: '4px 11px',
+          borderRadius: 6,
+          background: type.bg, color: type.textColor,
+          fontSize: 13, fontWeight: 650, lineHeight: 1,
+          border: `1.5px solid ${type.color}55`,
+          userSelect: 'none', cursor: 'pointer',
+        }}
+      >
+        {type.label}
+      </span>
+    </motion.div>
   )
 }
 
@@ -359,6 +353,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
 
   const [showCalendar, setShowCalendar] = useState(false)
   const [showTimePicker, setShowTimePicker] = useState(false)
+  const [titleFocused, setTitleFocused] = useState(false)
 
   const inputRef = useRef<HTMLInputElement>(null)
   const calendarRef = useRef<HTMLDivElement>(null)
@@ -386,7 +381,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
   }, [showCalendar, showTimePicker])
 
   const suggestion = useMemo(() => (!taskType ? getSuggestionType(titleText) : null), [taskType, titleText])
-  const entitySuggestions = useMemo(() => getEntitySuggestions(titleText, students, groups), [titleText, students, groups])
+  const entitySuggestions = useMemo(() => titleFocused ? getEntitySuggestions(titleText, students, groups) : [], [titleFocused, titleText, students, groups])
 
   function handleTitleChange(raw: string) {
     if (!taskType) {
@@ -425,12 +420,23 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
     }
   }
 
-  function acceptEntitySuggestion(label: string) {
-    const idx = titleText.toLowerCase().lastIndexOf(' с ')
-    if (idx !== -1) {
-      setTitleText(titleText.slice(0, idx + 3) + label)
+  function acceptEntitySuggestion(label: string, triggerType: '@' | 'с') {
+    if (triggerType === '@') {
+      const atIdx = titleText.lastIndexOf('@')
+      if (atIdx !== -1) {
+        setTitleText(titleText.slice(0, atIdx + 1) + label)
+      } else {
+        setTitleText(titleText + label)
+      }
     } else {
-      setTitleText(titleText + label)
+      const idx = titleText.toLowerCase().lastIndexOf(' с ')
+      if (idx !== -1) {
+        setTitleText(titleText.slice(0, idx + 3) + label)
+      } else {
+        // pill extracted — titleText starts with "с ..."
+        const m = titleText.match(/^с\s+/i)
+        setTitleText(m ? 'с ' + label : titleText + label)
+      }
     }
     inputRef.current?.focus()
   }
@@ -469,7 +475,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
           transition={{ type: 'spring', stiffness: 420, damping: 30, mass: 0.85 }}
           onClick={e => e.stopPropagation()}
           style={{
-            width: 480, borderRadius: 26,
+            width: 520, borderRadius: 26,
             background: 'rgba(var(--glass-rgb), 0.96)',
             backdropFilter: 'blur(24px) saturate(200%)',
             border: '1px solid var(--color-border-glass)',
@@ -510,9 +516,10 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                 onFocusCapture={e => (e.currentTarget.style.borderColor = 'rgba(99,84,207,0.55)')}
                 onBlurCapture={e => (e.currentTarget.style.borderColor = 'transparent')}
               >
-                <AnimatePresence>
+                <AnimatePresence mode="popLayout">
                   {taskType && (
                     <TypePill
+                      key={taskType.id}
                       type={taskType}
                       onRemove={() => { setTaskType(null); setTitleText('') }}
                     />
@@ -539,6 +546,8 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                     value={titleText}
                     onChange={e => handleTitleChange(e.target.value)}
                     onKeyDown={handleTitleKeyDown}
+                    onFocus={() => setTitleFocused(true)}
+                    onBlur={() => setTitleFocused(false)}
                     placeholder={taskType ? 'с кем / о чём…' : 'Встреча, Созвон, Урок…'}
                     style={{
                       width: '100%', border: 'none', outline: 'none',
@@ -563,37 +572,41 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                     style={{
                       position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10,
                       marginTop: 6,
-                      background: 'rgba(var(--glass-rgb), 0.98)',
-                      border: '1px solid rgba(196,176,240,0.5)',
+                      background: 'rgba(var(--glass-rgb), 0.72)',
+                      backdropFilter: 'blur(20px) saturate(200%)',
+                      WebkitBackdropFilter: 'blur(20px) saturate(200%)',
+                      border: '1px solid var(--color-border-glass)',
                       borderRadius: 14,
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                      overflow: 'hidden',
+                      boxShadow: 'var(--shadow-dropdown)',
+                      padding: 6,
                     }}
                   >
                     {entitySuggestions.map(ent => (
                       <button
                         key={ent.id}
-                        onMouseDown={e => { e.preventDefault(); acceptEntitySuggestion(ent.label) }}
+                        onMouseDown={e => { e.preventDefault(); acceptEntitySuggestion(ent.label, ent.triggerType) }}
                         style={{
-                          width: '100%', border: 'none', background: 'none',
+                          width: '100%', border: 'none', background: 'transparent',
                           display: 'flex', alignItems: 'center', gap: 10,
-                          padding: '9px 14px', cursor: 'pointer', textAlign: 'left',
+                          padding: '8px 11px', cursor: 'pointer', textAlign: 'left',
+                          borderRadius: 9, transition: 'background 0.12s',
+                          boxSizing: 'border-box',
                         }}
-                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-3)')}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-5)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
                         <div style={{
                           width: 30, height: 30, borderRadius: 10, flexShrink: 0,
                           background: ent.kind === 'group' ? 'var(--color-purple-soft)' : 'var(--color-blue-pill-bg)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 13, fontWeight: 700,
-                          color: ent.kind === 'group' ? 'var(--color-accent)' : '#3a6fbf',
+                          fontSize: 12, fontWeight: 700,
+                          color: ent.kind === 'group' ? 'var(--color-accent)' : 'var(--color-blue-pill-text)',
                         }}>
                           {ent.kind === 'group' ? '👥' : ent.label.split(' ').map((w: string) => w[0]).slice(0,2).join('')}
                         </div>
                         <div>
                           <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{ent.label}</div>
-                          <div style={{ fontSize: 11, color: '#9090A0', marginTop: 1 }}>{ent.sub}</div>
+                          <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{ent.sub}</div>
                         </div>
                       </button>
                     ))}
@@ -640,10 +653,9 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                   onClick={() => { setShowCalendar(v => !v); setShowTimePicker(false) }}
                   style={{
                     padding: '9px 12px', borderRadius: 12,
-                    border: `1.5px solid ${showCalendar ? 'rgba(99,84,207,0.55)' : 'var(--color-border-medium)'}`,
-                    background: 'var(--color-bg-3)', fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
+                    border: 'none',
+                    background: 'var(--color-bg-input)', fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
                     cursor: 'pointer', textAlign: 'left', width: '100%',
-                    transition: 'border-color 0.15s',
                   }}
                 >
                   {date}
@@ -669,10 +681,9 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                   onClick={() => { setShowTimePicker(v => !v); setShowCalendar(false) }}
                   style={{
                     padding: '9px 12px', borderRadius: 12,
-                    border: `1.5px solid ${showTimePicker ? 'rgba(99,84,207,0.55)' : 'var(--color-border-medium)'}`,
-                    background: 'var(--color-bg-3)', fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
+                    border: 'none',
+                    background: 'var(--color-bg-input)', fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
                     cursor: 'pointer', textAlign: 'left', width: '100%',
-                    transition: 'border-color 0.15s',
                   }}
                 >
                   {time}
@@ -701,7 +712,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                 placeholder="Заметки, ссылки, напоминание…"
                 rows={2}
                 style={{
-                  padding: '9px 12px', borderRadius: 12, border: '1.5px solid #EDEAF5',
+                  padding: '9px 12px', borderRadius: 12, border: '1.5px solid var(--color-border-medium)',
                   background: 'var(--color-bg-3)', fontSize: 14, color: 'var(--color-text)',
                   outline: 'none', width: '100%', boxSizing: 'border-box',
                   resize: 'none', fontFamily: 'inherit', lineHeight: 1.5,
@@ -717,7 +728,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                 onClick={onClose}
                 style={{
                   flex: 1, padding: '11px 0', borderRadius: 14,
-                  border: '1.5px solid #E8E4F0', background: 'transparent',
+                  border: '1.5px solid var(--color-border-soft)', background: 'transparent',
                   fontSize: 14, fontWeight: 600, color: 'var(--color-muted)', cursor: 'pointer',
                 }}
               >
@@ -727,7 +738,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                 label="Сохранить" savedLabel="Сохранено"
                 saved={saved} disabled={!canSave}
                 onClick={handleSave}
-                style={{ flex: 2 }}
+                style={{ flex: 2, borderRadius: 14 }}
               />
             </div>
           </div>

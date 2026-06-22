@@ -138,10 +138,10 @@ const plBall = (n: number) => (n === 1 ? 'балл' : n >= 2 && n <= 4 ? 'бал
 const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
   padding: '9px 12px', borderRadius: 11,
-  border: '1.5px solid var(--color-border-medium)',
+  border: 'none',
   fontSize: 13, color: 'var(--color-text)',
   background: 'var(--color-bg-2)', outline: 'none',
-  fontFamily: 'inherit', transition: 'border-color 0.15s',
+  fontFamily: 'inherit',
 }
 
 function Label({ children }: { children: React.ReactNode }) {

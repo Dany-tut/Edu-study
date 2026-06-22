@@ -17,6 +17,11 @@ export function getDisplayLessonStatus(lesson: Lesson, now: Date = new Date()): 
   // calendar, so resolve its scheduled slot (any day in the window) once.
   if (lesson.status !== 'locked' && lesson.status !== 'current') return lesson.status
 
+  // Test nodes don't have recordings to view — a locked test must stay locked
+  // regardless of whether its scheduled date has passed (the gate in db.ts sets
+  // status = 'locked' when prerequisites aren't met; this must not be overridden).
+  if (lesson.kind === 'test' && lesson.status === 'locked') return 'locked'
+
   const { scheduleDays, subjects } = useStudentData.getState()
   let slot: { date: string; time: string } | null = null
   for (const day of scheduleDays) {

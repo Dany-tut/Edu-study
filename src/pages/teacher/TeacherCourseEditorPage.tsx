@@ -268,27 +268,50 @@ function LeftCourseMeta({
       />
 
       {/* Subject + level */}
-      <div style={{ display: 'flex', gap: 10 }}>
-        <div style={{ flex: 1 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div>
           <Label>Предмет</Label>
-          <select
-            value={course.subject}
-            onChange={e => setCourse(c => ({ ...c, subject: e.target.value }))}
-            style={{ ...inputSt, cursor: 'pointer' }}
-          >
-            {['Химия', 'Биология', 'Физика', 'Математика', 'Русский язык', 'Обществознание', 'История', 'Информатика', 'Английский язык', 'Другое'].map(s => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {['Химия', 'Биология'].map(s => {
+              const active = course.subject === s
+              return (
+                <button
+                  key={s}
+                  onClick={() => setCourse(c => ({ ...c, subject: s }))}
+                  style={{
+                    padding: '7px 14px', borderRadius: 10, cursor: 'pointer',
+                    border: 'none',
+                    background: active ? 'var(--color-green-soft)' : 'var(--color-bg-3)',
+                    color: active ? 'var(--color-green-text)' : 'var(--color-text-3)',
+                    fontWeight: active ? 600 : 400, fontSize: 13,
+                    transition: 'all 0.12s',
+                  }}
+                >{s}</button>
+              )
+            })}
+          </div>
         </div>
-        <div style={{ flex: 1 }}>
+        <div>
           <Label>Уровень</Label>
-          <input
-            value={course.level}
-            onChange={e => setCourse(c => ({ ...c, level: e.target.value }))}
-            style={inputSt}
-            placeholder="Например, ЕГЭ"
-          />
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {['ОГЭ', 'ЕГЭ', 'Олимпиада', 'Школьная программа'].map(l => {
+              const active = course.level === l
+              return (
+                <button
+                  key={l}
+                  onClick={() => setCourse(c => ({ ...c, level: l }))}
+                  style={{
+                    padding: '7px 14px', borderRadius: 10, cursor: 'pointer',
+                    border: 'none',
+                    background: active ? 'var(--color-green-soft)' : 'var(--color-bg-3)',
+                    color: active ? 'var(--color-green-text)' : 'var(--color-text-3)',
+                    fontWeight: active ? 600 : 400, fontSize: 13,
+                    transition: 'all 0.12s',
+                  }}
+                >{l}</button>
+              )
+            })}
+          </div>
         </div>
       </div>
 
@@ -339,7 +362,7 @@ function CenterCourseAccess({
         {/* Who gets the course */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-            <Users size={15} style={{ color: 'var(--color-accent)' }} />
+            <Users size={15} style={{ color: 'var(--color-green-text)' }} />
             <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Кому дать доступ</span>
             <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>— кому виден весь курс</span>
           </div>
@@ -350,8 +373,8 @@ function CenterCourseAccess({
               <button key={tab} onClick={() => setAssignTab(tab)} style={{
                 padding: '6px 18px', borderRadius: 999, border: 'none', cursor: 'pointer',
                 fontSize: 12, fontWeight: 700,
-                background: assignTab === tab ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
-                color: assignTab === tab ? 'var(--color-accent)' : 'var(--color-text-2)',
+                background: assignTab === tab ? 'var(--color-green-soft)' : 'var(--color-bg-3)',
+                color: assignTab === tab ? 'var(--color-green-text)' : 'var(--color-text-2)',
                 transition: 'all 0.15s', fontFamily: 'inherit',
               }}>
                 {tab === 'group' ? 'Группе' : 'Ученику'}
@@ -365,21 +388,21 @@ function CenterCourseAccess({
                 <button key={g.id} onClick={() => toggleGroup(g.id)} style={{
                   display: 'flex', alignItems: 'center', gap: 8, width: '100%',
                   padding: '9px 14px', borderRadius: 12,
-                  border: course.groupIds.includes(g.id) ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border)',
-                  background: course.groupIds.includes(g.id) ? 'var(--color-purple-soft)' : 'transparent',
+                  border: course.groupIds.includes(g.id) ? '1.5px solid var(--color-green-text)' : '1.5px solid var(--color-border)',
+                  background: course.groupIds.includes(g.id) ? 'var(--color-green-soft)' : 'transparent',
                   cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
                 }}>
                   <div style={{
                     width: 26, height: 26, borderRadius: '50%',
-                    background: course.groupIds.includes(g.id) ? 'var(--color-accent)' : 'var(--color-bg-3)',
+                    background: course.groupIds.includes(g.id) ? 'var(--color-green-text)' : 'var(--color-bg-3)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                   }}>
                     <Users size={13} style={{ color: course.groupIds.includes(g.id) ? '#fff' : 'var(--color-muted)' }} />
                   </div>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: course.groupIds.includes(g.id) ? 'var(--color-accent)' : 'var(--color-text)', flex: 1, textAlign: 'left' }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: course.groupIds.includes(g.id) ? 'var(--color-green-text)' : 'var(--color-text)', flex: 1, textAlign: 'left' }}>
                     {g.name}
                   </span>
-                  {course.groupIds.includes(g.id) && <X size={11} style={{ color: 'var(--color-accent)' }} />}
+                  {course.groupIds.includes(g.id) && <X size={11} style={{ color: 'var(--color-green-text)' }} />}
                 </button>
               ))}
             </div>
@@ -391,23 +414,23 @@ function CenterCourseAccess({
                 <button key={s.id} onClick={() => toggleStudent(s.id)} style={{
                   display: 'flex', alignItems: 'center', gap: 8, width: '100%',
                   padding: '9px 14px', borderRadius: 12,
-                  border: course.studentIds.includes(s.id) ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border)',
-                  background: course.studentIds.includes(s.id) ? 'var(--color-purple-soft)' : 'transparent',
+                  border: course.studentIds.includes(s.id) ? '1.5px solid var(--color-green-text)' : '1.5px solid var(--color-border)',
+                  background: course.studentIds.includes(s.id) ? 'var(--color-green-soft)' : 'transparent',
                   cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
                 }}>
                   <div style={{
                     width: 26, height: 26, borderRadius: '50%',
-                    background: course.studentIds.includes(s.id) ? 'var(--color-accent)' : 'var(--color-bg-3)',
+                    background: course.studentIds.includes(s.id) ? 'var(--color-green-text)' : 'var(--color-bg-3)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 11, fontWeight: 700,
                     color: course.studentIds.includes(s.id) ? '#fff' : 'var(--color-muted)', flexShrink: 0,
                   }}>
                     {s.name.slice(0, 1).toUpperCase()}
                   </div>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: course.studentIds.includes(s.id) ? 'var(--color-accent)' : 'var(--color-text)', flex: 1, textAlign: 'left' }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: course.studentIds.includes(s.id) ? 'var(--color-green-text)' : 'var(--color-text)', flex: 1, textAlign: 'left' }}>
                     {s.name}
                   </span>
-                  {course.studentIds.includes(s.id) && <X size={11} style={{ color: 'var(--color-accent)' }} />}
+                  {course.studentIds.includes(s.id) && <X size={11} style={{ color: 'var(--color-green-text)' }} />}
                 </button>
               ))}
               {allStudents.length === 0 && (
@@ -423,7 +446,7 @@ function CenterCourseAccess({
                 <div key={g.id} style={{
                   display: 'inline-flex', alignItems: 'center', gap: 5,
                   padding: '4px 10px', borderRadius: 999,
-                  background: 'var(--color-purple-soft)', fontSize: 12, fontWeight: 600, color: 'var(--color-accent)',
+                  background: 'var(--color-green-soft)', fontSize: 12, fontWeight: 600, color: 'var(--color-green-text)',
                 }}>
                   <Users size={10} /> {g.name}
                 </div>
@@ -528,7 +551,7 @@ function ScheduleCard({
     }
   }
 
-  const accent = isRec ? 'var(--color-accent)' : 'var(--color-purple)'
+  const accent = 'var(--color-green-text)'
   const footerText = isRec
     ? (mirrors
         ? `Появится у ученика как запись · урок зеркалит эту дату`
@@ -613,7 +636,7 @@ function CenterRecording({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <Label>Запись урока</Label>
             <button onClick={() => { setVideoUrl(lesson.videoUrl ?? ''); setLinkMode(true) }}
-              style={{ fontSize: 11, color: 'var(--color-accent)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+              style={{ fontSize: 11, color: 'var(--color-green-text)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
               Изменить
             </button>
           </div>
@@ -622,8 +645,8 @@ function CenterRecording({
             border: '1.5px solid var(--color-border-medium)',
             display: 'flex', alignItems: 'center', gap: 10,
           }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Video size={16} style={{ color: 'var(--color-accent)' }} />
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Video size={16} style={{ color: 'var(--color-green-text)' }} />
             </div>
             <span style={{ fontSize: 13, color: 'var(--color-text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {lesson.videoUrl}
@@ -652,7 +675,7 @@ function CenterRecording({
               Отмена
             </button>
             <button onClick={() => { onSaveVideo(videoUrl); setLinkMode(false) }}
-              style={{ flex: 1, padding: '9px 18px', borderRadius: 12, border: 'none', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+              style={{ flex: 1, padding: '9px 18px', borderRadius: 12, border: 'none', background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
               Сохранить
             </button>
           </div>
@@ -664,8 +687,8 @@ function CenterRecording({
   return (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, textAlign: 'center' }}>
-        <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Video size={32} style={{ color: 'var(--color-accent)' }} />
+        <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Video size={32} style={{ color: 'var(--color-green-text)' }} />
         </div>
         <div>
           <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>Добавьте запись урока</div>
@@ -673,7 +696,7 @@ function CenterRecording({
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => setLinkMode(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: 'none', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: 'none', background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
             <Link2 size={14} /> Вставить ссылку
           </button>
           <button style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -761,17 +784,17 @@ function CenterLesson({
                   style={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
                     padding: '16px 12px', borderRadius: 16, width: '100%',
-                    border: fileName ? '1.5px solid var(--color-accent)' : '1.5px dashed var(--color-border-medium)',
-                    background: fileName ? 'var(--color-purple-soft)' : 'transparent',
+                    border: fileName ? '1.5px solid var(--color-green-text)' : '1.5px dashed var(--color-border-medium)',
+                    background: fileName ? 'var(--color-green-soft)' : 'transparent',
                     cursor: 'pointer', fontFamily: 'inherit',
                   }}
                 >
-                  <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Icon size={18} style={{ color: 'var(--color-accent)' }} />
+                  <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon size={18} style={{ color: 'var(--color-green-text)' }} />
                   </div>
                   <div style={{ textAlign: 'center', width: '100%', minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: fileName ? 'var(--color-accent)' : 'var(--color-text-2)' }}>{label}</div>
-                    <div style={{ fontSize: 10, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: fileName ? 'var(--color-accent)' : 'var(--color-muted)' }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: fileName ? 'var(--color-green-text)' : 'var(--color-text-2)' }}>{label}</div>
+                    <div style={{ fontSize: 10, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: fileName ? 'var(--color-green-text)' : 'var(--color-muted)' }}>
                       {fileName ?? 'Загрузить файл'}
                     </div>
                   </div>
@@ -781,10 +804,10 @@ function CenterLesson({
                     onClick={e => { e.stopPropagation(); onUpdate({ ...lesson, [field]: undefined }) }}
                     style={{
                       position: 'absolute', top: 6, right: 6,
-                      border: 'none', background: 'var(--color-purple-soft)',
+                      border: 'none', background: 'var(--color-green-soft)',
                       borderRadius: '50%', width: 18, height: 18,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      cursor: 'pointer', color: 'var(--color-accent)', padding: 0,
+                      cursor: 'pointer', color: 'var(--color-green-text)', padding: 0,
                     }}
                   >
                     <X size={10} />
@@ -846,14 +869,14 @@ function CenterLesson({
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '10px 12px', borderRadius: 12,
                     border: '1.5px solid var(--color-border)',
-                    background: lesson[field] ? 'var(--color-purple-soft)' : 'transparent',
+                    background: lesson[field] ? 'var(--color-green-soft)' : 'transparent',
                     cursor: 'pointer', fontFamily: 'inherit',
-                    color: lesson[field] ? 'var(--color-accent)' : 'var(--color-text)',
+                    color: lesson[field] ? 'var(--color-green-text)' : 'var(--color-text)',
                     fontSize: 13, fontWeight: 600,
                   }}
                 >
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Icon size={14} style={{ color: 'var(--color-accent)' }} />
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon size={14} style={{ color: 'var(--color-green-text)' }} />
                   </div>
                   {label}
                   {lesson[field] && <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--color-muted)', fontWeight: 400 }}>заменить</span>}
@@ -899,8 +922,9 @@ function pickerOptionStyle(active: boolean): React.CSSProperties {
   return {
     width: '100%', textAlign: 'left', padding: '8px 10px', borderRadius: 9, border: 'none',
     cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: active ? 700 : 500,
-    background: active ? 'var(--color-purple-soft)' : 'transparent',
-    color: active ? 'var(--color-accent)' : 'var(--color-text)',
+    background: active ? 'var(--color-green-soft)' : 'transparent',
+    color: active ? 'var(--color-green-text)' : 'var(--color-text)',
+    transition: 'background 0.12s',
   }
 }
 
@@ -953,13 +977,13 @@ function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          padding: '7px 10px', borderRadius: 11, border: '1.5px solid var(--color-border-medium)',
-          cursor: 'pointer', background: value ? 'var(--color-purple-soft)' : 'var(--color-bg-input)',
+          padding: '7px 10px', borderRadius: 11, border: 'none',
+          cursor: 'pointer', background: 'var(--color-bg-input)',
           fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s', fontSize: 12,
         }}
       >
-        {Icon && <Icon size={13} style={{ flexShrink: 0, color: value ? 'var(--color-accent)' : 'var(--color-text-3)' }} />}
-        <span style={{ flex: 1, color: value ? 'var(--color-accent)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {Icon && <Icon size={13} style={{ flexShrink: 0, color: value ? 'var(--color-text)' : 'var(--color-text-3)' }} />}
+        <span style={{ flex: 1, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {selected?.label ?? placeholder ?? '—'}
         </span>
         <ChevronDown size={11} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
@@ -974,16 +998,25 @@ function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon
             style={{
               position: 'fixed', top: pos.top, left: pos.left, zIndex: 4000, width: pos.width,
               minWidth: width ?? 110, maxHeight: 240, overflowY: 'auto',
-              background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-medium)',
-              borderRadius: 14, boxShadow: '0 8px 32px rgba(99,84,207,0.14)', padding: 6,
+              background: 'rgba(var(--glass-rgb), 0.97)',
+              backdropFilter: 'blur(16px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              border: '1px solid var(--color-border-medium)',
+              borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.18)', padding: 6,
               display: 'flex', flexDirection: 'column', gap: 2,
             }}
           >
             {allowEmpty && (
-              <button onClick={() => { onChange(''); setOpen(false) }} style={pickerOptionStyle(value === '')}>—</button>
+              <button onClick={() => { onChange(''); setOpen(false) }} style={pickerOptionStyle(value === '')}
+                onMouseEnter={e => { if (value !== '') (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
+                onMouseLeave={e => { if (value !== '') (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+              >—</button>
             )}
             {options.map(o => (
-              <button key={o.value} onClick={() => { onChange(o.value); setOpen(false) }} style={pickerOptionStyle(o.value === value)}>
+              <button key={o.value} onClick={() => { onChange(o.value); setOpen(false) }} style={pickerOptionStyle(o.value === value)}
+                onMouseEnter={e => { if (o.value !== value) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
+                onMouseLeave={e => { if (o.value !== value) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+              >
                 {o.label}
               </button>
             ))}
@@ -1055,18 +1088,18 @@ function CalendarPicker({ value, onChange, placeholder = 'Выберите да�
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          padding: '7px 10px', borderRadius: 11, border: '1.5px solid var(--color-border-medium)',
-          cursor: 'pointer', background: value ? 'var(--color-purple-soft)' : 'var(--color-bg-input)',
+          padding: '7px 10px', borderRadius: 11, border: 'none',
+          cursor: 'pointer', background: 'var(--color-bg-input)',
           fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s', fontSize: 12,
         }}
       >
-        <Calendar size={13} style={{ flexShrink: 0, color: value ? 'var(--color-accent)' : 'var(--color-text-3)' }} />
-        <span style={{ flex: 1, color: value ? 'var(--color-accent)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400 }}>
+        <Calendar size={13} style={{ flexShrink: 0, color: value ? 'var(--color-text)' : 'var(--color-text-3)' }} />
+        <span style={{ flex: 1, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400 }}>
           {value || placeholder}
         </span>
         {value ? (
           <button onClick={e => { e.stopPropagation(); onChange('') }}
-            style={{ width: 18, height: 18, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'var(--color-accent-soft, rgba(120,106,215,0.18))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-accent)', flexShrink: 0, padding: 0 }}>
+            style={{ width: 18, height: 18, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'rgba(52,168,83,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-green-text)', flexShrink: 0, padding: 0 }}>
             <X size={10} />
           </button>
         ) : (
@@ -1082,8 +1115,11 @@ function CalendarPicker({ value, onChange, placeholder = 'Выберите да�
             exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ duration: 0.16 }}
             style={{
               position: 'fixed', top: pos.top, left: pos.left, zIndex: 4000, minWidth: 260,
-              background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-medium)',
-              borderRadius: 16, boxShadow: '0 8px 32px rgba(99,84,207,0.14)', padding: '14px 12px 12px',
+              background: 'rgba(var(--glass-rgb), 0.97)',
+              backdropFilter: 'blur(16px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              border: '1px solid var(--color-border-medium)',
+              borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.18)', padding: '14px 12px 12px',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -1106,10 +1142,13 @@ function CalendarPicker({ value, onChange, placeholder = 'Выберите да�
                   <button key={idx} onClick={() => pickDay(day)} style={{
                     width: '100%', aspectRatio: '1', borderRadius: 8, border: 'none',
                     cursor: 'pointer', fontSize: 12, fontWeight: isSelected || isToday ? 700 : 400,
-                    background: isSelected ? 'var(--color-purple-soft)' : isToday ? 'var(--color-purple-soft)' : 'transparent',
-                    color: isSelected ? 'var(--color-accent)' : isToday ? 'var(--color-accent)' : 'var(--color-text)',
+                    background: isSelected ? 'var(--color-green-soft)' : isToday ? 'var(--color-green-soft)' : 'transparent',
+                    color: isSelected ? 'var(--color-green-text)' : isToday ? 'var(--color-green-text)' : 'var(--color-text)',
                     transition: 'background 0.12s',
-                  }}>
+                  }}
+                    onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
+                    onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = isToday ? 'var(--color-green-soft)' : 'transparent' }}
+                  >
                     {day}
                   </button>
                 )
@@ -1121,7 +1160,7 @@ function CalendarPicker({ value, onChange, placeholder = 'Выберите да�
                 Очистить
               </button>
               <button onClick={() => { onChange(todayStr); setOpen(false) }}
-                style={{ fontSize: 12, color: 'var(--color-accent)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700 }}>
+                style={{ fontSize: 12, color: 'var(--color-green-text)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700 }}>
                 Сегодня
               </button>
             </div>
@@ -1261,8 +1300,8 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                           }}
                           style={{
                             width: 22, height: 22, borderRadius: 6, border: '2px solid',
-                            borderColor: correctChoices.includes(ci) ? 'var(--color-accent)' : 'var(--color-border)',
-                            background: correctChoices.includes(ci) ? 'var(--color-accent)' : 'transparent',
+                            borderColor: correctChoices.includes(ci) ? 'var(--color-green-text)' : 'var(--color-border)',
+                            background: correctChoices.includes(ci) ? 'var(--color-green-text)' : 'transparent',
                             cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
                           }}
                         >
@@ -1374,7 +1413,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
               {/* Table builder */}
               {task.type === 'table' && (
                 <div>
-                  <Label>Таблица — отметьте «Пусто» в проверяемых ячейках</Label>
+                  <Label>Таблица — нажмите «Вписать» в ячейках, куда ученик пишет ответ</Label>
                   <TableEditor
                     value={task.table ?? { headers: ['Заголовок 1', 'Заголовок 2'], rows: [['', ''], ['', '']] }}
                     onChange={table => onUpdate({ ...task, table })}
@@ -1475,7 +1514,7 @@ function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: b
                     onClick={() => onPick(bt)}
                     style={{ textAlign: 'left', padding: '7px 9px', borderRadius: 9, border: 'none', background: 'var(--color-bg-2)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11.5, color: 'var(--color-text-2)', display: 'flex', gap: 6, alignItems: 'flex-start' }}
                   >
-                    <Plus size={11} style={{ flexShrink: 0, marginTop: 2, color: 'var(--color-accent)' }} />
+                    <Plus size={11} style={{ flexShrink: 0, marginTop: 2, color: 'var(--color-green-text)' }} />
                     <span style={{ overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                       {bt.questionTable ? '📊 ' : ''}{bt.question || 'Без текста'}
                     </span>
@@ -1543,13 +1582,13 @@ function HomeworkLeftPanel({
           <button key={t.id} onClick={() => setHwTab(t.id)} style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '7px 8px', borderRadius: 9,
             border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
-            background: hwTab === t.id ? 'var(--color-purple-soft)' : 'transparent',
-            color: hwTab === t.id ? 'var(--color-accent)' : 'var(--color-text-3)',
+            background: hwTab === t.id ? 'var(--color-green-soft)' : 'transparent',
+            color: hwTab === t.id ? 'var(--color-green-text)' : 'var(--color-text-3)',
             transition: 'background 0.13s',
           }}>
             {t.label}
             {t.n > 0 && (
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: hwTab === t.id ? 'var(--color-accent)' : 'var(--color-bg-3)', color: hwTab === t.id ? '#fff' : 'var(--color-muted)' }}>{t.n}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: hwTab === t.id ? 'var(--color-green-text)' : 'var(--color-bg-3)', color: hwTab === t.id ? '#fff' : 'var(--color-muted)' }}>{t.n}</span>
             )}
           </button>
         ))}
@@ -1726,7 +1765,7 @@ function CenterHomework({
   }
 
   const DropLine = () => (
-    <div style={{ height: 2, background: 'var(--color-accent)', borderRadius: 2, margin: '-4px 0', pointerEvents: 'none' }} />
+    <div style={{ height: 2, background: 'var(--color-green-text)', borderRadius: 2, margin: '-4px 0', pointerEvents: 'none' }} />
   )
 
   return (
@@ -1793,9 +1832,6 @@ function CenterTestView({
       {/* Header */}
       <div style={{ padding: '10px 16px 12px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 999, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit' }}>
-            <ChevronLeft size={13} /> Курс
-          </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 11px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 11, fontWeight: 700 }}>
             <ClipboardCheck size={12} /> Финальный тест
           </div>
@@ -1934,7 +1970,7 @@ function StudentsLeftPanel({
       maxHeight: 'calc(100vh - 120px)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-        <Users size={14} style={{ color: 'var(--color-accent)' }} />
+        <Users size={14} style={{ color: 'var(--color-green-text)' }} />
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Добавить к уроку</span>
       </div>
 
@@ -1944,8 +1980,8 @@ function StudentsLeftPanel({
           <button key={tab} onClick={() => setAddTab(tab)} style={{
             flex: 1, padding: '6px 8px', borderRadius: 9, border: 'none', cursor: 'pointer',
             fontSize: 11.5, fontWeight: 700, fontFamily: 'inherit',
-            background: addTab === tab ? 'var(--color-purple-soft)' : 'transparent',
-            color: addTab === tab ? 'var(--color-accent)' : 'var(--color-text-3)',
+            background: addTab === tab ? 'var(--color-green-soft)' : 'transparent',
+            color: addTab === tab ? 'var(--color-green-text)' : 'var(--color-text-3)',
             transition: 'background 0.13s',
           }}>
             {tab === 'group' ? 'Группа' : 'Ученик'}
@@ -1969,23 +2005,23 @@ function StudentsLeftPanel({
             <button key={s.id} onClick={() => toggleExtraStudent(s.id)} style={{
               display: 'flex', alignItems: 'center', gap: 8, width: '100%',
               padding: '7px 10px', borderRadius: 11,
-              border: on ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border)',
-              background: on ? 'var(--color-purple-soft)' : 'transparent',
+              border: on ? '1.5px solid var(--color-green-text)' : '1.5px solid var(--color-border)',
+              background: on ? 'var(--color-green-soft)' : 'transparent',
               cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
             }}>
               <div style={{
                 width: 24, height: 24, borderRadius: '50%',
-                background: on ? 'var(--color-accent)' : 'var(--color-bg-3)',
+                background: on ? 'var(--color-green-text)' : 'var(--color-bg-3)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 11, fontWeight: 700,
                 color: on ? '#fff' : 'var(--color-muted)', flexShrink: 0,
               }}>
                 {s.name.slice(0, 1).toUpperCase()}
               </div>
-              <span style={{ fontSize: 12.5, fontWeight: 600, flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: on ? 'var(--color-accent)' : 'var(--color-text)' }}>
+              <span style={{ fontSize: 12.5, fontWeight: 600, flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: on ? 'var(--color-green-text)' : 'var(--color-text)' }}>
                 {s.name}
               </span>
-              {on ? <Check size={12} style={{ color: 'var(--color-accent)', flexShrink: 0 }} /> : <Plus size={12} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
+              {on ? <Check size={12} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} /> : <Plus size={12} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
             </button>
           )
         })}
@@ -2001,21 +2037,21 @@ function StudentsLeftPanel({
             <button key={g.id} onClick={() => toggleExtraGroup(g.id)} style={{
               display: 'flex', alignItems: 'center', gap: 8, width: '100%',
               padding: '7px 10px', borderRadius: 11,
-              border: on ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border)',
-              background: on ? 'var(--color-purple-soft)' : 'transparent',
+              border: on ? '1.5px solid var(--color-green-text)' : '1.5px solid var(--color-border)',
+              background: on ? 'var(--color-green-soft)' : 'transparent',
               cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
             }}>
               <div style={{
                 width: 24, height: 24, borderRadius: '50%',
-                background: on ? 'var(--color-accent)' : 'var(--color-bg-3)',
+                background: on ? 'var(--color-green-text)' : 'var(--color-bg-3)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
                 <Users size={13} style={{ color: on ? '#fff' : 'var(--color-muted)' }} />
               </div>
-              <span style={{ fontSize: 12.5, fontWeight: 600, flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: on ? 'var(--color-accent)' : 'var(--color-text)' }}>
+              <span style={{ fontSize: 12.5, fontWeight: 600, flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: on ? 'var(--color-green-text)' : 'var(--color-text)' }}>
                 {g.name}
               </span>
-              {on ? <Check size={12} style={{ color: 'var(--color-accent)', flexShrink: 0 }} /> : <Plus size={12} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
+              {on ? <Check size={12} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} /> : <Plus size={12} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
             </button>
           )
         })}
@@ -2068,13 +2104,13 @@ function CenterLessonStudents({
         {/* Total reach headline */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14,
-          background: 'var(--color-purple-soft)', border: '1px solid var(--color-border-glass)',
+          background: 'var(--color-green-soft)', border: '1px solid var(--color-border-glass)',
         }}>
-          <div style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Users size={18} style={{ color: '#fff' }} />
           </div>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-accent)', lineHeight: 1.1 }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-green-text)', lineHeight: 1.1 }}>
               {n} {reachWord}
             </div>
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>видят этот урок</div>
@@ -2123,7 +2159,7 @@ function CenterLessonStudents({
         {/* Extra audience for this lesson */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-accent)' }} />
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-green-text)' }} />
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
               Дополнительно для этого урока
             </span>
@@ -2146,12 +2182,12 @@ function CenterLessonStudents({
               {extraGroups.map(g => (
                 <div key={g.id} style={{
                   display: 'flex', alignItems: 'center', gap: 9, padding: '8px 12px', borderRadius: 12,
-                  background: 'var(--color-purple-soft)', border: '1px solid var(--color-border-glass)',
+                  background: 'var(--color-green-soft)', border: '1px solid var(--color-border-glass)',
                 }}>
-                  <Users size={14} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
-                  <span style={{ fontSize: 13, fontWeight: 600, flex: 1, color: 'var(--color-accent)' }}>{g.name}</span>
-                  <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--color-accent)', opacity: 0.7 }}>группа</span>
-                  <button onClick={() => removeExtraGroup(g.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-accent)', padding: 0, display: 'flex', flexShrink: 0 }}>
+                  <Users size={14} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, fontWeight: 600, flex: 1, color: 'var(--color-green-text)' }}>{g.name}</span>
+                  <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--color-green-text)', opacity: 0.7 }}>группа</span>
+                  <button onClick={() => removeExtraGroup(g.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-green-text)', padding: 0, display: 'flex', flexShrink: 0 }}>
                     <X size={13} />
                   </button>
                 </div>
@@ -2159,13 +2195,13 @@ function CenterLessonStudents({
               {extraStudentsList.map(s => (
                 <div key={s.id} style={{
                   display: 'flex', alignItems: 'center', gap: 9, padding: '8px 12px', borderRadius: 12,
-                  background: 'var(--color-purple-soft)', border: '1px solid var(--color-border-glass)',
+                  background: 'var(--color-green-soft)', border: '1px solid var(--color-border-glass)',
                 }}>
-                  <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                     {s.name.slice(0, 1).toUpperCase()}
                   </div>
-                  <span style={{ fontSize: 13, fontWeight: 600, flex: 1, color: 'var(--color-accent)' }}>{s.name}</span>
-                  <button onClick={() => removeExtraStudent(s.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-accent)', padding: 0, display: 'flex', flexShrink: 0 }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, flex: 1, color: 'var(--color-green-text)' }}>{s.name}</span>
+                  <button onClick={() => removeExtraStudent(s.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-green-text)', padding: 0, display: 'flex', flexShrink: 0 }}>
                     <X size={13} />
                   </button>
                 </div>
@@ -2197,8 +2233,8 @@ function LessonRow({
       style={{
         width: '100%', display: 'flex', alignItems: 'center', gap: 8,
         padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
-        background: checked || selected ? 'var(--color-purple-soft)' : 'transparent',
-        boxShadow: checked ? 'inset 0 0 0 1.5px var(--color-accent)' : undefined,
+        background: checked || selected ? 'var(--color-green-soft)' : 'transparent',
+        boxShadow: checked ? 'inset 0 0 0 1.5px var(--color-green-text)' : undefined,
         transition: 'background 0.13s, box-shadow 0.13s', fontFamily: 'inherit', textAlign: 'left',
         marginBottom: 2,
       }}
@@ -2207,7 +2243,7 @@ function LessonRow({
         width: 24, height: 24, borderRadius: 7, flexShrink: 0,
         background: lesson.kind === 'test'
           ? (selected ? 'var(--color-green-text)' : 'var(--color-green-soft)')
-          : (selected ? 'var(--color-accent)' : 'var(--color-bg-3)'),
+          : (selected ? 'var(--color-green-text)' : 'var(--color-bg-3)'),
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: 10, fontWeight: 700,
         color: lesson.kind === 'test'
@@ -2218,7 +2254,7 @@ function LessonRow({
       </div>
       <span style={{
         flex: 1, fontSize: 12, fontWeight: selected ? 700 : 500,
-        color: selected ? (lesson.kind === 'test' ? 'var(--color-green-text)' : 'var(--color-accent)') : 'var(--color-text)',
+        color: selected ? (lesson.kind === 'test' ? 'var(--color-green-text)' : 'var(--color-green-text)') : 'var(--color-text)',
         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}>
         {lesson.title || (lesson.kind === 'test' ? 'Тест без названия' : 'Урок без названия')}
@@ -2239,7 +2275,7 @@ function LessonRow({
         <div style={{
           width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: checked ? 'var(--color-accent)' : 'transparent',
+          background: checked ? 'var(--color-green-text)' : 'transparent',
           border: checked ? 'none' : '1.5px solid var(--color-border)',
           color: '#fff', transition: 'background 0.13s',
         }}>
@@ -2267,7 +2303,7 @@ function LessonRow({
           {lesson.kind === 'test'
             ? (lesson.testTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title="Вопросы" />
             : <>
-                {lesson.videoUrl && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-accent)', opacity: 0.7 }} title="Запись" />}
+                {lesson.videoUrl && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title="Запись" />}
                 {(lesson.hwTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title="ДЗ" />}
                 {((lesson.extraStudentIds?.length ?? 0) + (lesson.extraGroupIds?.length ?? 0)) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#F59E0B', opacity: 0.7 }} title="Доп. ученики" />}
               </>}
@@ -2390,7 +2426,7 @@ function RightPanelLessons({
   function clearDrag() { setDragging(null); setDropTarget(null) }
 
   const DropLine = () => (
-    <div style={{ height: 2, background: 'var(--color-accent)', borderRadius: 2, margin: '2px 0', pointerEvents: 'none' }} />
+    <div style={{ height: 2, background: 'var(--color-green-text)', borderRadius: 2, margin: '2px 0', pointerEvents: 'none' }} />
   )
 
   const groupedIds = new Set(course.modules.flatMap(m => m.lessonIds))
@@ -2479,8 +2515,8 @@ function RightPanelLessons({
             transition={{ duration: 0.16 }}
             style={{ flexShrink: 0, overflow: 'visible', borderBottom: '1px solid var(--color-border-soft)', position: 'relative', zIndex: 5 }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', background: 'var(--color-purple-soft)' }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', background: 'var(--color-green-soft)' }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-green-text)', flex: 1 }}>
                 Выбрано: {selectedIds.size}
               </span>
               <div style={{ position: 'relative' }}>
@@ -2488,7 +2524,7 @@ function RightPanelLessons({
                   onClick={() => setMoveMenuOpen(o => !o)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 4, padding: '5px 9px', borderRadius: 8,
-                    border: 'none', background: 'var(--color-accent)', color: '#fff', cursor: 'pointer',
+                    border: 'none', background: 'var(--color-green-text)', color: '#fff', cursor: 'pointer',
                     fontSize: 11, fontWeight: 700, fontFamily: 'inherit',
                   }}
                 >
@@ -2609,8 +2645,8 @@ function RightPanelLessons({
                 style={{
                   width: '100%', display: 'flex', alignItems: 'center', gap: 6,
                   padding: '7px 10px', borderRadius: 10, border: 'none',
-                  background: isActive || (dragging && isTarget) ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
-                  boxShadow: (dragging && isTarget) || isActive ? 'inset 0 0 0 1.5px var(--color-accent)' : undefined,
+                  background: isActive || (dragging && isTarget) ? 'var(--color-green-soft)' : 'var(--color-bg-2)',
+                  boxShadow: (dragging && isTarget) || isActive ? 'inset 0 0 0 1.5px var(--color-green-text)' : undefined,
                   cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.13s, box-shadow 0.13s',
                 }}
               >
@@ -2623,7 +2659,7 @@ function RightPanelLessons({
                   <ChevronDown
                     size={13}
                     style={{
-                      color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
+                      color: isActive ? 'var(--color-green-text)' : 'var(--color-muted)',
                       transform: mod.expanded ? 'rotate(0deg)' : 'rotate(-90deg)',
                       transition: 'transform 0.18s ease',
                     }}
@@ -2644,20 +2680,20 @@ function RightPanelLessons({
                     style={{
                       flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
                       color: 'var(--color-text)', background: 'var(--color-bg)',
-                      border: '1.5px solid var(--color-accent)', borderRadius: 6, padding: '2px 6px', outline: 'none',
+                      border: '1.5px solid var(--color-green-text)', borderRadius: 6, padding: '2px 6px', outline: 'none',
                     }}
                   />
                 ) : (
                   <span
                     onDoubleClick={e => { e.stopPropagation(); setEditingModuleLabel(mod.label); setEditingModuleId(mod.id) }}
                     title="Двойной клик — переименовать"
-                    style={{ flex: 1, fontSize: 12, fontWeight: 700, color: isActive ? 'var(--color-accent)' : 'var(--color-text)', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    style={{ flex: 1, fontSize: 12, fontWeight: 700, color: isActive ? 'var(--color-green-text)' : 'var(--color-text)', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                   >
                     {mod.label}
                   </span>
                 )}
                 {dragging && isTarget && !mod.expanded && (
-                  <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-bg)', borderRadius: 999, padding: '2px 6px', flexShrink: 0 }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-green-text)', background: 'var(--color-bg)', borderRadius: 999, padding: '2px 6px', flexShrink: 0 }}>
                     в конец
                   </span>
                 )}
@@ -2738,7 +2774,7 @@ function RightPanelLessons({
                 Отмена
               </button>
               <button onClick={addModule}
-                style={{ flex: 1, padding: '6px 0', borderRadius: 9, border: 'none', background: 'var(--color-purple-soft)', cursor: 'pointer', fontSize: 11, fontWeight: 700, color: 'var(--color-accent)', fontFamily: 'inherit' }}>
+                style={{ flex: 1, padding: '6px 0', borderRadius: 9, border: 'none', background: 'var(--color-green-soft)', cursor: 'pointer', fontSize: 11, fontWeight: 700, color: 'var(--color-green-text)', fontFamily: 'inherit' }}>
                 Создать
               </button>
             </div>
@@ -2755,9 +2791,9 @@ function RightPanelLessons({
               />
               <button onClick={addLesson} style={{
                 width: 32, height: 32, borderRadius: 9, border: 'none',
-                background: 'var(--color-purple-soft)', cursor: 'pointer',
+                background: 'var(--color-green-soft)', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--color-accent)', flexShrink: 0,
+                color: 'var(--color-green-text)', flexShrink: 0,
               }}>
                 <Plus size={14} />
               </button>
@@ -2807,7 +2843,7 @@ export default function TeacherCourseEditorPage() {
     if (!editingCourseJson) {
       return {
         id: uid(), title: '', subject: 'Химия', level: 'ЕГЭ', status: 'draft',
-        color: 'var(--color-purple)', bg: 'var(--color-purple-soft)',
+        color: 'var(--color-purple)', bg: 'var(--color-green-soft)',
         groupIds: [], studentIds: [],
         modules: [{ id: uid(), label: 'Модуль 1', expanded: true, lessonIds: [] }],
         lessons: [],
@@ -3165,7 +3201,7 @@ export default function TeacherCourseEditorPage() {
           time_start: time,
           time_end: addMinutes(time, dur ?? 90),
           lesson_title: lesson.title || dbLesson!.title,
-          lesson_number: lesson.number,
+          lesson_number: lessonIndexById[lesson.id] + 1,
           subject: c.subject,
           status: 'upcoming',
           node_type: nodeType,
@@ -3317,7 +3353,7 @@ export default function TeacherCourseEditorPage() {
                 icon={<Send size={14} />}
                 saved={savedFlash}
                 onClick={course.status === 'published' ? () => handleSave() : handlePublish}
-                style={{ boxShadow: '0 6px 20px rgba(99,84,207,0.32)', pointerEvents: 'auto' }} />
+                style={{ pointerEvents: 'auto' }} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -3335,7 +3371,7 @@ export default function TeacherCourseEditorPage() {
             <ArrowLeft size={15} strokeWidth={2} /> Назад
           </motion.button>
           <AnimatePresence>
-            {selectedLesson && selectedLesson.kind !== 'test' && (
+            {selectedLesson && (
               <motion.button
                 key="back-to-course"
                 initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -8 }}
@@ -3369,7 +3405,7 @@ export default function TeacherCourseEditorPage() {
             icon={<Send size={14} />}
             saved={savedFlash}
             onClick={course.status === 'published' ? () => handleSave() : handlePublish}
-            style={{ boxShadow: '0 6px 20px rgba(99,84,207,0.32)' }} />
+            style={{}} />
         </div>
       </motion.div>
 
@@ -3526,7 +3562,7 @@ export default function TeacherCourseEditorPage() {
                             padding: '6px 14px', borderRadius: 999, border: 'none',
                             background: isOpened
                               ? 'var(--grad-green-open)'
-                              : 'var(--grad-purple)',
+                              : 'var(--color-green-text)',
                             color: '#fff',
                             fontSize: 12, fontWeight: 700,
                             cursor: openingLesson ? 'wait' : 'pointer',
@@ -3551,8 +3587,8 @@ export default function TeacherCourseEditorPage() {
                       <button key={m.id} onClick={() => setLessonMode(m.id)} style={{
                         flex: 1, padding: '7px 10px', borderRadius: 9,
                         border: 'none', cursor: 'pointer',
-                        background: lessonMode === m.id ? 'var(--color-purple-soft)' : 'transparent',
-                        color: lessonMode === m.id ? 'var(--color-accent)' : 'var(--color-text)',
+                        background: lessonMode === m.id ? 'var(--color-green-soft)' : 'transparent',
+                        color: lessonMode === m.id ? 'var(--color-green-text)' : 'var(--color-text)',
                         fontSize: 13, fontWeight: 600, transition: 'all 0.15s', fontFamily: 'inherit',
                       }}>
                         {m.label}

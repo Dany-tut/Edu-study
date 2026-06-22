@@ -17,6 +17,7 @@ export type NotifType =
   | 'hw_submitted'
   | 'test_assigned'
   | 'payment_due'
+  | 'fill_journal'
 
 export type NotifLink = { page?: string; lessonRef?: string; subject?: string; studentId?: string; assignmentId?: string }
 
@@ -84,6 +85,8 @@ type State = {
   markAllRead: () => void
   dismissLive: (id: string) => void
   unreadCount: () => number
+  /** Replace all local fill_journal notifications with fresh ones. */
+  syncJournalNotifs: (items: Array<{ id: string; title: string; body: string }>) => void
 }
 
 export const useNotificationsStore = create<State>()((set, get) => ({
@@ -149,4 +152,19 @@ export const useNotificationsStore = create<State>()((set, get) => ({
   })),
 
   unreadCount: () => get().notifications.filter(n => !n.read).length,
+
+  syncJournalNotifs: (items) => set(state => {
+    const kept = state.notifications.filter(n => n.type !== 'fill_journal')
+    const fresh: Notification[] = items.map(it => ({
+      id: `journal-${it.id}`,
+      type: 'fill_journal' as NotifType,
+      title: it.title,
+      body: it.body,
+      createdAt: Date.now(),
+      read: false,
+      live: false,
+      action: { label: 'Заполнить', page: '#/teacher/gradebook' },
+    }))
+    return { notifications: [...fresh, ...kept] }
+  }),
 }))

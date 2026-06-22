@@ -17,6 +17,7 @@ import TeacherCompactPill from '../../components/teacher/TeacherCompactPill'
 import ReviewNavPill from '../../components/teacher/ReviewNavPill'
 import TeacherStudentDashboardPage from './TeacherStudentDashboardPage'
 import TeacherCourseEditorPage from './TeacherCourseEditorPage'
+import TeacherStoragePage from './TeacherStoragePage'
 import MobileTeacherApp from '../../components/teacher/mobile/MobileTeacherApp'
 import { useIsDesktop } from '../../lib/useIsDesktop'
 import { useTeacher } from '../../store/teacherStore'
@@ -129,6 +130,7 @@ export default function TeacherDashboardPage() {
           {activePage === 'constructor'     && <TeacherConstructorPage />}
           {activePage === 'course-editor'   && <TeacherCourseEditorPage />}
           {activePage === 'student'         && <TeacherStudentDashboardPage />}
+          {activePage === 'storage'         && <TeacherStoragePage />}
         </motion.div>
       </AnimatePresence>
 

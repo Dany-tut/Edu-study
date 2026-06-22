@@ -6,7 +6,7 @@ import {
   AlignLeft, CheckSquare, Type, Shuffle, Eye,
   BookOpen, AlertCircle, Check, GripVertical, Sparkles,
   ChevronLeft, ChevronRight, Calendar, Users,
-  PenLine,
+  PenLine, ArrowUpDown, ArrowUp, ArrowDown, Table as TableIcon,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
@@ -25,10 +25,11 @@ import MultiSelectField from '../../components/MultiSelectField'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import WhiteboardCanvas from '../../components/teacher/WhiteboardCanvas'
 import RichConditionEditor from '../../components/teacher/RichConditionEditor'
+import TableEditor from '../../components/teacher/TableEditor'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-type HWTaskType = 'text' | 'choice' | 'fill' | 'match' | 'whiteboard'
+type HWTaskType = 'text' | 'choice' | 'fill' | 'match' | 'whiteboard' | 'sequence' | 'table'
 
 type HWTask = {
   id: string
@@ -39,10 +40,12 @@ type HWTask = {
   type: HWTaskType
   question: string
   answer: string
-  image?: string | null   // условие-картинка из банка (для сложных заданий у ученика)
+  image?: string | null
   choices?: string[]
   correctChoices?: number[]
   pairs?: { left: string; right: string }[]
+  sequenceItems?: string[]
+  table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; cellImages?: Record<string, string>; cellImageSizes?: Record<string, number> }
   canvasData?: string
 }
 
@@ -54,6 +57,8 @@ function makeTask(type: HWTaskType): HWTask {
     choices: type === 'choice' ? ['', '', '', ''] : undefined,
     correctChoices: type === 'choice' ? [0] : undefined,
     pairs: type === 'match' ? [{ left: '', right: '' }, { left: '', right: '' }] : undefined,
+    sequenceItems: type === 'sequence' ? ['', ''] : undefined,
+    table: type === 'table' ? { headers: ['Заголовок 1', 'Заголовок 2'], rows: [['', ''], ['', '']] } : undefined,
   }
 }
 
@@ -84,10 +89,10 @@ function buildHardTaskDefs(tasks: HWTask[]): HardTaskDef[] {
 const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
   padding: '9px 12px', borderRadius: 11,
-  border: '1.5px solid var(--color-border-medium)',
+  border: 'none',
   fontSize: 13, color: 'var(--color-text)',
-  background: 'var(--color-bg-2)', outline: 'none',
-  fontFamily: 'inherit', transition: 'border-color 0.15s',
+  background: 'var(--color-bg-input)', outline: 'none',
+  fontFamily: 'inherit',
 }
 
 function Label({ children }: { children: React.ReactNode }) {
@@ -119,26 +124,20 @@ function FilterSelect({ label, options, value, onChange }: {
       onChange={onChange}
       placeholder={label}
       options={options.map(o => ({ value: o, label: o }))}
-      triggerStyle={{
-        background: 'var(--color-bg-input)',
-        borderWidth: 1, borderStyle: 'solid',
-        borderColor: value ? 'rgba(0,0,0,0.16)' : 'rgba(0,0,0,0.1)',
-        borderRadius: 13, padding: '10px 14px',
-        fontWeight: value ? 600 : 400,
-        color: value ? 'var(--color-text)' : 'var(--color-muted)',
-      }}
     />
   )
 }
 
 // ─── Task type config ──────────────────────────────────────────────────────────
 
-const TASK_TYPES: { type: HWTaskType; label: string; icon: React.ElementType; color: string; bg: string }[] = [
-  { type: 'text',       label: 'Текстовый ответ', icon: AlignLeft,   color: 'var(--color-accent)',        bg: 'var(--color-purple-soft)' },
-  { type: 'choice',     label: 'Выбор ответа',    icon: CheckSquare, color: 'var(--color-green-text)',    bg: 'var(--color-green-soft)' },
-  { type: 'fill',       label: 'Вписать слово',   icon: Type,        color: 'var(--color-peach-text)',    bg: 'var(--color-peach-soft)' },
-  { type: 'match',      label: 'Сопоставление',   icon: Shuffle,     color: 'var(--color-rose-text)',     bg: 'var(--color-rose-soft)' },
-  { type: 'whiteboard', label: 'Доска',            icon: PenLine,     color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
+const TASK_TYPES: { type: HWTaskType; label: string; hint: string; icon: React.ElementType; color: string; bg: string }[] = [
+  { type: 'text',       label: 'Текстовый ответ',    hint: 'Развёрнутый ответ',  icon: AlignLeft,   color: 'var(--color-accent)',           bg: 'var(--color-purple-soft)' },
+  { type: 'choice',     label: 'Выбор ответа',        hint: 'Один или несколько', icon: CheckSquare, color: 'var(--color-green-text)',       bg: 'var(--color-green-soft)' },
+  { type: 'fill',       label: 'Вписать слово',        hint: 'Слово / фраза',      icon: Type,        color: 'var(--color-peach-text)',       bg: 'var(--color-peach-soft)' },
+  { type: 'match',      label: 'Сопоставление',        hint: 'Таблица А1 Б2 В3',   icon: Shuffle,     color: 'var(--color-rose-text)',        bg: 'var(--color-rose-soft)' },
+  { type: 'sequence',   label: 'Последовательность',   hint: 'Расставить порядок', icon: ArrowUpDown, color: 'var(--color-yellow-text)',      bg: 'var(--color-yellow-soft)' },
+  { type: 'table',      label: 'Таблица',              hint: 'Заполнить таблицу',  icon: TableIcon,   color: 'var(--color-teal-pill-text)',   bg: 'var(--color-teal-pill-bg)' },
+  { type: 'whiteboard', label: 'Доска',                hint: 'Рисунок на доске',   icon: PenLine,     color: 'var(--color-blue-pill-text)',   bg: 'var(--color-blue-pill-bg)' },
 ]
 
 function typeConfig(t: HWTaskType) {
@@ -417,6 +416,53 @@ function TaskCard({
                   </div>
                 )}
 
+                {/* Sequence items */}
+                {task.type === 'sequence' && (() => {
+                  const items = task.sequenceItems ?? ['', '']
+                  const setItems = (next: string[]) => onUpdate({ sequenceItems: next })
+                  const reorderBtn = (disabled: boolean): React.CSSProperties => ({
+                    width: 24, height: 24, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)',
+                    cursor: disabled ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'var(--color-text-3)', flexShrink: 0, opacity: disabled ? 0.4 : 1,
+                  })
+                  return (
+                    <div>
+                      <Label>Элементы в правильном порядке</Label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {items.map((it, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{i + 1}</span>
+                            <input value={it} onChange={e => { const n = [...items]; n[i] = e.target.value; setItems(n) }} placeholder={`Шаг ${i + 1}`} style={{ ...inputStyle, flex: 1 }} />
+                            <button onClick={() => { if (i > 0) { const n = [...items];[n[i - 1], n[i]] = [n[i], n[i - 1]]; setItems(n) } }} disabled={i === 0} style={reorderBtn(i === 0)}><ArrowUp size={12} /></button>
+                            <button onClick={() => { if (i < items.length - 1) { const n = [...items];[n[i + 1], n[i]] = [n[i], n[i + 1]]; setItems(n) } }} disabled={i === items.length - 1} style={reorderBtn(i === items.length - 1)}><ArrowDown size={12} /></button>
+                            {items.length > 2 && (
+                              <button onClick={() => setItems(items.filter((_, j) => j !== i))} style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}><X size={11} /></button>
+                            )}
+                          </div>
+                        ))}
+                        <button onClick={() => setItems([...items, ''])} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}>
+                          <Plus size={12} /> Добавить шаг
+                        </button>
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>Ученик увидит элементы вперемешку и расставит их в этом порядке.</div>
+                    </div>
+                  )
+                })()}
+
+                {/* Table builder */}
+                {task.type === 'table' && (
+                  <div>
+                    <Label>Таблица — нажмите «Вписать» в ячейках, куда ученик пишет ответ</Label>
+                    <TableEditor
+                      value={task.table ?? { headers: ['Заголовок 1', 'Заголовок 2'], rows: [['', ''], ['', '']] }}
+                      onChange={table => onUpdate({ table })}
+                      accent={cfg.color}
+                      accentBg={cfg.bg}
+                      allowCellImages
+                    />
+                  </div>
+                )}
+
                 {/* Whiteboard canvas */}
                 {task.type === 'whiteboard' && (
                   <div>
@@ -452,6 +498,8 @@ const TASK_TYPE_DESCS: Record<HWTaskType, string> = {
   choice:     'Один или несколько',
   fill:       'Слово / фраза',
   match:      'Таблица А1 Б2 В3',
+  sequence:   'Расставить порядок',
+  table:      'Заполнить таблицу',
   whiteboard: 'Рисунок на доске',
 }
 
@@ -476,7 +524,7 @@ function ComposeTypePanel({ onAdd, onAddHard }: { onAdd: (type: HWTaskType) => v
         boxShadow: 'var(--shadow-sm-page)',
         padding: '16px 12px',
         display: 'flex', flexDirection: 'column', gap: 6,
-        margin: '20px 24px 20px 0',
+        margin: '0 24px 20px 0',
       }}
     >
       <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 4 }}>
@@ -505,7 +553,7 @@ function ComposeTypePanel({ onAdd, onAddHard }: { onAdd: (type: HWTaskType) => v
           </div>
           <div>
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t.label}</div>
-            <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 1 }}>{TASK_TYPE_DESCS[t.type]}</div>
+            <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 1 }}>{t.hint}</div>
           </div>
         </button>
       ))}
@@ -1073,7 +1121,7 @@ function TrainerFilterPanel({
         boxShadow: 'var(--shadow-sm-page)',
         display: 'flex', flexDirection: 'column', overflowY: 'auto', scrollbarGutter: 'stable',
         padding: '16px', gap: 10,
-        margin: '20px 24px 20px 0',
+        margin: '0 24px 20px 0',
       }}
     >
       {/* Header with filter icon */}
@@ -1421,13 +1469,13 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          padding: '9px 12px', borderRadius: 11, border: '1.5px solid var(--color-border-medium)',
-          cursor: 'pointer', background: value ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
+          padding: '9px 12px', borderRadius: 11, border: 'none',
+          cursor: 'pointer', background: 'var(--color-bg-input)',
           fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s',
         }}
       >
-        <Calendar size={14} strokeWidth={2} style={{ flexShrink: 0, color: value ? 'var(--color-accent)' : 'var(--color-text-3)' }} />
-        <div style={{ flex: 1, fontSize: 13, color: value ? 'var(--color-accent)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400 }}>
+        <Calendar size={14} strokeWidth={2} style={{ flexShrink: 0, color: value ? 'var(--color-text)' : 'var(--color-text-3)' }} />
+        <div style={{ flex: 1, fontSize: 13, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400 }}>
           {value || 'Выберите дату'}
         </div>
         {value && (
@@ -1453,8 +1501,11 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
             transition={{ duration: 0.16 }}
             style={{
               position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 999,
-              background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-medium)', borderRadius: 16,
-              boxShadow: '0 8px 32px rgba(99,84,207,0.12)',
+              background: 'rgba(var(--glass-rgb), 0.96)',
+              backdropFilter: 'blur(16px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              border: '1px solid var(--color-border-glass)', borderRadius: 16,
+              boxShadow: 'var(--shadow-dropdown)',
               padding: '14px 12px 12px',
             }}
           >
@@ -1526,8 +1577,8 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          padding: '9px 12px', borderRadius: 11, border: '1.5px solid var(--color-border-medium)',
-          cursor: 'pointer', background: selected ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
+          padding: '9px 12px', borderRadius: 11, border: 'none',
+          cursor: 'pointer', background: 'var(--color-bg-input)',
           fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s',
         }}
       >
@@ -1558,33 +1609,38 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
             transition={{ duration: 0.16 }}
             style={{
               position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 999,
-              background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-medium)', borderRadius: 16,
-              boxShadow: '0 8px 32px rgba(99,84,207,0.12)',
-              overflow: 'hidden',
+              background: 'rgba(var(--glass-rgb), 0.96)',
+              backdropFilter: 'blur(16px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              border: '1px solid var(--color-border-glass)', borderRadius: 16,
+              boxShadow: 'var(--shadow-dropdown)',
+              padding: 6,
             }}
           >
             {groups.map(g => (
               <button
                 key={g.id}
                 onClick={() => { onChange(g.id); setOpen(false) }}
+                onMouseEnter={e => { if (g.id !== value) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-5)' }}
+                onMouseLeave={e => { if (g.id !== value) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                 style={{
                   width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '10px 14px', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                  padding: '8px 10px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                   background: g.id === value ? 'var(--color-purple-soft)' : 'transparent',
                   transition: 'background 0.12s', textAlign: 'left',
                 }}
               >
                 <div style={{
-                  width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-                  background: g.id === value ? 'var(--color-purple-soft)' : 'var(--color-bg)',
+                  width: 26, height: 26, borderRadius: 8, flexShrink: 0,
+                  background: g.id === value ? 'var(--color-accent-soft, var(--color-purple-soft))' : 'var(--color-bg-3)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   <Users size={13} style={{ color: g.id === value ? 'var(--color-accent)' : 'var(--color-text-3)' }} />
                 </div>
-                <span style={{ fontSize: 13, fontWeight: g.id === value ? 700 : 500, color: g.id === value ? 'var(--color-accent)' : 'var(--color-text)' }}>
+                <span style={{ fontSize: 13, fontWeight: g.id === value ? 650 : 500, color: g.id === value ? 'var(--color-accent)' : 'var(--color-text)' }}>
                   {g.name}
                 </span>
-                {g.id === value && <Check size={13} style={{ marginLeft: 'auto', color: 'var(--color-accent)' }} />}
+                {g.id === value && <Check size={13} style={{ marginLeft: 'auto', color: 'var(--color-accent)', flexShrink: 0 }} />}
               </button>
             ))}
           </motion.div>
@@ -1650,8 +1706,8 @@ function LessonPicker({
         onClick={() => { if (!open) { setQuery(''); setFade({ top: 0, bottom: 0 }) } setOpen(o => !o) }}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          padding: '9px 12px', borderRadius: 11, border: '1.5px solid var(--color-border-medium)',
-          cursor: 'pointer', background: selected ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
+          padding: '9px 12px', borderRadius: 11, border: 'none',
+          cursor: 'pointer', background: 'var(--color-bg-input)',
           fontFamily: 'inherit', textAlign: 'left', transition: 'all 0.15s',
         }}
       >
@@ -1708,8 +1764,8 @@ function LessonPicker({
                 placeholder="Поиск урока..."
                 style={{
                   width: '100%', boxSizing: 'border-box', padding: `7px ${query ? 30 : 10}px 7px 30px`,
-                  borderRadius: 9, border: '1.5px solid var(--color-border-medium)',
-                  fontSize: 12, color: 'var(--color-text)', background: 'rgba(var(--glass-rgb), 0.8)',
+                  borderRadius: 9, border: 'none',
+                  fontSize: 12, color: 'var(--color-text)', background: 'var(--color-bg-input)',
                   outline: 'none', fontFamily: 'inherit',
                 }}
               />
@@ -2097,7 +2153,6 @@ export default function TeacherHomeworkCreatePage() {
   const TABS: { key: MainTab; label: string; icon: React.ElementType }[] = [
     { key: 'compose', label: 'Составить', icon: AlignLeft },
     { key: 'trainer', label: 'Из тренажера', icon: BookOpen },
-    { key: 'preview', label: 'Предпросмотр', icon: Eye },
   ]
 
   return (
@@ -2231,7 +2286,7 @@ export default function TeacherHomeworkCreatePage() {
         </div>
 
         {/* Center */}
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', padding: '0 0 20px 20px' }}>
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', padding: '0 20px 20px 20px' }}>
 
           {/* Tab bar */}
           <div style={{
@@ -2337,7 +2392,7 @@ export default function TeacherHomeworkCreatePage() {
         </div>
 
         {/* Right column */}
-        <div style={{ flexShrink: 0, overflow: 'hidden' }}>
+        <div style={{ flexShrink: 0, position: 'sticky', top: 20, alignSelf: 'flex-start', overflow: 'hidden' }}>
           <AnimatePresence mode="wait">
             {activeTab === 'compose' && (
               <ComposeTypePanel

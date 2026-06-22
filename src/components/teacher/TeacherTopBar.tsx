@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, Users, ClipboardList, BookOpen, Layers, GraduationCap,
   ChevronLeft, ChevronRight,
-  LayoutGrid, UserPlus, CheckSquare, LayoutDashboard, LogOut, Moon, Sun, type LucideIcon,
+  LayoutGrid, UserPlus, CheckSquare, LayoutDashboard, LogOut, Moon, Sun, HardDrive, type LucideIcon,
 } from 'lucide-react'
 import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
@@ -16,6 +16,7 @@ import { supabase } from '../../lib/supabase'
 import { useTheme } from '../../store/themeStore'
 import NotificationBell from '../NotificationBell'
 import NotificationPopup from '../NotificationPopup'
+import { useNotificationsStore } from '../../store/notificationsStore'
 
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
   { id: 'home',        label: 'Главная',     icon: Home },
@@ -36,11 +37,12 @@ const quickActions: QuickItem[] = [
   { icon: BookOpen,         label: 'Создать курс',      sub: 'новый курс',       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', action: 'create-course' },
   { icon: GraduationCap,    label: 'Создать урок',      sub: 'новый урок',       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', page: 'lesson-editor' },
   { icon: ClipboardList,    label: 'Создать домашку',   sub: 'группе / лично',   color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', page: 'homework-create' },
-  { icon: CheckSquare,      label: 'Создать задачу',    sub: 'встреча, урок…',   color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', action: 'create-task' },
+  { icon: CheckSquare,      label: 'Создать задачу',    sub: 'встреча, урок…',   color: '#4B8EF1', bg: 'rgba(75,142,241,0.13)', action: 'create-task' },
   { type: 'separator' },
   { icon: Users,            label: 'Создать группу',    sub: 'новая группа',     color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', action: 'create-group' },
   { icon: UserPlus,         label: 'Добавить студента', sub: 'в группу / 1:1',   color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', action: 'add-student' },
   { type: 'separator' },
+  { icon: HardDrive,        label: 'Хранилище',         sub: 'база и файлы',     color: 'var(--color-peach-text)', bg: 'var(--color-peach-soft)', action: 'storage' },
   { icon: LayoutDashboard,  label: 'Настроить виджеты', sub: 'как у учеников',   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)', action: 'widgets' },
   { icon: Moon,             label: 'Тема',              sub: 'светлая / тёмная', color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)', action: 'theme' },
   { type: 'separator' },
@@ -61,7 +63,16 @@ export default function TeacherTopBar() {
     .filter(hw => hw.status === 'active')
     .reduce((acc, hw) => acc + Math.max(0, hw.submittedCount - Object.keys(reviews[hw.id] ?? {}).length), 0)
     + hardSubs.filter(s => s.status === 'submitted').length
-  const pendingJournalCount = useJournalPending(null).length
+  const pendingJournals = useJournalPending(null)
+  const pendingJournalCount = pendingJournals.length
+  const syncJournalNotifs = useNotificationsStore(s => s.syncJournalNotifs)
+  useEffect(() => {
+    syncJournalNotifs(pendingJournals.map(p => ({
+      id: p.scheduleId,
+      title: `Журнал — ${p.scopeName}`,
+      body: `${p.date.slice(5).replace('-', '.')} · ${p.title}`,
+    })))
+  }, [pendingJournals, syncJournalNotifs])
   const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [widgetsOpen, setWidgetsOpen] = useState(false)
   const [notifOpen, setNotifOpen]       = useState(false)
@@ -288,6 +299,7 @@ export default function TeacherTopBar() {
                     if (action.action === 'create-task') { setTaskModalOpen(true) }
                     if (action.action === 'widgets') { setWidgetsOpen(true) }
                     if (action.action === 'create-course') { openConstructor('course') }
+                    if (action.action === 'storage') { setActivePage('storage') }
                     if (action.action === 'logout') { supabase.auth.signOut() }
                     if (action.action === 'theme') { toggleTheme(); return }
                     if (action.action === 'create-group') {
@@ -324,11 +336,11 @@ export default function TeacherTopBar() {
                       ? (dark
                           ? <Sun size={15} strokeWidth={2} style={{ color: 'var(--color-accent)' }} />
                           : <Moon size={15} strokeWidth={2} style={{ color: 'var(--color-accent)' }} />)
-                      : <action.icon size={15} strokeWidth={2} style={{ color: action.color }} />
+                      : <action.icon size={15} strokeWidth={2} style={{ color: isLogout ? (dark ? '#FC8181' : '#A8282D') : action.color }} />
                     }
                   </div>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: isLogout ? '#C53030' : 'var(--color-text)', lineHeight: 1.3 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: isLogout ? (dark ? '#FC8181' : '#C53030') : 'var(--color-text)', lineHeight: 1.3 }}>
                       {action.action === 'theme' ? (dark ? 'Светлая тема' : 'Тёмная тема') : action.label}
                     </div>
                     <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{action.sub}</div>

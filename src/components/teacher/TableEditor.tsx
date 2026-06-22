@@ -106,7 +106,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
   }, [headers.length, rows.length])
 
   function emit(next: Partial<TableEditorValue>) {
-    onChange({ headers, rows, emptyCells, ...next })
+    onChange({ headers, rows, emptyCells, cellImages, cellImageSizes, ...next })
   }
   function setHeader(c: number, v: string) {
     emit({ headers: headers.map((h, ci) => ci === c ? v : h) })
@@ -195,7 +195,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
           const key = pendingCellKey.current
           optimizePhoto(file).then(url => {
             setCellImage(key, url)
-            if (!cellImageSizes[key]) setCellImageSize(key, 100)
+            if (!cellImageSizes[key]) setCellImageSize(key, 50)
           })
           e.target.value = ''
         }}
@@ -204,7 +204,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
           rounded corners, the "+" handles sit OUTSIDE it in the gutters. */}
       <div onKeyDown={onKeyDown} onClick={() => setSel(null)} style={{ position: 'relative', padding: 20 }}>
         <div ref={boxRef} style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--color-border-strong)' }}>
-          <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 13 }}>
+          <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 13, tableLayout: 'fixed' }}>
             <thead><tr>{headers.map((h, c) => {
               const colSel = sel?.type === 'col' && sel.index === c
               return (
@@ -233,12 +233,15 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                       <div style={{ padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: 5 }}>
                         {/* Size controls for cell image */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                          {CELL_IMG_SIZES.map(s => (
-                            <button key={s.value} onMouseDown={e => { e.stopPropagation(); setCellImageSize(key, s.value) }}
-                              style={{ padding: '1px 6px', borderRadius: 5, border: `1px solid ${(cellImageSizes[key] ?? 100) === s.value ? accent : 'var(--color-border-medium)'}`, background: (cellImageSizes[key] ?? 100) === s.value ? accentBg : 'transparent', color: (cellImageSizes[key] ?? 100) === s.value ? accent : 'var(--color-text-4)', cursor: 'pointer', fontSize: 10, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1.4 }}>
-                              {s.label}
-                            </button>
-                          ))}
+                          {CELL_IMG_SIZES.map(s => {
+                            const active = (cellImageSizes[key] ?? 50) === s.value
+                            return (
+                              <button key={s.value} onMouseDown={e => { e.stopPropagation(); setCellImageSize(key, s.value) }}
+                                style={{ padding: '1px 6px', borderRadius: 5, border: `1px solid ${active ? accent : 'var(--color-border-strong)'}`, background: active ? accentBg : 'var(--color-bg-3)', color: active ? accent : 'var(--color-text-2)', cursor: 'pointer', fontSize: 10, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1.4 }}>
+                                {s.label}
+                              </button>
+                            )
+                          })}
                           <button onMouseDown={e => { e.stopPropagation(); removeCellImage(key) }}
                             style={{ marginLeft: 2, width: 18, height: 18, borderRadius: 5, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
                             <X size={9} />
@@ -248,26 +251,36 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                       </div>
                     ) : isExplicitlyEmpty ? (
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', minHeight: 34, gap: 4 }}>
-                        <span style={{ fontSize: 11, color: 'var(--color-text-4)', fontStyle: 'italic' }}>пусто</span>
+                        <span style={{ fontSize: 11, color: 'var(--color-accent)', fontWeight: 600 }}>вписать</span>
                         <button
                           onMouseDown={e => { e.stopPropagation(); setEmpty(key, false); setActiveCell(key) }}
-                          style={{ fontSize: 10, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 4px', borderRadius: 4, lineHeight: 1 }}
-                          title="Вписать"
-                        >✎</button>
+                          style={{ width: 16, height: 16, borderRadius: 4, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+                          title="Убрать поле ответа"
+                        ><X size={9} /></button>
                       </div>
                     ) : showChoice ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', minHeight: 34, flexWrap: 'wrap' }}>
+                      <div
+                        tabIndex={0}
+                        style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', minHeight: 34, flexWrap: 'wrap', outline: 'none' }}
+                        onPaste={allowCellImages ? e => {
+                          const imgItem = Array.from(e.clipboardData?.items ?? []).find(it => it.type.startsWith('image/'))
+                          if (!imgItem) return
+                          e.preventDefault()
+                          const file = imgItem.getAsFile(); if (!file) return
+                          optimizePhoto(file).then(url => { setCellImage(key, url); if (!cellImageSizes[key]) setCellImageSize(key, 50) })
+                        } : undefined}
+                      >
                         <button
                           onMouseDown={e => { e.stopPropagation(); setActiveCell(key) }}
-                          style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: `1px solid ${accent}55`, background: accentBg, color: accent, cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
-                        >Вписать</button>
+                          style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
+                        >Текст</button>
                         <button
                           onMouseDown={e => { e.stopPropagation(); setEmpty(key, true) }}
-                          style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
-                        >Пусто</button>
+                          style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: `1px solid ${accent}55`, background: accentBg, color: accent, cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
+                        >Вписать</button>
                         {allowCellImages && (
                           <button
-                            onMouseDown={e => { e.stopPropagation(); pickCellImage(key) }}
+                            onClick={e => { e.stopPropagation(); pickCellImage(key) }}
                             style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
                           ><Camera size={10} /> Фото</button>
                         )}
@@ -281,6 +294,13 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                         onBlur={() => { if (cell === '') setActiveCell(null) }}
                         placeholder="—"
                         style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: '8px 10px', fontFamily: 'inherit', fontSize: 13, color: 'var(--color-text)' }}
+                        onPaste={allowCellImages ? e => {
+                          const imgItem = Array.from(e.clipboardData?.items ?? []).find(it => it.type.startsWith('image/'))
+                          if (!imgItem) return
+                          e.preventDefault()
+                          const file = imgItem.getAsFile(); if (!file) return
+                          optimizePhoto(file).then(url => { setCellImage(key, url); setActiveCell(null) })
+                        } : undefined}
                       />
                     )}
                   </td>

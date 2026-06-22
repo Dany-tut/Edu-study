@@ -10,7 +10,7 @@ const norm = (o: TeacherSelectOption) => (typeof o === 'string' ? { value: o, la
 
 const baseTrigger: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box', padding: '9px 12px',
-  borderRadius: 11, borderWidth: 1.5, borderStyle: 'solid', borderColor: 'var(--color-border-medium)',
+  borderRadius: 11, border: 'none',
   fontSize: 13, color: 'var(--color-text)', background: 'var(--color-bg-input)',
   outline: 'none', fontFamily: 'inherit', cursor: 'pointer',
   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -127,7 +127,7 @@ export default function TeacherSelect({
           ...baseTrigger,
           ...triggerStyle,
           cursor: 'text',
-          ...(open ? { borderColor: accent, boxShadow: `0 0 0 3px ${accent}22` } : {}),
+          ...(open ? {} : {}),
         }}
       >
         {open && searchable ? (

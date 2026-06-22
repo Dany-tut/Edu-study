@@ -73,9 +73,8 @@ function FilterField({ label, options, value, onChange, accent }: {
           display: 'flex', alignItems: 'center', gap: 6,
           padding: '9px 12px', borderRadius: 13,
           background: 'var(--color-bg-input)',
-          border: `1px solid ${open ? accent : value ? 'var(--color-border)' : 'var(--color-border-soft)'}`,
-          boxShadow: open ? `0 0 0 3px ${accent}22` : 'none',
-          transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+          border: 'none',
+          transition: 'background 0.15s ease',
           cursor: 'pointer',
         }}>
         <input
@@ -1521,8 +1520,8 @@ export default function TaskBankPage() {
         {/* Filters sheet */}
         <MobileSheet open={sheet === 'filters'} onClose={() => setSheet(null)} title="Фильтры">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <MultiSelectField label="Раздел" options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={palette.soft} />
-            <MultiSelectField label="Тема" options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={palette.soft} />
+            <MultiSelectField label="Раздел" options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} />
+            <MultiSelectField label="Тема" options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} />
             <div style={{ display: 'flex', gap: 8 }}>
               {['1', '2'].map(p => {
                 const active = parts.includes(p)
@@ -1531,7 +1530,7 @@ export default function TaskBankPage() {
                 <button key={p} disabled={!avail} onClick={() => { tactile(); setParts(active ? parts.filter(x => x !== p) : [...parts, p]) }} style={{
                   flex: 1, padding: '11px 12px', borderRadius: 13, fontSize: 14, fontWeight: 600, cursor: avail ? 'pointer' : 'not-allowed',
                   background: active ? `${palette.accent}22` : 'var(--color-bg-input)',
-                  border: `1px solid ${active ? palette.accent : 'var(--color-border-soft)'}`,
+                  border: 'none',
                   color: active ? palette.accent : 'var(--color-muted)',
                   opacity: avail ? 1 : 0.4,
                 }}>
@@ -1539,12 +1538,12 @@ export default function TaskBankPage() {
                 </button>
               )})}
             </div>
-            <MultiSelectField label="Линия" options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={palette.soft} />
+            <MultiSelectField label="Линия" options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} />
             <FilterField label="Источник" options={allSources} value={source} onChange={setSource} accent={palette.accent} />
             <StatusTabs value={statusFilter} onChange={setStatusFilter} />
             {hasFilters && (
               <button onClick={() => { tactile(); clearFilters() }}
-                style={{ marginTop: 2, padding: '11px', borderRadius: 12, background: 'rgba(176,48,64,0.10)', border: '1px solid rgba(176,48,64,0.18)', fontSize: 13, color: 'rgba(176,48,64,0.85)', cursor: 'pointer', fontWeight: 600 }}>
+                style={{ marginTop: 2, padding: '11px', borderRadius: 12, background: 'rgba(176,48,64,0.10)', border: 'none', fontSize: 13, color: 'var(--color-red-text)', cursor: 'pointer', fontWeight: 600 }}>
                 Сбросить фильтры
               </button>
             )}
@@ -1775,7 +1774,7 @@ export default function TaskBankPage() {
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Фильтры</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <MultiSelectField label="Раздел" options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={palette.soft} />
+              <MultiSelectField label="Раздел" options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} />
               <AnimatePresence>
                 {sections.length > 0 && subject === 'biology' && (
                   <SuggestBox
@@ -1786,7 +1785,7 @@ export default function TaskBankPage() {
                   />
                 )}
               </AnimatePresence>
-              <MultiSelectField label="Тема" options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={palette.soft} />
+              <MultiSelectField label="Тема" options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} />
               <div style={{ display: 'flex', gap: 6 }}>
                 {['1', '2'].map(p => {
                   const active = parts.includes(p)
@@ -1795,8 +1794,7 @@ export default function TaskBankPage() {
                   <button key={p} disabled={!avail} onClick={() => setParts(active ? parts.filter(x => x !== p) : [...parts, p])} style={{
                     flex: 1, padding: '9px 12px', borderRadius: 13, fontSize: 13, fontWeight: 600, cursor: avail ? 'pointer' : 'not-allowed',
                     background: active ? `${palette.accent}22` : 'var(--color-bg-input)',
-                    border: `1px solid ${active ? palette.accent : 'var(--color-border-soft)'}`,
-                    boxShadow: active ? `0 0 0 3px ${palette.accent}22` : 'none',
+                    border: 'none',
                     color: active ? palette.accent : 'var(--color-muted)',
                     opacity: avail ? 1 : 0.4,
                     transition: 'all 0.15s ease',
@@ -1805,7 +1803,7 @@ export default function TaskBankPage() {
                   </button>
                 )})}
               </div>
-              <MultiSelectField label="Линия" options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={palette.soft} />
+              <MultiSelectField label="Линия" options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} />
               <FilterField label="Источник" options={allSources}  value={source}  onChange={setSource} accent={palette.accent} />
             </div>
             {hasFilters && (

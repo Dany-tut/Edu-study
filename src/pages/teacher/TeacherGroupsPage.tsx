@@ -277,11 +277,13 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()}
         style={{
-          background: 'var(--color-bg-input)', borderRadius: 24, padding: 28,
+          background: 'var(--color-bg-input)', borderRadius: 24,
           width: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
-          maxHeight: '90dvh', overflowY: 'auto',
+          maxHeight: '90dvh', overflow: 'hidden',
+          display: 'flex', flexDirection: 'column',
         }}
       >
+        <div style={{ overflowY: 'auto', padding: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <span style={{ fontSize: 16, fontWeight: 700 }}>{inviteLink ? 'Ученик добавлен' : 'Новый ученик'}</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
@@ -383,6 +385,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         </button>
           </>
         )}
+        </div>
       </motion.div>
     </div>
   )
@@ -469,11 +472,13 @@ function AddIndividualStudentModal({ onClose, onSave }: {
         transition={{ duration: 0.22 }}
         onClick={e => e.stopPropagation()}
         style={{
-          background: 'var(--color-bg-input)', borderRadius: 24, padding: 28,
+          background: 'var(--color-bg-input)', borderRadius: 24,
           width: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
-          maxHeight: '90dvh', overflowY: 'auto',
+          maxHeight: '90dvh', overflow: 'hidden',
+          display: 'flex', flexDirection: 'column',
         }}
       >
+        <div style={{ overflowY: 'auto', padding: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <span style={{ fontSize: 16, fontWeight: 700 }}>{inviteLink ? 'Ученик добавлен' : 'Новый ученик 1:1'}</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
@@ -566,6 +571,7 @@ function AddIndividualStudentModal({ onClose, onSave }: {
             </button>
           </>
         )}
+        </div>
       </motion.div>
     </div>
   )
@@ -1675,8 +1681,10 @@ export default function TeacherGroupsPage() {
                   display: 'flex', flexDirection: 'column', gap: 12,
                   borderBottom: '1px solid var(--color-border-soft)',
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                  {/* Single header row: name left, pills center, search right */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative' }}>
+                    {/* Left: group name */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto', minWidth: 0 }}>
                       <div style={{
                         width: 10, height: 10, borderRadius: '50%', background: activeGroup.color, flex: 'none',
                       }} />
@@ -1695,70 +1703,64 @@ export default function TeacherGroupsPage() {
                       </span>
                     </div>
 
-                    {/* Search box */}
+                    {/* Center: filter pills (absolute so they're truly centered) */}
                     <div style={{
-                      display: 'flex', alignItems: 'center', gap: 7, flex: 'none',
-                      background: 'var(--color-bg)', border: '1px solid var(--color-border-soft)',
-                      borderRadius: 10, padding: '7px 11px', width: 200, maxWidth: '40vw',
+                      position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+                      display: 'flex', alignItems: 'center', gap: 6,
                     }}>
-                      <Search size={14} style={{ color: 'var(--color-text-3)', flex: 'none' }} />
-                      <input
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        placeholder="Поиск ученика…"
-                        style={{
-                          flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
-                          fontSize: 13, color: 'var(--color-text)',
-                        }}
-                      />
-                      {searchQuery && (
-                        <X size={13} style={{ color: 'var(--color-text-3)', cursor: 'pointer', flex: 'none' }} onClick={() => setSearchQuery('')} />
-                      )}
+                      {([
+                        { id: 'all', label: 'Все' },
+                        { id: 'debtors', label: 'Должники' },
+                        { id: 'fading', label: 'Пропадают' },
+                        { id: 'nohw', label: 'Не сдали ДЗ' },
+                      ] as { id: RosterFilter; label: string }[]).map(f => {
+                        const active = rosterFilter === f.id
+                        const count = filterCounts[f.id]
+                        return (
+                          <button
+                            key={f.id}
+                            onClick={() => setRosterFilter(f.id)}
+                            style={{
+                              display: 'inline-flex', alignItems: 'center', gap: 6,
+                              padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
+                              fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap',
+                              background: active ? 'var(--color-purple-soft)' : 'var(--color-bg)',
+                              color: active ? 'var(--color-accent)' : 'var(--color-muted)',
+                              border: `1px solid ${active ? 'transparent' : 'var(--color-border-soft)'}`,
+                            }}
+                          >
+                            {f.label}
+                            <span style={{
+                              fontSize: 11, fontWeight: 700, opacity: active ? 1 : 0.7,
+                              color: f.id !== 'all' && count > 0 && !active ? 'var(--color-accent)' : 'inherit',
+                            }}>{count}</span>
+                          </button>
+                        )
+                      })}
                     </div>
-                  </div>
 
-                  {/* Quick filters */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-                    {([
-                      { id: 'all', label: 'Все' },
-                      { id: 'debtors', label: 'Должники' },
-                      { id: 'fading', label: 'Пропадают' },
-                      { id: 'nohw', label: 'Не сдали ДЗ' },
-                    ] as { id: RosterFilter; label: string }[]).map(f => {
-                      const active = rosterFilter === f.id
-                      const count = filterCounts[f.id]
-                      return (
-                        <button
-                          key={f.id}
-                          onClick={() => setRosterFilter(f.id)}
+                    {/* Right: search */}
+                    <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10, flex: '0 0 auto' }}>
+                      <div style={{
+                        display: 'flex', alignItems: 'center', gap: 7,
+                        background: 'var(--color-bg)', border: '1px solid var(--color-border-soft)',
+                        borderRadius: 10, padding: '7px 11px', width: 180,
+                      }}>
+                        <Search size={14} style={{ color: 'var(--color-text-3)', flex: 'none' }} />
+                        <input
+                          value={searchQuery}
+                          onChange={e => setSearchQuery(e.target.value)}
+                          placeholder="Поиск ученика…"
                           style={{
-                            display: 'inline-flex', alignItems: 'center', gap: 6,
-                            padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
-                            fontSize: 12.5, fontWeight: 600,
-                            background: active ? 'var(--color-purple-soft)' : 'var(--color-bg)',
-                            color: active ? 'var(--color-accent)' : 'var(--color-muted)',
-                            border: `1px solid ${active ? 'transparent' : 'var(--color-border-soft)'}`,
+                            flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
+                            fontSize: 13, color: 'var(--color-text)',
                           }}
-                        >
-                          {f.label}
-                          <span style={{
-                            fontSize: 11, fontWeight: 700, opacity: active ? 1 : 0.7,
-                            color: f.id !== 'all' && count > 0 && !active ? 'var(--color-accent)' : 'inherit',
-                          }}>{count}</span>
-                        </button>
-                      )
-                    })}
-                    <button
-                      onClick={() => { setSortKey('attention'); setSortDir('desc') }}
-                      title="Сортировать по вниманию"
-                      style={{
-                        marginLeft: 'auto', fontSize: 11.5, whiteSpace: 'nowrap', cursor: 'pointer',
-                        background: 'none', border: 'none', padding: 0,
-                        color: sortKey === 'attention' ? 'var(--color-accent)' : 'var(--color-text-3)',
-                      }}
-                    >
-                      сортировка: <span style={{ fontWeight: 600 }}>{sortKey === 'attention' ? 'по вниманию' : 'по столбцу'}</span>
-                    </button>
+                        />
+                        {searchQuery && (
+                          <X size={13} style={{ color: 'var(--color-text-3)', cursor: 'pointer', flex: 'none' }} onClick={() => setSearchQuery('')} />
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
 

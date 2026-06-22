@@ -656,13 +656,15 @@ function TableSolver({ table, value, disabled, onChange }: {
   const isEmpty = (r: number, c: number) => !!table.emptyCells?.[`${r},${c}`]
   return (
     <div style={{ overflowX: 'auto', borderRadius: 12, border: '1px solid var(--color-border)' }}>
-      <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 13 }}>
+      <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 13, tableLayout: 'fixed' }}>
         <thead><tr>{table.headers.map((h, c) => (
           <th key={c} style={{ borderRight: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)', background: 'var(--color-bg-2)', padding: '8px 10px', textAlign: 'left', fontWeight: 700, color: 'var(--color-text)', minWidth: 90 }}>{h}</th>
         ))}</tr></thead>
         <tbody>{table.rows.map((row, r) => (
           <tr key={r}>{row.map((cell, c) => {
             const key = `${r},${c}`
+            const cellImg = table.cellImages?.[key]
+            const cellImgSize = table.cellImageSizes?.[key] ?? 50
             return (
               <td key={c} style={{ borderRight: '1px solid var(--color-border)', borderTop: '1px solid var(--color-border)', padding: 0, background: isEmpty(r, c) ? 'var(--color-bg-input)' : 'transparent' }}>
                 {isEmpty(r, c) ? (
@@ -673,6 +675,11 @@ function TableSolver({ table, value, disabled, onChange }: {
                     placeholder="Впиши…"
                     style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: '8px 10px', fontFamily: 'inherit', fontSize: 13, color: 'var(--color-accent)', fontWeight: 600 }}
                   />
+                ) : cellImg ? (
+                  <div style={{ padding: '6px 8px' }}>
+                    <img src={cellImg} alt="" style={{ display: 'block', width: `${cellImgSize}%`, borderRadius: 6 }} />
+                    {cell && <div style={{ padding: '4px 2px', color: 'var(--color-text-2)', fontSize: 13 }}>{cell}</div>}
+                  </div>
                 ) : (
                   <div style={{ padding: '8px 10px', color: 'var(--color-text-2)' }}>{cell || '—'}</div>
                 )}

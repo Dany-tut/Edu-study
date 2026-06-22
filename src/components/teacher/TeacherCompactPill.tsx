@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, BookOpen, ClipboardList, BarChart2, PenLine 
 import { useTeacher } from '../../store/teacherStore'
 import { useHomework } from '../../lib/useHomework'
 import { useScheduleToday } from '../../lib/useScheduleToday'
+import { useJournalPending } from '../../lib/useGroups'
 import { tactile } from '../../lib/feedback'
 import { mskToVietnam } from '../../lib/utils'
 
@@ -226,23 +227,18 @@ function SchedulePreview({ expanded }: { expanded: boolean }) {
 
 // ── Widget 2: Lessons awaiting grades + attendance ─────────────────────────
 function PendingGradesPreview({ expanded }: { expanded: boolean }) {
-  const { schedule: todaySchedule } = useScheduleToday()
+  const pendingJournals = useJournalPending(null)
   const setActivePage = useTeacher(s => s.setActivePage)
-  const setSelectedGroupId = useTeacher(s => s.setSelectedGroupId)
-  const ungraded = todaySchedule.filter(s => s.status === 'completed')
-  const next = ungraded[0]
+  const next = pendingJournals[0]
 
-  const openGradebook = (groupId: string) => {
-    setSelectedGroupId(groupId)
-    setActivePage('gradebook')
-  }
+  const openGradebook = () => setActivePage('gradebook')
 
   return (
     <PillContent
       avatar={
         <div style={{
           width: '100%', height: '100%',
-          background: ungraded.length > 0
+          background: pendingJournals.length > 0
             ? 'linear-gradient(135deg, #FFC979, #C47800)'
             : 'linear-gradient(135deg, #A8ECC0, #2A7D4F)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -251,36 +247,36 @@ function PendingGradesPreview({ expanded }: { expanded: boolean }) {
           <ClipboardList size={18} />
         </div>
       }
-      kicker="Журнал · за урок"
-      title={next ? `${next.topic} · ${next.groupName}` : 'Все уроки оценены'}
+      kicker={pendingJournals.length > 0 ? `Журнал · ${pendingJournals.length} не заполнено` : 'Журнал · за урок'}
+      title={next ? `${next.title} · ${next.scopeName}` : 'Все уроки заполнены'}
       expanded={expanded}
       detail={
-        ungraded.length > 0 ? (
+        pendingJournals.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <span style={{ color: 'var(--color-text-2)', lineHeight: 1.4 }}>
-              Нужно проставить оценки и посещаемость:
+              Нужно заполнить журнал:
             </span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {ungraded.map(s => (
+              {pendingJournals.slice(0, 5).map(p => (
                 <button
-                  key={s.id}
-                  onClick={e => { e.stopPropagation(); tactile(); openGradebook(s.groupId) }}
+                  key={p.scheduleId}
+                  onClick={e => { e.stopPropagation(); tactile(); openGradebook() }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left',
                     padding: '7px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                    background: s.colorSoft,
+                    background: 'rgba(196,120,0,0.12)',
                   }}
                 >
                   <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1, width: 52, flexShrink: 0 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: s.color }}>{s.time}</span>
-                    <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--color-text-3)' }}>{mskToVietnam(s.time)} ВН</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#C47800' }}>{p.date.slice(5).replace('-', '.')}</span>
+                    <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--color-text-3)' }}>{p.timeStart.slice(0,5)}</span>
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {s.groupName}
+                      {p.scopeName}
                     </span>
                     <span style={{ display: 'block', fontSize: 10.5, color: 'var(--color-text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      урок №{s.lessonNumber} · {s.topic}
+                      {p.scopeName}
                     </span>
                   </span>
                 </button>
@@ -289,7 +285,7 @@ function PendingGradesPreview({ expanded }: { expanded: boolean }) {
           </div>
         ) : (
           <span style={{ color: 'var(--color-text-2)', lineHeight: 1.4 }}>
-            Оценки появятся здесь после занятий.
+            Все журналы заполнены — отличная работа!
           </span>
         )
       }
@@ -395,7 +391,14 @@ function QuickActionsWidget({ expanded: _expanded }: { expanded: boolean }) {
 
 // ── Main pill ──────────────────────────────────────────────────────────────
 export default function TeacherCompactPill() {
-  const WIDGETS = [0, 1, 2, 3, 4]
+  const reviews = useTeacher(s => s.reviews)
+  const { homework: allHomework } = useHomework()
+  const hasHwToCheck = allHomework.some(hw => {
+    const reviewed = Object.keys(reviews[hw.id] ?? {}).length
+    return hw.submittedCount - Math.max(hw.reviewedCount, reviewed) > 0
+  })
+
+  const WIDGETS = hasHwToCheck ? [0, 1, 2, 3, 4] : [1, 2, 3, 4]
   const total = WIDGETS.length
 
   const [[idx, dir], setIdx] = useState<[number, number]>([0, 0])

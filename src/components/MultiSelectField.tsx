@@ -91,7 +91,7 @@ export default function MultiSelectField({
   const chipFont = small ? 10 : 11
 
   const chip = (v: string) => (
-    <span key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, maxWidth: '100%', padding: '2px 7px', borderRadius: 999, background: accentBg, color: accent, fontSize: chipFont, fontWeight: 700 }}>
+    <span key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, maxWidth: '100%', padding: '2px 7px', borderRadius: 7, background: accentBg, color: accent, fontSize: chipFont, fontWeight: 700 }}>
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v}</span>
       <span onClick={e => { e.stopPropagation(); toggle(v) }} style={{ display: 'flex', cursor: 'pointer', opacity: 0.7 }}><X size={small ? 9 : 11} strokeWidth={2.6} /></span>
     </span>
@@ -106,24 +106,23 @@ export default function MultiSelectField({
         onClick={() => { if (!open) openDropdown(); else inputRef.current?.focus() }}
         style={{
           width: '100%', boxSizing: 'border-box', padding: small ? '6px 9px' : '7px 11px',
-          borderRadius: 11, border: `1.5px solid ${open ? accent : isEmpty ? 'var(--color-border-medium)' : accent}`,
-          boxShadow: open ? `0 0 0 3px ${accent}22` : 'none',
+          borderRadius: 11, border: 'none',
           background: 'var(--color-bg-input)', cursor: 'text',
           display: 'flex', alignItems: 'center', gap: 6, minHeight: small ? 32 : 38,
           transition: 'border-color 0.15s, box-shadow 0.15s',
         }}
       >
         {open ? (
-          // Expanded: every chip wraps + inline search input at the end.
+          // Expanded: input first so it stays on the same line as chips.
           <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-            {values.map(chip)}
             <input
               ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
               placeholder={isEmpty ? label : ''}
               onClick={e => e.stopPropagation()}
               onKeyDown={e => { if (e.key === 'Backspace' && !query && values.length) onChange(values.slice(0, -1)) }}
-              style={{ flex: 1, minWidth: 60, border: 'none', outline: 'none', background: 'transparent', fontSize, color: 'var(--color-text)', fontFamily: 'inherit', padding: '2px 0' }}
+              style={{ flex: 1, minWidth: 80, border: 'none', outline: 'none', background: 'transparent', fontSize, color: 'var(--color-text)', fontFamily: 'inherit', padding: '2px 0' }}
             />
+            {values.map(chip)}
           </div>
         ) : isEmpty ? (
           <span style={{ flex: 1, minWidth: 0, fontSize, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
@@ -132,13 +131,15 @@ export default function MultiSelectField({
           <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: 4, alignItems: 'center', overflow: 'hidden' }}>
             {chip(values[0])}
             {values.length > 1 && (
-              <span style={{ padding: '2px 7px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-muted)', fontSize: chipFont, fontWeight: 700, flexShrink: 0 }}>+{values.length - 1}</span>
+              <span style={{ padding: '2px 7px', borderRadius: 7, background: 'var(--color-bg-5)', color: 'var(--color-muted)', fontSize: chipFont, fontWeight: 700, flexShrink: 0 }}>+{values.length - 1}</span>
             )}
           </div>
         )}
         {!isEmpty ? (
           <button type="button" onMouseDown={e => { e.preventDefault(); e.stopPropagation(); onChange([]); if (open) inputRef.current?.focus() }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 16, lineHeight: 1, padding: '0 2px', flexShrink: 0 }}>×</button>
+            style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', padding: '0 2px', flexShrink: 0 }}>
+            <X size={13} strokeWidth={2.2} />
+          </button>
         ) : (
           <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.18 }} style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: 'var(--color-text-3)' }}>
             <ChevronDown size={small ? 11 : 13} strokeWidth={2.2} />

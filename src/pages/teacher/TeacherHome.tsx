@@ -1,16 +1,15 @@
 import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import CreateTaskModal from '../../components/teacher/CreateTaskModal'
 import {
   Users, ClipboardCheck, BookOpen, TrendingUp,
   Clock, CheckCircle2, Plus, Send, Download, UserPlus,
-  AlertCircle, Layers, Bell, Banknote, ChevronRight,
+  AlertCircle, Layers, Bell, Banknote, ChevronRight, X as XIcon,
 } from 'lucide-react'
 import type { ScheduleItem, Reminder, Group, Student } from '../../data/teacherMockData'
 import { useTeacher } from '../../store/teacherStore'
 import type { TeacherTask } from '../../store/teacherStore'
-import { useGroups, useAllStudents } from '../../lib/useGroups'
-import StorageUsagePanel from '../../components/teacher/StorageUsagePanel'
+import { useGroups, useAllStudents, useJournalPending } from '../../lib/useGroups'
 import { useHomework, useHardSubmissions } from '../../lib/useHomework'
 import { supabase } from '../../lib/supabase'
 import { mskToVietnam } from '../../lib/utils'
@@ -316,6 +315,7 @@ const reminderIcons: Record<Reminder['type'], React.ElementType> = {
   'make-trainer': BookOpen,
   'send-push': Bell,
   'payment-debt': Banknote,
+  'fill-journal': Clock,
 }
 const urgencyColor = { high: '#F48B91', medium: '#F8C991', low: 'var(--color-text-4)' }
 const urgencyBg = { high: 'var(--color-red-soft)', medium: 'var(--color-peach-soft)', low: 'var(--color-bg)' }
@@ -398,6 +398,98 @@ function QuickAction({
   )
 }
 
+// ─── Task row ────────────────────────────────────────────────────────────────
+function TaskRow({ task, onToggle, onRemove, onClick }: {
+  task: TeacherTask
+  onToggle: () => void
+  onRemove: () => void
+  onClick: () => void
+}) {
+  const rowRef = useRef<HTMLDivElement>(null)
+  const [showDelete, setShowDelete] = useState(false)
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = rowRef.current?.getBoundingClientRect()
+    if (!rect) return
+    setShowDelete(e.clientX - rect.left > rect.width * 0.75)
+  }
+
+  return (
+    <div
+      ref={rowRef}
+      onClick={onClick}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => setShowDelete(false)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '8px 10px', borderRadius: 12,
+        background: task.done ? 'var(--color-bg-3)' : 'var(--color-bg-2)',
+        border: 'none',
+        opacity: task.done ? 0.6 : 1,
+        transition: 'opacity 0.2s, background 0.15s',
+        cursor: 'pointer',
+      }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = task.done ? 'var(--color-bg-5)' : 'var(--color-purple-soft)' }}
+    >
+      <button
+        onClick={e => { e.stopPropagation(); onToggle() }}
+        style={{
+          width: 20, height: 20, borderRadius: 6, flexShrink: 0,
+          border: `2px solid ${task.done ? 'var(--color-accent)' : '#C4B0F0'}`,
+          background: task.done ? 'var(--color-accent)' : 'transparent',
+          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'all 0.15s',
+        }}
+      >
+        {task.done && <CheckCircle2 size={11} strokeWidth={3} style={{ color: '#fff' }} />}
+      </button>
+
+      {task.typeLabel && task.typeBg && task.typeColor && (
+        <span style={{
+          fontSize: 11, fontWeight: 650,
+          background: task.typeBg, color: task.typeColor,
+          borderRadius: 8, padding: '2px 8px', flexShrink: 0,
+        }}>
+          {task.typeLabel}
+        </span>
+      )}
+
+      <span style={{
+        flex: 1, fontSize: 13, fontWeight: 500,
+        color: task.done ? 'var(--color-text-3)' : 'var(--color-text)',
+        textDecoration: task.done ? 'line-through' : 'none',
+        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+      }}>
+        {(task.title || (task.typeLabel ?? 'Задача')).replace(/@/g, '')}
+      </span>
+
+      <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>
+        {task.date}{task.time ? ` · ${task.time}` : ''}
+      </span>
+
+      <button
+        onClick={e => { e.stopPropagation(); onRemove() }}
+        onMouseEnter={() => setShowDelete(true)}
+        onMouseLeave={e => {
+          const rect = rowRef.current?.getBoundingClientRect()
+          if (!rect) return
+          setShowDelete((e as React.MouseEvent).clientX - rect.left > rect.width * 0.75)
+        }}
+        style={{
+          width: 20, height: 20, borderRadius: 6, flexShrink: 0,
+          border: 'none', background: 'none', cursor: 'pointer',
+          color: '#F48B91', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          opacity: showDelete ? 1 : 0,
+          transition: 'opacity 0.15s',
+          pointerEvents: showDelete ? 'auto' : 'none',
+        }}
+      >
+        <XIcon size={13} strokeWidth={2.5} />
+      </button>
+    </div>
+  )
+}
+
 // ─── My Tasks block ─────────────────────────────────────────────────────────
 function MyTasksBlock() {
   const tasks = useTeacher(s => s.tasks)
@@ -449,76 +541,13 @@ function MyTasksBlock() {
         </CardTitle>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
           {[...pending, ...done].map(task => (
-            <div
+            <TaskRow
               key={task.id}
+              task={task}
+              onToggle={() => toggleTask(task.id)}
+              onRemove={() => removeTask(task.id)}
               onClick={() => setEditingTask(task)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '8px 10px', borderRadius: 12,
-                background: task.done ? 'var(--color-bg-3)' : 'var(--color-bg-2)',
-                border: `1px solid ${task.done ? 'var(--color-border-soft)' : 'var(--color-border-medium)'}`,
-                opacity: task.done ? 0.6 : 1,
-                transition: 'opacity 0.2s, background 0.15s',
-                cursor: 'pointer',
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = task.done ? 'var(--color-bg-5)' : 'var(--color-purple-soft)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = task.done ? 'var(--color-bg-3)' : 'var(--color-bg-2)' }}
-            >
-              {/* Checkbox */}
-              <button
-                onClick={e => { e.stopPropagation(); toggleTask(task.id) }}
-                style={{
-                  width: 20, height: 20, borderRadius: 6, flexShrink: 0,
-                  border: `2px solid ${task.done ? 'var(--color-accent)' : '#C4B0F0'}`,
-                  background: task.done ? 'var(--color-accent)' : 'transparent',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'all 0.15s',
-                }}
-              >
-                {task.done && <CheckCircle2 size={11} strokeWidth={3} style={{ color: '#fff' }} />}
-              </button>
-
-              {/* Type pill */}
-              {task.typeLabel && task.typeBg && task.typeColor && (
-                <span style={{
-                  fontSize: 11, fontWeight: 650,
-                  background: task.typeBg, color: task.typeColor,
-                  borderRadius: 8, padding: '2px 8px', flexShrink: 0,
-                }}>
-                  {task.typeLabel}
-                </span>
-              )}
-
-              {/* Title */}
-              <span style={{
-                flex: 1, fontSize: 13, fontWeight: 500,
-                color: task.done ? 'var(--color-text-3)' : 'var(--color-text)',
-                textDecoration: task.done ? 'line-through' : 'none',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              }}>
-                {task.title || (task.typeLabel ?? 'Задача')}
-              </span>
-
-              {/* Date + time */}
-              <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>
-                {task.date}{task.time ? ` · ${task.time}` : ''}
-              </span>
-
-              {/* Remove */}
-              <button
-                onClick={e => { e.stopPropagation(); removeTask(task.id) }}
-                style={{
-                  width: 20, height: 20, borderRadius: 6, flexShrink: 0,
-                  border: 'none', background: 'none', cursor: 'pointer',
-                  color: 'var(--color-text-4)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 14, lineHeight: 1,
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#F48B91' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-4)' }}
-              >
-                ×
-              </button>
-            </div>
+            />
           ))}
         </div>
       </Card>
@@ -554,7 +583,8 @@ export default function TeacherHome() {
           const stu = s.student_id ? allStudents.find(a => a.id === s.student_id) : null
           return {
             id: String(s.id),
-            groupId: s.group_id,
+            groupId: s.group_id ?? null,
+            studentId: s.student_id ?? null,
             groupName: s.groups?.name ?? stu?.name ?? '',
             icon: s.groups?.icon ?? '👤',
             time: (s.time_start ?? '').slice(0, 5),
@@ -571,6 +601,7 @@ export default function TeacherHome() {
       })
   }, [groups, allStudents])
 
+  const pendingJournals = useJournalPending(null)
   const pendingHomework = allHomework.filter(hw => hw.status === 'active')
   const totalStudents = groups.reduce((a, g) => a + g.studentCount, 0)
   const TODAY = new Date().toISOString().split('T')[0]
@@ -605,6 +636,13 @@ export default function TeacherHome() {
       detail: s.paymentAmount ? `${s.paymentAmount.toLocaleString('ru-RU')} ₽` : '',
       urgency: (diffDays(s.paymentDue!, TODAY) < 0 ? 'high' : 'medium') as Reminder['urgency'],
     })),
+    ...pendingJournals.map(p => ({
+      id: `journal-${p.scheduleId}`,
+      type: 'fill-journal' as Reminder['type'],
+      text: `Журнал — ${p.scopeName}`,
+      detail: `${p.date.slice(5).replace('-', '.')} · ${p.title}`,
+      urgency: 'medium' as Reminder['urgency'],
+    })),
   ]
 
   const reminderDone = (r: Reminder) =>
@@ -612,10 +650,11 @@ export default function TeacherHome() {
     pendingHomework.some(hw => r.text.includes(hw.groupName) && reviewedFor(hw.id) >= hw.submittedCount)
 
   // Куда ведёт напоминание — по префиксу id (см. формирование reminders выше):
-  // hard- → проверка сложного ДЗ, hw- → проверка обычного ДЗ, pay- → карточка ученика.
+  // hard- → проверка сложного ДЗ, hw- → проверка обычного ДЗ, pay- → карточка ученика, journal- → Журнал.
   const reminderAction = (r: Reminder): (() => void) | undefined => {
     if (r.id.startsWith('hard-')) { const id = r.id.slice(5); return () => openHardReview(id) }
     if (r.id.startsWith('hw-')) { const id = r.id.slice(3); return () => openHomeworkReview(id) }
+    if (r.id.startsWith('journal-')) { return () => { window.location.hash = '#/teacher/gradebook' } }
     if (r.id.startsWith('pay-')) {
       const sid = r.id.slice(4)
       const stu = allStudents.find(s => s.id === sid)
@@ -683,60 +722,32 @@ export default function TeacherHome() {
                   </span>
                 )}
               </CardTitle>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {todaySchedule.length === 0 ? (
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: 'var(--color-text-4)', padding: '24px 0' }}>
-                    <Clock size={26} strokeWidth={1.5} />
-                    <span style={{ fontSize: 13, fontWeight: 600 }}>Сегодня уроков нет</span>
-                  </div>
-                ) : todaySchedule.map((item, i) => (
-                  <div key={item.id}>
-                    {i === nowMarkerIndex && <NowMarker time={nowMskHHMM()} />}
-                    <ScheduleRow item={item} isFirst={i === 0} isLast={i === todaySchedule.length - 1} />
-                  </div>
-                ))}
-              </div>
-              {/* Pending HW summary */}
-              {pendingHomework.length > 0 && (
+              <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
                 <div style={{
-                  marginTop: 14, paddingTop: 12,
-                  borderTop: '1px solid var(--color-border-soft)',
-                  display: 'flex', flexDirection: 'column', gap: 6,
+                  position: 'absolute', inset: 0,
+                  overflowY: 'auto', overflowX: 'hidden',
+                  display: 'flex', flexDirection: 'column', gap: 1,
+                  maskImage: 'linear-gradient(to bottom, transparent 0%, black 14px, black calc(100% - 20px), transparent 100%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 14px, black calc(100% - 20px), transparent 100%)',
+                  paddingBlock: 6,
                 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-muted)', marginBottom: 2 }}>
-                    ДЗ на проверку
-                  </div>
-                  {pendingHomework.map(hw => {
-                    const left = Math.max(0, hw.submittedCount - reviewedFor(hw.id))
-                    const grp = groups.find(g => g.id === hw.groupId)
-                    return (
-                      <div key={hw.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: 13, lineHeight: 1, flexShrink: 0 }}>{grp?.icon ?? '📋'}</span>
-                        <span style={{ flex: 1, fontSize: 12, color: 'var(--color-text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {hw.groupName} — {hw.title}
-                        </span>
-                        <span style={{
-                          fontSize: 11, fontWeight: 700,
-                          color: left === 0 ? 'var(--color-green-text)' : '#F48B91',
-                          background: left === 0 ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
-                          borderRadius: 6, padding: '1px 7px',
-                        }}>
-                          {left === 0 ? 'готово ✓' : `${left} непров.`}
-                        </span>
-                      </div>
-                    )
-                  })}
+                  {todaySchedule.length === 0 ? (
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: 'var(--color-text-4)', padding: '24px 0' }}>
+                      <Clock size={26} strokeWidth={1.5} />
+                      <span style={{ fontSize: 13, fontWeight: 600 }}>Сегодня уроков нет</span>
+                    </div>
+                  ) : todaySchedule.map((item, i) => (
+                    <div key={item.id}>
+                      {i === nowMarkerIndex && <NowMarker time={nowMskHHMM()} />}
+                      <ScheduleRow item={item} isFirst={i === 0} isLast={i === todaySchedule.length - 1} />
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
             </Card>
           </motion.div>
 
           <MyTasksBlock />
-
-          {/* Storage / DB usage */}
-          <motion.div {...fadeUp(0.24)} style={{ flexShrink: 0 }}>
-            <StorageUsagePanel />
-          </motion.div>
 
         </div>
 

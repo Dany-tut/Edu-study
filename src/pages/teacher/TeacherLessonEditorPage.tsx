@@ -11,6 +11,7 @@ import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import type { HomeworkTemplate, Group, Student, ScheduleItem } from '../../data/teacherMockData'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
 import { supabase } from '../../lib/supabase'
+import ScrollFade from '../../components/ScrollFade'
 
 // ─── Static homework templates (formerly mock data) ────────────────────────────
 
@@ -46,8 +47,8 @@ function tileBase(active: boolean): React.CSSProperties {
   return {
     display: 'flex', alignItems: 'center', gap: 12,
     padding: 16, borderRadius: 18, minHeight: 92, width: '100%',
-    background: active ? 'rgba(var(--glass-rgb), 0.96)' : 'rgba(99,84,207,0.04)',
-    border: active ? '1px solid var(--color-border-soft)' : '1.5px dashed rgba(99,84,207,0.3)',
+    background: active ? 'rgba(var(--glass-rgb), 0.96)' : 'rgba(74,222,128,0.04)',
+    border: active ? '1px solid var(--color-border-soft)' : '1.5px dashed rgba(74,222,128,0.3)',
     boxShadow: active ? '0 2px 12px rgba(0,0,0,0.05)' : 'none',
     cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
   }
@@ -104,8 +105,13 @@ function CalendarPickerLesson({ value, onChange, onClose }: { value: string; onC
       transition={{ duration: 0.15 }}
       style={{
         position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 100,
-        background: 'var(--color-bg-input)', border: '1.5px solid #EDEAF5', borderRadius: 16,
-        boxShadow: '0 12px 40px rgba(0,0,0,0.14)', padding: '12px 14px 14px',
+        background: 'rgba(var(--glass-rgb), 0.96)',
+        backdropFilter: 'blur(16px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        border: '1px solid var(--color-border-medium)',
+        borderRadius: 16,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+        padding: '12px 14px 14px',
         minWidth: 232, userSelect: 'none',
       }}
     >
@@ -126,9 +132,9 @@ function CalendarPickerLesson({ value, onChange, onClose }: { value: string; onC
           const tod = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate()
           return (
             <button key={i} onClick={() => { onChange(formatDateDot(d)); onClose() }}
-              style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500, background: sel ? 'var(--color-accent)' : tod ? 'var(--color-purple-soft)' : 'transparent', color: sel ? '#fff' : tod ? 'var(--color-accent)' : 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s' }}
+              style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500, background: sel ? 'var(--color-green-soft)' : tod ? 'var(--color-green-soft)' : 'transparent', color: sel ? 'var(--color-green-text)' : tod ? 'var(--color-green-text)' : 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s' }}
               onMouseEnter={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
-              onMouseLeave={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = tod ? 'var(--color-purple-soft)' : 'transparent' }}
+              onMouseLeave={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = tod ? 'var(--color-green-soft)' : 'transparent' }}
             >{d.getDate()}</button>
           )
         })}
@@ -156,24 +162,31 @@ function TimePickerLesson({ value, onChange, onClose }: { value: string; onChang
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -6, scale: 0.97 }}
       transition={{ duration: 0.15 }}
-      style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 100, background: 'var(--color-bg-input)', border: '1.5px solid #EDEAF5', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.14)', overflow: 'hidden' }}
+      style={{
+        position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 100,
+        background: 'rgba(var(--glass-rgb), 0.96)',
+        backdropFilter: 'blur(16px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        border: '1px solid var(--color-border-medium)',
+        borderRadius: 14,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+        overflow: 'hidden',
+      }}
     >
-      <div style={{ position: 'relative' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 32, zIndex: 1, background: 'linear-gradient(to bottom, var(--color-bg-input) 0%, transparent 100%)', pointerEvents: 'none', borderRadius: '14px 14px 0 0' }} />
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 32, zIndex: 1, background: 'linear-gradient(to top, var(--color-bg-input) 0%, transparent 100%)', pointerEvents: 'none', borderRadius: '0 0 14px 14px' }} />
-        <div ref={listRef} style={{ maxHeight: 200, overflowY: 'auto', padding: '4px 6px', scrollbarWidth: 'none' }}>
+      <ScrollFade maxHeight={200} bg='rgba(var(--glass-rgb), 0.96)' scrollStyle={{ padding: '4px 6px' }}>
+        <div ref={listRef}>
           {TIME_SLOTS.map(t => {
             const active = t === value
             return (
               <button key={t} onClick={() => { onChange(t); onClose() }}
-                style={{ width: '100%', border: 'none', background: active ? 'var(--color-accent)' : 'transparent', color: active ? '#fff' : 'var(--color-text)', padding: '7px 10px', textAlign: 'left', fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'block', borderRadius: 9, transition: 'background 0.18s, color 0.18s' }}
-                onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--color-purple-soft)' }}
+                style={{ width: '100%', border: 'none', background: active ? 'var(--color-green-soft)' : 'transparent', color: active ? 'var(--color-green-text)' : 'var(--color-text)', padding: '7px 10px', textAlign: 'left', fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'block', borderRadius: 9, transition: 'background 0.18s, color 0.18s' }}
+                onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
                 onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
               >{t}</button>
             )
           })}
         </div>
-      </div>
+      </ScrollFade>
     </motion.div>
   )
 }
@@ -219,7 +232,7 @@ function UploadTile({
         <div style={{
           width: 40, height: 40, borderRadius: 12, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: has ? 'var(--color-purple-soft)' : 'rgba(99,84,207,0.1)', color: 'var(--color-accent)',
+          background: has ? 'var(--color-green-soft)' : 'rgba(74,222,128,0.1)', color: 'var(--color-green-text)',
         }}>
           <Icon size={20} strokeWidth={1.9} />
         </div>
@@ -230,7 +243,7 @@ function UploadTile({
           </p>
         </div>
         {!has && <Upload size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
-        {has && multiple && <Plus size={16} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />}
+        {has && multiple && <Plus size={16} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />}
       </motion.button>
 
       {has && (
@@ -242,7 +255,7 @@ function UploadTile({
             }}>
               <div style={{
                 width: 24, height: 24, borderRadius: 7, flexShrink: 0,
-                background: 'var(--grad-purple)',
+                background: 'var(--grad-green)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 7, fontWeight: 800, color: '#fff',
               }}>{fileExt(f)}</div>
@@ -322,7 +335,7 @@ function HwPicker({
         }}
       >
         {isBase
-          ? <GraduationCap size={18} strokeWidth={1.9} style={{ flexShrink: 0, color: value ? 'var(--color-accent)' : '#fff' }} />
+          ? <GraduationCap size={18} strokeWidth={1.9} style={{ flexShrink: 0, color: value ? 'var(--color-green-text)' : '#fff' }} />
           : <Lock size={16} strokeWidth={1.9} style={{ flexShrink: 0, color: value ? '#F59E0B' : '#fff' }} />
         }
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -331,7 +344,7 @@ function HwPicker({
           </div>
           <div style={{
             fontSize: 11.5, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            color: value ? 'var(--color-accent)' : 'rgba(255,255,255,0.8)', fontWeight: value ? 600 : 500,
+            color: value ? 'var(--color-green-text)' : 'rgba(255,255,255,0.8)', fontWeight: value ? 600 : 500,
           }}>
             {value ? `${value.title} · ${value.taskCount} зад.` : 'Выбрать из конструктора'}
           </div>
@@ -401,8 +414,8 @@ function HwPicker({
                 {suggested.length > 0 && (
                   <>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px 6px' }}>
-                      <Sparkles size={12} style={{ color: 'var(--color-accent)' }} />
-                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-accent)', letterSpacing: 0.3 }}>ПОДХОДЯТ К УРОКУ</span>
+                      <Sparkles size={12} style={{ color: 'var(--color-green-text)' }} />
+                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)', letterSpacing: 0.3 }}>ПОДХОДЯТ К УРОКУ</span>
                     </div>
                     {suggested.map(t => (
                       <HwOption key={t.id} t={t} active={value?.id === t.id} suggested onClick={() => { onPick(t); setOpen(false) }} />
@@ -427,14 +440,14 @@ function HwPicker({
                     padding: '9px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
                     background: 'transparent', textAlign: 'left', fontFamily: 'inherit',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-purple-soft)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-green-soft)' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                 >
-                  <div style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Plus size={15} style={{ color: 'var(--color-accent)' }} />
+                  <div style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Plus size={15} style={{ color: 'var(--color-green-text)' }} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-accent)' }}>Создать новую</div>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-green-text)' }}>Создать новую</div>
                     <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>Перейти в конструктор</div>
                   </div>
                 </button>
@@ -469,26 +482,26 @@ function HwOption({ t, active, suggested, onClick }: {
       style={{
         display: 'flex', alignItems: 'center', gap: 10, width: '100%',
         padding: '9px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
-        background: active ? 'var(--color-purple-soft)' : 'transparent', textAlign: 'left', fontFamily: 'inherit',
+        background: active ? 'var(--color-green-soft)' : 'transparent', textAlign: 'left', fontFamily: 'inherit',
       }}
       onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--color-bg)' }}
       onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
     >
       <div style={{
         width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-        background: t.level === 'hard' ? 'var(--color-yellow-soft)' : 'var(--color-purple-soft)',
+        background: t.level === 'hard' ? 'var(--color-yellow-soft)' : 'var(--color-green-soft)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         {t.level === 'hard'
           ? <Lock size={14} style={{ color: '#F59E0B' }} />
-          : <GraduationCap size={15} style={{ color: 'var(--color-accent)' }} />}
+          : <GraduationCap size={15} style={{ color: 'var(--color-green-text)' }} />}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</div>
         <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{t.subject} · {t.taskCount} зад.</div>
       </div>
-      {suggested && <Sparkles size={13} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />}
-      {active && <Check size={15} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />}
+      {suggested && <Sparkles size={13} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />}
+      {active && <Check size={15} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />}
     </button>
   )
 }
@@ -519,8 +532,8 @@ function HomeworkSelectorCard({
     <div style={{
       display: 'flex', flexDirection: 'column', gap: 6,
       padding: 8, borderRadius: 20,
-      background: 'var(--grad-purple)',
-      boxShadow: '0 12px 28px rgba(123,97,255,0.28)',
+      background: 'var(--grad-green)',
+      boxShadow: '0 12px 28px rgba(74,222,128,0.22)',
       minHeight: 92,
     }}>
       <HwPicker level="basic" value={basic} suggestions={suggestions} all={HOMEWORK_TEMPLATES} onPick={onBasic} onCreateNew={onCreateNew} />
@@ -541,7 +554,7 @@ function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: 
       padding: 16, gap: 8, maxHeight: '54vh',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-        <ListVideo size={17} style={{ color: 'var(--color-accent)' }} />
+        <ListVideo size={17} style={{ color: 'var(--color-green-text)' }} />
         <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Таймкоды</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, overflowY: 'auto', scrollbarGutter: 'stable' }}>
@@ -577,9 +590,9 @@ function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: 
         onClick={() => onChange([...codes, { time: '', label: '' }])}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          padding: '8px 0', borderRadius: 11, border: '1.5px dashed rgba(99,84,207,0.35)',
-          background: 'rgba(99,84,207,0.05)', cursor: 'pointer',
-          fontSize: 12.5, fontWeight: 600, color: 'var(--color-accent)', fontFamily: 'inherit',
+          padding: '8px 0', borderRadius: 11, border: '1.5px dashed rgba(74,222,128,0.3)',
+          background: 'rgba(74,222,128,0.05)', cursor: 'pointer',
+          fontSize: 12.5, fontWeight: 600, color: 'var(--color-green-text)', fontFamily: 'inherit',
         }}
       >
         <Plus size={13} /> Таймкод
@@ -629,14 +642,14 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
   return (
     <div style={{
       width: '100%', height: '54vh', borderRadius: 24,
-      border: '2px dashed rgba(99,84,207,0.3)', background: 'rgba(99,84,207,0.03)',
+      border: '2px dashed rgba(74,222,128,0.3)', background: 'rgba(74,222,128,0.04)',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24,
     }}>
       <div style={{
-        width: 64, height: 64, borderRadius: 18, background: 'rgba(99,84,207,0.1)',
+        width: 64, height: 64, borderRadius: 18, background: 'rgba(74,222,128,0.1)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <Video size={30} style={{ color: 'var(--color-accent)' }} />
+        <Video size={30} style={{ color: 'var(--color-green-text)' }} />
       </div>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>Добавьте запись урока</div>
@@ -657,7 +670,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
             onClick={() => { if (draft.trim()) { onChange(draft.trim()); setEditing(false) } }}
             style={{
               padding: '0 16px', borderRadius: 11, border: 'none', cursor: 'pointer',
-              background: 'var(--grad-purple)', color: '#fff',
+              background: 'var(--grad-green)', color: '#fff',
               fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
             }}
           >
@@ -670,9 +683,9 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
             onClick={() => setEditing(true)}
             style={{
               display: 'flex', alignItems: 'center', gap: 7, padding: '10px 18px', borderRadius: 12,
-              border: 'none', cursor: 'pointer', background: 'var(--grad-purple)',
+              border: 'none', cursor: 'pointer', background: 'var(--grad-green)',
               color: '#fff', fontSize: 13.5, fontWeight: 700, fontFamily: 'inherit',
-              boxShadow: '0 4px 14px rgba(99,84,207,0.3)',
+              boxShadow: '0 4px 14px rgba(74,222,128,0.3)',
             }}
           >
             <Link2 size={15} /> Вставить ссылку
@@ -715,7 +728,7 @@ function resolveRecipient(r: Recipient, groups: Group[], students: Student[]) {
       sub: g ? `${g.level} · ${g.subject}` : '',
       icon: g?.icon ?? '👥',
       initials: '',
-      color: 'var(--color-accent)',
+      color: 'var(--color-green-text)',
     }
   }
   const s = students.find(x => x.id === r.id)
@@ -784,7 +797,7 @@ function AudiencePicker({
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
                   padding: '4px 6px 4px 5px', borderRadius: 9,
-                  background: r.kind === 'group' ? 'var(--color-purple-soft)' : 'var(--color-green-soft)',
+                  background: r.kind === 'group' ? 'var(--color-green-soft)' : 'var(--color-green-soft)',
                   maxWidth: '100%',
                 }}
               >
@@ -799,7 +812,7 @@ function AudiencePicker({
                 </div>
                 <span style={{
                   fontSize: 11.5, fontWeight: 600,
-                  color: r.kind === 'group' ? 'var(--color-accent)' : 'var(--color-green-text)',
+                  color: r.kind === 'group' ? 'var(--color-green-text)' : 'var(--color-green-text)',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
                   {d.name}
@@ -809,7 +822,7 @@ function AudiencePicker({
                   style={{
                     width: 16, height: 16, borderRadius: 5, border: 'none', cursor: 'pointer',
                     background: 'rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: r.kind === 'group' ? 'var(--color-accent)' : 'var(--color-green-text)', flexShrink: 0,
+                    color: r.kind === 'group' ? 'var(--color-green-text)' : 'var(--color-green-text)', flexShrink: 0,
                   }}
                 >
                   <X size={9} strokeWidth={2.6} />
@@ -827,9 +840,9 @@ function AudiencePicker({
           style={{
             display: 'flex', alignItems: 'center', gap: 7, width: '100%',
             padding: '9px 12px', borderRadius: 11, cursor: 'pointer',
-            border: '1.5px dashed rgba(99,84,207,0.35)',
-            background: open ? 'rgba(99,84,207,0.08)' : 'rgba(99,84,207,0.04)',
-            color: 'var(--color-accent)', fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit',
+            border: '1.5px dashed rgba(74,222,128,0.3)',
+            background: open ? 'rgba(74,222,128,0.08)' : 'rgba(74,222,128,0.04)',
+            color: 'var(--color-green-text)', fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit',
           }}
         >
           <Plus size={14} strokeWidth={2.4} />
@@ -882,14 +895,14 @@ function AudiencePicker({
                         onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-4)')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
-                        <div style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+                        <div style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
                           {g.icon}
                         </div>
                         <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                           <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name}</div>
                           <div style={{ fontSize: 10.5, color: 'var(--color-text-3)' }}>{g.level} · {g.subject}</div>
                         </div>
-                        <Plus size={13} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+                        <Plus size={13} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                       </button>
                     ))}
                   </>
@@ -1021,7 +1034,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
         <div ref={calRef} style={{ position: 'relative' }}>
           <button
             onClick={() => { setShowCal(v => !v); setShowStartTime(false); setShowEndTime(false) }}
-            style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', border: `1.5px solid ${showCal ? 'rgba(99,84,207,0.55)' : 'var(--color-border)'}`, background: showCal ? 'var(--color-bg-3)' : 'var(--color-bg-2)', paddingLeft: 11, textAlign: 'left' }}
+            style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', border: 'none', background: 'var(--color-bg-input)', paddingLeft: 11, textAlign: 'left' }}
           >
             <Calendar size={13} color="#9A9AA2" style={{ flexShrink: 0 }} />
             <span style={{ flex: 1 }}>{displayDate}</span>
@@ -1044,7 +1057,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
           <div ref={startRef} style={{ position: 'relative', flex: 1 }}>
             <button
               onClick={() => { setShowStartTime(v => !v); setShowCal(false); setShowEndTime(false) }}
-              style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', border: `1.5px solid ${showStartTime ? 'rgba(99,84,207,0.55)' : 'var(--color-border)'}`, background: showStartTime ? 'var(--color-bg-3)' : 'var(--color-bg-2)', paddingLeft: 10, textAlign: 'left' }}
+              style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', border: 'none', background: 'var(--color-bg-input)', paddingLeft: 10, textAlign: 'left' }}
             >
               <Clock size={13} color="#9A9AA2" style={{ flexShrink: 0 }} />
               <span>{meta.startTime || '—'}</span>
@@ -1063,7 +1076,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
           <div ref={endRef} style={{ position: 'relative', flex: 1 }}>
             <button
               onClick={() => { setShowEndTime(v => !v); setShowCal(false); setShowStartTime(false) }}
-              style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', border: `1.5px solid ${showEndTime ? 'rgba(99,84,207,0.55)' : 'var(--color-border)'}`, background: showEndTime ? 'var(--color-bg-3)' : 'var(--color-bg-2)', paddingLeft: 10, textAlign: 'left' }}
+              style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', border: 'none', background: 'var(--color-bg-input)', paddingLeft: 10, textAlign: 'left' }}
             >
               <Clock size={13} color="#9A9AA2" style={{ flexShrink: 0 }} />
               <span>{meta.endTime || '—'}</span>
@@ -1102,7 +1115,8 @@ export default function TeacherLessonEditorPage() {
         if (!data) return
         setSource({
           id: String(data.id),
-          groupId: data.group_id,
+          groupId: data.group_id ?? null,
+          studentId: data.student_id ?? null,
           groupName: data.groups?.name ?? '',
           icon: data.groups?.icon ?? '📚',
           time: (data.time_start ?? '').slice(0, 5),
@@ -1133,7 +1147,11 @@ export default function TeacherLessonEditorPage() {
     if (!source) return
     setMeta(m => ({
       ...m,
-      recipients: source.groupId ? [{ kind: 'group', id: source.groupId }] : m.recipients,
+      recipients: source.groupId
+        ? [{ kind: 'group' as const, id: source.groupId }]
+        : source.studentId
+          ? [{ kind: 'student' as const, id: source.studentId }]
+          : m.recipients,
       title: source.topic || m.title,
       lessonNumber: String(source.lessonNumber || '') || m.lessonNumber,
       startTime: source.time || m.startTime,
@@ -1345,7 +1363,7 @@ export default function TeacherLessonEditorPage() {
                 label="Опубликовать урок" savedLabel="Опубликовано!"
                 icon={<Send size={14} />}
                 saved={published} onClick={handlePublish}
-                style={{ boxShadow: '0 6px 20px rgba(99,84,207,0.32)', pointerEvents: 'auto' }}
+                style={{ boxShadow: '0 6px 20px rgba(74,222,128,0.25)', pointerEvents: 'auto' }}
               />
             </motion.div>
           )}
@@ -1416,7 +1434,7 @@ export default function TeacherLessonEditorPage() {
               boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <FileText size={17} style={{ color: 'var(--color-accent)' }} />
+                <FileText size={17} style={{ color: 'var(--color-green-text)' }} />
                 <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Описание урока</span>
               </div>
               <textarea

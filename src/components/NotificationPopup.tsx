@@ -5,7 +5,7 @@ import { useNotificationsStore, type Notification } from '../store/notifications
 import type { NotifType } from '../store/notificationsStore'
 import { useDashboard } from '../store/dashboardStore'
 import { findLessonById } from '../data/lessonContent'
-import { Bell, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, RotateCcw, Banknote } from 'lucide-react'
+import { Bell, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, RotateCcw, Banknote, NotebookPen } from 'lucide-react'
 
 const ICON_MAP: Record<NotifType, React.ReactNode> = {
   homework_assigned:    <ClipboardList size={16} />,
@@ -21,6 +21,7 @@ const ICON_MAP: Record<NotifType, React.ReactNode> = {
   hw_submitted:         <FileText      size={16} />,
   test_assigned:        <Brain         size={16} />,
   payment_due:          <Banknote      size={16} />,
+  fill_journal:         <NotebookPen   size={16} />,
 }
 
 function getIcon(type: string) {
@@ -91,7 +92,20 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
   const markAllRead   = useNotificationsStore(s => s.markAllRead)
   const openLesson    = useDashboard(s => s.openLesson)
   const popupRef      = useRef<HTMLDivElement>(null)
+  const listRef       = useRef<HTMLDivElement>(null)
   const unread        = notifications.filter(n => !n.read).length
+  const [fadeTop, setFadeTop]       = useState(false)
+  const [fadeBottom, setFadeBottom] = useState(false)
+
+  const updateFades = () => {
+    const el = listRef.current
+    if (!el) return
+    setFadeTop(el.scrollTop > 4)
+    setFadeBottom(el.scrollTop + el.clientHeight < el.scrollHeight - 4)
+  }
+  useEffect(() => {
+    if (open) setTimeout(updateFades, 50)
+  }, [open, notifications.length])
 
   // Click a row → mark read, then deep-link to its lesson (if any) and close.
   const activate = (n: Notification) => {
@@ -191,14 +205,33 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
             )}
           </div>
 
-          {/* List */}
-          <div className="no-scrollbar" style={{ maxHeight: 380, overflowY: 'auto', padding: '6px 6px' }}>
-            {notifications.length === 0 ? (
-              <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--color-muted)', fontSize: 13 }}>
-                Нет уведомлений
-              </div>
-            ) : (
-              notifications.map(n => <NotifRow key={n.id} n={n} onActivate={activate} />)
+          {/* List with top/bottom scroll fades */}
+          <div style={{ position: 'relative' }}>
+            {fadeTop && (
+              <div style={{
+                position: 'absolute', top: 0, left: 0, right: 0, height: 28, zIndex: 2, pointerEvents: 'none',
+                background: 'linear-gradient(to bottom, rgba(var(--glass-rgb), 0.92) 0%, transparent 100%)',
+              }} />
+            )}
+            <div
+              ref={listRef}
+              className="no-scrollbar"
+              onScroll={updateFades}
+              style={{ maxHeight: 380, overflowY: 'auto', padding: '6px 6px' }}
+            >
+              {notifications.length === 0 ? (
+                <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--color-muted)', fontSize: 13 }}>
+                  Нет уведомлений
+                </div>
+              ) : (
+                notifications.map(n => <NotifRow key={n.id} n={n} onActivate={activate} />)
+              )}
+            </div>
+            {fadeBottom && (
+              <div style={{
+                position: 'absolute', bottom: 0, left: 0, right: 0, height: 28, zIndex: 2, pointerEvents: 'none',
+                background: 'linear-gradient(to top, rgba(var(--glass-rgb), 0.92) 0%, transparent 100%)',
+              }} />
             )}
           </div>
         </motion.div>

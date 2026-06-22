@@ -12,7 +12,7 @@ import {
   AlignLeft, Pencil, ClipboardCopy, Target, ChevronDown, ChevronUp,
   CheckCircle, Circle, Globe, Copy, Search, LayoutGrid,
   Settings, TrendingUp, ArrowLeftRight, RotateCcw, Palette,
-  ChevronLeft, ChevronRight, Calendar, Users, UsersRound,
+  ChevronLeft, ChevronRight, Calendar, Users, UsersRound, Pipette,
 } from 'lucide-react'
 import RichConditionEditor from '../../components/teacher/RichConditionEditor'
 import TableEditor from '../../components/teacher/TableEditor'
@@ -25,6 +25,7 @@ import {
   DEFAULT_QUESTIONS,
 } from '../../data/diagnosticData'
 import { useAllStudents, useGroups } from '../../lib/useGroups'
+import { getContrastColor, getCircleShadow } from '../../lib/utils'
 import { supabase } from '../../lib/supabase'
 import { optimizePhoto } from '../../lib/imageOptim'
 import { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from '../../data/apChemistry'
@@ -42,6 +43,7 @@ import {
   type AnswerType, type Task as BankTask, type TaskChoice, type Subject,
   BIOLOGY_SECTIONS, CHEMISTRY_SECTIONS,
   BIOLOGY_TOPICS, CHEMISTRY_TOPICS, SOURCES,
+  CHEMISTRY_LINES, BIOLOGY_LINES,
 } from '../../data/taskBankData'
 import { AP_CHEM_COURSES, AP_CHEM_TRAINERS, AP_CHEM_WIDGETS, mergeById } from '../../data/apChemistry'
 import {
@@ -305,7 +307,7 @@ function dbWidgetToLocal(w: any): Widget {
 // ─── Shared UI ────────────────────────────────────────────────────────────────
 const inputSt: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box', padding: '9px 12px',
-  borderRadius: 11, border: '1.5px solid var(--color-border-medium)',
+  borderRadius: 11, border: 'none',
   fontSize: 13, color: 'var(--color-text)', background: 'var(--color-bg-input)',
   outline: 'none', fontFamily: 'inherit',
 }
@@ -456,7 +458,6 @@ function CourseEditor({
 
         {/* Subject + Level */}
         <div>
-          <Label>Предмет</Label>
           <div style={{ display: 'flex', gap: 6 }}>
             {(['Химия', 'Биология'] as const).map(s => (
               <SegBtn key={s} label={s} active={subject === s} color="var(--color-purple-text)" bg="var(--color-purple-soft)" onClick={() => setSubject(s)} />
@@ -766,7 +767,7 @@ function WidgetEditor({
               return (
                 <button key={wt} onClick={() => setType(wt)} style={{
                   padding: '8px 10px', borderRadius: 11,
-                  border: isActive ? `1.5px solid ${WTYPE_COLOR[wt]}` : '1.5px solid transparent',
+                  border: 'none',
                   background: isActive ? WTYPE_BG[wt] : 'var(--color-bg)', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, fontWeight: 600,
                   color: isActive ? WTYPE_COLOR[wt] : 'var(--color-muted)', transition: 'all 0.15s',
@@ -977,9 +978,10 @@ function CardActionBar({ actions, visible, accentColor }: { actions: CardActions
   )
 }
 
-function ContentCard({ accentColor, accentBg, isSelected, onClick, icon, iconBg, badge, title, subtitle, footerLeft, footerRight, extra, actions }: {
+function ContentCard({ accentColor, accentBg, borderColor, isSelected, onClick, icon, iconBg, badge, title, subtitle, footerLeft, footerRight, extra, actions }: {
   accentColor: string
   accentBg: string
+  borderColor?: string
   isSelected: boolean
   onClick: () => void
   icon: React.ReactNode
@@ -1001,9 +1003,9 @@ function ContentCard({ accentColor, accentBg, isSelected, onClick, icon, iconBg,
         position: 'relative',
         background: isSelected ? accentBg : 'rgba(var(--glass-rgb), 0.88)',
         backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-        border: isSelected ? `1.5px solid ${accentColor}` : '1px solid var(--color-border-glass)',
+        border: isSelected ? `1.5px solid ${borderColor ?? accentColor}` : '1px solid var(--color-border-glass)',
         borderRadius: 20, padding: '18px 18px 12px', cursor: 'pointer',
-        boxShadow: isSelected ? `0 0 0 3px ${accentColor}22, 0 6px 24px rgba(0,0,0,0.08)` : '0 3px 16px rgba(0,0,0,0.06)',
+        boxShadow: isSelected ? `0 0 0 3px ${(borderColor ?? accentColor)}22, 0 6px 24px rgba(0,0,0,0.08)` : '0 3px 16px rgba(0,0,0,0.06)',
         display: 'flex', flexDirection: 'column', gap: 10, transition: 'all 0.18s',
       }}
     >
@@ -1305,8 +1307,8 @@ function WidgetFilterPanel({
   const hasFilters = !!(filters.search || filters.type || filters.linked)
   const inputSt: React.CSSProperties = {
     width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: 11,
-    border: '1.5px solid var(--color-border-medium)', fontSize: 13, color: 'var(--color-text)',
-    background: 'var(--color-bg-2)', outline: 'none', fontFamily: 'inherit',
+    border: 'none', fontSize: 13, color: 'var(--color-text)',
+    background: 'var(--color-bg-input)', outline: 'none', fontFamily: 'inherit',
   }
   const pill = (active: boolean) => ({
     padding: '5px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit',
@@ -1353,7 +1355,7 @@ function WidgetFilterPanel({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
         <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Привязка</span>
         <div style={{ display: 'flex', gap: 5 }}>
-          {([['', 'Все'], ['linked', 'Из тренажёра'], ['unlinked', 'Вручную']] as [WidgetFilters['linked'], string][]).map(([v, l]) => (
+          {([['', 'Все'], ['linked', 'Тренажёр'], ['unlinked', 'Вручную']] as [WidgetFilters['linked'], string][]).map(([v, l]) => (
             <button key={v} onClick={() => onChange({ linked: v })}
               style={{ ...pill(filters.linked === v), flex: 1, padding: '6px 0' }}>{l}</button>
           ))}
@@ -1837,6 +1839,8 @@ function CreatorView({
   const [tkTableHeaders, setTkTableHeaders] = useState<string[]>(editingTask?.questionTable?.headers ?? ['', ''])
   const [tkTableRows, setTkTableRows] = useState<string[][]>(editingTask?.questionTable?.rows ?? [['', ''], ['', '']])
   const [tkEmptyCells, setTkEmptyCells] = useState<Record<string, boolean>>(editingTask?.questionTable?.emptyCells ?? {})
+  const [tkTableCellImages, setTkTableCellImages] = useState<Record<string, string>>(editingTask?.questionTable?.cellImages ?? {})
+  const [tkTableCellImageSizes, setTkTableCellImageSizes] = useState<Record<string, number>>(editingTask?.questionTable?.cellImageSizes ?? {})
   const [tkBlockOrder, setTkBlockOrder] = useState<Array<'image' | 'table'>>(editingTask?.blockOrder ?? ['image', 'table'])
   const [tkImageCollapsed, setTkImageCollapsed] = useState(false)
   const [tkTableCollapsed, setTkTableCollapsed] = useState(false)
@@ -1905,6 +1909,8 @@ function CreatorView({
   const baseTopicList = tkSection ? (tkTopicMap[tkSection] ?? []) : Object.values(tkTopicMap).flat()
   const tkTopicList = mergeOptions(baseTopicList, topicScopeKey, metaState)
   const tkSourceList = mergeOptions(SOURCES, SOURCE_SCOPE, metaState)
+  const tkLineMap = tkSubject === 'Химия' ? CHEMISTRY_LINES : BIOLOGY_LINES
+  const tkLineOptions = Object.entries(tkLineMap).map(([num, name]) => ({ value: num, label: `${num} · ${name}` }))
 
   // ── Course state (pre-filled when editing an existing course) ──
   const [cTitle, setCTitle] = useState(editCourse?.title ?? 'Новый курс')
@@ -2109,7 +2115,7 @@ function CreatorView({
   function buildTask(): NewBankTask | null {
     if (!stripHtml(tkQuestion)) return null  // validate with stripped, save raw HTML
     const table = tkHasTable
-      ? { headers: tkTableHeaders, rows: tkTableRows, emptyCells: Object.keys(tkEmptyCells).length ? tkEmptyCells : undefined }
+      ? { headers: tkTableHeaders, rows: tkTableRows, emptyCells: Object.keys(tkEmptyCells).length ? tkEmptyCells : undefined, cellImages: Object.keys(tkTableCellImages).length ? tkTableCellImages : undefined, cellImageSizes: Object.keys(tkTableCellImageSizes).length ? tkTableCellImageSizes : undefined }
       : undefined
     const base = {
       subject: (tkSubject === 'Химия' ? 'chemistry' : 'biology') as Subject,
@@ -2362,7 +2368,6 @@ function CreatorView({
           {/* ─ Task meta left ─ */}
           {mode === 'trainer' && <>
             <div>
-              <Label>Предмет</Label>
               <div style={{ display: 'flex', gap: 6 }}>
                 {(['Химия', 'Биология'] as const).map(s => (
                   <SegBtn key={s} label={s} active={tkSubject === s} color="var(--color-purple-text)" bg="var(--color-purple-soft)" onClick={() => { setTkSubject(s); setTkSection(''); setTkTopic('') }} />
@@ -2382,7 +2387,6 @@ function CreatorView({
                 onDeleteOption={v => metaRemoveOption(topicScopeKey, v)} />
             </div>
             <div>
-              <Label>Часть</Label>
               <div style={{ display: 'flex', gap: 8 }}>
                 {([1, 2] as const).map(p => (
                   <SegBtn key={p} label={`Часть ${p}`} active={tkPart === p}
@@ -2391,9 +2395,8 @@ function CreatorView({
                 ))}
               </div>
             </div>
-            <div><Label>Линия</Label>
-              <input type="number" min={1} max={35} value={tkLine}
-                onChange={e => setTkLine(Math.max(1, Number(e.target.value)))} style={inputSt} />
+            <div>
+              <TeacherSelect value={String(tkLine)} onChange={v => setTkLine(Number(v))} placeholder="Линия" options={tkLineOptions} />
             </div>
             <div>
               <TeacherSelect value={tkSource} onChange={setTkSource} placeholder="Источник" options={tkSourceList}
@@ -2488,7 +2491,7 @@ function CreatorView({
                   return (
                     <button key={wt} onClick={() => setWType(wt)} style={{
                       padding: '8px 10px', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 7,
-                      border: wType === wt ? `1.5px solid ${WTYPE_COLOR[wt]}` : '1.5px solid transparent',
+                      border: 'none',
                       background: wType === wt ? WTYPE_BG[wt] : 'var(--color-bg)', cursor: 'pointer',
                       fontSize: 12, fontWeight: 600,
                       color: wType === wt ? WTYPE_COLOR[wt] : 'var(--color-muted)', transition: 'all 0.15s',
@@ -2509,36 +2512,6 @@ function CreatorView({
 
         {/* CENTER: type pills + content form */}
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', padding: '0 24px 20px 20px' }}>
-
-          {/* Type pills — styled like the homework-create tab bar */}
-          <div style={{
-            display: 'flex', gap: 4, marginBottom: 16,
-            background: 'rgba(var(--glass-rgb), 0.7)',
-            backdropFilter: 'blur(12px)',
-            borderRadius: 14, padding: 4,
-            alignSelf: 'flex-start',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-            border: '1px solid var(--color-border-glass)',
-          }}>
-            {(['trainer', 'widget'] as const).map(t => {
-              const c = CREATOR_CFG[t]
-              const isActive = mode === t
-              return (
-                <button key={t} onClick={() => setMode(t)} style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '8px 16px', borderRadius: 11, border: 'none', cursor: 'pointer',
-                  fontSize: 13, fontWeight: 600,
-                  background: isActive ? 'var(--color-surface)' : 'transparent',
-                  color: isActive ? c.color : 'var(--color-muted)',
-                  fontFamily: 'inherit', transition: 'all 0.15s',
-                  boxShadow: isActive ? '0 2px 10px rgba(0,0,0,0.09)' : 'none',
-                }}>
-                  <c.Icon size={14} strokeWidth={isActive ? 2.2 : 1.8} />
-                  {c.label}
-                </button>
-              )
-            })}
-          </div>
 
           <GlassCard style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
@@ -2595,10 +2568,10 @@ function CreatorView({
                     <button
                       onClick={() => setCollapsed((v: boolean) => !v)}
                       title={collapsed ? 'Развернуть' : 'Свернуть'}
-                      style={{ width: 22, height: 22, borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
-                    >{collapsed ? '▸' : '▾'}</button>
+                      style={{ width: 22, height: 22, borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >{collapsed ? <ChevronRight size={13} /> : <ChevronDown size={13} />}</button>
                     {!isImage && (
-                      <button onClick={() => setTkHasTable(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, padding: 0 }}>Убрать</button>
+                      <button onClick={() => setTkHasTable(false)} style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '2px 7px', borderRadius: 7, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-red-text)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}><X size={10} />Убрать</button>
                     )}
                   </div>
                   {!collapsed && isImage && (
@@ -2648,10 +2621,11 @@ function CreatorView({
                   )}
                   {!collapsed && !isImage && (
                     <TableEditor
-                      value={{ headers: tkTableHeaders, rows: tkTableRows, emptyCells: tkEmptyCells }}
-                      onChange={v => { setTkTableHeaders(v.headers); setTkTableRows(v.rows); setTkEmptyCells(v.emptyCells ?? {}) }}
+                      value={{ headers: tkTableHeaders, rows: tkTableRows, emptyCells: tkEmptyCells, cellImages: tkTableCellImages, cellImageSizes: tkTableCellImageSizes }}
+                      onChange={v => { setTkTableHeaders(v.headers); setTkTableRows(v.rows); setTkEmptyCells(v.emptyCells ?? {}); setTkTableCellImages(v.cellImages ?? {}); setTkTableCellImageSizes(v.cellImageSizes ?? {}) }}
                       accent={cfg.color}
                       accentBg={cfg.bg}
+                      allowCellImages
                     />
                   )}
                 </div>
@@ -2679,7 +2653,7 @@ function CreatorView({
                         </button>
                         <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: isCorrect ? cfg.bg : 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: isCorrect ? cfg.color : 'var(--color-text-3)' }}>{LETTERS[i]}</span>
                         <input value={ans} onChange={e => setChoice(i, e.target.value)} placeholder={`Вариант ${LETTERS[i]}…`}
-                          style={{ ...inputSt, flex: 1, border: isCorrect ? `1.5px solid ${cfg.color}55` : '1.5px solid var(--color-border-medium)', background: isCorrect ? `${cfg.bg}88` : 'var(--color-bg-2)' }} />
+                          style={{ ...inputSt, flex: 1, border: isCorrect ? `1.5px solid ${cfg.color}55` : '1.5px solid var(--color-border-medium)', background: isCorrect ? `${cfg.bg}88` : 'var(--color-bg-input)' }} />
                         {scoreMode === 'perOption' && (
                           <input type="number" min={0} max={20} value={tkChoicePts[i] ?? 0}
                             onChange={e => setTkChoicePts(prev => prev.map((p, j) => j === i ? Number(e.target.value) : p))}
@@ -2996,7 +2970,7 @@ function CreatorView({
                       {wQCorr === oi && <Check size={11} strokeWidth={3} style={{ color: '#fff' }} />}
                     </button>
                     <input value={opt} onChange={e => { const o = [...wQOpts]; o[oi] = e.target.value; setWQOpts(o) }} placeholder={`Вариант ${oi + 1}…`}
-                      style={{ ...inputSt, flex: 1, border: wQCorr === oi ? `1.5px solid ${WTYPE_COLOR[wType]}55` : '1.5px solid var(--color-border-medium)', background: wQCorr === oi ? `${WTYPE_BG[wType]}88` : 'var(--color-bg-2)' }} />
+                      style={{ ...inputSt, flex: 1, border: wQCorr === oi ? `1.5px solid ${WTYPE_COLOR[wType]}55` : '1.5px solid var(--color-border-medium)', background: wQCorr === oi ? `${WTYPE_BG[wType]}88` : 'var(--color-bg-input)' }} />
                   </div>
                 ))}
                 <div style={{ fontSize: 10, color: 'var(--color-text-3)' }}>● — правильный ответ</div>
@@ -3196,10 +3170,23 @@ const SUBJECT_ICON_MAP: Record<DiagSubject, React.ElementType> = {
 
 // Runtime meta for custom user-created tests
 const CUSTOM_META = new Map<string, { label: string; accent: string; soft: string }>()
+async function loadColorOverridesFromDB(): Promise<Record<string, string>> {
+  const { data } = await supabase.from('profiles').select('test_color_overrides').single()
+  return (data?.test_color_overrides as Record<string, string>) ?? {}
+}
+async function saveColorOverrideToDB(subject: string, hex: string) {
+  const { data: profileData } = await supabase.from('profiles').select('id, test_color_overrides').single()
+  if (!profileData) return
+  const current = (profileData.test_color_overrides as Record<string, string>) ?? {}
+  current[subject] = hex
+  await supabase.from('profiles').update({ test_color_overrides: current }).eq('id', profileData.id)
+}
 function getSubjectMeta(subject: string) {
-  return (SUBJECT_META as Record<string, { label: string; accent: string; soft: string }>)[subject]
-    ?? CUSTOM_META.get(subject)
+  const override = CUSTOM_META.get(subject)
+  const base = (SUBJECT_META as Record<string, { label: string; accent: string; soft: string }>)[subject]
     ?? { label: subject, accent: '#8B5CF6', soft: 'var(--color-purple-soft)' }
+  if (override) return { label: base.label, accent: override.accent, soft: override.soft }
+  return base
 }
 function getSubjectIcon(subject: string): React.ElementType {
   return (SUBJECT_ICON_MAP as Record<string, React.ElementType>)[subject] ?? FileText
@@ -3211,12 +3198,12 @@ function loadCustomTests(): CustomTest[] {
   try { return JSON.parse(localStorage.getItem(CUSTOM_TESTS_KEY) ?? '[]') } catch { return [] }
 }
 function persistCustomTests(tests: CustomTest[]) { localStorage.setItem(CUSTOM_TESTS_KEY, JSON.stringify(tests)) }
-// Register loaded custom tests into CUSTOM_META so cards/editors pick them up
 function hydrateCustomMeta(tests: CustomTest[]) {
   tests.forEach(t => CUSTOM_META.set(t.id, { label: t.label, accent: t.accent, soft: t.accent + '22' }))
 }
 
 const CREATOR_ACCENTS = [
+  { hex: '#0d9488', soft: 'rgba(13,148,136,0.12)'    },
   { hex: '#8B5CF6', soft: 'var(--color-purple-soft)' },
   { hex: '#22c55e', soft: 'var(--color-green-soft)'  },
   { hex: '#ef4444', soft: 'rgba(239,68,68,0.1)'      },
@@ -3224,6 +3211,206 @@ const CREATOR_ACCENTS = [
   { hex: '#f59e0b', soft: 'rgba(245,158,11,0.11)'    },
   { hex: '#ec4899', soft: 'rgba(236,72,153,0.12)'    },
 ]
+
+// ─── Color utilities ─────────────────────────────────────────────────────────
+
+function hexToHsv(hex: string): [number, number, number] {
+  const r = parseInt(hex.slice(1, 3), 16) / 255
+  const g = parseInt(hex.slice(3, 5), 16) / 255
+  const b = parseInt(hex.slice(5, 7), 16) / 255
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min
+  let h = 0
+  if (d > 0) {
+    if (max === r) h = ((g - b) / d + 6) % 6
+    else if (max === g) h = (b - r) / d + 2
+    else h = (r - g) / d + 4
+    h = h / 6
+  }
+  return [h, max > 0 ? d / max : 0, max]
+}
+
+function hsvToHex(h: number, s: number, v: number): string {
+  const f = (n: number) => {
+    const k = (n + h * 6) % 6
+    const val = v - v * s * Math.max(0, Math.min(k, 4 - k, 1))
+    return Math.round(val * 255).toString(16).padStart(2, '0')
+  }
+  return `#${f(5)}${f(3)}${f(1)}`
+}
+
+// Clamp sat/val so the picker never produces near-black (invisible in dark)
+// or near-white grays (invisible in light). Saturated bright colors like yellow are fine.
+function clampSV(s: number, v: number): [number, number] {
+  const minV = 0.32                           // floor at 32% brightness — nothing near-black
+  const maxVGray = s < 0.20 ? 0.84 : 1.0     // low-saturation grays capped at 84%
+  return [s, Math.max(minV, Math.min(maxVGray, v))]
+}
+
+const accentCircleShadow = getCircleShadow
+
+function ColorPickerPopup({ value, onChange, onClose, anchor }: {
+  value: string
+  onChange: (hex: string) => void
+  onClose: () => void
+  anchor: DOMRect | null
+}) {
+  const [h, s, v] = hexToHsv(value.startsWith('#') && value.length === 7 ? value : '#0d9488')
+  const [cs0, cv0] = clampSV(s, v)
+  const [hue, setHue] = useState(h)
+  const [sat, setSat] = useState(cs0)
+  const [val, setVal] = useState(cv0)
+  const [hexInput, setHexInput] = useState(value)
+  const svRef = useRef<HTMLDivElement>(null)
+  const svCanvasRef = useRef<HTMLCanvasElement>(null)
+  const hueRef = useRef<HTMLDivElement>(null)
+  const popupRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const hex = hsvToHex(hue, sat, val)
+    setHexInput(hex)
+    onChange(hex)
+  }, [hue, sat, val]) // eslint-disable-line
+
+  useEffect(() => {
+    const canvas = svCanvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')!
+    const w = canvas.width, h = canvas.height
+    const gradH = ctx.createLinearGradient(0, 0, w, 0)
+    gradH.addColorStop(0, '#fff')
+    gradH.addColorStop(1, `hsl(${Math.round(hue * 360)},100%,50%)`)
+    ctx.fillStyle = gradH
+    ctx.fillRect(0, 0, w, h)
+    const gradV = ctx.createLinearGradient(0, 0, 0, h)
+    gradV.addColorStop(0, 'rgba(0,0,0,0)')
+    gradV.addColorStop(1, 'rgba(0,0,0,1)')
+    ctx.fillStyle = gradV
+    ctx.fillRect(0, 0, w, h)
+  }, [hue])
+
+  useEffect(() => {
+    function onDown(e: MouseEvent) {
+      if (popupRef.current && !popupRef.current.contains(e.target as Node)) onClose()
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [onClose])
+
+  function dragSV(e: React.PointerEvent) {
+    e.currentTarget.setPointerCapture(e.pointerId)
+    function move(ev: PointerEvent) {
+      const rect = svRef.current!.getBoundingClientRect()
+      const rawS = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width))
+      const rawV = Math.max(0, Math.min(1, 1 - (ev.clientY - rect.top) / rect.height))
+      const [cs, cv] = clampSV(rawS, rawV)
+      setSat(cs); setVal(cv)
+    }
+    move(e.nativeEvent as PointerEvent)
+    e.currentTarget.addEventListener('pointermove', move as EventListener)
+    e.currentTarget.addEventListener('pointerup', () => {
+      e.currentTarget.removeEventListener('pointermove', move as EventListener)
+    }, { once: true })
+  }
+
+  function dragHue(e: React.PointerEvent) {
+    e.currentTarget.setPointerCapture(e.pointerId)
+    function move(ev: PointerEvent) {
+      const rect = hueRef.current!.getBoundingClientRect()
+      setHue(Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width)))
+    }
+    move(e.nativeEvent as PointerEvent)
+    e.currentTarget.addEventListener('pointermove', move as EventListener)
+    e.currentTarget.addEventListener('pointerup', () => {
+      e.currentTarget.removeEventListener('pointermove', move as EventListener)
+    }, { once: true })
+  }
+
+  const pureHue = `hsl(${Math.round(hue * 360)},100%,50%)`
+  const currentHex = hsvToHex(hue, sat, val)
+  const contrastCheck = getContrastColor(currentHex)
+
+  const top = anchor ? Math.min(anchor.bottom + 8, window.innerHeight - 320) : 100
+  const left = anchor ? Math.max(8, Math.min(anchor.left, window.innerWidth - 272)) : 100
+
+  return createPortal(
+    <div ref={popupRef} style={{
+      position: 'fixed', top, left, zIndex: 99999,
+      width: 264, borderRadius: 16, boxSizing: 'border-box',
+      background: 'var(--color-bg-2)', border: '1px solid var(--color-border-glass)',
+      boxShadow: '0 16px 48px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.18)',
+      padding: 16, display: 'flex', flexDirection: 'column', gap: 12,
+    }}>
+      {/* SV canvas */}
+      <div ref={svRef} onPointerDown={dragSV}
+        style={{
+          position: 'relative', height: 160, borderRadius: 10, cursor: 'crosshair', userSelect: 'none',
+          overflow: 'hidden',
+        }}>
+        <canvas ref={svCanvasRef} width={232} height={160}
+          style={{ display: 'block', width: '100%', height: '100%', borderRadius: 10, pointerEvents: 'none' }} />
+        <div style={{
+          position: 'absolute', width: 16, height: 16, borderRadius: '50%',
+          border: '2.5px solid #fff', boxShadow: '0 0 0 1.5px rgba(0,0,0,0.35), 0 2px 6px rgba(0,0,0,0.4)',
+          transform: 'translate(-50%,-50%)',
+          left: `${sat * 100}%`, top: `${(1 - val) * 100}%`,
+          pointerEvents: 'none', background: currentHex,
+        }} />
+      </div>
+
+      {/* Hue slider + preview */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div ref={hueRef} onPointerDown={dragHue}
+          style={{
+            flex: 1, height: 20, borderRadius: 999, cursor: 'pointer', userSelect: 'none', position: 'relative',
+            background: 'linear-gradient(to right,#ff0000,#ff8800,#ffff00,#00ff00,#00ffff,#0000ff,#ff00ff,#ff0000)',
+          }}>
+          <div style={{
+            position: 'absolute', width: 22, height: 22, borderRadius: '50%',
+            border: '2.5px solid #fff', boxShadow: '0 0 0 1.5px rgba(0,0,0,0.25), 0 2px 6px rgba(0,0,0,0.3)',
+            background: pureHue,
+            top: '50%', left: `${hue * 100}%`,
+            transform: 'translate(-50%,-50%)',
+            pointerEvents: 'none',
+          }} />
+        </div>
+        <div style={{
+          width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+          background: currentHex,
+          border: '2px solid var(--color-border-medium)',
+          boxShadow: `0 0 0 3px ${currentHex}33`,
+        }} />
+      </div>
+
+      {/* Hex input */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ width: 20, height: 20, borderRadius: 5, background: currentHex, flexShrink: 0, border: '1px solid var(--color-border-medium)' }} />
+        <input value={hexInput}
+          onChange={e => {
+            setHexInput(e.target.value)
+            const v = e.target.value
+            if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+              const [nh, ns, nv] = hexToHsv(v)
+              const [cs, cv] = clampSV(ns, nv)
+              setHue(nh); setSat(cs); setVal(cv)
+            }
+          }}
+          style={{
+            flex: 1, padding: '7px 10px', borderRadius: 8, border: '1.5px solid var(--color-border-medium)',
+            background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13,
+            fontFamily: 'monospace', outline: 'none', letterSpacing: '0.05em',
+          }}
+          placeholder="#000000" maxLength={7}
+          onFocus={e => e.target.select()}
+        />
+        <button onClick={onClose}
+          style={{ width: 32, height: 32, borderRadius: 8, border: 'none', cursor: 'pointer', background: currentHex, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Check size={14} strokeWidth={2.5} style={{ color: contrastCheck }} />
+        </button>
+      </div>
+    </div>,
+    document.body
+  )
+}
 
 function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
   const { label, accent, soft } = SUBJECT_META[subject]
@@ -4114,7 +4301,13 @@ const TIME_SLOTS_DIAG = generateTimeSlotsDiag()
 
 const calNavBtn: React.CSSProperties = { width: 28, height: 28, borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-2)', flexShrink: 0 }
 
-function DiagCalendarPicker({ value, onChange, onClose }: { value: string; onChange: (v: string) => void; onClose: () => void }) {
+function DiagCalendarPicker({ value, onChange, onClose, accent = 'var(--color-accent)', soft = 'var(--color-purple-soft)' }: { value: string; onChange: (v: string) => void; onClose: () => void; accent?: string; soft?: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose() }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [onClose])
   const selected = parseDateISO(value)
   const today = new Date()
   const [viewYear, setViewYear] = useState(selected?.getFullYear() ?? today.getFullYear())
@@ -4132,7 +4325,7 @@ function DiagCalendarPicker({ value, onChange, onClose }: { value: string; onCha
   while (days.length % 7 !== 0) days.push(null)
 
   return (
-    <motion.div initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }} transition={{ duration: 0.15 }}
+    <motion.div ref={ref} initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }} transition={{ duration: 0.15 }}
       style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 200, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 16, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', padding: '12px 14px 14px', minWidth: 238, userSelect: 'none' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <button onClick={prevMonth} style={calNavBtn}><ChevronLeft size={14} /></button>
@@ -4149,7 +4342,7 @@ function DiagCalendarPicker({ value, onChange, onClose }: { value: string; onCha
           const tod = d.toDateString() === today.toDateString()
           return (
             <button key={i} onClick={() => { onChange(formatDateISO(d)); onClose() }}
-              style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500, background: sel ? 'var(--color-accent)' : tod ? 'var(--color-purple-soft)' : 'transparent', color: sel ? '#fff' : tod ? 'var(--color-accent)' : 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s' }}>
+              style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500, background: sel ? accent : tod ? soft : 'transparent', color: sel ? '#fff' : tod ? accent : 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s' }}>
               {d.getDate()}
             </button>
           )
@@ -4159,14 +4352,20 @@ function DiagCalendarPicker({ value, onChange, onClose }: { value: string; onCha
   )
 }
 
-function DiagTimePicker({ value, onChange, onClose }: { value: string; onChange: (v: string) => void; onClose: () => void }) {
+function DiagTimePicker({ value, onChange, onClose, accent = 'var(--color-accent)' }: { value: string; onChange: (v: string) => void; onClose: () => void; accent?: string }) {
   const listRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const idx = TIME_SLOTS_DIAG.indexOf(value)
     if (idx !== -1 && listRef.current) (listRef.current.children[idx] as HTMLElement)?.scrollIntoView({ block: 'center' })
   }, [value])
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (containerRef.current && !containerRef.current.contains(e.target as Node)) onClose() }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [onClose])
   return (
-    <motion.div initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }} transition={{ duration: 0.15 }}
+    <motion.div ref={containerRef} initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }} transition={{ duration: 0.15 }}
       style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 200, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', overflow: 'hidden' }}>
       <div style={{ position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 28, zIndex: 1, background: 'linear-gradient(to bottom, var(--color-bg-input), transparent)', pointerEvents: 'none' }} />
@@ -4176,7 +4375,7 @@ function DiagTimePicker({ value, onChange, onClose }: { value: string; onChange:
             const active = t === value
             return (
               <button key={t} onClick={() => { onChange(t); onClose() }}
-                style={{ width: '100%', border: 'none', background: active ? 'var(--color-accent)' : 'transparent', color: active ? '#fff' : 'var(--color-text)', padding: '7px 10px', textAlign: 'left', fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'block', borderRadius: 9, transition: 'background 0.18s, color 0.18s' }}>
+                style={{ width: '100%', border: 'none', background: active ? accent : 'transparent', color: active ? '#fff' : 'var(--color-text)', padding: '7px 10px', textAlign: 'left', fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'block', borderRadius: 9, transition: 'background 0.18s, color 0.18s' }}>
                 {t}
               </button>
             )
@@ -4192,6 +4391,7 @@ function DiagnosticEditorFullPage({
   subject, onClose,
   groups, allStudents,
   assignments, onAssign, onDeleteAssignment,
+  onColorChange,
 }: {
   subject: DiagSubject; onClose: () => void
   groups: import('../../data/teacherMockData').Group[]
@@ -4199,9 +4399,25 @@ function DiagnosticEditorFullPage({
   assignments: TestAssignment[]
   onAssign: (a: Omit<TestAssignment, 'id' | 'createdAt'>) => void
   onDeleteAssignment: (id: string) => void
+  onColorChange?: (hex: string) => void
 }) {
-  const { label, accent, soft } = getSubjectMeta(subject)
+  const initialMeta = getSubjectMeta(subject)
+  const [accentState, setAccentState] = useState(initialMeta.accent)
+  const accent = accentState
+  const soft = CREATOR_ACCENTS.find(a => a.hex === accent)?.soft ?? accent + '22'
+  const { label } = initialMeta
   const Icon = getSubjectIcon(subject)
+
+  function handleColorChange(hex: string) {
+    const hexSoft = CREATOR_ACCENTS.find(a => a.hex === hex)?.soft ?? hex + '22'
+    setAccentState(hex)
+    CUSTOM_META.set(subject, { label, accent: hex, soft: hexSoft })
+    saveColorOverrideToDB(subject, hex)
+    onColorChange?.(hex)
+  }
+  const [showPicker, setShowPicker] = useState(false)
+  const pickerBtnRef = useRef<HTMLButtonElement>(null)
+
   const [questions, setQuestions] = useState<DiagQuestion[]>(() => loadDiagQuestions(subject))
   const [editIdx, setEditIdx] = useState<number | null>(null)
   const [editText, setEditText] = useState('')
@@ -4212,8 +4428,9 @@ function DiagnosticEditorFullPage({
 
   // ── Assignment panel state ──
   const [assignType, setAssignType] = useState<'test' | 'trial'>('test')
-  const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(new Set())
-  const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(new Set())
+  const [assignRecipientMode, setAssignRecipientMode] = useState<'group' | 'student'>('group')
+  const [assignGroupId, setAssignGroupId] = useState('')
+  const [assignStudentId, setAssignStudentId] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [dueTime, setDueTime] = useState('')
   const [calOpen, setCalOpen] = useState(false)
@@ -4230,21 +4447,18 @@ function DiagnosticEditorFullPage({
     else setAssignResults([])
   }, [expandedAssignId])
 
-  const toggleGroup = (id: string) => setSelectedGroupIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
-  const toggleStudent = (id: string) => setSelectedStudentIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
-
   async function handleAssign() {
-    if (selectedGroupIds.size === 0 && selectedStudentIds.size === 0) return
+    if (!assignGroupId && !assignStudentId) return
     setSaving(true)
     await onAssign({
       title: `${label} · ${assignType === 'trial' ? 'Пробник' : 'Тест'}`,
       subject, assignType,
-      groupIds: Array.from(selectedGroupIds),
-      studentIds: Array.from(selectedStudentIds),
+      groupIds: assignGroupId ? [assignGroupId] : [],
+      studentIds: assignStudentId ? [assignStudentId] : [],
       dueDate: dueDate || undefined,
       closed: false,
     })
-    setSelectedGroupIds(new Set()); setSelectedStudentIds(new Set()); setDueDate('')
+    setAssignGroupId(''); setAssignStudentId(''); setDueDate('')
     setSaving(false)
   }
 
@@ -4271,7 +4485,7 @@ function DiagnosticEditorFullPage({
     setEditIdx(next.length - 1); setEditText(''); setEditOpts(['', '', '', '']); setEditCorrect(0); setDirty(true)
   }
 
-  const canAssign = selectedGroupIds.size > 0 || selectedStudentIds.size > 0
+  const canAssign = !!assignGroupId || !!assignStudentId
   const [distMode, setDistMode] = useState<'assign' | 'link'>('assign')
 
   return (
@@ -4315,7 +4529,7 @@ function DiagnosticEditorFullPage({
           <ArrowLeft size={15} strokeWidth={2} /> Назад
         </motion.button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 10, background: soft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 32, height: 32, borderRadius: 10, background: soft, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}>
             <Icon size={16} style={{ color: accent }} />
           </div>
           <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{label}</span>
@@ -4335,6 +4549,29 @@ function DiagnosticEditorFullPage({
 
           {/* 3-mode card */}
           <GlassCard style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+            {/* Color picker */}
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Цвет</div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                {CREATOR_ACCENTS.map(a => (
+                  <button key={a.hex} onClick={() => handleColorChange(a.hex)} title={a.hex}
+                    style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: a.hex, cursor: 'pointer', outline: 'none', transition: 'box-shadow 0.15s', flexShrink: 0, boxShadow: accent === a.hex ? `0 0 0 2.5px var(--color-bg-2), 0 0 0 4.5px ${a.hex}` : 'none' }} />
+                ))}
+                <button ref={pickerBtnRef} title="Свой цвет" onClick={() => setShowPicker(p => !p)}
+                  style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: !CREATOR_ACCENTS.some(a => a.hex === accent) ? accent : 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s', boxShadow: !CREATOR_ACCENTS.some(a => a.hex === accent) ? `0 0 0 2.5px var(--color-bg-2), 0 0 0 4.5px ${accent}` : `inset 0 0 0 1.5px var(--color-border-medium)` }}>
+                  <Pipette size={13} style={{ color: !CREATOR_ACCENTS.some(a => a.hex === accent) ? getContrastColor(accent) : 'var(--color-muted)', pointerEvents: 'none' }} />
+                </button>
+                {showPicker && (
+                  <ColorPickerPopup
+                    value={accent}
+                    onChange={handleColorChange}
+                    onClose={() => setShowPicker(false)}
+                    anchor={pickerBtnRef.current?.getBoundingClientRect() ?? null}
+                  />
+                )}
+              </div>
+            </div>
 
             {/* Mode tabs */}
             <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-3)' }}>
@@ -4360,40 +4597,31 @@ function DiagnosticEditorFullPage({
                 <div style={{ display: 'flex', gap: 6 }}>
                   {(['test', 'trial'] as const).map(t => (
                     <button key={t} onClick={() => setAssignType(t)}
-                      style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: `1.5px solid ${assignType === t ? accent : 'var(--color-border-medium)'}`, background: assignType === t ? soft : 'transparent', color: assignType === t ? accent : 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
+                      style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: 'none', outline: 'none', background: assignType === t ? `${accent}20` : 'var(--color-bg-3)', color: assignType === t ? accent : 'var(--color-text-3)', fontSize: 12, fontWeight: assignType === t ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
                       {t === 'test' ? 'Контрольная' : 'Пробник'}
                     </button>
                   ))}
                 </div>
 
-                {/* Groups */}
-                {groups.length > 0 && (
-                  <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 }}>Группы</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                      {groups.map(g => (
-                        <button key={g.id} onClick={() => toggleGroup(g.id)}
-                          style={{ padding: '4px 10px', borderRadius: 8, border: `1.5px solid ${selectedGroupIds.has(g.id) ? g.color : 'var(--color-border-soft)'}`, background: selectedGroupIds.has(g.id) ? g.color + '22' : 'transparent', color: selectedGroupIds.has(g.id) ? g.color : 'var(--color-text-3)', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
-                          {g.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Individual students */}
-                {allStudents.length > 0 && (
-                  <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 }}>Ученики</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, maxHeight: 100, overflowY: 'auto' }}>
-                      {allStudents.map(s => (
-                        <button key={s.id} onClick={() => toggleStudent(s.id)}
-                          style={{ padding: '4px 10px', borderRadius: 8, border: `1.5px solid ${selectedStudentIds.has(s.id) ? accent : 'var(--color-border-soft)'}`, background: selectedStudentIds.has(s.id) ? soft : 'transparent', color: selectedStudentIds.has(s.id) ? accent : 'var(--color-text-3)', fontSize: 11, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
-                          {s.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                {/* Recipient toggle + search */}
+                <div style={{ display: 'flex', gap: 5 }}>
+                  {(['group', 'student'] as const).map(m => (
+                    <button key={m} onClick={() => { setAssignRecipientMode(m); setAssignGroupId(''); setAssignStudentId('') }}
+                      style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: 'none', outline: 'none', cursor: 'pointer', fontSize: 12,
+                        fontWeight: assignRecipientMode === m ? 700 : 600,
+                        background: assignRecipientMode === m ? `${accent}20` : 'var(--color-bg-3)',
+                        color: assignRecipientMode === m ? accent : 'var(--color-muted)',
+                        fontFamily: 'inherit', transition: 'all 0.15s' }}>
+                      {m === 'group' ? 'Группе' : 'Студенту'}
+                    </button>
+                  ))}
+                </div>
+                {assignRecipientMode === 'group' ? (
+                  <TeacherSelect value={assignGroupId} onChange={setAssignGroupId} placeholder="Выберите группу"
+                    options={groups.map(g => ({ value: g.id, label: g.name }))} />
+                ) : (
+                  <TeacherSelect value={assignStudentId} onChange={setAssignStudentId} placeholder="Выберите студента"
+                    options={allStudents.map(s => ({ value: s.id, label: s.name }))} />
                 )}
 
                 {/* Due date + time */}
@@ -4403,24 +4631,24 @@ function DiagnosticEditorFullPage({
                     {/* Calendar trigger */}
                     <div style={{ position: 'relative', flex: 1 }}>
                       <button onClick={() => { setCalOpen(o => !o); setTimeOpen(false) }}
-                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 7, padding: '8px 10px', borderRadius: 9, border: `1.5px solid ${calOpen ? accent : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', color: dueDate ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', transition: 'border-color 0.15s', fontWeight: dueDate ? 600 : 400 }}>
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 7, padding: '8px 10px', borderRadius: 9, border: 'none', outline: 'none', background: calOpen ? `${accent}18` : 'var(--color-bg-input)', color: dueDate ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueDate ? 600 : 400, transition: 'background 0.15s' }}>
                         <Calendar size={13} style={{ flexShrink: 0, color: accent }} />
                         <span style={{ flex: 1, textAlign: 'left' }}>{dueDate ? formatDateDisplay(dueDate) : 'Дата'}</span>
                         {dueDate && <button onClick={e => { e.stopPropagation(); setDueDate('') }} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-text-3)', lineHeight: 1, fontSize: 13, display: 'flex' }}>×</button>}
                       </button>
                       <AnimatePresence>
-                        {calOpen && <DiagCalendarPicker value={dueDate} onChange={v => { setDueDate(v); setCalOpen(false) }} onClose={() => setCalOpen(false)} />}
+                        {calOpen && <DiagCalendarPicker value={dueDate} onChange={v => { setDueDate(v); setCalOpen(false) }} onClose={() => setCalOpen(false)} accent={accent} soft={soft} />}
                       </AnimatePresence>
                     </div>
                     {/* Time trigger */}
                     <div style={{ position: 'relative', width: 80 }}>
                       <button onClick={() => { setTimeOpen(o => !o); setCalOpen(false) }}
-                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 5, padding: '8px 8px', borderRadius: 9, border: `1.5px solid ${timeOpen ? accent : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', color: dueTime ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', transition: 'border-color 0.15s', fontWeight: dueTime ? 600 : 400 }}>
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 5, padding: '8px 8px', borderRadius: 9, border: 'none', outline: 'none', background: timeOpen ? `${accent}18` : 'var(--color-bg-input)', color: dueTime ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueTime ? 600 : 400, transition: 'background 0.15s' }}>
                         <Clock size={13} style={{ flexShrink: 0, color: accent }} />
                         <span>{dueTime || 'Время'}</span>
                       </button>
                       <AnimatePresence>
-                        {timeOpen && <DiagTimePicker value={dueTime} onChange={v => { setDueTime(v); setTimeOpen(false) }} onClose={() => setTimeOpen(false)} />}
+                        {timeOpen && <DiagTimePicker value={dueTime} onChange={v => { setDueTime(v); setTimeOpen(false) }} onClose={() => setTimeOpen(false)} accent={accent} />}
                       </AnimatePresence>
                     </div>
                   </div>
@@ -4440,7 +4668,7 @@ function DiagnosticEditorFullPage({
                   Человек проходит тест по ссылке, вводит имя и появляется в таблице результатов. Подходит для первичной диагностики.
                 </div>
                 <button onClick={copyLink}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '11px 14px', borderRadius: 11, cursor: 'pointer', border: `1.5px solid ${copied ? 'var(--color-green-text)' : accent}`, fontFamily: 'inherit', background: copied ? 'var(--color-green-soft)' : soft, color: copied ? 'var(--color-green-text)' : accent, fontSize: 13, fontWeight: 700, transition: 'all 0.18s' }}>
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '11px 14px', borderRadius: 11, cursor: 'pointer', border: 'none', outline: 'none', fontFamily: 'inherit', background: copied ? 'var(--color-green-soft)' : soft, color: copied ? 'var(--color-green-text)' : accent, fontSize: 13, fontWeight: 700, transition: 'all 0.18s' }}>
                   {copied ? <Check size={14} /> : <Link2 size={14} />}
                   {copied ? 'Ссылка скопирована!' : 'Копировать ссылку'}
                 </button>
@@ -4537,8 +4765,8 @@ function DiagnosticEditorFullPage({
                         {editOpts.map((opt, oi) => (
                           <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                             <button onClick={() => { setEditCorrect(oi); setDirty(true) }}
-                              style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'transparent', transition: 'all 0.14s', position: 'relative' }}>
-                              {editCorrect === oi && <Check size={13} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff', strokeWidth: 3 }} />}
+                              style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'transparent', transition: 'all 0.14s', position: 'relative', boxShadow: editCorrect === oi ? accentCircleShadow(accent) : 'none' }}>
+                              {editCorrect === oi && <Check size={13} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: getContrastColor(accent), strokeWidth: 3 }} />}
                             </button>
                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `1.5px solid ${editCorrect === oi ? accent + '66' : 'var(--color-border-medium)'}`, background: editCorrect === oi ? soft : 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
                               <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: editCorrect === oi ? accent : 'var(--color-muted)', flexShrink: 0 }}>{String.fromCharCode(65 + oi)}</div>
@@ -4592,9 +4820,9 @@ function DiagnosticEditorFullPage({
                           {q.options.map((opt, oi) => {
                             const isCorrect = q.correct === oi
                             return (
-                              <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 10, borderRadius: 11, border: `1.5px solid ${isCorrect ? accent + '66' : 'var(--color-border-medium)'}`, background: isCorrect ? soft : 'var(--color-bg-input)', padding: '9px 12px' }}>
-                                <div style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, border: `2px solid ${isCorrect ? accent : 'var(--color-border-medium)'}`, background: isCorrect ? accent : 'transparent', position: 'relative' }}>
-                                  {isCorrect && <Check size={12} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff', strokeWidth: 3 }} />}
+                              <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 10, borderRadius: 11, border: 'none', background: isCorrect ? soft : 'var(--color-bg-input)', padding: '9px 12px' }}>
+                                <div style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, border: `2px solid ${isCorrect ? accent : 'var(--color-border-medium)'}`, background: isCorrect ? accent : 'transparent', position: 'relative', boxShadow: isCorrect ? accentCircleShadow(accent) : 'none' }}>
+                                  {isCorrect && <Check size={12} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: getContrastColor(accent), strokeWidth: 3 }} />}
                                 </div>
                                 <div style={{ fontSize: 12, fontWeight: 700, color: isCorrect ? accent : 'var(--color-muted)', flexShrink: 0 }}>{String.fromCharCode(65 + oi)}</div>
                                 <div style={{ flex: 1, fontSize: 13.5, color: 'var(--color-text)' }}>{opt || <span style={{ color: 'var(--color-text-4)' }}>—</span>}</div>
@@ -4619,7 +4847,7 @@ function DiagnosticEditorFullPage({
               {questions.map((q, idx) => (
                 <button key={q.id} onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
                   style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s' }}>
-                  <div style={{ width: 20, height: 20, borderRadius: 6, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? '#fff' : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
+                  <div style={{ width: 20, height: 20, borderRadius: 6, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? getContrastColor(accent) : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
                   <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: editIdx === idx ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.text || 'Без текста'}</div>
                 </button>
               ))}
@@ -5267,6 +5495,8 @@ function DiagnosticTestCreator({ onSave, onCancel }: {
 }) {
   const [title, setTitle] = useState('')
   const [accent, setAccent] = useState(CREATOR_ACCENTS[0].hex)
+  const [showPicker2, setShowPicker2] = useState(false)
+  const pickerBtn2Ref = useRef<HTMLButtonElement>(null)
   const [questions, setQuestions] = useState<DiagQuestion[]>([])
   const [editIdx, setEditIdx] = useState<number | null>(null)
   const [editText, setEditText] = useState('')
@@ -5383,11 +5613,23 @@ function DiagnosticTestCreator({ onSave, onCancel }: {
               </div>
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Цвет</div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                   {CREATOR_ACCENTS.map(a => (
                     <button key={a.hex} onClick={() => setAccent(a.hex)}
-                      style={{ width: 28, height: 28, borderRadius: '50%', border: accent === a.hex ? '3px solid var(--color-text)' : '2px solid transparent', background: a.hex, cursor: 'pointer', outline: 'none', transition: 'border 0.15s', flexShrink: 0 }} />
+                      style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: a.hex, cursor: 'pointer', outline: 'none', transition: 'box-shadow 0.15s', flexShrink: 0, boxShadow: accent === a.hex ? `0 0 0 2.5px var(--color-bg-2), 0 0 0 4.5px ${a.hex}` : 'none' }} />
                   ))}
+                  <button ref={pickerBtn2Ref} title="Свой цвет" onClick={() => setShowPicker2(p => !p)}
+                    style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: !CREATOR_ACCENTS.some(a => a.hex === accent) ? accent : 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s', boxShadow: !CREATOR_ACCENTS.some(a => a.hex === accent) ? `0 0 0 2.5px var(--color-bg-2), 0 0 0 4.5px ${accent}` : `inset 0 0 0 1.5px var(--color-border-medium)` }}>
+                    <Pipette size={13} style={{ color: !CREATOR_ACCENTS.some(a => a.hex === accent) ? getContrastColor(accent) : 'var(--color-muted)', pointerEvents: 'none' }} />
+                  </button>
+                  {showPicker2 && (
+                    <ColorPickerPopup
+                      value={accent}
+                      onChange={setAccent}
+                      onClose={() => setShowPicker2(false)}
+                      anchor={pickerBtn2Ref.current?.getBoundingClientRect() ?? null}
+                    />
+                  )}
                 </div>
               </div>
               <div style={{ borderTop: '1px solid var(--color-border-soft)' }} />
@@ -5399,7 +5641,7 @@ function DiagnosticTestCreator({ onSave, onCancel }: {
                   {questions.map((q, idx) => (
                     <button key={q.id} onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
                       style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s' }}>
-                      <div style={{ width: 20, height: 20, borderRadius: 5, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? '#fff' : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800 }}>{idx + 1}</div>
+                      <div style={{ width: 20, height: 20, borderRadius: 5, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? getContrastColor(accent) : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800 }}>{idx + 1}</div>
                       <div style={{ flex: 1, fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: editIdx === idx ? 600 : 400 }}>{q.text || 'Без текста'}</div>
                     </button>
                   ))}
@@ -5457,11 +5699,11 @@ function DiagnosticTestCreator({ onSave, onCancel }: {
                             {editOpts.map((opt, oi) => (
                               <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                 <button onClick={() => setEditCorrect(oi)}
-                                  style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'transparent', transition: 'all 0.14s', position: 'relative' }}>
-                                  {editCorrect === oi && <Check size={13} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff', strokeWidth: 3 }} />}
+                                  style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'transparent', transition: 'all 0.14s', position: 'relative', boxShadow: editCorrect === oi ? accentCircleShadow(accent) : 'none' }}>
+                                  {editCorrect === oi && <Check size={13} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: getContrastColor(accent), strokeWidth: 3 }} />}
                                 </button>
                                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `1.5px solid ${editCorrect === oi ? accent + '88' : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
-                                  <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: editCorrect === oi ? '#fff' : 'var(--color-text-2)', flexShrink: 0 }}>{String.fromCharCode(65 + oi)}</div>
+                                  <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: editCorrect === oi ? getContrastColor(accent) : 'var(--color-text-2)', flexShrink: 0 }}>{String.fromCharCode(65 + oi)}</div>
                                   <input value={opt} onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o) }}
                                     style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />
                                 </div>
@@ -5575,7 +5817,7 @@ function DiagnosticCard({ subject, isSelected, onClick }: { subject: DiagSubject
   }, [subject])
   return (
     <ContentCard
-      accentColor={accent} accentBg={accent + '14'}
+      accentColor={accent} accentBg={accent + '14'} borderColor='var(--color-border-glass)'
       isSelected={isSelected} onClick={onClick}
       icon={<Icon size={17} strokeWidth={2} style={{ color: accent }} />}
       badge={<span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-purple-text,var(--color-accent))', background: 'var(--color-purple-soft)', borderRadius: 7, padding: '2px 8px' }}>Диагностика</span>}
@@ -5595,7 +5837,7 @@ function CustomTestCard({ test, isSelected, onClick }: { test: CustomTest; isSel
   useEffect(() => { loadAnonResults().then(all => { setAnonCount(all.filter(r => r.subject === test.id).length); setQCount(loadDiagQuestions(test.id as DiagSubject).length) }) }, [test.id])
   return (
     <ContentCard
-      accentColor={accent} accentBg={soft}
+      accentColor={accent} accentBg={soft} borderColor='var(--color-border-glass)'
       isSelected={isSelected} onClick={onClick}
       icon={<FileText size={17} strokeWidth={2} style={{ color: accent }} />}
       badge={<span style={{ fontSize: 10, fontWeight: 700, color: accent, background: soft, borderRadius: 7, padding: '2px 8px' }}>Свой тест</span>}
@@ -5900,6 +6142,13 @@ export default function TeacherConstructorPage() {
         supabase.from('trainers').select('*').order('created_at'),
         supabase.from('widgets').select('*').order('created_at'),
       ])
+      loadColorOverridesFromDB().then(overrides => {
+        Object.entries(overrides).forEach(([subject, hex]) => {
+          const existing = CUSTOM_META.get(subject)
+          const soft = CREATOR_ACCENTS.find(a => a.hex === hex)?.soft ?? hex + '22'
+          CUSTOM_META.set(subject, { label: existing?.label ?? subject, accent: hex, soft })
+        })
+      })
       const c = cData ? cData.map(dbCourseToLocal) : []
       const t = tData ? tData.map(dbTrainerToLocal) : []
       const w = wData ? wData.map(dbWidgetToLocal) : []
@@ -6424,6 +6673,13 @@ export default function TeacherConstructorPage() {
               await deleteTestAssignment(id)
               setAssignments(prev => prev.filter(a => a.id !== id))
             }}
+            onColorChange={(hex) => {
+              setCustomTests(prev => {
+                const next = prev.map(ct => ct.id === diagEditing ? { ...ct, accent: hex } : ct)
+                persistCustomTests(next)
+                return next
+              })
+            }}
           />
         ) : (
           <motion.div
@@ -6516,7 +6772,7 @@ export default function TeacherConstructorPage() {
                     filters={bankFilters}
                     onChange={f => setBankFilters(prev => ({ ...prev, ...f }))}
                     accent="var(--color-purple-text)"
-                    accentBg="var(--color-purple-soft)"
+                    accentBg="rgba(120,106,215,0.13)"
                   />
                 </div>
               )}
@@ -6740,23 +6996,13 @@ function AssignTestModal({
   onSave: (a: Omit<TestAssignment, 'id' | 'createdAt'>) => void
 }) {
   const [assignType, setAssignType] = useState<'test' | 'trial'>('test')
-  const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(new Set())
-  const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(new Set())
+  const [recipientMode, setRecipientMode] = useState<'group' | 'student'>('group')
+  const [selectedGroupId, setSelectedGroupId] = useState('')
+  const [selectedStudentId, setSelectedStudentId] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [saving, setSaving] = useState(false)
 
-  const toggleGroup = (id: string) => setSelectedGroupIds(prev => {
-    const next = new Set(prev)
-    next.has(id) ? next.delete(id) : next.add(id)
-    return next
-  })
-  const toggleStudent = (id: string) => setSelectedStudentIds(prev => {
-    const next = new Set(prev)
-    next.has(id) ? next.delete(id) : next.add(id)
-    return next
-  })
-
-  const canSave = selectedGroupIds.size > 0 || selectedStudentIds.size > 0
+  const canSave = !!selectedGroupId || !!selectedStudentId
 
   async function handleSave() {
     if (!canSave) return
@@ -6765,8 +7011,8 @@ function AssignTestModal({
       title: `${title} · ${assignType === 'trial' ? 'Пробник' : 'Тест'}`,
       subject,
       assignType,
-      groupIds: Array.from(selectedGroupIds),
-      studentIds: Array.from(selectedStudentIds),
+      groupIds: selectedGroupId ? [selectedGroupId] : [],
+      studentIds: selectedStudentId ? [selectedStudentId] : [],
       dueDate: dueDate || undefined,
       closed: false,
     })
@@ -6810,35 +7056,27 @@ function AssignTestModal({
             </div>
           </div>
 
-          {/* Groups */}
-          {groups.length > 0 && (
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>Группы</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {groups.map(g => (
-                  <button key={g.id} onClick={() => toggleGroup(g.id)}
-                    style={{ padding: '5px 12px', borderRadius: 8, border: `1.5px solid ${selectedGroupIds.has(g.id) ? g.color : 'var(--color-border-soft)'}`, background: selectedGroupIds.has(g.id) ? g.color + '22' : 'transparent', color: selectedGroupIds.has(g.id) ? g.color : 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
-                    {g.name}
-                  </button>
-                ))}
-              </div>
+          {/* Recipient toggle + search */}
+          <div>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+              {(['group', 'student'] as const).map(m => (
+                <button key={m} onClick={() => { setRecipientMode(m); setSelectedGroupId(''); setSelectedStudentId('') }}
+                  style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                    background: recipientMode === m ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
+                    color: recipientMode === m ? 'var(--color-accent)' : 'var(--color-muted)',
+                    fontFamily: 'inherit', transition: 'all 0.15s' }}>
+                  {m === 'group' ? 'Группе' : 'Студенту'}
+                </button>
+              ))}
             </div>
-          )}
-
-          {/* Individual students */}
-          {allStudents.length > 0 && (
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>Отдельные ученики</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 120, overflowY: 'auto' }}>
-                {allStudents.map(s => (
-                  <button key={s.id} onClick={() => toggleStudent(s.id)}
-                    style={{ padding: '4px 10px', borderRadius: 8, border: `1.5px solid ${selectedStudentIds.has(s.id) ? 'var(--color-accent)' : 'var(--color-border-soft)'}`, background: selectedStudentIds.has(s.id) ? 'var(--color-purple-soft)' : 'transparent', color: selectedStudentIds.has(s.id) ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 11, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
-                    {s.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+            {recipientMode === 'group' ? (
+              <TeacherSelect value={selectedGroupId} onChange={setSelectedGroupId} placeholder="Выберите группу"
+                options={groups.map(g => ({ value: g.id, label: g.name }))} />
+            ) : (
+              <TeacherSelect value={selectedStudentId} onChange={setSelectedStudentId} placeholder="Выберите студента"
+                options={allStudents.map(s => ({ value: s.id, label: s.name }))} />
+            )}
+          </div>
 
           {/* Due date */}
           <div>

@@ -17,7 +17,7 @@
   --color-bg-3: #F0F0F2;
   --color-bg-4: #FAFAFA;
   --color-bg-5: #EBEBEF;
-  --color-bg-input: #ffffff;
+  --color-bg-input: #ECEDF1;
   /* Idle/upcoming schedule-lesson row fill (subtle, theme-aware) */
   --color-schedule-row: rgba(0,0,0,0.025);
   --color-table-header-bg: #E3E2E9;
@@ -49,6 +49,7 @@
   /* ── Accent colours ───────────────────────────────────── */
   --color-green: #6EE7A0;
   --color-green-soft: #DFF8D6;
+  --color-green-border: rgba(26,122,63,0.50);
   --color-yellow: #F8EF8C;
   --color-yellow-soft: #FFF9CC;
   --color-red: #F48B91;
@@ -151,6 +152,7 @@
   --color-border-glass: rgba(255,255,255,0);
 
   --color-green-soft: rgba(74,222,128,0.22);
+  --color-green-border: rgba(74,222,128,0.50);
   --color-yellow-soft: rgba(248,230,80,0.16);
   --color-red-soft: rgba(248,99,107,0.30);
   --color-peach-soft: rgba(248,180,100,0.18);

@@ -129,7 +129,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                     value={(answers[t.id] as string) ?? ''}
                     onChange={e => setAnswer(t.id, e.target.value)}
                     placeholder="Твой ответ…"
-                    style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-2)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
                   />
                 </div>
               )}
@@ -141,7 +141,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                     onChange={e => setAnswer(t.id, e.target.value)}
                     placeholder="Твой ответ…"
                     rows={3}
-                    style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-2)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }}
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }}
                   />
                 </div>
               )}

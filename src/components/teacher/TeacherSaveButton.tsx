@@ -11,15 +11,15 @@ import { Check } from 'lucide-react'
  * widget keep their identity colour while sharing one shape and behaviour.
  */
 
-export interface SaveAccent { gradient: string; shadow: string }
+export interface SaveAccent { gradient: string; shadow: string; glow?: string }
 
 // Per-type accents. `purple` is the default primary used by every plain "Сохранить".
 export const SAVE_ACCENTS = {
-  purple:  { gradient: 'var(--grad-purple)', shadow: 'rgba(99,84,207,0.30)' },
-  trainer: { gradient: 'linear-gradient(135deg, #F6A93B 0%, #C2410C 100%)', shadow: 'rgba(194,65,12,0.28)' },
-  widget:  { gradient: 'linear-gradient(135deg, #34D399 0%, #1A7A3F 100%)', shadow: 'rgba(26,122,63,0.28)' },
-  success: { gradient: 'linear-gradient(135deg, #34D399 0%, #1A7A3F 100%)', shadow: 'rgba(26,122,63,0.30)' },
-} satisfies Record<string, SaveAccent>
+  purple:  { gradient: 'var(--grad-purple)', shadow: 'rgba(99,84,207,0.38)', glow: 'rgba(120,106,215,0.45)' },
+  trainer: { gradient: 'linear-gradient(135deg, #F6A93B 0%, #C2410C 100%)', shadow: 'rgba(194,65,12,0.28)', glow: 'rgba(246,169,59,0.38)' },
+  widget:  { gradient: 'linear-gradient(135deg, #34D399 0%, #1A7A3F 100%)', shadow: 'rgba(26,122,63,0.28)', glow: 'rgba(52,211,153,0.40)' },
+  success: { gradient: 'linear-gradient(135deg, #34D399 0%, #1A7A3F 100%)', shadow: 'rgba(26,122,63,0.32)', glow: 'rgba(52,211,153,0.45)' },
+} satisfies Record<string, SaveAccent & { glow: string }>
 
 /** Raw style — for the rare call site that needs to spread it onto its own element (e.g. a docked twin). */
 export function teacherSaveStyle(opts: { accent?: SaveAccent; disabled?: boolean; saved?: boolean; fullWidth?: boolean } = {}): CSSProperties {
@@ -32,7 +32,9 @@ export function teacherSaveStyle(opts: { accent?: SaveAccent; disabled?: boolean
     cursor: disabled ? 'not-allowed' : 'pointer',
     background: a.gradient, color: '#fff',
     fontSize: 13.5, fontWeight: 700, fontFamily: 'inherit',
-    boxShadow: `0 4px 14px ${a.shadow}`,
+    boxShadow: a.glow
+      ? `0 4px 14px ${a.shadow}, 0 0 22px 2px ${a.glow}`
+      : `0 4px 14px ${a.shadow}`,
     opacity: disabled ? 0.55 : 1,
     transition: 'opacity 0.2s, background 0.3s',
   }

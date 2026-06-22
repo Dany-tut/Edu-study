@@ -8,29 +8,44 @@ import {
 import CognitiveScreeningPage from './CognitiveScreeningPage'
 import { captureMistake } from '../data/reviewDeck'
 import { logConfidence } from '../data/confidence'
+import { getContrastColor, getCircleShadow } from '../lib/utils'
 
 // ── Subject theme ──────────────────────────────────────────────────────────────
 const THEME: Record<Exclude<DiagSubject, 'logic'>, { accent: string; soft: string; label: string; sublabel: string }> = {
-  biology:      { accent: '#22c55e', soft: '#dcfce7', label: 'Биология', sublabel: 'Диагностика знаний' },
-  chemistry:    { accent: '#7c3aed', soft: '#ede9fe', label: 'Химия', sublabel: 'Диагностика знаний' },
-  'ap-chem-ru': { accent: '#7c3aed', soft: '#ede9fe', label: 'AP Химия', sublabel: 'Диагностика · RU' },
-  'ap-chem-en': { accent: '#7c3aed', soft: '#ede9fe', label: 'AP Chemistry', sublabel: 'Diagnostic · EN' },
+  biology:      { accent: '#22c55e', soft: '#dcfce7',                 label: 'Биология',       sublabel: 'Диагностика знаний' },
+  chemistry:    { accent: '#8B5CF6', soft: 'rgba(139,92,246,0.12)',   label: 'Химия',           sublabel: 'Диагностика знаний' },
+  'ap-chem-ru': { accent: '#3b82f6', soft: 'rgba(59,130,246,0.12)',   label: 'AP Химия',        sublabel: 'Диагностика · RU'   },
+  'ap-chem-en': { accent: '#14b8a6', soft: 'rgba(20,184,166,0.12)',   label: 'AP Chemistry',    sublabel: 'Diagnostic · EN'    },
 }
 
 const KNOWN_SUBJECTS = new Set<DiagSubject>(['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en'])
 
+const CUSTOM_TESTS_KEY = 'constructor-custom-tests'
+function readCustomTestMeta(id: string): { label: string; accent: string; soft: string } | null {
+  try {
+    const tests = JSON.parse(localStorage.getItem(CUSTOM_TESTS_KEY) ?? '[]') as { id: string; label: string; accent: string }[]
+    const t = tests.find(t => t.id === id)
+    if (!t) return null
+    return { label: t.label, accent: t.accent, soft: t.accent + '22' }
+  } catch { return null }
+}
+
 // ── Main page ──────────────────────────────────────────────────────────────────
 export default function DiagnosticTestPage() {
   const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '')
-  const rawSubject = params.get('subject')
-  const subject: DiagSubject =
-    KNOWN_SUBJECTS.has(rawSubject as DiagSubject) ? (rawSubject as DiagSubject) : 'biology'
+  const rawSubject = params.get('subject') ?? 'biology'
+
+  const isKnown = KNOWN_SUBJECTS.has(rawSubject as DiagSubject)
+  const customMeta = !isKnown ? readCustomTestMeta(rawSubject) : null
+  const subject: DiagSubject = isKnown ? (rawSubject as DiagSubject) : 'biology'
 
   // Logic subject uses the full interactive cognitive battery
   if (subject === 'logic') return <CognitiveScreeningPage />
 
-  const knownSubject = subject as Exclude<DiagSubject, 'logic'>
-  const theme = THEME[knownSubject]
+  const theme = customMeta
+    ? { accent: customMeta.accent, soft: customMeta.soft, label: customMeta.label, sublabel: 'Тест' }
+    : THEME[subject as Exclude<DiagSubject, 'logic'>]
+
   const askConfidence = params.get('confidence') === '1'  // teacher enables via share link
 
   // Assignment context: set when opened from student dashboard assigned test
@@ -38,8 +53,11 @@ export default function DiagnosticTestPage() {
   const assignedStudentId = params.get('sid') ?? undefined
   const assignedStudentName = params.get('sname') ? decodeURIComponent(params.get('sname')!) : undefined
 
-  const [questions, setQuestions] = useState(() => loadDiagQuestions(subject))
-  useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
+  // Use rawSubject for data ops so custom test IDs are fetched correctly
+  const fetchSubject = rawSubject as DiagSubject
+
+  const [questions, setQuestions] = useState(() => isKnown ? loadDiagQuestions(subject) : [])
+  useEffect(() => { fetchDiagQuestions(fetchSubject).then(setQuestions) }, [fetchSubject])
 
   // If opened via assignment, skip name entry and use student's name
   const [step, setStep] = useState<'name' | 'test' | 'done'>(assignedStudentName ? 'test' : 'name')
@@ -78,13 +96,13 @@ export default function DiagnosticTestPage() {
       if (!res[dq.section]) res[dq.section] = { correct: 0, total: 0 }
       res[dq.section].total++
       if (answers[dq.id] === dq.correct) res[dq.section].correct++
-      else captureMistake({ anonName: name, subject, source: 'diagnostic', prompt: dq.text, answer: dq.options[dq.correct], options: dq.options })
+      else captureMistake({ anonName: name, subject: fetchSubject, source: 'diagnostic', prompt: dq.text, answer: dq.options[dq.correct], options: dq.options })
     }
     const totalQ = Object.values(res).reduce((a, s) => a + s.total, 0)
     const correctQ = Object.values(res).reduce((a, s) => a + s.correct, 0)
     const scorePct = totalQ > 0 ? Math.round((correctQ / totalQ) * 100) : 0
     await appendAnonResult(
-      { name, subject, results: res, answers },
+      { name, subject: fetchSubject, results: res, answers },
       { studentId: assignedStudentId, assignmentId, scorePct },
     )
     setResults(res)
@@ -407,7 +425,10 @@ export default function DiagnosticTestPage() {
                         : isChosen ? theme.accent : 'transparent',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: 11, fontWeight: 700,
-                      color: (isChosen || (showResult && isCorrect)) ? '#fff' : 'var(--color-muted)',
+                      color: showResult
+                        ? (isCorrect || isChosen ? '#fff' : 'var(--color-muted)')
+                        : isChosen ? getContrastColor(theme.accent) : 'var(--color-muted)',
+                      boxShadow: !showResult && isChosen ? getCircleShadow(theme.accent) : 'none',
                       transition: 'all 0.2s',
                     }}>
                       {'АБВГ'[idx]}

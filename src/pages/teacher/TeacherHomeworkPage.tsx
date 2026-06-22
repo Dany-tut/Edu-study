@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, X, ClipboardCheck, Clock, CheckCircle2,
@@ -655,6 +655,14 @@ export default function TeacherHomeworkPage() {
 
   const panelOpen = showAssignForm || (!!selectedHw && !!selectedGroup)
   const pendingHardCount = hardSubs.filter(s => s.status === 'submitted').length
+  const pendingHardSubs = hardSubs.filter(s => s.status !== 'completed')
+  const acceptedHardSubs = hardSubs.filter(s => s.status === 'completed')
+  const [hardPanelCollapsed, setHardPanelCollapsed] = useState(true)
+  const [acceptedCollapsed, setAcceptedCollapsed] = useState(true)
+  // Auto-open when pending items exist (e.g. after data loads)
+  useEffect(() => {
+    if (pendingHardSubs.length > 0) setHardPanelCollapsed(false)
+  }, [pendingHardSubs.length])
 
   // ── Unified "Нужно проверить" queue: basic homeworks with pending submissions
   // + hard submissions awaiting review, urgent-first (overdue → soonest). ──────
@@ -816,30 +824,113 @@ export default function TeacherHomeworkPage() {
             style={{ marginRight: panelOpen ? 344 : 0, transition: 'margin-right 0.34s cubic-bezier(0.22,1,0.36,1)' }}
           >
             <Card style={{ padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '14px 18px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border-soft)' }}>
+              {/* Clickable header — collapses whole panel */}
+              <div
+                onClick={() => setHardPanelCollapsed(c => !c)}
+                style={{
+                  padding: '14px 18px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  borderBottom: hardPanelCollapsed ? 'none' : '1px solid var(--color-border-soft)',
+                  cursor: 'pointer', userSelect: 'none',
+                  transition: 'border-color 0.2s',
+                }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Star size={15} style={{ color: 'var(--color-accent)' }} />
                   <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Хард-уровень · Сданные работы</span>
+                  {pendingHardCount > 0 && (
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999,
+                      background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
+                    }}>
+                      {pendingHardCount} на проверке
+                    </span>
+                  )}
                 </div>
-                {pendingHardCount > 0 && (
-                  <span style={{
-                    fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999,
-                    background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
-                  }}>
-                    {pendingHardCount} на проверке
-                  </span>
+                <motion.div
+                  animate={{ rotate: hardPanelCollapsed ? -90 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  style={{ display: 'flex', color: 'var(--color-muted)' }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </motion.div>
+              </div>
+
+              <AnimatePresence initial={false}>
+                {!hardPanelCollapsed && (
+                  <motion.div
+                    key="hard-body"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    {/* Pending items */}
+                    <div style={{ padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {pendingHardSubs.length === 0 && acceptedHardSubs.length > 0 && (
+                        <div style={{ padding: '8px 8px 4px', fontSize: 12, color: 'var(--color-muted)' }}>
+                          Всё проверено
+                        </div>
+                      )}
+                      {pendingHardSubs.map(sub => (
+                        <HardSubRow
+                          key={sub.id}
+                          sub={sub}
+                          isSelected={false}
+                          onClick={() => openHardReview(sub.id)}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Accepted — collapsible */}
+                    {acceptedHardSubs.length > 0 && (
+                      <div style={{ borderTop: '1px solid var(--color-border-soft)' }}>
+                        <div
+                          onClick={() => setAcceptedCollapsed(c => !c)}
+                          style={{
+                            padding: '8px 18px', display: 'flex', alignItems: 'center', gap: 6,
+                            cursor: 'pointer', userSelect: 'none',
+                          }}
+                        >
+                          <motion.div
+                            animate={{ rotate: acceptedCollapsed ? -90 : 0 }}
+                            transition={{ duration: 0.18 }}
+                            style={{ display: 'flex', color: 'var(--color-muted)' }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          </motion.div>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)' }}>
+                            Принято · {acceptedHardSubs.length}
+                          </span>
+                        </div>
+                        <AnimatePresence initial={false}>
+                          {!acceptedCollapsed && (
+                            <motion.div
+                              key="accepted-body"
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                              style={{ overflow: 'hidden' }}
+                            >
+                              <div style={{ padding: '0 10px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                {acceptedHardSubs.map(sub => (
+                                  <HardSubRow
+                                    key={sub.id}
+                                    sub={sub}
+                                    isSelected={false}
+                                    onClick={() => openHardReview(sub.id)}
+                                  />
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )}
+                  </motion.div>
                 )}
-              </div>
-              <div style={{ padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {hardSubs.map(sub => (
-                  <HardSubRow
-                    key={sub.id}
-                    sub={sub}
-                    isSelected={false}
-                    onClick={() => openHardReview(sub.id)}
-                  />
-                ))}
-              </div>
+              </AnimatePresence>
             </Card>
           </motion.div>
         )}

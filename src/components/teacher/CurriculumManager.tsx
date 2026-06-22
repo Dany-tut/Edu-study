@@ -150,10 +150,11 @@ function TopicChip({ subject, section, topic, accent, renameTopic, removeTopic }
 }
 
 // ── Single line row ───────────────────────────────────────────────────────────
-function LineRow({ subject, l, accent, updateLine, removeLine }: {
+function LineRow({ subject, l, accent, accentBg, updateLine, removeLine }: {
   subject: Subject
   l: { n: number; name: string; part: 1 | 2; section: string }
   accent: string
+  accentBg: string
   updateLine: (subject: Subject, n: number, patch: Partial<{ n: number; name: string; part: 1 | 2 }>) => void
   removeLine: (subject: Subject, n: number) => void
 }) {
@@ -173,8 +174,8 @@ function LineRow({ subject, l, accent, updateLine, removeLine }: {
       <div style={{ display: 'flex', borderRadius: 8, background: 'var(--color-bg-3)', padding: 2, flexShrink: 0 }}>
         {([1, 2] as const).map(p => (
           <button key={p} onClick={() => updateLine(subject, l.n, { part: p })}
-            style={{ padding: '3px 9px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit',
-              background: l.part === p ? accent : 'transparent', color: l.part === p ? '#fff' : 'var(--color-text-3)' }}>
+            style={{ padding: '3px 9px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', outline: 'none',
+              background: l.part === p ? accentBg : 'transparent', color: l.part === p ? accent : 'var(--color-text-3)' }}>
             Ч{p}
           </button>
         ))}
@@ -253,7 +254,7 @@ function SectionCard({ subject, section, accent, accentBg, partFilter }: {
                 <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 8, textTransform: 'uppercase' }}>Линии</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {lines.map(l => (
-                    <LineRow key={l.n} subject={subject} l={l} accent={accent} updateLine={updateLine} removeLine={removeLine} />
+                    <LineRow key={l.n} subject={subject} l={l} accent={accent} accentBg={accentBg} updateLine={updateLine} removeLine={removeLine} />
                   ))}
                   {lines.length === 0 && (
                     <div style={{ fontSize: 12, color: 'var(--color-text-4)', padding: '6px 2px' }}>Нет линий{partFilter ? ` (Часть ${partFilter})` : ''}</div>
