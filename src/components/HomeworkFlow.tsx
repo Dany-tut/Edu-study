@@ -654,6 +654,7 @@ function TableSolver({ table, value, disabled, onChange }: {
   try { if (value) vals = JSON.parse(value) } catch { vals = {} }
   const setCell = (key: string, v: string) => onChange(JSON.stringify({ ...vals, [key]: v }))
   const isEmpty = (r: number, c: number) => !!table.emptyCells?.[`${r},${c}`]
+  const isBlank = (r: number, c: number) => !!table.blankCells?.[`${r},${c}`]
   return (
     <div style={{ overflowX: 'auto', borderRadius: 12, border: '1px solid var(--color-border)' }}>
       <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 13, tableLayout: 'fixed' }}>
@@ -675,6 +676,8 @@ function TableSolver({ table, value, disabled, onChange }: {
                     placeholder="Впиши…"
                     style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: '8px 10px', fontFamily: 'inherit', fontSize: 13, color: 'var(--color-accent)', fontWeight: 600 }}
                   />
+                ) : isBlank(r, c) ? (
+                  <div style={{ padding: '8px 10px', color: 'var(--color-text-4)' }}>—</div>
                 ) : cellImg ? (
                   <div style={{ padding: '6px 8px' }}>
                     <img src={cellImg} alt="" style={{ display: 'block', width: `${cellImgSize}%`, borderRadius: 6 }} />

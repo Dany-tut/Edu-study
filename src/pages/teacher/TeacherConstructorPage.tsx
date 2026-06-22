@@ -1839,6 +1839,7 @@ function CreatorView({
   const [tkTableHeaders, setTkTableHeaders] = useState<string[]>(editingTask?.questionTable?.headers ?? ['', ''])
   const [tkTableRows, setTkTableRows] = useState<string[][]>(editingTask?.questionTable?.rows ?? [['', ''], ['', '']])
   const [tkEmptyCells, setTkEmptyCells] = useState<Record<string, boolean>>(editingTask?.questionTable?.emptyCells ?? {})
+  const [tkBlankCells, setTkBlankCells] = useState<Record<string, boolean>>(editingTask?.questionTable?.blankCells ?? {})
   const [tkTableCellImages, setTkTableCellImages] = useState<Record<string, string>>(editingTask?.questionTable?.cellImages ?? {})
   const [tkTableCellImageSizes, setTkTableCellImageSizes] = useState<Record<string, number>>(editingTask?.questionTable?.cellImageSizes ?? {})
   const [tkBlockOrder, setTkBlockOrder] = useState<Array<'image' | 'table'>>(editingTask?.blockOrder ?? ['image', 'table'])
@@ -2115,7 +2116,7 @@ function CreatorView({
   function buildTask(): NewBankTask | null {
     if (!stripHtml(tkQuestion)) return null  // validate with stripped, save raw HTML
     const table = tkHasTable
-      ? { headers: tkTableHeaders, rows: tkTableRows, emptyCells: Object.keys(tkEmptyCells).length ? tkEmptyCells : undefined, cellImages: Object.keys(tkTableCellImages).length ? tkTableCellImages : undefined, cellImageSizes: Object.keys(tkTableCellImageSizes).length ? tkTableCellImageSizes : undefined }
+      ? { headers: tkTableHeaders, rows: tkTableRows, emptyCells: Object.keys(tkEmptyCells).length ? tkEmptyCells : undefined, blankCells: Object.keys(tkBlankCells).length ? tkBlankCells : undefined, cellImages: Object.keys(tkTableCellImages).length ? tkTableCellImages : undefined, cellImageSizes: Object.keys(tkTableCellImageSizes).length ? tkTableCellImageSizes : undefined }
       : undefined
     const base = {
       subject: (tkSubject === 'Химия' ? 'chemistry' : 'biology') as Subject,
@@ -2621,8 +2622,8 @@ function CreatorView({
                   )}
                   {!collapsed && !isImage && (
                     <TableEditor
-                      value={{ headers: tkTableHeaders, rows: tkTableRows, emptyCells: tkEmptyCells, cellImages: tkTableCellImages, cellImageSizes: tkTableCellImageSizes }}
-                      onChange={v => { setTkTableHeaders(v.headers); setTkTableRows(v.rows); setTkEmptyCells(v.emptyCells ?? {}); setTkTableCellImages(v.cellImages ?? {}); setTkTableCellImageSizes(v.cellImageSizes ?? {}) }}
+                      value={{ headers: tkTableHeaders, rows: tkTableRows, emptyCells: tkEmptyCells, blankCells: tkBlankCells, cellImages: tkTableCellImages, cellImageSizes: tkTableCellImageSizes }}
+                      onChange={v => { setTkTableHeaders(v.headers); setTkTableRows(v.rows); setTkEmptyCells(v.emptyCells ?? {}); setTkBlankCells(v.blankCells ?? {}); setTkTableCellImages(v.cellImages ?? {}); setTkTableCellImageSizes(v.cellImageSizes ?? {}) }}
                       accent={cfg.color}
                       accentBg={cfg.bg}
                       allowCellImages

@@ -25,7 +25,7 @@ export interface HomeworkQuizQuestion {
   sequenceItems?: string[]
   /** Reference table for a 'table' task; emptyCells «r,c» are the cells the
    *  student fills, checked against the matching reference cell. */
-  table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; cellImages?: Record<string, string>; cellImageSizes?: Record<string, number> }
+  table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; blankCells?: Record<string, boolean>; cellImages?: Record<string, string>; cellImageSizes?: Record<string, number> }
 }
 
 /** One task as persisted by the course editor's «Домашки» tab
@@ -41,7 +41,7 @@ export interface AuthoredHomeworkTask {
   correctChoices?: number[]
   pairs?: Array<{ left: string; right: string }>
   sequenceItems?: string[]
-  table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; cellImages?: Record<string, string>; cellImageSizes?: Record<string, number> }
+  table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; blankCells?: Record<string, boolean>; cellImages?: Record<string, string>; cellImageSizes?: Record<string, number> }
   image?: string
   imageSize?: number
 }

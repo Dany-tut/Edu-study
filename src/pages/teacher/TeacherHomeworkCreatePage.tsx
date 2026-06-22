@@ -45,7 +45,7 @@ type HWTask = {
   correctChoices?: number[]
   pairs?: { left: string; right: string }[]
   sequenceItems?: string[]
-  table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; cellImages?: Record<string, string>; cellImageSizes?: Record<string, number> }
+  table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; blankCells?: Record<string, boolean>; cellImages?: Record<string, string>; cellImageSizes?: Record<string, number> }
   canvasData?: string
 }
 

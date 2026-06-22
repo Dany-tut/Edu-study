@@ -5,24 +5,22 @@ import { optimizePhoto } from '../../lib/imageOptim'
 // ─── Shared table editor (Notion-style) ──────────────────────────────────────
 // Extracted from the trainer creator so the course constructor uses the exact
 // same widget: rounded clipped table, "+" handles in the gutters, per-cell
-// «Вписать / Пусто» marking, click-to-select row/column + Delete, paste-from-
-// Excel. Fully controlled: holds only ephemeral UI state (selection, the cell
-// being edited, measured gridline positions).
+// «Текст / Вписать / Пусто» marking, click-to-select row/column + Delete,
+// paste-from-Excel. Fully controlled: holds only ephemeral UI state.
 
 export interface TableEditorValue {
   headers: string[]
   rows: string[][]
-  /** Keys "r,c" marked as the checked/empty cell (the «?» the student fills). */
+  /** Keys "r,c" marked as student-answer fields (student types here). */
   emptyCells?: Record<string, boolean>
+  /** Keys "r,c" marked as explicitly blank — student sees "—", cannot type. */
+  blankCells?: Record<string, boolean>
   /** Keys "r,c" → base64 data URL — image content for that cell. */
   cellImages?: Record<string, string>
   /** Keys "r,c" → percentage (10–100) for cell image display width. */
   cellImageSizes?: Record<string, number>
 }
 
-// "+" insert control with its OWN hover zone in the gutter: the circle only
-// appears when the cursor enters this handle's zone (passed via `style`), so
-// neighbouring "+"s don't all light up together.
 function InsertHandle({ accent, title, onClick, style }: {
   accent: string; title: string; onClick: () => void; style: React.CSSProperties
 }) {
@@ -59,25 +57,32 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
   onChange: (next: TableEditorValue) => void
   accent: string
   accentBg: string
-  /** When false the «Вписать / Пусто» chooser is hidden (plain reference table). */
   allowEmptyCells?: boolean
-  /** When true, cells also offer a camera icon for inserting an image. */
   allowCellImages?: boolean
   hint?: boolean
 }) {
   const headers = value.headers
   const rows = value.rows
   const emptyCells = value.emptyCells ?? {}
+  const blankCells = value.blankCells ?? {}
   const cellImages = value.cellImages ?? {}
   const cellImageSizes = value.cellImageSizes ?? {}
   const cellImgInputRef = useRef<HTMLInputElement>(null)
   const pendingCellKey = useRef<string | null>(null)
+  const activeCellRef = useRef<HTMLInputElement | null>(null)
 
-  const [activeCell, setActiveCell] = useState<string | null>(null)
+  const [activeCell, setActiveCellState] = useState<string | null>(null)
   const [sel, setSel] = useState<{ type: 'row' | 'col'; index: number } | null>(null)
 
-  // Measured gridline boundary positions (relative to the bordered table box) so
-  // the "+" handles can live OUTSIDE the table while the table itself stays clipped.
+  function setActiveCell(key: string | null) {
+    setActiveCellState(key)
+    if (key) {
+      // Focus is handled by autoFocus on mount; but if cell was already active
+      // and re-activated, we manually focus via ref.
+      setTimeout(() => activeCellRef.current?.focus(), 0)
+    }
+  }
+
   const boxRef = useRef<HTMLDivElement>(null)
   const [bounds, setBounds] = useState<{ colX: number[]; rowY: number[] }>({ colX: [], rowY: [] })
   useLayoutEffect(() => {
@@ -106,7 +111,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
   }, [headers.length, rows.length])
 
   function emit(next: Partial<TableEditorValue>) {
-    onChange({ headers, rows, emptyCells, cellImages, cellImageSizes, ...next })
+    onChange({ headers, rows, emptyCells, blankCells, cellImages, cellImageSizes, ...next })
   }
   function setHeader(c: number, v: string) {
     emit({ headers: headers.map((h, ci) => ci === c ? v : h) })
@@ -134,12 +139,16 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
   }
   function setEmpty(key: string, on: boolean) {
     const n = { ...emptyCells }
-    if (on) n[key] = true; else delete n[key]
-    emit({ emptyCells: n })
+    if (on) { n[key] = true; const b = { ...blankCells }; delete b[key]; emit({ emptyCells: n, blankCells: b }) }
+    else { delete n[key]; emit({ emptyCells: n }) }
+  }
+  function setBlank(key: string, on: boolean) {
+    const n = { ...blankCells }
+    if (on) { n[key] = true; const e = { ...emptyCells }; delete e[key]; emit({ blankCells: n, emptyCells: e }) }
+    else { delete n[key]; emit({ blankCells: n }) }
   }
   function setCellImage(key: string, url: string) {
-    const n = { ...cellImages, [key]: url }
-    emit({ cellImages: n })
+    emit({ cellImages: { ...cellImages, [key]: url } })
   }
   function removeCellImage(key: string) {
     const n = { ...cellImages }; delete n[key]
@@ -154,14 +163,13 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
     cellImgInputRef.current?.click()
   }
 
-  // Paste a full table from clipboard (e.g. copied from a website) into the top-left header cell.
   function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
     const text = e.clipboardData.getData('text/plain')
     const lines = text.split(/\r?\n/).filter(l => l.trim() !== '')
     if (lines.length < 1) return
     const parsed = lines.map(l => l.split('\t'))
     const colCount = Math.max(...parsed.map(r => r.length))
-    if (colCount < 2 && lines.length < 2) return // looks like a plain word, don't intercept
+    if (colCount < 2 && lines.length < 2) return
     e.preventDefault()
     const h = parsed[0].map(c => c.trim())
     while (h.length < colCount) h.push('')
@@ -171,12 +179,10 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
       return cells
     })
     if (r.length === 0) r.push(h.map(() => ''))
-    onChange({ headers: h, rows: r, emptyCells: {} })
-    setActiveCell(null)
+    onChange({ headers: h, rows: r, emptyCells: {}, blankCells: {} })
+    setActiveCellState(null)
   }
 
-  // Delete/Backspace removes the selected row/column. While a cell with text is
-  // being edited we let the key edit the text instead (only act on empty fields).
   function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
     if (!sel || (e.key !== 'Delete' && e.key !== 'Backspace')) return
     const el = e.target as HTMLElement
@@ -188,7 +194,6 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
 
   return (
     <>
-      {/* Hidden file input for cell image uploads */}
       <input ref={cellImgInputRef} type="file" accept="image/*" style={{ display: 'none' }}
         onChange={e => {
           const file = e.target.files?.[0]; if (!file || !pendingCellKey.current) return
@@ -200,8 +205,6 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
           e.target.value = ''
         }}
       />
-      {/* Outer wrapper with gutters on every side; the table is clipped for clean
-          rounded corners, the "+" handles sit OUTSIDE it in the gutters. */}
       <div onKeyDown={onKeyDown} onClick={() => setSel(null)} style={{ position: 'relative', padding: 20 }}>
         <div ref={boxRef} style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--color-border-strong)' }}>
           <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 13, tableLayout: 'fixed' }}>
@@ -221,17 +224,17 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                 const hl = (sel?.type === 'row' && sel.index === r) || (sel?.type === 'col' && sel.index === c)
                 const key = `${r},${c}`
                 const isExplicitlyEmpty = !!emptyCells[key]
+                const isExplicitlyBlank = !!blankCells[key]
                 const isActive = activeCell === key
                 const cellImg = cellImages[key]
-                const showChoice = allowEmptyCells && !isExplicitlyEmpty && !isActive && cell === '' && !cellImg
+                const showChoice = allowEmptyCells && !isExplicitlyEmpty && !isExplicitlyBlank && !isActive && cell === '' && !cellImg
                 return (
                   <td key={c}
-                    onClick={() => { if (showChoice) setActiveCell(key) }}
+                    onClick={e => { if (showChoice) { e.stopPropagation(); setActiveCell(key) } }}
                     onDoubleClick={() => setSel({ type: 'row', index: r })}
-                    style={{ borderRight: '1px solid var(--color-border)', borderTop: r > 0 ? '1px solid var(--color-border)' : undefined, padding: 0, cursor: showChoice ? 'pointer' : 'text', background: hl ? accentBg : 'var(--color-table-cell-bg)', transition: 'background 0.12s', position: 'relative' }}>
+                    style={{ borderRight: '1px solid var(--color-border)', borderTop: r > 0 ? '1px solid var(--color-border)' : undefined, padding: 0, cursor: showChoice ? 'default' : 'text', background: hl ? accentBg : 'var(--color-table-cell-bg)', transition: 'background 0.12s', position: 'relative' }}>
                     {cellImg ? (
                       <div style={{ padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: 5 }}>
-                        {/* Size controls for cell image */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                           {CELL_IMG_SIZES.map(s => {
                             const active = (cellImageSizes[key] ?? 50) === s.value
@@ -247,15 +250,26 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                             <X size={9} />
                           </button>
                         </div>
-                        <img src={cellImg} alt="" style={{ display: 'block', width: `${cellImageSizes[key] ?? 100}%`, borderRadius: 6 }} />
+                        <img src={cellImg} alt="" style={{ display: 'block', width: `${cellImageSizes[key] ?? 50}%`, borderRadius: 6 }} />
                       </div>
                     ) : isExplicitlyEmpty ? (
+                      // Student will type here — show "вписать" badge + X to remove
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', minHeight: 34, gap: 4 }}>
-                        <span style={{ fontSize: 11, color: 'var(--color-accent)', fontWeight: 600 }}>вписать</span>
+                        <span style={{ fontSize: 11, color: accent, fontWeight: 700, letterSpacing: 0.2 }}>вписать</span>
                         <button
-                          onMouseDown={e => { e.stopPropagation(); setEmpty(key, false); setActiveCell(key) }}
+                          onMouseDown={e => { e.stopPropagation(); setEmpty(key, false) }}
                           style={{ width: 16, height: 16, borderRadius: 4, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
                           title="Убрать поле ответа"
+                        ><X size={9} /></button>
+                      </div>
+                    ) : isExplicitlyBlank ? (
+                      // Cell is intentionally blank — student sees "—", teacher sees marker
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', minHeight: 34, gap: 4 }}>
+                        <span style={{ fontSize: 13, color: 'var(--color-text-4)' }}>—</span>
+                        <button
+                          onMouseDown={e => { e.stopPropagation(); setBlank(key, false) }}
+                          style={{ width: 16, height: 16, borderRadius: 4, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+                          title="Убрать пусто"
                         ><X size={9} /></button>
                       </div>
                     ) : showChoice ? (
@@ -272,12 +286,19 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                       >
                         <button
                           onMouseDown={e => { e.stopPropagation(); setActiveCell(key) }}
+                          onClick={e => e.stopPropagation()}
                           style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
                         >Текст</button>
                         <button
                           onMouseDown={e => { e.stopPropagation(); setEmpty(key, true) }}
-                          style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: `1px solid ${accent}55`, background: accentBg, color: accent, cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
+                          onClick={e => e.stopPropagation()}
+                          style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
                         >Вписать</button>
+                        <button
+                          onMouseDown={e => { e.stopPropagation(); setBlank(key, true) }}
+                          onClick={e => e.stopPropagation()}
+                          style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
+                        >Пусто</button>
                         {allowCellImages && (
                           <button
                             onClick={e => { e.stopPropagation(); pickCellImage(key) }}
@@ -287,11 +308,11 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                       </div>
                     ) : (
                       <input
-                        autoFocus={isActive}
+                        ref={el => { activeCellRef.current = el; if (el && isActive) el.focus() }}
                         value={cell}
                         onChange={e => setCell(r, c, e.target.value)}
-                        onFocus={() => setActiveCell(key)}
-                        onBlur={() => { if (cell === '') setActiveCell(null) }}
+                        onFocus={() => setActiveCellState(key)}
+                        onBlur={() => { if (cell === '') setActiveCellState(null) }}
                         placeholder="—"
                         style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: '8px 10px', fontFamily: 'inherit', fontSize: 13, color: 'var(--color-text)' }}
                         onPaste={allowCellImages ? e => {
@@ -299,7 +320,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                           if (!imgItem) return
                           e.preventDefault()
                           const file = imgItem.getAsFile(); if (!file) return
-                          optimizePhoto(file).then(url => { setCellImage(key, url); setActiveCell(null) })
+                          optimizePhoto(file).then(url => { setCellImage(key, url); setActiveCellState(null) })
                         } : undefined}
                       />
                     )}
@@ -309,7 +330,6 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
             ))}</tbody>
           </table>
         </div>
-        {/* column "+" in the TOP gutter, row "+" in the LEFT gutter — measured boundaries */}
         {bounds.colX.map((x, i) => (
           <InsertHandle key={`c${i}`} accent={accent} title="Добавить столбец" onClick={() => insertCol(i)}
             style={{ left: 20 + x - 18, top: 0, width: 36, height: 20 }} />

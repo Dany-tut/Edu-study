@@ -38,7 +38,7 @@ interface HWTask {
   /** Последовательность — элементы в правильном порядке (для type === 'sequence'). */
   sequenceItems?: string[]
   /** Таблица — заголовки колонок + строки-эталон + помеченные «?» ячейки + фото в ячейках. */
-  table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; cellImages?: Record<string, string>; cellImageSizes?: Record<string, number> }
+  table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; blankCells?: Record<string, boolean>; cellImages?: Record<string, string>; cellImageSizes?: Record<string, number> }
   /** Условие-картинка. */
   image?: string
   /** Размер условия-картинки в % (10–100). */
