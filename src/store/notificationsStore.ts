@@ -47,6 +47,18 @@ export type NotifRow = {
   created_at: string
 }
 
+const LOCAL_READ_KEY = 'notif_local_read'
+function getLocalRead(): Set<string> {
+  try { return new Set(JSON.parse(localStorage.getItem(LOCAL_READ_KEY) || '[]')) } catch { return new Set() }
+}
+function persistLocalRead(ids: string[]) {
+  try {
+    const existing = getLocalRead()
+    ids.forEach(id => existing.add(id))
+    localStorage.setItem(LOCAL_READ_KEY, JSON.stringify([...existing]))
+  } catch {}
+}
+
 function rowToNotif(row: NotifRow, live: boolean): Notification {
   // Only teacher rows get a navigable action (student routes are not deep-linkable yet).
   const action =
@@ -133,8 +145,11 @@ export const useNotificationsStore = create<State>()((set, get) => ({
         n.id === id ? { ...n, read: true } : n
       ),
     }))
-    // Persist (DB-backed rows have uuid ids; local-only rows simply no-op server-side).
-    void supabase.from('notifications').update({ read: true }).eq('id', id)
+    if (id.startsWith('journal-')) {
+      persistLocalRead([id])
+    } else {
+      void supabase.from('notifications').update({ read: true }).eq('id', id)
+    }
   },
 
   markAllRead: () => {
@@ -160,6 +175,7 @@ export const useNotificationsStore = create<State>()((set, get) => ({
     const prevById = new Map(
       state.notifications.filter(n => n.type === 'fill_journal').map(n => [n.id, n])
     )
+    const localRead = getLocalRead()
     const kept = state.notifications.filter(n => n.type !== 'fill_journal')
     const fresh: Notification[] = items.map(it => {
       const id = `journal-${it.id}`
@@ -169,7 +185,7 @@ export const useNotificationsStore = create<State>()((set, get) => ({
         title: it.title,
         body: it.body,
         createdAt: prevById.get(id)?.createdAt ?? Date.now(),
-        read: prevById.get(id)?.read ?? false,
+        read: localRead.has(id) || (prevById.get(id)?.read ?? false),
         live: false,
         action: { label: 'Заполнить', page: '#/teacher/gradebook' },
       }

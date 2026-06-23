@@ -3270,7 +3270,13 @@ function IconPickerField({ iconKey, onChange, accent }: {
   const [search, setSearch] = useState('')
   const searchRef = useRef<HTMLInputElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
-  const SelectedIcon = getIconByKey(iconKey)
+
+  // 5 quick-pick icons always visible in the row; current selection always included
+  const quickPick = useMemo(() => {
+    const base = DEFAULT_ICON_KEYS.slice(0, 5)
+    if (base.includes(iconKey)) return base
+    return [iconKey, ...base.slice(0, 4)]
+  }, [iconKey])
 
   const shownIcons = useMemo(() => {
     const q = search.toLowerCase().replace(/[\s\-_]/g, '')
@@ -3294,40 +3300,55 @@ function IconPickerField({ iconKey, onChange, accent }: {
   }, [open])
 
   return (
-    <div ref={wrapRef}>
-      {!open ? (
-        /* Collapsed: icon chip + name + chevron */
-        <button onClick={() => setOpen(true)} style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          padding: '6px 10px 6px 6px', borderRadius: 12,
-          border: '1.5px solid var(--color-border-medium)',
-          background: 'var(--color-bg-3)', cursor: 'pointer', textAlign: 'left',
-        }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: 9, flexShrink: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: `${accent}22`, color: accent,
+    <div ref={wrapRef} style={{ position: 'relative' }}>
+      {/* Inline row: 5 quick-pick icons + chevron */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        {quickPick.map(k => {
+          const Ic = getIconByKey(k)
+          return (
+            <button key={k} onClick={() => { onChange(k); setOpen(false); setSearch('') }} title={k}
+              style={{
+                width: 32, height: 32, borderRadius: 9, border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                background: iconKey === k ? `${accent}22` : 'var(--color-bg-3)',
+                outline: iconKey === k ? `1.5px solid ${accent}` : '1.5px solid transparent',
+                color: iconKey === k ? accent : 'var(--color-text-3)',
+                transition: 'all 0.12s',
+              }}>
+              <Ic size={15} strokeWidth={2} />
+            </button>
+          )
+        })}
+        <button onClick={() => setOpen(o => !o)} title="Все иконки"
+          style={{
+            width: 32, height: 32, borderRadius: 9, border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            background: open ? `${accent}18` : 'var(--color-bg-3)',
+            outline: open ? `1.5px solid ${accent}66` : '1.5px solid transparent',
+            color: open ? accent : 'var(--color-text-3)',
+            transition: 'all 0.12s',
           }}>
-            <SelectedIcon size={16} strokeWidth={2} />
-          </div>
-          <span style={{ fontSize: 12, color: 'var(--color-text-2)', flex: 1, fontWeight: 500 }}>{iconKey}</span>
-          <ChevronDown size={13} style={{ color: 'var(--color-muted)', flexShrink: 0 } as React.CSSProperties} />
+          {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
-      ) : (
-        /* Expanded: search + grid */
-        <div style={{ borderRadius: 12, background: 'var(--color-bg-3)', border: `1.5px solid ${accent}66`, padding: '8px' }}>
+      </div>
+
+      {/* Dropdown */}
+      {open && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, zIndex: 50,
+          borderRadius: 12, background: 'var(--color-bg-3)',
+          border: `1.5px solid ${accent}55`, padding: '8px',
+          boxShadow: '0 6px 24px rgba(0,0,0,0.22)',
+        }}>
           <div style={{ position: 'relative', marginBottom: 8 }}>
             <Search size={12} style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)', pointerEvents: 'none' }} />
             <input ref={searchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск иконки…"
-              style={{ width: '100%', boxSizing: 'border-box', padding: '7px 30px 7px 28px', borderRadius: 9, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
-            {search
-              ? <button onClick={() => setSearch('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: 0, fontSize: 15, lineHeight: 1 }}>×</button>
-              : <button onClick={() => { setOpen(false); setSearch('') }} style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: 2, display: 'flex' }}>
-                  <ChevronUp size={12} />
-                </button>
-            }
+              style={{ width: '100%', boxSizing: 'border-box', padding: '7px 28px 7px 28px', borderRadius: 9, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
+            {search && (
+              <button onClick={() => setSearch('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: 0, fontSize: 15, lineHeight: 1 }}>×</button>
+            )}
           </div>
-          <div style={{ maxHeight: 164, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, 30px)', gap: 4, scrollbarWidth: 'thin' }}>
+          <div style={{ maxHeight: 164, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, 30px)', gap: 4, scrollbarWidth: 'thin' as const }}>
             {shownIcons.map(([name, Ic]) => (
               <button key={name} onClick={() => { onChange(name); setOpen(false); setSearch('') }} title={name}
                 style={{
@@ -4702,7 +4723,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, padding: '0 24px 48px' }}>
 
         {/* ── LEFT: assignment panel ── */}
-        <div style={{ width: 300, flexShrink: 0, position: 'sticky', top: 65, alignSelf: 'flex-start', maxHeight: 'calc(100vh - 85px)', overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ width: 300, flexShrink: 0, position: 'sticky', top: 20, alignSelf: 'flex-start', maxHeight: 'calc(100vh - 60px)', overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
           {/* 3-mode card */}
           <GlassCard style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -5003,7 +5024,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
           </div>
 
           {/* Question list — sticky on the right */}
-          <div style={{ width: 260, flexShrink: 0, position: 'sticky', top: 65, alignSelf: 'flex-start', height: 'calc(100vh - 85px)' }}>
+          <div style={{ width: 260, flexShrink: 0, position: 'sticky', top: 20, alignSelf: 'flex-start', height: 'calc(100vh - 60px)' }}>
             <GlassCard style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 4, height: '100%', overflowY: 'auto', overscrollBehavior: 'contain' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', padding: '2px 4px 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {questions.length} вопросов
