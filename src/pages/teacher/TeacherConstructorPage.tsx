@@ -4002,7 +4002,7 @@ function DiagnosticStudentCard({
                 ) : (
                   <button
                     onClick={onLink}
-                    style={{ flex: 1, padding: '10px', borderRadius: 10, border: `1.5px solid ${accent}`, background: accent, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit' }}
+                    style={{ flex: 1, padding: '10px', borderRadius: 10, border: `1.5px solid ${accent}`, background: accent, color: getContrastColor(accent), fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit' }}
                   >
                     <Key size={13} strokeWidth={2.4} /> Выбрать ученика
                   </button>
@@ -4206,7 +4206,7 @@ function DiagResultsTable({
           </div>
         </div>
         <button onClick={onRefresh} style={{ padding: '6px 12px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 12, fontWeight: 600 }}>↻</button>
-        <button onClick={copyLink} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : accent, color: copied ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700 }}>
+        <button onClick={copyLink} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : accent, color: copied ? 'var(--color-green-text)' : getContrastColor(accent), fontSize: 12, fontWeight: 700 }}>
           {copied ? <Check size={13} /> : <Link2 size={13} />}
           {copied ? 'Скопировано!' : 'Ссылка'}
         </button>
@@ -4420,7 +4420,7 @@ function DiagResultStudentPanel({
             ) : (
               <button
                 onClick={() => setPickerOpen(true)}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '12px', borderRadius: 14, border: `1.5px dashed ${accent}55`, cursor: 'pointer', background: accent, color: '#fff', fontSize: 13, fontWeight: 700 }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '12px', borderRadius: 14, border: `1.5px dashed ${accent}55`, cursor: 'pointer', background: accent, color: getContrastColor(accent), fontSize: 13, fontWeight: 700 }}
               >
                 <GraduationCap size={15} /> Назначить ученика
               </button>
@@ -4784,16 +4784,18 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
           {/* 3-mode card */}
           <GlassCard style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-            {/* Name */}
-            <div>
-              <input
-                value={labelState}
-                onChange={e => handleLabelChange(e.target.value)}
-                onBlur={handleLabelBlur}
-                onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
-                style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', borderRadius: 10, border: `1.5px solid ${accent}66`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }}
-              />
-            </div>
+            {/* Name — custom tests only */}
+            {isCustomTest && (
+              <div>
+                <input
+                  value={labelState}
+                  onChange={e => handleLabelChange(e.target.value)}
+                  onBlur={handleLabelBlur}
+                  onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', borderRadius: 10, border: `1.5px solid ${accent}66`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }}
+                />
+              </div>
+            )}
 
             {/* Color picker */}
             <div>
@@ -4820,11 +4822,13 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
             {/* Icon picker */}
             <IconPickerField iconKey={iconKeyState} onChange={handleIconChange} accent={accent} />
 
-            {/* Chip picker */}
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 6 }}>Тип теста</div>
-              <ChipPicker value={chipState} onChange={handleChipChange} fallbackAccent={accent} />
-            </div>
+            {/* Chip picker — custom tests only */}
+            {isCustomTest && (
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 6 }}>Тип теста</div>
+                <ChipPicker value={chipState} onChange={handleChipChange} fallbackAccent={accent} />
+              </div>
+            )}
 
             {/* Mode tabs */}
             <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-3)' }}>
@@ -4999,7 +5003,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                 >
                   <GlassCard style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 10, background: accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, flexShrink: 0 }}>{editIdx + 1}</div>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, flexShrink: 0 }}>{editIdx + 1}</div>
                       <div style={{ flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>Редактирование вопроса</div>
                       <button onClick={() => removeQuestion(editIdx)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                         <X size={13} /> Удалить
@@ -5033,7 +5037,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 4 }}>
                       <button onClick={() => setEditIdx(null)} style={{ padding: '10px 20px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Отмена</button>
                       <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={commitEdit}
-                        style={{ padding: '10px 24px', borderRadius: 12, border: 'none', background: accent, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'inherit' }}>
+                        style={{ padding: '10px 24px', borderRadius: 12, border: 'none', background: accent, color: getContrastColor(accent), fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'inherit' }}>
                         <Check size={15} strokeWidth={2.5} /> Сохранить вопрос
                       </motion.button>
                     </div>
@@ -6042,7 +6046,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                 >
                   <GlassCard style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 10, background: accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, flexShrink: 0 }}>{editIdx + 1}</div>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, flexShrink: 0 }}>{editIdx + 1}</div>
                       <div style={{ flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>Вопрос {editIdx + 1}</div>
                       <button onClick={() => removeQuestion(editIdx)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                         <X size={13} /> Удалить
@@ -6431,7 +6435,7 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
                       onClick={() => setExpandedSection(prev => prev === sectionName ? null : sectionName)}
                       style={{ width: '100%', padding: '9px 12px', display: 'flex', alignItems: 'center', gap: 8, background: isExp ? `${accent}10` : 'var(--color-bg-2)', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
                     >
-                      <div style={{ width: 22, height: 22, borderRadius: 6, background: accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, flexShrink: 0 }}>{qs.length}</div>
+                      <div style={{ width: 22, height: 22, borderRadius: 6, background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, flexShrink: 0 }}>{qs.length}</div>
                       <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: isExp ? accent : 'var(--color-text)' }}>{sectionName}</div>
                       {isExp ? <ChevronUp size={13} style={{ color: accent, flexShrink: 0 }} /> : <ChevronDown size={13} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />}
                     </button>
@@ -6537,12 +6541,12 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
                   ))}
                   <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                     <button onClick={() => setEditIdx(null)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Отмена</button>
-                    <button onClick={commitEdit} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: accent, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}><Check size={12} />Сохранить</button>
+                    <button onClick={commitEdit} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: accent, color: getContrastColor(accent), fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}><Check size={12} />Сохранить</button>
                   </div>
                 </div>
               ) : (
                 <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                  <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, marginTop: 1 }}>{idx + 1}</div>
+                  <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, marginTop: 1 }}>{idx + 1}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', marginBottom: 3 }}>{q.text}</div>
                     <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>✓ {q.options[q.correct]}</div>
