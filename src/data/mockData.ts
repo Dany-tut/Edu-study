@@ -1,7 +1,9 @@
 export type LessonStatus = 'completed' | 'returned' | 'unviewed' | 'submitted' | 'current' | 'locked'
 export type LessonShape = 'circle' | 'square' | 'diamond'
 
-export type TestTaskType = 'text' | 'choice' | 'fill' | 'match' | 'whiteboard'
+export type TestTaskType =
+  | 'single' | 'multi' | 'fill' | 'extended' | 'matching' | 'sequence' | 'tableFill' | 'whiteboard'
+  | 'text' | 'choice' | 'match' | 'table'  // legacy aliases — normalised on read
 
 /** A single quiz task on a course test node. Mirrors the teacher editor's HWTask. */
 export interface TestTask {
@@ -14,6 +16,8 @@ export interface TestTask {
   choices?: string[]
   correctChoices?: number[]
   pairs?: Array<{ left: string; right: string }>
+  sequenceItems?: string[]
+  table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; blankCells?: Record<string, boolean> }
 }
 
 export interface Lesson {

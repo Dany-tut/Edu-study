@@ -1,25 +1,37 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronLeft, ClipboardCheck, CheckCircle2 } from 'lucide-react'
+import { ChevronLeft, ClipboardCheck, CheckCircle2, ArrowUp, ArrowDown } from 'lucide-react'
 import { type Lesson, type TestTask } from '../data/mockData'
+import { normalizeTaskType } from '../data/taskTypeVisuals'
 import { upsertLessonProgress } from '../lib/db'
 import { getStudentSession } from '../lib/studentSession'
 import { useStudentData } from '../store/studentDataStore'
 
 const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ')
 
-/** Auto-gradable tasks: single-choice always, text/fill when an answer is set. */
+function taskType(t: TestTask) { return normalizeTaskType(t.type) }
+
+/** Auto-gradable tasks. */
 function isGradable(t: TestTask) {
-  if (t.type === 'choice') return true
-  if ((t.type === 'text' || t.type === 'fill') && (t.answer ?? '').trim()) return true
+  const tp = taskType(t)
+  if (tp === 'single') return true
+  if (tp === 'multi') return (t.correctChoices?.length ?? 0) > 0
+  if ((tp === 'fill' || tp === 'extended') && (t.answer ?? '').trim()) return true
   return false
 }
 
-function gradeTask(t: TestTask, answer: string | number | undefined): boolean {
-  if (t.type === 'choice') {
+function gradeTask(t: TestTask, answer: string | number | number[] | undefined): boolean {
+  const tp = taskType(t)
+  if (tp === 'single') {
     return typeof answer === 'number' && (t.correctChoices ?? []).includes(answer)
   }
-  if (t.type === 'text' || t.type === 'fill') {
+  if (tp === 'multi') {
+    if (!Array.isArray(answer)) return false
+    const correct = [...(t.correctChoices ?? [])].sort()
+    const given = [...answer].sort()
+    return correct.length === given.length && correct.every((v, i) => v === given[i])
+  }
+  if (tp === 'fill' || tp === 'extended') {
     return typeof answer === 'string' && norm(answer) === norm(t.answer ?? '')
   }
   return false
@@ -28,12 +40,26 @@ function gradeTask(t: TestTask, answer: string | number | undefined): boolean {
 export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: () => void }) {
   const tasks = lesson.testTasks ?? []
   const reload = useStudentData(s => s.load)
-  const [answers, setAnswers] = useState<Record<string, string | number>>({})
+  const [answers, setAnswers] = useState<Record<string, string | number | number[]>>({})
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState<{ score: number; correct: number; gradable: number } | null>(null)
 
-  function setAnswer(id: string, value: string | number) {
+  function setAnswer(id: string, value: string | number | number[]) {
     setAnswers(a => ({ ...a, [id]: value }))
+  }
+
+  function toggleMulti(id: string, idx: number) {
+    const prev = (answers[id] as number[] | undefined) ?? []
+    const next = prev.includes(idx) ? prev.filter(x => x !== idx) : [...prev, idx]
+    setAnswer(id, next)
+  }
+
+  function moveSeq(id: string, items: string[], pos: number, dir: -1 | 1) {
+    const order = (answers[id] as number[] | undefined) ?? items.map((_, i) => i)
+    const to = pos + dir
+    if (to < 0 || to >= order.length) return
+    const next = [...order];[next[pos], next[to]] = [next[to], next[pos]]
+    setAnswer(id, next)
   }
 
   async function submit() {
@@ -75,7 +101,11 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
     )
   }
 
-  const answeredCount = tasks.filter(t => answers[t.id] !== undefined && answers[t.id] !== '').length
+  const answeredCount = tasks.filter(t => {
+    const a = answers[t.id]
+    if (Array.isArray(a)) return a.length > 0
+    return a !== undefined && a !== ''
+  }).length
 
   return (
     <div style={{ maxWidth: 720, margin: '0 auto', padding: '12px 20px 80px' }}>
@@ -96,57 +126,190 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
         <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-muted)' }}>В тесте пока нет вопросов</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {tasks.map((t, i) => (
-            <div key={t.id} style={{ background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)', borderRadius: 16, padding: '18px 20px' }}>
-              <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-                <div style={{ width: 26, height: 26, borderRadius: 8, background: 'var(--color-purple-soft)', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', paddingTop: 3 }}>{t.question || t.label}</div>
+          {tasks.map((t, i) => {
+            const tp = taskType(t)
+            const seqItems = t.sequenceItems ?? []
+            const seqOrder = (answers[t.id] as number[] | undefined) ?? seqItems.map((_, idx) => idx)
+
+            return (
+              <div key={t.id} style={{ background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)', borderRadius: 16, padding: '18px 20px' }}>
+                <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+                  <div style={{ width: 26, height: 26, borderRadius: 8, background: 'var(--color-purple-soft)', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', paddingTop: 3 }}>{t.question || t.label}</div>
+                </div>
+
+                {/* single — radio */}
+                {tp === 'single' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 36 }}>
+                    {(t.choices ?? []).map((ch, ci) => {
+                      const selected = answers[t.id] === ci
+                      return (
+                        <button key={ci} onClick={() => setAnswer(t.id, ci)} style={{
+                          display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
+                          padding: '11px 14px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+                          border: selected ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border-soft)',
+                          background: selected ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
+                          fontSize: 14, color: 'var(--color-text)', fontWeight: selected ? 600 : 400,
+                        }}>
+                          <div style={{ width: 18, height: 18, borderRadius: '50%', flexShrink: 0, border: selected ? '5px solid var(--color-accent)' : '2px solid var(--color-border-medium)', transition: 'all 0.12s' }} />
+                          {ch}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* multi — checkboxes */}
+                {tp === 'multi' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 36 }}>
+                    {(t.choices ?? []).map((ch, ci) => {
+                      const selected = ((answers[t.id] as number[] | undefined) ?? []).includes(ci)
+                      return (
+                        <button key={ci} onClick={() => toggleMulti(t.id, ci)} style={{
+                          display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
+                          padding: '11px 14px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+                          border: selected ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border-soft)',
+                          background: selected ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
+                          fontSize: 14, color: 'var(--color-text)', fontWeight: selected ? 600 : 400,
+                        }}>
+                          <div style={{
+                            width: 18, height: 18, borderRadius: 5, flexShrink: 0,
+                            border: selected ? '2px solid var(--color-accent)' : '2px solid var(--color-border-medium)',
+                            background: selected ? 'var(--color-accent)' : 'transparent',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.12s',
+                          }}>
+                            {selected && <span style={{ color: '#fff', fontSize: 10, fontWeight: 900 }}>✓</span>}
+                          </div>
+                          {ch}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* fill / extended — text input */}
+                {(tp === 'fill' || tp === 'extended') && (
+                  <div style={{ paddingLeft: 36 }}>
+                    {tp === 'fill'
+                      ? <input
+                          value={(answers[t.id] as string) ?? ''}
+                          onChange={e => setAnswer(t.id, e.target.value)}
+                          placeholder="Твой ответ…"
+                          style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
+                        />
+                      : <textarea
+                          value={(answers[t.id] as string) ?? ''}
+                          onChange={e => setAnswer(t.id, e.target.value)}
+                          placeholder="Развёрнутый ответ…"
+                          rows={4}
+                          style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }}
+                        />
+                    }
+                  </div>
+                )}
+
+                {/* matching — pairs reference + textarea */}
+                {tp === 'matching' && (
+                  <div style={{ paddingLeft: 36 }}>
+                    {(t.pairs?.length ?? 0) > 0 && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 10 }}>
+                        {t.pairs!.map((pair, pi) => (
+                          <div key={pi} style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--color-text-2)' }}>
+                            <span style={{ fontWeight: 600 }}>{pair.left}</span>
+                            <span style={{ color: 'var(--color-muted)' }}>→</span>
+                            <span>?</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <textarea
+                      value={(answers[t.id] as string) ?? ''}
+                      onChange={e => setAnswer(t.id, e.target.value)}
+                      placeholder="Запиши соответствия…"
+                      rows={3}
+                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }}
+                    />
+                  </div>
+                )}
+
+                {/* sequence — reorderable list */}
+                {tp === 'sequence' && seqItems.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 36 }}>
+                    {seqOrder.map((itemIdx, pos) => (
+                      <div key={itemIdx} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ width: 22, height: 22, borderRadius: 7, background: 'var(--color-yellow-soft)', color: 'var(--color-yellow-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{pos + 1}</span>
+                        <div style={{ flex: 1, padding: '9px 12px', borderRadius: 10, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', fontSize: 14, color: 'var(--color-text)' }}>
+                          {seqItems[itemIdx]}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                          <button onClick={() => moveSeq(t.id, seqItems, pos, -1)} disabled={pos === 0}
+                            style={{ width: 24, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: pos === 0 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: pos === 0 ? 0.4 : 1 }}>
+                            <ArrowUp size={12} style={{ color: 'var(--color-text-3)' }} />
+                          </button>
+                          <button onClick={() => moveSeq(t.id, seqItems, pos, 1)} disabled={pos === seqOrder.length - 1}
+                            style={{ width: 24, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: pos === seqOrder.length - 1 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: pos === seqOrder.length - 1 ? 0.4 : 1 }}>
+                            <ArrowDown size={12} style={{ color: 'var(--color-text-3)' }} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* tableFill — cells with blanks */}
+                {tp === 'tableFill' && t.table && (
+                  <div style={{ paddingLeft: 36, overflowX: 'auto' }}>
+                    <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 13 }}>
+                      <thead>
+                        <tr>
+                          {t.table.headers.map((h, hi) => (
+                            <th key={hi} style={{ padding: '8px 12px', background: 'var(--color-teal-pill-bg)', color: 'var(--color-teal-pill-text)', fontWeight: 700, border: '1px solid var(--color-border-soft)', textAlign: 'left' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {t.table.rows.map((row, ri) => (
+                          <tr key={ri}>
+                            {row.map((cell, ci) => {
+                              const cellKey = `${ri},${ci}`
+                              const isBlank = t.table!.emptyCells?.[cellKey] || t.table!.blankCells?.[cellKey]
+                              const ansKey = `${t.id}_${cellKey}`
+                              return (
+                                <td key={ci} style={{ padding: '6px 8px', border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)' }}>
+                                  {isBlank
+                                    ? <input
+                                        value={(answers[ansKey] as string) ?? ''}
+                                        onChange={e => setAnswer(ansKey, e.target.value)}
+                                        placeholder="?"
+                                        style={{ width: '100%', border: 'none', background: 'var(--color-teal-pill-bg)', borderRadius: 6, padding: '4px 8px', fontSize: 13, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
+                                      />
+                                    : <span style={{ color: 'var(--color-text)' }}>{cell}</span>
+                                  }
+                                </td>
+                              )
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* whiteboard — textarea fallback */}
+                {tp === 'whiteboard' && (
+                  <div style={{ paddingLeft: 36 }}>
+                    <textarea
+                      value={(answers[t.id] as string) ?? ''}
+                      onChange={e => setAnswer(t.id, e.target.value)}
+                      placeholder="Опиши решение (рисунок на доске приложишь учителю)…"
+                      rows={3}
+                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }}
+                    />
+                  </div>
+                )}
               </div>
-
-              {t.type === 'choice' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 36 }}>
-                  {(t.choices ?? []).map((ch, ci) => {
-                    const selected = answers[t.id] === ci
-                    return (
-                      <button key={ci} onClick={() => setAnswer(t.id, ci)} style={{
-                        display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
-                        padding: '11px 14px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
-                        border: selected ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border-soft)',
-                        background: selected ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
-                        fontSize: 14, color: 'var(--color-text)', fontWeight: selected ? 600 : 400,
-                      }}>
-                        <div style={{ width: 18, height: 18, borderRadius: '50%', flexShrink: 0, border: selected ? '5px solid var(--color-accent)' : '2px solid var(--color-border-medium)', transition: 'all 0.12s' }} />
-                        {ch}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-
-              {(t.type === 'text' || t.type === 'fill') && (
-                <div style={{ paddingLeft: 36 }}>
-                  <input
-                    value={(answers[t.id] as string) ?? ''}
-                    onChange={e => setAnswer(t.id, e.target.value)}
-                    placeholder="Твой ответ…"
-                    style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
-                  />
-                </div>
-              )}
-
-              {(t.type === 'match' || t.type === 'whiteboard') && (
-                <div style={{ paddingLeft: 36 }}>
-                  <textarea
-                    value={(answers[t.id] as string) ?? ''}
-                    onChange={e => setAnswer(t.id, e.target.value)}
-                    placeholder="Твой ответ…"
-                    rows={3}
-                    style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }}
-                  />
-                </div>
-              )}
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 

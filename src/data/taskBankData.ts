@@ -4,7 +4,7 @@ export type QuestionType = 'choice' | 'free'
 export type ScoreMode = 'perOption' | 'criteria' | 'whole'
 
 export type AnswerType =
-  | 'single' | 'multi' | 'short' | 'matching' | 'sequence' | 'tableFill' | 'extended'
+  | 'single' | 'multi' | 'fill' | 'matching' | 'sequence' | 'tableFill' | 'extended'
 
 export interface TaskChoice { id: string; text: string; correct: boolean; points?: number }
 export interface TaskAnswerKey { id: string; keyword: string; points: number }

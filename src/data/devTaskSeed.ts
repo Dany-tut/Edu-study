@@ -61,7 +61,7 @@ export const DEV_SEED_TASKS: Task[] = [
     answer: 'ТАЦГАТЦЦТ',
     solution: 'По принципу комплементарности: А↔Т, Т↔А, Г↔Ц, Ц↔Г. Цепь 5′-АТГЦТАГГА-3′ → комплементарная 3′-ТАЦГАТЦЦТ-5′. В направлении 3′→5′: ТАЦГАТЦЦТ.',
     questionType: 'free',
-    answerType: 'short',
+    answerType: 'fill',
     maxPoints: 1,
   },
   {
@@ -176,7 +176,7 @@ export const DEV_SEED_TASKS: Task[] = [
     answer: '33',
     solution: 'M(H₂SO₄) = 2·1 + 32 + 4·16 = 2 + 32 + 64 = 98 г/моль. M(S) = 32 г/моль. ω(S) = 32/98 · 100% ≈ 32,65% ≈ 33%.',
     questionType: 'free',
-    answerType: 'short',
+    answerType: 'fill',
     maxPoints: 1,
   },
   {

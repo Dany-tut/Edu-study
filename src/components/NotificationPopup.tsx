@@ -20,6 +20,7 @@ const ICON_MAP: Record<NotifType, React.ReactNode> = {
   hw_graded:            <CheckCircle2  size={16} />,
   hw_submitted:         <FileText      size={16} />,
   test_assigned:        <Brain         size={16} />,
+  test_completed:       <CheckCircle2  size={16} />,
   payment_due:          <Banknote      size={16} />,
   fill_journal:         <NotebookPen   size={16} />,
 }

@@ -6,6 +6,7 @@ import {
   ChevronUp, ChevronDown,
 } from 'lucide-react'
 import type { LessonHomework, HomeworkQuizQuestion } from '../data/lessonContent'
+import { normalizeTaskType } from '../data/taskTypeVisuals'
 import { PURPLE, subjectTheme } from '../lib/theme'
 import { useTheme } from '../store/themeStore'
 import { supabase } from '../lib/supabase'
@@ -550,27 +551,30 @@ function getStorageKey(lessonId: string) {
 // match / whiteboard tasks, so grading mirrors TestFlow: choice and text/fill
 // auto-check, the rest are recorded for teacher review.
 const normAnswer = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ')
+function qType(q: HomeworkQuizQuestion) { return normalizeTaskType(q.type ?? 'single') }
 function questionIsChoice(q: HomeworkQuizQuestion) {
-  return !q.type || q.type === 'choice'
+  const tp = qType(q)
+  return !q.type || tp === 'single' || tp === 'multi'
 }
 function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
   return questionIsChoice(q) ? !!ans : !!(ans && ans.trim())
 }
 function questionAutoGradable(q: HomeworkQuizQuestion) {
   if (questionIsChoice(q)) return q.options.length > 0 && !!q.correctOptionId
-  if (q.type === 'text' || q.type === 'fill') return !!q.referenceAnswer?.trim()
-  if (q.type === 'sequence') return (q.sequenceItems?.length ?? 0) >= 2
-  // 'table' is filled interactively but reviewed by the teacher (no per-cell
-  // reference is stored), so it is not auto-graded.
+  const tp = qType(q)
+  if (tp === 'fill' || tp === 'extended') return !!q.referenceAnswer?.trim()
+  if (tp === 'sequence') return (q.sequenceItems?.length ?? 0) >= 2
+  // tableFill/matching/whiteboard — teacher review only, not auto-graded.
   return false
 }
 function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
   if (!ans) return false
   if (questionIsChoice(q)) return ans === q.correctOptionId
-  if (q.type === 'text' || q.type === 'fill') {
+  const tp = qType(q)
+  if (tp === 'fill' || tp === 'extended') {
     return questionAutoGradable(q) && normAnswer(ans) === normAnswer(q.referenceAnswer!)
   }
-  if (q.type === 'sequence') {
+  if (tp === 'sequence') {
     const items = q.sequenceItems ?? []
     const order = ans.split(',').map(Number)
     if (order.length !== items.length || order.some(n => Number.isNaN(n))) return false
@@ -1507,7 +1511,7 @@ export default function HomeworkFlow({
                         )
                       })}
                     </div>
-                    ) : question.type === 'sequence' && (question.sequenceItems?.length ?? 0) > 0 ? (
+                    ) : qType(question) === 'sequence' && (question.sequenceItems?.length ?? 0) > 0 ? (
                     <SequenceSolver
                       items={question.sequenceItems!}
                       value={selectedAnswer}
@@ -1515,7 +1519,7 @@ export default function HomeworkFlow({
                       showVerdict={showVerdict}
                       onChange={v => setFreeAnswer(question.id, v)}
                     />
-                    ) : question.type === 'table' && question.table ? (
+                    ) : qType(question) === 'tableFill' && question.table ? (
                     <TableSolver
                       table={question.table}
                       value={selectedAnswer}
@@ -1524,7 +1528,7 @@ export default function HomeworkFlow({
                     />
                     ) : (
                     <div className="flex flex-col" style={{ gap: 10 }}>
-                      {question.type === 'match' && (question.pairs?.length ?? 0) > 0 && (
+                      {qType(question) === 'matching' && (question.pairs?.length ?? 0) > 0 && (
                         <div className="flex flex-col" style={{ gap: 6 }}>
                           {question.pairs!.map((pair, pi) => (
                             <div key={pi} className="flex items-center" style={{ gap: 8, fontSize: 13, color: 'var(--color-text-2)' }}>
@@ -1539,11 +1543,11 @@ export default function HomeworkFlow({
                         value={selectedAnswer ?? ''}
                         onChange={e => setFreeAnswer(question.id, e.target.value)}
                         disabled={state.basicSubmitted}
-                        rows={question.type === 'fill' ? 2 : 4}
+                        rows={qType(question) === 'fill' ? 2 : 4}
                         placeholder={
-                          question.type === 'fill' ? 'Впиши слово или фразу…'
-                            : question.type === 'whiteboard' ? 'Опиши решение (рисунок на доске приложишь учителю)…'
-                            : question.type === 'match' ? 'Запиши соответствия…'
+                          qType(question) === 'fill' ? 'Впиши слово или фразу…'
+                            : qType(question) === 'whiteboard' ? 'Опиши решение (рисунок на доске приложишь учителю)…'
+                            : qType(question) === 'matching' ? 'Запиши соответствия…'
                             : 'Развёрнутый ответ…'
                         }
                         style={{

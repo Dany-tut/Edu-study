@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -64,7 +64,7 @@ const LETTERS = 'АБВГДЕЖЗИКЛМНОП'
 const ANSWER_TYPES: { type: AnswerType; label: string; hint: string; Icon: React.ElementType }[] = [
   { type: 'single',    label: 'Один ответ',          hint: 'Выбор одного варианта',  Icon: CircleDot },
   { type: 'multi',     label: 'Несколько верных',    hint: 'Выбор нескольких',       Icon: ListChecks },
-  { type: 'short',     label: 'Краткий ответ',       hint: 'Слово / число / формула', Icon: TypeIcon },
+  { type: 'fill',      label: 'Вписать ответ',        hint: 'Слово / число / формула', Icon: TypeIcon },
   { type: 'matching',  label: 'Сопоставление',       hint: 'Таблица А1 Б2 В3',        Icon: Shuffle },
   { type: 'sequence',  label: 'Последовательность',  hint: 'Расставить порядок',      Icon: ArrowUpDown },
   { type: 'tableFill', label: 'Заполнить таблицу',   hint: 'Ячейка «?» в таблице',    Icon: TableIcon },
@@ -1890,9 +1890,9 @@ function CreatorView({
   const [tkChoicePts, setTkChoicePts] = useState<number[]>(
     editingTask?.choices?.length ? editingTask.choices.map((c: TaskChoice) => c.points ?? 0) : [1, 0, 0, 0]
   )
-  // short / tableFill / extended — single reference answer string
+  // fill / tableFill / extended — single reference answer string
   const [tkShortAnswer, setTkShortAnswer] = useState(
-    (editingTask?.answerType === 'short' || editingTask?.answerType === 'tableFill' || editingTask?.answerType === 'extended')
+    (editingTask?.answerType === 'fill' || editingTask?.answerType === 'tableFill' || editingTask?.answerType === 'extended')
       ? (editingTask.answer ?? '') : ''
   )
   const [tkAllowPhoto, setTkAllowPhoto] = useState(editingTask?.allowPhoto ?? true)
@@ -2194,9 +2194,9 @@ function CreatorView({
       if (!ans) return null
       return { ...base, questionType: 'free', answer: ans }
     }
-    // short / extended
+    // fill / extended
     const ans = tkShortAnswer.trim()
-    if (tkAnswerType === 'short' && !ans) return null
+    if (tkAnswerType === 'fill' && !ans) return null
     return {
       ...base, questionType: 'free', answer: ans,
       answerKeys: scoreMode === 'perOption' && answerKeys.length ? answerKeys : undefined,
@@ -2544,10 +2544,21 @@ function CreatorView({
         {/* CENTER: type pills + content form */}
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', padding: '0 24px 20px 20px' }}>
 
-          <GlassCard style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <GlassCard style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
           {/* ─── TASK center: block-based authoring ─── */}
           {mode === 'trainer' && <>
+            {/* Card header — type badge + question preview */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: cfg.color, background: cfg.bg, borderRadius: 7, padding: '2px 8px', flexShrink: 0 }}>
+                {ANSWER_TYPES.find(a => a.type === tkAnswerType)?.label ?? 'Задание'}
+              </div>
+              <div style={{ flex: 1, fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {stripHtml(tkQuestion).trim() || <span style={{ fontStyle: 'italic' }}>без текста условия</span>}
+              </div>
+            </div>
+            {/* Body */}
+            <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 20 }}>
             {/* success flash */}
             <AnimatePresence>
               {savedFlash && (
@@ -2714,8 +2725,8 @@ function CreatorView({
                 </div>
               )}
 
-              {/* short */}
-              {tkAnswerType === 'short' && (
+              {/* fill */}
+              {tkAnswerType === 'fill' && (
                 <div>
                   <input value={tkShortAnswer} onChange={e => setTkShortAnswer(e.target.value)}
                     placeholder="Правильный ответ — слово, число или формула" style={inputSt} />
@@ -2948,11 +2959,12 @@ function CreatorView({
                 </div>
               </div>
             </div>
+            </div>{/* end body */}
           </>}
 
           {/* ─── COURSE center ─── */}
           {mode === 'course' && (
-            <div>
+            <div style={{ padding: '20px 22px' }}>
               <SectionHead>Уроки курса ({cLessons.length})</SectionHead>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
                 {cLessons.map((lesson, idx) => (
@@ -3000,7 +3012,7 @@ function CreatorView({
 
           {/* ─── WIDGET center ─── */}
           {mode === 'widget' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '20px 22px' }}>
               <SectionHead>Содержимое — {WTYPE_LABEL[wType]}</SectionHead>
 
               {(wType === 'quiz' || wType === 'qod') && <>
@@ -3362,7 +3374,7 @@ function IconPickerField({ iconKey, onChange, accent }: {
     if (topFadeRef.current)
       topFadeRef.current.style.opacity = scrollTop < 4 ? '0' : '1'
     if (botFadeRef.current)
-      botFadeRef.current.style.opacity = (scrollTop + clientHeight >= scrollHeight - 4) ? '0' : '1'
+      botFadeRef.current.style.opacity = (scrollHeight <= clientHeight + 4 || scrollTop + clientHeight >= scrollHeight - 4) ? '0' : '1'
   }, [])
 
   useEffect(() => {
@@ -4607,13 +4619,16 @@ const TIME_SLOTS_DIAG = generateTimeSlotsDiag()
 
 const calNavBtn: React.CSSProperties = { width: 28, height: 28, borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-2)', flexShrink: 0 }
 
-function DiagCalendarPicker({ value, onChange, onClose, accent = 'var(--color-accent)', soft = 'var(--color-purple-soft)' }: { value: string; onChange: (v: string) => void; onClose: () => void; accent?: string; soft?: string }) {
+function DiagCalendarPicker({ value, onChange, onClose, anchorRef, accent = 'var(--color-accent)', soft = 'var(--color-purple-soft)' }: { value: string; onChange: (v: string) => void; onClose: () => void; anchorRef?: React.RefObject<HTMLElement | null>; accent?: string; soft?: string }) {
   const ref = useRef<HTMLDivElement>(null)
+  const pos = useAnchoredPos(anchorRef, 252)
   useEffect(() => {
-    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose() }
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node) && !(anchorRef?.current && anchorRef.current.contains(e.target as Node))) onClose()
+    }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
-  }, [onClose])
+  }, [onClose, anchorRef])
   const selected = parseDateISO(value)
   const today = new Date()
   const [viewYear, setViewYear] = useState(selected?.getFullYear() ?? today.getFullYear())
@@ -4630,9 +4645,9 @@ function DiagCalendarPicker({ value, onChange, onClose, accent = 'var(--color-ac
   for (let i = 1; i <= daysInMonth; i++) days.push(new Date(viewYear, viewMonth, i))
   while (days.length % 7 !== 0) days.push(null)
 
-  return (
+  return createPortal(
     <motion.div ref={ref} initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }} transition={{ duration: 0.15 }}
-      style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 200, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 16, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', padding: '12px 14px 14px', minWidth: 238, userSelect: 'none' }}>
+      style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 4000, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 16, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', padding: '12px 14px 14px', minWidth: 238, userSelect: 'none' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <button onClick={prevMonth} style={calNavBtn}><ChevronLeft size={14} /></button>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{RU_MONTHS_FULL[viewMonth]} {viewYear}</span>
@@ -4654,25 +4669,29 @@ function DiagCalendarPicker({ value, onChange, onClose, accent = 'var(--color-ac
           )
         })}
       </div>
-    </motion.div>
+    </motion.div>,
+    document.body
   )
 }
 
-function DiagTimePicker({ value, onChange, onClose, accent = 'var(--color-accent)' }: { value: string; onChange: (v: string) => void; onClose: () => void; accent?: string }) {
+function DiagTimePicker({ value, onChange, onClose, anchorRef, accent = 'var(--color-accent)' }: { value: string; onChange: (v: string) => void; onClose: () => void; anchorRef?: React.RefObject<HTMLElement | null>; accent?: string }) {
   const listRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const pos = useAnchoredPos(anchorRef, 200)
   useEffect(() => {
     const idx = TIME_SLOTS_DIAG.indexOf(value)
     if (idx !== -1 && listRef.current) (listRef.current.children[idx] as HTMLElement)?.scrollIntoView({ block: 'center' })
   }, [value])
   useEffect(() => {
-    const handler = (e: MouseEvent) => { if (containerRef.current && !containerRef.current.contains(e.target as Node)) onClose() }
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node) && !(anchorRef?.current && anchorRef.current.contains(e.target as Node))) onClose()
+    }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
-  }, [onClose])
-  return (
+  }, [onClose, anchorRef])
+  return createPortal(
     <motion.div ref={containerRef} initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }} transition={{ duration: 0.15 }}
-      style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 200, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', overflow: 'hidden' }}>
+      style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 4000, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', overflow: 'hidden' }}>
       <div style={{ position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 28, zIndex: 1, background: 'linear-gradient(to bottom, var(--color-bg-input), transparent)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 28, zIndex: 1, background: 'linear-gradient(to top, var(--color-bg-input), transparent)', pointerEvents: 'none' }} />
@@ -4688,8 +4707,29 @@ function DiagTimePicker({ value, onChange, onClose, accent = 'var(--color-accent
           })}
         </div>
       </div>
-    </motion.div>
+    </motion.div>,
+    document.body
   )
+}
+
+// Anchors a fixed/portaled dropdown to a trigger element's rect, flipping up if it would overflow the viewport bottom.
+function useAnchoredPos(anchorRef: React.RefObject<HTMLElement | null> | undefined, estHeight: number) {
+  const [pos, setPos] = useState<{ top: number; left: number; width: number }>({ top: -9999, left: -9999, width: 0 })
+  useLayoutEffect(() => {
+    const el = anchorRef?.current
+    if (!el) return
+    const compute = () => {
+      const r = el.getBoundingClientRect()
+      const below = r.bottom + 6
+      const flip = below + estHeight > window.innerHeight && r.top - 6 - estHeight > 0
+      setPos({ top: flip ? r.top - 6 - estHeight : below, left: r.left, width: r.width })
+    }
+    compute()
+    window.addEventListener('scroll', compute, true)
+    window.addEventListener('resize', compute)
+    return () => { window.removeEventListener('scroll', compute, true); window.removeEventListener('resize', compute) }
+  }, [anchorRef, estHeight])
+  return pos
 }
 
 // ─── DiagnosticEditorFullPage — 2-column: left=assignment, right=questions ────
@@ -4801,6 +4841,8 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   const [dueTime, setDueTime] = useState('')
   const [calOpen, setCalOpen] = useState(false)
   const [timeOpen, setTimeOpen] = useState(false)
+  const calAnchorRef = useRef<HTMLDivElement>(null)
+  const timeAnchorRef = useRef<HTMLDivElement>(null)
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)
   const [expandedAssignId, setExpandedAssignId] = useState<string | null>(null)
@@ -5029,7 +5071,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                 {/* Due date + time */}
                 <div style={{ display: 'flex', gap: 6 }}>
                     {/* Calendar trigger */}
-                    <div style={{ position: 'relative', flex: 1 }}>
+                    <div ref={calAnchorRef} style={{ position: 'relative', flex: 1 }}>
                       <button onClick={() => { setCalOpen(o => !o); setTimeOpen(false) }}
                         style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 7, padding: '8px 10px', borderRadius: 9, border: 'none', outline: 'none', background: calOpen ? `${accent}18` : 'var(--color-bg-input)', color: dueDate ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueDate ? 600 : 400, transition: 'background 0.15s' }}>
                         <Calendar size={13} style={{ flexShrink: 0, color: accent }} />
@@ -5037,18 +5079,18 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                         {dueDate && <button onClick={e => { e.stopPropagation(); setDueDate('') }} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-text-3)', lineHeight: 1, fontSize: 13, display: 'flex' }}>×</button>}
                       </button>
                       <AnimatePresence>
-                        {calOpen && <DiagCalendarPicker value={dueDate} onChange={v => { setDueDate(v); setCalOpen(false) }} onClose={() => setCalOpen(false)} accent={accent} soft={soft} />}
+                        {calOpen && <DiagCalendarPicker value={dueDate} onChange={v => { setDueDate(v); setCalOpen(false) }} onClose={() => setCalOpen(false)} anchorRef={calAnchorRef} accent={accent} soft={soft} />}
                       </AnimatePresence>
                     </div>
                     {/* Time trigger */}
-                    <div style={{ position: 'relative', width: 80 }}>
+                    <div ref={timeAnchorRef} style={{ position: 'relative', width: 80 }}>
                       <button onClick={() => { setTimeOpen(o => !o); setCalOpen(false) }}
                         style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 5, padding: '8px 8px', borderRadius: 9, border: 'none', outline: 'none', background: timeOpen ? `${accent}18` : 'var(--color-bg-input)', color: dueTime ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueTime ? 600 : 400, transition: 'background 0.15s' }}>
                         <Clock size={13} style={{ flexShrink: 0, color: accent }} />
                         <span>{dueTime || 'Время'}</span>
                       </button>
                       <AnimatePresence>
-                        {timeOpen && <DiagTimePicker value={dueTime} onChange={v => { setDueTime(v); setTimeOpen(false) }} onClose={() => setTimeOpen(false)} accent={accent} />}
+                        {timeOpen && <DiagTimePicker value={dueTime} onChange={v => { setDueTime(v); setTimeOpen(false) }} onClose={() => setTimeOpen(false)} anchorRef={timeAnchorRef} accent={accent} />}
                       </AnimatePresence>
                     </div>
                   </div>
@@ -5955,6 +5997,8 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
   const [dueTime, setDueTime] = useState('')
   const [calOpen2, setCalOpen2] = useState(false)
   const [timeOpen2, setTimeOpen2] = useState(false)
+  const calAnchor2Ref = useRef<HTMLDivElement>(null)
+  const timeAnchor2Ref = useRef<HTMLDivElement>(null)
   const [copied2, setCopied2] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
@@ -6160,7 +6204,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                   <div>
                     <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 }}>Срок (необязательно)</div>
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <div style={{ position: 'relative', flex: 1 }}>
+                      <div ref={calAnchor2Ref} style={{ position: 'relative', flex: 1 }}>
                         <button onClick={() => { setCalOpen2(o => !o); setTimeOpen2(false) }}
                           style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 7, padding: '8px 10px', borderRadius: 9, border: 'none', outline: 'none', background: calOpen2 ? `${accent}18` : 'var(--color-bg-input)', color: dueDate ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueDate ? 600 : 400, transition: 'background 0.15s' }}>
                           <Calendar size={13} style={{ flexShrink: 0, color: accent }} />
@@ -6168,17 +6212,17 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                           {dueDate && <button onClick={e => { e.stopPropagation(); setDueDate('') }} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-text-3)', lineHeight: 1, fontSize: 13, display: 'flex' }}>×</button>}
                         </button>
                         <AnimatePresence>
-                          {calOpen2 && <DiagCalendarPicker value={dueDate} onChange={v => { setDueDate(v); setCalOpen2(false) }} onClose={() => setCalOpen2(false)} accent={accent} soft={soft} />}
+                          {calOpen2 && <DiagCalendarPicker value={dueDate} onChange={v => { setDueDate(v); setCalOpen2(false) }} onClose={() => setCalOpen2(false)} anchorRef={calAnchor2Ref} accent={accent} soft={soft} />}
                         </AnimatePresence>
                       </div>
-                      <div style={{ position: 'relative', width: 80 }}>
+                      <div ref={timeAnchor2Ref} style={{ position: 'relative', width: 80 }}>
                         <button onClick={() => { setTimeOpen2(o => !o); setCalOpen2(false) }}
                           style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 5, padding: '8px 8px', borderRadius: 9, border: 'none', outline: 'none', background: timeOpen2 ? `${accent}18` : 'var(--color-bg-input)', color: dueTime ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueTime ? 600 : 400, transition: 'background 0.15s' }}>
                           <Clock size={13} style={{ flexShrink: 0, color: accent }} />
                           <span>{dueTime || 'Время'}</span>
                         </button>
                         <AnimatePresence>
-                          {timeOpen2 && <DiagTimePicker value={dueTime} onChange={v => { setDueTime(v); setTimeOpen2(false) }} onClose={() => setTimeOpen2(false)} accent={accent} />}
+                          {timeOpen2 && <DiagTimePicker value={dueTime} onChange={v => { setDueTime(v); setTimeOpen2(false) }} onClose={() => setTimeOpen2(false)} anchorRef={timeAnchor2Ref} accent={accent} />}
                         </AnimatePresence>
                       </div>
                     </div>

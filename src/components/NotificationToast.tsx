@@ -19,6 +19,7 @@ const ICON_MAP: Record<NotifType, React.ReactNode> = {
   hw_graded:            <CheckCircle2  size={16} />,
   hw_submitted:         <FileText      size={16} />,
   test_assigned:        <Brain         size={16} />,
+  test_completed:       <CheckCircle2  size={16} />,
   payment_due:          <Banknote      size={16} />,
   fill_journal:         <NotebookPen   size={16} />,
 }
@@ -42,6 +43,7 @@ const TYPE_COLOR: Record<string, string> = {
   hw_submitted:         '#3FCC8A',
   hw_returned:          '#F59E0B',
   test_assigned:        '#786AD7',
+  test_completed:       '#3FCC8A',
   fill_journal:         '#F59E0B',
 }
 function getColor(type: string): string {

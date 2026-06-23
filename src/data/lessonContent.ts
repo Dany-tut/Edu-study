@@ -16,7 +16,8 @@ export interface HomeworkQuizQuestion {
   /** Authored task type. Absent / 'choice' → multiple-choice (default). The
    *  remaining types render a free-text answer, mirroring TestFlow — except
    *  'sequence' and 'table', which render their own interactive solvers. */
-  type?: 'text' | 'choice' | 'fill' | 'match' | 'whiteboard' | 'sequence' | 'table'
+  type?: 'single' | 'multi' | 'fill' | 'extended' | 'matching' | 'sequence' | 'tableFill' | 'whiteboard'
+       | 'text' | 'choice' | 'match' | 'table'  // legacy aliases — normalised on read
   /** Эталон for text/fill — when set, the answer is auto-checked against it. */
   referenceAnswer?: string
   /** Pairs for a 'match' task (shown read-only as reference). */
@@ -32,7 +33,8 @@ export interface HomeworkQuizQuestion {
  *  (lessons.homework JSONB). Mirrors the teacher editor's HWTask / TestTask. */
 export interface AuthoredHomeworkTask {
   id: string
-  type: 'text' | 'choice' | 'fill' | 'match' | 'whiteboard' | 'sequence' | 'table'
+  type: 'single' | 'multi' | 'fill' | 'extended' | 'matching' | 'sequence' | 'tableFill' | 'whiteboard'
+     | 'text' | 'choice' | 'match' | 'table'  // legacy aliases
   isHard: boolean
   label?: string
   question?: string

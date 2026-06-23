@@ -318,8 +318,9 @@ const reminderIcons: Record<Reminder['type'], React.ElementType> = {
   'payment-debt': Banknote,
   'fill-journal': Clock,
 }
-const urgencyColor = { high: '#F48B91', medium: '#F8C991', low: 'var(--color-text-4)' }
+const urgencyColor = { high: '#D05060', medium: '#F08010', low: 'var(--color-text-4)' }
 const urgencyBg = { high: 'var(--reminder-card-high)', medium: 'var(--reminder-card-medium)', low: 'var(--color-bg)' }
+const urgencyBorder = { high: 'var(--reminder-card-high-border)', medium: 'var(--reminder-card-medium-border)', low: 'transparent' }
 
 function ReminderRow({ item, done, onAction, style: styleOverride }: { item: Reminder; done?: boolean; onAction?: () => void; style?: React.CSSProperties }) {
   const Icon = done ? CheckCircle2 : reminderIcons[item.type]
@@ -333,6 +334,9 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: { item: Rem
         display: 'flex', alignItems: 'center', gap: 10,
         padding: '8px 10px', borderRadius: 12,
         background: done ? 'var(--color-green-soft)' : urgencyBg[item.urgency],
+        border: done ? 'none' : `1px solid ${urgencyBorder[item.urgency]}`,
+        backdropFilter: 'blur(16px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         opacity: done ? 0.85 : 1,
         cursor: clickable ? 'pointer' : 'default',
         transition: 'background 0.25s, opacity 0.25s',
@@ -363,7 +367,7 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: { item: Rem
         <AlertCircle size={13} strokeWidth={2} style={{ color: '#F48B91', flexShrink: 0 }} />
       )}
       {clickable && (
-        <ChevronRight size={15} strokeWidth={2} style={{ color: 'rgba(255,255,255,0.5)', flexShrink: 0 }} />
+        <ChevronRight size={15} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
       )}
     </motion.div>
   )
@@ -413,8 +417,8 @@ function ReminderGroupStack({ items, getAction, isDone }: {
   const bg = urgencyBg[front.urgency]
   const accentColor = urgencyColor[front.urgency]
   const behind = Math.min(items.length - 1, 2)
-  // Semi-transparent tint for the glassmorphism front card
-  const glassBg = accentColor.startsWith('#') ? `${accentColor}48` : bg
+  // Semi-transparent tint for the glassmorphism front card — same shade as list items
+  const glassBg = bg
 
   return (
     <AnimatePresence mode="popLayout" initial={false}>

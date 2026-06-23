@@ -29,7 +29,7 @@ import TableEditor from '../../components/teacher/TableEditor'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-type HWTaskType = 'text' | 'choice' | 'fill' | 'match' | 'whiteboard' | 'sequence' | 'table'
+type HWTaskType = 'single' | 'multi' | 'fill' | 'extended' | 'matching' | 'sequence' | 'tableFill' | 'whiteboard'
 
 type HWTask = {
   id: string
@@ -54,11 +54,11 @@ function makeTask(type: HWTaskType): HWTask {
     id: Math.random().toString(36).slice(2),
     source: 'custom', modified: false,
     type, question: '', answer: '',
-    choices: type === 'choice' ? ['', '', '', ''] : undefined,
-    correctChoices: type === 'choice' ? [0] : undefined,
-    pairs: type === 'match' ? [{ left: '', right: '' }, { left: '', right: '' }] : undefined,
+    choices: (type === 'single' || type === 'multi') ? ['', '', '', ''] : undefined,
+    correctChoices: type === 'single' ? [0] : type === 'multi' ? [0] : undefined,
+    pairs: type === 'matching' ? [{ left: '', right: '' }, { left: '', right: '' }] : undefined,
     sequenceItems: type === 'sequence' ? ['', ''] : undefined,
-    table: type === 'table' ? { headers: ['Заголовок 1', 'Заголовок 2'], rows: [['', ''], ['', '']] } : undefined,
+    table: type === 'tableFill' ? { headers: ['Заголовок 1', 'Заголовок 2'], rows: [['', ''], ['', '']] } : undefined,
   }
 }
 
@@ -66,7 +66,7 @@ function taskFromBank(bt: BankTask): HWTask {
   return {
     id: Math.random().toString(36).slice(2),
     source: 'bank', bankId: bt.id, modified: false,
-    type: 'text', question: bt.question, answer: bt.answer,
+    type: 'extended', question: bt.question, answer: bt.answer,
     image: bt.questionImage ?? null,
   }
 }
@@ -131,13 +131,14 @@ function FilterSelect({ label, options, value, onChange }: {
 // ─── Task type config ──────────────────────────────────────────────────────────
 
 const TASK_TYPES: { type: HWTaskType; label: string; hint: string; icon: React.ElementType; color: string; bg: string }[] = [
-  { type: 'text',       label: 'Текстовый ответ',    hint: 'Развёрнутый ответ',  icon: AlignLeft,   color: 'var(--color-accent)',           bg: 'var(--color-purple-soft)' },
-  { type: 'choice',     label: 'Выбор ответа',        hint: 'Один или несколько', icon: CheckSquare, color: 'var(--color-green-text)',       bg: 'var(--color-green-soft)' },
-  { type: 'fill',       label: 'Вписать слово',        hint: 'Слово / фраза',      icon: Type,        color: 'var(--color-peach-text)',       bg: 'var(--color-peach-soft)' },
-  { type: 'match',      label: 'Сопоставление',        hint: 'Таблица А1 Б2 В3',   icon: Shuffle,     color: 'var(--color-rose-text)',        bg: 'var(--color-rose-soft)' },
-  { type: 'sequence',   label: 'Последовательность',   hint: 'Расставить порядок', icon: ArrowUpDown, color: 'var(--color-yellow-text)',      bg: 'var(--color-yellow-soft)' },
-  { type: 'table',      label: 'Таблица',              hint: 'Заполнить таблицу',  icon: TableIcon,   color: 'var(--color-teal-pill-text)',   bg: 'var(--color-teal-pill-bg)' },
-  { type: 'whiteboard', label: 'Доска',                hint: 'Рисунок на доске',   icon: PenLine,     color: 'var(--color-blue-pill-text)',   bg: 'var(--color-blue-pill-bg)' },
+  { type: 'single',     label: 'Один ответ',          hint: 'Один верный вариант',  icon: CheckSquare, color: 'var(--color-green-text)',       bg: 'var(--color-green-soft)' },
+  { type: 'multi',      label: 'Несколько верных',    hint: 'Несколько вариантов',   icon: CheckSquare, color: 'var(--color-green-text)',       bg: 'var(--color-green-soft)' },
+  { type: 'fill',       label: 'Вписать ответ',       hint: 'Слово / фраза',         icon: Type,        color: 'var(--color-peach-text)',       bg: 'var(--color-peach-soft)' },
+  { type: 'extended',   label: 'Развёрнутый ответ',   hint: 'Текст, рассуждение',    icon: AlignLeft,   color: 'var(--color-accent)',           bg: 'var(--color-purple-soft)' },
+  { type: 'matching',   label: 'Сопоставление',       hint: 'Таблица А1 Б2 В3',      icon: Shuffle,     color: 'var(--color-rose-text)',        bg: 'var(--color-rose-soft)' },
+  { type: 'sequence',   label: 'Последовательность',  hint: 'Расставить порядок',    icon: ArrowUpDown, color: 'var(--color-yellow-text)',      bg: 'var(--color-yellow-soft)' },
+  { type: 'tableFill',  label: 'Заполнить таблицу',   hint: 'Ячейки с пропусками',   icon: TableIcon,   color: 'var(--color-teal-pill-text)',   bg: 'var(--color-teal-pill-bg)' },
+  { type: 'whiteboard', label: 'Доска',               hint: 'Рисунок на доске',      icon: PenLine,     color: 'var(--color-blue-pill-text)',   bg: 'var(--color-blue-pill-bg)' },
 ]
 
 function typeConfig(t: HWTaskType) {
@@ -313,7 +314,7 @@ function TaskCard({
                 </div>
 
                 {/* Choice options */}
-                {task.type === 'choice' && task.choices && (
+                {(task.type === 'single' || task.type === 'multi') && task.choices && (
                   <div>
                     <Label>Варианты ответа</Label>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -321,12 +322,18 @@ function TaskCard({
                         <div key={ci} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <button
                             onClick={() => {
-                              const correct = task.correctChoices ?? [0]
-                              const isCorrect = correct.includes(ci)
-                              onUpdate({ correctChoices: isCorrect ? correct.filter(x => x !== ci) : [...correct, ci] })
+                              if (task.type === 'single') {
+                                onUpdate({ correctChoices: [ci] })
+                              } else {
+                                const correct = task.correctChoices ?? [0]
+                                const isCorrect = correct.includes(ci)
+                                onUpdate({ correctChoices: isCorrect ? correct.filter(x => x !== ci) : [...correct, ci] })
+                              }
                             }}
                             style={{
-                              width: 22, height: 22, borderRadius: 6, border: '2px solid',
+                              width: 22, height: 22,
+                              borderRadius: task.type === 'single' ? '50%' : 6,
+                              border: '2px solid',
                               borderColor: (task.correctChoices ?? []).includes(ci) ? 'var(--color-accent)' : 'var(--color-border)',
                               background: (task.correctChoices ?? []).includes(ci) ? 'var(--color-accent)' : 'transparent',
                               cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -369,7 +376,7 @@ function TaskCard({
                 )}
 
                 {/* Match pairs */}
-                {task.type === 'match' && task.pairs && (
+                {task.type === 'matching' && task.pairs && (
                   <div>
                     <Label>Пары для сопоставления</Label>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -450,7 +457,7 @@ function TaskCard({
                 })()}
 
                 {/* Table builder */}
-                {task.type === 'table' && (
+                {task.type === 'tableFill' && (
                   <div>
                     <Label>Таблица — нажмите «Вписать» в ячейках, куда ученик пишет ответ</Label>
                     <TableEditor
@@ -471,13 +478,13 @@ function TaskCard({
                   </div>
                 )}
 
-                {/* Answer (for text/fill) */}
-                {(task.type === 'text' || task.type === 'fill') && (
+                {/* Answer (for extended/fill) */}
+                {(task.type === 'extended' || task.type === 'fill') && (
                   <div>
                     <input
                       value={task.answer}
                       onChange={e => updateAnswer(e.target.value)}
-                      placeholder={task.type === 'fill' ? 'Эталонный ответ...' : 'Эталонный ответ...'}
+                      placeholder="Эталонный ответ..."
                       style={inputStyle}
                     />
                   </div>
@@ -494,12 +501,13 @@ function TaskCard({
 // ─── Right panel: task type picker (shown on compose tab) ─────────────────────
 
 const TASK_TYPE_DESCS: Record<HWTaskType, string> = {
-  text:       'Развёрнутый ответ',
-  choice:     'Один или несколько',
+  single:     'Один верный вариант',
+  multi:      'Несколько вариантов',
   fill:       'Слово / фраза',
-  match:      'Таблица А1 Б2 В3',
+  extended:   'Текст, рассуждение',
+  matching:   'Таблица А1 Б2 В3',
   sequence:   'Расставить порядок',
-  table:      'Заполнить таблицу',
+  tableFill:  'Ячейки с пропусками',
   whiteboard: 'Рисунок на доске',
 }
 
@@ -1003,7 +1011,7 @@ function PreviewTab({
                   {stripHtml(t.question) || <span style={{ color: 'var(--color-text-4)', fontStyle: 'italic' }}>Без текста</span>}
                 </div>
 
-                {t.type === 'choice' && t.choices && (
+                {(t.type === 'single' || t.type === 'multi') && t.choices && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8 }}>
                     {t.choices.map((ch, ci) => (
                       <div key={ci} style={{
@@ -1024,7 +1032,7 @@ function PreviewTab({
                   </div>
                 )}
 
-                {t.type === 'match' && t.pairs && (
+                {t.type === 'matching' && t.pairs && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8 }}>
                     {t.pairs.map((p, pi) => (
                       <div key={pi} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1040,7 +1048,7 @@ function PreviewTab({
                   </div>
                 )}
 
-                {(t.type === 'text' || t.type === 'fill') && (
+                {(t.type === 'extended' || t.type === 'fill') && (
                   <button
                     onClick={() => toggleAnswer(t.id)}
                     style={{
@@ -1220,7 +1228,7 @@ function HardTaskAccordion({
   }
 
   function handleAddFromBank(bt: BankTask) {
-    onAdd('text')
+    onAdd('extended')
     const task = taskFromBank(bt)
     onUpdate(task.id, task)
     setAddedIds(prev => new Set(prev).add(bt.id))

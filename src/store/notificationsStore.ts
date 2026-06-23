@@ -16,6 +16,7 @@ export type NotifType =
   | 'hw_graded'
   | 'hw_submitted'
   | 'test_assigned'
+  | 'test_completed'
   | 'payment_due'
   | 'fill_journal'
 

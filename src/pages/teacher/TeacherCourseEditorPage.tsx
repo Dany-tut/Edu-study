@@ -23,7 +23,7 @@ import { supabase } from '../../lib/supabase'
 
 type LessonMode = 'recording' | 'lesson' | 'homework' | 'students'
 
-type HWTaskType = 'text' | 'choice' | 'fill' | 'match' | 'whiteboard' | 'table' | 'sequence'
+type HWTaskType = 'single' | 'multi' | 'fill' | 'extended' | 'matching' | 'sequence' | 'tableFill' | 'whiteboard'
 
 interface HWTask {
   id: string
@@ -194,30 +194,32 @@ function ScrollFadeMask({ side, show }: { side: 'top' | 'bottom'; show: boolean 
 // Colours come from the shared per-type palette (taskTypeVisuals) so a given
 // concept looks identical here and in the trainer creator.
 const TASK_TYPES: { type: HWTaskType; label: string; hint: string; Icon: React.ElementType; color: string; bg: string }[] = [
-  { type: 'text',       label: 'Текстовый ответ', hint: 'Развёрнутый ответ',  Icon: AlignLeft,   ...typeVisual('text') },
-  { type: 'choice',     label: 'Выбор ответа',    hint: 'Один или несколько', Icon: CheckSquare, ...typeVisual('choice') },
-  { type: 'fill',       label: 'Вписать слово',   hint: 'Слово / фраза',      Icon: Type,        ...typeVisual('fill') },
-  { type: 'match',      label: 'Сопоставление',   hint: 'Таблица А1 Б2 В3',   Icon: Shuffle,     ...typeVisual('match') },
-  { type: 'sequence',   label: 'Последовательность', hint: 'Расставить порядок', Icon: ArrowUpDown, ...typeVisual('sequence') },
-  { type: 'table',      label: 'Таблица',          hint: 'Заполнить таблицу',  Icon: TableIcon,   ...typeVisual('table') },
-  { type: 'whiteboard', label: 'Доска',            hint: 'Рисунок на доске',   Icon: PenLine,     ...typeVisual('whiteboard') },
+  { type: 'single',    label: 'Один ответ',         hint: 'Один верный вариант',  Icon: CheckSquare, ...typeVisual('single') },
+  { type: 'multi',     label: 'Несколько верных',   hint: 'Несколько вариантов',  Icon: CheckSquare, ...typeVisual('multi') },
+  { type: 'fill',      label: 'Вписать ответ',      hint: 'Слово / фраза',        Icon: Type,        ...typeVisual('fill') },
+  { type: 'extended',  label: 'Развёрнутый ответ',  hint: 'Текст, рассуждение',   Icon: AlignLeft,   ...typeVisual('extended') },
+  { type: 'matching',  label: 'Сопоставление',      hint: 'Таблица А1 Б2 В3',     Icon: Shuffle,     ...typeVisual('matching') },
+  { type: 'sequence',  label: 'Последовательность', hint: 'Расставить порядок',   Icon: ArrowUpDown, ...typeVisual('sequence') },
+  { type: 'tableFill', label: 'Заполнить таблицу',  hint: 'Ячейки с пропусками',  Icon: TableIcon,   ...typeVisual('tableFill') },
+  { type: 'whiteboard',label: 'Доска',              hint: 'Рисунок на доске',     Icon: PenLine,     ...typeVisual('whiteboard') },
 ]
 
 const typeLabel: Record<HWTaskType, string> = {
-  text: 'Текстовый ответ', choice: 'Выбор ответа',
-  fill: 'Вписать слово', match: 'Сопоставление', whiteboard: 'Доска', table: 'Таблица',
-  sequence: 'Последовательность',
+  single: 'Один ответ', multi: 'Несколько верных',
+  fill: 'Вписать ответ', extended: 'Развёрнутый ответ',
+  matching: 'Сопоставление', sequence: 'Последовательность',
+  tableFill: 'Заполнить таблицу', whiteboard: 'Доска',
 }
 
 // Свежее задание с дефолтами по типу — общая фабрика для всех мест добавления.
 function makeHWTask(type: HWTaskType, isHard: boolean): HWTask {
   return {
     id: uid(), type, isHard, label: typeLabel[type],
-    choices: type === 'choice' ? ['', '', '', ''] : undefined,
-    correctChoices: type === 'choice' ? [0] : undefined,
-    pairs: type === 'match' ? [{ left: '', right: '' }, { left: '', right: '' }] : undefined,
+    choices: (type === 'single' || type === 'multi') ? ['', '', '', ''] : undefined,
+    correctChoices: type === 'single' ? [0] : type === 'multi' ? [0] : undefined,
+    pairs: type === 'matching' ? [{ left: '', right: '' }, { left: '', right: '' }] : undefined,
     sequenceItems: type === 'sequence' ? ['', ''] : undefined,
-    table: type === 'table' ? { headers: ['Заголовок 1', 'Заголовок 2'], rows: [['', ''], ['', '']] } : undefined,
+    table: type === 'tableFill' ? { headers: ['Заголовок 1', 'Заголовок 2'], rows: [['', ''], ['', '']] } : undefined,
   }
 }
 
@@ -227,9 +229,9 @@ function hwTaskFromBank(bt: BankTask, isHard: boolean): HWTask {
   const hasTable = !!bt.questionTable && bt.questionTable.headers.length > 0
   return {
     id: uid(),
-    type: hasTable ? 'table' : 'text',
+    type: hasTable ? 'tableFill' : 'extended',
     isHard,
-    label: hasTable ? typeLabel.table : typeLabel.text,
+    label: hasTable ? typeLabel.tableFill : typeLabel.extended,
     question: bt.question,
     answer: bt.answer,
     table: hasTable ? { headers: [...bt.questionTable!.headers], rows: bt.questionTable!.rows.map(r => [...r]) } : undefined,
@@ -1287,7 +1289,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
               )}
 
               {/* Choice options */}
-              {task.type === 'choice' && (
+              {(task.type === 'single' || task.type === 'multi') && (
                 <div>
                   <Label>Варианты ответа</Label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -1295,11 +1297,17 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                       <div key={ci} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <button
                           onClick={() => {
-                            const isCorrect = correctChoices.includes(ci)
-                            onUpdate({ ...task, correctChoices: isCorrect ? correctChoices.filter(x => x !== ci) : [...correctChoices, ci] })
+                            if (task.type === 'single') {
+                              onUpdate({ ...task, correctChoices: [ci] })
+                            } else {
+                              const isCorrect = correctChoices.includes(ci)
+                              onUpdate({ ...task, correctChoices: isCorrect ? correctChoices.filter(x => x !== ci) : [...correctChoices, ci] })
+                            }
                           }}
                           style={{
-                            width: 22, height: 22, borderRadius: 6, border: '2px solid',
+                            width: 22, height: 22,
+                            borderRadius: task.type === 'single' ? '50%' : 6,
+                            border: '2px solid',
                             borderColor: correctChoices.includes(ci) ? 'var(--color-green-text)' : 'var(--color-border)',
                             background: correctChoices.includes(ci) ? 'var(--color-green-text)' : 'transparent',
                             cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1338,7 +1346,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
               )}
 
               {/* Match pairs */}
-              {task.type === 'match' && (
+              {task.type === 'matching' && (
                 <div>
                   <Label>Пары для сопоставления</Label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -1411,7 +1419,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
               })()}
 
               {/* Table builder */}
-              {task.type === 'table' && (
+              {task.type === 'tableFill' && (
                 <div>
                   <Label>Таблица — нажмите «Вписать» в ячейках, куда ученик пишет ответ</Label>
                   <TableEditor
@@ -1438,8 +1446,8 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 </div>
               )}
 
-              {/* Answer for text / fill */}
-              {(task.type === 'text' || task.type === 'fill') && (
+              {/* Answer for extended / fill */}
+              {(task.type === 'extended' || task.type === 'fill') && (
                 <input
                   value={task.answer ?? ''}
                   onChange={e => onUpdate({ ...task, answer: e.target.value })}
@@ -1563,7 +1571,7 @@ function HomeworkLeftPanel({
   }
 
   // Сложные задания: развёрнутый ответ, выбор и доска (ребёнок рисует решение).
-  const hardTaskTypes = TASK_TYPES.filter(t => t.type === 'text' || t.type === 'choice' || t.type === 'whiteboard')
+  const hardTaskTypes = TASK_TYPES.filter(t => t.type === 'extended' || t.type === 'single' || t.type === 'multi' || t.type === 'whiteboard')
 
   return (
     <div style={{
