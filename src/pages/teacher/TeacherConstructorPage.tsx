@@ -3272,11 +3272,11 @@ function IconPickerField({ iconKey, onChange, accent }: {
   const searchRef = useRef<HTMLInputElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
 
-  // 7 quick-pick icons; current selection always included
+  // 6 quick-pick icons; current selection always included
   const quickPick = useMemo(() => {
-    const base = DEFAULT_ICON_KEYS.slice(0, 7)
+    const base = DEFAULT_ICON_KEYS.slice(0, 6)
     if (base.includes(iconKey)) return base
-    return [iconKey, ...base.slice(0, 6)]
+    return [iconKey, ...base.slice(0, 5)]
   }, [iconKey])
 
   const shownIcons = useMemo(() => {
@@ -3302,8 +3302,8 @@ function IconPickerField({ iconKey, onChange, accent }: {
 
   return (
     <div ref={wrapRef} style={{ position: 'relative' }}>
-      {/* Inline row: 7 quick-pick icons + chevron */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+      {/* Inline row: 6 quick-pick icons + chevron */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 3, overflow: 'hidden' }}>
         {quickPick.map(k => {
           const Ic = getIconByKey(k)
           const sel = iconKey === k
@@ -4878,10 +4878,13 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                     options={allStudents.map(s => ({ value: s.id, label: s.name }))} />
                 )}
 
+                {/* Chip picker */}
+                <div style={{ height: 1, background: 'var(--color-bg-3)', borderRadius: 1, margin: '2px 0' }} />
+                <ChipPicker value={chipState} onChange={handleChipChange} fallbackAccent={accent} />
+                <div style={{ height: 1, background: 'var(--color-bg-3)', borderRadius: 1, margin: '2px 0' }} />
+
                 {/* Due date + time */}
-                <div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 }}>Срок (необязательно)</div>
-                  <div style={{ display: 'flex', gap: 6 }}>
+                <div style={{ display: 'flex', gap: 6 }}>
                     {/* Calendar trigger */}
                     <div style={{ position: 'relative', flex: 1 }}>
                       <button onClick={() => { setCalOpen(o => !o); setTimeOpen(false) }}
@@ -4906,7 +4909,6 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                       </AnimatePresence>
                     </div>
                   </div>
-                </div>
 
                 <button onClick={handleAssign} disabled={saving || !canAssign}
                   style={{ padding: '10px', borderRadius: 11, border: 'none', background: canAssign ? accent : 'var(--color-bg-5)', color: canAssign ? '#fff' : 'var(--color-text-3)', fontSize: 13, fontWeight: 700, cursor: canAssign ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'all 0.13s' }}>
