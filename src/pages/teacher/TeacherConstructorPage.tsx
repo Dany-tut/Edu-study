@@ -4205,7 +4205,7 @@ function DiagResultsTable({
           </div>
         </div>
         <button onClick={onRefresh} style={{ padding: '6px 12px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 12, fontWeight: 600 }}>↻</button>
-        <button onClick={copyLink} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : soft, color: copied ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700 }}>
+        <button onClick={copyLink} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : accent, color: copied ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700 }}>
           {copied ? <Check size={13} /> : <Link2 size={13} />}
           {copied ? 'Скопировано!' : 'Ссылка'}
         </button>
@@ -4419,7 +4419,7 @@ function DiagResultStudentPanel({
             ) : (
               <button
                 onClick={() => setPickerOpen(true)}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '12px', borderRadius: 14, border: `1.5px dashed ${accent}55`, cursor: 'pointer', background: soft, color: '#fff', fontSize: 13, fontWeight: 700 }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '12px', borderRadius: 14, border: `1.5px dashed ${accent}55`, cursor: 'pointer', background: accent, color: '#fff', fontSize: 13, fontWeight: 700 }}
               >
                 <GraduationCap size={15} /> Назначить ученика
               </button>
@@ -6181,11 +6181,12 @@ function CustomTestCard({ test, isSelected, onClick }: { test: CustomTest; isSel
   const [qCount, setQCount] = useState(0)
   const [anonCount, setAnonCount] = useState(0)
   useEffect(() => { loadAnonResults().then(all => { setAnonCount(all.filter(r => r.subject === test.id).length); setQCount(loadDiagQuestions(test.id as DiagSubject).length) }) }, [test.id])
+  const CardIcon = (test.iconKey ? getIconByKey(test.iconKey) : null) as React.ElementType | null
   return (
     <ContentCard
       accentColor={accent} accentBg={soft} borderColor='var(--color-border-glass)'
       isSelected={isSelected} onClick={onClick}
-      icon={<FileText size={17} strokeWidth={2} style={{ color: accent }} />}
+      icon={CardIcon ? <CardIcon size={17} strokeWidth={2} style={{ color: accent }} /> : <FileText size={17} strokeWidth={2} style={{ color: accent }} />}
       badge={<span style={{ fontSize: 10, fontWeight: 700, color: accent, background: soft, borderRadius: 7, padding: '2px 8px' }}>Свой тест</span>}
       title={label}
       subtitle={qCount > 0 ? `${qCount} вопросов` : 'Нет вопросов'}
