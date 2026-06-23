@@ -120,8 +120,8 @@ function DiagDoneScreen({ accentColor, onBack }: { accentColor: string; onBack: 
         <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 12 }}>
           Молодец! Ты справился 🎉
         </div>
-        <div style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.6, marginBottom: 28 }}>
-          Результаты сохранены — отправлены преподавателю, он ознакомится с ними и свяжется с тобой )
+        <div style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.6, marginBottom: 28, maxWidth: 300 }}>
+          Результаты сохранены и отправлены преподавателю — он ознакомится с ними и свяжется с тобой :)
         </div>
 
       </motion.div>
@@ -456,12 +456,13 @@ export default function DiagnosticTestPage() {
                 const isCorrect = q.correct === idx
                 const showResult = picked !== undefined && !isLinkMode
 
+                const PICK_COLOR = '#786AD7'
                 let borderColor = 'var(--color-border-medium)'
                 if (showResult) {
                   if (isCorrect) borderColor = '#22c55e'
                   else if (isChosen) borderColor = '#ef4444'
                 } else if (isChosen) {
-                  borderColor = theme.accent
+                  borderColor = PICK_COLOR
                 }
 
                 return (
@@ -485,17 +486,17 @@ export default function DiagnosticTestPage() {
                       width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
                       border: `2px solid ${showResult
                         ? isCorrect ? '#22c55e' : isChosen ? '#ef4444' : 'var(--color-border-medium)'
-                        : isChosen ? theme.accent : 'var(--color-border-medium)'
+                        : isChosen ? PICK_COLOR : 'var(--color-border-medium)'
                       }`,
                       background: showResult
                         ? isCorrect ? '#22c55e' : isChosen ? '#ef4444' : 'transparent'
-                        : isChosen ? theme.accent : 'transparent',
+                        : isChosen ? PICK_COLOR : 'transparent',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: 11, fontWeight: 700,
                       color: showResult
                         ? (isCorrect || isChosen ? '#fff' : 'var(--color-muted)')
-                        : isChosen ? getContrastColor(theme.accent) : 'var(--color-muted)',
-                      boxShadow: !showResult && isChosen ? getCircleShadow(theme.accent) : 'none',
+                        : isChosen ? '#fff' : 'var(--color-muted)',
+                      boxShadow: !showResult && isChosen ? getCircleShadow(PICK_COLOR) : 'none',
                       transition: 'all 0.2s',
                     }}>
                       {'АБВГ'[idx]}
