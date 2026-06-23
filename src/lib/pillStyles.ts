@@ -52,6 +52,28 @@ export function pill(tone: PillTone, extra?: CSSProperties): CSSProperties {
   }
 }
 
+/**
+ * Canonical small card badge — the chip in the corner of cards
+ * (status, type, count, line №, AI/Диагностика, "лин." …).
+ * One geometry everywhere: fontSize 10 / weight 700 / radius 7 / pad 2×8.
+ * Pass explicit colours (accent hex, CSS var, or a PAIR via cardChipTone).
+ * `<span style={cardChip({ bg, color })}>…</span>`
+ */
+export function cardChip(colors: { bg: string; color: string }, extra?: CSSProperties): CSSProperties {
+  return {
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    padding: '2px 8px', borderRadius: 7,
+    fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap', lineHeight: 1.4,
+    background: colors.bg, color: colors.color,
+    ...extra,
+  }
+}
+
+/** cardChip keyed by a PillTone family. `style={cardChipTone('red')}` */
+export function cardChipTone(tone: PillTone, extra?: CSSProperties): CSSProperties {
+  return cardChip(PAIR[tone], extra)
+}
+
 /** A square icon-tile: `<div style={tile('purple')}>…</div>` */
 export function tile(tone: PillTone, size = 36, extra?: CSSProperties): CSSProperties {
   return {

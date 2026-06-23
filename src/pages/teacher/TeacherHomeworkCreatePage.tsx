@@ -523,14 +523,14 @@ function ComposeTypePanel({ onAdd, onAddHard }: { onAdd: (type: HWTaskType) => v
       exit={{ x: 320, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 380, damping: 34, mass: 0.8 }}
       style={{
-        width: 220, flexShrink: 0,
+        width: 240, flexShrink: 0,
         background: 'rgba(var(--glass-rgb), 0.88)',
         backdropFilter: 'blur(20px) saturate(180%)',
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
         border: '1px solid var(--color-border-glass)',
         borderRadius: 18,
         boxShadow: 'var(--shadow-sm-page)',
-        padding: '16px 12px',
+        padding: '16px',
         display: 'flex', flexDirection: 'column', gap: 6,
         margin: '0 24px 20px 0',
       }}
@@ -1120,7 +1120,7 @@ function TrainerFilterPanel({
       exit={{ x: 320, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 380, damping: 34, mass: 0.8 }}
       style={{
-        width: 260, flexShrink: 0,
+        width: 240, flexShrink: 0,
         background: 'rgba(var(--glass-rgb), 0.88)',
         backdropFilter: 'blur(20px) saturate(180%)',
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
@@ -1884,7 +1884,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
 
   return (
     <div style={{
-      width: 260, flexShrink: 0,
+      width: 240, flexShrink: 0,
       display: 'flex', flexDirection: 'column', gap: 0,
     }}>
       <GlassCard style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>

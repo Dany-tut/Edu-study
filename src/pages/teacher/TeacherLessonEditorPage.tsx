@@ -991,7 +991,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
 
   return (
     <div style={{
-      width: 260, flexShrink: 0,
+      width: 240, flexShrink: 0,
       padding: 16, borderRadius: 18,
       background: 'rgba(var(--glass-rgb), 0.88)',
       backdropFilter: 'blur(16px) saturate(180%)',
@@ -1394,7 +1394,7 @@ export default function TeacherLessonEditorPage() {
         <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
 
           {/* Left meta panel — sticky so its fields stay visible while scrolling. */}
-          <div style={{ position: 'sticky', top: 108, flexShrink: 0 }}>
+          <div style={{ position: 'sticky', top: 20, flexShrink: 0 }}>
             <LeftPanel meta={meta} onChange={updateMeta} />
           </div>
 

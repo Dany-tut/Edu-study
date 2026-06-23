@@ -38,6 +38,7 @@ import { AP_LESSON_CONTENT } from '../../data/apChemistryLessons'
 import type { LessonContentData, LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from '../../data/lessonContent'
 import { useTeacher } from '../../store/teacherStore'
 import { useTheme } from '../../store/themeStore'
+import { cardChip, cardChipTone } from '../../lib/pillStyles'
 import { useTaskBank } from '../../store/taskBankStore'
 import { TrainerBankBrowser, TrainerBankFilterPanel, emptyTrainerFilters, type TrainerFilters } from '../../components/teacher/TrainerBank'
 import CurriculumManager from '../../components/teacher/CurriculumManager'
@@ -1124,7 +1125,7 @@ function CourseCard({ course, isSelected, onClick, actions, students, access }: 
       accentColor={COURSE_COLOR} accentBg={COURSE_BG} actions={actions}
       isSelected={isSelected} onClick={onClick}
       icon={<BookOpen size={17} strokeWidth={2} style={{ color: 'var(--color-purple-text)' }} />}
-      badge={<span style={{ fontSize: 10, fontWeight: 700, color: STATUS_COLOR[course.status], background: STATUS_BG[course.status], borderRadius: 7, padding: '2px 8px' }}>{STATUS_LABEL[course.status]}</span>}
+      badge={<span style={cardChip({ bg: STATUS_BG[course.status], color: STATUS_COLOR[course.status] })}>{STATUS_LABEL[course.status]}</span>}
       title={course.title}
       subtitle={`${course.subject} · ${course.level}`}
       footerLeft={
@@ -1154,7 +1155,7 @@ function TrainerCard({ trainer, isSelected, onClick }: { trainer: Trainer; isSel
       extra={trainer.questionIds && trainer.questionIds.length > 0 ? (
         <div style={{ marginTop: 5, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {trainer.questionIds.map(id => (
-            <span key={id} onClick={e => e.stopPropagation()} style={{ padding: '1px 7px', borderRadius: 999, background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 10, fontWeight: 800, userSelect: 'text', cursor: 'text' }}>№{id}</span>
+            <span key={id} onClick={e => e.stopPropagation()} style={cardChipTone('red', { userSelect: 'text', cursor: 'text' })}>№{id}</span>
           ))}
         </div>
       ) : undefined}
@@ -1171,7 +1172,7 @@ function WidgetCard({ widget, isSelected, onClick, actions }: { widget: Widget; 
       accentColor={WTYPE_COLOR[widget.type]} accentBg={WTYPE_BG[widget.type]} actions={actions}
       isSelected={isSelected} onClick={onClick}
       icon={<TypeIcon size={17} strokeWidth={2} style={{ color: WTYPE_COLOR[widget.type] }} />}
-      badge={<span style={{ fontSize: 10, fontWeight: 700, color: WTYPE_COLOR[widget.type], background: WTYPE_BG[widget.type], borderRadius: 7, padding: '2px 8px' }}>{WTYPE_LABEL[widget.type]}</span>}
+      badge={<span style={cardChip({ bg: WTYPE_BG[widget.type], color: WTYPE_COLOR[widget.type] })}>{WTYPE_LABEL[widget.type]}</span>}
       title={widget.title}
       subtitle={`${widget.items.length} элементов`}
       footerLeft={
@@ -4719,7 +4720,7 @@ function DiagTimePicker({ value, onChange, onClose, anchorRef, accent = 'var(--c
     <motion.div ref={containerRef} initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }} transition={{ duration: 0.15 }}
       style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 4000, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', overflow: 'hidden' }}>
       <div style={{ padding: 6, borderBottom: '1px solid var(--color-border)' }}>
-        <input autoFocus value={manual} onChange={e => setManual(e.target.value)}
+        <input autoFocus value={manual} onChange={e => { const d = e.target.value.replace(/\D/g, '').slice(0, 4); setManual(d.length <= 2 ? d : `${d.slice(0, 2)}:${d.slice(2)}`) }}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commitManual() } else if (e.key === 'Escape') onClose() }}
           onBlur={commitManual} placeholder="чч:мм"
           style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text)', padding: '7px 10px', borderRadius: 9, fontSize: 13, fontWeight: 600, fontFamily: 'inherit', textAlign: 'center', letterSpacing: 0.5 }} />
@@ -6489,6 +6490,7 @@ function ChipPicker({ value, onChange, fallbackAccent }: { value: string; onChan
   const [adding, setAdding] = useState(false)
   const [custom, setCustom] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+  const dark = useTheme(s => s.dark)
   useEffect(() => { if (adding) inputRef.current?.focus() }, [adding])
 
   const allChips = [...PRESET_CHIPS.map(c => c.label)]
@@ -6497,7 +6499,7 @@ function ChipPicker({ value, onChange, fallbackAccent }: { value: string; onChan
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
       {allChips.map(chip => {
-        const { color, bg } = getChipStyle(chip, fallbackAccent)
+        const { color, bg } = getChipStyle(chip, fallbackAccent, dark)
         const active = chip === value
         return (
           <button
@@ -6561,7 +6563,7 @@ function DiagnosticCard({ subject, isSelected, onClick, chipOverride }: { subjec
       accentColor={accent} accentBg={accent + '14'} borderColor='var(--color-border-glass)'
       isSelected={isSelected} onClick={onClick}
       icon={<Icon size={17} strokeWidth={2} style={{ color: accent }} />}
-      badge={<span style={{ fontSize: 10, fontWeight: 700, color: chipColor, background: chipBg, borderRadius: 7, padding: '2px 8px' }}>{chip}</span>}
+      badge={<span style={cardChip({ bg: chipBg, color: chipColor })}>{chip}</span>}
       title={label}
       subtitle={subject === 'logic' ? `${loadScreeningConfig().order.length} доменов` : `${questions.length} вопросов`}
       footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount > 0 ? `${anonCount} прошли тест` : 'Нет сдач'}</span></>}
@@ -6588,7 +6590,7 @@ function CustomTestCard({ test, isSelected, onClick }: { test: CustomTest; isSel
       accentColor={accent} accentBg={soft} borderColor='var(--color-border-glass)'
       isSelected={isSelected} onClick={onClick}
       icon={CardIcon ? <CardIcon size={17} strokeWidth={2} style={{ color: accent }} /> : <FileText size={17} strokeWidth={2} style={{ color: accent }} />}
-      badge={<span style={{ fontSize: 10, fontWeight: 700, color: chipColor, background: chipBg, borderRadius: 7, padding: '2px 8px' }}>{chip}</span>}
+      badge={<span style={cardChip({ bg: chipBg, color: chipColor })}>{chip}</span>}
       title={label}
       subtitle={qCount > 0 ? `${qCount} вопросов` : 'Нет вопросов'}
       footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount > 0 ? `${anonCount} прошли тест` : 'Нет сдач'}</span></>}

@@ -439,7 +439,6 @@ function ReminderGroupStack({ items, getAction, isDone }: {
             <div style={{
               position: 'absolute', bottom: 0, left: 18, right: 18, height: 50,
               background: ghostBg, borderRadius: 12,
-              filter: 'blur(5px)',
               boxShadow: '0 4px 16px rgba(0,0,0,0.22)',
               border: '1px solid rgba(255,255,255,0.12)', zIndex: 1,
             }} />
@@ -449,7 +448,6 @@ function ReminderGroupStack({ items, getAction, isDone }: {
             bottom: behind >= 2 ? 13 : 0,
             left: 9, right: 9, height: 50,
             background: ghostBg, borderRadius: 12,
-            filter: 'blur(0.8px)',
             boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
             border: '1px solid rgba(255,255,255,0.16)', zIndex: 2,
           }} />
@@ -475,7 +473,8 @@ function ReminderGroupStack({ items, getAction, isDone }: {
             <div style={{
               position: 'absolute', top: '50%', right: 10,
               transform: 'translateY(-50%)',
-              background: accentColor, color: 'rgba(0,0,0,0.72)',
+              background: accentColor + '33', color: accentColor,
+              border: `1.5px solid ${accentColor}66`,
               borderRadius: 12, padding: '4px 11px',
               fontSize: 12, fontWeight: 750, lineHeight: 1.4,
               pointerEvents: 'none',

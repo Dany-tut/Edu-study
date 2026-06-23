@@ -15,6 +15,7 @@ import { useTaskBank } from '../../store/taskBankStore'
 import { useTeacher } from '../../store/teacherStore'
 import { useCurriculum } from '../../store/curriculumStore'
 import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
+import { cardChip, cardChipTone } from '../../lib/pillStyles'
 import MultiSelectField from '../MultiSelectField'
 
 // ─── Copyable №-badge (glass tooltip) ────────────────────────────────────────
@@ -29,7 +30,7 @@ function CopyableIdBadge({ id }: { id: number }) {
   return (
     <span onClick={copy} title="Скопировать номер"
       style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}>
-      <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 800, background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>№{id}</span>
+      <span style={cardChipTone('red')}>№{id}</span>
       <AnimatePresence>
         {tipped && (
           <motion.span key="tip"
@@ -78,7 +79,7 @@ function CopyableLineBadge({ line, accent, accentBg }: { line: number; accent: s
   return (
     <span onClick={copy} title="Скопировать линию"
       style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}>
-      <span style={{ fontSize: 10, fontWeight: 700, color: accent, background: accentBg, borderRadius: 7, padding: '2px 8px' }}>
+      <span style={cardChip({ bg: accentBg, color: accent })}>
         {line} лин.
       </span>
       <AnimatePresence>
@@ -274,8 +275,8 @@ export function BankQuestionCard({
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
             <CopyableIdBadge id={task.id} />
-            <span style={{ padding: '2px 6px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>{task.line} лин.</span>
-            {dirty && <span style={{ padding: '2px 6px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' }}>изм.</span>}
+            <span style={cardChipTone('neutral')}>{task.line} лин.</span>
+            {dirty && <span style={cardChipTone('purple')}>изм.</span>}
           </div>
           <p style={{ flex: 1, minWidth: 0, margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {task.question.split('\n')[0] || <span style={{ color: 'var(--color-text-4)' }}>Без текста</span>}
@@ -302,10 +303,10 @@ export function BankQuestionCard({
               <span style={{ fontSize: 11, fontWeight: 700, color: accent }}>Вопрос {index + 1}</span>
               <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
               <CopyableIdBadge id={task.id} />
-              <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>{task.line} линия</span>
-              <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
-              <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: accentBg, color: accent }}>{computedMax} {plBall(computedMax)}</span>
-              {dirty && <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' }}>изменено</span>}
+              <span style={cardChipTone('neutral')}>{task.line} линия</span>
+              <span style={cardChipTone('neutral')}>Часть {task.part}</span>
+              <span style={cardChip({ bg: accentBg, color: accent })}>{computedMax} {plBall(computedMax)}</span>
+              {dirty && <span style={cardChipTone('purple')}>изменено</span>}
             </div>
             <p style={{ fontSize: 14.5, lineHeight: 1.4, fontWeight: 650, color: 'var(--color-text)', margin: 0, whiteSpace: 'pre-wrap' }}>
               {question || <span style={{ color: 'var(--color-text-4)' }}>Без текста</span>}
