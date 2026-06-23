@@ -4878,11 +4878,6 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                     options={allStudents.map(s => ({ value: s.id, label: s.name }))} />
                 )}
 
-                {/* Chip picker */}
-                <div style={{ height: 1, background: 'var(--color-bg-3)', borderRadius: 1, margin: '2px 0' }} />
-                <ChipPicker value={chipState} onChange={handleChipChange} fallbackAccent={accent} />
-                <div style={{ height: 1, background: 'var(--color-bg-3)', borderRadius: 1, margin: '2px 0' }} />
-
                 {/* Due date + time */}
                 <div style={{ display: 'flex', gap: 6 }}>
                     {/* Calendar trigger */}
@@ -6087,7 +6082,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `1.5px solid ${editCorrect === oi ? accent + '88' : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
                                   <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: editCorrect === oi ? getContrastColor(accent) : 'var(--color-text-2)', flexShrink: 0 }}>{String.fromCharCode(65 + oi)}</div>
                                   <input value={opt} onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o) }}
-                                    style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />
+                                    style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: editCorrect === oi ? getContrastColor(accent) : 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />
                                 </div>
                               </div>
                             ))}
@@ -6098,7 +6093,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 4 }}>
                       <button onClick={() => setEditIdx(null)} style={{ padding: '10px 20px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Отмена</button>
                       <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={commitEdit}
-                        style={{ padding: '10px 24px', borderRadius: 12, border: 'none', background: accent, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'inherit' }}>
+                        style={{ padding: '10px 24px', borderRadius: 12, border: 'none', background: accent, color: getContrastColor(accent), fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'inherit' }}>
                         <Check size={15} strokeWidth={2.5} /> Сохранить вопрос
                       </motion.button>
                     </div>
