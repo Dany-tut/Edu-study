@@ -138,9 +138,12 @@ export const useNotificationsStore = create<State>()((set, get) => ({
   },
 
   markAllRead: () => {
-    set(state => ({
-      notifications: state.notifications.map(n => ({ ...n, read: true })),
-    }))
+    set(state => {
+      const updated = state.notifications.map(n => ({ ...n, read: true }))
+      const localIds = updated.filter(n => n.id.startsWith('journal-')).map(n => n.id)
+      if (localIds.length) persistLocalRead(localIds)
+      return { notifications: updated }
+    })
     const rid = get().recipientId
     if (rid) void supabase.from('notifications').update({ read: true }).eq('recipient_id', rid).eq('read', false)
   },
@@ -154,17 +157,23 @@ export const useNotificationsStore = create<State>()((set, get) => ({
   unreadCount: () => get().notifications.filter(n => !n.read).length,
 
   syncJournalNotifs: (items) => set(state => {
+    const prevById = new Map(
+      state.notifications.filter(n => n.type === 'fill_journal').map(n => [n.id, n])
+    )
     const kept = state.notifications.filter(n => n.type !== 'fill_journal')
-    const fresh: Notification[] = items.map(it => ({
-      id: `journal-${it.id}`,
-      type: 'fill_journal' as NotifType,
-      title: it.title,
-      body: it.body,
-      createdAt: Date.now(),
-      read: false,
-      live: false,
-      action: { label: 'Заполнить', page: '#/teacher/gradebook' },
-    }))
+    const fresh: Notification[] = items.map(it => {
+      const id = `journal-${it.id}`
+      return {
+        id,
+        type: 'fill_journal' as NotifType,
+        title: it.title,
+        body: it.body,
+        createdAt: prevById.get(id)?.createdAt ?? Date.now(),
+        read: prevById.get(id)?.read ?? false,
+        live: false,
+        action: { label: 'Заполнить', page: '#/teacher/gradebook' },
+      }
+    })
     return { notifications: [...fresh, ...kept] }
   }),
 }))

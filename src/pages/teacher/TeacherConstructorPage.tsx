@@ -2294,7 +2294,7 @@ function CreatorView({
             </motion.button>
 
             <div style={{
-              flexShrink: 1, minWidth: 0, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              flexShrink: 1, minWidth: 0, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               padding: '9px 16px', borderRadius: 999, ...dockGlass,
               fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
             }}>
@@ -4702,7 +4702,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, padding: '0 24px 48px' }}>
 
         {/* ── LEFT: assignment panel ── */}
-        <div style={{ width: 300, flexShrink: 0, position: 'sticky', top: 108, alignSelf: 'flex-start', maxHeight: 'calc(100vh - 128px)', overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ width: 300, flexShrink: 0, position: 'sticky', top: 65, alignSelf: 'flex-start', maxHeight: 'calc(100vh - 85px)', overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
           {/* 3-mode card */}
           <GlassCard style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -5003,7 +5003,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
           </div>
 
           {/* Question list — sticky on the right */}
-          <div style={{ width: 220, flexShrink: 0, position: 'sticky', top: 108, alignSelf: 'flex-start', height: 'calc(100vh - 128px)' }}>
+          <div style={{ width: 260, flexShrink: 0, position: 'sticky', top: 65, alignSelf: 'flex-start', height: 'calc(100vh - 85px)' }}>
             <GlassCard style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 4, height: '100%', overflowY: 'auto', overscrollBehavior: 'contain' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', padding: '2px 4px 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {questions.length} вопросов

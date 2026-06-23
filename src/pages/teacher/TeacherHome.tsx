@@ -35,6 +35,7 @@ function Card({
         borderRadius: 24,
         boxShadow: '0 4px 24px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.15)',
         padding: 20,
+        overflow: 'hidden',
         ...style,
       }}
     >
@@ -728,7 +729,7 @@ function RemindersScroll({ reminders, reminderAction, reminderDone, allStudents,
       ref={scrollRef}
       onScroll={handleScroll}
       style={{
-        position: 'absolute', inset: 0, overflowY: 'auto', scrollbarGutter: 'stable',
+        position: 'absolute', inset: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable',
         display: 'flex', flexDirection: 'column', gap: 7,
         maskImage: mask, WebkitMaskImage: mask,
         paddingBlock: 8,
