@@ -828,24 +828,44 @@ export async function saveDiagQuestions(subject: DiagSubject, qs: DiagQuestion[]
 
 // ── Custom test metadata (cross-device, Supabase-backed) ──────────────────────
 
-export interface CustomTestMeta { id: string; label: string; accent: string; iconKey?: string }
+export interface CustomTestMeta { id: string; label: string; accent: string; iconKey?: string; chip?: string }
 
 export async function fetchCustomTestsMeta(): Promise<CustomTestMeta[]> {
   const { data, error } = await supabase
     .from('custom_diag_tests')
-    .select('id, label, accent, icon_key')
+    .select('id, label, accent, icon_key, chip')
     .order('created_at', { ascending: false })
   if (error) { console.error('fetchCustomTestsMeta:', error); return [] }
-  return (data ?? []).map((r: { id: string; label: string; accent: string; icon_key?: string }) => ({
-    id: r.id, label: r.label, accent: r.accent, iconKey: r.icon_key ?? undefined,
+  return (data ?? []).map((r: { id: string; label: string; accent: string; icon_key?: string; chip?: string }) => ({
+    id: r.id, label: r.label, accent: r.accent, iconKey: r.icon_key ?? undefined, chip: r.chip ?? 'Диагностика',
   }))
 }
 
-export async function saveCustomTestMeta(id: string, label: string, accent: string, iconKey?: string): Promise<void> {
+export async function saveCustomTestMeta(id: string, label: string, accent: string, iconKey?: string, chip?: string): Promise<void> {
   const { error } = await supabase
     .from('custom_diag_tests')
-    .upsert({ id, label, accent, ...(iconKey ? { icon_key: iconKey } : {}) }, { onConflict: 'id' })
+    .upsert({ id, label, accent, ...(iconKey ? { icon_key: iconKey } : {}), ...(chip ? { chip } : {}) }, { onConflict: 'id' })
   if (error) { console.error('saveCustomTestMeta:', error); throw new Error(error.message) }
+}
+
+export async function updateCustomTestChip(id: string, chip: string): Promise<void> {
+  const { error } = await supabase.from('custom_diag_tests').update({ chip }).eq('id', id)
+  if (error) console.error('updateCustomTestChip:', error)
+}
+
+// Chip label for built-in diagnostic subjects (stored in localStorage)
+export function loadBuiltinChip(subject: string): string {
+  try {
+    const map = JSON.parse(localStorage.getItem('diagBuiltinChips') ?? '{}')
+    return map[subject] ?? 'Диагностика'
+  } catch { return 'Диагностика' }
+}
+export function saveBuiltinChip(subject: string, chip: string): void {
+  try {
+    const map = JSON.parse(localStorage.getItem('diagBuiltinChips') ?? '{}')
+    map[subject] = chip
+    localStorage.setItem('diagBuiltinChips', JSON.stringify(map))
+  } catch { /* ignore */ }
 }
 
 export async function deleteCustomTestMeta(id: string): Promise<void> {

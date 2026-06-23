@@ -23,7 +23,8 @@ import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagQuestions,
   loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult,
   createTestAssignment, loadTestAssignments, deleteTestAssignment, loadAssignmentResults,
-  fetchCustomTestsMeta, saveCustomTestMeta, deleteCustomTestMeta, updateCustomTestAccent, updateCustomTestIcon,
+  fetchCustomTestsMeta, saveCustomTestMeta, deleteCustomTestMeta, updateCustomTestAccent, updateCustomTestIcon, updateCustomTestChip,
+  loadBuiltinChip, saveBuiltinChip,
   type DiagQuestion, type DiagSubject, type AnonDiagResult, type TestAssignment,
   type CustomTestMeta,
   DEFAULT_QUESTIONS,
@@ -4559,14 +4560,17 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   assignments: TestAssignment[]
   onAssign: (a: Omit<TestAssignment, 'id' | 'createdAt'>) => void
   onDeleteAssignment: (id: string) => void
+  initialChip?: string
   onColorChange?: (hex: string) => void
   onIconChange?: (iconKey: string) => void
   onLabelChange?: (newLabel: string) => void
+  onChipChange?: (chip: string) => void
 }>(function DiagnosticEditorFullPage({
   subject, onClose,
   groups, allStudents,
   assignments, onAssign, onDeleteAssignment,
-  onColorChange, onIconChange, onLabelChange,
+  initialChip,
+  onColorChange, onIconChange, onLabelChange, onChipChange,
 }, ref) {
   const initialMeta = getSubjectMeta(subject)
   const isCustomTest = CUSTOM_META.has(subject)
@@ -4577,6 +4581,19 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   const label = labelState
   const [iconKeyState, setIconKeyState] = useState(CUSTOM_META.get(subject)?.iconKey ?? 'FileText')
   const Icon = getIconByKey(iconKeyState) as React.ElementType
+  const [chipState, setChipState] = useState(() =>
+    initialChip ?? (isCustomTest ? 'Свой тест' : loadBuiltinChip(subject))
+  )
+
+  function handleChipChange(chip: string) {
+    setChipState(chip)
+    if (isCustomTest) {
+      updateCustomTestChip(subject, chip)
+    } else {
+      saveBuiltinChip(subject, chip)
+    }
+    onChipChange?.(chip)
+  }
 
   function handleIconChange(key: string) {
     setIconKeyState(key)
@@ -4800,6 +4817,12 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
             {isCustomTest && (
               <IconPickerField iconKey={iconKeyState} onChange={handleIconChange} accent={accent} />
             )}
+
+            {/* Chip picker */}
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 6 }}>Тип теста</div>
+              <ChipPicker value={chipState} onChange={handleChipChange} fallbackAccent={accent} />
+            </div>
 
             {/* Mode tabs */}
             <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-3)' }}>
@@ -6180,12 +6203,85 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
   )
 }
 
+// ─── Chip helpers ─────────────────────────────────────────────────────────────
+const PRESET_CHIPS = [
+  { label: 'Диагностика',  color: '#7B3FCC', bg: '#EEDBFF' },
+  { label: 'Тестирование', color: '#1a6fa8', bg: '#dbeeff' },
+  { label: 'Пробник',      color: '#B87A10', bg: '#FFF0CC' },
+  { label: 'Контрольная',  color: '#C53030', bg: '#FFE1E4' },
+]
+function getChipStyle(chip: string, fallbackAccent?: string) {
+  const p = PRESET_CHIPS.find(c => c.label === chip)
+  if (p) return { color: p.color, bg: p.bg }
+  return { color: fallbackAccent ?? '#7B3FCC', bg: (fallbackAccent ?? '#7B3FCC') + '28' }
+}
+
+function ChipPicker({ value, onChange, fallbackAccent }: { value: string; onChange: (chip: string) => void; fallbackAccent?: string }) {
+  const [adding, setAdding] = useState(false)
+  const [custom, setCustom] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+  useEffect(() => { if (adding) inputRef.current?.focus() }, [adding])
+
+  const allChips = [...PRESET_CHIPS.map(c => c.label)]
+  if (value && !allChips.includes(value)) allChips.push(value)
+
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+      {allChips.map(chip => {
+        const { color, bg } = getChipStyle(chip, fallbackAccent)
+        const active = chip === value
+        return (
+          <button
+            key={chip}
+            onClick={() => onChange(chip)}
+            style={{
+              fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 7, cursor: 'pointer', border: 'none',
+              background: active ? bg : 'var(--color-bg-3)',
+              color: active ? color : 'var(--color-text-3)',
+              outline: active ? `2px solid ${color}` : 'none',
+              outlineOffset: -1,
+              transition: 'all 0.13s',
+            }}
+          >{chip}</button>
+        )
+      })}
+      {adding ? (
+        <input
+          ref={inputRef}
+          value={custom}
+          onChange={e => setCustom(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') { const t = custom.trim(); if (t) onChange(t); setAdding(false); setCustom('') }
+            if (e.key === 'Escape') { setAdding(false); setCustom('') }
+          }}
+          onBlur={() => { const t = custom.trim(); if (t) onChange(t); setAdding(false); setCustom('') }}
+          placeholder="Свой чип…"
+          style={{
+            fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 7, border: '1.5px solid var(--color-accent)',
+            background: 'var(--color-bg-2)', color: 'var(--color-text)', width: 90, outline: 'none', fontFamily: 'inherit',
+          }}
+        />
+      ) : (
+        <button
+          onClick={() => setAdding(true)}
+          style={{
+            fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 7, cursor: 'pointer',
+            border: '1.5px dashed var(--color-border-medium)', background: 'transparent', color: 'var(--color-muted)',
+          }}
+        >+ свой</button>
+      )}
+    </div>
+  )
+}
+
 // ─── Diagnostic Card ─────────────────────────────────────────────────────────
-function DiagnosticCard({ subject, isSelected, onClick }: { subject: DiagSubject; isSelected: boolean; onClick: () => void }) {
+function DiagnosticCard({ subject, isSelected, onClick, chipOverride }: { subject: DiagSubject; isSelected: boolean; onClick: () => void; chipOverride?: string }) {
   const { label, accent, soft } = getSubjectMeta(subject)
   const Icon = getSubjectIcon(subject)
   const [questions, setQuestions] = useState(() => loadDiagQuestions(subject))
   const [anonCount, setAnonCount] = useState(0)
+  const chip = chipOverride ?? loadBuiltinChip(subject)
+  const { color: chipColor, bg: chipBg } = getChipStyle(chip)
   useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
   useEffect(() => {
     loadAnonResults().then(all => setAnonCount(all.filter(r => r.subject === subject).length))
@@ -6195,7 +6291,7 @@ function DiagnosticCard({ subject, isSelected, onClick }: { subject: DiagSubject
       accentColor={accent} accentBg={accent + '14'} borderColor='var(--color-border-glass)'
       isSelected={isSelected} onClick={onClick}
       icon={<Icon size={17} strokeWidth={2} style={{ color: accent }} />}
-      badge={<span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-purple-text,var(--color-accent))', background: 'var(--color-purple-soft)', borderRadius: 7, padding: '2px 8px' }}>Диагностика</span>}
+      badge={<span style={{ fontSize: 10, fontWeight: 700, color: chipColor, background: chipBg, borderRadius: 7, padding: '2px 8px' }}>{chip}</span>}
       title={label}
       subtitle={subject === 'logic' ? `${loadScreeningConfig().order.length} доменов` : `${questions.length} вопросов`}
       footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount > 0 ? `${anonCount} прошли тест` : 'Нет сдач'}</span></>}
@@ -6211,12 +6307,14 @@ function CustomTestCard({ test, isSelected, onClick }: { test: CustomTest; isSel
   const [anonCount, setAnonCount] = useState(0)
   useEffect(() => { loadAnonResults().then(all => { setAnonCount(all.filter(r => r.subject === test.id).length); setQCount(loadDiagQuestions(test.id as DiagSubject).length) }) }, [test.id])
   const CardIcon = (test.iconKey ? getIconByKey(test.iconKey) : null) as React.ElementType | null
+  const chip = test.chip ?? 'Свой тест'
+  const { color: chipColor, bg: chipBg } = getChipStyle(chip, accent)
   return (
     <ContentCard
       accentColor={accent} accentBg={soft} borderColor='var(--color-border-glass)'
       isSelected={isSelected} onClick={onClick}
       icon={CardIcon ? <CardIcon size={17} strokeWidth={2} style={{ color: accent }} /> : <FileText size={17} strokeWidth={2} style={{ color: accent }} />}
-      badge={<span style={{ fontSize: 10, fontWeight: 700, color: accent, background: soft, borderRadius: 7, padding: '2px 8px' }}>Свой тест</span>}
+      badge={<span style={{ fontSize: 10, fontWeight: 700, color: chipColor, background: chipBg, borderRadius: 7, padding: '2px 8px' }}>{chip}</span>}
       title={label}
       subtitle={qCount > 0 ? `${qCount} вопросов` : 'Нет вопросов'}
       footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount > 0 ? `${anonCount} прошли тест` : 'Нет сдач'}</span></>}
@@ -6238,8 +6336,14 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
   const [anonResults, setAnonResults] = useState<AnonDiagResult[]>([])
   const [pickerFor, setPickerFor] = useState<string | null>(null)
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
+  const [chip, setChip] = useState(() => loadBuiltinChip(subject))
   const allStudents = useAllStudents()
   useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
+
+  function handleChipChange(newChip: string) {
+    setChip(newChip)
+    saveBuiltinChip(subject, newChip)
+  }
 
   // Group questions by section
   const sections = useMemo(() => {
@@ -6280,6 +6384,12 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
       >
         <PanelHeader title={label} accent={accent} accentBg={soft} Icon={Icon} onClose={onClose} />
         <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+          {/* Chip picker */}
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 6 }}>Тип теста</div>
+            <ChipPicker value={chip} onChange={handleChipChange} />
+          </div>
 
           {/* Action buttons */}
           <div style={{ display: 'flex', gap: 8 }}>
@@ -6472,6 +6582,9 @@ export default function TeacherConstructorPage() {
   const [diagEditing, setDiagEditing] = useState<string | null>(null)
   const [diagCreating, setDiagCreating] = useState(false)
   const [customTests, setCustomTests] = useState<CustomTest[]>([])
+  const [builtinChips, setBuiltinChips] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem('diagBuiltinChips') ?? '{}') } catch { return {} }
+  })
   const [selectedResultId, setSelectedResultId] = useState<string | null>(null)
   const [diagAnonResults, setDiagAnonResults] = useState<AnonDiagResult[]>([])
   const diagAllStudents = useAllStudents()
@@ -7093,6 +7206,7 @@ export default function TeacherConstructorPage() {
             ref={diagEditorRef}
             key={`diag-editor-${diagEditing}`}
             subject={diagEditing as DiagSubject}
+            initialChip={customTests.find(ct => ct.id === diagEditing)?.chip ?? builtinChips[diagEditing] ?? undefined}
             onClose={() => setDiagEditing(null)}
             groups={diagGroups}
             allStudents={diagAllStudents}
@@ -7115,6 +7229,13 @@ export default function TeacherConstructorPage() {
             }}
             onLabelChange={(newLabel) => {
               setCustomTests(prev => prev.map(ct => ct.id === diagEditing ? { ...ct, label: newLabel } : ct))
+            }}
+            onChipChange={(chip) => {
+              if (diagEditing && CUSTOM_META.has(diagEditing)) {
+                setCustomTests(prev => prev.map(ct => ct.id === diagEditing ? { ...ct, chip } : ct))
+              } else if (diagEditing) {
+                setBuiltinChips(prev => ({ ...prev, [diagEditing]: chip }))
+              }
             }}
           />
         ) : (
@@ -7337,6 +7458,7 @@ export default function TeacherConstructorPage() {
                       subject={subject}
                       isSelected={selectedId === subject}
                       onClick={() => editMode ? toggleCheck(subject) : selectedId === subject ? openDiagCard(subject) : selectDiagCard(subject)}
+                      chipOverride={builtinChips[subject]}
                     />
                     {editMode && (
                       <div onClick={() => toggleCheck(subject)} style={{
