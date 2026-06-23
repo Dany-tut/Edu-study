@@ -558,7 +558,7 @@ export default function DiagnosticTestPage() {
                   style={{
                     marginTop: 12, width: '100%', padding: '13px',
                     borderRadius: 14, border: 'none', cursor: 'pointer',
-                    background: theme.accent, color: '#fff',
+                    background: theme.accent, color: getContrastColor(theme.accent),
                     fontSize: 14, fontWeight: 700,
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                   }}

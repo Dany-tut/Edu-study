@@ -20,6 +20,7 @@ import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../stor
 import { useDashboard } from '../store/dashboardStore'
 import { useTrainerProgress } from '../store/trainerProgressStore'
 import { subjectTheme, PURPLE } from '../lib/theme'
+import { getContrastColor } from '../lib/utils'
 import { useTheme } from '../store/themeStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import MobileScreen from '../components/MobileScreen'
@@ -755,7 +756,7 @@ function SuggestBox({ section, lineNames, onPickLine, accent }: {
             <button key={n} onClick={() => onPickLine(`${n} · ${lineNames[n] ?? `Линия ${n}`}`)}
               style={{
                 padding: '4px 9px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: 'none',
-                background: accent, color: '#fff',
+                background: accent, color: getContrastColor(accent),
                 boxShadow: `0 2px 6px ${accent}44`,
                 transition: 'opacity 0.15s',
               }}

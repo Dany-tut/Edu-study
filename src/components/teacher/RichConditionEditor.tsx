@@ -57,16 +57,33 @@ const DEFAULT_INPUT_ST: React.CSSProperties = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+// Detects "question + lettered/bulleted options" paste pattern.
+// Returns null if the text doesn't look like a multi-choice block.
+export function parseSmartPaste(text: string): { question: string; options: string[] } | null {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+  // Matches: "• а) …", "- б. …", "а) …", "А) …", "a) …", "1) …"
+  const optRe = /^(?:[•\-\*]\s*)?(?:[а-яёa-zА-ЯЁA-Z\d][).]\s+)/
+  const optIdxs = lines.map((l, i) => (optRe.test(l) ? i : -1)).filter(i => i >= 0)
+  if (optIdxs.length < 2) return null
+  const firstOpt = optIdxs[0]
+  const question = lines.slice(0, firstOpt).join(' ').trim()
+  const options = lines.slice(firstOpt).map(l =>
+    l.replace(/^[•\-\*]\s*/, '').replace(/^[а-яёa-zA-ZА-ЯЁ\d][).]\s+/, '').trim()
+  ).filter(Boolean)
+  if (!question || options.length < 2) return null
+  return { question, options }
+}
+
 export default function RichConditionEditor({
-  value, onChange, inputSt, placeholder, autoGrow = false, minHeight = 120,
+  value, onChange, inputSt, placeholder, autoGrow = false, minHeight = 120, onSmartPaste,
 }: {
   value: string
   onChange: (html: string) => void
   inputSt?: React.CSSProperties
   placeholder?: string
-  // autoGrow: the editor expands with its content (no inner scroll, never clips).
   autoGrow?: boolean
   minHeight?: number
+  onSmartPaste?: (question: string, options: string[]) => void
 }) {
   const editorRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -173,6 +190,18 @@ export default function RichConditionEditor({
     }
     e.preventDefault()
     const text = e.clipboardData.getData('text/plain')
+    if (onSmartPaste) {
+      const parsed = parseSmartPaste(text)
+      if (parsed) {
+        if (editorRef.current) {
+          editorRef.current.innerHTML = parsed.question
+          lastHtmlRef.current = parsed.question
+          onChange(parsed.question)
+        }
+        onSmartPaste(parsed.question, parsed.options)
+        return
+      }
+    }
     document.execCommand('insertText', false, text)
     emit()
   }

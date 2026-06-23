@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, X, ChevronDown, ChevronUp, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, Bell, RotateCcw, Banknote, NotebookPen } from 'lucide-react'
 import { useNotificationsStore, type Notification } from '../store/notificationsStore'
+import { getContrastColor } from '../lib/utils'
 import type { NotifType } from '../store/notificationsStore'
 
 const ICON_MAP: Record<NotifType, React.ReactNode> = {
@@ -204,7 +205,7 @@ export default function NotificationToastContainer() {
               </div>
               {live.length > 1 && !expanded && (
                 <span style={{
-                  fontSize: 10, fontWeight: 700, color: '#fff', background: accent,
+                  fontSize: 10, fontWeight: 700, color: getContrastColor(accent), background: accent,
                   borderRadius: 99, padding: '2px 6px', flexShrink: 0,
                 }}>
                   +{live.length - 1}

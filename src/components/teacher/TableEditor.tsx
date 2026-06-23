@@ -1,6 +1,7 @@
 import { useState, useRef, useLayoutEffect } from 'react'
 import { Plus, Camera, X } from 'lucide-react'
 import { optimizePhoto } from '../../lib/imageOptim'
+import { getContrastColor } from '../../lib/utils'
 
 // ─── Shared table editor (Notion-style) ──────────────────────────────────────
 // Extracted from the trainer creator so the course constructor uses the exact
@@ -33,7 +34,7 @@ function InsertHandle({ accent, title, onClick, style }: {
       style={{ position: 'absolute', zIndex: 6, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', ...style }}
     >
       <div style={{
-        width: 18, height: 18, borderRadius: '50%', background: accent, color: '#fff',
+        width: 18, height: 18, borderRadius: '50%', background: accent, color: getContrastColor(accent),
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         boxShadow: '0 2px 8px rgba(0,0,0,0.28)', pointerEvents: 'none',
         opacity: h ? 1 : 0, transform: h ? 'scale(1)' : 'scale(0.6)',

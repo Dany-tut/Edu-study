@@ -8,6 +8,7 @@ import WhiteboardCanvas from './WhiteboardCanvas'
 import AnnotationLayer, { type Annotation } from './AnnotationLayer'
 import AnswerBody from './AnswerBody'
 import { optimizePhoto } from '../../lib/imageOptim'
+import { getContrastColor } from '../../lib/utils'
 import {
   type HardTaskStudentBlock, type HardTaskReviewBlock, type HardEvent, type HardSolution,
   mergeTaskEvents, taskStatus, hardTaskScore, lastSolutionOf, type HardTaskStatus,
@@ -212,7 +213,7 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
           </button>
         </div>
         <motion.button whileHover={{ y: has && !busy ? -1 : 0 }} whileTap={{ scale: 0.99 }} disabled={!has || busy} onClick={() => onSubmit({ answer: draft, photos, board })}
-          style={{ padding: '13px 22px', borderRadius: 16, border: 'none', background: has && !busy ? palette.accent : 'var(--color-bg-5)', color: '#fff', fontSize: 14, fontWeight: 750, cursor: has && !busy ? 'pointer' : 'default', minWidth: 200, boxShadow: has && !busy ? `0 6px 16px ${palette.ring}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          style={{ padding: '13px 22px', borderRadius: 16, border: 'none', background: has && !busy ? palette.accent : 'var(--color-bg-5)', color: has && !busy ? getContrastColor(palette.accent) : 'var(--color-text-3)', fontSize: 14, fontWeight: 750, cursor: has && !busy ? 'pointer' : 'default', minWidth: 200, boxShadow: has && !busy ? `0 6px 16px ${palette.ring}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <Send size={15} /> {busy ? 'Отправляю…' : 'Отправить решение'}
         </motion.button>
       </div>

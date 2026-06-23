@@ -5,6 +5,7 @@ import {
   Cloud, CloudOff, Loader2,
 } from 'lucide-react'
 import { useCurriculum } from '../../store/curriculumStore'
+import { getContrastColor } from '../../lib/utils'
 import type { Subject } from '../../data/taskBankData'
 
 // ── Reveal-on-right-hover ─────────────────────────────────────────────────────
@@ -104,7 +105,7 @@ function AddInline({ onAdd, placeholder, accent }: { onAdd: (v: string) => void;
         placeholder={placeholder}
         style={{ border: `1.5px solid ${accent}`, borderRadius: 999, padding: '5px 12px', outline: 'none', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', minWidth: 160 }} />
       <button onMouseDown={e => { e.preventDefault(); commit() }}
-        style={{ display: 'flex', background: accent, color: '#fff', border: 'none', borderRadius: 999, padding: 5, cursor: 'pointer' }}>
+        style={{ display: 'flex', background: accent, color: getContrastColor(accent), border: 'none', borderRadius: 999, padding: 5, cursor: 'pointer' }}>
         <Check size={13} strokeWidth={2.8} />
       </button>
     </span>

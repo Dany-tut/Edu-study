@@ -16,7 +16,7 @@ import {
   Calculator, Star, Lightbulb, Microscope, Music, Languages, Sigma,
 } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
-import RichConditionEditor from '../../components/teacher/RichConditionEditor'
+import RichConditionEditor, { parseSmartPaste } from '../../components/teacher/RichConditionEditor'
 import TableEditor from '../../components/teacher/TableEditor'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import {
@@ -813,7 +813,22 @@ function WidgetEditor({
 
           {(type === 'quiz' || type === 'qod') && (
             <>
-              <input value={qText} onChange={e => setQText(e.target.value)} placeholder="Вопрос…" style={inputSt} />
+              <input
+                value={qText}
+                onChange={e => setQText(e.target.value)}
+                placeholder="Вопрос…"
+                style={inputSt}
+                onPaste={e => {
+                  const text = e.clipboardData.getData('text/plain')
+                  const parsed = parseSmartPaste(text)
+                  if (parsed) {
+                    e.preventDefault()
+                    setQText(parsed.question)
+                    setQOpts(parsed.options.length >= 4 ? parsed.options : [...parsed.options, ...Array(Math.max(0, 4 - parsed.options.length)).fill('')])
+                    setQCorr(0)
+                  }
+                }}
+              />
               {qOpts.map((opt, oi) => (
                 <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <button onClick={() => setQCorr(oi)} style={{
@@ -2543,7 +2558,17 @@ function CreatorView({
             {/* 1 ─ Условие */}
             <div>
               <SectionHead>Условие задания</SectionHead>
-              <RichConditionEditor value={tkQuestion} onChange={setTkQuestion} inputSt={inputSt} />
+              <RichConditionEditor
+                value={tkQuestion}
+                onChange={setTkQuestion}
+                inputSt={inputSt}
+                onSmartPaste={(_q, opts) => {
+                  if (!isChoiceType) return
+                  setTkChoices(opts.length >= 2 ? opts : [...opts, ...Array(2 - opts.length).fill('')])
+                  setTkCorrect([0])
+                  setTkChoicePts(opts.map((_, i) => i === 0 ? 1 : 0))
+                }}
+              />
             </div>
 
             {/* image / table blocks — rendered in configurable order, each collapsible */}
