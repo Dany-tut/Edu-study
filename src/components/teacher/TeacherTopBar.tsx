@@ -318,7 +318,13 @@ export default function TeacherTopBar() {
           aria-label={collapsed ? 'Развернуть' : 'Свернуть'}
           style={{ width: 36, height: 44, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--color-muted)', background: 'none', border: 'none' }}
         >
-          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          <motion.span
+            animate={{ rotate: collapsed ? 0 : 180 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 24, mass: 0.8 }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <ChevronRight size={16} />
+          </motion.span>
         </motion.button>
       </div>
 

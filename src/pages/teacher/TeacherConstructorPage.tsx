@@ -3271,11 +3271,11 @@ function IconPickerField({ iconKey, onChange, accent }: {
   const searchRef = useRef<HTMLInputElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
 
-  // 5 quick-pick icons always visible in the row; current selection always included
+  // 7 quick-pick icons; current selection always included
   const quickPick = useMemo(() => {
-    const base = DEFAULT_ICON_KEYS.slice(0, 5)
+    const base = DEFAULT_ICON_KEYS.slice(0, 7)
     if (base.includes(iconKey)) return base
-    return [iconKey, ...base.slice(0, 4)]
+    return [iconKey, ...base.slice(0, 6)]
   }, [iconKey])
 
   const shownIcons = useMemo(() => {
@@ -3301,69 +3301,77 @@ function IconPickerField({ iconKey, onChange, accent }: {
 
   return (
     <div ref={wrapRef} style={{ position: 'relative' }}>
-      {/* Inline row: 5 quick-pick icons + chevron */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      {/* Inline row: 7 quick-pick icons + chevron */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
         {quickPick.map(k => {
           const Ic = getIconByKey(k)
+          const sel = iconKey === k
           return (
             <button key={k} onClick={() => { onChange(k); setOpen(false); setSearch('') }} title={k}
               style={{
-                width: 32, height: 32, borderRadius: 9, border: 'none', cursor: 'pointer',
+                width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                background: iconKey === k ? `${accent}22` : 'var(--color-bg-3)',
-                outline: iconKey === k ? `1.5px solid ${accent}` : '1.5px solid transparent',
-                color: iconKey === k ? accent : 'var(--color-text-3)',
-                transition: 'all 0.12s',
+                background: sel ? `${accent}28` : 'transparent',
+                color: sel ? accent : 'var(--color-text-3)',
+                transition: 'background 0.12s, color 0.12s',
               }}>
-              <Ic size={15} strokeWidth={2} />
+              <Ic size={14} strokeWidth={2} />
             </button>
           )
         })}
         <button onClick={() => setOpen(o => !o)} title="Все иконки"
           style={{
-            width: 32, height: 32, borderRadius: 9, border: 'none', cursor: 'pointer',
+            width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            background: open ? `${accent}18` : 'var(--color-bg-3)',
-            outline: open ? `1.5px solid ${accent}66` : '1.5px solid transparent',
+            background: 'transparent',
             color: open ? accent : 'var(--color-text-3)',
-            transition: 'all 0.12s',
+            transition: 'color 0.12s',
           }}>
-          {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
         </button>
       </div>
 
-      {/* Dropdown */}
-      {open && (
-        <div style={{
-          position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, zIndex: 50,
-          borderRadius: 12, background: 'var(--color-bg-3)',
-          border: `1.5px solid ${accent}55`, padding: '8px',
-          boxShadow: '0 6px 24px rgba(0,0,0,0.22)',
-        }}>
-          <div style={{ position: 'relative', marginBottom: 8 }}>
-            <Search size={12} style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)', pointerEvents: 'none' }} />
-            <input ref={searchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск иконки…"
-              style={{ width: '100%', boxSizing: 'border-box', padding: '7px 28px 7px 28px', borderRadius: 9, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
-            {search && (
-              <button onClick={() => setSearch('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: 0, fontSize: 15, lineHeight: 1 }}>×</button>
-            )}
-          </div>
-          <div style={{ maxHeight: 164, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, 30px)', gap: 4, scrollbarWidth: 'thin' as const }}>
-            {shownIcons.map(([name, Ic]) => (
-              <button key={name} onClick={() => { onChange(name); setOpen(false); setSearch('') }} title={name}
-                style={{
-                  width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.12s',
-                  background: iconKey === name ? `${accent}22` : 'var(--color-bg-2)',
-                  outline: iconKey === name ? `1.5px solid ${accent}` : '1px solid transparent',
-                  color: iconKey === name ? accent : 'var(--color-text-3)',
-                }}>
-                <Ic size={14} strokeWidth={2} />
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Animated dropdown */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
+            style={{
+              position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 6, zIndex: 50,
+              borderRadius: 14, padding: '8px',
+              background: 'rgba(var(--glass-rgb), 0.88)',
+              backdropFilter: 'blur(10px) saturate(140%)', WebkitBackdropFilter: 'blur(10px) saturate(140%)',
+              border: '1px solid var(--color-border-glass)',
+              boxShadow: '0 6px 18px rgba(0,0,0,0.10)',
+            }}>
+            <div style={{ position: 'relative', marginBottom: 8 }}>
+              <Search size={12} style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)', pointerEvents: 'none' }} />
+              <input ref={searchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск иконки…"
+                style={{ width: '100%', boxSizing: 'border-box', padding: '7px 28px 7px 28px', borderRadius: 9, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
+              {search && (
+                <button onClick={() => setSearch('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: 0, fontSize: 15, lineHeight: 1 }}>×</button>
+              )}
+            </div>
+            <div style={{ maxHeight: 164, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, 30px)', gap: 3, scrollbarWidth: 'thin' as const }}>
+              {shownIcons.map(([name, Ic]) => {
+                const sel = iconKey === name
+                return (
+                  <button key={name} onClick={() => { onChange(name); setOpen(false); setSearch('') }} title={name}
+                    style={{
+                      width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s, color 0.1s',
+                      background: sel ? `${accent}28` : 'transparent',
+                      color: sel ? accent : 'var(--color-text-3)',
+                    }}>
+                    <Ic size={14} strokeWidth={2} />
+                  </button>
+                )
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -4723,7 +4731,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, padding: '0 24px 48px' }}>
 
         {/* ── LEFT: assignment panel ── */}
-        <div style={{ width: 300, flexShrink: 0, position: 'sticky', top: 20, alignSelf: 'flex-start', maxHeight: 'calc(100vh - 60px)', overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ width: 300, flexShrink: 0, position: 'sticky', top: 20, alignSelf: 'flex-start', maxHeight: 'calc(100vh - 190px)', overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
           {/* 3-mode card */}
           <GlassCard style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -5024,7 +5032,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
           </div>
 
           {/* Question list — sticky on the right */}
-          <div style={{ width: 260, flexShrink: 0, position: 'sticky', top: 20, alignSelf: 'flex-start', height: 'calc(100vh - 60px)' }}>
+          <div style={{ width: 260, flexShrink: 0, position: 'sticky', top: 20, alignSelf: 'flex-start', height: 'calc(100vh - 190px)' }}>
             <GlassCard style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 4, height: '100%', overflowY: 'auto', overscrollBehavior: 'contain' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', padding: '2px 4px 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {questions.length} вопросов
@@ -6429,6 +6437,14 @@ export default function TeacherConstructorPage() {
         hydrateCustomMeta(tests)
         setCustomTests(tests)
       })
+
+      const channel = supabase
+        .channel('diag-results-live')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'diag_results' }, () => {
+          loadAnonResults().then(setDiagAnonResults)
+        })
+        .subscribe()
+      return () => { supabase.removeChannel(channel) }
     }
   }, [activeTab])
 

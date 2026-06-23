@@ -103,7 +103,7 @@ function DiagDoneScreen({ accentColor, onBack }: { accentColor: string; onBack: 
         style={{
           width: '100%', maxWidth: 420,
           borderRadius: 32,
-          background: 'var(--color-purple-soft)',
+          background: '#f0fdf4',
           padding: '36px 32px 32px',
           display: 'flex', flexDirection: 'column', alignItems: 'center',
           textAlign: 'center', gap: 0,
@@ -121,20 +121,9 @@ function DiagDoneScreen({ accentColor, onBack }: { accentColor: string; onBack: 
           Молодец! Ты справился 🎉
         </div>
         <div style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.6, marginBottom: 28 }}>
-          Результаты сохранены — преподаватель увидит их в своём кабинете и сможет помочь тебе с&nbsp;подготовкой.
+          Результаты сохранены — отправлены преподавателю, он ознакомится с ними и свяжется с тобой )
         </div>
 
-        <button
-          onClick={onBack}
-          style={{
-            width: '100%', padding: '14px', borderRadius: 16, border: 'none', cursor: 'pointer',
-            background: accentColor, color: '#fff', fontSize: 15, fontWeight: 700,
-            boxShadow: `0 6px 20px ${accentColor}55`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          }}
-        >
-          <ArrowLeft size={16} /> На главную
-        </button>
       </motion.div>
     </div>
   )
