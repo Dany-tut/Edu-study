@@ -6233,6 +6233,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
 
 // ─── Chip helpers ─────────────────────────────────────────────────────────────
 const PRESET_CHIPS = [
+  { label: 'AI',           color: '#0ea5e9', bg: '#e0f2fe' },
   { label: 'Диагностика',  color: '#7B3FCC', bg: '#EEDBFF' },
   { label: 'Тестирование', color: '#1a6fa8', bg: '#dbeeff' },
   { label: 'Пробник',      color: '#B87A10', bg: '#FFF0CC' },
@@ -6335,7 +6336,7 @@ function CustomTestCard({ test, isSelected, onClick }: { test: CustomTest; isSel
   const [anonCount, setAnonCount] = useState(0)
   useEffect(() => { loadAnonResults().then(all => { setAnonCount(all.filter(r => r.subject === test.id).length); setQCount(loadDiagQuestions(test.id as DiagSubject).length) }) }, [test.id])
   const CardIcon = (test.iconKey ? getIconByKey(test.iconKey) : null) as React.ElementType | null
-  const chip = test.chip ?? 'Свой тест'
+  const chip = test.chip ?? 'Диагностика'
   const { color: chipColor, bg: chipBg } = getChipStyle(chip, accent)
   return (
     <ContentCard

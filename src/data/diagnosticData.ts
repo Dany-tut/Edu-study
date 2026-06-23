@@ -868,8 +868,8 @@ export function saveBuiltinLabel(subject: string, label: string): void {
 export function loadBuiltinChip(subject: string): string {
   try {
     const map = JSON.parse(localStorage.getItem('diagBuiltinChips') ?? '{}')
-    return map[subject] ?? 'Диагностика'
-  } catch { return 'Диагностика' }
+    return map[subject] ?? 'AI'
+  } catch { return 'AI' }
 }
 export function saveBuiltinChip(subject: string, chip: string): void {
   try {
