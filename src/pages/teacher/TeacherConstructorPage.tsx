@@ -4602,6 +4602,15 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   const setDocked = useTeacher(s => s.setHeaderDocked)
   useEffect(() => () => setDocked(false), [])
 
+  const qListRef = useRef<HTMLDivElement>(null)
+  const [qListFade, setQListFade] = useState({ top: false, bottom: false })
+  function updateQListFade() {
+    const el = qListRef.current
+    if (!el) return
+    setQListFade({ top: el.scrollTop > 4, bottom: el.scrollTop + el.clientHeight < el.scrollHeight - 4 })
+  }
+  useEffect(() => { updateQListFade() }, [questions.length])
+
   // ── Assignment panel state ──
   const [assignType, setAssignType] = useState<'test' | 'trial'>('test')
   const [assignRecipientMode, setAssignRecipientMode] = useState<'group' | 'student'>('group')
@@ -5033,19 +5042,32 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
 
           {/* Question list — sticky on the right */}
           <div style={{ width: 260, flexShrink: 0, position: 'sticky', top: 20, alignSelf: 'flex-start', height: 'calc(100vh - 190px)' }}>
-            <GlassCard style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 4, height: '100%', overflowY: 'auto', overscrollBehavior: 'contain' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', padding: '2px 4px 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <GlassCard style={{ padding: 12, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', gap: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', padding: '2px 4px 8px', textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0 }}>
                 {questions.length} вопросов
               </div>
-              {questions.map((q, idx) => (
-                <button key={q.id} onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s' }}>
-                  <div style={{ width: 20, height: 20, borderRadius: 6, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? getContrastColor(accent) : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
-                  <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: editIdx === idx ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.text || 'Без текста'}</div>
-                </button>
-              ))}
+
+              {/* Scrollable list with fades */}
+              <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
+                {/* top fade */}
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 28, background: 'linear-gradient(to bottom, var(--color-bg-card, var(--color-bg-2)), transparent)', pointerEvents: 'none', zIndex: 2, opacity: qListFade.top ? 1 : 0, transition: 'opacity 0.18s' }} />
+                {/* bottom fade */}
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 28, background: 'linear-gradient(to top, var(--color-bg-card, var(--color-bg-2)), transparent)', pointerEvents: 'none', zIndex: 2, opacity: qListFade.bottom ? 1 : 0, transition: 'opacity 0.18s' }} />
+
+                <div ref={qListRef} onScroll={updateQListFade} style={{ height: '100%', overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 2, paddingBottom: 2 }}>
+                  {questions.map((q, idx) => (
+                    <button key={q.id} onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s' }}>
+                      <div style={{ width: 20, height: 20, borderRadius: 6, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? getContrastColor(accent) : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800 }}>{idx + 1}</div>
+                      <div style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: editIdx === idx ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.text || 'Без текста'}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Always-visible add button */}
               <button onClick={addQuestion}
-                style={{ marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', padding: '8px', borderRadius: 10, border: `1.5px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                style={{ marginTop: 8, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', padding: '8px', borderRadius: 10, border: `1.5px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                 <Plus size={13} /> Добавить вопрос
               </button>
             </GlassCard>
