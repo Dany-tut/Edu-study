@@ -21,7 +21,9 @@ import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagQuestions,
   loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult,
   createTestAssignment, loadTestAssignments, deleteTestAssignment, loadAssignmentResults,
+  fetchCustomTestsMeta, saveCustomTestMeta, deleteCustomTestMeta, updateCustomTestAccent,
   type DiagQuestion, type DiagSubject, type AnonDiagResult, type TestAssignment,
+  type CustomTestMeta,
   DEFAULT_QUESTIONS,
 } from '../../data/diagnosticData'
 import { useAllStudents, useGroups } from '../../lib/useGroups'
@@ -3193,12 +3195,7 @@ function getSubjectIcon(subject: string): React.ElementType {
   return (SUBJECT_ICON_MAP as Record<string, React.ElementType>)[subject] ?? FileText
 }
 
-export interface CustomTest { id: string; label: string; accent: string }
-const CUSTOM_TESTS_KEY = 'constructor-custom-tests'
-function loadCustomTests(): CustomTest[] {
-  try { return JSON.parse(localStorage.getItem(CUSTOM_TESTS_KEY) ?? '[]') } catch { return [] }
-}
-function persistCustomTests(tests: CustomTest[]) { localStorage.setItem(CUSTOM_TESTS_KEY, JSON.stringify(tests)) }
+export type CustomTest = CustomTestMeta
 function hydrateCustomMeta(tests: CustomTest[]) {
   tests.forEach(t => CUSTOM_META.set(t.id, { label: t.label, accent: t.accent, soft: t.accent + '22' }))
 }
@@ -4840,8 +4837,8 @@ function DiagnosticEditorFullPage({
           </div>
 
           {/* Question list — sticky on the right */}
-          <div style={{ width: 220, flexShrink: 0, position: 'sticky', top: 110, alignSelf: 'flex-start' }}>
-            <GlassCard style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 'calc(100vh - 180px)', overflowY: 'auto' }}>
+          <div style={{ width: 220, flexShrink: 0, position: 'sticky', top: 90, alignSelf: 'flex-start' }}>
+            <GlassCard style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', padding: '2px 4px 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {questions.length} вопросов
               </div>
@@ -5490,9 +5487,12 @@ const DOMAIN_ICONS: Record<DomainKey, React.ElementType> = {
 }
 
 // ─── Diagnostic Test Creator ─────────────────────────────────────────────────
-function DiagnosticTestCreator({ onSave, onCancel }: {
+function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign }: {
   onSave: (id: string, label: string, accent: string) => void
   onCancel: () => void
+  groups: import('../../data/teacherMockData').Group[]
+  allStudents: import('../../data/teacherMockData').Student[]
+  onAssign: (a: Omit<TestAssignment, 'id' | 'createdAt'>) => Promise<void>
 }) {
   const [title, setTitle] = useState('')
   const [accent, setAccent] = useState(CREATOR_ACCENTS[0].hex)
@@ -5508,6 +5508,19 @@ function DiagnosticTestCreator({ onSave, onCancel }: {
   const [editScrDomain, setEditScrDomain] = useState<DomainKey>('matrices')
   const [editScrCount, setEditScrCount] = useState(5)
   const [docked, setDocked] = useState(false)
+  const [distMode, setDistMode] = useState<'assign' | 'link'>('assign')
+  const [assignType, setAssignType] = useState<'test' | 'trial'>('test')
+  const [assignRecipientMode, setAssignRecipientMode] = useState<'group' | 'student'>('group')
+  const [assignGroupId, setAssignGroupId] = useState('')
+  const [assignStudentId, setAssignStudentId] = useState('')
+  const [dueDate, setDueDate] = useState('')
+  const [dueTime, setDueTime] = useState('')
+  const [calOpen2, setCalOpen2] = useState(false)
+  const [timeOpen2, setTimeOpen2] = useState(false)
+  const [copied2, setCopied2] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const canAssignNow = !!assignGroupId || !!assignStudentId
 
   const soft = CREATOR_ACCENTS.find(a => a.hex === accent)?.soft ?? accent + '22'
   const canSave = title.trim().length > 0
@@ -5543,16 +5556,37 @@ function DiagnosticTestCreator({ onSave, onCancel }: {
   function removeQuestion(idx: number) { setQuestions(prev => prev.filter((_, i) => i !== idx)); if (editIdx === idx) setEditIdx(null) }
 
   async function handleSave() {
-    if (!canSave) return
+    if (!canSave || saving) return
+    setSaving(true)
+    setSaveError('')
     const id = `custom-${title.toLowerCase().replace(/[^a-zа-яё0-9]+/gi, '-')}-${Date.now()}`
     const saved = editIdx !== null
       ? questions.map((q, i) => i === editIdx ? { ...q, text: editText, options: editOpts, correct: editCorrect, section: editSection || q.section } : q)
       : questions
-    await saveDiagQuestions(id as DiagSubject, saved)
+    try {
+      await saveDiagQuestions(id as DiagSubject, saved)
+      await saveCustomTestMeta(id, title.trim(), accent)
+    } catch (e) {
+      setSaving(false)
+      setSaveError('Не удалось сохранить тест на сервер. Проверьте соединение и попробуйте снова.')
+      return
+    }
+    if (canAssignNow) {
+      await onAssign({
+        title: `${title.trim()} · ${assignType === 'trial' ? 'Пробник' : 'Тест'}`,
+        subject: id as DiagSubject,
+        assignType,
+        groupIds: assignGroupId ? [assignGroupId] : [],
+        studentIds: assignStudentId ? [assignStudentId] : [],
+        dueDate: dueDate || undefined,
+        closed: false,
+      })
+    }
+    setSaving(false)
     onSave(id, title.trim(), accent)
   }
 
-  const savePillStyle: React.CSSProperties = teacherSaveStyle({ disabled: !canSave })
+  const savePillStyle: React.CSSProperties = teacherSaveStyle({ disabled: !canSave || saving })
   const dg = dockGlass
 
   return (
@@ -5599,14 +5633,20 @@ function DiagnosticTestCreator({ onSave, onCancel }: {
             {title || 'Новый тест'}
           </div>
           <motion.button whileHover={{ scale: canSave ? 1.03 : 1 }} whileTap={{ scale: canSave ? 0.97 : 1 }} onClick={handleSave} style={savePillStyle}>
-            <Check size={14} strokeWidth={2.5} /> Создать тест
+            <Check size={14} strokeWidth={2.5} /> {saving ? 'Сохранение…' : 'Создать тест'}
           </motion.button>
         </motion.div>
 
+        {saveError && (
+          <div style={{ margin: '0 24px 12px', padding: '10px 14px', borderRadius: 12, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', fontSize: 13 }}>
+            {saveError}
+          </div>
+        )}
+
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-          {/* LEFT: name + color + questions list */}
-          <div style={{ padding: '0 0 20px 24px', flexShrink: 0, position: 'sticky', top: 110, alignSelf: 'flex-start' }}>
-            <GlassCard style={{ width: 230, boxSizing: 'border-box', padding: 16, display: 'flex', flexDirection: 'column', gap: 16, maxHeight: 'calc(100vh - 180px)', overflowY: 'auto' }}>
+          {/* LEFT: name + color + assignment */}
+          <div style={{ padding: '0 0 20px 24px', flexShrink: 0, position: 'sticky', top: 90, alignSelf: 'flex-start' }}>
+            <GlassCard style={{ width: 260, boxSizing: 'border-box', padding: 16, display: 'flex', flexDirection: 'column', gap: 14, maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' }}>
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Название теста</div>
                 <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Физика, Математика…" autoFocus
@@ -5634,24 +5674,93 @@ function DiagnosticTestCreator({ onSave, onCancel }: {
                 </div>
               </div>
               <div style={{ borderTop: '1px solid var(--color-border-soft)' }} />
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Вопросы {questions.length > 0 && `(${questions.length})`}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  {questions.map((q, idx) => (
-                    <button key={q.id} onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s' }}>
-                      <div style={{ width: 20, height: 20, borderRadius: 5, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? getContrastColor(accent) : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800 }}>{idx + 1}</div>
-                      <div style={{ flex: 1, fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: editIdx === idx ? 600 : 400 }}>{q.text || 'Без текста'}</div>
-                    </button>
-                  ))}
-                </div>
-                <button onClick={() => addQuestion()}
-                  style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '7px 8px', borderRadius: 8, border: `1.5px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                  <Plus size={13} /> Добавить вопрос
-                </button>
+              {/* Mode tabs */}
+              <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-3)' }}>
+                {([
+                  { id: 'assign', icon: Target, label: 'Назначить' },
+                  { id: 'link',   icon: Link2,  label: 'По ссылке' },
+                ] as const).map(({ id, icon: Icon2, label }) => (
+                  <button key={id} onClick={() => setDistMode(id)}
+                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '7px 4px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 700, transition: 'all 0.14s',
+                      background: distMode === id ? 'var(--color-surface, var(--color-bg-input))' : 'transparent',
+                      color: distMode === id ? accent : 'var(--color-text-3)',
+                      boxShadow: distMode === id ? '0 1px 6px rgba(0,0,0,0.10)' : 'none',
+                    }}>
+                    <Icon2 size={12} /> {label}
+                  </button>
+                ))}
               </div>
+              {distMode === 'assign' ? (
+                <>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {(['test', 'trial'] as const).map(t => (
+                      <button key={t} onClick={() => setAssignType(t)}
+                        style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: 'none', outline: 'none', background: assignType === t ? `${accent}20` : 'var(--color-bg-3)', color: assignType === t ? accent : 'var(--color-text-3)', fontSize: 12, fontWeight: assignType === t ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
+                        {t === 'test' ? 'Контрольная' : 'Пробник'}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: 5 }}>
+                    {(['group', 'student'] as const).map(m => (
+                      <button key={m} onClick={() => { setAssignRecipientMode(m); setAssignGroupId(''); setAssignStudentId('') }}
+                        style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: 'none', outline: 'none', cursor: 'pointer', fontSize: 12,
+                          fontWeight: assignRecipientMode === m ? 700 : 600,
+                          background: assignRecipientMode === m ? `${accent}20` : 'var(--color-bg-3)',
+                          color: assignRecipientMode === m ? accent : 'var(--color-muted)',
+                          fontFamily: 'inherit', transition: 'all 0.15s' }}>
+                        {m === 'group' ? 'Группе' : 'Студенту'}
+                      </button>
+                    ))}
+                  </div>
+                  {assignRecipientMode === 'group' ? (
+                    <TeacherSelect value={assignGroupId} onChange={setAssignGroupId} placeholder="Выберите группу"
+                      options={groups.map(g => ({ value: g.id, label: g.name }))} />
+                  ) : (
+                    <TeacherSelect value={assignStudentId} onChange={setAssignStudentId} placeholder="Выберите студента"
+                      options={allStudents.map(s => ({ value: s.id, label: s.name }))} />
+                  )}
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 }}>Срок (необязательно)</div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <div style={{ position: 'relative', flex: 1 }}>
+                        <button onClick={() => { setCalOpen2(o => !o); setTimeOpen2(false) }}
+                          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 7, padding: '8px 10px', borderRadius: 9, border: 'none', outline: 'none', background: calOpen2 ? `${accent}18` : 'var(--color-bg-input)', color: dueDate ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueDate ? 600 : 400, transition: 'background 0.15s' }}>
+                          <Calendar size={13} style={{ flexShrink: 0, color: accent }} />
+                          <span style={{ flex: 1, textAlign: 'left' }}>{dueDate ? formatDateDisplay(dueDate) : 'Дата'}</span>
+                          {dueDate && <button onClick={e => { e.stopPropagation(); setDueDate('') }} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-text-3)', lineHeight: 1, fontSize: 13, display: 'flex' }}>×</button>}
+                        </button>
+                        <AnimatePresence>
+                          {calOpen2 && <DiagCalendarPicker value={dueDate} onChange={v => { setDueDate(v); setCalOpen2(false) }} onClose={() => setCalOpen2(false)} accent={accent} soft={soft} />}
+                        </AnimatePresence>
+                      </div>
+                      <div style={{ position: 'relative', width: 80 }}>
+                        <button onClick={() => { setTimeOpen2(o => !o); setCalOpen2(false) }}
+                          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 5, padding: '8px 8px', borderRadius: 9, border: 'none', outline: 'none', background: timeOpen2 ? `${accent}18` : 'var(--color-bg-input)', color: dueTime ? 'var(--color-text)' : 'var(--color-text-3)', fontSize: 12, fontFamily: 'inherit', cursor: 'pointer', fontWeight: dueTime ? 600 : 400, transition: 'background 0.15s' }}>
+                          <Clock size={13} style={{ flexShrink: 0, color: accent }} />
+                          <span>{dueTime || 'Время'}</span>
+                        </button>
+                        <AnimatePresence>
+                          {timeOpen2 && <DiagTimePicker value={dueTime} onChange={v => { setDueTime(v); setTimeOpen2(false) }} onClose={() => setTimeOpen2(false)} accent={accent} />}
+                        </AnimatePresence>
+                      </div>
+                    </div>
+                  </div>
+                  {canAssignNow && (
+                    <div style={{ fontSize: 11, color: accent, padding: '6px 10px', borderRadius: 8, background: `${accent}15`, fontWeight: 600 }}>
+                      Назначение сохранится при создании теста
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.5 }}>
+                    Ссылка будет доступна после создания теста.
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '6px 10px', borderRadius: 8, background: 'var(--color-bg-3)' }}>
+                    Нажми «Создать тест» — ссылку можно скопировать в редакторе.
+                  </div>
+                </>
+              )}
             </GlassCard>
           </div>
 
@@ -5757,9 +5866,27 @@ function DiagnosticTestCreator({ onSave, onCancel }: {
             </AnimatePresence>
           </div>
 
-          {/* RIGHT: type selector + screening options */}
-          <div style={{ padding: '0 24px 20px 0', flexShrink: 0, position: 'sticky', top: 110, alignSelf: 'flex-start' }}>
-            <GlassCard style={{ width: 216, boxSizing: 'border-box', padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {/* RIGHT: questions list + type selector */}
+          <div style={{ padding: '0 24px 20px 0', flexShrink: 0, position: 'sticky', top: 90, alignSelf: 'flex-start' }}>
+            <GlassCard style={{ width: 220, boxSizing: 'border-box', padding: 14, display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' }}>
+              {/* Questions list */}
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Вопросы {questions.length > 0 && `(${questions.length})`}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {questions.map((q, idx) => (
+                  <button key={q.id} onClick={() => editIdx === idx ? setEditIdx(null) : startEdit(idx)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: editIdx === idx ? soft : 'transparent', color: editIdx === idx ? accent : 'var(--color-text)', textAlign: 'left', fontFamily: 'inherit', transition: 'all 0.12s' }}>
+                    <div style={{ width: 20, height: 20, borderRadius: 5, flexShrink: 0, background: editIdx === idx ? accent : `${accent}22`, color: editIdx === idx ? getContrastColor(accent) : accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800 }}>{idx + 1}</div>
+                    <div style={{ flex: 1, fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: editIdx === idx ? 600 : 400 }}>{q.text || 'Без текста'}</div>
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => addQuestion()}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '7px 8px', borderRadius: 8, border: `1.5px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <Plus size={13} /> Добавить вопрос
+              </button>
+              <div style={{ borderTop: '1px solid var(--color-border-soft)', marginTop: 2 }} />
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>Тип вопроса</div>
               {(['mc', 'screening'] as const).map(t => (
                 <button key={t} onClick={() => editIdx !== null && setEditType(t)}
@@ -6096,11 +6223,7 @@ export default function TeacherConstructorPage() {
   }, [selectedId])
   const [diagEditing, setDiagEditing] = useState<string | null>(null)
   const [diagCreating, setDiagCreating] = useState(false)
-  const [customTests, setCustomTests] = useState<CustomTest[]>(() => {
-    const loaded = loadCustomTests()
-    hydrateCustomMeta(loaded)
-    return loaded
-  })
+  const [customTests, setCustomTests] = useState<CustomTest[]>([])
   const [selectedResultId, setSelectedResultId] = useState<string | null>(null)
   const [diagAnonResults, setDiagAnonResults] = useState<AnonDiagResult[]>([])
   const diagAllStudents = useAllStudents()
@@ -6114,6 +6237,10 @@ export default function TeacherConstructorPage() {
     if (activeTab === 'testing') {
       loadAnonResults().then(setDiagAnonResults)
       loadTestAssignments().then(setAssignments)
+      fetchCustomTestsMeta().then(tests => {
+        hydrateCustomMeta(tests)
+        setCustomTests(tests)
+      })
     }
   }, [activeTab])
 
@@ -6445,6 +6572,7 @@ export default function TeacherConstructorPage() {
       const uuids = [...checkedIds].filter(id => isUUID(id))
       if (uuids.length) await supabase.from('trainers').delete().in('id', uuids)
     } else if (activeTab === 'testing') {
+      await Promise.all([...checkedIds].map(id => deleteCustomTestMeta(id)))
       setCustomTests(prev => prev.filter(ct => !checkedIds.has(ct.id)))
     } else {
       const toDelete = widgets.filter(w => checkedIds.has(w.id))
@@ -6456,7 +6584,7 @@ export default function TeacherConstructorPage() {
     setEditMode(false)
   }
 
-  function duplicateChecked() {
+  async function duplicateChecked() {
     if (activeTab === 'course') {
       courses.filter(c => checkedIds.has(c.id)).forEach(c => duplicateCourse(c))
     } else if (activeTab === 'widget') {
@@ -6467,11 +6595,12 @@ export default function TeacherConstructorPage() {
         addBankTask({ ...copy, text: copy.text ? `${copy.text} (копия)` : copy.text })
       })
     } else if (activeTab === 'testing') {
-      customTests.filter(ct => checkedIds.has(ct.id)).forEach(ct => {
+      for (const ct of customTests.filter(ct => checkedIds.has(ct.id))) {
         const copy: typeof ct = { ...ct, id: uid(), label: `${ct.label} (копия)` }
         CUSTOM_META.set(copy.id, { label: copy.label, accent: copy.accent, soft: copy.accent + '22' })
-        setCustomTests(prev => { const next = [...prev, copy]; persistCustomTests(next); return next })
-      })
+        await saveCustomTestMeta(copy.id, copy.label, copy.accent)
+        setCustomTests(prev => [copy, ...prev])
+      }
     }
     setCheckedIds(new Set())
   }
@@ -6643,14 +6772,16 @@ export default function TeacherConstructorPage() {
           />
         ) : diagCreating ? (
           <DiagnosticTestCreator
+            groups={diagGroups}
+            allStudents={diagAllStudents}
+            onAssign={async (a) => {
+              const created = await createTestAssignment(a)
+              if (created) setAssignments(prev => [created, ...prev])
+            }}
             onSave={(id, label, accent) => {
               const newTest: CustomTest = { id, label, accent }
               CUSTOM_META.set(id, { label, accent, soft: accent + '22' })
-              setCustomTests(prev => {
-                const next = [...prev, newTest]
-                persistCustomTests(next)
-                return next
-              })
+              setCustomTests(prev => [newTest, ...prev])
               setDiagCreating(false)
               setDiagEditing(id)
             }}
@@ -6675,11 +6806,8 @@ export default function TeacherConstructorPage() {
               setAssignments(prev => prev.filter(a => a.id !== id))
             }}
             onColorChange={(hex) => {
-              setCustomTests(prev => {
-                const next = prev.map(ct => ct.id === diagEditing ? { ...ct, accent: hex } : ct)
-                persistCustomTests(next)
-                return next
-              })
+              if (diagEditing) updateCustomTestAccent(diagEditing, hex)
+              setCustomTests(prev => prev.map(ct => ct.id === diagEditing ? { ...ct, accent: hex } : ct))
             }}
           />
         ) : (

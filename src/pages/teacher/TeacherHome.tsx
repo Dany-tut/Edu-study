@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect, useRef } from 'react'
 import CreateTaskModal from '../../components/teacher/CreateTaskModal'
 import {
@@ -318,16 +318,15 @@ const reminderIcons: Record<Reminder['type'], React.ElementType> = {
   'fill-journal': Clock,
 }
 const urgencyColor = { high: '#F48B91', medium: '#F8C991', low: 'var(--color-text-4)' }
-const urgencyBg = { high: 'var(--color-red-soft)', medium: 'var(--color-peach-soft)', low: 'var(--color-bg)' }
+const urgencyBg = { high: 'var(--reminder-card-high)', medium: 'var(--reminder-card-medium)', low: 'var(--color-bg)' }
 
-function ReminderRow({ item, done, onAction }: { item: Reminder; done?: boolean; onAction?: () => void }) {
+function ReminderRow({ item, done, onAction, style: styleOverride }: { item: Reminder; done?: boolean; onAction?: () => void; style?: React.CSSProperties }) {
   const Icon = done ? CheckCircle2 : reminderIcons[item.type]
   // Кликабельно только пока есть куда вести и дело не закрыто.
   const clickable = !done && !!onAction
   return (
     <motion.div
       onClick={clickable ? onAction : undefined}
-      whileHover={clickable ? { x: 2 } : undefined}
       whileTap={clickable ? { scale: 0.99 } : undefined}
       style={{
         display: 'flex', alignItems: 'center', gap: 10,
@@ -336,6 +335,7 @@ function ReminderRow({ item, done, onAction }: { item: Reminder; done?: boolean;
         opacity: done ? 0.85 : 1,
         cursor: clickable ? 'pointer' : 'default',
         transition: 'background 0.25s, opacity 0.25s',
+        ...styleOverride,
       }}
     >
       <div style={{
@@ -355,16 +355,159 @@ function ReminderRow({ item, done, onAction }: { item: Reminder; done?: boolean;
           {item.text}
         </div>
         {item.detail && (
-          <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 1 }}>{done ? 'Готово' : item.detail}</div>
+          <div style={{ fontSize: 11, color: done ? 'var(--color-green-text)' : 'var(--color-text)', opacity: done ? 1 : 0.6, marginTop: 1 }}>{done ? 'Готово' : item.detail}</div>
         )}
       </div>
       {!done && item.urgency === 'high' && (
         <AlertCircle size={13} strokeWidth={2} style={{ color: '#F48B91', flexShrink: 0 }} />
       )}
       {clickable && (
-        <ChevronRight size={15} strokeWidth={2} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
+        <ChevronRight size={15} strokeWidth={2} style={{ color: 'rgba(255,255,255,0.5)', flexShrink: 0 }} />
       )}
     </motion.div>
+  )
+}
+
+// ─── iOS-style stacked group ────────────────────────────────────────────────
+const stackTypeLabel: Record<Reminder['type'], string> = {
+  'check-hw': 'ДЗ на проверку',
+  'fill-journal': 'Журнал',
+  'payment-debt': 'Оплата',
+  'fill-widget': 'Виджет',
+  'make-trainer': 'Тренажёр',
+  'send-push': 'Уведомление',
+}
+
+// Accordion variants
+// Open: stagger fan-out top→bottom
+// Close: concurrent — list folds bottom→top INTO the stack that materialises simultaneously
+const listContainerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.055 } },
+  exit: { transition: { staggerChildren: 0.03, staggerDirection: -1 } },
+}
+const listItemVariants = {
+  hidden:  { opacity: 0, y: -22, scale: 0.9 },
+  visible: { opacity: 1, y: 0,   scale: 1,   transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] } },
+  exit:    { opacity: 0, y: -10, scale: 0.94, transition: { duration: 0.13, ease: [0.4, 0, 1, 1] } },
+}
+const headerVariants = {
+  hidden:  { opacity: 0, y: -4 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.18 } },
+  exit:    { opacity: 0, y: -8, filter: 'blur(4px)', scale: 0.95, transition: { duration: 0.14, ease: [0.4, 0, 1, 1] } },
+}
+
+function ReminderGroupStack({ items, getAction, isDone }: {
+  items: Reminder[]
+  getAction: (r: Reminder) => (() => void) | undefined
+  isDone: (r: Reminder) => boolean
+}) {
+  const [expanded, setExpanded] = useState(false)
+
+  if (items.length === 1) {
+    return <ReminderRow item={items[0]} done={isDone(items[0])} onAction={getAction(items[0])} />
+  }
+
+  const front = items[0]
+  const bg = urgencyBg[front.urgency]
+  const accentColor = urgencyColor[front.urgency]
+  const behind = Math.min(items.length - 1, 2)
+  // Semi-transparent tint for the glassmorphism front card
+  const glassBg = accentColor.startsWith('#') ? `${accentColor}48` : bg
+
+  return (
+    <AnimatePresence mode="popLayout" initial={false}>
+      {!expanded ? (
+        <motion.div
+          key="stack"
+          initial={{ opacity: 0, scale: 0.95, y: 4 }}
+          animate={{ opacity: 1, scale: 1, y: 0, transition: { duration: 0.26, delay: 0.14, ease: [0.22, 1, 0.36, 1] } }}
+          exit={{ opacity: 0, scale: 0.95, y: -4, transition: { duration: 0.14, ease: [0.4, 0, 1, 1] } }}
+          onClick={() => setExpanded(true)}
+          style={{ position: 'relative', paddingBottom: behind * 13, cursor: 'pointer' }}
+        >
+          {/* Ghost cards — depth-of-field blur stack */}
+          {behind >= 2 && (
+            <div style={{
+              position: 'absolute', bottom: 0, left: 18, right: 18, height: 50,
+              background: bg, borderRadius: 12,
+              filter: 'blur(5px)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.22)',
+              border: '1px solid rgba(255,255,255,0.12)', zIndex: 1,
+            }} />
+          )}
+          <div style={{
+            position: 'absolute',
+            bottom: behind >= 2 ? 13 : 0,
+            left: 9, right: 9, height: 50,
+            background: bg, borderRadius: 12,
+            filter: 'blur(0.8px)',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
+            border: '1px solid rgba(255,255,255,0.16)', zIndex: 2,
+          }} />
+          {/* Front card — frosted glass */}
+          <div style={{
+            position: 'relative', zIndex: 3,
+            borderRadius: 12, overflow: 'hidden',
+            background: glassBg,
+            backdropFilter: 'blur(40px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+            border: '1.5px solid rgba(255,255,255,0.22)',
+          }}>
+            <ReminderRow
+              item={front}
+              done={isDone(front)}
+              onAction={undefined}
+              style={{ background: 'transparent' }}
+            />
+            <div style={{
+              position: 'absolute', top: '50%', right: 10,
+              transform: 'translateY(-50%)',
+              background: accentColor, color: 'rgba(0,0,0,0.72)',
+              borderRadius: 12, padding: '4px 11px',
+              fontSize: 12, fontWeight: 750, lineHeight: 1.4,
+              pointerEvents: 'none',
+            }}>
+              {items.length}
+            </div>
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div
+          key="list"
+          variants={listContainerVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+        >
+          {/* Header — exits immediately (not part of stagger) so it clears before stack appears */}
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0, transition: { duration: 0.18 } }}
+            exit={{ opacity: 0, y: -8, filter: 'blur(4px)', scale: 0.95, transition: { duration: 0.13, ease: [0.4, 0, 1, 1] } }}
+            onClick={() => setExpanded(false)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '0 10px 6px', cursor: 'pointer',
+            }}
+          >
+            <span style={{ fontSize: 11, fontWeight: 700, color: accentColor }}>
+              {stackTypeLabel[front.type]} · {items.length}
+            </span>
+            <span style={{ fontSize: 11, color: 'var(--color-text-4)', display: 'flex', alignItems: 'center', gap: 3 }}>
+              Свернуть <ChevronRight size={11} style={{ transform: 'rotate(-90deg)' }} />
+            </span>
+          </motion.div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {items.map(r => (
+              <motion.div key={r.id} variants={listItemVariants}>
+                <ReminderRow item={r} done={isDone(r)} onAction={getAction(r)} />
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -553,6 +696,55 @@ function MyTasksBlock() {
       </Card>
     </motion.div>
     </>
+  )
+}
+
+// ─── Reminders scrollable container ─────────────────────────────────────────
+function RemindersScroll({ reminders, reminderAction, reminderDone, allStudents, groups }: {
+  reminders: Reminder[]
+  reminderAction: (r: Reminder) => (() => void) | undefined
+  reminderDone: (r: Reminder) => boolean
+  allStudents: any[]
+  groups: any[]
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [atBottom, setAtBottom] = useState(false)
+
+  function handleScroll(e: React.UIEvent<HTMLDivElement>) {
+    const el = e.currentTarget
+    setAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 4)
+  }
+
+  const topFade = 'transparent 0%, black 12px'
+  const botFade = atBottom ? 'black 100%' : 'black calc(100% - 20px), transparent 100%'
+  const mask = `linear-gradient(to bottom, ${topFade}, ${botFade})`
+
+  return (
+    <div
+      ref={scrollRef}
+      onScroll={handleScroll}
+      style={{
+        position: 'absolute', inset: 0, overflowY: 'auto', scrollbarGutter: 'stable',
+        display: 'flex', flexDirection: 'column', gap: 7,
+        maskImage: mask, WebkitMaskImage: mask,
+        paddingBlock: 8,
+      }}
+    >
+      {Object.values(
+        reminders.reduce((acc, r) => {
+          ;(acc[r.type] ??= []).push(r)
+          return acc
+        }, {} as Record<string, Reminder[]>)
+      ).map(group => (
+        <ReminderGroupStack
+          key={group[0].type}
+          items={group}
+          getAction={reminderAction}
+          isDone={reminderDone}
+        />
+      ))}
+      <PaymentBlock students={allStudents} groups={groups} />
+    </div>
   )
 }
 
@@ -762,16 +954,13 @@ export default function TeacherHome() {
                 Напоминания
               </CardTitle>
               <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
-                <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', scrollbarGutter: 'stable', display: 'flex', flexDirection: 'column', gap: 7,
-                  maskImage: 'linear-gradient(to bottom, transparent 0%, black 12px, black calc(100% - 20px), transparent 100%)',
-                  WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 12px, black calc(100% - 20px), transparent 100%)',
-                  paddingBlock: 8,
-                }}>
-                  {reminders.map(r => (
-                    <ReminderRow key={r.id} item={r} done={reminderDone(r)} onAction={reminderAction(r)} />
-                  ))}
-                  <PaymentBlock students={allStudents} groups={groups} />
-                </div>
+                <RemindersScroll
+                  reminders={reminders}
+                  reminderAction={reminderAction}
+                  reminderDone={reminderDone}
+                  allStudents={allStudents}
+                  groups={groups}
+                />
               </div>
             </Card>
           </motion.div>

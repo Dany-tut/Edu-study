@@ -127,13 +127,7 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
     const el = anchorRef.current
     if (!el) return
     const r = el.getBoundingClientRect()
-    const popupWidth = 320
-    const idealLeft = r.left - 10
-    const clampedLeft = Math.min(
-      Math.max(8, idealLeft),
-      window.innerWidth - popupWidth - 8
-    )
-    setPos({ top: r.bottom + 10, left: clampedLeft })
+    setPos({ top: r.bottom + 10, left: r.left + r.width / 2 })
   }, [open, anchorRef])
 
   // Close on outside click / Escape
@@ -155,20 +149,17 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
   const popup = (
     <AnimatePresence>
       {open && pos && (
+        <div ref={popupRef} style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 9100, transform: 'translateX(-50%)' }}>
         <motion.div
-          ref={popupRef}
-          initial={{ opacity: 0, scale: 0.88, y: -8 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.88, y: -8 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.16, ease: [0.32, 0.72, 0, 1] } }}
+          transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }}
           style={{
-            position: 'fixed',
-            top: pos.top,
-            left: pos.left,
             width: 320,
-            zIndex: 9100,
             borderRadius: 20,
             overflow: 'hidden',
+            transformOrigin: 'top center',
             background: 'rgba(var(--glass-rgb), 0.88)',
             backdropFilter: 'blur(24px) saturate(180%)',
             WebkitBackdropFilter: 'blur(24px) saturate(180%)',
@@ -235,6 +226,7 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
             )}
           </div>
         </motion.div>
+        </div>
       )}
     </AnimatePresence>
   )

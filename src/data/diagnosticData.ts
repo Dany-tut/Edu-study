@@ -780,7 +780,7 @@ const questionsCache = new Map<DiagSubject, DiagQuestion[]>(
 
 // Sync read from cache (instant, no flicker). Call fetchDiagQuestions in useEffect to hydrate.
 export function loadDiagQuestions(subject: DiagSubject): DiagQuestion[] {
-  return questionsCache.get(subject) ?? DEFAULT_QUESTIONS[subject]
+  return questionsCache.get(subject) ?? DEFAULT_QUESTIONS[subject] ?? []
 }
 
 // Async fetch from Supabase — updates cache and returns fresh questions.
@@ -805,6 +805,7 @@ export async function fetchDiagQuestions(subject: DiagSubject): Promise<DiagQues
 // Async save — updates cache + upserts all rows to Supabase.
 export async function saveDiagQuestions(subject: DiagSubject, qs: DiagQuestion[]): Promise<void> {
   questionsCache.set(subject, qs)
+  if (!qs.length) return
   const rows = qs.map((q, pos) => ({
     id: q.id, subject, section: q.section, text: q.text,
     options: q.options, correct: q.correct, position: pos,
@@ -812,15 +813,53 @@ export async function saveDiagQuestions(subject: DiagSubject, qs: DiagQuestion[]
   const { error } = await supabase
     .from('diag_questions')
     .upsert(rows, { onConflict: 'id' })
-  if (error) console.error('saveDiagQuestions:', error)
+  if (error) {
+    console.error('saveDiagQuestions:', error)
+    throw new Error(error.message)
+  }
   // Remove deleted questions from DB
   const ids = qs.map(q => q.id)
   await supabase
     .from('diag_questions')
     .delete()
     .eq('subject', subject)
-    .not('id', 'in', `(${ids.map(id => `'${id}'`).join(',')})`)
+    .not('id', 'in', `(${ids.join(',')})`)
 }
+
+// ── Custom test metadata (cross-device, Supabase-backed) ──────────────────────
+
+export interface CustomTestMeta { id: string; label: string; accent: string }
+
+export async function fetchCustomTestsMeta(): Promise<CustomTestMeta[]> {
+  const { data, error } = await supabase
+    .from('custom_diag_tests')
+    .select('id, label, accent')
+    .order('created_at', { ascending: false })
+  if (error) { console.error('fetchCustomTestsMeta:', error); return [] }
+  return (data ?? []) as CustomTestMeta[]
+}
+
+export async function saveCustomTestMeta(id: string, label: string, accent: string): Promise<void> {
+  const { error } = await supabase
+    .from('custom_diag_tests')
+    .upsert({ id, label, accent }, { onConflict: 'id' })
+  if (error) { console.error('saveCustomTestMeta:', error); throw new Error(error.message) }
+}
+
+export async function deleteCustomTestMeta(id: string): Promise<void> {
+  const { error } = await supabase.from('custom_diag_tests').delete().eq('id', id)
+  if (error) console.error('deleteCustomTestMeta:', error)
+}
+
+export async function updateCustomTestAccent(id: string, accent: string): Promise<void> {
+  const { error } = await supabase
+    .from('custom_diag_tests')
+    .update({ accent })
+    .eq('id', id)
+  if (error) console.error('updateCustomTestAccent:', error)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export function loadDiagResults(subject: DiagSubject): DiagResults | null {
   try {

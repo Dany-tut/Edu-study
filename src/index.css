@@ -56,6 +56,8 @@
   --color-red-soft: #FFE1E4;
   --color-peach: #F8C991;
   --color-peach-soft: #FFE4BD;
+  --reminder-card-medium: #FFE4BD;
+  --reminder-card-high: #FFE1E4;
   --color-purple: #9C8CF0;
   --color-purple-soft: #E7E4FB;
   --color-rose-soft: #FFE1F0;
@@ -158,6 +160,9 @@
   --color-peach-soft: rgba(248,180,100,0.18);
   --color-purple-soft: rgba(124,108,224,0.46);
   --color-rose-soft: rgba(204,75,123,0.22);
+  /* Reminder card backgrounds — higher opacity for readability */
+  --reminder-card-medium: rgba(248,180,100,0.40);
+  --reminder-card-high: rgba(248,99,107,0.42);
   --color-rose-text: #FF80B0;
 
   /* ── Semantic text-on-soft-bg colors (dark overrides) ────── */

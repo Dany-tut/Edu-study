@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, CheckCircle, Circle, ChevronRight, Target, User } from 'lucide-react'
 import {
   loadDiagQuestions, fetchDiagQuestions, appendAnonResult,
   type DiagSubject, type DiagQuestion, type DiagResults,
+  type CustomTestMeta,
 } from '../data/diagnosticData'
 import CognitiveScreeningPage from './CognitiveScreeningPage'
 import { captureMistake } from '../data/reviewDeck'
@@ -20,14 +21,12 @@ const THEME: Record<Exclude<DiagSubject, 'logic'>, { accent: string; soft: strin
 
 const KNOWN_SUBJECTS = new Set<DiagSubject>(['biology', 'chemistry', 'logic', 'ap-chem-ru', 'ap-chem-en'])
 
-const CUSTOM_TESTS_KEY = 'constructor-custom-tests'
-function readCustomTestMeta(id: string): { label: string; accent: string; soft: string } | null {
-  try {
-    const tests = JSON.parse(localStorage.getItem(CUSTOM_TESTS_KEY) ?? '[]') as { id: string; label: string; accent: string }[]
-    const t = tests.find(t => t.id === id)
-    if (!t) return null
-    return { label: t.label, accent: t.accent, soft: t.accent + '22' }
-  } catch { return null }
+function metaFromRow(row: CustomTestMeta): { label: string; accent: string; soft: string } {
+  return { label: row.label, accent: row.accent, soft: row.accent + '22' }
+}
+function inferMeta(id: string): { label: string; accent: string; soft: string } {
+  const label = id.replace(/^custom-/, '').replace(/--\d+$/, '').replace(/-+/g, ' ').trim()
+  return { label: label || 'Тест', accent: '#786AD7', soft: '#786AD722' }
 }
 
 // ── Main page ──────────────────────────────────────────────────────────────────
@@ -36,15 +35,10 @@ export default function DiagnosticTestPage() {
   const rawSubject = params.get('subject') ?? 'biology'
 
   const isKnown = KNOWN_SUBJECTS.has(rawSubject as DiagSubject)
-  const customMeta = !isKnown ? readCustomTestMeta(rawSubject) : null
-  const subject: DiagSubject = isKnown ? (rawSubject as DiagSubject) : 'biology'
+  const subject: DiagSubject = isKnown ? (rawSubject as DiagSubject) : ('biology' as DiagSubject)
 
   // Logic subject uses the full interactive cognitive battery
   if (subject === 'logic') return <CognitiveScreeningPage />
-
-  const theme = customMeta
-    ? { accent: customMeta.accent, soft: customMeta.soft, label: customMeta.label, sublabel: 'Тест' }
-    : THEME[subject as Exclude<DiagSubject, 'logic'>]
 
   const askConfidence = params.get('confidence') === '1'  // teacher enables via share link
 
@@ -56,8 +50,28 @@ export default function DiagnosticTestPage() {
   // Use rawSubject for data ops so custom test IDs are fetched correctly
   const fetchSubject = rawSubject as DiagSubject
 
-  const [questions, setQuestions] = useState(() => isKnown ? loadDiagQuestions(subject) : [])
-  useEffect(() => { fetchDiagQuestions(fetchSubject).then(setQuestions) }, [fetchSubject])
+  const [questions, setQuestions] = useState<DiagQuestion[]>(() => isKnown ? loadDiagQuestions(subject) : [])
+  // For custom tests load metadata + questions from Supabase
+  const [customMeta, setCustomMeta] = useState<{ label: string; accent: string; soft: string } | null>(
+    !isKnown ? inferMeta(rawSubject) : null  // show inferred name immediately while loading
+  )
+  const [questionsLoading, setQuestionsLoading] = useState(!isKnown)
+  useEffect(() => {
+    if (!isKnown) {
+      import('../data/diagnosticData').then(({ fetchCustomTestsMeta }) =>
+        fetchCustomTestsMeta().then(list => {
+          const row = list.find(t => t.id === rawSubject)
+          if (row) setCustomMeta(metaFromRow(row))
+          // else keep the inferred fallback already set
+        })
+      )
+      fetchDiagQuestions(fetchSubject).then(qs => { setQuestions(qs ?? []); setQuestionsLoading(false) })
+    }
+  }, [fetchSubject])
+
+  const theme = customMeta
+    ? { accent: customMeta.accent, soft: customMeta.soft, label: customMeta.label, sublabel: 'Тест' }
+    : (THEME[subject as Exclude<DiagSubject, 'logic'>] ?? { accent: '#786AD7', soft: '#786AD722', label: 'Тест', sublabel: 'Тест' })
 
   // If opened via assignment, skip name entry and use student's name
   const [step, setStep] = useState<'name' | 'test' | 'done'>(assignedStudentName ? 'test' : 'name')
@@ -111,6 +125,28 @@ export default function DiagnosticTestPage() {
 
   function goBack() {
     window.location.hash = '#/'
+  }
+
+  // ── Loading / not found ──
+  if (questionsLoading) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>Загрузка теста…</div>
+      </div>
+    )
+  }
+  if (!questionsLoading && questions.length === 0) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>Тест не найден</div>
+        <div style={{ fontSize: 14, color: 'var(--color-muted)', textAlign: 'center', maxWidth: 320 }}>
+          Вопросы этого теста не удалось загрузить. Возможно, тест был создан на другом устройстве и не сохранился на сервер.
+        </div>
+        <button onClick={goBack} style={{ padding: '10px 20px', borderRadius: 12, border: 'none', background: '#786AD7', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+          На главную
+        </button>
+      </div>
+    )
   }
 
   // ── Name entry view ──

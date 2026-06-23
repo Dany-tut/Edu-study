@@ -263,14 +263,8 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                         ><X size={9} /></button>
                       </div>
                     ) : isExplicitlyBlank ? (
-                      // Cell is intentionally blank — student sees "—", teacher sees marker
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', minHeight: 34, gap: 4 }}>
+                      <div style={{ padding: '8px 10px', minHeight: 34, display: 'flex', alignItems: 'center' }}>
                         <span style={{ fontSize: 13, color: 'var(--color-text-4)' }}>—</span>
-                        <button
-                          onMouseDown={e => { e.stopPropagation(); setBlank(key, false) }}
-                          style={{ width: 16, height: 16, borderRadius: 4, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
-                          title="Убрать пусто"
-                        ><X size={9} /></button>
                       </div>
                     ) : showChoice ? (
                       <div

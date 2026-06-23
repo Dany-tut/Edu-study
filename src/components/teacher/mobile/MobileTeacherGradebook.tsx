@@ -132,23 +132,61 @@ export default function MobileTeacherGradebook() {
 
         {/* Lessons */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {lessons.map(l => (
-            <motion.button
-              key={l.id}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setOpenLesson(l)}
-              className="cursor-pointer"
-              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left' }}
-            >
-              <div style={{ width: 42, height: 42, borderRadius: 12, background: 'var(--color-bg-4)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <CalendarCheck size={18} style={{ color: 'var(--color-muted)' }} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14.5, fontWeight: 650, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.title || 'Урок'}</div>
-                <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)' }}>{fmtDate(l.date)}{l.timeStart ? ` · ${l.timeStart}` : ''}</div>
-              </div>
-            </motion.button>
-          ))}
+          {lessons.map((l, idx) => {
+            const first = idx === 0
+            return (
+              <motion.button
+                key={l.id}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setOpenLesson(l)}
+                className="cursor-pointer"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12, padding: '13px 14px',
+                  borderRadius: 18, textAlign: 'left', position: 'relative', overflow: 'hidden',
+                  ...(first ? {
+                    background: 'linear-gradient(135deg, rgba(255,190,50,0.22) 0%, rgba(255,120,30,0.14) 100%)',
+                    backdropFilter: 'blur(18px)',
+                    WebkitBackdropFilter: 'blur(18px)',
+                    border: '1px solid rgba(255,175,40,0.35)',
+                    boxShadow: '0 6px 28px rgba(255,150,20,0.22), inset 0 1px 0 rgba(255,220,100,0.18)',
+                  } : {
+                    background: 'var(--color-bg-3)',
+                    border: '1px solid var(--color-border-soft)',
+                  }),
+                }}
+              >
+                {first && (
+                  <div style={{
+                    position: 'absolute', top: -24, right: -24, width: 90, height: 90,
+                    borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(255,180,30,0.28) 0%, transparent 70%)',
+                    pointerEvents: 'none',
+                  }} />
+                )}
+                <div style={{
+                  width: 42, height: 42, borderRadius: 12, flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  ...(first ? {
+                    background: 'linear-gradient(140deg, #ffcc33 0%, #ff8c00 100%)',
+                    boxShadow: '0 3px 14px rgba(255,140,0,0.45)',
+                  } : {
+                    background: 'var(--color-bg-4)',
+                  }),
+                }}>
+                  <CalendarCheck size={18} style={{ color: first ? '#fff' : 'var(--color-muted)' }} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14.5, fontWeight: 650, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: first ? 'rgba(255,220,120,1)' : 'var(--color-text)' }}>{l.title || 'Урок'}</div>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: first ? 'rgba(255,200,80,0.8)' : 'var(--color-muted)' }}>{fmtDate(l.date)}{l.timeStart ? ` · ${l.timeStart}` : ''}</div>
+                </div>
+                {first && (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,200,60,0.9)', background: 'rgba(255,160,20,0.18)', borderRadius: 8, padding: '3px 8px', flexShrink: 0 }}>
+                    Ближайший
+                  </span>
+                )}
+              </motion.button>
+            )
+          })}
           {lessons.length === 0 && (
             <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', padding: '40px 0', textAlign: 'center' }}>Нет запланированных уроков для этой группы</div>
           )}
