@@ -3004,7 +3004,18 @@ function CreatorView({
               <SectionHead>Содержимое — {WTYPE_LABEL[wType]}</SectionHead>
 
               {(wType === 'quiz' || wType === 'qod') && <>
-                <div><Label>Вопрос</Label><input value={wQText} onChange={e => setWQText(e.target.value)} placeholder="Текст вопроса…" style={inputSt} /></div>
+                <div><Label>Вопрос</Label><input value={wQText} onChange={e => setWQText(e.target.value)} placeholder="Текст вопроса…" style={inputSt}
+                  onPaste={e => {
+                    const text = e.clipboardData.getData('text/plain')
+                    const parsed = parseSmartPaste(text)
+                    if (parsed) {
+                      e.preventDefault()
+                      setWQText(parsed.question)
+                      setWQOpts(parsed.options.length >= 4 ? parsed.options : [...parsed.options, ...Array(Math.max(0, 4 - parsed.options.length)).fill('')])
+                      setWQCorr(0)
+                    }
+                  }}
+                /></div>
                 {wQOpts.map((opt, oi) => (
                   <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <button onClick={() => setWQCorr(oi)} style={{ width: 22, height: 22, borderRadius: '50%', border: wQCorr === oi ? 'none' : '2px solid var(--color-text-4)', flexShrink: 0, background: wQCorr === oi ? WTYPE_COLOR[wType] : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -3726,6 +3737,16 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
                     onChange={e => setEditText(e.target.value)}
                     rows={2}
                     style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', resize: 'vertical', outline: 'none' }}
+                    onPaste={e => {
+                      const text = e.clipboardData.getData('text/plain')
+                      const parsed = parseSmartPaste(text)
+                      if (parsed) {
+                        e.preventDefault()
+                        setEditText(parsed.question)
+                        setEditOpts(parsed.options.length >= 4 ? parsed.options : [...parsed.options, ...Array(Math.max(0, 4 - parsed.options.length)).fill('')])
+                        setEditCorrect(0)
+                      }
+                    }}
                   />
                   {editOpts.map((opt, oi) => (
                     <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -4781,7 +4802,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                 style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', pointerEvents: 'auto' }}>
                 <ArrowLeft size={15} strokeWidth={2} /> Назад
               </motion.button>
-              <div style={{ padding: '9px 16px', borderRadius: 999, ...dockGlass, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto' }}>
+              <div style={{ padding: '9px 16px', borderRadius: 999, ...dockGlass, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {label}
               </div>
             </motion.div>
@@ -6589,7 +6610,18 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
               {editIdx === idx ? (
                 <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <textarea value={editText} onChange={e => setEditText(e.target.value)} rows={2}
-                    style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', resize: 'vertical', outline: 'none' }} />
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', resize: 'vertical', outline: 'none' }}
+                    onPaste={e => {
+                      const text = e.clipboardData.getData('text/plain')
+                      const parsed = parseSmartPaste(text)
+                      if (parsed) {
+                        e.preventDefault()
+                        setEditText(parsed.question)
+                        setEditOpts(parsed.options.length >= 4 ? parsed.options : [...parsed.options, ...Array(Math.max(0, 4 - parsed.options.length)).fill('')])
+                        setEditCorrect(0)
+                      }
+                    }}
+                  />
                   {editOpts.map((opt, oi) => (
                     <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <button onClick={() => setEditCorrect(oi)}
