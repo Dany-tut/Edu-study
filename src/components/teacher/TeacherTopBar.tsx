@@ -271,14 +271,14 @@ export default function TeacherTopBar() {
               <span style={{
                 position: 'relative', zIndex: 1, display: 'flex', overflow: 'hidden',
                 maxWidth: collapsed ? 22 : 0, opacity: collapsed ? 1 : 0,
-                transition: 'max-width 0.32s cubic-bezier(0.32,0.72,0,1), opacity 0.22s ease',
+                transition: 'max-width 0.55s cubic-bezier(0.4,0,0.2,1), opacity 0.38s ease',
               }}>
                 <item.icon size={18} strokeWidth={isActive ? 2.2 : 1.8} />
               </span>
               <span style={{
                 position: 'relative', zIndex: 1, display: 'block', overflow: 'hidden', whiteSpace: 'nowrap',
                 maxWidth: collapsed ? 0 : 200, opacity: collapsed ? 0 : 1,
-                transition: 'max-width 0.32s cubic-bezier(0.32,0.72,0,1), opacity 0.22s ease',
+                transition: 'max-width 0.55s cubic-bezier(0.4,0,0.2,1), opacity 0.38s ease',
               }}>
                 {item.label}
               </span>
@@ -348,7 +348,7 @@ export default function TeacherTopBar() {
           overflow: 'hidden', whiteSpace: 'nowrap',
           maxWidth: (isHome && teacherName) ? 208 : 0,
           opacity: (isHome && teacherName) ? 1 : 0,
-          transition: 'max-width 0.32s cubic-bezier(0.32,0.72,0,1), opacity 0.22s ease',
+          transition: 'max-width 0.55s cubic-bezier(0.4,0,0.2,1), opacity 0.38s ease',
         }}>
           <div style={{ paddingLeft: 8 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.2 }}>{teacherName}</div>
