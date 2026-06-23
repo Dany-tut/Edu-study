@@ -167,8 +167,8 @@
   --color-purple-soft: rgba(124,108,224,0.46);
   --color-rose-soft: rgba(204,75,123,0.22);
   /* Reminder card backgrounds — higher opacity for readability */
-  --reminder-card-medium: rgba(255,160,20,0.22);
-  --reminder-card-high: rgba(220,60,70,0.22);
+  --reminder-card-medium: rgba(255,160,20,0.14);
+  --reminder-card-high: rgba(220,60,70,0.14);
   --reminder-card-medium-border: rgba(255,170,30,0.38);
   --reminder-card-high-border: rgba(240,80,90,0.30);
   --color-rose-text: #FF80B0;

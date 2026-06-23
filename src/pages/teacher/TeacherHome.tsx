@@ -335,8 +335,8 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: { item: Rem
         padding: '8px 10px', borderRadius: 12,
         background: done ? 'var(--color-green-soft)' : urgencyBg[item.urgency],
         border: done ? 'none' : `1px solid ${urgencyBorder[item.urgency]}`,
-        backdropFilter: 'blur(16px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         opacity: done ? 0.85 : 1,
         cursor: clickable ? 'pointer' : 'default',
         transition: 'background 0.25s, opacity 0.25s',
@@ -417,7 +417,10 @@ function ReminderGroupStack({ items, getAction, isDone }: {
   const bg = urgencyBg[front.urgency]
   const accentColor = urgencyColor[front.urgency]
   const behind = Math.min(items.length - 1, 2)
-  // Semi-transparent tint for the glassmorphism front card — same shade as list items
+  // Ghost cards: very muted so blur glow doesn't oversaturate the stack
+  const accentRgb = front.urgency === 'medium' ? '200,120,20' : front.urgency === 'high' ? '180,50,55' : '120,120,120'
+  const ghostBg = `rgba(${accentRgb},0.06)`
+  // Front card same shade as list items
   const glassBg = bg
 
   return (
@@ -435,7 +438,7 @@ function ReminderGroupStack({ items, getAction, isDone }: {
           {behind >= 2 && (
             <div style={{
               position: 'absolute', bottom: 0, left: 18, right: 18, height: 50,
-              background: bg, borderRadius: 12,
+              background: ghostBg, borderRadius: 12,
               filter: 'blur(5px)',
               boxShadow: '0 4px 16px rgba(0,0,0,0.22)',
               border: '1px solid rgba(255,255,255,0.12)', zIndex: 1,
@@ -445,7 +448,7 @@ function ReminderGroupStack({ items, getAction, isDone }: {
             position: 'absolute',
             bottom: behind >= 2 ? 13 : 0,
             left: 9, right: 9, height: 50,
-            background: bg, borderRadius: 12,
+            background: ghostBg, borderRadius: 12,
             filter: 'blur(0.8px)',
             boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
             border: '1px solid rgba(255,255,255,0.16)', zIndex: 2,
@@ -456,8 +459,8 @@ function ReminderGroupStack({ items, getAction, isDone }: {
             position: 'relative', zIndex: 3,
             borderRadius: 12,
             background: glassBg,
-            backdropFilter: 'blur(40px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+            backdropFilter: 'blur(40px)',
+            WebkitBackdropFilter: 'blur(40px)',
             border: '1.5px solid rgba(255,255,255,0.22)',
           }}>
             {/* Content layer: clips children to radius */}

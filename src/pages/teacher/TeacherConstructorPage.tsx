@@ -4677,11 +4677,21 @@ function DiagCalendarPicker({ value, onChange, onClose, anchorRef, accent = 'var
 function DiagTimePicker({ value, onChange, onClose, anchorRef, accent = 'var(--color-accent)' }: { value: string; onChange: (v: string) => void; onClose: () => void; anchorRef?: React.RefObject<HTMLElement | null>; accent?: string }) {
   const listRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const pos = useAnchoredPos(anchorRef, 200)
+  const pos = useAnchoredPos(anchorRef, 248)
+  const [manual, setManual] = useState(value)
+  const [fadeTop, setFadeTop] = useState(false)
+  const [fadeBottom, setFadeBottom] = useState(true)
+  const updateFades = useCallback(() => {
+    const el = listRef.current
+    if (!el) return
+    setFadeTop(el.scrollTop > 2)
+    setFadeBottom(el.scrollTop + el.clientHeight < el.scrollHeight - 2)
+  }, [])
   useEffect(() => {
     const idx = TIME_SLOTS_DIAG.indexOf(value)
     if (idx !== -1 && listRef.current) (listRef.current.children[idx] as HTMLElement)?.scrollIntoView({ block: 'center' })
-  }, [value])
+    updateFades()
+  }, [value, updateFades])
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node) && !(anchorRef?.current && anchorRef.current.contains(e.target as Node))) onClose()
@@ -4689,13 +4699,34 @@ function DiagTimePicker({ value, onChange, onClose, anchorRef, accent = 'var(--c
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [onClose, anchorRef])
+  // Normalize loose input ("9", "9:5", "0930") into HH:MM, return null if not a valid time.
+  function normalizeTime(raw: string): string | null {
+    const s = raw.trim()
+    let m = s.match(/^(\d{1,2}):(\d{1,2})$/)
+    if (!m) { const d = s.match(/^(\d{2})(\d{2})$/); if (d) m = [d[0], d[1], d[2]] as any }
+    if (!m) { const h = s.match(/^(\d{1,2})$/); if (h) m = [h[0], h[1], '00'] as any }
+    if (!m) return null
+    const hh = parseInt(m[1], 10), mm = parseInt(m[2], 10)
+    if (hh > 23 || mm > 59) return null
+    return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`
+  }
+  function commitManual() {
+    const norm = normalizeTime(manual)
+    if (norm) { onChange(norm); onClose() }
+  }
   return createPortal(
     <motion.div ref={containerRef} initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }} transition={{ duration: 0.15 }}
       style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 4000, background: 'var(--color-bg-input)', border: '1.5px solid var(--color-border-glass)', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', overflow: 'hidden' }}>
+      <div style={{ padding: 6, borderBottom: '1px solid var(--color-border)' }}>
+        <input autoFocus value={manual} onChange={e => setManual(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commitManual() } else if (e.key === 'Escape') onClose() }}
+          onBlur={commitManual} placeholder="чч:мм"
+          style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text)', padding: '7px 10px', borderRadius: 9, fontSize: 13, fontWeight: 600, fontFamily: 'inherit', textAlign: 'center', letterSpacing: 0.5 }} />
+      </div>
       <div style={{ position: 'relative' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 28, zIndex: 1, background: 'linear-gradient(to bottom, var(--color-bg-input), transparent)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 28, zIndex: 1, background: 'linear-gradient(to top, var(--color-bg-input), transparent)', pointerEvents: 'none' }} />
-        <div ref={listRef} style={{ maxHeight: 200, overflowY: 'auto', padding: '4px 6px', scrollbarWidth: 'none' }}>
+        {fadeTop && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 28, zIndex: 1, background: 'linear-gradient(to bottom, var(--color-bg-input), transparent)', pointerEvents: 'none' }} />}
+        {fadeBottom && <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 28, zIndex: 1, background: 'linear-gradient(to top, var(--color-bg-input), transparent)', pointerEvents: 'none' }} />}
+        <div ref={listRef} onScroll={updateFades} style={{ maxHeight: 200, overflowY: 'auto', padding: '4px 6px', scrollbarWidth: 'none' }}>
           {TIME_SLOTS_DIAG.map(t => {
             const active = t === value
             return (
