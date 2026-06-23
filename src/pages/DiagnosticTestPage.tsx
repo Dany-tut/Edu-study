@@ -103,7 +103,7 @@ function DiagDoneScreen({ accentColor, onBack }: { accentColor: string; onBack: 
         style={{
           width: '100%', maxWidth: 420,
           borderRadius: 32,
-          background: '#f0fdf4',
+          background: '#ffffff',
           padding: '36px 32px 32px',
           display: 'flex', flexDirection: 'column', alignItems: 'center',
           textAlign: 'center', gap: 0,
