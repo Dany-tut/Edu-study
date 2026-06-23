@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, forwardRef, useImperativeHandle } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -3317,23 +3317,61 @@ function IconPickerField({ iconKey, onChange, accent }: {
   const [search, setSearch] = useState('')
   const searchRef = useRef<HTMLInputElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
+  const gridRef = useRef<HTMLDivElement>(null)
+  const topFadeRef = useRef<HTMLDivElement>(null)
+  const botFadeRef = useRef<HTMLDivElement>(null)
 
-  // 6 quick-pick icons; current selection always included
+  // Fill the row: 8 quick-pick icons (flex: 1 fills width) + chevron
   const quickPick = useMemo(() => {
-    const base = DEFAULT_ICON_KEYS.slice(0, 6)
+    const base = DEFAULT_ICON_KEYS.slice(0, 8)
     if (base.includes(iconKey)) return base
-    return [iconKey, ...base.slice(0, 5)]
+    return [iconKey, ...base.slice(0, 7)]
   }, [iconKey])
 
-  const shownIcons = useMemo(() => {
+  // Search results (null = show sections)
+  const searchResults = useMemo(() => {
     const q = search.toLowerCase().replace(/[\s\-_]/g, '')
-    if (!q) return DEFAULT_ICON_KEYS.map(k => [k, (LucideIcons as Record<string, unknown>)[k] as React.ElementType] as [string, React.ElementType])
-    return ALL_LUCIDE_ENTRIES.filter(([name]) => name.toLowerCase().replace(/[\s\-_]/g, '').includes(q)).slice(0, 60)
+    if (!q) return null
+    return ALL_LUCIDE_ENTRIES.filter(([n]) => n.toLowerCase().replace(/[\s\-_]/g, '').includes(q)).slice(0, 60)
   }, [search])
 
+  // "All" section = ALL_LUCIDE_ENTRIES minus the popular 8 (shown in quick row), first 150
+  const allIcons = useMemo(() =>
+    ALL_LUCIDE_ENTRIES.filter(([n]) => !DEFAULT_ICON_KEYS.slice(0, 8).includes(n)).slice(0, 150)
+  , [])
+
+  // Barrel + fades via direct DOM (no re-render on scroll)
+  const updateBarrel = useCallback(() => {
+    const grid = gridRef.current
+    if (!grid) return
+    const { scrollTop, clientHeight, scrollHeight } = grid
+    const viewCenter = clientHeight / 2
+    const gridTop = grid.getBoundingClientRect().top
+
+    grid.querySelectorAll<HTMLElement>('[data-icb]').forEach(btn => {
+      const rect = btn.getBoundingClientRect()
+      const itemCenter = rect.top - gridTop + rect.height / 2
+      const dist = (itemCenter - viewCenter) / viewCenter // -1..1
+      const angle = Math.max(-38, Math.min(38, dist * 38))
+      const opacity = Math.max(0.12, 1 - Math.abs(dist) * 0.72)
+      const scl = Math.max(0.72, 1 - Math.abs(dist) * 0.2)
+      btn.style.transform = `perspective(180px) rotateX(${angle}deg) scale(${scl})`
+      btn.style.opacity = String(opacity)
+    })
+
+    if (topFadeRef.current)
+      topFadeRef.current.style.opacity = scrollTop < 4 ? '0' : '1'
+    if (botFadeRef.current)
+      botFadeRef.current.style.opacity = (scrollTop + clientHeight >= scrollHeight - 4) ? '0' : '1'
+  }, [])
+
   useEffect(() => {
-    if (open) setTimeout(() => searchRef.current?.focus(), 50)
-  }, [open])
+    if (open) setTimeout(() => { searchRef.current?.focus(); updateBarrel() }, 60)
+  }, [open, updateBarrel])
+
+  useEffect(() => {
+    if (open) setTimeout(updateBarrel, 20)
+  }, [searchResults, open, updateBarrel])
 
   useEffect(() => {
     if (!open) return
@@ -3346,18 +3384,34 @@ function IconPickerField({ iconKey, onChange, accent }: {
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
+  const iconBtn = (name: string, Ic: React.ElementType) => {
+    const sel = iconKey === name
+    return (
+      <button key={name} data-icb onClick={() => { onChange(name); setOpen(false); setSearch('') }} title={name}
+        style={{
+          width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: sel ? `${accent}28` : 'transparent',
+          color: sel ? accent : 'var(--color-text-3)',
+          transition: 'background 0.1s, color 0.1s',
+        }}>
+        <Ic size={14} strokeWidth={2} />
+      </button>
+    )
+  }
+
   return (
     <div ref={wrapRef} style={{ position: 'relative' }}>
-      {/* Inline row: 6 quick-pick icons + chevron */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 3, overflow: 'hidden' }}>
+      {/* Row: icons fill full width */}
+      <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
         {quickPick.map(k => {
           const Ic = getIconByKey(k)
           const sel = iconKey === k
           return (
             <button key={k} onClick={() => { onChange(k); setOpen(false); setSearch('') }} title={k}
               style={{
-                width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                flex: 1, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: sel ? `${accent}28` : 'transparent',
                 color: sel ? accent : 'var(--color-text-3)',
                 transition: 'background 0.12s, color 0.12s',
@@ -3368,10 +3422,9 @@ function IconPickerField({ iconKey, onChange, accent }: {
         })}
         <button onClick={() => setOpen(o => !o)} title="Все иконки"
           style={{
-            width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            background: 'transparent',
-            color: open ? accent : 'var(--color-text-3)',
+            width: 28, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'transparent', color: open ? accent : 'var(--color-text-3)',
             transition: 'color 0.12s',
           }}>
           {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
@@ -3386,12 +3439,13 @@ function IconPickerField({ iconKey, onChange, accent }: {
             exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
             style={{
               position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 6, zIndex: 50,
-              borderRadius: 14, padding: '8px',
+              borderRadius: 14, padding: '8px 8px 6px',
               background: 'rgba(var(--glass-rgb), 0.88)',
               backdropFilter: 'blur(10px) saturate(140%)', WebkitBackdropFilter: 'blur(10px) saturate(140%)',
               border: '1px solid var(--color-border-glass)',
               boxShadow: '0 6px 18px rgba(0,0,0,0.10)',
             }}>
+            {/* Search */}
             <div style={{ position: 'relative', marginBottom: 8 }}>
               <Search size={12} style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)', pointerEvents: 'none' }} />
               <input ref={searchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск иконки…"
@@ -3400,21 +3454,51 @@ function IconPickerField({ iconKey, onChange, accent }: {
                 <button onClick={() => setSearch('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: 0, fontSize: 15, lineHeight: 1 }}>×</button>
               )}
             </div>
-            <div style={{ maxHeight: 164, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, 30px)', gap: 3, scrollbarWidth: 'thin' as const }}>
-              {shownIcons.map(([name, Ic]) => {
-                const sel = iconKey === name
-                return (
-                  <button key={name} onClick={() => { onChange(name); setOpen(false); setSearch('') }} title={name}
-                    style={{
-                      width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s, color 0.1s',
-                      background: sel ? `${accent}28` : 'transparent',
-                      color: sel ? accent : 'var(--color-text-3)',
-                    }}>
-                    <Ic size={14} strokeWidth={2} />
-                  </button>
-                )
-              })}
+
+            {/* Scrollable icon area with barrel + fades */}
+            <div style={{ position: 'relative' }}>
+              {/* Top fade */}
+              <div ref={topFadeRef} style={{
+                position: 'absolute', top: 0, left: 0, right: 0, height: 28, zIndex: 2,
+                background: 'linear-gradient(to bottom, rgba(var(--glass-rgb), 0.9) 0%, transparent 100%)',
+                pointerEvents: 'none', opacity: 0, transition: 'opacity 0.18s',
+              }} />
+              {/* Bottom fade */}
+              <div ref={botFadeRef} style={{
+                position: 'absolute', bottom: 0, left: 0, right: 0, height: 28, zIndex: 2,
+                background: 'linear-gradient(to top, rgba(var(--glass-rgb), 0.9) 0%, transparent 100%)',
+                pointerEvents: 'none', opacity: 1, transition: 'opacity 0.18s',
+              }} />
+
+              <div ref={gridRef} onScroll={updateBarrel}
+                style={{ maxHeight: 160, overflowY: 'auto', scrollbarWidth: 'none' as const }}>
+                {searchResults ? (
+                  /* Search results — flat grid */
+                  <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 3 }}>
+                    {searchResults.map(([name, Ic]) => iconBtn(name, Ic))}
+                  </div>
+                ) : (
+                  /* Sections: Popular + All */
+                  <>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.6, textTransform: 'uppercase', padding: '2px 2px 5px', opacity: 0.6 }}>
+                      Популярные
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 3, marginBottom: 6 }}>
+                      {DEFAULT_ICON_KEYS.map(k => {
+                        const Ic = (LucideIcons as Record<string, unknown>)[k] as React.ElementType
+                        return iconBtn(k, Ic)
+                      })}
+                    </div>
+                    <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '4px 0 6px', opacity: 0.5 }} />
+                    <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.6, textTransform: 'uppercase', padding: '0 2px 5px', opacity: 0.6 }}>
+                      Все
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 3 }}>
+                      {allIcons.map(([name, Ic]) => iconBtn(name, Ic))}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
@@ -3422,6 +3506,7 @@ function IconPickerField({ iconKey, onChange, accent }: {
     </div>
   )
 }
+
 
 // ─── Color utilities ─────────────────────────────────────────────────────────
 
@@ -5098,8 +5183,20 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                               <input value={opt} onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o); setDirty(true) }}
                                 style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />
                             </div>
+                            {editOpts.length > 2 && (
+                              <button onClick={() => { const o = editOpts.filter((_, i) => i !== oi); setEditOpts(o); if (editCorrect >= o.length) setEditCorrect(0); setDirty(true) }}
+                                style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, cursor: 'pointer', border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <X size={13} />
+                              </button>
+                            )}
                           </div>
                         ))}
+                        {editOpts.length < 6 && (
+                          <button onClick={() => { setEditOpts([...editOpts, '']); setDirty(true) }}
+                            style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 9, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', marginTop: 2 }}>
+                            <Plus size={13} /> Добавить вариант
+                          </button>
+                        )}
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 4 }}>
@@ -6169,8 +6266,20 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                                   <input value={opt} onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o) }}
                                     style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: editCorrect === oi ? getContrastColor(accent) : 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />
                                 </div>
+                                {editOpts.length > 2 && (
+                                  <button onClick={() => { const o = editOpts.filter((_, i) => i !== oi); setEditOpts(o); if (editCorrect >= o.length) setEditCorrect(0) }}
+                                    style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, cursor: 'pointer', border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <X size={13} />
+                                  </button>
+                                )}
                               </div>
                             ))}
+                            {editOpts.length < 6 && (
+                              <button onClick={() => setEditOpts([...editOpts, ''])}
+                                style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 9, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', marginTop: 2 }}>
+                                <Plus size={13} /> Добавить вариант
+                              </button>
+                            )}
                           </div>
                         </div>
                       </>
@@ -6386,9 +6495,12 @@ function DiagnosticCard({ subject, isSelected, onClick, chipOverride }: { subjec
 function CustomTestCard({ test, isSelected, onClick }: { test: CustomTest; isSelected: boolean; onClick: () => void }) {
   const { label, accent } = test
   const soft = accent + '22'
-  const [qCount, setQCount] = useState(0)
+  const [qCount, setQCount] = useState(() => loadDiagQuestions(test.id as DiagSubject).length)
   const [anonCount, setAnonCount] = useState(0)
-  useEffect(() => { loadAnonResults().then(all => { setAnonCount(all.filter(r => r.subject === test.id).length); setQCount(loadDiagQuestions(test.id as DiagSubject).length) }) }, [test.id])
+  useEffect(() => {
+    fetchDiagQuestions(test.id as DiagSubject).then(qs => setQCount(qs.length))
+    loadAnonResults().then(all => setAnonCount(all.filter(r => r.subject === test.id).length))
+  }, [test.id])
   const CardIcon = (test.iconKey ? getIconByKey(test.iconKey) : null) as React.ElementType | null
   const chip = test.chip ?? 'Диагностика'
   const { color: chipColor, bg: chipBg } = getChipStyle(chip, accent)
