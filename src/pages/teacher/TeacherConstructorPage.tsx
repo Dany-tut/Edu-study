@@ -1752,7 +1752,17 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
                       <div style={{ flex: 1 }} />
                       <button onClick={() => setQuiz(prev => prev.filter((_, i) => i !== qi))} style={miniBtn('var(--color-red-soft)', 'var(--color-red-text)')}><Trash2 size={12} /></button>
                     </div>
-                    <input value={q.prompt} onChange={e => setQ(qi, { prompt: e.target.value })} placeholder="Текст вопроса" style={inputSt} />
+                    <input value={q.prompt} onChange={e => setQ(qi, { prompt: e.target.value })} placeholder="Текст вопроса" style={inputSt}
+                      onPaste={e => {
+                        const text = e.clipboardData.getData('text/plain')
+                        const parsed = parseSmartPaste(text)
+                        if (parsed) {
+                          e.preventDefault()
+                          const newOpts = parsed.options.map((t, i) => ({ id: q.options[i]?.id ?? uid(), text: t }))
+                          setQ(qi, { prompt: parsed.question, options: newOpts, correctOptionId: newOpts[0].id })
+                        }
+                      }}
+                    />
                     {q.options.map(o => (
                       <label key={o.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <input type="radio" name={`correct-${q.id}`} checked={q.correctOptionId === o.id} onChange={() => setQ(qi, { correctOptionId: o.id })} title="Верный ответ" />
@@ -4586,6 +4596,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   onAssign: (a: Omit<TestAssignment, 'id' | 'createdAt'>) => void
   onDeleteAssignment: (id: string) => void
   initialChip?: string
+  initialLabel?: string
   onColorChange?: (hex: string) => void
   onIconChange?: (iconKey: string) => void
   onLabelChange?: (newLabel: string) => void
@@ -4594,7 +4605,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   subject, onClose,
   groups, allStudents,
   assignments, onAssign, onDeleteAssignment,
-  initialChip,
+  initialChip, initialLabel,
   onColorChange, onIconChange, onLabelChange, onChipChange,
 }, ref) {
   const initialMeta = getSubjectMeta(subject)
@@ -4603,7 +4614,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   const accent = accentState
   const soft = CREATOR_ACCENTS.find(a => a.hex === accent)?.soft ?? accent + '22'
   const [labelState, setLabelState] = useState(() =>
-    isCustomTest ? initialMeta.label : (loadBuiltinLabel(subject) || initialMeta.label)
+    initialLabel ?? (isCustomTest ? initialMeta.label : (loadBuiltinLabel(subject) || initialMeta.label))
   )
   const label = labelState
   const [iconKeyState, setIconKeyState] = useState(CUSTOM_META.get(subject)?.iconKey ?? 'FileText')
@@ -7258,6 +7269,7 @@ export default function TeacherConstructorPage() {
             key={`diag-editor-${diagEditing}`}
             subject={diagEditing as DiagSubject}
             initialChip={customTests.find(ct => ct.id === diagEditing)?.chip ?? builtinChips[diagEditing] ?? undefined}
+            initialLabel={customTests.find(ct => ct.id === diagEditing)?.label ?? undefined}
             onClose={() => setDiagEditing(null)}
             groups={diagGroups}
             allStudents={diagAllStudents}
