@@ -854,6 +854,17 @@ export async function updateCustomTestChip(id: string, chip: string): Promise<vo
 }
 
 // Chip label for built-in diagnostic subjects (stored in localStorage)
+export function loadBuiltinLabel(subject: string): string {
+  try { return (JSON.parse(localStorage.getItem('diagBuiltinLabels') ?? '{}'))[subject] ?? '' } catch { return '' }
+}
+export function saveBuiltinLabel(subject: string, label: string): void {
+  try {
+    const map = JSON.parse(localStorage.getItem('diagBuiltinLabels') ?? '{}')
+    map[subject] = label
+    localStorage.setItem('diagBuiltinLabels', JSON.stringify(map))
+  } catch { /* ignore */ }
+}
+
 export function loadBuiltinChip(subject: string): string {
   try {
     const map = JSON.parse(localStorage.getItem('diagBuiltinChips') ?? '{}')

@@ -24,7 +24,7 @@ import {
   loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult,
   createTestAssignment, loadTestAssignments, deleteTestAssignment, loadAssignmentResults,
   fetchCustomTestsMeta, saveCustomTestMeta, deleteCustomTestMeta, updateCustomTestAccent, updateCustomTestIcon, updateCustomTestChip,
-  loadBuiltinChip, saveBuiltinChip,
+  loadBuiltinChip, saveBuiltinChip, loadBuiltinLabel, saveBuiltinLabel,
   type DiagQuestion, type DiagSubject, type AnonDiagResult, type TestAssignment,
   type CustomTestMeta,
   DEFAULT_QUESTIONS,
@@ -4577,7 +4577,9 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   const [accentState, setAccentState] = useState(initialMeta.accent)
   const accent = accentState
   const soft = CREATOR_ACCENTS.find(a => a.hex === accent)?.soft ?? accent + '22'
-  const [labelState, setLabelState] = useState(initialMeta.label)
+  const [labelState, setLabelState] = useState(() =>
+    isCustomTest ? initialMeta.label : (loadBuiltinLabel(subject) || initialMeta.label)
+  )
   const label = labelState
   const [iconKeyState, setIconKeyState] = useState(CUSTOM_META.get(subject)?.iconKey ?? 'FileText')
   const Icon = getIconByKey(iconKeyState) as React.ElementType
@@ -4618,8 +4620,12 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   function handleLabelBlur() {
     const trimmed = labelState.trim()
     if (!trimmed) { setLabelState(initialMeta.label); return }
-    const meta = CUSTOM_META.get(subject)
-    saveCustomTestMeta(subject, trimmed, accent, meta?.iconKey)
+    if (isCustomTest) {
+      const meta = CUSTOM_META.get(subject)
+      saveCustomTestMeta(subject, trimmed, accent, meta?.iconKey)
+    } else {
+      saveBuiltinLabel(subject, trimmed)
+    }
     onLabelChange?.(trimmed)
   }
   const [showPicker, setShowPicker] = useState(false)
@@ -4778,18 +4784,16 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
           {/* 3-mode card */}
           <GlassCard style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-            {/* Rename (custom tests only) */}
-            {isCustomTest && (
-              <div>
-                <input
-                  value={labelState}
-                  onChange={e => handleLabelChange(e.target.value)}
-                  onBlur={handleLabelBlur}
-                  onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', borderRadius: 10, border: `1.5px solid ${accent}66`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }}
-                />
-              </div>
-            )}
+            {/* Name */}
+            <div>
+              <input
+                value={labelState}
+                onChange={e => handleLabelChange(e.target.value)}
+                onBlur={handleLabelBlur}
+                onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', borderRadius: 10, border: `1.5px solid ${accent}66`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }}
+              />
+            </div>
 
             {/* Color picker */}
             <div>
