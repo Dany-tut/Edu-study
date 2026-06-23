@@ -52,6 +52,10 @@ type TeacherStore = {
   constructorIntent: 'course' | 'trainer' | 'widget' | null
   openConstructor: (mode: 'course' | 'trainer' | 'widget') => void
   clearConstructorIntent: () => void
+  // Incremented when the user clicks "Конструктор" nav while already on the constructor page.
+  // The constructor page listens to this to auto-save draft and return to the list.
+  constructorBackTick: number
+  triggerConstructorBack: () => void
   editTaskIntent: number | null
   openConstructorEditTask: (taskId: number) => void
   clearEditTaskIntent: () => void
@@ -127,6 +131,8 @@ export const useTeacher = create<TeacherStore>(set => ({
   constructorIntent: null,
   openConstructor: mode => set({ activePage: 'constructor', constructorIntent: mode, headerDocked: false }),
   clearConstructorIntent: () => set({ constructorIntent: null }),
+  constructorBackTick: 0,
+  triggerConstructorBack: () => set(s => ({ constructorBackTick: s.constructorBackTick + 1 })),
   editTaskIntent: null,
   openConstructorEditTask: taskId => set({ activePage: 'constructor', editTaskIntent: taskId, constructorIntent: 'trainer', headerDocked: false }),
   clearEditTaskIntent: () => set({ editTaskIntent: null }),

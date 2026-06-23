@@ -94,15 +94,14 @@ export default function MobileCourses() {
       <MobileScreen topZone={topZone} topPad={72} topRaise={0} scrollKey={`${activeSubjectId}-${moduleTab}`}>
         {!subject ? (
           <div className="flex flex-col items-center justify-center text-center" style={{ minHeight: 240, gap: 6 }}>
-            {loaded ? (
+            {loaded && (
               <>
                 <Lock size={22} style={{ color: 'var(--color-muted)', marginBottom: 4 }} />
                 <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>Курс ещё не открыт</p>
                 <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Преподаватель откроет доступ к урокам</p>
               </>
-            ) : (
-              <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Загрузка…</p>
             )}
+            {!loaded && <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Загрузка…</p>}
           </div>
         ) : (
           <div className="flex flex-col" style={{ gap: 14 }}>

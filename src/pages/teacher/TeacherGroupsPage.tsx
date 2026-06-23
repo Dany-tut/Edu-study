@@ -1211,11 +1211,10 @@ function StudentCoursesSection({ student, group }: { student: Student; group: Gr
       <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
         Активные курсы
       </div>
-      {loading ? (
-        <div style={{ fontSize: 12, color: 'var(--color-text-3)', padding: '8px 0' }}>Загрузка...</div>
-      ) : courses.length === 0 ? (
+      {!loading && courses.length === 0 && (
         <div style={{ fontSize: 12, color: 'var(--color-text-3)', padding: '8px 0' }}>Нет активных курсов</div>
-      ) : (
+      )}
+      {courses.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {courses.map(c => {
             const pct = c.totalLessons > 0 ? c.completedLessons / c.totalLessons : 0
@@ -1240,6 +1239,9 @@ function StudentCoursesSection({ student, group }: { student: Student; group: Gr
             )
           })}
         </div>
+      )}
+      {loading && (
+        <div style={{ fontSize: 12, color: 'var(--color-text-3)', padding: '8px 0' }}>Загрузка...</div>
       )}
     </section>
   )

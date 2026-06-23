@@ -129,10 +129,9 @@ export default function StorageUsagePanel() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-text-3)', fontSize: 12.5, padding: '16px 0 4px' }}>
           <AlertTriangle size={15} /> Не удалось загрузить статистику
         </div>
-      ) : !stats ? (
-        <div style={{ color: 'var(--color-text-4)', fontSize: 12.5, padding: '16px 0 4px' }}>Загрузка…</div>
       ) : (
         <>
+          {stats && <>
           {/* Полоски использования — видны всегда (даже в свёрнутом виде) */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18, paddingTop: 16 }}>
             <UsageBar
@@ -194,6 +193,8 @@ export default function StorageUsagePanel() {
               </motion.div>
             )}
           </AnimatePresence>
+          </>}
+          {!stats && <div style={{ color: 'var(--color-text-4)', fontSize: 12.5, padding: '16px 0 4px' }}>Загрузка…</div>}
         </>
       )}
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

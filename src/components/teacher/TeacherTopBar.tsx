@@ -95,10 +95,11 @@ export default function TeacherTopBar() {
   const profileBtnRef  = useRef<HTMLDivElement>(null)
   const profileDropRef = useRef<HTMLDivElement>(null)
 
-  const activePage      = useTeacher(s => s.activePage)
-  const setActivePage   = useTeacher(s => s.setActivePage)
-  const addTask         = useTeacher(s => s.addTask)
-  const openConstructor = useTeacher(s => s.openConstructor)
+  const activePage             = useTeacher(s => s.activePage)
+  const setActivePage          = useTeacher(s => s.setActivePage)
+  const addTask                = useTeacher(s => s.addTask)
+  const openConstructor        = useTeacher(s => s.openConstructor)
+  const triggerConstructorBack = useTeacher(s => s.triggerConstructorBack)
   const { dark, toggle: toggleTheme } = useTheme()
 
   const [teacherName,  setTeacherName]  = useState('')
@@ -226,7 +227,13 @@ export default function TeacherTopBar() {
             <motion.button
               key={item.id}
               whileTap={{ scale: 0.97 }}
-              onClick={() => setActivePage(item.id)}
+              onClick={() => {
+                if (item.id === 'constructor' && activePage === 'constructor') {
+                  triggerConstructorBack()
+                } else {
+                  setActivePage(item.id)
+                }
+              }}
               onMouseEnter={e => {
                 if (!isActive) {
                   const el = e.currentTarget as HTMLButtonElement
@@ -250,24 +257,31 @@ export default function TeacherTopBar() {
                 whiteSpace: 'nowrap',
               }}
             >
-              {isActive && (
-                <motion.div
-                  layoutId="teacher-active-pill"
+              <div
                   style={{
                     position: 'absolute', inset: 0, borderRadius: 20,
                     background: 'var(--grad-purple)',
-                    boxShadow: '0 4px 14px rgba(106,90,230,0.42)',
+                    boxShadow: isActive ? '0 4px 14px rgba(106,90,230,0.42)' : 'none',
+                    opacity: isActive ? 1 : 0,
+                    transition: 'opacity 0.22s ease, box-shadow 0.22s ease',
                     zIndex: 0,
+                    pointerEvents: 'none',
                   }}
-                  transition={transition}
                 />
-              )}
-              <motion.span initial={false} animate={{ width: collapsed ? 'auto' : 0, opacity: collapsed ? 1 : 0 }} transition={transition} style={{ position: 'relative', zIndex: 1, display: 'flex', overflow: 'hidden' }}>
+              <span style={{
+                position: 'relative', zIndex: 1, display: 'flex', overflow: 'hidden',
+                maxWidth: collapsed ? 22 : 0, opacity: collapsed ? 1 : 0,
+                transition: 'max-width 0.32s cubic-bezier(0.32,0.72,0,1), opacity 0.22s ease',
+              }}>
                 <item.icon size={18} strokeWidth={isActive ? 2.2 : 1.8} />
-              </motion.span>
-              <motion.span initial={false} animate={{ width: collapsed ? 0 : 'auto', opacity: collapsed ? 0 : 1 }} transition={transition} style={{ position: 'relative', zIndex: 1, display: 'block', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+              </span>
+              <span style={{
+                position: 'relative', zIndex: 1, display: 'block', overflow: 'hidden', whiteSpace: 'nowrap',
+                maxWidth: collapsed ? 0 : 200, opacity: collapsed ? 0 : 1,
+                transition: 'max-width 0.32s cubic-bezier(0.32,0.72,0,1), opacity 0.22s ease',
+              }}>
                 {item.label}
-              </motion.span>
+              </span>
               {badgeCount > 0 && (
                 <span style={{ position: 'absolute', top: 5, right: collapsed ? 2 : 4, minWidth: 16, height: 16, borderRadius: 8, padding: '0 4px', background: '#F48B91', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
                   {badgeCount}
@@ -315,7 +329,7 @@ export default function TeacherTopBar() {
         ref={profileBtnRef}
         onClick={() => setProfileOpen(o => !o)}
         whileTap={{ scale: 0.97 }}
-        style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 6px', height: 44, cursor: 'pointer', borderRadius: 14, userSelect: 'none' }}
+        style={{ display: 'flex', alignItems: 'center', gap: 0, padding: '0 7px', height: 44, cursor: 'pointer', borderRadius: 14, userSelect: 'none' }}
       >
         <motion.div
           whileHover={{ scale: 1.10, boxShadow: '0 0 0 3px rgba(120,106,215,0.35), 0 4px 16px rgba(106,90,230,0.55)' }}
@@ -324,21 +338,17 @@ export default function TeacherTopBar() {
         >
           <AvatarIcon size={16} strokeWidth={1.8} style={{ color: '#fff' }} />
         </motion.div>
-        <AnimatePresence initial={false}>
-          {isHome && teacherName && (
-            <motion.div
-              key="tname"
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 'auto', opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              transition={transition}
-              style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}
-            >
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.2 }}>{teacherName}</div>
-              <div style={{ fontSize: 10, color: 'var(--color-muted)', lineHeight: 1.2 }}>{teacherRole === 'admin' ? 'Админ' : 'Учитель'}</div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <div style={{
+          overflow: 'hidden', whiteSpace: 'nowrap',
+          maxWidth: (isHome && teacherName) ? 208 : 0,
+          opacity: (isHome && teacherName) ? 1 : 0,
+          transition: 'max-width 0.32s cubic-bezier(0.32,0.72,0,1), opacity 0.22s ease',
+        }}>
+          <div style={{ paddingLeft: 8 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.2 }}>{teacherName}</div>
+            <div style={{ fontSize: 10, color: 'var(--color-muted)', lineHeight: 1.2 }}>{teacherRole === 'admin' ? 'Админ' : 'Учитель'}</div>
+          </div>
+        </div>
       </motion.div>
     </div>
 

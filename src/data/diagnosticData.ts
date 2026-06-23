@@ -828,21 +828,23 @@ export async function saveDiagQuestions(subject: DiagSubject, qs: DiagQuestion[]
 
 // ── Custom test metadata (cross-device, Supabase-backed) ──────────────────────
 
-export interface CustomTestMeta { id: string; label: string; accent: string }
+export interface CustomTestMeta { id: string; label: string; accent: string; iconKey?: string }
 
 export async function fetchCustomTestsMeta(): Promise<CustomTestMeta[]> {
   const { data, error } = await supabase
     .from('custom_diag_tests')
-    .select('id, label, accent')
+    .select('id, label, accent, icon_key')
     .order('created_at', { ascending: false })
   if (error) { console.error('fetchCustomTestsMeta:', error); return [] }
-  return (data ?? []) as CustomTestMeta[]
+  return (data ?? []).map((r: { id: string; label: string; accent: string; icon_key?: string }) => ({
+    id: r.id, label: r.label, accent: r.accent, iconKey: r.icon_key ?? undefined,
+  }))
 }
 
-export async function saveCustomTestMeta(id: string, label: string, accent: string): Promise<void> {
+export async function saveCustomTestMeta(id: string, label: string, accent: string, iconKey?: string): Promise<void> {
   const { error } = await supabase
     .from('custom_diag_tests')
-    .upsert({ id, label, accent }, { onConflict: 'id' })
+    .upsert({ id, label, accent, ...(iconKey ? { icon_key: iconKey } : {}) }, { onConflict: 'id' })
   if (error) { console.error('saveCustomTestMeta:', error); throw new Error(error.message) }
 }
 
@@ -857,6 +859,14 @@ export async function updateCustomTestAccent(id: string, accent: string): Promis
     .update({ accent })
     .eq('id', id)
   if (error) console.error('updateCustomTestAccent:', error)
+}
+
+export async function updateCustomTestIcon(id: string, iconKey: string): Promise<void> {
+  const { error } = await supabase
+    .from('custom_diag_tests')
+    .update({ icon_key: iconKey })
+    .eq('id', id)
+  if (error) console.error('updateCustomTestIcon:', error)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

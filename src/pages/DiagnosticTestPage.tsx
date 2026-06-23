@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, CheckCircle, Circle, ChevronRight, Target, User } from 'lucide-react'
 import {
@@ -7,9 +7,138 @@ import {
   type CustomTestMeta,
 } from '../data/diagnosticData'
 import CognitiveScreeningPage from './CognitiveScreeningPage'
+import PartyPopperLottie from '../components/PartyPopperLottie'
 import { captureMistake } from '../data/reviewDeck'
 import { logConfidence } from '../data/confidence'
 import { getContrastColor, getCircleShadow } from '../lib/utils'
+
+// ── Confetti + sound (self-contained, no external deps) ────────────────────────
+function playVictorySound() {
+  try {
+    const ac = new AudioContext()
+    const notes = [523.25, 659.25, 783.99, 1046.5]
+    notes.forEach((freq, i) => {
+      const osc = ac.createOscillator()
+      const gain = ac.createGain()
+      osc.connect(gain); gain.connect(ac.destination)
+      osc.type = i === notes.length - 1 ? 'sine' : 'triangle'
+      osc.frequency.value = freq
+      const t0 = ac.currentTime + i * 0.13
+      gain.gain.setValueAtTime(0, t0)
+      gain.gain.linearRampToValueAtTime(0.22, t0 + 0.03)
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + (i === notes.length - 1 ? 0.9 : 0.28))
+      osc.start(t0); osc.stop(t0 + 1.2)
+    })
+    const sh = ac.createOscillator(); const sG = ac.createGain()
+    sh.connect(sG); sG.connect(ac.destination); sh.type = 'sine'
+    sh.frequency.setValueAtTime(2093, ac.currentTime + 0.42)
+    sh.frequency.linearRampToValueAtTime(2637, ac.currentTime + 0.55)
+    sG.gain.setValueAtTime(0, ac.currentTime + 0.42)
+    sG.gain.linearRampToValueAtTime(0.12, ac.currentTime + 0.44)
+    sG.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.75)
+    sh.start(ac.currentTime + 0.42); sh.stop(ac.currentTime + 0.8)
+  } catch { /* no AudioContext */ }
+}
+
+function DiagConfetti({ bannerRef }: { bannerRef: React.RefObject<HTMLDivElement | null> }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const rafRef = useRef<number | null>(null)
+  useEffect(() => {
+    const canvas = canvasRef.current; if (!canvas) return
+    const ctx = canvas.getContext('2d'); if (!ctx) return
+    const W = window.innerWidth; const H = window.innerHeight
+    canvas.width = W; canvas.height = H
+    const rect = bannerRef.current?.getBoundingClientRect()
+    const originY = rect ? rect.bottom : H * 0.45
+    const originXMin = rect ? rect.left + rect.width * 0.1 : W * 0.2
+    const originXMax = rect ? rect.right - rect.width * 0.1 : W * 0.8
+    playVictorySound()
+    const COLORS = ['#786AD7', '#B98BFF', '#3FCC8A', '#F8A000', '#F06070', '#5AD4C5', '#FFD700', '#FF6B9D']
+    type Piece = { x:number; y:number; vx:number; vy:number; w:number; h:number; angle:number; spin:number; color:string; shape:'rect'|'circle' }
+    const pieces: Piece[] = Array.from({ length: 160 }, () => ({
+      x: originXMin + Math.random() * (originXMax - originXMin), y: originY,
+      vx: (Math.random() - 0.5) * 22, vy: -(9 + Math.random() * 16),
+      w: 6 + Math.random() * 9, h: 4 + Math.random() * 6,
+      angle: Math.random() * Math.PI * 2, spin: (Math.random() - 0.5) * 0.28,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      shape: Math.random() > 0.38 ? 'rect' : 'circle',
+    }))
+    const startTime = performance.now(); const DURATION = 4000
+    function tick(now: number) {
+      const t = Math.min((now - startTime) / DURATION, 1)
+      ctx!.clearRect(0, 0, W, H)
+      for (const p of pieces) {
+        p.x += p.vx; p.vx *= 0.985; p.vy += 0.45; p.y += p.vy; p.angle += p.spin
+        const alpha = t > 0.65 ? 1 - (t - 0.65) / 0.35 : 1
+        ctx!.globalAlpha = alpha; ctx!.fillStyle = p.color
+        ctx!.save(); ctx!.translate(p.x, p.y); ctx!.rotate(p.angle)
+        if (p.shape === 'circle') { ctx!.beginPath(); ctx!.ellipse(0,0,p.w/2,p.h/2,0,0,Math.PI*2); ctx!.fill() }
+        else { ctx!.fillRect(-p.w/2,-p.h/2,p.w,p.h) }
+        ctx!.restore()
+      }
+      if (t < 1) rafRef.current = requestAnimationFrame(tick)
+      else ctx!.clearRect(0, 0, W, H)
+    }
+    rafRef.current = requestAnimationFrame(tick)
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current) }
+  }, [bannerRef])
+  return <canvas ref={canvasRef} style={{ position:'fixed', inset:0, width:'100vw', height:'100vh', pointerEvents:'none', zIndex:9999 }} />
+}
+
+// ── Done screen ───────────────────────────────────────────────────────────────
+function DiagDoneScreen({ accentColor, onBack }: { accentColor: string; onBack: () => void }) {
+  const bannerRef = useRef<HTMLDivElement>(null)
+  return (
+    <div style={{
+      minHeight: '100vh', background: 'var(--color-bg)',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      justifyContent: 'center', padding: '40px 20px',
+    }}>
+      <DiagConfetti bannerRef={bannerRef} />
+      <motion.div
+        ref={bannerRef}
+        initial={{ opacity: 0, scale: 0.88, y: 28 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+        style={{
+          width: '100%', maxWidth: 420,
+          borderRadius: 32,
+          background: 'var(--color-purple-soft)',
+          padding: '36px 32px 32px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          textAlign: 'center', gap: 0,
+          boxShadow: 'var(--shadow-lg)',
+        }}
+      >
+        <div style={{ marginBottom: 16 }}>
+          <PartyPopperLottie size={80} />
+        </div>
+
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--color-purple-text)', marginBottom: 10 }}>
+          Диагностика завершена
+        </div>
+        <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 12 }}>
+          Молодец! Ты справился 🎉
+        </div>
+        <div style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.6, marginBottom: 28 }}>
+          Результаты сохранены — преподаватель увидит их в своём кабинете и сможет помочь тебе с&nbsp;подготовкой.
+        </div>
+
+        <button
+          onClick={onBack}
+          style={{
+            width: '100%', padding: '14px', borderRadius: 16, border: 'none', cursor: 'pointer',
+            background: accentColor, color: '#fff', fontSize: 15, fontWeight: 700,
+            boxShadow: `0 6px 20px ${accentColor}55`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          }}
+        >
+          <ArrowLeft size={16} /> На главную
+        </button>
+      </motion.div>
+    </div>
+  )
+}
 
 // ── Subject theme ──────────────────────────────────────────────────────────────
 const THEME: Record<Exclude<DiagSubject, 'logic'>, { accent: string; soft: string; label: string; sublabel: string }> = {
@@ -80,6 +209,8 @@ export default function DiagnosticTestPage() {
   const [chosen, setChosen] = useState<Record<string, number>>({})  // questionId → option index
   const [results, setResults] = useState<DiagResults>({})
   const [confident, setConfident] = useState<boolean | null>(null)  // confidence for current question
+
+  const isLinkMode = !assignmentId  // shared link: no feedback shown
 
   const q: DiagQuestion | undefined = questions[current]
   const total = questions.length
@@ -180,7 +311,7 @@ export default function DiagnosticTestPage() {
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>Введи своё ФИО</div>
               <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 12 }}>
-                Результаты сохранятся у твоего преподавателя. Логин и пароль не нужны.
+                Результаты сохранятся у твоего преподавателя.<br />Логин и пароль не нужны.
               </div>
               <div style={{ position: 'relative' }}>
                 <User size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
@@ -225,96 +356,7 @@ export default function DiagnosticTestPage() {
 
   // ── Results view ──
   if (done) {
-    const sections = Object.entries(results)
-    const totalCorrect = sections.reduce((s, [, v]) => s + v.correct, 0)
-    const totalQ = sections.reduce((s, [, v]) => s + v.total, 0)
-    const pct = totalQ ? Math.round((totalCorrect / totalQ) * 100) : 0
-
-    return (
-      <div style={{
-        minHeight: '100vh', background: 'var(--color-bg)',
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        padding: '40px 20px',
-      }}>
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-          style={{ width: '100%', maxWidth: 520 }}
-        >
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 14, background: `${theme.accent}22`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Target size={22} style={{ color: theme.accent }} />
-            </div>
-            <div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)' }}>Диагностика завершена</div>
-              <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{theme.label}</div>
-            </div>
-          </div>
-
-          {/* Total score */}
-          <div style={{
-            padding: '24px', borderRadius: 20,
-            background: pct >= 70 ? 'var(--color-green-soft)' : pct >= 40 ? '#FEF9C3' : 'var(--color-red-soft)',
-            border: `1.5px solid ${pct >= 70 ? '#86efac' : pct >= 40 ? '#fde047' : '#fca5a5'}`,
-            marginBottom: 20, textAlign: 'center',
-          }}>
-            <div style={{ fontSize: 48, fontWeight: 900, color: pct >= 70 ? '#16a34a' : pct >= 40 ? '#92400e' : '#b91c1c', lineHeight: 1 }}>
-              {pct}%
-            </div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-2)', marginTop: 6 }}>
-              {totalCorrect} из {totalQ} верных ответов
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 4 }}>
-              {pct >= 70 ? 'Отличный результат!' : pct >= 40 ? 'Есть что улучшить' : 'Нужно поработать над базой'}
-            </div>
-          </div>
-
-          {/* Section breakdown */}
-          <div style={{
-            background: 'rgba(var(--glass-rgb), 0.9)', border: '1px solid var(--color-border-glass)',
-            borderRadius: 18, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20,
-          }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>
-              Результаты по разделам
-            </div>
-            {sections.map(([sec, { correct, total: tot }]) => {
-              const p = tot ? Math.round((correct / tot) * 100) : 0
-              const color = p >= 70 ? '#22c55e' : p >= 40 ? '#f59e0b' : '#ef4444'
-              return (
-                <div key={sec}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 12, color: 'var(--color-text-2)', fontWeight: 600 }}>{sec}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color }}>{correct}/{tot}</span>
-                  </div>
-                  <div style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-5)' }}>
-                    <motion.div initial={{ width: 0 }} animate={{ width: `${p}%` }} transition={{ duration: 0.6, delay: 0.2 }}
-                      style={{ height: '100%', borderRadius: 999, background: color }} />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-
-          <div style={{ fontSize: 13, color: 'var(--color-muted)', textAlign: 'center', marginBottom: 20 }}>
-            Результаты сохранены — преподаватель увидит их в своём кабинете
-          </div>
-
-          <button
-            onClick={goBack}
-            style={{
-              width: '100%', padding: '14px', borderRadius: 14, border: 'none', cursor: 'pointer',
-              background: theme.accent, color: '#fff', fontSize: 15, fontWeight: 700,
-              boxShadow: `0 6px 20px ${theme.accent}44`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            }}
-          >
-            <ArrowLeft size={16} /> На главную
-          </button>
-        </motion.div>
-      </div>
-    )
+    return <DiagDoneScreen accentColor={theme.accent} onBack={goBack} />
   }
 
   // ── Test view ──
@@ -423,7 +465,7 @@ export default function DiagnosticTestPage() {
               {q.options.map((opt, idx) => {
                 const isChosen = picked === idx
                 const isCorrect = q.correct === idx
-                const showResult = picked !== undefined
+                const showResult = picked !== undefined && !isLinkMode
 
                 let borderColor = 'var(--color-border-medium)'
                 if (showResult) {
@@ -479,7 +521,7 @@ export default function DiagnosticTestPage() {
 
             {/* Result feedback card — shown below options, not inside them */}
             <AnimatePresence>
-              {picked !== undefined && (() => {
+              {picked !== undefined && !isLinkMode && (() => {
                 const isRight = picked === q.correct
                 return (
                   <motion.div
@@ -517,7 +559,7 @@ export default function DiagnosticTestPage() {
 
             {/* Next button */}
             <AnimatePresence>
-              {picked !== undefined && current < total - 1 && (
+              {picked !== undefined && !isLinkMode && current < total - 1 && (
                 <motion.button
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}

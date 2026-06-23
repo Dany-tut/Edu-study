@@ -135,10 +135,9 @@ export default function TeacherStoragePage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-text-3)', fontSize: 13, padding: '24px 0' }}>
           <AlertTriangle size={16} /> Не удалось загрузить статистику
         </div>
-      ) : !stats ? (
-        <div style={{ color: 'var(--color-text-4)', fontSize: 13, padding: '24px 0' }}>Загрузка…</div>
       ) : (
         <>
+          {stats && <>
           {/* Usage bars */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <BigUsageBar icon={Database} label="База данных (Postgres)" used={stats.db_bytes} limit={stats.db_limit_bytes} />
@@ -200,6 +199,8 @@ export default function TeacherStoragePage() {
               ))}
             </div>
           </div>
+          </>}
+          {!stats && <div style={{ color: 'var(--color-text-4)', fontSize: 13, padding: '24px 0' }}>Загрузка…</div>}
         </>
       )}
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

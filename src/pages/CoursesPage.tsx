@@ -77,14 +77,13 @@ export default function CoursesPage() {
   if (!subject) {
     return (
       <div className="flex flex-col items-center justify-center text-center" style={{ minHeight: 300, gap: 8 }}>
-        {loaded ? (
+        {loaded && (
           <>
             <p style={{ fontSize: 16, fontWeight: 650, color: 'var(--color-text)' }}>Курсы ещё не добавлены</p>
             <p style={{ fontSize: 13, marginTop: 4, color: 'var(--color-muted)' }}>Преподаватель откроет доступ к урокам</p>
           </>
-        ) : (
-          <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Загрузка…</p>
         )}
+        {!loaded && <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Загрузка…</p>}
       </div>
     )
   }

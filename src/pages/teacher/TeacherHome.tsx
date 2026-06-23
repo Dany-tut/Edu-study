@@ -446,20 +446,24 @@ function ReminderGroupStack({ items, getAction, isDone }: {
             border: '1px solid rgba(255,255,255,0.16)', zIndex: 2,
           }} />
           {/* Front card — frosted glass */}
+          {/* Blur layer: no overflow:hidden so backdrop-filter works in Safari/PWA */}
           <div style={{
             position: 'relative', zIndex: 3,
-            borderRadius: 12, overflow: 'hidden',
+            borderRadius: 12,
             background: glassBg,
             backdropFilter: 'blur(40px) saturate(180%)',
             WebkitBackdropFilter: 'blur(40px) saturate(180%)',
             border: '1.5px solid rgba(255,255,255,0.22)',
           }}>
-            <ReminderRow
-              item={front}
-              done={isDone(front)}
-              onAction={undefined}
-              style={{ background: 'transparent' }}
-            />
+            {/* Content layer: clips children to radius */}
+            <div style={{ borderRadius: 11, overflow: 'hidden' }}>
+              <ReminderRow
+                item={front}
+                done={isDone(front)}
+                onAction={undefined}
+                style={{ background: 'transparent' }}
+              />
+            </div>
             <div style={{
               position: 'absolute', top: '50%', right: 10,
               transform: 'translateY(-50%)',

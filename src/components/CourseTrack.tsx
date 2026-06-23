@@ -661,15 +661,14 @@ export default function CourseTrack() {
   if (subjects.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center" style={{ minHeight: 160, gap: 8 }}>
-        {loaded ? (
+        {loaded && (
           <>
             <Lock size={22} style={{ opacity: 0.35, color: 'var(--color-muted)' }} />
             <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-3)' }}>Курсы ещё не добавлены</p>
             <p style={{ fontSize: 12, color: 'var(--color-muted)' }}>Преподаватель откроет доступ к урокам</p>
           </>
-        ) : (
-          <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Загрузка…</p>
         )}
+        {!loaded && <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Загрузка…</p>}
       </div>
     )
   }

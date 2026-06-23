@@ -52,8 +52,10 @@
   --color-green-border: rgba(26,122,63,0.50);
   --color-yellow: #F8EF8C;
   --color-yellow-soft: #FFF9CC;
+  --color-yellow-border: rgba(180,130,0,0.40);
   --color-red: #F48B91;
   --color-red-soft: #FFE1E4;
+  --color-red-border: rgba(185,28,28,0.35);
   --color-peach: #F8C991;
   --color-peach-soft: #FFE4BD;
   --reminder-card-medium: #FFE4BD;
@@ -156,7 +158,9 @@
   --color-green-soft: rgba(74,222,128,0.22);
   --color-green-border: rgba(74,222,128,0.50);
   --color-yellow-soft: rgba(248,230,80,0.16);
+  --color-yellow-border: rgba(248,230,80,0.40);
   --color-red-soft: rgba(248,99,107,0.30);
+  --color-red-border: rgba(248,99,107,0.50);
   --color-peach-soft: rgba(248,180,100,0.18);
   --color-purple-soft: rgba(124,108,224,0.46);
   --color-rose-soft: rgba(204,75,123,0.22);
@@ -616,4 +620,14 @@ input[type=number]::-webkit-outer-spin-button {
 }
 .topbar-snap-up {
   animation: topbar-jelly-up 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes constructorCardFlashAnim {
+  0%   { box-shadow: 0 0 0 3px rgba(120, 106, 215, 0.75); }
+  40%  { box-shadow: 0 0 0 5px rgba(120, 106, 215, 0.3); }
+  100% { box-shadow: 0 0 0 3px rgba(120, 106, 215, 0); }
+}
+.constructor-card-flash {
+  border-radius: 20px;
+  animation: constructorCardFlashAnim 1.8s ease-out forwards;
 }
