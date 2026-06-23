@@ -5039,6 +5039,17 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                       <textarea
                         value={editText} onChange={e => { setEditText(e.target.value); setDirty(true) }} rows={4}
                         style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 12, border: `1.5px solid ${accent}55`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.5 }}
+                        onPaste={e => {
+                          const text = e.clipboardData.getData('text/plain')
+                          const parsed = parseSmartPaste(text)
+                          if (parsed) {
+                            e.preventDefault()
+                            setEditText(parsed.question)
+                            setEditOpts(parsed.options.length >= 4 ? parsed.options : [...parsed.options, ...Array(Math.max(0, 4 - parsed.options.length)).fill('')])
+                            setEditCorrect(0)
+                            setDirty(true)
+                          }
+                        }}
                       />
                     </div>
                     <div>
@@ -6097,7 +6108,18 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                         <div>
                           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Текст вопроса</div>
                           <textarea value={editText} onChange={e => setEditText(e.target.value)} rows={4} placeholder="Введите вопрос…"
-                            style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 12, border: `1.5px solid ${accent}55`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.5 }} />
+                            style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 12, border: `1.5px solid ${accent}55`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.5 }}
+                            onPaste={e => {
+                              const text = e.clipboardData.getData('text/plain')
+                              const parsed = parseSmartPaste(text)
+                              if (parsed) {
+                                e.preventDefault()
+                                setEditText(parsed.question)
+                                setEditOpts(parsed.options.length >= 4 ? parsed.options : [...parsed.options, ...Array(Math.max(0, 4 - parsed.options.length)).fill('')])
+                                setEditCorrect(0)
+                              }
+                            }}
+                          />
                         </div>
                         <div>
                           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
