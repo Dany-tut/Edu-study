@@ -37,6 +37,7 @@ import { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from '../../data/apChemistry'
 import { AP_LESSON_CONTENT } from '../../data/apChemistryLessons'
 import type { LessonContentData, LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from '../../data/lessonContent'
 import { useTeacher } from '../../store/teacherStore'
+import { useTheme } from '../../store/themeStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { TrainerBankBrowser, TrainerBankFilterPanel, emptyTrainerFilters, type TrainerFilters } from '../../components/teacher/TrainerBank'
 import CurriculumManager from '../../components/teacher/CurriculumManager'
@@ -6471,16 +6472,17 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
 
 // ─── Chip helpers ─────────────────────────────────────────────────────────────
 const PRESET_CHIPS = [
-  { label: 'AI',           color: '#0ea5e9', bg: '#e0f2fe' },
-  { label: 'Диагностика',  color: '#7B3FCC', bg: '#EEDBFF' },
-  { label: 'Тестирование', color: '#1a6fa8', bg: '#dbeeff' },
-  { label: 'Пробник',      color: '#B87A10', bg: '#FFF0CC' },
-  { label: 'Контрольная',  color: '#C53030', bg: '#FFE1E4' },
+  { label: 'AI',           color: '#0ea5e9', bg: '#e0f2fe', darkColor: '#67CFFF', darkBg: 'rgba(14,165,233,0.20)' },
+  { label: 'Диагностика',  color: '#7B3FCC', bg: '#EEDBFF', darkColor: '#C9A6FF', darkBg: 'rgba(123,63,204,0.26)' },
+  { label: 'Тестирование', color: '#1a6fa8', bg: '#dbeeff', darkColor: '#7BBCED', darkBg: 'rgba(26,111,168,0.26)' },
+  { label: 'Пробник',      color: '#B87A10', bg: '#FFF0CC', darkColor: '#F0C45A', darkBg: 'rgba(184,122,16,0.24)' },
+  { label: 'Контрольная',  color: '#C53030', bg: '#FFE1E4', darkColor: '#FF8A8A', darkBg: 'rgba(197,48,48,0.26)' },
 ]
-function getChipStyle(chip: string, fallbackAccent?: string) {
+function getChipStyle(chip: string, fallbackAccent?: string, dark?: boolean) {
   const p = PRESET_CHIPS.find(c => c.label === chip)
-  if (p) return { color: p.color, bg: p.bg }
-  return { color: fallbackAccent ?? '#7B3FCC', bg: (fallbackAccent ?? '#7B3FCC') + '28' }
+  if (p) return dark ? { color: p.darkColor, bg: p.darkBg } : { color: p.color, bg: p.bg }
+  const accent = fallbackAccent ?? '#7B3FCC'
+  return { color: accent, bg: accent + (dark ? '33' : '28') }
 }
 
 function ChipPicker({ value, onChange, fallbackAccent }: { value: string; onChange: (chip: string) => void; fallbackAccent?: string }) {
@@ -6548,7 +6550,8 @@ function DiagnosticCard({ subject, isSelected, onClick, chipOverride }: { subjec
   const [questions, setQuestions] = useState(() => loadDiagQuestions(subject))
   const [anonCount, setAnonCount] = useState(0)
   const chip = chipOverride ?? loadBuiltinChip(subject)
-  const { color: chipColor, bg: chipBg } = getChipStyle(chip)
+  const dark = useTheme(s => s.dark)
+  const { color: chipColor, bg: chipBg } = getChipStyle(chip, undefined, dark)
   useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
   useEffect(() => {
     loadAnonResults().then(all => setAnonCount(all.filter(r => r.subject === subject).length))
@@ -6578,7 +6581,8 @@ function CustomTestCard({ test, isSelected, onClick }: { test: CustomTest; isSel
   }, [test.id])
   const CardIcon = (test.iconKey ? getIconByKey(test.iconKey) : null) as React.ElementType | null
   const chip = test.chip ?? 'Диагностика'
-  const { color: chipColor, bg: chipBg } = getChipStyle(chip, accent)
+  const dark = useTheme(s => s.dark)
+  const { color: chipColor, bg: chipBg } = getChipStyle(chip, accent, dark)
   return (
     <ContentCard
       accentColor={accent} accentBg={soft} borderColor='var(--color-border-glass)'
