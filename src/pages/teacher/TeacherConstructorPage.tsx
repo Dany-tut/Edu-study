@@ -3711,14 +3711,14 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
                   ))}
                   <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                     <button onClick={() => setEditIdx(null)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Отмена</button>
-                    <button onClick={commitEdit} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: accent, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}><Check size={12} />Сохранить</button>
+                    <button onClick={commitEdit} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: accent, color: getContrastColor(accent), fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}><Check size={12} />Сохранить</button>
                   </div>
                 </div>
               ) : (
                 <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                   <div style={{
                     width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                    background: accent, color: '#fff',
+                    background: accent, color: getContrastColor(accent),
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, marginTop: 1,
                   }}>{idx + 1}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -3859,7 +3859,7 @@ function DiagnosticStudentCard({
             {result.name}
           </div>
           <div style={{ fontSize: 11, color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
-            <span style={{ padding: '1px 7px', borderRadius: 6, background: accent, color: '#fff', fontSize: 10, fontWeight: 700 }}>{subjectLabel}</span>
+            <span style={{ padding: '1px 7px', borderRadius: 6, background: accent, color: getContrastColor(accent), fontSize: 10, fontWeight: 700 }}>{subjectLabel}</span>
             <span>{date} · {time}</span>
             {linkedStudent && (
               <span style={{ color: '#22c55e', fontSize: 10, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -4817,10 +4817,8 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
               </div>
             </div>
 
-            {/* Icon picker — custom tests only */}
-            {isCustomTest && (
-              <IconPickerField iconKey={iconKeyState} onChange={handleIconChange} accent={accent} />
-            )}
+            {/* Icon picker */}
+            <IconPickerField iconKey={iconKeyState} onChange={handleIconChange} accent={accent} />
 
             {/* Chip picker */}
             <div>
