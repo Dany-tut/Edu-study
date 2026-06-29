@@ -210,8 +210,6 @@ export default function TeacherTopBar() {
     <>
     <motion.div
       ref={teacherBarRef}
-      layout
-      transition={{ type: 'spring', stiffness: 180, damping: 28, mass: 1.1 }}
       style={{
         position: 'relative', zIndex: 60,
         borderRadius: 32, padding: '8px', height: 60, width: 'fit-content',
@@ -285,7 +283,7 @@ export default function TeacherTopBar() {
               <span style={{
                 position: 'relative', zIndex: 1, display: 'block', overflow: 'hidden', whiteSpace: 'nowrap',
                 maxWidth: collapsed ? 0 : 200, opacity: collapsed ? 0 : 1,
-                transition: 'max-width 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.18s ease',
+                transition: 'max-width 0.5s cubic-bezier(0.42,0,0.58,1), opacity 0.28s ease-in-out',
               }}>
                 {item.label}
               </span>
@@ -355,7 +353,7 @@ export default function TeacherTopBar() {
           overflow: 'hidden', whiteSpace: 'nowrap',
           maxWidth: (isHome && teacherName) ? 208 : 0,
           opacity: (isHome && teacherName) ? 1 : 0,
-          transition: 'max-width 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.18s ease',
+          transition: 'max-width 0.5s cubic-bezier(0.42,0,0.58,1), opacity 0.28s ease-in-out',
         }}>
           <div style={{ paddingLeft: 8 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.2 }}>{teacherName}</div>
