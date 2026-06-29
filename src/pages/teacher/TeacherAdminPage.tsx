@@ -319,8 +319,8 @@ export default function TeacherAdminPage() {
                 display: 'flex', alignItems: 'center', gap: 6,
                 padding: '7px 16px', borderRadius: 9, border: 'none', cursor: 'pointer',
                 fontSize: 13, fontWeight: 600,
-                background: tab === id ? 'var(--color-accent)' : 'transparent',
-                color: tab === id ? '#fff' : 'var(--color-text-3)',
+                background: tab === id ? 'var(--color-purple-soft)' : 'transparent',
+                color: tab === id ? 'var(--color-purple)' : 'var(--color-text-3)',
                 transition: 'background 0.15s, color 0.15s',
               }}
             >
