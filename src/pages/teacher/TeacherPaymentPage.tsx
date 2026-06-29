@@ -94,7 +94,7 @@ export default function TeacherPaymentPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable' }}>
       <div style={{ maxWidth: 760, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}

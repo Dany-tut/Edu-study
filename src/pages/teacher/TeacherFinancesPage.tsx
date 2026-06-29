@@ -399,7 +399,7 @@ export default function TeacherFinancesPage() {
   ]
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable' }}>
       <div style={{ maxWidth: 760, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
@@ -471,9 +471,9 @@ export default function TeacherFinancesPage() {
               onClick={() => setFilter(tab.id)}
               style={{
                 padding: '6px 13px', borderRadius: 10,
-                background: filter === tab.id ? 'var(--color-accent)' : 'var(--color-bg-3)',
-                border: filter === tab.id ? 'none' : '1px solid var(--color-border)',
-                color: filter === tab.id ? '#fff' : 'var(--color-text-2)',
+                background: filter === tab.id ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
+                border: filter === tab.id ? '1px solid transparent' : '1px solid var(--color-border)',
+                color: filter === tab.id ? 'var(--color-purple)' : 'var(--color-text-2)',
                 fontSize: 12.5, fontWeight: 600,
                 cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
                 transition: 'background 0.15s, color 0.15s',
@@ -482,8 +482,8 @@ export default function TeacherFinancesPage() {
               {tab.label}
               {tab.count != null && tab.count > 0 && (
                 <span style={{
-                  background: filter === tab.id ? 'rgba(255,255,255,0.25)' : 'var(--color-red-soft)',
-                  color: filter === tab.id ? '#fff' : 'var(--color-red-text)',
+                  background: filter === tab.id ? 'var(--color-bg-3)' : 'var(--color-red-soft)',
+                  color: filter === tab.id ? 'var(--color-purple)' : 'var(--color-red-text)',
                   borderRadius: 20, padding: '1px 7px', fontSize: 10, fontWeight: 700,
                 }}>
                   {tab.count}
