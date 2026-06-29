@@ -35,7 +35,7 @@ function BigUsageBar({ icon: Icon, label, used, limit, hint }: {
   const c = barColor(pct)
   return (
     <div style={{
-      background: 'rgba(var(--glass-rgb), 0.6)',
+      background: 'var(--color-bg-2)',
       border: '1px solid var(--color-border-medium)',
       borderRadius: 20, padding: '20px 24px',
       display: 'flex', flexDirection: 'column', gap: 14,
@@ -90,11 +90,7 @@ export default function TeacherStoragePage() {
   const maxTableBytes = stats ? Math.max(...stats.tables.map(t => t.bytes), 1) : 1
 
   return (
-    <div style={{
-      flex: 1, minHeight: 0, overflowY: 'auto',
-      padding: '28px 32px 40px',
-      display: 'flex', flexDirection: 'column', gap: 20,
-    }}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}><div style={{ maxWidth: 760, margin: '0 auto', padding: '28px 24px 60px', display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         <motion.button
@@ -148,7 +144,7 @@ export default function TeacherStoragePage() {
           <div style={{
             display: 'flex', gap: 12, alignItems: 'flex-start',
             padding: '14px 16px', borderRadius: 16,
-            background: 'rgba(var(--glass-rgb), 0.5)',
+            background: 'var(--color-bg-2)',
             border: '1px solid var(--color-border-soft)',
           }}>
             <ImageIcon size={16} strokeWidth={2} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: 1 }} />
@@ -174,7 +170,7 @@ export default function TeacherStoragePage() {
 
           {/* Per-table breakdown */}
           <div style={{
-            background: 'rgba(var(--glass-rgb), 0.5)',
+            background: 'var(--color-bg-2)',
             border: '1px solid var(--color-border-medium)',
             borderRadius: 20, padding: '20px 24px',
           }}>
@@ -204,6 +200,6 @@ export default function TeacherStoragePage() {
         </>
       )}
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-    </div>
+    </div></div>
   )
 }

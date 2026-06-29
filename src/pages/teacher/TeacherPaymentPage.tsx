@@ -16,7 +16,7 @@ function PlanCard({
   return (
     <div style={{
       flex: 1, minWidth: 0,
-      background: accent ? 'var(--grad-purple)' : 'rgba(var(--glass-rgb), 0.6)',
+      background: accent ? 'var(--grad-purple)' : 'var(--color-bg-2)',
       border: accent ? 'none' : '1px solid var(--color-border-medium)',
       borderRadius: 20, padding: '22px 20px',
       position: 'relative', overflow: 'hidden',
@@ -95,7 +95,7 @@ export default function TeacherPaymentPage() {
 
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: '28px 24px 60px' }}>
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 32 }}>
@@ -183,7 +183,7 @@ export default function TeacherPaymentPage() {
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 14 }}>История платежей</div>
           <div style={{
-            background: 'rgba(var(--glass-rgb), 0.6)', border: '1px solid var(--color-border-medium)',
+            background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)',
             borderRadius: 16, padding: '32px 20px',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
           }}>

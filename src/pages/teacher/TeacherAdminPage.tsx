@@ -47,7 +47,7 @@ function MiniBar({ value }: { value: number }) {
 
 function StatCard({ icon: Icon, label, value, sub }: { icon: React.ElementType; label: string; value: string; sub?: string }) {
   return (
-    <div style={{ background: 'rgba(var(--glass-rgb), 0.6)', border: '1px solid var(--color-border-medium)', borderRadius: 16, padding: '16px 20px' }}>
+    <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, padding: '16px 20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
         <Icon size={15} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />
         <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 500 }}>{label}</span>
@@ -108,7 +108,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
         style={{
           pointerEvents: 'auto',
           width: 380,
-          background: 'rgba(var(--glass-rgb), 0.96)',
+          background: 'var(--color-bg-2)',
           backdropFilter: 'blur(20px) saturate(180%)',
           WebkitBackdropFilter: 'blur(20px) saturate(180%)',
           border: '1px solid var(--color-border-medium)',
@@ -276,7 +276,7 @@ export default function TeacherAdminPage() {
 
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-      <div style={{ maxWidth: 860, margin: '0 auto', padding: '28px 24px 60px' }}>
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
@@ -365,7 +365,7 @@ export default function TeacherAdminPage() {
               Добавить учителя
             </motion.button>
           </div>
-          <div style={{ background: 'rgba(var(--glass-rgb), 0.6)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
+          <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
             {teachers.map((t, i) => {
               const initials = t.name.slice(0, 2).toUpperCase()
               const shown = revealedIds.has(t.id)
@@ -401,7 +401,7 @@ export default function TeacherAdminPage() {
         {/* Storage */}
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>Хранилище</div>
-          <div style={{ background: 'rgba(var(--glass-rgb), 0.6)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
+          <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
             <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 12 }}>
               <Database size={16} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
               <div style={{ flex: 1 }}>

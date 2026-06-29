@@ -66,7 +66,7 @@ export default function TeacherProfileSettingsPage() {
 
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-      <div style={{ maxWidth: 560, margin: '0 auto', padding: '28px 24px 60px' }}>
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 32 }}>
@@ -133,7 +133,7 @@ export default function TeacherProfileSettingsPage() {
         </div>
 
         {/* Form */}
-        <div style={{ background: 'rgba(var(--glass-rgb), 0.6)', border: '1px solid var(--color-border-medium)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
           <div>
             <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 7 }}>Имя</label>
             <input
