@@ -1,12 +1,17 @@
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
-import { ChevronLeft, ChevronRight, BookOpen, ClipboardList, BarChart2, PenLine } from 'lucide-react'
+import {
+  ChevronLeft, ChevronRight, BookOpen, ClipboardList, BarChart2, PenLine,
+  X, ArrowRight, UserPlus, CheckCircle2, FileText, Brain, Banknote, NotebookPen,
+  Bell, Clock, RotateCcw, Trophy,
+} from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useHomework } from '../../lib/useHomework'
 import { useScheduleToday } from '../../lib/useScheduleToday'
 import { useJournalPending } from '../../lib/useGroups'
 import { tactile } from '../../lib/feedback'
-import { mskToVietnam } from '../../lib/utils'
+import { mskToVietnam, getContrastColor } from '../../lib/utils'
+import { useNotificationsStore, type Notification } from '../../store/notificationsStore'
 
 const TOPBAR_H = 60
 const COLLAPSED_H = TOPBAR_H
@@ -136,8 +141,8 @@ function PendingHwPreview({ expanded }: { expanded: boolean }) {
       detail={
         toCheck > 0 ? (
           <div style={{ display: 'flex', gap: 8 }}>
-            <StatBadge label="На проверке" value={`${onReview} ДЗ`} color="#8B4900" bg="var(--color-peach-soft)" />
-            <StatBadge label="Нужно проверить" value={`${toCheck}`} color="var(--color-accent)" bg="#EDE0FF" />
+            <StatBadge label="Заданий" value={`${onReview}`} color="var(--color-peach-text)" bg="var(--color-peach-soft)" />
+            <StatBadge label="Работ" value={`${toCheck}`} color="var(--color-purple-text)" bg="var(--color-purple-soft)" />
           </div>
         ) : (
           <span style={{ color: 'var(--color-text-2)', lineHeight: 1.4 }}>
@@ -319,6 +324,105 @@ function EarningsPreview({ expanded }: { expanded: boolean }) {
   )
 }
 
+// ── Live-notification card (replaces the old standalone toast) ─────────────
+// When a realtime notification arrives while the teacher is on the platform it
+// briefly takes over the pill, then auto-expires back to the rotating widgets.
+const NOTIF_ICON: Record<string, React.ReactNode> = {
+  homework_assigned:    <ClipboardList size={18} />,
+  homework_graded:      <CheckCircle2  size={18} />,
+  homework_submitted:   <FileText      size={18} />,
+  lesson_unlocked:      <BookOpen      size={18} />,
+  quiz_available:       <Brain         size={18} />,
+  student_joined:       <UserPlus      size={18} />,
+  deadline_approaching: <Clock         size={18} />,
+  achievement:          <Trophy        size={18} />,
+  hw_returned:          <RotateCcw     size={18} />,
+  hw_graded:            <CheckCircle2  size={18} />,
+  hw_submitted:         <FileText      size={18} />,
+  test_assigned:        <Brain         size={18} />,
+  test_completed:       <CheckCircle2  size={18} />,
+  payment_due:          <Banknote      size={18} />,
+  fill_journal:         <NotebookPen   size={18} />,
+}
+const NOTIF_COLOR: Record<string, string> = {
+  student_joined: '#786AD7', achievement: '#786AD7', lesson_unlocked: '#786AD7',
+  quiz_available: '#786AD7', test_assigned: '#786AD7',
+  homework_assigned: '#F59E0B', deadline_approaching: '#F59E0B', payment_due: '#F59E0B',
+  hw_returned: '#F59E0B', fill_journal: '#F59E0B',
+  homework_graded: '#3FCC8A', homework_submitted: '#3FCC8A', hw_graded: '#3FCC8A',
+  hw_submitted: '#3FCC8A', test_completed: '#3FCC8A',
+}
+const notifIcon = (t: string) => NOTIF_ICON[t] ?? <Bell size={18} />
+const notifColor = (t: string) => NOTIF_COLOR[t] ?? 'var(--color-accent)'
+
+function dedupBody(body: string): string {
+  const parts = body.split(' · ')
+  if (parts.length === 2 && parts[0].trim() === parts[1].trim()) return parts[0].trim()
+  return body
+}
+
+function NotifPreview({ latest, extra, onAction, onClose }: {
+  latest: Notification
+  extra: number
+  onAction: () => void
+  onClose: () => void
+}) {
+  const accent = notifColor(latest.type)
+  return (
+    <PillContent
+      expanded
+      avatar={
+        <div style={{
+          width: '100%', height: '100%', background: accent,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+        }}>
+          {notifIcon(latest.type)}
+        </div>
+      }
+      kicker="Уведомление"
+      title={latest.title}
+      detail={
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+          <span style={{
+            color: 'var(--color-text-2)', lineHeight: 1.4,
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+          }}>
+            {dedupBody(latest.body)}
+          </span>
+          {latest.action && (
+            <button onClick={onAction} style={{
+              alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 5,
+              padding: '5px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
+              background: `${typeof accent === 'string' && accent.startsWith('#') ? accent : 'var(--color-accent)'}22`,
+              color: accent, fontSize: 11.5, fontWeight: 700,
+            }}>
+              {latest.action.label} <ArrowRight size={11} />
+            </button>
+          )}
+        </div>
+      }
+      action={
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          {extra > 0 && (
+            <span style={{
+              fontSize: 10, fontWeight: 700, color: getContrastColor(accent.startsWith('#') ? accent : '#786AD7'),
+              background: accent, borderRadius: 99, padding: '2px 6px',
+            }}>
+              +{extra}
+            </span>
+          )}
+          <button onClick={onClose} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'var(--color-text-3)', display: 'flex', padding: 2,
+          }}>
+            <X size={14} />
+          </button>
+        </div>
+      }
+    />
+  )
+}
+
 function PreviewById({ widgetId, expanded }: { widgetId: number; expanded: boolean }) {
   switch (widgetId) {
     case 0: return <PendingHwPreview expanded={expanded} />
@@ -412,6 +516,41 @@ export default function TeacherCompactPill() {
   const measureRef = useRef<HTMLDivElement>(null)
   const [expandedH, setExpandedH] = useState(COLLAPSED_H * 3)
 
+  // ── Live notifications: take over the pill, then auto-expire ──────────────
+  const notifications = useNotificationsStore(s => s.notifications)
+  const dismissLive   = useNotificationsStore(s => s.dismissLive)
+  const markRead      = useNotificationsStore(s => s.markRead)
+  const live   = notifications.filter(n => n.live)
+  const latest = live[0]
+  const [showNotif, setShowNotif] = useState(false)
+  const notifTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const prevLiveLen = useRef(0)
+  const notifActive = showNotif && !!latest
+
+  // Show whenever a NEW live notification arrives; hide once none remain.
+  useEffect(() => {
+    if (live.length > prevLiveLen.current) setShowNotif(true)
+    if (live.length === 0) setShowNotif(false)
+    prevLiveLen.current = live.length
+  }, [live.length])
+
+  const clearLive = () => { live.forEach(n => { dismissLive(n.id); markRead(n.id) }) }
+
+  // 30 s auto-expire — same lifetime the old toast used.
+  useEffect(() => {
+    if (!notifActive) return
+    notifTimer.current = setTimeout(() => { clearLive(); setShowNotif(false) }, 30_000)
+    return () => { if (notifTimer.current) clearTimeout(notifTimer.current) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notifActive, live.length])
+
+  const dismissNotif = () => { clearLive(); setShowNotif(false) }
+  const handleNotifAction = () => {
+    const page = latest?.action?.page
+    dismissNotif()
+    if (page) window.location.hash = page.startsWith('#') ? page : `#/${page}`
+  }
+
   const widgetId = WIDGETS[idx]
 
   useLayoutEffect(() => {
@@ -422,7 +561,7 @@ export default function TeacherCompactPill() {
     const ro = new ResizeObserver(update)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [widgetId, expanded])
+  }, [widgetId, expanded, notifActive])
 
   useEffect(() => () => {
     if (hideTimer.current) clearTimeout(hideTimer.current)
@@ -490,19 +629,23 @@ export default function TeacherCompactPill() {
   return (
     <motion.div
       ref={rootRef}
-      onClick={handleClick}
+      onClick={notifActive ? handleNotifAction : handleClick}
       onPointerDownCapture={bumpCollapse}
       onMouseMove={bumpCollapse}
       onMouseEnter={() => { setHovering(true); revealDots() }}
       onMouseLeave={() => { setHovering(false); scheduleHide() }}
-      animate={{ height: expanded ? expandedH : COLLAPSED_H }}
+      animate={{ height: (expanded || notifActive) ? expandedH : COLLAPSED_H }}
       transition={MORPH}
       style={{
         position: 'relative',
         width: PILL_WIDTH,
         borderRadius: 30,
         cursor: 'pointer',
-        background: 'rgba(var(--glass-rgb), 0.5)',
+        // Collapsed → light glass (lives in the glass top-bar). Expanded / live
+        // notification → nearly opaque, otherwise the page card it grows over
+        // bleeds through the blur as a horizontal seam.
+        background: (expanded || notifActive) ? 'rgba(var(--glass-rgb), 0.96)' : 'rgba(var(--glass-rgb), 0.5)',
+        transition: 'background 0.2s ease',
         backdropFilter: 'blur(14px) saturate(180%)',
         WebkitBackdropFilter: 'blur(14px) saturate(180%)',
         border: '1px solid var(--color-border-glass)',
@@ -514,11 +657,13 @@ export default function TeacherCompactPill() {
       {/* Measurement layer */}
       <div ref={measureRef} style={{ width: '100%', position: 'relative' }}>
         <div style={{ visibility: 'hidden', pointerEvents: 'none' }}>
-          <PreviewById widgetId={widgetId} expanded={expanded} />
+          {notifActive
+            ? <NotifPreview latest={latest} extra={live.length - 1} onAction={() => {}} onClose={() => {}} />
+            : <PreviewById widgetId={widgetId} expanded={expanded} />}
         </div>
 
         <motion.div
-          drag={expanded ? false : 'x'}
+          drag={(expanded || notifActive) ? false : 'x'}
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.2}
           onDragStart={revealDots}
@@ -527,7 +672,7 @@ export default function TeacherCompactPill() {
         >
           <AnimatePresence custom={dir} initial={false}>
             <motion.div
-              key={widgetId}
+              key={notifActive ? 'notif' : widgetId}
               custom={dir}
               variants={swipeVariants}
               initial="enter"
@@ -536,14 +681,16 @@ export default function TeacherCompactPill() {
               transition={{ x: { type: 'spring', stiffness: 520, damping: 38 }, opacity: { duration: 0.14, ease: 'easeOut' } }}
               style={{ position: 'absolute', inset: 0, width: '100%' }}
             >
-              <PreviewById widgetId={widgetId} expanded={expanded} />
+              {notifActive
+                ? <NotifPreview latest={latest} extra={live.length - 1} onAction={handleNotifAction} onClose={dismissNotif} />
+                : <PreviewById widgetId={widgetId} expanded={expanded} />}
             </motion.div>
           </AnimatePresence>
         </motion.div>
       </div>
 
       {/* Hover chevrons */}
-      {!expanded && total > 1 && (
+      {!expanded && !notifActive && total > 1 && (
         <>
           {[
             { side: 'left' as const, label: 'Предыдущий', dir: -1 },
@@ -576,7 +723,7 @@ export default function TeacherCompactPill() {
       )}
 
       {/* Dots */}
-      {!expanded && (
+      {!expanded && !notifActive && (
         <div
           className="pointer-events-none absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5"
           style={{ bottom: 4, opacity: dotsVisible ? 1 : 0, transition: 'opacity 0.25s ease' }}
@@ -589,6 +736,20 @@ export default function TeacherCompactPill() {
             }} />
           ))}
         </div>
+      )}
+
+      {/* Live-notification 30 s drain bar */}
+      {notifActive && (
+        <motion.div
+          key={`drain-${live.length}`}
+          initial={{ scaleX: 1 }}
+          animate={{ scaleX: 0 }}
+          transition={{ duration: 30, ease: 'linear' }}
+          style={{
+            position: 'absolute', left: 0, right: 0, bottom: 0, height: 2,
+            background: `${notifColor(latest.type)}80`, transformOrigin: 'left',
+          }}
+        />
       )}
     </motion.div>
   )

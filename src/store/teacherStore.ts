@@ -156,7 +156,16 @@ export const useTeacher = create<TeacherStore>(set => ({
   selectedStudentId: null,
   setSelectedStudentId: id => set({ selectedStudentId: id }),
   openStudentDashboard: (studentId, groupId) => set({ activePage: 'student', selectedStudentId: studentId, selectedGroupId: groupId, headerDocked: false }),
-  tasks: [],
+  // ─── DEMO seed: example tasks so the "Мои задачи" widget is populated for
+  // local testing. Tasks are in-memory only (no persistence). Delete this array
+  // (set back to []) to start with an empty task list.
+  tasks: [
+    { id: 'demo-task-1', typeId: 'call',         typeLabel: 'Созвон',  typeBg: 'var(--color-blue-pill-bg)', typeColor: 'var(--color-blue-pill-text)', title: 'Созвон с Викторией по олимпиаде', date: '29.06.2026', time: '16:30', comment: 'Обсудить подготовку к региону', done: false },
+    { id: 'demo-task-2', typeId: 'meeting',      typeLabel: 'Встреча', typeBg: 'var(--color-green-soft)',    typeColor: 'var(--color-green-text)',      title: 'Встреча с родителями Дмитрия', date: '30.06.2026', time: '18:00', comment: 'Долг по оплате + пропуски', done: false },
+    { id: 'demo-task-3', typeId: 'lesson',       typeLabel: 'Урок',    typeBg: 'var(--color-peach-soft)',    typeColor: 'var(--color-peach-text)',      title: 'Пробник ЕГЭ для 11А', date: '01.07.2026', time: '10:00', comment: '', done: false },
+    { id: 'demo-task-4', typeId: 'homework',     typeLabel: 'Домашка', typeBg: 'var(--color-purple-soft)',   typeColor: 'var(--color-accent)',          title: 'Собрать ДЗ по органике для 10А', date: '02.07.2026', time: '12:00', comment: '', done: false },
+    { id: 'demo-task-5', typeId: 'presentation', typeLabel: 'Преза',   typeBg: 'var(--color-red-soft)',      typeColor: 'var(--color-red-text)',        title: 'Преза для вебинара по ОВР', date: '29.06.2026', time: '20:00', comment: 'Готово', done: true },
+  ],
   addTask: task => set(s => ({
     tasks: [...s.tasks, { ...task, id: Math.random().toString(36).slice(2), done: false }],
   })),

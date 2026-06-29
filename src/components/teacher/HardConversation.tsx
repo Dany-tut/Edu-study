@@ -189,7 +189,7 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
         placeholder="Распиши решение — текст, формулы, можно приложить фото или доску…"
         autoGrow
         minHeight={180}
-        inputSt={{ width: '100%', boxSizing: 'border-box', borderRadius: 20, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
+        inputSt={{ width: '100%', boxSizing: 'border-box', borderRadius: 16, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)', color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
       />
       {photos.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>

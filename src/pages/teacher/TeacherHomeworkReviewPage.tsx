@@ -9,6 +9,7 @@ import type { Student, Group, HomeworkItem, HwTask } from '../../data/teacherMoc
 import { useHomework, useHomeworkSubmissions } from '../../lib/useHomework'
 import { useGroups, useStudents } from '../../lib/useGroups'
 import { useTeacher, type HwReview } from '../../store/teacherStore'
+import RichConditionEditor from '../../components/teacher/RichConditionEditor'
 
 function initials(name: string) {
   return name.split(' ').map(p => p[0]).join('').slice(0, 2)
@@ -22,7 +23,7 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
       <div
         style={{
           padding: 18, borderRadius: 24,
-          background: group.colorSoft,
+          background: `${group.color}26`,
           border: `1px solid ${group.color}33`,
         }}
       >
@@ -79,7 +80,7 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
         </div>
         <div className="flex items-center justify-between" style={{
           padding: '7px 10px', borderRadius: 10,
-          background: 'var(--color-yellow-soft)', border: '1px solid #F8C99166',
+          background: 'var(--color-yellow-soft)', border: '1px solid color-mix(in srgb, var(--color-yellow-text) 28%, transparent)',
         }}>
           <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Желаемый балл</span>
           <span style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-yellow-text)' }}>{student.desiredScore}</span>
@@ -316,8 +317,9 @@ export default function TeacherHomeworkReviewPage() {
           {hw && group ? 'Пока никто не сдал работу' : 'Домашка не найдена'}
         </p>
         <button onClick={() => setActivePage('homework')} style={{
-          padding: '8px 18px', borderRadius: 999, border: 'none', cursor: 'pointer',
-          background: 'var(--color-text)', color: '#fff', fontSize: 13, fontWeight: 600,
+          padding: '9px 18px', borderRadius: 999, border: 'none', cursor: 'pointer',
+          background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 600,
+          boxShadow: '0 4px 14px rgba(99,84,207,0.38)',
         }}>
           К списку ДЗ
         </button>
@@ -425,7 +427,7 @@ export default function TeacherHomeworkReviewPage() {
         </span>
         <span style={{
           display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0,
-          background: group.colorSoft, borderRadius: 8, padding: '3px 10px',
+          background: `${group.color}26`, borderRadius: 8, padding: '3px 10px',
         }}>
           <div style={{ width: 7, height: 7, borderRadius: '50%', background: group.color }} />
           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</span>
@@ -548,7 +550,7 @@ export default function TeacherHomeworkReviewPage() {
                         taskScores={draft.taskScores}
                         onScoreChange={setTaskScore}
                         groupColor={group.color}
-                        groupColorSoft={group.colorSoft}
+                        groupColorSoft={`${group.color}33`}
                         total={taskTotal!}
                         maxTotal={maxTaskTotal!}
                       />
@@ -574,7 +576,7 @@ export default function TeacherHomeworkReviewPage() {
                               <button key={v} onClick={() => setDraft({ score: String(v) })} style={{
                                 padding: '6px 12px', borderRadius: 10, border: 'none', cursor: 'pointer',
                                 fontSize: 12, fontWeight: 700,
-                                background: Number(draft.score) === v ? group.colorSoft : 'var(--color-bg)',
+                                background: Number(draft.score) === v ? `${group.color}33` : 'var(--color-bg)',
                                 color: Number(draft.score) === v ? group.color : 'var(--color-muted)',
                               }}>
                                 {v}
@@ -591,16 +593,12 @@ export default function TeacherHomeworkReviewPage() {
                     <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 6 }}>
                       ЗАМЕЧАНИЯ / КОММЕНТАРИЙ
                     </div>
-                    <textarea
+                    <RichConditionEditor
                       value={draft.comment}
-                      onChange={e => setDraft({ comment: e.target.value })}
+                      onChange={html => setDraft({ comment: html })}
                       placeholder="Что получилось, что доработать..."
-                      rows={4}
-                      style={{
-                        width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 14,
-                        border: '1.5px solid var(--color-border-medium)', fontSize: 14, color: 'var(--color-text)', lineHeight: 1.55,
-                        background: 'var(--color-bg-2)', outline: 'none', resize: 'vertical', minHeight: 96, fontFamily: 'inherit',
-                      }}
+                      autoGrow
+                      minHeight={148}
                     />
                   </div>
 
@@ -612,9 +610,9 @@ export default function TeacherHomeworkReviewPage() {
                       className="flex items-center cursor-pointer"
                       style={{
                         gap: 8, padding: '13px 22px', borderRadius: 16, border: 'none',
-                        background: 'var(--color-purple-soft)',
-                        color: 'var(--color-accent)', fontSize: 14, fontWeight: 600,
-                        boxShadow: '0 4px 16px rgba(124,58,237,0.25)',
+                        background: 'var(--grad-purple)',
+                        color: '#fff', fontSize: 14, fontWeight: 650,
+                        boxShadow: '0 6px 18px rgba(124,108,224,0.35)',
                       }}
                     >
                       <Check size={17} strokeWidth={2.4} />
@@ -625,9 +623,9 @@ export default function TeacherHomeworkReviewPage() {
                       onClick={() => handleVerdict('returned')}
                       className="flex items-center cursor-pointer"
                       style={{
-                        gap: 8, padding: '13px 20px', borderRadius: 16,
-                        border: '1.5px solid var(--color-peach-text)', background: 'var(--color-peach-soft)',
-                        color: 'var(--color-peach-text)', fontSize: 14, fontWeight: 700,
+                        gap: 8, padding: '13px 20px', borderRadius: 16, border: 'none',
+                        background: 'var(--color-peach-soft)',
+                        color: 'var(--color-peach-text)', fontSize: 14, fontWeight: 650,
                       }}
                     >
                       <RotateCcw size={16} strokeWidth={2.2} />

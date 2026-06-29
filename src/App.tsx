@@ -5,9 +5,11 @@ import TeacherLoginPage from './pages/teacher/TeacherLoginPage'
 import JoinPage from './pages/JoinPage'
 import StudentLoginPage from './pages/StudentLoginPage'
 import DiagnosticTestPage from './pages/DiagnosticTestPage'
+import ComponentShowcase from './pages/ComponentShowcase' // TEMP: UI-kit witrine for portfolio case (#/showcase) — remove after capture
 import ReviewSession from './components/ReviewSession'
 import { supabase } from './lib/supabase'
 import { getStudentSession } from './lib/studentSession'
+import { initAnalytics, trackPath } from './lib/analytics'
 import type { Session } from '@supabase/supabase-js'
 import './store/themeStore' // initialise theme + apply data-theme before first render
 import { useStudentData } from './store/studentDataStore'
@@ -26,6 +28,10 @@ export default function App() {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
   const [recovery, setRecovery] = useState(false)
   const loadStudentData = useStudentData(s => s.load)
+
+  // Behavioural telemetry: init once, then log every route change.
+  useEffect(() => { initAnalytics() }, [])
+  useEffect(() => { trackPath(hash || '#/') }, [hash])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
@@ -57,6 +63,7 @@ export default function App() {
     return () => { supabase.removeChannel(channel) }
   }, [loadStudentData])
 
+  if (hash.startsWith('#/showcase')) return <ComponentShowcase /> // TEMP: remove after portfolio capture
   if (hash.startsWith('#/join')) return <JoinPage />
   if (hash.startsWith('#/diagnostic')) return <DiagnosticTestPage />
   if (hash.startsWith('#/review')) {

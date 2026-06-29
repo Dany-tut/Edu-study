@@ -10,6 +10,7 @@ import {
   ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera,
 } from 'lucide-react'
 import { optimizePhoto } from '../../lib/imageOptim'
+import { getContrastColor } from '../../lib/utils'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import type { Task as BankTask } from '../../data/taskBankData'
@@ -1292,35 +1293,40 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
               {(task.type === 'single' || task.type === 'multi') && (
                 <div>
                   <Label>Варианты ответа</Label>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {choices.map((ch, ci) => (
-                      <div key={ci} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {choices.map((ch, ci) => {
+                      const isCorrect = correctChoices.includes(ci)
+                      const letter = 'АБВГДЕЖЗИ'[ci] ?? String(ci + 1)
+                      return (
+                      <div key={ci} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <button
                           onClick={() => {
                             if (task.type === 'single') {
                               onUpdate({ ...task, correctChoices: [ci] })
                             } else {
-                              const isCorrect = correctChoices.includes(ci)
                               onUpdate({ ...task, correctChoices: isCorrect ? correctChoices.filter(x => x !== ci) : [...correctChoices, ci] })
                             }
                           }}
                           style={{
-                            width: 22, height: 22,
-                            borderRadius: task.type === 'single' ? '50%' : 6,
-                            border: '2px solid',
-                            borderColor: correctChoices.includes(ci) ? 'var(--color-green-text)' : 'var(--color-border)',
-                            background: correctChoices.includes(ci) ? 'var(--color-green-text)' : 'transparent',
+                            width: 24, height: 24,
+                            borderRadius: task.type === 'single' ? '50%' : 7,
+                            border: `2px solid ${isCorrect ? cfg.color : 'var(--color-border-medium)'}`,
+                            background: isCorrect ? cfg.color : 'transparent',
                             cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            position: 'relative', transition: 'all 0.14s',
                           }}
                         >
-                          {correctChoices.includes(ci) && <Check size={12} style={{ color: '#fff' }} />}
+                          {isCorrect && <Check size={13} strokeWidth={3} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: getContrastColor(cfg.color) }} />}
                         </button>
-                        <input
-                          value={ch}
-                          onChange={e => { const next = [...choices]; next[ci] = e.target.value; onUpdate({ ...task, choices: next }) }}
-                          placeholder={`Вариант ${ci + 1}`}
-                          style={{ ...inputSt, flex: 1 }}
-                        />
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `2px solid ${isCorrect ? cfg.color : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
+                          <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: isCorrect ? cfg.color : 'var(--color-text-2)', flexShrink: 0 }}>{letter}</div>
+                          <input
+                            value={ch}
+                            onChange={e => { const next = [...choices]; next[ci] = e.target.value; onUpdate({ ...task, choices: next }) }}
+                            placeholder={`Вариант ${letter}…`}
+                            style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }}
+                          />
+                        </div>
                         {choices.length > 2 && (
                           <button
                             onClick={() => {
@@ -1328,13 +1334,14 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                               const correct = correctChoices.filter(i => i !== ci).map(i => i > ci ? i - 1 : i)
                               onUpdate({ ...task, choices: next, correctChoices: correct })
                             }}
-                            style={{ width: 22, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+                            style={{ width: 28, height: 28, borderRadius: 8, border: 'none', background: 'var(--color-red-soft)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}
                           >
-                            <X size={11} />
+                            <X size={13} />
                           </button>
                         )}
                       </div>
-                    ))}
+                      )
+                    })}
                     <button
                       onClick={() => onUpdate({ ...task, choices: [...choices, ''] })}
                       style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}

@@ -11,6 +11,7 @@ import {
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { supabase } from '../../lib/supabase'
+import { cardChip, cardChipTone } from '../../lib/pillStyles'
 import { useGroups, useStudents, useAllStudents, resolveIndividualGroup } from '../../lib/useGroups'
 import { useHomework, type HardTaskDef } from '../../lib/useHomework'
 import { useCourseLessons, type CourseLesson } from '../../lib/useCourseLessons'
@@ -253,26 +254,16 @@ function TaskCard({
           onClick={() => setExpanded(e => !e)}
         >
           <GripVertical size={14} style={{ color: 'var(--color-text-4)', flexShrink: 0, cursor: 'grab' }} />
-          <div style={{
-            fontSize: 11, fontWeight: 700,
-            color: cfg.color, background: cfg.bg,
-            borderRadius: 7, padding: '2px 8px', flexShrink: 0,
-          }}>
+          <div style={cardChip(cfg.color, { flexShrink: 0 })}>
             {index + 1}. {cfg.label}
           </div>
           {task.source === 'bank' && (
-            <div style={{
-              fontSize: 10, fontWeight: 600, color: 'var(--color-text-3)',
-              background: 'var(--color-bg)', borderRadius: 6, padding: '2px 7px', flexShrink: 0,
-            }}>
+            <div style={cardChipTone('neutral', { flexShrink: 0 })}>
               из тренажера
             </div>
           )}
           {task.modified && (
-            <div style={{
-              fontSize: 10, fontWeight: 700, color: 'var(--color-peach-text)',
-              background: 'var(--color-peach-soft)', borderRadius: 6, padding: '2px 7px', flexShrink: 0,
-            }}>
+            <div style={cardChipTone('peach', { flexShrink: 0 })}>
               изменено
             </div>
           )}
@@ -535,7 +526,7 @@ function ComposeTypePanel({ onAdd, onAddHard }: { onAdd: (type: HWTaskType) => v
         margin: '0 24px 20px 0',
       }}
     >
-      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 4 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>
         ТИП ЗАДАНИЯ
       </div>
       {TASK_TYPES.map(t => (
@@ -566,7 +557,7 @@ function ComposeTypePanel({ onAdd, onAddHard }: { onAdd: (type: HWTaskType) => v
         </button>
       ))}
       <div style={{ height: 1, background: 'var(--color-border)', margin: '6px 0 2px' }} />
-      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 2 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>
         СЛОЖНОЕ ЗАДАНИЕ
       </div>
       {TASK_TYPES.slice(0, 2).map(t => (
@@ -699,11 +690,11 @@ function BankTaskCard({ task, index, added, onAdd }: {
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)' }}>Задание {index + 1}</span>
             <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
-            <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>№{task.id}</span>
-            <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>{task.line} линия</span>
-            <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
+            <span style={cardChipTone('red')}>№{task.id}</span>
+            <span style={cardChipTone('neutral')}>{task.line} линия</span>
+            <span style={cardChipTone('neutral')}>Часть {task.part}</span>
             {modified && (
-              <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-purple-soft)', color: 'var(--color-accent)' }}>
+              <span style={cardChip('var(--color-accent)')}>
                 изменено
               </span>
             )}
@@ -995,13 +986,13 @@ function PreviewTab({
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: cfg.color, background: cfg.bg, borderRadius: 6, padding: '2px 7px' }}>
+                  <span style={cardChip(cfg.color)}>
                     {cfg.label}
                   </span>
                   {t.modified && (
                     <button
                       onClick={() => onOpenTrainerDialog(t.id)}
-                      style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-peach-text)', background: 'var(--color-peach-soft)', borderRadius: 6, padding: '2px 7px', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+                      style={cardChipTone('peach', { border: 'none', cursor: 'pointer', fontFamily: 'inherit' })}
                     >
                       ⚠ изменено
                     </button>

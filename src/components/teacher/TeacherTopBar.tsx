@@ -199,7 +199,10 @@ export default function TeacherTopBar() {
     { icon: LayoutDashboard, label: 'Настроить виджеты', sub: 'как у учеников',  action: 'widgets' },
     { icon: dark ? Sun : Moon, label: dark ? 'Светлая тема' : 'Тёмная тема', sub: 'переключить', action: 'theme' },
     { icon: CreditCard,  label: 'Оплата',             sub: 'подписка и счета',   action: 'payment' },
-    { icon: Shield,      label: 'Админка',            sub: 'хранилище, учителя', action: 'admin' },
+    // Админка + аналитика — только для админа; у учителей пункт не появляется.
+    ...(teacherRole === 'admin'
+      ? [{ icon: Shield, label: 'Админка', sub: 'аналитика, хранилище', action: 'admin' }]
+      : []),
   ]
 
   return (
@@ -283,7 +286,7 @@ export default function TeacherTopBar() {
                 {item.label}
               </span>
               {badgeCount > 0 && (
-                <span style={{ position: 'absolute', top: 5, right: collapsed ? 2 : 4, minWidth: 16, height: 16, borderRadius: 8, padding: '0 4px', background: '#F48B91', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
+                <span style={{ position: 'absolute', top: 4, right: collapsed ? 1 : 3, minWidth: 17, height: 17, borderRadius: 9, padding: '0 5px', background: 'linear-gradient(135deg, #E5484D, #A8282D)', color: '#fff', fontSize: 10.5, fontWeight: 800, lineHeight: 1, letterSpacing: '0.2px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, boxShadow: '0 2px 6px rgba(168,40,45,0.5), 0 0 0 1.5px var(--color-bg)' }}>
                   {badgeCount}
                 </span>
               )}

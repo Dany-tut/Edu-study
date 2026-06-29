@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Database, HardDrive, Users, BookOpen, RefreshCw, Eye, EyeOff, ChevronRight, ArrowLeft, UserPlus, X, Mail, Copy, Check } from 'lucide-react'
+import { Database, HardDrive, Users, BookOpen, RefreshCw, Eye, EyeOff, ChevronRight, ArrowLeft, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useTeacher } from '../../store/teacherStore'
+import TeacherAnalytics from '../../components/teacher/TeacherAnalytics'
 
 type StorageStats = {
   db_bytes: number
@@ -88,7 +90,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
     })
   }
 
-  return (
+  return createPortal(
     <>
       <motion.div
         initial={{ opacity: 0 }}
@@ -97,14 +99,15 @@ function InviteModal({ onClose }: { onClose: () => void }) {
         onClick={onClose}
         style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 900, backdropFilter: 'blur(4px)' }}
       />
+      <div style={{ position: 'fixed', inset: 0, zIndex: 901, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
       <motion.div
         initial={{ scale: 0.88, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.88, opacity: 0, y: 20 }}
         transition={{ type: 'spring', stiffness: 420, damping: 28 }}
         style={{
-          position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-          zIndex: 901, width: 380,
+          pointerEvents: 'auto',
+          width: 380,
           background: 'rgba(var(--glass-rgb), 0.96)',
           backdropFilter: 'blur(20px) saturate(180%)',
           WebkitBackdropFilter: 'blur(20px) saturate(180%)',
@@ -199,7 +202,9 @@ function InviteModal({ onClose }: { onClose: () => void }) {
           </>
         )}
       </motion.div>
-    </>
+      </div>
+    </>,
+    document.body
   )
 }
 
@@ -212,6 +217,14 @@ export default function TeacherAdminPage() {
   const [loading, setLoading] = useState(true)
   const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set())
   const [inviteOpen, setInviteOpen] = useState(false)
+  const [tab, setTab] = useState<'overview' | 'analytics'>('overview')
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setIsAdmin(data.user?.user_metadata?.role === 'admin')
+    })
+  }, [])
 
   async function load() {
     setLoading(true)
@@ -245,6 +258,22 @@ export default function TeacherAdminPage() {
   const dbPct = storage ? pct(storage.db_bytes, storage.db_limit_bytes) : 0
   const storagePct = storage ? pct(storage.storage_bytes, storage.storage_limit_bytes) : 0
 
+  // Admin-only area. Teachers never reach it (menu item is hidden), but guard
+  // the page too in case activePage is set some other way.
+  if (isAdmin === false) {
+    return (
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center', color: 'var(--color-text-3)' }}>
+          <ShieldAlert size={32} strokeWidth={1.6} style={{ opacity: 0.6 }} />
+          <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', marginTop: 10 }}>Раздел доступен только администратору</div>
+          <button onClick={() => setActivePage('home')} style={{ marginTop: 16, padding: '8px 18px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            На главную
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '28px 24px 60px' }}>
@@ -267,17 +296,44 @@ export default function TeacherAdminPage() {
             <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>Администрирование</div>
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>Управление платформой</div>
           </div>
-          <motion.button
-            whileTap={{ scale: 0.94 }}
-            onClick={load}
-            title="Обновить"
-            style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}
-          >
-            <RefreshCw size={13} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
-            Обновить
-          </motion.button>
+          {tab === 'overview' && (
+            <motion.button
+              whileTap={{ scale: 0.94 }}
+              onClick={load}
+              title="Обновить"
+              style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}
+            >
+              <RefreshCw size={13} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+              Обновить
+            </motion.button>
+          )}
         </div>
 
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 4, background: 'var(--color-bg-3)', borderRadius: 12, padding: 3, marginBottom: 24, width: 'fit-content' }}>
+          {([['overview', 'Обзор', Database], ['analytics', 'Аналитика', BarChart3]] as const).map(([id, label, Icon]) => (
+            <button
+              key={id}
+              onClick={() => setTab(id)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '7px 16px', borderRadius: 9, border: 'none', cursor: 'pointer',
+                fontSize: 13, fontWeight: 600,
+                background: tab === id ? 'var(--color-accent)' : 'transparent',
+                color: tab === id ? '#fff' : 'var(--color-text-3)',
+                transition: 'background 0.15s, color 0.15s',
+              }}
+            >
+              <Icon size={14} strokeWidth={2} />
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'analytics' && <TeacherAnalytics />}
+
+        {tab === 'overview' && (
+        <>
         {/* Stat cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 28 }}>
           <StatCard icon={Users} label="Учителей" value={String(teachers.length)} sub="активных аккаунтов" />
@@ -370,6 +426,8 @@ export default function TeacherAdminPage() {
             </div>
           </div>
         </div>
+        </>
+        )}
 
       </div>
 

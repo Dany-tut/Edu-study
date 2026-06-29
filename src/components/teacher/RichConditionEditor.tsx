@@ -50,7 +50,7 @@ const FONT_SIZES = ['12', '14', '16', '18', '20', '24', '28']
 
 const DEFAULT_INPUT_ST: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box', padding: '9px 12px',
-  borderRadius: 11, border: '1.5px solid var(--color-border-medium)',
+  borderRadius: 16, border: '1.5px solid var(--color-border-medium)',
   fontSize: 13, color: 'var(--color-text)', background: 'var(--color-bg-input)',
   outline: 'none', fontFamily: 'inherit',
 }
@@ -327,7 +327,9 @@ export default function RichConditionEditor({
             minHeight,
             fontSize: 16,
             padding: '12px 16px',
-            paddingBottom: focused ? 56 : 12,
+            // autoGrow fields reserve the toolbar's space permanently so the
+            // box height doesn't jump when the toolbar shows/hides on focus.
+            paddingBottom: autoGrow ? 54 : (focused ? 56 : 12),
             lineHeight: 1.6,
             // autoGrow → grow with content (height auto, no inner scrollbar);
             // otherwise keep the scroll-and-resize behaviour.
@@ -349,7 +351,7 @@ export default function RichConditionEditor({
               transition={{ duration: 0.14 }}
               onMouseDown={e => e.preventDefault()}
               style={{
-                position: 'absolute', bottom: 8, left: 8, right: 8,
+                position: 'absolute', bottom: 6, left: 6, right: 6,
                 height: 40, display: 'flex', alignItems: 'center', gap: 1,
                 background: 'var(--color-bg-2)',
                 borderRadius: 10,

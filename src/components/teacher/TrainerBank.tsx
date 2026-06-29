@@ -79,7 +79,7 @@ function CopyableLineBadge({ line, accent, accentBg }: { line: number; accent: s
   return (
     <span onClick={copy} title="Скопировать линию"
       style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}>
-      <span style={cardChip({ bg: accentBg, color: accent })}>
+      <span style={cardChip(accent)}>
         {line} лин.
       </span>
       <AnimatePresence>
@@ -305,7 +305,7 @@ export function BankQuestionCard({
               <CopyableIdBadge id={task.id} />
               <span style={cardChipTone('neutral')}>{task.line} линия</span>
               <span style={cardChipTone('neutral')}>Часть {task.part}</span>
-              <span style={cardChip({ bg: accentBg, color: accent })}>{computedMax} {plBall(computedMax)}</span>
+              <span style={cardChip(accent)}>{computedMax} {plBall(computedMax)}</span>
               {dirty && <span style={cardChipTone('purple')}>изменено</span>}
             </div>
             <p style={{ fontSize: 14.5, lineHeight: 1.4, fontWeight: 650, color: 'var(--color-text)', margin: 0, whiteSpace: 'pre-wrap' }}>

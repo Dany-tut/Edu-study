@@ -55,23 +55,31 @@ export function pill(tone: PillTone, extra?: CSSProperties): CSSProperties {
 /**
  * Canonical small card badge — the chip in the corner of cards
  * (status, type, count, line №, AI/Диагностика, "лин." …).
+ *
  * One geometry everywhere: fontSize 10 / weight 700 / radius 7 / pad 2×8.
- * Pass explicit colours (accent hex, CSS var, or a PAIR via cardChipTone).
- * `<span style={cardChip({ bg, color })}>…</span>`
+ * One fill *weight* everywhere: the background is always derived from the
+ * chip's own text colour at a fixed opacity (CHIP_FILL), so every chip looks
+ * equally "solid" regardless of which colour family it belongs to. Only the
+ * hue changes — that's the semantic signal (line vs № vs AI vs diagnostic).
+ *
+ * `<span style={cardChip('var(--color-red-text)')}>…</span>`
  */
-export function cardChip(colors: { bg: string; color: string }, extra?: CSSProperties): CSSProperties {
+const CHIP_FILL = '20%' // opacity of the text colour used as the chip background
+
+export function cardChip(color: string, extra?: CSSProperties): CSSProperties {
   return {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     padding: '2px 8px', borderRadius: 7,
     fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap', lineHeight: 1.4,
-    background: colors.bg, color: colors.color,
+    color,
+    background: `color-mix(in srgb, ${color} ${CHIP_FILL}, transparent)`,
     ...extra,
   }
 }
 
 /** cardChip keyed by a PillTone family. `style={cardChipTone('red')}` */
 export function cardChipTone(tone: PillTone, extra?: CSSProperties): CSSProperties {
-  return cardChip(PAIR[tone], extra)
+  return cardChip(PAIR[tone].color, extra)
 }
 
 /** A square icon-tile: `<div style={tile('purple')}>…</div>` */

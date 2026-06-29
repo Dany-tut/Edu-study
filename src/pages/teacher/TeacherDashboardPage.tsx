@@ -73,7 +73,9 @@ export default function TeacherDashboardPage() {
 
   return (
     <>
-    <NotificationToastContainer />
+    {/* Desktop surfaces live notifications inside TeacherCompactPill (top-right),
+        so the standalone toast is only needed on the mobile layout. */}
+    {!isDesktop && <NotificationToastContainer />}
     <div className="dashboard-root hidden lg:flex" style={{ display: isDesktop ? 'flex' : 'none' }}>
       {/* Progressive blur+fade strip behind the floating topbar — masks content
           scrolling up through the gaps around the pills. */}

@@ -265,7 +265,7 @@ const WIDGETS_INIT: Widget[] = [
 // ─── Constants ────────────────────────────────────────────────────────────────
 const WTYPE_LABEL: Record<WidgetType, string> = { quiz: 'Викторина', facts: 'Научные факты', reactions: 'Реакции', pomodoro: 'Фокус', memes: 'Мемы', qod: 'Вопрос дня' }
 const WTYPE_ICON:  Record<WidgetType, React.ElementType> = { quiz: CircleHelp, facts: FlaskConical, reactions: Atom, pomodoro: Timer, memes: Laugh, qod: Sparkles }
-const WTYPE_COLOR: Record<WidgetType, string> = { quiz: 'var(--color-purple-text,var(--color-accent))', facts: 'var(--color-green-text)', reactions: 'var(--color-blue-pill-text)', pomodoro: 'var(--color-peach-text)', memes: 'var(--color-purple-text,var(--color-purple))', qod: 'var(--color-teal-pill-text)' }
+const WTYPE_COLOR: Record<WidgetType, string> = { quiz: 'var(--color-accent)', facts: 'var(--color-green-text)', reactions: 'var(--color-blue-pill-text)', pomodoro: 'var(--color-peach-text)', memes: 'var(--color-accent)', qod: 'var(--color-teal-pill-text)' }
 const WTYPE_BG:    Record<WidgetType, string> = { quiz: 'var(--color-purple-soft)', facts: 'var(--color-green-soft)', reactions: 'var(--color-blue-pill-bg)', pomodoro: 'var(--color-peach-soft)', memes: 'var(--color-purple-soft)', qod: 'var(--color-teal-pill-bg)' }
 const STATUS_LABEL: Record<CourseStatus, string> = { published: 'Опубликован', draft: 'Черновик' }
 const STATUS_COLOR: Record<CourseStatus, string> = { published: 'var(--color-green-text)', draft: 'var(--color-peach-text)' }
@@ -320,7 +320,7 @@ const inputSt: React.CSSProperties = {
 }
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 5 }}>{children}</div>
+  return <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>{children}</div>
 }
 
 function GlassCard({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
@@ -346,7 +346,7 @@ const dockGlass = {
 } as const
 
 function SectionHead({ children }: { children: React.ReactNode }) {
-  return <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', marginBottom: 8 }}>{children}</div>
+  return <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>{children}</div>
 }
 
 function SegBtn({ label, active, color, bg, onClick }: { label: string; active: boolean; color: string; bg: string; onClick: () => void }) {
@@ -1036,7 +1036,7 @@ function ContentCard({ accentColor, accentBg, borderColor, isSelected, onClick, 
         <div style={{ width: 36, height: 36, borderRadius: 12, background: iconBg ?? 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           {icon}
         </div>
-        <div style={{ opacity: actions && hovered ? 0 : 1, transition: 'opacity 0.14s' }}>{badge}</div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4, opacity: actions && hovered ? 0 : 1, transition: 'opacity 0.14s' }}>{badge}</div>
       </div>
       <div>
         <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 4, minHeight: '2.6em', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden' }}>{title}</div>
@@ -1125,7 +1125,7 @@ function CourseCard({ course, isSelected, onClick, actions, students, access }: 
       accentColor={COURSE_COLOR} accentBg={COURSE_BG} actions={actions}
       isSelected={isSelected} onClick={onClick}
       icon={<BookOpen size={17} strokeWidth={2} style={{ color: 'var(--color-purple-text)' }} />}
-      badge={<span style={cardChip({ bg: STATUS_BG[course.status], color: STATUS_COLOR[course.status] })}>{STATUS_LABEL[course.status]}</span>}
+      badge={<span style={cardChip(STATUS_COLOR[course.status])}>{STATUS_LABEL[course.status]}</span>}
       title={course.title}
       subtitle={`${course.subject} · ${course.level}`}
       footerLeft={
@@ -1172,7 +1172,7 @@ function WidgetCard({ widget, isSelected, onClick, actions }: { widget: Widget; 
       accentColor={WTYPE_COLOR[widget.type]} accentBg={WTYPE_BG[widget.type]} actions={actions}
       isSelected={isSelected} onClick={onClick}
       icon={<TypeIcon size={17} strokeWidth={2} style={{ color: WTYPE_COLOR[widget.type] }} />}
-      badge={<span style={cardChip({ bg: WTYPE_BG[widget.type], color: WTYPE_COLOR[widget.type] })}>{WTYPE_LABEL[widget.type]}</span>}
+      badge={<span style={cardChip(WTYPE_COLOR[widget.type])}>{WTYPE_LABEL[widget.type]}</span>}
       title={widget.title}
       subtitle={`${widget.items.length} элементов`}
       footerLeft={
@@ -1342,7 +1342,7 @@ function WidgetFilterPanel({
       initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }}
       transition={{ duration: 0.22 }}
       style={{
-        width: 264, flexShrink: 0, alignSelf: 'flex-start', position: 'sticky', top: 20,
+        width: 240, flexShrink: 0, alignSelf: 'flex-start', position: 'sticky', top: 20,
         background: 'rgba(var(--glass-rgb), 0.9)', backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         border: '1px solid var(--color-border-glass)', borderRadius: 18, boxShadow: '0 4px 20px rgba(0,0,0,0.06)', padding: 16,
         display: 'flex', flexDirection: 'column', gap: 12,
@@ -1695,7 +1695,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
   const setQ = (qi: number, patch: Partial<HomeworkQuizQuestion>) => setQuiz(prev => prev.map((q, i) => i === qi ? { ...q, ...patch } : q))
   const setOpt = (qi: number, oid: string, text: string) => setQuiz(prev => prev.map((q, i) => i === qi ? { ...q, options: q.options.map(o => o.id === oid ? { ...o, text } : o) } : q))
 
-  const sectionTitle: React.CSSProperties = { fontSize: 12, fontWeight: 800, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase', margin: '6px 0' }
+  const sectionTitle: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }
   const miniBtn = (bg: string, color: string): React.CSSProperties => ({ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', background: bg, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 })
   const dashBtn: React.CSSProperties = { alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 9, border: '1px dashed var(--color-border-medium)', background: 'transparent', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600, cursor: 'pointer', marginTop: 2 }
 
@@ -2584,7 +2584,7 @@ function CreatorView({
               <RichConditionEditor
                 value={tkQuestion}
                 onChange={setTkQuestion}
-                inputSt={inputSt}
+                inputSt={{ ...inputSt, borderRadius: 16 }}
                 onSmartPaste={(_q, opts) => {
                   if (!isChoiceType) return
                   setTkChoices(opts.length >= 2 ? opts : [...opts, ...Array(2 - opts.length).fill('')])
@@ -2696,26 +2696,29 @@ function CreatorView({
                   {tkChoices.map((ans, i) => {
                     const isCorrect = tkCorrect.includes(i)
                     return (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <button onClick={() => toggleCorrect(i)} style={{
-                          width: 22, height: 22, borderRadius: tkAnswerType === 'single' ? '50%' : 7, flexShrink: 0,
-                          border: isCorrect ? 'none' : '2px solid var(--color-text-4)',
+                          width: 24, height: 24, borderRadius: tkAnswerType === 'single' ? '50%' : 7, flexShrink: 0,
+                          border: `2px solid ${isCorrect ? cfg.color : 'var(--color-border-medium)'}`,
                           background: isCorrect ? cfg.color : 'transparent',
                           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          position: 'relative', boxShadow: isCorrect ? accentCircleShadow(cfg.color) : 'none', transition: 'all 0.14s',
                         }}>
-                          {isCorrect && <Check size={11} strokeWidth={3} style={{ color: '#fff' }} />}
+                          {isCorrect && <Check size={13} strokeWidth={3} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: getContrastColor(cfg.color) }} />}
                         </button>
-                        <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: isCorrect ? cfg.bg : 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: isCorrect ? cfg.color : 'var(--color-text-3)' }}>{LETTERS[i]}</span>
-                        <input value={ans} onChange={e => setChoice(i, e.target.value)} placeholder={`Вариант ${LETTERS[i]}…`}
-                          style={{ ...inputSt, flex: 1, border: isCorrect ? `1.5px solid ${cfg.color}55` : '1.5px solid var(--color-border-medium)', background: isCorrect ? `${cfg.bg}88` : 'var(--color-bg-input)' }} />
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `2px solid ${isCorrect ? cfg.color : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
+                          <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: isCorrect ? cfg.color : 'var(--color-text-2)', flexShrink: 0 }}>{LETTERS[i]}</div>
+                          <input value={ans} onChange={e => setChoice(i, e.target.value)} placeholder={`Вариант ${LETTERS[i]}…`}
+                            style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />
+                        </div>
                         {scoreMode === 'perOption' && (
                           <input type="number" min={0} max={20} value={tkChoicePts[i] ?? 0}
                             onChange={e => setTkChoicePts(prev => prev.map((p, j) => j === i ? Number(e.target.value) : p))}
                             onFocus={e => e.target.select()}
-                            style={{ ...inputSt, width: 52, textAlign: 'center', padding: '9px 6px', flexShrink: 0 }} />
+                            style={{ ...inputSt, width: 52, textAlign: 'center', padding: '9px 6px', flexShrink: 0, border: '1.5px solid var(--color-border-medium)', borderRadius: 10 }} />
                         )}
                         {tkChoices.length > 2 && (
-                          <button onClick={() => removeChoice(i)} style={{ width: 22, height: 22, borderRadius: 7, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={10} /></button>
+                          <button onClick={() => removeChoice(i)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={13} /></button>
                         )}
                       </div>
                     )
@@ -2750,7 +2753,7 @@ function CreatorView({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>Левый столбец (А, Б, В…) сопоставляется с правым (1, 2, 3…). Выберите верный номер для каждой строки.</div>
                   {tkMatchLeft.map((l, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{LETTERS[i]}</span>
                       <input value={l} onChange={e => setTkMatchLeft(prev => prev.map((x, j) => j === i ? e.target.value : x))} placeholder="Левый элемент…" style={{ ...inputSt, flex: 1 }} />
                       <span style={{ flexShrink: 0, color: 'var(--color-text-3)', fontWeight: 700 }}>→</span>
@@ -2760,7 +2763,7 @@ function CreatorView({
                           options={tkMatchRight.map((_, j) => ({ value: String(j + 1), label: `= ${j + 1}` }))} />
                       </div>
                       {tkMatchLeft.length > 2 && (
-                        <button onClick={() => removeMatchRow(i)} style={{ width: 22, height: 22, borderRadius: 7, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={10} /></button>
+                        <button onClick={() => removeMatchRow(i)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={13} /></button>
                       )}
                     </div>
                   ))}
@@ -2773,13 +2776,13 @@ function CreatorView({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>Введите элементы в правильном порядке — ученику они покажутся перемешанными.</div>
                   {tkSeq.map((s, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{i + 1}</span>
                       <input value={s} onChange={e => setTkSeq(prev => prev.map((x, j) => j === i ? e.target.value : x))} placeholder={`Шаг ${i + 1}…`} style={{ ...inputSt, flex: 1 }} />
-                      <button onClick={() => moveSeq(i, -1)} disabled={i === 0} style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: i === 0 ? 'default' : 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: i === 0 ? 0.3 : 1, flexShrink: 0 }}><ArrowUp size={11} /></button>
-                      <button onClick={() => moveSeq(i, 1)} disabled={i === tkSeq.length - 1} style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: i === tkSeq.length - 1 ? 'default' : 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: i === tkSeq.length - 1 ? 0.3 : 1, flexShrink: 0 }}><ArrowDown size={11} /></button>
+                      <button onClick={() => moveSeq(i, -1)} disabled={i === 0} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: i === 0 ? 'default' : 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: i === 0 ? 0.3 : 1, flexShrink: 0 }}><ArrowUp size={13} /></button>
+                      <button onClick={() => moveSeq(i, 1)} disabled={i === tkSeq.length - 1} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: i === tkSeq.length - 1 ? 'default' : 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: i === tkSeq.length - 1 ? 0.3 : 1, flexShrink: 0 }}><ArrowDown size={13} /></button>
                       {tkSeq.length > 2 && (
-                        <button onClick={() => removeSeqRow(i)} style={{ width: 22, height: 22, borderRadius: 7, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={10} /></button>
+                        <button onClick={() => removeSeqRow(i)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={13} /></button>
                       )}
                     </div>
                   ))}
@@ -2841,7 +2844,7 @@ function CreatorView({
                           <div style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: cfg.color, opacity: 0.7 }} />
                           <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{k.keyword}</div>
                           <div style={{ padding: '3px 10px', borderRadius: 8, background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>+{k.points}</div>
-                          <button onClick={() => removeKey(k.id)} style={{ width: 22, height: 22, borderRadius: 7, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={10} /></button>
+                          <button onClick={() => removeKey(k.id)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={13} /></button>
                         </div>
                       ))}
                     </div>
@@ -2875,7 +2878,7 @@ function CreatorView({
                           <span style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{idx + 1}</span>
                           <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{c.text}</div>
                           <div style={{ padding: '3px 10px', borderRadius: 8, background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>+{c.points}</div>
-                          <button onClick={() => removeCriterion(c.id)} style={{ width: 22, height: 22, borderRadius: 7, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={10} /></button>
+                          <button onClick={() => removeCriterion(c.id)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)', flexShrink: 0 }}><X size={13} /></button>
                         </div>
                       ))}
                     </div>
@@ -6338,10 +6341,10 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                                   style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'transparent', transition: 'all 0.14s', position: 'relative', boxShadow: editCorrect === oi ? accentCircleShadow(accent) : 'none' }}>
                                   {editCorrect === oi && <Check size={13} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: getContrastColor(accent), strokeWidth: 3 }} />}
                                 </button>
-                                <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `1.5px solid ${editCorrect === oi ? accent + '88' : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
-                                  <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: editCorrect === oi ? getContrastColor(accent) : 'var(--color-text-2)', flexShrink: 0 }}>{String.fromCharCode(65 + oi)}</div>
+                                <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
+                                  <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: editCorrect === oi ? accent : 'var(--color-text-2)', flexShrink: 0 }}>{String.fromCharCode(65 + oi)}</div>
                                   <input value={opt} onChange={e => { const o = [...editOpts]; o[oi] = e.target.value; setEditOpts(o) }}
-                                    style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: editCorrect === oi ? getContrastColor(accent) : 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />
+                                    style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />
                                 </div>
                                 {editOpts.length > 2 && (
                                   <button onClick={() => { const o = editOpts.filter((_, i) => i !== oi); setEditOpts(o); if (editCorrect >= o.length) setEditCorrect(0) }}
@@ -6563,7 +6566,7 @@ function DiagnosticCard({ subject, isSelected, onClick, chipOverride }: { subjec
       accentColor={accent} accentBg={accent + '14'} borderColor='var(--color-border-glass)'
       isSelected={isSelected} onClick={onClick}
       icon={<Icon size={17} strokeWidth={2} style={{ color: accent }} />}
-      badge={<span style={cardChip({ bg: chipBg, color: chipColor })}>{chip}</span>}
+      badge={<span style={cardChip(chipColor)}>{chip}</span>}
       title={label}
       subtitle={subject === 'logic' ? `${loadScreeningConfig().order.length} доменов` : `${questions.length} вопросов`}
       footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount > 0 ? `${anonCount} прошли тест` : 'Нет сдач'}</span></>}
@@ -6590,7 +6593,7 @@ function CustomTestCard({ test, isSelected, onClick }: { test: CustomTest; isSel
       accentColor={accent} accentBg={soft} borderColor='var(--color-border-glass)'
       isSelected={isSelected} onClick={onClick}
       icon={CardIcon ? <CardIcon size={17} strokeWidth={2} style={{ color: accent }} /> : <FileText size={17} strokeWidth={2} style={{ color: accent }} />}
-      badge={<span style={cardChip({ bg: chipBg, color: chipColor })}>{chip}</span>}
+      badge={<span style={cardChip(chipColor)}>{chip}</span>}
       title={label}
       subtitle={qCount > 0 ? `${qCount} вопросов` : 'Нет вопросов'}
       footerLeft={<><Database size={13} strokeWidth={1.8} /><span>{anonCount > 0 ? `${anonCount} прошли тест` : 'Нет сдач'}</span></>}
@@ -7453,7 +7456,7 @@ export default function TeacherConstructorPage() {
   return (
     // overflow:visible + marginTop:-100 so both sub-views can lift content under the topbar blur.
     <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', marginTop: -100 }}>
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         {creatorMode ? (
           <CreatorView
             key={editCourse ? `edit-${editCourse.id}` : editTrainer ? `edit-tr-${editTrainer.id}` : editingTask ? `edit-task-${editingTask.id}` : editWidget ? `edit-w-${editWidget.id}` : 'creator'}
