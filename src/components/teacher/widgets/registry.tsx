@@ -1,5 +1,5 @@
 import { lazy, type ComponentType } from 'react'
-import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2 } from 'lucide-react'
+import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 const WidgetFinanceKpi        = lazy(() => import('./WidgetFinanceKpi'))
@@ -12,6 +12,19 @@ const WidgetTodayStats        = lazy(() => import('./WidgetTodayStats'))
 const WidgetTodaySchedule     = lazy(() => import('./WidgetTodaySchedule'))
 const WidgetTodayReminders    = lazy(() => import('./WidgetTodayReminders'))
 const WidgetTodayTasks        = lazy(() => import('./WidgetTodayTasks'))
+// Individual stat widgets
+const WidgetStatStudents      = lazy(() => import('./WidgetStatStudents'))
+const WidgetStatHW            = lazy(() => import('./WidgetStatHW'))
+const WidgetStatLessons       = lazy(() => import('./WidgetStatLessons'))
+const WidgetStatEarnings      = lazy(() => import('./WidgetStatEarnings'))
+const WidgetFinanceReceived   = lazy(() => import('./WidgetFinanceReceived'))
+const WidgetFinanceExpected   = lazy(() => import('./WidgetFinanceExpected'))
+const WidgetFinanceDebt       = lazy(() => import('./WidgetFinanceDebt'))
+const WidgetFinanceForecast   = lazy(() => import('./WidgetFinanceForecast'))
+const WidgetStudentCount      = lazy(() => import('./WidgetStudentCount'))
+const WidgetStudentGroups     = lazy(() => import('./WidgetStudentGroups'))
+const WidgetStudentActive     = lazy(() => import('./WidgetStudentActive'))
+const WidgetStudentDebtors    = lazy(() => import('./WidgetStudentDebtors'))
 
 export type WidgetDef = {
   type: string
@@ -29,6 +42,20 @@ export type WidgetDef = {
 }
 
 export const WIDGET_REGISTRY: WidgetDef[] = [
+  // ── Individual stat mini-widgets ──────────────────────────────────────────
+  { type: 'stat-students', label: 'Студентов', icon: Users, iconBg: 'var(--color-green-soft)', iconColor: 'var(--color-green-text)', description: 'Кол-во студентов', defaultW: 3, defaultH: 2, minW: 2, minH: 2, maxH: 3, component: WidgetStatStudents },
+  { type: 'stat-hw', label: 'Проверить ДЗ', icon: CheckCircle2, iconBg: 'var(--color-red-soft)', iconColor: 'var(--color-red-text)', description: 'ДЗ на проверку', defaultW: 3, defaultH: 2, minW: 2, minH: 2, maxH: 3, component: WidgetStatHW },
+  { type: 'stat-lessons', label: 'Уроков сегодня', icon: Clock, iconBg: 'var(--color-purple-soft)', iconColor: 'var(--color-accent)', description: 'Уроки на сегодня', defaultW: 3, defaultH: 2, minW: 2, minH: 2, maxH: 3, component: WidgetStatLessons },
+  { type: 'stat-earnings', label: 'За месяц', icon: TrendingUp, iconBg: 'var(--color-yellow-soft)', iconColor: 'var(--color-yellow-text)', description: 'Доход за месяц', defaultW: 3, defaultH: 2, minW: 2, minH: 2, maxH: 3, component: WidgetStatEarnings },
+  { type: 'finance-received', label: 'Получено', icon: TrendingUp, iconBg: 'var(--color-green-soft)', iconColor: 'var(--color-green-text)', description: 'Получено в этом месяце', defaultW: 3, defaultH: 2, minW: 2, minH: 2, maxH: 3, component: WidgetFinanceReceived },
+  { type: 'finance-expected', label: 'Ожидается', icon: Clock, iconBg: 'var(--color-peach-soft)', iconColor: '#C07020', description: 'Ожидается оплата', defaultW: 3, defaultH: 2, minW: 2, minH: 2, maxH: 3, component: WidgetFinanceExpected },
+  { type: 'finance-debt', label: 'Долг', icon: AlertCircle, iconBg: 'var(--color-red-soft)', iconColor: 'var(--color-red-text)', description: 'Общий долг', defaultW: 3, defaultH: 2, minW: 2, minH: 2, maxH: 3, component: WidgetFinanceDebt },
+  { type: 'finance-forecast', label: 'Прогноз', icon: Sparkles, iconBg: 'var(--color-purple-soft)', iconColor: 'var(--color-accent)', description: 'Прогноз до конца месяца', defaultW: 3, defaultH: 2, minW: 2, minH: 2, maxH: 3, component: WidgetFinanceForecast },
+  { type: 'student-count', label: 'Учеников', icon: Users, iconBg: 'var(--color-purple-soft)', iconColor: 'var(--color-accent)', description: 'Кол-во учеников', defaultW: 3, defaultH: 2, minW: 2, minH: 2, maxH: 3, component: WidgetStudentCount },
+  { type: 'student-groups', label: 'Групп', icon: Layers, iconBg: 'var(--color-purple-soft)', iconColor: 'var(--color-accent)', description: 'Кол-во групп', defaultW: 3, defaultH: 2, minW: 2, minH: 2, maxH: 3, component: WidgetStudentGroups },
+  { type: 'student-active', label: 'Активных', icon: CheckCircle2, iconBg: 'var(--color-green-soft)', iconColor: 'var(--color-green-text)', description: 'Без задолженностей', defaultW: 3, defaultH: 2, minW: 2, minH: 2, maxH: 3, component: WidgetStudentActive },
+  { type: 'student-debtors', label: 'Должников', icon: AlertCircle, iconBg: 'var(--color-peach-soft)', iconColor: '#C07020', description: 'Требуют внимания', defaultW: 3, defaultH: 2, minW: 2, minH: 2, maxH: 3, component: WidgetStudentDebtors },
+  // ── Legacy combined widgets (kept for backward compat) ────────────────────
   {
     type: 'finance-kpi',
     label: 'Финансы: сводка',

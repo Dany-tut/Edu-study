@@ -7,10 +7,17 @@ import type { Layout as RGLLayout, LayoutItem as RGLItem } from 'react-grid-layo
 const ReactGridLayout = (RGLModule as any).default ?? RGLModule
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
-import { X, GripHorizontal, Plus } from 'lucide-react'
+import { X, Plus } from 'lucide-react'
 import { type Desk, type LayoutItem } from '../../lib/useDeskLayouts'
 import { getWidgetDef } from './widgets/registry'
 import { useDeskStore } from '../../store/deskStore'
+
+// iOS-style corner resize handle
+const ResizeHandle = (
+  <span className="desk-resize-handle">
+    <span className="desk-resize-corner" />
+  </span>
+)
 
 const ROW_HEIGHT = 64
 const COLS = 12
@@ -162,41 +169,59 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
   const editMode = useDeskStore(s => s.editMode)
   const rps = getRowsPerScreen()
 
-  const layout: RGLItem[] = useMemo(
-    () => desk.items.map(item => ({
-      i: item.i,
-      x: item.x,
-      y: item.y,
-      w: item.w,
-      h: item.h,
-      minW: item.minW ?? 3,
-      minH: item.minH ?? 2,
-      maxH: item.maxH,
-      isDraggable: editMode,
-      isResizable: editMode,
-    })),
-    [desk.items, editMode]
-  )
+  const layout: RGLItem[] = useMemo(() => {
+    // Apply maxH from registry before compacting
+    const clamped = desk.items.map(item => {
+      const def = getWidgetDef(item.type)
+      const maxH = item.maxH ?? def?.maxH
+      const h = maxH ? Math.min(item.h, maxH) : item.h
+      return {
+        i: item.i, type: item.type,
+        x: item.x, y: item.y, w: item.w, h,
+        minW: item.minW ?? def?.minW ?? 3,
+        minH: item.minH ?? def?.minH ?? 2,
+        maxH,
+        isDraggable: editMode, isResizable: editMode,
+      }
+    })
+    // Vertical compaction: pull each item up to the lowest free row
+    const placed: { x: number; y: number; w: number; h: number }[] = []
+    const sorted = [...clamped].sort((a, b) => a.y !== b.y ? a.y - b.y : a.x - b.x)
+    return sorted.map(item => {
+      let y = 0
+      outer: while (true) {
+        for (const p of placed) {
+          if (item.x < p.x + p.w && item.x + item.w > p.x &&
+              y < p.y + p.h && y + item.h > p.y) { y++; continue outer }
+        }
+        break
+      }
+      placed.push({ x: item.x, y, w: item.w, h: item.h })
+      return { ...item, y }
+    })
+  }, [desk.items, editMode])
 
   const handleLayoutChange = useCallback((newLayout: RGLLayout) => {
+    // In view mode we only save when user explicitly drags/resizes (edit mode).
+    // The visual layout is already compacted by the layout useMemo.
+    if (!editMode) return
     const rps = getRowsPerScreen()
     const updated: LayoutItem[] = (newLayout as RGLItem[]).map(l => {
       const orig = desk.items.find(i => i.i === l.i)
+      const def = getWidgetDef(orig?.type ?? '')
+      const maxH = orig?.maxH ?? def?.maxH
+      const h = maxH ? Math.min(l.h, maxH) : l.h
       const raw: LayoutItem = {
-        i: l.i,
-        type: orig?.type ?? '',
-        x: l.x,
-        y: l.y,
-        w: l.w,
-        h: l.h,
-        minW: orig?.minW,
-        minH: orig?.minH,
-        maxH: orig?.maxH,
+        i: l.i, type: orig?.type ?? '',
+        x: l.x, y: l.y, w: l.w, h,
+        minW: orig?.minW ?? def?.minW,
+        minH: orig?.minH ?? def?.minH,
+        maxH,
       }
       return clampToScreen(raw, rps)
     })
     onUpdateItems(updated)
-  }, [desk.items, onUpdateItems])
+  }, [desk.items, editMode, onUpdateItems])
 
   const containerWidth = typeof window !== 'undefined' ? window.innerWidth - 64 : 1200
 
@@ -238,6 +263,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
           containerPadding={[0, 0]}
           isDraggable={editMode}
           isResizable={editMode}
+          compactType={editMode ? null : 'vertical'}
           draggableHandle=".desk-drag-handle"
           onLayoutChange={handleLayoutChange}
           useCSSTransforms
