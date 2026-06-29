@@ -400,7 +400,7 @@ export default function TeacherFinancesPage() {
 
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: '28px 24px 60px' }}>
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: '28px 24px 60px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
@@ -438,7 +438,7 @@ export default function TeacherFinancesPage() {
         {/* KPI strip */}
         <div style={{
           display: 'flex',
-          background: 'rgba(var(--glass-rgb), 0.6)',
+          background: 'var(--color-bg-2)',
           border: '1px solid var(--color-border-medium)',
           borderRadius: 16, overflow: 'hidden',
           marginBottom: 20,
@@ -495,7 +495,7 @@ export default function TeacherFinancesPage() {
 
         {/* Student list */}
         <div style={{
-          background: 'rgba(var(--glass-rgb), 0.6)',
+          background: 'var(--color-bg-2)',
           border: '1px solid var(--color-border-medium)',
           borderRadius: 16, overflow: 'hidden',
         }}>
