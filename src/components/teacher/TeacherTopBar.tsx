@@ -61,7 +61,6 @@ const quickActions: QuickItem[] = [
 
 export default function TeacherTopBar() {
   const [collapsed, setCollapsed]     = useState(false)
-  const [morphing, setMorphing]       = useState(false)
   const [addOpen, setAddOpen]         = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const teacherBarRef = useRef<HTMLDivElement>(null)
@@ -212,10 +211,10 @@ export default function TeacherTopBar() {
     <motion.div
       ref={teacherBarRef}
       layout
-      transition={{ type: 'spring', stiffness: 340, damping: 30, mass: 0.8 }}
+      transition={{ type: 'spring', stiffness: 180, damping: 28, mass: 1.1 }}
       style={{
         position: 'relative', zIndex: 60,
-        borderRadius: 32, padding: '8px', height: 60,
+        borderRadius: 32, padding: '8px', height: 60, width: 'fit-content',
         boxSizing: 'border-box',
         background: 'rgba(var(--glass-rgb), 0.88)',
         backdropFilter: 'blur(14px) saturate(180%)',
@@ -226,18 +225,6 @@ export default function TeacherTopBar() {
         overflow: 'hidden',
       }}
     >
-      {/* Blur morph overlay — fades in at start of transition, fades out at end */}
-      <motion.div
-        animate={{ opacity: morphing ? 1 : 0 }}
-        transition={{ duration: morphing ? 0.08 : 0.32, ease: 'easeOut' }}
-        style={{
-          position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none',
-          borderRadius: 32,
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          background: 'rgba(var(--glass-rgb), 0.55)',
-        }}
-      />
       {/* Nav */}
       <nav style={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
         {navItems.map(item => {
@@ -334,11 +321,7 @@ export default function TeacherTopBar() {
         <motion.button
           whileHover={{ scale: 1.08, backgroundColor: 'rgba(155,109,255,0.14)' }}
           whileTap={{ scale: 0.96 }}
-          onClick={() => {
-            setMorphing(true)
-            setCollapsed(c => !c)
-            setTimeout(() => setMorphing(false), 520)
-          }}
+          onClick={() => setCollapsed(c => !c)}
           aria-label={collapsed ? 'Развернуть' : 'Свернуть'}
           style={{ width: 36, height: 44, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--color-muted)', background: 'none', border: 'none' }}
         >

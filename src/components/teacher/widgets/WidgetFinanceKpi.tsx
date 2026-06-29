@@ -60,7 +60,7 @@ export default function WidgetFinanceKpi() {
   const s = useFinanceSummary()
 
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', gap: 10, alignItems: 'stretch' }}>
+    <div style={{ width: '100%', height: '100%', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
       <KpiCard
         icon={TrendingUp}
         label="Получено"

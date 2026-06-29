@@ -164,7 +164,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                         <div style={{
                           width: 28, height: 28, borderRadius: 9, flexShrink: 0,
-                          background: 'var(--color-purple)',
+                          background: 'var(--color-avatar-bg)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: 10, fontWeight: 700, color: '#fff',
                         }}>
@@ -578,7 +578,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                   <div style={{
                     width: 28, height: 28, borderRadius: 9, flexShrink: 0,
-                    background: studentPresent ? 'var(--color-purple)' : 'var(--color-bg-5)',
+                    background: studentPresent ? 'var(--color-avatar-bg)' : 'var(--color-bg-5)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 10, fontWeight: 700, color: '#fff',
                     transition: 'background 0.2s',

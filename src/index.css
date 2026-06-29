@@ -63,6 +63,7 @@
   --reminder-card-medium-border: rgba(255,170,30,0.35);
   --reminder-card-high-border: rgba(210,70,80,0.28);
   --color-purple: #9C8CF0;
+  --color-avatar-bg: #7B6BD4;
   --color-purple-soft: #E7E4FB;
   --color-rose-soft: #FFE1F0;
   --color-rose-text: #CC4B7B;
@@ -188,6 +189,7 @@
   --color-pill-active-shadow: 0 1px 4px rgba(0,0,0,0.30);
 
   --color-purple: #B3A6F7;
+  --color-avatar-bg: #6B5FC0;
   --color-accent: #8879D8;
   --color-green-accent: #4ADE80;
 

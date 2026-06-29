@@ -79,14 +79,23 @@ export function useDeskLayouts() {
         .maybeSingle()
       if (row && Array.isArray(row.desks) && row.desks.length > 0) {
         // Merge: if a saved desk has no items but DEFAULT_DESKS has defaults for it, apply them
+        const builtInIds = new Set(DEFAULT_DESKS.map(d => d.id))
         const merged = (row.desks as Desk[]).map(d => {
-          if (d.items.length === 0) {
+          // Always reset built-in desk items to current defaults so layout
+          // changes (new widgets, updated sizes) take effect on next load.
+          if (builtInIds.has(d.id)) {
             const def = DEFAULT_DESKS.find(dd => dd.id === d.id)
-            if (def && def.items.length > 0) return { ...d, items: def.items }
+            if (def) return { ...d, items: def.items }
           }
           return d
         })
-        setConfig({ desks: merged, activeDeskId: row.active_desk_id })
+        const mergedConfig = { desks: merged, activeDeskId: row.active_desk_id }
+        setConfig(mergedConfig)
+        // Force-save corrected layout so stale Supabase values don't come back on next load
+        supabase.from('desk_layouts').upsert(
+          { teacher_id: data.user.id, desks: mergedConfig.desks, active_desk_id: mergedConfig.activeDeskId },
+          { onConflict: 'teacher_id' }
+        )
       }
       setLoading(false)
     })

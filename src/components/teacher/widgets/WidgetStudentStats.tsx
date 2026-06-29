@@ -62,7 +62,7 @@ export default function WidgetStudentStats() {
   const debtStudents   = students.filter(s => (s.lessonBalance ?? 0) < 0).length
 
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', gap: 10, alignItems: 'stretch' }}>
+    <div style={{ width: '100%', height: '100%', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
       <StatCard
         icon={Users}
         label="Учеников"

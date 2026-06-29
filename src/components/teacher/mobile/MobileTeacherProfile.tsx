@@ -32,7 +32,7 @@ export default function MobileTeacherProfile() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         {/* Identity */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, paddingTop: 4 }}>
-          <div style={{ width: 64, height: 64, borderRadius: 999, background: 'var(--color-accent)', color: '#fff', fontSize: 28, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)', flexShrink: 0 }}>{initial}</div>
+          <div style={{ width: 64, height: 64, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 28, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)', flexShrink: 0 }}>{initial}</div>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.1, textTransform: 'capitalize' }}>{name}</div>
             <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-muted)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{email || 'Учительский кабинет'}</div>

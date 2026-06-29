@@ -29,9 +29,9 @@ const META: Record<number, { kicker: string; accent: string }> = {
 const MORPH = { type: 'spring' as const, stiffness: 360, damping: 32, mass: 0.7 }
 
 const swipeVariants = {
-  enter: (dir: number) => ({ x: dir > 0 ? '40%' : '-40%', opacity: 0 }),
-  center: { x: '0%', opacity: 1 },
-  exit: (dir: number) => ({ x: dir > 0 ? '-40%' : '40%', opacity: 0 }),
+  enter: (dir: number) => ({ x: dir > 0 ? '30%' : '-30%', opacity: 0 }),
+  center: { x: '0%', opacity: 1, position: 'relative' as const },
+  exit: (dir: number) => ({ x: dir > 0 ? '-30%' : '30%', opacity: 0, position: 'absolute' as const, top: 0, left: 0, width: '100%' }),
 }
 
 // ── Shared pill content layout ─────────────────────────────────────────────
@@ -75,11 +75,11 @@ function PillContent({
           {title}
         </span>
         <motion.div
-          animate={{ opacity: expanded ? 1 : 0 }}
-          transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+          animate={{ maxHeight: expanded ? 200 : 0 }}
+          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
           style={{
-            marginTop: 4, fontSize: 12.5, fontWeight: 450, color: 'var(--color-text-2)',
-            lineHeight: 1.4, overflow: 'hidden', willChange: 'opacity',
+            marginTop: 4, fontSize: 12.5, fontWeight: 450,
+            color: 'var(--color-text-2)', lineHeight: 1.4, overflow: 'hidden',
           }}
         >
           {detail}
@@ -508,8 +508,8 @@ export default function TeacherCompactPill() {
   const [hovering, setHovering] = useState(false)
   // Phase-driven visibility for staged animation
   const [blurOn,    setBlurOn]    = useState(false)
-  const [dotsOn,    setDotsOn]    = useState(true)   // start collapsed=dots visible
-  const [contentOn, setContentOn] = useState(false)
+  const [dotsOn,    setDotsOn]    = useState(false)
+  const [contentOn, setContentOn] = useState(true)
   const collapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const phaseTimers   = useRef<ReturnType<typeof setTimeout>[]>([])
   const mountedRef    = useRef(false)
@@ -582,22 +582,9 @@ export default function TeacherCompactPill() {
   useEffect(() => {
     if (!mountedRef.current) { mountedRef.current = true; return }
     clearPhase()
-    if (isOpen) {
-      // Expand sequence
-      setDotsOn(false)      // dots disappear immediately
-      setContentOn(false)
-      after(40,  () => setBlurOn(true))     // blur flashes in
-      after(680, () => setBlurOn(false))    // blur fades after size done
-      after(700, () => setContentOn(true))  // content appears last
-    } else {
-      // Collapse sequence
-      setContentOn(false)   // content out immediately
-      setBlurOn(false)
-      setDotsOn(false)      // dots hidden until end
-      after(570, () => setBlurOn(true))     // blur in after width+height done
-      after(640, () => setDotsOn(true))     // dots appear through blur
-      after(840, () => setBlurOn(false))    // blur fades out
-    }
+    setDotsOn(false)
+    setBlurOn(false)
+    setContentOn(true)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen])
 
@@ -663,21 +650,14 @@ export default function TeacherCompactPill() {
 
   const accent = META[widgetId]?.accent ?? 'var(--color-accent)'
 
-  // Dots-pill dimensions (collapsed state)
-  const DOT_H = 10
-  const dotsW = 8 + 14 + (total - 1) * (4 + 6) + 8
+  // Collapsed pill dimensions (compact summary state)
+  const DOT_H = COLLAPSED_H
+  const dotsW = PILL_WIDTH
 
-  // Per-property staged transitions:
-  // Collapse: width first (0→0.32s) → height (0.30→0.55s)
-  // Expand:   height first (0→0.35s) → width (0.33→0.65s)
-  const pillTransition = isOpen ? {
-    height:       { duration: 0.38, ease: [0.4, 0, 0.2, 1] as const },
-    borderRadius: { duration: 0.38, ease: [0.4, 0, 0.2, 1] as const },
-    width:        { duration: 0.32, ease: [0.4, 0, 0.2, 1] as const, delay: 0.35 },
-  } : {
-    width:        { duration: 0.30, ease: [0.4, 0, 0.2, 1] as const },
-    height:       { duration: 0.26, ease: [0.4, 0, 0.2, 1] as const, delay: 0.28 },
-    borderRadius: { duration: 0.26, ease: [0.4, 0, 0.2, 1] as const, delay: 0.28 },
+  // Width is fixed at PILL_WIDTH — only height animates
+  const pillTransition = {
+    height:       { type: 'spring', stiffness: 340, damping: 32, mass: 0.9 },
+    borderRadius: { duration: 0.25, ease: [0.4, 0, 0.2, 1] as const },
   }
 
   return (
@@ -702,17 +682,17 @@ export default function TeacherCompactPill() {
         onMouseMove={bumpCollapse}
         onMouseEnter={() => setHovering(true)}
         onMouseLeave={() => setHovering(false)}
-        initial={{ width: dotsW, height: DOT_H, borderRadius: 999 }}
+        initial={{ width: PILL_WIDTH, height: COLLAPSED_H, borderRadius: 30 }}
         animate={{
-          width:        isOpen ? PILL_WIDTH : dotsW,
-          height:       isOpen ? expandedH  : DOT_H,
-          borderRadius: isOpen ? 30         : 999,
+          width:  PILL_WIDTH,
+          height: isOpen ? expandedH : COLLAPSED_H,
+          borderRadius: 30,
         }}
         transition={pillTransition}
         style={{
           position: 'relative',
           cursor: 'pointer',
-          background: isOpen ? 'rgba(var(--glass-rgb), 0.96)' : 'rgba(var(--glass-rgb), 0.72)',
+          background: 'rgba(var(--glass-rgb), 0.75)',
           backdropFilter: 'blur(14px) saturate(180%)',
           WebkitBackdropFilter: 'blur(14px) saturate(180%)',
           border: '1px solid var(--color-border-glass)',
@@ -780,7 +760,7 @@ export default function TeacherCompactPill() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ x: { type: 'spring', stiffness: 520, damping: 38 }, opacity: { duration: 0.14, ease: 'easeOut' } }}
+                transition={{ x: { type: 'spring', stiffness: 520, damping: 38 }, opacity: { duration: 0.12, ease: 'easeInOut' } }}
                 style={{ width: '100%' }}
               >
                 {notifActive
@@ -790,8 +770,8 @@ export default function TeacherCompactPill() {
             </AnimatePresence>
           </motion.div>
 
-          {/* Hover chevrons */}
-          {!notifActive && total > 1 && (
+          {/* Hover chevrons — only in compact (non-expanded) state */}
+          {!notifActive && total > 1 && !expanded && (
             <>
               {[
                 { side: 'left' as const, label: 'Предыдущий', d: -1 },

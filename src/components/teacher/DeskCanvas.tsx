@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useMemo } from 'react'
+import { Suspense, useCallback, useMemo, useState, useRef, useEffect } from 'react'
 import RGLModule from 'react-grid-layout'
 import type { Layout as RGLLayout, LayoutItem as RGLItem } from 'react-grid-layout'
 
@@ -12,7 +12,7 @@ import { type Desk, type LayoutItem } from '../../lib/useDeskLayouts'
 import { getWidgetDef } from './widgets/registry'
 import { useDeskStore } from '../../store/deskStore'
 
-const ROW_HEIGHT = 80
+const ROW_HEIGHT = 64
 const COLS = 12
 const GAP = 8
 
@@ -39,6 +39,29 @@ type WidgetShellProps = {
 
 function WidgetShell({ item, editMode, onRemove }: WidgetShellProps) {
   const def = getWidgetDef(item.type)
+  const [edges, setEdges] = useState({ top: false, bottom: false })
+  const shellRef = useRef<HTMLDivElement>(null)
+
+  // After data loads, check if inner .no-scrollbar list overflows
+  useEffect(() => {
+    const id = setTimeout(() => {
+      const shell = shellRef.current
+      if (!shell) return
+      const scrollable = shell.querySelector('.no-scrollbar') as HTMLElement | null
+      if (scrollable) syncEdges(scrollable)
+    }, 200)
+    return () => clearTimeout(id)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Find the scrollable child and check overflow state
+  function syncEdges(el: HTMLElement) {
+    const top = el.scrollTop > 4
+    const bottom = el.scrollTop + el.clientHeight < el.scrollHeight - 4
+    setEdges(prev => prev.top === top && prev.bottom === bottom ? prev : { top, bottom })
+  }
+
+
   if (!def) return (
     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: 'rgba(var(--glass-rgb), 0.5)', borderRadius: 16, border: '1.5px solid var(--color-border-medium)' }}>
@@ -49,7 +72,14 @@ function WidgetShell({ item, editMode, onRemove }: WidgetShellProps) {
   const Comp = def.component
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <div
+      ref={shellRef}
+      onScrollCapture={e => {
+        const el = e.target as HTMLElement
+        if (el.scrollHeight > el.clientHeight + 2) syncEdges(el)
+      }}
+      style={{ position: 'relative', width: '100%', height: '100%' }}
+    >
       <Suspense fallback={
         <div style={{ width: '100%', height: '100%', background: 'rgba(var(--glass-rgb), 0.5)',
           borderRadius: 16, border: '1.5px solid var(--color-border-medium)',
@@ -59,6 +89,20 @@ function WidgetShell({ item, editMode, onRemove }: WidgetShellProps) {
       }>
         <Comp />
       </Suspense>
+
+      {/* Scroll fades — appear when content overflows the widget cell */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: 36,
+        background: 'linear-gradient(to bottom, rgba(var(--glass-rgb), 0.92), transparent)',
+        pointerEvents: 'none', opacity: edges.top ? 1 : 0, transition: 'opacity 0.18s ease', zIndex: 3,
+        borderRadius: '16px 16px 0 0',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, height: 36,
+        background: 'linear-gradient(to top, rgba(var(--glass-rgb), 0.92), transparent)',
+        pointerEvents: 'none', opacity: edges.bottom ? 1 : 0, transition: 'opacity 0.18s ease', zIndex: 3,
+        borderRadius: '0 0 16px 16px',
+      }} />
 
       {/* Edit mode overlay */}
       {editMode && (
@@ -161,11 +205,11 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
       flex: 1,
       marginTop: -100,
       paddingTop: 108,
-      overflowY: 'auto',
+      overflowY: 'hidden',
       overflowX: 'hidden',
       paddingLeft: 32,
       paddingRight: 32,
-      paddingBottom: 48,
+      paddingBottom: 12,
       scrollbarGutter: 'stable',
       userSelect: editMode ? 'none' : 'auto',
     }}>
