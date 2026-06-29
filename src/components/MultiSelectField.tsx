@@ -103,7 +103,7 @@ export default function MultiSelectField({
         ref={btnRef}
         layout
         transition={{ layout: { type: 'spring', stiffness: 600, damping: 42, mass: 0.7 } }}
-        onClick={() => { if (!open) openDropdown(); else inputRef.current?.focus() }}
+        onClick={() => { if (!open) openDropdown(); else if (!query && isEmpty) close(); else inputRef.current?.focus() }}
         style={{
           width: '100%', boxSizing: 'border-box', padding: small ? '6px 9px' : '7px 11px',
           borderRadius: 11, border: 'none',
@@ -118,7 +118,7 @@ export default function MultiSelectField({
             <input
               ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
               placeholder={isEmpty ? label : ''}
-              onClick={e => e.stopPropagation()}
+              onClick={e => { if (open && !query && isEmpty) { e.stopPropagation(); close() } }}
               onKeyDown={e => { if (e.key === 'Backspace' && !query && values.length) onChange(values.slice(0, -1)) }}
               style={{ flex: 1, minWidth: 80, border: 'none', outline: 'none', background: 'transparent', fontSize, color: 'var(--color-text)', fontFamily: 'inherit', padding: '2px 0' }}
             />
@@ -163,7 +163,7 @@ export default function MultiSelectField({
                 background: 'rgba(var(--glass-rgb), 0.96)',
                 backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
                 border: '1px solid var(--color-border-glass)', borderRadius: 14,
-                boxShadow: 'var(--shadow-dropdown)', padding: 6,
+                boxShadow: 'var(--shadow-dropdown)', padding: 6, overflow: 'hidden',
               }}
             >
               <ScrollFade maxHeight={224} bg="rgba(var(--glass-rgb), 0.96)" overlayScrollbar>

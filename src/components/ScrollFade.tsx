@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 
 /**
  * Wraps a scrollable list with top/bottom gradient fades that appear only
@@ -9,8 +9,9 @@ import { useState } from 'react'
  * Defaults to `var(--color-bg)` (page background).
  *
  * `overlayScrollbar` hides the native bar and draws a thin thumb floating ON TOP
- * of the content, so row hover/active backgrounds run full-width *under* the
- * scroll line instead of stopping short of it. Used by the dropdown menus.
+ * of the content — visible only while scrolling, fades out when idle.
+ * Row hover backgrounds extend full-width (no gutter reserved).
+ * Used by the dropdown menus.
  */
 export default function ScrollFade({
   children,
@@ -36,6 +37,8 @@ export default function ScrollFade({
 }) {
   const [edges, setEdges] = useState({ top: false, bottom: false })
   const [metrics, setMetrics] = useState({ scrollTop: 0, scrollHeight: 0, clientHeight: 0 })
+  const [thumbVisible, setThumbVisible] = useState(false)
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function update(el: HTMLElement) {
     const top = el.scrollTop > 2
@@ -48,6 +51,14 @@ export default function ScrollFade({
           : { scrollTop: el.scrollTop, scrollHeight: el.scrollHeight, clientHeight: el.clientHeight }
       ))
     }
+  }
+
+  function onScroll(el: HTMLElement) {
+    update(el)
+    if (!overlayScrollbar) return
+    setThumbVisible(true)
+    if (hideTimer.current) clearTimeout(hideTimer.current)
+    hideTimer.current = setTimeout(() => setThumbVisible(false), 900)
   }
 
   // Floating thumb geometry (only when overlay mode and content overflows).
@@ -67,28 +78,26 @@ export default function ScrollFade({
       <div
         className={innerClass}
         ref={el => { if (el) update(el) }}
-        onScroll={e => update(e.currentTarget)}
+        onScroll={e => onScroll(e.currentTarget)}
         style={{ maxHeight, overflowY: 'auto', overscrollBehavior: 'contain', ...scrollStyle }}
       >
         {children}
       </div>
       <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: fadeHeight, pointerEvents: 'none',
+        position: 'absolute', top: -8, left: 0, right: 0, height: fadeHeight + 8, pointerEvents: 'none',
         background: `linear-gradient(to bottom, ${bg}, transparent)`,
         opacity: edges.top ? 1 : 0, transition: 'opacity 0.18s ease',
-        borderRadius: 'inherit',
       }} />
       <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0, height: fadeHeight, pointerEvents: 'none',
+        position: 'absolute', bottom: -8, left: 0, right: 0, height: fadeHeight + 8, pointerEvents: 'none',
         background: `linear-gradient(to top, ${bg}, transparent)`,
         opacity: edges.bottom ? 1 : 0, transition: 'opacity 0.18s ease',
-        borderRadius: 'inherit',
       }} />
       {overlayScrollbar && overflowing && (
         <div style={{
           position: 'absolute', top: thumbTop, right: 2, width: 5, height: thumbH,
           borderRadius: 999, background: 'var(--scroll-thumb)', pointerEvents: 'none',
-          transition: 'opacity 0.18s ease', opacity: edges.top || edges.bottom ? 1 : 0.55,
+          transition: 'opacity 0.3s ease', opacity: thumbVisible ? 1 : 0,
         }} />
       )}
     </div>

@@ -334,7 +334,11 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
 const GRADE_OPTIONS = [null, 1, 2, 3, 4, 5] as const
 type Grade = 1 | 2 | 3 | 4 | 5 | null
 
-function GradeButton({ value, selected, onClick }: { value: Grade; selected: boolean; onClick: () => void }) {
+function GradeButton({ value, selected, onMouseDown, onMouseEnter }: {
+  value: Grade; selected: boolean
+  onMouseDown: () => void
+  onMouseEnter: () => void
+}) {
   if (value === null) return null
   const colors: Record<number, { bg: string; color: string; selBg: string }> = {
     1: { bg: 'var(--color-red-soft)', color: 'var(--color-red-text)', selBg: 'var(--color-red-text)' },
@@ -346,7 +350,9 @@ function GradeButton({ value, selected, onClick }: { value: Grade; selected: boo
   const c = colors[value]
   return (
     <button
-      onClick={onClick}
+      data-grade={value}
+      onMouseDown={e => { e.preventDefault(); onMouseDown() }}
+      onMouseEnter={onMouseEnter}
       style={{
         width: 32, height: 32, borderRadius: 9, border: selected ? 'none' : '1.5px solid transparent',
         background: selected ? c.selBg : c.bg,
@@ -363,7 +369,7 @@ function GradeButton({ value, selected, onClick }: { value: Grade; selected: boo
 
 function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: string | null; onClose: () => void; initialLessonId?: string }) {
   const { groups } = useGroups()
-  const { saveLesson } = useAttendance(groupId)
+  const { saveLesson, records } = useAttendance(groupId)
   const lessons = useGroupLessons(groupId)
 
   // Which lesson are we grading? When opened from the "журнал не заполнен"
@@ -391,23 +397,59 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
   const [present, setPresent] = useState<Record<string, boolean>>({})
   const [grades, setGrades] = useState<Record<string, Grade>>({})
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+
+  // Pre-populate grades & attendance from saved records when lesson changes.
+  useEffect(() => {
+    if (!isoDate || groupStudents.length === 0) return
+    const dateRecords = records.filter(r => r.lessonDate === isoDate)
+    if (dateRecords.length === 0) return
+    const newPresent: Record<string, boolean> = {}
+    const newGrades: Record<string, Grade> = {}
+    for (const r of dateRecords) {
+      newPresent[r.studentId] = r.present
+      if (r.grade != null) newGrades[r.studentId] = r.grade as Grade
+    }
+    setPresent(newPresent)
+    setGrades(newGrades)
+  }, [isoDate, groupStudents.length, records.length])
 
   const accent = lessonGroup?.color ?? 'var(--color-accent)'
   const headerName = selectedLesson?.scopeName || lessonGroup?.name || 'Все группы'
 
   const isPresent = (id: string) => present[id] ?? true
 
+  // Drag-to-grade: свободное рисование — курсор определяет и строку и оценку.
+  const isDragging = useRef(false)
+  function stopDrag() { isDragging.current = false }
+  function handleDragMove(e: React.MouseEvent) {
+    if (!isDragging.current) return
+    const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null
+    if (!el) return
+    const btn = el.closest('[data-grade]') as HTMLElement | null
+    const row = el.closest('[data-student-id]') as HTMLElement | null
+    if (!btn || !row) return
+    const g = Number(btn.dataset.grade) as Grade
+    const sid = row.dataset.studentId!
+    if (!g || !isPresent(sid)) return
+    setGrades(prev => prev[sid] === g ? prev : ({ ...prev, [sid]: g }))
+  }
+
   async function handleSave() {
     if (!selectedLesson || groupStudents.length === 0) return
-    // One click writes both fields: present → attendance, grade → grade.
-    const entries = groupStudents.map(s => ({
-      studentId: s.id,
-      present: isPresent(s.id),
-      grade: grades[s.id] ?? null,
-    }))
-    await saveLesson(selectedLesson.groupId, isoDate, entries, lessonTitle)
-    setSaved(true)
-    setTimeout(onClose, 900)
+    setSaveError(null)
+    try {
+      const entries = groupStudents.map(s => ({
+        studentId: s.id,
+        present: isPresent(s.id),
+        grade: grades[s.id] ?? null,
+      }))
+      await saveLesson(selectedLesson.groupId, isoDate, entries, lessonTitle)
+      setSaved(true)
+      setTimeout(onClose, 900)
+    } catch (e: any) {
+      setSaveError(e?.message ?? 'Ошибка сохранения')
+    }
   }
 
   const presentCount = groupStudents.filter(s => isPresent(s.id)).length
@@ -505,8 +547,13 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
           <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3, paddingLeft: 16 }}>ОЦЕНКА ЗА УРОК</span>
         </div>
 
-        {/* Student list */}
-        <div style={{ overflowY: 'auto', scrollbarGutter: 'stable', flex: 1 }}>
+        {/* Student list — continuous drag tracking via mousemove + elementFromPoint */}
+        <div
+          style={{ overflowY: 'auto', scrollbarGutter: 'stable', flex: 1, userSelect: 'none' }}
+          onMouseUp={stopDrag}
+          onMouseLeave={stopDrag}
+          onMouseMove={handleDragMove}
+        >
           {groupStudents.map((student, si) => {
             const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
             const studentPresent = isPresent(student.id)
@@ -514,6 +561,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
             return (
               <motion.div
                 key={student.id}
+                data-student-id={student.id}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.2, delay: si * 0.03 }}
@@ -569,17 +617,23 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
                   </button>
                 </div>
 
-                {/* Grade selector */}
-                <div style={{
-                  display: 'flex', gap: 4, paddingLeft: 16,
-                  opacity: studentPresent ? 1 : 0.3, pointerEvents: studentPresent ? 'auto' : 'none',
-                  transition: 'opacity 0.2s',
-                }}>
+                {/* Grade selector with drag-to-grade support */}
+                <div
+                  style={{
+                    display: 'flex', gap: 4, paddingLeft: 16,
+                    opacity: studentPresent ? 1 : 0.3, pointerEvents: studentPresent ? 'auto' : 'none',
+                    transition: 'opacity 0.2s',
+                  }}
+                >
                   {([1, 2, 3, 4, 5] as const).map(g => (
                     <GradeButton
                       key={g} value={g}
                       selected={grades[student.id] === g}
-                      onClick={() => setGrades(prev => ({ ...prev, [student.id]: prev[student.id] === g ? null : g }))}
+                      onMouseDown={() => {
+                        isDragging.current = true
+                        setGrades(prev => ({ ...prev, [student.id]: prev[student.id] === g ? null : g }))
+                      }}
+                      onMouseEnter={() => {}}
                     />
                   ))}
                 </div>
@@ -594,6 +648,9 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
           borderTop: '1px solid var(--color-border-soft)',
           display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10,
         }}>
+          {saveError && (
+            <span style={{ fontSize: 12, color: 'var(--color-red-text)', flex: 1 }}>{saveError}</span>
+          )}
           <button
             onClick={onClose}
             style={{
@@ -618,6 +675,8 @@ export default function TeacherGradebookPage() {
   const [activeTab, setActiveTab] = useState<'attendance' | 'scores'>('attendance')
   const activeGroupId = useTeacher(s => s.selectedGroupId)
   const setActiveGroupId = useTeacher(s => s.setSelectedGroupId)
+  const pendingGradebookLessonId = useTeacher(s => s.pendingGradebookLessonId)
+  const clearPendingGradebookLesson = useTeacher(s => s.clearPendingGradebookLesson)
   const [lessonModalOpen, setLessonModalOpen] = useState(false)
   // When opening the modal from the "журнал не заполнен" banner we preselect a lesson.
   const [gradeLessonId, setGradeLessonId] = useState<string | undefined>(undefined)
@@ -626,6 +685,15 @@ export default function TeacherGradebookPage() {
   const regularGroups = groups.filter(g => !g.isIndividual)
   const individualGroups = groups.filter(g => g.isIndividual)
   const pendingJournals = useJournalPending(activeGroupId, journalReloadKey)
+
+  // If navigated here via a journal reminder, auto-open that specific lesson.
+  useEffect(() => {
+    if (pendingGradebookLessonId) {
+      setGradeLessonId(pendingGradebookLessonId)
+      setLessonModalOpen(true)
+      clearPendingGradebookLesson()
+    }
+  }, [pendingGradebookLessonId, clearPendingGradebookLesson])
 
   function openJournalFor(p: { groupId: string | null; scheduleId: string }) {
     if (p.groupId) setActiveGroupId(p.groupId)

@@ -405,7 +405,7 @@ function HwPicker({
 
             {/* Scroll area + edge fades. Fades grow with scroll position; both
                 start at 0 so an un-scrolled list shows none. */}
-            <div style={{ position: 'relative' }}>
+            <div style={{ position: 'relative', overflow: 'hidden' }}>
               <div
                 onScroll={onScroll}
                 className="no-scrollbar"
@@ -455,15 +455,15 @@ function HwPicker({
 
               {/* Top fade */}
               <div aria-hidden style={{
-                position: 'absolute', top: 0, left: 0, right: 0, height: 28,
+                position: 'absolute', top: -2, left: 0, right: 0, height: 30,
                 background: 'linear-gradient(to bottom, var(--color-surface), transparent)',
-                opacity: fade.top, transition: 'opacity 0.2s ease', pointerEvents: 'none', borderRadius: '8px 8px 0 0',
+                opacity: fade.top, transition: 'opacity 0.2s ease', pointerEvents: 'none',
               }} />
               {/* Bottom fade */}
               <div aria-hidden style={{
-                position: 'absolute', bottom: 0, left: 0, right: 0, height: 28,
+                position: 'absolute', bottom: -2, left: 0, right: 0, height: 30,
                 background: 'linear-gradient(to top, var(--color-surface), transparent)',
-                opacity: fade.bottom, transition: 'opacity 0.2s ease', pointerEvents: 'none', borderRadius: '0 0 8px 8px',
+                opacity: fade.bottom, transition: 'opacity 0.2s ease', pointerEvents: 'none',
               }} />
             </div>
           </motion.div>
@@ -882,7 +882,7 @@ function AudiencePicker({
                 </div>
               </div>
 
-              <div style={{ maxHeight: 260, overflowY: 'auto', padding: 6 }}>
+              <div style={{ maxHeight: 260, overflowY: 'auto', padding: 6, paddingRight: 10 }}>
                 {/* Groups */}
                 {groupMatches.length > 0 && (
                   <>

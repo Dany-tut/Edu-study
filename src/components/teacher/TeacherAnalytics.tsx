@@ -41,7 +41,7 @@ function pLabel(p: string) { return PATH_LABELS[p] ?? p }
 // ── sub-components ─────────────────────────────────────────────────────────
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
-    <div style={{ background: 'rgba(var(--glass-rgb),0.6)', border: '1px solid var(--color-border-medium)', borderRadius: 16, padding: 18, ...style }}>
+    <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border)', borderRadius: 16, padding: 18, ...style }}>
       {children}
     </div>
   )

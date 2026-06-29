@@ -1298,7 +1298,7 @@ function HardTaskAccordion({
               {assignTo === 'selected' && groupStudents.length > 0 && (
                 <div>
                   <Label>Студенты ({selectedStudents.size} выбрано)</Label>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 180, overflowY: 'auto' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 180, overflowY: 'auto', paddingRight: 10 }}>
                     {groupStudents.map(s => {
                       const sel = selectedStudents.has(s.id)
                       return (
@@ -1775,7 +1775,7 @@ function LessonPicker({
               )}
             </div>
 
-            <div style={{ position: 'relative' }}>
+            <div style={{ position: 'relative', overflow: 'hidden' }}>
               <div onScroll={onScroll} className="no-scrollbar" style={{ maxHeight: 220, overflowY: 'auto' }}>
                 {/* Clear option */}
                 <button
@@ -1821,8 +1821,8 @@ function LessonPicker({
               </div>
 
               {/* Edge fades */}
-              <div aria-hidden style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 24, background: 'linear-gradient(to bottom, var(--color-bg-input), transparent)', opacity: fade.top, transition: 'opacity 0.2s', pointerEvents: 'none', borderRadius: '8px 8px 0 0' }} />
-              <div aria-hidden style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 24, background: 'linear-gradient(to top, var(--color-bg-input), transparent)', opacity: fade.bottom, transition: 'opacity 0.2s', pointerEvents: 'none', borderRadius: '0 0 8px 8px' }} />
+              <div aria-hidden style={{ position: 'absolute', top: -2, left: 0, right: 0, height: 26, background: 'linear-gradient(to bottom, var(--color-bg-input), transparent)', opacity: fade.top, transition: 'opacity 0.2s', pointerEvents: 'none' }} />
+              <div aria-hidden style={{ position: 'absolute', bottom: -2, left: 0, right: 0, height: 26, background: 'linear-gradient(to top, var(--color-bg-input), transparent)', opacity: fade.bottom, transition: 'opacity 0.2s', pointerEvents: 'none' }} />
             </div>
           </motion.div>
         )}

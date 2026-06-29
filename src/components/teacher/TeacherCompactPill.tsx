@@ -233,10 +233,8 @@ function SchedulePreview({ expanded }: { expanded: boolean }) {
 // ── Widget 2: Lessons awaiting grades + attendance ─────────────────────────
 function PendingGradesPreview({ expanded }: { expanded: boolean }) {
   const pendingJournals = useJournalPending(null)
-  const setActivePage = useTeacher(s => s.setActivePage)
+  const openGradebook = useTeacher(s => s.openGradebook)
   const next = pendingJournals[0]
-
-  const openGradebook = () => setActivePage('gradebook')
 
   return (
     <PillContent
@@ -265,7 +263,7 @@ function PendingGradesPreview({ expanded }: { expanded: boolean }) {
               {pendingJournals.slice(0, 5).map(p => (
                 <button
                   key={p.scheduleId}
-                  onClick={e => { e.stopPropagation(); tactile(); openGradebook() }}
+                  onClick={e => { e.stopPropagation(); tactile(); openGradebook(p.scheduleId) }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left',
                     padding: '7px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
@@ -507,27 +505,30 @@ export default function TeacherCompactPill() {
 
   const [[idx, dir], setIdx] = useState<[number, number]>([0, 0])
   const [expanded, setExpanded] = useState(false)
-  const [dotsVisible, setDotsVisible] = useState(false)
   const [hovering, setHovering] = useState(false)
-  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Phase-driven visibility for staged animation
+  const [blurOn,    setBlurOn]    = useState(false)
+  const [dotsOn,    setDotsOn]    = useState(true)   // start collapsed=dots visible
+  const [contentOn, setContentOn] = useState(false)
   const collapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const rootRef = useRef<HTMLDivElement>(null)
-  const draggedRef = useRef(false)
-  const measureRef = useRef<HTMLDivElement>(null)
+  const phaseTimers   = useRef<ReturnType<typeof setTimeout>[]>([])
+  const mountedRef    = useRef(false)
+  const rootRef       = useRef<HTMLDivElement>(null)
+  const measureRef    = useRef<HTMLDivElement>(null)
+  const draggedRef    = useRef(false)
   const [expandedH, setExpandedH] = useState(COLLAPSED_H * 3)
 
-  // ── Live notifications: take over the pill, then auto-expire ──────────────
+  // ── Live notifications ─────────────────────────────────────────────────────
   const notifications = useNotificationsStore(s => s.notifications)
   const dismissLive   = useNotificationsStore(s => s.dismissLive)
   const markRead      = useNotificationsStore(s => s.markRead)
   const live   = notifications.filter(n => n.live)
   const latest = live[0]
   const [showNotif, setShowNotif] = useState(false)
-  const notifTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const prevLiveLen = useRef(0)
-  const notifActive = showNotif && !!latest
+  const notifTimer    = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const prevLiveLen   = useRef(0)
+  const notifActive   = showNotif && !!latest
 
-  // Show whenever a NEW live notification arrives; hide once none remain.
   useEffect(() => {
     if (live.length > prevLiveLen.current) setShowNotif(true)
     if (live.length === 0) setShowNotif(false)
@@ -536,7 +537,6 @@ export default function TeacherCompactPill() {
 
   const clearLive = () => { live.forEach(n => { dismissLive(n.id); markRead(n.id) }) }
 
-  // 30 s auto-expire — same lifetime the old toast used.
   useEffect(() => {
     if (!notifActive) return
     notifTimer.current = setTimeout(() => { clearLive(); setShowNotif(false) }, 30_000)
@@ -553,6 +553,7 @@ export default function TeacherCompactPill() {
 
   const widgetId = WIDGETS[idx]
 
+  // Measure expanded height via off-screen fixed div
   useLayoutEffect(() => {
     const el = measureRef.current
     if (!el) return
@@ -561,41 +562,78 @@ export default function TeacherCompactPill() {
     const ro = new ResizeObserver(update)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [widgetId, expanded, notifActive])
+  }, [widgetId, notifActive])
+
+  const clearPhase = () => { phaseTimers.current.forEach(clearTimeout); phaseTimers.current = [] }
+  const after = (ms: number, fn: () => void) => {
+    const t = setTimeout(fn, ms); phaseTimers.current.push(t)
+  }
 
   useEffect(() => () => {
-    if (hideTimer.current) clearTimeout(hideTimer.current)
     if (collapseTimer.current) clearTimeout(collapseTimer.current)
+    clearPhase()
   }, [])
 
+  const isOpen = expanded || notifActive
+
+  // ── Staged animation phases ───────────────────────────────────────────────
+  // Collapse: content out → width shrinks → height shrinks → blur in → dots in → blur out
+  // Expand:   dots out → blur in → height grows → width grows → blur out → content in
   useEffect(() => {
-    if (!expanded) {
-      if (collapseTimer.current) clearTimeout(collapseTimer.current)
-      return
+    if (!mountedRef.current) { mountedRef.current = true; return }
+    clearPhase()
+    if (isOpen) {
+      // Expand sequence
+      setDotsOn(false)      // dots disappear immediately
+      setContentOn(false)
+      after(40,  () => setBlurOn(true))     // blur flashes in
+      after(680, () => setBlurOn(false))    // blur fades after size done
+      after(700, () => setContentOn(true))  // content appears last
+    } else {
+      // Collapse sequence
+      setContentOn(false)   // content out immediately
+      setBlurOn(false)
+      setDotsOn(false)      // dots hidden until end
+      after(570, () => setBlurOn(true))     // blur in after width+height done
+      after(640, () => setDotsOn(true))     // dots appear through blur
+      after(840, () => setBlurOn(false))    // blur fades out
     }
-    collapseTimer.current = setTimeout(() => setExpanded(false), 5000)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen])
+
+  // Auto-collapse after 5 s
+  useEffect(() => {
+    if (!expanded) { if (collapseTimer.current) clearTimeout(collapseTimer.current); return }
+    collapseTimer.current = setTimeout(() => triggerCollapse(), 5000)
     return () => { if (collapseTimer.current) clearTimeout(collapseTimer.current) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expanded])
 
+  // Close on outside click
   useEffect(() => {
     if (!expanded) return
     const onDown = (e: PointerEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setExpanded(false)
+      if (!rootRef.current?.contains(e.target as Node)) triggerCollapse()
     }
     document.addEventListener('pointerdown', onDown, true)
     return () => document.removeEventListener('pointerdown', onDown, true)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expanded])
 
   const bumpCollapse = () => {
     if (!expanded) return
     if (collapseTimer.current) clearTimeout(collapseTimer.current)
-    collapseTimer.current = setTimeout(() => setExpanded(false), 5000)
+    collapseTimer.current = setTimeout(() => triggerCollapse(), 5000)
   }
 
-  const revealDots = () => { if (hideTimer.current) clearTimeout(hideTimer.current); setDotsVisible(true) }
-  const scheduleHide = () => {
-    if (hideTimer.current) clearTimeout(hideTimer.current)
-    hideTimer.current = setTimeout(() => setDotsVisible(false), 1100)
+  const triggerExpand = () => {
+    tactile()
+    setExpanded(true)
+  }
+
+  const triggerCollapse = () => {
+    tactile()
+    setExpanded(false)
   }
 
   const goTo = (next: number, direction: number) => {
@@ -603,7 +641,6 @@ export default function TeacherCompactPill() {
     const wrapped = ((next % total) + total) % total
     if (wrapped === idx) return
     setIdx([wrapped, direction])
-    revealDots(); scheduleHide()
   }
 
   const onDragEnd = (_e: unknown, info: PanInfo) => {
@@ -616,141 +653,188 @@ export default function TeacherCompactPill() {
     }
     if (swipe < -60) goTo(idx + 1, 1)
     else if (swipe > 60) goTo(idx - 1, -1)
-    scheduleHide()
   }
 
   const handleClick = () => {
     if (draggedRef.current) return
-    setExpanded(e => { tactile(); return !e })
+    if (expanded || notifActive) triggerCollapse()
+    else triggerExpand()
   }
 
   const accent = META[widgetId]?.accent ?? 'var(--color-accent)'
 
-  return (
-    <motion.div
-      ref={rootRef}
-      onClick={notifActive ? handleNotifAction : handleClick}
-      onPointerDownCapture={bumpCollapse}
-      onMouseMove={bumpCollapse}
-      onMouseEnter={() => { setHovering(true); revealDots() }}
-      onMouseLeave={() => { setHovering(false); scheduleHide() }}
-      animate={{ height: (expanded || notifActive) ? expandedH : COLLAPSED_H }}
-      transition={MORPH}
-      style={{
-        position: 'relative',
-        width: PILL_WIDTH,
-        borderRadius: 30,
-        cursor: 'pointer',
-        // Collapsed → light glass (lives in the glass top-bar). Expanded / live
-        // notification → nearly opaque, otherwise the page card it grows over
-        // bleeds through the blur as a horizontal seam.
-        background: (expanded || notifActive) ? 'rgba(var(--glass-rgb), 0.96)' : 'rgba(var(--glass-rgb), 0.5)',
-        transition: 'background 0.2s ease',
-        backdropFilter: 'blur(14px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-        border: '1px solid var(--color-border-glass)',
-        boxShadow: 'var(--shadow-pill)',
-        overflow: 'hidden',
-        boxSizing: 'border-box',
-      }}
-    >
-      {/* Measurement layer */}
-      <div ref={measureRef} style={{ width: '100%', position: 'relative' }}>
-        <div style={{ visibility: 'hidden', pointerEvents: 'none' }}>
-          {notifActive
-            ? <NotifPreview latest={latest} extra={live.length - 1} onAction={() => {}} onClose={() => {}} />
-            : <PreviewById widgetId={widgetId} expanded={expanded} />}
-        </div>
+  // Dots-pill dimensions (collapsed state)
+  const DOT_H = 10
+  const dotsW = 8 + 14 + (total - 1) * (4 + 6) + 8
 
-        <motion.div
-          drag={(expanded || notifActive) ? false : 'x'}
-          dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={0.2}
-          onDragStart={revealDots}
-          onDragEnd={onDragEnd}
-          style={{ position: 'absolute', inset: 0, width: '100%', overflow: 'hidden' }}
-        >
-          <AnimatePresence custom={dir} initial={false}>
-            <motion.div
-              key={notifActive ? 'notif' : widgetId}
-              custom={dir}
-              variants={swipeVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{ x: { type: 'spring', stiffness: 520, damping: 38 }, opacity: { duration: 0.14, ease: 'easeOut' } }}
-              style={{ position: 'absolute', inset: 0, width: '100%' }}
-            >
-              {notifActive
-                ? <NotifPreview latest={latest} extra={live.length - 1} onAction={handleNotifAction} onClose={dismissNotif} />
-                : <PreviewById widgetId={widgetId} expanded={expanded} />}
-            </motion.div>
-          </AnimatePresence>
-        </motion.div>
+  // Per-property staged transitions:
+  // Collapse: width first (0→0.32s) → height (0.30→0.55s)
+  // Expand:   height first (0→0.35s) → width (0.33→0.65s)
+  const pillTransition = isOpen ? {
+    height:       { duration: 0.38, ease: [0.4, 0, 0.2, 1] as const },
+    borderRadius: { duration: 0.38, ease: [0.4, 0, 0.2, 1] as const },
+    width:        { duration: 0.32, ease: [0.4, 0, 0.2, 1] as const, delay: 0.35 },
+  } : {
+    width:        { duration: 0.30, ease: [0.4, 0, 0.2, 1] as const },
+    height:       { duration: 0.26, ease: [0.4, 0, 0.2, 1] as const, delay: 0.28 },
+    borderRadius: { duration: 0.26, ease: [0.4, 0, 0.2, 1] as const, delay: 0.28 },
+  }
+
+  return (
+    <>
+      {/* Off-screen measurement layer */}
+      <div
+        ref={measureRef}
+        style={{
+          position: 'fixed', top: 0, left: -9999, width: PILL_WIDTH,
+          visibility: 'hidden', pointerEvents: 'none', zIndex: -1,
+        }}
+      >
+        {notifActive
+          ? <NotifPreview latest={latest} extra={live.length - 1} onAction={() => {}} onClose={() => {}} />
+          : <PreviewById widgetId={widgetId} expanded />}
       </div>
 
-      {/* Hover chevrons */}
-      {!expanded && !notifActive && total > 1 && (
-        <>
-          {[
-            { side: 'left' as const, label: 'Предыдущий', dir: -1 },
-            { side: 'right' as const, label: 'Следующий', dir: 1 },
-          ].map(({ side, label, dir: d }) => (
-            <button
-              key={side}
-              type="button"
-              aria-label={label}
-              onClick={e => { e.stopPropagation(); goTo(idx + d, d) }}
-              style={{
-                position: 'absolute',
-                [side]: 4,
-                top: '50%', transform: 'translateY(-50%)',
-                width: 22, height: 22, borderRadius: '50%',
-                border: 'none',
-                background: 'rgba(var(--glass-rgb), 0.85)',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--color-text-2)', cursor: 'pointer',
-                opacity: hovering ? 1 : 0,
-                transition: 'opacity 0.18s ease',
-                pointerEvents: hovering ? 'auto' : 'none',
-              }}
-            >
-              {d < 0 ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
-            </button>
-          ))}
-        </>
-      )}
-
-      {/* Dots */}
-      {!expanded && !notifActive && (
-        <div
-          className="pointer-events-none absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5"
-          style={{ bottom: 4, opacity: dotsVisible ? 1 : 0, transition: 'opacity 0.25s ease' }}
-        >
-          {Array.from({ length: total }, (_, i) => (
-            <span key={i} style={{
-              width: i === idx ? 14 : 4, height: 4, borderRadius: 999,
-              background: i === idx ? accent : 'var(--color-text-4)',
-              transition: 'width 0.3s ease, background 0.3s ease',
-            }} />
-          ))}
-        </div>
-      )}
-
-      {/* Live-notification 30 s drain bar */}
-      {notifActive && (
+      <motion.div
+        ref={rootRef}
+        onClick={notifActive ? handleNotifAction : handleClick}
+        onPointerDownCapture={bumpCollapse}
+        onMouseMove={bumpCollapse}
+        onMouseEnter={() => setHovering(true)}
+        onMouseLeave={() => setHovering(false)}
+        initial={{ width: dotsW, height: DOT_H, borderRadius: 999 }}
+        animate={{
+          width:        isOpen ? PILL_WIDTH : dotsW,
+          height:       isOpen ? expandedH  : DOT_H,
+          borderRadius: isOpen ? 30         : 999,
+        }}
+        transition={pillTransition}
+        style={{
+          position: 'relative',
+          cursor: 'pointer',
+          background: isOpen ? 'rgba(var(--glass-rgb), 0.96)' : 'rgba(var(--glass-rgb), 0.72)',
+          backdropFilter: 'blur(14px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(14px) saturate(180%)',
+          border: '1px solid var(--color-border-glass)',
+          boxShadow: 'var(--shadow-pill)',
+          overflow: 'hidden',
+          boxSizing: 'border-box',
+        }}
+      >
+        {/* ── Blur morph overlay — driven by blurOn phase ── */}
         <motion.div
-          key={`drain-${live.length}`}
-          initial={{ scaleX: 1 }}
-          animate={{ scaleX: 0 }}
-          transition={{ duration: 30, ease: 'linear' }}
+          animate={{ opacity: blurOn ? 1 : 0 }}
+          transition={{ duration: blurOn ? 0.10 : 0.28, ease: 'easeOut' }}
           style={{
-            position: 'absolute', left: 0, right: 0, bottom: 0, height: 2,
-            background: `${notifColor(latest.type)}80`, transformOrigin: 'left',
+            position: 'absolute', inset: 0, zIndex: 20, pointerEvents: 'none',
+            backdropFilter: 'blur(18px) saturate(200%)',
+            WebkitBackdropFilter: 'blur(18px) saturate(200%)',
+            background: 'rgba(var(--glass-rgb), 0.55)',
           }}
         />
-      )}
-    </motion.div>
+
+        {/* ── Dots (visible when collapsed, driven by dotsOn phase) ── */}
+        <motion.div
+          animate={{ opacity: dotsOn ? 1 : 0 }}
+          transition={{ duration: dotsOn ? 0.24 : 0.08, ease: 'easeOut' }}
+          onClick={isOpen ? undefined : handleClick}
+          style={{
+            position: 'absolute', inset: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            pointerEvents: isOpen ? 'none' : 'auto',
+          }}
+        >
+          {Array.from({ length: total }, (_, i) => (
+            <motion.span
+              key={i}
+              onClick={e => { e.stopPropagation(); if (!isOpen) goTo(i, i > idx ? 1 : -1) }}
+              animate={{ width: i === idx ? 14 : 4 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              style={{
+                display: 'block', height: 4, borderRadius: 999,
+                background: i === idx ? accent : 'rgba(255,255,255,0.35)',
+                cursor: 'pointer', flexShrink: 0,
+              }}
+            />
+          ))}
+        </motion.div>
+
+        {/* ── Expanded content — driven by contentOn phase ── */}
+        <motion.div
+          animate={{ opacity: contentOn ? 1 : 0 }}
+          transition={{ duration: contentOn ? 0.24 : 0.08, ease: 'easeOut' }}
+          style={{ pointerEvents: contentOn ? 'auto' : 'none' }}
+        >
+          <motion.div
+            drag={isOpen ? 'x' : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.2}
+            onDragEnd={onDragEnd}
+            style={{ width: '100%', overflow: 'hidden' }}
+          >
+            <AnimatePresence custom={dir} initial={false}>
+              <motion.div
+                key={notifActive ? 'notif' : widgetId}
+                custom={dir}
+                variants={swipeVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ x: { type: 'spring', stiffness: 520, damping: 38 }, opacity: { duration: 0.14, ease: 'easeOut' } }}
+                style={{ width: '100%' }}
+              >
+                {notifActive
+                  ? <NotifPreview latest={latest} extra={live.length - 1} onAction={handleNotifAction} onClose={dismissNotif} />
+                  : <PreviewById widgetId={widgetId} expanded={expanded} />}
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
+
+          {/* Hover chevrons */}
+          {!notifActive && total > 1 && (
+            <>
+              {[
+                { side: 'left' as const, label: 'Предыдущий', d: -1 },
+                { side: 'right' as const, label: 'Следующий', d: 1 },
+              ].map(({ side, label, d }) => (
+                <button
+                  key={side}
+                  type="button"
+                  aria-label={label}
+                  onClick={e => { e.stopPropagation(); goTo(idx + d, d) }}
+                  style={{
+                    position: 'absolute', [side]: 4,
+                    top: '50%', transform: 'translateY(-50%)',
+                    width: 22, height: 22, borderRadius: '50%', border: 'none',
+                    background: 'rgba(var(--glass-rgb), 0.85)',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'var(--color-text-2)', cursor: 'pointer',
+                    opacity: hovering ? 1 : 0, transition: 'opacity 0.18s ease',
+                    pointerEvents: hovering ? 'auto' : 'none',
+                  }}
+                >
+                  {d < 0 ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
+                </button>
+              ))}
+            </>
+          )}
+        </motion.div>
+
+        {/* Live-notification 30 s drain bar */}
+        {notifActive && (
+          <motion.div
+            key={`drain-${live.length}`}
+            initial={{ scaleX: 1 }}
+            animate={{ scaleX: 0 }}
+            transition={{ duration: 30, ease: 'linear' }}
+            style={{
+              position: 'absolute', left: 0, right: 0, bottom: 0, height: 2,
+              background: `${notifColor(latest.type)}80`, transformOrigin: 'left',
+            }}
+          />
+        )}
+      </motion.div>
+    </>
   )
 }

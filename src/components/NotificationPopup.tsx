@@ -198,10 +198,10 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
           </div>
 
           {/* List with top/bottom scroll fades */}
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative', overflow: 'hidden' }}>
             {fadeTop && (
               <div style={{
-                position: 'absolute', top: 0, left: 0, right: 0, height: 28, zIndex: 2, pointerEvents: 'none',
+                position: 'absolute', top: -2, left: 0, right: 0, height: 30, zIndex: 2, pointerEvents: 'none',
                 background: 'linear-gradient(to bottom, rgba(var(--glass-rgb), 0.92) 0%, transparent 100%)',
               }} />
             )}
@@ -221,7 +221,7 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
             </div>
             {fadeBottom && (
               <div style={{
-                position: 'absolute', bottom: 0, left: 0, right: 0, height: 28, zIndex: 2, pointerEvents: 'none',
+                position: 'absolute', bottom: -2, left: 0, right: 0, height: 30, zIndex: 2, pointerEvents: 'none',
                 background: 'linear-gradient(to top, rgba(var(--glass-rgb), 0.92) 0%, transparent 100%)',
               }} />
             )}

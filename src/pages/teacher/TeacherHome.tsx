@@ -408,8 +408,8 @@ const stackTypeLabel: Record<Reminder['type'], string> = {
 // only ~50% risen when a card is ~50% faded, so nothing leaps over unfinished
 // motion. Bump the duration here to make the whole fold slower/faster.
 const COLLAPSE = {
-  height: { type: 'spring' as const, stiffness: 320, damping: 34 },
-  opacity: { duration: 0.22, ease: 'easeOut' as const },
+  height: { type: 'spring' as const, stiffness: 300, damping: 44 },
+  opacity: { duration: 0.2, ease: 'easeOut' as const },
 }
 
 function ReminderGroupStack({ items, getAction, isDone }: {
@@ -418,12 +418,7 @@ function ReminderGroupStack({ items, getAction, isDone }: {
   isDone: (r: Reminder) => boolean
 }) {
   const [expanded, setExpanded] = useState(false)
-  // True only while a height tween is in flight. We clip overflow during the
-  // tween (so the shrinking view doesn't spill over siblings) but restore
-  // `visible` at rest so the collapsed stack's ghost cards + glow aren't cut off.
-  const [animating, setAnimating] = useState(false)
   const dark = useTheme(s => s.dark)
-  // "Свернуть" + chevron read a touch lighter in dark theme.
   const collapseColor = dark ? 'var(--color-text-3)' : 'var(--color-text-4)'
 
   if (items.length === 1) {
@@ -450,48 +445,20 @@ function ReminderGroupStack({ items, getAction, isDone }: {
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={COLLAPSE}
-          onAnimationComplete={() => setAnimating(false)}
-          onClick={() => { setAnimating(true); setExpanded(true) }}
+          onClick={() => setExpanded(true)}
           style={{
             gridArea: '1 / 1', alignSelf: 'start',
-            overflow: 'visible',
-            position: 'relative', cursor: 'pointer', paddingBottom: behind >= 2 ? 32 : 22,
+            overflow: 'hidden', cursor: 'pointer',
+            // No paddingBottom here — padding lives inside the content div so
+            // at height:0 the element contributes exactly 0px to flow (no jump).
           }}
         >
-          {/* iOS-стопка: фронт — матовое стекло, два «призрака» выглядывают снизу. */}
-          <div style={{ position: 'relative' }}>
-            {/* Мягкий радиальный свет снизу — от стопки, в её цвете (едва заметный) */}
-            <div style={{
-              position: 'absolute', left: '6%', right: '6%', bottom: -22, height: 44, zIndex: 0,
-              pointerEvents: 'none',
-              background: `radial-gradient(70% 120% at 50% 100%, color-mix(in srgb, ${accent} 22%, transparent), transparent 70%)`,
-              filter: 'blur(12px)', opacity: 0.5,
-            }} />
-            {/* Ghost 2 — deepest, narrowest, peeks furthest below the front */}
-            {behind >= 2 && (
-              <div style={{
-                position: 'absolute', top: '100%', marginTop: 9, left: 22, right: 22, height: 18, zIndex: 0,
-                background: `color-mix(in srgb, ${accent} 10%, rgba(var(--glass-rgb), 0.5))`,
-                backdropFilter: 'blur(9px) saturate(135%)',
-                WebkitBackdropFilter: 'blur(9px) saturate(135%)',
-                borderStyle: 'solid', borderWidth: '0 1px 1px 1px', borderColor: `color-mix(in srgb, ${accent} 16%, transparent)`,
-                borderRadius: '0 0 16px 16px',
-              }} />
-            )}
-            {/* Ghost 1 — middle: непрозрачная база + лёгкий блюр; верх квадратный (прячется за фронтом) → без «пилюли» */}
-            <div style={{
-              position: 'absolute', top: '100%', marginTop: -3, left: 11, right: 11, height: 18, zIndex: 1,
-              background: `color-mix(in srgb, ${accent} 14%, rgba(var(--glass-rgb), 0.55))`,
-              backdropFilter: 'blur(9px) saturate(135%)',
-              WebkitBackdropFilter: 'blur(9px) saturate(135%)',
-              borderStyle: 'solid', borderWidth: '0 1px 1px 1px', borderColor: `color-mix(in srgb, ${accent} 24%, transparent)`,
-              borderRadius: '0 0 16px 16px',
-            }} />
-            {/* Front — почти непрозрачное матовое стекло (перекрывает стопку, ничего не просвечивает) + бейдж */}
-            <div style={{ position: 'relative', zIndex: 2 }}>
+          {/* Ghosts are in normal flow (not absolute) so overflow:hidden
+              clips them smoothly as height animates. z-index controls layering. */}
+          <div>
+            {/* Front card */}
+            <div style={{ position: 'relative', zIndex: 3 }}>
               <ReminderRow item={front} done={isDone(front)} onAction={undefined} style={{ paddingRight: 48, background: 'rgba(var(--glass-rgb), 0.80)', backdropFilter: 'blur(10px) saturate(140%)', WebkitBackdropFilter: 'blur(10px) saturate(140%)' }} />
-              {/* Едва заметное радиальное свечение снизу — в цвет «призраков» стопки,
-                  чтобы фронт-карточка перекликалась с пачкой под ней. */}
               <div style={{
                 position: 'absolute', inset: 0, borderRadius: 16, overflow: 'hidden',
                 pointerEvents: 'none', zIndex: 1,
@@ -508,6 +475,31 @@ function ReminderGroupStack({ items, getAction, isDone }: {
                 {items.length}
               </div>
             </div>
+            {/* Ghost 1 — pulls up 3px so it kisses the front card bottom */}
+            <div style={{
+              height: 18, marginTop: -3, marginLeft: 11, marginRight: 11,
+              position: 'relative', zIndex: 2,
+              background: `color-mix(in srgb, ${accent} 14%, rgba(var(--glass-rgb), 0.55))`,
+              backdropFilter: 'blur(9px) saturate(135%)',
+              WebkitBackdropFilter: 'blur(9px) saturate(135%)',
+              borderStyle: 'solid', borderWidth: '0 1px 1px 1px', borderColor: `color-mix(in srgb, ${accent} 24%, transparent)`,
+              borderRadius: '0 0 16px 16px',
+            }} />
+            {/* Ghost 2 — behind ghost 1; ghost1 ends 15px below front, ghost2 target
+                is 9px below front → offset = 9-15 = -6 from ghost1 bottom */}
+            {behind >= 2 && (
+              <div style={{
+                height: 18, marginTop: -6, marginLeft: 22, marginRight: 22,
+                position: 'relative', zIndex: 1,
+                background: `color-mix(in srgb, ${accent} 10%, rgba(var(--glass-rgb), 0.5))`,
+                backdropFilter: 'blur(9px) saturate(135%)',
+                WebkitBackdropFilter: 'blur(9px) saturate(135%)',
+                borderStyle: 'solid', borderWidth: '0 1px 1px 1px', borderColor: `color-mix(in srgb, ${accent} 16%, transparent)`,
+                borderRadius: '0 0 16px 16px',
+              }} />
+            )}
+            {/* Spacer preserves visual gap below ghosts */}
+            <div style={{ height: behind >= 2 ? 5 : 7 }} />
           </div>
         </motion.div>
       ) : (
@@ -517,35 +509,45 @@ function ReminderGroupStack({ items, getAction, isDone }: {
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={COLLAPSE}
-          onAnimationComplete={() => setAnimating(false)}
-          // Open groups have no peeking ghosts (unlike the collapsed stack's
-          // paddingBottom above), so the bare container gap left an open group
-          // sitting tight against the next collapsed one — add breathing room.
           style={{
             gridArea: '1 / 1', alignSelf: 'start',
-            overflow: animating ? 'hidden' : 'visible', paddingBottom: 16,
+            overflow: 'hidden',
+            // No paddingBottom on motion div — moved inside so height:0 = 0px in flow.
           }}
         >
-          <div
-            onClick={() => { setAnimating(true); setExpanded(false) }}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '0 10px 6px', cursor: 'pointer',
-            }}
-          >
-            <span style={{ fontSize: 11, fontWeight: 700, color: accent }}>
-              {stackTypeLabel[front.type]} · {items.length}
-            </span>
-            <span style={{ fontSize: 11, color: collapseColor, display: 'flex', alignItems: 'center', gap: 3 }}>
-              Свернуть <ChevronRight size={11} style={{ transform: 'rotate(-90deg)' }} />
-            </span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {items.map(r => (
-              <div key={r.id}>
-                <ReminderRow item={r} done={isDone(r)} onAction={getAction(r)} />
-              </div>
-            ))}
+          <div style={{ paddingBottom: 16 }}>
+            <div
+              onClick={() => setExpanded(false)}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '0 10px 6px', cursor: 'pointer',
+              }}
+            >
+              <span style={{ fontSize: 11, fontWeight: 700, color: accent }}>
+                {stackTypeLabel[front.type]} · {items.length}
+              </span>
+              <span style={{ fontSize: 11, color: collapseColor, display: 'flex', alignItems: 'center', gap: 3 }}>
+                Свернуть <ChevronRight size={11} style={{ transform: 'rotate(-90deg)' }} />
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {items.map((r, i) => {
+                const next = items[i + 1]
+                const nAccent = !isDone(r) && next && isDone(next) ? 'var(--color-green-text)' : undefined
+                return (
+                  <div key={r.id} style={{ position: 'relative' }}>
+                    <ReminderRow item={r} done={isDone(r)} onAction={getAction(r)} />
+                    {nAccent && (
+                      <div style={{
+                        position: 'absolute', bottom: 0, left: '2%', right: '2%', height: 32,
+                        pointerEvents: 'none', opacity: 0.6,
+                        background: `radial-gradient(80% 100% at 50% 100%, color-mix(in srgb, ${nAccent} 20%, transparent), transparent 70%)`,
+                      }} />
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </motion.div>
       )}
@@ -683,11 +685,21 @@ function MyTasksBlock() {
   const removeTask = useTeacher(s => s.removeTask)
   const updateTask = useTeacher(s => s.updateTask)
   const [editingTask, setEditingTask] = useState<TeacherTask | null>(null)
+  const [tasksAtTop, setTasksAtTop] = useState(true)
+  const [tasksAtBottom, setTasksAtBottom] = useState(false)
 
   if (!tasks.length) return null
 
   const pending = tasks.filter(t => !t.done)
   const done    = tasks.filter(t => t.done)
+  const allTasks = [...pending, ...done]
+  const needsScroll = allTasks.length > 5
+  const ROW_H = 52
+  const GAP = 5
+  const listMaxH = 5 * ROW_H + 4 * GAP
+  const topFade = tasksAtTop ? 'black 0%' : 'transparent 0%, black 10px'
+  const botFade = tasksAtBottom ? 'black 100%' : 'black calc(100% - 18px), transparent 100%'
+  const tasksMask = needsScroll ? `linear-gradient(to bottom, ${topFade}, ${botFade})` : undefined
 
   return (
     <>
@@ -725,8 +737,22 @@ function MyTasksBlock() {
             </span>
           )}
         </CardTitle>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-          {[...pending, ...done].map(task => (
+        <div
+          className="no-scrollbar"
+          onScroll={needsScroll ? e => {
+            const el = e.currentTarget
+            setTasksAtTop(el.scrollTop < 4)
+            setTasksAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 4)
+          } : undefined}
+          style={{
+            display: 'flex', flexDirection: 'column', gap: GAP,
+            ...(needsScroll ? {
+              maxHeight: listMaxH, overflowY: 'auto',
+              maskImage: tasksMask, WebkitMaskImage: tasksMask,
+            } : {}),
+          }}
+        >
+          {allTasks.map(task => (
             <TaskRow
               key={task.id}
               task={task}
@@ -827,9 +853,7 @@ function RemindersScroll({ reminders, reminderAction, reminderDone, allStudents,
           return acc
         }, {} as Record<string, Reminder[]>)
       )
-        // внутри группы: невыполненные сверху, «Готово» — вниз (стабильно)
         .map(group => [...group].sort((a, b) => Number(reminderDone(a)) - Number(reminderDone(b))))
-        // полностью проверенные группы опускаем под те, где ещё есть незакрытые
         .sort((a, b) => Number(a.every(reminderDone)) - Number(b.every(reminderDone)))
         .map(group => (
           <ReminderGroupStack
@@ -847,7 +871,7 @@ function RemindersScroll({ reminders, reminderAction, reminderDone, allStudents,
 
 // ─── Main component ─────────────────────────────────────────────────────────
 export default function TeacherHome() {
-  const { setActivePage } = useTeacher()
+  const { setActivePage, openGradebook } = useTeacher()
   const reviews = useTeacher(s => s.reviews)
   const openHardReview = useTeacher(s => s.openHardReview)
   const openHomeworkReview = useTeacher(s => s.openHomeworkReview)
@@ -943,7 +967,7 @@ export default function TeacherHome() {
   const reminderAction = (r: Reminder): (() => void) | undefined => {
     if (r.id.startsWith('hard-')) { const id = r.id.slice(5); return () => openHardReview(id) }
     if (r.id.startsWith('hw-')) { const id = r.id.slice(3); return () => openHomeworkReview(id) }
-    if (r.id.startsWith('journal-')) { return () => { window.location.hash = '#/teacher/gradebook' } }
+    if (r.id.startsWith('journal-')) { const sid = r.id.slice(8); return () => openGradebook(sid) }
     if (r.id.startsWith('pay-')) {
       const sid = r.id.slice(4)
       const stu = allStudents.find(s => s.id === sid)
@@ -967,7 +991,7 @@ export default function TeacherHome() {
     // progressive-blur strip (same recipe as student DashboardPage panels).
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, gap: 0, marginTop: -100, paddingTop: 100, overflowY: 'auto', scrollbarGutter: 'stable' }}>
       {/* ── Stats row ── */}
-      <section style={{ padding: '0 32px', flexShrink: 0 }}>
+      <section style={{ padding: '16px 32px 0', flexShrink: 0 }}>
         <div style={{ display: 'flex', gap: 14 }}>
           <StatCard
             icon={Users} label="Студентов" value={totalStudents}

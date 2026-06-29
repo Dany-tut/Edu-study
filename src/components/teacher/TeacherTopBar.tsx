@@ -61,6 +61,7 @@ const quickActions: QuickItem[] = [
 
 export default function TeacherTopBar() {
   const [collapsed, setCollapsed]     = useState(false)
+  const [morphing, setMorphing]       = useState(false)
   const [addOpen, setAddOpen]         = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const teacherBarRef = useRef<HTMLDivElement>(null)
@@ -208,11 +209,13 @@ export default function TeacherTopBar() {
 
   return (
     <>
-    <div
+    <motion.div
       ref={teacherBarRef}
+      layout
+      transition={{ type: 'spring', stiffness: 340, damping: 30, mass: 0.8 }}
       style={{
         position: 'relative', zIndex: 60,
-        borderRadius: 32, padding: '8px', height: 60, width: 'fit-content',
+        borderRadius: 32, padding: '8px', height: 60,
         boxSizing: 'border-box',
         background: 'rgba(var(--glass-rgb), 0.88)',
         backdropFilter: 'blur(14px) saturate(180%)',
@@ -220,8 +223,21 @@ export default function TeacherTopBar() {
         border: '1px solid var(--color-border-glass)',
         boxShadow: 'var(--shadow-pill)',
         display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 8,
+        overflow: 'hidden',
       }}
     >
+      {/* Blur morph overlay — fades in at start of transition, fades out at end */}
+      <motion.div
+        animate={{ opacity: morphing ? 1 : 0 }}
+        transition={{ duration: morphing ? 0.08 : 0.32, ease: 'easeOut' }}
+        style={{
+          position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none',
+          borderRadius: 32,
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          background: 'rgba(var(--glass-rgb), 0.55)',
+        }}
+      />
       {/* Nav */}
       <nav style={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
         {navItems.map(item => {
@@ -275,14 +291,14 @@ export default function TeacherTopBar() {
               <span style={{
                 position: 'relative', zIndex: 1, display: 'flex', overflow: 'hidden',
                 maxWidth: collapsed ? 22 : 0, opacity: collapsed ? 1 : 0,
-                transition: 'max-width 0.55s cubic-bezier(0.4,0,0.2,1), opacity 0.38s ease',
+                transition: 'max-width 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease',
               }}>
                 <item.icon size={18} strokeWidth={isActive ? 2.2 : 1.8} />
               </span>
               <span style={{
                 position: 'relative', zIndex: 1, display: 'block', overflow: 'hidden', whiteSpace: 'nowrap',
                 maxWidth: collapsed ? 0 : 200, opacity: collapsed ? 0 : 1,
-                transition: 'max-width 0.55s cubic-bezier(0.4,0,0.2,1), opacity 0.38s ease',
+                transition: 'max-width 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.18s ease',
               }}>
                 {item.label}
               </span>
@@ -318,7 +334,11 @@ export default function TeacherTopBar() {
         <motion.button
           whileHover={{ scale: 1.08, backgroundColor: 'rgba(155,109,255,0.14)' }}
           whileTap={{ scale: 0.96 }}
-          onClick={() => setCollapsed(c => !c)}
+          onClick={() => {
+            setMorphing(true)
+            setCollapsed(c => !c)
+            setTimeout(() => setMorphing(false), 520)
+          }}
           aria-label={collapsed ? 'Развернуть' : 'Свернуть'}
           style={{ width: 36, height: 44, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--color-muted)', background: 'none', border: 'none' }}
         >
@@ -352,7 +372,7 @@ export default function TeacherTopBar() {
           overflow: 'hidden', whiteSpace: 'nowrap',
           maxWidth: (isHome && teacherName) ? 208 : 0,
           opacity: (isHome && teacherName) ? 1 : 0,
-          transition: 'max-width 0.55s cubic-bezier(0.4,0,0.2,1), opacity 0.38s ease',
+          transition: 'max-width 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.18s ease',
         }}>
           <div style={{ paddingLeft: 8 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.2 }}>{teacherName}</div>
@@ -360,7 +380,7 @@ export default function TeacherTopBar() {
           </div>
         </div>
       </motion.div>
-    </div>
+    </motion.div>
 
     {/* Quick-actions dropdown */}
     {createPortal(

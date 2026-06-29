@@ -4728,9 +4728,9 @@ function DiagTimePicker({ value, onChange, onClose, anchorRef, accent = 'var(--c
           onBlur={commitManual} placeholder="чч:мм"
           style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text)', padding: '7px 10px', borderRadius: 9, fontSize: 13, fontWeight: 600, fontFamily: 'inherit', textAlign: 'center', letterSpacing: 0.5 }} />
       </div>
-      <div style={{ position: 'relative' }}>
-        {fadeTop && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 28, zIndex: 1, background: 'linear-gradient(to bottom, var(--color-bg-input), transparent)', pointerEvents: 'none' }} />}
-        {fadeBottom && <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 28, zIndex: 1, background: 'linear-gradient(to top, var(--color-bg-input), transparent)', pointerEvents: 'none' }} />}
+      <div style={{ position: 'relative', overflow: 'hidden' }}>
+        {fadeTop && <div style={{ position: 'absolute', top: -2, left: 0, right: 0, height: 30, zIndex: 1, background: 'linear-gradient(to bottom, var(--color-bg-input), transparent)', pointerEvents: 'none' }} />}
+        {fadeBottom && <div style={{ position: 'absolute', bottom: -2, left: 0, right: 0, height: 30, zIndex: 1, background: 'linear-gradient(to top, var(--color-bg-input), transparent)', pointerEvents: 'none' }} />}
         <div ref={listRef} onScroll={updateFades} style={{ maxHeight: 200, overflowY: 'auto', padding: '4px 6px', scrollbarWidth: 'none' }}>
           {TIME_SLOTS_DIAG.map(t => {
             const active = t === value
@@ -5346,11 +5346,11 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
               </div>
 
               {/* Scrollable list with fades */}
-              <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
+              <div style={{ position: 'relative', flex: 1, minHeight: 0, overflow: 'hidden' }}>
                 {/* top fade */}
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 28, background: 'linear-gradient(to bottom, var(--color-bg-card, var(--color-bg-2)), transparent)', pointerEvents: 'none', zIndex: 2, opacity: qListFade.top ? 1 : 0, transition: 'opacity 0.18s' }} />
+                <div style={{ position: 'absolute', top: -2, left: 0, right: 0, height: 30, background: 'linear-gradient(to bottom, var(--color-bg-card, var(--color-bg-2)), transparent)', pointerEvents: 'none', zIndex: 2, opacity: qListFade.top ? 1 : 0, transition: 'opacity 0.18s' }} />
                 {/* bottom fade */}
-                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 28, background: 'linear-gradient(to top, var(--color-bg-card, var(--color-bg-2)), transparent)', pointerEvents: 'none', zIndex: 2, opacity: qListFade.bottom ? 1 : 0, transition: 'opacity 0.18s' }} />
+                <div style={{ position: 'absolute', bottom: -2, left: 0, right: 0, height: 30, background: 'linear-gradient(to top, var(--color-bg-card, var(--color-bg-2)), transparent)', pointerEvents: 'none', zIndex: 2, opacity: qListFade.bottom ? 1 : 0, transition: 'opacity 0.18s' }} />
 
                 <div ref={qListRef} onScroll={updateQListFade} style={{ height: '100%', overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 2, paddingBottom: 2 }}>
                   {questions.map((q, idx) => (

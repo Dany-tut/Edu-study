@@ -182,8 +182,8 @@ function useScrollFade() {
 function ScrollFadeMask({ side, show }: { side: 'top' | 'bottom'; show: boolean }) {
   return (
     <div style={{
-      position: 'absolute', left: 0, right: 0, height: 28, pointerEvents: 'none', zIndex: 3,
-      [side]: 0,
+      position: 'absolute', left: 0, right: 0, height: 36, pointerEvents: 'none', zIndex: 3,
+      [side]: -8,
       background: `linear-gradient(to ${side === 'top' ? 'bottom' : 'top'}, rgba(var(--glass-rgb), 0.95), rgba(var(--glass-rgb), 0))`,
       opacity: show ? 1 : 0, transition: 'opacity 0.18s ease',
     }} />
@@ -1005,7 +1005,7 @@ function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon
               backdropFilter: 'blur(16px) saturate(180%)',
               WebkitBackdropFilter: 'blur(16px) saturate(180%)',
               border: '1px solid var(--color-border-medium)',
-              borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.18)', padding: 6,
+              borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.18)', padding: 6, paddingRight: 10,
               display: 'flex', flexDirection: 'column', gap: 2,
             }}
           >
@@ -2552,7 +2552,7 @@ function RightPanelLessons({
                       transition={{ duration: 0.13 }}
                       style={{
                         position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 20,
-                        minWidth: 160, maxHeight: 240, overflowY: 'auto', padding: 4,
+                        minWidth: 160, maxHeight: 240, overflowY: 'auto', padding: 4, paddingRight: 10,
                         borderRadius: 10, background: 'var(--color-bg-card, var(--color-bg))',
                         border: '1px solid var(--color-border)', boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
                       }}
@@ -2604,7 +2604,7 @@ function RightPanelLessons({
         )}
       </AnimatePresence>
 
-      <div style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex' }}>
+      <div style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex', overflow: 'hidden' }}>
         <ScrollFadeMask side="top" show={fade.top} />
         <ScrollFadeMask side="bottom" show={fade.bottom} />
         {/* Click on the empty area (not a row/module) clears every selection. */}

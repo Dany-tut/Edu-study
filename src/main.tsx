@@ -17,6 +17,19 @@ if (phKey) {
   window.addEventListener('hashchange', trackPage)
 }
 
+// Global scroll-aware scrollbar: show thumb only while scrolling, hide after idle.
+;(() => {
+  const timers = new WeakMap<Element, ReturnType<typeof setTimeout>>()
+  window.addEventListener('scroll', e => {
+    const el = e.target as Element
+    if (!el || el === document) return
+    el.classList.add('is-scrolling')
+    const prev = timers.get(el)
+    if (prev) clearTimeout(prev)
+    timers.set(el, setTimeout(() => { el.classList.remove('is-scrolling') }, 800))
+  }, { capture: true, passive: true })
+})()
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

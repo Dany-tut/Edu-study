@@ -556,6 +556,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                       color: suggestion ? 'transparent' : 'var(--color-text)',
                       caretColor: 'var(--color-text)',
                       lineHeight: '22px',
+                      padding: 0, margin: 0, display: 'block',
                     }}
                   />
                 </div>

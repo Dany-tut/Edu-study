@@ -36,6 +36,10 @@ export type TeacherTask = {
 type TeacherStore = {
   activePage: TeacherPage
   setActivePage: (page: TeacherPage) => void
+  // One-shot: when navigating to gradebook from a reminder, pre-open a specific lesson.
+  pendingGradebookLessonId: string | null
+  openGradebook: (scheduleId?: string) => void
+  clearPendingGradebookLesson: () => void
   // Course editor — JSON-serialized course data passed between constructor and editor pages
   editingCourseJson: string | null
   openCourseEditor: (courseJson: string) => void
@@ -117,6 +121,9 @@ function initialPage(): TeacherPage {
 export const useTeacher = create<TeacherStore>(set => ({
   activePage: initialPage(),
   setActivePage: page => { clearEditorSession(); set({ activePage: page, headerDocked: false }) },
+  pendingGradebookLessonId: null,
+  openGradebook: scheduleId => { clearEditorSession(); set({ activePage: 'gradebook', headerDocked: false, pendingGradebookLessonId: scheduleId ?? null }) },
+  clearPendingGradebookLesson: () => set({ pendingGradebookLessonId: null }),
   editingCourseJson: readEditorSession(),
   openCourseEditor: courseJson => {
     try { sessionStorage.setItem(EDITOR_SESSION_KEY, courseJson) } catch { /* non-fatal */ }

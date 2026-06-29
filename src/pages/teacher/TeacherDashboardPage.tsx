@@ -23,8 +23,13 @@ import TeacherProfileSettingsPage from './TeacherProfileSettingsPage'
 import TeacherPaymentPage from './TeacherPaymentPage'
 import TeacherFinancesPage from './TeacherFinancesPage'
 import MobileTeacherApp from '../../components/teacher/mobile/MobileTeacherApp'
+import DeskSwitcher from '../../components/teacher/DeskSwitcher'
+import DeskCanvas from '../../components/teacher/DeskCanvas'
+import WidgetLibraryModal from '../../components/teacher/WidgetLibraryModal'
 import { useIsDesktop } from '../../lib/useIsDesktop'
 import { useTeacher } from '../../store/teacherStore'
+import { useDeskStore } from '../../store/deskStore'
+import { useDeskLayouts } from '../../lib/useDeskLayouts'
 
 const TEACHER_HASH_TO_PAGE: Record<string, 'home' | 'groups' | 'homework' | 'gradebook' | 'constructor'> = {
   '#/teacher':             'home',
@@ -46,6 +51,14 @@ export default function TeacherDashboardPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const headerDocked = useTeacher(s => s.headerDocked)
   const isDesktop = useIsDesktop()
+  const editMode = useDeskStore(s => s.editMode)
+  const showWidgetLibrary = useDeskStore(s => s.showWidgetLibrary)
+  const setShowWidgetLibrary = useDeskStore(s => s.setShowWidgetLibrary)
+  const {
+    config, activeDesk,
+    setActiveDesk, addDesk, resetDesk,
+    updateDeskItems, addWidget, removeWidget,
+  } = useDeskLayouts()
 
   // Teacher is identified by their Supabase auth user id (matches notifications.recipient_id).
   const [teacherId, setTeacherId] = useState<string | null>(null)
@@ -77,13 +90,33 @@ export default function TeacherDashboardPage() {
     {/* Desktop surfaces live notifications inside TeacherCompactPill (top-right),
         so the standalone toast is only needed on the mobile layout. */}
     {!isDesktop && <NotificationToastContainer />}
-    <div className="dashboard-root hidden lg:flex" style={{ display: isDesktop ? 'flex' : 'none' }}>
+    <div className="dashboard-root hidden lg:flex" style={{ display: isDesktop ? 'flex' : 'none', position: 'relative' }}>
       {/* Progressive blur+fade strip behind the floating topbar — masks content
           scrolling up through the gaps around the pills. */}
       <div aria-hidden className="edge-progressive-blur--top" />
 
+      {/* Desk switcher — dots below topbar that expand to named pill on hover;
+          only shows on the home page when not in edit mode (edit bar takes over). */}
+      {activePage === 'home' && (
+        <DeskSwitcher
+          config={config}
+          onSetActive={setActiveDesk}
+          onAddDesk={() => addDesk('Стол ' + (config.desks.length + 1))}
+          onResetDesk={resetDesk}
+        />
+      )}
+
+      {/* Widget library modal */}
+      {showWidgetLibrary && (
+        <WidgetLibraryModal
+          onClose={() => setShowWidgetLibrary(false)}
+          onAdd={item => addWidget(activeDesk.id, item)}
+          existingTypes={activeDesk.items.map(i => i.type)}
+        />
+      )}
+
       {/* Topbar row — 3-col grid: empty | topbar (always centered) | widget */}
-      <div className="topbar-row">
+      <div className="topbar-row" style={{ visibility: editMode ? 'hidden' : 'visible', pointerEvents: editMode ? 'none' : 'auto' }}>
         {/* Left spacer */}
         <div />
 
@@ -123,9 +156,18 @@ export default function TeacherDashboardPage() {
           // Pages whose scroll pane lifts up under the topbar (marginTop:-100 +
           // paddingTop:100 — the progressive-blur recipe) must not be clipped
           // by this wrapper, so their overflow stays visible.
-          style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['lesson-editor', 'constructor', 'course-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups'].includes(activePage) ? 'visible' : 'hidden' }}
+          style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['home', 'lesson-editor', 'constructor', 'course-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups'].includes(activePage) ? 'visible' : 'hidden' }}
         >
-          {activePage === 'home'            && <TeacherHome />}
+          {activePage === 'home' && (
+            editMode || activeDesk.id !== 'today'
+              ? <DeskCanvas
+                  desk={activeDesk}
+                  onUpdateItems={items => updateDeskItems(activeDesk.id, items)}
+                  onAddWidget={() => setShowWidgetLibrary(true)}
+                  onRemoveWidget={id => removeWidget(activeDesk.id, id)}
+                />
+              : <TeacherHome />
+          )}
           {activePage === 'groups'          && <TeacherGroupsPage />}
           {activePage === 'homework'        && <TeacherHomeworkPage />}
           {activePage === 'homework-create' && <TeacherHomeworkCreatePage />}

@@ -856,7 +856,7 @@ export default function LessonPage() {
               <ListVideo size={17} style={{ color: 'var(--color-accent)' }} />
               <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Таймкоды</span>
             </div>
-            <div className="flex flex-col flex-1" style={{ gap: 2, overflowY: 'auto' }}>
+            <div className="flex flex-col flex-1" style={{ gap: 2, overflowY: 'auto', paddingRight: 10 }}>
               {detail.timecodes.map((tc, i) => {
                 const active = i === activeChapter
                 return (

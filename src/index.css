@@ -188,7 +188,7 @@
   --color-pill-active-shadow: 0 1px 4px rgba(0,0,0,0.30);
 
   --color-purple: #B3A6F7;
-  --color-accent: #A99BF5;
+  --color-accent: #8879D8;
   --color-green-accent: #4ADE80;
 
   /* ── Shadows (dark-theme glass cards) ────────────────────── */
@@ -267,35 +267,36 @@ a {
   pointer-events: none;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar — hidden at rest, appears only while scrolling */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.16);
+  background: transparent;
   border-radius: 999px;
+  transition: background 0.3s ease;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(0,0,0,0.28);
+.is-scrolling::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.22);
 }
-[data-theme="dark"] ::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.08);
-}
-[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.16);
+[data-theme="dark"] .is-scrolling::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.18);
 }
 
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(0,0,0,0.16) transparent;
+  scrollbar-color: transparent transparent;
 }
-[data-theme="dark"] * {
-  scrollbar-color: rgba(255,255,255,0.08) transparent;
+.is-scrolling {
+  scrollbar-color: rgba(0,0,0,0.22) transparent;
+}
+[data-theme="dark"] .is-scrolling {
+  scrollbar-color: rgba(255,255,255,0.18) transparent;
 }
 
 /* Floating overlay-scrollbar thumb colour (drawn by ScrollFade as a div on top
@@ -635,3 +636,27 @@ input[type=number]::-webkit-outer-spin-button {
   border-radius: 20px;
   animation: constructorCardFlashAnim 1.8s ease-out forwards;
 }
+
+/* ── Desk canvas resize handles ─────────────────────────────────── */
+.react-resizable-handle {
+  width: 20px !important;
+  height: 20px !important;
+  background: none !important;
+  border: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.react-resizable-handle::after {
+  content: '';
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-right: 2.5px solid rgba(120, 106, 215, 0.8);
+  border-bottom: 2.5px solid rgba(120, 106, 215, 0.8);
+  border-radius: 0 0 4px 0;
+}
+
+/* Prevent text selection during grid drag */
+.react-draggable-dragging { user-select: none !important; }
+.react-grid-layout.desk-grid { touch-action: none; }
