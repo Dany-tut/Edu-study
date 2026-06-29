@@ -40,6 +40,7 @@ export type Student = {
   paymentAmount?: number
   lastPayment?: string
   debt?: number
+  lessonBalance?: number
   email?: string
   tempPassword?: string
   inviteToken?: string | null

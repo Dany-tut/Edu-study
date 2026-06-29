@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Home, Users, ClipboardList, BookOpen, Layers, GraduationCap,
+  Home, Users, ClipboardList, BookOpen, Layers, GraduationCap, Wallet,
   ChevronLeft, ChevronRight,
   LayoutGrid, UserPlus, CheckSquare, LayoutDashboard, LogOut, Moon, Sun,
   CreditCard, UserCircle, Shield,
@@ -27,6 +27,7 @@ const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = 
   { id: 'homework',    label: 'ДЗ',          icon: ClipboardList },
   { id: 'gradebook',   label: 'Журнал',      icon: BookOpen },
   { id: 'constructor', label: 'Конструктор', icon: Layers },
+  { id: 'finances',    label: 'Финансы',     icon: Wallet },
 ]
 
 type AvatarOption = { id: string; Icon: LucideIcon; gradient: string }

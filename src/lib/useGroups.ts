@@ -563,6 +563,7 @@ export function useAllStudents() {
           paymentAmount: s.payment_amount ?? 0,
           lastPayment: s.last_payment ?? '',
           debt: s.debt ?? 0,
+          lessonBalance: s.lesson_balance ?? 0,
           inviteToken: s.invite_token ?? null,
           email: s.email ?? '',
           tempPassword: s.temp_password ?? '',

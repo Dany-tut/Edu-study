@@ -144,15 +144,19 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
     <span style={{ width: 12, height: 12, borderRadius: '50%', background: 'var(--color-bg)', border: `2px solid ${item.color}` }} />
   )
 
+  const liveBg = isLive ? `color-mix(in srgb, ${item.color} 9%, transparent)` : 'transparent'
+  const hoverBg = isLive ? `color-mix(in srgb, ${item.color} 22%, var(--color-bg-3))` : 'var(--color-bg-3)'
+
   return (
     <motion.button
-      whileHover={{ backgroundColor: 'var(--color-bg-2)' }}
       whileTap={{ scale: 0.99 }}
       onClick={() => openLessonEditor(item.id)}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = hoverBg }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = liveBg }}
       style={{
         width: '100%', display: 'flex', alignItems: 'stretch', gap: 12,
         padding: '8px 12px 8px 4px', borderRadius: 14, border: 'none', cursor: 'pointer',
-        background: isLive ? `color-mix(in srgb, ${item.color} 9%, transparent)` : 'transparent',
+        background: liveBg,
         textAlign: 'left', transition: 'background 0.15s', position: 'relative',
         opacity: isDone ? 0.62 : 1,
       }}
@@ -403,7 +407,10 @@ const stackTypeLabel: Record<Reminder['type'], string> = {
 // still-visible folding cards. With one matched duration + ease, a sibling is
 // only ~50% risen when a card is ~50% faded, so nothing leaps over unfinished
 // motion. Bump the duration here to make the whole fold slower/faster.
-const COLLAPSE = { duration: 0.4, ease: [0.4, 0, 0.2, 1] } as const
+const COLLAPSE = {
+  height: { type: 'spring' as const, stiffness: 320, damping: 34 },
+  opacity: { duration: 0.22, ease: 'easeOut' as const },
+}
 
 function ReminderGroupStack({ items, getAction, isDone }: {
   items: Reminder[]
@@ -447,7 +454,7 @@ function ReminderGroupStack({ items, getAction, isDone }: {
           onClick={() => { setAnimating(true); setExpanded(true) }}
           style={{
             gridArea: '1 / 1', alignSelf: 'start',
-            overflow: animating ? 'hidden' : 'visible',
+            overflow: 'visible',
             position: 'relative', cursor: 'pointer', paddingBottom: behind >= 2 ? 32 : 22,
           }}
         >
@@ -811,7 +818,7 @@ function RemindersScroll({ reminders, reminderAction, reminderDone, allStudents,
         maskImage: mask, WebkitMaskImage: mask,
         // slim inline padding still leaves room for each row's drop-shadow + stack
         // ghosts (not clipped by overflowX:hidden) but lets the stacks run wider
-        paddingBlock: 8, paddingInline: 4,
+        paddingBlock: 8, paddingLeft: 4, paddingRight: 12,
       }}
     >
       {Object.values(
@@ -1019,7 +1026,7 @@ export default function TeacherHome() {
                   display: 'flex', flexDirection: 'column', gap: 1,
                   maskImage: 'linear-gradient(to bottom, transparent 0%, black 14px, black calc(100% - 20px), transparent 100%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 14px, black calc(100% - 20px), transparent 100%)',
-                  paddingBlock: 6,
+                  paddingBlock: 6, paddingLeft: 0, paddingRight: 12,
                 }}>
                   {todaySchedule.length === 0 ? (
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: 'var(--color-text-4)', padding: '24px 0' }}>

@@ -21,6 +21,7 @@ import TeacherStoragePage from './TeacherStoragePage'
 import TeacherAdminPage from './TeacherAdminPage'
 import TeacherProfileSettingsPage from './TeacherProfileSettingsPage'
 import TeacherPaymentPage from './TeacherPaymentPage'
+import TeacherFinancesPage from './TeacherFinancesPage'
 import MobileTeacherApp from '../../components/teacher/mobile/MobileTeacherApp'
 import { useIsDesktop } from '../../lib/useIsDesktop'
 import { useTeacher } from '../../store/teacherStore'
@@ -139,6 +140,7 @@ export default function TeacherDashboardPage() {
           {activePage === 'admin'            && <TeacherAdminPage />}
           {activePage === 'profile-settings' && <TeacherProfileSettingsPage />}
           {activePage === 'payment'          && <TeacherPaymentPage />}
+          {activePage === 'finances'         && <TeacherFinancesPage />}
         </motion.div>
       </AnimatePresence>
 

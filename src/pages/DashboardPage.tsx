@@ -111,7 +111,9 @@ export default function DashboardPage() {
   return (
     <>
       <AnswerFlightLayer />
-      <NotificationToastContainer />
+      {/* Desktop live notifications surface inside CompactWidgetPill (beside the
+          topbar); the standalone toast is only kept for mobile where there's no pill. */}
+      {!isDesktop && <NotificationToastContainer />}
       {/* Desktop no-scroll layout */}
       <LayoutGroup>
       <div className="dashboard-root" style={{ display: isDesktop ? 'flex' : 'none' }}>
