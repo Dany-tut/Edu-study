@@ -84,7 +84,14 @@ function InviteModal({ onClose }: { onClose: () => void }) {
 
   function copyLink() {
     const link = `${window.location.origin}${window.location.pathname}#/teacher`
-    navigator.clipboard.writeText(link).then(() => {
+    const message =
+      `Здравствуйте! 👋\n\n` +
+      `Вас приглашают присоединиться к образовательной платформе «Искра» в роли преподавателя.\n\n` +
+      `«Искра» — это личный кабинет учителя: группы и ученики, домашние задания с проверкой, ` +
+      `журнал, расписание и аналитика — всё в одном месте.\n\n` +
+      `Ваша пригласительная ссылка:\n${link}\n\n` +
+      `Перейдите по ней и войдите по своему email — и попадёте прямо в кабинет.`
+    navigator.clipboard.writeText(message).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     })
@@ -197,7 +204,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
               }}
             >
               {copied ? <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-green-text)' }} /> : <Copy size={14} />}
-              {copied ? 'Ссылка скопирована!' : 'Скопировать ссылку на платформу'}
+              {copied ? 'Приглашение скопировано!' : 'Скопировать текст приглашения'}
             </button>
           </>
         )}
