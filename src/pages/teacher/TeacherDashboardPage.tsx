@@ -27,24 +27,9 @@ import DeskSwitcher from '../../components/teacher/DeskSwitcher'
 import DeskCanvas from '../../components/teacher/DeskCanvas'
 import WidgetLibraryModal from '../../components/teacher/WidgetLibraryModal'
 import { useIsDesktop } from '../../lib/useIsDesktop'
-import { useTeacher } from '../../store/teacherStore'
+import { useTeacher, HASH_TO_PAGE, PAGE_TO_HASH } from '../../store/teacherStore'
 import { useDeskStore } from '../../store/deskStore'
 import { useDeskLayouts } from '../../lib/useDeskLayouts'
-
-const TEACHER_HASH_TO_PAGE: Record<string, 'home' | 'groups' | 'homework' | 'gradebook' | 'constructor'> = {
-  '#/teacher':             'home',
-  '#/teacher/groups':      'groups',
-  '#/teacher/homework':    'homework',
-  '#/teacher/gradebook':   'gradebook',
-  '#/teacher/constructor': 'constructor',
-}
-const TEACHER_PAGE_TO_HASH: Record<string, string> = {
-  home:        '#/teacher',
-  groups:      '#/teacher/groups',
-  homework:    '#/teacher/homework',
-  gradebook:   '#/teacher/gradebook',
-  constructor: '#/teacher/constructor',
-}
 
 export default function TeacherDashboardPage() {
   const activePage = useTeacher(s => s.activePage)
@@ -67,19 +52,24 @@ export default function TeacherDashboardPage() {
   }, [])
   useNotificationsInit(teacherId)
 
-  // Restore page from hash on mount — but if the store already opened straight
-  // into the course editor (restored from a persisted edit session on refresh),
-  // keep that so the teacher lands back where they were.
+  // The store hydrates activePage on load (from the per-tab nav snapshot, then the
+  // URL hash), so we don't reset it on mount anymore — that would clobber pages
+  // with no hash of their own (admin, a student dashboard, …). We only listen for
+  // browser back/forward, which fires `hashchange` for the mapped standalone pages.
   useEffect(() => {
-    if (useTeacher.getState().activePage === 'course-editor') return
-    const page = TEACHER_HASH_TO_PAGE[window.location.hash]
-    setActivePage(page ?? 'home')
+    const onHashChange = () => {
+      const page = HASH_TO_PAGE[window.location.hash]
+      if (page) setActivePage(page)
+    }
+    window.addEventListener('hashchange', onHashChange)
+    return () => window.removeEventListener('hashchange', onHashChange)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Sync hash when activePage changes (only for persistent pages)
+  // Sync the URL hash when activePage changes (standalone pages only). Context-heavy
+  // sub-pages have no hash — their restore is handled by the nav snapshot in the store.
   useEffect(() => {
-    const hash = TEACHER_PAGE_TO_HASH[activePage]
+    const hash = PAGE_TO_HASH[activePage]
     if (hash && window.location.hash !== hash) {
       window.history.replaceState(null, '', hash)
     }

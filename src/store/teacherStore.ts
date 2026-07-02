@@ -94,13 +94,24 @@ type TeacherStore = {
   saveStudentTrainerStats: (stats: Omit<StudentTrainerStats, 'savedAt'>) => void
 }
 
-const HASH_TO_PAGE: Record<string, TeacherPage> = {
+// Standalone pages that can be restored purely from their URL hash (no extra
+// context needed). Every entry here round-trips through PAGE_TO_HASH so a refresh
+// lands the teacher back on the same section — including admin/finances/storage.
+export const HASH_TO_PAGE: Record<string, TeacherPage> = {
   '#/teacher':             'home',
   '#/teacher/groups':      'groups',
   '#/teacher/homework':    'homework',
   '#/teacher/gradebook':   'gradebook',
   '#/teacher/constructor': 'constructor',
+  '#/teacher/finances':    'finances',
+  '#/teacher/storage':     'storage',
+  '#/teacher/admin':       'admin',
+  '#/teacher/profile':     'profile-settings',
+  '#/teacher/payment':     'payment',
 }
+export const PAGE_TO_HASH: Record<string, string> = Object.fromEntries(
+  Object.entries(HASH_TO_PAGE).map(([hash, page]) => [page, hash])
+)
 
 // The course editor is a sub-page with no URL hash of its own. To survive a page
 // refresh (so the teacher lands back in the course/lesson they were editing) we
@@ -113,8 +124,47 @@ function clearEditorSession() {
   try { sessionStorage.removeItem(EDITOR_SESSION_KEY) } catch { /* unavailable — non-fatal */ }
 }
 
+// Per-tab navigation snapshot. Context-heavy sub-pages (student dashboard, HW
+// review, HW composer, hard review, lesson editor) have no URL hash of their own,
+// so on refresh we restore both the page AND the ids those pages need to re-fetch.
+// sessionStorage is per-tab, so a fresh tab / deep-link starts clean and honours
+// the URL hash instead.
+const NAV_SESSION_KEY = 'teacher-nav'
+type NavSnapshot = {
+  page: TeacherPage
+  selectedGroupId: string | null
+  selectedStudentId: string | null
+  reviewingHwId: string | null
+  reviewingHardId: string | null
+  editingHomeworkId: string | null
+  hwPresetStudentId: string | null
+  editingScheduleId: string | null
+}
+function readNav(): NavSnapshot | null {
+  try { const raw = sessionStorage.getItem(NAV_SESSION_KEY); return raw ? JSON.parse(raw) as NavSnapshot : null } catch { return null }
+}
+function writeNav(s: TeacherStore) {
+  try {
+    sessionStorage.setItem(NAV_SESSION_KEY, JSON.stringify({
+      page: s.activePage,
+      selectedGroupId: s.selectedGroupId,
+      selectedStudentId: s.selectedStudentId,
+      reviewingHwId: s.reviewingHwId,
+      reviewingHardId: s.reviewingHardId,
+      editingHomeworkId: s.editingHomeworkId,
+      hwPresetStudentId: s.hwPresetStudentId,
+      editingScheduleId: s.editingScheduleId,
+    } satisfies NavSnapshot))
+  } catch { /* unavailable — non-fatal */ }
+}
+
+const _nav = readNav()
+
 function initialPage(): TeacherPage {
   if (readEditorSession()) return 'course-editor'
+  // The per-tab snapshot is the freshest record of where this tab was.
+  // (course-editor is owned by the editor session above, so ignore it here.)
+  if (_nav?.page && _nav.page !== 'course-editor') return _nav.page
   return HASH_TO_PAGE[window.location.hash] ?? 'home'
 }
 
@@ -133,7 +183,7 @@ export const useTeacher = create<TeacherStore>(set => ({
   setCourseEdited: json => set({ courseEditedJson: json }),
   headerDocked: false,
   setHeaderDocked: docked => set({ headerDocked: docked }),
-  editingScheduleId: null,
+  editingScheduleId: _nav?.editingScheduleId ?? null,
   openLessonEditor: scheduleId => set({ editingScheduleId: scheduleId, activePage: 'lesson-editor', headerDocked: false }),
   constructorIntent: null,
   openConstructor: mode => set({ activePage: 'constructor', constructorIntent: mode, headerDocked: false }),
@@ -143,14 +193,14 @@ export const useTeacher = create<TeacherStore>(set => ({
   editTaskIntent: null,
   openConstructorEditTask: taskId => set({ activePage: 'constructor', editTaskIntent: taskId, constructorIntent: 'trainer', headerDocked: false }),
   clearEditTaskIntent: () => set({ editTaskIntent: null }),
-  reviewingHwId: null,
+  reviewingHwId: _nav?.reviewingHwId ?? null,
   openHomeworkReview: hwId => set({ reviewingHwId: hwId, activePage: 'homework-review', reviewIdx: 0, headerDocked: false }),
-  editingHomeworkId: null,
-  hwPresetStudentId: null,
+  editingHomeworkId: _nav?.editingHomeworkId ?? null,
+  hwPresetStudentId: _nav?.hwPresetStudentId ?? null,
   openHomeworkCreate: presetStudentId => set({ activePage: 'homework-create', editingHomeworkId: null, hwPresetStudentId: presetStudentId ?? null, headerDocked: false }),
   clearHwPreset: () => set({ hwPresetStudentId: null }),
   openHomeworkEdit: hwId => set({ activePage: 'homework-create', editingHomeworkId: hwId, hwPresetStudentId: null, headerDocked: false }),
-  reviewingHardId: null,
+  reviewingHardId: _nav?.reviewingHardId ?? null,
   openHardReview: hardId => set({ reviewingHardId: hardId, activePage: 'hard-review', headerDocked: false }),
   reviewIdx: 0,
   setReviewIdx: idx => set({ reviewIdx: idx }),
@@ -158,9 +208,9 @@ export const useTeacher = create<TeacherStore>(set => ({
   submitReview: (hwId, studentId, review) => set(s => ({
     reviews: { ...s.reviews, [hwId]: { ...(s.reviews[hwId] ?? {}), [studentId]: review } },
   })),
-  selectedGroupId: null,
+  selectedGroupId: _nav?.selectedGroupId ?? null,
   setSelectedGroupId: id => set({ selectedGroupId: id }),
-  selectedStudentId: null,
+  selectedStudentId: _nav?.selectedStudentId ?? null,
   setSelectedStudentId: id => set({ selectedStudentId: id }),
   openStudentDashboard: (studentId, groupId) => set({ activePage: 'student', selectedStudentId: studentId, selectedGroupId: groupId, headerDocked: false }),
   // ─── DEMO seed: example tasks so the "Мои задачи" widget is populated for
@@ -195,3 +245,7 @@ export const useTeacher = create<TeacherStore>(set => ({
   studentTrainerStats: null,
   saveStudentTrainerStats: stats => set({ studentTrainerStats: { ...stats, savedAt: Date.now() } }),
 }))
+
+// Persist the navigation snapshot on every state change so a refresh restores the
+// exact section the teacher was on (admin, finances, a student dashboard, …).
+useTeacher.subscribe(writeNav)
