@@ -36,7 +36,7 @@ export const DEFAULT_DESKS: Desk[] = [
       { i: 'stat-lessons',    type: 'stat-lessons',    x: 6,  y: 0, w: 3, h: 2, minW: 2, minH: 2, maxH: 2 },
       { i: 'stat-earnings',   type: 'stat-earnings',   x: 9,  y: 0, w: 3, h: 2, minW: 2, minH: 2, maxH: 2 },
       { i: 'today-schedule',  type: 'today-schedule',  x: 0,  y: 2, w: 7, h: 5, minW: 4, minH: 3 },
-      { i: 'today-reminders', type: 'today-reminders', x: 7,  y: 2, w: 5, h: 5, minW: 3, minH: 3 },
+      { i: 'today-reminders', type: 'today-reminders', x: 7,  y: 2, w: 5, h: 9, minW: 3, minH: 3 },
       { i: 'today-tasks',     type: 'today-tasks',     x: 0,  y: 7, w: 7, h: 4, minW: 4, minH: 3 },
     ],
   },
