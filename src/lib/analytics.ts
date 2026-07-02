@@ -43,20 +43,26 @@ function getSessionId(): string {
 }
 
 async function resolveIdentity() {
+  // A live Supabase session (teacher/admin) wins over a legacy student_session —
+  // otherwise a stale student_session left in localStorage from prior testing
+  // mislabels every teacher/admin click as role='student'.
+  try {
+    const { data } = await supabase.auth.getUser()
+    const u = data.user
+    if (u) {
+      // Respect the role stamped at sign-up (admin/student/teacher); default to
+      // teacher for legacy sessions with no role metadata.
+      const metaRole = u.user_metadata?.role
+      const role = metaRole === 'admin' || metaRole === 'student' ? metaRole : 'teacher'
+      identity = { user_id: u.id, student_id: metaRole === 'student' ? u.id : null, role }
+      return
+    }
+  } catch { /**/ }
   const student = getStudentSession()
   if (student) {
     identity = { user_id: null, student_id: student.id, role: 'student' }
     return
   }
-  try {
-    const { data } = await supabase.auth.getUser()
-    const u = data.user
-    if (u) {
-      const role = u.user_metadata?.role === 'admin' ? 'admin' : 'teacher'
-      identity = { user_id: u.id, student_id: null, role }
-      return
-    }
-  } catch { /**/ }
   identity = { user_id: null, student_id: null, role: 'anon' }
 }
 
