@@ -4,6 +4,9 @@ import { supabase } from '../../lib/supabase'
 export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogin: () => void; recovery?: boolean }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [subject, setSubject] = useState('')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
@@ -29,10 +32,19 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
         if (error) throw error
         onLogin()
       } else if (mode === 'register') {
+        const fullName = `${firstName.trim()} ${lastName.trim()}`.trim()
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { role: 'teacher', name: email.split('@')[0] } },
+          options: {
+            data: {
+              role: 'teacher',
+              name: fullName || email.split('@')[0],
+              first_name: firstName.trim(),
+              last_name: lastName.trim(),
+              subject: subject.trim(),
+            },
+          },
         })
         if (error) throw error
         onLogin()
@@ -95,6 +107,65 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {mode === 'register' && (
+            <>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <input
+                  type="text"
+                  placeholder="Имя"
+                  value={firstName}
+                  onChange={e => setFirstName(e.target.value)}
+                  autoComplete="given-name"
+                  required
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    padding: '12px 16px',
+                    borderRadius: 14,
+                    border: '1.5px solid var(--color-border-medium)',
+                    fontSize: 15,
+                    outline: 'none',
+                    color: 'var(--color-text)',
+                    background: 'var(--color-bg-input)',
+                  }}
+                />
+                <input
+                  type="text"
+                  placeholder="Фамилия"
+                  value={lastName}
+                  onChange={e => setLastName(e.target.value)}
+                  autoComplete="family-name"
+                  required
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    padding: '12px 16px',
+                    borderRadius: 14,
+                    border: '1.5px solid var(--color-border-medium)',
+                    fontSize: 15,
+                    outline: 'none',
+                    color: 'var(--color-text)',
+                    background: 'var(--color-bg-input)',
+                  }}
+                />
+              </div>
+              <input
+                type="text"
+                placeholder="Предмет (например, Химия)"
+                value={subject}
+                onChange={e => setSubject(e.target.value)}
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: 14,
+                  border: '1.5px solid var(--color-border-medium)',
+                  fontSize: 15,
+                  outline: 'none',
+                  color: 'var(--color-text)',
+                  background: 'var(--color-bg-input)',
+                }}
+              />
+            </>
+          )}
           {mode !== 'newpassword' && (
             <input
               type="email"
