@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from './supabase'
+import { getOwnerId } from './owner'
 
 export type Payment = {
   id: string
@@ -27,6 +28,7 @@ export function usePayments(studentId?: string) {
     let q = supabase
       .from('payments')
       .select('*')
+      .eq('teacher_id', await getOwnerId())
       .order('paid_at', { ascending: false })
     if (studentId) q = q.eq('student_id', studentId)
     const { data } = await q

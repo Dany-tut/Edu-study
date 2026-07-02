@@ -14,6 +14,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
     recovery ? 'newpassword' : 'login',
   )
   const [showPassword, setShowPassword] = useState(false)
+  const [consent, setConsent] = useState(false)
 
   function switchMode(next: 'login' | 'register' | 'reset') {
     setMode(next)
@@ -43,6 +44,8 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
               first_name: firstName.trim(),
               last_name: lastName.trim(),
               subject: subject.trim(),
+              analytics_consent: true,
+              consent_at: new Date().toISOString(),
             },
           },
         })
@@ -237,6 +240,20 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
             </span>
           )}
 
+          {mode === 'register' && (
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 12.5, color: 'var(--color-muted)', lineHeight: 1.45, cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={e => setConsent(e.target.checked)}
+                style={{ marginTop: 2, width: 16, height: 16, accentColor: 'var(--color-purple)', flexShrink: 0, cursor: 'pointer' }}
+              />
+              <span>
+                Я соглашаюсь на обработку персональных данных и сбор аналитики использования платформы «Искра».
+              </span>
+            </label>
+          )}
+
           {error && (
             <div style={{ color: 'var(--color-red-text)', fontSize: 13, padding: '8px 12px', background: 'var(--color-red-soft)', borderRadius: 10 }}>
               {error}
@@ -250,16 +267,16 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (mode === 'register' && !consent)}
             style={{
               padding: '13px 24px',
               borderRadius: 14,
-              background: loading ? 'rgba(155,109,255,0.6)' : 'var(--color-purple)',
+              background: (loading || (mode === 'register' && !consent)) ? 'rgba(155,109,255,0.6)' : 'var(--color-purple)',
               color: '#fff',
               fontWeight: 700,
               fontSize: 15,
               border: 'none',
-              cursor: loading ? 'not-allowed' : 'pointer',
+              cursor: (loading || (mode === 'register' && !consent)) ? 'not-allowed' : 'pointer',
               marginTop: 4,
             }}
           >

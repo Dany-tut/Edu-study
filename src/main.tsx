@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client'
 import posthog from 'posthog-js'
 import './index.css'
 import App from './App.tsx'
+import ErrorBoundary from './components/ErrorBoundary'
+import OfflineBanner from './components/OfflineBanner'
 
 const phKey = import.meta.env.VITE_POSTHOG_KEY
 if (phKey) {
@@ -32,6 +34,9 @@ if (phKey) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <OfflineBanner />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 )

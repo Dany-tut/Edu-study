@@ -5,7 +5,6 @@ import TeacherLoginPage from './pages/teacher/TeacherLoginPage'
 import JoinPage from './pages/JoinPage'
 import StudentLoginPage from './pages/StudentLoginPage'
 import DiagnosticTestPage from './pages/DiagnosticTestPage'
-import ComponentShowcase from './pages/ComponentShowcase' // TEMP: UI-kit witrine for portfolio case (#/showcase) — remove after capture
 import ReviewSession from './components/ReviewSession'
 import { supabase } from './lib/supabase'
 import { getStudentSession } from './lib/studentSession'
@@ -39,7 +38,16 @@ export default function App() {
       if (e === 'PASSWORD_RECOVERY') setRecovery(true)
       setSession(s)
     })
-    return () => subscription.unsubscribe()
+    // Re-check the session when the tab regains focus: if the token silently
+    // expired while backgrounded, this refreshes it (or flips to logged-out)
+    // instead of leaving a "dead" cabinet that 401s on the next request.
+    const onFocus = () => {
+      if (document.visibilityState === 'visible') {
+        supabase.auth.getSession().then(({ data }) => setSession(data.session))
+      }
+    }
+    document.addEventListener('visibilitychange', onFocus)
+    return () => { subscription.unsubscribe(); document.removeEventListener('visibilitychange', onFocus) }
   }, [])
 
   // Load real Supabase data whenever a student session exists
@@ -59,11 +67,15 @@ export default function App() {
         table: 'lesson_progress',
         filter: `student_id=eq.${sess.id}`,
       }, () => loadStudentData())
-      .subscribe()
+      .subscribe(status => {
+        // Surface realtime failures instead of silently never updating.
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.error('[realtime] lesson_progress subscription:', status)
+        }
+      })
     return () => { supabase.removeChannel(channel) }
   }, [loadStudentData])
 
-  if (hash.startsWith('#/showcase')) return <ComponentShowcase /> // TEMP: remove after portfolio capture
   if (hash.startsWith('#/join')) return <JoinPage />
   if (hash.startsWith('#/diagnostic')) return <DiagnosticTestPage />
   if (hash.startsWith('#/review')) {

@@ -1248,11 +1248,17 @@ function StudentCoursesSection({ student, group }: { student: Student; group: Gr
 }
 
 function StudentPanel({
-  student, group, onClose, onDelete, onOpenFullCard, onAddHomework, onSaveComment,
-}: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void; onAddHomework: () => void; onSaveComment: (text: string) => Promise<void> }) {
+  student, group, onClose, onDelete, onOpenFullCard, onAddHomework, onSaveComment, onResetPassword,
+}: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void; onAddHomework: () => void; onSaveComment: (text: string) => Promise<void>; onResetPassword: () => Promise<string> }) {
   const [comment, setComment] = useState(student.comment ?? '')
   const [commentSaved, setCommentSaved] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [resetting, setResetting] = useState(false)
+  const [newPass, setNewPass] = useState<string | null>(null)
+  async function resetPassword() {
+    setResetting(true)
+    try { setNewPass(await onResetPassword()) } finally { setResetting(false) }
+  }
   // Re-sync the editor when switching to another student.
   useEffect(() => { setComment(student.comment ?? ''); setCommentSaved(false) }, [student.id])
   async function saveComment() {
@@ -1334,8 +1340,15 @@ function StudentPanel({
             </div>
             <CredentialsSpoiler
               login={student.email ?? ''}
-              password={student.tempPassword ?? ''}
+              password={newPass ?? student.tempPassword ?? ''}
             />
+            <button
+              onClick={resetPassword}
+              disabled={resetting}
+              style={{ marginTop: 8, width: '100%', padding: '8px', borderRadius: 10, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 12, fontWeight: 600, cursor: resetting ? 'default' : 'pointer' }}
+            >
+              {resetting ? 'Сбрасываем…' : newPass ? `Новый пароль: ${newPass}` : 'Сбросить пароль'}
+            </button>
           </section>
         )}
 
@@ -1920,6 +1933,12 @@ export default function TeacherGroupsPage() {
               onOpenFullCard={() => openStudentDashboard(activeStudentId, activeStudentGroup.id)}
               onAddHomework={() => openHomeworkCreate(activeStudentId)}
               onSaveComment={async (text) => { await updateStudent(activeStudentId, { comment: text }) }}
+              onResetPassword={async () => {
+                // Generate a fresh readable password and persist it as the student's temp_password.
+                const pw = 'iskra' + Math.floor(1000 + Math.random() * 9000)
+                await updateStudent(activeStudentId, { tempPassword: pw })
+                return pw
+              }}
             />
           </motion.div>
         )}

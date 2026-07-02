@@ -79,11 +79,11 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     let scheduleDays = schedule
 
     // Demo data so the UI can be reviewed without a teacher-authored course.
-    // Shown in local dev, OR in any build when the URL carries ?demo (so the
-    // mobile redesign can be previewed on a real phone via the deployed site).
-    // Only kicks in when there's no real course — real data always wins.
+    // Local dev only — OR a production build explicitly forced with ?demo=1.
+    // A bare ?demo no longer triggers it in prod, so a real student with an
+    // empty course never sees demo content mistaken for a bug.
     const demoFlag = (() => {
-      try { return new URLSearchParams(window.location.search).has('demo') } catch { return false }
+      try { return new URLSearchParams(window.location.search).get('demo') === '1' } catch { return false }
     })()
     if ((import.meta.env.DEV || demoFlag) && mergedSubjects.length === 0) {
       const { DEMO_SUBJECTS, DEMO_SCHEDULE, DEMO_STATS } = await import('../data/devStudentDemo')

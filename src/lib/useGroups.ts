@@ -259,6 +259,7 @@ export function useStudents(groupId: string | null) {
       name: 'name', phone: 'phone', telegramLink: 'telegram_link', parentContact: 'parent_contact',
       desiredScore: 'desired_score', comment: 'comment', paymentDue: 'payment_due',
       paymentAmount: 'payment_amount', lastPayment: 'last_payment', debt: 'debt',
+      tempPassword: 'temp_password',
     }
     const row: Record<string, unknown> = {}
     for (const [k, v] of Object.entries(patch)) {

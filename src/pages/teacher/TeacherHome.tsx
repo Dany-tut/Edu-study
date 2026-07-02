@@ -13,6 +13,7 @@ import type { TeacherTask } from '../../store/teacherStore'
 import { useGroups, useAllStudents, useJournalPending } from '../../lib/useGroups'
 import { useHomework, useHardSubmissions } from '../../lib/useHomework'
 import { supabase } from '../../lib/supabase'
+import { getOwnerId } from '../../lib/owner'
 import { mskToVietnam } from '../../lib/utils'
 
 const SPRING = { type: 'spring', stiffness: 340, damping: 30 } as const
@@ -61,9 +62,11 @@ function EarningsCard({ delay }: { delay: number }) {
     const now = new Date()
     const from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
     const to = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString()
+    ;(async () => {
     supabase
       .from('payments')
       .select('amount')
+      .eq('teacher_id', await getOwnerId())
       .gte('paid_at', from)
       .lte('paid_at', to)
       .then(({ data }) => {
@@ -71,6 +74,7 @@ function EarningsCard({ delay }: { delay: number }) {
         setPayments(data.length)
         setAmount(data.reduce((s: number, r: { amount: number }) => s + (r.amount ?? 0), 0))
       })
+    })()
   }, [])
 
   const fmt = (n: number) =>
