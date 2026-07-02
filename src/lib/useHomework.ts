@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
+import { getOwnerId } from './owner'
 import type { HomeworkItem } from '../data/teacherMockData'
 
 export type HardSub = {
@@ -304,9 +305,11 @@ export function useHomework() {
   const [loading, setLoading] = useState(true)
 
   async function load() {
+    const uid = await getOwnerId()
     const { data } = await supabase
       .from('homework')
       .select('*, groups(name, icon, color, is_individual), homework_submissions(verdict)')
+      .eq('created_by', uid)
       .order('created_at', { ascending: false })
     if (data) setHomework(data.map(mapRow))
     setLoading(false)
@@ -337,6 +340,7 @@ export function useHomework() {
       hard_task_ids: hw.hardTaskIds ?? [],
       hard_total: hw.hardTotal ?? (hw.hardTaskIds?.length ?? 0),
       hard_tasks: hw.hardTasks ?? [],
+      created_by: await getOwnerId(),
     }).select().single()
     if (!error) await load()
     return { data, error }
@@ -385,9 +389,11 @@ export function useHardSubmissions() {
   async function load() {
     // Fetch hard submissions: new format (lesson_ref ends with '-hard')
     // OR old format (comment non-empty, no '-hard' suffix)
+    const uid = await getOwnerId()
     const { data: rows } = await supabase
       .from('lesson_progress')
-      .select('*, students(name)')
+      .select('*, students!inner(name, groups!inner(created_by))')
+      .eq('students.groups.created_by', uid)
       .or('lesson_ref.like.%-hard,and(comment.neq.,lesson_ref.not.like.%-hard)')
       .in('status', ['submitted', 'returned', 'completed'])
       .order('updated_at', { ascending: false })

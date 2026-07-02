@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
+import { getOwnerId } from './owner'
 import type { Group, Student } from '../data/teacherMockData'
 
 type DbGroup = {
@@ -21,9 +22,11 @@ export function useGroups() {
   const [loading, setLoading] = useState(true)
 
   async function load() {
+    const uid = await getOwnerId()
     const { data } = await supabase
       .from('groups')
       .select('*, students(count)')
+      .eq('created_by', uid)
       .order('created_at')
     if (data) {
       setGroups(data.map((g: DbGroup) => ({
@@ -57,6 +60,7 @@ export function useGroups() {
       start_date: g.startDate || null,
       total_lessons: g.totalLessons,
       is_individual: g.isIndividual ?? false,
+      created_by: await getOwnerId(),
     }).select().single()
     if (!error && data) await load()
     return { data, error }
@@ -85,6 +89,7 @@ export function useGroups() {
       start_date: null,
       total_lessons: 0,
       is_individual: true,
+      created_by: await getOwnerId(),
     }).select().single()
     if (groupError || !groupData) return { error: groupError, inviteToken: null }
 
@@ -157,6 +162,7 @@ export async function resolveIndividualGroup(studentId: string): Promise<string 
     .select('id')
     .eq('is_individual', true)
     .eq('name', student.name)
+    .eq('created_by', await getOwnerId())
     .limit(1)
   if (existing && existing.length > 0) return existing[0].id
 
@@ -170,6 +176,7 @@ export async function resolveIndividualGroup(studentId: string): Promise<string 
     start_date: null,
     total_lessons: 0,
     is_individual: true,
+    created_by: await getOwnerId(),
   }).select('id').single()
   if (error || !created) return null
   return created.id
@@ -542,7 +549,9 @@ export function useJournalPending(groupId: string | null, reloadKey = 0) {
 export function useAllStudents() {
   const [students, setStudents] = useState<Student[]>([])
   useEffect(() => {
-    supabase.from('students').select('*').order('name')
+    ;(async () => {
+    const uid = await getOwnerId()
+    supabase.from('students').select('*, groups!inner(created_by)').eq('groups.created_by', uid).order('name')
       .then(({ data }) => {
         if (data) setStudents(data.map((s: any) => ({
           id: s.id,
@@ -569,6 +578,7 @@ export function useAllStudents() {
           tempPassword: s.temp_password ?? '',
         })))
       })
+    })()
   }, [])
   return students
 }

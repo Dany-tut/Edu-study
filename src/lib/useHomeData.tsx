@@ -65,7 +65,12 @@ export function useHomeData() {
       .order('time_start')
       .then(({ data }) => {
         if (!data) return
-        setTodaySchedule(data.map((s: any) => {
+        const ownedGroups = new Set(groups.map(g => g.id))
+        const ownedStudents = new Set(allStudents.map(s => s.id))
+        const owned = data.filter((s: any) =>
+          (s.group_id && ownedGroups.has(s.group_id)) ||
+          (s.student_id && ownedStudents.has(s.student_id)))
+        setTodaySchedule(owned.map((s: any) => {
           const stu = s.student_id ? allStudents.find((a: any) => a.id === s.student_id) : null
           return {
             id: String(s.id),

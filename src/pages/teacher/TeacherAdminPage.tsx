@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Database, HardDrive, Users, BookOpen, RefreshCw, Eye, EyeOff, ChevronRight, ArrowLeft, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert } from 'lucide-react'
+import { Database, HardDrive, Users, BookOpen, RefreshCw, ChevronRight, ArrowLeft, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useTeacher } from '../../store/teacherStore'
 import TeacherAnalytics from '../../components/teacher/TeacherAnalytics'
@@ -16,8 +16,10 @@ type StorageStats = {
 
 type TeacherRow = {
   id: string
-  email: string
   name: string
+  username: string | null
+  subject: string | null
+  role: string
   created_at: string
   groupCount: number
   studentCount: number
@@ -222,7 +224,6 @@ export default function TeacherAdminPage() {
   const [groupCount, setGroupCount] = useState(0)
   const [studentCount, setStudentCount] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set())
   const [inviteOpen, setInviteOpen] = useState(false)
   const [tab, setTab] = useState<'overview' | 'analytics'>('overview')
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
@@ -235,27 +236,28 @@ export default function TeacherAdminPage() {
 
   async function load() {
     setLoading(true)
-    const [storageRes, groupsRes, studentsRes, userRes] = await Promise.all([
+    const [storageRes, groupsRes, studentsRes, teachersRes] = await Promise.all([
       supabase.rpc('storage_stats'),
       supabase.from('groups').select('id', { count: 'exact', head: true }),
       supabase.from('students').select('id', { count: 'exact', head: true }),
-      supabase.auth.getUser(),
+      supabase.rpc('admin_teacher_list'),
     ])
 
     if (storageRes.data) setStorage(storageRes.data as StorageStats)
     setGroupCount(groupsRes.count ?? 0)
     setStudentCount(studentsRes.count ?? 0)
 
-    if (userRes.data.user) {
-      const u = userRes.data.user
-      setTeachers([{
-        id: u.id,
-        email: u.email ?? '—',
-        name: u.user_metadata?.name ?? u.email?.split('@')[0] ?? '—',
-        created_at: u.created_at,
-        groupCount: groupsRes.count ?? 0,
-        studentCount: studentsRes.count ?? 0,
-      }])
+    if (Array.isArray(teachersRes.data)) {
+      setTeachers((teachersRes.data as any[]).map(t => ({
+        id: t.id,
+        name: t.name ?? '—',
+        username: t.username ?? null,
+        subject: t.subject ?? null,
+        role: t.role ?? 'teacher',
+        created_at: t.created_at,
+        groupCount: Number(t.group_count ?? 0),
+        studentCount: Number(t.student_count ?? 0),
+      })))
     }
     setLoading(false)
   }
@@ -375,27 +377,25 @@ export default function TeacherAdminPage() {
           <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
             {teachers.map((t, i) => {
               const initials = t.name.slice(0, 2).toUpperCase()
-              const shown = revealedIds.has(t.id)
               return (
                 <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderTop: i > 0 ? '1px solid var(--color-border)' : undefined }}>
                   <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
                     {initials}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{t.name}</div>
-                    <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span>{shown ? t.email : t.email.replace(/(.{2}).*(@.*)/, '$1••••$2')}</span>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {t.name}
+                      {t.role === 'admin' && (
+                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-purple)', background: 'rgba(155,109,255,0.12)', borderRadius: 6, padding: '1px 6px', textTransform: 'uppercase', letterSpacing: 0.3 }}>admin</span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      {t.username && <span>@{t.username}</span>}
+                      {t.subject && <><span>·</span><span>{t.subject}</span></>}
                       <span>·</span>
                       <span>{t.groupCount} групп · {t.studentCount} учеников</span>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setRevealedIds(prev => { const n = new Set(prev); n.has(t.id) ? n.delete(t.id) : n.add(t.id); return n })}
-                    title={shown ? 'Скрыть' : 'Показать email'}
-                    style={{ width: 30, height: 30, borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
-                  >
-                    {shown ? <EyeOff size={14} /> : <Eye size={14} />}
-                  </button>
                 </div>
               )
             })}
