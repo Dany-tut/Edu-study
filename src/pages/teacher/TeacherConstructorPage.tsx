@@ -32,7 +32,6 @@ import {
 import { useAllStudents, useGroups } from '../../lib/useGroups'
 import { getContrastColor, getCircleShadow } from '../../lib/utils'
 import { supabase } from '../../lib/supabase'
-import { getOwnerId } from '../../lib/owner'
 import { optimizePhoto } from '../../lib/imageOptim'
 import { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from '../../data/apChemistry'
 import { AP_LESSON_CONTENT } from '../../data/apChemistryLessons'
@@ -7336,7 +7335,6 @@ export default function TeacherConstructorPage() {
       title: t.title, topic: t.topic, subject: t.subject ?? 'Химия',
       difficulty: t.difficulty, time_per_question: t.timePerQuestion,
       questions: t.questions, color: t.color, bg: t.bg,
-      created_by: await getOwnerId(),
     }
     if (isUUID(t.id)) row.id = t.id
     const { data, error } = await supabase.from('trainers').upsert(row, { onConflict: 'id' }).select('id').single()
@@ -7351,7 +7349,6 @@ export default function TeacherConstructorPage() {
     const row: any = {
       title: w.title, type: w.type, linked_trainer_id: linkedUuid,
       items: w.items, color: w.color, bg: w.bg,
-      created_by: await getOwnerId(),
     }
     if (isUUID(w.id)) row.id = w.id
     const { data, error } = await supabase.from('widgets').upsert(row, { onConflict: 'id' }).select('id').single()
@@ -7367,7 +7364,7 @@ export default function TeacherConstructorPage() {
       const { data: dbCourse, error } = await supabase
         .from('courses')
         .upsert(
-          { short_id: shortId, title: c.title, subject: c.subject, level: c.level, description: c.description, status: c.status, color: c.color, bg: c.bg, created_by: await getOwnerId() },
+          { short_id: shortId, title: c.title, subject: c.subject, level: c.level, description: c.description, status: c.status, color: c.color, bg: c.bg },
           { onConflict: 'short_id' }
         )
         .select('id, short_id')
