@@ -15,6 +15,25 @@ function initials(name: string) {
   return name.split(' ').map(p => p[0]).join('').slice(0, 2)
 }
 
+// Форматирует дату сдачи ДЗ: «3 июля в 14:20» + относительное «(2 дня назад)»
+function formatSubmittedAt(iso?: string): string | null {
+  if (!iso) return null
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return null
+  const date = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })
+  const time = d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+  const diffMs = Date.now() - d.getTime()
+  const diffDays = Math.floor(diffMs / 86400000)
+  let rel: string
+  if (diffDays <= 0) {
+    const diffHours = Math.floor(diffMs / 3600000)
+    rel = diffHours <= 0 ? 'только что' : `${diffHours} ч назад`
+  } else if (diffDays === 1) rel = 'вчера'
+  else if (diffDays < 5) rel = `${diffDays} дня назад`
+  else rel = `${diffDays} дней назад`
+  return `${date} в ${time} · ${rel}`
+}
+
 // ─── Student summary card (left rail) ───────────────────────────────────────
 function StudentSummary({ student, group }: { student: Student; group: Group }) {
   return (
@@ -155,11 +174,16 @@ function ReviewBottomBar({
             const bg = review?.verdict === 'accepted' ? '#6EE7A0'
               : review?.verdict === 'returned' ? '#F8C991'
               : isActive ? color : '#E4E4E9'
+            // Dark ink on the light green/peach chips (white "2" was near-invisible);
+            // white only on the saturated group-color active node.
+            const numColor = review?.verdict === 'accepted' ? '#0F5132'
+              : review?.verdict === 'returned' ? '#7A4A12'
+              : '#fff'
             if (isActive) {
               return (
                 <button key={s.id} onClick={() => onJump(i)} style={{
-                  width: 20, height: 20, borderRadius: '50%', flexShrink: 0, border: 'none', cursor: 'pointer',
-                  background: bg, color: '#fff', fontSize: 9, fontWeight: 800,
+                  width: 22, height: 22, borderRadius: '50%', flexShrink: 0, border: 'none', cursor: 'pointer',
+                  background: bg, color: numColor, fontSize: 11, fontWeight: 800, lineHeight: 1,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   boxShadow: `0 2px 10px ${color}59`,
                 }}>
@@ -511,9 +535,18 @@ export default function TeacherHomeworkReviewPage() {
                   background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-soft)',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
                 }}>
-                  <div className="flex items-center" style={{ gap: 8, marginBottom: 14 }}>
+                  <div className="flex items-center" style={{ gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
                     <FileText size={16} style={{ color: group.color }} />
                     <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Работа ученика</span>
+                    {formatSubmittedAt(currentSubmission?.submittedAt) && (
+                      <span className="flex items-center" style={{
+                        gap: 5, marginLeft: 'auto', padding: '4px 10px', borderRadius: 999,
+                        background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 11.5, fontWeight: 600,
+                      }}>
+                        <Clock size={12} />
+                        Сдано {formatSubmittedAt(currentSubmission?.submittedAt)}
+                      </span>
+                    )}
                   </div>
                   <p style={{ fontSize: 14.5, lineHeight: 1.65, color: 'var(--color-text)', whiteSpace: 'pre-line' }}>
                     {currentSubmission?.comment || 'Ученик не оставил комментарий к сдаче.'}
@@ -642,29 +675,29 @@ export default function TeacherHomeworkReviewPage() {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                     style={{
-                      padding: 20, borderRadius: 22,
-                      background: 'linear-gradient(135deg, var(--color-green-soft), #C8EDDA)',
-                      border: '1px solid rgba(74,222,128,0.20)',
-                      display: 'flex', alignItems: 'center', gap: 14,
+                      padding: 18, borderRadius: 22,
+                      background: 'var(--color-green-soft)',
+                      border: '1px solid color-mix(in srgb, var(--color-green-text) 30%, transparent)',
+                      display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 14,
                     }}
                   >
                     <div style={{
                       width: 44, height: 44, borderRadius: 14, flexShrink: 0,
-                      background: 'rgba(74,222,128,0.16)', color: 'var(--color-green-text)',
+                      background: 'color-mix(in srgb, var(--color-green-text) 18%, transparent)', color: 'var(--color-green-text)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
                       <CheckCircle2 size={24} />
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ flex: 1, minWidth: 160 }}>
                       <div style={{ fontSize: 15, fontWeight: 750, color: 'var(--color-text)' }}>Все работы проверены!</div>
-                      <div style={{ fontSize: 13, color: 'var(--color-green-text)' }}>Задача «Проверить ДЗ» отмечена на главной.</div>
+                      <div style={{ fontSize: 13, color: 'var(--color-green-text)', marginTop: 2 }}>Задача «Проверить ДЗ» отмечена на главной.</div>
                     </div>
                     <motion.button
                       whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                       onClick={() => setActivePage('homework')}
                       style={{
                         flexShrink: 0, padding: '11px 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
-                        background: 'var(--color-green-accent)', color: '#fff', fontSize: 13, fontWeight: 700,
+                        background: 'var(--color-green-accent)', color: '#fff', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap',
                       }}
                     >
                       К списку ДЗ

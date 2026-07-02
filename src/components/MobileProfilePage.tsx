@@ -4,6 +4,7 @@ import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
 import { DynamicIsland, GlassIconButton } from './mobileChrome'
 import { getStudentSession, clearStudentSession } from '../lib/studentSession'
+import { supabase } from '../lib/supabase'
 import { useStudentData } from '../store/studentDataStore'
 import { useTheme } from '../store/themeStore'
 import { PAIR } from '../lib/mobileTokens'
@@ -42,6 +43,7 @@ export default function MobileProfilePage() {
   const logout = () => {
     tactile()
     clearStudentSession()
+    void supabase.auth.signOut()
     window.location.hash = '#/'
     window.location.reload()
   }

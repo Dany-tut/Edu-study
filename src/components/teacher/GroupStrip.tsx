@@ -21,6 +21,12 @@ const PAD_TOP = 26
 const PAD_BOTTOM = 22
 const BTN_GAP = 8
 const BTN_H = (CARD_H - BTN_GAP) / 2
+// Horizontal edge fade for the scroll strip. Transparent under the pinned button
+// (x < CARD_W), a short fade-in just past it, opaque middle, and a soft right edge.
+const MASK_R = 56
+const SCROLL_MASK =
+  `linear-gradient(to right, transparent 0, transparent ${CARD_W}px, ` +
+  `#000 ${CARD_W + 34}px, #000 calc(100% - ${MASK_R}px), transparent 100%)`
 
 // ─── Tab panel ───────────────────────────────────────────────────────────────
 function TabPanel({ config }: { config: TabConfig }) {
@@ -354,6 +360,13 @@ export default function GroupStrip({
           paddingTop: PAD_TOP, paddingBottom: PAD_BOTTOM,
           paddingLeft: CARD_W + GAP,
           scrollbarWidth: 'none',
+          // Horizontal-only fade: `to right` keeps vertical alpha at 100%, so the
+          // active card's glow/lift is never clipped top/bottom. The left band
+          // (x < CARD_W) is fully transparent → cards' hover/selection/borders can
+          // never peek out above, below, or beside the pinned action button; they
+          // fade back in just past it. The right edge softens the scroll cutoff.
+          WebkitMaskImage: SCROLL_MASK,
+          maskImage: SCROLL_MASK,
         }}
       >
         {/* Regular group cards */}

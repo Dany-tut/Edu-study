@@ -55,8 +55,8 @@ const quickActions: QuickItem[] = [
   { icon: ClipboardList, label: 'Создать домашку',   sub: 'группе / лично',   color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', page: 'homework-create' },
   { icon: CheckSquare,   label: 'Создать задачу',    sub: 'встреча, урок…',   color: '#4B8EF1', bg: 'rgba(75,142,241,0.13)', action: 'create-task' },
   { type: 'separator' },
-  { icon: Users,         label: 'Создать группу',    sub: 'новая группа',     color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', action: 'create-group' },
-  { icon: UserPlus,      label: 'Добавить студента', sub: 'в группу / 1:1',   color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', action: 'add-student' },
+  { icon: Users,         label: 'Создать группу',    sub: 'новая группа',     color: 'var(--color-purple-text)', bg: 'var(--color-purple-soft)', action: 'create-group' },
+  { icon: UserPlus,      label: 'Добавить студента', sub: 'в группу / 1:1',   color: 'var(--color-purple-text)', bg: 'var(--color-purple-soft)', action: 'add-student' },
 ]
 
 export default function TeacherTopBar() {

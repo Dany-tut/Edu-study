@@ -273,9 +273,16 @@ export type HwSubmission = {
 }
 
 function mapRow(h: any): HwAssignment {
-  const subs: { verdict: string }[] = h.homework_submissions ?? []
+  const subs: { verdict: string; submitted_at?: string }[] = h.homework_submissions ?? []
   const submittedCount = subs.length
   const reviewedCount = subs.filter(s => s.verdict !== 'pending').length
+  // Самая поздняя сдача среди непроверенных — «когда ученик сдал».
+  const lastSubmittedAt = subs
+    .filter(s => s.verdict === 'pending')
+    .map(s => s.submitted_at)
+    .filter(Boolean)
+    .sort()
+    .pop() as string | undefined
   return {
     id: h.id,
     groupId: h.group_id,
@@ -308,7 +315,7 @@ export function useHomework() {
     const uid = await getOwnerId()
     const { data } = await supabase
       .from('homework')
-      .select('*, groups(name, icon, color, is_individual), homework_submissions(verdict)')
+      .select('*, groups(name, icon, color, is_individual), homework_submissions(verdict, submitted_at)')
       .eq('created_by', uid)
       .order('created_at', { ascending: false })
     if (data) setHomework(data.map(mapRow))

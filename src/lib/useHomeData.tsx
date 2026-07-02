@@ -9,6 +9,19 @@ function diffDays(isoA: string, isoB: string) {
   return Math.round((new Date(isoA).getTime() - new Date(isoB).getTime()) / 86400000)
 }
 
+// Компактное «сдано N назад» для строк напоминаний.
+function agoLabel(iso?: string): string {
+  if (!iso) return ''
+  const diff = Date.now() - new Date(iso).getTime()
+  if (!Number.isFinite(diff) || diff < 0) return 'сдано только что'
+  const mins = Math.floor(diff / 60000)
+  if (mins < 60) return `сдано ${mins} мин назад`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `сдано ${hrs} ч назад`
+  const days = Math.floor(hrs / 24)
+  return `сдано ${days} дн назад`
+}
+
 export function useOverlayThumb() {
   const [m, setM] = useState({ st: 0, sh: 0, ch: 0 })
   const [hover, setHover] = useState(false)
@@ -110,14 +123,15 @@ export function useHomeData() {
       id: `hw-${hw.id}`,
       type: 'check-hw' as Reminder['type'],
       text: `Проверить ДЗ — ${hw.groupName}`,
-      detail: `${hw.submittedCount} из ${hw.totalCount} сдали`,
+      detail: `${hw.submittedCount} из ${hw.totalCount} сдали`
+        + (hw.lastSubmittedAt ? ` · ${agoLabel(hw.lastSubmittedAt)}` : ''),
       urgency: 'high' as Reminder['urgency'],
     })),
     ...pendingHard.map(s => ({
       id: `hard-${s.id}`,
       type: 'check-hw' as Reminder['type'],
       text: `Сложное ДЗ — ${s.studentName.split(' ')[0]}`,
-      detail: s.lessonTitle,
+      detail: s.updatedAt ? `${s.lessonTitle} · ${agoLabel(s.updatedAt)}` : s.lessonTitle,
       urgency: 'high' as Reminder['urgency'],
     })),
     ...allStudents.filter(s => s.paymentDue && diffDays(s.paymentDue, TODAY) <= 7).map(s => ({

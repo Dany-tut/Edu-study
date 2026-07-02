@@ -138,6 +138,23 @@ function installErrorTracking() {
   })
 }
 
+function installClickTracking() {
+  // Normalised click coordinates per screen — feeds the spatial heatmaps.
+  // Records only viewport-relative fractions (0..1) + viewport size; no target
+  // identity, no PII. Aggregated into a density grid server-side.
+  document.addEventListener('click', (e) => {
+    const w = window.innerWidth, h = window.innerHeight
+    if (!w || !h) return
+    const xr = Math.min(1, Math.max(0, e.clientX / w))
+    const yr = Math.min(1, Math.max(0, e.clientY / h))
+    trackEvent('click', {
+      xr: Math.round(xr * 1000) / 1000,
+      yr: Math.round(yr * 1000) / 1000,
+      w, h,
+    })
+  }, { passive: true })
+}
+
 function installRageClickTracking() {
   // 4+ clicks on the same element within 800ms = rage click (user frustration signal)
   let clicks: number[] = []
@@ -194,4 +211,5 @@ export function initAnalytics() {
 
   installErrorTracking()
   installRageClickTracking()
+  installClickTracking()
 }

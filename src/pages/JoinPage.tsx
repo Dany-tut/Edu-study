@@ -58,10 +58,24 @@ export default function JoinPage() {
     setSaving(true)
     setErrorMsg('')
 
-    // Save credentials to students table (plain text so teacher can recover)
+    // Create a real Supabase Auth account (email confirmation is disabled, so
+    // signUp returns a session immediately). Link it to the students row.
+    const { data: authData, error: authErr } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: { data: { role: 'student', name: studentName } },
+    })
+    if (authErr || !authData.user) {
+      setErrorMsg(authErr?.message || 'Ошибка при регистрации. Попробуйте ещё раз.')
+      setSaving(false)
+      return
+    }
+
+    // Link the auth user to the invited student row (keep temp_password as a
+    // teacher-visible fallback / recovery hint).
     const { error } = await supabase
       .from('students')
-      .update({ email: email.trim(), temp_password: password })
+      .update({ email: email.trim(), temp_password: password, auth_user_id: authData.user.id })
       .eq('invite_token', token)
 
     if (error) {
@@ -70,7 +84,7 @@ export default function JoinPage() {
       return
     }
 
-    // Create local session and go to dashboard
+    // Seed progress and go to dashboard
     await supabase.rpc('seed_student_progress', {
       p_student_id: studentId,
       p_group_id: groupId,

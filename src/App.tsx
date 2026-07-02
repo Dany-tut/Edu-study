@@ -92,7 +92,9 @@ export default function App() {
   if (hash.startsWith('#/teacher')) {
     if (recovery) return <TeacherLoginPage onLogin={() => setRecovery(false)} recovery />
     if (session === undefined && !import.meta.env.DEV) return null
-    if (!session && !import.meta.env.DEV) return <TeacherLoginPage onLogin={() => {}} />
+    // A student's Supabase session must not unlock the teacher cabinet.
+    const isStudentAccount = session?.user?.user_metadata?.role === 'student'
+    if ((!session || isStudentAccount) && !import.meta.env.DEV) return <TeacherLoginPage onLogin={() => {}} />
     return <TeacherDashboardPage />
   }
 

@@ -8,6 +8,7 @@ import {
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { clearStudentSession, getStudentSession } from '../lib/studentSession'
+import { supabase } from '../lib/supabase'
 import { canUseFeature } from '../lib/featureFlags'
 import { playTransitionDrop } from '../lib/sound'
 import { tactile, lockSnap, lockRelease, springTopbar } from '../lib/feedback'
@@ -510,7 +511,7 @@ export default function Sidebar() {
                       icon={LogOut}
                       label="Выйти"
                       danger
-                      onClick={() => { clearStudentSession(); window.location.hash = '#/'; window.location.reload(); closePicker() }}
+                      onClick={() => { clearStudentSession(); void supabase.auth.signOut(); window.location.hash = '#/'; window.location.reload(); closePicker() }}
                     />
                   </div>
 

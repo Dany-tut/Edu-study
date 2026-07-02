@@ -21,18 +21,37 @@ export default function StudentLoginPage() {
     setLoading(true)
     setError('')
 
+    // 1) Preferred path — Supabase Auth (students carry auth_user_id).
+    const { data: authData } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    })
+    if (authData?.user) {
+      const { data: srow } = await supabase
+        .from('students')
+        .select('id, name, group_id')
+        .eq('auth_user_id', authData.user.id)
+        .maybeSingle()
+      if (srow) {
+        setLoading(false)
+        setStudentSession({ id: srow.id, name: srow.name, groupId: srow.group_id })
+        window.location.reload()
+        return
+      }
+      // Authed but not a student account — sign back out to avoid a stray session.
+      await supabase.auth.signOut()
+    }
+
+    // 2) Fallback — legacy temp_password login for students not yet migrated.
     const { data, error: rpcError } = await supabase.rpc('student_login', {
       p_email: email.trim(),
       p_password: password,
     })
-
     setLoading(false)
-
     if (rpcError || !data || data.length === 0) {
       setError('Неверный email или пароль')
       return
     }
-
     const s = data[0] as { id: string; name: string; group_id: string }
     setStudentSession({ id: s.id, name: s.name, groupId: s.group_id })
     window.location.reload()

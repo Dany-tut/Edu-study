@@ -80,6 +80,8 @@ export type HomeworkItem = {
   submittedCount: number
   totalCount: number
   reviewedCount: number
+  // ISO-время самой поздней сдачи среди непроверенных работ — для «когда сдали».
+  lastSubmittedAt?: string
   color: string
   status?: string
   tasks?: HwTask[]

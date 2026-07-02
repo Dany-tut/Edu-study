@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
 import {
   Activity, Users, CalendarClock, Layers, TrendingUp,
@@ -19,10 +19,13 @@ type Funnel    = { assigned: number; started: number; submitted: number; complet
 type PageStat  = { path: string; role: string; visits: number; avg_dwell_sec: number | null; errors: number; rage_clicks: number }
 type ErrorRow  = { created_at: string; role: string; path: string; event: string; msg: string; src: string; line: number; session_id: string }
 type RageHot   = { path: string; element: string; cnt: number }
+type ClickPath = { path: string; teacher_clicks: number; student_clicks: number; total: number }
+type ClickCell = { gx: number; gy: number; cnt: number }
 
 // ── constants ──────────────────────────────────────────────────────────────
 const ACCENT   = '#786AD7'
 const ACCENT_S = '#4ABFA0'  // student colour (teal)
+const GRID_W = 48, GRID_H = 30  // must match admin_click_heatmap() in 0014
 const DOW_LABELS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс']
 const DOW_PG     = [1,2,3,4,5,6,0] // pg extract(dow): 0=Sun
 const EVENT_LABELS: Record<string,string> = {
@@ -158,12 +161,99 @@ function Heatmap({ cells, color }: { cells: HeatCell[]; color: string }) {
   )
 }
 
+// Optional per-screen reference screenshots — the Hotjar/Clarity backing plate.
+// Fill with `path -> image URL` to render clicks over a real screenshot; until
+// then the heatmap renders over a neutral labelled frame. Auto by path.
+const REFERENCE_SHOTS: Record<string,string> = {}
+
+// blue → cyan → green → yellow → red density ramp (industry-standard heatmap)
+function heatColor(t: number): [number,number,number] {
+  const stops: [number, [number,number,number]][] = [
+    [0.0,[46,64,180]],[0.35,[40,182,192]],[0.55,[70,200,96]],[0.78,[240,208,58]],[1.0,[228,60,48]],
+  ]
+  for (let i=0;i<stops.length-1;i++) {
+    const [a,ca]=stops[i], [b,cb]=stops[i+1]
+    if (t<=b) { const f=(t-a)/((b-a)||1); return [ca[0]+(cb[0]-ca[0])*f, ca[1]+(cb[1]-ca[1])*f, ca[2]+(cb[2]-ca[2])*f] }
+  }
+  return stops[stops.length-1][1]
+}
+
+function ClickHeatmap({ cells, label, total }: { cells: ClickCell[]; label: string; total: number }) {
+  const ref = useRef<HTMLCanvasElement|null>(null)
+  const shot = REFERENCE_SHOTS[label] // label is the raw path key
+
+  useEffect(() => {
+    const cv = ref.current; if (!cv) return
+    const CW = 720, CH = 450
+    cv.width = CW; cv.height = CH
+    const ctx = cv.getContext('2d'); if (!ctx) return
+    ctx.clearRect(0,0,CW,CH)
+    if (cells.length === 0) return
+    const intensity = new Float32Array(CW*CH)
+    const R = 46, twoSig2 = 2*(R/2)*(R/2)
+    for (const c of cells) {
+      const px = Math.round((c.gx+0.5)/GRID_W*CW)
+      const py = Math.round((c.gy+0.5)/GRID_H*CH)
+      for (let dy=-R; dy<=R; dy++) {
+        const y=py+dy; if (y<0||y>=CH) continue
+        for (let dx=-R; dx<=R; dx++) {
+          const x=px+dx; if (x<0||x>=CW) continue
+          intensity[y*CW+x] += c.cnt*Math.exp(-(dx*dx+dy*dy)/twoSig2)
+        }
+      }
+    }
+    let max=0; for (let i=0;i<intensity.length;i++) if (intensity[i]>max) max=intensity[i]
+    if (max<=0) return
+    const img = ctx.createImageData(CW,CH)
+    for (let i=0;i<intensity.length;i++) {
+      const t = intensity[i]/max
+      if (t<0.02) continue
+      const [r,g,b] = heatColor(Math.min(1,t))
+      const o=i*4
+      img.data[o]=r; img.data[o+1]=g; img.data[o+2]=b
+      img.data[o+3]=Math.round(Math.min(0.82, 0.12+0.88*t)*255)
+    }
+    ctx.putImageData(img,0,0)
+  }, [cells])
+
+  return (
+    <div>
+      <div style={{ position:'relative', width:'100%', aspectRatio:'16 / 10', borderRadius:12,
+        overflow:'hidden', border:'1px solid var(--color-border)',
+        background: shot ? '#000' : 'var(--color-bg-3)' }}>
+        {shot
+          ? <img src={shot} alt="" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:0.55 }} />
+          : (
+            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center',
+              flexDirection:'column', gap:6, color:'var(--color-text-3)', pointerEvents:'none' }}>
+              <div style={{ fontSize:13, fontWeight:600, opacity:0.5 }}>{pLabel(label)}</div>
+              <div style={{ fontSize:10.5, opacity:0.4 }}>клики по нормализованным координатам экрана</div>
+            </div>
+          )}
+        <canvas ref={ref} style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none' }} />
+        {cells.length===0 && (
+          <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center',
+            fontSize:12, color:'var(--color-text-3)' }}>
+            Нет кликов на этом экране за период
+          </div>
+        )}
+      </div>
+      <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:10, fontSize:10.5, color:'var(--color-text-3)' }}>
+        <span>реже</span>
+        <div style={{ width:120, height:8, borderRadius:4, background:'linear-gradient(to right, rgba(46,64,180,0.5), #28b6c0, #46c860, #f0d03a, #e43c30)' }} />
+        <span>чаще</span>
+        <span style={{ marginLeft:'auto' }}>{total.toLocaleString('ru-RU')} кликов</span>
+      </div>
+    </div>
+  )
+}
+
 // ── main component ─────────────────────────────────────────────────────────
 export default function TeacherAnalytics() {
   const [days, setDays]                   = useState(30)
   const [loading, setLoading]             = useState(true)
   const [heatRole, setHeatRole]           = useState<'teacher'|'student'>('teacher')
-  const [activeTab, setActiveTab]         = useState<'activity'|'issues'>('activity')
+  const [activeTab, setActiveTab]         = useState<'activity'|'issues'|'heatmap'>('activity')
   const [overview, setOverview]           = useState<Overview|null>(null)
   const [teacherHeat, setTeacherHeat]     = useState<HeatCell[]>([])
   const [studentHeat, setStudentHeat]     = useState<HeatCell[]>([])
@@ -175,6 +265,11 @@ export default function TeacherAnalytics() {
   const [rageHots, setRageHots]           = useState<RageHot[]>([])
   const [errExpanded, setErrExpanded]     = useState(false)
   const [err, setErr]                     = useState<string|null>(null)
+  // spatial click heatmaps
+  const [clickPaths, setClickPaths]       = useState<ClickPath[]>([])
+  const [clickPath, setClickPath]         = useState<string|null>(null)
+  const [clickGrid, setClickGrid]         = useState<ClickCell[]>([])
+  const [clickLoading, setClickLoading]   = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true); setErr(null)
@@ -204,6 +299,34 @@ export default function TeacherAnalytics() {
   }, [days])
 
   useEffect(() => { void load() }, [load])
+
+  // Screen list for the heatmap selector — auto-built from captured click paths.
+  useEffect(() => {
+    if (activeTab !== 'heatmap') return
+    let alive = true
+    void (async () => {
+      const { data } = await supabase.rpc('admin_click_paths', { p_days: days })
+      if (!alive) return
+      const paths = (data as ClickPath[]) ?? []
+      setClickPaths(paths)
+      setClickPath(prev => (prev && paths.some(p => p.path === prev)) ? prev : (paths[0]?.path ?? null))
+    })()
+    return () => { alive = false }
+  }, [activeTab, days])
+
+  // Density grid for the selected screen + role.
+  useEffect(() => {
+    if (activeTab !== 'heatmap' || !clickPath) { setClickGrid([]); return }
+    let alive = true
+    setClickLoading(true)
+    void (async () => {
+      const { data } = await supabase.rpc('admin_click_heatmap', { p_path: clickPath, p_role: heatRole, p_days: days })
+      if (!alive) return
+      setClickGrid((data as ClickCell[]) ?? [])
+      setClickLoading(false)
+    })()
+    return () => { alive = false }
+  }, [activeTab, clickPath, heatRole, days])
 
   // ── derived ──────────────────────────────────────────────────────────────
   const dailyMax   = Math.max(1, ...daily.map(d => d.events))
@@ -258,7 +381,7 @@ export default function TeacherAnalytics() {
           ))}
         </div>
         <div style={{ display:'flex', gap:4, background:'var(--color-bg-3)', borderRadius:12, padding:3 }}>
-          {([['activity','Активность'],['issues','Проблемы']] as const).map(([id,label]) => (
+          {([['activity','Активность'],['issues','Проблемы'],['heatmap','Тепловые карты']] as const).map(([id,label]) => (
             <button key={id} onClick={() => setActiveTab(id)} style={{
               padding:'6px 14px', borderRadius:9, border:'none', cursor:'pointer',
               fontSize:12.5, fontWeight:600,
@@ -573,6 +696,67 @@ export default function TeacherAnalytics() {
                 })
             }
           </Card>
+        </>
+      )}
+
+      {/* ── TAB: HEATMAP (spatial click maps per screen) ── */}
+      {activeTab === 'heatmap' && (
+        <>
+          <SectionTitle action={
+            <TabToggle value={heatRole} onChange={v => setHeatRole(v as 'teacher'|'student')} options={[
+              { id:'teacher', label:'Учителя', color:ACCENT },
+              { id:'student', label:'Ученики', color:ACCENT_S },
+            ]} />
+          }>
+            Тепловые карты кликов · по экранам
+          </SectionTitle>
+
+          {/* Screen selector — auto-built from captured click paths */}
+          <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:16 }}>
+            {clickPaths.length === 0
+              ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>
+                  Нет данных о кликах за период. Данные начнут собираться после обновления —
+                  каждый клик записывает нормализованные координаты по экрану.
+                </div>
+              : clickPaths.map(p => {
+                  const active = p.path === clickPath
+                  const roleCnt = heatRole === 'teacher' ? p.teacher_clicks : p.student_clicks
+                  return (
+                    <button key={p.path} onClick={() => setClickPath(p.path)} style={{
+                      display:'flex', alignItems:'center', gap:7, padding:'7px 12px', borderRadius:10,
+                      border:'1px solid', borderColor: active ? ACCENT : 'var(--color-border)',
+                      background: active ? 'rgba(120,106,215,0.12)' : 'var(--color-bg-2)',
+                      color: active ? 'var(--color-text)' : 'var(--color-text-3)',
+                      fontSize:12, fontWeight:600, cursor:'pointer', transition:'border-color .15s, background .15s',
+                    }}>
+                      {pLabel(p.path)}
+                      <span style={{ fontSize:10.5, fontWeight:500, color:'var(--color-text-3)',
+                        background:'var(--color-bg-3)', borderRadius:7, padding:'1px 6px' }}>{roleCnt}</span>
+                    </button>
+                  )
+                })
+            }
+          </div>
+
+          {clickPath && (
+            <Card style={{ marginBottom:24 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:'var(--color-text)' }}>{pLabel(clickPath)}</div>
+                <div style={{ fontSize:11, color:'var(--color-text-3)' }}>
+                  {clickLoading ? 'Загрузка…' : `${heatRole==='teacher'?'Учителя':'Ученики'} · ${days} дней`}
+                </div>
+              </div>
+              <ClickHeatmap
+                cells={clickGrid}
+                label={clickPath}
+                total={clickGrid.reduce((a,c)=>a+c.cnt,0)}
+              />
+              <div style={{ fontSize:11, color:'var(--color-text-3)', marginTop:12, lineHeight:1.6 }}>
+                Пятна показывают, куда чаще всего кликают на этом экране. Красное — горячие зоны,
+                синее — редкие. Помогает тестировщикам и админу видеть, что реально жмут, а что игнорят.
+              </div>
+            </Card>
+          )}
         </>
       )}
     </div>

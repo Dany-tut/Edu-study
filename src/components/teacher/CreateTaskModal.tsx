@@ -21,7 +21,7 @@ const TASK_TYPES: TaskType[] = [
   { id: 'meeting',      label: 'Встреча',  keywords: ['встреча', 'встречу'],       color: 'var(--color-green-text)', bg: 'var(--color-green-soft)', textColor: 'var(--color-green-text)' },
   { id: 'call',         label: 'Созвон',   keywords: ['созвон'],                    color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)', textColor: 'var(--color-blue-pill-text)' },
   { id: 'lesson',       label: 'Урок',     keywords: ['урок'],                      color: 'var(--color-peach-text)', bg: 'var(--color-peach-soft)', textColor: 'var(--color-peach-text)' },
-  { id: 'homework',     label: 'Домашка',  keywords: ['домашка', 'домашку', 'дз'], color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', textColor: 'var(--color-accent)' },
+  { id: 'homework',     label: 'Домашка',  keywords: ['домашка', 'домашку', 'дз'], color: 'var(--color-purple-text)', bg: 'var(--color-purple-soft)', textColor: 'var(--color-purple-text)' },
   { id: 'presentation', label: 'Преза',    keywords: ['преза', 'презентация'],      color: 'var(--color-red-text)', bg: 'var(--color-red-soft)', textColor: 'var(--color-red-text)' },
 ]
 

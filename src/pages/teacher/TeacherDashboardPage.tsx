@@ -117,7 +117,7 @@ export default function TeacherDashboardPage() {
         </div>
 
         {/* Right column — widget appears/disappears independently */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', paddingLeft: 10, pointerEvents: 'none' }}>
+        <div style={{ display: 'flex', alignItems: 'center', alignSelf: 'center', paddingLeft: 10, pointerEvents: 'none' }}>
           <AnimatePresence>
             {activePage !== 'lesson-editor' && activePage !== 'constructor' && activePage !== 'course-editor' && activePage !== 'student' && !headerDocked && (
               <motion.div

@@ -686,7 +686,9 @@ export default function TeacherHomeworkPage() {
         const ts = parseDdMm(hw.dueDate)
         return {
           key: `hw-${hw.id}`, kind: 'basic' as const, who: hw.groupName, color: hw.color,
-          title: hw.title || 'Без названия', meta: `${pending} ${pluralRu(pending, 'работа', 'работы', 'работ')} на проверке`,
+          title: hw.title || 'Без названия',
+          meta: `${pending} ${pluralRu(pending, 'работа', 'работы', 'работ')} на проверке`
+            + (hw.lastSubmittedAt ? ` · сдано ${timeAgo(hw.lastSubmittedAt)}` : ''),
           due: hw.dueDate ? `дедлайн ${hw.dueDate}` : '', ts,
           overdue: ts < startOfToday.getTime(),
           onClick: () => openHomeworkReview(hw.id),
@@ -859,11 +861,11 @@ export default function TeacherHomeworkPage() {
                 {!hardPanelCollapsed && (
                   <motion.div
                     key="hard-body"
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
+                    initial={{ height: 0 }}
+                    animate={{ height: 'auto' }}
+                    exit={{ height: 0 }}
                     transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ overflow: 'hidden' }}
+                    style={{ overflow: 'hidden', background: 'rgba(var(--glass-rgb), 0.88)', transform: 'translateZ(0)', willChange: 'height' }}
                   >
                     {/* Pending items */}
                     <div style={{ padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
