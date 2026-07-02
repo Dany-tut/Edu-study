@@ -147,7 +147,7 @@ export default function TeacherDashboardPage() {
           // Pages whose scroll pane lifts up under the topbar (marginTop:-100 +
           // paddingTop:100 — the progressive-blur recipe) must not be clipped
           // by this wrapper, so their overflow stays visible.
-          style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['home', 'lesson-editor', 'constructor', 'course-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups'].includes(activePage) ? 'visible' : 'hidden' }}
+          style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['home', 'lesson-editor', 'constructor', 'course-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups', 'admin'].includes(activePage) ? 'visible' : 'hidden' }}
         >
           {activePage === 'home' && (
             <DeskCanvas

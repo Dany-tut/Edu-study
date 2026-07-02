@@ -389,7 +389,12 @@ export default function TeacherAnalytics() {
               color: activeTab===id ? '#fff' : 'var(--color-text-3)',
               transition:'background 0.15s, color 0.15s',
             }}>{label}{id==='issues' && totalErrors>0 && (
-              <span style={{ marginLeft:6, background:'rgba(255,255,255,0.25)', borderRadius:8, padding:'0 6px', fontSize:10 }}>{totalErrors}</span>
+              <span style={{
+                marginLeft:7, borderRadius:9, padding:'1px 7px',
+                fontSize:11.5, fontWeight:700, lineHeight:'16px',
+                background: activeTab===id ? 'rgba(255,255,255,0.28)' : 'rgba(224,72,72,0.18)',
+                color: activeTab===id ? '#fff' : '#E86A6A',
+              }}>{totalErrors}</span>
             )}</button>
           ))}
         </div>

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Users, User, Plus } from 'lucide-react'
 import type { Group } from '../../data/teacherMockData'
@@ -24,9 +24,12 @@ const BTN_H = (CARD_H - BTN_GAP) / 2
 // Horizontal edge fade for the scroll strip. Transparent under the pinned button
 // (x < CARD_W), a short fade-in just past it, opaque middle, and a soft right edge.
 const MASK_R = 56
-const SCROLL_MASK =
+// Right fade width is dynamic: full (MASK_R) while there's more to scroll, easing
+// to 0 over the last MASK_R px so the fade disappears once you reach the end (and
+// stays gone when the strip doesn't overflow at all).
+const scrollMask = (rightFade: number) =>
   `linear-gradient(to right, transparent 0, transparent ${CARD_W}px, ` +
-  `#000 ${CARD_W + 34}px, #000 calc(100% - ${MASK_R}px), transparent 100%)`
+  `#000 ${CARD_W + 34}px, #000 calc(100% - ${rightFade}px), transparent 100%)`
 
 // ─── Tab panel ───────────────────────────────────────────────────────────────
 function TabPanel({ config }: { config: TabConfig }) {
@@ -318,6 +321,25 @@ export default function GroupStrip({
 }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const dragState = useRef<{ startX: number; scrollLeft: number; moved: boolean } | null>(null)
+  const [rightFade, setRightFade] = useState(0)
+
+  // Track distance to the right end → shrink the right fade as we approach it.
+  const recomputeFade = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const remaining = el.scrollWidth - el.clientWidth - el.scrollLeft
+    setRightFade(Math.max(0, Math.min(MASK_R, remaining)))
+  }, [])
+
+  // Recompute on mount, on data changes, and on any size change (no rAF in preview).
+  useEffect(() => {
+    recomputeFade()
+    const el = scrollRef.current
+    if (!el) return
+    const ro = new ResizeObserver(recomputeFade)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [recomputeFade, groups.length, individualGroups.length])
 
   function handleWheel(e: React.WheelEvent) {
     const el = scrollRef.current
@@ -348,6 +370,7 @@ export default function GroupStrip({
     <div style={{ position: 'relative', height: CARD_H + PAD_TOP + PAD_BOTTOM }}>
       <div
         ref={scrollRef}
+        onScroll={recomputeFade}
         onWheel={handleWheel}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -365,8 +388,8 @@ export default function GroupStrip({
           // (x < CARD_W) is fully transparent → cards' hover/selection/borders can
           // never peek out above, below, or beside the pinned action button; they
           // fade back in just past it. The right edge softens the scroll cutoff.
-          WebkitMaskImage: SCROLL_MASK,
-          maskImage: SCROLL_MASK,
+          WebkitMaskImage: scrollMask(rightFade),
+          maskImage: scrollMask(rightFade),
         }}
       >
         {/* Regular group cards */}
