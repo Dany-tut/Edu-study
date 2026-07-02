@@ -55,6 +55,27 @@ function CardTitle({ children }: { children: React.ReactNode }) {
 
 // ─── Stat card ─────────────────────────────────────────────────────────────
 function EarningsCard({ delay }: { delay: number }) {
+  const [amount, setAmount] = useState<number | null>(null)
+  const [payments, setPayments] = useState(0)
+  useEffect(() => {
+    const now = new Date()
+    const from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+    const to = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString()
+    supabase
+      .from('payments')
+      .select('amount')
+      .gte('paid_at', from)
+      .lte('paid_at', to)
+      .then(({ data }) => {
+        if (!data) return
+        setPayments(data.length)
+        setAmount(data.reduce((s: number, r: { amount: number }) => s + (r.amount ?? 0), 0))
+      })
+  }, [])
+
+  const fmt = (n: number) =>
+    n >= 1000 ? `${(n / 1000).toLocaleString('ru-RU', { maximumFractionDigits: 0 })} тыс ₽` : `${n} ₽`
+
   return (
     <motion.div {...fadeUp(delay)} style={{ flex: 1, minWidth: 0 }}>
       <Card style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -67,15 +88,16 @@ function EarningsCard({ delay }: { delay: number }) {
             <TrendingUp size={15} strokeWidth={2} style={{ color: 'var(--color-yellow-text)' }} />
           </div>
         </div>
-        <div style={{ fontSize: 36, fontWeight: 750, color: 'var(--color-text-3)', lineHeight: 1, marginBottom: 6 }}>
-          Нет данных
+        <div style={{ fontSize: 36, fontWeight: 750, color: amount != null ? 'var(--color-text)' : 'var(--color-text-3)', lineHeight: 1, marginBottom: 6 }}>
+          {amount != null ? fmt(amount) : '—'}
         </div>
         <div style={{
-          fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)',
-          background: 'var(--color-bg-4)', borderRadius: 8, padding: '3px 8px',
-          alignSelf: 'flex-start',
+          fontSize: 11, fontWeight: 600,
+          color: amount != null ? 'var(--color-yellow-text)' : 'var(--color-text-3)',
+          background: amount != null ? 'var(--color-yellow-soft)' : 'var(--color-bg-4)',
+          borderRadius: 8, padding: '3px 8px', alignSelf: 'flex-start',
         }}>
-          будет позже
+          {amount != null ? `${payments} оплат` : 'загрузка...'}
         </div>
       </Card>
     </motion.div>
@@ -331,6 +353,13 @@ const reminderAccent = (item: Pick<Reminder, 'type' | 'urgency'>) => {
   return item.urgency === 'high' ? '#EC6A3C' : item.urgency === 'low' ? '#E0A93F' : '#F0901A'
 }
 
+// Text shown on the high-urgency badge — spells out *why* it's flagged.
+const urgencyLabel = (type: Reminder['type']) =>
+  type === 'payment-debt' ? 'Просрочено'
+  : type === 'fill-journal' ? 'Не заполнен'
+  : type === 'check-hw' ? 'Давно ждёт'
+  : 'Срочно'
+
 function ReminderRow({ item, done, onAction, style: styleOverride }: { item: Reminder; done?: boolean; onAction?: () => void; style?: React.CSSProperties }) {
   const Icon = done ? CheckCircle2 : reminderIcons[item.type]
   // Кликабельно только пока есть куда вести и дело не закрыто.
@@ -380,7 +409,15 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: { item: Rem
         )}
       </div>
       {!done && item.urgency === 'high' && (
-        <AlertCircle size={14} strokeWidth={2.2} style={{ color: accent, flexShrink: 0, opacity: 0.9 }} />
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0,
+          padding: '3px 9px 3px 7px', borderRadius: 999,
+          background: `color-mix(in srgb, ${accent} 16%, transparent)`,
+          color: accent, fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
+        }}>
+          <AlertCircle size={12} strokeWidth={2.4} />
+          {urgencyLabel(item.type)}
+        </span>
       )}
       {clickable && (
         <ChevronRight size={16} strokeWidth={2} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
@@ -694,7 +731,7 @@ function MyTasksBlock() {
   const done    = tasks.filter(t => t.done)
   const allTasks = [...pending, ...done]
   const needsScroll = allTasks.length > 5
-  const ROW_H = 52
+  const ROW_H = 37
   const GAP = 5
   const listMaxH = 5 * ROW_H + 4 * GAP
   const topFade = tasksAtTop ? 'black 0%' : 'transparent 0%, black 10px'

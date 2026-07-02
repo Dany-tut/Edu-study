@@ -121,7 +121,17 @@ export default function WidgetTodaySchedule() {
   const schedThumb = useOverlayThumb()
 
   return (
-    <div style={{ height: '100%', width: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div style={{
+      height: '100%', width: '100%', overflow: 'hidden',
+      display: 'flex', flexDirection: 'column',
+      background: 'rgba(var(--glass-rgb), 0.88)',
+      backdropFilter: 'blur(16px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      border: '1px solid var(--color-border-medium)',
+      borderRadius: 24,
+      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)',
+      padding: 20,
+    }}>
       {/* Title */}
       <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)', letterSpacing: 0.2, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         <Clock size={14} strokeWidth={2} />

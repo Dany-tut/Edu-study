@@ -118,6 +118,8 @@
   /* Active segmented-tab pill — subtle accent tint so it never blends into the track */
   --tab-pill-active: rgba(120,106,215,0.12);
   --shadow-filter:   0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.85);
+  --shadow-widget:   inset 0 1px 0 rgba(255,255,255,0.80), 0 4px 16px rgba(21,18,31,0.08), 0 1px 3px rgba(21,18,31,0.05);
+  --shadow-widget-drag: inset 0 1px 0 rgba(255,255,255,0.85), 0 16px 48px rgba(21,18,31,0.18), 0 4px 12px rgba(21,18,31,0.10);
   /* Floating points badge on lesson cards — light contrasting pill */
   --lesson-badge-bg: rgba(255,255,255,0.68);
 }
@@ -213,6 +215,8 @@
   /* Stronger tint in dark so the active pill lifts off the near-black track */
   --tab-pill-active: rgba(140,128,235,0.30);
   --shadow-filter:   inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 36px rgba(0,0,0,0.45);
+  --shadow-widget:   inset 0 1px 0 rgba(255,255,255,0.09), 0 6px 28px rgba(0,0,0,0.45), 0 2px 6px rgba(0,0,0,0.22);
+  --shadow-widget-drag: inset 0 1px 0 rgba(255,255,255,0.12), 0 20px 60px rgba(0,0,0,0.65), 0 6px 18px rgba(0,0,0,0.35);
   /* Darker translucent pill so the points badge sits on the card, not floats white above it */
   --lesson-badge-bg: rgba(0,0,0,0.28);
 }
@@ -639,24 +643,62 @@ input[type=number]::-webkit-outer-spin-button {
   animation: constructorCardFlashAnim 1.8s ease-out forwards;
 }
 
-/* ── Desk canvas resize handles ─────────────────────────────────── */
-.react-resizable-handle {
-  width: 20px !important;
-  height: 20px !important;
-  background: none !important;
-  border: none !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ── Desk canvas drag handle — pseudo-element overlay in edit mode ─ */
+.rgl-drag-handle {
+  cursor: grab !important;
 }
-.react-resizable-handle::after {
+.rgl-drag-handle::before {
   content: '';
-  display: block;
-  width: 12px;
-  height: 12px;
-  border-right: 2.5px solid rgba(120, 106, 215, 0.8);
-  border-bottom: 2.5px solid rgba(120, 106, 215, 0.8);
-  border-radius: 0 0 4px 0;
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.10);
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* ── Widget edit-mode bounce glow ─────────────────────────────────── */
+@keyframes widget-edit-bounce {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(120,106,215,0.20), 0 0 4px rgba(120,106,215,0.08); }
+  40%, 60%  { box-shadow: 0 0 0 3px rgba(120,106,215,0.42), 0 0 10px rgba(120,106,215,0.18); }
+}
+.widget-edit-glow {
+  border-radius: 24px;
+  animation: widget-edit-bounce 2.4s ease-in-out infinite;
+}
+
+/* ── Desk canvas resize handles — iOS corner style ──────────────── */
+/* iOS-style corner resize handle — override default react-resizable span */
+.react-resizable-handle.react-resizable-handle-se {
+  position: absolute !important;
+  bottom: 6px !important;
+  right: 6px !important;
+  width: 28px !important;
+  height: 28px !important;
+  background-image: none !important;
+  padding: 0 !important;
+  cursor: se-resize !important;
+  z-index: 20 !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: flex-end !important;
+}
+.react-resizable-handle.react-resizable-handle-se::after {
+  content: '' !important;
+  display: block !important;
+  width: 16px !important;
+  height: 16px !important;
+  border-right: 3px solid rgba(255, 255, 255, 0.65) !important;
+  border-bottom: 3px solid rgba(255, 255, 255, 0.65) !important;
+  border-radius: 0 0 6px 0 !important;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.2) !important;
+  transition: border-color 0.15s ease !important;
+}
+.react-resizable-handle.react-resizable-handle-se:hover::after {
+  border-color: rgba(120, 106, 215, 1) !important;
+}
+.react-resizable-handle:not(.react-resizable-handle-se) {
+  display: none !important;
 }
 
 /* Prevent text selection during grid drag */

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Pencil, Plus, RotateCcw, Check } from 'lucide-react'
 import { useDeskStore } from '../../store/deskStore'
@@ -9,6 +9,7 @@ type Props = {
   onSetActive: (id: string) => void
   onAddDesk: () => void
   onResetDesk: (id: string) => void
+  onAddWidget?: () => void
 }
 
 // Matches the topbar glass card style
@@ -20,13 +21,20 @@ const GLASS_STYLE: React.CSSProperties = {
   boxShadow: 'var(--shadow-pill)',
 }
 
-export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDesk }: Props) {
+export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDesk, onAddWidget }: Props) {
   const editMode = useDeskStore(s => s.editMode)
   const setEditMode = useDeskStore(s => s.setEditMode)
   const [hovered, setHovered] = useState(false)
   const [pencilHovered, setPencilHovered] = useState(false)
-  // reset pencil visibility when pill collapses
   const pencilRef = useRef<HTMLDivElement>(null)
+
+  // Collapse the pill automatically when leaving edit mode
+  useEffect(() => {
+    if (!editMode) {
+      setHovered(false)
+      setPencilHovered(false)
+    }
+  }, [editMode])
 
   const { desks, activeDeskId } = config
   const activeDesk = desks.find(d => d.id === activeDeskId) ?? desks[0]
@@ -88,22 +96,38 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
           </button>
         </div>
 
-        {activeDesk.id !== 'today' && (
+        {onAddWidget && (
           <button
-            onClick={() => onResetDesk(activeDeskId)}
+            onClick={onAddWidget}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              padding: '6px 14px', borderRadius: 100,
-              border: '1px solid var(--color-border-medium)',
-              background: 'transparent', color: 'var(--color-muted)',
-              fontSize: 13, fontWeight: 500, cursor: 'pointer',
+              padding: '7px 16px', borderRadius: 100,
+              border: 'none',
+              background: 'rgba(var(--glass-rgb), 0.6)',
+              color: 'var(--color-text)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
               flexShrink: 0,
+              outline: '1px solid var(--color-border-medium)',
             }}
           >
-            <RotateCcw size={13} />
-            Сбросить
+            <Plus size={14} />
+            Виджет
           </button>
         )}
+
+        <button
+          onClick={() => { onResetDesk(activeDeskId); setEditMode(false) }}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '6px 14px', borderRadius: 100,
+            border: '1px solid var(--color-border-medium)',
+            background: 'transparent', color: 'var(--color-muted)',
+            fontSize: 13, fontWeight: 500, cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          <RotateCcw size={13} />
+          Сбросить
+        </button>
 
         <button
           onClick={() => setEditMode(false)}

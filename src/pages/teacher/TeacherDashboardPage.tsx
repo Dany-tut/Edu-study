@@ -93,7 +93,7 @@ export default function TeacherDashboardPage() {
     <div className="dashboard-root hidden lg:flex" style={{ display: isDesktop ? 'flex' : 'none', position: 'relative' }}>
       {/* Progressive blur+fade strip behind the floating topbar — masks content
           scrolling up through the gaps around the pills. */}
-      <div aria-hidden className="edge-progressive-blur--top" />
+      {!editMode && <div aria-hidden className="edge-progressive-blur--top" />}
 
       {/* Desk switcher — dots below topbar that expand to named pill on hover;
           only shows on the home page when not in edit mode (edit bar takes over). */}
@@ -103,6 +103,7 @@ export default function TeacherDashboardPage() {
           onSetActive={setActiveDesk}
           onAddDesk={() => addDesk('Стол ' + (config.desks.length + 1))}
           onResetDesk={resetDesk}
+          onAddWidget={() => setShowWidgetLibrary(true)}
         />
       )}
 
@@ -159,14 +160,12 @@ export default function TeacherDashboardPage() {
           style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['home', 'lesson-editor', 'constructor', 'course-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups'].includes(activePage) ? 'visible' : 'hidden' }}
         >
           {activePage === 'home' && (
-            editMode || activeDesk.id !== 'today'
-              ? <DeskCanvas
-                  desk={activeDesk}
-                  onUpdateItems={items => updateDeskItems(activeDesk.id, items)}
-                  onAddWidget={() => setShowWidgetLibrary(true)}
-                  onRemoveWidget={id => removeWidget(activeDesk.id, id)}
-                />
-              : <TeacherHome />
+            <DeskCanvas
+              desk={activeDesk}
+              onUpdateItems={items => updateDeskItems(activeDesk.id, items)}
+              onAddWidget={() => setShowWidgetLibrary(true)}
+              onRemoveWidget={id => removeWidget(activeDesk.id, id)}
+            />
           )}
           {activePage === 'groups'          && <TeacherGroupsPage />}
           {activePage === 'homework'        && <TeacherHomeworkPage />}

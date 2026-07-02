@@ -22,6 +22,13 @@ const reminderAccent = (item: Pick<Reminder, 'type' | 'urgency'>) => {
   return item.urgency === 'high' ? '#EC6A3C' : item.urgency === 'low' ? '#E0A93F' : '#F0901A'
 }
 
+// Text shown on the high-urgency badge — spells out *why* it's flagged.
+const urgencyLabel = (type: Reminder['type']) =>
+  type === 'payment-debt' ? 'Просрочено'
+  : type === 'fill-journal' ? 'Не заполнен'
+  : type === 'check-hw' ? 'Давно ждёт'
+  : 'Срочно'
+
 function ReminderRow({ item, done, onAction, style: styleOverride }: {
   item: Reminder; done?: boolean; onAction?: () => void; style?: React.CSSProperties
 }) {
@@ -39,7 +46,7 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: {
         backdropFilter: 'blur(10px) saturate(135%)',
         WebkitBackdropFilter: 'blur(10px) saturate(135%)',
         border: `1px solid ${done ? 'transparent' : 'var(--color-border-medium)'}`,
-        boxShadow: done ? 'none' : '0 10px 26px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.16)',
+        boxShadow: done ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.16)',
         cursor: clickable ? 'pointer' : 'default',
         transition: 'background 0.25s',
         ...styleOverride,
@@ -72,7 +79,15 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: {
         )}
       </div>
       {!done && item.urgency === 'high' && (
-        <AlertCircle size={14} strokeWidth={2.2} style={{ color: accent, flexShrink: 0, opacity: 0.9 }} />
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0,
+          padding: '3px 9px 3px 7px', borderRadius: 999,
+          background: `color-mix(in srgb, ${accent} 16%, transparent)`,
+          color: accent, fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
+        }}>
+          <AlertCircle size={12} strokeWidth={2.4} />
+          {urgencyLabel(item.type)}
+        </span>
       )}
       {clickable && (
         <ChevronRight size={16} strokeWidth={2} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
@@ -276,7 +291,17 @@ export default function WidgetTodayReminders() {
   const { reminders, reminderAction, reminderDone } = useHomeData()
 
   return (
-    <div style={{ height: '100%', width: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div style={{
+      height: '100%', width: '100%', overflow: 'hidden',
+      display: 'flex', flexDirection: 'column',
+      background: 'rgba(var(--glass-rgb), 0.88)',
+      backdropFilter: 'blur(16px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      border: '1px solid var(--color-border-medium)',
+      borderRadius: 24,
+      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)',
+      padding: 20,
+    }}>
       <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)', letterSpacing: 0.2, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         <AlertCircle size={14} strokeWidth={2} />
         Напоминания

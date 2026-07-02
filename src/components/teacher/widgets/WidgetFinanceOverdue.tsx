@@ -85,7 +85,7 @@ export default function WidgetFinanceOverdue() {
       WebkitBackdropFilter: 'blur(16px) saturate(180%)',
       borderRadius: 24,
       border: '1px solid var(--color-border-medium)',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+      // shadow on wrapper
       overflow: 'hidden',
     }}>
       {/* Header */}

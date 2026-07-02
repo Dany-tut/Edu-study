@@ -19,7 +19,7 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
       WebkitBackdropFilter: 'blur(16px) saturate(180%)',
       border: '1px solid var(--color-border-medium)',
       borderRadius: 24,
-      boxShadow: '0 4px 24px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.15)',
+      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)',
       padding: 20,
       overflow: 'hidden',
       ...style,

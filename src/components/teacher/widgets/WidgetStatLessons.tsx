@@ -9,7 +9,8 @@ export default function WidgetStatLessons() {
     <MiniStatCard
       icon={Clock} label="Уроков сегодня" value={todaySchedule.length}
       sub={nextLesson ? `след. ${nextLesson.time} МСК (${mskToVietnam(nextLesson.time)} ВН)` : 'все завершены'}
-      accentBg="var(--color-purple-soft)" accentColor="var(--color-accent)"
+      accentBg="var(--color-purple-soft)"
+      accentColor="var(--color-purple-text)"
     />
   )
 }
