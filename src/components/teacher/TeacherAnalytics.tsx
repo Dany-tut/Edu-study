@@ -24,7 +24,7 @@ type ClickCell = { gx: number; gy: number; cnt: number }
 
 // ── constants ──────────────────────────────────────────────────────────────
 const ACCENT   = '#786AD7'
-const ACCENT_S = '#4ABFA0'  // student colour (teal)
+const ACCENT_S = '#2E8F76'  // student colour (deep teal)
 const GRID_W = 48, GRID_H = 30  // must match admin_click_heatmap() in 0014
 const DOW_LABELS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс']
 const DOW_PG     = [1,2,3,4,5,6,0] // pg extract(dow): 0=Sun
@@ -161,10 +161,18 @@ function Heatmap({ cells, color }: { cells: HeatCell[]; color: string }) {
   )
 }
 
-// Optional per-screen reference screenshots — the Hotjar/Clarity backing plate.
-// Fill with `path -> image URL` to render clicks over a real screenshot; until
-// then the heatmap renders over a neutral labelled frame. Auto by path.
-const REFERENCE_SHOTS: Record<string,string> = {}
+// Per-screen reference screenshots — the Hotjar/Clarity backing plate. Keyed by
+// the raw analytics_events.path; each 1100×693 (16:10) dark-theme capture lives
+// in public/heatmap-shots/. Recapture from a logged-in teacher session when the
+// UI changes. Paths with no entry fall back to a neutral labelled frame.
+const REFERENCE_SHOTS: Record<string,string> = {
+  '#/teacher':             '/heatmap-shots/home.png',
+  '#/teacher/groups':      '/heatmap-shots/groups.png',
+  '#/teacher/homework':    '/heatmap-shots/homework.png',
+  '#/teacher/gradebook':   '/heatmap-shots/gradebook.png',
+  '#/teacher/constructor': '/heatmap-shots/constructor.png',
+  '#/teacher/admin':       '/heatmap-shots/admin.png',
+}
 
 // blue → cyan → green → yellow → red density ramp (industry-standard heatmap)
 function heatColor(t: number): [number,number,number] {
