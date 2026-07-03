@@ -3,7 +3,19 @@
  * All functions return typed data; errors are swallowed and return null/[].
  */
 import { supabase } from './supabase'
+import { trackEvent } from './analytics'
 import type { HardTaskStudentBlock, HardTaskReviewBlock } from './useHomework'
+
+/**
+ * Report a real Supabase error (RLS denial, 5xx, timeout) to console + analytics
+ * so it surfaces in the admin dashboard instead of vanishing into a silent `[]`.
+ * Empty result sets are NOT errors and are not reported.
+ */
+function reportDbError(ctx: string, error: { message?: string; code?: string } | null) {
+  if (!error) return
+  console.error(`[db:${ctx}]`, error)
+  try { trackEvent('db_error', { ctx, msg: String(error.message ?? '').slice(0, 200), code: error.code ?? null }) } catch { /**/ }
+}
 import {
   type Subject,
   type Lesson,
@@ -56,6 +68,7 @@ export async function fetchScheduleDays(groupId: string, studentId?: string): Pr
     .order('date', { ascending: true })
     .order('time_start', { ascending: true })
 
+  if (error) reportDbError('fetchScheduleDays', error)
   if (error || !data) return []
 
   // Build ScheduleDay[] grouped by date. A student targeted via both their
@@ -137,6 +150,7 @@ export async function fetchLessonProgress(studentId: string): Promise<ProgressMa
     .select('lesson_ref, subject, status, score, comment, review_comment, attachments, review_attachments, hard_submitted')
     .eq('student_id', studentId)
 
+  if (error) reportDbError('fetchLessonProgress', error)
   if (error || !data) return {}
 
   const map: ProgressMap = {}
@@ -229,6 +243,7 @@ export async function fetchCourseStructure(studentId: string, groupId: string): 
     .or(`student_ids.cs.{${studentId}},group_ids.cs.{${groupId}}`)
     .order('created_at', { ascending: true })
 
+  if (error) reportDbError('fetchCourseStructure', error)
   if (error || !data || data.length === 0) return []
 
   return (data as unknown as DbCourse[]).map(course => ({
@@ -376,6 +391,7 @@ export async function fetchQuizQuestions(): Promise<QuizQuestion[]> {
     .select('id, title, subject, answers')
     .order('created_at', { ascending: true })
 
+  if (error) reportDbError('fetchQuizQuestions', error)
   if (error || !data || data.length === 0) return []
   return (data as Array<{ id: string; title: string; subject: string; answers: QuizAnswer[] }>).map(r => ({
     id: r.id,
@@ -391,6 +407,7 @@ export async function fetchScienceFacts(): Promise<ScienceFact[]> {
     .select('id, subject, emoji, body, gradient, image')
     .order('created_at', { ascending: true })
 
+  if (error) reportDbError('fetchScienceFacts', error)
   if (error || !data || data.length === 0) return []
   return (data as Array<{ id: string; subject: string; emoji: string; body: string; gradient: string; image: string }>).map(r => ({
     id: r.id,
@@ -408,6 +425,7 @@ export async function fetchScienceMemes(): Promise<ScienceMeme[]> {
     .select('id, subject, emoji, setup, punchline, gradient')
     .order('created_at', { ascending: true })
 
+  if (error) reportDbError('fetchScienceMemes', error)
   if (error || !data || data.length === 0) return []
   return data as ScienceMeme[]
 }
@@ -418,6 +436,7 @@ export async function fetchCourseReactions(): Promise<CourseReaction[]> {
     .select('id, equation, name, lesson, module, emoji, gradient, paragraph')
     .order('created_at', { ascending: true })
 
+  if (error) reportDbError('fetchCourseReactions', error)
   if (error || !data || data.length === 0) return []
   return data as CourseReaction[]
 }

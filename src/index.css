@@ -704,3 +704,17 @@ input[type=number]::-webkit-outer-spin-button {
 /* Prevent text selection during grid drag */
 .react-draggable-dragging { user-select: none !important; }
 .react-grid-layout.desk-grid { touch-action: none; }
+
+/* Hide browser-native password reveal / clear controls (Edge, Yandex, etc.) —
+   we render our own eye toggle */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none !important;
+}
+input::-webkit-credentials-auto-fill-button,
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-textfield-decoration-container {
+  visibility: hidden !important;
+  display: none !important;
+  pointer-events: none !important;
+}

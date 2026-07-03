@@ -5,6 +5,13 @@ export type OnlineStudent = {
   name: string
 }
 
+// Extra направление beyond the primary subject/level columns — a 1:1 student
+// can study several subjects/levels at once (Химия ЕГЭ + Биология ОГЭ + …).
+export type GroupTrack = {
+  subject: string
+  level: string
+}
+
 export type Group = {
   id: string
   name: string
@@ -18,6 +25,7 @@ export type Group = {
   lessonsCompleted: number
   totalLessons: number
   isIndividual?: boolean
+  tracks?: GroupTrack[]
 }
 
 export type Student = {

@@ -118,6 +118,16 @@ interface DashboardState {
   // graphically in the avatar → Настройки → "Настроить порядок" modal.
   widgetOrder: number[]
   setWidgetOrder: (order: number[]) => void
+  // Widget ids the teacher hard-hid for this student (students.hidden_widgets).
+  // Teacher-controlled: filtered out of both the carousel and the reorder modal,
+  // and never written back by the student's preference sync.
+  hiddenWidgets: number[]
+  setHiddenWidgets: (ids: number[]) => void
+  // Every widget id the user's install has already "seen". Lets us tell a widget
+  // the user deliberately hid (absent from widgetOrder but present here) apart
+  // from a genuinely new widget shipped in an app update (absent from both), so
+  // hidden widgets stay hidden across reloads instead of silently reappearing.
+  knownWidgetIds: number[]
   // True while a course-track lesson popover is open. Used to lift the track
   // above the quiz overlay so the quiz card's shadow doesn't fall on the popover.
   trackPopoverOpen: boolean
@@ -283,7 +293,10 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   widgetColumns: 2,
   setWidgetColumns: (n) => set({ widgetColumns: n }),
   widgetOrder: DEFAULT_WIDGET_ORDER,
+  knownWidgetIds: DEFAULT_WIDGET_ORDER,
   setWidgetOrder: (order) => set({ widgetOrder: order }),
+  hiddenWidgets: [],
+  setHiddenWidgets: (ids) => set({ hiddenWidgets: ids }),
   trackPopoverOpen: false,
   setTrackPopoverOpen: (v) => set({ trackPopoverOpen: v }),
 
@@ -360,6 +373,7 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
     avatarId: state.avatarId,
     widgetColumns: state.widgetColumns,
     widgetOrder: state.widgetOrder,
+    knownWidgetIds: state.knownWidgetIds,
     pomoTimerMode: state.pomoTimerMode,
     pomoFocusDuration: state.pomoFocusDuration,
     lessonAssessments: state.lessonAssessments,
@@ -367,9 +381,19 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
   merge: (persisted: unknown, current) => {
     const p = persisted as Partial<DashboardState>
     const saved = p?.widgetOrder ?? DEFAULT_WIDGET_ORDER
-    // Append any widget IDs added since the user's stored order was saved
-    const missing = DEFAULT_WIDGET_ORDER.filter(id => !saved.includes(id))
-    return { ...current, ...p, widgetOrder: [...saved, ...missing] }
+    // Only append widgets this install has never seen — i.e. new to the app since
+    // the order was saved. A widget the user hid is absent from `saved` but known,
+    // so it must NOT be re-added. Legacy state (no knownWidgetIds) treats whatever
+    // was in `saved` as already-known, so a previously-hidden widget reappears at
+    // most once and then sticks (knownWidgetIds is written on the next save).
+    const known = p?.knownWidgetIds ?? saved
+    const fresh = DEFAULT_WIDGET_ORDER.filter(id => !known.includes(id))
+    return {
+      ...current,
+      ...p,
+      widgetOrder: [...saved, ...fresh],
+      knownWidgetIds: DEFAULT_WIDGET_ORDER,
+    }
   },
 }))
 

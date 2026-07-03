@@ -79,11 +79,13 @@ function ShownRow({ id, onHide, disabled }: { id: number; onHide: (id: number) =
 export default function WidgetOrderModal({ open, onClose }: Props) {
   const savedOrder = useDashboard(s => s.widgetOrder)
   const setWidgetOrder = useDashboard(s => s.setWidgetOrder)
+  const hiddenWidgets = useDashboard(s => s.hiddenWidgets)
 
-  const [order, setOrder] = useState<number[]>(savedOrder)
+  const [order, setOrder] = useState<number[]>(savedOrder.filter(id => !hiddenWidgets.includes(id)))
 
-  // Start each session from the saved order (intentionally only on open).
-  useEffect(() => { if (open) setOrder(savedOrder) }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Start each session from the saved order, minus any teacher-hard-hidden widget
+  // (intentionally only on open).
+  useEffect(() => { if (open) setOrder(savedOrder.filter(id => !hiddenWidgets.includes(id))) }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!open) return
@@ -92,7 +94,9 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
     return () => document.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
-  const hidden = WIDGET_META.filter(w => !order.includes(w.id))
+  // Teacher-hard-hidden widgets are dropped entirely — they appear in neither the
+  // shown list nor the "Скрытые" section, so the student can't re-enable them.
+  const hidden = WIDGET_META.filter(w => !order.includes(w.id) && !hiddenWidgets.includes(w.id))
   const lastOne = order.length <= 1
 
   // Keep at least one widget visible — the carousel needs something to show.
@@ -101,13 +105,14 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
 
   const apply = () => { setWidgetOrder(order); onClose() }
 
+  if (!open) return null
+
   return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
           onPointerDown={e => { if (e.target === e.currentTarget) onClose() }}
           style={{
@@ -120,7 +125,6 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 10 }}
             transition={{ duration: 0.2, ease: EASE }}
             style={{
               width: 'min(420px, 100%)', maxHeight: '90vh', overflowY: 'auto',

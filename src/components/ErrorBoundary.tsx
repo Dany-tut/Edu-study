@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from 'react'
+import { trackEvent } from '../lib/analytics'
 
 type Props = { children: ReactNode }
 type State = { error: Error | null }
@@ -16,8 +17,21 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: unknown) {
-    // Surface to console for debugging; telemetry already captures window errors.
     console.error('[ErrorBoundary]', error, info)
+    // Report render-time crashes to analytics_events so they show up in the
+    // admin dashboard — window 'error'/'unhandledrejection' listeners do NOT
+    // fire for React render errors, so without this they'd be invisible in prod.
+    try {
+      const componentStack =
+        info && typeof info === 'object' && 'componentStack' in info
+          ? String((info as { componentStack?: unknown }).componentStack ?? '').slice(0, 400)
+          : ''
+      trackEvent('react_crash', {
+        msg: String(error?.message ?? error ?? '').slice(0, 200),
+        stack: String(error?.stack ?? '').slice(0, 400),
+        component: componentStack,
+      })
+    } catch { /* never let reporting throw inside the boundary */ }
   }
 
   render() {

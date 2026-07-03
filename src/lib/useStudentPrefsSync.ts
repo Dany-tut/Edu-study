@@ -17,6 +17,7 @@ export function useStudentPrefsSync() {
   const setAvatarId = useDashboard(s => s.setAvatarId)
   const setWidgetColumns = useDashboard(s => s.setWidgetColumns)
   const setWidgetOrder = useDashboard(s => s.setWidgetOrder)
+  const setHiddenWidgets = useDashboard(s => s.setHiddenWidgets)
 
   const avatarId = useDashboard(s => s.avatarId)
   const widgetColumns = useDashboard(s => s.widgetColumns)
@@ -33,15 +34,20 @@ export function useStudentPrefsSync() {
     if (!session?.id) return
     supabase
       .from('students')
-      .select('preferences')
+      .select('preferences, hidden_widgets')
       .eq('id', session.id)
       .single()
-      .then(({ data }: { data: { preferences: SavedPrefs } | null }) => {
-        if (!data?.preferences) return
+      .then(({ data }: { data: { preferences: SavedPrefs; hidden_widgets: number[] | null } | null }) => {
+        if (!data) return
+        // Teacher-controlled hard-hide — applied even when the student has no
+        // saved preferences yet (a freshly-created student).
+        setHiddenWidgets(Array.isArray(data.hidden_widgets) ? data.hidden_widgets : [])
         const p = data.preferences as SavedPrefs
-        if (p.avatarId) setAvatarId(p.avatarId)
-        if (p.widgetColumns) setWidgetColumns(p.widgetColumns)
-        if (p.widgetOrder?.length) setWidgetOrder(p.widgetOrder)
+        if (p) {
+          if (p.avatarId) setAvatarId(p.avatarId)
+          if (p.widgetColumns) setWidgetColumns(p.widgetColumns)
+          if (p.widgetOrder?.length) setWidgetOrder(p.widgetOrder)
+        }
         loaded.current = true
       })
   // eslint-disable-next-line react-hooks/exhaustive-deps

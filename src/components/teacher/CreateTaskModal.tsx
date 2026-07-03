@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Calendar, Clock, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAllStudents, useGroups } from '../../lib/useGroups'
+import { usePersistentState, clearDrafts } from '../../lib/useDraft'
 import TeacherSaveButton from './TeacherSaveButton'
 import ScrollFade from '../ScrollFade'
 
@@ -344,11 +345,12 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
     ? TASK_TYPES.find(t => t.id === initialTask.typeId) ?? null
     : null
 
-  const [taskType, setTaskType] = useState<TaskType | null>(initType)
-  const [titleText, setTitleText]   = useState(initialTask?.title ?? '')
-  const [date, setDate]             = useState(initialTask?.date ?? todayStr())
-  const [time, setTime]             = useState(initialTask?.time ?? nextHourStr())
-  const [comment, setComment]       = useState(initialTask?.comment ?? '')
+  // Draft-backed: survives a page reload; cleared on save or explicit close.
+  const [taskType, setTaskType] = usePersistentState<TaskType | null>('createTask.taskType', initType)
+  const [titleText, setTitleText]   = usePersistentState('createTask.titleText', initialTask?.title ?? '')
+  const [date, setDate]             = usePersistentState('createTask.date', initialTask?.date ?? todayStr())
+  const [time, setTime]             = usePersistentState('createTask.time', initialTask?.time ?? nextHourStr())
+  const [comment, setComment]       = usePersistentState('createTask.comment', initialTask?.comment ?? '')
   const [saved, setSaved]           = useState(false)
 
   const [showCalendar, setShowCalendar] = useState(false)
@@ -361,8 +363,14 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
 
   useEffect(() => { inputRef.current?.focus() }, [])
 
+  // Explicit user close — safe to drop the draft.
+  function handleClose() {
+    clearDrafts('createTask.')
+    onClose()
+  }
+
   useEffect(() => {
-    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose() }
     document.addEventListener('keydown', h)
     return () => document.removeEventListener('keydown', h)
   }, [onClose])
@@ -444,6 +452,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
   function handleSave() {
     setSaved(true)
     setTimeout(() => {
+      clearDrafts('createTask.')
       onSave?.({ type: taskType, title: titleText, date, time, comment })
       onClose()
     }, 400)
@@ -458,7 +467,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={onClose}
+        onClick={handleClose}
         style={{
           position: 'fixed', inset: 0, zIndex: 2000,
           background: 'rgba(20,16,32,0.38)',
@@ -490,7 +499,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
           }}>
             <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{initialTask ? 'Редактировать' : 'Новая задача'}</span>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               style={{
                 width: 28, height: 28, borderRadius: '50%',
                 background: 'var(--color-bg-3)', border: 'none', cursor: 'pointer',
@@ -726,7 +735,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
             {/* Actions */}
             <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 style={{
                   flex: 1, padding: '11px 0', borderRadius: 14,
                   border: '1.5px solid var(--color-border-soft)', background: 'transparent',

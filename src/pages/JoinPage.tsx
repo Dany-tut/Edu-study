@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { setStudentSession } from '../lib/studentSession'
 
@@ -30,6 +31,7 @@ export default function JoinPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [saving, setSaving] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
 
   useEffect(() => {
@@ -90,7 +92,13 @@ export default function JoinPage() {
       p_group_id: groupId,
     })
     setStudentSession({ id: studentId, name: studentName, groupId })
-    window.location.assign(window.location.origin + window.location.pathname + '#/')
+    // Full reload (not a bare hash change): App's data-load effect runs once on
+    // mount and only when a student_session already exists. Navigating by hash
+    // alone would render the dashboard without ever calling load() — stranding a
+    // freshly-registered student on an infinite "Загрузка…". Reload re-mounts App
+    // with the session in place so load() fires. (StudentLoginPage does the same.)
+    window.location.hash = '#/'
+    window.location.reload()
   }
 
   return (
@@ -126,34 +134,47 @@ export default function JoinPage() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', display: 'flex', flexDirection: 'column' }}>
-                Email (логин)
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="Укажите вашу реальную почту"
-                  style={{ ...inputStyle, borderColor: emailTouched && !emailValid ? '#F48B91' : 'var(--color-border)' }}
+                  placeholder="Email (логин)"
+                  style={{ ...inputStyle, marginTop: 0, borderColor: emailTouched && !emailValid ? '#F48B91' : 'var(--color-border)' }}
                   autoFocus
                 />
                 {emailTouched && !emailValid && (
                   <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>Укажите почту со знаком @</span>
                 )}
-              </label>
-              <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', display: 'flex', flexDirection: 'column' }}>
-                Пароль
-                <input
-                  type="password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="минимум 4 символа"
-                  style={{ ...inputStyle, borderColor: passwordTouched && !passwordValid ? '#F48B91' : 'var(--color-border)' }}
-                  onKeyDown={e => e.key === 'Enter' && handleRegister()}
-                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="Пароль"
+                    style={{ ...inputStyle, marginTop: 0, paddingRight: 44, borderColor: passwordTouched && !passwordValid ? '#F48B91' : 'var(--color-border)' }}
+                    onKeyDown={e => e.key === 'Enter' && handleRegister()}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                    style={{
+                      position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'none', border: 'none', padding: 4, cursor: 'pointer',
+                      color: 'var(--color-muted)',
+                    }}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
                 {passwordTouched && !passwordValid && (
                   <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>Пароль должен быть не менее 4 символов</span>
                 )}
-              </label>
+              </div>
             </div>
 
             {errorMsg && (

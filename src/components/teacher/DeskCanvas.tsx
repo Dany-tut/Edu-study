@@ -4,16 +4,21 @@ import { type Desk, type LayoutItem } from '../../lib/useDeskLayouts'
 import { getWidgetDef } from './widgets/registry'
 import { useDeskStore } from '../../store/deskStore'
 
-const ROW_H = 64
+const ROW_H = 64          // base row height (edit mode + fallback)
+const ROW_H_MIN = 42      // floor when shrinking to fit a short monitor
+const ROW_H_MAX = 84      // cap when growing to fill a tall monitor
+const TOP_PAD = 108       // paddingTop of the scroll container
+const BOTTOM_BREATH = 16  // small gap so the last row isn't flush to the edge
 const COLS = 12
 const GAP = 8
 
 // ── Grid math ──────────────────────────────────────────────────────────
+// Y-axis math takes an explicit rowH so the grid can scale to the viewport.
 function colW(cw: number) { return (cw - (COLS - 1) * GAP) / COLS }
 function gx(x: number, cw: number) { return x * (colW(cw) + GAP) }
-function gy(y: number) { return y * (ROW_H + GAP) }
+function gy(y: number, rh: number) { return y * (rh + GAP) }
 function iw(w: number, cw: number) { return w * colW(cw) + (w - 1) * GAP }
-function ih(h: number) { return h * ROW_H + (h - 1) * GAP }
+function ih(h: number, rh: number) { return h * rh + (h - 1) * GAP }
 function toGridDX(px: number, cw: number) { return Math.round(px / (colW(cw) + GAP)) }
 function toGridDY(py: number) { return Math.round(py / (ROW_H + GAP)) }
 function clampItem(it: LayoutItem): LayoutItem {
@@ -142,6 +147,7 @@ type Props = {
   onUpdateItems: (items: LayoutItem[]) => void
   onAddWidget: () => void
   onRemoveWidget: (id: string) => void
+  hiddenWidgets?: string[]
 }
 
 type DragState = {
@@ -157,8 +163,14 @@ type ResizeState = {
   curW: number;    curH: number
 }
 
-export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveWidget }: Props) {
+export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveWidget, hiddenWidgets }: Props) {
   const editMode = useDeskStore(s => s.editMode)
+
+  // Admin may have revoked specific widgets for this teacher — never render them
+  // (persistence still keeps them in desk.items, so nothing is lost).
+  const items = useMemo(() =>
+    hiddenWidgets?.length ? desk.items.filter(it => !hiddenWidgets.includes(it.type)) : desk.items,
+    [desk.items, hiddenWidgets])
   const containerRef = useRef<HTMLDivElement>(null)
   const [drag, setDrag] = useState<DragState | null>(null)
   const [resize, setResize] = useState<ResizeState | null>(null)
@@ -177,10 +189,20 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
     return () => ro.disconnect()
   }, [])
 
+  // Track viewport height so the grid can rescale to the monitor
+  const [winH, setWinH] = useState(() =>
+    typeof window !== 'undefined' ? window.innerHeight : 900
+  )
+  useEffect(() => {
+    const onResize = () => setWinH(window.innerHeight)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
   // ── View-mode compaction ──────────────────────────────────────────────
   const viewItems = useMemo(() => {
-    if (editMode) return desk.items.map(it => clampItem(it))
-    const sorted = [...desk.items].map(it => clampItem(it)).sort((a, b) =>
+    if (editMode) return items.map(it => clampItem(it))
+    const sorted = [...items].map(it => clampItem(it)).sort((a, b) =>
       a.y !== b.y ? a.y - b.y : a.x - b.x)
     const placed: LayoutItem[] = []
     return sorted.map(item => {
@@ -196,7 +218,20 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
       placed.push(out)
       return out
     })
-  }, [desk.items, editMode])
+  }, [items, editMode])
+
+  // ── Adaptive row height ───────────────────────────────────────────────
+  // In view mode the whole active desk should fit one monitor without a
+  // scrollbar: shrink the row height on short screens, grow it (up to a cap)
+  // on tall ones. Edit mode keeps the fixed base so dragging feels stable.
+  const rowH = useMemo(() => {
+    if (editMode) return ROW_H
+    const maxY = viewItems.reduce((m, it) => Math.max(m, it.y + it.h), 0)
+    if (!maxY) return ROW_H
+    const avail = winH - TOP_PAD - BOTTOM_BREATH
+    const fit = (avail - (maxY - 1) * GAP) / maxY
+    return Math.max(ROW_H_MIN, Math.min(ROW_H_MAX, fit))
+  }, [viewItems, editMode, winH])
 
   // ── Live layout with collision resolution ─────────────────────────────
   const liveItems = useMemo(() => {
@@ -299,13 +334,16 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
   // ── Render ────────────────────────────────────────────────────────────
   const gridHeight = useMemo(() => {
     const maxY = liveItems.reduce((m, it) => Math.max(m, it.y + it.h), 0)
-    return ih(maxY) || 0
-  }, [liveItems])
+    return ih(maxY, rowH) || 0
+  }, [liveItems, rowH])
 
   // Number of snap pages needed in view mode (iOS-style paging)
   const numSnapPages = useMemo(() => {
     if (editMode) return 0
-    return Math.max(1, Math.ceil((gridHeight + 108) / window.innerHeight))
+    // innerHeight can be 0 (headless/minimized/first paint) → Infinity would
+    // make Array.from throw RangeError and white-screen the whole desk.
+    const vh = window.innerHeight || 900
+    return Math.min(50, Math.max(1, Math.ceil((gridHeight + 108) / vh)))
   }, [gridHeight, editMode])
 
   return (
@@ -340,7 +378,7 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
         }} />
       ))}
 
-      {desk.items.length === 0 && !editMode ? (
+      {items.length === 0 && !editMode ? (
         <div style={{ height: '60vh', display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center', gap: 16 }}>
           <div style={{ fontSize: 48, opacity: 0.3 }}>🗂</div>
@@ -367,9 +405,9 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
                   position: 'absolute',
                   left: 0,
                   top: 0,
-                  transform: `translate3d(${gx(item.x, cw)}px, ${gy(item.y)}px, 0)`,
+                  transform: `translate3d(${gx(item.x, cw)}px, ${gy(item.y, rowH)}px, 0)`,
                   width: iw(item.w, cw),
-                  height: ih(item.h),
+                  height: ih(item.h, rowH),
                   overflow: 'visible',
                   opacity: isDragging ? 0.88 : 1,
                   scale: isDragging ? '1.025' : '1',

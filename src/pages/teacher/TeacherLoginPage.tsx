@@ -242,31 +242,15 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
           )}
 
           {mode === 'register' && (
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 12.5, color: 'var(--color-muted)', lineHeight: 1.45, cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={consent}
-                onChange={e => setConsent(e.target.checked)}
-                style={{ marginTop: 2, width: 16, height: 16, accentColor: 'var(--color-purple)', flexShrink: 0, cursor: 'pointer' }}
-              />
-              <span>
-                Я соглашаюсь на обработку персональных данных платформы «Искра».
-              </span>
-            </label>
+            <ConsentCheckbox checked={consent} onChange={setConsent}>
+              Я соглашаюсь на обработку персональных данных платформы «Искра».
+            </ConsentCheckbox>
           )}
 
           {mode === 'register' && (
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 12.5, color: 'var(--color-muted)', lineHeight: 1.45, cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={analyticsOptIn}
-                onChange={e => setAnalyticsOptIn(e.target.checked)}
-                style={{ marginTop: 2, width: 16, height: 16, accentColor: 'var(--color-purple)', flexShrink: 0, cursor: 'pointer' }}
-              />
-              <span>
-                Помогите нам стать лучше — разрешаю анонимный сбор аналитики и метрик использования, чтобы мы улучшали платформу.
-              </span>
-            </label>
+            <ConsentCheckbox checked={analyticsOptIn} onChange={setAnalyticsOptIn}>
+              Помогите нам стать лучше — разрешаю анонимный сбор аналитики и метрик использования, чтобы мы улучшали платформу.
+            </ConsentCheckbox>
           )}
 
           {error && (
@@ -320,5 +304,49 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
         )}
       </div>
     </div>
+  )
+}
+
+function ConsentCheckbox({
+  checked,
+  onChange,
+  children,
+}: {
+  checked: boolean
+  onChange: (v: boolean) => void
+  children: React.ReactNode
+}) {
+  return (
+    <label style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 12.5, color: 'var(--color-muted)', lineHeight: 1.45, cursor: 'pointer' }}>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={e => onChange(e.target.checked)}
+        style={{ position: 'absolute', opacity: 0, width: 0, height: 0, margin: 0 }}
+      />
+      <span
+        aria-hidden
+        style={{
+          marginTop: 1,
+          width: 18,
+          height: 18,
+          flexShrink: 0,
+          borderRadius: 6,
+          border: `1.5px solid ${checked ? 'var(--color-purple)' : 'var(--color-border-medium)'}`,
+          background: checked ? 'var(--color-purple)' : 'var(--color-bg-input)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'background 0.15s ease, border-color 0.15s ease',
+        }}
+      >
+        {checked && (
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+            <path d="M2.5 6.2L4.8 8.5L9.5 3.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </span>
+      <span>{children}</span>
+    </label>
   )
 }

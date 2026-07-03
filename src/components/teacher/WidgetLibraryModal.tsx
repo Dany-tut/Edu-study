@@ -8,6 +8,7 @@ type Props = {
   onClose: () => void
   onAdd: (item: LayoutItem) => void
   existingTypes: string[]
+  hiddenWidgets?: string[]
 }
 
 function WidgetCard({ def, onAdd }: { def: WidgetDef; onAdd: () => void }) {
@@ -65,7 +66,10 @@ function findFreePosition(existingItems: { x: number; y: number; w: number; h: n
   return { x: 0, y: maxY }
 }
 
-export default function WidgetLibraryModal({ onClose, onAdd, existingTypes }: Props) {
+export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, hiddenWidgets }: Props) {
+  const registry = hiddenWidgets?.length
+    ? WIDGET_REGISTRY.filter(def => !hiddenWidgets.includes(def.type))
+    : WIDGET_REGISTRY
   const handleAdd = (def: WidgetDef) => {
     const id = `${def.type}-${Date.now()}`
     const pos = findFreePosition([], def.defaultW, def.defaultH)
@@ -139,7 +143,7 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes }: Pr
 
           {/* Widget list */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {WIDGET_REGISTRY.map(def => (
+            {registry.map(def => (
               <WidgetCard
                 key={def.type}
                 def={def}

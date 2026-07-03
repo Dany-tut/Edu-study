@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useTeacher } from '../../store/teacherStore'
+import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'
 
 type AvatarOption = { id: string; Icon: LucideIcon; gradient: string }
 
@@ -23,10 +24,17 @@ const AVATARS: AvatarOption[] = [
 export default function TeacherProfileSettingsPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
 
-  const [name,     setName]     = useState('')
+  // Snapshot before usePersistentState mirrors initial values into storage —
+  // an existing draft must win over the async profile load below.
+  const [hadDraft] = useState(() => ({
+    name: readDraft('profile.name') !== null,
+    avatarId: readDraft('profile.avatarId') !== null,
+  }))
+  // Draft-backed: survives a page reload; cleared on successful save.
+  const [name,     setName]     = usePersistentState('profile.name', '')
+  const [avatarId, setAvatarId] = usePersistentState('profile.avatarId', 'flower')
   const [email,    setEmail]    = useState('')
   const [role,     setRole]     = useState<'admin' | 'teacher'>('teacher')
-  const [avatarId, setAvatarId] = useState('flower')
   const [saving,   setSaving]   = useState(false)
   const [saved,    setSaved]    = useState(false)
   const [error,    setError]    = useState('')
@@ -35,10 +43,10 @@ export default function TeacherProfileSettingsPage() {
     supabase.auth.getUser().then(({ data }) => {
       const u = data.user
       if (!u) return
-      setName(u.user_metadata?.name ?? u.email?.split('@')[0] ?? '')
+      if (!hadDraft.name) setName(u.user_metadata?.name ?? u.email?.split('@')[0] ?? '')
       setEmail(u.email ?? '')
       setRole(u.user_metadata?.role === 'admin' ? 'admin' : 'teacher')
-      setAvatarId(u.user_metadata?.avatarId ?? 'flower')
+      if (!hadDraft.avatarId) setAvatarId(u.user_metadata?.avatarId ?? 'flower')
     })
   }, [])
 
@@ -52,6 +60,7 @@ export default function TeacherProfileSettingsPage() {
     })
     setSaving(false)
     if (err) { setError(err.message); return }
+    clearDrafts('profile.')
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
   }
@@ -118,7 +127,7 @@ export default function TeacherProfileSettingsPage() {
                   style={{
                     width: 52, height: 52, borderRadius: '50%',
                     background: opt.gradient,
-                    border: isSelected ? '2.5px solid var(--color-text)' : '2.5px solid transparent',
+                    border: isSelected ? '2.5px solid #fff' : '2.5px solid transparent',
                     cursor: 'pointer', padding: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     boxShadow: isSelected ? '0 0 0 3px var(--color-accent)' : 'none',

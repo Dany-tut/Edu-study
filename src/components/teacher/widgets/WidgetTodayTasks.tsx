@@ -4,6 +4,7 @@ import { CheckCircle2, X as XIcon } from 'lucide-react'
 import { useTeacher } from '../../../store/teacherStore'
 import type { TeacherTask } from '../../../store/teacherStore'
 import CreateTaskModal from '../CreateTaskModal'
+import { usePersistentState, clearDrafts } from '../../../lib/useDraft'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 18 },
@@ -133,7 +134,8 @@ export default function WidgetTodayTasks() {
   const toggleTask = useTeacher(s => s.toggleTask)
   const removeTask = useTeacher(s => s.removeTask)
   const updateTask = useTeacher(s => s.updateTask)
-  const [editingTask, setEditingTask] = useState<TeacherTask | null>(null)
+  // Persisted so an open edit modal (and its draft) re-opens after a reload.
+  const [editingTask, setEditingTask] = usePersistentState<TeacherTask | null>('createTask.editingWidget', null)
   const [tasksAtTop, setTasksAtTop] = useState(true)
   const [tasksAtBottom, setTasksAtBottom] = useState(false)
 
@@ -161,7 +163,7 @@ export default function WidgetTodayTasks() {
       {editingTask && (
         <CreateTaskModal
           initialTask={editingTask}
-          onClose={() => setEditingTask(null)}
+          onClose={() => { setEditingTask(null); clearDrafts('createTask.') }}
           onSave={saved => {
             updateTask(editingTask.id, {
               typeId: saved.type?.id ?? null,

@@ -16,6 +16,7 @@ import { useTeacher } from '../../store/teacherStore'
 import { useCurriculum } from '../../store/curriculumStore'
 import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
 import { cardChip, cardChipTone } from '../../lib/pillStyles'
+import { copyToClipboard } from '../../lib/clipboard'
 import MultiSelectField from '../MultiSelectField'
 
 // ─── Copyable №-badge (glass tooltip) ────────────────────────────────────────
@@ -23,7 +24,7 @@ function CopyableIdBadge({ id }: { id: number }) {
   const [tipped, setTipped] = useState(false)
   function copy(e: React.MouseEvent) {
     e.stopPropagation()
-    navigator.clipboard.writeText(`№${id}`)
+    void copyToClipboard(`№${id}`)
     setTipped(true)
     setTimeout(() => setTipped(false), 1400)
   }
@@ -72,7 +73,7 @@ function CopyableLineBadge({ line, accent, accentBg }: { line: number; accent: s
   const [tipped, setTipped] = useState(false)
   function copy(e: React.MouseEvent) {
     e.stopPropagation()
-    navigator.clipboard.writeText(`№${line}`)
+    void copyToClipboard(`№${line}`)
     setTipped(true)
     setTimeout(() => setTipped(false), 1400)
   }

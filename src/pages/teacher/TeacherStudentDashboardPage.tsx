@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useGroups, useStudents } from '../../lib/useGroups'
+import { contactHref, contactLabel } from '../../lib/contactLink'
 import type { Student, Group } from '../../data/teacherMockData'
 import { loadAnonResults, type AnonDiagResult } from '../../data/diagnosticData'
 import {
@@ -107,26 +108,39 @@ function SectionRow({ section, correct, total }: { section: string; correct: num
 }
 
 // ─── PDF export via browser print ─────────────────────────────────────────────
+// Renders the card into an isolated off-screen iframe and prints only that, so
+// the live page is never hidden/mutated (which used to blank the preview and
+// leak the plain-text card onto the page).
 function printStudentCard(studentName: string) {
-  const style = document.createElement('style')
-  style.id = '__student-print-style__'
-  style.textContent = `
-    @media print {
-      body > * { display: none !important; }
-      #student-dashboard-print { display: block !important; }
-      @page { margin: 16mm 14mm; size: A4; }
-    }
-  `
-  document.head.appendChild(style)
   const el = document.getElementById('student-dashboard-print')
-  if (el) el.style.display = 'block'
-  document.title = `Карточка — ${studentName}`
-  window.print()
-  setTimeout(() => {
-    style.remove()
-    if (el) el.style.display = 'none'
-    document.title = 'Student Dashboard'
-  }, 500)
+  if (!el) return
+
+  const iframe = document.createElement('iframe')
+  iframe.setAttribute('aria-hidden', 'true')
+  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0;'
+  document.body.appendChild(iframe)
+
+  const doc = iframe.contentWindow?.document
+  if (!doc) { iframe.remove(); return }
+
+  doc.open()
+  doc.write(
+    `<!doctype html><html><head><meta charset="utf-8"><title>Карточка — ${studentName}</title>` +
+    `<style>@page{margin:16mm 14mm;size:A4}` +
+    `body{font-family:system-ui,-apple-system,sans-serif;color:#111;margin:0}</style>` +
+    `</head><body>${el.innerHTML}</body></html>`
+  )
+  doc.close()
+
+  let done = false
+  const cleanup = () => { if (done) return; done = true; setTimeout(() => iframe.remove(), 100) }
+
+  const win = iframe.contentWindow!
+  win.onafterprint = cleanup
+  // Give the iframe a tick to lay out, then print just its content.
+  setTimeout(() => { win.focus(); win.print() }, 50)
+  // Safety net if onafterprint never fires (some browsers).
+  setTimeout(cleanup, 60000)
 }
 
 // ─── Diagnostic pill row ──────────────────────────────────────────────────────
@@ -433,12 +447,12 @@ export default function TeacherStudentDashboardPage() {
       {/* Hidden print container */}
       <div id="student-dashboard-print" style={{ display: 'none', fontFamily: 'system-ui, sans-serif', color: '#111' }}>
         <h1 style={{ fontSize: 22, marginBottom: 4 }}>{student.name}</h1>
-        <p style={{ color: '#666', marginBottom: 16 }}>Группа: {group.name} · Цель: {student.desiredScore} баллов</p>
+        <p style={{ color: '#666', marginBottom: 16 }}>Группа: {group.name} · {group.icon} {group.subject} · Цель: {student.desiredScore} баллов</p>
         <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20 }}>
           <tbody>
             {[
               ['Телефон', student.phone],
-              student.telegramLink ? ['Telegram', `@${student.telegramLink}`] : null,
+              student.telegramLink ? [contactLabel(student.telegramLink).startsWith('VK') ? 'VK' : 'Telegram', contactLabel(student.telegramLink)] : null,
               ['Начало занятий', student.startedAt],
               ['Последний вход', student.lastVisit],
               ['ДЗ (средний балл)', `${Math.round(hwAvg)}%`],
@@ -516,6 +530,7 @@ export default function TeacherStudentDashboardPage() {
               }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
                 <span style={{ fontSize: 12, fontWeight: 700, color: group.color }}>{group.name}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.icon} {group.subject}</span>
               </div>
               {student.startedAt && <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>c {student.startedAt}</span>}
               <span style={{
@@ -545,9 +560,9 @@ export default function TeacherStudentDashboardPage() {
                 title={student.phone}><Phone size={15} /></a>
             )}
             {student.telegramLink && (
-              <a href={`https://t.me/${student.telegramLink}`} target="_blank" rel="noreferrer"
+              <a href={contactHref(student.telegramLink)} target="_blank" rel="noreferrer"
                 style={{ width: 36, height: 36, borderRadius: 12, background: `${group.color}18`, border: `1px solid ${group.color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: group.color, textDecoration: 'none', transition: 'background 0.15s' }}
-                title={`@${student.telegramLink}`}><Send size={15} /></a>
+                title={contactLabel(student.telegramLink)}><Send size={15} /></a>
             )}
             {student.parentContact && (
               <a href={`tel:${student.parentContact}`}

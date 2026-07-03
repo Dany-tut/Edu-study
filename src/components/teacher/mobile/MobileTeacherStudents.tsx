@@ -6,6 +6,7 @@ import MobileSheet from '../../MobileSheet'
 import { GlassPill } from '../../mobileChrome'
 import { PAIR } from '../../../lib/mobileTokens'
 import { useGroups, useStudents } from '../../../lib/useGroups'
+import { contactLabel } from '../../../lib/contactLink'
 import type { Group, Student } from '../../../data/teacherMockData'
 
 // MOBILE ONLY students browser: groups list → tap → roster → tap student →
@@ -27,7 +28,7 @@ function MetricRow({ icon, label, value, danger }: { icon: React.ReactNode; labe
   )
 }
 
-function StudentSheet({ student, onClose }: { student: Student | null; onClose: () => void }) {
+function StudentSheet({ student, group, onClose }: { student: Student | null; group: Group; onClose: () => void }) {
   return (
     <MobileSheet open={!!student} onClose={onClose} title={student?.name}>
       {student && (
@@ -46,8 +47,9 @@ function StudentSheet({ student, onClose }: { student: Student | null; onClose: 
               <div style={{ fontSize: 11, fontWeight: 500, color: PAIR.review.text, opacity: 0.85 }}>посещ.</div>
             </div>
           </div>
+          <MetricRow icon={<span style={{ fontSize: 15 }}>{group.icon}</span>} label="Предмет" value={`${group.subject} · ${group.name}`} />
           {student.phone && <MetricRow icon={<Phone size={16} />} label="Телефон" value={student.phone} />}
-          {student.telegramLink && <MetricRow icon={<Send size={16} />} label="Telegram" value={student.telegramLink.replace(/^https?:\/\/(t\.me\/)?/, '@')} />}
+          {student.telegramLink && <MetricRow icon={<Send size={16} />} label={contactLabel(student.telegramLink) === 'VK' ? 'VK' : 'Telegram'} value={contactLabel(student.telegramLink)} />}
           <MetricRow icon={<CalendarCheck size={16} />} label="Последний визит" value={student.lastVisit} />
           <MetricRow icon={<Wallet size={16} />} label="Долг" value={student.debt ? `${student.debt.toLocaleString('ru-RU')} ₽` : 'нет'} danger={(student.debt ?? 0) > 0} />
         </div>
@@ -90,7 +92,7 @@ function GroupRoster({ group, onBack }: { group: Group; onBack: () => void }) {
           )}
         </div>
       </div>
-      <StudentSheet student={selected} onClose={() => setSelected(null)} />
+      <StudentSheet student={selected} group={group} onClose={() => setSelected(null)} />
     </>
   )
 }

@@ -307,12 +307,22 @@ function AssignedTestsBlock() {
 
   useEffect(() => {
     if (!session?.id || !session?.groupId) return
-    fetchStudentAssignments(session.id, session.groupId).then(async list => {
-      const withDone = await Promise.all(
-        list.map(async a => ({ ...a, done: await checkAssignmentSubmitted(session.id, a.id) }))
-      )
-      setAssignments(withDone)
-    })
+    let alive = true
+    ;(async () => {
+      try {
+        const list = await fetchStudentAssignments(session.id, session.groupId)
+        const withDone = await Promise.all(
+          list.map(async a => ({ ...a, done: await checkAssignmentSubmitted(session.id, a.id) }))
+        )
+        if (alive) setAssignments(withDone)
+      } catch {
+        // Assigned-tests are non-critical: on failure keep the block hidden
+        // rather than throwing an unhandled rejection. (Real errors from the
+        // underlying db.ts calls are already reported to analytics.)
+        if (alive) setAssignments([])
+      }
+    })()
+    return () => { alive = false }
   }, [session?.id, session?.groupId])
 
   const pending = assignments.filter(a => !a.done)

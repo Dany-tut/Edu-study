@@ -19,6 +19,7 @@ import TeacherSaveButton, { teacherSaveStyle } from '../../components/teacher/Te
 import TableEditor from '../../components/teacher/TableEditor'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { supabase } from '../../lib/supabase'
+import { readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -118,6 +119,33 @@ export interface CourseEdData {
 }
 
 function uid() { return Math.random().toString(36).slice(2, 8) }
+
+// Map each editor lesson → the short_id it is (or will be) persisted under.
+// A lesson's short_id must be STABLE across reorders/renames: it's the key that
+// ties lesson_progress rows and calendar events to the lesson. We therefore
+// derive it from the lesson's identity, NOT from its position or `number`:
+//   • a lesson loaded from the DB already carries its short_id as `id`
+//     (`${courseShortId}-N`) — reuse it verbatim.
+//   • a brand-new lesson (uuid id) gets the next free numeric suffix, never a
+//     position-derived one, so it can't collide with / clobber an existing ref.
+// The old scheme (`${courseShortId}-${lesson.number}`) renumbered short_ids
+// whenever `number`/position drifted, orphaning progress rows → lessons the
+// teacher had opened showed up locked in the student track.
+export function lessonShortIdMap(courseShortId: string, lessons: CELesson[]): Record<string, string> {
+  const prefix = `${courseShortId}-`
+  const map: Record<string, string> = {}
+  let maxN = -1
+  for (const l of lessons) {
+    if (l.id.startsWith(prefix)) {
+      const suffix = l.id.slice(prefix.length)
+      if (/^\d+$/.test(suffix)) { map[l.id] = l.id; maxN = Math.max(maxN, Number(suffix)) }
+    }
+  }
+  for (const l of lessons) {
+    if (!map[l.id]) { maxN += 1; map[l.id] = `${prefix}${maxN}` }
+  }
+  return map
+}
 
 // ─── Style constants ──────────────────────────────────────────────────────────
 
@@ -297,7 +325,7 @@ function LeftCourseMeta({
         <div>
           <Label>Уровень</Label>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {['ОГЭ', 'ЕГЭ', 'Олимпиада', 'Школьная программа'].map(l => {
+            {['ОГЭ', 'ЕГЭ', 'Олимпиада', 'Школа'].map(l => {
               const active = course.level === l
               return (
                 <button
@@ -545,12 +573,18 @@ function ScheduleCard({
       }
       onUpdate(next)
     } else {
-      // Clearing the lesson schedule re-attaches it to the recording schedule.
-      onUpdate({
+      // Top × = fully clear this lesson's schedule to empty. When the lesson is
+      // mirroring the recording, the recording IS the source, so wipe it too —
+      // otherwise the field would just re-mirror back and never go to zero.
+      const next: CELesson = {
         ...lesson, lessonSchedManual: false,
-        scheduledDate: lesson.recDate, scheduledTime: lesson.recTime, scheduledDuration: lesson.recDuration,
-        ...(lesson.hwDateManual ? {} : { hwDate: lesson.recDate }),
-      })
+        scheduledDate: undefined, scheduledTime: undefined, scheduledDuration: undefined,
+      }
+      if (mirrors) {
+        next.recDate = undefined; next.recTime = undefined; next.recDuration = undefined
+      }
+      if (!lesson.hwDateManual) next.hwDate = undefined
+      onUpdate(next)
     }
   }
 
@@ -2855,17 +2889,47 @@ export default function TeacherCourseEditorPage() {
   const allStudents = useAllStudents()
 
   const [course, setCourse] = useState<CourseEdData>(() => {
-    if (!editingCourseJson) {
-      return {
-        id: uid(), title: '', subject: 'Химия', level: 'ЕГЭ', status: 'draft',
-        color: 'var(--color-purple)', bg: 'var(--color-green-soft)',
-        groupIds: [], studentIds: [],
-        modules: [{ id: uid(), label: 'Модуль 1', expanded: true, lessonIds: [] }],
-        lessons: [],
-      }
-    }
-    return JSON.parse(editingCourseJson) as CourseEdData
+    const base: CourseEdData = editingCourseJson
+      ? JSON.parse(editingCourseJson) as CourseEdData
+      : {
+          id: uid(), title: '', subject: 'Химия', level: 'ЕГЭ', status: 'draft',
+          color: 'var(--color-purple)', bg: 'var(--color-green-soft)',
+          groupIds: [], studentIds: [],
+          modules: [{ id: uid(), label: 'Модуль 1', expanded: true, lessonIds: [] }],
+          lessons: [],
+        }
+    // Unsaved edits win over the snapshot the editor was opened with: the
+    // constructor (goToCourseEditor) fetches the course from Supabase before
+    // opening the editor, and that fetched data must NOT clobber a draft the
+    // teacher never got to save. The draft is cleared on successful save, so
+    // when no draft exists we fall through to the fresh DB snapshot.
+    const draft = readDraft<CourseEdData>(`coursed.${base.dbCourseId ?? base.id}.course`)
+    return draft ?? base
   })
+
+  // ── Draft persistence ───────────────────────────────────────────────────────
+  // Mirror every edit of the main course object into sessionStorage so no input
+  // is lost on a reload/remount. Cleared ONLY after a successful save (see
+  // handleSave/handlePublish/handleUnpublish/autosave) — never on unmount.
+  // Oversized writes (base64 images can blow the ~5MB quota) are silently
+  // skipped inside writeDraft; the ce-session mirror below still covers reloads.
+  const draftNs = `coursed.${course.dbCourseId ?? course.id}.`
+  const draftKey = `${draftNs}course`
+  // Monotonic edit counter: a save only clears the draft if no NEWER edit
+  // happened while the (async) sync was in flight — otherwise clearing would
+  // throw away input entered during the network round-trip.
+  const draftSeq = useRef(0)
+  useEffect(() => {
+    draftSeq.current++
+    // Skip the initial render: merely opening a course must not create a draft
+    // that would later shadow fresh DB data.
+    if (draftSeq.current === 1) return
+    writeDraft(draftKey, course)
+  }, [course, draftKey])
+
+  function clearCourseDraftAfterSync(seqAtSave: number, synced: boolean) {
+    if (synced && draftSeq.current === seqAtSave) clearDrafts(draftNs)
+  }
 
   // Remember which lesson + tab the teacher was on, so a page refresh lands them
   // back where they were (per-tab, keyed by course).
@@ -2909,14 +2973,9 @@ export default function TeacherCourseEditorPage() {
   // Map each editor lesson → the short_id syncAccessToSupabase persists for it.
   // Uses lesson.number (1-based creation order) so short_id stays stable when
   // lessons are reordered — otherwise open-badge would follow position, not lesson.
-  const lessonShortIdById = useMemo(() => {
-    const shortId = course.dbCourseId ?? course.id
-    const map: Record<string, string> = {}
-    course.lessons.forEach((l, fallbackIdx) => {
-      map[l.id] = `${shortId}-${l.number ?? (fallbackIdx + 1)}`
-    })
-    return map
-  }, [course])
+  const lessonShortIdById = useMemo(
+    () => lessonShortIdMap(course.dbCourseId ?? course.id, course.lessons),
+    [course])
 
   // Load which lessons are already open for students (any non-locked progress).
   useEffect(() => {
@@ -2960,7 +3019,8 @@ export default function TeacherCourseEditorPage() {
     if (!autosaveArmed.current) { autosaveArmed.current = true; return }
     const t = setTimeout(() => {
       setCourseEdited(JSON.stringify(course))
-      syncAccessToSupabase(course)
+      const seq = draftSeq.current
+      syncAccessToSupabase(course).then(ok => clearCourseDraftAfterSync(seq, ok))
       flash()
     }, 900)
     return () => clearTimeout(t)
@@ -3055,7 +3115,9 @@ export default function TeacherCourseEditorPage() {
     setTimeout(() => setSavedFlash(false), 2000)
   }
 
-  async function syncAccessToSupabase(c: CourseEdData) {
+  // Returns true when the course row (title/description/status/access) made it
+  // to the DB — the signal that the sessionStorage draft can be dropped.
+  async function syncAccessToSupabase(c: CourseEdData): Promise<boolean> {
     const shortId = c.dbCourseId ?? c.id
 
     const { data: courseUpsert } = await supabase
@@ -3074,7 +3136,7 @@ export default function TeacherCourseEditorPage() {
       .single()
 
     const courseDbId = courseUpsert?.id
-    if (!courseDbId) return
+    if (!courseDbId) return false
 
     // ── Persist modules + lessons so the student track renders ──────────────
     // The student reader (fetchCourseStructure) reads lessons through
@@ -3126,10 +3188,11 @@ export default function TeacherCourseEditorPage() {
       if (!seen.has(lesson.id)) { ordered.push({ lesson, moduleLocalId: firstModuleLocalId }); seen.add(lesson.id) }
     }
 
-    // 3. Upsert lessons with stable short_id (= `${shortId}-${lesson.number}`),
+    // 3. Upsert lessons with a stable per-lesson short_id (see lessonShortIdMap),
     //    preserving lesson_progress across reorders (keyed by short_id, not FK).
+    const shortIdByLessonId = lessonShortIdMap(shortId, c.lessons)
     const lessonRows = ordered.map(({ lesson, moduleLocalId }, i) => ({
-      short_id: `${shortId}-${lesson.number ?? (i + 1)}`,
+      short_id: shortIdByLessonId[lesson.id] ?? `${shortId}-${i}`,
       course_id: courseDbId,
       module_id: moduleDbIdByLocalId[moduleLocalId] ?? null,
       title: lesson.title,
@@ -3164,6 +3227,21 @@ export default function TeacherCourseEditorPage() {
     }))
     if (lessonRows.length > 0) {
       await supabase.from('lessons').upsert(lessonRows, { onConflict: 'short_id' })
+      // Adopt the persisted short_id as each lesson's editor id, so a freshly
+      // created lesson (uuid id) doesn't get a NEW suffix allocated on the next
+      // autosave — which would insert a duplicate lesson. Idempotent once ids
+      // already match their short_id.
+      const idChanged = c.lessons.some(l => shortIdByLessonId[l.id] && shortIdByLessonId[l.id] !== l.id)
+      if (idChanged) {
+        setCourse(prev => ({
+          ...prev,
+          lessons: prev.lessons.map(l => shortIdByLessonId[l.id] ? { ...l, id: shortIdByLessonId[l.id] } : l),
+          modules: prev.modules.map(m => ({
+            ...m,
+            lessonIds: m.lessonIds.map(id => shortIdByLessonId[id] ?? id),
+          })),
+        }))
+      }
     }
     // 4. Drop lessons removed in the editor (schedule_lessons.lesson_id → SET NULL).
     const keepShortIds = lessonRows.map(r => r.short_id)
@@ -3179,7 +3257,7 @@ export default function TeacherCourseEditorPage() {
     // for its lesson schedule and/or its recording schedule.
     const scheduledLessons = c.lessons.filter(l =>
       (l.scheduledDate && l.scheduledTime) || (l.recDate && l.recTime))
-    if (scheduledLessons.length === 0 || (c.groupIds.length === 0 && c.studentIds.length === 0)) return
+    if (scheduledLessons.length === 0 || (c.groupIds.length === 0 && c.studentIds.length === 0)) return true
 
     // Fetch course row + lessons from DB to get UUIDs
     const { data: courseRow } = await supabase
@@ -3187,7 +3265,7 @@ export default function TeacherCourseEditorPage() {
       .select('id, lessons(id, lesson_number, title)')
       .eq('short_id', shortId)
       .single()
-    if (!courseRow) return
+    if (!courseRow) return true
 
     const dbLessons = (courseRow.lessons ?? []) as Array<{ id: string; lesson_number: number; title: string }>
 
@@ -3249,12 +3327,14 @@ export default function TeacherCourseEditorPage() {
         .insert(rows)
       if (insErr) console.error('schedule_lessons insert failed:', insErr)
     }
+    return true
   }
 
   function handleSave(overrideCourse?: CourseEdData) {
     const c = overrideCourse ?? course
     setCourseEdited(JSON.stringify(c))
-    syncAccessToSupabase(c)
+    const seq = draftSeq.current
+    syncAccessToSupabase(c).then(ok => clearCourseDraftAfterSync(seq, ok))
     flash()
   }
 
@@ -3288,7 +3368,10 @@ export default function TeacherCourseEditorPage() {
     const updated = { ...course, status: 'published' as const }
     setCourse(updated)
     setCourseEdited(JSON.stringify(updated))
-    syncAccessToSupabase(updated)
+    // setCourse above bumps draftSeq on the next render — capture seq+1 so the
+    // status flip itself doesn't block the post-save draft cleanup.
+    const seq = draftSeq.current + 1
+    syncAccessToSupabase(updated).then(ok => clearCourseDraftAfterSync(seq, ok))
     flash()
   }
 
@@ -3296,7 +3379,8 @@ export default function TeacherCourseEditorPage() {
     const updated = { ...course, status: 'draft' as const }
     setCourse(updated)
     setCourseEdited(JSON.stringify(updated))
-    syncAccessToSupabase(updated)
+    const seq = draftSeq.current + 1
+    syncAccessToSupabase(updated).then(ok => clearCourseDraftAfterSync(seq, ok))
     flash()
   }
 

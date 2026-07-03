@@ -15,6 +15,7 @@ import { useHomework, useHardSubmissions } from '../../lib/useHomework'
 import { supabase } from '../../lib/supabase'
 import { getOwnerId } from '../../lib/owner'
 import { mskToVietnam } from '../../lib/utils'
+import { usePersistentState, clearDrafts } from '../../lib/useDraft'
 
 const SPRING = { type: 'spring', stiffness: 340, damping: 30 } as const
 const fadeUp = (delay = 0) => ({
@@ -725,7 +726,8 @@ function MyTasksBlock() {
   const toggleTask = useTeacher(s => s.toggleTask)
   const removeTask = useTeacher(s => s.removeTask)
   const updateTask = useTeacher(s => s.updateTask)
-  const [editingTask, setEditingTask] = useState<TeacherTask | null>(null)
+  // Persisted so an open edit modal (and its draft) re-opens after a reload.
+  const [editingTask, setEditingTask] = usePersistentState<TeacherTask | null>('createTask.editingHome', null)
   const [tasksAtTop, setTasksAtTop] = useState(true)
   const [tasksAtBottom, setTasksAtBottom] = useState(false)
 
@@ -747,7 +749,7 @@ function MyTasksBlock() {
     {editingTask && (
       <CreateTaskModal
         initialTask={editingTask}
-        onClose={() => setEditingTask(null)}
+        onClose={() => { setEditingTask(null); clearDrafts('createTask.') }}
         onSave={saved => {
           updateTask(editingTask.id, {
             typeId: saved.type?.id ?? null,

@@ -9,11 +9,15 @@ import {
   Search, Plus,
 } from 'lucide-react'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
+import NewStudentConfig from '../../components/teacher/NewStudentConfig'
 import GroupStrip, { type TabConfig } from '../../components/teacher/GroupStrip'
 import {
-  type Group, type Student,
+  type Group, type GroupTrack, type Student,
 } from '../../data/teacherMockData'
 import { useGroups, useStudents } from '../../lib/useGroups'
+import { usePersistentState, clearDrafts } from '../../lib/useDraft'
+import { copyToClipboard } from '../../lib/clipboard'
+import { normalizeContact, contactHref, contactLabel } from '../../lib/contactLink'
 import { useTeacher } from '../../store/teacherStore'
 import {
   fetchStudentActiveCourses, type StudentCourseInfo,
@@ -37,12 +41,13 @@ function AddGroupModal({ onClose, onSave }: {
   onClose: () => void
   onSave: (g: Omit<Group, 'id' | 'studentCount' | 'lessonsCompleted'>) => Promise<void>
 }) {
-  const [name, setName] = useState('')
-  const [subject, setSubject] = useState('Химия')
-  const [icon, setIcon] = useState('🧪')
-  const [level, setLevel] = useState('ЕГЭ')
-  const [colorIdx, setColorIdx] = useState(0)
-  const [totalLessons, setTotalLessons] = useState(48)
+  // Draft-backed: survives a page reload; cleared on save or explicit close.
+  const [name, setName] = usePersistentState('groups.addGroup.name', '')
+  const [subject, setSubject] = usePersistentState('groups.addGroup.subject', '')
+  const [icon, setIcon] = usePersistentState('groups.addGroup.icon', '📚')
+  const [level, setLevel] = usePersistentState('groups.addGroup.level', '')
+  const [colorIdx, setColorIdx] = usePersistentState('groups.addGroup.colorIdx', 0)
+  const [totalLessons, setTotalLessons] = usePersistentState('groups.addGroup.totalLessons', 48)
   const [saving, setSaving] = useState(false)
 
   const subjectIcons: Record<string, string> = {
@@ -64,6 +69,7 @@ function AddGroupModal({ onClose, onSave }: {
       startDate: new Date().toLocaleDateString('ru-RU'),
       totalLessons,
     })
+    clearDrafts('groups.addGroup.')
     onClose()
   }
 
@@ -90,35 +96,32 @@ function AddGroupModal({ onClose, onSave }: {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <label style={labelStyle}>
-            Название
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="ЕГЭ-Хим Атомы" style={inputStyle} />
-          </label>
+          <input value={name} onChange={e => setName(e.target.value)} placeholder="Название" style={inputStyle} />
 
-          <label style={labelStyle}>
-            Предмет
-            <TeacherSelect
-              value={subject}
-              onChange={v => { setSubject(v); setIcon(subjectIcons[v] ?? '📚') }}
-              placeholder="Предмет"
-              options={Object.keys(subjectIcons)}
-            />
-          </label>
+          <TeacherSelect
+            value={subject}
+            onChange={v => { setSubject(v); setIcon(subjectIcons[v] ?? '📚') }}
+            placeholder="Предмет"
+            options={Object.keys(subjectIcons)}
+            triggerStyle={selectTriggerStyle}
+          />
 
-          <label style={labelStyle}>
-            Уровень
-            <TeacherSelect
-              value={level}
-              onChange={setLevel}
-              placeholder="Уровень"
-              options={['ЕГЭ', 'ОГЭ', 'Олимпиада', 'Школьная программа', 'Интенсив']}
-            />
-          </label>
+          <TeacherSelect
+            value={level}
+            onChange={setLevel}
+            placeholder="Уровень"
+            options={['ЕГЭ', 'ОГЭ', 'Олимпиада', 'Школа', 'Интенсив']}
+            triggerStyle={selectTriggerStyle}
+          />
 
-          <label style={labelStyle}>
-            Всего уроков
-            <input type="number" value={totalLessons} onChange={e => setTotalLessons(Number(e.target.value))} style={inputStyle} min={1} />
-          </label>
+          <input
+            type="number"
+            value={totalLessons === 0 ? '' : totalLessons}
+            onChange={e => setTotalLessons(e.target.value === '' ? 0 : Number(e.target.value))}
+            placeholder="Всего уроков"
+            min={1}
+            style={inputStyle}
+          />
 
           <div>
             <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 8 }}>Цвет</div>
@@ -230,36 +233,49 @@ function AddStudentTypePicker({ groups, onPickGroup, onPickIndividual, onClose }
 
 function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
   onClose: () => void
-  onSave: (groupId: string, s: { name: string; phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number }) => Promise<{ inviteToken: string | null }>
+  onSave: (groupId: string, s: { name: string; phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number }) => Promise<{ inviteToken: string | null; studentId: string | null }>
   groups: Group[]
   initialGroupId: string | null
 }) {
-  const [selectedGroup, setSelectedGroup] = useState<string>(initialGroupId ?? groups[0]?.id ?? '')
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [telegram, setTelegram] = useState('')
-  const [parent, setParent] = useState('')
-  const [desiredScore, setDesiredScore] = useState(80)
-  const [paymentAmount, setPaymentAmount] = useState(0)
+  // Draft-backed: survives a page reload; cleared on save or explicit close.
+  const [selectedGroup, setSelectedGroup] = usePersistentState<string>('groups.addStudent.group', initialGroupId ?? groups[0]?.id ?? '')
+  const [name, setName] = usePersistentState('groups.addStudent.name', '')
+  const [phone, setPhone] = usePersistentState('groups.addStudent.phone', '')
+  const [telegram, setTelegram] = usePersistentState('groups.addStudent.telegram', '')
+  const [parent, setParent] = usePersistentState('groups.addStudent.parent', '')
+  const [desiredScore, setDesiredScore] = usePersistentState('groups.addStudent.desiredScore', 0)
+  const [paymentAmount, setPaymentAmount] = usePersistentState('groups.addStudent.paymentAmount', 0)
   const [saving, setSaving] = useState(false)
   const [inviteLink, setInviteLink] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  // form → config (widgets + course) → link. The student row exists from `config`
+  // on; the config step and the invite link both operate on it.
+  const [step, setStep] = useState<'form' | 'config' | 'link'>('form')
+  const [newStudentId, setNewStudentId] = useState<string | null>(null)
 
   async function handleSave() {
     if (!name.trim() || !selectedGroup) return
     setSaving(true)
-    const { inviteToken } = await onSave(selectedGroup, { name: name.trim(), phone, telegramLink: telegram, parentContact: parent, desiredScore, paymentAmount })
+    const { inviteToken, studentId } = await onSave(selectedGroup, { name: name.trim(), phone, telegramLink: normalizeContact(telegram), parentContact: parent, desiredScore, paymentAmount })
     setSaving(false)
+    clearDrafts('groups.addStudent.')
     if (inviteToken) {
       setInviteLink(`${window.location.origin}${window.location.pathname}#/join?token=${inviteToken}`)
-    } else {
+    }
+    if (studentId) {
+      setNewStudentId(studentId)
+      setStep('config')
+    } else if (!inviteToken) {
       onClose()
+    } else {
+      setStep('link')
     }
   }
 
-  function copyLink() {
+  async function copyLink() {
     if (!inviteLink) return
-    navigator.clipboard.writeText(inviteLink)
+    const ok = await copyToClipboard(inviteLink)
+    if (!ok) return
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -285,11 +301,17 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
       >
         <div style={{ overflowY: 'auto', padding: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <span style={{ fontSize: 16, fontWeight: 700 }}>{inviteLink ? 'Ученик добавлен' : 'Новый ученик'}</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>{step === 'config' ? 'Настройка ученика' : step === 'link' ? 'Ученик добавлен' : 'Новый ученик'}</span>
+          {step === 'form' && <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>}
         </div>
 
-        {inviteLink ? (
+        {step === 'config' && newStudentId ? (
+          <NewStudentConfig
+            studentId={newStudentId}
+            groupId={selectedGroup}
+            onDone={() => setStep('link')}
+          />
+        ) : step === 'link' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ background: 'var(--color-bg-4)', borderRadius: 14, padding: '14px 16px' }}>
               <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 6, fontWeight: 600 }}>ССЫЛКА ДЛЯ РЕГИСТРАЦИИ</div>
@@ -338,37 +360,28 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
               </select>
             </label>
           )}
-          <label style={labelStyle}>
-            Имя *
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="Алиса Смирнова" style={inputStyle} />
-          </label>
-          <label style={labelStyle}>
-            Телефон
-            <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+7 999 123 45 67" style={inputStyle} />
-          </label>
-          <label style={labelStyle}>
-            Telegram
-            <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder="https://t.me/username" style={inputStyle} />
-          </label>
-          <label style={labelStyle}>
-            Контакт родителя
-            <input value={parent} onChange={e => setParent(e.target.value)} placeholder="+7 999 765 43 21" style={inputStyle} />
-          </label>
-          <label style={labelStyle}>
-            Целевой балл
-            <input type="number" value={desiredScore} onChange={e => setDesiredScore(Number(e.target.value))} min={0} max={100} style={inputStyle} />
-          </label>
-          <label style={labelStyle}>
-            Стоимость занятия (₽)
-            <input
-              type="number"
-              value={paymentAmount === 0 ? '' : paymentAmount}
-              onChange={e => setPaymentAmount(e.target.value === '' ? 0 : Number(e.target.value))}
-              placeholder="0"
-              min={0}
-              style={inputStyle}
-            />
-          </label>
+          <input value={name} onChange={e => setName(e.target.value)} placeholder="Имя *" style={inputStyle} />
+          <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Телефон" style={inputStyle} />
+          <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder="Telegram или VK (@ник или ссылка)" style={inputStyle} />
+          <input value={parent} onChange={e => setParent(e.target.value)} placeholder="Контакт родителя" style={inputStyle} />
+          <input
+            type="number"
+            value={desiredScore === 0 ? '' : desiredScore}
+            onChange={e => setDesiredScore(e.target.value === '' ? 0 : Number(e.target.value))}
+            onFocus={() => setDesiredScore(0)}
+            placeholder="Целевой балл"
+            min={0}
+            max={100}
+            style={inputStyle}
+          />
+          <input
+            type="number"
+            value={paymentAmount === 0 ? '' : paymentAmount}
+            onChange={e => setPaymentAmount(e.target.value === '' ? 0 : Number(e.target.value))}
+            placeholder="Стоимость занятия (₽)"
+            min={0}
+            style={inputStyle}
+          />
         </div>
 
         <button
@@ -400,11 +413,18 @@ const inputStyle: React.CSSProperties = {
   border: '1.5px solid var(--color-border-medium)', fontSize: 14,
   outline: 'none', background: 'var(--color-bg-4)', color: 'var(--color-text)',
 }
-
+// Makes a TeacherSelect trigger match the bordered input fields above.
+const selectTriggerStyle: React.CSSProperties = {
+  padding: '10px 12px', borderRadius: 12,
+  border: '1.5px solid var(--color-border-medium)', fontSize: 14,
+  background: 'var(--color-bg-4)',
+}
 const SUBJECT_ICONS: Record<string, string> = {
   'Химия': '🧪', 'Биология': '🧬', 'Физика': '⚡', 'Математика': '📐',
   'Русский': '📝', 'Литература': '📖', 'История': '🏛️', 'Английский': '🇬🇧',
 }
+
+const LEVEL_OPTIONS = ['ЕГЭ', 'ОГЭ', 'Олимпиада', 'Школа', 'Интенсив']
 
 const INDIV_COLORS = [
   { color: 'var(--color-purple)', soft: '#EFE0FF' },
@@ -414,47 +434,128 @@ const INDIV_COLORS = [
   { color: '#FFB96D', soft: '#FFF1DC' },
 ]
 
+// ─── Направления (предмет + уровень) с кнопкой «＋» ───────────────────────────
+// Первое направление — основное (subject/level колонки группы), остальные —
+// массив tracks. Ученик 1:1 может учиться по нескольким предметам/уровням сразу.
+function TrackFields({
+  subject, level, onSubject, onLevel, tracks, onTracksChange,
+}: {
+  subject: string; level: string
+  onSubject: (v: string) => void; onLevel: (v: string) => void
+  tracks: GroupTrack[]; onTracksChange: (t: GroupTrack[]) => void
+}) {
+  const setTrack = (i: number, patch: Partial<GroupTrack>) =>
+    onTracksChange(tracks.map((t, idx) => idx === i ? { ...t, ...patch } : t))
+  const removeTrack = (i: number) => onTracksChange(tracks.filter((_, idx) => idx !== i))
+  const addTrack = () => onTracksChange([...tracks, { subject: '', level: '' }])
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {/* Основное направление */}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ flex: 1 }}>
+          <TeacherSelect value={subject} onChange={onSubject} placeholder="Предмет" options={Object.keys(SUBJECT_ICONS)} triggerStyle={selectTriggerStyle} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <TeacherSelect value={level} onChange={onLevel} placeholder="Уровень" options={LEVEL_OPTIONS} triggerStyle={selectTriggerStyle} />
+        </div>
+      </div>
+
+      {/* Дополнительные направления */}
+      {tracks.map((t, i) => (
+        <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ flex: 1 }}>
+            <TeacherSelect value={t.subject} onChange={v => setTrack(i, { subject: v })} placeholder="Предмет" options={Object.keys(SUBJECT_ICONS)} triggerStyle={selectTriggerStyle} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <TeacherSelect value={t.level} onChange={v => setTrack(i, { level: v })} placeholder="Уровень" options={LEVEL_OPTIONS} triggerStyle={selectTriggerStyle} />
+          </div>
+          <button
+            type="button" onClick={() => removeTrack(i)} title="Убрать направление"
+            style={{
+              width: 32, height: 32, flexShrink: 0, borderRadius: 9, cursor: 'pointer',
+              border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)',
+              color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <X size={15} />
+          </button>
+        </div>
+      ))}
+
+      <button
+        type="button" onClick={addTrack}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+          padding: '8px 0', borderRadius: 10, cursor: 'pointer',
+          border: '1.5px dashed var(--color-border-medium)', background: 'transparent',
+          color: 'var(--color-accent)', fontSize: 13, fontWeight: 600,
+        }}
+      >
+        <Plus size={15} /> Ещё направление
+      </button>
+    </div>
+  )
+}
+
 // ─── Модалка добавления индивидуального ученика ──────────────────────────────
 function AddIndividualStudentModal({ onClose, onSave }: {
   onClose: () => void
   onSave: (s: {
     name: string; subject: string; icon: string; level: string; color: string; colorSoft: string;
-    phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number
-  }) => Promise<{ inviteToken: string | null }>
+    phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number;
+    tracks: GroupTrack[]
+  }) => Promise<{ inviteToken: string | null; studentId: string | null; groupId: string | null }>
 }) {
-  const [name, setName] = useState('')
-  const [subject, setSubject] = useState('Химия')
-  const [level, setLevel] = useState('ЕГЭ')
-  const [colorIdx, setColorIdx] = useState(0)
-  const [phone, setPhone] = useState('')
-  const [telegram, setTelegram] = useState('')
-  const [parent, setParent] = useState('')
-  const [desiredScore, setDesiredScore] = useState(80)
-  const [paymentAmount, setPaymentAmount] = useState(0)
+  // Draft-backed: survives a page reload; cleared on save or explicit close.
+  const [name, setName] = usePersistentState('groups.addIndiv.name', '')
+  const [subject, setSubject] = usePersistentState('groups.addIndiv.subject', '')
+  const [level, setLevel] = usePersistentState('groups.addIndiv.level', '')
+  // Дополнительные направления (предмет+уровень) сверх основного.
+  const [tracks, setTracks] = usePersistentState<GroupTrack[]>('groups.addIndiv.tracks', [])
+  const [colorIdx, setColorIdx] = usePersistentState('groups.addIndiv.colorIdx', 0)
+  const [phone, setPhone] = usePersistentState('groups.addIndiv.phone', '')
+  const [telegram, setTelegram] = usePersistentState('groups.addIndiv.telegram', '')
+  const [parent, setParent] = usePersistentState('groups.addIndiv.parent', '')
+  const [desiredScore, setDesiredScore] = usePersistentState('groups.addIndiv.desiredScore', 0)
+  const [paymentAmount, setPaymentAmount] = usePersistentState('groups.addIndiv.paymentAmount', 0)
   const [saving, setSaving] = useState(false)
   const [inviteLink, setInviteLink] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [step, setStep] = useState<'form' | 'config' | 'link'>('form')
+  const [newStudentId, setNewStudentId] = useState<string | null>(null)
+  const [newGroupId, setNewGroupId] = useState<string | null>(null)
 
   async function handleSave() {
     if (!name.trim()) return
     setSaving(true)
     const c = INDIV_COLORS[colorIdx % INDIV_COLORS.length]
-    const { inviteToken } = await onSave({
+    const { inviteToken, studentId, groupId } = await onSave({
       name: name.trim(), subject, icon: SUBJECT_ICONS[subject] ?? '📚',
       level, color: c.color, colorSoft: c.soft,
-      phone, telegramLink: telegram, parentContact: parent, desiredScore, paymentAmount,
+      phone, telegramLink: normalizeContact(telegram), parentContact: parent, desiredScore, paymentAmount,
+      tracks: tracks.filter(t => t.subject.trim() || t.level.trim()),
     })
     setSaving(false)
+    clearDrafts('groups.addIndiv.')
     if (inviteToken) {
       setInviteLink(`${window.location.origin}${window.location.pathname}#/join?token=${inviteToken}`)
-    } else {
+    }
+    if (studentId) {
+      setNewStudentId(studentId)
+      setNewGroupId(groupId)
+      setStep('config')
+    } else if (!inviteToken) {
       onClose()
+    } else {
+      setStep('link')
     }
   }
 
-  function copyLink() {
+  async function copyLink() {
     if (!inviteLink) return
-    navigator.clipboard.writeText(inviteLink)
+    const ok = await copyToClipboard(inviteLink)
+    if (!ok) return
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -480,11 +581,17 @@ function AddIndividualStudentModal({ onClose, onSave }: {
       >
         <div style={{ overflowY: 'auto', padding: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <span style={{ fontSize: 16, fontWeight: 700 }}>{inviteLink ? 'Ученик добавлен' : 'Новый ученик 1:1'}</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>{step === 'config' ? 'Настройка ученика' : step === 'link' ? 'Ученик добавлен' : 'Новый ученик 1:1'}</span>
+          {step === 'form' && <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>}
         </div>
 
-        {inviteLink ? (
+        {step === 'config' && newStudentId ? (
+          <NewStudentConfig
+            studentId={newStudentId}
+            groupId={newGroupId}
+            onDone={() => setStep('link')}
+          />
+        ) : step === 'link' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ background: 'var(--color-bg-4)', borderRadius: 14, padding: '14px 16px' }}>
               <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 6, fontWeight: 600 }}>ССЫЛКА ДЛЯ РЕГИСТРАЦИИ</div>
@@ -507,43 +614,30 @@ function AddIndividualStudentModal({ onClose, onSave }: {
         ) : (
           <>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <label style={labelStyle}>
-                Имя *
-                <input value={name} onChange={e => setName(e.target.value)} placeholder="Алиса Смирнова" style={inputStyle} />
-              </label>
-              <label style={labelStyle}>
-                Предмет
-                <TeacherSelect value={subject} onChange={setSubject} placeholder="Предмет" options={Object.keys(SUBJECT_ICONS)} />
-              </label>
-              <label style={labelStyle}>
-                Уровень
-                <TeacherSelect value={level} onChange={setLevel} placeholder="Уровень" options={['ЕГЭ', 'ОГЭ', 'Олимпиада', 'Школьная программа', 'Интенсив']} />
-              </label>
-              <label style={labelStyle}>
-                Телефон
-                <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+7 999 123 45 67" style={inputStyle} />
-              </label>
-              <label style={labelStyle}>
-                Telegram
-                <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder="https://t.me/username" style={inputStyle} />
-              </label>
-              <label style={labelStyle}>
-                Контакт родителя
-                <input value={parent} onChange={e => setParent(e.target.value)} placeholder="+7 999 765 43 21" style={inputStyle} />
-              </label>
-              <label style={labelStyle}>
-                Целевой балл
-                <input type="number" value={desiredScore} onChange={e => setDesiredScore(Number(e.target.value))} min={0} max={100} style={inputStyle} />
-              </label>
-              <label style={labelStyle}>
-                Стоимость занятия (₽)
-                <input
-                  type="number"
-                  value={paymentAmount === 0 ? '' : paymentAmount}
-                  onChange={e => setPaymentAmount(e.target.value === '' ? 0 : Number(e.target.value))}
-                  placeholder="0" min={0} style={inputStyle}
-                />
-              </label>
+              <input value={name} onChange={e => setName(e.target.value)} placeholder="Имя *" style={inputStyle} />
+              <TrackFields
+                subject={subject} level={level} onSubject={setSubject} onLevel={setLevel}
+                tracks={tracks} onTracksChange={setTracks}
+              />
+              <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Телефон" style={inputStyle} />
+              <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder="Telegram или VK (@ник или ссылка)" style={inputStyle} />
+              <input value={parent} onChange={e => setParent(e.target.value)} placeholder="Контакт родителя" style={inputStyle} />
+              <input
+                type="number"
+                value={desiredScore === 0 ? '' : desiredScore}
+                onChange={e => setDesiredScore(e.target.value === '' ? 0 : Number(e.target.value))}
+                onFocus={() => setDesiredScore(0)}
+                placeholder="Целевой балл"
+                min={0}
+                max={100}
+                style={inputStyle}
+              />
+              <input
+                type="number"
+                value={paymentAmount === 0 ? '' : paymentAmount}
+                onChange={e => setPaymentAmount(e.target.value === '' ? 0 : Number(e.target.value))}
+                placeholder="Стоимость занятия (₽)" min={0} style={inputStyle}
+              />
               <div>
                 <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 8 }}>Цвет</div>
                 <div style={{ display: 'flex', gap: 10 }}>
@@ -875,7 +969,7 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
     if (phase === 'hidden') {
       setPhase('revealed')
     } else {
-      navigator.clipboard.writeText(`Логин: ${login}\nПароль: ${password}`)
+      void copyToClipboard(`Логин: ${login}\nПароль: ${password}`)
       setPhase('hidden')
     }
   }
@@ -942,10 +1036,11 @@ function StudentAvatar({
   const [copied, setCopied] = useState(false)
   const isRegistered = !!student.email
 
-  function copyInvite() {
+  async function copyInvite() {
     if (!student.inviteToken) return
     const link = `${window.location.origin}${window.location.pathname}#/join?token=${student.inviteToken}`
-    navigator.clipboard.writeText(link)
+    const ok = await copyToClipboard(link)
+    if (!ok) return
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -1046,6 +1141,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, background: group.color + '33', borderRadius: 7, padding: '2px 8px' }}>
                   <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.icon} {group.subject}</span>
                 </div>
               </div>
             </div>
@@ -1077,7 +1173,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                     <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>Контакты</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       <ContactRow icon={Phone} label={student.phone} href={`tel:${student.phone}`} />
-                      {student.telegramLink && <ContactRow icon={Send} label={`@${student.telegramLink}`} href={`https://t.me/${student.telegramLink}`} />}
+                      {student.telegramLink && <ContactRow icon={Send} label={contactLabel(student.telegramLink)} href={contactHref(student.telegramLink)} />}
                       {student.parentContact && <ContactRow icon={User} label={`Родитель: ${student.parentContact}`} href={`tel:${student.parentContact}`} />}
                     </div>
                   </section>
@@ -1247,9 +1343,89 @@ function StudentCoursesSection({ student, group }: { student: Student; group: Gr
   )
 }
 
+// Список направлений ученика 1:1 (основное subject/level + доп. tracks), с
+// возможностью добавить/убрать посреди обучения. Основное направление хранится в
+// колонках группы и здесь не редактируется (менять предмет самой группы опасно),
+// а «Ещё направление» дописывает/чистит массив groups.tracks.
+function TracksSection({ group, onSave }: { group: Group; onSave: (tracks: GroupTrack[]) => Promise<void> }) {
+  const [tracks, setTracks] = useState<GroupTrack[]>(group.tracks ?? [])
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  // Re-sync when switching to another student's panel.
+  useEffect(() => { setTracks(group.tracks ?? []); setSaved(false) }, [group.id])
+
+  const dirty = JSON.stringify(tracks) !== JSON.stringify(group.tracks ?? [])
+  const setTrack = (i: number, patch: Partial<GroupTrack>) =>
+    setTracks(prev => prev.map((t, idx) => idx === i ? { ...t, ...patch } : t))
+
+  async function save() {
+    setSaving(true)
+    try {
+      await onSave(tracks.filter(t => t.subject.trim() || t.level.trim()))
+      setSaved(true); setTimeout(() => setSaved(false), 2000)
+    } finally { setSaving(false) }
+  }
+
+  return (
+    <section>
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
+        Направления
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {/* Основное направление — read-only chip */}
+        <div style={{
+          display: 'inline-flex', alignSelf: 'flex-start', alignItems: 'center', gap: 6,
+          background: group.color + '22', border: `1px solid ${group.color}44`,
+          borderRadius: 9, padding: '5px 10px', fontSize: 12, fontWeight: 600, color: 'var(--color-text)',
+        }}>
+          <span>{group.icon}</span>
+          <span>{group.subject}{group.level ? ` · ${group.level}` : ''}</span>
+        </div>
+
+        {/* Доп. направления — editable */}
+        {tracks.map((t, i) => (
+          <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <div style={{ flex: 1 }}>
+              <TeacherSelect value={t.subject} onChange={v => setTrack(i, { subject: v })} placeholder="Предмет" options={Object.keys(SUBJECT_ICONS)} triggerStyle={selectTriggerStyle} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <TeacherSelect value={t.level} onChange={v => setTrack(i, { level: v })} placeholder="Уровень" options={LEVEL_OPTIONS} triggerStyle={selectTriggerStyle} />
+            </div>
+            <button
+              type="button" onClick={() => setTracks(prev => prev.filter((_, idx) => idx !== i))} title="Убрать"
+              style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <X size={14} />
+            </button>
+          </div>
+        ))}
+
+        <button
+          type="button" onClick={() => setTracks(prev => [...prev, { subject: '', level: '' }])}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '7px 0', borderRadius: 9, cursor: 'pointer', border: '1.5px dashed var(--color-border-medium)', background: 'transparent', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600 }}
+        >
+          <Plus size={14} /> Ещё направление
+        </button>
+
+        {dirty && (
+          <button
+            type="button" onClick={save} disabled={saving}
+            style={{ padding: '8px 0', borderRadius: 9, cursor: saving ? 'default' : 'pointer', border: 'none', background: 'var(--color-purple)', color: '#fff', fontSize: 12, fontWeight: 700 }}
+          >
+            {saving ? 'Сохранение…' : 'Сохранить направления'}
+          </button>
+        )}
+        {saved && !dirty && (
+          <div style={{ fontSize: 11, color: 'var(--color-green-text)', fontWeight: 600, textAlign: 'center' }}>✓ Сохранено</div>
+        )}
+      </div>
+    </section>
+  )
+}
+
 function StudentPanel({
-  student, group, onClose, onDelete, onOpenFullCard, onAddHomework, onSaveComment, onResetPassword,
-}: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void; onAddHomework: () => void; onSaveComment: (text: string) => Promise<void>; onResetPassword: () => Promise<string> }) {
+  student, group, onClose, onDelete, onOpenFullCard, onAddHomework, onSaveComment, onResetPassword, onSaveTracks,
+}: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void; onAddHomework: () => void; onSaveComment: (text: string) => Promise<void>; onResetPassword: () => Promise<string>; onSaveTracks?: (tracks: GroupTrack[]) => Promise<void> }) {
   const [comment, setComment] = useState(student.comment ?? '')
   const [commentSaved, setCommentSaved] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -1291,23 +1467,24 @@ function StudentPanel({
         borderTopRightRadius: 19,
         flexShrink: 0,
       }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}>
             <StudentAvatar student={student} group={group} />
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {student.name}
               </div>
               <div style={{
-                display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 5,
+                display: 'flex', alignItems: 'center', gap: 4, marginTop: 5, maxWidth: '100%',
                 background: group.color + '33', borderRadius: 7, padding: '2px 8px',
               }}>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</span>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color, flexShrink: 0 }} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.name}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>· {group.icon} {group.subject}</span>
               </div>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
             <button
               onClick={onOpenFullCard}
               title="Полная статистика ученика"
@@ -1352,6 +1529,11 @@ function StudentPanel({
           </section>
         )}
 
+        {/* Направления (subjects/levels) — editable for 1:1 students */}
+        {group.isIndividual && onSaveTracks && (
+          <TracksSection group={group} onSave={onSaveTracks} />
+        )}
+
         {/* Contacts */}
         <section>
           <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
@@ -1360,7 +1542,7 @@ function StudentPanel({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <ContactRow icon={Phone} label={student.phone} href={`tel:${student.phone}`} />
             {student.telegramLink && (
-              <ContactRow icon={Send} label={`@${student.telegramLink}`} href={`https://t.me/${student.telegramLink}`} />
+              <ContactRow icon={Send} label={contactLabel(student.telegramLink)} href={contactHref(student.telegramLink)} />
             )}
             {student.parentContact && (
               <ContactRow icon={User} label={`Родитель: ${student.parentContact}`} href={`tel:${student.parentContact}`} />
@@ -1568,12 +1750,14 @@ export default function TeacherGroupsPage() {
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
   const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
-  const { groups, loading: groupsLoading, addGroup, addIndividualStudent, addStudentToGroup, deleteGroup } = useGroups()
+  const { groups, loading: groupsLoading, addGroup, addIndividualStudent, addStudentToGroup, deleteGroup, updateGroupTracks } = useGroups()
   const { students, deleteStudent, updateStudent } = useStudents(selectedGroupId)
-  const [showAddGroup, setShowAddGroup] = useState(false)
-  const [showAddStudentPicker, setShowAddStudentPicker] = useState(false)
-  const [showAddStudent, setShowAddStudent] = useState(false)
-  const [showAddIndividual, setShowAddIndividual] = useState(false)
+  // Persisted so an open modal (and its draft) re-opens after a page reload —
+  // the teacher must never lose an in-progress form to a tab switch/reload.
+  const [showAddGroup, setShowAddGroup] = usePersistentState('groups.show.addGroup', false)
+  const [showAddStudentPicker, setShowAddStudentPicker] = usePersistentState('groups.show.addStudentPicker', false)
+  const [showAddStudent, setShowAddStudent] = usePersistentState('groups.show.addStudent', false)
+  const [showAddIndividual, setShowAddIndividual] = usePersistentState('groups.show.addIndividual', false)
   const [activeStripTab, setActiveStripTab] = useState<'groups' | 'students'>('groups')
   const [sortKey, setSortKey] = useState<SortKey>('attention')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
@@ -1933,6 +2117,7 @@ export default function TeacherGroupsPage() {
               onOpenFullCard={() => openStudentDashboard(activeStudentId, activeStudentGroup.id)}
               onAddHomework={() => openHomeworkCreate(activeStudentId)}
               onSaveComment={async (text) => { await updateStudent(activeStudentId, { comment: text }) }}
+              onSaveTracks={async (tracks) => { await updateGroupTracks(activeStudentGroup.id, tracks) }}
               onResetPassword={async () => {
                 // Generate a fresh readable password and persist it as the student's temp_password.
                 const pw = 'iskra' + Math.floor(1000 + Math.random() * 9000)
@@ -1947,7 +2132,7 @@ export default function TeacherGroupsPage() {
       <AnimatePresence>
         {showAddGroup && (
           <AddGroupModal
-            onClose={() => setShowAddGroup(false)}
+            onClose={() => { setShowAddGroup(false); clearDrafts('groups.addGroup.') }}
             onSave={async (g) => { await addGroup(g) }}
           />
         )}
@@ -1963,19 +2148,19 @@ export default function TeacherGroupsPage() {
           <AddStudentModal
             groups={regularGroups}
             initialGroupId={selectedGroupId}
-            onClose={() => setShowAddStudent(false)}
+            onClose={() => { setShowAddStudent(false); clearDrafts('groups.addStudent.') }}
             onSave={async (groupId, s) => {
-              const { inviteToken } = await addStudentToGroup(groupId, s)
-              return { inviteToken: inviteToken ?? null }
+              const { inviteToken, studentId } = await addStudentToGroup(groupId, s)
+              return { inviteToken: inviteToken ?? null, studentId: studentId ?? null }
             }}
           />
         )}
         {showAddIndividual && (
           <AddIndividualStudentModal
-            onClose={() => setShowAddIndividual(false)}
+            onClose={() => { setShowAddIndividual(false); clearDrafts('groups.addIndiv.') }}
             onSave={async (s) => {
               const result = await addIndividualStudent(s as Parameters<typeof addIndividualStudent>[0])
-              return { inviteToken: result.inviteToken }
+              return { inviteToken: result.inviteToken, studentId: result.studentId ?? null, groupId: result.groupId ?? null }
             }}
           />
         )}

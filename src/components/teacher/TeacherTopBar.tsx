@@ -10,9 +10,11 @@ import {
 import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useTeacher, type TeacherPage } from '../../store/teacherStore'
+import { useTeacherAccess, type TeacherTabId } from '../../lib/teacherAccess'
 import { useHomework, useHardSubmissions } from '../../lib/useHomework'
 import { useJournalPending } from '../../lib/useGroups'
 import { lockSnap, lockRelease, springTopbar } from '../../lib/feedback'
+import { usePersistentState, clearDrafts } from '../../lib/useDraft'
 import CreateTaskModal from './CreateTaskModal'
 import WidgetsModal from './WidgetsModal'
 import { supabase } from '../../lib/supabase'
@@ -83,7 +85,8 @@ export default function TeacherTopBar() {
     })))
   }, [pendingJournals, syncJournalNotifs])
 
-  const [taskModalOpen, setTaskModalOpen] = useState(false)
+  // Persisted so an open modal (and its draft) re-opens after a page reload.
+  const [taskModalOpen, setTaskModalOpen] = usePersistentState('createTask.open', false)
   const [widgetsOpen, setWidgetsOpen]     = useState(false)
   const [notifOpen, setNotifOpen]         = useState(false)
 
@@ -102,6 +105,32 @@ export default function TeacherTopBar() {
   const openConstructor        = useTeacher(s => s.openConstructor)
   const triggerConstructorBack = useTeacher(s => s.triggerConstructorBack)
   const { dark, toggle: toggleTheme } = useTheme()
+
+  // Admin-configured access — hide revoked tabs & quick actions.
+  const canTab = useTeacherAccess(s => s.canTab)
+  const canPage = useTeacherAccess(s => s.canPage)
+  // Subscribe to the raw lists so this bar re-renders when access loads/changes
+  // (canTab/canPage are stable method refs and wouldn't trigger on their own).
+  useTeacherAccess(s => s.hiddenTabs)
+  const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
+  const quickAllowed = (a: QuickAction): boolean => {
+    if (a.page) return canPage(a.page)
+    switch (a.action) {
+      case 'create-course': return canTab('constructor')
+      case 'create-group':
+      case 'add-student':   return canTab('groups')
+      case 'create-task':   return canTab('home')
+      default:              return true
+    }
+  }
+  // Keep only allowed actions, then drop separators left without neighbours.
+  const keptQuick = quickActions.filter(it => it.type === 'separator' || quickAllowed(it as QuickAction))
+  const visibleQuick = keptQuick.filter((it, idx) => {
+    if (it.type !== 'separator') return true
+    const before = keptQuick.slice(0, idx).some(x => x.type !== 'separator')
+    const after  = keptQuick.slice(idx + 1).some(x => x.type !== 'separator')
+    return before && after
+  })
 
   const [teacherName,  setTeacherName]  = useState('')
   const [teacherEmail, setTeacherEmail] = useState('')
@@ -196,7 +225,7 @@ export default function TeacherTopBar() {
   }
 
   const profileMenuItems = [
-    { icon: UserCircle,  label: 'Настройки профиля', sub: 'имя, фото',           action: 'profile' },
+    { icon: UserCircle,  label: 'Настройки профиля', sub: 'имя, аватар',         action: 'profile' },
     { icon: LayoutDashboard, label: 'Настроить виджеты', sub: 'как у учеников',  action: 'widgets' },
     { icon: dark ? Sun : Moon, label: dark ? 'Светлая тема' : 'Тёмная тема', sub: 'переключить', action: 'theme' },
     { icon: CreditCard,  label: 'Оплата',             sub: 'подписка и счета',   action: 'payment' },
@@ -225,7 +254,7 @@ export default function TeacherTopBar() {
     >
       {/* Nav */}
       <nav style={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
-        {navItems.map(item => {
+        {visibleNav.map(item => {
           const isActive = activePage === item.id
           const badgeCount = item.id === 'homework' ? pendingHwCount : item.id === 'gradebook' ? pendingJournalCount : 0
           return (
@@ -369,7 +398,7 @@ export default function TeacherTopBar() {
         {addOpen && addAnchor && (
           <div ref={dropRef} style={{ position: 'fixed', top: addAnchor.top, left: addAnchor.left, zIndex: 1000, transform: 'translateX(-50%)' }}>
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.16, ease: EASE } }} transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }} style={{ transformOrigin: 'top center', ...dropdownStyle }}>
-            {quickActions.map((item, i) => {
+            {visibleQuick.map((item, i) => {
               if (item.type === 'separator') return <div key={`sep-${i}`} style={{ height: 1, background: 'var(--color-border)', margin: '4px 8px' }} />
               const action = item as QuickAction
               return (
@@ -468,7 +497,7 @@ export default function TeacherTopBar() {
     {widgetsOpen && <WidgetsModal onClose={() => setWidgetsOpen(false)} />}
     {taskModalOpen && (
       <CreateTaskModal
-        onClose={() => setTaskModalOpen(false)}
+        onClose={() => { setTaskModalOpen(false); clearDrafts('createTask.') }}
         onSave={task => {
           addTask({
             typeId: task.type?.id ?? null,

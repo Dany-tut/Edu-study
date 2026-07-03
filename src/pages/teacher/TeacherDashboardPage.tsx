@@ -30,6 +30,7 @@ import { useIsDesktop } from '../../lib/useIsDesktop'
 import { useTeacher, HASH_TO_PAGE, PAGE_TO_HASH } from '../../store/teacherStore'
 import { useDeskStore } from '../../store/deskStore'
 import { useDeskLayouts } from '../../lib/useDeskLayouts'
+import { useTeacherAccess, TEACHER_TABS } from '../../lib/teacherAccess'
 
 export default function TeacherDashboardPage() {
   const activePage = useTeacher(s => s.activePage)
@@ -51,6 +52,22 @@ export default function TeacherDashboardPage() {
     supabase.auth.getUser().then(({ data }) => setTeacherId(data.user?.id ?? null))
   }, [])
   useNotificationsInit(teacherId)
+
+  // Per-teacher access (admin-configured). Load once; gate nav + widgets.
+  const accessLoaded = useTeacherAccess(s => s.loaded)
+  const hiddenWidgets = useTeacherAccess(s => s.hiddenWidgets)
+  const canPage = useTeacherAccess(s => s.canPage)
+  const canTab = useTeacherAccess(s => s.canTab)
+  useEffect(() => { useTeacherAccess.getState().load() }, [])
+
+  // If the active page belongs to a tab the admin revoked, bounce to the first
+  // allowed tab (or profile settings if everything is hidden).
+  useEffect(() => {
+    if (!accessLoaded) return
+    if (canPage(activePage)) return
+    const firstTab = TEACHER_TABS.find(t => canTab(t.id))
+    setActivePage(firstTab ? firstTab.id : 'profile-settings')
+  }, [accessLoaded, activePage, canPage, canTab, setActivePage])
 
   // The store hydrates activePage on load (from the per-tab nav snapshot, then the
   // URL hash), so we don't reset it on mount anymore — that would clobber pages
@@ -103,6 +120,7 @@ export default function TeacherDashboardPage() {
           onClose={() => setShowWidgetLibrary(false)}
           onAdd={item => addWidget(activeDesk.id, item)}
           existingTypes={activeDesk.items.map(i => i.type)}
+          hiddenWidgets={hiddenWidgets}
         />
       )}
 
@@ -155,6 +173,7 @@ export default function TeacherDashboardPage() {
               onUpdateItems={items => updateDeskItems(activeDesk.id, items)}
               onAddWidget={() => setShowWidgetLibrary(true)}
               onRemoveWidget={id => removeWidget(activeDesk.id, id)}
+              hiddenWidgets={hiddenWidgets}
             />
           )}
           {activePage === 'groups'          && <TeacherGroupsPage />}

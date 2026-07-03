@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Database, HardDrive, Users, BookOpen, RefreshCw, ChevronRight, ArrowLeft, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert } from 'lucide-react'
+import { Database, HardDrive, Users, BookOpen, RefreshCw, ChevronRight, ArrowLeft, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert, SlidersHorizontal, Lock } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { copyToClipboard } from '../../lib/clipboard'
 import { useTeacher } from '../../store/teacherStore'
 import TeacherAnalytics from '../../components/teacher/TeacherAnalytics'
+import { TEACHER_TABS } from '../../lib/teacherAccess'
+import { WIDGET_REGISTRY } from '../../components/teacher/widgets/registry'
 
 type StorageStats = {
   db_bytes: number
@@ -23,6 +26,8 @@ type TeacherRow = {
   created_at: string
   groupCount: number
   studentCount: number
+  hiddenTabs: string[]
+  hiddenWidgets: string[]
 }
 
 function fmtBytes(n: number): string {
@@ -93,7 +98,8 @@ function InviteModal({ onClose }: { onClose: () => void }) {
       `журнал, расписание и аналитика — всё в одном месте.\n\n` +
       `Ваша пригласительная ссылка:\n${link}\n\n` +
       `Перейдите по ней и войдите по своему email — и попадёте прямо в кабинет.`
-    navigator.clipboard.writeText(message).then(() => {
+    void copyToClipboard(message).then(ok => {
+      if (!ok) return
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     })
@@ -217,6 +223,106 @@ function InviteModal({ onClose }: { onClose: () => void }) {
   )
 }
 
+function sameSet(a: string[], b: string[]) {
+  if (a.length !== b.length) return false
+  const bs = new Set(b)
+  return a.every(x => bs.has(x))
+}
+
+// Chip toggle: "allowed" (accent) ↔ "hidden" (muted + lock).
+function AccessChip({ label, hidden, onToggle }: { label: string; hidden: boolean; onToggle: () => void }) {
+  return (
+    <button
+      onClick={onToggle}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        padding: '6px 11px', borderRadius: 10, cursor: 'pointer',
+        border: `1px solid ${hidden ? 'var(--color-border)' : 'var(--color-purple)'}`,
+        background: hidden ? 'transparent' : 'var(--color-purple-soft)',
+        color: hidden ? 'var(--color-text-3)' : 'var(--color-purple)',
+        fontSize: 12.5, fontWeight: 600, transition: 'all 0.12s',
+      }}
+    >
+      {hidden && <Lock size={11} strokeWidth={2.4} />}
+      {label}
+    </button>
+  )
+}
+
+function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hiddenTabs: string[], hiddenWidgets: string[]) => void }) {
+  const [hiddenTabs, setHiddenTabs] = useState<string[]>(teacher.hiddenTabs)
+  const [hiddenWidgets, setHiddenWidgets] = useState<string[]>(teacher.hiddenWidgets)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState('')
+
+  const dirty = !sameSet(hiddenTabs, teacher.hiddenTabs) || !sameSet(hiddenWidgets, teacher.hiddenWidgets)
+  const homeHidden = hiddenTabs.includes('home')
+
+  const toggleTab = (id: string) =>
+    setHiddenTabs(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id])
+  const toggleWidget = (t: string) =>
+    setHiddenWidgets(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t])
+
+  async function save() {
+    setSaving(true)
+    setError('')
+    const { error: err } = await supabase.rpc('admin_set_teacher_access', {
+      p_teacher: teacher.id,
+      p_hidden_tabs: hiddenTabs,
+      p_hidden_widgets: hiddenWidgets,
+    })
+    setSaving(false)
+    if (err) { setError(err.message); return }
+    setSaved(true)
+    setTimeout(() => setSaved(false), 1800)
+    onSaved(hiddenTabs, hiddenWidgets)
+  }
+
+  return (
+    <div style={{ padding: '4px 18px 18px' }}>
+      <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginBottom: 12, lineHeight: 1.5 }}>
+        Нажмите, чтобы скрыть раздел или виджет у этого учителя. Что не отмечено замком — доступно.
+      </div>
+
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>Разделы</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 18 }}>
+        {TEACHER_TABS.map(t => (
+          <AccessChip key={t.id} label={t.label} hidden={hiddenTabs.includes(t.id)} onToggle={() => toggleTab(t.id)} />
+        ))}
+      </div>
+
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+        Виджеты «Главной»
+        {homeHidden && <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--color-text-3)', textTransform: 'none', letterSpacing: 0 }}>· раздел «Главная» скрыт целиком</span>}
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, opacity: homeHidden ? 0.45 : 1, transition: 'opacity 0.15s' }}>
+        {WIDGET_REGISTRY.map(def => (
+          <AccessChip key={def.type} label={def.label} hidden={hiddenWidgets.includes(def.type)} onToggle={() => toggleWidget(def.type)} />
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 18 }}>
+        <button
+          onClick={save}
+          disabled={!dirty || saving}
+          style={{
+            padding: '9px 20px', borderRadius: 12, border: 'none',
+            background: dirty ? 'var(--grad-purple)' : 'var(--color-bg-3)',
+            color: dirty ? '#fff' : 'var(--color-text-3)',
+            fontSize: 13, fontWeight: 600, cursor: dirty && !saving ? 'pointer' : 'not-allowed',
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}
+        >
+          {saved ? <Check size={14} strokeWidth={2.6} /> : null}
+          {saving ? 'Сохраняем…' : saved ? 'Сохранено' : 'Сохранить доступы'}
+        </button>
+        {error && <span style={{ fontSize: 11, color: '#E04848' }}>{error}</span>}
+      </div>
+    </div>
+  )
+}
+
 export default function TeacherAdminPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const [storage, setStorage] = useState<StorageStats | null>(null)
@@ -227,6 +333,7 @@ export default function TeacherAdminPage() {
   const [inviteOpen, setInviteOpen] = useState(false)
   const [tab, setTab] = useState<'overview' | 'analytics'>('overview')
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -257,6 +364,8 @@ export default function TeacherAdminPage() {
         created_at: t.created_at,
         groupCount: Number(t.group_count ?? 0),
         studentCount: Number(t.student_count ?? 0),
+        hiddenTabs: (t.hidden_tabs as string[] | null) ?? [],
+        hiddenWidgets: (t.hidden_widgets as string[] | null) ?? [],
       })))
     }
     setLoading(false)
@@ -377,25 +486,68 @@ export default function TeacherAdminPage() {
           <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
             {teachers.map((t, i) => {
               const initials = t.name.slice(0, 2).toUpperCase()
+              const isTeacher = t.role !== 'admin'
+              const expanded = expandedId === t.id
+              const restrictCount = t.hiddenTabs.length + t.hiddenWidgets.length
               return (
-                <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderTop: i > 0 ? '1px solid var(--color-border)' : undefined }}>
-                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
-                    {initials}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {t.name}
-                      {t.role === 'admin' && (
-                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-purple)', background: 'rgba(155,109,255,0.12)', borderRadius: 6, padding: '1px 6px', textTransform: 'uppercase', letterSpacing: 0.3 }}>admin</span>
-                      )}
+                <div key={t.id} style={{ borderTop: i > 0 ? '1px solid var(--color-border)' : undefined }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px' }}>
+                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
+                      {initials}
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                      {t.username && <span>@{t.username}</span>}
-                      {t.subject && <><span>·</span><span>{t.subject}</span></>}
-                      <span>·</span>
-                      <span>{t.groupCount} групп · {t.studentCount} учеников</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {t.name}
+                        {t.role === 'admin' && (
+                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-purple)', background: 'rgba(155,109,255,0.12)', borderRadius: 6, padding: '1px 6px', textTransform: 'uppercase', letterSpacing: 0.3 }}>admin</span>
+                        )}
+                        {isTeacher && restrictCount > 0 && (
+                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', background: 'var(--color-bg-3)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            <Lock size={9} strokeWidth={2.6} />{restrictCount}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        {t.username && <span>@{t.username}</span>}
+                        {t.subject && <><span>·</span><span>{t.subject}</span></>}
+                        <span>·</span>
+                        <span>{t.groupCount} групп · {t.studentCount} учеников</span>
+                      </div>
                     </div>
+                    {isTeacher && (
+                      <button
+                        onClick={() => setExpandedId(expanded ? null : t.id)}
+                        title="Настроить доступы"
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
+                          padding: '7px 12px', borderRadius: 10, cursor: 'pointer',
+                          border: '1px solid var(--color-border-medium)',
+                          background: expanded ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
+                          color: expanded ? 'var(--color-purple)' : 'var(--color-text-3)',
+                          fontSize: 12, fontWeight: 600, transition: 'all 0.12s',
+                        }}
+                      >
+                        <SlidersHorizontal size={13} strokeWidth={2} />
+                        Доступы
+                      </button>
+                    )}
                   </div>
+                  <AnimatePresence initial={false}>
+                    {expanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+                        style={{ overflow: 'hidden' }}
+                      >
+                        <AccessEditor
+                          teacher={t}
+                          onSaved={(ht, hw) => setTeachers(prev => prev.map(x => x.id === t.id ? { ...x, hiddenTabs: ht, hiddenWidgets: hw } : x))}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               )
             })}

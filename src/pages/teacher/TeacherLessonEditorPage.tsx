@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
+import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft, Send, Check, ChevronDown, Plus, X, Trash2,
@@ -1134,7 +1135,12 @@ export default function TeacherLessonEditorPage() {
 
   const isNew = !source
 
-  const [meta, setMeta] = useState<Meta>({
+  // Draft namespace scoped by the edited lesson so drafts don't leak between lessons.
+  const draftNs = `lessoned.${editingScheduleId ?? 'new'}`
+  // If a draft was restored, the Supabase load below must not clobber it.
+  const hadMetaDraft = useRef(readDraft(`${draftNs}.meta`) !== null)
+
+  const [meta, setMeta] = usePersistentState<Meta>(`${draftNs}.meta`, {
     recipients: [],
     title: '',
     lessonNumber: '',
@@ -1144,7 +1150,7 @@ export default function TeacherLessonEditorPage() {
   })
 
   useEffect(() => {
-    if (!source) return
+    if (!source || hadMetaDraft.current) return
     setMeta(m => ({
       ...m,
       recipients: source.groupId
@@ -1158,14 +1164,14 @@ export default function TeacherLessonEditorPage() {
       endTime: source.endTime || m.endTime,
     }))
   }, [source])
-  const [videoUrl, setVideoUrl] = useState('')
-  const [timecodes, setTimecodes] = useState<Timecode[]>([])
-  const [workbook, setWorkbook] = useState<string[]>([])
-  const [notes, setNotes] = useState<string[]>([])
-  const [materials, setMaterials] = useState<string[]>([])
-  const [basicHw, setBasicHw] = useState<HomeworkTemplate | null>(null)
-  const [hardHw, setHardHw] = useState<HomeworkTemplate | null>(null)
-  const [description, setDescription] = useState('')
+  const [videoUrl, setVideoUrl] = usePersistentState(`${draftNs}.videoUrl`, '')
+  const [timecodes, setTimecodes] = usePersistentState<Timecode[]>(`${draftNs}.timecodes`, [])
+  const [workbook, setWorkbook] = usePersistentState<string[]>(`${draftNs}.workbook`, [])
+  const [notes, setNotes] = usePersistentState<string[]>(`${draftNs}.notes`, [])
+  const [materials, setMaterials] = usePersistentState<string[]>(`${draftNs}.materials`, [])
+  const [basicHw, setBasicHw] = usePersistentState<HomeworkTemplate | null>(`${draftNs}.basicHw`, null)
+  const [hardHw, setHardHw] = usePersistentState<HomeworkTemplate | null>(`${draftNs}.hardHw`, null)
+  const [description, setDescription] = usePersistentState(`${draftNs}.description`, '')
   const [published, setPublished] = useState(false)
   const [publishErr, setPublishErr] = useState<string | null>(null)
 
@@ -1219,6 +1225,7 @@ export default function TeacherLessonEditorPage() {
       }))
     }
 
+    clearDrafts(draftNs)
     setPublished(true)
     setTimeout(() => setActivePage('home'), 1600)
   }

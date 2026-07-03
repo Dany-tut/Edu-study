@@ -31,8 +31,10 @@ import {
 } from '../../data/diagnosticData'
 import { useAllStudents, useGroups } from '../../lib/useGroups'
 import { getContrastColor, getCircleShadow } from '../../lib/utils'
+import { copyToClipboard } from '../../lib/clipboard'
 import { supabase } from '../../lib/supabase'
 import { optimizePhoto } from '../../lib/imageOptim'
+import { usePersistentState, readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 import { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from '../../data/apChemistry'
 import { AP_LESSON_CONTENT } from '../../data/apChemistryLessons'
 import type { LessonContentData, LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from '../../data/lessonContent'
@@ -1854,60 +1856,64 @@ function CreatorView({
   const replaceTask = useTaskBank(s => s.replaceTask)
 
   // ── Task-authoring state (the "trainer" tab now authors a bank task) ──
+  // Draft-backed: every user-entered field survives a reload (images excluded —
+  // base64 blows the sessionStorage quota). Namespace is scoped by the edited
+  // task id; a saved draft wins over the DB values inside usePersistentState.
+  const tkDraft = `taskctor.${editingTask?.id ?? 'new'}.`
   // Meta → where the task lives in the bank / how the student finds it.
-  const [tkSubject, setTkSubject] = useState<'Химия' | 'Биология'>(editingTask?.subject === 'biology' ? 'Биология' : 'Химия')
-  const [tkSection, setTkSection] = useState(editingTask?.section ?? '')
-  const [tkTopic, setTkTopic] = useState(editingTask?.topic ?? '')
-  const [tkPart, setTkPart] = useState<1 | 2>(editingTask?.part ?? 1)
-  const [tkLine, setTkLine] = useState(editingTask?.line ?? 1)
-  const [tkSource, setTkSource] = useState(editingTask?.source ?? SOURCES[SOURCES.length - 1]) // «Авторский»
-  const [tkDifficulty, setTkDifficulty] = useState<Difficulty>(editingTask?.difficulty ?? 'medium')
+  const [tkSubject, setTkSubject] = usePersistentState<'Химия' | 'Биология'>(tkDraft + 'subject', editingTask?.subject === 'biology' ? 'Биология' : 'Химия')
+  const [tkSection, setTkSection] = usePersistentState(tkDraft + 'section', editingTask?.section ?? '')
+  const [tkTopic, setTkTopic] = usePersistentState(tkDraft + 'topic', editingTask?.topic ?? '')
+  const [tkPart, setTkPart] = usePersistentState<1 | 2>(tkDraft + 'part', editingTask?.part ?? 1)
+  const [tkLine, setTkLine] = usePersistentState(tkDraft + 'line', editingTask?.line ?? 1)
+  const [tkSource, setTkSource] = usePersistentState(tkDraft + 'source', editingTask?.source ?? SOURCES[SOURCES.length - 1]) // «Авторский»
+  const [tkDifficulty, setTkDifficulty] = usePersistentState<Difficulty>(tkDraft + 'difficulty', editingTask?.difficulty ?? 'medium')
 
   // Условие — question text + optional content blocks (image / table)
-  const [tkQuestion, setTkQuestion] = useState(editingTask?.question ?? '')
+  const [tkQuestion, setTkQuestion] = usePersistentState(tkDraft + 'question', editingTask?.question ?? '')
   const [tkImage, setTkImage] = useState(editingTask?.questionImage ?? '')
-  const [tkImageSize, setTkImageSize] = useState<number>(() => { const v = editingTask?.questionImageSize; return typeof v === 'number' ? v : 100 })
-  const [tkHasTable, setTkHasTable] = useState(!!(editingTask?.questionTable))
-  const [tkTableHeaders, setTkTableHeaders] = useState<string[]>(editingTask?.questionTable?.headers ?? ['', ''])
-  const [tkTableRows, setTkTableRows] = useState<string[][]>(editingTask?.questionTable?.rows ?? [['', ''], ['', '']])
-  const [tkEmptyCells, setTkEmptyCells] = useState<Record<string, boolean>>(editingTask?.questionTable?.emptyCells ?? {})
-  const [tkBlankCells, setTkBlankCells] = useState<Record<string, boolean>>(editingTask?.questionTable?.blankCells ?? {})
+  const [tkImageSize, setTkImageSize] = usePersistentState<number>(tkDraft + 'imageSize', () => { const v = editingTask?.questionImageSize; return typeof v === 'number' ? v : 100 })
+  const [tkHasTable, setTkHasTable] = usePersistentState(tkDraft + 'hasTable', !!(editingTask?.questionTable))
+  const [tkTableHeaders, setTkTableHeaders] = usePersistentState<string[]>(tkDraft + 'tableHeaders', editingTask?.questionTable?.headers ?? ['', ''])
+  const [tkTableRows, setTkTableRows] = usePersistentState<string[][]>(tkDraft + 'tableRows', editingTask?.questionTable?.rows ?? [['', ''], ['', '']])
+  const [tkEmptyCells, setTkEmptyCells] = usePersistentState<Record<string, boolean>>(tkDraft + 'emptyCells', editingTask?.questionTable?.emptyCells ?? {})
+  const [tkBlankCells, setTkBlankCells] = usePersistentState<Record<string, boolean>>(tkDraft + 'blankCells', editingTask?.questionTable?.blankCells ?? {})
   const [tkTableCellImages, setTkTableCellImages] = useState<Record<string, string>>(editingTask?.questionTable?.cellImages ?? {})
-  const [tkTableCellImageSizes, setTkTableCellImageSizes] = useState<Record<string, number>>(editingTask?.questionTable?.cellImageSizes ?? {})
-  const [tkBlockOrder, setTkBlockOrder] = useState<Array<'image' | 'table'>>(editingTask?.blockOrder ?? ['image', 'table'])
+  const [tkTableCellImageSizes, setTkTableCellImageSizes] = usePersistentState<Record<string, number>>(tkDraft + 'tableCellImageSizes', editingTask?.questionTable?.cellImageSizes ?? {})
+  const [tkBlockOrder, setTkBlockOrder] = usePersistentState<Array<'image' | 'table'>>(tkDraft + 'blockOrder', editingTask?.blockOrder ?? ['image', 'table'])
   const [tkImageCollapsed, setTkImageCollapsed] = useState(false)
   const [tkTableCollapsed, setTkTableCollapsed] = useState(false)
 
   // Ответ — which block + its config
-  const [tkAnswerType, setTkAnswerType] = useState<AnswerType>(editingTask?.answerType ?? 'single')
+  const [tkAnswerType, setTkAnswerType] = usePersistentState<AnswerType>(tkDraft + 'answerType', editingTask?.answerType ?? 'single')
   // single / multi
-  const [tkChoices, setTkChoices] = useState<string[]>(
+  const [tkChoices, setTkChoices] = usePersistentState<string[]>(tkDraft + 'choices',
     editingTask?.choices?.length ? editingTask.choices.map((c: TaskChoice) => c.text) : ['', '', '', '']
   )
-  const [tkCorrect, setTkCorrect] = useState<number[]>(
+  const [tkCorrect, setTkCorrect] = usePersistentState<number[]>(tkDraft + 'correct',
     editingTask?.choices?.length
       ? editingTask.choices.map((c: TaskChoice, i: number) => c.correct ? i : -1).filter((i: number) => i >= 0)
       : [0]
   )
-  const [tkChoicePts, setTkChoicePts] = useState<number[]>(
+  const [tkChoicePts, setTkChoicePts] = usePersistentState<number[]>(tkDraft + 'choicePts',
     editingTask?.choices?.length ? editingTask.choices.map((c: TaskChoice) => c.points ?? 0) : [1, 0, 0, 0]
   )
   // fill / tableFill / extended — single reference answer string
-  const [tkShortAnswer, setTkShortAnswer] = useState(
+  const [tkShortAnswer, setTkShortAnswer] = usePersistentState(tkDraft + 'shortAnswer',
     (editingTask?.answerType === 'fill' || editingTask?.answerType === 'tableFill' || editingTask?.answerType === 'extended')
       ? (editingTask.answer ?? '') : ''
   )
-  const [tkAllowPhoto, setTkAllowPhoto] = useState(editingTask?.allowPhoto ?? true)
+  const [tkAllowPhoto, setTkAllowPhoto] = usePersistentState(tkDraft + 'allowPhoto', editingTask?.allowPhoto ?? true)
   // matching — left prompts mapped to right options
-  const [tkMatchLeft, setTkMatchLeft] = useState<string[]>(editingTask?.matchLeft ?? ['', ''])
-  const [tkMatchRight, setTkMatchRight] = useState<string[]>(editingTask?.matchRight ?? ['', ''])
-  const [tkMatchMap, setTkMatchMap] = useState<number[]>(
+  const [tkMatchLeft, setTkMatchLeft] = usePersistentState<string[]>(tkDraft + 'matchLeft', editingTask?.matchLeft ?? ['', ''])
+  const [tkMatchRight, setTkMatchRight] = usePersistentState<string[]>(tkDraft + 'matchRight', editingTask?.matchRight ?? ['', ''])
+  const [tkMatchMap, setTkMatchMap] = usePersistentState<number[]>(tkDraft + 'matchMap',
     editingTask?.matchLeft ? editingTask.matchLeft.map((_: string, i: number) => i) : [0, 1]
   )
   // sequence — items already in the correct order
-  const [tkSeq, setTkSeq] = useState<string[]>(editingTask?.sequenceItems ?? ['', ''])
+  const [tkSeq, setTkSeq] = usePersistentState<string[]>(tkDraft + 'seq', editingTask?.sequenceItems ?? ['', ''])
 
-  const [tkSolution, setTkSolution] = useState(editingTask?.solution ?? '')
+  const [tkSolution, setTkSolution] = usePersistentState(tkDraft + 'solution', editingTask?.solution ?? '')
   const [explPhotos, setExplPhotos] = useState<string[]>([])
   const explTextareaRef = useRef<HTMLTextAreaElement>(null)
   const condImgFileRef = useRef<HTMLInputElement>(null)
@@ -1917,15 +1923,15 @@ function CreatorView({
   const [savedTaskId, setSavedTaskId] = useState<number | null>(null)
 
   // ── Scoring (shared across answer types) ──
-  const [trMaxPoints, setTrMaxPoints] = useState(editingTask?.maxPoints ?? 1)
-  const [answerKeys, setAnswerKeys] = useState<AnswerKey[]>(editingTask?.answerKeys as AnswerKey[] ?? [])
-  const [newKw, setNewKw] = useState('')
-  const [newKwPts, setNewKwPts] = useState(1)
-  const [scoreMode, setScoreMode] = useState<ScoreMode>(editingTask?.scoreMode ?? 'whole')
-  const [criteria, setCriteria] = useState<Criterion[]>(editingTask?.criteria as Criterion[] ?? [])
-  const [newCrit, setNewCrit] = useState('')
-  const [newCritPts, setNewCritPts] = useState(1)
-  const [criteriaVisible, setCriteriaVisible] = useState(editingTask?.criteriaVisibleOnCheck ?? false)
+  const [trMaxPoints, setTrMaxPoints] = usePersistentState(tkDraft + 'maxPoints', editingTask?.maxPoints ?? 1)
+  const [answerKeys, setAnswerKeys] = usePersistentState<AnswerKey[]>(tkDraft + 'answerKeys', editingTask?.answerKeys as AnswerKey[] ?? [])
+  const [newKw, setNewKw] = usePersistentState(tkDraft + 'newKw', '')
+  const [newKwPts, setNewKwPts] = usePersistentState(tkDraft + 'newKwPts', 1)
+  const [scoreMode, setScoreMode] = usePersistentState<ScoreMode>(tkDraft + 'scoreMode', editingTask?.scoreMode ?? 'whole')
+  const [criteria, setCriteria] = usePersistentState<Criterion[]>(tkDraft + 'criteria', editingTask?.criteria as Criterion[] ?? [])
+  const [newCrit, setNewCrit] = usePersistentState(tkDraft + 'newCrit', '')
+  const [newCritPts, setNewCritPts] = usePersistentState(tkDraft + 'newCritPts', 1)
+  const [criteriaVisible, setCriteriaVisible] = usePersistentState(tkDraft + 'criteriaVisible', editingTask?.criteriaVisibleOnCheck ?? false)
 
   const isChoiceType = tkAnswerType === 'single' || tkAnswerType === 'multi'
   const tkTopicMap = tkSubject === 'Химия' ? CHEMISTRY_TOPICS : BIOLOGY_TOPICS
@@ -2216,6 +2222,7 @@ function CreatorView({
       if (editingTask) {
         // Update existing task in the bank, then close without creating a new trainer card.
         replaceTask(editingTask.id, task)
+        clearDrafts(tkDraft)
         onCancel()
         return
       }
@@ -2248,6 +2255,7 @@ function CreatorView({
         lastEdited: dateStr,
       }
       onSaveTrainer(newTrainer)
+      clearDrafts(tkDraft)
       resetTaskForm()
     } else if (mode === 'course') {
       const c: Course = {
@@ -2268,6 +2276,12 @@ function CreatorView({
       }
       onSaveWidget(w)
     }
+  }
+
+  // Explicit close (Назад) — the user walks away from the form, drop its drafts.
+  function handleCancel() {
+    clearDrafts(tkDraft)
+    onCancel()
   }
 
   const canSave = mode === 'trainer' ? builtTask !== null
@@ -2310,7 +2324,7 @@ function CreatorView({
           >
             <motion.button
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-              onClick={onCancel}
+              onClick={handleCancel}
               style={{
                 display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
                 padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass,
@@ -2356,7 +2370,7 @@ function CreatorView({
         >
           <motion.button
             whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-            onClick={onCancel}
+            onClick={handleCancel}
             style={{
               display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
               padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
@@ -3773,7 +3787,8 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
 
   function copyLink() {
     const url = `${BASE_URL}#/diagnostic?subject=${subject}`
-    navigator.clipboard.writeText(url).then(() => {
+    void copyToClipboard(url).then(ok => {
+      if (!ok) return
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     })
@@ -4348,8 +4363,8 @@ function DiagResultsTable({
   const [copied, setCopied] = useState(false)
 
   function copyLink() {
-    navigator.clipboard.writeText(`${BASE_URL}#/diagnostic?subject=${subject}`)
-      .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
+    void copyToClipboard(`${BASE_URL}#/diagnostic?subject=${subject}`)
+      .then(ok => { if (!ok) return; setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
 
   return (
@@ -4907,8 +4922,8 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   }
 
   function copyLink() {
-    navigator.clipboard.writeText(`${BASE_URL}#/diagnostic?subject=${subject}`)
-      .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
+    void copyToClipboard(`${BASE_URL}#/diagnostic?subject=${subject}`)
+      .then(ok => { if (!ok) return; setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
 
   useEffect(() => { fetchDiagQuestions(subject).then(setQuestions) }, [subject])
@@ -6642,8 +6657,8 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
   useEffect(() => { refreshResults() }, [subject])
 
   function copyLink() {
-    navigator.clipboard.writeText(`${BASE_URL}#/diagnostic?subject=${subject}`)
-      .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
+    void copyToClipboard(`${BASE_URL}#/diagnostic?subject=${subject}`)
+      .then(ok => { if (!ok) return; setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
   async function handleLink(resultId: string, studentId: string) { await linkAnonResult(resultId, studentId); await refreshResults(); setPickerFor(null) }
   async function handleUnlink(resultId: string) { await unlinkAnonResult(resultId); await refreshResults() }
@@ -6910,7 +6925,11 @@ export default function TeacherConstructorPage() {
       setAssignmentResults([])
     }
   }, [selectedAssignmentId])
-  const [creatorMode, setCreatorMode] = useState<Exclude<Tab, 'testing' | 'bank'> | null>(null)
+  // Reopen the trainer task composer after a reload (its field drafts survive
+  // in sessionStorage); other creator modes hold object state we can't restore.
+  const [creatorMode, setCreatorMode] = useState<Exclude<Tab, 'testing' | 'bank'> | null>(
+    () => readDraft<string>('taskctor.open') === 'trainer' ? 'trainer' : null
+  )
   const [editCourse, setEditCourse] = useState<Course | null>(null)
   const [editTrainer, setEditTrainer] = useState<Trainer | null>(null)
   const [editWidget, setEditWidget] = useState<Widget | null>(null)
@@ -7049,17 +7068,24 @@ export default function TeacherConstructorPage() {
   const editTaskIntent = useTeacher(s => s.editTaskIntent)
   const clearEditTaskIntent = useTeacher(s => s.clearEditTaskIntent)
   const allTasks = useTaskBank(s => s.tasks)
-  const [editingTask, setEditingTask] = useState<BankTask | null>(null)
+  // Persist only the id — the task object itself may hold base64 images; it is
+  // re-resolved from the bank once tasks load after a reload.
+  const [editingTaskId, setEditingTaskId] = usePersistentState<number | null>('taskctor.editingTaskId', null)
+  const editingTask = editingTaskId == null ? null : allTasks.find(t => t.id === editingTaskId) ?? null
   useEffect(() => {
     if (editTaskIntent == null) return
-    const task = allTasks.find(t => t.id === editTaskIntent) ?? null
     setActiveTab('trainer')
     setEditCourse(null)
     setCreatorMode('trainer')
     setSelectedId(null)
-    setEditingTask(task)
+    setEditingTaskId(editTaskIntent)
     clearEditTaskIntent()
   }, [editTaskIntent, clearEditTaskIntent])
+  // Mirror the composer-open flag so a reload can restore it. The trainer-card
+  // editor (editTrainer) reuses creatorMode='trainer' but isn't restorable.
+  useEffect(() => {
+    writeDraft('taskctor.open', creatorMode === 'trainer' && !editTrainer ? 'trainer' : null)
+  }, [creatorMode, editTrainer])
 
   // Back signal: user clicked "Конструктор" nav while already on this page.
   // Auto-save draft (for future expansion) and return to the list with the item highlighted.
@@ -7087,7 +7113,7 @@ export default function TeacherConstructorPage() {
       setEditTrainer(null)
       setEditWidget(null)
       setEditCourse(null)
-      setEditingTask(null)
+      setEditingTaskId(null)
       setActiveTab(tab)
       if (itemId) {
         setSelectedId(itemId)
@@ -7232,7 +7258,7 @@ export default function TeacherConstructorPage() {
   function closeEditor() { setSelectedId(null); setDiagEditing(null); setSelectedResultId(null) }
 
   function handleTabChange(t: Tab) {
-    setActiveTab(t); setSelectedId(null); setDiagEditing(null); setDiagCreating(false); setSelectedResultId(null); setCreatorMode(null); setEditCourse(null); setEditTrainer(null); setEditWidget(null); setSelectedTrainerId(null)
+    setActiveTab(t); setSelectedId(null); setDiagEditing(null); setDiagCreating(false); setSelectedResultId(null); setCreatorMode(null); setEditCourse(null); setEditTrainer(null); setEditingTaskId(null); setEditWidget(null); setSelectedTrainerId(null)
     setEditMode(false); setCheckedIds(new Set())
     if (t === 'testing') loadAnonResults().then(setDiagAnonResults)
   }
@@ -7241,7 +7267,7 @@ export default function TeacherConstructorPage() {
     if (activeTab === 'bank') return // the bank tab manages taxonomy inline; nothing to create
     if (activeTab === 'testing') { setDiagCreating(true); return }
     if (activeTab === 'course') { goToNewCourseEditor(); return }
-    setEditCourse(null); setEditTrainer(null); setEditWidget(null)
+    setEditCourse(null); setEditTrainer(null); setEditingTaskId(null); setEditWidget(null)
     setCreatorMode(activeTab)
     setSelectedId(null)
     setEditMode(false); setCheckedIds(new Set())
@@ -7470,7 +7496,7 @@ export default function TeacherConstructorPage() {
             onSaveTrainer={handleSaveTrainer}
             onSaveCourse={handleSaveCourse}
             onSaveWidget={handleSaveWidget}
-            onCancel={() => { setCreatorMode(null); setEditCourse(null); setEditTrainer(null); setEditingTask(null); setEditWidget(null) }}
+            onCancel={() => { setCreatorMode(null); setEditCourse(null); setEditTrainer(null); setEditingTaskId(null); setEditWidget(null) }}
           />
         ) : diagCreating ? (
           <DiagnosticTestCreator

@@ -10,6 +10,9 @@ import { useHomework, useHomeworkSubmissions } from '../../lib/useHomework'
 import { useGroups, useStudents } from '../../lib/useGroups'
 import { useTeacher, type HwReview } from '../../store/teacherStore'
 import RichConditionEditor from '../../components/teacher/RichConditionEditor'
+import { readDraft, writeDraft, clearDraft } from '../../lib/useDraft'
+
+type ReviewDraft = { score: string; taskScores: Record<string, string>; comment: string }
 
 function initials(name: string) {
   return name.split(' ').map(p => p[0]).join('').slice(0, 2)
@@ -319,7 +322,8 @@ export default function TeacherHomeworkReviewPage() {
     prevIdxRef.current = reviewIdx
   }
   // Per-student draft: score (manual), taskScores (per-task), comment.
-  const [drafts, setDrafts] = useState<Record<string, { score: string; taskScores: Record<string, string>; comment: string }>>({})
+  // Mirrored into sessionStorage per hw+student so grading survives a reload.
+  const [drafts, setDrafts] = useState<Record<string, ReviewDraft>>({})
   const scrollRef = useRef<HTMLDivElement>(null)
   // Shared via the store — the dashboard hides the ReviewNavPill while the
   // docked bar shows its own arrows/counter on the same spot.
@@ -354,7 +358,8 @@ export default function TeacherHomeworkReviewPage() {
   const student = submitters[idx]
   const currentSubmission = rawSubmissions.find(s => s.studentId === student?.id)
   const existing = hwReviews[student.id]
-  const draft = drafts[student.id] ?? {
+  const draftKey = `hwReview:${hw.id}:${student.id}`
+  const draft = drafts[student.id] ?? readDraft<ReviewDraft>(draftKey) ?? {
     score: existing ? String(existing.score) : '',
     taskScores: existing?.taskScores
       ? Object.fromEntries(Object.entries(existing.taskScores).map(([k, v]) => [k, String(v)]))
@@ -373,8 +378,10 @@ export default function TeacherHomeworkReviewPage() {
   const reviewedCount = submitters.filter(s => hwReviews[s.id]).length
   const allDone = reviewedCount === submitters.length
 
-  function setDraft(patch: Partial<{ score: string; taskScores: Record<string, string>; comment: string }>) {
-    setDrafts(d => ({ ...d, [student.id]: { ...draft, ...patch } }))
+  function setDraft(patch: Partial<ReviewDraft>) {
+    const next = { ...draft, ...patch }
+    setDrafts(d => ({ ...d, [student.id]: next }))
+    writeDraft(draftKey, next)
   }
 
   function setTaskScore(taskId: string, value: string) {
@@ -405,6 +412,11 @@ export default function TeacherHomeworkReviewPage() {
         )
       : undefined
     submitReview(hw!.id, student.id, { verdict, score, taskScores, comment: draft.comment })
+    clearDraft(draftKey)
+    setDrafts(d => {
+      const { [student.id]: _gone, ...rest } = d
+      return rest
+    })
     setTimeout(advance, 260)
   }
 

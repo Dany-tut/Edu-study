@@ -14,6 +14,7 @@ import {
   sectionsForSubject, topicsForSelection, sectionsForParts, partsForSections,
 } from '../data/taskBankData'
 import MultiSelectField from '../components/MultiSelectField'
+import { copyToClipboard } from '../lib/clipboard'
 import { useCurriculum } from '../store/curriculumStore'
 import { useTaskBank } from '../store/taskBankStore'
 import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../store/taskMetaStore'
@@ -155,7 +156,7 @@ function NumberBadge({ id, onCopied }: { id: number; onCopied: () => void }) {
   const [tipped, setTipped] = useState(false)
   function copy(e: React.MouseEvent) {
     e.stopPropagation()
-    navigator.clipboard.writeText(`№${id}`)
+    void copyToClipboard(`№${id}`)
     setTipped(true)
     onCopied()
     setTimeout(() => setTipped(false), 1400)
@@ -239,7 +240,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
     onAnswer(task.id, inputVal, inputVal.trim().toLowerCase() === task.answer.toLowerCase())
   }
   function share() {
-    navigator.clipboard.writeText(`№${task.id} · ${task.question.replace(/<[^>]*>/g, '').slice(0, 80)}…`)
+    void copyToClipboard(`№${task.id} · ${task.question.replace(/<[^>]*>/g, '').slice(0, 80)}…`)
     setCopied(true); setTimeout(() => setCopied(false), 1400)
   }
 

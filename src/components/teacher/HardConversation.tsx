@@ -8,6 +8,7 @@ import WhiteboardCanvas from './WhiteboardCanvas'
 import AnnotationLayer, { type Annotation } from './AnnotationLayer'
 import AnswerBody from './AnswerBody'
 import { optimizePhoto } from '../../lib/imageOptim'
+import { usePersistentState } from '../../lib/useDraft'
 import { getContrastColor } from '../../lib/utils'
 import {
   type HardTaskStudentBlock, type HardTaskReviewBlock, type HardEvent, type HardSolution,
@@ -223,17 +224,18 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
 
 // ─── Teacher composer ─────────────────────────────────────────────────────────
 
-function TeacherComposer({ solution, busy, onReview }: {
-  solution: HardSolution | null; busy?: boolean
+function TeacherComposer({ draftKey, solution, busy, onReview }: {
+  draftKey: string; solution: HardSolution | null; busy?: boolean
   onReview: (payload: ReviewPayload) => void
 }) {
-  const [comment, setComment] = useState('')
+  // Text/score survive a reload; photos/board/annotation are base64 — not persisted.
+  const [comment, setComment] = usePersistentState(`${draftKey}:comment`, '')
   const [photos, setPhotos] = useState<string[]>([])
   const [board, setBoard] = useState<string | null>(null)
   const [showBoard, setShowBoard] = useState(false)
   const [annotating, setAnnotating] = useState(false)
   const [annotation, setAnnotation] = useState<Annotation | null>(null)
-  const [score, setScore] = useState<number>(5)
+  const [score, setScore] = usePersistentState<number>(`${draftKey}:score`, 5)
   const [returnError, setReturnError] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -327,7 +329,7 @@ const DEFAULT_PALETTE = { accent: 'var(--color-accent)', soft: 'var(--color-purp
 
 export default function HardConversation({
   tabs, studentBlocks, reviewBlocks, role, activeKey, onSelectTab, onZoomPhoto,
-  onSubmitSolution, onReview, busy, palette = DEFAULT_PALETTE,
+  onSubmitSolution, onReview, busy, palette = DEFAULT_PALETTE, draftScope,
 }: {
   tabs: HardTabVM[]
   studentBlocks: HardTaskStudentBlock[]
@@ -340,6 +342,8 @@ export default function HardConversation({
   onReview?: (key: string, payload: ReviewPayload) => void
   busy?: boolean
   palette?: { accent: string; soft: string; text: string; ring: string }
+  // Draft namespace for the teacher composer, e.g. `hardReview:${submissionId}`.
+  draftScope?: string
 }) {
   const sbByKey = new Map(studentBlocks.map(b => [b.key, b]))
   const rbByKey = new Map(reviewBlocks.map(b => [b.key, b]))
@@ -386,7 +390,7 @@ export default function HardConversation({
 
       {teacherCanReview && (
         <div style={{ padding: 18, borderRadius: 20, background: 'rgba(var(--glass-rgb),0.96)', border: '1px solid var(--color-border-soft)' }}>
-          <TeacherComposer key={tab.key + events.length} solution={lastSolutionOf(sb)} busy={busy} onReview={p => onReview!(tab.key, p)} />
+          <TeacherComposer key={tab.key + events.length} draftKey={`${draftScope ?? 'hardReview'}:${tab.key}`} solution={lastSolutionOf(sb)} busy={busy} onReview={p => onReview!(tab.key, p)} />
         </div>
       )}
 

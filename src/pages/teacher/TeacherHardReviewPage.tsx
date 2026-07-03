@@ -8,6 +8,7 @@ import {
   teacherComments, deriveHardRowStatus, deriveHardScore, hardId,
 } from '../../lib/useHomework'
 import { openHardSubHomework } from '../../lib/teacherNav'
+import { clearDrafts } from '../../lib/useDraft'
 import HardConversation, { type HardTabVM, type ReviewPayload } from '../../components/teacher/HardConversation'
 
 const glass: React.CSSProperties = {
@@ -79,6 +80,7 @@ export default function TeacherHardReviewPage() {
     const score = deriveHardScore(tasks)
     setBusy(true)
     await reviewHardMulti(sub!.id, review, status, score)
+    clearDrafts(`hardReview:${sub!.id}:${key}`)
     setBusy(false)
   }
 
@@ -169,6 +171,7 @@ export default function TeacherHardReviewPage() {
             onZoomPhoto={setZoom}
             onReview={reviewTab}
             busy={busy}
+            draftScope={`hardReview:${sub.id}`}
           />
         </div>
       </div>

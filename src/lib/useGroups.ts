@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
-import type { Group, Student } from '../data/teacherMockData'
+import type { Group, GroupTrack, Student } from '../data/teacherMockData'
+
+// Subject → emoji, mirrored from the modal's SUBJECT_ICONS so each extra
+// направление card gets the right icon when the modal only passes its name.
+const SUBJECT_ICON: Record<string, string> = {
+  'Химия': '🧪', 'Биология': '🧬', 'Физика': '⚡', 'Математика': '📐',
+  'Русский': '📝', 'Литература': '📖', 'История': '🏛️', 'Английский': '🇬🇧',
+}
 
 type DbGroup = {
   id: string
@@ -14,6 +21,7 @@ type DbGroup = {
   start_date: string | null
   total_lessons: number
   is_individual: boolean
+  tracks?: GroupTrack[] | null
   students: { count: number }[]
 }
 
@@ -42,6 +50,7 @@ export function useGroups() {
         lessonsCompleted: 0,
         totalLessons: g.total_lessons,
         isIndividual: g.is_individual,
+        tracks: Array.isArray(g.tracks) ? g.tracks : [],
       })))
     }
     setLoading(false)
@@ -78,33 +87,66 @@ export function useGroups() {
     parentContact?: string
     desiredScore?: number
     paymentAmount?: number
+    tracks?: GroupTrack[]
   }) {
-    const { data: groupData, error: groupError } = await supabase.from('groups').insert({
-      name: s.name,
-      subject: s.subject,
-      icon: s.icon,
-      level: s.level,
-      color: s.color,
-      color_soft: s.colorSoft,
-      start_date: null,
-      total_lessons: 0,
-      is_individual: true,
-      created_by: await getOwnerId(),
-    }).select().single()
-    if (groupError || !groupData) return { error: groupError, inviteToken: null }
+    const uid = await getOwnerId()
 
-    const { data: studentData, error: studentError } = await supabase.from('students').insert({
-      group_id: groupData.id,
-      name: s.name,
-      phone: s.phone ?? '',
-      telegram_link: s.telegramLink ?? '',
-      parent_contact: s.parentContact ?? '',
-      desired_score: s.desiredScore ?? 80,
-      payment_amount: s.paymentAmount ?? 0,
-    }).select('invite_token').single()
+    // One individual (1:1) group card PER направление: the primary subject/level
+    // plus every extra track the teacher added. Each card is a separate group with
+    // its own student row for the same person — so the teacher can run schedule,
+    // journal and homework independently per subject. The student registers via the
+    // primary card's invite link; that's the token/id we hand back.
+    const cards: { subject: Group['subject']; level: string; icon: string }[] = [
+      { subject: s.subject, level: s.level, icon: s.icon },
+      ...(s.tracks ?? [])
+        .filter(t => t.subject.trim() || t.level.trim())
+        .map(t => ({
+          subject: t.subject as Group['subject'],
+          level: t.level,
+          icon: SUBJECT_ICON[t.subject] ?? '📚',
+        })),
+    ]
+
+    let firstInvite: string | null = null
+    let firstStudentId: string | null = null
+    let firstGroupId: string | null = null
+    let firstError: unknown = null
+
+    for (let i = 0; i < cards.length; i++) {
+      const card = cards[i]
+      const { data: groupData, error: groupError } = await supabase.from('groups').insert({
+        name: s.name,
+        subject: card.subject,
+        icon: card.icon,
+        level: card.level,
+        color: s.color,
+        color_soft: s.colorSoft,
+        start_date: null,
+        total_lessons: 0,
+        is_individual: true,
+        created_by: uid,
+      }).select().single()
+      if (groupError || !groupData) { firstError = firstError ?? groupError; continue }
+
+      const { data: studentData, error: studentError } = await supabase.from('students').insert({
+        group_id: groupData.id,
+        name: s.name,
+        phone: s.phone ?? '',
+        telegram_link: s.telegramLink ?? '',
+        parent_contact: s.parentContact ?? '',
+        desired_score: s.desiredScore ?? 80,
+        payment_amount: s.paymentAmount ?? 0,
+      }).select('id, invite_token').single()
+      if (studentError) { firstError = firstError ?? studentError; continue }
+      if (i === 0) {
+        firstInvite = studentData?.invite_token as string | null
+        firstStudentId = studentData?.id as string | null
+        firstGroupId = groupData.id as string
+      }
+    }
 
     await load()
-    return { error: studentError, inviteToken: studentData?.invite_token as string | null }
+    return { error: firstError, inviteToken: firstInvite, studentId: firstStudentId, groupId: firstGroupId }
   }
 
   async function addStudentToGroup(targetGroupId: string, s: Partial<Student>) {
@@ -130,7 +172,11 @@ export function useGroups() {
       })
     }
     await load()
-    return { error, inviteToken: data?.invite_token as string | null }
+    return {
+      error,
+      inviteToken: data?.invite_token as string | null,
+      studentId: data?.id as string | null,
+    }
   }
 
   async function deleteGroup(id: string) {
@@ -138,7 +184,59 @@ export function useGroups() {
     await load()
   }
 
-  return { groups, loading, addGroup, addIndividualStudent, addStudentToGroup, deleteGroup, reload: load }
+  // Replace the extra направления of a (1:1) group — add/remove mid-training.
+  async function updateGroupTracks(groupId: string, tracks: GroupTrack[]) {
+    const { error } = await supabase.from('groups').update({ tracks }).eq('id', groupId)
+    if (!error) await load()
+    return { error }
+  }
+
+  return { groups, loading, addGroup, addIndividualStudent, addStudentToGroup, deleteGroup, updateGroupTracks, reload: load }
+}
+
+export type TeacherCourseOption = { id: string; title: string; subject: string; level: string }
+
+// Published courses owned by the current teacher — used by the new-student
+// config step to optionally assign a course on creation.
+export async function fetchTeacherCourses(): Promise<TeacherCourseOption[]> {
+  const uid = await getOwnerId()
+  const { data } = await supabase
+    .from('courses')
+    .select('id, title, subject, level, status, created_by')
+    .eq('created_by', uid)
+    .eq('status', 'published')
+    .order('created_at', { ascending: false })
+  return (data ?? []).map((c: any) => ({ id: c.id, title: c.title, subject: c.subject, level: c.level }))
+}
+
+// Applies the new-student config (widget visibility + optional course) right
+// after the student row is created, before the invite link is shown. Both parts
+// are optional; each failure is swallowed so a partial config never blocks the
+// teacher from handing out the link.
+export async function configureNewStudent(
+  studentId: string,
+  opts: { hiddenWidgets?: number[]; courseId?: string | null; groupId?: string | null },
+): Promise<void> {
+  const { hiddenWidgets, courseId, groupId } = opts
+
+  if (hiddenWidgets && hiddenWidgets.length > 0) {
+    await supabase.from('students').update({ hidden_widgets: hiddenWidgets }).eq('id', studentId)
+  }
+
+  if (courseId) {
+    // Append the student to the course's student_ids (idempotent). fetchCourseStructure
+    // reads `student_ids.cs.{id}`, so this alone makes the course appear on the
+    // student's dashboard; the teacher opens individual lessons afterwards.
+    const { data: course } = await supabase
+      .from('courses').select('student_ids').eq('id', courseId).single()
+    const current = (course?.student_ids as string[] | null) ?? []
+    if (!current.includes(studentId)) {
+      await supabase.from('courses').update({ student_ids: [...current, studentId] }).eq('id', courseId)
+    }
+    if (groupId) {
+      await supabase.rpc('seed_student_progress', { p_student_id: studentId, p_group_id: groupId })
+    }
+  }
 }
 
 // Resolve the individual (1:1) group a single-student homework should attach to.

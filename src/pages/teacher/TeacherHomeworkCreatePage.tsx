@@ -14,6 +14,7 @@ import { supabase } from '../../lib/supabase'
 import { cardChip, cardChipTone } from '../../lib/pillStyles'
 import { useGroups, useStudents, useAllStudents, resolveIndividualGroup } from '../../lib/useGroups'
 import { useHomework, type HardTaskDef } from '../../lib/useHomework'
+import { usePersistentState, readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 import { useCourseLessons, type CourseLesson } from '../../lib/useCourseLessons'
 import {
   SOURCES, linesForSelection, sectionsForSubject, topicsForSubject,
@@ -1944,6 +1945,14 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
 
 type MainTab = 'compose' | 'trainer' | 'preview'
 
+// Drop base64-capable fields before drafting a task list (sessionStorage quota).
+function stripHeavyFields(tasks: HWTask[]) {
+  return tasks.map(({ image, canvasData, table, ...t }) => ({
+    ...t,
+    table: table ? { ...table, cellImages: undefined } : undefined,
+  }))
+}
+
 export default function TeacherHomeworkCreatePage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const selectedGroupId = useTeacher(s => s.selectedGroupId)
@@ -1956,20 +1965,36 @@ export default function TeacherHomeworkCreatePage() {
   const bankTasks = useTaskBank(s => s.tasks)
   const loadBank = useTaskBank(s => s.load)
 
-  const [meta, setMeta] = useState<Meta>({
+  // Draft namespace, scoped by the edited homework so drafts don't leak between entities.
+  const draftScope = `hwcreate.${editingHomeworkId ?? 'new'}`
+  // Snapshot before the persistence effects below write initial values into storage.
+  const [hadDraft] = useState(() => ({
+    meta: readDraft(`${draftScope}.meta`) !== null,
+    tasks: readDraft(`${draftScope}.hwTasks`) !== null || readDraft(`${draftScope}.hardTasks`) !== null,
+  }))
+
+  const [meta, setMeta] = usePersistentState<Meta>(`${draftScope}.meta`, () => ({
     // "ДЗ допом" from the roster pre-scopes a single student; otherwise prefill
     // the group picked on the homework page (empty = assign to all).
     assignTo: hwPresetStudentId ? 'student' : 'group',
     groupId: hwPresetStudentId ? '' : (selectedGroupId ?? ''),
     studentId: hwPresetStudentId ?? '',
     title: '', description: '', dueDate: '', lessonId: '',
-  })
+  }))
   // Consume the preset once so re-entering the composer normally doesn't re-trigger it.
-  useEffect(() => { if (hwPresetStudentId) clearHwPreset() }, [hwPresetStudentId, clearHwPreset])
+  // The explicit "ДЗ допом" target also wins over a restored draft's target.
+  useEffect(() => {
+    if (!hwPresetStudentId) return
+    setMeta(m => m.studentId === hwPresetStudentId ? m : { ...m, assignTo: 'student', studentId: hwPresetStudentId, groupId: '' })
+    clearHwPreset()
+  }, [hwPresetStudentId, clearHwPreset, setMeta])
   const { students: groupStudents } = useStudents(meta.groupId || null)
   const [activeTab, setActiveTab] = useState<MainTab>('compose')
-  const [hwTasks, setHwTasks] = useState<HWTask[]>([])
-  const [hardTasks, setHardTasks] = useState<HWTask[]>([])
+  const [hwTasks, setHwTasks] = useState<HWTask[]>(() => readDraft<HWTask[]>(`${draftScope}.hwTasks`) ?? [])
+  const [hardTasks, setHardTasks] = useState<HWTask[]>(() => readDraft<HWTask[]>(`${draftScope}.hardTasks`) ?? [])
+  // Persist task lists without base64 payloads (photos/whiteboard) — sessionStorage quota.
+  useEffect(() => { writeDraft(`${draftScope}.hwTasks`, stripHeavyFields(hwTasks)) }, [draftScope, hwTasks])
+  useEffect(() => { writeDraft(`${draftScope}.hardTasks`, stripHeavyFields(hardTasks)) }, [draftScope, hardTasks])
 
   // Edit mode — step 1: fetch the homework once, prefill meta immediately, stash
   // its task ids, and kick off a task-bank load (the composer doesn't load it on
@@ -1982,6 +2007,8 @@ export default function TeacherHomeworkCreatePage() {
     if (!editingHomeworkId || prefilledRef.current) return
     prefilledRef.current = true
     loadBank()
+    // A restored draft means a reload interrupted an edit — it wins over the DB row.
+    if (hadDraft.meta && hadDraft.tasks) return
     supabase
       .from('homework')
       .select('group_id, title, due_date, task_ids, hard_task_ids, hard_tasks, lesson_id')
@@ -1989,10 +2016,13 @@ export default function TeacherHomeworkCreatePage() {
       .single()
       .then(({ data }) => {
         if (!data) return
-        const hardIds: number[] = Array.isArray(data.hard_task_ids) ? data.hard_task_ids : []
-        const allIds: number[] = Array.isArray(data.task_ids) ? data.task_ids : []
-        setEditHardDefs(Array.isArray(data.hard_tasks) ? (data.hard_tasks as HardTaskDef[]) : [])
-        setEditTaskIds({ regular: allIds.filter(id => !hardIds.includes(id)), hard: hardIds })
+        if (!hadDraft.tasks) {
+          const hardIds: number[] = Array.isArray(data.hard_task_ids) ? data.hard_task_ids : []
+          const allIds: number[] = Array.isArray(data.task_ids) ? data.task_ids : []
+          setEditHardDefs(Array.isArray(data.hard_tasks) ? (data.hard_tasks as HardTaskDef[]) : [])
+          setEditTaskIds({ regular: allIds.filter(id => !hardIds.includes(id)), hard: hardIds })
+        }
+        if (hadDraft.meta) return
         const due = data.due_date
           ? (() => { const [y, m, d] = String(data.due_date).split('-'); return `${d}.${m}.${y}` })()
           : ''
@@ -2005,7 +2035,7 @@ export default function TeacherHomeworkCreatePage() {
           lessonId: data.lesson_id ?? '',
         }))
       })
-  }, [editingHomeworkId, loadBank])
+  }, [editingHomeworkId, loadBank, hadDraft, setMeta])
 
   // Step 2: reconstruct the task cards from bank ids, once the bank is loaded.
   useEffect(() => {
@@ -2030,7 +2060,10 @@ export default function TeacherHomeworkCreatePage() {
     }
   }, [editTaskIds, bankTasks, editHardDefs])
   const [trainerFilters, setTrainerFilters] = useState<TrainerFilters>({ search: '', subject: '', sections: [], topics: [], parts: [], lines: [], source: '' })
-  const [trainerAddedIds, setTrainerAddedIds] = useState<Set<number>>(new Set())
+  // Rebuilt from the restored draft so trainer rows keep their "added" state.
+  const [trainerAddedIds, setTrainerAddedIds] = useState<Set<number>>(
+    () => new Set(hwTasks.filter(t => t.bankId != null).map(t => t.bankId!)),
+  )
   const [trainerDialogTaskId, setTrainerDialogTaskId] = useState<string | null>(null)
   const [published, setPublished] = useState(false)
   const [showPublishConfirm, setShowPublishConfirm] = useState(false)
@@ -2051,6 +2084,12 @@ export default function TeacherHomeworkCreatePage() {
   const draftLabel = 'Черновик'
 
   function updateMeta(p: Partial<Meta>) { setMeta(m => ({ ...m, ...p })) }
+
+  // Explicit "Назад" = user abandons the form — the one place a draft dies unsaved.
+  function exitPage() {
+    clearDrafts(`${draftScope}.`)
+    setActivePage('homework')
+  }
 
   function updateTask(id: string, p: Partial<HWTask>, isHard = false) {
     const setter = isHard ? setHardTasks : setHwTasks
@@ -2141,6 +2180,7 @@ export default function TeacherHomeworkCreatePage() {
       }
       if (editingHomeworkId) await updateHomework(editingHomeworkId, payload)
       else await createHomework(payload)
+      clearDrafts(`${draftScope}.`)
     }
     // For edit mode the roster size shouldn't change just because the composer
     // resolved a fresh 1:1 group — keep the existing group (handled above by
@@ -2177,7 +2217,7 @@ export default function TeacherHomeworkCreatePage() {
           >
             <motion.button
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-              onClick={() => setActivePage('homework')}
+              onClick={exitPage}
               style={{
                 display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
                 padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass,
@@ -2232,7 +2272,7 @@ export default function TeacherHomeworkCreatePage() {
         >
           <motion.button
             whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-            onClick={() => setActivePage('homework')}
+            onClick={exitPage}
             style={{
               display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
               padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)',

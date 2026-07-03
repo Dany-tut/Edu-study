@@ -77,15 +77,9 @@ export default function TeacherSelect({
   }
 
   const handleTriggerClick = () => {
-    if (open) {
-      // Always close; if something was selected, also clear it
-      if (!isEmpty) onChange('')
-      closeDropdown()
-      return
-    }
-    // Closed: if something selected, clear it before opening so user can search fresh
-    if (!isEmpty) onChange('')
-    openDropdown()
+    // Plain toggle — never wipes the current selection. Clearing is the × button's job.
+    if (open) closeDropdown()
+    else openDropdown()
   }
 
   const handleClear = (e: React.MouseEvent) => {
@@ -147,7 +141,7 @@ export default function TeacherSelect({
           <span style={{
             flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
             color: isEmpty ? 'var(--color-text-3)' : undefined,
-            fontWeight: isEmpty ? 400 : 600,
+            fontWeight: 500,
             cursor: 'pointer',
           }}>
             {isEmpty ? (placeholder ?? '') : current!.label}

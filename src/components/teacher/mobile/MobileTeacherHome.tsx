@@ -6,6 +6,7 @@ import MobileSheet from '../../MobileSheet'
 import { GlassPill } from '../../mobileChrome'
 import { PAIR } from '../../../lib/mobileTokens'
 import { tactile } from '../../../lib/feedback'
+import { copyToClipboard } from '../../../lib/clipboard'
 import { useHomework, useHardSubmissions } from '../../../lib/useHomework'
 import { useGroups } from '../../../lib/useGroups'
 import { loadTestAssignments, type TestAssignment } from '../../../data/diagnosticData'
@@ -59,7 +60,7 @@ function LinkRow({ label, sub, url }: { label: string; sub?: string; url: string
   const [copied, setCopied] = useState(false)
   const copy = () => {
     tactile()
-    navigator.clipboard.writeText(url)
+    void copyToClipboard(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 1600)
   }

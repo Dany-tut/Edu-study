@@ -64,7 +64,11 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     // the freshly-loaded data. Realtime re-syncs leave the user's current tab put.
     const firstLoad = !get().loaded
 
-    const [progress, schedule, catalog, quizQ, facts, memes, reactions] = await Promise.all([
+    // allSettled (not Promise.all): one failing request must NOT reject the whole
+    // load and leave `loaded:false` forever — that strands the dashboard on an
+    // infinite "Загрузка…" spinner (a dead white screen for the student). Each
+    // slice falls back to an empty value so the UI renders whatever succeeded.
+    const results = await Promise.allSettled([
       fetchLessonProgress(session.id),
       fetchScheduleDays(session.groupId, session.id),
       fetchCourseStructure(session.id, session.groupId),
@@ -73,6 +77,15 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       fetchScienceMemes(),
       fetchCourseReactions(),
     ])
+    const val = <T,>(i: number, fallback: T): T =>
+      results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<T>).value : fallback
+    const progress  = val(0, {} as Awaited<ReturnType<typeof fetchLessonProgress>>)
+    const schedule  = val(1, [] as Awaited<ReturnType<typeof fetchScheduleDays>>)
+    const catalog   = val(2, [] as Awaited<ReturnType<typeof fetchCourseStructure>>)
+    const quizQ     = val(3, [] as Awaited<ReturnType<typeof fetchQuizQuestions>>)
+    const facts     = val(4, [] as Awaited<ReturnType<typeof fetchScienceFacts>>)
+    const memes     = val(5, [] as Awaited<ReturnType<typeof fetchScienceMemes>>)
+    const reactions = val(6, [] as Awaited<ReturnType<typeof fetchCourseReactions>>)
 
     let mergedSubjects = mergeSubjectsWithProgress(catalog, progress)
     let stats = computeStats(progress)
@@ -86,10 +99,15 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       try { return new URLSearchParams(window.location.search).get('demo') === '1' } catch { return false }
     })()
     if ((import.meta.env.DEV || demoFlag) && mergedSubjects.length === 0) {
-      const { DEMO_SUBJECTS, DEMO_SCHEDULE, DEMO_STATS } = await import('../data/devStudentDemo')
-      mergedSubjects = DEMO_SUBJECTS
-      scheduleDays = DEMO_SCHEDULE
-      stats = DEMO_STATS
+      // Guard the dynamic import: a stale chunk hash after a deploy makes this
+      // reject ("Failed to fetch dynamically imported module"). Swallow it so
+      // the student still gets a rendered (empty-state) dashboard, not a crash.
+      try {
+        const { DEMO_SUBJECTS, DEMO_SCHEDULE, DEMO_STATS } = await import('../data/devStudentDemo')
+        mergedSubjects = DEMO_SUBJECTS
+        scheduleDays = DEMO_SCHEDULE
+        stats = DEMO_STATS
+      } catch { /* demo data unavailable — render empty state */ }
     }
 
     const todayIdx = scheduleDays.findIndex(d => d.isToday)

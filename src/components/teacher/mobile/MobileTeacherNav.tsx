@@ -22,11 +22,14 @@ export default function MobileTeacherNav({
   active,
   onChange,
   reviewBadge = 0,
+  hidden = [],
 }: {
   active: MTab
   onChange: (tab: MTab) => void
   reviewBadge?: number
+  hidden?: MTab[]
 }) {
+  const visibleItems = items.filter(item => !hidden.includes(item.id))
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
@@ -44,7 +47,7 @@ export default function MobileTeacherNav({
           height: 72,
         }}
       >
-        {items.map(item => {
+        {visibleItems.map(item => {
           const Icon = item.icon
           const isActive = active === item.id
           return (

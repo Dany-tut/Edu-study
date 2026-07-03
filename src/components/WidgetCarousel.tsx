@@ -33,7 +33,13 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
   // omits it and keeps the user's stored column preference.
   const storeColumns = useDashboard(s => s.widgetColumns)
   const perPage = columnsOverride ?? storeColumns
-  const widgetOrder = useDashboard(s => s.widgetOrder)
+  const rawOrder = useDashboard(s => s.widgetOrder)
+  const hiddenWidgets = useDashboard(s => s.hiddenWidgets)
+  // Teacher-enforced hard-hide: drop any widget the teacher hid for this student
+  // so it never renders and leaves no empty trailing page.
+  const widgetOrder = hiddenWidgets.length
+    ? rawOrder.filter(id => !hiddenWidgets.includes(id))
+    : rawOrder
   // Page count follows the number of *visible* widgets (hidden ones are simply
   // absent from widgetOrder), so a hidden widget leaves no empty trailing page.
   const pageCount = Math.max(1, Math.ceil(widgetOrder.length / perPage))
