@@ -53,8 +53,8 @@ if (phKey) {
 ;(() => {
   const timers = new WeakMap<Element, ReturnType<typeof setTimeout>>()
   window.addEventListener('scroll', e => {
-    const el = e.target as Element
-    if (!el || el === document) return
+    const el = e.target as Element | Document
+    if (!el || !(el instanceof Element)) return
     el.classList.add('is-scrolling')
     const prev = timers.get(el)
     if (prev) clearTimeout(prev)
