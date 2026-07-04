@@ -359,15 +359,69 @@ function LeftCourseMeta({
 
 // ─── CENTER: Course access — who gets the course (no lesson selected) ─────────
 
+type AccessMode = 'full' | 'custom' | 'by_date'
+const ACCESS_MODE_OPTIONS: Array<{ value: AccessMode; label: string }> = [
+  { value: 'custom', label: 'Настраиваемый' },
+  { value: 'full', label: 'Всё открыто' },
+  { value: 'by_date', label: 'По датам' },
+]
+
+function AccessModeSelect({
+  value, onChange, placeholder,
+}: {
+  value: AccessMode | ''
+  onChange: (v: AccessMode) => void
+  placeholder?: string
+}) {
+  return (
+    <select
+      value={value}
+      onChange={e => onChange(e.target.value as AccessMode)}
+      style={{
+        fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
+        color: 'var(--color-text)', background: 'var(--color-bg)',
+        border: '1.5px solid var(--color-border)', borderRadius: 9,
+        padding: '5px 8px', cursor: 'pointer',
+      }}
+    >
+      {placeholder && <option value="" disabled>{placeholder}</option>}
+      {ACCESS_MODE_OPTIONS.map(o => (
+        <option key={o.value} value={o.value}>{o.label}</option>
+      ))}
+    </select>
+  )
+}
+
 function CenterCourseAccess({
-  course, setCourse, groups, allStudents,
+  course, setCourse, groups, allStudents, accessModes, setAccessModes,
 }: {
   course: CourseEdData
   setCourse: React.Dispatch<React.SetStateAction<CourseEdData>>
   groups: Array<{ id: string; name: string }>
   allStudents: Array<{ id: string; name: string; groupId?: string }>
+  accessModes: Record<string, AccessMode>
+  setAccessModes: React.Dispatch<React.SetStateAction<Record<string, AccessMode>>>
 }) {
   const [assignTab, setAssignTab] = useState<'group' | 'student'>('group')
+
+  const modeOf = (id: string): AccessMode => accessModes[id] ?? 'custom'
+  const setStudentMode = (id: string, mode: AccessMode) =>
+    setAccessModes(m => ({ ...m, [id]: mode }))
+  // A group's mode is applied to every current member (stored per-student).
+  const memberIdsOf = (groupId: string) =>
+    allStudents.filter(s => s.groupId === groupId).map(s => s.id)
+  const groupMode = (groupId: string): AccessMode | 'mixed' => {
+    const ids = memberIdsOf(groupId)
+    if (ids.length === 0) return 'custom'
+    const first = modeOf(ids[0])
+    return ids.every(id => modeOf(id) === first) ? first : 'mixed'
+  }
+  const setGroupMode = (groupId: string, mode: AccessMode) =>
+    setAccessModes(m => {
+      const next = { ...m }
+      for (const id of memberIdsOf(groupId)) next[id] = mode
+      return next
+    })
 
   function toggleGroup(id: string) {
     setCourse(c => ({
@@ -470,27 +524,44 @@ function CenterCourseAccess({
             </div>
           )}
 
-          {/* Summary chips */}
+          {/* Assigned + access mode per audience member */}
           {(assignedGroups.length > 0 || assignedStudents.length > 0) && (
-            <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {assignedGroups.map(g => (
-                <div key={g.id} style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 5,
-                  padding: '4px 10px', borderRadius: 999,
-                  background: 'var(--color-green-soft)', fontSize: 12, fontWeight: 600, color: 'var(--color-green-text)',
-                }}>
-                  <Users size={10} /> {g.name}
-                </div>
-              ))}
-              {assignedStudents.map(s => (
-                <div key={s.id} style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 5,
-                  padding: '4px 10px', borderRadius: 999,
-                  background: 'var(--color-bg-3)', fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)',
-                }}>
-                  {s.name}
-                </div>
-              ))}
+            <div style={{ marginTop: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', marginBottom: 8 }}>
+                Уровень доступа
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {assignedGroups.map(g => {
+                  const gm = groupMode(g.id)
+                  return (
+                    <div key={g.id} style={{
+                      display: 'flex', alignItems: 'center', gap: 8,
+                      padding: '7px 12px', borderRadius: 12, background: 'var(--color-green-soft)',
+                    }}>
+                      <Users size={13} style={{ color: 'var(--color-green-text)' }} />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)', flex: 1 }}>{g.name}</span>
+                      <AccessModeSelect
+                        value={gm === 'mixed' ? '' : gm}
+                        onChange={v => setGroupMode(g.id, v)}
+                        placeholder={gm === 'mixed' ? 'Разный' : undefined}
+                      />
+                    </div>
+                  )
+                })}
+                {assignedStudents.map(s => (
+                  <div key={s.id} style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '7px 12px', borderRadius: 12, background: 'var(--color-bg-3)',
+                  }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', flex: 1 }}>{s.name}</span>
+                    <AccessModeSelect value={modeOf(s.id)} onChange={v => setStudentMode(s.id, v)} />
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 8, fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+                <b>Всё открыто</b> — доступны все уроки сразу · <b>Настраиваемый</b> — открываешь уроки вручную ·{' '}
+                <b>По датам</b> — урок открывается, когда наступает его дата (для онгоинг-курса)
+              </div>
             </div>
           )}
         </div>
@@ -3003,6 +3074,32 @@ export default function TeacherCourseEditorPage() {
     })()
     return () => { cancelled = true }
   }, [course.dbCourseId])
+
+  // Per-student access mode (course_enrollments), keyed by student_id.
+  // 'full' → all lessons open · 'custom' → teacher unlocks by hand ·
+  // 'by_date' → lessons open as their scheduled date passes. Absent → 'custom'.
+  const [accessModes, setAccessModes] = useState<Record<string, 'full' | 'custom' | 'by_date'>>({})
+  useEffect(() => {
+    if (!course.dbCourseId) return
+    let cancelled = false
+    ;(async () => {
+      const { data: courseRow } = await supabase
+        .from('courses').select('id').eq('short_id', course.dbCourseId).single()
+      if (!courseRow?.id) return
+      const { data: enr } = await supabase
+        .from('course_enrollments')
+        .select('student_id, access_mode')
+        .eq('course_id', courseRow.id)
+      if (cancelled) return
+      const map: Record<string, 'full' | 'custom' | 'by_date'> = {}
+      for (const row of (enr ?? []) as Array<{ student_id: string; access_mode: 'full' | 'custom' | 'by_date' }>) {
+        map[row.student_id] = row.access_mode
+      }
+      setAccessModes(map)
+    })()
+    return () => { cancelled = true }
+  }, [course.dbCourseId])
+
   const [savedFlash, setSavedFlash] = useState(false)
   const [publishErr, setPublishErr] = useState<string | null>(null)
 
@@ -3248,6 +3345,57 @@ export default function TeacherCourseEditorPage() {
     let delQuery = supabase.from('lessons').delete().eq('course_id', courseDbId)
     if (keepShortIds.length > 0) delQuery = delQuery.not('short_id', 'in', `(${keepShortIds.join(',')})`)
     await delQuery
+
+    // ── Sync per-student access mode (course_enrollments) ───────────────────
+    // Audience = directly-assigned students + members of assigned groups.
+    // Each gets an enrollment row carrying its access mode (default 'custom').
+    const groupMemberIds = allStudents
+      .filter(s => s.groupId && c.groupIds.includes(s.groupId))
+      .map(s => s.id)
+    const audienceIds = [...new Set([...c.studentIds, ...groupMemberIds])]
+    const effMode = (id: string): 'full' | 'custom' | 'by_date' => accessModes[id] ?? 'custom'
+
+    // Drop enrollments for students no longer in the audience, then upsert the rest.
+    {
+      let del = supabase.from('course_enrollments').delete().eq('course_id', courseDbId)
+      if (audienceIds.length > 0) del = del.not('student_id', 'in', `(${audienceIds.join(',')})`)
+      await del
+      if (audienceIds.length > 0) {
+        const enrRows = audienceIds.map(id => ({ course_id: courseDbId, student_id: id, access_mode: effMode(id) }))
+        const { error } = await supabase.from('course_enrollments').upsert(enrRows, { onConflict: 'course_id,student_id' })
+        if (error) console.error('course_enrollments upsert failed:', error)
+      }
+    }
+
+    // 'full' students get every lesson opened now (seed 'current', never clobber
+    // 'done'). 'by_date' is computed at read time; 'custom' stays manual — so
+    // neither seeds here.
+    {
+      const fullIds = audienceIds.filter(id => effMode(id) === 'full')
+      const refs = keepShortIds
+      if (fullIds.length > 0 && refs.length > 0) {
+        await supabase
+          .from('lesson_progress')
+          .update({ status: 'current' })
+          .in('lesson_ref', refs)
+          .in('student_id', fullIds)
+          .eq('status', 'locked')
+        const { data: existing } = await supabase
+          .from('lesson_progress')
+          .select('student_id, lesson_ref')
+          .in('lesson_ref', refs)
+          .in('student_id', fullIds)
+        const have = new Set((existing ?? []).map((r: { student_id: string; lesson_ref: string }) => `${r.student_id}|${r.lesson_ref}`))
+        const newRows: object[] = []
+        for (const id of fullIds) for (const ref of refs) {
+          if (!have.has(`${id}|${ref}`)) newRows.push({ student_id: id, lesson_ref: ref, subject: shortId, status: 'current' })
+        }
+        if (newRows.length > 0) {
+          const { error } = await supabase.from('lesson_progress').insert(newRows)
+          if (error) console.error('full-access seed failed:', error)
+        }
+      }
+    }
 
     // Map each editor lesson to its persisted global index for scheduling below.
     const lessonIndexById: Record<string, number> = {}
@@ -3632,6 +3780,7 @@ export default function TeacherCourseEditorPage() {
                 <CenterCourseAccess
                   course={course} setCourse={setCourse}
                   groups={groups} allStudents={allStudents}
+                  accessModes={accessModes} setAccessModes={setAccessModes}
                 />
               </motion.div>
             ) : (

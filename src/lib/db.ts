@@ -246,11 +246,28 @@ export async function fetchCourseStructure(studentId: string, groupId: string): 
   if (error) reportDbError('fetchCourseStructure', error)
   if (error || !data || data.length === 0) return []
 
+  // Per-student access mode (full / custom / by_date). Absent row → 'custom'
+  // (only teacher-unlocked lessons open), preserving legacy behaviour.
+  const courseIds = (data as unknown as DbCourse[]).map(c => c.id)
+  const modeByCourse: Record<string, 'full' | 'custom' | 'by_date'> = {}
+  if (courseIds.length > 0) {
+    const { data: enr, error: enrErr } = await supabase
+      .from('course_enrollments')
+      .select('course_id, access_mode')
+      .eq('student_id', studentId)
+      .in('course_id', courseIds)
+    if (enrErr) reportDbError('fetchCourseStructure.enrollments', enrErr)
+    for (const row of (enr ?? []) as Array<{ course_id: string; access_mode: 'full' | 'custom' | 'by_date' }>) {
+      modeByCourse[row.course_id] = row.access_mode
+    }
+  }
+
   return (data as unknown as DbCourse[]).map(course => ({
     id: course.short_id,
     name: course.title,
     progress: 0,
     activeModuleId: 1,
+    accessMode: modeByCourse[course.id] ?? 'custom',
     modules: [...course.course_modules]
       .sort((a, b) => a.position - b.position)
       .map(mod => ({
@@ -296,13 +313,35 @@ export async function fetchCourseStructure(studentId: string, groupId: string): 
 
 // ─── Subjects merged with progress ───────────────────────────────────────────
 
+// Parse a DD.MM.YYYY date and test whether it is on or before today (date-only).
+function scheduledOnOrBeforeToday(ddmmyyyy?: string): boolean {
+  if (!ddmmyyyy) return false
+  const m = ddmmyyyy.match(/^(\d{2})\.(\d{2})\.(\d{4})$/)
+  if (!m) return false
+  const [, d, mo, y] = m
+  const when = new Date(Number(y), Number(mo) - 1, Number(d))
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  return when.getTime() <= today.getTime()
+}
+
 export function mergeSubjectsWithProgress(catalog: Subject[], progress: ProgressMap): Subject[] {
   return catalog.map(subject => {
+    // Auto-open lessons that have no explicit (unlocked) progress row, based on
+    // the student's enrollment mode: 'full' opens everything, 'by_date' opens a
+    // lesson once its scheduled date has passed, 'custom' opens nothing here.
+    const mode = subject.accessMode ?? 'custom'
+    const autoOpen = (lesson: { scheduledDate?: string }): boolean =>
+      mode === 'full' || (mode === 'by_date' && scheduledOnOrBeforeToday(lesson.scheduledDate))
+
     const modules = subject.modules.map(module => ({
       ...module,
       lessons: module.lessons.map(lesson => {
         const p = progress[lesson.id]
-        if (!p) return { ...lesson, status: 'locked' as LessonStatus, points: undefined, comment: undefined }
+        if (!p || p.status === 'locked') {
+          const status: LessonStatus = autoOpen(lesson) ? 'current' : 'locked'
+          return { ...lesson, status, points: undefined, comment: undefined }
+        }
         return { ...lesson, status: p.status, points: p.score > 0 ? p.score : undefined, comment: p.comment || undefined }
       }),
     }))

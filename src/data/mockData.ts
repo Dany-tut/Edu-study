@@ -67,6 +67,11 @@ export interface Subject {
   progress: number
   modules: Module[]
   activeModuleId: number
+  // How lessons open for the viewing student (from course_enrollments):
+  //   'custom'  — only teacher-unlocked lessons open (default)
+  //   'full'    — every lesson open
+  //   'by_date' — lessons open once their scheduled date has passed
+  accessMode?: 'full' | 'custom' | 'by_date'
 }
 
 export type ScheduleLesson = {
