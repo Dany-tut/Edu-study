@@ -3,6 +3,7 @@ import DashboardPage from './pages/DashboardPage'
 import TeacherDashboardPage from './pages/teacher/TeacherDashboardPage'
 import TeacherLoginPage from './pages/teacher/TeacherLoginPage'
 import JoinPage from './pages/JoinPage'
+import JoinTeacherPage from './pages/JoinTeacherPage'
 import StudentLoginPage from './pages/StudentLoginPage'
 import DiagnosticTestPage from './pages/DiagnosticTestPage'
 import ReviewSession from './components/ReviewSession'
@@ -76,6 +77,7 @@ export default function App() {
     return () => { supabase.removeChannel(channel) }
   }, [loadStudentData])
 
+  if (hash.startsWith('#/join-teacher')) return <JoinTeacherPage />
   if (hash.startsWith('#/join')) return <JoinPage />
   if (hash.startsWith('#/diagnostic')) return <DiagnosticTestPage />
   if (hash.startsWith('#/review')) {

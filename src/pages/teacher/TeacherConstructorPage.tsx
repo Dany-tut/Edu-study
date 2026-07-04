@@ -29,7 +29,7 @@ import {
   type CustomTestMeta,
   DEFAULT_QUESTIONS,
 } from '../../data/diagnosticData'
-import { useAllStudents, useGroups } from '../../lib/useGroups'
+import { useAllStudents, useGroups, fetchSharedCourseIds } from '../../lib/useGroups'
 import { getContrastColor, getCircleShadow } from '../../lib/utils'
 import { copyToClipboard } from '../../lib/clipboard'
 import { supabase } from '../../lib/supabase'
@@ -114,6 +114,8 @@ export interface Course {
   /** Access assignment saved on the course (group_ids / student_ids in the DB).
    *  Distinct from enrollment (lesson_progress) — these are "кому дать доступ". */
   groupIds?: string[]; studentIds?: string[]
+  /** Course owned by another teacher, shared to this one — read-only here. */
+  shared?: boolean
 }
 
 interface BankQuestion {
@@ -285,7 +287,7 @@ function fmtDate(iso: string | null | undefined) {
   const d = new Date(iso)
   return isNaN(d.getTime()) ? '' : d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
 }
-function dbCourseToLocal(c: any): Course {
+function dbCourseToLocal(c: any, uid?: string | null): Course {
   const lessons = (c.lessons ?? [])
     .sort((a: any, b: any) => a.lesson_number - b.lesson_number)
     .map((l: any) => ({ id: l.short_id ?? l.id, title: l.title, trainerId: l.trainer_id ?? null, widgetId: l.widget_id ?? null }))
@@ -295,6 +297,7 @@ function dbCourseToLocal(c: any): Course {
     status: (c.status as CourseStatus) ?? 'draft', lastEdited: fmtDate(c.updated_at ?? c.created_at),
     dbCourseId: c.short_id, lessons,
     groupIds: c.group_ids ?? [], studentIds: c.student_ids ?? [],
+    shared: uid != null && c.created_by != null && c.created_by !== uid,
   }
 }
 function dbTrainerToLocal(t: any): Trainer {
@@ -1128,7 +1131,12 @@ function CourseCard({ course, isSelected, onClick, actions, students, access }: 
       accentColor={COURSE_COLOR} accentBg={COURSE_BG} actions={actions}
       isSelected={isSelected} onClick={onClick}
       icon={<BookOpen size={17} strokeWidth={2} style={{ color: 'var(--color-purple-text)' }} />}
-      badge={<span style={cardChip(STATUS_COLOR[course.status])}>{STATUS_LABEL[course.status]}</span>}
+      badge={
+        <div style={{ display: 'flex', gap: 5 }}>
+          <span style={cardChip(STATUS_COLOR[course.status])}>{STATUS_LABEL[course.status]}</span>
+          {course.shared && <span style={cardChip('var(--color-purple-text)')}>Общий</span>}
+        </div>
+      }
       title={course.title}
       subtitle={`${course.subject} · ${course.level}`}
       footerLeft={
@@ -6949,8 +6957,12 @@ export default function TeacherConstructorPage() {
       // Courses are per-teacher: only load the ones this teacher owns, so a new
       // teacher doesn't inherit every course ever created (multi-tenant isolation).
       const uid = await getOwnerId()
+      const sharedIds = await fetchSharedCourseIds(uid)
+      const courseQuery = sharedIds.length
+        ? supabase.from('courses').select('*, lessons(*)').or(`created_by.eq.${uid},id.in.(${sharedIds.join(',')})`).order('created_at')
+        : supabase.from('courses').select('*, lessons(*)').eq('created_by', uid).order('created_at')
       const [{ data: cData }, { data: tData }, { data: wData }] = await Promise.all([
-        supabase.from('courses').select('*, lessons(*)').eq('created_by', uid).order('created_at'),
+        courseQuery,
         supabase.from('trainers').select('*').order('created_at'),
         supabase.from('widgets').select('*').order('created_at'),
       ])
@@ -6961,7 +6973,7 @@ export default function TeacherConstructorPage() {
           CUSTOM_META.set(subject, { label: existing?.label ?? subject, accent: hex, soft })
         })
       })
-      const c = cData ? cData.map(dbCourseToLocal) : []
+      const c = cData ? cData.map((x: any) => dbCourseToLocal(x, uid)) : []
       const t = tData ? tData.map(dbTrainerToLocal) : []
       const w = wData ? wData.map(dbWidgetToLocal) : []
       _cachedCourses = c; _cachedTrainers = t; _cachedWidgets = w
@@ -7750,9 +7762,19 @@ export default function TeacherConstructorPage() {
                     <CourseCard course={c} isSelected={false}
                       students={enrollmentByCourse[c.id]}
                       access={accessByCourse[c.id]}
-                      onClick={() => editMode ? toggleCheck(c.id) : handleExpandCourse(c)}
+                      onClick={() => editMode ? (c.shared ? undefined : toggleCheck(c.id)) : handleExpandCourse(c)}
                       actions={undefined} />
-                    {editMode && (
+                    {editMode && c.shared && (
+                      <div title="Общий курс — только для чтения" style={{
+                        position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
+                        border: '1.5px solid var(--color-border-medium)', background: 'var(--color-bg-5)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5,
+                        boxShadow: '0 1px 6px rgba(0,0,0,0.12)', color: 'var(--color-text-3)',
+                      }}>
+                        <Lock size={12} strokeWidth={2.2} />
+                      </div>
+                    )}
+                    {editMode && !c.shared && (
                       <>
                         <div onClick={() => toggleCheck(c.id)} style={{
                           position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,

@@ -8,6 +8,7 @@ import { useTeacher } from '../../store/teacherStore'
 import TeacherAnalytics from '../../components/teacher/TeacherAnalytics'
 import { TEACHER_TABS } from '../../lib/teacherAccess'
 import { WIDGET_REGISTRY } from '../../components/teacher/widgets/registry'
+import AccessConfigurator, { hiddenTabsFrom, hiddenWidgetsFrom, selectedTabsFrom, selectedWidgetsFrom, type CourseAssignment } from '../../components/teacher/AccessConfigurator'
 
 type StorageStats = {
   db_bytes: number
@@ -68,37 +69,30 @@ function StatCard({ icon: Icon, label, value, sub }: { icon: React.ElementType; 
 function InviteModal({ onClose }: { onClose: () => void }) {
   const [email, setEmail] = useState('')
   const [copied, setCopied] = useState(false)
-  const [sending, setSending] = useState(false)
-  const [sent, setSent] = useState(false)
+  const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
+  const [link, setLink] = useState('')
+  const [selectedTabs, setSelectedTabs] = useState<string[]>(TEACHER_TABS.map(t => t.id))
+  const [selectedWidgets, setSelectedWidgets] = useState<string[]>(WIDGET_REGISTRY.map(w => w.type))
+  const [courseAssignments, setCourseAssignments] = useState<CourseAssignment[]>([])
+  const [groupIds, setGroupIds] = useState<string[]>([])
 
-  async function handleInvite() {
-    if (!email.trim()) return
-    setSending(true)
-    setError('')
-    const { error: err } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: {
-        shouldCreateUser: true,
-        data: { role: 'teacher' },
-        emailRedirectTo: `${window.location.origin}${window.location.pathname}#/teacher`,
-      },
+  async function createInvite() {
+    setCreating(true); setError('')
+    const { data, error: err } = await supabase.rpc('admin_create_teacher_invite', {
+      p_email: email.trim() || null,
+      p_hidden_tabs: hiddenTabsFrom(selectedTabs),
+      p_hidden_widgets: hiddenWidgetsFrom(selectedWidgets),
+      p_course_assignments: courseAssignments,
+      p_group_ids: groupIds,
     })
-    setSending(false)
-    if (err) { setError(err.message); return }
-    setSent(true)
+    setCreating(false)
+    if (err || !data) { setError(err?.message || 'Не удалось создать приглашение'); return }
+    setLink(`${window.location.origin}${window.location.pathname}#/join-teacher?token=${data}`)
   }
 
   function copyLink() {
-    const link = `${window.location.origin}${window.location.pathname}#/teacher`
-    const message =
-      `Здравствуйте! 👋\n\n` +
-      `Вас приглашают присоединиться к образовательной платформе «Искра» в роли преподавателя.\n\n` +
-      `«Искра» — это личный кабинет учителя: группы и ученики, домашние задания с проверкой, ` +
-      `журнал, расписание и аналитика — всё в одном месте.\n\n` +
-      `Ваша пригласительная ссылка:\n${link}\n\n` +
-      `Перейдите по ней и войдите по своему email — и попадёте прямо в кабинет.`
-    void copyToClipboard(message).then(ok => {
+    void copyToClipboard(link).then(ok => {
       if (!ok) return
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
@@ -114,7 +108,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
         onClick={onClose}
         style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 900, backdropFilter: 'blur(4px)' }}
       />
-      <div style={{ position: 'fixed', inset: 0, zIndex: 901, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 901, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', padding: 20 }}>
       <motion.div
         initial={{ scale: 0.88, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -122,7 +116,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
         transition={{ type: 'spring', stiffness: 420, damping: 28 }}
         style={{
           pointerEvents: 'auto',
-          width: 380,
+          width: 560, maxWidth: '100%', maxHeight: '86vh', overflowY: 'auto',
           background: 'var(--color-bg-2)',
           backdropFilter: 'blur(20px) saturate(180%)',
           WebkitBackdropFilter: 'blur(20px) saturate(180%)',
@@ -134,40 +128,44 @@ function InviteModal({ onClose }: { onClose: () => void }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>Пригласить учителя</div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>Отправить ссылку-приглашение на email</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>Выберите доступ и контент — они «запекутся» в ссылку</div>
           </div>
           <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: 10, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
             <X size={14} />
           </button>
         </div>
 
-        {sent ? (
-          <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-              <Check size={24} strokeWidth={2.5} style={{ color: 'var(--color-green-text)' }} />
+        {link ? (
+          <div style={{ padding: '8px 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Check size={20} strokeWidth={2.5} style={{ color: 'var(--color-green-text)' }} />
+              </div>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Приглашение готово</div>
+                <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>Отправьте ссылку учителю — доступ применится при регистрации.</div>
+              </div>
             </div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>Приглашение отправлено!</div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.5 }}>
-              Письмо с ссылкой отправлено на <b style={{ color: 'var(--color-text)' }}>{email}</b>.<br />
-              Учитель перейдёт по ссылке и попадёт в платформу.
+            <div style={{ fontSize: 12, color: 'var(--color-text-2)', background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', borderRadius: 12, padding: '10px 12px', wordBreak: 'break-all', marginBottom: 12 }}>{link}</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={copyLink} style={{ flex: 1, padding: '11px', borderRadius: 12, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                {copied ? <Check size={15} strokeWidth={2.5} /> : <Copy size={15} />}
+                {copied ? 'Скопировано!' : 'Скопировать ссылку'}
+              </button>
+              <button onClick={onClose} style={{ padding: '11px 18px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Готово</button>
             </div>
-            <button onClick={onClose} style={{ marginTop: 20, padding: '10px 24px', borderRadius: 12, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-              Готово
-            </button>
           </div>
         ) : (
           <>
-            <div style={{ marginBottom: 14 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 6 }}>Email учителя</label>
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 6 }}>Email учителя (необязательно, подставится в форму)</label>
               <div style={{ position: 'relative' }}>
                 <Mail size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleInvite()}
                   placeholder="teacher@example.com"
-                  autoFocus
                   style={{
                     width: '100%', boxSizing: 'border-box',
                     padding: '10px 12px 10px 36px',
@@ -177,42 +175,27 @@ function InviteModal({ onClose }: { onClose: () => void }) {
                   }}
                 />
               </div>
-              {error && <div style={{ fontSize: 11, color: '#E04848', marginTop: 6 }}>{error}</div>}
             </div>
 
-            <button
-              onClick={handleInvite}
-              disabled={!email.trim() || sending}
-              style={{
-                width: '100%', padding: '11px', borderRadius: 12, border: 'none',
-                background: email.trim() ? 'var(--grad-purple)' : 'var(--color-bg-3)',
-                color: email.trim() ? '#fff' : 'var(--color-text-3)',
-                fontSize: 14, fontWeight: 600, cursor: email.trim() ? 'pointer' : 'not-allowed',
-                marginBottom: 12, transition: 'background 0.15s, color 0.15s',
-              }}
-            >
-              {sending ? 'Отправляем…' : 'Отправить приглашение'}
-            </button>
+            <AccessConfigurator
+              selectedTabs={selectedTabs} onTabsChange={setSelectedTabs}
+              selectedWidgets={selectedWidgets} onWidgetsChange={setSelectedWidgets}
+              courseAssignments={courseAssignments} onCoursesChange={setCourseAssignments}
+              groupIds={groupIds} onGroupsChange={setGroupIds}
+            />
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--color-text-3)', marginBottom: 12 }}>
-              <div style={{ flex: 1, height: 1, background: 'var(--color-border)' }} />
-              или
-              <div style={{ flex: 1, height: 1, background: 'var(--color-border)' }} />
-            </div>
+            {error && <div style={{ fontSize: 11, color: '#E04848', marginTop: 12 }}>{error}</div>}
 
             <button
-              onClick={copyLink}
+              onClick={createInvite}
+              disabled={creating}
               style={{
-                width: '100%', padding: '10px', borderRadius: 12,
-                border: '1px solid var(--color-border-medium)',
-                background: 'var(--color-bg-3)', color: 'var(--color-text)',
-                fontSize: 13, fontWeight: 500, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                transition: 'background 0.12s',
+                width: '100%', padding: '12px', borderRadius: 12, border: 'none', marginTop: 18,
+                background: 'var(--grad-purple)', color: '#fff',
+                fontSize: 14, fontWeight: 600, cursor: creating ? 'wait' : 'pointer',
               }}
             >
-              {copied ? <Check size={14} strokeWidth={2.5} style={{ color: 'var(--color-green-text)' }} /> : <Copy size={14} />}
-              {copied ? 'Приглашение скопировано!' : 'Скопировать текст приглашения'}
+              {creating ? 'Создаём…' : 'Создать пригласительную ссылку'}
             </button>
           </>
         )}
@@ -223,57 +206,50 @@ function InviteModal({ onClose }: { onClose: () => void }) {
   )
 }
 
-function sameSet(a: string[], b: string[]) {
-  if (a.length !== b.length) return false
-  const bs = new Set(b)
-  return a.every(x => bs.has(x))
-}
-
-// Chip toggle: "allowed" (accent) ↔ "hidden" (muted + lock).
-function AccessChip({ label, hidden, onToggle }: { label: string; hidden: boolean; onToggle: () => void }) {
-  return (
-    <button
-      onClick={onToggle}
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: 6,
-        padding: '6px 11px', borderRadius: 10, cursor: 'pointer',
-        border: `1px solid ${hidden ? 'var(--color-border)' : 'var(--color-purple)'}`,
-        background: hidden ? 'transparent' : 'var(--color-purple-soft)',
-        color: hidden ? 'var(--color-text-3)' : 'var(--color-purple)',
-        fontSize: 12.5, fontWeight: 600, transition: 'all 0.12s',
-      }}
-    >
-      {hidden && <Lock size={11} strokeWidth={2.4} />}
-      {label}
-    </button>
-  )
-}
 
 function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hiddenTabs: string[], hiddenWidgets: string[]) => void }) {
-  const [hiddenTabs, setHiddenTabs] = useState<string[]>(teacher.hiddenTabs)
-  const [hiddenWidgets, setHiddenWidgets] = useState<string[]>(teacher.hiddenWidgets)
+  const [selectedTabs, setSelectedTabs] = useState<string[]>(selectedTabsFrom(teacher.hiddenTabs))
+  const [selectedWidgets, setSelectedWidgets] = useState<string[]>(selectedWidgetsFrom(teacher.hiddenWidgets))
+  const [courseAssignments, setCourseAssignments] = useState<CourseAssignment[]>([])
+  const [groupIds, setGroupIds] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
 
-  const dirty = !sameSet(hiddenTabs, teacher.hiddenTabs) || !sameSet(hiddenWidgets, teacher.hiddenWidgets)
-  const homeHidden = hiddenTabs.includes('home')
-
-  const toggleTab = (id: string) =>
-    setHiddenTabs(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id])
-  const toggleWidget = (t: string) =>
-    setHiddenWidgets(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t])
-
   async function save() {
     setSaving(true)
     setError('')
+    // 1. Access deny-lists (complement of the selected sections/widgets).
+    const hiddenTabs = hiddenTabsFrom(selectedTabs)
+    const hiddenWidgets = hiddenWidgetsFrom(selectedWidgets)
     const { error: err } = await supabase.rpc('admin_set_teacher_access', {
       p_teacher: teacher.id,
       p_hidden_tabs: hiddenTabs,
       p_hidden_widgets: hiddenWidgets,
     })
+    if (err) { setSaving(false); setError(err.message); return }
+
+    // 2. Provision selected content to this teacher (incremental — cleared after).
+    try {
+      for (const a of courseAssignments) {
+        if (a.mode === 'copy') {
+          const { error: e } = await supabase.rpc('admin_duplicate_course', { p_course_id: a.course_id, p_new_owner: teacher.id })
+          if (e) throw e
+        } else {
+          const { error: e } = await supabase.from('course_shares').upsert({ course_id: a.course_id, teacher_id: teacher.id })
+          if (e) throw e
+        }
+      }
+      for (const gid of groupIds) {
+        const { error: e } = await supabase.rpc('admin_reassign_content', { p_kind: 'group', p_id: gid, p_new_owner: teacher.id })
+        if (e) throw e
+      }
+    } catch (e: any) {
+      setSaving(false); setError('Доступы сохранены, но контент выдать не удалось: ' + (e?.message ?? e)); return
+    }
+
     setSaving(false)
-    if (err) { setError(err.message); return }
+    setCourseAssignments([]); setGroupIds([])
     setSaved(true)
     setTimeout(() => setSaved(false), 1800)
     onSaved(hiddenTabs, hiddenWidgets)
@@ -281,41 +257,30 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
 
   return (
     <div style={{ padding: '4px 18px 18px' }}>
-      <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginBottom: 12, lineHeight: 1.5 }}>
-        Нажмите, чтобы скрыть раздел или виджет у этого учителя. Что не отмечено замком — доступно.
+      <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginBottom: 14, lineHeight: 1.5 }}>
+        Отметьте разделы/виджеты, которые учитель <b>видит</b>, и курсы/группы, которые ему <b>выдать</b>. Курсы/группы применяются при сохранении.
       </div>
 
-      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>Разделы</div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 18 }}>
-        {TEACHER_TABS.map(t => (
-          <AccessChip key={t.id} label={t.label} hidden={hiddenTabs.includes(t.id)} onToggle={() => toggleTab(t.id)} />
-        ))}
-      </div>
-
-      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-        Виджеты «Главной»
-        {homeHidden && <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--color-text-3)', textTransform: 'none', letterSpacing: 0 }}>· раздел «Главная» скрыт целиком</span>}
-      </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, opacity: homeHidden ? 0.45 : 1, transition: 'opacity 0.15s' }}>
-        {WIDGET_REGISTRY.map(def => (
-          <AccessChip key={def.type} label={def.label} hidden={hiddenWidgets.includes(def.type)} onToggle={() => toggleWidget(def.type)} />
-        ))}
-      </div>
+      <AccessConfigurator
+        selectedTabs={selectedTabs} onTabsChange={setSelectedTabs}
+        selectedWidgets={selectedWidgets} onWidgetsChange={setSelectedWidgets}
+        courseAssignments={courseAssignments} onCoursesChange={setCourseAssignments}
+        groupIds={groupIds} onGroupsChange={setGroupIds}
+      />
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 18 }}>
         <button
           onClick={save}
-          disabled={!dirty || saving}
+          disabled={saving}
           style={{
             padding: '9px 20px', borderRadius: 12, border: 'none',
-            background: dirty ? 'var(--grad-purple)' : 'var(--color-bg-3)',
-            color: dirty ? '#fff' : 'var(--color-text-3)',
-            fontSize: 13, fontWeight: 600, cursor: dirty && !saving ? 'pointer' : 'not-allowed',
+            background: 'var(--grad-purple)', color: '#fff',
+            fontSize: 13, fontWeight: 600, cursor: saving ? 'wait' : 'pointer',
             display: 'flex', alignItems: 'center', gap: 6,
           }}
         >
           {saved ? <Check size={14} strokeWidth={2.6} /> : null}
-          {saving ? 'Сохраняем…' : saved ? 'Сохранено' : 'Сохранить доступы'}
+          {saving ? 'Сохраняем…' : saved ? 'Сохранено' : 'Сохранить'}
         </button>
         {error && <span style={{ fontSize: 11, color: '#E04848' }}>{error}</span>}
       </div>

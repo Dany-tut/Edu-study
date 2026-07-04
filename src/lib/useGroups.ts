@@ -249,13 +249,25 @@ export type TeacherCourseOption = { id: string; title: string; subject: string; 
 // config step to optionally assign a course on creation.
 export async function fetchTeacherCourses(): Promise<TeacherCourseOption[]> {
   const uid = await getOwnerId()
-  const { data } = await supabase
+  const sharedIds = await fetchSharedCourseIds(uid)
+  let q = supabase
     .from('courses')
     .select('id, title, subject, level, status, created_by')
-    .eq('created_by', uid)
     .eq('status', 'published')
     .order('created_at', { ascending: false })
+  // Owned courses plus any shared with this teacher (read-only).
+  q = sharedIds.length
+    ? q.or(`created_by.eq.${uid},id.in.(${sharedIds.join(',')})`)
+    : q.eq('created_by', uid)
+  const { data } = await q
   return (data ?? []).map((c: any) => ({ id: c.id, title: c.title, subject: c.subject, level: c.level }))
+}
+
+// Course ids shared TO this teacher by another owner (read-only visibility).
+export async function fetchSharedCourseIds(uid: string | null): Promise<string[]> {
+  if (!uid) return []
+  const { data } = await supabase.from('course_shares').select('course_id').eq('teacher_id', uid)
+  return (data ?? []).map((r: any) => r.course_id)
 }
 
 // Applies the new-student config (widget visibility + optional course) right

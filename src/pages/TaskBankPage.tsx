@@ -32,12 +32,14 @@ import { glassCircle } from '../lib/mobileTokens'
 import { tactile } from '../lib/feedback'
 
 type StatusFilter = 'all' | 'done' | 'undone'
-type SortMode = 'newest' | 'oldest' | 'subject' | 'line'
+type SortMode = 'newest' | 'oldest' | 'easy' | 'hard' | 'subject' | 'line'
 type ViewMode = 'list' | 'grid'
 
 const SORT_OPTIONS: [SortMode, string][] = [
   ['newest', 'Новые'],
   ['oldest', 'Старые'],
+  ['easy', 'Лёгкие'],
+  ['hard', 'Сложные'],
   ['subject', 'По предмету'],
   ['line', 'По линии'],
 ]
@@ -1378,6 +1380,8 @@ export default function TaskBankPage() {
     return [...list].sort((a, b) => {
       switch (sortMode) {
         case 'oldest':     return a.id - b.id
+        case 'easy':       return a.part - b.part || b.id - a.id
+        case 'hard':       return b.part - a.part || b.id - a.id
         case 'subject':    return a.subject.localeCompare(b.subject) || a.id - b.id
         case 'line':       return a.line - b.line || a.id - b.id
         default:           return b.id - a.id  // newest
