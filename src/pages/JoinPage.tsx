@@ -76,12 +76,16 @@ export default function JoinPage() {
     // Link the auth user to the invited student row (keep temp_password as a
     // teacher-visible fallback / recovery hint).
     const authUserId = authData.user.id
-    const { error } = await supabase
+    const { data: linked, error } = await supabase
       .from('students')
       .update({ email: email.trim(), temp_password: password, auth_user_id: authUserId })
       .eq('invite_token', token)
+      .select('id')
 
-    if (error) {
+    // An RLS-filtered UPDATE returns no error but affects 0 rows — treat that as
+    // a failure too, otherwise the account exists but is never linked to the
+    // card (teacher sees no login/password, invite stays unclaimed).
+    if (error || !linked || linked.length === 0) {
       setErrorMsg('Ошибка при сохранении. Попробуйте ещё раз.')
       setSaving(false)
       return

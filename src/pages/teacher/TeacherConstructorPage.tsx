@@ -14,6 +14,7 @@ import {
   Settings, TrendingUp, ArrowLeftRight, RotateCcw, Palette,
   ChevronLeft, ChevronRight, Calendar, Users, UsersRound, Pipette,
   Calculator, Star, Lightbulb, Microscope, Music, Languages, Sigma,
+  Lock,
 } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
 import RichConditionEditor, { parseSmartPaste } from '../../components/teacher/RichConditionEditor'
@@ -2502,10 +2503,10 @@ function CreatorView({
                   </div>
                   {assignMode === 'group' ? (
                     <TeacherSelect value={assignGroupId} onChange={setAssignGroupId} placeholder="Выберите группу"
-                      options={enrollGroups.map(g => ({ value: g.id, label: g.name }))} />
+                      options={enrollGroups.filter(g => g.subject === cSubject).map(g => ({ value: g.id, label: g.name }))} />
                   ) : (
                     <TeacherSelect value={assignStudentId} onChange={setAssignStudentId} placeholder="Выберите студента"
-                      options={enrollStudents.map(s => ({ value: s.id, label: s.name }))} />
+                      options={enrollStudents.filter(s => s.subject === cSubject).map(s => ({ value: s.id, label: s.name }))} />
                   )}
                   <button onClick={enrollCourse} disabled={enrolling}
                     style={{ padding: '9px 14px', borderRadius: 11, border: 'none', cursor: enrolling ? 'default' : 'pointer', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', opacity: enrolling ? 0.6 : 1 }}>
@@ -7401,6 +7402,9 @@ export default function TeacherConstructorPage() {
   }
 
   async function syncCourseToDb(c: Course) {
+    // Shared courses belong to another teacher — never write them (an upsert would
+    // reassign created_by and silently steal ownership). Read-only here.
+    if (c.shared) return
     const shortId = c.dbCourseId ?? c.id
     try {
       const uid = await getOwnerId()

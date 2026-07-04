@@ -15,6 +15,7 @@ import {
   type Group, type GroupTrack, type Student,
 } from '../../data/teacherMockData'
 import { useGroups, useStudents } from '../../lib/useGroups'
+import { supabase } from '../../lib/supabase'
 import { usePersistentState, clearDrafts } from '../../lib/useDraft'
 import { copyToClipboard } from '../../lib/clipboard'
 import { normalizeContact, contactHref, contactLabel } from '../../lib/contactLink'
@@ -1458,9 +1459,13 @@ function StudentPanel({
   const [deleting, setDeleting] = useState(false)
   const [resetting, setResetting] = useState(false)
   const [newPass, setNewPass] = useState<string | null>(null)
+  const [resetErr, setResetErr] = useState<string | null>(null)
   async function resetPassword() {
     setResetting(true)
-    try { setNewPass(await onResetPassword()) } finally { setResetting(false) }
+    setResetErr(null)
+    try { setNewPass(await onResetPassword()) }
+    catch (e) { setResetErr(e instanceof Error ? e.message : 'Не удалось сбросить пароль') }
+    finally { setResetting(false) }
   }
   // Re-sync the editor when switching to another student.
   useEffect(() => { setComment(student.comment ?? ''); setCommentSaved(false) }, [student.id])
@@ -1553,6 +1558,11 @@ function StudentPanel({
             >
               {resetting ? 'Сбрасываем…' : newPass ? `Новый пароль: ${newPass}` : 'Сбросить пароль'}
             </button>
+            {resetErr && (
+              <div style={{ marginTop: 6, fontSize: 11, color: 'var(--color-danger, #e5484d)', textAlign: 'center' }}>
+                {resetErr}
+              </div>
+            )}
           </section>
         )}
 
@@ -2188,10 +2198,16 @@ export default function TeacherGroupsPage() {
               onRemoveCard={async (groupId) => { await deleteGroup(groupId) }}
               onOpenCard={openSiblingCard}
               onResetPassword={async () => {
-                // Generate a fresh readable password and persist it as the student's temp_password.
-                const pw = 'iskra' + Math.floor(1000 + Math.random() * 9000)
-                await updateStudent(activeStudentId, { tempPassword: pw })
-                return pw
+                // Real password reset: the Edge Function changes the actual Supabase
+                // Auth password (needs service_role) and mirrors it into temp_password.
+                const { data, error } = await supabase.functions.invoke('reset-student-password', {
+                  body: { studentId: activeStudentId },
+                })
+                if (error || !data?.password) {
+                  const msg = (data as { error?: string } | null)?.error
+                  throw new Error(msg || 'Не удалось сбросить пароль')
+                }
+                return data.password as string
               }}
             />
           </motion.div>

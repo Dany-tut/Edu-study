@@ -757,11 +757,12 @@ export function useAllStudents() {
   useEffect(() => {
     ;(async () => {
     const uid = await getOwnerId()
-    supabase.from('students').select('*, groups!inner(created_by)').eq('groups.created_by', uid).order('name')
+    supabase.from('students').select('*, groups!inner(created_by, subject)').eq('groups.created_by', uid).order('name')
       .then(({ data }) => {
         if (data) setStudents(data.map((s: any) => ({
           id: s.id,
           groupId: s.group_id,
+          subject: s.groups?.subject ?? '',
           name: s.name,
           phone: s.phone ?? '',
           telegramLink: s.telegram_link ?? '',

@@ -1873,6 +1873,13 @@ type Meta = {
 
 function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>) => void }) {
   const allStudents = useAllStudents()
+  const [subjectFilter, setSubjectFilter] = useState('')
+
+  // Distinct subjects across the teacher's individual students, for the scoping filter
+  const subjects = Array.from(new Set(allStudents.map(s => s.subject).filter(Boolean))) as string[]
+  const scopedStudents = subjectFilter
+    ? allStudents.filter(s => s.subject === subjectFilter)
+    : allStudents
 
   return (
     <div style={{
@@ -1904,14 +1911,37 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
           <GroupPicker value={meta.groupId} onChange={id => onChange({ groupId: id, studentId: '' })} />
         )}
 
-        {/* Student — direct picker across all students */}
+        {/* Student — direct picker, optionally scoped by subject */}
         {meta.assignTo === 'student' && (
-          <TeacherSelect
-            value={meta.studentId}
-            onChange={id => onChange({ studentId: id })}
-            placeholder="Студент"
-            options={allStudents.map(s => ({ value: s.id, label: s.name }))}
-          />
+          <>
+            {subjects.length > 1 && (
+              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                {[{ v: '', label: 'Все' }, ...subjects.map(s => ({ v: s, label: s }))].map(opt => (
+                  <button
+                    key={opt.v || 'all'}
+                    onClick={() => { setSubjectFilter(opt.v); onChange({ studentId: '' }) }}
+                    style={{
+                      padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer',
+                      fontSize: 11, fontWeight: 600, fontFamily: 'inherit', transition: 'all 0.15s',
+                      background: subjectFilter === opt.v ? 'var(--color-purple-soft)' : 'var(--color-bg)',
+                      color: subjectFilter === opt.v ? 'var(--color-accent)' : 'var(--color-muted)',
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+            <TeacherSelect
+              value={meta.studentId}
+              onChange={id => onChange({ studentId: id })}
+              placeholder="Студент"
+              options={scopedStudents.map(s => ({
+                value: s.id,
+                label: s.subject ? `${s.name} · ${s.subject}` : s.name,
+              }))}
+            />
+          </>
         )}
 
         {/* Title */}

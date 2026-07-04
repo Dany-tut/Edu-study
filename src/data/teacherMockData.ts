@@ -32,6 +32,7 @@ export type Student = {
   id: string
   authUserId?: string
   groupId: string
+  subject?: string
   name: string
   phone: string
   telegramLink?: string
