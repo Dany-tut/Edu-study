@@ -934,7 +934,15 @@ export default function TeacherHome() {
       .order('time_start')
       .then(({ data }) => {
         if (!data) return
-        setTodaySchedule(data.map((s: any) => {
+        // schedule_lessons has no owner column, so scope to THIS teacher's own
+        // groups / students — otherwise a new teacher sees every lesson globally.
+        const myGroupIds = new Set(groups.map(g => g.id))
+        const myStudentIds = new Set(allStudents.map(a => a.id))
+        const mine = data.filter((s: any) =>
+          (s.group_id && myGroupIds.has(String(s.group_id))) ||
+          (s.student_id && myStudentIds.has(String(s.student_id)))
+        )
+        setTodaySchedule(mine.map((s: any) => {
           // Rows scoped to a single student (group_id null) have no group join.
           const stu = s.student_id ? allStudents.find(a => a.id === s.student_id) : null
           return {

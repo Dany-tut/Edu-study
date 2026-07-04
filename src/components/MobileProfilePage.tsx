@@ -3,6 +3,7 @@ import { LogOut, Flame, CheckCircle2, Star, TrendingUp, Zap, Bell, Moon, Sun } f
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
 import { DynamicIsland, GlassIconButton } from './mobileChrome'
+import SubjectSwitcher from './SubjectSwitcher'
 import { getStudentSession, clearStudentSession } from '../lib/studentSession'
 import { supabase } from '../lib/supabase'
 import { useStudentData } from '../store/studentDataStore'
@@ -79,6 +80,9 @@ export default function MobileProfilePage() {
               <div className="truncate" style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-muted)', marginTop: 3 }}>{subjectLine}</div>
             </div>
           </div>
+
+          {/* Переключатель предметов (для учеников 1:1 с несколькими карточками) */}
+          <SubjectSwitcher />
 
           {/* Level / XP hero */}
           <div style={{ borderRadius: 20, padding: '14px 16px', background: 'var(--color-purple-soft)' }}>

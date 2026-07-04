@@ -323,6 +323,179 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
   )
 }
 
+type ContentRow = {
+  kind: 'course' | 'group'
+  id: string
+  short_id: string | null
+  title: string
+  status: string | null
+  owner_id: string | null
+  owner_name: string
+  detail: number
+}
+
+// Admin-only cross-teacher content manager: see every course / group with its
+// owner, reassign ownership, or delete it. Backed by admin_* RPCs (RLS-bypassing
+// but is_admin()-gated). This is how the admin cleans up ownerless/legacy data
+// that would otherwise leak into new teachers' cabinets.
+function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
+  const [rows, setRows] = useState<ContentRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [confirmDel, setConfirmDel] = useState<ContentRow | null>(null)
+  const [filter, setFilter] = useState<'all' | 'course' | 'group'>('all')
+
+  async function load() {
+    setLoading(true)
+    const { data } = await supabase.rpc('admin_content_list')
+    setRows(Array.isArray(data) ? (data as ContentRow[]) : [])
+    setLoading(false)
+  }
+  useEffect(() => { load() }, [])
+
+  async function reassign(row: ContentRow, newOwner: string) {
+    if (newOwner === (row.owner_id ?? '')) return
+    setBusyId(row.id)
+    await supabase.rpc('admin_reassign_content', { p_kind: row.kind, p_id: row.id, p_new_owner: newOwner })
+    await load()
+    setBusyId(null)
+  }
+
+  async function doDelete(row: ContentRow) {
+    setBusyId(row.id)
+    await supabase.rpc('admin_delete_content', { p_kind: row.kind, p_id: row.id })
+    setConfirmDel(null)
+    await load()
+    setBusyId(null)
+  }
+
+  const shown = rows.filter(r => filter === 'all' || r.kind === filter)
+  const orphanCount = rows.filter(r => !r.owner_id).length
+
+  return (
+    <div>
+      {/* Filter + orphan warning */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 4, background: 'var(--color-bg-3)', borderRadius: 10, padding: 3 }}>
+          {([['all', 'Всё'], ['course', 'Курсы'], ['group', 'Группы']] as const).map(([id, label]) => (
+            <button key={id} onClick={() => setFilter(id)} style={{
+              padding: '5px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
+              fontSize: 12, fontWeight: 600,
+              background: filter === id ? 'var(--color-purple-soft)' : 'transparent',
+              color: filter === id ? 'var(--color-purple)' : 'var(--color-text-3)',
+            }}>{label}</button>
+          ))}
+        </div>
+        {orphanCount > 0 && (
+          <span style={{ fontSize: 12, color: '#D07020', fontWeight: 600 }}>
+            {orphanCount} без владельца
+          </span>
+        )}
+        <button onClick={load} title="Обновить" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
+          <RefreshCw size={13} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+          Обновить
+        </button>
+      </div>
+
+      {loading && rows.length === 0 ? (
+        <div style={{ fontSize: 13, color: 'var(--color-text-3)', padding: '24px 0' }}>Загрузка…</div>
+      ) : shown.length === 0 ? (
+        <div style={{ fontSize: 13, color: 'var(--color-text-3)', padding: '24px 0' }}>Пусто.</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {shown.map(row => (
+            <div key={row.id} style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)',
+              borderRadius: 14, padding: '12px 14px',
+              opacity: busyId === row.id ? 0.5 : 1,
+            }}>
+              <div style={{
+                width: 30, height: 30, borderRadius: 9, flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'var(--color-bg-3)', color: 'var(--color-text-3)',
+              }}>
+                {row.kind === 'course' ? <BookOpen size={15} strokeWidth={2} /> : <Users size={15} strokeWidth={2} />}
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {row.title || '—'}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
+                  {row.kind === 'course'
+                    ? `Курс · ${row.detail} уроков${row.status ? ` · ${row.status === 'published' ? 'опубликован' : 'черновик'}` : ''}`
+                    : `Группа · ${row.detail} учеников`}
+                </div>
+              </div>
+              {/* Owner select */}
+              <select
+                value={row.owner_id ?? ''}
+                disabled={busyId === row.id}
+                onChange={e => reassign(row, e.target.value)}
+                style={{
+                  fontSize: 12, fontWeight: 600, padding: '6px 8px', borderRadius: 9,
+                  border: `1px solid ${row.owner_id ? 'var(--color-border-medium)' : '#D07020'}`,
+                  background: 'var(--color-bg-3)', color: 'var(--color-text)', cursor: 'pointer',
+                  maxWidth: 160,
+                }}
+              >
+                {!row.owner_id && <option value="">— без владельца —</option>}
+                {teachers.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}{t.role === 'admin' ? ' (Босс)' : ''}</option>
+                ))}
+              </select>
+              <button
+                onClick={() => setConfirmDel(row)}
+                disabled={busyId === row.id}
+                title="Удалить"
+                style={{
+                  width: 30, height: 30, borderRadius: 9, flexShrink: 0, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', color: '#E04848',
+                }}
+              >
+                <X size={15} strokeWidth={2.2} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Delete confirm */}
+      <AnimatePresence>
+        {confirmDel && createPortal(
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setConfirmDel(null)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
+          >
+            <motion.div
+              initial={{ scale: 0.94, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.94, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              style={{ width: 380, maxWidth: '90vw', background: 'var(--color-bg)', border: '1px solid var(--color-border-medium)', borderRadius: 18, padding: 22 }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <ShieldAlert size={18} strokeWidth={2} style={{ color: '#E04848' }} />
+                <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>Удалить безвозвратно?</div>
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 18 }}>
+                {confirmDel.kind === 'course'
+                  ? <>Курс <b>«{confirmDel.title}»</b> и все его уроки/модули будут удалены навсегда.</>
+                  : <>Группа <b>«{confirmDel.title}»</b> со всеми учениками, расписанием, ДЗ и журналом будет удалена навсегда.</>}
+              </div>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button onClick={() => setConfirmDel(null)} style={{ padding: '8px 16px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Отмена</button>
+                <button onClick={() => doDelete(confirmDel)} style={{ padding: '8px 16px', borderRadius: 11, border: 'none', background: '#E04848', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Удалить</button>
+              </div>
+            </motion.div>
+          </motion.div>,
+          document.body
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 export default function TeacherAdminPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const [storage, setStorage] = useState<StorageStats | null>(null)
@@ -331,7 +504,7 @@ export default function TeacherAdminPage() {
   const [studentCount, setStudentCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [inviteOpen, setInviteOpen] = useState(false)
-  const [tab, setTab] = useState<'overview' | 'analytics'>('overview')
+  const [tab, setTab] = useState<'overview' | 'data' | 'analytics'>('overview')
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
@@ -429,7 +602,7 @@ export default function TeacherAdminPage() {
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 4, background: 'var(--color-bg-3)', borderRadius: 12, padding: 3, marginBottom: 24, width: 'fit-content' }}>
-          {([['overview', 'Обзор', Database], ['analytics', 'Аналитика', BarChart3]] as const).map(([id, label, Icon]) => (
+          {([['overview', 'Обзор', Database], ['data', 'Данные', BookOpen], ['analytics', 'Аналитика', BarChart3]] as const).map(([id, label, Icon]) => (
             <button
               key={id}
               onClick={() => setTab(id)}
@@ -449,6 +622,8 @@ export default function TeacherAdminPage() {
         </div>
 
         {tab === 'analytics' && <TeacherAnalytics />}
+
+        {tab === 'data' && <ContentManager teachers={teachers} />}
 
         {tab === 'overview' && (
         <>

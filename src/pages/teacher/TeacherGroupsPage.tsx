@@ -1343,28 +1343,41 @@ function StudentCoursesSection({ student, group }: { student: Student; group: Gr
   )
 }
 
-// Список направлений ученика 1:1 (основное subject/level + доп. tracks), с
-// возможностью добавить/убрать посреди обучения. Основное направление хранится в
-// колонках группы и здесь не редактируется (менять предмет самой группы опасно),
-// а «Ещё направление» дописывает/чистит массив groups.tracks.
-function TracksSection({ group, onSave }: { group: Group; onSave: (tracks: GroupTrack[]) => Promise<void> }) {
-  const [tracks, setTracks] = useState<GroupTrack[]>(group.tracks ?? [])
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  // Re-sync when switching to another student's panel.
-  useEffect(() => { setTracks(group.tracks ?? []); setSaved(false) }, [group.id])
+// Направления ученика 1:1. Каждый предмет — ОТДЕЛЬНАЯ карточка-группа (не JSONB):
+// показываем текущую карточку + другие карточки этого же ученика, а «Ещё
+// направление» создаёт новую карточку (новую группу + строку ученика с теми же
+// контактами и той же учётной записью). Удаление сносит карточку целиком.
+export type SiblingCard = { id: string; subject: string; level: string; icon: string; color: string }
+function TracksSection({
+  group, siblings, onAddCard, onRemoveCard, onOpenCard,
+}: {
+  group: Group
+  siblings: SiblingCard[]
+  onAddCard: (subject: string, level: string) => Promise<void>
+  onRemoveCard: (groupId: string) => Promise<void>
+  onOpenCard: (groupId: string) => void
+}) {
+  const [adding, setAdding] = useState(false)
+  const [subject, setSubject] = useState('')
+  const [level, setLevel] = useState('')
+  const [busy, setBusy] = useState(false)
+  // Reset the inline add-form when switching to another student.
+  useEffect(() => { setAdding(false); setSubject(''); setLevel(''); setBusy(false) }, [group.id])
 
-  const dirty = JSON.stringify(tracks) !== JSON.stringify(group.tracks ?? [])
-  const setTrack = (i: number, patch: Partial<GroupTrack>) =>
-    setTracks(prev => prev.map((t, idx) => idx === i ? { ...t, ...patch } : t))
-
-  async function save() {
-    setSaving(true)
+  async function confirmAdd() {
+    if (!subject.trim()) return
+    setBusy(true)
     try {
-      await onSave(tracks.filter(t => t.subject.trim() || t.level.trim()))
-      setSaved(true); setTimeout(() => setSaved(false), 2000)
-    } finally { setSaving(false) }
+      await onAddCard(subject, level)
+      setAdding(false); setSubject(''); setLevel('')
+    } finally { setBusy(false) }
   }
+
+  const chip = (icon: string, subj: string, lvl: string, color: string): React.CSSProperties => ({
+    display: 'inline-flex', alignItems: 'center', gap: 6,
+    background: color + '22', border: `1px solid ${color}44`,
+    borderRadius: 9, padding: '5px 10px', fontSize: 12, fontWeight: 600, color: 'var(--color-text)',
+  })
 
   return (
     <section>
@@ -1372,27 +1385,24 @@ function TracksSection({ group, onSave }: { group: Group; onSave: (tracks: Group
         Направления
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {/* Основное направление — read-only chip */}
-        <div style={{
-          display: 'inline-flex', alignSelf: 'flex-start', alignItems: 'center', gap: 6,
-          background: group.color + '22', border: `1px solid ${group.color}44`,
-          borderRadius: 9, padding: '5px 10px', fontSize: 12, fontWeight: 600, color: 'var(--color-text)',
-        }}>
+        {/* Текущая карточка — read-only chip */}
+        <div style={{ ...chip(group.icon, group.subject, group.level, group.color), alignSelf: 'flex-start' }}>
           <span>{group.icon}</span>
           <span>{group.subject}{group.level ? ` · ${group.level}` : ''}</span>
         </div>
 
-        {/* Доп. направления — editable */}
-        {tracks.map((t, i) => (
-          <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <div style={{ flex: 1 }}>
-              <TeacherSelect value={t.subject} onChange={v => setTrack(i, { subject: v })} placeholder="Предмет" options={Object.keys(SUBJECT_ICONS)} triggerStyle={selectTriggerStyle} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <TeacherSelect value={t.level} onChange={v => setTrack(i, { level: v })} placeholder="Уровень" options={LEVEL_OPTIONS} triggerStyle={selectTriggerStyle} />
-            </div>
+        {/* Другие карточки этого ученика — клик открывает, крестик удаляет */}
+        {siblings.map(sc => (
+          <div key={sc.id} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <button
-              type="button" onClick={() => setTracks(prev => prev.filter((_, idx) => idx !== i))} title="Убрать"
+              type="button" onClick={() => onOpenCard(sc.id)} title="Открыть карточку"
+              style={{ ...chip(sc.icon, sc.subject, sc.level, sc.color), cursor: 'pointer', flex: 1, justifyContent: 'flex-start' }}
+            >
+              <span>{sc.icon}</span>
+              <span>{sc.subject}{sc.level ? ` · ${sc.level}` : ''}</span>
+            </button>
+            <button
+              type="button" onClick={() => onRemoveCard(sc.id)} title="Удалить карточку"
               style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               <X size={14} />
@@ -1400,23 +1410,39 @@ function TracksSection({ group, onSave }: { group: Group; onSave: (tracks: Group
           </div>
         ))}
 
-        <button
-          type="button" onClick={() => setTracks(prev => [...prev, { subject: '', level: '' }])}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '7px 0', borderRadius: 9, cursor: 'pointer', border: '1.5px dashed var(--color-border-medium)', background: 'transparent', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600 }}
-        >
-          <Plus size={14} /> Ещё направление
-        </button>
-
-        {dirty && (
+        {/* Инлайн-форма нового направления */}
+        {adding ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <div style={{ flex: 1 }}>
+                <TeacherSelect value={subject} onChange={setSubject} placeholder="Предмет" options={Object.keys(SUBJECT_ICONS)} triggerStyle={selectTriggerStyle} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <TeacherSelect value={level} onChange={setLevel} placeholder="Уровень" options={LEVEL_OPTIONS} triggerStyle={selectTriggerStyle} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button
+                type="button" onClick={confirmAdd} disabled={!subject.trim() || busy}
+                style={{ flex: 1, padding: '8px 0', borderRadius: 9, cursor: (!subject.trim() || busy) ? 'default' : 'pointer', border: 'none', background: subject.trim() ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)', color: '#fff', fontSize: 12, fontWeight: 700 }}
+              >
+                {busy ? 'Создаём…' : 'Создать карточку'}
+              </button>
+              <button
+                type="button" onClick={() => { setAdding(false); setSubject(''); setLevel('') }}
+                style={{ padding: '8px 12px', borderRadius: 9, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600 }}
+              >
+                Отмена
+              </button>
+            </div>
+          </div>
+        ) : (
           <button
-            type="button" onClick={save} disabled={saving}
-            style={{ padding: '8px 0', borderRadius: 9, cursor: saving ? 'default' : 'pointer', border: 'none', background: 'var(--color-purple)', color: '#fff', fontSize: 12, fontWeight: 700 }}
+            type="button" onClick={() => setAdding(true)}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '7px 0', borderRadius: 9, cursor: 'pointer', border: '1.5px dashed var(--color-border-medium)', background: 'transparent', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600 }}
           >
-            {saving ? 'Сохранение…' : 'Сохранить направления'}
+            <Plus size={14} /> Ещё направление
           </button>
-        )}
-        {saved && !dirty && (
-          <div style={{ fontSize: 11, color: 'var(--color-green-text)', fontWeight: 600, textAlign: 'center' }}>✓ Сохранено</div>
         )}
       </div>
     </section>
@@ -1424,8 +1450,9 @@ function TracksSection({ group, onSave }: { group: Group; onSave: (tracks: Group
 }
 
 function StudentPanel({
-  student, group, onClose, onDelete, onOpenFullCard, onAddHomework, onSaveComment, onResetPassword, onSaveTracks,
-}: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void; onAddHomework: () => void; onSaveComment: (text: string) => Promise<void>; onResetPassword: () => Promise<string>; onSaveTracks?: (tracks: GroupTrack[]) => Promise<void> }) {
+  student, group, onClose, onDelete, onOpenFullCard, onAddHomework, onSaveComment, onResetPassword,
+  siblingCards, onAddCard, onRemoveCard, onOpenCard,
+}: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void; onAddHomework: () => void; onSaveComment: (text: string) => Promise<void>; onResetPassword: () => Promise<string>; siblingCards?: SiblingCard[]; onAddCard?: (subject: string, level: string) => Promise<void>; onRemoveCard?: (groupId: string) => Promise<void>; onOpenCard?: (groupId: string) => void }) {
   const [comment, setComment] = useState(student.comment ?? '')
   const [commentSaved, setCommentSaved] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -1529,9 +1556,15 @@ function StudentPanel({
           </section>
         )}
 
-        {/* Направления (subjects/levels) — editable for 1:1 students */}
-        {group.isIndividual && onSaveTracks && (
-          <TracksSection group={group} onSave={onSaveTracks} />
+        {/* Направления — отдельная карточка на каждый предмет (для 1:1 учеников) */}
+        {group.isIndividual && onAddCard && onRemoveCard && onOpenCard && (
+          <TracksSection
+            group={group}
+            siblings={siblingCards ?? []}
+            onAddCard={onAddCard}
+            onRemoveCard={onRemoveCard}
+            onOpenCard={onOpenCard}
+          />
         )}
 
         {/* Contacts */}
@@ -1750,7 +1783,7 @@ export default function TeacherGroupsPage() {
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
   const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
-  const { groups, loading: groupsLoading, addGroup, addIndividualStudent, addStudentToGroup, deleteGroup, updateGroupTracks } = useGroups()
+  const { groups, loading: groupsLoading, addGroup, addIndividualStudent, addStudentToGroup, addIndividualCard, deleteGroup } = useGroups()
   const { students, deleteStudent, updateStudent } = useStudents(selectedGroupId)
   // Persisted so an open modal (and its draft) re-opens after a page reload —
   // the teacher must never lose an in-progress form to a tab switch/reload.
@@ -1824,6 +1857,39 @@ export default function TeacherGroupsPage() {
   }
   const activeStudent = activeStudentId ? students.find(s => s.id === activeStudentId) ?? null : null
   const activeStudentGroup = activeStudent ? groups.find(g => g.id === activeStudent.groupId) ?? null : null
+
+  // Other 1:1 cards of the SAME person (each subject is its own individual group,
+  // grouped by name within this teacher — same heuristic as resolveIndividualGroup).
+  const siblingCards: SiblingCard[] = activeStudent && activeStudentGroup
+    ? groups
+        .filter(g => g.isIndividual && g.id !== activeStudentGroup.id && g.name === activeStudent.name)
+        .map(g => ({ id: g.id, subject: g.subject, level: g.level, icon: g.icon, color: g.color }))
+    : []
+
+  // Switching to a sibling card = select its group, then auto-open its (single)
+  // student once useStudents has reloaded for the new group.
+  const [pendingOpenGroup, setPendingOpenGroup] = useState<string | null>(null)
+  useEffect(() => {
+    if (pendingOpenGroup && selectedGroupId === pendingOpenGroup && students.length) {
+      setActiveStudentId(students[0].id)
+      setPendingOpenGroup(null)
+    }
+  }, [students, pendingOpenGroup, selectedGroupId])
+  function openSiblingCard(groupId: string) {
+    setActiveStudentId(null)
+    setSelectedGroupId(groupId)
+    setPendingOpenGroup(groupId)
+  }
+  async function addCardForActive(subject: string, level: string) {
+    if (!activeStudent || !activeStudentGroup) return
+    await addIndividualCard({
+      student: activeStudent,
+      subject: subject as Group['subject'],
+      level,
+      color: activeStudentGroup.color,
+      colorSoft: activeStudentGroup.colorSoft,
+    })
+  }
 
   function handleGroupClick(group: Group) {
     if (selectedGroupId === group.id) {
@@ -2117,7 +2183,10 @@ export default function TeacherGroupsPage() {
               onOpenFullCard={() => openStudentDashboard(activeStudentId, activeStudentGroup.id)}
               onAddHomework={() => openHomeworkCreate(activeStudentId)}
               onSaveComment={async (text) => { await updateStudent(activeStudentId, { comment: text }) }}
-              onSaveTracks={async (tracks) => { await updateGroupTracks(activeStudentGroup.id, tracks) }}
+              siblingCards={siblingCards}
+              onAddCard={addCardForActive}
+              onRemoveCard={async (groupId) => { await deleteGroup(groupId) }}
+              onOpenCard={openSiblingCard}
               onResetPassword={async () => {
                 // Generate a fresh readable password and persist it as the student's temp_password.
                 const pw = 'iskra' + Math.floor(1000 + Math.random() * 9000)

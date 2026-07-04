@@ -27,11 +27,15 @@ export default function StudentLoginPage() {
       password,
     })
     if (authData?.user) {
-      const { data: srow } = await supabase
+      // A 1:1 student can own several subject cards (rows) sharing one auth_user_id,
+      // so fetch all and open the earliest (primary) one. maybeSingle() would throw
+      // on multiple rows — hence the ordered list + first.
+      const { data: srows } = await supabase
         .from('students')
-        .select('id, name, group_id')
+        .select('id, name, group_id, created_at')
         .eq('auth_user_id', authData.user.id)
-        .maybeSingle()
+        .order('created_at', { ascending: true })
+      const srow = srows?.[0]
       if (srow) {
         setLoading(false)
         setStudentSession({ id: srow.id, name: srow.name, groupId: srow.group_id })

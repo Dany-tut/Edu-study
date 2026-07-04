@@ -267,10 +267,6 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             </span>
             <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
           </div>
-          {!mobile && (
-            <div style={{ fontSize: 16, lineHeight: 1.45, fontWeight: 650, color: 'var(--color-text)' }}
-              dangerouslySetInnerHTML={{ __html: task.question }} />
-          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
           {state !== undefined && (
@@ -295,12 +291,11 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         </div>
       </div>
 
-      {/* On mobile the question spans the full card width (below the header row),
-          so the result badge + bookmark don't squeeze it into a narrow column. */}
-      {mobile && (
-        <div style={{ fontSize: 14, lineHeight: 1.5, fontWeight: 650, color: 'var(--color-text)', marginTop: -4 }}
-          dangerouslySetInnerHTML={{ __html: task.question }} />
-      )}
+      {/* Question spans the full card width below the header row so the result
+          badge (Верно/Неверно) never squeezes it into a narrower column — its
+          appearance must not reflow / "push" the wrapped lines. */}
+      <div style={{ fontSize: mobile ? 14 : 16, lineHeight: mobile ? 1.5 : 1.45, fontWeight: 650, color: 'var(--color-text)', marginTop: -4 }}
+        dangerouslySetInnerHTML={{ __html: task.question }} />
 
       {/* Image / table blocks in teacher-configured order */}
       {(task.blockOrder ?? ['image', 'table']).map(blockKey => {

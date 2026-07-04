@@ -33,6 +33,7 @@ import { useAllStudents, useGroups } from '../../lib/useGroups'
 import { getContrastColor, getCircleShadow } from '../../lib/utils'
 import { copyToClipboard } from '../../lib/clipboard'
 import { supabase } from '../../lib/supabase'
+import { getOwnerId } from '../../lib/owner'
 import { optimizePhoto } from '../../lib/imageOptim'
 import { usePersistentState, readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 import { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from '../../data/apChemistry'
@@ -6945,8 +6946,11 @@ export default function TeacherConstructorPage() {
 
   useEffect(() => {
     async function loadAll() {
+      // Courses are per-teacher: only load the ones this teacher owns, so a new
+      // teacher doesn't inherit every course ever created (multi-tenant isolation).
+      const uid = await getOwnerId()
       const [{ data: cData }, { data: tData }, { data: wData }] = await Promise.all([
-        supabase.from('courses').select('*, lessons(*)').order('created_at'),
+        supabase.from('courses').select('*, lessons(*)').eq('created_by', uid).order('created_at'),
         supabase.from('trainers').select('*').order('created_at'),
         supabase.from('widgets').select('*').order('created_at'),
       ])
@@ -7387,10 +7391,11 @@ export default function TeacherConstructorPage() {
   async function syncCourseToDb(c: Course) {
     const shortId = c.dbCourseId ?? c.id
     try {
+      const uid = await getOwnerId()
       const { data: dbCourse, error } = await supabase
         .from('courses')
         .upsert(
-          { short_id: shortId, title: c.title, subject: c.subject, level: c.level, description: c.description, status: c.status, color: c.color, bg: c.bg },
+          { short_id: shortId, title: c.title, subject: c.subject, level: c.level, description: c.description, status: c.status, color: c.color, bg: c.bg, created_by: uid },
           { onConflict: 'short_id' }
         )
         .select('id, short_id')

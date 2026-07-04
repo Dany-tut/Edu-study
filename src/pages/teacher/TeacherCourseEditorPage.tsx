@@ -3257,7 +3257,7 @@ export default function TeacherCourseEditorPage() {
     // for its lesson schedule and/or its recording schedule.
     const scheduledLessons = c.lessons.filter(l =>
       (l.scheduledDate && l.scheduledTime) || (l.recDate && l.recTime))
-    if (scheduledLessons.length === 0 || (c.groupIds.length === 0 && c.studentIds.length === 0)) return true
+    if (c.groupIds.length === 0 && c.studentIds.length === 0) return true
 
     // Fetch course row + lessons from DB to get UUIDs
     const { data: courseRow } = await supabase
@@ -3314,14 +3314,19 @@ export default function TeacherCourseEditorPage() {
       }
     }
 
-    if (rows.length > 0) {
-      // Delete stale entries for these lessons first, then insert fresh
-      const lessonIds = [...new Set(rows.map((r: any) => r.lesson_id))]
+    // Rebuild the calendar for the WHOLE course: wipe every schedule row for its
+    // lessons, then insert the fresh set. Deleting only the lessons that still
+    // produce a row (the old behaviour) orphaned entries whenever a date was
+    // cleared or a recording stopped diverging → phantom calendar dates.
+    const allLessonIds = dbLessons.map(l => l.id)
+    if (allLessonIds.length > 0) {
       const { error: delErr } = await supabase
         .from('schedule_lessons')
         .delete()
-        .in('lesson_id', lessonIds)
+        .in('lesson_id', allLessonIds)
       if (delErr) console.error('schedule_lessons delete failed:', delErr)
+    }
+    if (rows.length > 0) {
       const { error: insErr } = await supabase
         .from('schedule_lessons')
         .insert(rows)

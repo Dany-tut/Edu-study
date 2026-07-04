@@ -8,6 +8,7 @@ import {
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { clearStudentSession, getStudentSession } from '../lib/studentSession'
+import SubjectSwitcher from './SubjectSwitcher'
 import { supabase } from '../lib/supabase'
 import { canUseFeature } from '../lib/featureFlags'
 import { playTransitionDrop } from '../lib/sound'
@@ -500,6 +501,9 @@ export default function Sidebar() {
                         )
                       })}
                     </div>
+                    {/* Переключатель предметов — для 1:1 учеников с несколькими карточками.
+                        Сам решает, показываться ли (скрыт/null при одной карточке, без пустого зазора). */}
+                    <SubjectSwitcher style={{ marginTop: 12 }} />
                     <div style={{ height: 1, background: 'var(--color-border)', margin: '12px 8px' }} />
                     <SettingsRow
                       icon={Settings}

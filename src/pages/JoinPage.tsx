@@ -75,9 +75,10 @@ export default function JoinPage() {
 
     // Link the auth user to the invited student row (keep temp_password as a
     // teacher-visible fallback / recovery hint).
+    const authUserId = authData.user.id
     const { error } = await supabase
       .from('students')
-      .update({ email: email.trim(), temp_password: password, auth_user_id: authData.user.id })
+      .update({ email: email.trim(), temp_password: password, auth_user_id: authUserId })
       .eq('invite_token', token)
 
     if (error) {
@@ -86,11 +87,38 @@ export default function JoinPage() {
       return
     }
 
-    // Seed progress and go to dashboard
+    // Seed progress for the invited card and go to dashboard.
     await supabase.rpc('seed_student_progress', {
       p_student_id: studentId,
       p_group_id: groupId,
     })
+
+    // A 1:1 student can have several subject cards — each is a separate individual
+    // group + student row for the same person (grouped by name within one teacher).
+    // Link EVERY such card to this same account so one login reaches all subjects.
+    // Best-effort: a failure here must never block the student from getting in.
+    try {
+      const { data: g } = await supabase.from('groups').select('created_by').eq('id', groupId).single()
+      const ownerId = (g as { created_by?: string } | null)?.created_by
+      if (ownerId) {
+        const { data: sibGroups } = await supabase
+          .from('groups')
+          .select('id, students(id)')
+          .eq('is_individual', true)
+          .eq('created_by', ownerId)
+          .eq('name', studentName)
+        for (const sg of (sibGroups ?? []) as { id: string; students: { id: string }[] }[]) {
+          for (const s of sg.students ?? []) {
+            if (s.id === studentId) continue
+            await supabase
+              .from('students')
+              .update({ email: email.trim(), temp_password: password, auth_user_id: authUserId })
+              .eq('id', s.id)
+            await supabase.rpc('seed_student_progress', { p_student_id: s.id, p_group_id: sg.id })
+          }
+        }
+      }
+    } catch { /* linking extra cards is best-effort — never block sign-in */ }
     setStudentSession({ id: studentId, name: studentName, groupId })
     // Full reload (not a bare hash change): App's data-load effect runs once on
     // mount and only when a student_session already exists. Navigating by hash

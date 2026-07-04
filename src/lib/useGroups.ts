@@ -184,6 +184,55 @@ export function useGroups() {
     await load()
   }
 
+  // Add ONE more направление (subject/level) to an existing 1:1 student mid-training:
+  // creates a separate individual group card + student row for the same person,
+  // copying their contacts, target score, payment AND account link (email /
+  // temp_password / auth_user_id). Because the account link is copied, the new card
+  // is instantly reachable by the student's existing login — no re-registration.
+  // The new row also gets a fresh invite_token so an unregistered student can still
+  // activate it. Mirrors addIndividualStudent, just seeded from an existing student.
+  async function addIndividualCard(opts: {
+    student: Pick<Student, 'name' | 'phone' | 'telegramLink' | 'parentContact' | 'desiredScore' | 'paymentAmount' | 'email' | 'tempPassword' | 'authUserId'>
+    subject: Group['subject']
+    level: string
+    color: string
+    colorSoft: string
+  }) {
+    const uid = await getOwnerId()
+    const { data: g, error: gErr } = await supabase.from('groups').insert({
+      name: opts.student.name,
+      subject: opts.subject,
+      icon: SUBJECT_ICON[opts.subject] ?? '📚',
+      level: opts.level,
+      color: opts.color,
+      color_soft: opts.colorSoft,
+      start_date: null,
+      total_lessons: 0,
+      is_individual: true,
+      created_by: uid,
+    }).select('id').single()
+    if (gErr || !g) return { error: gErr }
+
+    const { data: srow, error: sErr } = await supabase.from('students').insert({
+      group_id: g.id,
+      name: opts.student.name,
+      phone: opts.student.phone ?? '',
+      telegram_link: opts.student.telegramLink ?? '',
+      parent_contact: opts.student.parentContact ?? '',
+      desired_score: opts.student.desiredScore ?? 80,
+      payment_amount: opts.student.paymentAmount ?? 0,
+      email: opts.student.email || null,
+      temp_password: opts.student.tempPassword || null,
+      auth_user_id: opts.student.authUserId || null,
+    }).select('id').single()
+    // Already-registered student → seed their progress for this new card too.
+    if (!sErr && srow?.id && opts.student.authUserId) {
+      await supabase.rpc('seed_student_progress', { p_student_id: srow.id, p_group_id: g.id })
+    }
+    await load()
+    return { error: sErr }
+  }
+
   // Replace the extra направления of a (1:1) group — add/remove mid-training.
   async function updateGroupTracks(groupId: string, tracks: GroupTrack[]) {
     const { error } = await supabase.from('groups').update({ tracks }).eq('id', groupId)
@@ -191,7 +240,7 @@ export function useGroups() {
     return { error }
   }
 
-  return { groups, loading, addGroup, addIndividualStudent, addStudentToGroup, deleteGroup, updateGroupTracks, reload: load }
+  return { groups, loading, addGroup, addIndividualStudent, addStudentToGroup, addIndividualCard, deleteGroup, updateGroupTracks, reload: load }
 }
 
 export type TeacherCourseOption = { id: string; title: string; subject: string; level: string }
@@ -213,6 +262,29 @@ export async function fetchTeacherCourses(): Promise<TeacherCourseOption[]> {
 // after the student row is created, before the invite link is shown. Both parts
 // are optional; each failure is swallowed so a partial config never blocks the
 // teacher from handing out the link.
+// Resolve every student row that represents the same person as `studentId`.
+// A 1:1 student with multiple subjects lives as one row per subject card
+// (same name, same owner, each in its own individual group). Returns at least
+// [studentId] so callers can always safely update the set.
+async function resolveSiblingStudentIds(studentId: string): Promise<string[]> {
+  const { data: self } = await supabase
+    .from('students')
+    .select('id, name, groups!inner(is_individual, created_by)')
+    .eq('id', studentId)
+    .single()
+  const g = (self as any)?.groups
+  if (!self || !g?.is_individual || !g?.created_by || !self.name) return [studentId]
+
+  const { data: siblings } = await supabase
+    .from('students')
+    .select('id, groups!inner(is_individual, created_by)')
+    .eq('name', self.name)
+    .eq('groups.is_individual', true)
+    .eq('groups.created_by', g.created_by)
+  const ids = (siblings ?? []).map((r: any) => r.id as string)
+  return ids.length ? ids : [studentId]
+}
+
 export async function configureNewStudent(
   studentId: string,
   opts: { hiddenWidgets?: number[]; courseId?: string | null; groupId?: string | null },
@@ -220,7 +292,18 @@ export async function configureNewStudent(
   const { hiddenWidgets, courseId, groupId } = opts
 
   if (hiddenWidgets && hiddenWidgets.length > 0) {
-    await supabase.from('students').update({ hidden_widgets: hiddenWidgets }).eq('id', studentId)
+    // A multi-subject 1:1 student is stored as one student row per subject card
+    // (see addIndividualStudent). The config step only knows the first row's id,
+    // so hide the widgets on EVERY sibling card of the same person — otherwise the
+    // student sees all widgets whenever their session resolves to another subject
+    // card. Siblings = same name under the same owner (matches the group-tracks
+    // sibling model). Falls back to just this row if we can't resolve siblings.
+    const ids = await resolveSiblingStudentIds(studentId)
+    const { error } = await supabase
+      .from('students')
+      .update({ hidden_widgets: hiddenWidgets })
+      .in('id', ids)
+    if (error) console.error('[configureNewStudent] hide widgets failed', error)
   }
 
   if (courseId) {
@@ -598,6 +681,18 @@ export function useJournalPending(groupId: string | null, reloadKey = 0) {
         const { data: studs } = await supabase.from('students').select('id').eq('group_id', groupId)
         const studentIds = (studs ?? []).map((s: any) => s.id)
         const scope = [`group_id.eq.${groupId}`]
+        if (studentIds.length) scope.push(`student_id.in.(${studentIds.join(',')})`)
+        query = query.or(scope.join(','))
+      } else {
+        // No group filter (the nav badge): still scope to THIS teacher's own
+        // groups / students, otherwise a new teacher sees every teacher's lessons.
+        const uid = await getOwnerId()
+        const { data: myGroups } = await supabase.from('groups').select('id, students(id)').eq('created_by', uid)
+        const groupIds = (myGroups ?? []).map((g: any) => g.id)
+        const studentIds = (myGroups ?? []).flatMap((g: any) => (g.students ?? []).map((s: any) => s.id))
+        if (!groupIds.length && !studentIds.length) { setPending([]); return }
+        const scope: string[] = []
+        if (groupIds.length) scope.push(`group_id.in.(${groupIds.join(',')})`)
         if (studentIds.length) scope.push(`student_id.in.(${studentIds.join(',')})`)
         query = query.or(scope.join(','))
       }
