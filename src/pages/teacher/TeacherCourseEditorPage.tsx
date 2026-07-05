@@ -7,7 +7,7 @@ import {
   PenLine, Star, ChevronRight, ChevronDown, Users,
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
-  ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera,
+  ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Copy,
 } from 'lucide-react'
 import { optimizePhoto } from '../../lib/imageOptim'
 import { getContrastColor } from '../../lib/utils'
@@ -15,7 +15,7 @@ import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import type { Task as BankTask } from '../../data/taskBankData'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
-import TeacherSaveButton, { teacherSaveStyle } from '../../components/teacher/TeacherSaveButton'
+import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import ScrollFade from '../../components/ScrollFade'
 import { getOwnerId } from '../../lib/owner'
@@ -122,6 +122,35 @@ export interface CourseEdData {
 }
 
 function uid() { return Math.random().toString(36).slice(2, 8) }
+
+// ── Date-shift helpers — used by «Выдать новой группе» to slide the whole
+// calendar so a cloned course starts fresh on a new date. Dates are DD.MM.YYYY.
+function dotToDate(d?: string): Date | null {
+  if (!d) return null
+  const m = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(d)
+  return m ? new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1])) : null
+}
+function dateToDot(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}`
+}
+function shiftDot(d: string | undefined, days: number): string | undefined {
+  const base = dotToDate(d)
+  if (!base) return d
+  base.setDate(base.getDate() + days)
+  return dateToDot(base)
+}
+// Earliest lesson/recording date across the course — the anchor we pin to the new start.
+function earliestCourseDate(lessons: CELesson[]): Date | null {
+  let min: Date | null = null
+  for (const l of lessons) {
+    for (const d of [l.scheduledDate, l.recDate]) {
+      const dt = dotToDate(d)
+      if (dt && (!min || dt < min)) min = dt
+    }
+  }
+  return min
+}
 
 // Map each editor lesson → the short_id it is (or will be) persisted under.
 // A lesson's short_id must be STABLE across reorders/renames: it's the key that
@@ -2146,7 +2175,7 @@ function StudentsLeftPanel({
   return (
     <div style={{
       width: 248, flexShrink: 0,
-      background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)',
+      background: 'var(--color-bg-3)', border: '1px solid var(--color-border)',
       borderRadius: 18, padding: '16px 14px 14px',
       display: 'flex', flexDirection: 'column', gap: 12,
       maxHeight: 'calc(100vh - 120px)',
@@ -2311,8 +2340,8 @@ function CenterLessonStudents({
           display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14,
           background: 'var(--color-green-soft)', border: '1px solid var(--color-border-glass)',
         }}>
-          <div style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Users size={18} style={{ color: '#fff' }} />
+          <div style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--color-green-text)33', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Users size={18} style={{ color: 'var(--color-green-text)' }} />
           </div>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-green-text)', lineHeight: 1.1 }}>
@@ -3639,6 +3668,73 @@ export default function TeacherCourseEditorPage() {
     return true
   }
 
+  // ── «Выдать новой группе» — clone this course as a fresh, independent stream
+  // for another group: new short_ids (zero shared progress), no old students,
+  // and all dates slid so the first lesson lands on the chosen start date. ──
+  const [handoutOpen, setHandoutOpen] = useState(false)
+  const [handoutGroupId, setHandoutGroupId] = useState<string | null>(null)
+  const [handoutTitle, setHandoutTitle] = useState('')
+  const [handoutStart, setHandoutStart] = useState('') // YYYY-MM-DD
+  const [handoutBusy, setHandoutBusy] = useState(false)
+  const [handoutDone, setHandoutDone] = useState(false)
+
+  const courseHasDates = course.lessons.some(l => l.scheduledDate || l.recDate)
+  const handoutGroups = groups.filter(g => !course.groupIds.includes(g.id))
+
+  function openHandout() {
+    setHandoutGroupId(null)
+    setHandoutTitle(`${course.title} · поток 2`)
+    setHandoutStart('')
+    setHandoutDone(false)
+    setHandoutOpen(true)
+  }
+
+  function buildHandoutClone(opts: { groupId: string; title: string; newStartIso?: string }): CourseEdData {
+    const { groupId, title, newStartIso } = opts
+    let deltaDays = 0
+    const anchor = earliestCourseDate(course.lessons)
+    if (newStartIso && anchor) {
+      const target = new Date(`${newStartIso}T00:00:00`)
+      deltaDays = Math.round((target.getTime() - anchor.getTime()) / 86400000)
+    }
+    // New lesson ids, dates shifted, lesson-level audiences (referencing the old
+    // group/students) cleared so nothing leaks from the source course.
+    const idMap: Record<string, string> = {}
+    const lessons = course.lessons.map(l => {
+      const nid = uid(); idMap[l.id] = nid
+      return {
+        ...l, id: nid,
+        extraStudentIds: undefined, extraGroupIds: undefined,
+        scheduledDate: shiftDot(l.scheduledDate, deltaDays),
+        recDate: shiftDot(l.recDate, deltaDays),
+        hwDate: shiftDot(l.hwDate, deltaDays),
+        recHwDate: shiftDot(l.recHwDate, deltaDays),
+      }
+    })
+    const modules = course.modules.map(m => ({ ...m, id: uid(), lessonIds: m.lessonIds.map(id => idMap[id] ?? id) }))
+    return {
+      ...course,
+      id: uid(),
+      dbCourseId: undefined,
+      title: title.trim() || course.title,
+      groupIds: [groupId],
+      studentIds: [],
+      modules,
+      lessons,
+      lastEdited: undefined,
+    }
+  }
+
+  async function runHandout() {
+    if (!handoutGroupId || handoutBusy) return
+    setHandoutBusy(true)
+    const clone = buildHandoutClone({ groupId: handoutGroupId, title: handoutTitle, newStartIso: handoutStart || undefined })
+    const ok = await syncAccessToSupabase(clone)
+    setHandoutBusy(false)
+    if (ok) { setHandoutDone(true); setTimeout(() => setHandoutOpen(false), 1200) }
+    else setPublishErr('Не удалось создать копию курса — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.')
+  }
+
   function handleSave(overrideCourse?: CourseEdData) {
     const c = overrideCourse ?? course
     setCourseEdited(JSON.stringify(c))
@@ -3809,6 +3905,13 @@ export default function TeacherCourseEditorPage() {
           <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {course.dbCourseId && (
+            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={openHandout}
+              title="Скопировать курс для другой группы со своим стартом дат"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '9px 15px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+              <Copy size={14} strokeWidth={2} /> Выдать группе
+            </motion.button>
+          )}
           {course.status !== 'published' ? (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={() => handleSave()}
               style={{ padding: '9px 18px', borderRadius: 999, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', ...draftActiveStyle, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 7 }}>
@@ -3830,6 +3933,93 @@ export default function TeacherCourseEditorPage() {
             style={{}} />
         </div>
       </motion.div>
+
+      {/* ── «Выдать новой группе» modal ── */}
+      {handoutOpen && createPortal(
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          onClick={() => !handoutBusy && setHandoutOpen(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)' }}>
+          <motion.div
+            initial={{ scale: 0.96, y: 8 }} animate={{ scale: 1, y: 0 }}
+            onClick={e => e.stopPropagation()}
+            style={{ width: 460, maxWidth: '92vw', maxHeight: '88vh', overflow: 'auto', background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', borderRadius: 20, boxShadow: '0 24px 70px rgba(0,0,0,0.4)', padding: 22 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 4 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Copy size={17} strokeWidth={2.2} color="var(--color-green-text)" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 15.5, fontWeight: 700, color: 'var(--color-text)' }}>Выдать новой группе</div>
+                <div style={{ fontSize: 12.5, color: 'var(--color-muted)' }}>Свежая копия курса — свой старт, ноль прогресса</div>
+              </div>
+              <button onClick={() => !handoutBusy && setHandoutOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: 4 }}><X size={18} /></button>
+            </div>
+
+            {/* Group picker */}
+            <div style={{ marginTop: 16, fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 8 }}>Кому выдать</div>
+            {handoutGroups.length === 0 ? (
+              <div style={{ fontSize: 13, color: 'var(--color-muted)', padding: '10px 12px', background: 'var(--color-bg-3)', borderRadius: 12 }}>
+                Все группы уже назначены на этот курс. Создайте новую группу в разделе «Группы».
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 200, overflow: 'auto' }}>
+                {handoutGroups.map(g => {
+                  const on = handoutGroupId === g.id
+                  return (
+                    <button key={g.id} onClick={() => setHandoutGroupId(g.id)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
+                        border: on ? '1px solid var(--color-green-text)' : '1px solid var(--color-border-soft)',
+                        background: on ? 'var(--color-green-soft)' : 'var(--color-bg-3)' }}>
+                      <Users size={15} color={on ? 'var(--color-green-text)' : 'var(--color-muted)'} />
+                      <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: on ? 'var(--color-green-text)' : 'var(--color-text)' }}>{g.name}</span>
+                      {on && <Check size={15} color="var(--color-green-text)" />}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* New start date — only when the course actually has a calendar to shift */}
+            {courseHasDates && (
+              <>
+                <div style={{ marginTop: 16, fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Calendar size={14} /> Старт нового потока
+                </div>
+                <input type="date" value={handoutStart} onChange={e => setHandoutStart(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 12, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13.5, fontFamily: 'inherit' }} />
+                <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 6 }}>
+                  {handoutStart ? 'Все даты уроков и домашек сдвинутся так, чтобы первый урок был в этот день (интервалы сохранятся).' : 'Оставьте пустым — даты скопируются как есть.'}
+                </div>
+              </>
+            )}
+
+            {/* Title */}
+            <div style={{ marginTop: 16, fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 8 }}>Название копии</div>
+            <input value={handoutTitle} onChange={e => setHandoutTitle(e.target.value)}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 12, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13.5, fontFamily: 'inherit' }} />
+
+            <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+              <button onClick={() => !handoutBusy && setHandoutOpen(false)}
+                style={{ padding: '11px 18px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'transparent', color: 'var(--color-text-2)', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                Отмена
+              </button>
+              <TeacherSaveButton
+                label="Создать копию"
+                savedLabel="Готово!"
+                icon={<Copy size={14} />}
+                accent={SAVE_ACCENTS.success}
+                fullWidth
+                saved={handoutDone}
+                saving={handoutBusy}
+                savingLabel="Создаю…"
+                disabled={!handoutGroupId}
+                onClick={runHandout}
+                style={{ flex: 1 }} />
+            </div>
+          </motion.div>
+        </motion.div>,
+        document.body
+      )}
 
       {/* ── Publish-blocked banner ── */}
       <AnimatePresence>
@@ -4006,17 +4196,31 @@ export default function TeacherCourseEditorPage() {
                     })()}
                   </div>
                   <div style={{ display: 'flex', background: 'var(--color-bg-3)', borderRadius: 12, padding: 3, gap: 2 }}>
-                    {LESSON_MODES.map(m => (
-                      <button key={m.id} onClick={() => setLessonMode(m.id)} style={{
-                        flex: 1, padding: '7px 10px', borderRadius: 9,
-                        border: 'none', cursor: 'pointer',
-                        background: lessonMode === m.id ? 'var(--color-green-soft)' : 'transparent',
-                        color: lessonMode === m.id ? 'var(--color-green-text)' : 'var(--color-text)',
-                        fontSize: 13, fontWeight: 600, transition: 'all 0.15s', fontFamily: 'inherit',
-                      }}>
-                        {m.label}
-                      </button>
-                    ))}
+                    {LESSON_MODES.map(m => {
+                      const active = lessonMode === m.id
+                      return (
+                        <button key={m.id} onClick={() => setLessonMode(m.id)} onMouseDown={e => e.preventDefault()} style={{
+                          position: 'relative', flex: 1, padding: '7px 10px', borderRadius: 9,
+                          border: 'none', cursor: 'pointer', background: 'transparent',
+                          color: active ? 'var(--color-green-text)' : 'var(--color-text)',
+                          fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
+                          transition: 'color 0.2s', outline: 'none',
+                        }}>
+                          {active && (
+                            <motion.span
+                              layoutId="lessonModePill"
+                              transition={{ type: 'spring', stiffness: 500, damping: 38 }}
+                              style={{
+                                position: 'absolute', inset: 0, borderRadius: 9,
+                                background: 'var(--color-green-soft)',
+                                border: '1.5px solid var(--color-green-text)',
+                              }}
+                            />
+                          )}
+                          <span style={{ position: 'relative', zIndex: 1 }}>{m.label}</span>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
 
