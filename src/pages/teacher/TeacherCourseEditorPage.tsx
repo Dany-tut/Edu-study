@@ -17,6 +17,7 @@ import type { Task as BankTask } from '../../data/taskBankData'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
 import TeacherSaveButton, { teacherSaveStyle } from '../../components/teacher/TeacherSaveButton'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
+import ScrollFade from '../../components/ScrollFade'
 import { getOwnerId } from '../../lib/owner'
 import TableEditor from '../../components/teacher/TableEditor'
 import { typeVisual } from '../../data/taskTypeVisuals'
@@ -1083,8 +1084,9 @@ function todayDotStr() {
 
 // Custom styled dropdown (matches CalendarPicker) — replaces native <select>.
 function pickerOptionStyle(active: boolean): React.CSSProperties {
+  // Rounded inset rows — same recipe as the student trainer's MultiSelectField.
   return {
-    width: '100%', textAlign: 'left', padding: '8px 10px', borderRadius: 9, border: 'none',
+    width: '100%', textAlign: 'left', padding: '8px 12px', borderRadius: 9, border: 'none',
     cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: active ? 700 : 500,
     background: active ? 'var(--color-green-soft)' : 'transparent',
     color: active ? 'var(--color-green-text)' : 'var(--color-text)',
@@ -1161,29 +1163,33 @@ function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon
             exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ duration: 0.16 }}
             style={{
               position: 'fixed', top: pos.top, left: pos.left, zIndex: 4000, width: pos.width,
-              minWidth: width ?? 110, maxHeight: 240, overflowY: 'auto',
+              minWidth: width ?? 110,
               background: 'rgba(var(--glass-rgb), 0.97)',
               backdropFilter: 'blur(16px) saturate(180%)',
               WebkitBackdropFilter: 'blur(16px) saturate(180%)',
               border: '1px solid var(--color-border-medium)',
-              borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.18)', padding: 6, paddingRight: 10,
-              display: 'flex', flexDirection: 'column', gap: 2,
+              borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+              padding: 6, overflow: 'hidden',
             }}
           >
-            {allowEmpty && (
-              <button onClick={() => { onChange(''); setOpen(false) }} style={pickerOptionStyle(value === '')}
-                onMouseEnter={e => { if (value !== '') (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
-                onMouseLeave={e => { if (value !== '') (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-              >—</button>
-            )}
-            {options.map(o => (
-              <button key={o.value} onClick={() => { onChange(o.value); setOpen(false) }} style={pickerOptionStyle(o.value === value)}
-                onMouseEnter={e => { if (o.value !== value) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
-                onMouseLeave={e => { if (o.value !== value) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-              >
-                {o.label}
-              </button>
-            ))}
+            <ScrollFade maxHeight={224} bg="rgba(var(--glass-rgb), 0.97)" overlayScrollbar>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {allowEmpty && (
+                  <button onClick={() => { onChange(''); setOpen(false) }} style={pickerOptionStyle(value === '')}
+                    onMouseEnter={e => { if (value !== '') (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-5)' }}
+                    onMouseLeave={e => { if (value !== '') (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                  >—</button>
+                )}
+                {options.map(o => (
+                  <button key={o.value} onClick={() => { onChange(o.value); setOpen(false) }} style={pickerOptionStyle(o.value === value)}
+                    onMouseEnter={e => { if (o.value !== value) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-5)' }}
+                    onMouseLeave={e => { if (o.value !== value) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </ScrollFade>
           </motion.div>
         )}
         </AnimatePresence>,
@@ -3506,7 +3512,9 @@ export default function TeacherCourseEditorPage() {
           time_start: time,
           time_end: addMinutes(time, dur ?? 90),
           lesson_title: lesson.title || dbLesson!.title,
-          lesson_number: lessonIndexById[lesson.id] + 1,
+          // Must match lessons.lesson_number (0-based) so resolveScheduleLesson's
+          // byNumber lookup lands on the right lesson — NOT lessonIndex + 1.
+          lesson_number: lessonIndexById[lesson.id],
           subject: c.subject,
           status: 'upcoming',
           node_type: nodeType,

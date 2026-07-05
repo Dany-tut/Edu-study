@@ -552,17 +552,24 @@ export function resolveScheduleLesson(
 
   for (const subject of pool) {
     const all = subject.modules.flatMap(m => m.lessons)
-    // Prefer the authoritative lesson_number the teacher scheduled (a diverged
-    // recording/lesson pair shares a number, so also match the node kind).
-    const byNumber = all.find(l =>
-      l.number === s.lessonNumber && (isRec ? l.nodeType === 'rec' : l.nodeType !== 'rec'))
-    const byTitle = wantTitle
+    // A diverged recording/lesson pair shares a title AND number, so every match
+    // must respect the node kind.
+    const kindOk = (l: Lesson) => isRec ? l.nodeType === 'rec' : l.nodeType !== 'rec'
+    // Exact title is the strongest signal: schedule_lessons has no stable lesson
+    // ref, and its lesson_number has historically drifted from lessons.lesson_number
+    // (0- vs 1-based), so trusting the number first misrouted status to the wrong
+    // lesson. Order: exact title → number → fuzzy title.
+    const byTitleExact = wantTitle
+      ? all.find(l => kindOk(l) && l.title.toLowerCase().trim() === wantTitle)
+      : undefined
+    const byNumber = all.find(l => kindOk(l) && l.number === s.lessonNumber)
+    const byTitleFuzzy = wantTitle
       ? all.find(l => {
           const t = l.title.toLowerCase().trim()
-          return t === wantTitle || t.includes(wantTitle) || wantTitle.includes(t)
+          return kindOk(l) && (t.includes(wantTitle) || wantTitle.includes(t))
         })
       : undefined
-    const match = byNumber ?? byTitle
+    const match = byTitleExact ?? byNumber ?? byTitleFuzzy
     if (match) return { subjectId: subject.id, lesson: match }
   }
   return { subjectId: fallbackSubjectId, lesson: null }
