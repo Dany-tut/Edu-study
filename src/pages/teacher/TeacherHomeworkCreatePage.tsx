@@ -28,6 +28,7 @@ import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import WhiteboardCanvas from '../../components/teacher/WhiteboardCanvas'
 import RichConditionEditor from '../../components/teacher/RichConditionEditor'
 import TableEditor from '../../components/teacher/TableEditor'
+import { useOverlayScroll, ScrollOverlays } from '../../components/teacher/OverlayScroll'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1104,6 +1105,7 @@ function TrainerFilterPanel({
   })()
 
   const hasFilters = !!(filters.sections.length || filters.topics.length || filters.parts.length || filters.lines.length || filters.source)
+  const { ref: filterScrollRef, fade: filterFade, thumb: filterThumb, onScroll: onFilterScroll } = useOverlayScroll()
 
   return (
     <motion.div
@@ -1119,11 +1121,16 @@ function TrainerFilterPanel({
         border: '1px solid var(--color-border-glass)',
         borderRadius: 18,
         boxShadow: 'var(--shadow-sm-page)',
-        display: 'flex', flexDirection: 'column', overflowY: 'auto', scrollbarGutter: 'stable',
-        padding: '16px', gap: 10,
+        display: 'flex', flexDirection: 'column',
+        position: 'relative', overflow: 'hidden',
         margin: '0 24px 20px 0',
       }}
     >
+      <ScrollOverlays fade={filterFade} thumb={filterThumb} />
+      <div ref={filterScrollRef} onScroll={onFilterScroll} className="no-scrollbar" style={{
+        flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain',
+        display: 'flex', flexDirection: 'column', padding: '16px', gap: 10,
+      }}>
       {/* Header with filter icon */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
         <Search size={14} style={{ color: 'var(--color-text-3)' }} />
@@ -1186,6 +1193,7 @@ function TrainerFilterPanel({
 
       <div style={{ fontSize: 11, color: 'var(--color-text-4)', textAlign: 'center', marginTop: 4 }}>
         {bankTasks.length} заданий в базе
+      </div>
       </div>
     </motion.div>
   )

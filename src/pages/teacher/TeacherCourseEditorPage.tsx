@@ -18,6 +18,7 @@ import { useGroups, useAllStudents } from '../../lib/useGroups'
 import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import ScrollFade from '../../components/ScrollFade'
+import { useOverlayScroll, ScrollOverlays, OverlayScrollArea } from '../../components/teacher/OverlayScroll'
 import { getOwnerId } from '../../lib/owner'
 import TableEditor from '../../components/teacher/TableEditor'
 import { typeVisual } from '../../data/taskTypeVisuals'
@@ -212,44 +213,6 @@ function GlassCard({ children, style }: { children: React.ReactNode; style?: Rea
   )
 }
 
-// ─── Scroll-fade: top/bottom gradient masks that appear only while scrollable ──
-// Top fade shows once scrolled down; bottom fade shows while more content lies
-// below. Neither is painted when the content fits (no permanent edge fade).
-// Uses ResizeObserver + a per-render sync (Claude Preview never fires rAF).
-
-function useScrollFade() {
-  const ref = useRef<HTMLDivElement>(null)
-  const [fade, setFade] = useState({ top: false, bottom: false })
-  const update = () => {
-    const el = ref.current
-    if (!el) return
-    const top = el.scrollTop > 1
-    const bottom = el.scrollTop + el.clientHeight < el.scrollHeight - 1
-    setFade(f => (f.top === top && f.bottom === bottom) ? f : { top, bottom })
-  }
-  // Runs after every render so added/removed/expanded rows re-evaluate overflow.
-  useEffect(() => { update() })
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const ro = new ResizeObserver(update)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-  return { ref, fade, update }
-}
-
-function ScrollFadeMask({ side, show }: { side: 'top' | 'bottom'; show: boolean }) {
-  return (
-    <div style={{
-      position: 'absolute', left: 0, right: 0, height: 36, pointerEvents: 'none', zIndex: 3,
-      [side]: -8,
-      background: `linear-gradient(to ${side === 'top' ? 'bottom' : 'top'}, rgba(var(--glass-rgb), 0.95), rgba(var(--glass-rgb), 0))`,
-      opacity: show ? 1 : 0, transition: 'opacity 0.18s ease',
-    }} />
-  )
-}
-
 // ─── Task type definitions ────────────────────────────────────────────────────
 
 // Colours come from the shared per-type palette (taskTypeVisuals) so a given
@@ -319,7 +282,7 @@ function LeftCourseMeta({
     el.style.height = `${el.scrollHeight}px`
   }, [course.title])
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <OverlayScrollArea style={{ flex: 1 }} padding={16} scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {/* Title */}
       <textarea
         ref={titleRef}
@@ -375,7 +338,7 @@ function LeftCourseMeta({
         style={{ ...inputSt, resize: 'none', minHeight: 160, lineHeight: 1.6 }}
         placeholder="Описание курса — что разберём, для кого курс, что получит ученик…"
       />
-    </div>
+    </OverlayScrollArea>
   )
 }
 
@@ -566,7 +529,7 @@ function CenterCourseAccess({
   const assignedStudents = allStudents.filter(s => course.studentIds.includes(s.id))
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '32px 48px' }}>
+    <OverlayScrollArea style={{ flex: 1 }} padding="32px 48px">
       <div style={{ maxWidth: 860, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 22 }}>
 
         {/* Who gets the course */}
@@ -652,7 +615,7 @@ function CenterCourseAccess({
           )}
         </div>
       </div>
-    </div>
+    </OverlayScrollArea>
   )
 }
 
@@ -825,7 +788,7 @@ function CenterRecording({
   const content = (() => {
   if (lesson.videoUrl && !linkMode) {
     return (
-      <div style={{ flex: 1, overflowY: 'auto', padding: '28px 36px' }}>
+      <OverlayScrollArea style={{ flex: 1 }} padding="28px 36px">
         <div style={{ maxWidth: 640, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <Label>Запись урока</Label>
@@ -847,7 +810,7 @@ function CenterRecording({
             </span>
           </div>
         </div>
-      </div>
+      </OverlayScrollArea>
     )
   }
 
@@ -951,7 +914,7 @@ function CenterLesson({
   }, [])
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '28px 36px' }}>
+    <OverlayScrollArea style={{ flex: 1 }} padding="28px 36px">
       <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div>
           <Label>Название урока</Label>
@@ -1084,7 +1047,7 @@ function CenterLesson({
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </OverlayScrollArea>
   )
 }
 
@@ -1718,7 +1681,7 @@ function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: b
                   style={{ ...inputSt, fontSize: 11.5, padding: '6px 9px 6px 26px' }}
                 />
               </div>
-              <div style={{ maxHeight: 260, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <OverlayScrollArea style={{ maxHeight: 260 }} bg="rgba(var(--glass-rgb), 0.7)" scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {filtered.slice(0, 80).map(bt => (
                   <button
                     key={bt.id}
@@ -1736,7 +1699,7 @@ function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: b
                     {bankTasks.length === 0 ? 'Банк пуст' : 'Ничего не найдено'}
                   </div>
                 )}
-              </div>
+              </OverlayScrollArea>
             </div>
           </motion.div>
         )}
@@ -1760,6 +1723,7 @@ function HomeworkLeftPanel({
 
   // Аккордеон: открыта ровно одна секция (по умолчанию — обычные типы).
   const [openSection, setOpenSection] = useState<'basic' | 'hard'>('basic')
+  const { ref: hwScrollRef, fade: hwFade, thumb: hwThumb, onScroll: onHwScroll } = useOverlayScroll()
   const basicCount = tasks.filter(t => !t.isHard).length
   const hardCount = tasks.filter(t => t.isHard).length
 
@@ -1779,11 +1743,20 @@ function HomeworkLeftPanel({
   return (
     <div style={{
       width: 248, flexShrink: 0,
-      background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)',
-      borderRadius: 18, padding: '16px 14px 18px',
-      display: 'flex', flexDirection: 'column', gap: 12,
-      maxHeight: 'calc(100vh - 120px)', overflowY: 'auto',
+      background: 'rgba(var(--glass-rgb), 0.88)',
+      backdropFilter: 'blur(16px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      border: '1px solid var(--color-border-glass)',
+      boxShadow: 'var(--shadow-sm-page)',
+      borderRadius: 18,
+      display: 'flex', flexDirection: 'column',
+      maxHeight: 'calc(100vh - 120px)', position: 'relative', overflow: 'hidden',
     }}>
+      <ScrollOverlays fade={hwFade} thumb={hwThumb} bg="rgba(var(--glass-rgb), 0.88)" />
+      <div ref={hwScrollRef} onScroll={onHwScroll} className="no-scrollbar" style={{
+        flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain',
+        padding: '16px 14px 18px', display: 'flex', flexDirection: 'column', gap: 12,
+      }}>
       {/* Target toggle: lesson HW vs recording HW — single line, no icons */}
       <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-2)' }}>
         {([
@@ -1799,7 +1772,7 @@ function HomeworkLeftPanel({
           }}>
             {t.label}
             {t.n > 0 && (
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: hwTab === t.id ? 'var(--color-green-text)' : 'var(--color-bg-3)', color: hwTab === t.id ? '#fff' : 'var(--color-muted)' }}>{t.n}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: hwTab === t.id ? 'var(--btn-green-bg)' : 'var(--color-bg-3)', color: hwTab === t.id ? '#fff' : 'var(--color-muted)' }}>{t.n}</span>
             )}
           </button>
         ))}
@@ -1881,6 +1854,7 @@ function HomeworkLeftPanel({
         ))}
         <BankPicker hard onPick={bt => addFromBank(bt, true)} />
       </AccordionSection>
+      </div>
     </div>
   )
 }
@@ -1980,7 +1954,7 @@ function CenterHomework({
   )
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+    <OverlayScrollArea style={{ flex: 1 }} padding="20px 24px">
       {tasks.length === 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 280, gap: 10 }}>
           <BookOpen size={36} style={{ opacity: 0.15, color: 'var(--color-muted)' }} />
@@ -2021,7 +1995,7 @@ function CenterHomework({
           </div>
         </div>
       )}
-    </div>
+    </OverlayScrollArea>
   )
 }
 
@@ -2055,7 +2029,7 @@ function CenterTestView({
       </div>
 
       {/* Task list — centred, same shape as the homework editor */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+      <OverlayScrollArea style={{ flex: 1 }} padding="20px 24px">
         {tasks.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 280, gap: 10 }}>
             <ClipboardCheck size={36} style={{ opacity: 0.15, color: 'var(--color-muted)' }} />
@@ -2068,7 +2042,7 @@ function CenterTestView({
             ))}
           </div>
         )}
-      </div>
+      </OverlayScrollArea>
     </div>
   )
 }
@@ -2082,13 +2056,12 @@ function TestLeftPanel({ lesson, onUpdate }: {
   const addTask = (type: HWTaskType) => onUpdate({ ...lesson, testTasks: [...tasks, makeHWTask(type, false)] })
   const addFromBank = (bt: BankTask) => onUpdate({ ...lesson, testTasks: [...tasks, hwTaskFromBank(bt, false)] })
   return (
-    <div style={{
-      width: 248, flexShrink: 0,
-      background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)',
-      borderRadius: 18, padding: '16px 14px 18px',
-      display: 'flex', flexDirection: 'column', gap: 10,
-      maxHeight: 'calc(100vh - 120px)', overflowY: 'auto',
-    }}>
+    <OverlayScrollArea
+      style={{ width: 248, flexShrink: 0, background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)', borderRadius: 18, maxHeight: 'calc(100vh - 120px)' }}
+      bg="rgba(var(--glass-rgb), 0.7)"
+      padding="16px 14px 18px"
+      scrollStyle={{ gap: 10, display: 'flex', flexDirection: 'column' }}
+    >
       <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, padding: '0 4px' }}>СОСТАВИТЬ ВОПРОС</div>
       {TASK_TYPES.map(t => (
         <button key={t.type} onClick={() => addTask(t.type)} title={t.hint} style={{
@@ -2109,7 +2082,7 @@ function TestLeftPanel({ lesson, onUpdate }: {
         </button>
       ))}
       <BankPicker onPick={addFromBank} />
-    </div>
+    </OverlayScrollArea>
   )
 }
 
@@ -2147,30 +2120,7 @@ function StudentsLeftPanel({
   allStudents: Array<{ id: string; name: string; groupId?: string }>
 }) {
   const [addTab, setAddTab] = useState<'group' | 'student'>('student')
-  const { ref: choicesRef, fade: choicesFade, update: onChoicesScroll } = useScrollFade()
-  // Floating overlay thumb: native gutter is hidden so cards run full-width and
-  // the scrollbar rides on top of them, appearing only while scrolling.
-  const [thumb, setThumb] = useState({ h: 0, top: 0, show: false, overflow: false })
-  const thumbHide = useRef<ReturnType<typeof setTimeout> | null>(null)
-  function measureThumb() {
-    const el = choicesRef.current
-    if (!el) return
-    const inset = 4
-    const overflow = el.scrollHeight > el.clientHeight + 1
-    const trackH = Math.max(0, el.clientHeight - inset * 2)
-    const h = trackH > 0 && overflow ? Math.max(24, (el.clientHeight / el.scrollHeight) * trackH) : 0
-    const maxScroll = el.scrollHeight - el.clientHeight
-    const top = inset + (maxScroll > 0 ? (el.scrollTop / maxScroll) * (trackH - h) : 0)
-    setThumb(p => (p.h === h && p.top === top && p.overflow === overflow ? p : { ...p, h, top, overflow }))
-  }
-  useEffect(measureThumb)
-  function handleChoicesScroll() {
-    onChoicesScroll()
-    measureThumb()
-    setThumb(p => (p.show ? p : { ...p, show: true }))
-    if (thumbHide.current) clearTimeout(thumbHide.current)
-    thumbHide.current = setTimeout(() => setThumb(p => ({ ...p, show: false })), 900)
-  }
+  const { ref: choicesRef, fade: choicesFade, thumb: choicesThumb, onScroll: handleChoicesScroll } = useOverlayScroll()
   const [query, setQuery] = useState('')
 
   const { extraGroupIds, extraStudentIds, totalBaseline } = useLessonAudience(lesson, course, groups, allStudents)
@@ -2199,10 +2149,13 @@ function StudentsLeftPanel({
   return (
     <div style={{
       width: 248, flexShrink: 0,
-      background: 'var(--color-bg-3)', border: '1px solid var(--color-border)',
-      borderRadius: 18, padding: '16px 14px 14px',
+      background: 'rgba(var(--glass-rgb), 0.88)',
+      backdropFilter: 'blur(16px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+      border: '1px solid var(--color-border-glass)',
+      boxShadow: 'var(--shadow-sm-page)',
+      borderRadius: 18, padding: '16px 16px 18px',
       display: 'flex', flexDirection: 'column', gap: 12,
-      maxHeight: 'calc(100vh - 120px)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
         <Users size={14} style={{ color: 'var(--color-green-text)' }} />
@@ -2233,13 +2186,9 @@ function StudentsLeftPanel({
       />
 
       {/* choices list */}
-      <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: 30, pointerEvents: 'none', zIndex: 3,
-          background: 'linear-gradient(to bottom, var(--color-bg-3), rgba(0,0,0,0))',
-          opacity: choicesFade.top ? 1 : 0, transition: 'opacity 0.18s ease',
-        }} />
-        <div ref={choicesRef} onScroll={handleChoicesScroll} className="no-scrollbar" style={{ position: 'absolute', inset: 0, overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 5 }}>
+      <div style={{ minHeight: 0, position: 'relative' }}>
+        <ScrollOverlays fade={choicesFade} thumb={choicesThumb} bg="rgba(var(--glass-rgb), 0.88)" />
+        <div ref={choicesRef} onScroll={handleChoicesScroll} className="no-scrollbar" style={{ maxHeight: 306, overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 5 }}>
         {addTab === 'student' && studentChoices.map(s => {
           const on = extraStudentIds.includes(s.id)
           return (
@@ -2302,18 +2251,6 @@ function StudentsLeftPanel({
           </span>
         )}
         </div>
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0, height: 30, pointerEvents: 'none', zIndex: 3,
-          background: 'linear-gradient(to top, var(--color-bg-3), rgba(0,0,0,0))',
-          opacity: choicesFade.bottom ? 1 : 0, transition: 'opacity 0.18s ease',
-        }} />
-        {thumb.overflow && (
-          <div style={{
-            position: 'absolute', top: thumb.top, right: 2, width: 5, height: thumb.h,
-            borderRadius: 999, background: 'var(--scroll-thumb)', pointerEvents: 'none', zIndex: 4,
-            opacity: thumb.show ? 1 : 0, transition: 'opacity 0.3s ease',
-          }} />
-        )}
       </div>
     </div>
   )
@@ -2373,9 +2310,10 @@ function CenterLessonStudents({
   const extraEmpty = extraGroups.length === 0 && extraStudentsList.length === 0
   const n = totalReach.size
   const reachWord = n === 1 ? 'ученик' : n >= 2 && n <= 4 ? 'ученика' : 'учеников'
+  const reachVerb = n === 1 ? 'видит этот урок' : 'видят этот урок'
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '24px 36px' }}>
+    <OverlayScrollArea style={{ flex: 1 }} padding="24px 36px">
       <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 22 }}>
 
         {/* Total reach headline */}
@@ -2390,7 +2328,7 @@ function CenterLessonStudents({
             <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-green-text)', lineHeight: 1.1 }}>
               {n} {reachWord}
             </div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>видят этот урок</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{reachVerb}</div>
           </div>
         </div>
 
@@ -2547,7 +2485,7 @@ function CenterLessonStudents({
           )}
         </div>
       </div>
-    </div>
+    </OverlayScrollArea>
   )
 }
 
@@ -2673,7 +2611,7 @@ function RightPanelLessons({
   // Double-click a module header to rename it inline.
   const [editingModuleId, setEditingModuleId] = useState<string | null>(null)
   const [editingModuleLabel, setEditingModuleLabel] = useState('')
-  const { ref: scrollRef, fade, update: onScrollFade } = useScrollFade()
+  const { ref: scrollRef, fade, thumb, onScroll: onScrollFade } = useOverlayScroll()
 
   // Append a new lesson into the active module (falls back to the last one).
   function appendLesson(lesson: CELesson) {
@@ -2927,13 +2865,13 @@ function RightPanelLessons({
       </AnimatePresence>
 
       <div style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex', overflow: 'hidden' }}>
-        <ScrollFadeMask side="top" show={fade.top} />
-        <ScrollFadeMask side="bottom" show={fade.bottom} />
+        <ScrollOverlays fade={fade} thumb={thumb} />
         {/* Click on the empty area (not a row/module) clears every selection. */}
         <div
           ref={scrollRef}
           onScroll={onScrollFade}
-          style={{ flex: 1, overflowY: 'auto', padding: '8px 10px', scrollbarGutter: 'stable' }}
+          className="no-scrollbar"
+          style={{ flex: 1, overflowY: 'auto', padding: '8px 10px' }}
           onClick={e => {
             if (e.target !== e.currentTarget) return
             clearSelection()
