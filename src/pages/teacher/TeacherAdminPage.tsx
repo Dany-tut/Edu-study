@@ -41,6 +41,15 @@ type PendingInvite = {
   createdByName: string | null
 }
 
+// A course/group the teacher already has (from admin_teacher_content).
+type TeacherContentRow = {
+  kind: 'course' | 'group'
+  id: string
+  title: string
+  via: 'owned' | 'shared'
+  detail: number
+}
+
 function fmtBytes(n: number): string {
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} КБ`
   if (n < 1024 * 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)} МБ`
@@ -231,6 +240,17 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
   const [pwValue, setPwValue] = useState('')
   const [pwError, setPwError] = useState('')
   const [pwCopied, setPwCopied] = useState(false)
+  // What the teacher ALREADY has (read-only) — owned/shared courses + owned groups.
+  const [current, setCurrent] = useState<TeacherContentRow[] | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    supabase.rpc('admin_teacher_content', { p_teacher: teacher.id }).then(({ data }) => {
+      if (!alive) return
+      setCurrent(Array.isArray(data) ? (data as TeacherContentRow[]) : [])
+    })
+    return () => { alive = false }
+  }, [teacher.id])
 
   async function resetPassword() {
     setPwLoading(true); setPwError(''); setPwValue('')
@@ -286,6 +306,23 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
 
   return (
     <div style={{ padding: '4px 18px 18px' }}>
+      {/* Read-only: what the teacher ALREADY has. The picker below is "give more". */}
+      {current && current.length > 0 && (
+        <div style={{ marginBottom: 14, padding: '12px 14px', borderRadius: 12, background: 'var(--color-bg-3)', border: '1px solid var(--color-border)' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>Уже у учителя</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {current.map(r => (
+              <span key={`${r.kind}-${r.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 8, padding: '4px 9px' }}>
+                {r.kind === 'course' ? <BookOpen size={12} strokeWidth={2} /> : <Users size={12} strokeWidth={2} />}
+                {r.title}
+                <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}>
+                  · {r.kind === 'course' ? `${r.detail} ур.` : `${r.detail} уч.`}{r.via === 'shared' ? ' · share' : ''}
+                </span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
       <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginBottom: 14, lineHeight: 1.5 }}>
         Отметьте разделы/виджеты, которые учитель <b>видит</b>, и курсы/группы, которые ему <b>выдать</b>. Курсы/группы применяются при сохранении.
       </div>
