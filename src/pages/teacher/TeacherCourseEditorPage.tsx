@@ -2361,22 +2361,26 @@ function CenterLessonStudents({
         {/* Course-wide access mode — how lessons open for each baseline member */}
         {!baselineEmpty && (
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-green-text)' }} />
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>
                 Как открываются уроки
               </span>
-              <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>· для всего курса</span>
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--color-muted)', marginBottom: 10, marginLeft: 16 }}>
+              Порядок открытия уроков для каждого участника курса
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {courseGroups.map(g => {
                 const gm = groupMode(g.id)
                 return (
                   <div key={g.id} style={{
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '7px 12px', borderRadius: 12, background: 'var(--color-green-soft)',
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '7px 10px 7px 8px', borderRadius: 12, background: 'var(--color-green-soft)',
                   }}>
-                    <Users size={13} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Users size={14} style={{ color: '#fff' }} />
+                    </div>
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.name}</span>
                     <AccessModeSelect
                       value={gm === 'mixed' ? '' : gm}
@@ -2388,17 +2392,28 @@ function CenterLessonStudents({
               })}
               {courseStudents.map(s => (
                 <div key={s.id} style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '7px 12px', borderRadius: 12, background: 'var(--color-bg-3)',
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '7px 10px 7px 8px', borderRadius: 12, background: 'var(--color-bg-3)',
                 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                    {s.name.slice(0, 1).toUpperCase()}
+                  </div>
                   <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</span>
                   <AccessModeSelect value={modeOf(s.id)} onChange={v => setStudentMode(s.id, v)} />
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: 8, fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.5 }}>
-              <b>По датам</b> — урок открывается, когда наступает его дата (прошлые открыты сразу) ·{' '}
-              <b>Всё открыто</b> — доступны все уроки · <b>Настраиваемый</b> — открываешь вручную
+            <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {[
+                { label: 'По датам', desc: 'открывается в свою дату, прошлые — сразу' },
+                { label: 'Всё открыто', desc: 'доступны все уроки' },
+                { label: 'Настраиваемый', desc: 'открываешь вручную' },
+              ].map(m => (
+                <div key={m.label} style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.4 }}>
+                  <span style={{ flexShrink: 0, fontWeight: 700, color: 'var(--color-text-3)', minWidth: 96 }}>{m.label}</span>
+                  <span>{m.desc}</span>
+                </div>
+              ))}
             </div>
           </div>
         )}
