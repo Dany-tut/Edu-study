@@ -500,7 +500,7 @@ function CenterCourseAccess({
 }) {
   const [assignTab, setAssignTab] = useState<'group' | 'student'>('group')
 
-  const modeOf = (id: string): AccessMode => accessModes[id] ?? 'custom'
+  const modeOf = (id: string): AccessMode => accessModes[id] ?? 'by_date'
   const setStudentMode = (id: string, mode: AccessMode) =>
     setAccessModes(m => ({ ...m, [id]: mode }))
   // A group's mode is applied to every current member (stored per-student).
@@ -508,7 +508,7 @@ function CenterCourseAccess({
     allStudents.filter(s => s.groupId === groupId).map(s => s.id)
   const groupMode = (groupId: string): AccessMode | 'mixed' => {
     const ids = memberIdsOf(groupId)
-    if (ids.length === 0) return 'custom'
+    if (ids.length === 0) return 'by_date'
     const first = modeOf(ids[0])
     return ids.every(id => modeOf(id) === first) ? first : 'mixed'
   }
@@ -2250,18 +2250,41 @@ function StudentsLeftPanel({
 // ─── CENTER: Lesson-level students tab — who actually has access ─────────────
 
 function CenterLessonStudents({
-  lesson, onUpdate, course, groups, allStudents,
+  lesson, onUpdate, course, groups, allStudents, accessModes, setAccessModes,
 }: {
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
   course: CourseEdData
   groups: Array<{ id: string; name: string }>
   allStudents: Array<{ id: string; name: string; groupId?: string }>
+  accessModes: Record<string, AccessMode>
+  setAccessModes: React.Dispatch<React.SetStateAction<Record<string, AccessMode>>>
 }) {
   const {
     extraGroupIds, extraStudentIds,
     courseGroups, courseStudents, extraGroups, extraStudentsList, totalBaseline,
   } = useLessonAudience(lesson, course, groups, allStudents)
+
+  // Course-wide access mode (full / custom / by_date) is per-student, shared by
+  // every lesson — surfaced here so it's reachable where teachers look. Editing
+  // it changes the whole course, not just this lesson.
+  const modeOf = (id: string): AccessMode => accessModes[id] ?? 'by_date'
+  const setStudentMode = (id: string, mode: AccessMode) =>
+    setAccessModes(m => ({ ...m, [id]: mode }))
+  const memberIdsOf = (groupId: string) =>
+    allStudents.filter(s => s.groupId === groupId).map(s => s.id)
+  const groupMode = (groupId: string): AccessMode | 'mixed' => {
+    const ids = memberIdsOf(groupId)
+    if (ids.length === 0) return 'by_date'
+    const first = modeOf(ids[0])
+    return ids.every(id => modeOf(id) === first) ? first : 'mixed'
+  }
+  const setGroupMode = (groupId: string, mode: AccessMode) =>
+    setAccessModes(m => {
+      const next = { ...m }
+      for (const id of memberIdsOf(groupId)) next[id] = mode
+      return next
+    })
 
   function removeExtraGroup(id: string) {
     onUpdate({ ...lesson, extraGroupIds: extraGroupIds.filter(x => x !== id) })
@@ -2334,6 +2357,51 @@ function CenterLessonStudents({
             </div>
           )}
         </div>
+
+        {/* Course-wide access mode — how lessons open for each baseline member */}
+        {!baselineEmpty && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-green-text)' }} />
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>
+                Как открываются уроки
+              </span>
+              <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>· для всего курса</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {courseGroups.map(g => {
+                const gm = groupMode(g.id)
+                return (
+                  <div key={g.id} style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '7px 12px', borderRadius: 12, background: 'var(--color-green-soft)',
+                  }}>
+                    <Users size={13} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)', flex: 1 }}>{g.name}</span>
+                    <AccessModeSelect
+                      value={gm === 'mixed' ? '' : gm}
+                      onChange={v => setGroupMode(g.id, v)}
+                      placeholder={gm === 'mixed' ? 'Разный' : undefined}
+                    />
+                  </div>
+                )
+              })}
+              {courseStudents.map(s => (
+                <div key={s.id} style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '7px 12px', borderRadius: 12, background: 'var(--color-bg-3)',
+                }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', flex: 1 }}>{s.name}</span>
+                  <AccessModeSelect value={modeOf(s.id)} onChange={v => setStudentMode(s.id, v)} />
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 8, fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+              <b>По датам</b> — урок открывается, когда наступает его дата (прошлые открыты сразу) ·{' '}
+              <b>Всё открыто</b> — доступны все уроки · <b>Настраиваемый</b> — открываешь вручную
+            </div>
+          </div>
+        )}
 
         {/* Divider */}
         <div style={{ height: 1, background: 'var(--color-border-soft)' }} />
@@ -3163,6 +3231,7 @@ export default function TeacherCourseEditorPage() {
   }, [course.dbCourseId])
 
   const [savedFlash, setSavedFlash] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [publishErr, setPublishErr] = useState<string | null>(null)
 
   // ── Autosave ──────────────────────────────────────────────────────────────
@@ -3423,7 +3492,7 @@ export default function TeacherCourseEditorPage() {
       .filter(s => s.groupId && c.groupIds.includes(s.groupId))
       .map(s => s.id)
     const audienceIds = [...new Set([...c.studentIds, ...groupMemberIds])]
-    const effMode = (id: string): 'full' | 'custom' | 'by_date' => accessModes[id] ?? 'custom'
+    const effMode = (id: string): 'full' | 'custom' | 'by_date' => accessModes[id] ?? 'by_date'
 
     // Drop enrollments for students no longer in the audience, then upsert the rest.
     {
@@ -3559,8 +3628,12 @@ export default function TeacherCourseEditorPage() {
     const c = overrideCourse ?? course
     setCourseEdited(JSON.stringify(c))
     const seq = draftSeq.current
-    syncAccessToSupabase(c).then(ok => {
-      clearCourseDraftAfterSync(seq, ok)
+    setSaving(true)
+    // Floor the "saving" state so the fill + spinner are perceptible even when
+    // the write returns almost instantly.
+    Promise.all([syncAccessToSupabase(c), new Promise(r => setTimeout(r, 550))]).then(([ok]) => {
+      setSaving(false)
+      clearCourseDraftAfterSync(seq, ok as boolean)
       if (ok) { setPublishErr(null); flash() }
       else setPublishErr('Не удалось сохранить курс — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.')
     })
@@ -3599,8 +3672,10 @@ export default function TeacherCourseEditorPage() {
     // setCourse above bumps draftSeq on the next render — capture seq+1 so the
     // status flip itself doesn't block the post-save draft cleanup.
     const seq = draftSeq.current + 1
-    syncAccessToSupabase(updated).then(ok => {
-      clearCourseDraftAfterSync(seq, ok)
+    setSaving(true)
+    Promise.all([syncAccessToSupabase(updated), new Promise(r => setTimeout(r, 550))]).then(([ok]) => {
+      setSaving(false)
+      clearCourseDraftAfterSync(seq, ok as boolean)
       if (ok) flash()
       else setPublishErr('Не удалось опубликовать курс — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.')
     })
@@ -3682,6 +3757,7 @@ export default function TeacherCourseEditorPage() {
                 savedLabel={course.status === 'published' ? 'Сохранено!' : 'Опубликовано!'}
                 icon={<Send size={14} />}
                 saved={savedFlash}
+                saving={saving}
                 onClick={course.status === 'published' ? () => handleSave() : handlePublish}
                 style={{ pointerEvents: 'auto' }} />
             </motion.div>
@@ -3734,6 +3810,7 @@ export default function TeacherCourseEditorPage() {
             savedLabel={course.status === 'published' ? 'Сохранено!' : 'Опубликовано!'}
             icon={<Send size={14} />}
             saved={savedFlash}
+            saving={saving}
             onClick={course.status === 'published' ? () => handleSave() : handlePublish}
             style={{}} />
         </div>
@@ -3954,6 +4031,7 @@ export default function TeacherCourseEditorPage() {
                       <CenterLessonStudents
                         lesson={selectedLesson} onUpdate={updateLesson}
                         course={course} groups={groups} allStudents={allStudents}
+                        accessModes={accessModes} setAccessModes={setAccessModes}
                       />
                     )}
                   </motion.div>

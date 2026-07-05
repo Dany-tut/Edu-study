@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check } from 'lucide-react'
+import { Check, Loader2 } from 'lucide-react'
 
 /**
  * The one canonical "save / primary action" button for the teacher platform.
@@ -41,39 +41,62 @@ export function teacherSaveStyle(opts: { accent?: SaveAccent; disabled?: boolean
 }
 
 export default function TeacherSaveButton({
-  label, savedLabel = 'Сохранено!', onClick,
-  accent, disabled = false, saved = false,
+  label, savedLabel = 'Сохранено!', savingLabel = 'Сохраняю…', onClick,
+  accent, disabled = false, saved = false, saving = false,
   icon, fullWidth = false, style,
 }: {
   label: ReactNode
   savedLabel?: ReactNode
+  savingLabel?: ReactNode
   onClick?: () => void
   accent?: SaveAccent
   disabled?: boolean
   saved?: boolean
+  /** While true: the button shows a filling progress sweep + spinner. */
+  saving?: boolean
   icon?: ReactNode
   fullWidth?: boolean
   style?: CSSProperties
 }) {
   return (
     <motion.button
-      whileHover={{ scale: disabled ? 1 : 1.03 }}
-      whileTap={{ scale: disabled ? 1 : 0.97 }}
-      onClick={disabled ? undefined : onClick}
+      whileHover={{ scale: disabled || saving ? 1 : 1.03 }}
+      whileTap={{ scale: disabled || saving ? 1 : 0.97 }}
+      onClick={disabled || saving ? undefined : onClick}
       disabled={disabled}
-      style={{ ...teacherSaveStyle({ accent, disabled, saved, fullWidth }), ...style }}
+      style={{ ...teacherSaveStyle({ accent, disabled, saved, fullWidth }), position: 'relative', overflow: 'hidden', ...style }}
     >
+      {/* Progress sweep — fills the button left→right while the save is in flight,
+          holding near the end until it completes (then the green "saved" swap). */}
+      {saving && (
+        <motion.span
+          aria-hidden
+          initial={{ width: '0%' }}
+          animate={{ width: '90%' }}
+          transition={{ duration: 1.1, ease: 'easeOut' }}
+          style={{ position: 'absolute', left: 0, top: 0, bottom: 0, background: 'rgba(255,255,255,0.24)', pointerEvents: 'none' }}
+        />
+      )}
       <AnimatePresence mode="wait" initial={false}>
-        {saved ? (
+        {saving ? (
+          <motion.span key="saving"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ display: 'flex', alignItems: 'center', gap: 7, position: 'relative' }}>
+            <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }} style={{ display: 'flex' }}>
+              <Loader2 size={14} strokeWidth={2.5} />
+            </motion.span>
+            {savingLabel}
+          </motion.span>
+        ) : saved ? (
           <motion.span key="saved"
             initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
-            style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 7, position: 'relative' }}>
             <Check size={15} strokeWidth={2.5} /> {savedLabel}
           </motion.span>
         ) : (
           <motion.span key="save"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 7, position: 'relative' }}>
             {icon ?? <Check size={14} strokeWidth={2.5} />} {label}
           </motion.span>
         )}

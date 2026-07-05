@@ -20,7 +20,7 @@ export const TYPE_VISUALS: Record<string, TypeVisual> = {
   // table with blanks → teal
   tableFill:  { color: 'var(--color-teal-pill-text)', bg: 'var(--color-teal-pill-bg)' },
   // extended free-text → purple
-  extended:   { color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)' },
+  extended:   { color: 'var(--color-purple)',         bg: 'var(--color-purple-soft)' },
   // whiteboard drawing → blue
   whiteboard: { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
 }
