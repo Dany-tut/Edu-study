@@ -4,6 +4,7 @@ import { ChevronLeft, ClipboardCheck, CheckCircle2, ArrowUp, ArrowDown } from 'l
 import { type Lesson, type TestTask } from '../data/mockData'
 import { normalizeTaskType } from '../data/taskTypeVisuals'
 import { upsertLessonProgress } from '../lib/db'
+import { ownerStudentIdFor } from '../store/studentDataStore'
 import { getStudentSession } from '../lib/studentSession'
 import { useStudentData } from '../store/studentDataStore'
 
@@ -71,7 +72,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
     const correct = gradable.filter(t => gradeTask(t, answers[t.id])).length
     const score = gradable.length > 0 ? Math.round((correct / gradable.length) * 100) : 0
 
-    await upsertLessonProgress(session.id, lesson.id, lesson.subject, {
+    await upsertLessonProgress(ownerStudentIdFor(lesson.subject), lesson.id, lesson.subject, {
       status: 'submitted',
       score,
     })

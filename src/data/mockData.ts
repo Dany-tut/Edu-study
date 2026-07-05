@@ -72,6 +72,12 @@ export interface Subject {
   //   'full'    — every lesson open
   //   'by_date' — lessons open once their scheduled date has passed
   accessMode?: 'full' | 'custom' | 'by_date'
+  // Which of the viewing person's student rows owns THIS course's enrollment —
+  // the row the teacher grades against (matched via student_ids, else the row in
+  // the course's group). Progress writes for this course must use this id, not
+  // the active session row, so a multi-subject/multi-group person's submissions
+  // land under the row the teacher actually reads. Undefined → use session.id.
+  ownerStudentId?: string
 }
 
 export type ScheduleLesson = {

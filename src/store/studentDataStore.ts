@@ -78,7 +78,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     const results = await Promise.allSettled([
       fetchLessonProgress(scope.studentIds),
       fetchScheduleDays(session.groupId, session.id),
-      fetchCourseStructure(scope.studentIds, scope.groupIds),
+      fetchCourseStructure(scope.rows),
       fetchQuizQuestions(),
       fetchScienceFacts(),
       fetchScienceMemes(),
@@ -165,3 +165,13 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     }
   },
 }))
+
+// Which student row a progress write for `subjectId` (a course short_id) must
+// use: the course's owning enrollment row (so a multi-subject/multi-group person's
+// submissions land under the row the teacher grades), else the active session row.
+// Every student-side lesson_progress read/write scoped to a course must use this.
+export function ownerStudentIdFor(subjectId: string | undefined): string {
+  const fallback = getStudentSession()?.id ?? ''
+  if (!subjectId) return fallback
+  return useStudentData.getState().subjects.find(s => s.id === subjectId)?.ownerStudentId ?? fallback
+}

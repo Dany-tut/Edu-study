@@ -148,18 +148,29 @@ export type ProgressMap = Record<string, {
 // subject cards AND any regular group they were enrolled into). Lets the student
 // track show ALL their courses regardless of which subject session is active.
 // Falls back to the single session ids when there's no linked auth account.
+export type PersonScope = {
+  studentIds: string[]
+  groupIds: string[]
+  rows: Array<{ id: string; groupId: string }>
+}
 export async function fetchPersonScope(
   fallback: { id: string; groupId: string },
-): Promise<{ studentIds: string[]; groupIds: string[] }> {
+): Promise<PersonScope> {
+  const fb = { studentIds: [fallback.id], groupIds: [fallback.groupId], rows: [{ id: fallback.id, groupId: fallback.groupId }] }
   const { data: auth } = await supabase.auth.getUser()
-  if (!auth?.user) return { studentIds: [fallback.id], groupIds: [fallback.groupId] }
+  if (!auth?.user) return fb
   const { data, error } = await supabase
     .from('students').select('id, group_id').eq('auth_user_id', auth.user.id)
   if (error) reportDbError('fetchPersonScope', error)
-  const rows = (data ?? []) as Array<{ id: string; group_id: string }>
-  const studentIds = new Set(rows.map(r => r.id)); studentIds.add(fallback.id)
-  const groupIds = new Set(rows.map(r => r.group_id)); groupIds.add(fallback.groupId)
-  return { studentIds: [...studentIds], groupIds: [...groupIds] }
+  const raw = (data ?? []) as Array<{ id: string; group_id: string }>
+  if (raw.length === 0) return fb
+  const rows = raw.map(r => ({ id: r.id, groupId: r.group_id }))
+  if (!rows.some(r => r.id === fallback.id)) rows.push({ id: fallback.id, groupId: fallback.groupId })
+  return {
+    studentIds: [...new Set(rows.map(r => r.id))],
+    groupIds: [...new Set(rows.map(r => r.groupId))],
+    rows,
+  }
 }
 
 export async function fetchLessonProgress(studentIds: string | string[]): Promise<ProgressMap> {
@@ -212,6 +223,8 @@ interface DbCourse {
   short_id: string
   title: string
   subject: string
+  student_ids: string[] | null
+  group_ids: string[] | null
   course_modules: Array<{
     id: string
     label: string
@@ -248,7 +261,9 @@ function rutubeEmbedId(url: string | null | undefined): string | undefined {
   return undefined
 }
 
-export async function fetchCourseStructure(studentIds: string[], groupIds: string[]): Promise<Subject[]> {
+export async function fetchCourseStructure(rows: Array<{ id: string; groupId: string }>): Promise<Subject[]> {
+  const studentIds = [...new Set(rows.map(r => r.id))]
+  const groupIds = [...new Set(rows.map(r => r.groupId))]
   // Any course published to ANY of the person's student rows OR groups. Guard
   // against empty arrays (Postgres `cs.{}` is invalid) so the OR never breaks.
   const orParts = [
@@ -259,7 +274,7 @@ export async function fetchCourseStructure(studentIds: string[], groupIds: strin
   const { data, error } = await supabase
     .from('courses')
     .select(`
-      id, short_id, title, subject,
+      id, short_id, title, subject, student_ids, group_ids,
       course_modules (
         id, label, position,
         lessons ( id, short_id, title, lesson_number, shape, content, youtube_url, timecodes, kind, test_tasks, homework, scheduled_date, scheduled_time, rec_date, rec_time, lesson_sched_manual, description )
@@ -288,12 +303,24 @@ export async function fetchCourseStructure(studentIds: string[], groupIds: strin
     }
   }
 
+  // Which of the person's rows owns each course's enrollment (the row the teacher
+  // grades): first a direct student_ids match, else the row inside the course's
+  // group. Progress writes for the course use this id, keeping a multi-row
+  // person's submissions under the same row on both sides.
+  const ownerFor = (course: DbCourse): string | undefined => {
+    const sids = course.student_ids ?? []
+    const gids = course.group_ids ?? []
+    return rows.find(r => sids.includes(r.id))?.id
+      ?? rows.find(r => gids.includes(r.groupId))?.id
+  }
+
   return (data as unknown as DbCourse[]).map(course => ({
     id: course.short_id,
     name: course.title,
     progress: 0,
     activeModuleId: 1,
     accessMode: modeByCourse[course.id] ?? 'custom',
+    ownerStudentId: ownerFor(course),
     modules: [...course.course_modules]
       .sort((a, b) => a.position - b.position)
       .map(mod => ({

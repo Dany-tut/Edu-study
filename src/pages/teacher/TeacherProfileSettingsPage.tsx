@@ -119,29 +119,30 @@ export default function TeacherProfileSettingsPage() {
             {role === 'admin' ? 'Администратор' : 'Учитель'}
           </div>
 
-          {/* Avatar grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 10 }}>
+          {/* Avatar grid — same recipe as the student sidebar picker */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 12, width: '100%' }}>
             {AVATARS.map(opt => {
               const Ic = opt.Icon
               const isSelected = avatarId === opt.id
               return (
                 <motion.button
                   key={opt.id}
-                  whileHover={{ scale: 1.08 }}
-                  whileTap={{ scale: 0.93 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.92 }}
                   onClick={() => setAvatarId(opt.id)}
+                  aria-label={opt.id}
                   style={{
-                    width: '100%', aspectRatio: '1', maxWidth: 96, justifySelf: 'center',
-                    borderRadius: '50%', position: 'relative', overflow: 'hidden',
-                    border: isSelected ? '2.5px solid #fff' : '2.5px solid transparent',
-                    cursor: 'pointer', padding: 0,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: isSelected ? '0 0 0 3px var(--color-accent)' : 'none',
-                    transition: 'box-shadow 0.15s',
+                    width: 52, height: 52, justifySelf: 'center',
+                    borderRadius: '50%', overflow: 'hidden',
+                    background: opt.gradient,
+                    cursor: 'pointer', padding: 0, border: 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+                    boxShadow: isSelected
+                      ? 'inset 0 0 0 1px rgba(255,255,255,0.4), 0 0 0 2px var(--color-bg-2), 0 0 0 4px var(--color-accent)'
+                      : 'inset 0 0 0 1px rgba(255,255,255,0.4)',
                   }}
                 >
-                  <div style={{ position: 'absolute', inset: -2, background: opt.gradient }} />
-                  <Ic size={Math.round(30 * (opt.scale ?? 1))} strokeWidth={1.8} style={{ color: '#fff', position: 'relative' }} />
+                  <Ic size={Math.round(24 * (opt.scale ?? 1))} strokeWidth={2} />
                 </motion.button>
               )
             })}

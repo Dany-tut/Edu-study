@@ -19,7 +19,7 @@ import { optimizePhoto } from '../lib/imageOptim'
 import HardConversation, { type HardTabVM } from './teacher/HardConversation'
 import { playUnlock, playPop, vibrate } from '../lib/sound'
 import { useDashboard } from '../store/dashboardStore'
-import { useStudentData } from '../store/studentDataStore'
+import { useStudentData, ownerStudentIdFor } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import HardStarLottie from './HardStarLottie'
 import PartyPopperLottie from './PartyPopperLottie'
@@ -793,11 +793,11 @@ export default function HomeworkFlow({
       .from('lesson_progress')
       // comment/review_comment/status/updated_at нужны для миграции legacy-харда в раунды.
       .select('comment, attachments, review_comment, review_attachments, status, updated_at')
-      .eq('student_id', session.id)
+      .eq('student_id', ownerStudentIdFor(subject))
       .eq('lesson_ref', `${lessonId}-hard`)
       .maybeSingle()
     setHardRow((data as LegacyHardRow) ?? null)
-  }, [lessonId])
+  }, [lessonId, subject])
   useEffect(() => {
     reloadHardRow()
     const session = getStudentSession()
@@ -808,7 +808,7 @@ export default function HomeworkFlow({
     const channelName = `hw-hard-${lessonId}-${session.id}-${Math.random().toString(36).slice(2)}`
     const channel = supabase
       .channel(channelName)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_progress', filter: `student_id=eq.${session.id}` }, payload => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_progress', filter: `student_id=eq.${ownerStudentIdFor(subject)}` }, payload => {
         const ref = (payload.new as { lesson_ref?: string } | null)?.lesson_ref
         if (ref === `${lessonId}-hard`) reloadHardRow()
       })
@@ -895,7 +895,7 @@ export default function HomeworkFlow({
       : 'submitted'
     const ref = level === 'hard' ? `${lessonId}-hard` : lessonId
     await supabase.from('lesson_progress').upsert({
-      student_id: session.id,
+      student_id: ownerStudentIdFor(subject),
       lesson_ref: ref,
       subject,
       status,
@@ -943,7 +943,7 @@ export default function HomeworkFlow({
       // comment/review/status нужны, чтобы при первой пере-отправке мигрировать
       // legacy одиночное решение в первый раунд (не потерять прошлый ответ).
       .select('comment, attachments, review_attachments, status, updated_at')
-      .eq('student_id', session.id)
+      .eq('student_id', ownerStudentIdFor(subject))
       .eq('lesson_ref', ref)
       .maybeSingle()
     const prevTasks: HardTaskStudentBlock[] = isNewHard(data?.attachments)
@@ -960,7 +960,7 @@ export default function HomeworkFlow({
       .filter(Boolean).join('\n\n')
     // score / review_attachments не трогаем — сохраняем накопленную оценку учителя.
     await supabase.from('lesson_progress').upsert({
-      student_id: session.id,
+      student_id: ownerStudentIdFor(subject),
       lesson_ref: ref,
       subject,
       status: 'submitted',
