@@ -26,6 +26,9 @@ export default defineConfig({
     }),
   ],
   server: {
+    // Honor the port injected by the preview harness so its proxy can reach us.
+    port: process.env.PORT ? Number(process.env.PORT) : undefined,
+    strictPort: !!process.env.PORT,
     proxy: {
       '/api': 'http://localhost:3001',
     },
