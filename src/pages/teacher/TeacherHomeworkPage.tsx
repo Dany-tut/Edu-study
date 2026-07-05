@@ -11,6 +11,7 @@ import {
 import { useTeacher } from '../../store/teacherStore'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import GroupStrip from '../../components/teacher/GroupStrip'
+import { expandToPerson } from '../../lib/personGroups'
 import { useGroups, useStudents } from '../../lib/useGroups'
 import { useHomework, useHardSubmissions, hardSubTimeline, type HardSub, type HardTimelineStep } from '../../lib/useHomework'
 import { openLessonInCourseEditor } from '../../lib/teacherNav'
@@ -265,8 +266,9 @@ const inputStyle: React.CSSProperties = {
 }
 
 // ─── Homework row ──────────────────────────────────────────────────────────────
-function HwRow({ hw, index, isSelected, onClick }: {
+function HwRow({ hw, index, isSelected, onClick, subject }: {
   hw: HomeworkItem; index: number; isSelected: boolean; onClick: () => void
+  subject?: { label: string; icon: string; color: string } | null
 }) {
   const status = hwStatus(hw)
   const submittedPct = hw.totalCount > 0 ? Math.round((hw.submittedCount / hw.totalCount) * 100) : 0
@@ -287,12 +289,22 @@ function HwRow({ hw, index, isSelected, onClick }: {
       onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-2)' }}
       onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
     >
-      {/* Group chip */}
+      {/* Group / student + subject chip */}
       <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-soft)', whiteSpace: 'nowrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: hw.color, flexShrink: 0 }} />
           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{hw.groupName}</span>
         </div>
+        {subject && (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 5, marginLeft: 16,
+            fontSize: 10.5, fontWeight: 600, color: subject.color,
+            background: subject.color + '1E', border: `1px solid ${subject.color}3A`,
+            borderRadius: 6, padding: '2px 7px',
+          }}>
+            <span>{subject.icon}</span>{subject.label}
+          </span>
+        )}
       </td>
 
       {/* Title + two inline segments: основное / сложное */}
@@ -646,8 +658,11 @@ export default function TeacherHomeworkPage() {
     return { ...hw, reviewedCount }
   })
 
+  // Selecting a merged 1:1 person card expands to the union of that person's
+  // subject-groups, so the list shows химия + биология together.
+  const filterIds = expandToPerson(individualGroups, filterGroup)
   const filtered = filterGroup
-    ? homework.filter(hw => hw.groupId === filterGroup)
+    ? homework.filter(hw => filterIds.includes(hw.groupId))
     : homework
 
   const selectedHw = homework.find(hw => hw.id === selectedHwId) ?? null
@@ -727,6 +742,7 @@ export default function TeacherHomeworkPage() {
         {/* Group strip: "Создать ДЗ" + groups + 1:1 individuals */}
         <motion.div {...fadeUp(0.08)}>
           <GroupStrip
+            mergePersons
             groups={regularGroups}
             individualGroups={individualGroups}
             selectedGroupId={filterGroup}
@@ -961,15 +977,20 @@ export default function TeacherHomeworkPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((hw, i) => (
-                    <HwRow
-                      key={hw.id}
-                      hw={hw}
-                      index={i}
-                      isSelected={selectedHwId === hw.id}
-                      onClick={() => openHw(hw.id)}
-                    />
-                  ))}
+                  {filtered.map((hw, i) => {
+                    const g = groups.find(gr => gr.id === hw.groupId)
+                    const subject = g?.isIndividual ? { label: g.subject, icon: g.icon, color: g.color } : null
+                    return (
+                      <HwRow
+                        key={hw.id}
+                        hw={hw}
+                        index={i}
+                        isSelected={selectedHwId === hw.id}
+                        onClick={() => openHw(hw.id)}
+                        subject={subject}
+                      />
+                    )
+                  })}
                 </tbody>
               </table>
             </div>

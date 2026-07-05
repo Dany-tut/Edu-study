@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { supabase } from '../lib/supabase'
 
 export type TeacherPage = 'home' | 'groups' | 'homework' | 'homework-create' | 'homework-review' | 'hard-review' | 'lesson-editor' | 'gradebook' | 'constructor' | 'student' | 'course-editor' | 'storage' | 'admin' | 'profile-settings' | 'payment' | 'finances'
 
@@ -31,6 +32,49 @@ export type TeacherTask = {
   time: string
   comment: string
   done: boolean
+}
+
+// ── teacher_tasks row ⇄ TeacherTask mapping ──────────────────────────────────
+// The DB uses snake_case columns (and quotes "time"/"date" as they are reserved
+// words); the store keeps the camelCase shape the widgets already consume.
+type TaskRow = {
+  id: string
+  type_id: string | null
+  type_label: string | null
+  type_bg: string | null
+  type_color: string | null
+  title: string | null
+  date: string | null
+  time: string | null
+  comment: string | null
+  done: boolean | null
+}
+function rowToTask(r: TaskRow): TeacherTask {
+  return {
+    id: r.id,
+    typeId: r.type_id,
+    typeLabel: r.type_label,
+    typeBg: r.type_bg,
+    typeColor: r.type_color,
+    title: r.title ?? '',
+    date: r.date ?? '',
+    time: r.time ?? '',
+    comment: r.comment ?? '',
+    done: r.done ?? false,
+  }
+}
+function taskToRow(t: Partial<TeacherTask>): Record<string, unknown> {
+  const row: Record<string, unknown> = {}
+  if ('typeId' in t)    row.type_id    = t.typeId
+  if ('typeLabel' in t) row.type_label = t.typeLabel
+  if ('typeBg' in t)    row.type_bg    = t.typeBg
+  if ('typeColor' in t) row.type_color = t.typeColor
+  if ('title' in t)     row.title      = t.title
+  if ('date' in t)      row.date       = t.date
+  if ('time' in t)      row.time       = t.time
+  if ('comment' in t)   row.comment    = t.comment
+  if ('done' in t)      row.done       = t.done
+  return row
 }
 
 type TeacherStore = {
@@ -86,6 +130,8 @@ type TeacherStore = {
   setSelectedStudentId: (id: string | null) => void
   openStudentDashboard: (studentId: string, groupId: string) => void
   tasks: TeacherTask[]
+  tasksLoaded: boolean
+  loadTasks: () => Promise<void>
   addTask: (task: Omit<TeacherTask, 'id' | 'done'>) => void
   updateTask: (id: string, task: Omit<TeacherTask, 'id' | 'done'>) => void
   toggleTask: (id: string) => void
@@ -213,35 +259,41 @@ export const useTeacher = create<TeacherStore>(set => ({
   selectedStudentId: _nav?.selectedStudentId ?? null,
   setSelectedStudentId: id => set({ selectedStudentId: id }),
   openStudentDashboard: (studentId, groupId) => set({ activePage: 'student', selectedStudentId: studentId, selectedGroupId: groupId, headerDocked: false }),
-  // ─── DEMO seed: example tasks so the "Мои задачи" widget is populated for
-  // local testing. Tasks are in-memory only (no persistence). Delete this array
-  // (set back to []) to start with an empty task list.
-  tasks: [
-    { id: 'demo-task-1',  typeId: 'call',         typeLabel: 'Созвон',  typeBg: 'var(--color-blue-pill-bg)', typeColor: 'var(--color-blue-pill-text)', title: 'Созвон с Викторией по олимпиаде', date: '29.06.2026', time: '16:30', comment: 'Обсудить подготовку к региону', done: false },
-    { id: 'demo-task-2',  typeId: 'meeting',      typeLabel: 'Встреча', typeBg: 'var(--color-green-soft)',    typeColor: 'var(--color-green-text)',      title: 'Встреча с родителями Дмитрия', date: '30.06.2026', time: '18:00', comment: 'Долг по оплате + пропуски', done: false },
-    { id: 'demo-task-3',  typeId: 'lesson',       typeLabel: 'Урок',    typeBg: 'var(--color-peach-soft)',    typeColor: 'var(--color-peach-text)',      title: 'Пробник ЕГЭ для 11А', date: '01.07.2026', time: '10:00', comment: '', done: false },
-    { id: 'demo-task-4',  typeId: 'homework',     typeLabel: 'Домашка', typeBg: 'var(--color-purple-soft)',   typeColor: 'var(--color-purple-text)',     title: 'Собрать ДЗ по органике для 10А', date: '02.07.2026', time: '12:00', comment: '', done: false },
-    { id: 'demo-task-5',  typeId: 'presentation', typeLabel: 'Преза',   typeBg: 'var(--color-red-soft)',      typeColor: 'var(--color-red-text)',        title: 'Преза для вебинара по ОВР', date: '29.06.2026', time: '20:00', comment: 'Готово', done: true },
-    { id: 'demo-task-6',  typeId: 'call',         typeLabel: 'Созвон',  typeBg: 'var(--color-blue-pill-bg)', typeColor: 'var(--color-blue-pill-text)', title: 'Обзвон должников — Дмитрий, Максим', date: '30.06.2026', time: '14:00', comment: '', done: false },
-    { id: 'demo-task-7',  typeId: 'homework',     typeLabel: 'Домашка', typeBg: 'var(--color-purple-soft)',   typeColor: 'var(--color-purple-text)',     title: 'Проверить ДЗ по биологии 11Б', date: '30.06.2026', time: '20:00', comment: '5 работ ждут', done: false },
-    { id: 'demo-task-8',  typeId: 'lesson',       typeLabel: 'Урок',    typeBg: 'var(--color-peach-soft)',    typeColor: 'var(--color-peach-text)',      title: 'Подготовить материал по алканам', date: '01.07.2026', time: '09:00', comment: '', done: false },
-    { id: 'demo-task-9',  typeId: 'meeting',      typeLabel: 'Встреча', typeBg: 'var(--color-green-soft)',    typeColor: 'var(--color-green-text)',      title: 'Педсовет по ЕГЭ-стратегии', date: '03.07.2026', time: '12:00', comment: 'Очный формат', done: false },
-    { id: 'demo-task-10', typeId: 'presentation', typeLabel: 'Преза',   typeBg: 'var(--color-red-soft)',      typeColor: 'var(--color-red-text)',        title: 'Слайды для вводного урока по органике', date: '04.07.2026', time: '10:00', comment: '', done: false },
-    { id: 'demo-task-11', typeId: 'call',         typeLabel: 'Созвон',  typeBg: 'var(--color-blue-pill-bg)', typeColor: 'var(--color-blue-pill-text)', title: 'Связаться с куратором Никиты', date: '02.07.2026', time: '15:00', comment: 'Успеваемость упала', done: false },
-    { id: 'demo-task-12', typeId: 'homework',     typeLabel: 'Домашка', typeBg: 'var(--color-purple-soft)',   typeColor: 'var(--color-purple-text)',     title: 'Составить тест по термохимии', date: '05.07.2026', time: '11:00', comment: '', done: false },
-    { id: 'demo-task-13', typeId: 'lesson',       typeLabel: 'Урок',    typeBg: 'var(--color-peach-soft)',    typeColor: 'var(--color-peach-text)',      title: 'Разбор пробника 10А', date: '06.07.2026', time: '10:00', comment: '', done: true },
-    { id: 'demo-task-14', typeId: 'meeting',      typeLabel: 'Встреча', typeBg: 'var(--color-green-soft)',    typeColor: 'var(--color-green-text)',      title: 'Консультация Алисы перед экзаменом', date: '07.07.2026', time: '16:00', comment: '', done: false },
-  ],
-  addTask: task => set(s => ({
-    tasks: [...s.tasks, { ...task, id: Math.random().toString(36).slice(2), done: false }],
-  })),
-  updateTask: (id, task) => set(s => ({
-    tasks: s.tasks.map(t => t.id === id ? { ...t, ...task } : t),
-  })),
-  toggleTask: id => set(s => ({
-    tasks: s.tasks.map(t => t.id === id ? { ...t, done: !t.done } : t),
-  })),
-  removeTask: id => set(s => ({ tasks: s.tasks.filter(t => t.id !== id) })),
+  // Tasks are per-teacher and persisted in the `teacher_tasks` table, scoped by
+  // owner (created_by = auth.uid()) via RLS. loadTasks() hydrates them once the
+  // teacher cabinet mounts; the mutators write through to the DB optimistically.
+  tasks: [],
+  tasksLoaded: false,
+  loadTasks: async () => {
+    const { data } = await supabase
+      .from('teacher_tasks')
+      .select('*')
+      .order('created_at', { ascending: true })
+    set({ tasks: (data ?? []).map(rowToTask), tasksLoaded: true })
+  },
+  addTask: task => {
+    // crypto.randomUUID() so the local id matches the DB row id — no reconcile.
+    const id = crypto.randomUUID()
+    set(s => ({ tasks: [...s.tasks, { ...task, id, done: false }] }))
+    supabase.from('teacher_tasks').insert({ id, ...taskToRow({ ...task, id, done: false }) })
+      .then(({ error }) => { if (error) console.warn('addTask persist failed', error.message) })
+  },
+  updateTask: (id, task) => {
+    set(s => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, ...task } : t) }))
+    supabase.from('teacher_tasks').update(taskToRow(task)).eq('id', id)
+      .then(({ error }) => { if (error) console.warn('updateTask persist failed', error.message) })
+  },
+  toggleTask: id => {
+    const next = !useTeacher.getState().tasks.find(t => t.id === id)?.done
+    set(s => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, done: next } : t) }))
+    supabase.from('teacher_tasks').update({ done: next }).eq('id', id)
+      .then(({ error }) => { if (error) console.warn('toggleTask persist failed', error.message) })
+  },
+  removeTask: id => {
+    set(s => ({ tasks: s.tasks.filter(t => t.id !== id) }))
+    supabase.from('teacher_tasks').delete().eq('id', id)
+      .then(({ error }) => { if (error) console.warn('removeTask persist failed', error.message) })
+  },
   studentTrainerStats: null,
   saveStudentTrainerStats: stats => set({ studentTrainerStats: { ...stats, savedAt: Date.now() } }),
 }))

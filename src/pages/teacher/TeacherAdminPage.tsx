@@ -566,6 +566,134 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
   )
 }
 
+type AdminTaskRow = {
+  id: string
+  owner_id: string | null
+  owner_name: string
+  type_label: string | null
+  title: string
+  date: string | null
+  time: string | null
+  comment: string | null
+  done: boolean
+}
+
+// Admin-only cross-teacher tasks manager: see every teacher's "Мои задачи",
+// reassign a task to another teacher, or delete it. Backed by admin_tasks_*
+// RPCs (RLS-bypassing but is_admin()-gated).
+function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
+  const [rows, setRows] = useState<AdminTaskRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [busyId, setBusyId] = useState<string | null>(null)
+
+  async function load() {
+    setLoading(true)
+    const { data } = await supabase.rpc('admin_tasks_list')
+    setRows(Array.isArray(data) ? (data as AdminTaskRow[]) : [])
+    setLoading(false)
+  }
+  useEffect(() => { load() }, [])
+
+  async function reassign(row: AdminTaskRow, newOwner: string) {
+    if (newOwner === (row.owner_id ?? '')) return
+    setBusyId(row.id)
+    await supabase.rpc('admin_reassign_task', { p_id: row.id, p_new_owner: newOwner })
+    await load()
+    setBusyId(null)
+  }
+
+  async function doDelete(row: AdminTaskRow) {
+    setBusyId(row.id)
+    await supabase.rpc('admin_delete_task', { p_id: row.id })
+    await load()
+    setBusyId(null)
+  }
+
+  // Group tasks under their owner for a clear per-teacher view.
+  const groups = teachers
+    .map(t => ({ teacher: t, tasks: rows.filter(r => r.owner_id === t.id) }))
+    .filter(g => g.tasks.length > 0)
+  const orphans = rows.filter(r => !r.owner_id || !teachers.some(t => t.id === r.owner_id))
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+          Задачи учителей
+        </div>
+        <button onClick={load} title="Обновить" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
+          <RefreshCw size={13} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+          Обновить
+        </button>
+      </div>
+
+      {loading && rows.length === 0 ? (
+        <div style={{ fontSize: 13, color: 'var(--color-text-3)', padding: '24px 0' }}>Загрузка…</div>
+      ) : rows.length === 0 ? (
+        <div style={{ fontSize: 13, color: 'var(--color-text-3)', padding: '24px 0' }}>Ни у кого нет задач.</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {[...groups.map(g => ({ label: g.teacher.name, ownerId: g.teacher.id, tasks: g.tasks })),
+            ...(orphans.length ? [{ label: 'Без владельца', ownerId: null as string | null, tasks: orphans }] : [])]
+            .map(group => (
+            <div key={group.ownerId ?? 'orphan'}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', marginBottom: 8 }}>
+                {group.label} <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}>· {group.tasks.length}</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {group.tasks.map(row => (
+                  <div key={row.id} style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)',
+                    borderRadius: 14, padding: '12px 14px',
+                    opacity: busyId === row.id ? 0.5 : (row.done ? 0.6 : 1),
+                  }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: row.done ? 'line-through' : 'none' }}>
+                        {row.type_label ? `${row.type_label} · ` : ''}{row.title || '—'}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
+                        {[row.date, row.time].filter(Boolean).join(' · ') || 'без даты'}{row.done ? ' · выполнено' : ''}
+                      </div>
+                    </div>
+                    <div style={{ width: 168, flexShrink: 0, pointerEvents: busyId === row.id ? 'none' : 'auto' }}>
+                      <TeacherSelect
+                        small
+                        clearable={false}
+                        placeholder="— без владельца —"
+                        value={row.owner_id ?? ''}
+                        onChange={v => reassign(row, v)}
+                        options={teachers.map(t => ({ value: t.id, label: `${t.name}${t.role === 'admin' ? ' (Босс)' : ''}` }))}
+                        triggerStyle={{
+                          padding: '7px 10px', borderRadius: 9, fontWeight: 600,
+                          background: 'var(--color-bg-3)',
+                          border: `1px solid ${row.owner_id ? 'var(--color-border-medium)' : '#D07020'}`,
+                        }}
+                      />
+                    </div>
+                    <button
+                      onClick={() => doDelete(row)}
+                      disabled={busyId === row.id}
+                      title="Удалить"
+                      style={{
+                        width: 30, height: 30, borderRadius: 9, flexShrink: 0, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', color: '#E04848',
+                      }}
+                    >
+                      <X size={15} strokeWidth={2.2} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function TeacherAdminPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const [storage, setStorage] = useState<StorageStats | null>(null)
@@ -708,7 +836,13 @@ export default function TeacherAdminPage() {
 
         {tab === 'analytics' && <TeacherAnalytics />}
 
-        {tab === 'data' && <ContentManager teachers={teachers} />}
+        {tab === 'data' && (
+          <>
+            <ContentManager teachers={teachers} />
+            <div style={{ height: 1, background: 'var(--color-border)', margin: '28px 0' }} />
+            <TasksManager teachers={teachers} />
+          </>
+        )}
 
         {tab === 'overview' && (
         <>

@@ -25,6 +25,36 @@ type DbGroup = {
   students: { count: number }[]
 }
 
+export type GroupCourseOption = { id: string; title: string; subject: string; lessonCount: number }
+
+/** Teacher's own courses with their lesson counts — for the group→course picker.
+ * Owned-only: binding writes courses.group_ids, which owner-scoped RLS restricts
+ * to the course owner, so offering shared courses here would silently no-op. */
+export async function listTeacherCourses(): Promise<GroupCourseOption[]> {
+  const uid = await getOwnerId()
+  if (!uid) return []
+  const { data, error } = await supabase
+    .from('courses')
+    .select('id, title, subject, lessons(count)')
+    .eq('created_by', uid)
+    .order('created_at', { ascending: true })
+  if (error || !data) return []
+  return (data as Array<{ id: string; title: string; subject: string; lessons: { count: number }[] }>).map(c => ({
+    id: c.id,
+    title: c.title || 'Без названия',
+    subject: c.subject ?? '',
+    lessonCount: c.lessons?.[0]?.count ?? 0,
+  }))
+}
+
+/** Attach a group to a course so its students receive that course (courses.group_ids). */
+export async function bindGroupToCourse(groupId: string, courseId: string): Promise<void> {
+  const { data } = await supabase.from('courses').select('group_ids').eq('id', courseId).single()
+  const current: string[] = (data?.group_ids as string[] | null) ?? []
+  if (current.includes(groupId)) return
+  await supabase.from('courses').update({ group_ids: [...current, groupId] }).eq('id', courseId)
+}
+
 export function useGroups() {
   const [groups, setGroups] = useState<Group[]>([])
   const [loading, setLoading] = useState(true)
@@ -233,6 +263,35 @@ export function useGroups() {
     return { error: sErr }
   }
 
+  // Enroll an EXISTING person into a regular group. Unlike addStudentToGroup
+  // (brand-new person → new invite), this copies the person's account link
+  // (email / temp_password / auth_user_id) and contacts onto the new row, so the
+  // student reaches the new group with their existing login — no re-registration.
+  // Used when a 1:1 student later buys a group course. Already-registered → seed
+  // their progress for this group so lessons/course show up immediately.
+  async function addExistingStudentToGroup(
+    targetGroupId: string,
+    student: Pick<Student, 'name' | 'phone' | 'telegramLink' | 'parentContact' | 'desiredScore' | 'paymentAmount' | 'email' | 'tempPassword' | 'authUserId'>,
+  ) {
+    const { data, error } = await supabase.from('students').insert({
+      group_id: targetGroupId,
+      name: student.name,
+      phone: student.phone ?? '',
+      telegram_link: student.telegramLink ?? '',
+      parent_contact: student.parentContact ?? '',
+      desired_score: student.desiredScore ?? 80,
+      payment_amount: student.paymentAmount ?? 0,
+      email: student.email || null,
+      temp_password: student.tempPassword || null,
+      auth_user_id: student.authUserId || null,
+    }).select('id').single()
+    if (!error && data?.id && student.authUserId) {
+      await supabase.rpc('seed_student_progress', { p_student_id: data.id, p_group_id: targetGroupId })
+    }
+    await load()
+    return { error, studentId: data?.id as string | null }
+  }
+
   // Replace the extra направления of a (1:1) group — add/remove mid-training.
   async function updateGroupTracks(groupId: string, tracks: GroupTrack[]) {
     const { error } = await supabase.from('groups').update({ tracks }).eq('id', groupId)
@@ -240,7 +299,7 @@ export function useGroups() {
     return { error }
   }
 
-  return { groups, loading, addGroup, addIndividualStudent, addStudentToGroup, addIndividualCard, deleteGroup, updateGroupTracks, reload: load }
+  return { groups, loading, addGroup, addIndividualStudent, addStudentToGroup, addIndividualCard, addExistingStudentToGroup, deleteGroup, updateGroupTracks, reload: load }
 }
 
 export type TeacherCourseOption = { id: string; title: string; subject: string; level: string }
@@ -757,12 +816,14 @@ export function useAllStudents() {
   useEffect(() => {
     ;(async () => {
     const uid = await getOwnerId()
-    supabase.from('students').select('*, groups!inner(created_by, subject)').eq('groups.created_by', uid).order('name')
+    supabase.from('students').select('*, groups!inner(created_by, subject, is_individual)').eq('groups.created_by', uid).order('name')
       .then(({ data }) => {
         if (data) setStudents(data.map((s: any) => ({
           id: s.id,
           groupId: s.group_id,
           subject: s.groups?.subject ?? '',
+          isIndividual: s.groups?.is_individual ?? false,
+          authUserId: s.auth_user_id ?? undefined,
           name: s.name,
           phone: s.phone ?? '',
           telegramLink: s.telegram_link ?? '',

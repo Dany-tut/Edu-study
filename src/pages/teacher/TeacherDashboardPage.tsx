@@ -60,6 +60,9 @@ export default function TeacherDashboardPage() {
   const canTab = useTeacherAccess(s => s.canTab)
   useEffect(() => { useTeacherAccess.getState().load() }, [])
 
+  // Hydrate the teacher's own "Мои задачи" from the DB (per-owner, RLS-scoped).
+  useEffect(() => { useTeacher.getState().loadTasks() }, [])
+
   // If the active page belongs to a tab the admin revoked, bounce to the first
   // allowed tab (or profile settings if everything is hidden).
   useEffect(() => {

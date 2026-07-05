@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Users, ChevronUp, ChevronDown, X, Trash2,
@@ -14,7 +14,8 @@ import GroupStrip, { type TabConfig } from '../../components/teacher/GroupStrip'
 import {
   type Group, type GroupTrack, type Student,
 } from '../../data/teacherMockData'
-import { useGroups, useStudents } from '../../lib/useGroups'
+import { useGroups, useStudents, useAllStudents, listTeacherCourses, bindGroupToCourse, type GroupCourseOption } from '../../lib/useGroups'
+import { PickStudentModal, PickGroupModal, type PersonLike } from '../../components/teacher/AddToGroupModals'
 import { supabase } from '../../lib/supabase'
 import { usePersistentState, clearDrafts } from '../../lib/useDraft'
 import { copyToClipboard } from '../../lib/clipboard'
@@ -40,7 +41,7 @@ const GROUP_COLORS = [
 // ─── Модалка создания группы ──────────────────────────────────────────────────
 function AddGroupModal({ onClose, onSave }: {
   onClose: () => void
-  onSave: (g: Omit<Group, 'id' | 'studentCount' | 'lessonsCompleted'>) => Promise<void>
+  onSave: (g: Omit<Group, 'id' | 'studentCount' | 'lessonsCompleted'>, courseId: string | null) => Promise<void>
 }) {
   // Draft-backed: survives a page reload; cleared on save or explicit close.
   const [name, setName] = usePersistentState('groups.addGroup.name', '')
@@ -49,7 +50,18 @@ function AddGroupModal({ onClose, onSave }: {
   const [level, setLevel] = usePersistentState('groups.addGroup.level', '')
   const [colorIdx, setColorIdx] = usePersistentState('groups.addGroup.colorIdx', 0)
   const [totalLessons, setTotalLessons] = usePersistentState('groups.addGroup.totalLessons', 48)
+  const [courseId, setCourseId] = usePersistentState<string>('groups.addGroup.courseId', '')
+  const [courses, setCourses] = useState<GroupCourseOption[]>([])
   const [saving, setSaving] = useState(false)
+
+  // Load the teacher's courses so "Всего уроков" can come from a course instead
+  // of being guessed by hand. A group can still be created without a course and
+  // attached later.
+  useEffect(() => { listTeacherCourses().then(setCourses).catch(() => setCourses([])) }, [])
+
+  const selectedCourse = courses.find(c => c.id === courseId) ?? null
+  // When a course is chosen, the lesson count is derived from it (read-only).
+  const effectiveTotal = selectedCourse ? selectedCourse.lessonCount : totalLessons
 
   const subjectIcons: Record<string, string> = {
     'Химия': '🧪', 'Биология': '🧬', 'Физика': '⚡', 'Математика': '📐',
@@ -68,8 +80,8 @@ function AddGroupModal({ onClose, onSave }: {
       color: c.color,
       colorSoft: c.soft,
       startDate: new Date().toLocaleDateString('ru-RU'),
-      totalLessons,
-    })
+      totalLessons: effectiveTotal,
+    }, selectedCourse ? selectedCourse.id : null)
     clearDrafts('groups.addGroup.')
     onClose()
   }
@@ -115,14 +127,37 @@ function AddGroupModal({ onClose, onSave }: {
             triggerStyle={selectTriggerStyle}
           />
 
-          <input
-            type="number"
-            value={totalLessons === 0 ? '' : totalLessons}
-            onChange={e => setTotalLessons(e.target.value === '' ? 0 : Number(e.target.value))}
-            placeholder="Всего уроков"
-            min={1}
-            style={inputStyle}
+          {/* Optional course. When set, "Всего уроков" comes from the course (no
+              guessing). Without a course the group is created unbound — attach one
+              later from the course editor. */}
+          <TeacherSelect
+            value={selectedCourse ? selectedCourse.title : 'Без курса'}
+            onChange={title => {
+              const c = courses.find(x => x.title === title)
+              setCourseId(c ? c.id : '')
+            }}
+            placeholder="Курс (необязательно)"
+            options={['Без курса', ...courses.map(c => c.title)]}
+            triggerStyle={selectTriggerStyle}
           />
+
+          {selectedCourse ? (
+            <div style={{ ...inputStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--color-text-2)', background: 'var(--color-bg-3)' }}>
+              <span>Всего уроков</span>
+              <span style={{ fontWeight: 700, color: 'var(--color-text)' }}>
+                {selectedCourse.lessonCount} <span style={{ fontWeight: 400, fontSize: 12, color: 'var(--color-text-3)' }}>из курса</span>
+              </span>
+            </div>
+          ) : (
+            <input
+              type="number"
+              value={totalLessons === 0 ? '' : totalLessons}
+              onChange={e => setTotalLessons(e.target.value === '' ? 0 : Number(e.target.value))}
+              placeholder="Всего уроков"
+              min={1}
+              style={inputStyle}
+            />
+          )}
 
           <div>
             <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 8 }}>Цвет</div>
@@ -1452,8 +1487,8 @@ function TracksSection({
 
 function StudentPanel({
   student, group, onClose, onDelete, onOpenFullCard, onAddHomework, onSaveComment, onResetPassword,
-  siblingCards, onAddCard, onRemoveCard, onOpenCard,
-}: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void; onAddHomework: () => void; onSaveComment: (text: string) => Promise<void>; onResetPassword: () => Promise<string>; siblingCards?: SiblingCard[]; onAddCard?: (subject: string, level: string) => Promise<void>; onRemoveCard?: (groupId: string) => Promise<void>; onOpenCard?: (groupId: string) => void }) {
+  siblingCards, onAddCard, onRemoveCard, onOpenCard, onAddToGroup,
+}: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void; onAddHomework: () => void; onSaveComment: (text: string) => Promise<void>; onResetPassword: () => Promise<string>; siblingCards?: SiblingCard[]; onAddCard?: (subject: string, level: string) => Promise<void>; onRemoveCard?: (groupId: string) => Promise<void>; onOpenCard?: (groupId: string) => void; onAddToGroup?: () => void }) {
   const [comment, setComment] = useState(student.comment ?? '')
   const [commentSaved, setCommentSaved] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -1707,6 +1742,23 @@ function StudentPanel({
         >
           <Plus size={15} strokeWidth={2.4} /> Выдать ДЗ допом
         </button>
+        {onAddToGroup && (
+          <button
+            onClick={onAddToGroup}
+            style={{
+              width: '100%', padding: '10px 0',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+              background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)',
+              borderRadius: 12, cursor: 'pointer',
+              fontSize: 13, fontWeight: 600, color: 'var(--color-text)',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-purple-soft)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-bg-3)' }}
+          >
+            <Users size={15} strokeWidth={2.2} /> Добавить в группу
+          </button>
+        )}
         <button
           disabled={deleting}
           onClick={async () => {
@@ -1779,6 +1831,23 @@ function ScoreBar({ label, icon: Icon, value, color, bg }: {
   )
 }
 
+function RosterAddItem({ title, subtitle, onClick }: { title: string; subtitle: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'block', width: '100%', textAlign: 'left', padding: '9px 10px',
+        background: 'transparent', border: 'none', borderRadius: 10, cursor: 'pointer',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-bg-3)' }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+    >
+      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{title}</div>
+      <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 1 }}>{subtitle}</div>
+    </button>
+  )
+}
+
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
@@ -1793,8 +1862,9 @@ export default function TeacherGroupsPage() {
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
   const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
-  const { groups, loading: groupsLoading, addGroup, addIndividualStudent, addStudentToGroup, addIndividualCard, deleteGroup } = useGroups()
+  const { groups, loading: groupsLoading, addGroup, addIndividualStudent, addStudentToGroup, addIndividualCard, addExistingStudentToGroup, deleteGroup } = useGroups()
   const { students, deleteStudent, updateStudent } = useStudents(selectedGroupId)
+  const allStudents = useAllStudents()
   // Persisted so an open modal (and its draft) re-opens after a page reload —
   // the teacher must never lose an in-progress form to a tab switch/reload.
   const [showAddGroup, setShowAddGroup] = usePersistentState('groups.show.addGroup', false)
@@ -1922,11 +1992,69 @@ export default function TeacherGroupsPage() {
     }
   }
 
+  // ─── Enroll an EXISTING person into a regular group ──────────────────────────
+  // People are deduplicated per human (auth account if registered, else name),
+  // collecting the subjects they already study for the picker label.
+  const personKey = (s: Student) => s.authUserId || `name:${s.name.trim().toLowerCase()}`
+  const people = useMemo(() => {
+    const map = new Map<string, { key: string; person: PersonLike; subjects: Set<string>; registered: boolean }>()
+    for (const s of allStudents) {
+      const key = personKey(s)
+      let e = map.get(key)
+      if (!e) {
+        e = {
+          key,
+          person: {
+            name: s.name, phone: s.phone, telegramLink: s.telegramLink, parentContact: s.parentContact,
+            desiredScore: s.desiredScore, paymentAmount: s.paymentAmount,
+            email: s.email, tempPassword: s.tempPassword, authUserId: s.authUserId,
+          },
+          subjects: new Set(), registered: !!s.authUserId,
+        }
+        map.set(key, e)
+      }
+      if (s.subject) e.subjects.add(s.subject)
+      // Prefer identity from a registered row so the enrollment inherits the login.
+      if (s.authUserId) {
+        e.registered = true
+        e.person.authUserId = s.authUserId
+        if (s.email) e.person.email = s.email
+        if (s.tempPassword) e.person.tempPassword = s.tempPassword
+      }
+    }
+    return [...map.values()].map(e => ({ key: e.key, person: e.person, subjects: [...e.subjects], registered: e.registered }))
+  }, [allStudents])
+
+  const [addToGroupTarget, setAddToGroupTarget] = useState<string | null>(null)  // group id → PickStudentModal
+  const [addToGroupForStudent, setAddToGroupForStudent] = useState(false)         // student card → PickGroupModal
+  const [enrolling, setEnrolling] = useState(false)
+  const [rosterAddMenu, setRosterAddMenu] = useState(false)
+
+  const existingKeysForGroup = (gid: string) =>
+    new Set(allStudents.filter(s => s.groupId === gid).map(personKey))
+
+  async function enrollExisting(targetGroupId: string, person: PersonLike) {
+    setEnrolling(true)
+    await addExistingStudentToGroup(targetGroupId, person)
+    setEnrolling(false)
+    setAddToGroupTarget(null)
+    setAddToGroupForStudent(false)
+    setSelectedGroupId(targetGroupId)
+    setActiveStudentId(null)
+  }
+
+  const addToGroupTargetGroup = addToGroupTarget ? groups.find(g => g.id === addToGroupTarget) ?? null : null
+  // Groups the active person is already a member of (by their identity key).
+  const activeStudentMemberGroupIds = activeStudent
+    ? new Set(allStudents.filter(s => personKey(s) === personKey(activeStudent)).map(s => s.groupId))
+    : new Set<string>()
+
   return (
     <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', position: 'relative' }}>
       <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <motion.div {...fadeUp(0.04)}>
           <GroupStrip
+            mergePersons
             groups={activeStripTab === 'groups' ? regularGroups : []}
             individualGroups={activeStripTab === 'students' ? individualGroups : []}
             selectedGroupId={selectedGroupId}
@@ -1935,6 +2063,7 @@ export default function TeacherGroupsPage() {
               else { setSelectedGroupId(id); setActiveStudentId(null); setSortKey('attention'); setSortDir('desc'); setSearchQuery(''); setRosterFilter('all') }
             }}
             tabConfig={stripTabConfig}
+            onAddToGroup={activeStripTab === 'groups' ? (gid) => setAddToGroupTarget(gid) : undefined}
           />
         </motion.div>
 
@@ -2000,7 +2129,7 @@ export default function TeacherGroupsPage() {
                               padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
                               fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap',
                               background: active ? 'var(--color-purple-soft)' : 'var(--color-bg)',
-                              color: active ? 'var(--color-accent)' : 'var(--color-muted)',
+                              color: active ? 'var(--color-text)' : 'var(--color-muted)',
                               border: `1px solid ${active ? 'transparent' : 'var(--color-border-soft)'}`,
                             }}
                           >
@@ -2035,6 +2164,42 @@ export default function TeacherGroupsPage() {
                           <X size={13} style={{ color: 'var(--color-text-3)', cursor: 'pointer', flex: 'none' }} onClick={() => setSearchQuery('')} />
                         )}
                       </div>
+
+                      {/* Add student to this group (new or existing) */}
+                      {!activeGroup.isIndividual && (
+                        <div style={{ position: 'relative', flex: 'none' }}>
+                          <button
+                            onClick={() => setRosterAddMenu(v => !v)}
+                            style={{
+                              display: 'inline-flex', alignItems: 'center', gap: 6,
+                              padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
+                              background: 'var(--color-accent)', border: 'none',
+                              color: '#fff', fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap',
+                            }}
+                          >
+                            <Plus size={14} strokeWidth={2.6} /> Ученик
+                          </button>
+                          {rosterAddMenu && (
+                            <>
+                              <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setRosterAddMenu(false)} />
+                              <div style={{
+                                position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 41,
+                                background: 'var(--color-bg-input)', borderRadius: 14, padding: 6, width: 220,
+                                boxShadow: '0 12px 40px rgba(0,0,0,0.18)', border: '1px solid var(--color-border-soft)',
+                              }}>
+                                <RosterAddItem
+                                  title="Новый ученик" subtitle="создать и выдать логин"
+                                  onClick={() => { setRosterAddMenu(false); setShowAddStudent(true) }}
+                                />
+                                <RosterAddItem
+                                  title="Существующий" subtitle="перенести из другой группы / 1:1"
+                                  onClick={() => { setRosterAddMenu(false); setAddToGroupTarget(activeGroup.id) }}
+                                />
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -2197,6 +2362,7 @@ export default function TeacherGroupsPage() {
               onAddCard={addCardForActive}
               onRemoveCard={async (groupId) => { await deleteGroup(groupId) }}
               onOpenCard={openSiblingCard}
+              onAddToGroup={regularGroups.length > 0 ? () => setAddToGroupForStudent(true) : undefined}
               onResetPassword={async () => {
                 // Real password reset: the Edge Function changes the actual Supabase
                 // Auth password (needs service_role) and mirrors it into temp_password.
@@ -2218,7 +2384,10 @@ export default function TeacherGroupsPage() {
         {showAddGroup && (
           <AddGroupModal
             onClose={() => { setShowAddGroup(false); clearDrafts('groups.addGroup.') }}
-            onSave={async (g) => { await addGroup(g) }}
+            onSave={async (g, courseId) => {
+              const { data } = await addGroup(g)
+              if (data && courseId) await bindGroupToCourse(data.id, courseId)
+            }}
           />
         )}
         {showAddStudentPicker && (
@@ -2247,6 +2416,31 @@ export default function TeacherGroupsPage() {
               const result = await addIndividualStudent(s as Parameters<typeof addIndividualStudent>[0])
               return { inviteToken: result.inviteToken, studentId: result.studentId ?? null, groupId: result.groupId ?? null }
             }}
+          />
+        )}
+        {addToGroupTargetGroup && (
+          <PickStudentModal
+            targetGroup={addToGroupTargetGroup}
+            people={people}
+            existingKeys={existingKeysForGroup(addToGroupTargetGroup.id)}
+            busy={enrolling}
+            onPick={(person) => enrollExisting(addToGroupTargetGroup.id, person)}
+            onClose={() => setAddToGroupTarget(null)}
+          />
+        )}
+        {addToGroupForStudent && activeStudent && (
+          <PickGroupModal
+            studentName={activeStudent.name}
+            groups={regularGroups}
+            memberGroupIds={activeStudentMemberGroupIds}
+            busy={enrolling}
+            onPick={(groupId) => enrollExisting(groupId, {
+              name: activeStudent.name, phone: activeStudent.phone, telegramLink: activeStudent.telegramLink,
+              parentContact: activeStudent.parentContact, desiredScore: activeStudent.desiredScore,
+              paymentAmount: activeStudent.paymentAmount, email: activeStudent.email,
+              tempPassword: activeStudent.tempPassword, authUserId: activeStudent.authUserId,
+            })}
+            onClose={() => setAddToGroupForStudent(false)}
           />
         )}
       </AnimatePresence>

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Users, User, Plus } from 'lucide-react'
 import type { Group } from '../../data/teacherMockData'
 import { useStudents } from '../../lib/useGroups'
+import { mergeIndividuals, type PersonGroup } from '../../lib/personGroups'
 
 export type TabConfig = {
   tabs: { id: string; label: string }[]
@@ -157,14 +158,17 @@ function ActionPanel({
 
 // ─── Regular group card ───────────────────────────────────────────────────────
 function GroupMiniCard({
-  group, isActive, onClick,
-}: { group: Group; isActive: boolean; onClick: () => void }) {
+  group, isActive, onClick, onAddToGroup,
+}: { group: Group; isActive: boolean; onClick: () => void; onAddToGroup?: () => void }) {
   const progress = Math.round((group.lessonsCompleted / group.totalLessons) * 100)
+  const [hovered, setHovered] = useState(false)
   return (
     <motion.div
       whileHover={{ y: -2, boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
         width: CARD_W, height: CARD_H, boxSizing: 'border-box', flex: '0 0 auto',
         display: 'flex', flexDirection: 'column',
@@ -177,9 +181,30 @@ function GroupMiniCard({
         cursor: 'pointer', userSelect: 'none',
         padding: '18px 20px',
         transition: 'background 0.18s, border 0.18s, box-shadow 0.18s',
-        overflow: 'hidden',
+        overflow: 'hidden', position: 'relative',
       }}
     >
+      {/* Add existing student to this group — hover affordance */}
+      <AnimatePresence>
+        {onAddToGroup && hovered && (
+          <motion.button
+            key="add"
+            initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }}
+            transition={{ duration: 0.14 }}
+            onClick={e => { e.stopPropagation(); onAddToGroup() }}
+            title="Добавить ученика в группу"
+            style={{
+              position: 'absolute', top: 10, right: 10, zIndex: 6,
+              width: 26, height: 26, borderRadius: 9, padding: 0,
+              background: group.color, border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#fff', boxShadow: `0 2px 8px ${group.color}66`,
+            }}
+          >
+            <Plus size={15} strokeWidth={2.6} />
+          </motion.button>
+        )}
+      </AnimatePresence>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: group.color, background: group.color + '22', padding: '3px 9px', borderRadius: 8, border: `1px solid ${group.color}33` }}>
           {group.level}
@@ -295,6 +320,85 @@ function IndividualCard({
   )
 }
 
+// ─── Merged person card (several 1:1 subject-groups → one card with chips) ─────
+function PersonCard({
+  person, isActive, onClick,
+}: { person: PersonGroup; isActive: boolean; onClick: () => void }) {
+  const initials = person.name.split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase()
+  return (
+    <motion.div
+      whileHover={{ y: -2, boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      style={{
+        width: CARD_W, height: CARD_H, boxSizing: 'border-box', flex: '0 0 auto',
+        display: 'flex', flexDirection: 'column',
+        background: isActive ? `${person.color}14` : 'rgba(var(--glass-rgb), 0.88)',
+        backdropFilter: 'blur(16px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+        border: isActive ? `1.5px solid ${person.color}` : '1px solid var(--color-border-glass)',
+        borderRadius: 22,
+        boxShadow: isActive ? `0 0 0 3px ${person.color}33, 0 4px 20px rgba(0,0,0,0.06)` : 'var(--shadow-sm-page)',
+        cursor: 'pointer', userSelect: 'none',
+        padding: '15px 16px',
+        transition: 'background 0.18s, border 0.18s, box-shadow 0.18s',
+        overflow: 'hidden', position: 'relative',
+      }}
+    >
+      {/* 1:1 badge + count */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 11 }}>
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: person.color, background: person.color + '22', padding: '2px 8px', borderRadius: 7, border: `1px solid ${person.color}33` }}>
+          1:1
+        </span>
+        <User size={13} strokeWidth={1.8} style={{ color: 'var(--color-text-4)', marginLeft: 'auto' }} />
+      </div>
+
+      {/* Avatar + name + subject count */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <div style={{
+          width: 42, height: 42, borderRadius: 13, flexShrink: 0,
+          background: `linear-gradient(135deg, ${person.color}, ${person.color}cc)`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 15, fontWeight: 800, color: '#fff',
+          boxShadow: `0 2px 8px ${person.color}44`,
+        }}>
+          {initials}
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {person.name}
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 3 }}>
+            {person.subjects.length} {pluralSubjects(person.subjects.length)}
+          </div>
+        </div>
+      </div>
+
+      {/* Subject chips (labels only) */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignContent: 'flex-start', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+        {person.subjects.map(s => (
+          <span key={s.groupId} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            fontSize: 11, fontWeight: 600, color: s.color,
+            background: s.color + '1E', border: `1px solid ${s.color}3A`,
+            borderRadius: 8, padding: '3px 9px', maxWidth: '100%',
+          }}>
+            <span>{s.icon}</span>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.subject}</span>
+          </span>
+        ))}
+      </div>
+    </motion.div>
+  )
+}
+
+function pluralSubjects(n: number): string {
+  const mod10 = n % 10, mod100 = n % 100
+  if (mod10 === 1 && mod100 !== 11) return 'предмет'
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'предмета'
+  return 'предметов'
+}
+
 // ─── Strip ────────────────────────────────────────────────────────────────────
 export default function GroupStrip({
   groups,
@@ -307,6 +411,8 @@ export default function GroupStrip({
   actionLabel,
   actionIcon: LegacyIcon,
   onAction,
+  onAddToGroup,
+  mergePersons = false,
 }: {
   groups: Group[]
   individualGroups?: Group[]
@@ -318,6 +424,10 @@ export default function GroupStrip({
   actionLabel?: string
   actionIcon?: React.ElementType
   onAction?: () => void
+  /** Hover "+" on a regular group card → enroll an existing student into it. */
+  onAddToGroup?: (groupId: string) => void
+  /** Merge a person's several 1:1 subject-groups into one card with subject chips. */
+  mergePersons?: boolean
 }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const dragState = useRef<{ startX: number; scrollLeft: number; moved: boolean } | null>(null)
@@ -399,6 +509,7 @@ export default function GroupStrip({
             group={group}
             isActive={selectedGroupId === group.id}
             onClick={() => { if (!dragState.current?.moved) onSelectGroup(selectedGroupId === group.id ? null : group.id) }}
+            onAddToGroup={onAddToGroup ? () => onAddToGroup(group.id) : undefined}
           />
         ))}
 
@@ -407,15 +518,40 @@ export default function GroupStrip({
           <div style={{ width: 1, height: CARD_H * 0.6, background: 'var(--color-border-soft)', flexShrink: 0, borderRadius: 1, alignSelf: 'center' }} />
         )}
 
-        {/* Individual (1:1) cards */}
-        {individualGroups.map(group => (
-          <IndividualCard
-            key={group.id}
-            group={group}
-            isActive={selectedGroupId === group.id}
-            onClick={() => { if (!dragState.current?.moved) onSelectGroup(selectedGroupId === group.id ? null : group.id) }}
-          />
-        ))}
+        {/* Individual (1:1) cards — optionally merged per person */}
+        {mergePersons
+          ? mergeIndividuals(individualGroups).map(person => {
+              const active = person.memberIds.includes(selectedGroupId ?? '')
+              // Single-subject person keeps the rich metric card; multi-subject
+              // collapses into a chip card.
+              if (person.memberIds.length === 1) {
+                const g = individualGroups.find(ig => ig.id === person.memberIds[0])!
+                return (
+                  <IndividualCard
+                    key={person.id}
+                    group={g}
+                    isActive={active}
+                    onClick={() => { if (!dragState.current?.moved) onSelectGroup(active ? null : person.id) }}
+                  />
+                )
+              }
+              return (
+                <PersonCard
+                  key={person.id}
+                  person={person}
+                  isActive={active}
+                  onClick={() => { if (!dragState.current?.moved) onSelectGroup(active ? null : person.id) }}
+                />
+              )
+            })
+          : individualGroups.map(group => (
+              <IndividualCard
+                key={group.id}
+                group={group}
+                isActive={selectedGroupId === group.id}
+                onClick={() => { if (!dragState.current?.moved) onSelectGroup(selectedGroupId === group.id ? null : group.id) }}
+              />
+            ))}
       </div>
 
       {/* Pinned action panel — tab mode / dual add mode / legacy single-action */}

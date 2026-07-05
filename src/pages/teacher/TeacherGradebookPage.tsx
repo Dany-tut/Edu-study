@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Download, X, Check, Clock, CalendarClock } from 'lucide-react'
 import type { TabConfig } from '../../components/teacher/GroupStrip'
+import type { Group } from '../../data/teacherMockData'
+import { expandToPerson } from '../../lib/personGroups'
 import { useTeacher } from '../../store/teacherStore'
 import GroupStrip from '../../components/teacher/GroupStrip'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
@@ -685,6 +687,11 @@ export default function TeacherGradebookPage() {
   const regularGroups = groups.filter(g => !g.isIndividual)
   const individualGroups = groups.filter(g => g.isIndividual)
   const pendingJournals = useJournalPending(activeGroupId, journalReloadKey)
+  // Sibling subject-groups of the selected 1:1 person (empty for regular groups).
+  const personSubjects = expandToPerson(individualGroups, activeGroupId)
+    .map(id => individualGroups.find(g => g.id === id))
+    .filter((g): g is Group => !!g)
+    .map(g => ({ groupId: g.id, subject: g.subject, icon: g.icon, color: g.color }))
 
   // If navigated here via a journal reminder, auto-open that specific lesson.
   useEffect(() => {
@@ -723,6 +730,7 @@ export default function TeacherGradebookPage() {
       {/* Group strip: tab switcher on left + groups + 1:1 individuals */}
       <motion.div {...fadeUp(0.04)}>
         <GroupStrip
+          mergePersons
           groups={regularGroups}
           individualGroups={individualGroups}
           selectedGroupId={activeGroupId}
@@ -789,6 +797,33 @@ export default function TeacherGradebookPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Subject switcher — when a merged 1:1 person is selected, let the teacher
+          flip between their subject journals (each subject is its own group). */}
+      {personSubjects.length > 1 && (
+        <motion.div {...fadeUp(0.06)} style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {personSubjects.map(s => {
+            const active = s.groupId === activeGroupId
+            return (
+              <button
+                key={s.groupId}
+                onClick={() => setActiveGroupId(s.groupId)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer',
+                  fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+                  padding: '6px 12px', borderRadius: 10,
+                  color: active ? '#fff' : s.color,
+                  background: active ? s.color : s.color + '1E',
+                  border: `1px solid ${active ? s.color : s.color + '3A'}`,
+                  transition: 'background 0.15s, color 0.15s',
+                }}
+              >
+                <span>{s.icon}</span>{s.subject}
+              </button>
+            )
+          })}
+        </motion.div>
+      )}
 
       {/* Export row */}
       <motion.div {...fadeUp(0.08)} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

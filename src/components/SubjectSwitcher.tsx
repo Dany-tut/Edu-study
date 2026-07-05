@@ -31,8 +31,11 @@ export default function SubjectSwitcher({ compact = false, style }: { compact?: 
         : query.eq('name', session.name)
       const { data } = await query
       if (cancelled || !data) return
+      // Every card the person belongs to — their 1:1 subject groups AND any
+      // regular group they were later enrolled into (e.g. bought a group course).
+      // Each switch re-points the session to that group so its course/lessons load.
       const mapped: Card[] = (data as any[])
-        .filter(r => r.groups?.is_individual)
+        .filter(r => r.groups)
         .map(r => ({
           id: r.id,
           groupId: r.group_id,

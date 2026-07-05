@@ -8,17 +8,20 @@ import { supabase } from '../../lib/supabase'
 import { useTeacher } from '../../store/teacherStore'
 import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'
 
-type AvatarOption = { id: string; Icon: LucideIcon; gradient: string }
+// `scale` = optical-size correction so every glyph reads the same visual weight
+// inside the circle (lucide icons have different natural fill — a Star looks
+// smaller than a Flower at the same px). ~52% of the circle is the base.
+type AvatarOption = { id: string; Icon: LucideIcon; gradient: string; scale?: number }
 
 const AVATARS: AvatarOption[] = [
-  { id: 'flower', Icon: Flower2, gradient: 'linear-gradient(135deg, hsl(264 82% 72%), hsl(278 70% 58%))' },
+  { id: 'flower', Icon: Flower2, gradient: 'linear-gradient(135deg, hsl(264 82% 72%), hsl(278 70% 58%))', scale: 0.96 },
   { id: 'cat',    Icon: Cat,    gradient: 'linear-gradient(135deg, hsl(28 92% 68%), hsl(14 84% 56%))' },
   { id: 'rabbit', Icon: Rabbit, gradient: 'linear-gradient(135deg, hsl(330 88% 74%), hsl(345 76% 60%))' },
-  { id: 'bird',   Icon: Bird,   gradient: 'linear-gradient(135deg, hsl(205 92% 70%), hsl(220 80% 58%))' },
-  { id: 'fish',   Icon: Fish,   gradient: 'linear-gradient(135deg, hsl(180 72% 62%), hsl(196 78% 50%))' },
+  { id: 'bird',   Icon: Bird,   gradient: 'linear-gradient(135deg, hsl(205 92% 70%), hsl(220 80% 58%))', scale: 1.04 },
+  { id: 'fish',   Icon: Fish,   gradient: 'linear-gradient(135deg, hsl(180 72% 62%), hsl(196 78% 50%))', scale: 1.06 },
   { id: 'bug',    Icon: Bug,    gradient: 'linear-gradient(135deg, hsl(2 82% 70%), hsl(354 74% 56%))' },
-  { id: 'rocket', Icon: Rocket, gradient: 'linear-gradient(135deg, hsl(46 96% 66%), hsl(36 92% 54%))' },
-  { id: 'star',   Icon: Star,   gradient: 'linear-gradient(135deg, hsl(264 82% 72%), hsl(278 70% 58%))' },
+  { id: 'rocket', Icon: Rocket, gradient: 'linear-gradient(135deg, hsl(46 96% 66%), hsl(36 92% 54%))', scale: 1.04 },
+  { id: 'star',   Icon: Star,   gradient: 'linear-gradient(135deg, hsl(264 82% 72%), hsl(278 70% 58%))', scale: 1.1 },
 ]
 
 export default function TeacherProfileSettingsPage() {
@@ -107,14 +110,14 @@ export default function TeacherProfileSettingsPage() {
               marginBottom: 12,
             }}
           >
-            <AvatarIcon size={38} strokeWidth={1.8} style={{ color: '#fff' }} />
+            <AvatarIcon size={Math.round(40 * (selectedAvatar.scale ?? 1))} strokeWidth={1.8} style={{ color: '#fff' }} />
           </motion.div>
           <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginBottom: 16 }}>
             {role === 'admin' ? 'Администратор' : 'Учитель'}
           </div>
 
           {/* Avatar grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 10 }}>
             {AVATARS.map(opt => {
               const Ic = opt.Icon
               const isSelected = avatarId === opt.id
@@ -125,7 +128,8 @@ export default function TeacherProfileSettingsPage() {
                   whileTap={{ scale: 0.93 }}
                   onClick={() => setAvatarId(opt.id)}
                   style={{
-                    width: 52, height: 52, borderRadius: '50%',
+                    width: '100%', aspectRatio: '1', maxWidth: 60, justifySelf: 'center',
+                    borderRadius: '50%',
                     background: opt.gradient,
                     border: isSelected ? '2.5px solid #fff' : '2.5px solid transparent',
                     cursor: 'pointer', padding: 0,
@@ -134,7 +138,7 @@ export default function TeacherProfileSettingsPage() {
                     transition: 'box-shadow 0.15s',
                   }}
                 >
-                  <Ic size={24} strokeWidth={1.8} style={{ color: '#fff' }} />
+                  <Ic size={Math.round(26 * (opt.scale ?? 1))} strokeWidth={1.8} style={{ color: '#fff' }} />
                 </motion.button>
               )
             })}
@@ -143,21 +147,17 @@ export default function TeacherProfileSettingsPage() {
 
         {/* Form */}
         <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 7 }}>Имя</label>
-            <input
-              value={name}
-              onChange={e => setName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSave()}
-              placeholder="Ваше имя"
-              style={inputStyle}
-            />
-          </div>
+          <input
+            value={name}
+            onChange={e => setName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSave()}
+            placeholder="Имя"
+            style={inputStyle}
+          />
 
           <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 7 }}>Email</label>
             <div style={{ position: 'relative' }}>
-              <input value={email} readOnly style={{ ...inputStyle, color: 'var(--color-text-3)', cursor: 'not-allowed' }} />
+              <input value={email} readOnly placeholder="Email" style={{ ...inputStyle, color: 'var(--color-text-3)', cursor: 'not-allowed' }} />
               <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 11, color: 'var(--color-text-3)', background: 'var(--color-bg-3)', padding: '2px 6px', borderRadius: 6, border: '1px solid var(--color-border)' }}>
                 только чтение
               </div>
@@ -165,12 +165,9 @@ export default function TeacherProfileSettingsPage() {
             <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 5 }}>Для смены email обратитесь в поддержку</div>
           </div>
 
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 7 }}>Роль</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)' }}>
-              <User size={15} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />
-              <span style={{ fontSize: 14, color: 'var(--color-text-3)' }}>{role === 'admin' ? 'Администратор' : 'Учитель'}</span>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)' }}>
+            <User size={15} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />
+            <span style={{ fontSize: 14, color: 'var(--color-text-3)' }}>{role === 'admin' ? 'Администратор' : 'Учитель'}</span>
           </div>
 
           {error && (

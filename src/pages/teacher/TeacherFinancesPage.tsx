@@ -399,8 +399,10 @@ export default function TeacherFinancesPage() {
   ]
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable' }}>
-      <div style={{ maxWidth: 760, margin: '0 auto', padding: '28px 24px 60px' }}>
+    {/* Lifted under the topbar so content melts into the progressive-blur
+        strip instead of hard-clipping (shared scroll-under-topbar recipe) */}
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100 }}>
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: '128px 24px 60px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
