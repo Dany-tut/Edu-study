@@ -2147,6 +2147,30 @@ function StudentsLeftPanel({
   allStudents: Array<{ id: string; name: string; groupId?: string }>
 }) {
   const [addTab, setAddTab] = useState<'group' | 'student'>('student')
+  const { ref: choicesRef, fade: choicesFade, update: onChoicesScroll } = useScrollFade()
+  // Floating overlay thumb: native gutter is hidden so cards run full-width and
+  // the scrollbar rides on top of them, appearing only while scrolling.
+  const [thumb, setThumb] = useState({ h: 0, top: 0, show: false, overflow: false })
+  const thumbHide = useRef<ReturnType<typeof setTimeout> | null>(null)
+  function measureThumb() {
+    const el = choicesRef.current
+    if (!el) return
+    const inset = 4
+    const overflow = el.scrollHeight > el.clientHeight + 1
+    const trackH = Math.max(0, el.clientHeight - inset * 2)
+    const h = trackH > 0 && overflow ? Math.max(24, (el.clientHeight / el.scrollHeight) * trackH) : 0
+    const maxScroll = el.scrollHeight - el.clientHeight
+    const top = inset + (maxScroll > 0 ? (el.scrollTop / maxScroll) * (trackH - h) : 0)
+    setThumb(p => (p.h === h && p.top === top && p.overflow === overflow ? p : { ...p, h, top, overflow }))
+  }
+  useEffect(measureThumb)
+  function handleChoicesScroll() {
+    onChoicesScroll()
+    measureThumb()
+    setThumb(p => (p.show ? p : { ...p, show: true }))
+    if (thumbHide.current) clearTimeout(thumbHide.current)
+    thumbHide.current = setTimeout(() => setThumb(p => ({ ...p, show: false })), 900)
+  }
   const [query, setQuery] = useState('')
 
   const { extraGroupIds, extraStudentIds, totalBaseline } = useLessonAudience(lesson, course, groups, allStudents)
@@ -2209,7 +2233,13 @@ function StudentsLeftPanel({
       />
 
       {/* choices list */}
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 5 }}>
+      <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 30, pointerEvents: 'none', zIndex: 3,
+          background: 'linear-gradient(to bottom, var(--color-bg-3), rgba(0,0,0,0))',
+          opacity: choicesFade.top ? 1 : 0, transition: 'opacity 0.18s ease',
+        }} />
+        <div ref={choicesRef} onScroll={handleChoicesScroll} className="no-scrollbar" style={{ position: 'absolute', inset: 0, overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 5 }}>
         {addTab === 'student' && studentChoices.map(s => {
           const on = extraStudentIds.includes(s.id)
           return (
@@ -2270,6 +2300,19 @@ function StudentsLeftPanel({
           <span style={{ fontSize: 11.5, color: 'var(--color-muted)', padding: '4px 2px' }}>
             {q ? 'Ничего не найдено' : 'Все группы уже в базовой аудитории'}
           </span>
+        )}
+        </div>
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0, height: 30, pointerEvents: 'none', zIndex: 3,
+          background: 'linear-gradient(to top, var(--color-bg-3), rgba(0,0,0,0))',
+          opacity: choicesFade.bottom ? 1 : 0, transition: 'opacity 0.18s ease',
+        }} />
+        {thumb.overflow && (
+          <div style={{
+            position: 'absolute', top: thumb.top, right: 2, width: 5, height: thumb.h,
+            borderRadius: 999, background: 'var(--scroll-thumb)', pointerEvents: 'none', zIndex: 4,
+            opacity: thumb.show ? 1 : 0, transition: 'opacity 0.3s ease',
+          }} />
         )}
       </div>
     </div>
