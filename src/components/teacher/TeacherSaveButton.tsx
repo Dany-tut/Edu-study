@@ -67,15 +67,28 @@ export default function TeacherSaveButton({
       style={{ ...teacherSaveStyle({ accent, disabled, saved, fullWidth }), position: 'relative', overflow: 'hidden', ...style }}
     >
       {/* Progress sweep — fills the button left→right while the save is in flight,
-          holding near the end until it completes (then the green "saved" swap). */}
+          creeping slowly and never quite reaching the end so it doesn't sit "full and waiting". */}
       {saving && (
         <motion.span
           aria-hidden
           initial={{ width: '0%' }}
-          animate={{ width: '90%' }}
-          transition={{ duration: 1.1, ease: 'easeOut' }}
-          style={{ position: 'absolute', left: 0, top: 0, bottom: 0, background: 'rgba(255,255,255,0.24)', pointerEvents: 'none' }}
-        />
+          animate={{ width: ['0%', '38%', '62%', '78%'] }}
+          transition={{ duration: 5.5, ease: 'easeOut', times: [0, 0.25, 0.55, 1] }}
+          style={{ position: 'absolute', left: 0, top: 0, bottom: 0, background: 'rgba(255,255,255,0.22)', pointerEvents: 'none', overflow: 'hidden' }}
+        >
+          {/* Shimmer wave riding across the filled area, looping. */}
+          <motion.span
+            aria-hidden
+            initial={{ x: '-60%' }}
+            animate={{ x: '260%' }}
+            transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
+            style={{
+              position: 'absolute', top: 0, bottom: 0, width: '55%',
+              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)',
+              pointerEvents: 'none',
+            }}
+          />
+        </motion.span>
       )}
       <AnimatePresence mode="wait" initial={false}>
         {saving ? (

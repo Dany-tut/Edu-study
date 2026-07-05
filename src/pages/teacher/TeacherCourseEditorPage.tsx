@@ -388,7 +388,7 @@ function AccessModeSelect({
       small
       accent="var(--color-green-text)"
       accentBg="var(--color-green-soft)"
-      triggerStyle={{ minWidth: 150 }}
+      triggerStyle={{ minWidth: 150, background: 'var(--color-bg-5)', border: '1px solid var(--color-border-medium)' }}
     />
   )
 }
@@ -2377,7 +2377,7 @@ function CenterLessonStudents({
                     padding: '7px 12px', borderRadius: 12, background: 'var(--color-green-soft)',
                   }}>
                     <Users size={13} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)', flex: 1 }}>{g.name}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.name}</span>
                     <AccessModeSelect
                       value={gm === 'mixed' ? '' : gm}
                       onChange={v => setGroupMode(g.id, v)}
@@ -2391,7 +2391,7 @@ function CenterLessonStudents({
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '7px 12px', borderRadius: 12, background: 'var(--color-bg-3)',
                 }}>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', flex: 1 }}>{s.name}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</span>
                   <AccessModeSelect value={modeOf(s.id)} onChange={v => setStudentMode(s.id, v)} />
                 </div>
               ))}
@@ -3970,14 +3970,14 @@ export default function TeacherCourseEditorPage() {
                             padding: '6px 14px', borderRadius: 999, border: 'none',
                             background: isOpened
                               ? 'var(--grad-green-open)'
-                              : 'var(--color-green-text)',
+                              : 'var(--btn-green-bg)',
                             color: '#fff',
                             fontSize: 12, fontWeight: 700,
                             cursor: openingLesson ? 'wait' : 'pointer',
                             fontFamily: 'inherit', flexShrink: 0,
                             boxShadow: isOpened
                               ? 'var(--glow-green-open)'
-                              : '0 4px 14px rgba(123,97,255,0.35)',
+                              : 'var(--btn-green-glow)',
                             transition: 'background 0.3s, box-shadow 0.3s',
                             opacity: openingLesson ? 0.7 : 1,
                           }}
