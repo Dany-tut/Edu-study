@@ -83,15 +83,18 @@ function TrackForSubject({ subject }: { subject: Subject }) {
     return () => window.removeEventListener('resize', measure)
   }, [measure])
 
-  // Dismiss the detail popover when clicking anywhere outside the track area.
-  // Node clicks live inside trackAreaRef, so they toggle selection as usual.
+  // Dismiss the detail popover on any click that isn't on a node (which toggles
+  // selection) or inside the popover card itself. Checking trackAreaRef
+  // containment isn't enough: the empty track space around and below the nodes
+  // lives inside trackAreaRef too, so clicks just under a circle used to land in
+  // a dead zone that never dismissed.
   useEffect(() => {
     if (!selectedLessonId && !selectedHardLessonId) return
     const onPointerDown = (e: PointerEvent) => {
-      if (!trackAreaRef.current?.contains(e.target as Node)) {
-        setSelectedLessonId(null)
-        setSelectedHardLessonId(null)
-      }
+      const el = e.target as Element | null
+      if (el?.closest('[data-course-node]') || el?.closest('[data-lesson-popover]')) return
+      setSelectedLessonId(null)
+      setSelectedHardLessonId(null)
     }
     // Capture phase: some cards (e.g. the quiz panel) stopPropagation on
     // pointerdown, so a bubble-phase listener would never see those clicks.
@@ -295,6 +298,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                 {allLessons.map((lesson, i) => (
                   <div
                     key={lesson.id}
+                    data-course-node
                     style={{ position: 'absolute', top: 0, left: nodeCenter(i) - NODE_SIZE / 2 }}
                   >
                     <CourseNode
@@ -323,6 +327,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
               {selectedLesson && selectedDetail && DetailIcon && (
                 <motion.div
                   key={selectedLesson.id}
+                  data-lesson-popover
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0 }}

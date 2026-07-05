@@ -2483,8 +2483,8 @@ function LessonRow({
       style={{
         width: '100%', display: 'flex', alignItems: 'center', gap: 8,
         padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
-        background: checked || selected ? 'var(--color-green-soft)' : 'transparent',
-        boxShadow: checked ? 'inset 0 0 0 1.5px var(--color-green-text)' : undefined,
+        background: checked || selected ? 'color-mix(in srgb, var(--color-green-soft) 55%, transparent)' : 'transparent',
+        boxShadow: checked ? 'inset 0 0 0 1.5px color-mix(in srgb, var(--color-green-text) 55%, transparent)' : undefined,
         transition: 'background 0.13s, box-shadow 0.13s', fontFamily: 'inherit', textAlign: 'left',
         marginBottom: 2,
       }}
@@ -2492,8 +2492,8 @@ function LessonRow({
       <div style={{
         width: 24, height: 24, borderRadius: 7, flexShrink: 0,
         background: lesson.kind === 'test'
-          ? (selected ? 'var(--color-green-text)' : 'var(--color-green-soft)')
-          : (selected ? 'var(--color-green-text)' : 'var(--color-bg-3)'),
+          ? (selected ? 'color-mix(in srgb, color-mix(in srgb, var(--color-teal-pill-text) 62%, var(--color-green-text)) 72%, #000)' : 'var(--color-green-soft)')
+          : (selected ? 'color-mix(in srgb, color-mix(in srgb, var(--color-teal-pill-text) 62%, var(--color-green-text)) 72%, #000)' : 'var(--color-bg-3)'),
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: 10, fontWeight: 700,
         color: lesson.kind === 'test'
@@ -2504,7 +2504,7 @@ function LessonRow({
       </div>
       <span style={{
         flex: 1, fontSize: 12, fontWeight: selected ? 700 : 500,
-        color: selected ? (lesson.kind === 'test' ? 'var(--color-green-text)' : 'var(--color-green-text)') : 'var(--color-text)',
+        color: selected ? 'color-mix(in srgb, color-mix(in srgb, var(--color-teal-pill-text) 55%, var(--color-green-text)) 78%, #000)' : 'var(--color-text)',
         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}>
         {lesson.title || (lesson.kind === 'test' ? 'Тест без названия' : 'Урок без названия')}

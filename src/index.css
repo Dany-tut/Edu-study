@@ -67,7 +67,9 @@
   --color-purple-soft: #E7E4FB;
   --color-rose-soft: #FFE1F0;
   --color-rose-text: #CC4B7B;
-  --color-accent: #6354CF;
+  /* Accent = the lighter purple («стало»); in light theme kept a touch darker
+     than --color-purple (#9C8CF0) so accent TEXT stays readable on white. */
+  --color-accent: #7E6EE6;
   --color-green-accent: #1a7a3f;
 
   /* ── Accent gradients (vivid; shared across themes) ───────── */
@@ -192,7 +194,8 @@
 
   --color-purple: #B3A6F7;
   --color-avatar-bg: #6B5FC0;
-  --color-accent: #8879D8;
+  /* Dark-theme accent = --color-purple («стало»). */
+  --color-accent: #B3A6F7;
   --color-green-accent: #4ADE80;
 
   /* ── Shadows (dark-theme glass cards) ────────────────────── */
