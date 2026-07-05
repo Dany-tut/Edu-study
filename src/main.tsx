@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary'
 import OfflineBanner from './components/OfflineBanner'
+import './lib/pwaInstall' // register beforeinstallprompt listener ASAP (fires once)
 
 const phKey = import.meta.env.VITE_POSTHOG_KEY
 if (phKey) {

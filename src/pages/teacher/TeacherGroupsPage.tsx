@@ -303,7 +303,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         <div style={{ overflowY: 'auto', padding: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <span style={{ fontSize: 16, fontWeight: 700 }}>{step === 'config' ? 'Настройка ученика' : step === 'link' ? 'Ученик добавлен' : 'Новый ученик'}</span>
-          {step === 'form' && <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>}
+          <button onClick={onClose} aria-label="Закрыть" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
         </div>
 
         {step === 'config' && newStudentId ? (
@@ -583,7 +583,7 @@ function AddIndividualStudentModal({ onClose, onSave }: {
         <div style={{ overflowY: 'auto', padding: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <span style={{ fontSize: 16, fontWeight: 700 }}>{step === 'config' ? 'Настройка ученика' : step === 'link' ? 'Ученик добавлен' : 'Новый ученик 1:1'}</span>
-          {step === 'form' && <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>}
+          <button onClick={onClose} aria-label="Закрыть" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
         </div>
 
         {step === 'config' && newStudentId ? (

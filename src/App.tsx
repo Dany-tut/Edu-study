@@ -10,6 +10,8 @@ import ReviewSession from './components/ReviewSession'
 import { supabase } from './lib/supabase'
 import { getStudentSession } from './lib/studentSession'
 import { initAnalytics, trackPath } from './lib/analytics'
+import ConsentOverlay, { hasStudentConsent } from './components/ConsentOverlay'
+import InstallPrompt from './components/InstallPrompt'
 import type { Session } from '@supabase/supabase-js'
 import './store/themeStore' // initialise theme + apply data-theme before first render
 import { useStudentData } from './store/studentDataStore'
@@ -27,6 +29,7 @@ export default function App() {
   const hash = useHashRoute()
   const [session, setSession] = useState<Session | null | undefined>(undefined)
   const [recovery, setRecovery] = useState(false)
+  const [consented, setConsented] = useState(hasStudentConsent())
   const loadStudentData = useStudentData(s => s.load)
 
   // Behavioural telemetry: init once, then log every route change.
@@ -97,11 +100,25 @@ export default function App() {
     // A student's Supabase session must not unlock the teacher cabinet.
     const isStudentAccount = session?.user?.user_metadata?.role === 'student'
     if ((!session || isStudentAccount) && !import.meta.env.DEV) return <TeacherLoginPage onLogin={() => {}} />
-    return <TeacherDashboardPage />
+    return (
+      <>
+        <TeacherDashboardPage />
+        <InstallPrompt />
+      </>
+    )
   }
 
   // Student routes
   const studentSession = getStudentSession()
   if (!studentSession) return <StudentLoginPage />
-  return <DashboardPage />
+  // 152-ФЗ consent gate: overlay ON TOP of the cabinet (dashboard stays mounted
+  // behind it) so a fault in the gate can never blank the app.
+  return (
+    <>
+      <DashboardPage />
+      {!consented && <ConsentOverlay onAccept={() => setConsented(true)} />}
+      {/* Install banner shows only once consent is given (student) */}
+      {consented && <InstallPrompt />}
+    </>
+  )
 }

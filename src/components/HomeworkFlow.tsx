@@ -298,18 +298,22 @@ function ResultModal({
   context,
   score,
   recommendationScore,
+  showHard = true,
   onContinue,
 }: {
   context: 'basic' | 'hard'
   score?: number
   recommendationScore?: number
+  showHard?: boolean
   onContinue: (emojiIndex: number, goToHard?: boolean) => void
 }) {
   const [emojiValue, setEmojiValue] = useState(() =>
     score !== undefined ? Math.round((score / 100) * (EMOJI_STEPS.length - 1)) : 2
   )
   const bannerRef = useRef<HTMLDivElement>(null)
-  const passed = context === 'basic' && score !== undefined && recommendationScore !== undefined
+  // «passed» открывает CTA к харду. Если хард-уровня нет (showHard=false), даже
+  // отличный балс базы не показывает переход к харду — обычная кнопка «Продолжить».
+  const passed = showHard && context === 'basic' && score !== undefined && recommendationScore !== undefined
     ? score >= recommendationScore
     : null
 
@@ -738,6 +742,8 @@ export default function HomeworkFlow({
   const [dockTitleMax, setDockTitleMax] = useState<number | undefined>(undefined)
   const basicLevel = homework.levels.find(level => level.id === 'basic')
   const hardLevel = homework.levels.find(level => level.id === 'hard')
+  // Нет реального сложного уровня → не показываем вход в хард (кнопки/CTA/карточка).
+  const showHard = homework.hasHardLevel !== false
   const [state, setState] = useState<PersistedHomeworkState>(() => {
     const raw = window.localStorage.getItem(getStorageKey(lessonId))
     if (!raw) return getInitialState()
@@ -824,9 +830,11 @@ export default function HomeworkFlow({
   // Открытие домашки на конкретном уровне (хард-карточка → сразу хард).
   useEffect(() => {
     if (!homeworkInitialLevel) return
-    setState(current => (current.selectedLevel === homeworkInitialLevel ? current : { ...current, selectedLevel: homeworkInitialLevel }))
+    // Хард-уровня нет → игнорируем запрос открыть его сразу, остаёмся на базе.
+    const target = homeworkInitialLevel === 'hard' && !showHard ? 'basic' : homeworkInitialLevel
+    setState(current => (current.selectedLevel === target ? current : { ...current, selectedLevel: target }))
     clearHomeworkInitialLevel()
-  }, [homeworkInitialLevel, clearHomeworkInitialLevel])
+  }, [homeworkInitialLevel, clearHomeworkInitialLevel, showHard])
   useEffect(() => {
     window.localStorage.setItem(getStorageKey(lessonId), JSON.stringify(state))
   }, [lessonId, state])
@@ -1063,8 +1071,9 @@ export default function HomeworkFlow({
           context={showResultModal}
           score={showResultModal === 'basic' ? basicScore : undefined}
           recommendationScore={homework.recommendationScore}
+          showHard={showHard}
           onContinue={(emojiIndex, goToHard) => {
-            const hardAvailable = basicScore >= homework.recommendationScore
+            const hardAvailable = showHard && basicScore >= homework.recommendationScore
             setState(current => ({ ...current, basicSubmitted: true, selfAssessmentValue: emojiIndex, ...(goToHard ? { selectedLevel: 'hard' } : {}) }))
             if (goToHard) clearHomeworkWidgetFeedback()
             setLessonAssessment(lessonId, basicScore, emojiIndex, hardAvailable)
@@ -1363,7 +1372,7 @@ export default function HomeworkFlow({
                   </div>
 
                   <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
-                    {state.basicSubmitted && basicScore >= homework.recommendationScore && (
+                    {showHard && state.basicSubmitted && basicScore >= homework.recommendationScore && (
                       <motion.button
                         whileHover={{ y: -1 }} whileTap={{ scale: 0.99 }}
                         onClick={() => { setState(current => ({ ...current, selectedLevel: 'hard' })); clearHomeworkWidgetFeedback() }}

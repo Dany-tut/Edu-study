@@ -141,7 +141,7 @@ export default function TeacherTopBar() {
       const u = data.user
       if (!u) return
       const name = u.user_metadata?.name ?? u.email?.split('@')[0] ?? ''
-      const role: 'admin' | 'teacher' = u.user_metadata?.role === 'admin' ? 'admin' : 'teacher'
+      const role: 'admin' | 'teacher' = u.app_metadata?.role === 'admin' ? 'admin' : 'teacher'
       setTeacherName(name)
       setTeacherEmail(u.email ?? '')
       setTeacherRole(role)

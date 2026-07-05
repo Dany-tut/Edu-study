@@ -1481,8 +1481,12 @@ export default function TaskBankPage() {
           }
         >
           {filtered.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '56px 0', color: 'var(--color-text-3)', fontSize: 14 }}>
-              Заданий не найдено — измените фильтры
+            <div style={{ textAlign: 'center', padding: '56px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+              <span>Заданий не найдено — измените фильтры</span>
+              <button onClick={() => { tactile(); clearFilters() }}
+                style={{ padding: '8px 18px', borderRadius: 999, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                Сбросить фильтры
+              </button>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -1859,8 +1863,12 @@ export default function TaskBankPage() {
 
           {/* Tasks */}
           {filtered.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14 }}>
-              Заданий не найдено — измените фильтры
+            <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+              <span>Заданий не найдено — измените фильтры</span>
+              <button onClick={clearFilters}
+                style={{ padding: '8px 18px', borderRadius: 999, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                Сбросить фильтры
+              </button>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

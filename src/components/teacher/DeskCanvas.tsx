@@ -2,6 +2,7 @@ import { Suspense, useCallback, useMemo, useState, useRef, useEffect } from 'rea
 import { X } from 'lucide-react'
 import { type Desk, type LayoutItem } from '../../lib/useDeskLayouts'
 import { getWidgetDef } from './widgets/registry'
+import WidgetBoundary from './WidgetBoundary'
 import { useDeskStore } from '../../store/deskStore'
 
 const ROW_H = 64          // base row height (edit mode + fallback)
@@ -99,15 +100,17 @@ function WidgetShell({ item, editMode, onRemove }: ShellProps) {
       onScrollCapture={e => { const el = e.target as HTMLElement; if (el.scrollHeight > el.clientHeight + 2) sync(el) }}
       style={{ position: 'relative', width: '100%', height: '100%', overflow: 'visible' }}
     >
-      <Suspense fallback={
-        <div style={{ width: '100%', height: '100%', background: 'rgba(var(--glass-rgb),0.5)',
-          borderRadius: 16, border: '1.5px solid var(--color-border-medium)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid var(--color-border-medium)', borderTopColor: 'var(--color-accent)', animation: 'spin 0.7s linear infinite' }} />
-        </div>
-      }>
-        <Comp />
-      </Suspense>
+      <WidgetBoundary label={item.type}>
+        <Suspense fallback={
+          <div style={{ width: '100%', height: '100%', background: 'rgba(var(--glass-rgb),0.5)',
+            borderRadius: 16, border: '1.5px solid var(--color-border-medium)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid var(--color-border-medium)', borderTopColor: 'var(--color-accent)', animation: 'spin 0.7s linear infinite' }} />
+          </div>
+        }>
+          <Comp />
+        </Suspense>
+      </WidgetBoundary>
 
       {/* Scroll fades */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 36, pointerEvents: 'none', zIndex: 3,

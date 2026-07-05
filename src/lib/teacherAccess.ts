@@ -61,7 +61,9 @@ export const useTeacherAccess = create<AccessState>((set, get) => ({
   load: async () => {
     const { data: userData } = await supabase.auth.getUser()
     const user = userData.user
-    const isAdmin = user?.user_metadata?.role === 'admin' || user?.app_metadata?.role === 'admin'
+    // Trust ONLY app_metadata (server-controlled). user_metadata is client-editable,
+    // so keying admin off it lets a teacher unhide restricted tabs/widgets locally.
+    const isAdmin = user?.app_metadata?.role === 'admin'
     // Admins are never restricted; skip the profile read for them.
     if (!user || isAdmin) {
       set({ loaded: true, isAdmin: !!isAdmin, hiddenTabs: [], hiddenWidgets: [] })

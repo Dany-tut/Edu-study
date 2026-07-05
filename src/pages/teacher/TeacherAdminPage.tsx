@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Database, HardDrive, Users, BookOpen, RefreshCw, ChevronRight, ArrowLeft, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert, SlidersHorizontal, Lock } from 'lucide-react'
+import { Database, HardDrive, Users, BookOpen, RefreshCw, ChevronRight, ArrowLeft, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert, SlidersHorizontal, Lock, KeyRound, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { copyToClipboard } from '../../lib/clipboard'
 import { useTeacher } from '../../store/teacherStore'
@@ -9,6 +9,7 @@ import TeacherAnalytics from '../../components/teacher/TeacherAnalytics'
 import { TEACHER_TABS } from '../../lib/teacherAccess'
 import { WIDGET_REGISTRY } from '../../components/teacher/widgets/registry'
 import AccessConfigurator, { hiddenTabsFrom, hiddenWidgetsFrom, selectedTabsFrom, selectedWidgetsFrom, type CourseAssignment } from '../../components/teacher/AccessConfigurator'
+import TeacherSelect from '../../components/teacher/TeacherSelect'
 
 type StorageStats = {
   db_bytes: number
@@ -29,6 +30,15 @@ type TeacherRow = {
   studentCount: number
   hiddenTabs: string[]
   hiddenWidgets: string[]
+}
+
+// A teacher who was invited but hasn't signed up yet — lives only in
+// teacher_invites (consumed_at IS NULL), not in profiles.
+type PendingInvite = {
+  token: string
+  email: string | null
+  createdAt: string
+  createdByName: string | null
 }
 
 function fmtBytes(n: number): string {
@@ -215,6 +225,25 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
+  // Password reset (admin-only): teachers pick their own password on sign-up and
+  // it's an unreadable Auth hash — this issues a NEW one, shown once to relay.
+  const [pwLoading, setPwLoading] = useState(false)
+  const [pwValue, setPwValue] = useState('')
+  const [pwError, setPwError] = useState('')
+  const [pwCopied, setPwCopied] = useState(false)
+
+  async function resetPassword() {
+    setPwLoading(true); setPwError(''); setPwValue('')
+    const { data, error: err } = await supabase.functions.invoke('reset-teacher-password', {
+      body: { teacherId: teacher.id },
+    })
+    setPwLoading(false)
+    if (err || !data?.password) {
+      const msg = (data as { error?: string } | null)?.error || err?.message || 'Не удалось сбросить пароль'
+      setPwError(msg); return
+    }
+    setPwValue(data.password as string)
+  }
 
   async function save() {
     setSaving(true)
@@ -283,6 +312,46 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
           {saving ? 'Сохраняем…' : saved ? 'Сохранено' : 'Сохранить'}
         </button>
         {error && <span style={{ fontSize: 11, color: '#E04848' }}>{error}</span>}
+      </div>
+
+      {/* Password reset — teachers have no readable password (self-chosen Auth
+          hash); admin can issue a new one and relay it. */}
+      <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--color-border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <button
+            onClick={resetPassword}
+            disabled={pwLoading}
+            style={{
+              padding: '8px 16px', borderRadius: 12, cursor: pwLoading ? 'wait' : 'pointer',
+              border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
+              color: 'var(--color-text-2)', fontSize: 12, fontWeight: 600,
+              display: 'flex', alignItems: 'center', gap: 6,
+            }}
+          >
+            <KeyRound size={13} strokeWidth={2} />
+            {pwLoading ? 'Сбрасываем…' : 'Сбросить пароль'}
+          </button>
+          {pwValue && (
+            <div
+              onClick={() => { void copyToClipboard(pwValue).then(ok => { if (ok) { setPwCopied(true); setTimeout(() => setPwCopied(false), 1500) } }) }}
+              title="Скопировать"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+                padding: '7px 12px', borderRadius: 10,
+                background: 'var(--color-purple-soft)', border: '1px solid rgba(155,109,255,0.3)',
+              }}
+            >
+              <code style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-purple)', letterSpacing: 0.4 }}>{pwValue}</code>
+              {pwCopied ? <Check size={13} strokeWidth={2.6} style={{ color: 'var(--color-purple)' }} /> : <Copy size={13} style={{ color: 'var(--color-purple)' }} />}
+            </div>
+          )}
+          {pwError && <span style={{ fontSize: 11, color: '#E04848' }}>{pwError}</span>}
+        </div>
+        {pwValue && (
+          <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 8, lineHeight: 1.5 }}>
+            Новый пароль показан один раз — скопируйте и передайте учителю. Он войдёт с ним и сможет сменить его сам.
+          </div>
+        )}
       </div>
     </div>
   )
@@ -392,23 +461,22 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
                     : `Группа · ${row.detail} учеников`}
                 </div>
               </div>
-              {/* Owner select */}
-              <select
-                value={row.owner_id ?? ''}
-                disabled={busyId === row.id}
-                onChange={e => reassign(row, e.target.value)}
-                style={{
-                  fontSize: 12, fontWeight: 600, padding: '6px 8px', borderRadius: 9,
-                  border: `1px solid ${row.owner_id ? 'var(--color-border-medium)' : '#D07020'}`,
-                  background: 'var(--color-bg-3)', color: 'var(--color-text)', cursor: 'pointer',
-                  maxWidth: 160,
-                }}
-              >
-                {!row.owner_id && <option value="">— без владельца —</option>}
-                {teachers.map(t => (
-                  <option key={t.id} value={t.id}>{t.name}{t.role === 'admin' ? ' (Босс)' : ''}</option>
-                ))}
-              </select>
+              {/* Owner select — canonical styled dropdown */}
+              <div style={{ width: 168, flexShrink: 0, pointerEvents: busyId === row.id ? 'none' : 'auto' }}>
+                <TeacherSelect
+                  small
+                  clearable={false}
+                  placeholder="— без владельца —"
+                  value={row.owner_id ?? ''}
+                  onChange={v => reassign(row, v)}
+                  options={teachers.map(t => ({ value: t.id, label: `${t.name}${t.role === 'admin' ? ' (Босс)' : ''}` }))}
+                  triggerStyle={{
+                    padding: '7px 10px', borderRadius: 9, fontWeight: 600,
+                    background: 'var(--color-bg-3)',
+                    border: `1px solid ${row.owner_id ? 'var(--color-border-medium)' : '#D07020'}`,
+                  }}
+                />
+              </div>
               <button
                 onClick={() => setConfirmDel(row)}
                 disabled={busyId === row.id}
@@ -465,6 +533,7 @@ export default function TeacherAdminPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const [storage, setStorage] = useState<StorageStats | null>(null)
   const [teachers, setTeachers] = useState<TeacherRow[]>([])
+  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([])
   const [groupCount, setGroupCount] = useState(0)
   const [studentCount, setStudentCount] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -475,17 +544,18 @@ export default function TeacherAdminPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      setIsAdmin(data.user?.user_metadata?.role === 'admin')
+      setIsAdmin(data.user?.app_metadata?.role === 'admin')
     })
   }, [])
 
   async function load() {
     setLoading(true)
-    const [storageRes, groupsRes, studentsRes, teachersRes] = await Promise.all([
+    const [storageRes, groupsRes, studentsRes, teachersRes, invitesRes] = await Promise.all([
       supabase.rpc('storage_stats'),
       supabase.from('groups').select('id', { count: 'exact', head: true }),
       supabase.from('students').select('id', { count: 'exact', head: true }),
       supabase.rpc('admin_teacher_list'),
+      supabase.rpc('admin_pending_teacher_invites'),
     ])
 
     if (storageRes.data) setStorage(storageRes.data as StorageStats)
@@ -506,7 +576,20 @@ export default function TeacherAdminPage() {
         hiddenWidgets: (t.hidden_widgets as string[] | null) ?? [],
       })))
     }
+    setPendingInvites(Array.isArray(invitesRes.data)
+      ? (invitesRes.data as any[]).map(r => ({
+          token: r.token as string,
+          email: (r.email as string | null) ?? null,
+          createdAt: r.created_at as string,
+          createdByName: (r.created_by_name as string | null) ?? null,
+        }))
+      : [])
     setLoading(false)
+  }
+
+  async function revokeInvite(token: string) {
+    await supabase.rpc('admin_revoke_teacher_invite', { p_token: token })
+    setPendingInvites(prev => prev.filter(p => p.token !== token))
   }
 
   useEffect(() => { load() }, [])
@@ -646,6 +729,11 @@ export default function TeacherAdminPage() {
                             <Lock size={9} strokeWidth={2.6} />{restrictCount}
                           </span>
                         )}
+                        {isTeacher && (
+                          <span style={{ fontSize: 10, fontWeight: 700, color: '#1F9B6B', background: 'rgba(31,155,107,0.12)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }} title="Учитель зарегистрирован">
+                            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#1F9B6B' }} />активен
+                          </span>
+                        )}
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                         {t.username && <span>@{t.username}</span>}
@@ -696,6 +784,53 @@ export default function TeacherAdminPage() {
             )}
           </div>
         </div>
+
+        {/* Pending invites — teachers sent a link who haven't signed up yet. */}
+        {pendingInvites.length > 0 && (
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>
+              Приглашения · не активированы
+            </div>
+            <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
+              {pendingInvites.map((inv, i) => {
+                const link = `${window.location.origin}${window.location.pathname}#/join-teacher?token=${inv.token}`
+                return (
+                  <div key={inv.token} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderTop: i > 0 ? '1px solid var(--color-border)' : undefined }}>
+                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}>
+                      <Mail size={15} strokeWidth={2} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {inv.email || 'Без email'}
+                        <span style={{ fontSize: 10, fontWeight: 700, color: '#C77700', background: 'rgba(199,119,0,0.12)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#C77700' }} />не активировано
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>
+                        Создано {new Date(inv.createdAt).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                        {inv.createdByName ? ` · ${inv.createdByName}` : ''}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => { void copyToClipboard(link) }}
+                      title="Скопировать ссылку"
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '7px 12px', borderRadius: 10, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600 }}
+                    >
+                      <Copy size={13} strokeWidth={2} />Ссылка
+                    </button>
+                    <button
+                      onClick={() => revokeInvite(inv.token)}
+                      title="Отозвать приглашение"
+                      style={{ display: 'flex', alignItems: 'center', flexShrink: 0, padding: '7px 9px', borderRadius: 10, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: '#E04848' }}
+                    >
+                      <Trash2 size={13} strokeWidth={2} />
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Storage */}
         <div>

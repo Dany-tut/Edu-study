@@ -36,16 +36,17 @@ export default function JoinPage() {
 
   useEffect(() => {
     if (!token) { setStep('error'); return }
+    // Resolve via a by-token RPC (security definer) instead of a direct table
+    // read — anon can no longer enumerate all invited students, only resolve a
+    // token they already hold.
     supabase
-      .from('students')
-      .select('id, name, group_id')
-      .eq('invite_token', token)
-      .single()
+      .rpc('get_invited_student', { p_token: token })
       .then(({ data, error }) => {
-        if (error || !data) { setStep('error'); return }
-        setStudentId(data.id)
-        setStudentName(data.name)
-        setGroupId(data.group_id)
+        const row = Array.isArray(data) ? data[0] : data
+        if (error || !row) { setStep('error'); return }
+        setStudentId(row.id)
+        setStudentName(row.name)
+        setGroupId(row.group_id)
         setStep('form')
       })
   }, [token])

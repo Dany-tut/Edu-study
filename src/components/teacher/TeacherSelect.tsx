@@ -20,7 +20,7 @@ const baseTrigger: React.CSSProperties = {
 export default function TeacherSelect({
   value, options, onChange, placeholder, triggerStyle, small = false,
   accent = 'var(--color-purple-text)', accentBg = 'var(--color-purple-soft)',
-  onAddOption, onDeleteOption,
+  onAddOption, onDeleteOption, clearable = true,
 }: {
   value: string
   options: TeacherSelectOption[]
@@ -30,6 +30,8 @@ export default function TeacherSelect({
   small?: boolean
   accent?: string
   accentBg?: string
+  /** When false, the trigger never shows the × clear button (for required fields). */
+  clearable?: boolean
   /** When provided, the dropdown grows an "add option" row + per-row delete. */
   onAddOption?: (label: string) => void
   onDeleteOption?: (value: string) => void
@@ -148,7 +150,7 @@ export default function TeacherSelect({
           </span>
         )}
 
-        {!isEmpty ? (
+        {!isEmpty && clearable ? (
           <button
             type="button"
             onMouseDown={handleClear}

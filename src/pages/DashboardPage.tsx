@@ -35,18 +35,23 @@ function useIsDesktop() {
   return isDesktop
 }
 
-const HASH_TO_PAGE: Record<string, 'home' | 'courses' | 'trainer'> = {
+const HASH_TO_PAGE: Record<string, 'home' | 'courses' | 'trainer' | 'profile'> = {
   '#/': 'home',
   '#': 'home',
   '': 'home',
   '#/courses': 'courses',
   '#/trainer': 'trainer',
+  '#/profile': 'profile',
 }
 const PAGE_TO_HASH: Record<string, string> = {
   home: '#/',
   courses: '#/courses',
   trainer: '#/trainer',
+  profile: '#/profile',
 }
+// Lesson & homework encode the lesson id in the hash so a hard refresh (F5)
+// restores the exact view instead of dropping the student back on Home.
+const LESSON_HASH_RE = /^#\/(lesson|homework)\/(.+)$/
 
 export default function DashboardPage() {
   useStudentPrefsSync()
@@ -56,26 +61,46 @@ export default function DashboardPage() {
   const activePage = useDashboard(s => s.activePage)
   const setActivePage = useDashboard(s => s.setActivePage)
   const currentLessonId = useDashboard(s => s.currentLessonId)
+  const openLesson = useDashboard(s => s.openLesson)
+  const openHomeworkForLesson = useDashboard(s => s.openHomeworkForLesson)
   const setLessonScrolled = useDashboard(s => s.setLessonScrolled)
   const closeHomework = useDashboard(s => s.closeHomework)
   const closeLesson = useDashboard(s => s.closeLesson)
   const lesson = currentLessonId ? findLessonById(currentLessonId) : null
   const homework = lesson ? getLessonDetail(lesson).homework : null
 
-  // Restore page from hash on mount
+  // Restore the exact view from the hash on mount — including lesson/homework
+  // (with the lesson id) so a hard refresh never dumps the student back on Home.
   useEffect(() => {
-    const page = HASH_TO_PAGE[window.location.hash]
+    const h = window.location.hash
+    const m = h.match(LESSON_HASH_RE)
+    if (m) {
+      const id = decodeURIComponent(m[2])
+      // Only restore if the lesson actually exists; otherwise fall back to Home
+      // so a stale/garbage hash can't strand the student on a blank view.
+      if (findLessonById(id)) {
+        if (m[1] === 'homework') openHomeworkForLesson(id)
+        else openLesson(id)
+        return
+      }
+      setActivePage('home')
+      return
+    }
+    const page = HASH_TO_PAGE[h]
     if (page && page !== activePage) setActivePage(page)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Sync hash when activePage changes (only for persistent pages)
+  // Sync the hash whenever the view changes so it's always refresh-restorable.
   useEffect(() => {
-    const hash = PAGE_TO_HASH[activePage]
+    let hash: string | null = null
+    if (activePage === 'lesson' && currentLessonId) hash = `#/lesson/${encodeURIComponent(currentLessonId)}`
+    else if (activePage === 'homework' && currentLessonId) hash = `#/homework/${encodeURIComponent(currentLessonId)}`
+    else hash = PAGE_TO_HASH[activePage] ?? null
     if (hash && window.location.hash !== hash) {
       window.history.replaceState(null, '', hash)
     }
-  }, [activePage])
+  }, [activePage, currentLessonId])
 
   // Sidebar is centered in the topbar via flex; the mini widget pill is
   // overlaid absolutely beside it so its presence never shifts the sidebar.

@@ -72,6 +72,9 @@ export function GlassIconButton({
   ariaLabel?: string
   size?: number
 }) {
+  // Keep the glass circle at `size` visually, but guarantee a ≥44px tap target
+  // (Apple/Google min) by padding the hit area when the visual is smaller.
+  const hit = Math.max(size, 44)
   return (
     <motion.button
       type="button"
@@ -81,21 +84,28 @@ export function GlassIconButton({
       onClick={() => { if (onClick) { tactile(); onClick() } }}
       style={{
         position: 'relative',
-        width: size, height: size, flexShrink: 0,
+        width: hit, height: hit, flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         borderRadius: 999, cursor: onClick ? 'pointer' : 'default',
         color: 'var(--color-text-2)',
-        ...glassBase,
+        background: 'transparent', border: 'none', padding: 0,
       }}
     >
-      {icon}
-      {dot && (
-        <span style={{
-          position: 'absolute', top: size * 0.22, right: size * 0.24,
-          width: 7, height: 7, borderRadius: 999,
-          background: 'var(--color-accent)', border: '1.5px solid var(--color-bg)',
-        }} />
-      )}
+      <span style={{
+        position: 'relative',
+        width: size, height: size,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        borderRadius: 999, ...glassBase,
+      }}>
+        {icon}
+        {dot && (
+          <span style={{
+            position: 'absolute', top: size * 0.22, right: size * 0.24,
+            width: 7, height: 7, borderRadius: 999,
+            background: 'var(--color-accent)', border: '1.5px solid var(--color-bg)',
+          }} />
+        )}
+      </span>
     </motion.button>
   )
 }

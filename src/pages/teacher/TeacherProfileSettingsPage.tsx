@@ -45,7 +45,7 @@ export default function TeacherProfileSettingsPage() {
       if (!u) return
       if (!hadDraft.name) setName(u.user_metadata?.name ?? u.email?.split('@')[0] ?? '')
       setEmail(u.email ?? '')
-      setRole(u.user_metadata?.role === 'admin' ? 'admin' : 'teacher')
+      setRole(u.app_metadata?.role === 'admin' ? 'admin' : 'teacher')
       if (!hadDraft.avatarId) setAvatarId(u.user_metadata?.avatarId ?? 'flower')
     })
   }, [])

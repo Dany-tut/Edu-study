@@ -91,6 +91,10 @@ export interface LessonHomework {
   subtitle: string
   recommendationScore: number
   levels: HomeworkLevel[]
+  /** Есть ли у ДЗ реальный сложный уровень. false → HomeworkFlow не показывает
+   *  вход в хард (нет хард-заданий → нет уровня). Undefined трактуется как true
+   *  (обратная совместимость). */
+  hasHardLevel?: boolean
 }
 /** One paragraph of the lesson's written notes. When `reactionId` is set, the
  *  paragraph introduces a specific reaction from `courseReactions` and the
@@ -256,6 +260,9 @@ function buildAuthoredHomework(lesson: Lesson, fallbackDate: string): LessonHome
     title: hw.hwTitle?.trim() || `Домашка по теме «${lesson.title}»`,
     subtitle: 'Базовый уровень — задания от преподавателя; хард уходит на проверку.',
     recommendationScore,
+    // Нет авторских хард-заданий → скрываем вход в хард (уровень остаётся в
+    // данных как заглушка, но HomeworkFlow его не показывает).
+    hasHardLevel: hardTasks.length > 0,
     levels: [
       {
         id: 'basic',

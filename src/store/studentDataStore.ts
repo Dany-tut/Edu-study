@@ -11,6 +11,7 @@ import {
   fetchCourseReactions,
   type StudentStats,
 } from '../lib/db'
+import { fetchStandaloneSubject } from '../lib/standaloneHomework'
 import { getStudentSession } from '../lib/studentSession'
 import { useDashboard } from './dashboardStore'
 import {
@@ -76,6 +77,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       fetchScienceFacts(),
       fetchScienceMemes(),
       fetchCourseReactions(),
+      fetchStandaloneSubject(session.groupId),
     ])
     const val = <T,>(i: number, fallback: T): T =>
       results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<T>).value : fallback
@@ -86,8 +88,14 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     const facts     = val(4, [] as Awaited<ReturnType<typeof fetchScienceFacts>>)
     const memes     = val(5, [] as Awaited<ReturnType<typeof fetchScienceMemes>>)
     const reactions = val(6, [] as Awaited<ReturnType<typeof fetchCourseReactions>>)
+    const hwSubject = val(7, null as Awaited<ReturnType<typeof fetchStandaloneSubject>>)
 
-    let mergedSubjects = mergeSubjectsWithProgress(catalog, progress)
+    // Standalone-ДЗ (вне курса) — отдельный предмет-трек «Домашние задания» со
+    // своей нумерацией. Кладём в каталог ДО merge, чтобы прогресс/статусы
+    // (в т.ч. сдано/возвращено) применились к его нодам так же, как к курсовым.
+    const fullCatalog = hwSubject ? [...catalog, hwSubject] : catalog
+
+    let mergedSubjects = mergeSubjectsWithProgress(fullCatalog, progress)
     let stats = computeStats(progress)
     let scheduleDays = schedule
 
