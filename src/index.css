@@ -354,7 +354,10 @@ a {
   right: 0;
   z-index: 90;
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  /* minmax(0, 1fr) — without the 0 min, the side tracks default to a
+     min-content floor, so the wider schedule pill mounting on the right grows
+     its track and shoves the centered topbar sideways (visible jitter). */
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: flex-start;
   /* Sits at a comfortable inset (the "widgets" level), NOT glued to the top
      edge — the floating bar reads as a pill with breathing room above it. */

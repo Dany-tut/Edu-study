@@ -78,7 +78,7 @@ export default function ConsentOverlay({ onAccept }: { onAccept: () => void }) {
             )}
           </span>
           <span style={{ fontSize: 12, lineHeight: 1.4, color: 'var(--color-text-2)' }}>
-            Согласен(а) на обработку данных; для ученика младше 18 лет подтверждаю как родитель.
+            Согласен(а) на обработку данных.
           </span>
         </label>
 

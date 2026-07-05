@@ -16,6 +16,8 @@ import { useTaskBank } from '../../store/taskBankStore'
 import type { Task as BankTask } from '../../data/taskBankData'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
 import TeacherSaveButton, { teacherSaveStyle } from '../../components/teacher/TeacherSaveButton'
+import TeacherSelect from '../../components/teacher/TeacherSelect'
+import { getOwnerId } from '../../lib/owner'
 import TableEditor from '../../components/teacher/TableEditor'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { supabase } from '../../lib/supabase'
@@ -302,25 +304,15 @@ function LeftCourseMeta({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div>
           <Label>Предмет</Label>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {['Химия', 'Биология'].map(s => {
-              const active = course.subject === s
-              return (
-                <button
-                  key={s}
-                  onClick={() => setCourse(c => ({ ...c, subject: s }))}
-                  style={{
-                    padding: '7px 14px', borderRadius: 10, cursor: 'pointer',
-                    border: 'none',
-                    background: active ? 'var(--color-green-soft)' : 'var(--color-bg-3)',
-                    color: active ? 'var(--color-green-text)' : 'var(--color-text-3)',
-                    fontWeight: active ? 600 : 400, fontSize: 13,
-                    transition: 'all 0.12s',
-                  }}
-                >{s}</button>
-              )
-            })}
-          </div>
+          <TeacherSelect
+            value={course.subject}
+            options={COURSE_SUBJECTS}
+            onChange={v => setCourse(c => ({ ...c, subject: v }))}
+            placeholder="Выберите предмет"
+            clearable={false}
+            accent="var(--color-green-text)"
+            accentBg="var(--color-green-soft)"
+          />
         </div>
         <div>
           <Label>Уровень</Label>
@@ -359,6 +351,18 @@ function LeftCourseMeta({
 
 // ─── CENTER: Course access — who gets the course (no lesson selected) ─────────
 
+// Subjects a course can belong to (icons mirror SUBJECT_ICONS in TeacherGroupsPage).
+const COURSE_SUBJECTS = [
+  { value: 'Химия', label: '🧪 Химия' },
+  { value: 'Биология', label: '🧬 Биология' },
+  { value: 'Физика', label: '⚡ Физика' },
+  { value: 'Математика', label: '📐 Математика' },
+  { value: 'Русский', label: '📝 Русский' },
+  { value: 'Литература', label: '📖 Литература' },
+  { value: 'История', label: '🏛️ История' },
+  { value: 'Английский', label: '🇬🇧 Английский' },
+]
+
 type AccessMode = 'full' | 'custom' | 'by_date'
 const ACCESS_MODE_OPTIONS: Array<{ value: AccessMode; label: string }> = [
   { value: 'custom', label: 'Настраиваемый' },
@@ -374,21 +378,112 @@ function AccessModeSelect({
   placeholder?: string
 }) {
   return (
-    <select
+    <TeacherSelect
       value={value}
-      onChange={e => onChange(e.target.value as AccessMode)}
-      style={{
-        fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
-        color: 'var(--color-text)', background: 'var(--color-bg)',
-        border: '1.5px solid var(--color-border)', borderRadius: 9,
-        padding: '5px 8px', cursor: 'pointer',
-      }}
-    >
-      {placeholder && <option value="" disabled>{placeholder}</option>}
-      {ACCESS_MODE_OPTIONS.map(o => (
-        <option key={o.value} value={o.value}>{o.label}</option>
-      ))}
-    </select>
+      options={ACCESS_MODE_OPTIONS}
+      onChange={v => onChange(v as AccessMode)}
+      placeholder={placeholder ?? 'Доступ'}
+      clearable={false}
+      small
+      accent="var(--color-green-text)"
+      accentBg="var(--color-green-soft)"
+      triggerStyle={{ minWidth: 150 }}
+    />
+  )
+}
+
+// Assign list with a search box on top and a 5-item preview (rest collapsed) so a
+// long roster never dumps the whole list into the editor. Selected items always
+// show regardless of the preview cap so they can be toggled off.
+const ASSIGN_PREVIEW = 5
+function AssignPicker({
+  items, selectedIds, onToggle, kind,
+}: {
+  items: Array<{ id: string; name: string }>
+  selectedIds: string[]
+  onToggle: (id: string) => void
+  kind: 'group' | 'student'
+}) {
+  const [q, setQ] = useState('')
+  const [expanded, setExpanded] = useState(false)
+  const query = q.trim().toLowerCase()
+  const filtered = query ? items.filter(i => i.name.toLowerCase().includes(query)) : items
+  const selectedSet = new Set(selectedIds)
+  // Always surface selected items; fill the rest up to the preview cap.
+  const shown = (query || expanded)
+    ? filtered
+    : [...filtered.filter(i => selectedSet.has(i.id)), ...filtered.filter(i => !selectedSet.has(i.id))].slice(0, Math.max(ASSIGN_PREVIEW, selectedIds.length))
+  const hiddenCount = filtered.length - shown.length
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        background: 'var(--color-bg)', border: '1px solid var(--color-border-soft)',
+        borderRadius: 10, padding: '8px 12px',
+      }}>
+        <Search size={15} style={{ color: 'var(--color-text-3)' }} />
+        <input
+          value={q} onChange={e => setQ(e.target.value)}
+          placeholder={kind === 'group' ? 'Поиск группы…' : 'Поиск ученика…'}
+          style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: 'var(--color-text)' }}
+        />
+        {q && <X size={13} style={{ color: 'var(--color-text-3)', cursor: 'pointer' }} onClick={() => setQ('')} />}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+        {shown.map(item => {
+          const on = selectedSet.has(item.id)
+          return (
+            <button key={item.id} onClick={() => onToggle(item.id)} style={{
+              display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+              padding: '9px 14px', borderRadius: 12,
+              border: on ? '1.5px solid var(--color-green-text)' : '1.5px solid var(--color-border)',
+              background: on ? 'var(--color-green-soft)' : 'transparent',
+              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
+            }}>
+              <div style={{
+                width: 26, height: 26, borderRadius: '50%',
+                background: on ? 'var(--color-green-text)' : 'var(--color-bg-3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 11, fontWeight: 700,
+                color: on ? '#fff' : 'var(--color-muted)', flexShrink: 0,
+              }}>
+                {kind === 'group' ? <Users size={13} style={{ color: on ? '#fff' : 'var(--color-muted)' }} /> : item.name.slice(0, 1).toUpperCase()}
+              </div>
+              <span style={{ fontSize: 13, fontWeight: 600, color: on ? 'var(--color-green-text)' : 'var(--color-text)', flex: 1, textAlign: 'left' }}>
+                {item.name}
+              </span>
+              {on && <X size={11} style={{ color: 'var(--color-green-text)' }} />}
+            </button>
+          )
+        })}
+        {shown.length === 0 && (
+          <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '12px 0' }}>
+            {items.length === 0 ? (kind === 'group' ? 'Групп нет' : 'Ученики не найдены') : 'Ничего не нашлось'}
+          </div>
+        )}
+      </div>
+
+      {!query && !expanded && hiddenCount > 0 && (
+        <button onClick={() => setExpanded(true)} style={{
+          alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 999,
+          background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)',
+          color: 'var(--color-text-2)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+        }}>
+          Показать всех ({hiddenCount})
+        </button>
+      )}
+      {!query && expanded && (
+        <button onClick={() => setExpanded(false)} style={{
+          alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 999,
+          background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)',
+          color: 'var(--color-text-2)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+        }}>
+          Свернуть
+        </button>
+      )}
+    </div>
   )
 }
 
@@ -468,60 +563,21 @@ function CenterCourseAccess({
           </div>
 
           {assignTab === 'group' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              {groups.map(g => (
-                <button key={g.id} onClick={() => toggleGroup(g.id)} style={{
-                  display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                  padding: '9px 14px', borderRadius: 12,
-                  border: course.groupIds.includes(g.id) ? '1.5px solid var(--color-green-text)' : '1.5px solid var(--color-border)',
-                  background: course.groupIds.includes(g.id) ? 'var(--color-green-soft)' : 'transparent',
-                  cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
-                }}>
-                  <div style={{
-                    width: 26, height: 26, borderRadius: '50%',
-                    background: course.groupIds.includes(g.id) ? 'var(--color-green-text)' : 'var(--color-bg-3)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  }}>
-                    <Users size={13} style={{ color: course.groupIds.includes(g.id) ? '#fff' : 'var(--color-muted)' }} />
-                  </div>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: course.groupIds.includes(g.id) ? 'var(--color-green-text)' : 'var(--color-text)', flex: 1, textAlign: 'left' }}>
-                    {g.name}
-                  </span>
-                  {course.groupIds.includes(g.id) && <X size={11} style={{ color: 'var(--color-green-text)' }} />}
-                </button>
-              ))}
-            </div>
+            <AssignPicker
+              kind="group"
+              items={groups}
+              selectedIds={course.groupIds}
+              onToggle={toggleGroup}
+            />
           )}
 
           {assignTab === 'student' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              {allStudents.map(s => (
-                <button key={s.id} onClick={() => toggleStudent(s.id)} style={{
-                  display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                  padding: '9px 14px', borderRadius: 12,
-                  border: course.studentIds.includes(s.id) ? '1.5px solid var(--color-green-text)' : '1.5px solid var(--color-border)',
-                  background: course.studentIds.includes(s.id) ? 'var(--color-green-soft)' : 'transparent',
-                  cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
-                }}>
-                  <div style={{
-                    width: 26, height: 26, borderRadius: '50%',
-                    background: course.studentIds.includes(s.id) ? 'var(--color-green-text)' : 'var(--color-bg-3)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 11, fontWeight: 700,
-                    color: course.studentIds.includes(s.id) ? '#fff' : 'var(--color-muted)', flexShrink: 0,
-                  }}>
-                    {s.name.slice(0, 1).toUpperCase()}
-                  </div>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: course.studentIds.includes(s.id) ? 'var(--color-green-text)' : 'var(--color-text)', flex: 1, textAlign: 'left' }}>
-                    {s.name}
-                  </span>
-                  {course.studentIds.includes(s.id) && <X size={11} style={{ color: 'var(--color-green-text)' }} />}
-                </button>
-              ))}
-              {allStudents.length === 0 && (
-                <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '12px 0' }}>Ученики не найдены</div>
-              )}
-            </div>
+            <AssignPicker
+              kind="student"
+              items={allStudents}
+              selectedIds={course.studentIds}
+              onToggle={toggleStudent}
+            />
           )}
 
           {/* Assigned + access mode per audience member */}
@@ -3217,7 +3273,13 @@ export default function TeacherCourseEditorPage() {
   async function syncAccessToSupabase(c: CourseEdData): Promise<boolean> {
     const shortId = c.dbCourseId ?? c.id
 
-    const { data: courseUpsert } = await supabase
+    // created_by is REQUIRED: courses RLS `write_own_courses` gates every write
+    // with `with_check (created_by = auth.uid())`. A new-course INSERT that omits
+    // it lands created_by=NULL → RLS rejects the row → upsert returns null → the
+    // course silently never persists (shows "Опубликован" locally, absent in DB).
+    const ownerId = await getOwnerId()
+
+    const { data: courseUpsert, error: courseErr } = await supabase
       .from('courses')
       .upsert(
         {
@@ -3226,12 +3288,14 @@ export default function TeacherCourseEditorPage() {
           description: c.description ?? '',
           status: c.status, color: c.color, bg: c.bg,
           group_ids: c.groupIds, student_ids: c.studentIds,
+          created_by: ownerId,
         },
         { onConflict: 'short_id' }
       )
       .select('id')
       .single()
 
+    if (courseErr) console.error('[syncAccessToSupabase] course upsert failed', courseErr)
     const courseDbId = courseUpsert?.id
     if (!courseDbId) return false
 
@@ -3487,8 +3551,11 @@ export default function TeacherCourseEditorPage() {
     const c = overrideCourse ?? course
     setCourseEdited(JSON.stringify(c))
     const seq = draftSeq.current
-    syncAccessToSupabase(c).then(ok => clearCourseDraftAfterSync(seq, ok))
-    flash()
+    syncAccessToSupabase(c).then(ok => {
+      clearCourseDraftAfterSync(seq, ok)
+      if (ok) { setPublishErr(null); flash() }
+      else setPublishErr('Не удалось сохранить курс — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.')
+    })
   }
 
   // A lesson counts as "scheduled" when it has both a date and a time on either
@@ -3524,8 +3591,11 @@ export default function TeacherCourseEditorPage() {
     // setCourse above bumps draftSeq on the next render — capture seq+1 so the
     // status flip itself doesn't block the post-save draft cleanup.
     const seq = draftSeq.current + 1
-    syncAccessToSupabase(updated).then(ok => clearCourseDraftAfterSync(seq, ok))
-    flash()
+    syncAccessToSupabase(updated).then(ok => {
+      clearCourseDraftAfterSync(seq, ok)
+      if (ok) flash()
+      else setPublishErr('Не удалось опубликовать курс — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.')
+    })
   }
 
   function handleUnpublish() {

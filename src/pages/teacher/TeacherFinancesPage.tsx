@@ -398,9 +398,9 @@ export default function TeacherFinancesPage() {
     { id: 'paid',    label: 'Оплачено' },
   ]
 
+  // Lifted under the topbar so content melts into the progressive-blur strip
+  // instead of hard-clipping (shared scroll-under-topbar recipe).
   return (
-    {/* Lifted under the topbar so content melts into the progressive-blur
-        strip instead of hard-clipping (shared scroll-under-topbar recipe) */}
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100 }}>
       <div style={{ maxWidth: 760, margin: '0 auto', padding: '128px 24px 60px' }}>
 

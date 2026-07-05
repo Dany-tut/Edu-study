@@ -3,6 +3,7 @@ import {
   fetchScheduleDays,
   fetchLessonProgress,
   fetchCourseStructure,
+  fetchPersonScope,
   mergeSubjectsWithProgress,
   computeStats,
   fetchQuizQuestions,
@@ -69,10 +70,15 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     // load and leave `loaded:false` forever — that strands the dashboard on an
     // infinite "Загрузка…" spinner (a dead white screen for the student). Each
     // slice falls back to an empty value so the UI renders whatever succeeded.
+    // Resolve the person's full scope (all their student rows + groups) so the
+    // track shows every course they have — including ones assigned to a group
+    // they were later enrolled into — not just the active subject session.
+    const scope = await fetchPersonScope({ id: session.id, groupId: session.groupId })
+
     const results = await Promise.allSettled([
-      fetchLessonProgress(session.id),
+      fetchLessonProgress(scope.studentIds),
       fetchScheduleDays(session.groupId, session.id),
-      fetchCourseStructure(session.id, session.groupId),
+      fetchCourseStructure(scope.studentIds, scope.groupIds),
       fetchQuizQuestions(),
       fetchScienceFacts(),
       fetchScienceMemes(),

@@ -11,17 +11,17 @@ import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'
 // `scale` = optical-size correction so every glyph reads the same visual weight
 // inside the circle (lucide icons have different natural fill — a Star looks
 // smaller than a Flower at the same px). ~52% of the circle is the base.
-type AvatarOption = { id: string; Icon: LucideIcon; gradient: string; scale?: number }
+type AvatarOption = { id: string; Icon: LucideIcon; gradient: string; glow: string; scale?: number }
 
 const AVATARS: AvatarOption[] = [
-  { id: 'flower', Icon: Flower2, gradient: 'linear-gradient(135deg, hsl(264 82% 72%), hsl(278 70% 58%))', scale: 0.96 },
-  { id: 'cat',    Icon: Cat,    gradient: 'linear-gradient(135deg, hsl(28 92% 68%), hsl(14 84% 56%))' },
-  { id: 'rabbit', Icon: Rabbit, gradient: 'linear-gradient(135deg, hsl(330 88% 74%), hsl(345 76% 60%))' },
-  { id: 'bird',   Icon: Bird,   gradient: 'linear-gradient(135deg, hsl(205 92% 70%), hsl(220 80% 58%))', scale: 1.04 },
-  { id: 'fish',   Icon: Fish,   gradient: 'linear-gradient(135deg, hsl(180 72% 62%), hsl(196 78% 50%))', scale: 1.06 },
-  { id: 'bug',    Icon: Bug,    gradient: 'linear-gradient(135deg, hsl(2 82% 70%), hsl(354 74% 56%))' },
-  { id: 'rocket', Icon: Rocket, gradient: 'linear-gradient(135deg, hsl(46 96% 66%), hsl(36 92% 54%))', scale: 1.04 },
-  { id: 'star',   Icon: Star,   gradient: 'linear-gradient(135deg, hsl(264 82% 72%), hsl(278 70% 58%))', scale: 1.1 },
+  { id: 'flower', Icon: Flower2, gradient: 'linear-gradient(135deg, hsl(264 82% 72%), hsl(278 70% 58%))', glow: 'hsl(271 76% 65% / 0.45)', scale: 0.96 },
+  { id: 'cat',    Icon: Cat,    gradient: 'linear-gradient(135deg, hsl(28 92% 68%), hsl(14 84% 56%))',    glow: 'hsl(21 88% 62% / 0.45)' },
+  { id: 'rabbit', Icon: Rabbit, gradient: 'linear-gradient(135deg, hsl(330 88% 74%), hsl(345 76% 60%))', glow: 'hsl(337 82% 67% / 0.45)' },
+  { id: 'bird',   Icon: Bird,   gradient: 'linear-gradient(135deg, hsl(205 92% 70%), hsl(220 80% 58%))', glow: 'hsl(212 86% 64% / 0.45)', scale: 1.04 },
+  { id: 'fish',   Icon: Fish,   gradient: 'linear-gradient(135deg, hsl(180 72% 62%), hsl(196 78% 50%))', glow: 'hsl(188 74% 56% / 0.45)', scale: 1.06 },
+  { id: 'bug',    Icon: Bug,    gradient: 'linear-gradient(135deg, hsl(2 82% 70%), hsl(354 74% 56%))',   glow: 'hsl(358 78% 63% / 0.45)' },
+  { id: 'rocket', Icon: Rocket, gradient: 'linear-gradient(135deg, hsl(46 96% 66%), hsl(36 92% 54%))',   glow: 'hsl(41 94% 60% / 0.45)', scale: 1.04 },
+  { id: 'star',   Icon: Star,   gradient: 'linear-gradient(135deg, hsl(264 82% 72%), hsl(278 70% 58%))', glow: 'hsl(271 76% 65% / 0.45)', scale: 1.1 },
 ]
 
 export default function TeacherProfileSettingsPage() {
@@ -104,13 +104,16 @@ export default function TeacherProfileSettingsPage() {
             transition={{ type: 'spring', stiffness: 460, damping: 22 }}
             style={{
               width: 80, height: 80, borderRadius: '50%',
-              background: selectedAvatar.gradient,
+              position: 'relative', overflow: 'hidden',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 20px rgba(106,90,230,0.35)',
+              boxShadow: `0 4px 22px ${selectedAvatar.glow}`,
               marginBottom: 12,
             }}
           >
-            <AvatarIcon size={Math.round(40 * (selectedAvatar.scale ?? 1))} strokeWidth={1.8} style={{ color: '#fff' }} />
+            {/* Gradient on an overshooting layer so its square corners are clipped
+                by the circular container (kills GPU corner-bleed on transforms). */}
+            <div style={{ position: 'absolute', inset: -2, background: selectedAvatar.gradient }} />
+            <AvatarIcon size={Math.round(40 * (selectedAvatar.scale ?? 1))} strokeWidth={1.8} style={{ color: '#fff', position: 'relative' }} />
           </motion.div>
           <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginBottom: 16 }}>
             {role === 'admin' ? 'Администратор' : 'Учитель'}
@@ -128,9 +131,8 @@ export default function TeacherProfileSettingsPage() {
                   whileTap={{ scale: 0.93 }}
                   onClick={() => setAvatarId(opt.id)}
                   style={{
-                    width: '100%', aspectRatio: '1', maxWidth: 60, justifySelf: 'center',
-                    borderRadius: '50%',
-                    background: opt.gradient,
+                    width: '100%', aspectRatio: '1', maxWidth: 96, justifySelf: 'center',
+                    borderRadius: '50%', position: 'relative', overflow: 'hidden',
                     border: isSelected ? '2.5px solid #fff' : '2.5px solid transparent',
                     cursor: 'pointer', padding: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -138,7 +140,8 @@ export default function TeacherProfileSettingsPage() {
                     transition: 'box-shadow 0.15s',
                   }}
                 >
-                  <Ic size={Math.round(26 * (opt.scale ?? 1))} strokeWidth={1.8} style={{ color: '#fff' }} />
+                  <div style={{ position: 'absolute', inset: -2, background: opt.gradient }} />
+                  <Ic size={Math.round(30 * (opt.scale ?? 1))} strokeWidth={1.8} style={{ color: '#fff', position: 'relative' }} />
                 </motion.button>
               )
             })}

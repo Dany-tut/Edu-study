@@ -144,11 +144,30 @@ export type ProgressMap = Record<string, {
   hardReviewBlocks: HardTaskReviewBlock[];
 }>
 
-export async function fetchLessonProgress(studentId: string): Promise<ProgressMap> {
+// Resolve every student row + group the logged-in person belongs to (all their
+// subject cards AND any regular group they were enrolled into). Lets the student
+// track show ALL their courses regardless of which subject session is active.
+// Falls back to the single session ids when there's no linked auth account.
+export async function fetchPersonScope(
+  fallback: { id: string; groupId: string },
+): Promise<{ studentIds: string[]; groupIds: string[] }> {
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth?.user) return { studentIds: [fallback.id], groupIds: [fallback.groupId] }
+  const { data, error } = await supabase
+    .from('students').select('id, group_id').eq('auth_user_id', auth.user.id)
+  if (error) reportDbError('fetchPersonScope', error)
+  const rows = (data ?? []) as Array<{ id: string; group_id: string }>
+  const studentIds = new Set(rows.map(r => r.id)); studentIds.add(fallback.id)
+  const groupIds = new Set(rows.map(r => r.group_id)); groupIds.add(fallback.groupId)
+  return { studentIds: [...studentIds], groupIds: [...groupIds] }
+}
+
+export async function fetchLessonProgress(studentIds: string | string[]): Promise<ProgressMap> {
+  const ids = Array.isArray(studentIds) ? studentIds : [studentIds]
   const { data, error } = await supabase
     .from('lesson_progress')
     .select('lesson_ref, subject, status, score, comment, review_comment, attachments, review_attachments, hard_submitted')
-    .eq('student_id', studentId)
+    .in('student_id', ids)
 
   if (error) reportDbError('fetchLessonProgress', error)
   if (error || !data) return {}
@@ -229,7 +248,14 @@ function rutubeEmbedId(url: string | null | undefined): string | undefined {
   return undefined
 }
 
-export async function fetchCourseStructure(studentId: string, groupId: string): Promise<Subject[]> {
+export async function fetchCourseStructure(studentIds: string[], groupIds: string[]): Promise<Subject[]> {
+  // Any course published to ANY of the person's student rows OR groups. Guard
+  // against empty arrays (Postgres `cs.{}` is invalid) so the OR never breaks.
+  const orParts = [
+    ...studentIds.map(id => `student_ids.cs.{${id}}`),
+    ...groupIds.map(g => `group_ids.cs.{${g}}`),
+  ]
+  if (orParts.length === 0) return []
   const { data, error } = await supabase
     .from('courses')
     .select(`
@@ -240,7 +266,7 @@ export async function fetchCourseStructure(studentId: string, groupId: string): 
       )
     `)
     .eq('status', 'published')
-    .or(`student_ids.cs.{${studentId}},group_ids.cs.{${groupId}}`)
+    .or(orParts.join(','))
     .order('created_at', { ascending: true })
 
   if (error) reportDbError('fetchCourseStructure', error)
@@ -254,7 +280,7 @@ export async function fetchCourseStructure(studentId: string, groupId: string): 
     const { data: enr, error: enrErr } = await supabase
       .from('course_enrollments')
       .select('course_id, access_mode')
-      .eq('student_id', studentId)
+      .in('student_id', studentIds)
       .in('course_id', courseIds)
     if (enrErr) reportDbError('fetchCourseStructure.enrollments', enrErr)
     for (const row of (enr ?? []) as Array<{ course_id: string; access_mode: 'full' | 'custom' | 'by_date' }>) {
