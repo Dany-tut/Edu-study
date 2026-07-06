@@ -312,7 +312,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             </div>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: mobile ? 'stretch' : 'center', gap: 6, flexShrink: 0 }}>
           {state !== undefined && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)', color: isCorrect ? 'var(--color-green-text)' : 'var(--color-red-text)', fontSize: 13, fontWeight: 700 }}>
               {isCorrect ? <CheckCircle2 size={15} /> : <XCircle size={15} />}
@@ -329,12 +329,12 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               // the hit area overflow the header row without inflating its height
               // (so the title stays snug to the badges). Desktop keeps a plain 36.
               ...(mobile
-                ? { width: 44, height: 44, margin: '-6px -5px -6px 0' }
+                ? { width: 44, alignSelf: 'stretch', minHeight: 44, margin: '0 -5px 0 0' }
                 : { width: 36, height: 36 }),
             }}
           >
             <span style={{
-              width: mobile ? 30 : 36, height: mobile ? 30 : 36, borderRadius: mobile ? 10 : 12,
+              width: mobile ? 30 : 36, height: mobile ? '100%' : 36, borderRadius: mobile ? 12 : 12,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: isFav ? 'linear-gradient(140deg, #FFCB3D 0%, #F5A623 100%)' : 'rgba(var(--glass-rgb), 0.88)',
               border: `1px solid ${isFav ? 'transparent' : 'var(--color-border-medium)'}`,
@@ -350,7 +350,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       {/* Question spans the full card width below the header row so the result
           badge (Верно/Неверно) never squeezes it into a narrower column — its
           appearance must not reflow / "push" the wrapped lines. */}
-      <div lang="ru" style={{ fontSize: mobile ? 14 : 16, lineHeight: mobile ? 1.4 : 1.45, fontWeight: mobile ? 550 : 650, color: 'var(--color-text)', textAlign: mobile ? 'justify' : undefined, hyphens: mobile ? 'auto' : undefined, WebkitHyphens: mobile ? 'auto' : undefined, marginTop: mobile ? -6 : -4 }}
+      <div lang="ru" style={{ fontSize: mobile ? 14 : 16, lineHeight: mobile ? 1.45 : 1.5, fontWeight: mobile ? 450 : 550, color: 'var(--color-text)', textAlign: mobile ? 'justify' : undefined, hyphens: mobile ? 'auto' : undefined, WebkitHyphens: mobile ? 'auto' : undefined, marginTop: mobile ? -6 : -4 }}
         dangerouslySetInnerHTML={{ __html: task.question }} />
 
       {/* Image / table blocks in teacher-configured order */}
@@ -458,7 +458,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               setInputOverflow(measuredWidth > innerWidth)
             }}
             onKeyDown={e => e.key === 'Enter' && inputVal.trim() && check()}
-            placeholder="Введи ответ"
+            placeholder="Введите ответ"
             style={{
               width: '100%', boxSizing: 'border-box', height: answerH,
               padding: '0 16px', borderRadius: 16, fontSize: mobile ? 16 : 14, outline: 'none',
