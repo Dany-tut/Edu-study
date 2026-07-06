@@ -251,6 +251,9 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
   const rowGap   = mobile ? 8 : 10
   const chipSz   = mobile ? 22 : 26
   const rowTextLH = mobile ? 1.3 : 1.45
+  // One height for the answer field + its Проверить/Решение buttons so they
+  // line up as equal-height pills (padding alone left the button shorter).
+  const answerH  = mobile ? 48 : 42
 
   // Tactility is mobile-only — desktop trainer shouldn't blip/vibrate on every click.
   const tap = () => { if (mobile) tactile() }
@@ -448,8 +451,8 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             onKeyDown={e => e.key === 'Enter' && inputVal.trim() && check()}
             placeholder="Введи ответ"
             style={{
-              width: '100%', boxSizing: 'border-box',
-              padding: '11px 16px', borderRadius: 16, fontSize: mobile ? 16 : 14, outline: 'none',
+              width: '100%', boxSizing: 'border-box', height: answerH,
+              padding: '0 16px', borderRadius: 16, fontSize: mobile ? 16 : 14, outline: 'none',
               border: `1px solid ${state ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'var(--color-border-medium)'}`,
               background: state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : 'var(--color-bg-input)',
             }}
@@ -480,8 +483,8 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               style={{ display: 'flex', gap: 8, alignItems: 'center', transformOrigin: 'left center' }}
             >
               <button onClick={check} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                padding: mobile ? '11px 16px' : '11px 20px', borderRadius: 16, flexShrink: 0, whiteSpace: 'nowrap',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: answerH,
+                padding: mobile ? '0 18px' : '0 22px', borderRadius: 16, flexShrink: 0, whiteSpace: 'nowrap',
                 background: palette.accent, color: palette.onAccent,
                 border: 'none', outline: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer',
                 boxShadow: `0 4px 14px ${palette.ring}`,
@@ -491,7 +494,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               </button>
               {state !== undefined && (
                 <button onClick={() => { tap(); setShowSolution(s => !s) }} style={{
-                  display: 'flex', alignItems: 'center', gap: 6, padding: '11px 18px', borderRadius: 16,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: answerH, padding: mobile ? '0 16px' : '0 18px', borderRadius: 16,
                   background: showSolution ? palette.soft : 'rgba(var(--glass-rgb), 0.88)',
                   border: showSolution ? 'none' : '1px solid var(--color-border-medium)',
                   outline: 'none',

@@ -66,14 +66,15 @@ export default function StudentLoginPage() {
     <div style={{
       minHeight: '100dvh', background: 'var(--color-bg)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: 20,
     }}>
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
         style={{
-          background: 'var(--color-bg-input)', borderRadius: 24, padding: 32,
-          width: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.14)',
+          background: 'var(--color-bg-input)', borderRadius: 24, padding: 28,
+          width: '100%', maxWidth: 340, boxShadow: '0 20px 60px rgba(0,0,0,0.14)',
         }}
       >
         <div style={{ marginBottom: 28 }}>
