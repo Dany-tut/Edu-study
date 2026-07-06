@@ -165,6 +165,7 @@ function editableOf(t: Task) {
     choices: t.choices ?? defaultChoices(),
     answerKeys: t.answerKeys ?? [], criteria: t.criteria ?? [],
     criteriaVisible: !!t.criteriaVisibleOnCheck, wholePoints: t.maxPoints ?? 1,
+    difficulty: t.difficulty ?? 'medium',
   }
 }
 
@@ -206,6 +207,7 @@ export function BankQuestionCard({
   const [criteria, setCriteria] = useState<TaskCriterion[]>(init.criteria)
   const [criteriaVisible, setCriteriaVisible] = useState(init.criteriaVisible)
   const [wholePoints, setWholePoints] = useState(init.wholePoints)
+  const [difficulty, setDifficulty] = useState<Task['difficulty']>(init.difficulty)
   const [newKw, setNewKw] = useState(''); const [newKwPts, setNewKwPts] = useState(1)
   const [newCrit, setNewCrit] = useState(''); const [newCritPts, setNewCritPts] = useState(1)
 
@@ -218,13 +220,13 @@ export function BankQuestionCard({
     : qType === 'choice' ? (choices[correctIdx]?.points ?? 0)
     : keyTotal
 
-  const current = { question, answer, solution, image, qType, scoreMode, choices, answerKeys, criteria, criteriaVisible, wholePoints }
+  const current = { question, answer, solution, image, qType, scoreMode, choices, answerKeys, criteria, criteriaVisible, wholePoints, difficulty }
   const dirty = JSON.stringify(current) !== JSON.stringify(init)
 
   function patch(): Partial<Task> {
     const derivedAnswer = qType === 'choice' ? (choices[correctIdx]?.text || answer) : answer
     return {
-      question, answer: derivedAnswer, solution, questionImage: image,
+      question, answer: derivedAnswer, solution, questionImage: image, difficulty,
       questionType: qType, scoreMode, maxPoints: computedMax,
       choices: qType === 'choice' ? choices : undefined,
       answerKeys: qType === 'free' && scoreMode === 'perOption' ? answerKeys : undefined,

@@ -13,7 +13,7 @@ export default function MobileBell() {
   return (
     <>
       <div ref={bellRef} style={{ display: 'inline-flex' }}>
-        <GlassIconButton icon={<Bell size={16} />} dot={unread > 0} ariaLabel="Уведомления" onClick={() => setOpen(o => !o)} />
+        <GlassIconButton icon={<Bell size={16} />} size={40} dot={unread > 0} ariaLabel="Уведомления" onClick={() => setOpen(o => !o)} />
       </div>
       <NotificationPopup open={open} anchorRef={bellRef} onClose={() => setOpen(false)} />
     </>

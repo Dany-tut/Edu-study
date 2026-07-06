@@ -2453,6 +2453,16 @@ function CreatorView({
               </div>
             </div>
             <div>
+              {/* Difficulty — drives the «Простые/Сложные» sort in the trainer. */}
+              <div style={{ display: 'flex', gap: 8 }}>
+                {([['easy', 'Простое'], ['medium', 'Среднее'], ['hard', 'Сложное']] as const).map(([d, label]) => (
+                  <SegBtn key={d} label={label} active={tkDifficulty === d}
+                    color="var(--color-purple-text)" bg="var(--color-purple-soft)"
+                    onClick={() => setTkDifficulty(d)} />
+                ))}
+              </div>
+            </div>
+            <div>
               <TeacherSelect value={String(tkLine)} onChange={v => setTkLine(Number(v))} placeholder="Линия" options={tkLineOptions} />
             </div>
             <div>

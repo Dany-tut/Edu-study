@@ -49,14 +49,8 @@ export default class ErrorBoundary extends Component<Props, State> {
         </div>
         <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
           <button
-            onClick={() => this.setState({ error: null })}
-            style={{ padding: '10px 20px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, lineHeight: 1.2, cursor: 'pointer', whiteSpace: 'nowrap' }}
-          >
-            Попробовать снова
-          </button>
-          <button
             onClick={() => window.location.reload()}
-            style={{ padding: '10px 20px', borderRadius: 12, border: 'none', background: 'var(--grad-purple, #786AD7)', color: '#fff', fontSize: 13, fontWeight: 600, lineHeight: 1.2, cursor: 'pointer', whiteSpace: 'nowrap' }}
+            style={{ padding: '10px 28px', borderRadius: 12, border: 'none', background: 'var(--grad-purple, #786AD7)', color: '#fff', fontSize: 13, fontWeight: 600, lineHeight: 1.2, cursor: 'pointer', whiteSpace: 'nowrap' }}
           >
             Обновить
           </button>

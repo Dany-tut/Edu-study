@@ -1374,7 +1374,10 @@ export default function TaskBankPage() {
     return () => ro.disconnect()
   }, [])
   useEffect(() => {
-    if (searchExpanded) mSearchRef.current?.focus()
+    // preventScroll: focusing the input would otherwise scroll it into view,
+    // which reads as a scroll-UP and un-collapses the nav (labels pop back).
+    // We want the search to open in place — whatever nav state it was in.
+    if (searchExpanded) mSearchRef.current?.focus({ preventScroll: true })
     else mSearchRef.current?.blur() // dismiss keyboard so the nav slides back up
   }, [searchExpanded])
   // Tap anywhere outside the expanded pill collapses it back to a circle.
@@ -1672,11 +1675,12 @@ export default function TaskBankPage() {
                 // The exit blur lives here as a plain CSS filter that's ABSENT at
                 // rest — a `filter` on this wrapper (even blur(0)) would break the
                 // child circle's `backdrop-filter`, killing its background blur.
-                style={{
-                  pointerEvents: searchExpanded ? 'none' : 'auto',
-                  filter: searchExpanded ? 'blur(5px)' : undefined,
-                  transition: 'filter 0.24s ease',
-                }}
+                // NO `filter` on this wrapper — ever. A `filter` (even blur(0))
+                // suppresses the child circle's `backdrop-filter`, and on
+                // collapse its recompute makes the frost pop in a beat after the
+                // circle reappears. Opacity/scale/x alone carry the transition,
+                // so the backdrop-blur is present the entire time.
+                style={{ pointerEvents: searchExpanded ? 'none' : 'auto' }}
               >
                 {dockCircle(c.k, c.icon, c.onClick, c.opts)}
               </motion.div>
