@@ -7,6 +7,8 @@ import { upsertLessonProgress } from '../lib/db'
 import { ownerStudentIdFor } from '../store/studentDataStore'
 import { getStudentSession } from '../lib/studentSession'
 import { useStudentData } from '../store/studentDataStore'
+import { useIsDesktop } from '../lib/useIsDesktop'
+import QuestionTable from './QuestionTable'
 
 const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ')
 
@@ -40,6 +42,7 @@ function gradeTask(t: TestTask, answer: string | number | number[] | undefined):
 
 export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: () => void }) {
   const tasks = lesson.testTasks ?? []
+  const isDesktop = useIsDesktop()
   const reload = useStudentData(s => s.load)
   const [answers, setAnswers] = useState<Record<string, string | number | number[]>>({})
   const [submitting, setSubmitting] = useState(false)
@@ -259,40 +262,17 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
 
                 {/* tableFill — cells with blanks */}
                 {tp === 'tableFill' && t.table && (
-                  <div style={{ paddingLeft: 36, overflowX: 'auto' }}>
-                    <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 13 }}>
-                      <thead>
-                        <tr>
-                          {t.table.headers.map((h, hi) => (
-                            <th key={hi} style={{ padding: '8px 12px', background: 'var(--color-teal-pill-bg)', color: 'var(--color-teal-pill-text)', fontWeight: 700, border: '1px solid var(--color-border-soft)', textAlign: 'left' }}>{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {t.table.rows.map((row, ri) => (
-                          <tr key={ri}>
-                            {row.map((cell, ci) => {
-                              const cellKey = `${ri},${ci}`
-                              const isBlank = t.table!.emptyCells?.[cellKey] || t.table!.blankCells?.[cellKey]
-                              const ansKey = `${t.id}_${cellKey}`
-                              return (
-                                <td key={ci} style={{ padding: '6px 8px', border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)' }}>
-                                  {isBlank
-                                    ? <input
-                                        value={(answers[ansKey] as string) ?? ''}
-                                        onChange={e => setAnswer(ansKey, e.target.value)}
-                                        placeholder="?"
-                                        style={{ width: '100%', border: 'none', background: 'var(--color-teal-pill-bg)', borderRadius: 6, padding: '4px 8px', fontSize: 13, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
-                                      />
-                                    : <span style={{ color: 'var(--color-text)' }}>{cell}</span>
-                                  }
-                                </td>
-                              )
-                            })}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div style={{ paddingLeft: 36 }}>
+                    {/* Unified table renderer — tests keep their per-cell answer
+                        map and treat both empty and blank cells as fill-in. */}
+                    <QuestionTable
+                      table={t.table}
+                      mobile={!isDesktop}
+                      interactive
+                      blankAsInput
+                      cellValue={key => (answers[`${t.id}_${key}`] as string) ?? ''}
+                      onCellChange={(key, v) => setAnswer(`${t.id}_${key}`, v)}
+                    />
                   </div>
                 )}
 

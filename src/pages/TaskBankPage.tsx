@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect, type ReactNode } from 'react'
 import ScrollFade from '../components/ScrollFade'
+import QuestionTable from '../components/QuestionTable'
 import { useFloatingPill } from '../lib/useFloatingPill'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -321,7 +322,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             </div>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: mobile ? 'stretch' : 'center', gap: 6, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
           {state !== undefined && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)', color: isCorrect ? 'var(--color-green-text)' : 'var(--color-red-text)', fontSize: 13, fontWeight: 700 }}>
               {isCorrect ? <CheckCircle2 size={15} /> : <XCircle size={15} />}
@@ -338,12 +339,12 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               // the hit area overflow the header row without inflating its height
               // (so the title stays snug to the badges). Desktop keeps a plain 36.
               ...(mobile
-                ? { width: 44, alignSelf: 'stretch', minHeight: 44, margin: '0 -5px 0 0' }
+                ? { width: 44, height: 44, margin: '-2px -2px -2px 0' }
                 : { width: 36, height: 36 }),
             }}
           >
             <span style={{
-              width: mobile ? 30 : 36, height: mobile ? '100%' : 36, borderRadius: mobile ? 12 : 12,
+              width: mobile ? 40 : 36, height: mobile ? 40 : 36, borderRadius: mobile ? 12 : 12,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: isFav ? 'linear-gradient(140deg, #FFCB3D 0%, #F5A623 100%)' : 'rgba(var(--glass-rgb), 0.88)',
               border: `1px solid ${isFav ? 'transparent' : 'var(--color-border-medium)'}`,
@@ -368,30 +369,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           <img key="image" src={task.questionImage} alt="" style={{ maxWidth: `${task.questionImageSize ?? 100}%`, borderRadius: 14, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', display: 'block' }} />
         )
         if (blockKey === 'table' && task.questionTable) return (
-          <div key="table" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: 16, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', maxWidth: '100%' }}>
-            <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: mobile ? 12 : 13, minWidth: mobile ? 240 : undefined }}>
-              <thead>
-                <tr>{task.questionTable.headers.map((h, hi, arr) => (
-                  <th key={h} style={{ borderBottom: '1px solid var(--color-border-medium)', borderRight: hi < arr.length - 1 ? '1px solid var(--color-border-medium)' : undefined, padding: mobile ? '7px 10px' : '10px 16px', fontWeight: 700, background: 'var(--color-table-header-bg)', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
-                ))}</tr>
-              </thead>
-              <tbody>
-                {task.questionTable.rows.map((row, i) => (
-                  <tr key={i} style={{ background: i % 2 === 1 ? 'rgba(0,0,0,0.02)' : undefined }}>
-                    {row.map((cell, j) => {
-                      const isEmpty = !!task.questionTable!.emptyCells?.[`${i},${j}`]
-                      const isBlank = !!task.questionTable!.blankCells?.[`${i},${j}`]
-                      return (
-                        <td key={j} style={{ borderTop: '1px solid var(--color-border)', borderRight: j < row.length - 1 ? '1px solid var(--color-border)' : undefined, padding: mobile ? '7px 10px' : '9px 16px', background: isEmpty ? 'rgba(var(--glass-rgb),0.6)' : undefined, minWidth: isEmpty ? 56 : undefined, color: 'var(--color-text)' }}>
-                          {isEmpty ? ' ' : isBlank ? '—' : cell}
-                        </td>
-                      )
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <QuestionTable key="table" table={task.questionTable} mobile={!!mobile} />
         )
         return null
       })}
@@ -1382,6 +1360,19 @@ export default function TaskBankPage() {
   const dockRef = useRef<HTMLDivElement>(null)
   const mSearchRef = useRef<HTMLInputElement>(null)
   const searchPillRef = useRef<HTMLDivElement>(null)
+  // Keep `dockW` in sync with the dock's real width at all times (nav collapse
+  // shrinks the icons, so a one-off measure-on-click goes stale and the pill —
+  // anchored at left:0 — ends up narrower than the dock and drifts left instead
+  // of centring). A ResizeObserver tracks every frame (preview has no rAF).
+  useEffect(() => {
+    const el = dockRef.current
+    if (!el) return
+    const measure = () => setDockW(el.offsetWidth)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
   useEffect(() => {
     if (searchExpanded) mSearchRef.current?.focus()
     else mSearchRef.current?.blur() // dismiss keyboard so the nav slides back up
