@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { X, Search, Users, Check } from 'lucide-react'
+import { X, Search, Users, Check, User, ChevronLeft } from 'lucide-react'
 import type { Group, Student } from '../../data/teacherMockData'
+import TeacherSelect from './TeacherSelect'
 
 // Identity a group-enrollment reuses. Any object carrying these fields works.
 export type PersonLike = Pick<
@@ -189,6 +190,159 @@ export function PickGroupModal({
             )
           })}
         </div>
+      </motion.div>
+    </div>
+  )
+}
+
+// ─── Create a NEW 1:1 card for an EXISTING person ──────────────────────────────
+// Pick an existing human → choose subject/level → a fresh individual group card
+// is created that REUSES their account (no new person, no re-registration).
+// A registered person reaches the card by their existing login (no invite link);
+// an unregistered one still gets a fresh invite link to activate it.
+const selectTrigger = {
+  background: 'var(--color-bg)', border: '1px solid var(--color-border-soft)',
+  borderRadius: 12, padding: '10px 12px', fontSize: 13,
+}
+export function AddExistingIndividualModal({
+  people, subjectOptions, levelOptions, onCreate, onClose,
+}: {
+  people: { key: string; person: PersonLike; subjects: string[]; registered: boolean }[]
+  subjectOptions: string[]
+  levelOptions: string[]
+  onCreate: (person: PersonLike, subject: string, level: string) => Promise<{ inviteToken: string | null; registered: boolean }>
+  onClose: () => void
+}) {
+  const [step, setStep] = useState<'pick' | 'subject' | 'result'>('pick')
+  const [picked, setPicked] = useState<{ person: PersonLike; registered: boolean } | null>(null)
+  const [subject, setSubject] = useState('')
+  const [level, setLevel] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [result, setResult] = useState<{ inviteToken: string | null; registered: boolean } | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [q, setQ] = useState('')
+  const query = q.trim().toLowerCase()
+  const list = useMemo(
+    () => people.filter(p => !query || p.person.name.toLowerCase().includes(query)),
+    [people, query],
+  )
+  const inviteLink = result?.inviteToken
+    ? `${window.location.origin}${window.location.pathname}#/join?token=${result.inviteToken}`
+    : null
+
+  async function create() {
+    if (!picked || !subject.trim() || busy) return
+    setBusy(true)
+    const res = await onCreate(picked.person, subject.trim(), level.trim())
+    setBusy(false)
+    setResult(res)
+    setStep('result')
+  }
+  async function copy() {
+    if (!inviteLink) return
+    try { await navigator.clipboard.writeText(inviteLink); setCopied(true); setTimeout(() => setCopied(false), 2000) } catch { /* ignore */ }
+  }
+
+  return (
+    <div style={overlay} onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.2 }}
+        onClick={e => e.stopPropagation()} style={card}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+          <span style={{ fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+            {step === 'subject' && (
+              <button onClick={() => setStep('pick')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex' }}><ChevronLeft size={18} /></button>
+            )}
+            {step === 'result' ? 'Карточка 1:1 создана' : 'Существующий ученик → 1:1'}
+          </span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
+        </div>
+
+        {step === 'pick' && (
+          <>
+            <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>
+              выберите человека — новая карточка переиспользует его аккаунт
+            </div>
+            <div style={searchBox}>
+              <Search size={15} style={{ color: 'var(--color-text-3)' }} />
+              <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder="Поиск по имени…"
+                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: 'var(--color-text)' }} />
+            </div>
+            <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, minHeight: 60 }}>
+              {list.length === 0 && (
+                <div style={{ fontSize: 13, color: 'var(--color-text-3)', textAlign: 'center', padding: '24px 0' }}>
+                  {people.length === 0 ? 'Нет учеников' : 'Никого не нашлось'}
+                </div>
+              )}
+              {list.map(({ key, person, subjects, registered }) => (
+                <button key={key} onClick={() => { setPicked({ person, registered }); setStep('subject') }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
+                    background: 'var(--color-bg-4)', border: '1.5px solid var(--color-border-medium)',
+                    borderRadius: 14, cursor: 'pointer', textAlign: 'left', width: '100%',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--color-accent)' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--color-border-medium)' }}
+                >
+                  <div style={{
+                    width: 38, height: 38, borderRadius: 11, flexShrink: 0,
+                    background: 'linear-gradient(135deg, var(--color-accent), var(--color-purple))',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: '#fff',
+                  }}>{initials(person.name)}</div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{person.name}</div>
+                    <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {subjects.length ? subjects.join(' · ') : 'Без предметов'}{registered ? ' · есть аккаунт' : ' · не зарегистрирован'}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {step === 'subject' && picked && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--color-bg-4)', borderRadius: 12 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: 'linear-gradient(135deg, var(--color-accent), var(--color-purple))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#fff' }}>{initials(picked.person.name)}</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{picked.person.name}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>{picked.registered ? 'есть аккаунт — логин сохранится' : 'не зарегистрирован — дадим ссылку'}</div>
+              </div>
+            </div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>Направление 1:1</div>
+            <TeacherSelect value={subject} onChange={setSubject} placeholder="Предмет" options={subjectOptions} triggerStyle={selectTrigger} />
+            <TeacherSelect value={level} onChange={setLevel} placeholder="Уровень" options={levelOptions} triggerStyle={selectTrigger} />
+            <button onClick={create} disabled={!subject.trim() || busy}
+              style={{ marginTop: 4, width: '100%', padding: '12px 0', background: subject.trim() ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: subject.trim() && !busy ? 'pointer' : 'not-allowed' }}>
+              {busy ? 'Создаём…' : 'Создать карточку 1:1'}
+            </button>
+          </div>
+        )}
+
+        {step === 'result' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {result?.registered || !inviteLink ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--color-green-soft)', borderRadius: 14, padding: '14px 16px' }}>
+                <User size={18} color="var(--color-green-text)" />
+                <div style={{ fontSize: 13, color: 'var(--color-text)' }}>Готово — ученик увидит карточку по своему логину.</div>
+              </div>
+            ) : (
+              <>
+                <div style={{ background: 'var(--color-bg-4)', borderRadius: 14, padding: '14px 16px' }}>
+                  <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 6, fontWeight: 600 }}>ССЫЛКА ДЛЯ РЕГИСТРАЦИИ</div>
+                  <div style={{ fontSize: 13, color: 'var(--color-text)', wordBreak: 'break-all', lineHeight: 1.5 }}>{inviteLink}</div>
+                </div>
+                <button onClick={copy} style={{ width: '100%', padding: '12px 0', background: copied ? '#3FCC8A' : 'var(--color-purple)', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.2s' }}>
+                  {copied ? '✓ Скопировано' : 'Скопировать ссылку'}
+                </button>
+              </>
+            )}
+            <button onClick={onClose} style={{ width: '100%', padding: '10px 0', background: 'transparent', color: 'var(--color-muted)', fontWeight: 600, fontSize: 14, border: 'none', cursor: 'pointer' }}>Закрыть</button>
+          </div>
+        )}
       </motion.div>
     </div>
   )

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Users, ChevronUp, ChevronDown, X, Trash2,
-  Phone, Send, User,
+  Phone, Send, User, UserPlus,
   TrendingUp, ClipboardCheck, Clock, Award,
   ChevronsUpDown, ExternalLink, Copy, Check,
   BarChart2, Target, BookOpen, XCircle, CheckCircle2, Layers,
@@ -15,7 +15,7 @@ import {
   type Group, type GroupTrack, type Student,
 } from '../../data/teacherMockData'
 import { useGroups, useStudents, useAllStudents, listTeacherCourses, bindGroupToCourse, type GroupCourseOption } from '../../lib/useGroups'
-import { PickStudentModal, PickGroupModal, type PersonLike } from '../../components/teacher/AddToGroupModals'
+import { PickStudentModal, PickGroupModal, AddExistingIndividualModal, type PersonLike } from '../../components/teacher/AddToGroupModals'
 import { supabase } from '../../lib/supabase'
 import { usePersistentState, clearDrafts } from '../../lib/useDraft'
 import { copyToClipboard } from '../../lib/clipboard'
@@ -191,10 +191,12 @@ function AddGroupModal({ onClose, onSave }: {
 }
 
 // ─── Модалка добавления ученика ───────────────────────────────────────────────
-function AddStudentTypePicker({ groups, onPickGroup, onPickIndividual, onClose }: {
+function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual, onPickExisting, onClose }: {
   groups: Group[]
+  hasPeople: boolean
   onPickGroup: () => void
   onPickIndividual: () => void
+  onPickExisting: () => void
   onClose: () => void
 }) {
   return (
@@ -261,6 +263,27 @@ function AddStudentTypePicker({ groups, onPickGroup, onPickIndividual, onClose }
               <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>Индивидуальный ученик</div>
             </div>
           </button>
+          {hasPeople && (
+            <button
+              onClick={onPickExisting}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
+                background: 'var(--color-bg-4)', border: '1.5px solid var(--color-border-medium)',
+                borderRadius: 16, cursor: 'pointer', textAlign: 'left',
+              }}
+            >
+              <div style={{
+                width: 40, height: 40, borderRadius: 12,
+                background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <UserPlus size={18} color="var(--color-accent)" />
+              </div>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Существующий человек → 1:1</div>
+                <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>Второй предмет без новой карточки</div>
+              </div>
+            </button>
+          )}
         </div>
       </motion.div>
     </div>
@@ -535,8 +558,10 @@ function TrackFields({
 }
 
 // ─── Модалка добавления индивидуального ученика ──────────────────────────────
-function AddIndividualStudentModal({ onClose, onSave }: {
+function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
   onClose: () => void
+  /** Switch to picking an existing person instead of creating a fresh one. */
+  onPickExisting?: () => void
   onSave: (s: {
     name: string; subject: string; icon: string; level: string; color: string; colorSoft: string;
     phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number;
@@ -649,6 +674,14 @@ function AddIndividualStudentModal({ onClose, onSave }: {
           </div>
         ) : (
           <>
+            {onPickExisting && (
+              <button
+                type="button" onClick={onPickExisting}
+                style={{ width: '100%', marginBottom: 14, padding: '10px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)', borderRadius: 12, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, color: 'var(--color-accent)', fontFamily: 'inherit' }}
+              >
+                <UserPlus size={15} /> Выбрать из существующих
+              </button>
+            )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <input value={name} onChange={e => setName(e.target.value)} placeholder="Имя *" style={inputStyle} />
               <TrackFields
@@ -1385,9 +1418,11 @@ function StudentCoursesSection({ student, group }: { student: Student; group: Gr
 // контактами и той же учётной записью). Удаление сносит карточку целиком.
 export type SiblingCard = { id: string; subject: string; level: string; icon: string; color: string }
 function TracksSection({
-  group, siblings, onAddCard, onRemoveCard, onOpenCard,
+  group, individual = true, siblings, onAddCard, onRemoveCard, onOpenCard,
 }: {
   group: Group
+  /** true = current card is itself a 1:1 direction; false = current card is a regular group. */
+  individual?: boolean
   siblings: SiblingCard[]
   onAddCard: (subject: string, level: string) => Promise<void>
   onRemoveCard: (groupId: string) => Promise<void>
@@ -1477,7 +1512,7 @@ function TracksSection({
             type="button" onClick={() => setAdding(true)}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '7px 0', borderRadius: 9, cursor: 'pointer', border: '1.5px dashed var(--color-border-medium)', background: 'transparent', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600 }}
           >
-            <Plus size={14} /> Ещё направление
+            <Plus size={14} /> {individual ? 'Ещё направление' : 'Направление 1:1'}
           </button>
         )}
       </div>
@@ -1601,10 +1636,13 @@ function StudentPanel({
           </section>
         )}
 
-        {/* Направления — отдельная карточка на каждый предмет (для 1:1 учеников) */}
-        {group.isIndividual && onAddCard && onRemoveCard && onOpenCard && (
+        {/* Направления — отдельная 1:1-карточка на каждый доп. предмет. Показываем
+            и для 1:1, и для групповых учеников: групповой может уйти на второй
+            предмет в формате 1:1, переиспользуя тот же аккаунт (addIndividualCard). */}
+        {onAddCard && onRemoveCard && onOpenCard && (
           <TracksSection
             group={group}
+            individual={group.isIndividual ?? false}
             siblings={siblingCards ?? []}
             onAddCard={onAddCard}
             onRemoveCard={onRemoveCard}
@@ -1871,6 +1909,7 @@ export default function TeacherGroupsPage() {
   const [showAddStudentPicker, setShowAddStudentPicker] = usePersistentState('groups.show.addStudentPicker', false)
   const [showAddStudent, setShowAddStudent] = usePersistentState('groups.show.addStudent', false)
   const [showAddIndividual, setShowAddIndividual] = usePersistentState('groups.show.addIndividual', false)
+  const [showExistingIndiv, setShowExistingIndiv] = useState(false)  // existing person → new 1:1 card
   const [activeStripTab, setActiveStripTab] = useState<'groups' | 'students'>('groups')
   const [sortKey, setSortKey] = useState<SortKey>('attention')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
@@ -2041,6 +2080,14 @@ export default function TeacherGroupsPage() {
     setAddToGroupForStudent(false)
     setSelectedGroupId(targetGroupId)
     setActiveStudentId(null)
+  }
+
+  // Existing person → brand-new 1:1 card (reuses their account via addIndividualCard).
+  // Returns whether they're registered so the modal skips the invite link for them.
+  async function createIndivForExisting(person: PersonLike, subject: string, level: string) {
+    const c = INDIV_COLORS[0]
+    const { inviteToken } = await addIndividualCard({ student: person, subject: subject as Group['subject'], level, color: c.color, colorSoft: c.soft })
+    return { inviteToken: person.authUserId ? null : (inviteToken ?? null), registered: !!person.authUserId }
   }
 
   const addToGroupTargetGroup = addToGroupTarget ? groups.find(g => g.id === addToGroupTarget) ?? null : null
@@ -2393,8 +2440,10 @@ export default function TeacherGroupsPage() {
         {showAddStudentPicker && (
           <AddStudentTypePicker
             groups={regularGroups}
+            hasPeople={people.length > 0}
             onPickGroup={() => { setShowAddStudentPicker(false); setShowAddStudent(true) }}
             onPickIndividual={() => { setShowAddStudentPicker(false); setShowAddIndividual(true) }}
+            onPickExisting={() => { setShowAddStudentPicker(false); setShowExistingIndiv(true) }}
             onClose={() => setShowAddStudentPicker(false)}
           />
         )}
@@ -2412,10 +2461,20 @@ export default function TeacherGroupsPage() {
         {showAddIndividual && (
           <AddIndividualStudentModal
             onClose={() => { setShowAddIndividual(false); clearDrafts('groups.addIndiv.') }}
+            onPickExisting={people.length > 0 ? () => { setShowAddIndividual(false); setShowExistingIndiv(true) } : undefined}
             onSave={async (s) => {
               const result = await addIndividualStudent(s as Parameters<typeof addIndividualStudent>[0])
               return { inviteToken: result.inviteToken, studentId: result.studentId ?? null, groupId: result.groupId ?? null }
             }}
+          />
+        )}
+        {showExistingIndiv && (
+          <AddExistingIndividualModal
+            people={people}
+            subjectOptions={Object.keys(SUBJECT_ICONS)}
+            levelOptions={LEVEL_OPTIONS}
+            onCreate={createIndivForExisting}
+            onClose={() => setShowExistingIndiv(false)}
           />
         )}
         {addToGroupTargetGroup && (
