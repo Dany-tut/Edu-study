@@ -5,6 +5,7 @@ import { playTransitionDrop } from '../lib/sound'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
 import { useNavCollapse } from '../lib/useNavCollapse'
+import { useKeyboardInset } from '../lib/useKeyboardInset'
 
 // Shared ease/duration for the collapse so the dock shrinks and the labels
 // fade as one synchronized motion.
@@ -30,6 +31,10 @@ export default function MobileBottomNav() {
   // shrinks in height + length and the labels fade on scroll-down, and it all
   // expands back on scroll-up / at the top.
   const collapsed = useNavCollapse()
+  // When the on-screen keyboard opens (search, any focused input) slide the
+  // nav straight down out of view so it never crowds the field; it springs
+  // back up when the keyboard dismisses.
+  const kbOpen = useKeyboardInset() > 0
 
   // Badge: count lessons with status that implies pending homework (current / returned)
   const hwBadge = subjects.flatMap(s => s.modules.flatMap(m => m.lessons))
@@ -58,9 +63,12 @@ export default function MobileBottomNav() {
   }
 
   return (
-    <div
+    <motion.div
       className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}
+      initial={false}
+      animate={{ y: kbOpen ? 140 : 0, opacity: kbOpen ? 0 : 1 }}
+      transition={COLLAPSE}
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)', pointerEvents: kbOpen ? 'none' : 'auto' }}
     >
       <motion.div
         className="mb-4 flex items-center justify-around px-2"
@@ -130,6 +138,6 @@ export default function MobileBottomNav() {
           )
         })}
       </motion.div>
-    </div>
+    </motion.div>
   )
 }

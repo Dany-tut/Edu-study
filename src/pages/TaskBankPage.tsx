@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, Search, BookOpen, CheckCircle2, XCircle,
   Star, Share2, AlertTriangle, Eye, Sparkles, Target, Filter,
-  LayoutGrid, List, ArrowUpDown, ArrowUp, X, TrendingUp, FlaskConical, Bell,
+  LayoutGrid, List, ArrowUpDown, ArrowUp, X, TrendingUp, FlaskConical, Bell, Database, ZoomIn, ZoomOut,
 } from 'lucide-react'
 import {
   Task, Subject,
@@ -25,6 +25,7 @@ import { getContrastColor } from '../lib/utils'
 import { useTheme } from '../store/themeStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useNavCollapse } from '../lib/useNavCollapse'
+import { useKeyboardInset } from '../lib/useKeyboardInset'
 import MobileScreen from '../components/MobileScreen'
 import MobileBottomNav from '../components/MobileBottomNav'
 import MobileSheet from '../components/MobileSheet'
@@ -162,7 +163,7 @@ function FilterField({ label, options, value, onChange, accent }: {
 }
 
 // ── Copyable №-badge ─────────────────────────────────────────────────────────
-function NumberBadge({ id, onCopied }: { id: number; onCopied: () => void }) {
+function NumberBadge({ id, onCopied, icon }: { id: number; onCopied: () => void; icon?: ReactNode }) {
   const [tipped, setTipped] = useState(false)
   function copy(e: React.MouseEvent) {
     e.stopPropagation()
@@ -177,8 +178,8 @@ function NumberBadge({ id, onCopied }: { id: number; onCopied: () => void }) {
       title="Скопировать номер"
       style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
     >
-      <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-red-soft)', color: 'var(--color-red-text)', transition: 'background 0.15s ease' }}>
-        №{id}
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: icon ? '2px 8px 2px 6px' : '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-red-soft)', color: 'var(--color-red-text)', transition: 'background 0.15s ease' }}>
+        {icon}№{id}
       </span>
       <AnimatePresence>
         {tipped && (
@@ -232,6 +233,9 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
   mobile?: boolean
 }) {
   const [showSolution, setShowSolution] = useState(false)
+  // Mobile table has two modes: fit-to-block (columns wrap to screen width) and
+  // zoom (natural size, scrolls horizontally). Toggled by the ⤢ button.
+  const [tableZoom, setTableZoom] = useState(false)
   const [inputVal, setInputVal] = useState(answered.get(task.id)?.value ?? '')
   const [inputOverflow, setInputOverflow] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -283,13 +287,14 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7, flexWrap: 'wrap' }}>
             {mobile ? (
-              /* Phone: bare identifiers only — №-in-bank and the line number,
-                 no "Задание N", no line name, no "Часть". */
+              /* Phone: list index (1) · line number (2) · №-in-bank with a
+                 base-type icon (3). Topic gets its own line just below. */
               <>
-                <NumberBadge id={task.id} onCopied={onCopyId} />
+                <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-text)', minWidth: 14, textAlign: 'center' }}>{index + 1}</span>
                 <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: `${palette.accent}33`, color: 'var(--color-text)' }}>
                   {task.line} линия
                 </span>
+                <NumberBadge id={task.id} onCopied={onCopyId} icon={<Database size={10} strokeWidth={2.4} />} />
               </>
             ) : (
               <>
@@ -303,6 +308,11 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               </>
             )}
           </div>
+          {mobile && task.topic && (
+            <div style={{ fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.3, marginTop: -1 }}>
+              <span style={{ fontWeight: 600 }}>Тема:</span> {task.topic}
+            </div>
+          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
           {state !== undefined && (
@@ -342,7 +352,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       {/* Question spans the full card width below the header row so the result
           badge (Верно/Неверно) never squeezes it into a narrower column — its
           appearance must not reflow / "push" the wrapped lines. */}
-      <div style={{ fontSize: mobile ? 14 : 16, lineHeight: mobile ? 1.3 : 1.45, fontWeight: 650, color: 'var(--color-text)', marginTop: mobile ? -8 : -4 }}
+      <div lang="ru" style={{ fontSize: mobile ? 14 : 16, lineHeight: mobile ? 1.4 : 1.45, fontWeight: mobile ? 550 : 650, color: 'var(--color-text)', textAlign: mobile ? 'justify' : undefined, hyphens: mobile ? 'auto' : undefined, WebkitHyphens: mobile ? 'auto' : undefined, marginTop: mobile ? -6 : -4 }}
         dangerouslySetInnerHTML={{ __html: task.question }} />
 
       {/* Image / table blocks in teacher-configured order */}
@@ -1332,6 +1342,9 @@ export default function TaskBankPage() {
   // lower + shrinks in lock-step with the nav on scroll-down and springs back up
   // on scroll-up. Hook must run before the `!isDesktop` early return.
   const navCollapsed = useNavCollapse()
+  // Keyboard overlap so the search dock can lift above the on-screen keyboard
+  // instead of hiding behind it.
+  const kbInset = useKeyboardInset()
   const [sheet, setSheet] = useState<'filters' | 'sort' | 'search' | null>(null)
   const setActivePage = useDashboard(s => s.setActivePage)
   const docked        = useDashboard(s => s.lessonScrolled)
@@ -1362,7 +1375,10 @@ export default function TaskBankPage() {
   const dockRef = useRef<HTMLDivElement>(null)
   const mSearchRef = useRef<HTMLInputElement>(null)
   const searchPillRef = useRef<HTMLDivElement>(null)
-  useEffect(() => { if (searchExpanded) mSearchRef.current?.focus() }, [searchExpanded])
+  useEffect(() => {
+    if (searchExpanded) mSearchRef.current?.focus()
+    else mSearchRef.current?.blur() // dismiss keyboard so the nav slides back up
+  }, [searchExpanded])
   // Tap anywhere outside the expanded pill collapses it back to a circle.
   useEffect(() => {
     if (!searchExpanded) return
@@ -1630,7 +1646,9 @@ export default function TaskBankPage() {
           <motion.div
             ref={dockRef}
             initial={false}
-            animate={{ marginBottom: navCollapsed ? 74 : 86 }}
+            // Keyboard up → lift the dock to sit just above it (the nav has
+            // slid away, so its clearance margin is no longer needed).
+            animate={{ marginBottom: kbInset > 0 ? kbInset + 12 : (navCollapsed ? 74 : 86) }}
             transition={DOCK_COLLAPSE}
             style={{ position: 'relative', display: 'flex', gap: 12, alignItems: 'center', pointerEvents: 'auto' }}
           >
@@ -1650,10 +1668,17 @@ export default function TaskBankPage() {
                 key={c.k}
                 initial={false}
                 animate={searchExpanded
-                  ? { opacity: 0, scale: 0.5, x: 22, filter: 'blur(5px)' }
-                  : { opacity: 1, scale: 1, x: 0, filter: 'blur(0px)' }}
+                  ? { opacity: 0, scale: 0.5, x: 22 }
+                  : { opacity: 1, scale: 1, x: 0 }}
                 transition={{ ...FIELD_MORPH, delay: searchExpanded ? idx * 0.04 : (2 - idx) * 0.04 }}
-                style={{ pointerEvents: searchExpanded ? 'none' : 'auto' }}
+                // The exit blur lives here as a plain CSS filter that's ABSENT at
+                // rest — a `filter` on this wrapper (even blur(0)) would break the
+                // child circle's `backdrop-filter`, killing its background blur.
+                style={{
+                  pointerEvents: searchExpanded ? 'none' : 'auto',
+                  filter: searchExpanded ? 'blur(5px)' : undefined,
+                  transition: 'filter 0.24s ease',
+                }}
               >
                 {dockCircle(c.k, c.icon, c.onClick, c.opts)}
               </motion.div>
@@ -1672,7 +1697,11 @@ export default function TaskBankPage() {
               aria-label="Поиск"
               style={{
                 position: 'absolute', left: 0, top: 0, bottom: 0,
-                display: 'flex', alignItems: 'center', gap: 8, padding: '0 15px',
+                // Collapsed: centre the icon in the circle (no side padding, so it
+                // doesn't drift as the width shrinks to 42 in the mini dock).
+                // Expanded: left-align the icon with padding for the input row.
+                display: 'flex', alignItems: 'center', justifyContent: searchExpanded ? 'flex-start' : 'center',
+                gap: 8, padding: searchExpanded ? '0 15px' : 0,
                 borderRadius: 999, overflow: 'hidden',
                 background: 'rgba(var(--glass-rgb), 0.6)',
                 backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',

@@ -154,53 +154,102 @@ export default function InstallPrompt() {
   )
 }
 
-/** A little home-screen mockup: the Искра tile landing on a phone with a ＋ badge. */
+// Tiny iOS status-bar glyphs so the mockup reads as a real device.
+function StatusIcons() {
+  return (
+    <span style={{ display: 'flex', gap: 5, alignItems: 'center', color: '#fff' }}>
+      {/* signal */}
+      <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor" aria-hidden>
+        <rect x="0" y="7" width="3" height="4" rx="1" />
+        <rect x="4.3" y="5" width="3" height="6" rx="1" />
+        <rect x="8.6" y="2.5" width="3" height="8.5" rx="1" />
+        <rect x="12.9" y="0" width="3" height="11" rx="1" opacity="0.5" />
+      </svg>
+      {/* wifi */}
+      <svg width="15" height="11" viewBox="0 0 15 11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
+        <path d="M1 3.4a10 10 0 0 1 13 0M3.4 6a6.4 6.4 0 0 1 8.2 0" />
+        <circle cx="7.5" cy="9" r="0.9" fill="currentColor" stroke="none" />
+      </svg>
+      {/* battery */}
+      <svg width="24" height="12" viewBox="0 0 24 12" fill="none" aria-hidden>
+        <rect x="0.6" y="0.6" width="20" height="10.8" rx="3" stroke="currentColor" strokeOpacity="0.5" />
+        <rect x="2.4" y="2.4" width="15" height="7.2" rx="1.6" fill="currentColor" />
+        <rect x="22" y="4" width="1.6" height="4" rx="0.8" fill="currentColor" fillOpacity="0.5" />
+      </svg>
+    </span>
+  )
+}
+
+/**
+ * Half-iPhone mockup: the top of a titanium-framed device (Dynamic Island,
+ * status bar) with the Искра tile on a purple home screen + a ＋ badge. The
+ * body is taller than its clip window, so the phone reads as rising into the
+ * sheet from below.
+ */
 function PhoneMockup() {
   return (
-    <div style={{ position: 'relative', width: 138, height: 176 }}>
-      {/* soft glow behind the phone */}
+    <div style={{ position: 'relative', width: 198, height: 210 }}>
+      {/* soft aura behind the device */}
       <div style={{
-        position: 'absolute', inset: -14, borderRadius: 40,
-        background: 'radial-gradient(circle at 50% 42%, rgba(143,111,230,0.5), transparent 70%)',
-        filter: 'blur(6px)',
+        position: 'absolute', left: '50%', top: 18, transform: 'translateX(-50%)',
+        width: 176, height: 176, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(143,111,230,0.5), transparent 70%)', filter: 'blur(8px)',
       }} />
-      {/* phone body */}
-      <div style={{
-        position: 'relative', width: 138, height: 176, borderRadius: 32, background: '#0c0c0f',
-        padding: 6, boxShadow: '0 22px 48px rgba(76,40,140,0.42), 0 6px 16px rgba(0,0,0,0.4)',
-      }}>
-        {/* screen */}
+      {/* clip window — hides the bottom half of the phone body */}
+      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+        {/* phone body (taller than window) */}
         <div style={{
-          position: 'relative', width: '100%', height: '100%', borderRadius: 26, overflow: 'hidden',
-          background: 'linear-gradient(165deg,#9575EC 0%,#6E48C7 52%,#512e9a 100%)',
+          position: 'absolute', left: '50%', top: 0, transform: 'translateX(-50%)',
+          width: 198, height: 404, borderRadius: 48, padding: 5,
+          background: 'linear-gradient(145deg,#42424a 0%,#1b1b1f 46%,#33333a 100%)',
+          boxShadow: '0 24px 48px rgba(70,38,130,0.42), 0 6px 18px rgba(0,0,0,0.45)',
         }}>
-          {/* notch */}
-          <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', width: 42, height: 11, borderRadius: 99, background: '#0c0c0f' }} />
-
-          {/* the app tile */}
-          <div style={{ position: 'absolute', top: 46, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7 }}>
-            <div style={{ position: 'relative', width: 52, height: 52, borderRadius: 14, overflow: 'hidden', boxShadow: '0 8px 18px rgba(0,0,0,0.4)' }}>
-              <img src="/icon-192.png" alt="" width={52} height={52} style={{ display: 'block', width: 52, height: 52 }} />
+          {/* screen */}
+          <div style={{
+            position: 'relative', width: '100%', height: '100%', borderRadius: 43, overflow: 'hidden',
+            background: 'linear-gradient(170deg,#9C7DF0 0%,#6F49C9 48%,#512e9a 100%)',
+          }}>
+            {/* status bar */}
+            <div style={{ position: 'absolute', top: 14, left: 20, right: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>9:41</span>
+              <StatusIcons />
             </div>
-            <span style={{ fontSize: 9, fontWeight: 600, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.35)' }}>Искра</span>
-            {/* + badge landing on the tile */}
+            {/* Dynamic Island */}
             <div style={{
-              position: 'absolute', top: -7, right: -9, width: 22, height: 22, borderRadius: 99,
-              background: '#34C759', border: '2.5px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 3px 8px rgba(0,0,0,0.3)',
+              position: 'absolute', top: 11, left: '50%', transform: 'translateX(-50%)',
+              width: 84, height: 26, borderRadius: 99, background: '#08080a',
+              display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 9,
             }}>
-              <Plus size={12} color="#fff" strokeWidth={3.4} />
+              <span style={{ width: 7, height: 7, borderRadius: 99, background: '#26263a', boxShadow: 'inset 0 0 2px rgba(130,130,190,0.8)' }} />
             </div>
-          </div>
 
-          {/* faint placeholder apps so it reads as a home screen */}
-          <div style={{ position: 'absolute', top: 122, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 12 }}>
-            {[0, 1, 2].map(i => (
-              <div key={i} style={{ width: 24, height: 24, borderRadius: 7, background: 'rgba(255,255,255,0.16)' }} />
-            ))}
+            {/* the Искра app tile */}
+            <div style={{ position: 'absolute', top: 70, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 9 }}>
+              <div style={{ position: 'relative', width: 62, height: 62, borderRadius: 15, overflow: 'visible' }}>
+                <img src="/icon-192.png" alt="" width={62} height={62} style={{ display: 'block', width: 62, height: 62, borderRadius: 15, boxShadow: '0 12px 22px rgba(0,0,0,0.42)' }} />
+                {/* + badge */}
+                <div style={{
+                  position: 'absolute', top: -8, right: -10, width: 24, height: 24, borderRadius: 99,
+                  background: '#34C759', border: '2.5px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 3px 9px rgba(0,0,0,0.32)',
+                }}>
+                  <Plus size={13} color="#fff" strokeWidth={3.4} />
+                </div>
+              </div>
+              <span style={{ fontSize: 10.5, fontWeight: 600, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.35)' }}>Искра</span>
+            </div>
+
+            {/* a partial row of neighbour apps, cut by the fold */}
+            <div style={{ position: 'absolute', top: 168, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 16 }}>
+              {[0, 1, 2, 3].map(i => (
+                <div key={i} style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.16)' }} />
+              ))}
+            </div>
+
+            {/* glass gloss + fade at the cut so the device dissolves into the sheet */}
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(135deg, rgba(255,255,255,0.16), transparent 38%)' }} />
+            <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 46, pointerEvents: 'none', background: 'linear-gradient(to top, rgba(30,16,60,0.35), transparent)' }} />
           </div>
-          {/* dock */}
-          <div style={{ position: 'absolute', bottom: 8, left: 8, right: 8, height: 30, borderRadius: 14, background: 'rgba(255,255,255,0.16)' }} />
         </div>
       </div>
     </div>
