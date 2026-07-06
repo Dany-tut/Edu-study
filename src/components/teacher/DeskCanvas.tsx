@@ -399,6 +399,9 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
             const isDragging = drag?.id === item.i
             const isResizing = resize?.id === item.i
             const isActive = isDragging || isResizing
+            // Bare widgets render their own card(s); the cell must not add a
+            // backing frame/shadow (would show as a stray panel behind them).
+            const bare = getWidgetDef(item.type)?.bare && !editMode
             return (
               <div
                 key={item.i}
@@ -417,8 +420,8 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
                   zIndex: isActive ? 100 : 1,
                   cursor: editMode && !isDragging ? 'grab' : isDragging ? 'grabbing' : 'default',
                   willChange: (drag || resize) ? 'transform' : 'auto',
-                  boxShadow: isDragging ? 'var(--shadow-widget-drag)' : 'var(--shadow-widget)',
-                  borderRadius: 24,
+                  boxShadow: isDragging ? 'var(--shadow-widget-drag)' : (bare ? 'none' : 'var(--shadow-widget)'),
+                  borderRadius: bare ? 0 : 24,
                   transition: isActive
                     ? 'opacity .15s ease, scale .18s cubic-bezier(.25,.46,.45,.94), box-shadow .18s ease'
                     : 'transform .22s cubic-bezier(.25,.46,.45,.94), width .22s cubic-bezier(.25,.46,.45,.94), height .22s cubic-bezier(.25,.46,.45,.94), opacity .15s ease, scale .18s cubic-bezier(.25,.46,.45,.94), box-shadow .18s ease',

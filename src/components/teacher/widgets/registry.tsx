@@ -38,6 +38,9 @@ export type WidgetDef = {
   minW: number
   minH: number
   maxH?: number
+  /** Widget renders its own card(s); the desk cell must NOT add a frame/shadow
+   *  (otherwise a stray backing panel shows behind multi-card row widgets). */
+  bare?: boolean
   component: ComponentType
 }
 
@@ -65,6 +68,7 @@ export const WIDGET_REGISTRY: WidgetDef[] = [
     description: 'Получено, ожидается, долг, прогноз',
     defaultW: 12, defaultH: 2,
     minW: 6, minH: 2, maxH: 2,
+    bare: true,
     component: WidgetFinanceKpi,
   },
   {
@@ -98,6 +102,7 @@ export const WIDGET_REGISTRY: WidgetDef[] = [
     description: 'Количество учеников, групп, активных',
     defaultW: 12, defaultH: 2,
     minW: 6, minH: 2, maxH: 2,
+    bare: true,
     component: WidgetStudentStats,
   },
   {
@@ -131,6 +136,7 @@ export const WIDGET_REGISTRY: WidgetDef[] = [
     description: 'Студенты, ДЗ на проверку, уроков сегодня, доход',
     defaultW: 12, defaultH: 2,
     minW: 6, minH: 2, maxH: 2,
+    bare: true,
     component: WidgetTodayStats,
   },
   {

@@ -141,8 +141,18 @@ export default function WidgetTodayTasks() {
 
   if (!tasks.length) {
     return (
-      <div style={{ height: '100%', width: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontSize: 13, color: 'var(--color-text-4)', fontWeight: 500 }}>Нет задач</span>
+      <div style={{ height: '100%', width: '100%', overflow: 'hidden' }}>
+        <motion.div {...fadeUp(0.26)} style={{ height: '100%' }}>
+          <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <CardTitle>
+              <CheckCircle2 size={14} strokeWidth={2} />
+              Мои задачи
+            </CardTitle>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: 13, color: 'var(--color-text-4)', fontWeight: 500 }}>Нет задач</span>
+            </div>
+          </Card>
+        </motion.div>
       </div>
     )
   }
