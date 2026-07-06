@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Share, X, Plus, Download } from 'lucide-react'
-import { subscribeInstall, hasInstallPrompt, promptInstall, isStandalone, getPlatform } from '../lib/pwaInstall'
+import { subscribeInstall, subscribeShowInstall, hasInstallPrompt, promptInstall, isStandalone, getPlatform } from '../lib/pwaInstall'
 
 const DISMISS_KEY = 'pwa_install_dismissed_v1'
 function dismissed(): boolean { try { return localStorage.getItem(DISMISS_KEY) === '1' } catch { return false } }
@@ -20,6 +20,9 @@ export default function InstallPrompt() {
   const [hidden, setHidden] = useState(dismissed() || isStandalone())
 
   useEffect(() => subscribeInstall(() => setCanPrompt(hasInstallPrompt())), [])
+  // Re-open when the user taps "Установить приложение" in Profile, even if the
+  // banner was dismissed earlier. iOS also expands the tutorial straight away.
+  useEffect(() => subscribeShowInstall(() => { setHidden(false); setOpen(true) }), [])
 
   // Only phones, not already installed/dismissed. Android needs a captured
   // prompt; iOS always qualifies (manual flow). Desktop/other → skip.

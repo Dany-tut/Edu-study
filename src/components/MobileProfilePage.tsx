@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
-import { LogOut, Flame, CheckCircle2, Star, TrendingUp, Zap, Moon, Sun, MessageSquarePlus } from 'lucide-react'
+import { LogOut, Flame, CheckCircle2, Star, TrendingUp, Zap, Moon, Sun, MessageSquarePlus, Download } from 'lucide-react'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
 import { DynamicIsland } from './mobileChrome'
@@ -13,6 +13,7 @@ import { useStudentData } from '../store/studentDataStore'
 import { useTheme } from '../store/themeStore'
 import { PAIR } from '../lib/mobileTokens'
 import { tactile } from '../lib/feedback'
+import { requestShowInstall, isStandalone } from '../lib/pwaInstall'
 import type { LucideIcon } from 'lucide-react'
 
 // MOBILE ONLY profile. Desktop has no profile screen. Floating glass chrome
@@ -40,6 +41,8 @@ export default function MobileProfilePage() {
   const [feedbackOpen, setFeedbackOpen] = useState(false)
 
   const subjectLine = subjects.length > 0 ? subjects.map(s => s.name).join(' · ') : 'Ученик'
+  // Show the "install app" row only when not already running as an installed PWA.
+  const canInstall = !isStandalone()
 
   const level = Math.floor(stats.totalPoints / XP_PER_LEVEL) + 1
   const xpInLevel = stats.totalPoints % XP_PER_LEVEL
@@ -159,6 +162,18 @@ export default function MobileProfilePage() {
               <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>Обратная связь</span>
               <MessageSquarePlus size={18} style={{ color: 'var(--color-muted)' }} />
             </motion.button>
+
+            {canInstall && (
+              <motion.button
+                whileTap={{ scale: 0.985 }}
+                onClick={() => { tactile(); requestShowInstall() }}
+                className="flex items-center justify-between cursor-pointer"
+                style={{ width: '100%', padding: '12px 16px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}
+              >
+                <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>Установить приложение</span>
+                <Download size={18} style={{ color: 'var(--color-muted)' }} />
+              </motion.button>
+            )}
 
             <motion.button
               whileTap={{ scale: 0.97 }}

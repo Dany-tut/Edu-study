@@ -1324,6 +1324,13 @@ export default function TaskBankPage() {
   const [search, setSearch]     = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  // Mobile: the search circle morphs into a full-width pill spanning the whole
+  // control dock; `dockW` is the measured dock width the pill grows to.
+  const [searchExpanded, setSearchExpanded] = useState(false)
+  const [dockW, setDockW] = useState(0)
+  const dockRef = useRef<HTMLDivElement>(null)
+  const mSearchRef = useRef<HTMLInputElement>(null)
+  useEffect(() => { if (searchExpanded) mSearchRef.current?.focus() }, [searchExpanded])
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [sortMode, setSortMode]         = useState<SortMode>('newest')
   const viewMode: ViewMode = 'list'
@@ -1572,29 +1579,64 @@ export default function TaskBankPage() {
             over the nav when expanded and settle lower when the nav collapses. */}
         <div style={{ position: 'fixed', left: 0, right: 0, bottom: 'env(safe-area-inset-bottom, 0px)', zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
           <motion.div
+            ref={dockRef}
             initial={false}
             animate={{ marginBottom: navCollapsed ? 74 : 86 }}
             transition={DOCK_COLLAPSE}
-            style={{ display: 'flex', gap: 12, alignItems: 'center', pointerEvents: 'auto' }}
+            style={{ position: 'relative', display: 'flex', gap: 12, alignItems: 'center', pointerEvents: 'auto' }}
           >
-            {dockCircle('search', <Search size={20} />, () => setSheet('search'), { label: 'Поиск', badge: search ? 1 : 0, active: !!search })}
-            {dockCircle('filter', <Filter size={20} />, () => setSheet('filters'), { label: 'Фильтры', badge: activeFilters })}
-            {dockCircle('sort', <ArrowUpDown size={20} />, () => setSheet('sort'), { label: 'Сортировка' })}
-            {dockCircle('fav', <Star size={20} fill={showFavOnly ? 'currentColor' : 'none'} />, () => setShowFavOnly(f => !f), { label: 'Избранное', active: showFavOnly })}
+            {/* Search circle — fades under the expanding pill that replaces it. */}
+            <motion.div initial={false} animate={{ opacity: searchExpanded ? 0 : 1 }} transition={FIELD_MORPH} style={{ pointerEvents: searchExpanded ? 'none' : 'auto' }}>
+              {dockCircle('search', <Search size={20} />, () => { setDockW(dockRef.current?.offsetWidth ?? 0); setSearchExpanded(true) }, { label: 'Поиск', badge: search ? 1 : 0, active: !!search })}
+            </motion.div>
+
+            {/* Filter / sort / fav — on expand they scale down, blur and drift
+                right while fading, staggered left→right. */}
+            {[
+              { k: 'filter', icon: <Filter size={20} />, onClick: () => setSheet('filters'), opts: { label: 'Фильтры', badge: activeFilters } },
+              { k: 'sort', icon: <ArrowUpDown size={20} />, onClick: () => setSheet('sort'), opts: { label: 'Сортировка' } },
+              { k: 'fav', icon: <Star size={20} fill={showFavOnly ? 'currentColor' : 'none'} />, onClick: () => setShowFavOnly(f => !f), opts: { label: 'Избранное', active: showFavOnly } },
+            ].map((c, idx) => (
+              <motion.div
+                key={c.k}
+                initial={false}
+                animate={searchExpanded
+                  ? { opacity: 0, scale: 0.5, x: 22, filter: 'blur(5px)' }
+                  : { opacity: 1, scale: 1, x: 0, filter: 'blur(0px)' }}
+                transition={{ ...FIELD_MORPH, delay: searchExpanded ? idx * 0.04 : (2 - idx) * 0.04 }}
+                style={{ pointerEvents: searchExpanded ? 'none' : 'auto' }}
+              >
+                {dockCircle(c.k, c.icon, c.onClick, c.opts)}
+              </motion.div>
+            ))}
+
+            {/* Expanding search pill — grows from the first circle to the full
+                dock width; holds the input, closes back to a circle on ✕. */}
+            <motion.div
+              initial={false}
+              animate={{ width: searchExpanded ? dockW : (navCollapsed ? 42 : 50), opacity: searchExpanded ? 1 : 0 }}
+              transition={FIELD_MORPH}
+              style={{
+                position: 'absolute', left: 0, top: 0, bottom: 0,
+                display: 'flex', alignItems: 'center', gap: 8, padding: '0 16px',
+                borderRadius: 999, overflow: 'hidden',
+                background: 'rgba(var(--glass-rgb), 0.82)',
+                backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+                border: '1px solid var(--color-border-glass)', boxShadow: 'var(--shadow-pill)',
+                pointerEvents: searchExpanded ? 'auto' : 'none',
+              }}
+            >
+              <Search size={18} style={{ color: 'var(--color-text-2)', flexShrink: 0 }} />
+              {/* fontSize 16 prevents iOS auto-zoom on focus */}
+              <input ref={mSearchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по тексту или №..."
+                style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: 'var(--color-text)' }} />
+              <button onClick={() => { setSearch(''); setSearchExpanded(false) }} aria-label="Закрыть поиск"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', flexShrink: 0, padding: 0 }}>
+                <X size={18} />
+              </button>
+            </motion.div>
           </motion.div>
         </div>
-
-        {/* Search sheet */}
-        <MobileSheet open={sheet === 'search'} onClose={() => setSheet(null)} title="Поиск">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 14px', height: 46, borderRadius: 999, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-soft)' }}>
-            <Search size={16} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
-            {/* fontSize 16 prevents iOS auto-zoom on focus */}
-            <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder="По тексту или №..."
-              style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: 'var(--color-text)' }} />
-            {search && <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', flexShrink: 0 }}><X size={16} /></button>}
-          </div>
-          <div style={{ marginTop: 12, fontSize: 13, color: 'var(--color-muted)' }}>Найдено заданий: {filtered.length}</div>
-        </MobileSheet>
 
         {/* Filters sheet */}
         <MobileSheet open={sheet === 'filters'} onClose={() => setSheet(null)} title="Фильтры">
@@ -1620,12 +1662,14 @@ export default function TaskBankPage() {
             <MultiSelectField label="Линия" options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} />
             <FilterField label="Источник" options={allSources} value={source} onChange={setSource} accent={palette.accent} />
             <StatusTabs value={statusFilter} onChange={setStatusFilter} />
-            {hasFilters && (
-              <button onClick={() => { tactile(); clearFilters() }}
-                style={{ marginTop: 2, padding: '11px', borderRadius: 12, background: 'rgba(176,48,64,0.10)', border: 'none', fontSize: 13, color: 'var(--color-red-text)', cursor: 'pointer', fontWeight: 600 }}>
-                Сбросить фильтры
-              </button>
-            )}
+            {/* Always reserve the button's slot so toggling filters doesn't
+                change the sheet height (grabber would otherwise jump). */}
+            <button onClick={() => { if (!hasFilters) return; tactile(); clearFilters() }}
+              aria-hidden={!hasFilters} tabIndex={hasFilters ? 0 : -1}
+              style={{ marginTop: 2, padding: '11px', borderRadius: 12, background: 'rgba(176,48,64,0.10)', border: 'none', fontSize: 13, color: 'var(--color-red-text)', fontWeight: 600,
+                cursor: hasFilters ? 'pointer' : 'default', opacity: hasFilters ? 1 : 0, pointerEvents: hasFilters ? 'auto' : 'none', transition: 'opacity 0.15s ease' }}>
+              Сбросить фильтры
+            </button>
           </div>
         </MobileSheet>
 

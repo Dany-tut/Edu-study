@@ -31,6 +31,18 @@ export function subscribeInstall(cb: () => void): () => void {
   return () => { listeners.delete(cb) }
 }
 
+// Manual re-trigger: the install banner is dismissable, so once closed the user
+// needs a way to bring it back (a row in Profile). This asks the mounted
+// InstallPrompt to show itself again, overriding the "dismissed" flag.
+const SHOW_EVENT = 'pwa:show-install'
+export function requestShowInstall() {
+  try { window.dispatchEvent(new Event(SHOW_EVENT)) } catch { /**/ }
+}
+export function subscribeShowInstall(cb: () => void): () => void {
+  window.addEventListener(SHOW_EVENT, cb)
+  return () => window.removeEventListener(SHOW_EVENT, cb)
+}
+
 export function hasInstallPrompt(): boolean { return deferred !== null }
 
 /** Trigger the native Android/Chrome install dialog. Returns true if accepted. */
