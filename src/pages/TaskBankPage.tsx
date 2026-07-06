@@ -469,7 +469,10 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             fontSize: 14, fontFamily: 'inherit', pointerEvents: 'none', top: -9999,
           }}>{inputVal}</span>
         </motion.div>
-        <AnimatePresence>
+        {/* popLayout: the exiting button leaves the flex flow immediately, so
+            the field's `layout` grows back smoothly *during* the fade-out
+            instead of snapping open only after the button fully unmounts. */}
+        <AnimatePresence mode="popLayout">
           {inputVal.trim() && (
             <motion.div
               layout

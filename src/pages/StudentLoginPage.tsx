@@ -5,9 +5,12 @@ import { supabase } from '../lib/supabase'
 import { setStudentSession } from '../lib/studentSession'
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '13px 14px', borderRadius: 12,
-  border: '1.5px solid #E8E8EA', fontSize: 16, outline: 'none',
-  boxSizing: 'border-box',
+  // Explicit minHeight + lineHeight so an empty password field can't render
+  // shorter than the email field — iOS Safari computes a smaller intrinsic
+  // height for the password-dot glyphs, which otherwise squishes the box.
+  width: '100%', padding: '13px 14px', minHeight: 50, borderRadius: 12,
+  border: '1.5px solid var(--color-border-medium)', fontSize: 16,
+  lineHeight: '22px', outline: 'none', boxSizing: 'border-box',
 }
 
 export default function StudentLoginPage() {
