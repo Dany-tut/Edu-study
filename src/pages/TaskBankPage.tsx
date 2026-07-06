@@ -37,6 +37,11 @@ type StatusFilter = 'all' | 'done' | 'undone'
 type SortMode = 'newest' | 'oldest' | 'easy' | 'hard' | 'subject' | 'line'
 type ViewMode = 'list' | 'grid'
 
+// Shared spring for the answer field ↔ Проверить-button morph: the field's
+// `layout` resize and the button's scale/slide ride the same spring so they
+// feel like one coordinated motion (snappy, tiny settle, no overshoot wobble).
+const FIELD_MORPH = { type: 'spring', stiffness: 520, damping: 38, mass: 0.7 } as const
+
 const SORT_OPTIONS: [SortMode, string][] = [
   ['newest', 'Новые'],
   ['oldest', 'Старые'],
@@ -317,14 +322,14 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             }}
           >
             <span style={{
-              width: mobile ? 34 : 36, height: mobile ? 34 : 36, borderRadius: mobile ? 11 : 12,
+              width: mobile ? 30 : 36, height: mobile ? 30 : 36, borderRadius: mobile ? 10 : 12,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: isFav ? 'linear-gradient(140deg, #FFCB3D 0%, #F5A623 100%)' : 'rgba(var(--glass-rgb), 0.88)',
               border: `1px solid ${isFav ? 'transparent' : 'var(--color-border-medium)'}`,
               boxShadow: isFav ? '0 2px 9px rgba(245,166,35,0.4)' : 'none',
               transition: 'all 0.18s ease',
             }}>
-              <Star size={mobile ? 16 : 16} fill={isFav ? '#fff' : 'none'} color={isFav ? '#fff' : 'var(--color-text-3)'} />
+              <Star size={mobile ? 15 : 16} fill={isFav ? '#fff' : 'none'} color={isFav ? '#fff' : 'var(--color-text-3)'} />
             </span>
           </button>
         </div>
@@ -427,8 +432,10 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       )}
 
       {/* Answer + action buttons */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <div style={{ position: 'relative', flex: '1 1 140px', maxWidth: 210 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: mobile ? 'nowrap' : 'wrap' }}>
+        {/* `layout` tweens the field's width as the Проверить button enters /
+            leaves, so it smoothly makes room instead of snapping via flex. */}
+        <motion.div layout transition={FIELD_MORPH} style={{ position: 'relative', flex: '1 1 140px', maxWidth: mobile ? 'none' : 210, minWidth: 0 }}>
           <input
             ref={inputRef}
             value={inputVal}
@@ -458,19 +465,23 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             position: 'absolute', visibility: 'hidden', whiteSpace: 'pre',
             fontSize: 14, fontFamily: 'inherit', pointerEvents: 'none', top: -9999,
           }}>{inputVal}</span>
-        </div>
+        </motion.div>
         <AnimatePresence>
           {inputVal.trim() && (
             <motion.div
+              layout
               key="task-actions"
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -8 }}
-              transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-              style={{ display: 'flex', gap: 8, alignItems: 'center' }}
+              // Springs in from the field's edge — scales up + slides while the
+              // field morphs open beside it, then reverses on exit.
+              initial={{ opacity: 0, scale: 0.8, x: -10 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.8, x: -10 }}
+              transition={FIELD_MORPH}
+              style={{ display: 'flex', gap: 8, alignItems: 'center', transformOrigin: 'left center' }}
             >
               <button onClick={check} style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '11px 20px', borderRadius: 16,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                padding: mobile ? '11px 16px' : '11px 20px', borderRadius: 16, flexShrink: 0, whiteSpace: 'nowrap',
                 background: palette.accent, color: palette.onAccent,
                 border: 'none', outline: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer',
                 boxShadow: `0 4px 14px ${palette.ring}`,
@@ -1477,13 +1488,18 @@ export default function TaskBankPage() {
   // never renders here.
   if (!isDesktop) {
     const activeFilters = sections.length + topics.length + parts.length + lines.length + (source ? 1 : 0)
+    // Match the bottom nav's collapse motion so the dock and nav move as one.
+    const DOCK_COLLAPSE = { duration: 0.28, ease: [0.32, 0.72, 0, 1] as const }
     const dockCircle = (key: string, icon: ReactNode, onClick: () => void, opts: { label: string; badge?: number; active?: boolean } = { label: '' }) => (
       <motion.button
         key={key}
         whileTap={{ scale: 0.9 }}
         onClick={() => { tactile(); onClick() }}
         aria-label={opts.label}
-        style={{ ...glassCircle, width: 50, height: 50, position: 'relative', color: opts.active ? 'var(--color-accent)' : 'var(--color-text-2)' }}
+        initial={false}
+        animate={{ width: navCollapsed ? 42 : 50, height: navCollapsed ? 42 : 50 }}
+        transition={DOCK_COLLAPSE}
+        style={{ ...glassCircle, position: 'relative', color: opts.active ? 'var(--color-accent)' : 'var(--color-text-2)' }}
       >
         {icon}
         {!!opts.badge && opts.badge > 0 && (
@@ -1544,14 +1560,22 @@ export default function TaskBankPage() {
           )}
         </MobileScreen>
 
-        {/* Control dock — glass circles, sits above the bottom nav */}
-        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 86px)', zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
-          <div style={{ display: 'flex', gap: 12, pointerEvents: 'auto' }}>
+        {/* Control dock — glass circles, drops + shrinks with the nav on scroll.
+            Outer fixed layer sits at the safe-area edge; the inner motion layer
+            animates its marginBottom (numeric, so it tweens cleanly) to ride up
+            over the nav when expanded and settle lower when the nav collapses. */}
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 'env(safe-area-inset-bottom, 0px)', zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+          <motion.div
+            initial={false}
+            animate={{ marginBottom: navCollapsed ? 74 : 86 }}
+            transition={DOCK_COLLAPSE}
+            style={{ display: 'flex', gap: 12, alignItems: 'center', pointerEvents: 'auto' }}
+          >
             {dockCircle('search', <Search size={20} />, () => setSheet('search'), { label: 'Поиск', badge: search ? 1 : 0, active: !!search })}
             {dockCircle('filter', <Filter size={20} />, () => setSheet('filters'), { label: 'Фильтры', badge: activeFilters })}
             {dockCircle('sort', <ArrowUpDown size={20} />, () => setSheet('sort'), { label: 'Сортировка' })}
             {dockCircle('fav', <Star size={20} fill={showFavOnly ? 'currentColor' : 'none'} />, () => setShowFavOnly(f => !f), { label: 'Избранное', active: showFavOnly })}
-          </div>
+          </motion.div>
         </div>
 
         {/* Search sheet */}
