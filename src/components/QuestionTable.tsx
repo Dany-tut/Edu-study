@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Minimize2, Maximize2 } from 'lucide-react'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -8,7 +9,8 @@ import { Minimize2, Maximize2 } from 'lucide-react'
 //  • Mobile default: the table keeps its natural size and scrolls horizontally.
 //  • Mobile "сжать" (⤢): instead of reflowing/wrapping text (which chops words
 //    mid-letter), the whole table is scaled DOWN proportionally to fit the
-//    screen width — one clean overview, nothing breaks.
+//    screen width — one clean overview, nothing breaks. The scale/size morph
+//    is animated so the toggle reads as one continuous motion.
 //  • Desktop: natural size, capped at ~half the column; scrolls if wider.
 //
 // Cells: plain text · blank "—" · fill-in box (emptyCells, interactive) · image.
@@ -26,6 +28,7 @@ export type QTable = {
 }
 
 const DESKTOP_MAX = 560
+const MORPH = { type: 'spring', stiffness: 420, damping: 40, mass: 0.7 } as const
 
 export default function QuestionTable({
   table, mobile = false, interactive = false, value, onChange, disabled = false,
@@ -43,51 +46,69 @@ export default function QuestionTable({
 }) {
   // Mobile only: false = scroll (natural), true = shrink-to-fit (scaled down).
   const [compact, setCompact] = useState(false)
-  const [scale, setScale] = useState(1)
-  const [natH, setNatH] = useState<number | undefined>(undefined)
-  const [natW, setNatW] = useState<number | undefined>(undefined)
   const [atStart, setAtStart] = useState(true)
   const [atEnd, setAtEnd] = useState(true)
+  // Natural table size + available wrapper width, kept live so the box/scale
+  // can be driven by plain numbers on BOTH sides of the toggle — that's what
+  // lets framer animate the morph instead of snapping between px and auto.
+  const [natW, setNatW] = useState(0)
+  const [natH, setNatH] = useState(0)
+  const [avail, setAvail] = useState(0)
+  const wrapRef = useRef<HTMLDivElement>(null)
   const boxRef = useRef<HTMLDivElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
 
   const fitting = mobile && compact
 
-  // Measure natural size and derive the shrink factor. Transforms don't change
-  // layout metrics, so scrollWidth stays the true natural width even while
-  // scaled — the measurement never fights the scale it produces.
   useLayoutEffect(() => {
     const measure = () => {
-      const t = tableRef.current, box = boxRef.current
-      if (!t || !box) return
-      if (fitting) {
-        // offsetWidth includes borders — scrollWidth underestimates a
-        // border-collapsed table and leaves it a few px too wide (last column
-        // clipped by the box). Use offsetWidth so the scaled table fits exactly.
-        const natural = t.offsetWidth
-        // Measure available width from the OUTER wrapper (always full width) —
-        // NOT the box, whose width we shrink to the scaled table. Reading the
-        // shrunk box would collapse `avail` and spiral the scale toward zero.
-        const avail = (box.parentElement?.clientWidth ?? box.clientWidth) - 2
-        if (natural > avail) { setScale(avail / natural); setNatH(t.offsetHeight); setNatW(natural) }
-        else { setScale(1); setNatH(undefined); setNatW(undefined) }
-      } else {
-        setScale(1); setNatH(undefined); setNatW(undefined)
-        // Prime the scroll fades: show the right one when the table overflows.
+      const t = tableRef.current, wrap = wrapRef.current
+      if (!t || !wrap) return
+      setNatW(t.offsetWidth)
+      setNatH(t.offsetHeight)
+      setAvail(wrap.clientWidth)
+      const box = boxRef.current
+      if (box && !fitting) {
         setAtStart(box.scrollLeft <= 1)
         setAtEnd(box.scrollLeft + box.clientWidth >= box.scrollWidth - 1)
       }
     }
     measure()
-    // Observe BOTH the box (available width) and the table (its natural width
-    // can settle later — fonts, images) so the fit scale never stays stale.
+    // Observe the table (natural size can settle late — fonts, images) and the
+    // outer wrapper (always full width, unaffected by the box's own size) so
+    // neither side of the ratio goes stale.
     const ro = new ResizeObserver(measure)
-    if (boxRef.current) ro.observe(boxRef.current)
     if (tableRef.current) ro.observe(tableRef.current)
+    if (wrapRef.current) ro.observe(wrapRef.current)
     return () => ro.disconnect()
   }, [fitting, mobile, table])
 
-  const scaled = scale < 1
+  // Have we measured yet? Distinct from "natW/avail are 0" so a legitimately-
+  // falsy 0 never gets confused with "not measured" (see boxWidth below).
+  const measured = natW > 0 && avail > 0
+  // Shrink to a hair under the available width so a sub-pixel measurement lag
+  // can never leave the last column clipped by the box edge.
+  const fitScale = measured ? Math.min(1, (avail - 2) / natW) : 1
+  const scale = fitting ? fitScale : 1
+  // `scaled` drives the border-radius morph and the toggle button's fade —
+  // tie it to the MODE itself (fitting), not to the measured fitScale<1
+  // comparison. The measurement is fed by an async ResizeObserver, so basing
+  // a visual on-off on it raced against React's render and could flip the
+  // radius only on every OTHER tap; the chosen mode never races.
+  const scaled = fitting
+  // undefined (not 0) until measured, so framer never receives a bogus 0 width
+  // that it would then latch onto — `0 || undefined` used to collapse a real,
+  // valid 0 down to "stop animating", freezing the box at whatever px value
+  // happened to be set at that moment instead of resuming at the next resize.
+  const boxWidth = !measured ? undefined : fitting ? Math.max(1, natW * fitScale) : avail
+  const boxHeight = !measured ? undefined : natH * scale
+
+  const onScroll = () => {
+    const el = boxRef.current
+    if (!el) return
+    setAtStart(el.scrollLeft <= 1)
+    setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 1)
+  }
 
   // Fill-in answers: JSON blob (value/onChange) or per-cell (cellValue/onCellChange).
   let vals: Record<string, string> = {}
@@ -128,37 +149,37 @@ export default function QuestionTable({
     return <div style={{ padding: cellPad, color: 'var(--color-text)' }}>{cell}</div>
   }
 
-  const onScroll = () => {
-    const el = boxRef.current
-    if (!el) return
-    setAtStart(el.scrollLeft <= 1)
-    setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 1)
-  }
-
   return (
-    <div style={{ position: 'relative', alignSelf: 'flex-start', maxWidth: mobile ? '100%' : DESKTOP_MAX, width: mobile ? '100%' : 'fit-content' }}>
-      <div
+    <div ref={wrapRef} style={{ position: 'relative', alignSelf: 'flex-start', maxWidth: mobile ? '100%' : DESKTOP_MAX, width: mobile ? '100%' : 'fit-content' }}>
+      <motion.div
         ref={boxRef}
         className="no-scrollbar"
         onScroll={onScroll}
+        initial={false}
+        // Box width/height morph via the framer spring below — one motion
+        // value drives the whole shrink/grow so it reads as continuous motion
+        // instead of the table popping between two fixed states.
+        animate={mobile ? { width: boxWidth, height: boxHeight } : {}}
+        transition={MORPH}
         style={{
-          // Scroll only in the mobile natural (non-compact) mode; compact clips
-          // the scaled table, desktop scrolls if a table is genuinely too wide.
           overflowX: fitting ? 'hidden' : 'auto',
           WebkitOverflowScrolling: 'touch',
-          // Scaling shrinks the cells but not the box radius — a 16px corner then
-          // eats a big chunk of the corner cells. Morph the radius down while
-          // scaled so the rounding never covers content.
-          borderRadius: scaled ? 6 : 16,
+          // Plain CSS transition, deliberately NOT part of the framer `animate`
+          // spring above: sharing one spring cycle between width/height AND
+          // border-radius let the radius occasionally read a stale target when
+          // retargeted mid-flight (visible as "works every other tap"). A plain
+          // transition on its own independent property is simple and reliable.
+          borderRadius: mobile ? (scaled ? 6 : 16) : 16,
           transition: 'border-radius 0.22s ease',
           border, maxWidth: '100%',
-          // Crop the layout box to the scaled table so there's no white gap on
-          // the right or below (a CSS transform leaves the original box size).
-          width: scaled && natW ? natW * scale : undefined,
-          height: scaled && natH ? natH * scale : undefined,
         }}
       >
-        <div style={{ transformOrigin: 'top left', transform: scaled ? `scale(${scale})` : undefined, width: 'max-content' }}>
+        <motion.div
+          initial={false}
+          animate={{ scale }}
+          transition={MORPH}
+          style={{ transformOrigin: 'top left', width: 'max-content' }}
+        >
           <table ref={tableRef} style={{ borderCollapse: 'collapse', width: 'max-content', fontSize: mobile ? 13 : 13 }}>
             <thead>
               <tr>{table.headers.map((h, c) => (
@@ -186,8 +207,8 @@ export default function QuestionTable({
               ))}
             </tbody>
           </table>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Light scroll-hint fades — only while scrolling is possible (not in the
           shrink-to-fit mode). Right fade until you reach the end, left once
@@ -201,9 +222,16 @@ export default function QuestionTable({
 
       {/* Scroll ⇄ shrink-to-fit toggle (mobile only) */}
       {mobile && (
-        <button
+        <motion.button
           onClick={() => setCompact(v => !v)}
           aria-label={compact ? 'Показать в натуральную величину' : 'Вписать в экран'}
+          whileTap={{ scale: 0.9 }}
+          animate={{ opacity: scaled ? 0.4 : 1 }}
+          transition={{ duration: 0.2 }}
+          onTouchStart={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1' }}
+          onTouchEnd={e => { (e.currentTarget as HTMLButtonElement).style.opacity = scaled ? '0.4' : '1' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = scaled ? '0.4' : '1' }}
           style={{
             position: 'absolute', top: 8, right: 8, zIndex: 4,
             width: 32, height: 32, borderRadius: 10,
@@ -212,18 +240,22 @@ export default function QuestionTable({
             backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
             border: '1px solid var(--color-border-glass)', boxShadow: 'var(--shadow-pill)',
             cursor: 'pointer', color: 'var(--color-text-2)',
-            // When the whole (scaled) table is visible, the button would cover the
-            // top-right cell — fade it so content reads through; tap still works.
-            opacity: scaled ? 0.4 : 1,
-            transition: 'opacity 0.2s ease',
           }}
-          onTouchStart={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1' }}
-          onTouchEnd={e => { (e.currentTarget as HTMLButtonElement).style.opacity = scaled ? '0.4' : '1' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = scaled ? '0.4' : '1' }}
         >
-          {compact ? <Maximize2 size={15} /> : <Minimize2 size={15} />}
-        </button>
+          {/* Crossfade + rotate between the two glyphs so the icon itself
+              animates in step with the table's shrink/grow. */}
+          <AnimatePresence mode="wait" initial={false}>
+            {compact ? (
+              <motion.span key="max" initial={{ opacity: 0, rotate: -45 }} animate={{ opacity: 1, rotate: 0 }} exit={{ opacity: 0, rotate: 45 }} transition={{ duration: 0.18 }} style={{ display: 'flex' }}>
+                <Maximize2 size={15} />
+              </motion.span>
+            ) : (
+              <motion.span key="min" initial={{ opacity: 0, rotate: 45 }} animate={{ opacity: 1, rotate: 0 }} exit={{ opacity: 0, rotate: -45 }} transition={{ duration: 0.18 }} style={{ display: 'flex' }}>
+                <Minimize2 size={15} />
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </motion.button>
       )}
     </div>
   )

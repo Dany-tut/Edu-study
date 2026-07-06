@@ -5,7 +5,7 @@ import { useFloatingPill } from '../lib/useFloatingPill'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, Search, BookOpen, CheckCircle2, XCircle,
-  Star, Share2, AlertTriangle, Eye, Sparkles, Target, Filter,
+  Star, Share2, AlertTriangle, Eye, EyeOff, Sparkles, Target, Filter,
   LayoutGrid, List, ArrowUpDown, ArrowUp, X, TrendingUp, FlaskConical, Bell, Database, ZoomIn, ZoomOut,
 } from 'lucide-react'
 import {
@@ -254,6 +254,11 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
   const isFav = favorites.has(task.id)
   const isCorrect = state?.correct === true
   const isWrong   = state?.correct === false
+  // Once the current text has actually been checked, hide "Проверить" — only
+  // the field + "Решение" remain. Editing the answer afterwards (inputVal no
+  // longer matches what was checked) brings "Проверить" back so it can be
+  // re-submitted, instead of leaving the student with no way to recheck.
+  const alreadyChecked = state !== undefined && inputVal === state.value
 
   // ── Golden rules for option/match/sequence rows on the phone ──────────────
   // Tighter box (less padding, smaller letter chip, lower min-height) and a
@@ -438,6 +443,11 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           <input
             ref={inputRef}
             value={inputVal}
+            // Locked once checked: erasing/editing a checked answer used to
+            // bring "Проверить" straight back (inputVal !== state.value), so a
+            // stray backspace could silently un-submit the answer. readOnly
+            // keeps it visible and selectable (for copy) but not editable.
+            readOnly={alreadyChecked}
             onChange={e => {
               setInputVal(e.target.value)
               const measuredWidth = measureRef.current?.offsetWidth ?? 0
@@ -451,6 +461,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               padding: '0 16px', borderRadius: 16, fontSize: mobile ? 16 : 14, outline: 'none',
               border: `1px solid ${state ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'var(--color-border-medium)'}`,
               background: state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : 'var(--color-bg-input)',
+              cursor: alreadyChecked ? 'default' : 'text',
             }}
           />
           <div style={{
@@ -467,11 +478,16 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         </motion.div>
         {/* popLayout: the exiting button leaves the flex flow immediately, so
             the field's `layout` grows back smoothly *during* the fade-out
-            instead of snapping open only after the button fully unmounts. */}
+            instead of snapping open only after the button fully unmounts.
+            NOTE: this outer wrapper intentionally has NO `layout` prop — combining
+            a size-changing child (Решение appearing after check()) with both a
+            FLIP layout animation AND an entrance transform (scale/x) on the same
+            element caused framer to occasionally mis-measure and collapse the
+            whole row down to just the last child. The field's own `layout` above
+            already makes room as this block enters/exits; Решение animates itself. */}
         <AnimatePresence mode="popLayout">
           {inputVal.trim() && (
             <motion.div
-              layout
               key="task-actions"
               // Springs in from the field's edge — scales up + slides while the
               // field morphs open beside it, then reverses on exit.
@@ -481,27 +497,107 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               transition={FIELD_MORPH}
               style={{ display: 'flex', gap: 8, alignItems: 'center', transformOrigin: 'left center' }}
             >
-              <button onClick={check} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: answerH,
-                padding: mobile ? '0 18px' : '0 22px', borderRadius: 16, flexShrink: 0, whiteSpace: 'nowrap',
-                background: palette.accent, color: palette.onAccent,
-                border: 'none', outline: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                boxShadow: `0 4px 14px ${palette.ring}`,
-                transition: 'all 0.18s ease',
-              }}>
-                <CheckCircle2 size={14} />Проверить
-              </button>
-              {state !== undefined && (
-                <button onClick={() => { tap(); setShowSolution(s => !s) }} style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: answerH, padding: mobile ? '0 16px' : '0 18px', borderRadius: 16,
-                  background: showSolution ? palette.soft : 'rgba(var(--glass-rgb), 0.88)',
-                  border: showSolution ? 'none' : '1px solid var(--color-border-medium)',
-                  outline: 'none',
-                  fontSize: 13, cursor: 'pointer', color: showSolution ? palette.text : 'var(--color-muted)', fontWeight: showSolution ? 700 : 500,
-                }}>
-                  <Eye size={14} />Решение
-                </button>
-              )}
+              {/* Hidden once the current text has been checked — only the field
+                  + Решение remain. Editing the answer afterwards brings it back.
+                  `layout` (not an animated `width`) drives the resize: framer's
+                  FLIP measures the before/after box and animates it via a cheap
+                  transform, instead of interpolating the actual `width` property
+                  frame-by-frame (which has to keep re-resolving 'auto' against
+                  the flex row and was the source of the jitter/lag).
+                  `mode="popLayout"`: without it, the exiting Проверить stays in
+                  the flex flow (reserving its full width) for its ENTIRE fade,
+                  while Решение's brand-new box claims its space immediately on
+                  mount — the field's own `layout` then had to react to BOTH
+                  changes at different times, visibly slamming shut then
+                  snapping open again. popLayout removes Проверить from flow the
+                  instant it starts exiting, so both changes land together and
+                  the field morphs straight to its final width in one motion. */}
+              <AnimatePresence mode="popLayout" initial={false}>
+                {!alreadyChecked && (
+                  <motion.button
+                    layout
+                    key="check-btn"
+                    onClick={check}
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.85 }}
+                    transition={FIELD_MORPH}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: answerH,
+                      padding: mobile ? '0 18px' : '0 22px', borderRadius: 16, overflow: 'hidden', flexShrink: 0, whiteSpace: 'nowrap',
+                      background: palette.accent, color: palette.onAccent,
+                      border: 'none', outline: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                      boxShadow: `0 4px 14px ${palette.ring}`,
+                    }}
+                  >
+                    <CheckCircle2 size={14} />Проверить
+                  </motion.button>
+                )}
+              </AnimatePresence>
+              <AnimatePresence mode="popLayout" initial={false}>
+                {state !== undefined && (
+                  <motion.button
+                    layout
+                    key="solution-btn"
+                    onClick={() => { tap(); setShowSolution(s => !s) }}
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.85 }}
+                    transition={FIELD_MORPH}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: answerH, padding: mobile ? '0 16px' : '0 18px', borderRadius: 16,
+                      background: showSolution ? palette.soft : 'rgba(var(--glass-rgb), 0.88)',
+                      // Always a real 1.5px border — only its COLOR toggles (to
+                      // transparent when active) — so the box never resizes by
+                      // the border's own width the way `border: none` did.
+                      border: `1.5px solid ${showSolution ? 'transparent' : 'var(--color-border-medium)'}`,
+                      outline: 'none', overflow: 'hidden', flexShrink: 0, whiteSpace: 'nowrap',
+                      // Fixed weight — toggling 500⇄700 instantly reflows the
+                      // text at a different width inside a fixed-size button,
+                      // which reads as the icon/label twitching sideways. Only
+                      // colour now carries the active state.
+                      fontSize: 13, fontWeight: 650, cursor: 'pointer', color: showSolution ? palette.text : 'var(--color-muted)',
+                      transition: 'background 0.18s ease, border-color 0.18s ease, color 0.18s ease',
+                    }}
+                  >
+                    {/* Closed eye by default; opens on tap — the glyph itself
+                        now communicates the state, with a little pop/rotate
+                        as it crosses over instead of an instant swap. */}
+                    <span style={{ display: 'inline-flex', position: 'relative', width: 14, height: 14 }}>
+                      {/* Sync (default) mode, not "wait": the new glyph starts
+                          fading in immediately alongside the old one fading out
+                          — a simple crossfade that doesn't depend on the exit
+                          finishing first, so the swap can't get stuck. */}
+                      <AnimatePresence initial={false}>
+                        {showSolution ? (
+                          <motion.span
+                            key="open"
+                            initial={{ opacity: 0, rotate: -25, scale: 0.6 }}
+                            animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                            exit={{ opacity: 0, rotate: 25, scale: 0.6 }}
+                            transition={{ duration: 0.22, ease: 'easeOut' }}
+                            style={{ display: 'flex', position: 'absolute', inset: 0 }}
+                          >
+                            <Eye size={14} />
+                          </motion.span>
+                        ) : (
+                          <motion.span
+                            key="closed"
+                            initial={{ opacity: 0, rotate: 25, scale: 0.6 }}
+                            animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                            exit={{ opacity: 0, rotate: -25, scale: 0.6 }}
+                            transition={{ duration: 0.22, ease: 'easeOut' }}
+                            style={{ display: 'flex', position: 'absolute', inset: 0 }}
+                          >
+                            <EyeOff size={14} />
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </span>
+                    Решение
+                  </motion.button>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
         </AnimatePresence>
