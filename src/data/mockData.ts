@@ -47,8 +47,10 @@ export interface Lesson {
   homework?: import('./lessonContent').AuthoredHomework
   /** Short lesson description from the teacher editor (lessons.description). */
   description?: string
-  /** "Запись" tab — recording video (RuTube embed id parsed from the URL). */
-  videoId?: string
+  /** "Запись" tab — raw recording URL as pasted by the teacher: RuTube,
+   *  YouTube, or the school's own link (teachstream /watch/<id>, direct
+   *  .webm/.mp4, …). Parsed into a playable source at render time. */
+  videoUrl?: string
   /** "Запись" tab — video chapter timecodes. */
   timecodes?: import('./lessonContent').LessonTimecode[]
   /** Scheduled calendar date (ISO "YYYY-MM-DD") — shown on the track to match the schedule. */

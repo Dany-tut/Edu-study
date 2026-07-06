@@ -654,7 +654,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
       </div>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>Добавьте запись урока</div>
-        <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>После созвона — вставьте ссылку RuTube / YouTube</div>
+        <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>После созвона — вставьте ссылку RuTube, YouTube или свою (ONIX Stream и т.п.)</div>
       </div>
 
       {editing ? (

@@ -251,16 +251,6 @@ interface DbCourse {
   }>
 }
 
-/** Extract a RuTube embed id from a pasted video URL (the student player embeds
- *  rutube.ru/play/embed/<id>). Accepts /video/<id>/, /play/embed/<id>, or a bare id. */
-function rutubeEmbedId(url: string | null | undefined): string | undefined {
-  if (!url) return undefined
-  const m = url.match(/rutube\.ru\/(?:video|play\/embed)\/([0-9a-f]+)/i)
-  if (m) return m[1]
-  if (/^[0-9a-f]{16,}$/i.test(url.trim())) return url.trim()
-  return undefined
-}
-
 export async function fetchCourseStructure(rows: Array<{ id: string; groupId: string }>): Promise<Subject[]> {
   const studentIds = [...new Set(rows.map(r => r.id))]
   const groupIds = [...new Set(rows.map(r => r.groupId))]
@@ -343,7 +333,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
                 ? l.homework
                 : undefined,
               description: l.description ?? undefined,
-              videoId: rutubeEmbedId(l.youtube_url),
+              videoUrl: l.youtube_url ?? undefined,
               timecodes: Array.isArray(l.timecodes) && l.timecodes.length ? l.timecodes : undefined,
               scheduledDate: l.scheduled_date ?? undefined,
             }
@@ -355,7 +345,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
             if (diverged) {
               return [
                 { ...base, id: `${l.short_id}~rec`, shape: 'square' as LessonShape, nodeType: 'rec' as const, content: undefined, scheduledDate: l.rec_date ?? undefined },
-                { ...base, id: l.short_id, shape: (l.shape as LessonShape) ?? 'circle', nodeType: 'lesson' as const, videoId: undefined },
+                { ...base, id: l.short_id, shape: (l.shape as LessonShape) ?? 'circle', nodeType: 'lesson' as const, videoUrl: undefined },
               ]
             }
             return [{ ...base, id: l.short_id, shape: (l.shape as LessonShape) ?? 'circle' }]

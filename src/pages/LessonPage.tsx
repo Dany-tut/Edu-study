@@ -9,6 +9,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { findLessonById, getLessonDetail, type LessonMaterial, type LessonHomework } from '../data/lessonContent'
 import { useStudentData } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
+import { videoEmbedSrc } from '../lib/videoSource'
 import type { CourseReaction } from '../data/mockData'
 import { EMOJI_STEPS } from '../components/HomeworkFlow'
 
@@ -522,6 +523,7 @@ export default function LessonPage() {
   // mounts. Once mounted we seek via the postMessage API instead of remounting.
   const [startSeconds, setStartSeconds] = useState(0)
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  const nativeVideoRef = useRef<HTMLVideoElement>(null)
   // Queue a one-shot reaction highlight locally so it survives clearing the
   // global navigation flag in the store.
   const [queuedHighlight, setQueuedHighlight] = useState<string | null>(null)
@@ -591,28 +593,36 @@ export default function LessonPage() {
   }
 
   const detail = getLessonDetail(lesson)
+  const videoSource = detail.videoSource
 
   // RuTube player API: send a command to the embed iframe over postMessage.
   const sendPlayerCommand = (type: string, data: Record<string, unknown> = {}) => {
     iframeRef.current?.contentWindow?.postMessage(JSON.stringify({ type, data }), '*')
   }
 
-  // Open the player at `seconds`, or — if it's already open — seek there via the
-  // postMessage API (no remount). The play button and every timecode use this.
+  // Open the player at `seconds`, or — if it's already open — seek there. Own
+  // uploaded files seek natively via the <video> element; RuTube seeks via its
+  // postMessage API without remounting; everything else (YouTube, other own
+  // links) just reopens the iframe at the new start offset.
   const playFrom = (seconds: number) => {
-    if (playing) {
+    if (playing && videoSource?.kind === 'rutube') {
       sendPlayerCommand('player:setCurrentTime', { time: seconds })
       sendPlayerCommand('player:play')
-    } else {
-      setStartSeconds(seconds)
-      setPlaying(true)
+      return
     }
+    if (playing && videoSource?.kind === 'file' && nativeVideoRef.current) {
+      nativeVideoRef.current.currentTime = seconds
+      nativeVideoRef.current.play()
+      return
+    }
+    setStartSeconds(seconds)
+    setPlaying(true)
   }
 
   // The embed doesn't always honour autoplay from the ?t= URL alone, so once the
   // RuTube player reports it's ready we nudge it to start.
   useEffect(() => {
-    if (!playing) return
+    if (!playing || videoSource?.kind !== 'rutube') return
     const onMessage = (e: MessageEvent) => {
       if (typeof e.data !== 'string') return
       let msg: { type?: string }
@@ -621,7 +631,7 @@ export default function LessonPage() {
     }
     window.addEventListener('message', onMessage)
     return () => window.removeEventListener('message', onMessage)
-  }, [playing])
+  }, [playing, videoSource?.kind])
 
   // Easing for the date chip's icon/month collapse — matches the top bar's own
   // expand/collapse curve so the two move in sync.
@@ -767,7 +777,7 @@ export default function LessonPage() {
       </div>
 
       {/* ── Row 1: video + timecodes — only when recording exists ── */}
-      {detail.videoId && (
+      {videoSource && (
         <div
           className="grid lg:grid-cols-[minmax(0,1fr)_320px] items-stretch"
           style={{ gap: 16 }}
@@ -784,10 +794,22 @@ export default function LessonPage() {
               boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
             }}
           >
-            {playing ? (
+            {playing && videoSource.kind === 'file' ? (
+              <video
+                ref={nativeVideoRef}
+                src={videoSource.url}
+                controls
+                autoPlay
+                disablePictureInPicture
+                controlsList="nodownload noplaybackrate"
+                onLoadedMetadata={e => { e.currentTarget.currentTime = startSeconds }}
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', background: '#000' }}
+              />
+            ) : playing ? (
               <iframe
+                key={startSeconds}
                 ref={iframeRef}
-                src={`https://rutube.ru/play/embed/${detail.videoId}?t=${startSeconds}`}
+                src={videoEmbedSrc(videoSource, startSeconds)}
                 title={`Видео урока: ${lesson.title}`}
                 allow="clipboard-write; autoplay; fullscreen; encrypted-media; picture-in-picture"
                 allowFullScreen

@@ -1,6 +1,7 @@
 import { type Lesson } from './mockData'
 import { useStudentData } from '../store/studentDataStore'
 import { AP_LESSON_CONTENT, type ApLessonContent } from './apChemistryLessons'
+import { parseVideoSource, type VideoSource } from '../lib/videoSource'
 
 // ── Lesson page (screen 2) content ──────────────────────────────────────────
 
@@ -112,8 +113,9 @@ export interface LessonDetail {
   date: string
   /** total runtime, e.g. "24:18" */
   duration: string
-  /** RuTube video id for the embedded player — undefined when recording not yet added */
-  videoId?: string
+  /** Parsed recording source (RuTube / YouTube / own link) — undefined when
+   *  no recording has been attached yet. */
+  videoSource?: VideoSource
   timecodes: LessonTimecode[]
   materials: LessonMaterial[]
   /** Body of the lesson's "Конспект" — a handful of paragraphs, with any
@@ -162,7 +164,7 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
   const dateStr = `${pad2(day)}.${pad2(month)}`
 
   // Use DB video/timecodes only — no mock fallback.
-  const videoId = lesson.videoId
+  const videoSource = parseVideoSource(lesson.videoUrl)
   const timecodes = lesson.timecodes?.length ? lesson.timecodes : baseTimecodes
 
   // Homework priority: teacher-authored homework from the course editor's
@@ -179,7 +181,7 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
     return {
       date: dateStr,
       duration: '25:12',
-      videoId,
+      videoSource,
       timecodes,
       materials: materialsBySubject.chemistry,
       paragraphs: ap.paragraphs,
@@ -195,7 +197,7 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
   return {
     date: dateStr,
     duration: '25:12',
-    videoId,
+    videoSource,
     timecodes,
     materials: materialsBySubject[lesson.subject] ?? materialsBySubject.chemistry,
     paragraphs: descParagraphs,

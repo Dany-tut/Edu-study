@@ -1795,7 +1795,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
 
               {tab === 'record' && <>
                 <div style={sectionTitle}>Видео записи урока</div>
-                <input value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="Ссылка RuTube / YouTube" style={inputSt} />
+                <input value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="Ссылка RuTube / YouTube / своя (ONIX Stream и т.п.)" style={inputSt} />
 
                 <div style={{ ...sectionTitle, marginTop: 16 }}>Таймкоды</div>
                 {timecodes.map((tc, ti) => (
