@@ -46,10 +46,8 @@ const FIELD_MORPH = { type: 'spring', stiffness: 520, damping: 38, mass: 0.7 } a
 const SORT_OPTIONS: [SortMode, string][] = [
   ['newest', 'Новые'],
   ['oldest', 'Старые'],
-  ['easy', 'Лёгкие'],
+  ['easy', 'Простые'],
   ['hard', 'Сложные'],
-  ['subject', 'По предмету'],
-  ['line', 'По линии'],
 ]
 
 // ── Scroll-fade list ─────────────────────────────────────────────────────────
@@ -1701,7 +1699,7 @@ export default function TaskBankPage() {
                 // doesn't drift as the width shrinks to 42 in the mini dock).
                 // Expanded: left-align the icon with padding for the input row.
                 display: 'flex', alignItems: 'center', justifyContent: searchExpanded ? 'flex-start' : 'center',
-                gap: 8, padding: searchExpanded ? '0 15px' : 0,
+                gap: searchExpanded ? 8 : 0, padding: searchExpanded ? '0 15px' : 0,
                 borderRadius: 999, overflow: 'hidden',
                 background: 'rgba(var(--glass-rgb), 0.6)',
                 backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
@@ -1716,7 +1714,7 @@ export default function TaskBankPage() {
                   16 prevents iOS auto-zoom on focus. */}
               <Search size={20} style={{ flexShrink: 0 }} />
               <input ref={mSearchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по тексту"
-                style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: 'var(--color-text)', opacity: searchExpanded ? 1 : 0, pointerEvents: searchExpanded ? 'auto' : 'none' }} />
+                style={{ flex: searchExpanded ? 1 : 0, width: searchExpanded ? undefined : 0, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: 'var(--color-text)', opacity: searchExpanded ? 1 : 0, pointerEvents: searchExpanded ? 'auto' : 'none' }} />
               {searchExpanded && (
                 <button onClick={e => { e.stopPropagation(); setSearch(''); setSearchExpanded(false) }} aria-label="Закрыть поиск"
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', flexShrink: 0, padding: 0 }}>
