@@ -43,6 +43,15 @@ type ViewMode = 'list' | 'grid'
 // feel like one coordinated motion (snappy, tiny settle, no overshoot wobble).
 const FIELD_MORPH = { type: 'spring', stiffness: 520, damping: 38, mass: 0.7 } as const
 
+// Russian typography: never leave a 1–2 letter word (prepositions/conjunctions
+// like «в», «с», «и», «по», and a capitalised «В»/«С» starting a sentence) dangling
+// at the end of a line — glue it to the next word with a non-breaking space. Runs
+// on the question HTML; the leading boundary keeps it from touching word endings
+// or tag internals.
+function bindShortWords(html: string): string {
+  return html.replace(/(^|[\s(«„"'>])([А-яЁё]{1,2}) /g, (_m, pre, word) => `${pre}${word}\u00A0`)
+}
+
 const SORT_OPTIONS: [SortMode, string][] = [
   ['newest', 'Новые'],
   ['oldest', 'Старые'],
@@ -350,8 +359,8 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       {/* Question spans the full card width below the header row so the result
           badge (Верно/Неверно) never squeezes it into a narrower column — its
           appearance must not reflow / "push" the wrapped lines. */}
-      <div lang="ru" style={{ fontSize: mobile ? 14 : 16, lineHeight: mobile ? 1.45 : 1.5, fontWeight: mobile ? 450 : 550, color: 'var(--color-text)', textAlign: mobile ? 'justify' : undefined, hyphens: mobile ? 'auto' : undefined, WebkitHyphens: mobile ? 'auto' : undefined, marginTop: mobile ? -6 : -4 }}
-        dangerouslySetInnerHTML={{ __html: task.question }} />
+      <div lang="ru" style={{ fontSize: mobile ? 14 : 16, lineHeight: mobile ? 1.45 : 1.5, fontWeight: mobile ? 450 : 550, color: 'var(--color-text)', textAlign: 'left', overflowWrap: 'break-word', marginTop: mobile ? -6 : -4 }}
+        dangerouslySetInnerHTML={{ __html: bindShortWords(task.question) }} />
 
       {/* Image / table blocks in teacher-configured order */}
       {(task.blockOrder ?? ['image', 'table']).map(blockKey => {
