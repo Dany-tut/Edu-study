@@ -65,9 +65,10 @@ export default function QuestionTable({
         // border-collapsed table and leaves it a few px too wide (last column
         // clipped by the box). Use offsetWidth so the scaled table fits exactly.
         const natural = t.offsetWidth
-        // Shrink to a hair under the available width so a sub-pixel measurement
-        // lag can never leave the last column clipped by the box edge.
-        const avail = box.clientWidth - 2
+        // Measure available width from the OUTER wrapper (always full width) —
+        // NOT the box, whose width we shrink to the scaled table. Reading the
+        // shrunk box would collapse `avail` and spiral the scale toward zero.
+        const avail = (box.parentElement?.clientWidth ?? box.clientWidth) - 2
         if (natural > avail) { setScale(avail / natural); setNatH(t.offsetHeight); setNatW(natural) }
         else { setScale(1); setNatH(undefined); setNatW(undefined) }
       } else {
@@ -135,7 +136,7 @@ export default function QuestionTable({
   }
 
   return (
-    <div style={{ position: 'relative', alignSelf: 'flex-start', maxWidth: mobile ? '100%' : DESKTOP_MAX, width: scaled && natW ? natW * scale : (mobile ? '100%' : 'fit-content') }}>
+    <div style={{ position: 'relative', alignSelf: 'flex-start', maxWidth: mobile ? '100%' : DESKTOP_MAX, width: mobile ? '100%' : 'fit-content' }}>
       <div
         ref={boxRef}
         className="no-scrollbar"
