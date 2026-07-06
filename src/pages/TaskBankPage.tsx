@@ -360,7 +360,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       {/* Question spans the full card width below the header row so the result
           badge (Верно/Неверно) never squeezes it into a narrower column — its
           appearance must not reflow / "push" the wrapped lines. */}
-      <div lang="ru" style={{ fontSize: mobile ? 14 : 16, lineHeight: mobile ? 1.45 : 1.5, fontWeight: mobile ? 450 : 550, color: 'var(--color-text)', textAlign: 'left', overflowWrap: 'break-word', marginTop: mobile ? -6 : -4 }}
+      <div lang="ru" style={{ fontSize: mobile ? 14 : 16, lineHeight: mobile ? 1.45 : 1.5, fontWeight: mobile ? 450 : 550, color: 'var(--color-text)', textAlign: mobile ? 'justify' : undefined, overflowWrap: 'break-word', marginTop: mobile ? -6 : -4 }}
         dangerouslySetInnerHTML={{ __html: bindShortWords(task.question) }} />
 
       {/* Image / table blocks in teacher-configured order */}
@@ -1714,7 +1714,10 @@ export default function TaskBankPage() {
                   16 prevents iOS auto-zoom on focus. */}
               <Search size={20} style={{ flexShrink: 0 }} />
               <input ref={mSearchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по тексту"
-                style={{ flex: searchExpanded ? 1 : 0, width: searchExpanded ? undefined : 0, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: 'var(--color-text)', opacity: searchExpanded ? 1 : 0, pointerEvents: searchExpanded ? 'auto' : 'none' }} />
+                style={{ flex: searchExpanded ? 1 : 0, width: searchExpanded ? undefined : 0, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: 'var(--color-text)', opacity: searchExpanded ? 1 : 0, pointerEvents: searchExpanded ? 'auto' : 'none',
+                  // Soft fade on the right edge so long text/placeholder melts out
+                  // before the ✕ instead of hard-clipping against the pill edge.
+                  maskImage: 'linear-gradient(to right, #000 calc(100% - 18px), transparent)', WebkitMaskImage: 'linear-gradient(to right, #000 calc(100% - 18px), transparent)' }} />
               {searchExpanded && (
                 <button onClick={e => { e.stopPropagation(); setSearch(''); setSearchExpanded(false) }} aria-label="Закрыть поиск"
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', flexShrink: 0, padding: 0 }}>
