@@ -719,8 +719,38 @@ const STATUS_OPTIONS: [StatusFilter, string][] = [
   ['done', 'Решённые'],
 ]
 
-function StatusTabs({ value, onChange }: { value: StatusFilter; onChange: (v: StatusFilter) => void }) {
+function StatusTabs({ value, onChange, mobile, accent }: { value: StatusFilter; onChange: (v: StatusFilter) => void; mobile?: boolean; accent?: string }) {
   const pill = useFloatingPill(value)
+  // Mobile: match the surrounding filter fields (like «Часть 1/2») — three
+  // equal grey segments that tint to the subject accent when selected, instead
+  // of the desktop floating-pill look.
+  if (mobile) {
+    const acc = accent ?? 'var(--color-accent)'
+    return (
+      <div style={{ display: 'flex', gap: 8 }}>
+        {STATUS_OPTIONS.map(([val, label]) => {
+          const active = value === val
+          // «Все» sizes to its short label; the two long options share the rest.
+          const isAll = val === 'all'
+          return (
+            <button
+              key={val}
+              onClick={() => { tactile(); onChange(val) }}
+              style={{
+                flex: isAll ? '0 0 auto' : '1 1 0', padding: isAll ? '11px 18px' : '11px 6px', borderRadius: 13, border: 'none', cursor: 'pointer',
+                fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
+                background: active ? `${acc}22` : 'var(--color-bg-input)',
+                color: active ? acc : 'var(--color-muted)',
+                transition: 'background 0.15s, color 0.15s',
+              }}
+            >
+              {label}
+            </button>
+          )
+        })}
+      </div>
+    )
+  }
   return (
     <div
       ref={pill.containerRef}
@@ -1330,7 +1360,17 @@ export default function TaskBankPage() {
   const [dockW, setDockW] = useState(0)
   const dockRef = useRef<HTMLDivElement>(null)
   const mSearchRef = useRef<HTMLInputElement>(null)
+  const searchPillRef = useRef<HTMLDivElement>(null)
   useEffect(() => { if (searchExpanded) mSearchRef.current?.focus() }, [searchExpanded])
+  // Tap anywhere outside the expanded pill collapses it back to a circle.
+  useEffect(() => {
+    if (!searchExpanded) return
+    const onDown = (e: PointerEvent) => {
+      if (!searchPillRef.current?.contains(e.target as Node)) setSearchExpanded(false)
+    }
+    document.addEventListener('pointerdown', onDown)
+    return () => document.removeEventListener('pointerdown', onDown)
+  }, [searchExpanded])
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [sortMode, setSortMode]         = useState<SortMode>('newest')
   const viewMode: ViewMode = 'list'
@@ -1512,7 +1552,15 @@ export default function TaskBankPage() {
         initial={false}
         animate={{ width: navCollapsed ? 42 : 50, height: navCollapsed ? 42 : 50 }}
         transition={DOCK_COLLAPSE}
-        style={{ ...glassCircle, position: 'relative', color: opts.active ? 'var(--color-accent)' : 'var(--color-text-2)' }}
+        style={{
+          ...glassCircle, position: 'relative',
+          // Frosted glass: more transparent fill so the backdrop-blur reads
+          // through, plus a hairline top highlight (matches the bottom nav).
+          background: 'rgba(var(--glass-rgb), 0.6)',
+          backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+          boxShadow: 'var(--shadow-pill), inset 0 1px 0 rgba(255,255,255,0.5)',
+          color: opts.active ? 'var(--color-accent)' : 'var(--color-text-2)',
+        }}
       >
         {icon}
         {!!opts.badge && opts.badge > 0 && (
@@ -1613,6 +1661,7 @@ export default function TaskBankPage() {
             {/* Expanding search pill — grows from the first circle to the full
                 dock width; holds the input, closes back to a circle on ✕. */}
             <motion.div
+              ref={searchPillRef}
               initial={false}
               animate={{ width: searchExpanded ? dockW : (navCollapsed ? 42 : 50), opacity: searchExpanded ? 1 : 0 }}
               transition={FIELD_MORPH}
@@ -1628,7 +1677,7 @@ export default function TaskBankPage() {
             >
               <Search size={18} style={{ color: 'var(--color-text-2)', flexShrink: 0 }} />
               {/* fontSize 16 prevents iOS auto-zoom on focus */}
-              <input ref={mSearchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по тексту или №..."
+              <input ref={mSearchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по тексту"
                 style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: 'var(--color-text)' }} />
               <button onClick={() => { setSearch(''); setSearchExpanded(false) }} aria-label="Закрыть поиск"
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', flexShrink: 0, padding: 0 }}>
@@ -1661,7 +1710,7 @@ export default function TaskBankPage() {
             </div>
             <MultiSelectField label="Линия" options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} />
             <FilterField label="Источник" options={allSources} value={source} onChange={setSource} accent={palette.accent} />
-            <StatusTabs value={statusFilter} onChange={setStatusFilter} />
+            <StatusTabs value={statusFilter} onChange={setStatusFilter} mobile accent={palette.accent} />
             {/* Always reserve the button's slot so toggling filters doesn't
                 change the sheet height (grabber would otherwise jump). */}
             <button onClick={() => { if (!hasFilters) return; tactile(); clearFilters() }}
