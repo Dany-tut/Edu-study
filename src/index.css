@@ -738,4 +738,10 @@ input::-webkit-textfield-decoration-container {
   select {
     font-size: 16px;
   }
+  /* Inputs that set an inline font-size < 16px (e.g. the filter combobox search
+     fields) escape the rule above — inline styles win. Force them back to 16px
+     so tapping them never triggers iOS's focus auto-zoom. */
+  .mobile-input-16 {
+    font-size: 16px !important;
+  }
 }

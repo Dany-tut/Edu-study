@@ -90,6 +90,7 @@ function FilterField({ label, options, value, onChange, accent }: {
         }}>
         <input
           ref={inputRef}
+          className="mobile-input-16"
           value={open ? query : value}
           placeholder={label}
           onFocus={() => { setOpen(true); setQuery('') }}
@@ -1633,10 +1634,10 @@ export default function TaskBankPage() {
             transition={DOCK_COLLAPSE}
             style={{ position: 'relative', display: 'flex', gap: 12, alignItems: 'center', pointerEvents: 'auto' }}
           >
-            {/* Search circle — fades under the expanding pill that replaces it. */}
-            <motion.div initial={false} animate={{ opacity: searchExpanded ? 0 : 1 }} transition={FIELD_MORPH} style={{ pointerEvents: searchExpanded ? 'none' : 'auto' }}>
-              {dockCircle('search', <Search size={20} />, () => { setDockW(dockRef.current?.offsetWidth ?? 0); setSearchExpanded(true) }, { label: 'Поиск', badge: search ? 1 : 0, active: !!search })}
-            </motion.div>
+            {/* Invisible spacer holding the search slot; the always-mounted pill
+                (below) renders the visuals so opacity is never animated on a
+                blurred element — the backdrop-blur never blinks off. */}
+            <motion.div initial={false} animate={{ width: navCollapsed ? 42 : 50, height: navCollapsed ? 42 : 50 }} transition={DOCK_COLLAPSE} style={{ flexShrink: 0, pointerEvents: 'none' }} />
 
             {/* Filter / sort / fav — on expand they scale down, blur and drift
                 right while fading, staggered left→right. */}
@@ -1658,31 +1659,41 @@ export default function TaskBankPage() {
               </motion.div>
             ))}
 
-            {/* Expanding search pill — grows from the first circle to the full
-                dock width; holds the input, closes back to a circle on ✕. */}
+            {/* Search control — ALWAYS mounted at opacity 1; only its WIDTH
+                morphs (circle → full dock). Fixed opacity means Chromium never
+                suspends the backdrop-filter, so the frosted blur stays put
+                through the whole expand/collapse instead of blinking. */}
             <motion.div
               ref={searchPillRef}
               initial={false}
-              animate={{ width: searchExpanded ? dockW : (navCollapsed ? 42 : 50), opacity: searchExpanded ? 1 : 0 }}
+              animate={{ width: searchExpanded ? dockW : (navCollapsed ? 42 : 50) }}
               transition={FIELD_MORPH}
+              onClick={() => { if (!searchExpanded) { setDockW(dockRef.current?.offsetWidth ?? 0); setSearchExpanded(true) } }}
+              aria-label="Поиск"
               style={{
                 position: 'absolute', left: 0, top: 0, bottom: 0,
-                display: 'flex', alignItems: 'center', gap: 8, padding: '0 16px',
+                display: 'flex', alignItems: 'center', gap: 8, padding: '0 15px',
                 borderRadius: 999, overflow: 'hidden',
-                background: 'rgba(var(--glass-rgb), 0.82)',
-                backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-                border: '1px solid var(--color-border-glass)', boxShadow: 'var(--shadow-pill)',
-                pointerEvents: searchExpanded ? 'auto' : 'none',
+                background: 'rgba(var(--glass-rgb), 0.6)',
+                backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+                border: '1px solid var(--color-border-glass)',
+                boxShadow: 'var(--shadow-pill), inset 0 1px 0 rgba(255,255,255,0.5)',
+                cursor: searchExpanded ? 'text' : 'pointer', pointerEvents: 'auto',
+                color: search ? 'var(--color-accent)' : 'var(--color-text-2)',
               }}
             >
-              <Search size={18} style={{ color: 'var(--color-text-2)', flexShrink: 0 }} />
-              {/* fontSize 16 prevents iOS auto-zoom on focus */}
+              {/* Icon stays centred in the collapsed circle (15px padding + 20px
+                  icon ≈ centred); input/✕ stay clipped until expanded. fontSize
+                  16 prevents iOS auto-zoom on focus. */}
+              <Search size={20} style={{ flexShrink: 0 }} />
               <input ref={mSearchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по тексту"
-                style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: 'var(--color-text)' }} />
-              <button onClick={() => { setSearch(''); setSearchExpanded(false) }} aria-label="Закрыть поиск"
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', flexShrink: 0, padding: 0 }}>
-                <X size={18} />
-              </button>
+                style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: 'var(--color-text)', opacity: searchExpanded ? 1 : 0, pointerEvents: searchExpanded ? 'auto' : 'none' }} />
+              {searchExpanded && (
+                <button onClick={e => { e.stopPropagation(); setSearch(''); setSearchExpanded(false) }} aria-label="Закрыть поиск"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', flexShrink: 0, padding: 0 }}>
+                  <X size={18} />
+                </button>
+              )}
             </motion.div>
           </motion.div>
         </div>

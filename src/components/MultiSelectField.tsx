@@ -117,6 +117,7 @@ export default function MultiSelectField({
           <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
             <input
               ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
+              className="mobile-input-16"
               placeholder={isEmpty ? label : ''}
               onClick={e => { if (open && !query && isEmpty) { e.stopPropagation(); close() } }}
               onKeyDown={e => { if (e.key === 'Backspace' && !query && values.length) onChange(values.slice(0, -1)) }}
