@@ -50,16 +50,19 @@ export default class ErrorBoundary extends Component<Props, State> {
         <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
           <button
             onClick={() => this.setState({ error: null })}
-            style={{ padding: '10px 20px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+            style={{ padding: '10px 20px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, lineHeight: 1.2, cursor: 'pointer' }}
           >
             Попробовать снова
           </button>
           <button
             onClick={() => window.location.reload()}
-            style={{ padding: '10px 20px', borderRadius: 12, border: 'none', background: 'var(--grad-purple, #786AD7)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+            style={{ padding: '10px 20px', borderRadius: 12, border: 'none', background: 'var(--grad-purple, #786AD7)', color: '#fff', fontSize: 13, fontWeight: 600, lineHeight: 1.2, cursor: 'pointer' }}
           >
             Обновить страницу
           </button>
+        </div>
+        <div style={{ position: 'fixed', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', left: 0, right: 0, textAlign: 'center', fontSize: 11, fontWeight: 500, color: 'var(--color-text-3)', letterSpacing: 0.3 }}>
+          Версия {__APP_VERSION__}
         </div>
       </div>
     )

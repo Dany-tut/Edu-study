@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import TeacherTopBar from '../../components/teacher/TeacherTopBar'
 import NotificationToastContainer from '../../components/NotificationToast'
 import { useNotificationsInit } from '../../lib/notificationsSync'
@@ -95,6 +95,25 @@ export default function TeacherDashboardPage() {
     }
   }, [activePage])
 
+  // Horizontal wheel / trackpad swipe switches desks (Сегодня → Финансы → Ученики …).
+  // Only a dominantly-horizontal gesture counts, so vertical scrolling of widgets is
+  // untouched. A cooldown keeps one flick from skipping several desks at once.
+  const wheelCooldown = useRef(false)
+  const handleDeskWheel = useCallback((e: React.WheelEvent) => {
+    if (editMode) return
+    const { deltaX, deltaY } = e
+    if (Math.abs(deltaX) <= Math.abs(deltaY) || Math.abs(deltaX) < 24) return
+    if (wheelCooldown.current) return
+    const desks = config.desks
+    const cur = desks.findIndex(d => d.id === activeDesk.id)
+    if (cur < 0) return
+    const next = deltaX > 0 ? cur + 1 : cur - 1
+    if (next < 0 || next >= desks.length) return
+    wheelCooldown.current = true
+    setActiveDesk(desks[next].id)
+    setTimeout(() => { wheelCooldown.current = false }, 450)
+  }, [editMode, config.desks, activeDesk.id, setActiveDesk])
+
   return (
     <>
     {/* Desktop surfaces live notifications inside TeacherCompactPill (top-right),
@@ -171,13 +190,15 @@ export default function TeacherDashboardPage() {
           style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['home', 'lesson-editor', 'constructor', 'course-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups', 'admin'].includes(activePage) ? 'visible' : 'hidden' }}
         >
           {activePage === 'home' && (
-            <DeskCanvas
-              desk={activeDesk}
-              onUpdateItems={items => updateDeskItems(activeDesk.id, items)}
-              onAddWidget={() => setShowWidgetLibrary(true)}
-              onRemoveWidget={id => removeWidget(activeDesk.id, id)}
-              hiddenWidgets={hiddenWidgets}
-            />
+            <div onWheel={handleDeskWheel} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+              <DeskCanvas
+                desk={activeDesk}
+                onUpdateItems={items => updateDeskItems(activeDesk.id, items)}
+                onAddWidget={() => setShowWidgetLibrary(true)}
+                onRemoveWidget={id => removeWidget(activeDesk.id, id)}
+                hiddenWidgets={hiddenWidgets}
+              />
+            </div>
           )}
           {activePage === 'groups'          && <TeacherGroupsPage />}
           {activePage === 'homework'        && <TeacherHomeworkPage />}

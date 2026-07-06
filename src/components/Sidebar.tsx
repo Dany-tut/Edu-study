@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, BookOpen, Dumbbell, Bell, ChevronLeft, ChevronRight,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star,
-  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun,
+  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun, MessageSquarePlus,
   type LucideIcon,
 } from 'lucide-react'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
@@ -15,6 +15,7 @@ import { playTransitionDrop } from '../lib/sound'
 import { tactile, lockSnap, lockRelease, springTopbar } from '../lib/feedback'
 import { useDashboard, type WidgetColumns } from '../store/dashboardStore'
 import WidgetOrderModal from './WidgetOrderModal'
+import FeedbackModal from './FeedbackModal'
 import { useTheme } from '../store/themeStore'
 import { useStudentData } from '../store/studentDataStore'
 import NotificationBell from './NotificationBell'
@@ -169,6 +170,7 @@ export default function Sidebar() {
   // Which view the avatar popover shows: avatar grid (root) → settings panel.
   const [menuView, setMenuView] = useState<'root' | 'settings'>('root')
   const [orderModalOpen, setOrderModalOpen] = useState(false)
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
   const avatarRef = useRef<HTMLDivElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
   const barRef = useRef<HTMLDivElement>(null)
@@ -512,6 +514,11 @@ export default function Sidebar() {
                       onClick={() => setMenuView(menuView === 'root' ? 'settings' : 'root')}
                     />
                     <SettingsRow
+                      icon={MessageSquarePlus}
+                      label="Обратная связь"
+                      onClick={() => { setFeedbackOpen(true); closePicker() }}
+                    />
+                    <SettingsRow
                       icon={LogOut}
                       label="Выйти"
                       danger
@@ -779,6 +786,7 @@ export default function Sidebar() {
     </motion.div>
 
     <WidgetOrderModal open={orderModalOpen} onClose={() => setOrderModalOpen(false)} />
+    {feedbackOpen && <FeedbackModal role="student" onClose={() => setFeedbackOpen(false)} />}
     </>
   )
 }

@@ -3,7 +3,7 @@ import {
   Home, Users, ClipboardList, BookOpen, Layers, GraduationCap, Wallet,
   ChevronLeft, ChevronRight,
   LayoutGrid, UserPlus, CheckSquare, LayoutDashboard, LogOut, Moon, Sun,
-  CreditCard, UserCircle, Shield,
+  CreditCard, UserCircle, Shield, MessageSquarePlus,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star,
   type LucideIcon,
 } from 'lucide-react'
@@ -17,6 +17,7 @@ import { lockSnap, lockRelease, springTopbar } from '../../lib/feedback'
 import { usePersistentState, clearDrafts } from '../../lib/useDraft'
 import CreateTaskModal from './CreateTaskModal'
 import WidgetsModal from './WidgetsModal'
+import FeedbackModal from '../FeedbackModal'
 import { supabase } from '../../lib/supabase'
 import { useTheme } from '../../store/themeStore'
 import NotificationBell from '../NotificationBell'
@@ -88,6 +89,7 @@ export default function TeacherTopBar() {
   // Persisted so an open modal (and its draft) re-opens after a page reload.
   const [taskModalOpen, setTaskModalOpen] = usePersistentState('createTask.open', false)
   const [widgetsOpen, setWidgetsOpen]     = useState(false)
+  const [feedbackOpen, setFeedbackOpen]   = useState(false)
   const [notifOpen, setNotifOpen]         = useState(false)
 
   const [addAnchor, setAddAnchor]         = useState<{ top: number; left: number } | null>(null)
@@ -229,6 +231,7 @@ export default function TeacherTopBar() {
     { icon: LayoutDashboard, label: 'Настроить виджеты', sub: 'как у учеников',  action: 'widgets' },
     { icon: dark ? Sun : Moon, label: dark ? 'Светлая тема' : 'Тёмная тема', sub: 'переключить', action: 'theme' },
     { icon: CreditCard,  label: 'Оплата',             sub: 'подписка и счета',   action: 'payment' },
+    { icon: MessageSquarePlus, label: 'Обратная связь', sub: 'сообщить об ошибке', action: 'feedback' },
     // Админка + аналитика — только для админа; у учителей пункт не появляется.
     ...(teacherRole === 'admin'
       ? [{ icon: Shield, label: 'Админка', sub: 'аналитика, хранилище', action: 'admin' }]
@@ -458,6 +461,7 @@ export default function TeacherTopBar() {
                   if (item.action === 'profile') setActivePage('profile-settings')
                   if (item.action === 'payment') setActivePage('payment')
                   if (item.action === 'admin') setActivePage('admin')
+                  if (item.action === 'feedback') setFeedbackOpen(true)
                   setProfileOpen(false)
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }}
@@ -495,6 +499,7 @@ export default function TeacherTopBar() {
 
     <NotificationPopup open={notifOpen} anchorRef={bellRef} onClose={() => setNotifOpen(false)} />
     {widgetsOpen && <WidgetsModal onClose={() => setWidgetsOpen(false)} />}
+    {feedbackOpen && <FeedbackModal role="teacher" onClose={() => setFeedbackOpen(false)} />}
     {taskModalOpen && (
       <CreateTaskModal
         onClose={() => { setTaskModalOpen(false); clearDrafts('createTask.') }}

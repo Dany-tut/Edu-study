@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { LogOut, Monitor } from 'lucide-react'
+import { LogOut, Monitor, MessageSquarePlus, Moon, Sun } from 'lucide-react'
 import MobileScreen from '../../MobileScreen'
-import ThemeToggleBtn from '../../ThemeToggleBtn'
+import FeedbackModal from '../../FeedbackModal'
 import { PAIR } from '../../../lib/mobileTokens'
 import { tactile } from '../../../lib/feedback'
 import { supabase } from '../../../lib/supabase'
+import { useTheme } from '../../../store/themeStore'
 
 // MOBILE ONLY teacher profile: identity, theme, logout, and a note that the
 // authoring tools live on desktop.
 
 export default function MobileTeacherProfile() {
   const [email, setEmail] = useState('')
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const { dark, toggle: toggleTheme } = useTheme()
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ''))
@@ -50,10 +53,25 @@ export default function MobileTeacherProfile() {
         {/* Settings */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, padding: '4px 2px' }}>НАСТРОЙКИ</div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
+          <motion.button
+            whileTap={{ scale: 0.985 }}
+            onClick={() => { tactile(); toggleTheme() }}
+            className="flex items-center justify-between cursor-pointer"
+            style={{ width: '100%', padding: '12px 16px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}
+          >
             <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>Тема оформления</span>
-            <ThemeToggleBtn />
-          </div>
+            {dark ? <Moon size={18} style={{ color: 'var(--color-muted)' }} /> : <Sun size={18} style={{ color: 'var(--color-muted)' }} />}
+          </motion.button>
+
+          <motion.button
+            whileTap={{ scale: 0.985 }}
+            onClick={() => { tactile(); setFeedbackOpen(true) }}
+            className="flex items-center justify-between cursor-pointer"
+            style={{ width: '100%', padding: '12px 16px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}
+          >
+            <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>Обратная связь</span>
+            <MessageSquarePlus size={18} style={{ color: 'var(--color-muted)' }} />
+          </motion.button>
 
           <motion.button
             whileTap={{ scale: 0.97 }}
@@ -65,6 +83,7 @@ export default function MobileTeacherProfile() {
           </motion.button>
         </div>
       </div>
+      {feedbackOpen && <FeedbackModal role="teacher" onClose={() => setFeedbackOpen(false)} />}
     </MobileScreen>
   )
 }

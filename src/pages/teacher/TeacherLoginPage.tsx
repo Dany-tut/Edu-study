@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
 export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogin: () => void; recovery?: boolean }) {
@@ -213,21 +214,25 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
             <button
               type="button"
               onClick={() => setShowPassword(v => !v)}
+              aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
               style={{
                 position: 'absolute',
-                right: 12,
+                right: 10,
                 top: '50%',
                 transform: 'translateY(-50%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 32,
+                height: 32,
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                padding: 4,
+                padding: 0,
                 color: 'var(--color-muted)',
-                fontSize: 18,
-                lineHeight: 1,
               }}
             >
-              {showPassword ? '🙈' : '👁'}
+              {showPassword ? <EyeOff size={18} strokeWidth={1.9} /> : <Eye size={18} strokeWidth={1.9} />}
             </button>
           </div>
           )}

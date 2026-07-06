@@ -75,11 +75,13 @@ function PillContent({
           {title}
         </span>
         <motion.div
+          initial={false}
           animate={{ maxHeight: expanded ? 200 : 0 }}
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
           style={{
             marginTop: 4, fontSize: 12.5, fontWeight: 450,
             color: 'var(--color-text-2)', lineHeight: 1.4, overflow: 'hidden',
+            maxHeight: expanded ? 200 : 0,
           }}
         >
           {detail}

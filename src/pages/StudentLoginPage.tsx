@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { setStudentSession } from '../lib/studentSession'
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '11px 14px', borderRadius: 12,
+  width: '100%', padding: '13px 14px', borderRadius: 12,
   border: '1.5px solid #E8E8EA', fontSize: 16, outline: 'none',
-  boxSizing: 'border-box', marginTop: 6,
+  boxSizing: 'border-box',
 }
 
 export default function StudentLoginPage() {
@@ -81,42 +82,41 @@ export default function StudentLoginPage() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', display: 'flex', flexDirection: 'column' }}>
-            Email
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="Email"
+            aria-label="Email"
+            style={inputStyle}
+            autoFocus
+          />
+          <div style={{ position: 'relative' }}>
             <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="alice@example.com"
-              style={inputStyle}
-              autoFocus
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="Пароль"
+              aria-label="Пароль"
+              style={{ ...inputStyle, paddingRight: 44 }}
+              onKeyDown={e => e.key === 'Enter' && handleLogin()}
             />
-          </label>
-          <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', display: 'flex', flexDirection: 'column' }}>
-            Пароль
-            <div style={{ position: 'relative' }}>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••"
-                style={{ ...inputStyle, paddingRight: 44 }}
-                onKeyDown={e => e.key === 'Enter' && handleLogin()}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(v => !v)}
-                style={{
-                  position: 'absolute', right: 12, top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  padding: 4, color: 'var(--color-muted)', fontSize: 18, lineHeight: 1,
-                }}
-              >
-                {showPassword ? '🙈' : '👁'}
-              </button>
-            </div>
-          </label>
+            <button
+              type="button"
+              onClick={() => setShowPassword(v => !v)}
+              aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+              style={{
+                position: 'absolute', right: 10, top: '50%',
+                transform: 'translateY(-50%)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: 32, height: 32,
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: 0, color: 'var(--color-muted)',
+              }}
+            >
+              {showPassword ? <EyeOff size={18} strokeWidth={1.9} /> : <Eye size={18} strokeWidth={1.9} />}
+            </button>
+          </div>
         </div>
 
         {error && (

@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react'
 import { playTransitionDrop } from '../lib/sound'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
+import { useNavCollapse } from '../lib/useNavCollapse'
+
+// Shared ease/duration for the collapse so the dock shrinks and the labels
+// fade as one synchronized motion.
+const COLLAPSE = { duration: 0.28, ease: [0.32, 0.72, 0, 1] as const }
 
 const items = [
   { id: 'home',     label: 'Главная',  icon: Home },
@@ -21,6 +26,10 @@ export default function MobileBottomNav() {
   const activePage = useDashboard(state => state.activePage)
   const setActivePage = useDashboard(state => state.setActivePage)
   const openCourses = useDashboard(state => state.openCourses)
+  // Scroll-driven collapse on every mobile screen (incl. the trainer): the dock
+  // shrinks in height + length and the labels fade on scroll-down, and it all
+  // expands back on scroll-up / at the top.
+  const collapsed = useNavCollapse()
 
   // Badge: count lessons with status that implies pending homework (current / returned)
   const hwBadge = subjects.flatMap(s => s.modules.flatMap(m => m.lessons))
@@ -53,16 +62,29 @@ export default function MobileBottomNav() {
       className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}
     >
-      <div
-        className="mx-4 mb-4 flex items-center justify-around px-2 py-3"
+      <motion.div
+        className="mb-4 flex items-center justify-around px-2"
+        initial={false}
+        // Collapse morphs three axes together: height (62→50), symmetric
+        // vertical padding, and the horizontal margin so the dock also shrinks
+        // in length (16→52 each side) and packs the icons closer.
+        animate={{
+          height: collapsed ? 50 : 62,
+          paddingTop: collapsed ? 7 : 9,
+          paddingBottom: collapsed ? 7 : 9,
+          marginLeft: collapsed ? 52 : 16,
+          marginRight: collapsed ? 52 : 16,
+        }}
+        transition={COLLAPSE}
         style={{
           borderRadius: '28px',
-          background: 'rgba(var(--glass-rgb), 0.72)',
-          backdropFilter: 'blur(20px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          background: 'rgba(var(--glass-rgb), 0.6)',
+          backdropFilter: 'blur(28px) saturate(200%)',
+          WebkitBackdropFilter: 'blur(28px) saturate(200%)',
           border: '1px solid var(--color-border-glass)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
-          height: 72,
+          // Frosted glass: outer drop shadow + a hairline top highlight so the
+          // top edge catches light like a real pane of glass.
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.5)',
         }}
       >
         {items.map(item => {
@@ -73,7 +95,7 @@ export default function MobileBottomNav() {
               key={item.id}
               whileTap={{ scale: 0.9 }}
               onClick={() => handleClick(item.id)}
-              className="flex flex-col items-center gap-1 cursor-pointer px-3 py-2"
+              className="flex flex-col items-center justify-center cursor-pointer px-3 py-2"
               style={{ minWidth: 44, minHeight: 44, position: 'relative' }}
               aria-label={item.label}
             >
@@ -91,17 +113,23 @@ export default function MobileBottomNav() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>{hwBadge}</span>
               )}
-              <span style={{
-                fontSize: 9,
-                fontWeight: isActive ? 600 : 500,
-                color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
-              }}>
+              <motion.span
+                initial={false}
+                animate={{ height: collapsed ? 0 : 12, opacity: collapsed ? 0 : 1, marginTop: collapsed ? 0 : 4 }}
+                transition={COLLAPSE}
+                style={{
+                  fontSize: 9,
+                  lineHeight: '12px',
+                  overflow: 'hidden',
+                  fontWeight: isActive ? 600 : 500,
+                  color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
+                }}>
                 {item.label}
-              </span>
+              </motion.span>
             </motion.button>
           )
         })}
-      </div>
+      </motion.div>
     </div>
   )
 }

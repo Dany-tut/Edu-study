@@ -4,7 +4,7 @@ import { useFloatingPill } from '../lib/useFloatingPill'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, Search, BookOpen, CheckCircle2, XCircle,
-  Bookmark, Share2, AlertTriangle, Eye, Sparkles, Target, Filter,
+  Star, Share2, AlertTriangle, Eye, Sparkles, Target, Filter,
   LayoutGrid, List, ArrowUpDown, ArrowUp, X, TrendingUp, FlaskConical, Bell,
 } from 'lucide-react'
 import {
@@ -24,6 +24,7 @@ import { subjectTheme, PURPLE } from '../lib/theme'
 import { getContrastColor } from '../lib/utils'
 import { useTheme } from '../store/themeStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
+import { useNavCollapse } from '../lib/useNavCollapse'
 import MobileScreen from '../components/MobileScreen'
 import MobileBottomNav from '../components/MobileBottomNav'
 import MobileSheet from '../components/MobileSheet'
@@ -236,6 +237,16 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
   const isCorrect = state?.correct === true
   const isWrong   = state?.correct === false
 
+  // ── Golden rules for option/match/sequence rows on the phone ──────────────
+  // Tighter box (less padding, smaller letter chip, lower min-height) and a
+  // snugger line-height so multi-line answers ("Ковалентная полярная") don't
+  // balloon the row. Desktop keeps its roomier metrics.
+  const rowPad   = mobile ? '8px 11px' : '10px 14px'
+  const rowMinH  = mobile ? 34 : 42
+  const rowGap   = mobile ? 8 : 10
+  const chipSz   = mobile ? 22 : 26
+  const rowTextLH = mobile ? 1.3 : 1.45
+
   // Tactility is mobile-only — desktop trainer shouldn't blip/vibrate on every click.
   const tap = () => { if (mobile) tactile() }
   function check() {
@@ -262,13 +273,26 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       <div className="flex items-start justify-between" style={{ gap: 10 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: palette.text }}>Задание {index + 1}</span>
-            <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
-            <NumberBadge id={task.id} onCopied={onCopyId} />
-            <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: `${palette.accent}33`, color: 'var(--color-text)' }}>
-              {task.line} · {lineNames[task.line] ?? `Линия ${task.line}`}
-            </span>
-            <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
+            {mobile ? (
+              /* Phone: bare identifiers only — №-in-bank and the line number,
+                 no "Задание N", no line name, no "Часть". */
+              <>
+                <NumberBadge id={task.id} onCopied={onCopyId} />
+                <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: `${palette.accent}33`, color: 'var(--color-text)' }}>
+                  {task.line} линия
+                </span>
+              </>
+            ) : (
+              <>
+                <span style={{ fontSize: 11, fontWeight: 700, color: palette.text }}>Задание {index + 1}</span>
+                <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
+                <NumberBadge id={task.id} onCopied={onCopyId} />
+                <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: `${palette.accent}33`, color: 'var(--color-text)' }}>
+                  {task.line} · {lineNames[task.line] ?? `Линия ${task.line}`}
+                </span>
+                <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
+              </>
+            )}
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
@@ -280,16 +304,28 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           )}
           <button
             onClick={() => { tap(); onFavorite(task.id) }}
+            aria-label={isFav ? 'Убрать из избранного' : 'В избранное'}
             style={{
-              width: 36, height: 36, borderRadius: 12,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: isFav ? 'var(--color-yellow-soft)' : 'rgba(var(--glass-rgb), 0.88)',
-              border: `1px solid ${isFav ? '#F8EF8C' : 'var(--color-border-medium)'}`,
-              cursor: 'pointer', outline: 'none',
-              transition: 'all 0.18s ease',
+              background: 'none', border: 'none', padding: 0, cursor: 'pointer', outline: 'none',
+              // Apple-style 44pt tap target on the phone; the negative margins let
+              // the hit area overflow the header row without inflating its height
+              // (so the title stays snug to the badges). Desktop keeps a plain 36.
+              ...(mobile
+                ? { width: 44, height: 44, margin: '-6px -5px -6px 0' }
+                : { width: 36, height: 36 }),
             }}
           >
-            <Bookmark size={16} fill={isFav ? 'currentColor' : 'none'} color={isFav ? '#7A6B00' : 'var(--color-text-3)'} />
+            <span style={{
+              width: mobile ? 34 : 36, height: mobile ? 34 : 36, borderRadius: mobile ? 11 : 12,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: isFav ? 'linear-gradient(140deg, #FFCB3D 0%, #F5A623 100%)' : 'rgba(var(--glass-rgb), 0.88)',
+              border: `1px solid ${isFav ? 'transparent' : 'var(--color-border-medium)'}`,
+              boxShadow: isFav ? '0 2px 9px rgba(245,166,35,0.4)' : 'none',
+              transition: 'all 0.18s ease',
+            }}>
+              <Star size={mobile ? 16 : 16} fill={isFav ? '#fff' : 'none'} color={isFav ? '#fff' : 'var(--color-text-3)'} />
+            </span>
           </button>
         </div>
       </div>
@@ -297,7 +333,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       {/* Question spans the full card width below the header row so the result
           badge (Верно/Неверно) never squeezes it into a narrower column — its
           appearance must not reflow / "push" the wrapped lines. */}
-      <div style={{ fontSize: mobile ? 14 : 16, lineHeight: mobile ? 1.5 : 1.45, fontWeight: 650, color: 'var(--color-text)', marginTop: -4 }}
+      <div style={{ fontSize: mobile ? 14 : 16, lineHeight: mobile ? 1.3 : 1.45, fontWeight: 650, color: 'var(--color-text)', marginTop: mobile ? -8 : -4 }}
         dangerouslySetInnerHTML={{ __html: task.question }} />
 
       {/* Image / table blocks in teacher-configured order */}
@@ -338,9 +374,9 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       {task.choices && task.choices.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
           {task.choices.map((c, i) => (
-            <div key={c.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', borderRadius: 12, background: 'rgba(var(--glass-rgb),0.7)', border: '1px solid var(--color-border-soft)', minHeight: 42 }}>
-              <span style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)', marginTop: 1 }}>{'АБВГДЕЖЗИК'[i]}</span>
-              <span style={{ fontSize: mobile ? 13 : 15, color: 'var(--color-text)', lineHeight: 1.45, paddingTop: 2 }}>{c.text}</span>
+            <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: rowGap, padding: rowPad, borderRadius: 12, background: 'rgba(var(--glass-rgb),0.7)', border: '1px solid var(--color-border-soft)', minHeight: rowMinH }}>
+              <span style={{ width: chipSz, height: chipSz, borderRadius: 8, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>{'АБВГДЕЖЗИК'[i]}</span>
+              <span style={{ fontSize: mobile ? 13 : 15, color: 'var(--color-text)', lineHeight: rowTextLH }}>{c.text}</span>
             </div>
           ))}
           <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{task.answerType === 'multi' ? 'Введите буквы всех верных вариантов, напр. АБГ' : 'Введите букву верного варианта'}</div>
@@ -354,17 +390,17 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           <div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
               {Array.from({ length: maxLen }).map((_, i) => (
-                <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'stretch' }}>
+                <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: mobile ? 6 : 8, alignItems: 'stretch' }}>
                   {task.matchLeft![i] !== undefined ? (
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', borderRadius: 12, background: 'rgba(var(--glass-rgb),0.7)', border: '1px solid var(--color-border-soft)', minHeight: 42 }}>
-                      <span style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)', marginTop: 1 }}>{'АБВГДЕЖЗИК'[i]}</span>
-                      <span style={{ fontSize: mobile ? 13 : 15, color: 'var(--color-text)', lineHeight: 1.45, paddingTop: 2 }}>{task.matchLeft![i]}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: rowGap, padding: rowPad, borderRadius: 12, background: 'rgba(var(--glass-rgb),0.7)', border: '1px solid var(--color-border-soft)', minHeight: rowMinH }}>
+                      <span style={{ width: chipSz, height: chipSz, borderRadius: 8, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>{'АБВГДЕЖЗИК'[i]}</span>
+                      <span style={{ fontSize: mobile ? 13 : 15, color: 'var(--color-text)', lineHeight: rowTextLH }}>{task.matchLeft![i]}</span>
                     </div>
                   ) : <div />}
                   {task.matchRight![i] !== undefined ? (
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', borderRadius: 12, background: 'rgba(0,0,0,0.03)', border: '1px solid var(--color-border-soft)', minHeight: 42 }}>
-                      <span style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'rgba(var(--glass-rgb),0.9)', border: '1px solid var(--color-border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)', marginTop: 1 }}>{i + 1}</span>
-                      <span style={{ fontSize: mobile ? 13 : 15, color: 'var(--color-text)', lineHeight: 1.45, paddingTop: 2 }}>{task.matchRight![i]}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: rowGap, padding: rowPad, borderRadius: 12, background: 'rgba(0,0,0,0.03)', border: '1px solid var(--color-border-soft)', minHeight: rowMinH }}>
+                      <span style={{ width: chipSz, height: chipSz, borderRadius: 8, flexShrink: 0, background: 'rgba(var(--glass-rgb),0.9)', border: '1px solid var(--color-border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>{i + 1}</span>
+                      <span style={{ fontSize: mobile ? 13 : 15, color: 'var(--color-text)', lineHeight: rowTextLH }}>{task.matchRight![i]}</span>
                     </div>
                   ) : <div />}
                 </div>
@@ -380,9 +416,9 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         <div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             {[...task.sequenceItems].sort((a, b) => a.localeCompare(b, 'ru')).map((s, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', borderRadius: 12, background: 'rgba(var(--glass-rgb),0.7)', border: '1px solid var(--color-border-soft)', minHeight: 42 }}>
-                <span style={{ width: 26, height: 26, borderRadius: 8, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)', marginTop: 1 }}>{i + 1}</span>
-                <span style={{ fontSize: mobile ? 13 : 15, color: 'var(--color-text)', lineHeight: 1.45, paddingTop: 2 }}>{s}</span>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: rowGap, padding: rowPad, borderRadius: 12, background: 'rgba(var(--glass-rgb),0.7)', border: '1px solid var(--color-border-soft)', minHeight: rowMinH }}>
+                <span style={{ width: chipSz, height: chipSz, borderRadius: 8, flexShrink: 0, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>{i + 1}</span>
+                <span style={{ fontSize: mobile ? 13 : 15, color: 'var(--color-text)', lineHeight: rowTextLH }}>{s}</span>
               </div>
             ))}
           </div>
@@ -473,7 +509,9 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
 
       {/* Footer */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingTop: 2, borderTop: '1px solid rgba(0,0,0,0.04)' }}>
-        <span style={{ fontSize: 11, color: 'var(--color-muted)', flex: 1 }}>{task.section} → {task.topic} · {task.source}</span>
+        {mobile
+          ? <span style={{ flex: 1 }} />
+          : <span style={{ fontSize: 11, color: 'var(--color-muted)', flex: 1 }}>{task.section} → {task.topic} · {task.source}</span>}
         <button onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-3)', cursor: 'pointer' }}>
           <AlertTriangle size={10} />{reported ? 'Отправлено' : 'Ошибка'}
         </button>
@@ -555,7 +593,7 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
         <button onClick={() => onFavorite(task.id)} style={{
           padding: '7px 8px', borderRadius: 10, border: `1px solid ${isFav ? '#F8EF8C' : 'var(--color-border-medium)'}`,
           background: isFav ? 'var(--color-yellow-soft)' : 'transparent', cursor: 'pointer', flexShrink: 0,
-        }}><Bookmark size={12} color={isFav ? '#7A6B00' : 'var(--color-text-3)'} fill={isFav ? '#7A6B00' : 'none'} /></button>
+        }}><Star size={12} color={isFav ? '#7A6B00' : 'var(--color-text-3)'} fill={isFav ? '#7A6B00' : 'none'} /></button>
       </div>
 
       {/* Solution */}
@@ -950,7 +988,7 @@ function StatsBar({ doneCount, wrongCount, totalCount, favCount, todayCorrect, t
                 <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{favCount} в избранном</span>
                 <button onClick={() => { onToggleFav(); setActive(null) }}
                   style={{ padding: '7px 14px', borderRadius: 10, border: `1px solid ${showFavOnly ? 'rgba(248,200,50,0.4)' : 'var(--color-border-medium)'}`, background: showFavOnly ? 'rgba(248,239,140,0.22)' : 'transparent', color: showFavOnly ? '#7A6B00' : 'var(--color-text-2)', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <Bookmark size={13} fill={showFavOnly ? 'currentColor' : 'none'} />
+                  <Star size={13} fill={showFavOnly ? 'currentColor' : 'none'} />
                   {showFavOnly ? 'Показать все' : 'Только избранное'}
                 </button>
               </>)}
@@ -1242,6 +1280,10 @@ function MobileProgressSheet({ open, onClose, tasks, answered, favorites, palett
 export default function TaskBankPage() {
   const { dark } = useTheme()
   const isDesktop = useIsDesktop()
+  // Same scroll-driven collapse the bottom nav uses, so the control dock drops
+  // lower + shrinks in lock-step with the nav on scroll-down and springs back up
+  // on scroll-up. Hook must run before the `!isDesktop` early return.
+  const navCollapsed = useNavCollapse()
   const [sheet, setSheet] = useState<'filters' | 'sort' | 'search' | null>(null)
   const setActivePage = useDashboard(s => s.setActivePage)
   const docked        = useDashboard(s => s.lessonScrolled)
@@ -1503,12 +1545,12 @@ export default function TaskBankPage() {
         </MobileScreen>
 
         {/* Control dock — glass circles, sits above the bottom nav */}
-        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)', zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 86px)', zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
           <div style={{ display: 'flex', gap: 12, pointerEvents: 'auto' }}>
             {dockCircle('search', <Search size={20} />, () => setSheet('search'), { label: 'Поиск', badge: search ? 1 : 0, active: !!search })}
             {dockCircle('filter', <Filter size={20} />, () => setSheet('filters'), { label: 'Фильтры', badge: activeFilters })}
             {dockCircle('sort', <ArrowUpDown size={20} />, () => setSheet('sort'), { label: 'Сортировка' })}
-            {dockCircle('fav', <Bookmark size={20} fill={showFavOnly ? 'currentColor' : 'none'} />, () => setShowFavOnly(f => !f), { label: 'Избранное', active: showFavOnly })}
+            {dockCircle('fav', <Star size={20} fill={showFavOnly ? 'currentColor' : 'none'} />, () => setShowFavOnly(f => !f), { label: 'Избранное', active: showFavOnly })}
           </div>
         </div>
 
@@ -1851,7 +1893,7 @@ export default function TaskBankPage() {
 
             <button onClick={() => setShowFavOnly(f => !f)}
               style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 14px', borderRadius: 999, background: showFavOnly ? (dark ? 'rgba(248,239,140,0.18)' : 'rgba(248,239,140,0.28)') : 'rgba(var(--glass-rgb), 0.88)', border: `1px solid ${showFavOnly ? (dark ? 'rgba(248,239,140,0.45)' : 'rgba(248,239,140,0.55)') : 'var(--color-border-medium)'}`, fontSize: 12, cursor: 'pointer', color: showFavOnly ? (dark ? '#F4E97A' : '#8A7800') : 'var(--color-text-3)', fontWeight: showFavOnly ? 700 : 400 }}>
-              <Bookmark size={13} fill={showFavOnly ? 'currentColor' : 'none'} />
+              <Star size={13} fill={showFavOnly ? 'currentColor' : 'none'} />
               {showFavOnly ? `Избранное (${favorites.size})` : 'Избранное'}
             </button>
 

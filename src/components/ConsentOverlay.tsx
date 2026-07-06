@@ -48,7 +48,7 @@ export default function ConsentOverlay({ onAccept }: { onAccept: () => void }) {
         border: '1px solid var(--color-border-medium)', padding: '22px 20px 18px',
         boxShadow: '0 24px 60px rgba(0,0,0,0.4)', maxHeight: '90vh', overflowY: 'auto',
       }}>
-        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 9, cursor: 'pointer' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 9, cursor: 'pointer' }}>
           <input
             type="checkbox"
             checked={checked}
@@ -58,7 +58,6 @@ export default function ConsentOverlay({ onAccept }: { onAccept: () => void }) {
           <span
             aria-hidden
             style={{
-              marginTop: 2,
               width: 18,
               height: 18,
               flexShrink: 0,
