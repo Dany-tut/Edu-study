@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Flame, ClipboardCheck, Image as ImageIcon, Users, ChevronRight, AlertTriangle, BookOpen, Link2, Copy, Check } from 'lucide-react'
+import { ClipboardCheck, Image as ImageIcon, Users, ChevronRight, AlertTriangle, BookOpen, Link2, Copy, Check } from 'lucide-react'
 import MobileScreen from '../../MobileScreen'
 import MobileSheet from '../../MobileSheet'
 import { GlassPill } from '../../mobileChrome'
@@ -114,8 +114,8 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
       <GlassPill>
         <span style={{ fontWeight: 750 }}>Кабинет учителя</span>
       </GlassPill>
-      <GlassPill style={{ color: 'var(--color-yellow-text)' }}>
-        <Flame size={15} /> 12
+      <GlassPill>
+        <Users size={15} style={{ color: 'var(--color-accent)' }} /> {studentTotal}
       </GlassPill>
     </div>
   )

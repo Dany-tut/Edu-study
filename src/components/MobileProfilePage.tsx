@@ -1,8 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { LogOut, Flame, CheckCircle2, Star, TrendingUp, Zap, Bell, Moon, Sun } from 'lucide-react'
+import { LogOut, Flame, CheckCircle2, Star, TrendingUp, Zap, Moon, Sun } from 'lucide-react'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
-import { DynamicIsland, GlassIconButton } from './mobileChrome'
+import { DynamicIsland } from './mobileChrome'
+import MobileBell from './MobileBell'
 import SubjectSwitcher from './SubjectSwitcher'
 import { getStudentSession, clearStudentSession } from '../lib/studentSession'
 import { supabase } from '../lib/supabase'
@@ -59,7 +60,7 @@ export default function MobileProfilePage() {
         <Zap size={14} style={{ color: 'var(--color-accent)' }} />
         <span>{stats.totalPoints}</span>
       </DynamicIsland>
-      <GlassIconButton icon={<Bell size={16} />} dot ariaLabel="Уведомления" />
+      <MobileBell />
     </div>
   )
 

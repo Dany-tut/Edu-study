@@ -128,7 +128,14 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
     const el = anchorRef.current
     if (!el) return
     const r = el.getBoundingClientRect()
-    setPos({ top: r.bottom + 10, left: r.left + r.width / 2 })
+    // Clamp so the 320px panel never hangs off-screen (bell sits near the
+    // right edge on mobile).
+    const half = 160, margin = 12
+    const cx = Math.min(
+      Math.max(r.left + r.width / 2, half + margin),
+      window.innerWidth - half - margin,
+    )
+    setPos({ top: r.bottom + 10, left: cx })
   }, [open, anchorRef])
 
   // Close on outside click / Escape

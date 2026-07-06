@@ -1,14 +1,15 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
-  FlaskConical, Star, Bell, Lock, ChevronRight, Zap,
+  FlaskConical, Star, Lock, ChevronRight, Zap,
   CheckCircle2, Play, RotateCcw, Clock, Video,
 } from 'lucide-react'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
 import MobileHScroll from './MobileHScroll'
 import MobilePill from './MobilePill'
-import { GlassPill, GlassIconButton } from './mobileChrome'
+import { GlassPill } from './mobileChrome'
+import MobileBell from './MobileBell'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
 import { tactile } from '../lib/feedback'
 import { useNow } from '../lib/useNow'
@@ -71,6 +72,9 @@ export default function MobileCourses() {
     const idx = subjects.findIndex(s => s.id === subject?.id)
     const next = subjects[(idx + 1) % subjects.length]
     setActiveSubject(next.id)
+    // Module ids are per-course positions — a tab from the old subject would
+    // point at nothing (or the wrong module) in the new one.
+    setModuleTab(ALL)
   }
 
   const topZone = (
@@ -84,7 +88,7 @@ export default function MobileCourses() {
           <Star size={14} style={{ color: '#F8A23B' }} />
           {level} Lvl
         </GlassPill>
-        <GlassIconButton icon={<Bell size={16} />} dot ariaLabel="Уведомления" />
+        <MobileBell />
       </div>
     </div>
   )
@@ -188,7 +192,7 @@ function LessonCard({ lesson, status, index, focused, onOpen }: { lesson: Lesson
       <div className="flex-1 min-w-0">
         <div className="flex items-start" style={{ gap: 6, marginBottom: 4 }}>
           <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-            #{lesson.number} {lesson.title}
+            #{lesson.number + 1} {lesson.title}
           </span>
           {status === 'completed' && lesson.points != null && (
             <span className="flex items-center flex-shrink-0" style={{ gap: 3, fontSize: 11, fontWeight: 700, color: '#B07A00', background: 'var(--color-yellow-soft)', padding: '3px 8px', borderRadius: 999, marginTop: 1 }}>

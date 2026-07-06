@@ -254,13 +254,18 @@ export function useGroups() {
       email: opts.student.email || null,
       temp_password: opts.student.tempPassword || null,
       auth_user_id: opts.student.authUserId || null,
-    }).select('id').single()
+    }).select('id, invite_token').single()
     // Already-registered student → seed their progress for this new card too.
     if (!sErr && srow?.id && opts.student.authUserId) {
       await supabase.rpc('seed_student_progress', { p_student_id: srow.id, p_group_id: g.id })
     }
     await load()
-    return { error: sErr }
+    return {
+      error: sErr,
+      studentId: (srow?.id as string | undefined) ?? null,
+      // Fresh token so an UNregistered existing person can still activate this card.
+      inviteToken: (srow?.invite_token as string | undefined) ?? null,
+    }
   }
 
   // Enroll an EXISTING person into a regular group. Unlike addStudentToGroup
@@ -568,6 +573,22 @@ export function useGroupLessons(groupId: string | null) {
           .eq('group_id', groupId)
         const studentIds = (studs ?? []).map((s: any) => s.id)
         const scope = [`group_id.eq.${groupId}`]
+        if (studentIds.length) scope.push(`student_id.in.(${studentIds.join(',')})`)
+        query = query.or(scope.join(','))
+      } else {
+        // "Все группы": schedule_lessons has no created_by and is anon-readable,
+        // so an unfiltered query would return other teachers' lessons. Scope to
+        // this teacher's own groups (and their students) explicitly.
+        const uid = await getOwnerId()
+        if (!uid) { if (!cancelled) setLessons([]); return }
+        const { data: ownGroups } = await supabase
+          .from('groups').select('id').eq('created_by', uid)
+        const groupIds = (ownGroups ?? []).map((g: any) => g.id)
+        if (!groupIds.length) { if (!cancelled) setLessons([]); return }
+        const { data: studs } = await supabase
+          .from('students').select('id').in('group_id', groupIds)
+        const studentIds = (studs ?? []).map((s: any) => s.id)
+        const scope = [`group_id.in.(${groupIds.join(',')})`]
         if (studentIds.length) scope.push(`student_id.in.(${studentIds.join(',')})`)
         query = query.or(scope.join(','))
       }

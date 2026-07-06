@@ -5,6 +5,7 @@ import MobileScreen from '../../MobileScreen'
 import { GlassPill } from '../../mobileChrome'
 import { PAIR } from '../../../lib/mobileTokens'
 import { tactile } from '../../../lib/feedback'
+import { sanitizeHtml } from '../../../lib/sanitizeHtml'
 import { useHardSubmissions, useHomework, type HardSub } from '../../../lib/useHomework'
 
 // MOBILE ONLY review queue. The actionable part is "сложные" submissions —
@@ -48,7 +49,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
       )}
       {photoCount === 0 && sub.comment && (
         /<\/?[a-z][\s\S]*>/i.test(sub.comment) ? (
-          <div className="rich-answer" style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.4, padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg-4)', wordBreak: 'break-word' }} dangerouslySetInnerHTML={{ __html: sub.comment }} />
+          <div className="rich-answer" style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.4, padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg-4)', wordBreak: 'break-word' }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(sub.comment) }} />
         ) : (
           <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.4, padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg-4)' }}>{sub.comment}</div>
         )

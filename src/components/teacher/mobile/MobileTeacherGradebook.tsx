@@ -21,27 +21,39 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
   lesson: GroupLesson | null; groupId: string | null; onClose: () => void; onSaved: () => void
 }) {
   const roster = useLessonRoster(lesson)
-  const { saveLesson } = useAttendance(groupId)
+  const { saveLesson, records } = useAttendance(groupId)
   const [present, setPresent] = useState<Record<string, boolean>>({})
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(false)
 
-  // Default everyone to present when a fresh lesson opens.
+  // Seed from already-saved attendance for this date (so reopening a graded
+  // lesson doesn't silently reset absences); default to present otherwise.
   useEffect(() => {
-    if (lesson) setPresent(Object.fromEntries(roster.map(r => [r.id, true])))
-  }, [lesson?.id, roster.length])
+    if (!lesson) return
+    const saved = new Map(
+      records.filter(r => r.lessonDate === lesson.date).map(r => [r.studentId, r.present]),
+    )
+    setPresent(Object.fromEntries(roster.map(r => [r.id, saved.get(r.id) ?? true])))
+  }, [lesson?.id, roster.length, records.length])
 
   const allPresent = roster.length > 0 && roster.every(r => present[r.id])
 
   const save = async () => {
     if (!lesson || saving) return
-    tactile(); setSaving(true)
-    await saveLesson(
-      lesson.groupId,
-      lesson.date,
-      roster.map(r => ({ studentId: r.id, present: !!present[r.id] })),
-      lesson.title,
-    )
-    setSaving(false); onSaved(); onClose()
+    tactile(); setSaving(true); setSaveError(false)
+    try {
+      await saveLesson(
+        lesson.groupId,
+        lesson.date,
+        roster.map(r => ({ studentId: r.id, present: !!present[r.id] })),
+        lesson.title,
+      )
+      onSaved(); onClose()
+    } catch {
+      setSaveError(true)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -85,6 +97,11 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
             <div style={{ fontSize: 13, color: 'var(--color-muted)', padding: '16px 0', textAlign: 'center' }}>Нет учеников для этого урока</div>
           )}
 
+          {saveError && (
+            <div style={{ fontSize: 13, fontWeight: 600, color: PAIR.error.text, background: PAIR.error.bg, borderRadius: 12, padding: '10px 14px', textAlign: 'center' }}>
+              Не удалось сохранить — попробуйте ещё раз
+            </div>
+          )}
           <motion.button
             whileTap={{ scale: 0.98 }}
             onClick={save}
@@ -130,9 +147,17 @@ export default function MobileTeacherGradebook() {
           ))}
         </div>
 
-        {/* Lessons */}
+        {/* Lessons: nearest upcoming first (highlighted), then the rest of the
+            future ascending, then past lessons newest-first. The hook returns
+            plain date DESC, which would crown the farthest-future lesson. */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {lessons.map((l, idx) => {
+          {(() => {
+            const today = new Date().toISOString().slice(0, 10)
+            const key = (l: GroupLesson) => `${l.date}|${l.timeStart ?? ''}`
+            const future = lessons.filter(l => l.date >= today).sort((a, b) => key(a) < key(b) ? -1 : 1)
+            const past = lessons.filter(l => l.date < today)
+            return [...future, ...past]
+          })().map((l, idx) => {
             const first = idx === 0
             return (
               <motion.button

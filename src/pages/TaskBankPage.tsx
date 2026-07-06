@@ -28,6 +28,7 @@ import MobileScreen from '../components/MobileScreen'
 import MobileBottomNav from '../components/MobileBottomNav'
 import MobileSheet from '../components/MobileSheet'
 import { GlassPill, GlassIconButton } from '../components/mobileChrome'
+import MobileBell from '../components/MobileBell'
 import { glassCircle } from '../lib/mobileTokens'
 import { tactile } from '../lib/feedback'
 
@@ -1475,7 +1476,7 @@ export default function TaskBankPage() {
                   <BookOpen size={14} style={{ color: 'var(--color-accent)' }} />
                   {filtered.length}
                 </GlassPill>
-                <GlassIconButton icon={<Bell size={16} />} dot ariaLabel="Уведомления" />
+                <MobileBell />
               </div>
             </div>
           }

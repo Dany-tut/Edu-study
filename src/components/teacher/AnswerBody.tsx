@@ -1,5 +1,6 @@
 import WhiteboardCanvas from './WhiteboardCanvas'
 import { Image as ImageIcon, PenLine } from 'lucide-react'
+import { sanitizeHtml } from '../../lib/sanitizeHtml'
 
 // Тело ответа ученика: текст/HTML + фото + доска. ОДИН источник разметки для
 // страницы проверки (учитель) и для возврата (ученик) — чтобы живая разметка
@@ -31,7 +32,7 @@ export default function AnswerBody({
           <div
             className="rich-answer"
             style={{ padding: '18px 20px', borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', fontSize: 15, lineHeight: 1.7, color: 'var(--color-text)', wordBreak: 'break-word' }}
-            dangerouslySetInnerHTML={{ __html: comment }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(comment) }}
           />
         ) : (
           <div style={{ padding: '18px 20px', borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', fontSize: 15, lineHeight: 1.7, color: 'var(--color-text)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
