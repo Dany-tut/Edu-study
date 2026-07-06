@@ -7,7 +7,7 @@ import TeacherSelect from './TeacherSelect'
 // Identity a group-enrollment reuses. Any object carrying these fields works.
 export type PersonLike = Pick<
   Student,
-  'name' | 'phone' | 'telegramLink' | 'parentContact' | 'desiredScore' | 'paymentAmount' | 'email' | 'tempPassword' | 'authUserId'
+  'name' | 'phone' | 'telegramLink' | 'parentContact' | 'desiredScore' | 'paymentAmount' | 'email' | 'tempPassword' | 'authUserId' | 'personId'
 >
 
 const overlay = {

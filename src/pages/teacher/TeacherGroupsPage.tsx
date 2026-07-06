@@ -1977,12 +1977,27 @@ export default function TeacherGroupsPage() {
   const activeStudent = activeStudentId ? students.find(s => s.id === activeStudentId) ?? null : null
   const activeStudentGroup = activeStudent ? groups.find(g => g.id === activeStudent.groupId) ?? null : null
 
-  // Other 1:1 cards of the SAME person (each subject is its own individual group,
-  // grouped by name within this teacher — same heuristic as resolveIndividualGroup).
+  // person_id is the source of truth; authUserId/name are fallbacks for any row
+  // not yet backfilled (migration 0031). Used for sibling cards + the enroll picker.
+  const personKey = (s: Student) => s.personId || s.authUserId || `name:${s.name.trim().toLowerCase()}`
+
+  // Other 1:1 cards of the SAME person — matched by person_id (personKey), robust
+  // to renames / same-name people. Each 1:1 card is its own individual group.
   const siblingCards: SiblingCard[] = activeStudent && activeStudentGroup
-    ? groups
-        .filter(g => g.isIndividual && g.id !== activeStudentGroup.id && g.name === activeStudent.name)
-        .map(g => ({ id: g.id, subject: g.subject, level: g.level, icon: g.icon, color: g.color }))
+    ? (() => {
+        const key = personKey(activeStudent)
+        const seen = new Set<string>()
+        const out: SiblingCard[] = []
+        for (const s of allStudents) {
+          if (s.groupId === activeStudentGroup.id || personKey(s) !== key) continue
+          if (seen.has(s.groupId)) continue
+          const g = groups.find(gg => gg.id === s.groupId)
+          if (!g || !g.isIndividual) continue
+          seen.add(s.groupId)
+          out.push({ id: g.id, subject: g.subject, level: g.level, icon: g.icon, color: g.color })
+        }
+        return out
+      })()
     : []
 
   // Switching to a sibling card = select its group, then auto-open its (single)
@@ -2034,7 +2049,6 @@ export default function TeacherGroupsPage() {
   // ─── Enroll an EXISTING person into a regular group ──────────────────────────
   // People are deduplicated per human (auth account if registered, else name),
   // collecting the subjects they already study for the picker label.
-  const personKey = (s: Student) => s.authUserId || `name:${s.name.trim().toLowerCase()}`
   const people = useMemo(() => {
     const map = new Map<string, { key: string; person: PersonLike; subjects: Set<string>; registered: boolean }>()
     for (const s of allStudents) {
@@ -2046,7 +2060,7 @@ export default function TeacherGroupsPage() {
           person: {
             name: s.name, phone: s.phone, telegramLink: s.telegramLink, parentContact: s.parentContact,
             desiredScore: s.desiredScore, paymentAmount: s.paymentAmount,
-            email: s.email, tempPassword: s.tempPassword, authUserId: s.authUserId,
+            email: s.email, tempPassword: s.tempPassword, authUserId: s.authUserId, personId: s.personId,
           },
           subjects: new Set(), registered: !!s.authUserId,
         }
@@ -2498,6 +2512,7 @@ export default function TeacherGroupsPage() {
               parentContact: activeStudent.parentContact, desiredScore: activeStudent.desiredScore,
               paymentAmount: activeStudent.paymentAmount, email: activeStudent.email,
               tempPassword: activeStudent.tempPassword, authUserId: activeStudent.authUserId,
+              personId: activeStudent.personId,
             })}
             onClose={() => setAddToGroupForStudent(false)}
           />

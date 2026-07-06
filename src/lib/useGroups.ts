@@ -142,6 +142,9 @@ export function useGroups() {
     let firstGroupId: string | null = null
     let firstError: unknown = null
 
+    // One person across every направление-card of this new human.
+    const personId = crypto.randomUUID()
+
     for (let i = 0; i < cards.length; i++) {
       const card = cards[i]
       const { data: groupData, error: groupError } = await supabase.from('groups').insert({
@@ -166,6 +169,7 @@ export function useGroups() {
         parent_contact: s.parentContact ?? '',
         desired_score: s.desiredScore ?? 80,
         payment_amount: s.paymentAmount ?? 0,
+        person_id: personId,
       }).select('id, invite_token').single()
       if (studentError) { firstError = firstError ?? studentError; continue }
       if (i === 0) {
@@ -222,7 +226,7 @@ export function useGroups() {
   // The new row also gets a fresh invite_token so an unregistered student can still
   // activate it. Mirrors addIndividualStudent, just seeded from an existing student.
   async function addIndividualCard(opts: {
-    student: Pick<Student, 'name' | 'phone' | 'telegramLink' | 'parentContact' | 'desiredScore' | 'paymentAmount' | 'email' | 'tempPassword' | 'authUserId'>
+    student: Pick<Student, 'name' | 'phone' | 'telegramLink' | 'parentContact' | 'desiredScore' | 'paymentAmount' | 'email' | 'tempPassword' | 'authUserId' | 'personId'>
     subject: Group['subject']
     level: string
     color: string
@@ -254,6 +258,8 @@ export function useGroups() {
       email: opts.student.email || null,
       temp_password: opts.student.tempPassword || null,
       auth_user_id: opts.student.authUserId || null,
+      // Link to the SAME person — omit only if unknown (DB default mints a new one).
+      ...(opts.student.personId ? { person_id: opts.student.personId } : {}),
     }).select('id, invite_token').single()
     // Already-registered student → seed their progress for this new card too.
     if (!sErr && srow?.id && opts.student.authUserId) {
@@ -276,7 +282,7 @@ export function useGroups() {
   // their progress for this group so lessons/course show up immediately.
   async function addExistingStudentToGroup(
     targetGroupId: string,
-    student: Pick<Student, 'name' | 'phone' | 'telegramLink' | 'parentContact' | 'desiredScore' | 'paymentAmount' | 'email' | 'tempPassword' | 'authUserId'>,
+    student: Pick<Student, 'name' | 'phone' | 'telegramLink' | 'parentContact' | 'desiredScore' | 'paymentAmount' | 'email' | 'tempPassword' | 'authUserId' | 'personId'>,
   ) {
     const { data, error } = await supabase.from('students').insert({
       group_id: targetGroupId,
@@ -289,6 +295,8 @@ export function useGroups() {
       email: student.email || null,
       temp_password: student.tempPassword || null,
       auth_user_id: student.authUserId || null,
+      // Reuse the existing human's person_id so this enrolment is the same person.
+      ...(student.personId ? { person_id: student.personId } : {}),
     }).select('id').single()
     if (!error && data?.id && student.authUserId) {
       await supabase.rpc('seed_student_progress', { p_student_id: data.id, p_group_id: targetGroupId })
@@ -345,12 +353,24 @@ export async function fetchSharedCourseIds(uid: string | null): Promise<string[]
 async function resolveSiblingStudentIds(studentId: string): Promise<string[]> {
   const { data: self } = await supabase
     .from('students')
-    .select('id, name, groups!inner(is_individual, created_by)')
+    .select('id, name, person_id, groups!inner(is_individual, created_by)')
     .eq('id', studentId)
     .single()
   const g = (self as any)?.groups
-  if (!self || !g?.is_individual || !g?.created_by || !self.name) return [studentId]
+  if (!self) return [studentId]
 
+  // Preferred: everyone sharing this person_id (robust to renames / same-name people).
+  if ((self as any).person_id) {
+    const { data: byPerson } = await supabase
+      .from('students')
+      .select('id')
+      .eq('person_id', (self as any).person_id)
+    const ids = (byPerson ?? []).map((r: any) => r.id as string)
+    if (ids.length) return ids
+  }
+
+  // Fallback (un-backfilled rows): same name across this teacher's 1:1 cards.
+  if (!g?.is_individual || !g?.created_by || !self.name) return [studentId]
   const { data: siblings } = await supabase
     .from('students')
     .select('id, groups!inner(is_individual, created_by)')
@@ -477,6 +497,7 @@ export function useStudents(groupId: string | null) {
         email: s.email ?? '',
         tempPassword: s.temp_password ?? '',
         authUserId: s.auth_user_id ?? null,
+        personId: s.person_id ?? undefined,
       })))
     }
     setLoading(false)
@@ -845,6 +866,7 @@ export function useAllStudents() {
           subject: s.groups?.subject ?? '',
           isIndividual: s.groups?.is_individual ?? false,
           authUserId: s.auth_user_id ?? undefined,
+          personId: s.person_id ?? undefined,
           name: s.name,
           phone: s.phone ?? '',
           telegramLink: s.telegram_link ?? '',

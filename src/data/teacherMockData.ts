@@ -31,6 +31,8 @@ export type Group = {
 export type Student = {
   id: string
   authUserId?: string
+  /** First-class person identity — same human shares one person_id across all their cards/groups. */
+  personId?: string
   groupId: string
   subject?: string
   isIndividual?: boolean

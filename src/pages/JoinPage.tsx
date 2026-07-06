@@ -103,23 +103,42 @@ export default function JoinPage() {
     // Link EVERY such card to this same account so one login reaches all subjects.
     // Best-effort: a failure here must never block the student from getting in.
     try {
-      const { data: g } = await supabase.from('groups').select('created_by').eq('id', groupId).single()
-      const ownerId = (g as { created_by?: string } | null)?.created_by
-      if (ownerId) {
-        const { data: sibGroups } = await supabase
-          .from('groups')
-          .select('id, students(id)')
-          .eq('is_individual', true)
-          .eq('created_by', ownerId)
-          .eq('name', studentName)
-        for (const sg of (sibGroups ?? []) as { id: string; students: { id: string }[] }[]) {
-          for (const s of sg.students ?? []) {
-            if (s.id === studentId) continue
-            await supabase
-              .from('students')
-              .update({ email: email.trim(), temp_password: password, auth_user_id: authUserId })
-              .eq('id', s.id)
-            await supabase.rpc('seed_student_progress', { p_student_id: s.id, p_group_id: sg.id })
+      // Preferred: link EVERY row of this person (person_id) — covers 1:1 AND group
+      // cards, and is rename-/same-name-safe (migration 0031).
+      const { data: selfRow } = await supabase
+        .from('students').select('person_id').eq('id', studentId).single()
+      const personId = (selfRow as { person_id?: string } | null)?.person_id
+      if (personId) {
+        const { data: sibs } = await supabase
+          .from('students').select('id, group_id').eq('person_id', personId)
+        for (const s of (sibs ?? []) as { id: string; group_id: string }[]) {
+          if (s.id === studentId) continue
+          await supabase
+            .from('students')
+            .update({ email: email.trim(), temp_password: password, auth_user_id: authUserId })
+            .eq('id', s.id)
+          await supabase.rpc('seed_student_progress', { p_student_id: s.id, p_group_id: s.group_id })
+        }
+      } else {
+        // Fallback (un-backfilled): same-name 1:1 cards under this teacher.
+        const { data: g } = await supabase.from('groups').select('created_by').eq('id', groupId).single()
+        const ownerId = (g as { created_by?: string } | null)?.created_by
+        if (ownerId) {
+          const { data: sibGroups } = await supabase
+            .from('groups')
+            .select('id, students(id)')
+            .eq('is_individual', true)
+            .eq('created_by', ownerId)
+            .eq('name', studentName)
+          for (const sg of (sibGroups ?? []) as { id: string; students: { id: string }[] }[]) {
+            for (const s of sg.students ?? []) {
+              if (s.id === studentId) continue
+              await supabase
+                .from('students')
+                .update({ email: email.trim(), temp_password: password, auth_user_id: authUserId })
+                .eq('id', s.id)
+              await supabase.rpc('seed_student_progress', { p_student_id: s.id, p_group_id: sg.id })
+            }
           }
         }
       }
