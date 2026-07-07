@@ -1,6 +1,12 @@
 import { useState, useRef, useLayoutEffect } from 'react'
 import { Plus, Camera, X } from 'lucide-react'
-import { optimizePhoto } from '../../lib/imageOptim'
+import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
+
+// Фото не влезло в потолок base64 даже после дожима — сообщаем и не вставляем.
+const onPhotoTooLarge = (e: unknown) => {
+  if (e instanceof ImageTooLargeError) window.alert(e.message)
+  else throw e
+}
 import { getContrastColor } from '../../lib/utils'
 
 // ─── Shared table editor (Notion-style) ──────────────────────────────────────
@@ -202,7 +208,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
           optimizePhoto(file).then(url => {
             setCellImage(key, url)
             if (!cellImageSizes[key]) setCellImageSize(key, 50)
-          })
+          }).catch(onPhotoTooLarge)
           e.target.value = ''
         }}
       />
@@ -276,7 +282,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                           if (!imgItem) return
                           e.preventDefault()
                           const file = imgItem.getAsFile(); if (!file) return
-                          optimizePhoto(file).then(url => { setCellImage(key, url); if (!cellImageSizes[key]) setCellImageSize(key, 50) })
+                          optimizePhoto(file).then(url => { setCellImage(key, url); if (!cellImageSizes[key]) setCellImageSize(key, 50) }).catch(onPhotoTooLarge)
                         } : undefined}
                       >
                         <button
@@ -315,7 +321,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                           if (!imgItem) return
                           e.preventDefault()
                           const file = imgItem.getAsFile(); if (!file) return
-                          optimizePhoto(file).then(url => { setCellImage(key, url); setActiveCellState(null) })
+                          optimizePhoto(file).then(url => { setCellImage(key, url); setActiveCellState(null) }).catch(onPhotoTooLarge)
                         } : undefined}
                       />
                     )}

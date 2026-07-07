@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import Skeleton from './Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle2, RotateCcw, Upload, Lock, Play, Star, Clock } from 'lucide-react'
 import { IconLessonRecording } from './icons'
@@ -674,7 +675,7 @@ export default function CourseTrack() {
             <p style={{ fontSize: 12, color: 'var(--color-muted)' }}>Преподаватель откроет доступ к урокам</p>
           </>
         )}
-        {!loaded && <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Загрузка…</p>}
+        {!loaded && <Skeleton.Text lines={3} style={{ width: '100%', maxWidth: 280 }} />}
       </div>
     )
   }

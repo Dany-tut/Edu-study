@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useLayoutEffect } from 'react'
 import { Pencil, Eraser, Undo2, Trash2, Highlighter } from 'lucide-react'
-import { optimizeCanvas } from '../../lib/imageOptim'
+import { optimizeCanvas, ImageTooLargeError } from '../../lib/imageOptim'
 
 // Живой оверлей-разметка: прозрачный холст ПОВЕРХ настоящего ответа ученика.
 // Учитель рисует прямо по «Дано»/«Решению» — красным/зелёным, что верно, а что нет.
@@ -140,7 +140,15 @@ export default function AnnotationLayer({
 
   function commit() {
     const c = canvasRef.current!
-    const data = optimizeCanvas(c)
+    let data: string
+    try {
+      data = optimizeCanvas(c)
+    } catch (e) {
+      // Разметка не влезла в потолок base64 даже после дожима — сообщаем и не
+      // сохраняем этот штрих (прошлое значение остаётся).
+      if (e instanceof ImageTooLargeError) { window.alert(e.message); return }
+      throw e
+    }
     lastImage.current = data
     onChange?.({ image: data, w: c.width, h: c.height })
   }

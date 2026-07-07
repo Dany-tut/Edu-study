@@ -7,7 +7,7 @@ import RichConditionEditor from './RichConditionEditor'
 import WhiteboardCanvas from './WhiteboardCanvas'
 import AnnotationLayer, { type Annotation } from './AnnotationLayer'
 import AnswerBody from './AnswerBody'
-import { optimizePhoto } from '../../lib/imageOptim'
+import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { usePersistentState } from '../../lib/useDraft'
 import { getContrastColor } from '../../lib/utils'
 import {
@@ -166,6 +166,7 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
 }) {
   const [draft, setDraft] = useState('')
   const [photos, setPhotos] = useState<string[]>([])
+  const [photoError, setPhotoError] = useState<string | null>(null)
   const [board, setBoard] = useState<string | null>(null)
   const [showBoard, setShowBoard] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -175,9 +176,15 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
 
   function addPhotos(files: FileList | null) {
     if (!files) return
+    setPhotoError(null)
     Array.from(files).forEach(async file => {
-      const src = await optimizePhoto(file)
-      if (src) setPhotos(p => [...p, src])
+      try {
+        const src = await optimizePhoto(file)
+        if (src) setPhotos(p => [...p, src])
+      } catch (e) {
+        if (e instanceof ImageTooLargeError) setPhotoError(e.message)
+        else throw e
+      }
     })
   }
 
@@ -202,6 +209,7 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
           ))}
         </div>
       )}
+      {photoError && <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-peach-text)' }}>{photoError}</div>}
       {showBoard && <WhiteboardCanvas initialData={board ?? undefined} onSave={setBoard} />}
       <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
@@ -231,6 +239,7 @@ function TeacherComposer({ draftKey, solution, busy, onReview }: {
   // Text/score survive a reload; photos/board/annotation are base64 — not persisted.
   const [comment, setComment] = usePersistentState(`${draftKey}:comment`, '')
   const [photos, setPhotos] = useState<string[]>([])
+  const [photoError, setPhotoError] = useState<string | null>(null)
   const [board, setBoard] = useState<string | null>(null)
   const [showBoard, setShowBoard] = useState(false)
   const [annotating, setAnnotating] = useState(false)
@@ -241,9 +250,15 @@ function TeacherComposer({ draftKey, solution, busy, onReview }: {
 
   function addPhotos(files: FileList | null) {
     if (!files) return
+    setPhotoError(null)
     Array.from(files).forEach(async file => {
-      const src = await optimizePhoto(file)
-      if (src) setPhotos(p => [...p, src])
+      try {
+        const src = await optimizePhoto(file)
+        if (src) setPhotos(p => [...p, src])
+      } catch (e) {
+        if (e instanceof ImageTooLargeError) setPhotoError(e.message)
+        else throw e
+      }
     })
   }
 
@@ -287,6 +302,7 @@ function TeacherComposer({ draftKey, solution, busy, onReview }: {
             <PenLine size={14} /> {board ? 'Доска ✓' : 'Доска'}
           </button>
         </div>
+        {photoError && <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-peach-text)', marginTop: 8 }}>{photoError}</div>}
         {photos.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 10 }}>
             {photos.map((src, i) => (

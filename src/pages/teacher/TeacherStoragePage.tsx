@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import Skeleton from '../../components/Skeleton'
 import { motion } from 'framer-motion'
 import { Database, HardDrive, ImageIcon, RefreshCw, AlertTriangle, ArrowLeft } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
@@ -196,7 +197,7 @@ export default function TeacherStoragePage() {
             </div>
           </div>
           </>}
-          {!stats && <div style={{ color: 'var(--color-text-4)', fontSize: 13, padding: '24px 0' }}>Загрузка…</div>}
+          {!stats && <div style={{ padding: '24px 0' }}><Skeleton.Text lines={3} /></div>}
         </>
       )}
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

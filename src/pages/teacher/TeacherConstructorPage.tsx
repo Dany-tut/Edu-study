@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react'
+import Skeleton from '../../components/Skeleton'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -45,6 +46,8 @@ import { useTheme } from '../../store/themeStore'
 import { cardChip, cardChipTone } from '../../lib/pillStyles'
 import { useTaskBank } from '../../store/taskBankStore'
 import { TrainerBankBrowser, TrainerBankFilterPanel, emptyTrainerFilters, type TrainerFilters } from '../../components/teacher/TrainerBank'
+import GoogleFormImportModal from '../../components/teacher/GoogleFormImportModal'
+import { questionToBankTask, type ImportedQuestion } from '../../lib/googleFormsImport'
 import CurriculumManager from '../../components/teacher/CurriculumManager'
 import { useCourseLessons } from '../../lib/useCourseLessons'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
@@ -55,6 +58,7 @@ import {
   BIOLOGY_SECTIONS, CHEMISTRY_SECTIONS,
   BIOLOGY_TOPICS, CHEMISTRY_TOPICS, SOURCES,
   CHEMISTRY_LINES, BIOLOGY_LINES,
+  sectionsForSubject, topicsForSelection, linesForSelection,
 } from '../../data/taskBankData'
 import { AP_CHEM_COURSES, AP_CHEM_TRAINERS, AP_CHEM_WIDGETS, mergeById } from '../../data/apChemistry'
 import {
@@ -76,6 +80,84 @@ const ANSWER_TYPES: { type: AnswerType; label: string; hint: string; Icon: React
   { type: 'tableFill', label: 'Заполнить таблицу',   hint: 'Ячейка «?» в таблице',    Icon: TableIcon },
   { type: 'extended',  label: 'Развёрнутый ответ',   hint: 'Текст + фото, критерии',  Icon: AlignLeft },
 ]
+
+// ─── Google Forms bulk import — categorize before writing to the bank ─────────
+// The bank requires subject/section/topic/part/line on every task, none of
+// which a Google Form carries — the teacher sets one set of values applied to
+// every imported question (editable afterward per-task like any bank task).
+function GoogleFormBankCategoryModal({
+  questions, initialSubject, onClose, onConfirm,
+}: {
+  questions: ImportedQuestion[]
+  initialSubject: Subject
+  onClose: () => void
+  onConfirm: (meta: { subject: Subject; section: string; topic: string; part: 1 | 2; line: number; source: string }) => Promise<void>
+}) {
+  const [subject, setSubject] = useState<Subject>(initialSubject)
+  const [section, setSection] = useState('')
+  const [topic, setTopic] = useState('')
+  const [part, setPart] = useState<1 | 2>(1)
+  const [line, setLine] = useState(1)
+  const [source, setSource] = useState(SOURCES[SOURCES.length - 1])
+  const [saving, setSaving] = useState(false)
+
+  const sections = sectionsForSubject(subject)
+  const topics = section ? topicsForSelection(subject, [section]) : []
+  const lines = linesForSelection(subject, section ? [section] : [], [String(part)])
+
+  async function handleConfirm() {
+    setSaving(true)
+    try {
+      await onConfirm({ subject, section, topic, part, line, source })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return createPortal(
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.94, opacity: 0, y: 16 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.94, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+        onClick={e => e.stopPropagation()}
+        style={{ background: 'var(--color-bg-input)', borderRadius: 22, padding: '24px', width: 380, maxWidth: '92vw', boxShadow: '0 24px 60px rgba(0,0,0,0.18)' }}
+      >
+        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>Категория для {questions.length} заданий</div>
+        <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 16, lineHeight: 1.5 }}>
+          Применится ко всем импортируемым вопросам — потом можно поменять у каждого отдельно.
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <TeacherSelect value={subject} onChange={v => { setSubject(v as Subject); setSection(''); setTopic('') }} placeholder="Предмет"
+            options={[{ value: 'chemistry', label: 'Химия' }, { value: 'biology', label: 'Биология' }]} />
+          <TeacherSelect value={section} onChange={v => { setSection(v); setTopic('') }} placeholder="Раздел"
+            options={sections.map(s => ({ value: s, label: s }))} />
+          <TeacherSelect value={topic} onChange={setTopic} placeholder="Тема"
+            options={topics.map(t => ({ value: t, label: t }))} />
+          <div style={{ display: 'flex', gap: 8 }}>
+            <TeacherSelect value={String(part)} onChange={v => setPart(Number(v) as 1 | 2)} placeholder="Часть"
+              options={[{ value: '1', label: 'Часть 1' }, { value: '2', label: 'Часть 2' }]} />
+            <TeacherSelect value={String(line)} onChange={v => setLine(Number(v))} placeholder="Линия"
+              options={lines.map(l => ({ value: String(l), label: `№${l}` }))} />
+          </div>
+          <TeacherSelect value={source} onChange={setSource} placeholder="Источник"
+            options={SOURCES.map(s => ({ value: s, label: s }))} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 18 }}>
+          <button onClick={onClose} style={{ padding: '9px 16px', borderRadius: 12, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Отмена</button>
+          <button onClick={handleConfirm} disabled={saving}
+            style={{ padding: '9px 18px', borderRadius: 12, border: 'none', cursor: saving ? 'default' : 'pointer', background: 'var(--color-accent)', color: '#fff', fontSize: 13, fontWeight: 700, opacity: saving ? 0.6 : 1 }}>
+            Импортировать {questions.length}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>,
+    document.body,
+  )
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Tab = 'course' | 'trainer' | 'widget' | 'testing' | 'bank'
@@ -1744,7 +1826,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
           </div>
 
           {loading ? (
-            <div style={{ padding: 40, color: 'var(--color-muted)', fontSize: 13 }}>Загрузка…</div>
+            <div style={{ padding: 40 }}><Skeleton.List rows={4} /></div>
           ) : (
             <div style={{ flex: 1, overflowY: 'auto', padding: '14px 24px 32px', display: 'flex', flexDirection: 'column', gap: 6 }}>
               {tab === 'lesson' && <>
@@ -7046,6 +7128,8 @@ export default function TeacherConstructorPage() {
   useEffect(() => { _cachedWidgets = widgets }, [widgets])
 
   const [bankFilters, setBankFilters] = useState<TrainerFilters>(emptyTrainerFilters)
+  const [formImportOpen, setFormImportOpen] = useState(false)
+  const [pendingFormQuestions, setPendingFormQuestions] = useState<ImportedQuestion[] | null>(null)
   const [widgetFilters, setWidgetFilters] = useState<WidgetFilters>(emptyWidgetFilters)
   const filteredWidgets = useMemo(() => {
     let ws = widgets
@@ -7617,6 +7701,42 @@ export default function TeacherConstructorPage() {
                     onClick={() => t === activeTab ? handlePlus() : handleTabChange(t)} onPlus={handlePlus} />
                 })}
 
+                {activeTab === 'trainer' && !editMode && (
+                  <button
+                    onClick={() => setFormImportOpen(true)}
+                    style={{
+                      marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 7,
+                      padding: '10px 18px', borderRadius: 14, border: '1.5px solid var(--color-border-medium)', cursor: 'pointer',
+                      background: 'rgba(var(--glass-rgb),0.9)', color: 'var(--color-text)', fontSize: 13, fontWeight: 700,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)', flexShrink: 0,
+                    }}
+                  >
+                    <Link2 size={14} strokeWidth={2.4} />
+                    Импорт из Google Forms
+                  </button>
+                )}
+
+                <GoogleFormImportModal
+                  open={formImportOpen}
+                  onClose={() => setFormImportOpen(false)}
+                  onImport={(form, selectedIds) => {
+                    setPendingFormQuestions(form.questions.filter(q => selectedIds.includes(q.id)))
+                  }}
+                />
+                {pendingFormQuestions && (
+                  <GoogleFormBankCategoryModal
+                    questions={pendingFormQuestions}
+                    initialSubject={(bankFilters.subject as Subject) || 'chemistry'}
+                    onClose={() => setPendingFormQuestions(null)}
+                    onConfirm={async meta => {
+                      for (const q of pendingFormQuestions) {
+                        await addBankTask(questionToBankTask(q, meta))
+                      }
+                      setPendingFormQuestions(null)
+                    }}
+                  />
+                )}
+
                 {/* Action bar — inline, pushed right with auto margin, no layout shift */}
                 <AnimatePresence>
                   {editMode && checkedIds.size > 0 && (
@@ -7854,7 +7974,7 @@ export default function TeacherConstructorPage() {
               </div>
 
               {dbLoading && (
-                <div style={{ color: 'var(--color-text-3)', fontSize: 14, padding: '24px 0', textAlign: 'center' }}>Загрузка…</div>
+                <div style={{ padding: '24px 0' }}><Skeleton.Text lines={3} /></div>
               )}
 
               {/* Inline results table — appears below cards on first click */}

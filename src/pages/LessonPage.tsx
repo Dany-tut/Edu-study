@@ -127,30 +127,30 @@ function DownloadTile({ icon: Icon, label }: { icon: typeof NotebookPen; label: 
         onClick={() => setOpen(o => !o)}
         className="flex items-center w-full cursor-pointer"
         style={{
-          gap: 12,
-          padding: 16,
-          borderRadius: 18,
+          gap: 10,
+          padding: '10px 12px',
+          borderRadius: 14,
           background: 'rgba(var(--glass-rgb), 0.96)',
           border: open ? '1px solid rgba(99,84,207,0.4)' : '1px solid var(--color-border-soft)',
           boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-          minHeight: 92,
+          minHeight: 56,
         }}
       >
         <div
           style={{
-            width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+            width: 30, height: 30, borderRadius: 9, flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
           }}
         >
-          <Icon size={20} strokeWidth={1.9} />
+          <Icon size={16} strokeWidth={1.9} />
         </div>
         <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
-          <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.2 }}>{label}</p>
-          <p style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>PDF · скачать</p>
+          <p style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.15 }}>{label}</p>
+          <p style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>PDF · скачать</p>
         </div>
         <ChevronDown
-          size={16}
+          size={15}
           style={{ color: 'var(--color-text-4)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }}
         />
       </motion.button>
@@ -219,30 +219,30 @@ function MaterialsTile({ materials }: { materials: LessonMaterial[] }) {
         onClick={() => setOpen(o => !o)}
         className="flex items-center w-full cursor-pointer"
         style={{
-          gap: 12,
-          padding: 16,
-          borderRadius: 18,
+          gap: 10,
+          padding: '10px 12px',
+          borderRadius: 14,
           background: 'rgba(var(--glass-rgb), 0.96)',
           border: open ? '1px solid rgba(99,84,207,0.4)' : '1px solid var(--color-border-soft)',
           boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-          minHeight: 92,
+          minHeight: 56,
         }}
       >
         <div
           style={{
-            width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+            width: 30, height: 30, borderRadius: 9, flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
           }}
         >
-          <FolderOpen size={20} strokeWidth={1.9} />
+          <FolderOpen size={16} strokeWidth={1.9} />
         </div>
         <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
-          <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.2 }}>Материалы</p>
-          <p style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{materials.length} файла</p>
+          <p style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.15 }}>Материалы</p>
+          <p style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{materials.length} файла</p>
         </div>
         <ChevronDown
-          size={16}
+          size={15}
           style={{ color: 'var(--color-text-4)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }}
         />
       </motion.button>
@@ -913,21 +913,6 @@ export default function LessonPage() {
         </div>
       )}
 
-      {/* ── Row 2: worksheet / notes / materials in a row, homeworks stacked in the 4th column ── */}
-      <div
-        className="grid"
-        style={{
-          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-          gap: 14,
-          alignItems: 'start',
-        }}
-      >
-        <DownloadTile icon={NotebookPen} label="Рабочая тетрадь" />
-        <DownloadTile icon={FileText} label="Конспект" />
-        <MaterialsTile materials={detail.materials} />
-        {detail.homework && <HomeworkCard lessonId={lesson.id} homework={detail.homework} onOpen={openHomework} />}
-      </div>
-
       {/* ── Конспект: lesson notes, with reaction paragraphs highlighted on
           arrival from the reactions widget. ── */}
       {detail.paragraphs.length > 0 && (
@@ -969,6 +954,28 @@ export default function LessonPage() {
           ))}
         </section>
       )}
+
+      {/* ── Materials & homework — placed BELOW the description. Compact tiles;
+          desktop keeps 4-across, mobile drops to 2 columns (4-col squeezes each
+          tile so its content overflows onto neighbours). Homework spans full
+          width on mobile. ── */}
+      <div
+        className="grid"
+        style={{
+          gridTemplateColumns: isDesktop ? 'repeat(4, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))',
+          gap: 12,
+          alignItems: 'start',
+        }}
+      >
+        <DownloadTile icon={NotebookPen} label="Рабочая тетрадь" />
+        <DownloadTile icon={FileText} label="Конспект" />
+        <MaterialsTile materials={detail.materials} />
+        {detail.homework && (
+          <div style={{ gridColumn: isDesktop ? 'auto' : '1 / -1' }}>
+            <HomeworkCard lessonId={lesson.id} homework={detail.homework} onOpen={openHomework} />
+          </div>
+        )}
+      </div>
 
     </div>
   )

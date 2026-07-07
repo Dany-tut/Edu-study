@@ -1,7 +1,18 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
+import { parseStudentLimitError, studentLimitMessage } from './plan'
 import type { Group, GroupTrack, Student } from '../data/teacherMockData'
+
+// Квота тарифа (0037): триггер students_enforce_limit кидает "STUDENT_LIMIT:<max>" —
+// подменяем на человекочитаемое сообщение, остальные ошибки не трогаем.
+function friendlyStudentError<T>(error: T): T {
+  const e = error as { message?: string } | null
+  if (!e) return error
+  const max = parseStudentLimitError(e)
+  return max == null ? error : ({ ...e, message: studentLimitMessage(max) } as T)
+}
+
 
 // Subject → emoji, mirrored from the modal's SUBJECT_ICONS so each extra
 // направление card gets the right icon when the modal only passes its name.
@@ -180,7 +191,7 @@ export function useGroups() {
     }
 
     await load()
-    return { error: firstError, inviteToken: firstInvite, studentId: firstStudentId, groupId: firstGroupId }
+    return { error: friendlyStudentError(firstError), inviteToken: firstInvite, studentId: firstStudentId, groupId: firstGroupId }
   }
 
   async function addStudentToGroup(targetGroupId: string, s: Partial<Student>) {
@@ -207,7 +218,7 @@ export function useGroups() {
     }
     await load()
     return {
-      error,
+      error: friendlyStudentError(error),
       inviteToken: data?.invite_token as string | null,
       studentId: data?.id as string | null,
     }
@@ -267,7 +278,7 @@ export function useGroups() {
     }
     await load()
     return {
-      error: sErr,
+      error: friendlyStudentError(sErr),
       studentId: (srow?.id as string | undefined) ?? null,
       // Fresh token so an UNregistered existing person can still activate this card.
       inviteToken: (srow?.invite_token as string | undefined) ?? null,
@@ -302,7 +313,7 @@ export function useGroups() {
       await supabase.rpc('seed_student_progress', { p_student_id: data.id, p_group_id: targetGroupId })
     }
     await load()
-    return { error, studentId: data?.id as string | null }
+    return { error: friendlyStudentError(error), studentId: data?.id as string | null }
   }
 
   // Replace the extra направления of a (1:1) group — add/remove mid-training.
@@ -522,7 +533,7 @@ export function useStudents(groupId: string | null) {
       temp_password: s.tempPassword ?? null,
     }).select('invite_token').single()
     if (!error) await load()
-    return { error, inviteToken: data?.invite_token as string | null }
+    return { error: friendlyStudentError(error), inviteToken: data?.invite_token as string | null }
   }
 
   async function deleteStudent(id: string) {

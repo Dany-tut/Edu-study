@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Image as ImageIcon, PenLine } from 'lucide-react'
 import { useTheme } from '../../store/themeStore'
 import WhiteboardCanvas from './WhiteboardCanvas'
-import { optimizePhoto } from '../../lib/imageOptim'
+import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -230,6 +230,9 @@ export default function RichConditionEditor({
       sel.removeAllRanges()
       sel.addRange(range)
       emit()
+    }).catch(e => {
+      if (e instanceof ImageTooLargeError) window.alert(e.message)
+      else throw e
     })
   }
 

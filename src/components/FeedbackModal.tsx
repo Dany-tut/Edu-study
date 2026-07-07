@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { X, ImagePlus, MessageSquarePlus } from 'lucide-react'
 import TeacherSaveButton from './teacher/TeacherSaveButton'
-import { optimizePhoto } from '../lib/imageOptim'
+import { optimizePhoto, ImageTooLargeError } from '../lib/imageOptim'
 import { submitFeedback, FEEDBACK_SECTIONS, type FeedbackRole } from '../lib/feedbackRequests'
 
 // Общая форма обратной связи для учителя и ученика. Раздел из списка ИЛИ
@@ -30,8 +30,13 @@ export default function FeedbackModal({ role, onClose }: { role: FeedbackRole; o
     if (!files) return
     for (const file of Array.from(files)) {
       if (!file.type.startsWith('image/')) continue
-      const src = await optimizePhoto(file)
-      if (src) setPhotos(p => (p.length >= MAX_ATTACHMENTS ? p : [...p, src]))
+      try {
+        const src = await optimizePhoto(file)
+        if (src) setPhotos(p => (p.length >= MAX_ATTACHMENTS ? p : [...p, src]))
+      } catch (e) {
+        if (e instanceof ImageTooLargeError) { setError(e.message); continue }
+        throw e
+      }
     }
   }
 

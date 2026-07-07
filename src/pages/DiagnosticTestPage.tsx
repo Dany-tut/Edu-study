@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import Skeleton from '../components/Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, CheckCircle, Circle, ChevronRight, Target, User } from 'lucide-react'
 import {
@@ -251,7 +252,7 @@ export default function DiagnosticTestPage() {
   if (questionsLoading) {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>Загрузка теста…</div>
+        <Skeleton.Text lines={4} style={{ maxWidth: 360 }} />
       </div>
     )
   }

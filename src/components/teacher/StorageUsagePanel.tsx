@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import Skeleton from '../Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Database, HardDrive, ImageIcon, RefreshCw, AlertTriangle, ChevronDown } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
@@ -194,7 +195,7 @@ export default function StorageUsagePanel() {
             )}
           </AnimatePresence>
           </>}
-          {!stats && <div style={{ color: 'var(--color-text-4)', fontSize: 12.5, padding: '16px 0 4px' }}>Загрузка…</div>}
+          {!stats && <div style={{ padding: '16px 0 4px' }}><Skeleton.Text lines={3} /></div>}
         </>
       )}
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

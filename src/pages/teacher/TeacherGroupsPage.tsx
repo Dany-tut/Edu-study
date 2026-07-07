@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import Skeleton from '../../components/Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Users, ChevronUp, ChevronDown, X, Trash2,
@@ -1406,7 +1407,7 @@ function StudentCoursesSection({ student, group }: { student: Student; group: Gr
         </div>
       )}
       {loading && (
-        <div style={{ fontSize: 12, color: 'var(--color-text-3)', padding: '8px 0' }}>Загрузка...</div>
+        <div style={{ padding: '8px 0' }}><Skeleton.Text lines={2} /></div>
       )}
     </section>
   )

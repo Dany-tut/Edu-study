@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import Skeleton from '../Skeleton'
 import { motion } from 'framer-motion'
 import {
   Activity, Users, CalendarClock, Layers, TrendingUp,
@@ -406,7 +407,7 @@ export default function TeacherAnalytics() {
             )}</button>
           ))}
         </div>
-        {loading && <span style={{ fontSize:12, color:'var(--color-text-3)' }}>Загрузка…</span>}
+        {loading && <Skeleton w={140} h={12} style={{ display: 'inline-block' }} />}
       </div>
 
       {err && (

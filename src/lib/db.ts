@@ -16,6 +16,15 @@ function reportDbError(ctx: string, error: { message?: string; code?: string } |
   console.error(`[db:${ctx}]`, error)
   try { trackEvent('db_error', { ctx, msg: String(error.message ?? '').slice(0, 200), code: error.code ?? null }) } catch { /**/ }
 }
+
+// «Похож на UUID». Битая student_session (легаси-формат без id/groupId) даёт
+// undefined, который в шаблонной строке/сериализации PostgREST превращается в
+// литерал "undefined" → 400 `invalid input syntax for type uuid`. Такие id
+// отсекаем ДО сети и возвращаем пустой результат.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+export function isUuid(v: unknown): v is string {
+  return typeof v === 'string' && UUID_RE.test(v)
+}
 import {
   type Subject,
   type Lesson,
@@ -174,7 +183,9 @@ export async function fetchPersonScope(
 }
 
 export async function fetchLessonProgress(studentIds: string | string[]): Promise<ProgressMap> {
-  const ids = Array.isArray(studentIds) ? studentIds : [studentIds]
+  // Guard: битые id (undefined / "undefined" / пустые) не должны уходить в сеть.
+  const ids = (Array.isArray(studentIds) ? studentIds : [studentIds]).filter(isUuid)
+  if (ids.length === 0) return {}
   const { data, error } = await supabase
     .from('lesson_progress')
     .select('lesson_ref, subject, status, score, comment, review_comment, attachments, review_attachments, hard_submitted')
@@ -252,8 +263,9 @@ interface DbCourse {
 }
 
 export async function fetchCourseStructure(rows: Array<{ id: string; groupId: string }>): Promise<Subject[]> {
-  const studentIds = [...new Set(rows.map(r => r.id))]
-  const groupIds = [...new Set(rows.map(r => r.groupId))]
+  // Guard: битые id (undefined / "undefined") в orParts дают 400 invalid uuid.
+  const studentIds = [...new Set(rows.map(r => r.id))].filter(isUuid)
+  const groupIds = [...new Set(rows.map(r => r.groupId))].filter(isUuid)
   // Any course published to ANY of the person's student rows OR groups. Guard
   // against empty arrays (Postgres `cs.{}` is invalid) so the OR never breaks.
   const orParts = [
@@ -281,7 +293,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
   // (only teacher-unlocked lessons open), preserving legacy behaviour.
   const courseIds = (data as unknown as DbCourse[]).map(c => c.id)
   const modeByCourse: Record<string, 'full' | 'custom' | 'by_date'> = {}
-  if (courseIds.length > 0) {
+  if (courseIds.length > 0 && studentIds.length > 0) {
     const { data: enr, error: enrErr } = await supabase
       .from('course_enrollments')
       .select('course_id, access_mode')

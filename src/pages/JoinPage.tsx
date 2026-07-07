@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Skeleton from '../components/Skeleton'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -44,15 +45,17 @@ export default function JoinPage() {
       .then(({ data, error }) => {
         const row = Array.isArray(data) ? data[0] : data
         if (error || !row) { setStep('error'); return }
-        setStudentId(row.id)
-        setStudentName(row.name)
-        setGroupId(row.group_id)
+        // ?? '' — если RPC вернул строку без какого-то поля, в сессию не должен
+        // утечь undefined (он потом даёт 400 invalid uuid в запросах кабинета).
+        setStudentId(row.id ?? '')
+        setStudentName(row.name ?? '')
+        setGroupId(row.group_id ?? '')
         setStep('form')
       })
   }, [token])
 
   const emailValid = email.includes('@')
-  const passwordValid = password.length >= 4
+  const passwordValid = password.length >= 6
   const emailTouched = email.length > 0
   const passwordTouched = password.length > 0
 
@@ -74,75 +77,24 @@ export default function JoinPage() {
       return
     }
 
-    // Link the auth user to the invited student row (keep temp_password as a
-    // teacher-visible fallback / recovery hint).
-    const authUserId = authData.user.id
-    const { data: linked, error } = await supabase
-      .from('students')
-      .update({ email: email.trim(), temp_password: password, auth_user_id: authUserId })
-      .eq('invite_token', token)
-      .select('id')
-
-    // An RLS-filtered UPDATE returns no error but affects 0 rows — treat that as
-    // a failure too, otherwise the account exists but is never linked to the
-    // card (teacher sees no login/password, invite stays unclaimed).
-    if (error || !linked || linked.length === 0) {
+    // Claim the invited card + link every sibling person_id card + seed progress,
+    // all server-side via a SECURITY DEFINER RPC (migration 0038). A direct
+    // students UPDATE no longer works: the anon claim policy was a security hole
+    // (let anyone hijack all pending invites) and was removed, and an RLS UPDATE
+    // policy can't safely bind the claim to the caller's token. The RPC binds
+    // auth_user_id to auth.uid() of the just-created session, so it's both the
+    // only working path and the secure one.
+    const { error } = await supabase.rpc('claim_student_account', {
+      p_token: token,
+      p_email: email.trim(),
+      p_password: password,
+    })
+    if (error) {
       setErrorMsg('Ошибка при сохранении. Попробуйте ещё раз.')
       setSaving(false)
       return
     }
 
-    // Seed progress for the invited card and go to dashboard.
-    await supabase.rpc('seed_student_progress', {
-      p_student_id: studentId,
-      p_group_id: groupId,
-    })
-
-    // A 1:1 student can have several subject cards — each is a separate individual
-    // group + student row for the same person (grouped by name within one teacher).
-    // Link EVERY such card to this same account so one login reaches all subjects.
-    // Best-effort: a failure here must never block the student from getting in.
-    try {
-      // Preferred: link EVERY row of this person (person_id) — covers 1:1 AND group
-      // cards, and is rename-/same-name-safe (migration 0031).
-      const { data: selfRow } = await supabase
-        .from('students').select('person_id').eq('id', studentId).single()
-      const personId = (selfRow as { person_id?: string } | null)?.person_id
-      if (personId) {
-        const { data: sibs } = await supabase
-          .from('students').select('id, group_id').eq('person_id', personId)
-        for (const s of (sibs ?? []) as { id: string; group_id: string }[]) {
-          if (s.id === studentId) continue
-          await supabase
-            .from('students')
-            .update({ email: email.trim(), temp_password: password, auth_user_id: authUserId })
-            .eq('id', s.id)
-          await supabase.rpc('seed_student_progress', { p_student_id: s.id, p_group_id: s.group_id })
-        }
-      } else {
-        // Fallback (un-backfilled): same-name 1:1 cards under this teacher.
-        const { data: g } = await supabase.from('groups').select('created_by').eq('id', groupId).single()
-        const ownerId = (g as { created_by?: string } | null)?.created_by
-        if (ownerId) {
-          const { data: sibGroups } = await supabase
-            .from('groups')
-            .select('id, students(id)')
-            .eq('is_individual', true)
-            .eq('created_by', ownerId)
-            .eq('name', studentName)
-          for (const sg of (sibGroups ?? []) as { id: string; students: { id: string }[] }[]) {
-            for (const s of sg.students ?? []) {
-              if (s.id === studentId) continue
-              await supabase
-                .from('students')
-                .update({ email: email.trim(), temp_password: password, auth_user_id: authUserId })
-                .eq('id', s.id)
-              await supabase.rpc('seed_student_progress', { p_student_id: s.id, p_group_id: sg.id })
-            }
-          }
-        }
-      }
-    } catch { /* linking extra cards is best-effort — never block sign-in */ }
     setStudentSession({ id: studentId, name: studentName, groupId })
     // Full reload (not a bare hash change): App's data-load effect runs once on
     // mount and only when a student_session already exists. Navigating by hash
@@ -165,7 +117,7 @@ export default function JoinPage() {
         style={card}
       >
         {step === 'loading' && (
-          <div style={{ textAlign: 'center', color: 'var(--color-muted)', padding: '24px 0' }}>Загрузка...</div>
+          <div style={{ padding: '24px 0' }}><Skeleton.Text lines={3} /></div>
         )}
 
         {step === 'error' && (
@@ -224,7 +176,7 @@ export default function JoinPage() {
                   </button>
                 </div>
                 {passwordTouched && !passwordValid && (
-                  <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>Пароль должен быть не менее 4 символов</span>
+                  <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>Пароль должен быть не менее 6 символов</span>
                 )}
               </div>
             </div>

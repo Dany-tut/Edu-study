@@ -3,6 +3,7 @@
 // student home, inside a homework step, or a lesson "Повторение" block.
 
 import { useEffect, useState } from 'react'
+import Skeleton from './Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, RotateCcw } from 'lucide-react'
 import { dueCards, gradeCard, type ReviewCard } from '../data/reviewDeck'
@@ -24,7 +25,7 @@ export default function ReviewSession({ owner, onDone }: {
 
   useEffect(() => { dueCards(owner).then(setCards) }, [owner.studentId, owner.anonName])
 
-  if (cards === null) return <Shell><div style={{ color: 'var(--color-muted)', fontSize: 13 }}>Загрузка…</div></Shell>
+  if (cards === null) return <Shell><Skeleton.Text lines={3} style={{ maxWidth: 320 }} /></Shell>
 
   if (cards.length === 0 || idx >= cards.length) return (
     <Shell>

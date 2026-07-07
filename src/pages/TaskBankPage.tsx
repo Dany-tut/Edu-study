@@ -1767,7 +1767,24 @@ export default function TaskBankPage() {
                 animate={searchExpanded
                   ? { opacity: 0, scale: 0.5, x: 22 }
                   : { opacity: 1, scale: 1, x: 0 }}
-                transition={{ ...FIELD_MORPH, delay: searchExpanded ? idx * 0.04 : (2 - idx) * 0.04 }}
+                // A wrapper opacity < 1 isolates a group and suspends the child
+                // circle's backdrop-filter — so ANY opacity tween (in OR out) makes
+                // the frost blink (transparent-without-blur) for a frame. Fix: never
+                // tween opacity through the <1 zone. Instead snap it (duration 0)
+                // while the circle is HIDDEN by the search pill, and let scale+x
+                // carry the visible motion (blur live the whole time).
+                //  • EXPAND: hold opaque+blurred; scale/x slide the circle under the
+                //    growing pill; snap opacity→0 only after the pill's edge has
+                //    covered it (delay grows left→right, matching cover order).
+                //  • COLLAPSE: snap opaque instantly; scale/x reveal it from under
+                //    the retracting pill.
+                transition={{
+                  ...FIELD_MORPH,
+                  delay: searchExpanded ? idx * 0.04 : (2 - idx) * 0.04,
+                  opacity: searchExpanded
+                    ? { delay: 0.12 + idx * 0.05, duration: 0 }
+                    : { duration: 0 },
+                }}
                 // The exit blur lives here as a plain CSS filter that's ABSENT at
                 // rest — a `filter` on this wrapper (even blur(0)) would break the
                 // child circle's `backdrop-filter`, killing its background blur.
@@ -1789,7 +1806,11 @@ export default function TaskBankPage() {
             <motion.div
               ref={searchPillRef}
               initial={false}
-              animate={{ width: searchExpanded ? dockW : (navCollapsed ? 42 : 50) }}
+              // paddingLeft is animated (not a plain style) so that if navCollapsed
+              // flips mid-open — the dock lifts on expand — the 11↔15 centring
+              // offset tweens smoothly instead of snapping 4px and jiggling the
+              // icon. When it doesn't change, animating it is a no-op → dead still.
+              animate={{ width: searchExpanded ? dockW : (navCollapsed ? 42 : 50), paddingLeft: navCollapsed ? 11 : 15 }}
               transition={FIELD_MORPH}
               onClick={() => { if (!searchExpanded) { setDockW(dockRef.current?.offsetWidth ?? 0); setSearchExpanded(true) } }}
               aria-label="Поиск"
@@ -1798,8 +1819,15 @@ export default function TaskBankPage() {
                 // Collapsed: centre the icon in the circle (no side padding, so it
                 // doesn't drift as the width shrinks to 42 in the mini dock).
                 // Expanded: left-align the icon with padding for the input row.
-                display: 'flex', alignItems: 'center', justifyContent: searchExpanded ? 'flex-start' : 'center',
-                gap: searchExpanded ? 8 : 0, padding: searchExpanded ? '0 15px' : 0,
+                // paddingLeft is held CONSTANT through the morph and set to the
+                // value that centres the 20px icon in the collapsed circle
+                // ((w-20)/2 → 11 for the 42px mini dock, 15 for the 50px dock).
+                // Same value collapsed & expanded ⇒ icon is centred when collapsed
+                // AND never shifts when the pill opens. Right padding stays 15 for
+                // the input row.
+                display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
+                gap: searchExpanded ? 8 : 0,
+                paddingRight: 15,
                 borderRadius: 999, overflow: 'hidden',
                 background: 'rgba(var(--glass-rgb), 0.6)',
                 backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',

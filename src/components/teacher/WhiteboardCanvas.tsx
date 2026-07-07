@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Pencil, Eraser, Undo2, Trash2, MousePointer2, BoxSelect, GripHorizontal } from 'lucide-react'
-import { optimizeCanvas } from '../../lib/imageOptim'
+import { optimizeCanvas, ImageTooLargeError } from '../../lib/imageOptim'
 
 const WB_COLORS = ['#0B0B0D', '#E53E3E', '#3182CE', '#38A169', '#D69E2E', '#805AD5', '#DD6B20']
 
@@ -114,6 +114,20 @@ export default function WhiteboardCanvas({
     setCanUndo(true)
   }
 
+  // Единая точка сохранения: optimizeCanvas может бросить ImageTooLargeError
+  // (доска не влезла в потолок base64 даже после дожима) — показываем сообщение
+  // вместо тихого падения в pointer-обработчике.
+  const [sizeError, setSizeError] = useState<string | null>(null)
+  function emitSave(c: HTMLCanvasElement) {
+    try {
+      emitSave(c)
+      setSizeError(null)
+    } catch (e) {
+      if (e instanceof ImageTooLargeError) setSizeError(e.message)
+      else throw e
+    }
+  }
+
   // ─── Selection helpers ──────────────────────────────────────────────────────
 
   function repaintSelection(rect: Rect) {
@@ -152,7 +166,7 @@ export default function WhiteboardCanvas({
     selCanvasRef.current = null
     baseRef.current = null
     setSel(null)
-    onSave?.(optimizeCanvas(canvasRef.current!))
+    emitSave(canvasRef.current!)
   }
 
   function selectAll() {
@@ -239,7 +253,7 @@ export default function WhiteboardCanvas({
       return
     }
     lastPt.current = null
-    onSave?.(optimizeCanvas(canvasRef.current!))
+    emitSave(canvasRef.current!)
   }
 
   // ─── Move / scale an active selection ───────────────────────────────────────
@@ -283,7 +297,7 @@ export default function WhiteboardCanvas({
   function dragEnd() {
     if (dragRef.current) {
       dragRef.current = null
-      onSave?.(optimizeCanvas(canvasRef.current!))
+      emitSave(canvasRef.current!)
     }
   }
 
@@ -320,7 +334,7 @@ export default function WhiteboardCanvas({
   function resizeUp() {
     if (resizeRef.current) {
       resizeRef.current = null
-      onSave?.(optimizeCanvas(canvasRef.current!))
+      emitSave(canvasRef.current!)
     }
   }
 
@@ -334,7 +348,7 @@ export default function WhiteboardCanvas({
     if (prev) {
       ctx.putImageData(prev, 0, 0)
       setCanUndo(history.current.length > 0)
-      onSave?.(optimizeCanvas(c))
+      emitSave(c)
     }
   }
 
@@ -347,7 +361,7 @@ export default function WhiteboardCanvas({
     pushHistory()
     ctx.fillStyle = '#FFFFFF'
     ctx.fillRect(0, 0, c.width, c.height)
-    onSave?.(optimizeCanvas(c))
+    emitSave(c)
   }
 
   const divider = <div style={{ width: 1, height: 16, background: 'var(--color-border-medium)', flexShrink: 0 }} />
@@ -433,6 +447,12 @@ export default function WhiteboardCanvas({
           <button title="Очистить" onClick={clear} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', cursor: 'pointer', background: 'var(--color-red-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-red-text)' }}>
             <Trash2 size={12} />
           </button>
+        </div>
+      )}
+
+      {sizeError && (
+        <div style={{ padding: '7px 12px', fontSize: 12, fontWeight: 600, color: 'var(--color-red-text)', background: 'var(--color-red-soft)', borderBottom: '1px solid var(--color-border-medium)' }}>
+          {sizeError}
         </div>
       )}
 

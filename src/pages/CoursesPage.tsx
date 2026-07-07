@@ -1,13 +1,25 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { motion } from 'framer-motion'
-import { Search, X } from 'lucide-react'
+import Skeleton from '../components/Skeleton'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Search, X, SlidersHorizontal, ArrowUpDown, Check } from 'lucide-react'
 import { type Lesson, type LessonStatus } from '../data/mockData'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
 import { playTransitionDrop } from '../lib/sound'
+import { tactile } from '../lib/feedback'
 import { useNow } from '../lib/useNow'
+import { useIsDesktop } from '../lib/useIsDesktop'
 import { useDashboard } from '../store/dashboardStore'
 import { useFloatingPill } from '../lib/useFloatingPill'
 import { useStudentData } from '../store/studentDataStore'
+import MobileSheet from '../components/MobileSheet'
+
+type StatusFilter = 'all' | 'active' | 'done'
+const FILTER_OPTIONS: Array<{ id: StatusFilter; label: string }> = [
+  { id: 'all', label: 'Все занятия' },
+  { id: 'active', label: 'Нужно сделать' },
+  { id: 'done', label: 'Выполненные' },
+]
+const ACTIVE_STATUSES: LessonStatus[] = ['current', 'returned', 'unviewed', 'submitted']
 
 // Soft surface colours per status — mirrors the course-track palette so a lesson
 // reads the same here as it does on the track / in the detail popover.
@@ -35,6 +47,15 @@ export default function CoursesPage() {
   // active module so a focused lesson lands on its own section.
   const [moduleTab, setModuleTab] = useState<number | typeof ALL>(activeModuleId)
   const [search, setSearch] = useState('')
+  const isDesktop = useIsDesktop()
+  // Mobile «ДЗ» dock state: the search collapses to a circle, and filter/sort
+  // ride alongside it above the bottom nav (mirrors the trainer dock). On
+  // desktop the dock is hidden and the classic top search field is used.
+  const [searchExpanded, setSearchExpanded] = useState(false)
+  const [sortDesc, setSortDesc] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [filterSheet, setFilterSheet] = useState(false)
+  const mSearchRef = useRef<HTMLInputElement>(null)
   const subjects = useStudentData(s => s.subjects)
   const loaded = useStudentData(s => s.loaded)
   const subjectPill = useFloatingPill(activeSubjectId)
@@ -50,15 +71,21 @@ export default function CoursesPage() {
   // "Все" is selected. Search narrows by title or lesson number.
   const lessons = useMemo(() => {
     if (!subject) return []
-    const base: Lesson[] = moduleTab === ALL
+    let base: Lesson[] = moduleTab === ALL
       ? subject.modules.flatMap(m => m.lessons)
       : (subject.modules.find(m => m.id === moduleTab)?.lessons ?? [])
     const q = search.trim().toLowerCase()
-    if (!q) return base
-    return base.filter(l =>
+    if (q) base = base.filter(l =>
       l.title.toLowerCase().includes(q) || String(l.number).includes(q),
     )
-  }, [subject, moduleTab, search])
+    if (statusFilter !== 'all') base = base.filter(l => {
+      const ds = getDisplayLessonStatus(l, now)
+      return statusFilter === 'done' ? ds === 'completed' : ACTIVE_STATUSES.includes(ds)
+    })
+    // Copy before sorting — never mutate the module's lesson array in place.
+    if (sortDesc) base = [...base].sort((a, b) => b.number - a.number)
+    return base
+  }, [subject, moduleTab, search, statusFilter, sortDesc, now])
 
   // Scroll the focused lesson into view + briefly ring it when arriving from a
   // specific entry point (track "Открыть урок", schedule card).
@@ -83,16 +110,17 @@ export default function CoursesPage() {
             <p style={{ fontSize: 13, marginTop: 4, color: 'var(--color-muted)' }}>Преподаватель откроет доступ к урокам</p>
           </>
         )}
-        {!loaded && <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Загрузка…</p>}
+        {!loaded && <Skeleton.Text lines={3} style={{ width: '100%', maxWidth: 320 }} />}
       </div>
     )
   }
 
   return (
     <div className="flex flex-col" style={{ gap: 18 }}>
-      {/* ── Row 1: search + subject pills ── */}
+      {/* ── Row 1: search (desktop only) + subject pills ── */}
       <div className="flex items-center gap-3 flex-wrap">
-        {/* Search field */}
+        {/* Search field — desktop only; on mobile it lives in the bottom dock. */}
+        {isDesktop && (
         <div
           className="flex items-center"
           style={{
@@ -123,6 +151,7 @@ export default function CoursesPage() {
             </button>
           )}
         </div>
+        )}
 
         {/* Subject pills */}
         <div
@@ -373,6 +402,118 @@ export default function CoursesPage() {
           <p style={{ fontSize: 13, marginTop: 3 }}>Попробуйте изменить запрос или модуль</p>
         </div>
       )}
+
+      {/* Clearance so the last lessons scroll clear of the floating dock. */}
+      {!isDesktop && <div style={{ height: 44 }} />}
+
+      {/* ── Mobile dock: search / filter / sort, floating above the bottom nav
+          (mirrors the trainer). Desktop uses the top search field instead. ── */}
+      {!isDesktop && (
+        <div
+          style={{
+            position: 'fixed', left: 0, right: 0, zIndex: 65,
+            bottom: 'calc(env(safe-area-inset-bottom, 0px) + 82px)',
+            display: 'flex', justifyContent: 'center', pointerEvents: 'none',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, pointerEvents: 'auto' }}>
+            <AnimatePresence initial={false} mode="popLayout">
+              {searchExpanded ? (
+                <motion.div
+                  key="search-pill"
+                  initial={{ width: 50, opacity: 0 }}
+                  animate={{ width: 260, opacity: 1 }}
+                  exit={{ width: 50, opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 520, damping: 38, mass: 0.7 }}
+                  onAnimationComplete={() => mSearchRef.current?.focus()}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, height: 50, padding: '0 16px',
+                    borderRadius: 999, overflow: 'hidden',
+                    background: 'rgba(var(--glass-rgb), 0.7)',
+                    backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+                    border: '1px solid var(--color-border-glass)',
+                    boxShadow: 'var(--shadow-pill), inset 0 1px 0 rgba(255,255,255,0.5)',
+                  }}
+                >
+                  <Search size={20} style={{ color: search ? 'var(--color-accent)' : 'var(--color-text-2)', flexShrink: 0 }} />
+                  <input
+                    ref={mSearchRef}
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder="Поиск по занятиям"
+                    style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: 'var(--color-text)' }}
+                  />
+                  <button
+                    onClick={() => { setSearch(''); setSearchExpanded(false) }}
+                    aria-label="Закрыть поиск"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', flexShrink: 0, padding: 0 }}
+                  >
+                    <X size={18} />
+                  </button>
+                </motion.div>
+              ) : (
+                [
+                  { k: 'search', node: <Search size={20} />, active: !!search, onClick: () => { tactile(); setSearchExpanded(true) }, label: 'Поиск' },
+                  { k: 'filter', node: <SlidersHorizontal size={20} />, active: statusFilter !== 'all', onClick: () => { tactile(); setFilterSheet(true) }, label: 'Фильтр' },
+                  { k: 'sort', node: <ArrowUpDown size={20} />, active: sortDesc, onClick: () => { tactile(); setSortDesc(v => !v) }, label: sortDesc ? 'Сначала новые' : 'Сначала старые' },
+                ].map(c => (
+                  <motion.button
+                    key={c.k}
+                    layout
+                    initial={{ opacity: 0, scale: 0.6 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.6 }}
+                    whileTap={{ scale: 0.92 }}
+                    onClick={c.onClick}
+                    aria-label={c.label}
+                    style={{
+                      position: 'relative',
+                      width: 50, height: 50, borderRadius: 999, flexShrink: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                      background: 'rgba(var(--glass-rgb), 0.7)',
+                      backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+                      border: '1px solid var(--color-border-glass)',
+                      boxShadow: 'var(--shadow-pill), inset 0 1px 0 rgba(255,255,255,0.5)',
+                      color: c.active ? 'var(--color-accent)' : 'var(--color-text-2)',
+                    }}
+                  >
+                    {c.node}
+                    {c.active && (
+                      <span style={{ position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 999, background: 'var(--color-accent)' }} />
+                    )}
+                  </motion.button>
+                ))
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
+
+      {/* ── Filter sheet (mobile) ── */}
+      <MobileSheet open={filterSheet} onClose={() => setFilterSheet(false)} title="Показывать">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {FILTER_OPTIONS.map(o => {
+            const active = statusFilter === o.id
+            return (
+              <button
+                key={o.id}
+                onClick={() => { tactile(); setStatusFilter(o.id); setFilterSheet(false) }}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '13px 15px', borderRadius: 14, cursor: 'pointer',
+                  background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-input)',
+                  border: 'none', textAlign: 'left',
+                  color: active ? 'var(--color-accent)' : 'var(--color-text)',
+                  fontSize: 15, fontWeight: active ? 650 : 500,
+                }}
+              >
+                {o.label}
+                {active && <Check size={18} />}
+              </button>
+            )
+          })}
+        </div>
+      </MobileSheet>
     </div>
   )
 }

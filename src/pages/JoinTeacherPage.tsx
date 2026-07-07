@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Skeleton from '../components/Skeleton'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -37,6 +38,8 @@ export default function JoinTeacherPage() {
   const [saving, setSaving] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const [consent, setConsent] = useState(false)
+  const [analyticsOptIn, setAnalyticsOptIn] = useState(true)
 
   useEffect(() => {
     if (!token) { setStep('error'); return }
@@ -69,6 +72,8 @@ export default function JoinTeacherPage() {
           first_name: firstName.trim(),
           last_name: lastName.trim(),
           subject: subject.trim(),
+          analytics_consent: analyticsOptIn,
+          consent_at: new Date().toISOString(),
         },
       },
     })
@@ -98,14 +103,14 @@ export default function JoinTeacherPage() {
     <div style={{ minHeight: '100dvh', background: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={card}>
         {step === 'loading' && (
-          <div style={{ textAlign: 'center', color: 'var(--color-muted)', padding: '24px 0' }}>Загрузка...</div>
+          <div style={{ padding: '24px 0' }}><Skeleton.Text lines={3} /></div>
         )}
 
         {step === 'error' && (
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 32, marginBottom: 12 }}>🔗</div>
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 8 }}>Ссылка недействительна</div>
-            <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>Возможно, приглашение уже использовано. Попросите администратора отправить новое.</div>
+            <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>Возможно, приглашение уже использовано или его срок истёк. Попросите администратора отправить новое.</div>
           </div>
         )}
 
@@ -145,18 +150,27 @@ export default function JoinTeacherPage() {
               </div>
             </div>
 
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14 }}>
+              <ConsentRow checked={consent} onChange={setConsent}>
+                Я соглашаюсь на обработку персональных данных платформы «Искра».
+              </ConsentRow>
+              <ConsentRow checked={analyticsOptIn} onChange={setAnalyticsOptIn}>
+                Разрешаю анонимный сбор аналитики использования, чтобы платформа становилась лучше.
+              </ConsentRow>
+            </div>
+
             {errorMsg && (
               <div style={{ marginTop: 12, fontSize: 13, color: '#A8282D', background: 'var(--color-red-soft)', borderRadius: 10, padding: '8px 12px' }}>{errorMsg}</div>
             )}
 
             <button
               onClick={handleRegister}
-              disabled={!emailValid || !passwordValid || saving}
+              disabled={!emailValid || !passwordValid || !consent || saving}
               style={{
                 marginTop: 22, width: '100%', padding: '13px 0',
-                background: emailValid && passwordValid ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)',
+                background: emailValid && passwordValid && consent ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)',
                 color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14,
-                cursor: emailValid && passwordValid ? 'pointer' : 'not-allowed',
+                cursor: emailValid && passwordValid && consent ? 'pointer' : 'not-allowed',
               }}
             >
               {saving ? 'Создаём аккаунт...' : 'Войти в платформу'}
@@ -165,5 +179,35 @@ export default function JoinTeacherPage() {
         )}
       </motion.div>
     </div>
+  )
+}
+
+function ConsentRow({ checked, onChange, children }: { checked: boolean; onChange: (v: boolean) => void; children: React.ReactNode }) {
+  return (
+    <label style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 12.5, color: 'var(--color-muted)', lineHeight: 1.45, cursor: 'pointer' }}>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={e => onChange(e.target.checked)}
+        style={{ position: 'absolute', opacity: 0, width: 0, height: 0, margin: 0 }}
+      />
+      <span
+        aria-hidden
+        style={{
+          marginTop: 1, width: 18, height: 18, flexShrink: 0, borderRadius: 6,
+          border: `1.5px solid ${checked ? 'var(--color-purple)' : 'var(--color-border)'}`,
+          background: checked ? 'var(--color-purple)' : 'var(--color-bg-input)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'background 0.15s ease, border-color 0.15s ease',
+        }}
+      >
+        {checked && (
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+            <path d="M2.5 6.2L4.8 8.5L9.5 3.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </span>
+      <span>{children}</span>
+    </label>
   )
 }

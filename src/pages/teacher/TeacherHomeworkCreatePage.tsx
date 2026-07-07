@@ -6,7 +6,7 @@ import {
   AlignLeft, CheckSquare, Type, Shuffle, Eye,
   BookOpen, AlertCircle, Check, GripVertical, Sparkles,
   ChevronLeft, ChevronRight, Calendar, Users,
-  PenLine, ArrowUpDown, ArrowUp, ArrowDown, Table as TableIcon,
+  PenLine, ArrowUpDown, ArrowUp, ArrowDown, Table as TableIcon, Link2,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
@@ -29,6 +29,8 @@ import WhiteboardCanvas from '../../components/teacher/WhiteboardCanvas'
 import RichConditionEditor from '../../components/teacher/RichConditionEditor'
 import TableEditor from '../../components/teacher/TableEditor'
 import { useOverlayScroll, ScrollOverlays } from '../../components/teacher/OverlayScroll'
+import GoogleFormImportModal from '../../components/teacher/GoogleFormImportModal'
+import type { ImportedQuestion } from '../../lib/googleFormsImport'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -72,6 +74,26 @@ function taskFromBank(bt: BankTask): HWTask {
     type: 'extended', question: bt.question, answer: bt.answer,
     image: bt.questionImage ?? null,
   }
+}
+
+// Google Forms never exposes the answer key to non-owners — imported questions
+// always land without a correct answer; the teacher marks it in the card after.
+function hwTaskFromImported(q: ImportedQuestion): HWTask {
+  return {
+    id: Math.random().toString(36).slice(2),
+    source: 'custom', modified: false,
+    type: q.type as HWTaskType,
+    question: q.title,
+    answer: '',
+    choices: q.choices,
+    correctChoices: (q.type === 'single' || q.type === 'multi') ? [] : undefined,
+  }
+}
+
+function needsAnswerFlag(t: HWTask): boolean {
+  if (t.type === 'single' || t.type === 'multi') return (t.correctChoices ?? []).length === 0
+  if (t.type === 'fill' || t.type === 'extended') return !t.answer?.trim()
+  return false
 }
 
 // Собрать определения сложных заданий для ученика: и банковские, и свободные.
@@ -267,6 +289,11 @@ function TaskCard({
           {task.modified && (
             <div style={cardChipTone('peach', { flexShrink: 0 })}>
               изменено
+            </div>
+          )}
+          {needsAnswerFlag(task) && (
+            <div style={cardChipTone('peach', { flexShrink: 0 })}>
+              нет ответа
             </div>
           )}
           <div style={{ flex: 1, fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -504,7 +531,10 @@ const TASK_TYPE_DESCS: Record<HWTaskType, string> = {
   whiteboard: 'Рисунок на доске',
 }
 
-function ComposeTypePanel({ onAdd, onAddHard }: { onAdd: (type: HWTaskType) => void; onAddHard: (type: HWTaskType) => void }) {
+function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard }: {
+  onAdd: (type: HWTaskType) => void; onAddHard: (type: HWTaskType) => void
+  onImport: () => void; onImportHard: () => void
+}) {
   const [active, setActive] = useState<HWTaskType | null>(null)
   function flash(type: HWTaskType, cb: (t: HWTaskType) => void) {
     cb(type); setActive(type); setTimeout(() => setActive(null), 280)
@@ -558,6 +588,19 @@ function ComposeTypePanel({ onAdd, onAddHard }: { onAdd: (type: HWTaskType) => v
           </div>
         </button>
       ))}
+      <button
+        onClick={onImport}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '9px 12px', borderRadius: 13,
+          border: '1.5px dashed var(--color-border-medium)',
+          background: 'transparent', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
+          color: 'var(--color-muted)', fontSize: 11.5, fontWeight: 600,
+        }}
+      >
+        <Link2 size={14} style={{ flexShrink: 0 }} />
+        Импорт из Google Forms
+      </button>
       <div style={{ height: 1, background: 'var(--color-border)', margin: '6px 0 2px' }} />
       <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>
         СЛОЖНОЕ ЗАДАНИЕ
@@ -579,6 +622,19 @@ function ComposeTypePanel({ onAdd, onAddHard }: { onAdd: (type: HWTaskType) => v
           <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-yellow-text)' }}>{t.label}</div>
         </button>
       ))}
+      <button
+        onClick={onImportHard}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '7px 12px', borderRadius: 11,
+          border: '1.5px dashed var(--color-border-medium)',
+          background: 'transparent', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
+          color: 'var(--color-muted)', fontSize: 11, fontWeight: 600,
+        }}
+      >
+        <Link2 size={12} style={{ flexShrink: 0 }} />
+        Импорт из Google Forms
+      </button>
     </motion.div>
   )
 }
@@ -2103,6 +2159,7 @@ export default function TeacherHomeworkCreatePage() {
     () => new Set(hwTasks.filter(t => t.bankId != null).map(t => t.bankId!)),
   )
   const [trainerDialogTaskId, setTrainerDialogTaskId] = useState<string | null>(null)
+  const [importTarget, setImportTarget] = useState<'basic' | 'hard' | null>(null)
   const [published, setPublished] = useState(false)
   const [showPublishConfirm, setShowPublishConfirm] = useState(false)
   // Shared via the store so the dashboard hides the top-right widget pill while
@@ -2147,6 +2204,12 @@ export default function TeacherHomeworkCreatePage() {
     const t = makeTask(type)
     if (isHard) setHardTasks(ts => [...ts, t])
     else setHwTasks(ts => [...ts, t])
+  }
+
+  function addImportedTasks(questions: ImportedQuestion[], isHard: boolean) {
+    const tasks = questions.map(hwTaskFromImported)
+    if (isHard) setHardTasks(ts => [...ts, ...tasks])
+    else setHwTasks(ts => [...ts, ...tasks])
   }
 
   function addFromBank(
@@ -2476,6 +2539,8 @@ export default function TeacherHomeworkCreatePage() {
                 key="compose-types"
                 onAdd={type => addCustomTask(type)}
                 onAddHard={type => addCustomTask(type, true)}
+                onImport={() => setImportTarget('basic')}
+                onImportHard={() => setImportTarget('hard')}
               />
             )}
             {activeTab === 'trainer' && (
@@ -2496,6 +2561,16 @@ export default function TeacherHomeworkCreatePage() {
           <SaveToTrainerDialog key="save-dialog" onChoice={handleTrainerDialog} />
         )}
       </AnimatePresence>
+
+      {/* Google Forms import */}
+      <GoogleFormImportModal
+        open={importTarget !== null}
+        onClose={() => setImportTarget(null)}
+        onImport={(form, selectedIds) => {
+          const isHard = importTarget === 'hard'
+          addImportedTasks(form.questions.filter(q => selectedIds.includes(q.id)), isHard)
+        }}
+      />
 
       {/* Publish with lesson confirmation */}
       <AnimatePresence>

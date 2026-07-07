@@ -12,7 +12,7 @@ import {
   fetchCourseReactions,
   type StudentStats,
 } from '../lib/db'
-import { fetchStandaloneSubject } from '../lib/standaloneHomework'
+import { fetchStandaloneSubject, HW_SUBJECT_ID } from '../lib/standaloneHomework'
 import { getStudentSession } from '../lib/studentSession'
 import { useDashboard } from './dashboardStore'
 import {
@@ -112,7 +112,21 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     const demoFlag = (() => {
       try { return new URLSearchParams(window.location.search).get('demo') === '1' } catch { return false }
     })()
-    if ((import.meta.env.DEV || demoFlag) && mergedSubjects.length === 0) {
+    // Local review toggle: `localStorage.dev_demo_data = '1'` (DEV only) FORCES
+    // the demo dataset even when a real (but e.g. all-locked, so visually empty)
+    // course exists — so the whole student UI can be populated locally without
+    // seeding the DB. Purely client-side, off by default, ignored in prod.
+    const demoForce = demoFlag || (import.meta.env.DEV && (() => {
+      try { return localStorage.getItem('dev_demo_data') === '1' } catch { return false }
+    })())
+    // Auto-fallback: trigger when there are no real LESSONS to show — not just
+    // when the subjects array is empty. A real student can be enrolled in a
+    // course that has no opened lessons yet (empty modules), which locally reads
+    // as a bare "Курс ещё не открыт". In DEV that should still fall back to demo.
+    // Exclude the synthetic standalone-ДЗ track (hw-inbox) — a group can have
+    // loose homework but still no actual course, which should read as "empty".
+    const hasRealLessons = mergedSubjects.some(s => s.id !== HW_SUBJECT_ID && s.modules.some(m => m.lessons.length > 0))
+    if (demoForce || ((import.meta.env.DEV || demoFlag) && !hasRealLessons)) {
       // Guard the dynamic import: a stale chunk hash after a deploy makes this
       // reject ("Failed to fetch dynamically imported module"). Swallow it so
       // the student still gets a rendered (empty-state) dashboard, not a crash.

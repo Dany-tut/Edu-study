@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import Skeleton from './Skeleton'
 import { motion } from 'framer-motion'
 import {
   FlaskConical, Star, Lock, ChevronRight, Zap,
@@ -105,7 +106,7 @@ export default function MobileCourses() {
                 <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Преподаватель откроет доступ к урокам</p>
               </>
             )}
-            {!loaded && <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Загрузка…</p>}
+            {!loaded && <Skeleton.Text lines={3} style={{ width: '100%', maxWidth: 280 }} />}
           </div>
         ) : (
           <div className="flex flex-col" style={{ gap: 14 }}>

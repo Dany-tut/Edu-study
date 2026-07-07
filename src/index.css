@@ -27,6 +27,7 @@
 
   /* Glass base RGB — change one var, all glass surfaces adapt */
   --glass-rgb: 255, 255, 255;
+  --skeleton-sweep: rgba(255,255,255,0.6);
 
   /* Spoiler dot color (RGB triplet for rgba()) */
   --spoiler-dot-rgb: 11, 11, 13;
@@ -149,6 +150,7 @@
 
   /* Neutral graphite glass base — no purple tint */
   --glass-rgb: 22, 22, 24;
+  --skeleton-sweep: rgba(255,255,255,0.08);
 
   /* Spoiler dot color (RGB triplet for rgba()) */
   --spoiler-dot-rgb: 240, 240, 242;
@@ -566,6 +568,29 @@ a {
   0%   { transform: translateX(-120%); }
   60%  { transform: translateX(220%); }
   100% { transform: translateX(220%); }
+}
+
+/* ─── Unified skeleton placeholder ────────────────────────────────────────── */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-bg-5, rgba(120,106,215,0.08));
+  border-radius: 8px;
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--skeleton-sweep, rgba(255,255,255,0.55)) 50%,
+    transparent 100%
+  );
+  animation: shimmer-bar 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after { animation: none; }
 }
 
 /* ─── Group card compact mode ─────────────────────────────────────────────── */

@@ -9,7 +9,7 @@ import {
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
   ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Copy,
 } from 'lucide-react'
-import { optimizePhoto } from '../../lib/imageOptim'
+import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { getContrastColor } from '../../lib/utils'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
@@ -1416,7 +1416,9 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
               <input ref={imgInputRef} type="file" accept="image/*" style={{ display: 'none' }}
                 onChange={e => {
                   const file = e.target.files?.[0]; if (!file) return
-                  optimizePhoto(file).then(url => onUpdate({ ...task, image: url, imageSize: task.imageSize ?? 100 }))
+                  optimizePhoto(file)
+                    .then(url => onUpdate({ ...task, image: url, imageSize: task.imageSize ?? 100 }))
+                    .catch(err => { if (err instanceof ImageTooLargeError) window.alert(err.message); else throw err })
                   e.target.value = ''
                 }}
               />

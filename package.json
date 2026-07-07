@@ -15,6 +15,9 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/ios": "^8.4.1",
     "@prisma/client": "^5.22.0",
     "@radix-ui/react-popover": "^1.1.0",
     "@radix-ui/react-scroll-area": "^1.2.0",

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import Skeleton from '../../components/Skeleton'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Database, HardDrive, Users, BookOpen, RefreshCw, ChevronRight, ArrowLeft, UserPlus, X, Mail, Copy, Check, BarChart3, ShieldAlert, SlidersHorizontal, Lock, KeyRound, Trash2, Inbox } from 'lucide-react'
@@ -11,6 +12,7 @@ import { TEACHER_TABS } from '../../lib/teacherAccess'
 import { WIDGET_REGISTRY } from '../../components/teacher/widgets/registry'
 import AccessConfigurator, { hiddenTabsFrom, hiddenWidgetsFrom, selectedTabsFrom, selectedWidgetsFrom, type CourseAssignment } from '../../components/teacher/AccessConfigurator'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
+import { PLAN_OPTIONS, adminSetTeacherPlan, type TeacherPlanRow } from '../../lib/plan'
 
 type StorageStats = {
   db_bytes: number
@@ -243,6 +245,11 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
   const [pwCopied, setPwCopied] = useState(false)
   // What the teacher ALREADY has (read-only) — owned/shared courses + owned groups.
   const [current, setCurrent] = useState<TeacherContentRow[] | null>(null)
+  // Тариф (0037): null = подписка не назначена (бета-аккаунт, без лимитов).
+  const [plan, setPlan] = useState<string | null>(null)
+  const [planSaving, setPlanSaving] = useState(false)
+  const [planSaved, setPlanSaved] = useState(false)
+  const [planError, setPlanError] = useState('')
 
   useEffect(() => {
     let alive = true
@@ -250,8 +257,23 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
       if (!alive) return
       setCurrent(Array.isArray(data) ? (data as TeacherContentRow[]) : [])
     })
+    supabase.rpc('admin_teacher_plans').then(({ data }) => {
+      if (!alive) return
+      const row = (Array.isArray(data) ? (data as TeacherPlanRow[]) : []).find(r => r.teacher_id === teacher.id)
+      setPlan(row?.plan_code ?? null)
+    })
     return () => { alive = false }
   }, [teacher.id])
+
+  async function savePlan(next: string | null) {
+    setPlan(next)
+    setPlanSaving(true); setPlanError(''); setPlanSaved(false)
+    const err = await adminSetTeacherPlan(teacher.id, next)
+    setPlanSaving(false)
+    if (err) { setPlanError(err); return }
+    setPlanSaved(true)
+    setTimeout(() => setPlanSaved(false), 1800)
+  }
 
   async function resetPassword() {
     setPwLoading(true); setPwError(''); setPwValue('')
@@ -350,6 +372,34 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
           {saving ? 'Сохраняем…' : saved ? 'Сохранено' : 'Сохранить'}
         </button>
         {error && <span style={{ fontSize: 11, color: '#E04848' }}>{error}</span>}
+      </div>
+
+      {/* Тариф (0037): ручное назначение админом; «без тарифа» = бета-аккаунт,
+          лимит учеников не применяется. Оплата пока вне системы (ручные счета). */}
+      <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--color-border)' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>Тариф</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <select
+            value={plan ?? ''}
+            onChange={e => { void savePlan(e.target.value === '' ? null : e.target.value) }}
+            disabled={planSaving}
+            style={{
+              padding: '8px 12px', borderRadius: 12, fontSize: 13, fontWeight: 600,
+              border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
+              color: 'var(--color-text-2)', cursor: planSaving ? 'wait' : 'pointer', outline: 'none',
+            }}
+          >
+            {PLAN_OPTIONS.map(o => (
+              <option key={o.code ?? 'none'} value={o.code ?? ''}>{o.label}</option>
+            ))}
+          </select>
+          {planSaving && <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>Сохраняем…</span>}
+          {planSaved && <Check size={14} strokeWidth={2.6} style={{ color: '#3FA867' }} />}
+          {planError && <span style={{ fontSize: 11, color: '#E04848' }}>{planError}</span>}
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 8, lineHeight: 1.5 }}>
+          Лимит учеников применяется при добавлении новых. «Без тарифа» — внутренний/бета-аккаунт без ограничений.
+        </div>
       </div>
 
       {/* Password reset — teachers have no readable password (self-chosen Auth
@@ -470,7 +520,7 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
       </div>
 
       {loading && rows.length === 0 ? (
-        <div style={{ fontSize: 13, color: 'var(--color-text-3)', padding: '24px 0' }}>Загрузка…</div>
+        <div style={{ padding: '24px 0' }}><Skeleton.List rows={4} /></div>
       ) : shown.length === 0 ? (
         <div style={{ fontSize: 13, color: 'var(--color-text-3)', padding: '24px 0' }}>Пусто.</div>
       ) : (
@@ -629,7 +679,7 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
       </div>
 
       {loading && rows.length === 0 ? (
-        <div style={{ fontSize: 13, color: 'var(--color-text-3)', padding: '24px 0' }}>Загрузка…</div>
+        <div style={{ padding: '24px 0' }}><Skeleton.List rows={4} /></div>
       ) : rows.length === 0 ? (
         <div style={{ fontSize: 13, color: 'var(--color-text-3)', padding: '24px 0' }}>Ни у кого нет задач.</div>
       ) : (
@@ -954,7 +1004,7 @@ export default function TeacherAdminPage() {
               )
             })}
             {teachers.length === 0 && (
-              <div style={{ padding: '20px 18px', color: 'var(--color-text-3)', fontSize: 13 }}>{loading ? 'Загрузка…' : 'Нет данных'}</div>
+              <div style={{ padding: '20px 18px', color: 'var(--color-text-3)', fontSize: 13 }}>{loading ? <Skeleton.List rows={3} /> : 'Нет данных'}</div>
             )}
           </div>
         </div>
