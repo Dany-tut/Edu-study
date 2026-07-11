@@ -8,6 +8,7 @@ import { PAIR } from '../../../lib/mobileTokens'
 import { useGroups, useStudents } from '../../../lib/useGroups'
 import { contactLabel } from '../../../lib/contactLink'
 import type { Group, Student } from '../../../data/teacherMockData'
+import { DEMO_GROUPS, demoStudentsFor } from '../../../data/teacherDevDemo'
 
 // MOBILE ONLY students browser: groups list → tap → roster → tap student →
 // detail sheet (contacts, attendance, scores, debt). Read-focused; editing the
@@ -58,8 +59,23 @@ function StudentSheet({ student, group, onClose }: { student: Student | null; gr
   )
 }
 
+// 1:1 groups hold a single student — tapping one opens the student sheet
+// directly over the groups list, skipping the pointless roster-of-one.
+function SoloStudentSheet({ group, onClose }: { group: Group | null; onClose: () => void }) {
+  const { students: realStudents } = useStudents(group?.id ?? '')
+  const students = import.meta.env.DEV && group && realStudents.length === 0
+    ? demoStudentsFor(group.id)
+    : realStudents
+  if (!group) return null
+  return <StudentSheet student={students[0] ?? null} group={group} onClose={onClose} />
+}
+
 function GroupRoster({ group, onBack }: { group: Group; onBack: () => void }) {
-  const { students } = useStudents(group.id)
+  const { students: realStudents } = useStudents(group.id)
+  // DEV-only: for a demo group (no real roster in the DB) fall back to demo students.
+  const students = import.meta.env.DEV && realStudents.length === 0
+    ? demoStudentsFor(group.id)
+    : realStudents
   const [selected, setSelected] = useState<Student | null>(null)
 
   return (
@@ -97,9 +113,25 @@ function GroupRoster({ group, onBack }: { group: Group; onBack: () => void }) {
   )
 }
 
+type StudentsFilter = 'all' | 'groups' | 'individual'
+
+const FILTERS: { key: StudentsFilter; label: string }[] = [
+  { key: 'all', label: 'Все' },
+  { key: 'groups', label: 'Группы' },
+  { key: 'individual', label: '1:1' },
+]
+
 export default function MobileTeacherStudents() {
-  const { groups } = useGroups()
+  const { groups: realGroups } = useGroups()
+  // DEV-only: no logged-in teacher locally → show demo groups instead of empty.
+  const groups = import.meta.env.DEV && realGroups.length === 0 ? DEMO_GROUPS : realGroups
   const [openGroup, setOpenGroup] = useState<Group | null>(null)
+  const [soloGroup, setSoloGroup] = useState<Group | null>(null)
+  const [filter, setFilter] = useState<StudentsFilter>('all')
+
+  const visibleGroups = groups.filter(g =>
+    filter === 'all' ? true : filter === 'individual' ? g.isIndividual : !g.isIndividual,
+  )
 
   const topZone = (
     <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -113,11 +145,35 @@ export default function MobileTeacherStudents() {
         <GroupRoster group={openGroup} onBack={() => setOpenGroup(null)} />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {groups.map(g => (
+          <div style={{ display: 'flex', gap: 6, padding: 4, borderRadius: 14, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', marginBottom: 4 }}>
+            {FILTERS.map(f => {
+              const active = filter === f.key
+              return (
+                <button
+                  key={f.key}
+                  onClick={() => setFilter(f.key)}
+                  className="cursor-pointer"
+                  style={{
+                    flex: 1,
+                    padding: '8px 0',
+                    borderRadius: 10,
+                    fontSize: 13.5,
+                    fontWeight: 650,
+                    color: active ? '#fff' : 'var(--color-muted)',
+                    background: active ? 'var(--color-avatar-bg)' : 'transparent',
+                    transition: 'background 0.15s, color 0.15s',
+                  }}
+                >
+                  {f.label}
+                </button>
+              )
+            })}
+          </div>
+          {visibleGroups.map(g => (
             <motion.button
               key={g.id}
               whileTap={{ scale: 0.98 }}
-              onClick={() => setOpenGroup(g)}
+              onClick={() => (g.isIndividual ? setSoloGroup(g) : setOpenGroup(g))}
               className="cursor-pointer"
               style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px', borderRadius: 18, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left' }}
             >
@@ -131,9 +187,12 @@ export default function MobileTeacherStudents() {
               <ChevronRight size={18} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
             </motion.button>
           ))}
-          {groups.length === 0 && (
-            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', padding: '40px 0', textAlign: 'center' }}>Групп пока нет. Создайте их на компьютере.</div>
+          {visibleGroups.length === 0 && (
+            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', padding: '40px 0', textAlign: 'center' }}>
+              {groups.length === 0 ? 'Групп пока нет. Создайте их на компьютере.' : filter === 'individual' ? 'Нет индивидуальных учеников' : 'Нет групп'}
+            </div>
           )}
+          <SoloStudentSheet group={soloGroup} onClose={() => setSoloGroup(null)} />
         </div>
       )}
     </MobileScreen>

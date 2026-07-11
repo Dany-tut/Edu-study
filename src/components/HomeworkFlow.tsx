@@ -10,6 +10,7 @@ import { normalizeTaskType } from '../data/taskTypeVisuals'
 import { PURPLE, subjectTheme } from '../lib/theme'
 import { useTheme } from '../store/themeStore'
 import { supabase } from '../lib/supabase'
+import { trackEvent } from '../lib/analytics'
 import { getStudentSession } from '../lib/studentSession'
 import type {
   HardTaskDef, HardTaskStudentBlock, HardTaskReviewBlock, HardSolution, HardAttachmentsNew, HardReviewNew,
@@ -21,6 +22,7 @@ import { playUnlock, playPop, vibrate } from '../lib/sound'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData, ownerStudentIdFor } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
+import { useNavCollapse } from '../lib/useNavCollapse'
 import QuestionTable from './QuestionTable'
 import HardStarLottie from './HardStarLottie'
 import PartyPopperLottie from './PartyPopperLottie'
@@ -697,6 +699,7 @@ export default function HomeworkFlow({
   // Same scroll-dock logic as the lesson page: when the pane scrolls, the
   // Back/title row docks onto the topbar line (a fixed twin), the topbar
   // auto-compacts, and the rest-state row fades out.
+  const navCollapsed = useNavCollapse()
   const docked = useDashboard(s => s.lessonScrolled)
   const topBarCompact = useDashboard(s => s.topBarCompact)
   const topBarBox = useDashboard(s => s.topBarBox)
@@ -865,6 +868,7 @@ export default function HomeworkFlow({
       comment,
       attachments: attachments ?? {},
     }, { onConflict: 'student_id,lesson_ref' })
+    trackEvent('homework_submit', { lesson_ref: ref, kind: level })
     useStudentData.getState().load()
   }
 
@@ -1057,26 +1061,27 @@ export default function HomeworkFlow({
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.96 }}
           onClick={() => { clearHomeworkWidgetFeedback(); onBack() }}
-          className="flex items-center cursor-pointer flex-shrink-0"
+          aria-label="Назад"
+          className="flex items-center justify-center cursor-pointer flex-shrink-0"
           style={{
-            gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
+            gap: 4, padding: isMobile ? 9 : '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
             background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
             color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
           }}
         >
           <ChevronLeft size={18} />
-          Назад
+          {!isMobile && 'Назад'}
         </motion.button>
 
         <h1
-          className="flex-1 min-w-0 text-center flex items-center justify-center"
-          style={{ gap: 10, fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}
+          className={`flex-1 min-w-0 flex items-center ${isMobile ? '' : 'text-center justify-center'}`}
+          style={{ gap: 10, fontSize: isMobile ? 17 : 18, fontWeight: 700, color: 'var(--color-text)' }}
         >
           <span className="truncate">{homework.title}</span>
-          {levelPill(false)}
+          {!isMobile && levelPill(false)}
         </h1>
 
-        <div className="flex-shrink-0" style={{ width: 92 }} />
+        {!isMobile && <div className="flex-shrink-0" style={{ width: 92 }} />}
       </motion.div>
 
       {/* Docked twin — fixed at the topbar line so the Back/title pills sit ON
@@ -1097,15 +1102,16 @@ export default function HomeworkFlow({
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.96 }}
               onClick={() => { clearHomeworkWidgetFeedback(); onBack() }}
-              className="flex items-center cursor-pointer flex-shrink-0"
+              aria-label="Назад"
+              className="flex items-center justify-center cursor-pointer flex-shrink-0"
               style={{
-                gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999,
+                gap: 4, padding: isMobile ? 9 : '9px 16px 9px 12px', borderRadius: 999,
                 ...dockGlass,
                 color: 'var(--color-text)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
               }}
             >
               <ChevronLeft size={18} />
-              Назад
+              {!isMobile && 'Назад'}
             </motion.button>
 
             <div
@@ -1139,7 +1145,7 @@ export default function HomeworkFlow({
                   »
                 </motion.span>
               </span>
-              {levelPill(true)}
+              {!isMobile && levelPill(true)}
             </div>
 
             <div style={{ flexGrow: 1, flexBasis: 0 }} />
@@ -1569,7 +1575,21 @@ export default function HomeworkFlow({
                   </section>
                 )
               })}
-              <div style={{ position: 'fixed', bottom: isMobile ? 'calc(env(safe-area-inset-bottom, 0px) + 104px)' : 24, left: '50%', transform: 'translateX(-50%)', zIndex: 100, width: 'min(560px, calc(100vw - 48px))' }}>
+              <motion.div
+                initial={false}
+                animate={isMobile
+                  ? { bottom: navCollapsed ? 92 : 104, scale: navCollapsed ? 0.94 : 1 }
+                  : { bottom: 24, scale: 1 }}
+                transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+                style={{
+                  position: 'fixed',
+                  // env() safe-area is folded into the animated `bottom` via marginBottom
+                  // so framer can tween the numeric part while the inset stays applied.
+                  marginBottom: isMobile ? 'env(safe-area-inset-bottom, 0px)' : 0,
+                  left: '50%', x: '-50%', transformOrigin: 'bottom center',
+                  zIndex: 100, width: 'min(560px, calc(100vw - 48px))',
+                }}
+              >
                 <BottomProgressBar
                   total={basicQuestions.length}
                   answers={state.basicAnswers}
@@ -1580,7 +1600,7 @@ export default function HomeworkFlow({
                   recommendationScore={homework.recommendationScore}
                   onSubmit={() => { submitToSupabase('basic', basicScore, ''); setShowResultModal('basic') }}
                 />
-              </div>
+              </motion.div>
             </div>
           ) : (
             <div className="flex flex-col" style={{ gap: 18 }}>

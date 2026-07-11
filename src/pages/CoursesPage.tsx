@@ -1,7 +1,10 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react'
 import Skeleton from '../components/Skeleton'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Search, X, SlidersHorizontal, ArrowUpDown, Check } from 'lucide-react'
+import { glassCircle } from '../lib/mobileTokens'
+import { useNavCollapse } from '../lib/useNavCollapse'
+import { useKeyboardInset } from '../lib/useKeyboardInset'
 import { type Lesson, type LessonStatus } from '../data/mockData'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
 import { playTransitionDrop } from '../lib/sound'
@@ -34,6 +37,11 @@ const cardStyle: Record<LessonStatus, { bg: string; ring: string; label: string;
 
 const ALL = 'all' as const
 
+// Shared spring for the search pill morph — matches the trainer dock exactly.
+const FIELD_MORPH = { type: 'spring', stiffness: 520, damping: 38, mass: 0.7 } as const
+// Collapse tween for the dock shrink/drop on scroll (shared with the bottom nav).
+const DOCK_COLLAPSE = { duration: 0.28, ease: [0.32, 0.72, 0, 1] as const }
+
 export default function CoursesPage() {
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
   const setActiveSubject = useDashboard(s => s.setActiveSubject)
@@ -56,6 +64,14 @@ export default function CoursesPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [filterSheet, setFilterSheet] = useState(false)
   const mSearchRef = useRef<HTMLInputElement>(null)
+  // Dock morph refs/metrics — the search pill grows to fill the dock's width,
+  // and the sibling circles shrink + fade under it (trainer-identical).
+  const [dockW, setDockW] = useState(0)
+  const dockRef = useRef<HTMLDivElement>(null)
+  const searchPillRef = useRef<HTMLDivElement>(null)
+  // Scroll-driven shrink (shared with the bottom nav) + keyboard lift.
+  const navCollapsed = useNavCollapse()
+  const kbInset = useKeyboardInset()
   const subjects = useStudentData(s => s.subjects)
   const loaded = useStudentData(s => s.loaded)
   const subjectPill = useFloatingPill(activeSubjectId)
@@ -95,6 +111,20 @@ export default function CoursesPage() {
     const el = cardRefs.current[focusLessonId]
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [focusLessonId, lessons])
+
+  // Search pill focus/blur + tap-outside-to-collapse (mirrors the trainer dock).
+  useEffect(() => {
+    if (searchExpanded) mSearchRef.current?.focus({ preventScroll: true })
+    else mSearchRef.current?.blur()
+  }, [searchExpanded])
+  useEffect(() => {
+    if (!searchExpanded) return
+    const onDown = (e: PointerEvent) => {
+      if (!searchPillRef.current?.contains(e.target as Node)) setSearchExpanded(false)
+    }
+    document.addEventListener('pointerdown', onDown)
+    return () => document.removeEventListener('pointerdown', onDown)
+  }, [searchExpanded])
 
   const moduleTabs: Array<{ id: number | typeof ALL; label: string }> = subject ? [
     { id: ALL, label: 'Все' },
@@ -406,86 +436,113 @@ export default function CoursesPage() {
       {/* Clearance so the last lessons scroll clear of the floating dock. */}
       {!isDesktop && <div style={{ height: 44 }} />}
 
-      {/* ── Mobile dock: search / filter / sort, floating above the bottom nav
-          (mirrors the trainer). Desktop uses the top search field instead. ── */}
+      {/* ── Mobile control dock — glass circles that drop + shrink with the nav
+          on scroll; the search morphs from a circle into the full-width pill,
+          the sibling circles sliding under it (trainer-identical). Desktop uses
+          the top search field instead. ── */}
       {!isDesktop && (
-        <div
-          style={{
-            position: 'fixed', left: 0, right: 0, zIndex: 65,
-            bottom: 'calc(env(safe-area-inset-bottom, 0px) + 82px)',
-            display: 'flex', justifyContent: 'center', pointerEvents: 'none',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, pointerEvents: 'auto' }}>
-            <AnimatePresence initial={false} mode="popLayout">
-              {searchExpanded ? (
-                <motion.div
-                  key="search-pill"
-                  initial={{ width: 50, opacity: 0 }}
-                  animate={{ width: 260, opacity: 1 }}
-                  exit={{ width: 50, opacity: 0 }}
-                  transition={{ type: 'spring', stiffness: 520, damping: 38, mass: 0.7 }}
-                  onAnimationComplete={() => mSearchRef.current?.focus()}
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 'env(safe-area-inset-bottom, 0px)', zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+          <motion.div
+            ref={dockRef}
+            initial={false}
+            // Keyboard up → lift just above it (the nav has slid away); otherwise
+            // ride over the bottom nav, settling lower when the nav collapses.
+            animate={{ marginBottom: kbInset > 0 ? kbInset + 12 : (navCollapsed ? 74 : 86) }}
+            transition={DOCK_COLLAPSE}
+            style={{ position: 'relative', display: 'flex', gap: 12, alignItems: 'center', pointerEvents: 'auto' }}
+          >
+            {/* Invisible spacer holding the search slot; the always-mounted pill
+                (below) renders the visuals so opacity is never animated on a
+                blurred element — the backdrop-blur never blinks off. */}
+            <motion.div initial={false} animate={{ width: navCollapsed ? 42 : 50, height: navCollapsed ? 42 : 50 }} transition={DOCK_COLLAPSE} style={{ flexShrink: 0, pointerEvents: 'none' }} />
+
+            {/* Filter / sort — on expand they scale down, blur and drift right
+                while fading, staggered left→right. */}
+            {[
+              { k: 'filter', icon: <SlidersHorizontal size={20} />, onClick: () => setFilterSheet(true), opts: { label: 'Фильтр', active: statusFilter !== 'all' } },
+              { k: 'sort', icon: <ArrowUpDown size={20} />, onClick: () => setSortDesc(v => !v), opts: { label: sortDesc ? 'Сначала новые' : 'Сначала старые', active: sortDesc } },
+            ].map((c, idx) => (
+              <motion.div
+                key={c.k}
+                initial={false}
+                animate={searchExpanded
+                  ? { opacity: 0, scale: 0.5, x: 22 }
+                  : { opacity: 1, scale: 1, x: 0 }}
+                // Never tween opacity through the <1 zone (it suspends the child
+                // circle's backdrop-filter → a 1-frame frost blink). Snap opacity
+                // while the circle is HIDDEN under the pill; scale+x carry the
+                // visible motion so the blur stays live the whole time.
+                transition={{
+                  ...FIELD_MORPH,
+                  delay: searchExpanded ? idx * 0.04 : (1 - idx) * 0.04,
+                  opacity: searchExpanded
+                    ? { delay: 0.12 + idx * 0.05, duration: 0 }
+                    : { duration: 0 },
+                }}
+                // NO `filter` on this wrapper — ever. A `filter` (even blur(0))
+                // suppresses the child circle's `backdrop-filter`.
+                style={{ pointerEvents: searchExpanded ? 'none' : 'auto' }}
+              >
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => { tactile(); c.onClick() }}
+                  aria-label={c.opts.label}
+                  initial={false}
+                  animate={{ width: navCollapsed ? 42 : 50, height: navCollapsed ? 42 : 50 }}
+                  transition={DOCK_COLLAPSE}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 8, height: 50, padding: '0 16px',
-                    borderRadius: 999, overflow: 'hidden',
-                    background: 'rgba(var(--glass-rgb), 0.7)',
+                    ...glassCircle, position: 'relative',
+                    background: 'rgba(var(--glass-rgb), 0.6)',
                     backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
-                    border: '1px solid var(--color-border-glass)',
                     boxShadow: 'var(--shadow-pill), inset 0 1px 0 rgba(255,255,255,0.5)',
+                    color: c.opts.active ? 'var(--color-accent)' : 'var(--color-text-2)',
                   }}
                 >
-                  <Search size={20} style={{ color: search ? 'var(--color-accent)' : 'var(--color-text-2)', flexShrink: 0 }} />
-                  <input
-                    ref={mSearchRef}
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    placeholder="Поиск по занятиям"
-                    style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: 'var(--color-text)' }}
-                  />
-                  <button
-                    onClick={() => { setSearch(''); setSearchExpanded(false) }}
-                    aria-label="Закрыть поиск"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', flexShrink: 0, padding: 0 }}
-                  >
-                    <X size={18} />
-                  </button>
-                </motion.div>
-              ) : (
-                [
-                  { k: 'search', node: <Search size={20} />, active: !!search, onClick: () => { tactile(); setSearchExpanded(true) }, label: 'Поиск' },
-                  { k: 'filter', node: <SlidersHorizontal size={20} />, active: statusFilter !== 'all', onClick: () => { tactile(); setFilterSheet(true) }, label: 'Фильтр' },
-                  { k: 'sort', node: <ArrowUpDown size={20} />, active: sortDesc, onClick: () => { tactile(); setSortDesc(v => !v) }, label: sortDesc ? 'Сначала новые' : 'Сначала старые' },
-                ].map(c => (
-                  <motion.button
-                    key={c.k}
-                    layout
-                    initial={{ opacity: 0, scale: 0.6 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.6 }}
-                    whileTap={{ scale: 0.92 }}
-                    onClick={c.onClick}
-                    aria-label={c.label}
-                    style={{
-                      position: 'relative',
-                      width: 50, height: 50, borderRadius: 999, flexShrink: 0,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                      background: 'rgba(var(--glass-rgb), 0.7)',
-                      backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
-                      border: '1px solid var(--color-border-glass)',
-                      boxShadow: 'var(--shadow-pill), inset 0 1px 0 rgba(255,255,255,0.5)',
-                      color: c.active ? 'var(--color-accent)' : 'var(--color-text-2)',
-                    }}
-                  >
-                    {c.node}
-                    {c.active && (
-                      <span style={{ position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 999, background: 'var(--color-accent)' }} />
-                    )}
-                  </motion.button>
-                ))
+                  {c.icon}
+                  {c.opts.active && (
+                    <span style={{ position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 999, background: 'var(--color-accent)' }} />
+                  )}
+                </motion.button>
+              </motion.div>
+            ))}
+
+            {/* Search control — ALWAYS mounted at opacity 1; only its WIDTH morphs
+                (circle → full dock). Fixed opacity means Chromium never suspends
+                the backdrop-filter, so the frosted blur stays put through the
+                whole expand/collapse instead of blinking. */}
+            <motion.div
+              ref={searchPillRef}
+              initial={false}
+              animate={{ width: searchExpanded ? dockW : (navCollapsed ? 42 : 50), paddingLeft: navCollapsed ? 11 : 15 }}
+              transition={FIELD_MORPH}
+              onClick={() => { if (!searchExpanded) { tactile(); setDockW(dockRef.current?.offsetWidth ?? 0); setSearchExpanded(true) } }}
+              aria-label="Поиск"
+              style={{
+                position: 'absolute', left: 0, top: 0, bottom: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
+                gap: searchExpanded ? 8 : 0,
+                paddingRight: 15,
+                borderRadius: 999, overflow: 'hidden',
+                background: 'rgba(var(--glass-rgb), 0.6)',
+                backdropFilter: 'blur(28px) saturate(200%)', WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+                border: '1px solid var(--color-border-glass)',
+                boxShadow: 'var(--shadow-pill), inset 0 1px 0 rgba(255,255,255,0.5)',
+                cursor: searchExpanded ? 'text' : 'pointer', pointerEvents: 'auto',
+                color: search ? 'var(--color-accent)' : 'var(--color-text-2)',
+              }}
+            >
+              <Search size={20} style={{ flexShrink: 0 }} />
+              <input ref={mSearchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по занятиям"
+                style={{ flex: searchExpanded ? 1 : 0, width: searchExpanded ? undefined : 0, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: 'var(--color-text)', opacity: searchExpanded ? 1 : 0, pointerEvents: searchExpanded ? 'auto' : 'none',
+                  maskImage: 'linear-gradient(to right, #000 calc(100% - 18px), transparent)', WebkitMaskImage: 'linear-gradient(to right, #000 calc(100% - 18px), transparent)' }} />
+              {searchExpanded && (
+                <button onClick={e => { e.stopPropagation(); setSearch(''); setSearchExpanded(false) }} aria-label="Закрыть поиск"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', flexShrink: 0, padding: 0 }}>
+                  <X size={18} />
+                </button>
               )}
-            </AnimatePresence>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       )}
 

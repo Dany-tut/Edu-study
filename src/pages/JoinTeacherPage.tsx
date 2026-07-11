@@ -3,6 +3,7 @@ import Skeleton from '../components/Skeleton'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { trackNow } from '../lib/analytics'
 
 // Teacher self-registration from an admin invite link (#/join-teacher?token=…).
 // Mirrors JoinPage: create an auth account (role: teacher), then apply the baked
@@ -93,6 +94,7 @@ export default function JoinTeacherPage() {
       return
     }
 
+    void trackNow('register', { role: 'teacher' })
     // Full reload so App re-mounts with the session in place and the access store
     // reads the freshly-applied profile config.
     window.location.hash = '#/teacher'

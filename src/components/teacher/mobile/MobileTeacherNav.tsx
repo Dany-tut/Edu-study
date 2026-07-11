@@ -71,7 +71,7 @@ export default function MobileTeacherNav({
               key={item.id}
               whileTap={{ scale: 0.9 }}
               onClick={() => { if (item.id !== active) { tactile(); onChange(item.id) } }}
-              className="flex flex-col items-center cursor-pointer px-3 py-2"
+              className="flex flex-col items-center justify-center cursor-pointer px-3 py-2"
               style={{ minWidth: 44, minHeight: 44, position: 'relative' }}
               aria-label={item.label}
             >

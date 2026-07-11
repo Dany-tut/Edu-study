@@ -71,6 +71,10 @@ export default function FeedbackModal({ role, onClose }: { role: FeedbackRole; o
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
+  // On a phone the dialog is nearly full-width; a right-floated send button then
+  // looks lopsided, so stretch it.
+  const isPhone = typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches
+
   const labelStyle: React.CSSProperties = { fontSize: 12.5, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 6, display: 'block' }
   const fieldStyle: React.CSSProperties = {
     width: '100%', padding: '10px 12px', borderRadius: 12,
@@ -96,8 +100,9 @@ export default function FeedbackModal({ role, onClose }: { role: FeedbackRole; o
             border: '1px solid var(--color-border)', boxShadow: '0 20px 60px rgba(0,0,0,0.28)',
           }}
         >
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 18 }}>
+          {/* Header — top-aligned so the icon and ✕ line up with the title, not
+              the middle of the two-line subtitle. */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 11, marginBottom: 18 }}>
             <div style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <MessageSquarePlus size={19} style={{ color: 'var(--color-purple)' }} />
             </div>
@@ -177,7 +182,7 @@ export default function FeedbackModal({ role, onClose }: { role: FeedbackRole; o
               {error && <div style={{ fontSize: 13, color: 'var(--color-red-text, #e5484d)', marginBottom: 12 }}>{error}</div>}
 
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <TeacherSaveButton label="Отправить" savedLabel="Отправлено" savingLabel="Отправляю…" onClick={send} disabled={!canSend} saving={saving} />
+                <TeacherSaveButton label="Отправить" savedLabel="Отправлено" savingLabel="Отправляю…" onClick={send} disabled={!canSend} saving={saving} fullWidth={isPhone} />
               </div>
             </>
           )}

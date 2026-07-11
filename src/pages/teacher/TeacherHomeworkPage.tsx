@@ -388,7 +388,6 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
   const openHomeworkReview = useTeacher(s => s.openHomeworkReview)
   const openCourseEditor = useTeacher(s => s.openCourseEditor)
   const openHomeworkEdit = useTeacher(s => s.openHomeworkEdit)
-  const hwReviews = useTeacher(s => s.reviews[hw.id]) ?? {}
   const pendingReview = hw.submittedCount - hw.reviewedCount
   const [lessonBusy, setLessonBusy] = useState(false)
   const hardCount = hw.hardTotal ?? hw.hardTaskIds?.length ?? 0
@@ -532,9 +531,8 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {groupStudents.map((s, i) => {
               const submitted = i < hw.submittedCount
-              const verdict = hwReviews[s.id]?.verdict
-              const reviewed = i < hw.reviewedCount || !!verdict
-              const returned = verdict === 'returned'
+              const reviewed = i < hw.reviewedCount
+              const returned = false
               const initials = s.name.split(' ').map(p => p[0]).join('').slice(0, 2)
               return (
                 <div key={s.id} style={{
@@ -638,7 +636,6 @@ export default function TeacherHomeworkPage() {
   const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
   const openHardReview = useTeacher(s => s.openHardReview)
   const openHomeworkReview = useTeacher(s => s.openHomeworkReview)
-  const reviews = useTeacher(s => s.reviews)
   const filterGroup = useTeacher(s => s.selectedGroupId)
   const setFilterGroup = useTeacher(s => s.setSelectedGroupId)
   const [selectedHwId, setSelectedHwId] = useState<string | null>(null)
@@ -646,17 +643,8 @@ export default function TeacherHomeworkPage() {
   const { groups } = useGroups()
   const regularGroups = groups.filter(g => !g.isIndividual)
   const individualGroups = groups.filter(g => g.isIndividual)
-  const { homework: dbHomework, loading: hwLoading } = useHomework()
+  const { homework, loading: hwLoading } = useHomework()
   const { submissions: hardSubs } = useHardSubmissions()
-
-  // Use DB homework directly; merge local review counts from Zustand
-  const homework: HomeworkItem[] = dbHomework.map(hw => {
-    const localReviewed = reviews[hw.id]
-    const reviewedCount = localReviewed
-      ? Math.max(hw.reviewedCount, Object.keys(localReviewed).length)
-      : hw.reviewedCount
-    return { ...hw, reviewedCount }
-  })
 
   // Selecting a merged 1:1 person card expands to the union of that person's
   // subject-groups, so the list shows химия + биология together.

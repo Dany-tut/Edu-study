@@ -1,10 +1,11 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Flame, Zap, Bell, Play, ChevronRight, Dumbbell, BookOpen, Lock, Calendar, ClipboardList, HelpCircle, Atom, Star } from 'lucide-react'
+import { Flame, Zap, Bell, Play, ChevronRight, Dumbbell, BookOpen, Lock, Calendar, ClipboardList, HelpCircle, Atom, Star, CheckCircle2, TrendingUp } from 'lucide-react'
 import NotificationPopup from './NotificationPopup'
 import { useNotificationsStore } from '../store/notificationsStore'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
+import MobileDock, { DockSegment } from './MobileDock'
 import MobileHScroll from './MobileHScroll'
 import { DynamicIsland, GlassIconButton } from './mobileChrome'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
@@ -12,6 +13,8 @@ import { useNow, lessonTimeState } from '../lib/useNow'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { tactile } from '../lib/feedback'
+import { PAIR } from '../lib/mobileTokens'
+import type { LucideIcon } from 'lucide-react'
 import type { Lesson } from '../data/mockData'
 
 // MOBILE ONLY home (v2). Desktop layout in DashboardPage is untouched.
@@ -46,20 +49,52 @@ export default function MobileHome() {
   const [notifOpen, setNotifOpen] = useState(false)
   const bellRef = useRef<HTMLDivElement>(null)
 
+  // В2: at 2–4 courses a bottom segment scopes the home content to one course.
+  // Single course → no dock (В1). Default follows whichever course has the
+  // active lesson so "Продолжить" lands where the student left off.
+  const multiCourse = subjects.length >= 2
+  const [homeSubjectId, setHomeSubjectId] = useState<string | null>(null)
+  const scopedSubject = multiCourse
+    ? (subjects.find(s => s.id === homeSubjectId) ?? null)
+    : null
+  const scanSubjects = scopedSubject ? [scopedSubject] : subjects
+
   // Continue target: the current lesson, else first unlocked-incomplete lesson.
   const continueInfo = (() => {
-    for (const subj of subjects) {
+    for (const subj of scanSubjects) {
       const lessons = subj.modules.flatMap(m => m.lessons)
       const cur = lessons.find(l => l.status === 'current')
       if (cur) return { lesson: cur, subject: subj }
     }
-    for (const subj of subjects) {
+    for (const subj of scanSubjects) {
       const lessons = subj.modules.flatMap(m => m.lessons)
       const next = lessons.find(l => l.status !== 'locked' && l.status !== 'completed')
       if (next) return { lesson: next, subject: subj }
     }
     return null
   })()
+
+  // Stats strip — account-wide totals, or the scoped course's own numbers.
+  const homeStats = useMemo(() => {
+    if (scopedSubject) {
+      const lessons = scopedSubject.modules.flatMap(m => m.lessons)
+      const completed = lessons.filter(l => l.status === 'completed').length
+      const graded = lessons.filter(l => typeof l.points === 'number')
+      const avg = graded.length ? Math.round(graded.reduce((s, l) => s + (l.points ?? 0), 0) / graded.length) : 0
+      return [
+        { icon: Flame, value: stats.streak, label: 'дней', pair: PAIR.warning },
+        { icon: CheckCircle2, value: completed, label: 'уроков', pair: PAIR.success },
+        { icon: TrendingUp, value: avg ? `${avg}%` : '—', label: 'ср. балл', pair: PAIR.info },
+        { icon: BookOpen, value: `${scopedSubject.progress}%`, label: 'курс', pair: PAIR.focus },
+      ]
+    }
+    return [
+      { icon: Flame, value: stats.streak, label: 'дней', pair: PAIR.warning },
+      { icon: CheckCircle2, value: stats.completedTasks, label: 'заданий', pair: PAIR.success },
+      { icon: TrendingUp, value: `${stats.avgScore}%`, label: 'ср. балл', pair: PAIR.info },
+      { icon: Zap, value: stats.totalPoints, label: 'XP', pair: PAIR.focus },
+    ]
+  }, [scopedSubject, stats])
 
   const todayLessons = scheduleDays.find(d => d.isToday)?.lessons ?? []
 
@@ -110,6 +145,13 @@ export default function MobileHome() {
             </div>
           )}
 
+          {/* Статистика — компактная полоса, всегда на виду */}
+          <div className="flex" style={{ gap: 8 }}>
+            {homeStats.map((s, i) => (
+              <MiniStat key={i} icon={s.icon} value={s.value} label={s.label} pair={s.pair} />
+            ))}
+          </div>
+
           {/* Сегодня */}
           {todayLessons.length > 0 && (
             <div style={{ borderRadius: 20, background: 'var(--color-surface)', border: '1px solid var(--color-border-glass)', boxShadow: 'var(--shadow-sm)', padding: 14 }}>
@@ -135,7 +177,7 @@ export default function MobileHome() {
           )}
 
           {/* Домашнее задание */}
-          <PendingHWCard subjects={subjects} onOpenHW={() => setActivePage('homework')} />
+          <PendingHWCard subjects={scanSubjects} onOpenHW={() => setActivePage('homework')} />
 
           {/* Быстрые действия */}
           <div className="flex" style={{ gap: 12 }}>
@@ -176,8 +218,30 @@ export default function MobileHome() {
           )}
         </div>
       </MobileScreen>
+
+      {/* В2 — course scope switcher (only with 2–4 courses) */}
+      {multiCourse && (
+        <MobileDock>
+          <DockSegment
+            options={[{ id: '__all__', label: 'Все' }, ...subjects.map(s => ({ id: s.id, label: s.name }))]}
+            value={scopedSubject?.id ?? '__all__'}
+            onChange={id => setHomeSubjectId(id === '__all__' ? null : id)}
+          />
+        </MobileDock>
+      )}
+
       <MobileBottomNav />
     </>
+  )
+}
+
+function MiniStat({ icon: Icon, value, label, pair }: { icon: LucideIcon; value: string | number; label: string; pair: { bg: string; text: string } }) {
+  return (
+    <div style={{ flex: 1, minWidth: 0, borderRadius: 14, padding: '10px 10px', background: pair.bg, display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Icon size={15} style={{ color: pair.text }} />
+      <div style={{ fontSize: 16, fontWeight: 800, color: pair.text, lineHeight: 1, marginTop: 2 }}>{value}</div>
+      <div style={{ fontSize: 10.5, fontWeight: 600, color: pair.text, opacity: 0.82 }}>{label}</div>
+    </div>
   )
 }
 
@@ -194,7 +258,13 @@ function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: L
       <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         {label} · {subjectName}
       </div>
-      <div style={{ fontSize: 18, fontWeight: 800, margin: '7px 0 14px', lineHeight: 1.2 }}>
+      <div style={{
+        fontSize: 18, fontWeight: 800, margin: '7px 0 14px', lineHeight: 1.2,
+        // Always reserve two lines so the hero keeps a constant height whether
+        // the title fits on one line or wraps to two; longer titles clamp at 2.
+        minHeight: '2.4em',
+        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+      }}>
         Занятие #{lesson.number} · {lesson.title}
       </div>
       <div style={{ height: 6, background: 'rgba(255,255,255,0.25)', borderRadius: 99, overflow: 'hidden', marginBottom: 14 }}>

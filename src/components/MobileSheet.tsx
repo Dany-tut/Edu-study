@@ -11,11 +11,15 @@ export default function MobileSheet({
   onClose,
   title,
   children,
+  footer,
 }: {
   open: boolean
   onClose: () => void
   title?: string
   children: ReactNode
+  // Optional pinned footer (e.g. a primary action button). Stays fixed at the
+  // bottom while `children` scroll underneath it.
+  footer?: ReactNode
 }) {
   const y = useMotionValue(0)
   const dragControls = useDragControls()
@@ -97,16 +101,26 @@ export default function MobileSheet({
               style={{
                 overflowY: 'auto',
                 overscrollBehavior: 'contain',
-                padding: '10px 20px 8px',
+                padding: footer ? '10px 20px 20px' : '10px 20px 8px',
                 // Content melts under the grabber/header instead of hard-cutting:
-                // the top edge fades out as rows scroll up to it. paddingTop above
-                // keeps the first row at full opacity while at rest.
-                maskImage: 'linear-gradient(to bottom, transparent 0, black 12px)',
-                WebkitMaskImage: 'linear-gradient(to bottom, transparent 0, black 12px)',
+                // the top edge fades out as rows scroll up to it, and the bottom
+                // edge fades under the pinned footer. paddingTop/Bottom keep the
+                // first/last row at full opacity while at rest.
+                maskImage: footer
+                  ? 'linear-gradient(to bottom, transparent 0, black 12px, black calc(100% - 20px), transparent 100%)'
+                  : 'linear-gradient(to bottom, transparent 0, black 12px)',
+                WebkitMaskImage: footer
+                  ? 'linear-gradient(to bottom, transparent 0, black 12px, black calc(100% - 20px), transparent 100%)'
+                  : 'linear-gradient(to bottom, transparent 0, black 12px)',
               }}
             >
               {children}
             </div>
+            {footer && (
+              <div style={{ flexShrink: 0, padding: '8px 20px 0' }}>
+                {footer}
+              </div>
+            )}
           </motion.div>
         </>
       )}

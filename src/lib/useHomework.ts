@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
 import type { HomeworkItem } from '../data/teacherMockData'
@@ -262,27 +262,30 @@ export function legacyHardToBlocks(row: {
 export type HwAssignment = HomeworkItem
 
 export type HwSubmission = {
-  id: string
+  id: string            // lesson_progress row id (used for the review write-back)
   hwId: string
   studentId: string
   studentName: string
   submittedAt: string
   verdict: 'pending' | 'accepted' | 'returned'
   score: number
-  comment: string
+  comment: string       // студент оставил при сдаче
+  // Ревью учителя (те же поля, что у сложных — единый источник lesson_progress).
+  reviewComment: string
+  reviewPhotos: string[]
+  reviewBoard: string | null
 }
 
-function mapRow(h: any): HwAssignment {
-  const subs: { verdict: string; submitted_at?: string }[] = h.homework_submissions ?? []
-  const submittedCount = subs.length
-  const reviewedCount = subs.filter(s => s.verdict !== 'pending').length
-  // Самая поздняя сдача среди непроверенных — «когда ученик сдал».
-  const lastSubmittedAt = subs
-    .filter(s => s.verdict === 'pending')
-    .map(s => s.submitted_at)
-    .filter(Boolean)
-    .sort()
-    .pop() as string | undefined
+// status строки lesson_progress → вердикт витрины проверки.
+function statusToVerdict(status?: string | null): HwSubmission['verdict'] {
+  if (status === 'completed') return 'accepted'
+  if (status === 'returned') return 'returned'
+  return 'pending'
+}
+
+function mapRow(h: any, counts?: { submitted: number; reviewed: number }): HwAssignment {
+  const submittedCount = counts?.submitted ?? 0
+  const reviewedCount = counts?.reviewed ?? 0
   return {
     id: h.id,
     groupId: h.group_id,
@@ -315,10 +318,32 @@ export function useHomework() {
     const uid = await getOwnerId()
     const { data } = await supabase
       .from('homework')
-      .select('*, groups(name, icon, color, is_individual), homework_submissions(verdict, submitted_at)')
+      .select('*, groups(name, icon, color, is_individual)')
       .eq('created_by', uid)
       .order('created_at', { ascending: false })
-    if (data) setHomework(data.map(mapRow))
+    if (!data) { setLoading(false); return }
+
+    // Счётчики «сдано / проверено» — из lesson_progress (ключ `hw-<id>`), где
+    // и живут сдачи учеников. submitted = все сдавшие; reviewed = приняты/возвращены.
+    const refs = data.map(h => `hw-${h.id}`)
+    const countsByHw = new Map<string, { submitted: number; reviewed: number }>()
+    if (refs.length > 0) {
+      const { data: progress } = await supabase
+        .from('lesson_progress')
+        .select('lesson_ref, status, students!inner(groups!inner(created_by))')
+        .in('lesson_ref', refs)
+        .eq('students.groups.created_by', uid)
+        .in('status', ['submitted', 'returned', 'completed'])
+      for (const p of (progress ?? []) as any[]) {
+        const hwId = (p.lesson_ref as string).slice(3) // strip 'hw-'
+        const c = countsByHw.get(hwId) ?? { submitted: 0, reviewed: 0 }
+        c.submitted += 1
+        if (p.status === 'completed' || p.status === 'returned') c.reviewed += 1
+        countsByHw.set(hwId, c)
+      }
+    }
+
+    setHomework(data.map(h => mapRow(h, countsByHw.get(h.id))))
     setLoading(false)
   }
 
@@ -512,28 +537,61 @@ export function useHardSubmissions() {
   return { submissions, loading, reviewHard, reviewHardMulti, reload: load }
 }
 
-export function useHomeworkSubmissions(hwId: string | null) {
+// Сдачи по назначенному (обычному) ДЗ живут в lesson_progress под ключом
+// `hw-<id>` — том же, куда пишет HomeworkFlow, когда ученик решает ноду ДЗ.
+// Ревью учителя (вердикт/оценка/комментарий/фото/доска) пишется туда же
+// (reviewHomework), поэтому homework_submissions больше не нужна.
+export function useHomeworkSubmissions(hwId: string | null): {
+  submissions: HwSubmission[]
+  reload: () => Promise<void>
+} {
   const [submissions, setSubmissions] = useState<HwSubmission[]>([])
 
-  useEffect(() => {
-    if (!hwId) return
-    supabase
-      .from('homework_submissions')
-      .select('*, students(name)')
-      .eq('hw_id', hwId)
-      .then(({ data }) => {
-        if (data) setSubmissions(data.map((s: any) => ({
-          id: s.id,
-          hwId: s.hw_id,
-          studentId: s.student_id,
-          studentName: s.students?.name ?? '',
-          submittedAt: s.submitted_at ?? '',
-          verdict: s.verdict ?? 'pending',
-          score: s.score ?? 0,
-          comment: s.comment ?? '',
-        })))
-      })
+  const load = useCallback(async () => {
+    if (!hwId) { setSubmissions([]); return }
+    const uid = await getOwnerId()
+    const { data } = await supabase
+      .from('lesson_progress')
+      .select('id, student_id, status, score, comment, review_comment, review_attachments, updated_at, students!inner(name, groups!inner(created_by))')
+      .eq('lesson_ref', `hw-${hwId}`)
+      .eq('students.groups.created_by', uid)
+      .in('status', ['submitted', 'returned', 'completed'])
+      .order('updated_at', { ascending: false })
+    setSubmissions((data ?? []).map((s: any) => ({
+      id: s.id,
+      hwId,
+      studentId: s.student_id,
+      studentName: (s.students as { name?: string } | null)?.name ?? '',
+      submittedAt: s.updated_at ?? '',
+      verdict: statusToVerdict(s.status),
+      score: s.score ?? 0,
+      comment: s.comment ?? '',
+      reviewComment: s.review_comment ?? '',
+      reviewPhotos: Array.isArray(s.review_attachments?.photos) ? s.review_attachments.photos : [],
+      reviewBoard: s.review_attachments?.board ?? null,
+    })))
   }, [hwId])
 
-  return submissions
+  useEffect(() => { load() }, [load])
+
+  return { submissions, reload: load }
+}
+
+// Персист ревью обычного ДЗ — та же строка lesson_progress, что и сдача.
+// accepted → status 'completed', returned → 'returned'. Фото/доска учителя
+// кладём в review_attachments (jsonb), как у сложных заданий.
+export async function reviewHomework(
+  progressRowId: string,
+  verdict: 'accepted' | 'returned',
+  score: number,
+  comment: string,
+  attachments?: { photos: string[]; board: string | null },
+) {
+  const hasAtt = !!attachments && (!!attachments.photos.length || !!attachments.board)
+  await supabase.from('lesson_progress').update({
+    status: verdict === 'accepted' ? 'completed' : 'returned',
+    score,
+    review_comment: comment || null,
+    review_attachments: hasAtt ? { photos: attachments!.photos, board: attachments!.board } : null,
+  }).eq('id', progressRowId)
 }

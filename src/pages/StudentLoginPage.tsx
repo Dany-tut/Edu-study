@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { setStudentSession } from '../lib/studentSession'
+import { trackNow } from '../lib/analytics'
 
 const inputStyle: React.CSSProperties = {
   // Explicit minHeight + lineHeight so an empty password field can't render
@@ -11,6 +12,11 @@ const inputStyle: React.CSSProperties = {
   width: '100%', padding: '13px 14px', minHeight: 50, borderRadius: 12,
   border: '1.5px solid var(--color-border-medium)', fontSize: 16,
   lineHeight: '22px', outline: 'none', boxSizing: 'border-box',
+  // Explicit color + background: iOS WKWebView otherwise inherits a system
+  // text color that can render white-on-white (dark system theme / autofill),
+  // making typed password text invisible.
+  color: 'var(--color-text)', background: 'var(--color-surface)',
+  WebkitTextFillColor: 'var(--color-text)',
 }
 
 export default function StudentLoginPage() {
@@ -43,6 +49,7 @@ export default function StudentLoginPage() {
       if (srow) {
         setLoading(false)
         setStudentSession({ id: srow.id, name: srow.name, groupId: srow.group_id })
+        void trackNow('login', { role: 'student', method: 'auth' })
         window.location.reload()
         return
       }
@@ -62,6 +69,7 @@ export default function StudentLoginPage() {
     }
     const s = data[0] as { id: string; name: string; group_id: string }
     setStudentSession({ id: s.id, name: s.name, groupId: s.group_id })
+    void trackNow('login', { role: 'student', method: 'legacy' })
     window.location.reload()
   }
 

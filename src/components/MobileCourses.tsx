@@ -3,10 +3,12 @@ import Skeleton from './Skeleton'
 import { motion } from 'framer-motion'
 import {
   FlaskConical, Star, Lock, ChevronRight, Zap,
-  CheckCircle2, Play, RotateCcw, Clock, Video,
+  CheckCircle2, Play, RotateCcw, Clock, Video, LayoutList,
 } from 'lucide-react'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
+import MobileDock, { DockSegment, DockCircle } from './MobileDock'
+import MobileSheet from './MobileSheet'
 import MobileHScroll from './MobileHScroll'
 import MobilePill from './MobilePill'
 import { GlassPill } from './mobileChrome'
@@ -49,6 +51,7 @@ export default function MobileCourses() {
   const now = useNow()
 
   const [moduleTab, setModuleTab] = useState<number | typeof ALL>(activeModuleId)
+  const [moduleSheet, setModuleSheet] = useState(false)
 
   const subject = subjects.find(s => s.id === activeSubjectId) ?? subjects[0]
 
@@ -59,6 +62,17 @@ export default function MobileCourses() {
       : (subject.modules.find(m => m.id === moduleTab)?.lessons ?? [])
   }, [subject, moduleTab])
 
+  // Course-level stats surfaced under the XP hero (пройдено / средний балл /
+  // прогресс) so progress is visible without opening the profile.
+  const courseStats = useMemo(() => {
+    if (!subject) return null
+    const all = subject.modules.flatMap(m => m.lessons)
+    const done = all.filter(l => l.status === 'completed').length
+    const graded = all.filter(l => typeof l.points === 'number')
+    const avg = graded.length ? Math.round(graded.reduce((s, l) => s + (l.points ?? 0), 0) / graded.length) : 0
+    return { done, total: all.length, avg, progress: subject.progress }
+  }, [subject])
+
   const moduleTabs: Array<{ id: number | typeof ALL; label: string }> = subject
     ? [{ id: ALL, label: 'Все' }, ...subject.modules.map(m => ({ id: m.id, label: m.label }))]
     : []
@@ -68,19 +82,23 @@ export default function MobileCourses() {
   const xpInLevel = stats.totalPoints % XP_PER_LEVEL
   const rank = RANKS[Math.min(level - 1, RANKS.length - 1)]
 
-  const cycleSubject = () => {
-    if (subjects.length < 2) return
-    const idx = subjects.findIndex(s => s.id === subject?.id)
-    const next = subjects[(idx + 1) % subjects.length]
-    setActiveSubject(next.id)
+  const selectSubject = (id: string) => {
+    setActiveSubject(id)
     // Module ids are per-course positions — a tab from the old subject would
     // point at nothing (or the wrong module) in the new one.
     setModuleTab(ALL)
   }
 
+  // Adaptive dock (В2 + В3): course switcher appears when the student has ≥2
+  // courses; the module-index jump appears when a course has enough modules
+  // that the horizontal chip row stops fitting. Neither → no dock.
+  const showCourseSwitcher = subjects.length >= 2
+  const showModuleIndex = !!subject && subject.modules.length > 6
+  const showDock = showCourseSwitcher || showModuleIndex
+
   const topZone = (
     <div className="flex items-center justify-between" style={{ gap: 8 }}>
-      <GlassPill onClick={subjects.length > 1 ? cycleSubject : undefined}>
+      <GlassPill>
         <FlaskConical size={15} style={{ color: 'var(--color-accent)' }} />
         {subject?.name ?? 'Курс'}
       </GlassPill>
@@ -123,6 +141,15 @@ export default function MobileCourses() {
               </div>
             </div>
 
+            {/* Course stats strip — progress visible at a glance */}
+            {courseStats && (
+              <div className="flex" style={{ gap: 8 }}>
+                <CourseStat value={`${courseStats.done}/${courseStats.total}`} label="Уроков" pair={STATUS_VISUAL.completed} />
+                <CourseStat value={`${courseStats.progress}%`} label="Пройдено" pair={STATUS_VISUAL.current} />
+                <CourseStat value={courseStats.avg ? `${courseStats.avg}%` : '—'} label="Ср. балл" pair={STATUS_VISUAL.submitted} />
+              </div>
+            )}
+
             {/* Module chips */}
             <div style={{ marginLeft: -16, marginRight: -16 }}>
               <MobileHScroll>
@@ -160,8 +187,74 @@ export default function MobileCourses() {
           </div>
         )}
       </MobileScreen>
+
+      {/* Adaptive control dock — course switcher + module index */}
+      {showDock && subject && (
+        <MobileDock>
+          {showCourseSwitcher && (
+            <DockSegment
+              options={subjects.map(s => ({ id: s.id, label: s.name }))}
+              value={subject.id}
+              onChange={selectSubject}
+            />
+          )}
+          {showModuleIndex && (
+            <DockCircle icon={<LayoutList size={20} />} ariaLabel="Модули" onClick={() => setModuleSheet(true)} />
+          )}
+        </MobileDock>
+      )}
+
+      {/* Module index — jump to any module without scrolling the chip row */}
+      <MobileSheet open={moduleSheet} onClose={() => setModuleSheet(false)} title="Модули">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <ModuleRow label="Все уроки" total={subject?.modules.flatMap(m => m.lessons).length ?? 0}
+            done={subject?.modules.flatMap(m => m.lessons).filter(l => l.status === 'completed').length ?? 0}
+            active={moduleTab === ALL}
+            onClick={() => { setModuleTab(ALL); setModuleSheet(false) }} />
+          {subject?.modules.map(m => {
+            const total = m.lessons.length
+            const done = m.lessons.filter(l => l.status === 'completed').length
+            return (
+              <ModuleRow key={m.id} label={m.label} total={total} done={done}
+                active={moduleTab === m.id}
+                onClick={() => { setModuleTab(m.id); setActiveModule(m.id); setModuleSheet(false) }} />
+            )
+          })}
+        </div>
+      </MobileSheet>
+
       <MobileBottomNav />
     </>
+  )
+}
+
+function CourseStat({ value, label, pair }: { value: string; label: string; pair: StatusVisual }) {
+  return (
+    <div style={{ flex: 1, minWidth: 0, borderRadius: 14, padding: '11px 12px', background: pair.tintBg }}>
+      <div style={{ fontSize: 17, fontWeight: 800, color: pair.tint, lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: pair.tint, opacity: 0.85, marginTop: 4 }}>{label}</div>
+    </div>
+  )
+}
+
+function ModuleRow({ label, total, done, active, onClick }: { label: string; total: number; done: number; active: boolean; onClick: () => void }) {
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0
+  return (
+    <motion.button
+      whileTap={{ scale: 0.99 }}
+      onClick={() => { tactile(); onClick() }}
+      className="flex items-center text-left"
+      style={{ gap: 12, width: '100%', padding: '12px 14px', borderRadius: 13, border: 'none', cursor: 'pointer',
+        background: active ? 'var(--color-purple-soft)' : 'transparent' }}
+    >
+      <div className="flex-1 min-w-0">
+        <div className="truncate" style={{ fontSize: 14.5, fontWeight: 700, color: active ? 'var(--color-accent)' : 'var(--color-text)' }}>{label}</div>
+        <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 3 }}>{done} из {total} · {pct}%</div>
+      </div>
+      <div style={{ width: 40, height: 6, borderRadius: 99, background: 'var(--color-bg-3)', overflow: 'hidden', flexShrink: 0 }}>
+        <div style={{ width: `${pct}%`, height: '100%', borderRadius: 99, background: pct === 100 ? 'var(--color-green-accent)' : 'var(--color-accent)' }} />
+      </div>
+    </motion.button>
   )
 }
 

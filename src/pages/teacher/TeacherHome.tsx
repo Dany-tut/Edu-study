@@ -915,7 +915,6 @@ function RemindersScroll({ reminders, reminderAction, reminderDone, allStudents,
 // ─── Main component ─────────────────────────────────────────────────────────
 export default function TeacherHome() {
   const { setActivePage, openGradebook } = useTeacher()
-  const reviews = useTeacher(s => s.reviews)
   const openHardReview = useTeacher(s => s.openHardReview)
   const openHomeworkReview = useTeacher(s => s.openHomeworkReview)
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
@@ -970,12 +969,11 @@ export default function TeacherHome() {
   const totalStudents = groups.reduce((a, g) => a + g.studentCount, 0)
   const TODAY = new Date().toISOString().split('T')[0]
 
-  const reviewedFor = (hwId: string) => Object.keys(reviews[hwId] ?? {}).length
-  // Hard tasks (сложное ДЗ) live in lesson_progress, not homework_submissions —
-  // a fresh submission has status 'submitted' until the teacher reviews it.
+  // Обычное И сложное ДЗ теперь оба живут в lesson_progress; reviewedCount у hw
+  // считается из него (см. useHomework). Свежая сдача = 'submitted' до проверки.
   const pendingHard = hardSubs.filter(s => s.status === 'submitted')
   const pendingCount =
-    pendingHomework.reduce((a, hw) => a + Math.max(0, hw.submittedCount - reviewedFor(hw.id)), 0) +
+    pendingHomework.reduce((a, hw) => a + Math.max(0, hw.submittedCount - hw.reviewedCount), 0) +
     pendingHard.length
 
   const reminders: Reminder[] = [
@@ -1011,7 +1009,7 @@ export default function TeacherHome() {
 
   const reminderDone = (r: Reminder) =>
     r.type === 'check-hw' &&
-    pendingHomework.some(hw => r.text.includes(hw.groupName) && reviewedFor(hw.id) >= hw.submittedCount)
+    pendingHomework.some(hw => r.text.includes(hw.groupName) && hw.reviewedCount >= hw.submittedCount)
 
   // Куда ведёт напоминание — по префиксу id (см. формирование reminders выше):
   // hard- → проверка сложного ДЗ, hw- → проверка обычного ДЗ, pay- → карточка ученика, journal- → Журнал.

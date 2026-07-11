@@ -663,15 +663,16 @@ export default function LessonPage() {
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.96 }}
           onClick={closeLesson}
-          className="flex items-center cursor-pointer flex-shrink-0"
+          aria-label="Назад"
+          className="flex items-center justify-center cursor-pointer flex-shrink-0"
           style={{
-            gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
+            gap: 4, padding: isDesktop ? '9px 16px 9px 12px' : 9, borderRadius: 999, border: '1px solid var(--color-border-soft)',
             background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
             color: 'var(--color-text)', fontSize: 14, fontWeight: 600,
           }}
         >
           <ChevronLeft size={18} />
-          Назад
+          {isDesktop && 'Назад'}
         </motion.button>
 
         <h1
@@ -714,15 +715,16 @@ export default function LessonPage() {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.96 }}
               onClick={closeLesson}
-              className="flex items-center cursor-pointer flex-shrink-0"
+              aria-label="Назад"
+              className="flex items-center justify-center cursor-pointer flex-shrink-0"
               style={{
-                gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999,
+                gap: 4, padding: isDesktop ? '9px 16px 9px 12px' : 9, borderRadius: 999,
                 ...dockGlass,
                 color: 'var(--color-text)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto',
               }}
             >
               <ChevronLeft size={18} />
-              Назад
+              {isDesktop && 'Назад'}
             </motion.button>
 
             <div

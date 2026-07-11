@@ -75,3 +75,39 @@ export function parseStudentLimitError(err: unknown): number | null {
 export function studentLimitMessage(max: number): string {
   return `Достигнут лимит тарифа: ${max} учеников. Чтобы добавить ещё, обновите тариф — напишите нам или администратору.`
 }
+
+// ── Экран «По пользователям» (админка, миграция 0039) ────────────────────────
+export interface UserActivityRow {
+  actor_kind: string        // teacher | admin | student | anon
+  actor_id: string
+  name: string
+  sessions: number
+  active_min: number        // ≈ heartbeat-минуты (вкладка открыта)
+  events: number
+  logins: number
+  last_seen: string | null
+  first_seen: string | null
+}
+
+export interface TeacherUsageRow {
+  teacher_id: string
+  name: string
+  plan_code: string | null
+  total_students: number
+  active_students: number
+  active_min: number
+  sessions: number
+  last_seen: string | null
+}
+
+export async function fetchUserActivity(days = 30): Promise<UserActivityRow[]> {
+  const { data, error } = await supabase.rpc('admin_user_activity', { p_days: days })
+  if (error) { console.error('fetchUserActivity:', error); return [] }
+  return (data ?? []) as UserActivityRow[]
+}
+
+export async function fetchTeacherUsage(days = 30): Promise<TeacherUsageRow[]> {
+  const { data, error } = await supabase.rpc('admin_teacher_usage', { p_days: days })
+  if (error) { console.error('fetchTeacherUsage:', error); return [] }
+  return (data ?? []) as TeacherUsageRow[]
+}

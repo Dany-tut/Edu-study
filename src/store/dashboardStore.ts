@@ -5,6 +5,7 @@ import { resolveScheduleLesson, findChemistryLessonByTitle } from '../lib/db'
 import type { HardTaskReviewBlock } from '../lib/useHomework'
 import { useStudentData } from './studentDataStore'
 import { DEFAULT_WIDGET_ORDER } from '../data/widgets'
+import { trackEvent } from '../lib/analytics'
 
 // The top-level views the navigation switches between. 'home' is the dashboard,
 // 'courses' is the lesson catalogue (screen 3), 'lesson' is a single lesson with
@@ -198,6 +199,7 @@ export const useDashboard = create<DashboardState>()(persist((set) => ({
     const liveSubjects = useStudentData.getState().subjects
     const subj = liveSubjects.find(su => su.modules.some(m => m.lessons.some(l => l.id === lessonId)))
     const mod = subj?.modules.find(m => m.lessons.some(l => l.id === lessonId))
+    trackEvent('lesson_open', { lesson_ref: lessonId })
     return {
       activePage: 'lesson',
       currentLessonId: lessonId,

@@ -58,7 +58,6 @@ export function useOverlayThumb() {
 }
 
 export function useHomeData() {
-  const reviews = useTeacher(s => s.reviews)
   const openHardReview = useTeacher(s => s.openHardReview)
   const openHomeworkReview = useTeacher(s => s.openHomeworkReview)
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
@@ -110,10 +109,9 @@ export function useHomeData() {
   const totalStudents = groups.reduce((a, g) => a + g.studentCount, 0)
   const TODAY = new Date().toISOString().split('T')[0]
 
-  const reviewedFor = (hwId: string) => Object.keys(reviews[hwId] ?? {}).length
   const pendingHard = hardSubs.filter(s => s.status === 'submitted')
   const pendingCount =
-    pendingHomework.reduce((a, hw) => a + Math.max(0, hw.submittedCount - reviewedFor(hw.id)), 0) +
+    pendingHomework.reduce((a, hw) => a + Math.max(0, hw.submittedCount - hw.reviewedCount), 0) +
     pendingHard.length
 
   const doneCount = todaySchedule.filter(s => s.status === 'completed').length
@@ -152,7 +150,7 @@ export function useHomeData() {
 
   const reminderDone = (r: Reminder) =>
     r.type === 'check-hw' &&
-    pendingHomework.some(hw => r.text.includes(hw.groupName) && reviewedFor(hw.id) >= hw.submittedCount)
+    pendingHomework.some(hw => r.text.includes(hw.groupName) && hw.reviewedCount >= hw.submittedCount)
 
   const reminderAction = (r: Reminder): (() => void) | undefined => {
     if (r.id.startsWith('hard-')) { const id = r.id.slice(5); return () => openHardReview(id) }

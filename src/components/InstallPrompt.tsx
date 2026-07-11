@@ -18,18 +18,25 @@ export default function InstallPrompt() {
   const platform = getPlatform()
   const [canPrompt, setCanPrompt] = useState(hasInstallPrompt())
   const [hidden, setHidden] = useState(dismissed() || isStandalone())
+  // Set when the user explicitly taps "Установить приложение" in Profile. A
+  // forced open must show the sheet even when auto-eligibility wouldn't (no
+  // captured Android prompt, or an unrecognised platform) — otherwise the tap
+  // looks dead.
+  const [forced, setForced] = useState(false)
 
   useEffect(() => subscribeInstall(() => setCanPrompt(hasInstallPrompt())), [])
   // Re-open when the user taps "Установить приложение" in Profile, even if the
   // banner was dismissed earlier.
-  useEffect(() => subscribeShowInstall(() => setHidden(false)), [])
+  useEffect(() => subscribeShowInstall(() => { setHidden(false); setForced(true) }), [])
 
-  // Only phones, not already installed/dismissed. Android needs a captured
-  // prompt; iOS always qualifies (manual flow). Desktop/other → skip.
+  // Auto-show: only phones, not already installed/dismissed. Android needs a
+  // captured prompt; iOS always qualifies (manual flow). An explicit tap in
+  // Profile (forced) always opens the sheet regardless of platform.
   const isPhone = typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
-  const eligible = isPhone && !hidden && (platform === 'ios' || (platform === 'android' && canPrompt))
+  const autoEligible = isPhone && (platform === 'ios' || (platform === 'android' && canPrompt))
+  const eligible = !hidden && (forced || autoEligible)
 
-  function close() { setHidden(true); markDismissed() }
+  function close() { setHidden(true); setForced(false); markDismissed() }
 
   async function onInstall() {
     const ok = await promptInstall()
@@ -113,8 +120,9 @@ export default function InstallPrompt() {
               </div>
             </div>
 
-            {/* Action zone */}
-            {platform === 'android' ? (
+            {/* Action zone: native dialog only when a prompt was actually
+                captured; otherwise fall back to the manual add-to-home steps. */}
+            {platform === 'android' && canPrompt ? (
               <div style={{ padding: '14px 22px 4px' }}>
                 <button
                   onClick={onInstall}

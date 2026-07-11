@@ -115,8 +115,8 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
     <div style={{ maxWidth: 720, margin: '0 auto', padding: '12px 20px 80px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-        <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '7px 12px', borderRadius: 999, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit' }}>
-          <ChevronLeft size={15} /> Назад
+        <button onClick={onBack} aria-label="Назад" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: isDesktop ? '7px 12px' : 7, borderRadius: 999, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit' }}>
+          <ChevronLeft size={15} /> {isDesktop && 'Назад'}
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '5px 13px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 12, fontWeight: 700 }}>
           <ClipboardCheck size={14} /> Финальный тест

@@ -3,16 +3,19 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, ChevronRight, Check, RotateCcw, Send,
   ClipboardCheck, TrendingUp, Clock, Award, FileText, Paperclip,
-  CheckCircle2, Star,
+  CheckCircle2, Star, Image as ImageIcon, PenLine, X,
 } from 'lucide-react'
 import type { Student, Group, HomeworkItem, HwTask } from '../../data/teacherMockData'
-import { useHomework, useHomeworkSubmissions } from '../../lib/useHomework'
+import { useHomework, useHomeworkSubmissions, reviewHomework } from '../../lib/useHomework'
 import { useGroups, useStudents } from '../../lib/useGroups'
-import { useTeacher, type HwReview } from '../../store/teacherStore'
+import { useTeacher } from '../../store/teacherStore'
 import RichConditionEditor from '../../components/teacher/RichConditionEditor'
+import WhiteboardCanvas from '../../components/teacher/WhiteboardCanvas'
+import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { readDraft, writeDraft, clearDraft } from '../../lib/useDraft'
 
-type ReviewDraft = { score: string; taskScores: Record<string, string>; comment: string }
+// Фото/доска учителя — base64, живут только в черновике до отправки (в review_attachments).
+type ReviewDraft = { score: string; taskScores: Record<string, string>; comment: string; photos: string[]; board: string | null }
 
 function initials(name: string) {
   return name.split(' ').map(p => p[0]).join('').slice(0, 2)
@@ -152,7 +155,7 @@ function ReviewBottomBar({
   submitters, reviews, activeIdx, onJump, color,
 }: {
   submitters: Student[]
-  reviews: Record<string, HwReview>
+  reviews: Record<string, { verdict: 'accepted' | 'returned' }>
   activeIdx: number
   onJump: (i: number) => void
   color: string
@@ -290,12 +293,66 @@ function TaskScoreGrid({
   )
 }
 
+// ─── Teacher attachments (фото + доска) ─────────────────────────────────────
+function ReviewAttachEditor({
+  photos, board, onPhotos, onBoard, color,
+}: {
+  photos: string[]
+  board: string | null
+  onPhotos: (photos: string[]) => void
+  onBoard: (board: string | null) => void
+  color: string
+}) {
+  const [showBoard, setShowBoard] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  function addPhotos(files: FileList | null) {
+    if (!files) return
+    setError(null)
+    Array.from(files).forEach(async file => {
+      try {
+        const src = await optimizePhoto(file)
+        if (src) onPhotos([...photos, src])
+      } catch (e) {
+        if (e instanceof ImageTooLargeError) setError(e.message)
+        else throw e
+      }
+    })
+  }
+
+  return (
+    <div>
+      <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
+        onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button onClick={() => fileRef.current?.click()} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 12.5, fontWeight: 700 }}>
+          <ImageIcon size={14} /> Фото
+        </button>
+        <button onClick={() => setShowBoard(v => !v)} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: `1px solid ${showBoard || board ? color : 'var(--color-border-medium)'}`, background: showBoard || board ? color + '22' : 'var(--color-bg-2)', color: showBoard || board ? color : 'var(--color-text)', fontSize: 12.5, fontWeight: 700 }}>
+          <PenLine size={14} /> {board ? 'Доска ✓' : 'Доска'}
+        </button>
+      </div>
+      {error && <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-peach-text)', marginTop: 8 }}>{error}</div>}
+      {photos.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 10 }}>
+          {photos.map((src, i) => (
+            <div key={i} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--color-border-soft)' }}>
+              <img src={src} alt="" style={{ width: '100%', height: 72, objectFit: 'cover', display: 'block' }} />
+              <button onClick={() => onPhotos(photos.filter((_, j) => j !== i))} className="cursor-pointer" style={{ position: 'absolute', top: 3, right: 3, width: 20, height: 20, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={12} /></button>
+            </div>
+          ))}
+        </div>
+      )}
+      {showBoard && <div style={{ marginTop: 10 }}><WhiteboardCanvas initialData={board ?? undefined} onSave={onBoard} /></div>}
+    </div>
+  )
+}
+
 // ─── Main page ──────────────────────────────────────────────────────────────
 export default function TeacherHomeworkReviewPage() {
   const reviewingHwId = useTeacher(s => s.reviewingHwId)
   const setActivePage = useTeacher(s => s.setActivePage)
-  const reviews = useTeacher(s => s.reviews)
-  const submitReview = useTeacher(s => s.submitReview)
   const reviewIdx = useTeacher(s => s.reviewIdx)
   const setReviewIdx = useTeacher(s => s.setReviewIdx)
 
@@ -305,14 +362,25 @@ export default function TeacherHomeworkReviewPage() {
   const hw = (allHomework.find(h => h.id === reviewingHwId) ?? null) as (HomeworkItem & { tasks?: HwTask[] }) | null
   const group = hw ? groups.find(g => g.id === hw.groupId) ?? null : null
 
-  const rawSubmissions = useHomeworkSubmissions(reviewingHwId)
+  const { submissions: rawSubmissions, reload: reloadSubmissions } = useHomeworkSubmissions(reviewingHwId)
   const { students: groupStudents } = useStudents(hw?.groupId ?? null)
   const submitters: Student[] = useMemo(() => {
     if (!hw) return []
     const submittedIds = new Set(rawSubmissions.map(s => s.studentId))
     return groupStudents.filter(s => submittedIds.has(s.id))
   }, [hw, rawSubmissions, groupStudents])
-  const hwReviews = (reviewingHwId && reviews[reviewingHwId]) || {}
+  // «Проверено» выводим прямо из вердикта сдачи (lesson_progress), а не из стора.
+  const subByStudent = useMemo(
+    () => new Map(rawSubmissions.map(s => [s.studentId, s])),
+    [rawSubmissions],
+  )
+  const reviewedMap = useMemo(() => {
+    const m: Record<string, { verdict: 'accepted' | 'returned' }> = {}
+    for (const s of rawSubmissions) {
+      if (s.verdict === 'accepted' || s.verdict === 'returned') m[s.studentId] = { verdict: s.verdict }
+    }
+    return m
+  }, [rawSubmissions])
 
   const idx = reviewIdx
   const prevIdxRef = useRef(reviewIdx)
@@ -356,15 +424,15 @@ export default function TeacherHomeworkReviewPage() {
   }
 
   const student = submitters[idx]
-  const currentSubmission = rawSubmissions.find(s => s.studentId === student?.id)
-  const existing = hwReviews[student.id]
+  const currentSubmission = subByStudent.get(student?.id)
+  const reviewed = currentSubmission?.verdict === 'accepted' || currentSubmission?.verdict === 'returned'
   const draftKey = `hwReview:${hw.id}:${student.id}`
   const draft = drafts[student.id] ?? readDraft<ReviewDraft>(draftKey) ?? {
-    score: existing ? String(existing.score) : '',
-    taskScores: existing?.taskScores
-      ? Object.fromEntries(Object.entries(existing.taskScores).map(([k, v]) => [k, String(v)]))
-      : {},
-    comment: existing ? existing.comment : '',
+    score: reviewed ? String(currentSubmission!.score) : '',
+    taskScores: {},
+    comment: currentSubmission?.reviewComment ?? '',
+    photos: currentSubmission?.reviewPhotos ?? [],
+    board: currentSubmission?.reviewBoard ?? null,
   }
 
   // If hw has tasks, compute total from task scores; otherwise use manual score.
@@ -375,7 +443,7 @@ export default function TeacherHomeworkReviewPage() {
   const maxTaskTotal = hasTasks
     ? (hw.tasks ?? []).reduce((sum, t) => sum + t.maxScore, 0)
     : null
-  const reviewedCount = submitters.filter(s => hwReviews[s.id]).length
+  const reviewedCount = submitters.filter(s => reviewedMap[s.id]).length
   const allDone = reviewedCount === submitters.length
 
   function setDraft(patch: Partial<ReviewDraft>) {
@@ -397,26 +465,27 @@ export default function TeacherHomeworkReviewPage() {
 
   function advance() {
     // Jump to the next student who still needs a review; else stay/finish.
-    const nextUnreviewed = submitters.findIndex((s, i) => i > idx && !hwReviews[s.id])
-    const fallback = submitters.findIndex(s => !hwReviews[s.id])
+    const nextUnreviewed = submitters.findIndex((s, i) => i > idx && !reviewedMap[s.id])
+    const fallback = submitters.findIndex(s => !reviewedMap[s.id])
     const target = nextUnreviewed !== -1 ? nextUnreviewed : fallback
     if (target !== -1 && target !== idx) go(target)
   }
 
-  function handleVerdict(verdict: 'accepted' | 'returned') {
-    const rawScore = hasTasks ? (taskTotal ?? 0) : Math.max(0, Math.min(100, Number(draft.score) || 0))
-    const score = verdict === 'accepted' ? rawScore : rawScore
-    const taskScores = hasTasks
-      ? Object.fromEntries(
-          Object.entries(draft.taskScores).map(([k, v]) => [k, Number(v) || 0])
-        )
-      : undefined
-    submitReview(hw!.id, student.id, { verdict, score, taskScores, comment: draft.comment })
+  async function handleVerdict(verdict: 'accepted' | 'returned') {
+    const submissionId = currentSubmission?.id
+    if (!submissionId) return
+    const score = hasTasks ? (taskTotal ?? 0) : Math.max(0, Math.min(100, Number(draft.score) || 0))
+    // Реальная запись в lesson_progress (та же строка, куда ученик сдал) —
+    // вердикт/оценка/комментарий/фото/доска дойдут до ученика и переживут reload.
+    await reviewHomework(submissionId, verdict, score, draft.comment, {
+      photos: draft.photos, board: draft.board,
+    })
     clearDraft(draftKey)
     setDrafts(d => {
       const { [student.id]: _gone, ...rest } = d
       return rest
     })
+    await reloadSubmissions()
     setTimeout(advance, 260)
   }
 
@@ -647,6 +716,20 @@ export default function TeacherHomeworkReviewPage() {
                     />
                   </div>
 
+                  {/* Приложить к проверке — фото + доска (как в проверке сложных) */}
+                  <div style={{ marginBottom: 18 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 6 }}>
+                      ПРИЛОЖИТЬ К ОТВЕТУ
+                    </div>
+                    <ReviewAttachEditor
+                      photos={draft.photos}
+                      board={draft.board}
+                      onPhotos={photos => setDraft({ photos })}
+                      onBoard={board => setDraft({ board })}
+                      color={group.color}
+                    />
+                  </div>
+
                   {/* Actions */}
                   <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
                     <motion.button
@@ -725,7 +808,7 @@ export default function TeacherHomeworkReviewPage() {
       <div style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 40, width: 'min(560px, calc(100vw - 48px))' }}>
         <ReviewBottomBar
           submitters={submitters}
-          reviews={hwReviews}
+          reviews={reviewedMap}
           activeIdx={idx}
           onJump={go}
           color={group.color}

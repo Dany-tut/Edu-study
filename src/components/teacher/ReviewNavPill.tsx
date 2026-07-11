@@ -9,12 +9,11 @@ export default function ReviewNavPill() {
   const reviewingHwId = useTeacher(s => s.reviewingHwId)
   const reviewIdx = useTeacher(s => s.reviewIdx)
   const setReviewIdx = useTeacher(s => s.setReviewIdx)
-  const reviews = useTeacher(s => s.reviews)
 
   const { homework: allHomework } = useHomework()
   const hw = allHomework.find(h => h.id === reviewingHwId) ?? null
 
-  const rawSubmissions = useHomeworkSubmissions(reviewingHwId)
+  const { submissions: rawSubmissions } = useHomeworkSubmissions(reviewingHwId)
   const { students: groupStudents } = useStudents(hw?.groupId ?? null)
 
   const submitters = useMemo(() => {
@@ -23,8 +22,12 @@ export default function ReviewNavPill() {
     return groupStudents.filter(s => submittedIds.has(s.id))
   }, [hw, rawSubmissions, groupStudents])
 
-  const hwReviews = (reviewingHwId && reviews[reviewingHwId]) || {}
-  const reviewedCount = submitters.filter(s => hwReviews[s.id]).length
+  // «Проверено» = вердикт сдачи (lesson_progress), не in-memory стор.
+  const reviewedIds = useMemo(
+    () => new Set(rawSubmissions.filter(s => s.verdict !== 'pending').map(s => s.studentId)),
+    [rawSubmissions],
+  )
+  const reviewedCount = submitters.filter(s => reviewedIds.has(s.id)).length
   const allDone = reviewedCount === submitters.length && submitters.length > 0
 
   if (!hw || submitters.length === 0) return null

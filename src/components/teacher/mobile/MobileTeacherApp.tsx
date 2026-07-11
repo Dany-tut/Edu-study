@@ -7,6 +7,7 @@ import MobileTeacherGradebook from './MobileTeacherGradebook'
 import MobileTeacherProfile from './MobileTeacherProfile'
 import { useHomework, useHardSubmissions } from '../../../lib/useHomework'
 import { useTeacherAccess, type TeacherTabId } from '../../../lib/teacherAccess'
+import { DEMO_HARD_SUBS, DEMO_HW } from '../../../data/teacherDevDemo'
 
 // Each mobile tab maps to a desktop nav tab for access checks (profile is always
 // available). Hiding the matching desktop tab hides the mobile one too.
@@ -45,9 +46,13 @@ export default function MobileTeacherApp() {
   // Review badge — pending hard submissions + unreviewed homework.
   const { homework } = useHomework()
   const { submissions } = useHardSubmissions()
+  // DEV-only: mirror the review screen's demo fallback so the badge isn't 0.
+  const demoReview = import.meta.env.DEV && submissions.length === 0 && homework.length === 0
+  const hardList = demoReview ? DEMO_HARD_SUBS : submissions
+  const hwList = demoReview ? DEMO_HW : homework
   const reviewBadge =
-    submissions.filter(s => s.status === 'submitted').length +
-    homework.filter(h => h.status !== 'closed').reduce((n, h) => n + Math.max(0, h.submittedCount - h.reviewedCount), 0)
+    hardList.filter(s => s.status === 'submitted').length +
+    hwList.filter(h => h.status !== 'closed').reduce((n, h) => n + Math.max(0, h.submittedCount - h.reviewedCount), 0)
 
   return (
     <div className="lg:hidden">

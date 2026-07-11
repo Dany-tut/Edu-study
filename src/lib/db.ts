@@ -666,25 +666,34 @@ export interface StudentHwItem {
 }
 
 export async function fetchStudentHwHistory(studentId: string): Promise<StudentHwItem[]> {
+  // Назначенные ДЗ живут в lesson_progress под ключом `hw-<id>` (баллы 0–100).
+  // Берём проверенные (принято/возвращено), названия — из homework по id.
   const { data } = await supabase
-    .from('homework_submissions')
-    .select('submitted_at, verdict, score, hw_id, homework(title)')
+    .from('lesson_progress')
+    .select('updated_at, status, score, lesson_ref')
     .eq('student_id', studentId)
-    .order('submitted_at', { ascending: false })
+    .like('lesson_ref', 'hw-%')
+    .not('lesson_ref', 'like', '%-hard')
+    .in('status', ['completed', 'returned'])
+    .order('updated_at', { ascending: false })
     .limit(20)
 
   if (!data || data.length === 0) return []
 
+  const hwIds = [...new Set((data as any[]).map(r => (r.lesson_ref as string).slice(3)))]
+  const { data: hws } = await supabase.from('homework').select('id, title').in('id', hwIds)
+  const titleById = new Map((hws ?? []).map((h: any) => [h.id, h.title]))
+
   return (data as any[]).map(row => {
-    const hwTitle = row.homework?.title ?? `ДЗ #${row.hw_id?.slice(0, 6)}`
-    const dateObj = new Date(row.submitted_at)
+    const hwId = (row.lesson_ref as string).slice(3)
+    const dateObj = new Date(row.updated_at)
     const dateStr = dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '')
     return {
-      title: hwTitle,
+      title: titleById.get(hwId) ?? `ДЗ #${hwId.slice(0, 6)}`,
       date: dateStr,
       score: row.score ?? 0,
-      maxScore: 10,
-      returned: row.verdict === 'returned',
+      maxScore: 100,
+      returned: row.status === 'returned',
     }
   })
 }
@@ -731,16 +740,20 @@ export async function fetchStudentLessonHistory(studentId: string, groupId: stri
 
 // ─── Teacher: score dynamics (avg HW score per submission) ───────────────────
 export async function fetchStudentScoreDynamics(studentId: string): Promise<number[]> {
+  // Динамика баллов по назначенным ДЗ (lesson_progress `hw-<id>`, 0–100),
+  // только принятые работы, по возрастанию времени.
   const { data } = await supabase
-    .from('homework_submissions')
-    .select('score, submitted_at')
+    .from('lesson_progress')
+    .select('score, updated_at, lesson_ref')
     .eq('student_id', studentId)
-    .not('verdict', 'eq', 'returned')
-    .order('submitted_at', { ascending: true })
+    .like('lesson_ref', 'hw-%')
+    .not('lesson_ref', 'like', '%-hard')
+    .eq('status', 'completed')
+    .order('updated_at', { ascending: true })
     .limit(20)
 
   if (!data || data.length === 0) return []
-  return (data as any[]).map(row => Math.round(((row.score ?? 0) / 10) * 100))
+  return (data as any[]).map(row => Math.max(0, Math.min(100, row.score ?? 0)))
 }
 
 // ─── Teacher: trainer topic sections from confidence_log ─────────────────────

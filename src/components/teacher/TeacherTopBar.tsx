@@ -19,6 +19,7 @@ import CreateTaskModal from './CreateTaskModal'
 import WidgetsModal from './WidgetsModal'
 import FeedbackModal from '../FeedbackModal'
 import { supabase } from '../../lib/supabase'
+import { trackNow } from '../../lib/analytics'
 import { useTheme } from '../../store/themeStore'
 import NotificationBell from '../NotificationBell'
 import NotificationPopup from '../NotificationPopup'
@@ -70,10 +71,9 @@ export default function TeacherTopBar() {
   const snapMountRef  = useRef(false)
   const { homework } = useHomework()
   const { submissions: hardSubs } = useHardSubmissions()
-  const reviews = useTeacher(s => s.reviews)
   const pendingHwCount = homework
     .filter(hw => hw.status === 'active')
-    .reduce((acc, hw) => acc + Math.max(0, hw.submittedCount - Object.keys(reviews[hw.id] ?? {}).length), 0)
+    .reduce((acc, hw) => acc + Math.max(0, hw.submittedCount - hw.reviewedCount), 0)
     + hardSubs.filter(s => s.status === 'submitted').length
   const pendingJournals = useJournalPending(null)
   const pendingJournalCount = pendingJournals.length
@@ -306,7 +306,7 @@ export default function TeacherTopBar() {
                   }}
                 />
               <span style={{
-                position: 'relative', zIndex: 1, display: 'flex', overflow: 'hidden',
+                position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'center', overflow: 'hidden',
                 maxWidth: collapsed ? 22 : 0, opacity: collapsed ? 1 : 0,
                 transition: 'max-width 0.42s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease',
               }}>
@@ -480,7 +480,7 @@ export default function TeacherTopBar() {
 
             <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 8px' }} />
             <motion.button whileTap={{ scale: 0.98 }}
-              onClick={() => { supabase.auth.signOut(); setProfileOpen(false) }}
+              onClick={() => { void trackNow('logout', { role: 'teacher' }); supabase.auth.signOut(); setProfileOpen(false) }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = dark ? 'rgba(220,38,38,0.18)' : 'rgba(220,38,38,0.08)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
               style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.12s', width: '100%' }}

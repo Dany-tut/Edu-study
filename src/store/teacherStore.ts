@@ -14,13 +14,6 @@ export type StudentTrainerStats = {
   savedAt: number
 }
 
-export type HwReview = {
-  verdict: 'accepted' | 'returned'
-  score: number
-  taskScores?: Record<string, number>
-  comment: string
-}
-
 export type TeacherTask = {
   id: string
   typeId: string | null
@@ -121,9 +114,6 @@ type TeacherStore = {
   openHardReview: (hardId: string) => void
   reviewIdx: number
   setReviewIdx: (idx: number) => void
-  // hwId -> studentId -> verdict the teacher gave while reviewing
-  reviews: Record<string, Record<string, HwReview>>
-  submitReview: (hwId: string, studentId: string, review: HwReview) => void
   selectedGroupId: string | null
   setSelectedGroupId: (id: string | null) => void
   selectedStudentId: string | null
@@ -250,10 +240,6 @@ export const useTeacher = create<TeacherStore>(set => ({
   openHardReview: hardId => set({ reviewingHardId: hardId, activePage: 'hard-review', headerDocked: false }),
   reviewIdx: 0,
   setReviewIdx: idx => set({ reviewIdx: idx }),
-  reviews: {},
-  submitReview: (hwId, studentId, review) => set(s => ({
-    reviews: { ...s.reviews, [hwId]: { ...(s.reviews[hwId] ?? {}), [studentId]: review } },
-  })),
   selectedGroupId: _nav?.selectedGroupId ?? null,
   setSelectedGroupId: id => set({ selectedGroupId: id }),
   selectedStudentId: _nav?.selectedStudentId ?? null,

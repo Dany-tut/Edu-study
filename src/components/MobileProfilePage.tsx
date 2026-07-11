@@ -1,17 +1,19 @@
 import { motion } from 'framer-motion'
 import { useState, useMemo } from 'react'
-import { LogOut, Flame, CheckCircle2, Star, TrendingUp, Zap, Moon, Sun, MessageSquarePlus, Download, ChevronDown, ChevronRight, Check, BookOpen, ListChecks } from 'lucide-react'
+import { LogOut, Flame, CheckCircle2, Star, TrendingUp, Zap, Moon, Sun, MessageSquarePlus, Download, ChevronRight, BookOpen, ListChecks } from 'lucide-react'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
-import MobileSheet from './MobileSheet'
+import MobileDock, { DockSegment } from './MobileDock'
 import { DynamicIsland } from './mobileChrome'
 import MobileBell from './MobileBell'
 import SubjectSwitcher from './SubjectSwitcher'
 import FeedbackModal from './FeedbackModal'
 import { getStudentSession, clearStudentSession } from '../lib/studentSession'
 import { supabase } from '../lib/supabase'
+import { trackNow } from '../lib/analytics'
 import { useStudentData } from '../store/studentDataStore'
 import { useTheme } from '../store/themeStore'
+import { useT, useLang, type Lang } from '../lib/i18n'
 import { PAIR } from '../lib/mobileTokens'
 import { tactile } from '../lib/feedback'
 import { requestShowInstall, isStandalone } from '../lib/pwaInstall'
@@ -38,18 +40,10 @@ function computeSubjectStats(subject: Subject) {
   return { completed, total: lessons.length, avg, progress: subject.progress }
 }
 
-function StatCard({ icon: Icon, value, label, pair }: { icon: LucideIcon; value: string | number; label: string; pair: { bg: string; text: string } }) {
-  return (
-    <div style={{ flex: 1, minWidth: 0, padding: '16px 14px', borderRadius: 18, background: pair.bg, display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <Icon size={18} style={{ color: pair.text }} />
-      <div style={{ fontSize: 24, fontWeight: 750, color: pair.text, lineHeight: 1 }}>{value}</div>
-      <div style={{ fontSize: 12, fontWeight: 500, color: pair.text, opacity: 0.85, lineHeight: 1.2 }}>{label}</div>
-    </div>
-  )
-}
-
 export default function MobileProfilePage() {
-  const name = getStudentSession()?.name?.trim() || 'Ученик'
+  const t = useT()
+  const { lang, setLang } = useLang()
+  const name = getStudentSession()?.name?.trim() || t('Ученик')
   const initial = name.charAt(0).toUpperCase()
   const stats = useStudentData(s => s.stats)
   const subjects = useStudentData(s => s.subjects)
@@ -57,22 +51,35 @@ export default function MobileProfilePage() {
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   // Stats scope: 'all' = account-wide totals, or a single subject's own numbers.
   const [statScope, setStatScope] = useState<'all' | string>('all')
-  const [scopeSheet, setScopeSheet] = useState(false)
 
   // Show the "install app" row only when not already running as an installed PWA.
   const canInstall = !isStandalone()
 
   const scopeSubject = statScope === 'all' ? null : subjects.find(s => s.id === statScope) ?? null
-  const scopeLabel = scopeSubject ? scopeSubject.name : 'Все предметы'
+  const scopeLabel = scopeSubject ? scopeSubject.name : t('Все предметы')
   const subjectStats = useMemo(() => scopeSubject ? computeSubjectStats(scopeSubject) : null, [scopeSubject])
+
+  // Recent graded scores → sparkline trend. In-order proxy for a time series
+  // (lessons carry no timestamp): the last dozen graded lessons' points.
+  const trend = useMemo(() => {
+    const src = scopeSubject ? [scopeSubject] : subjects
+    return src
+      .flatMap(s => s.modules.flatMap(m => m.lessons))
+      .filter(l => typeof l.points === 'number')
+      .map(l => l.points as number)
+      .slice(-12)
+  }, [scopeSubject, subjects])
+
+  const heroAvg = subjectStats ? subjectStats.avg : stats.avgScore
 
   const level = Math.floor(stats.totalPoints / XP_PER_LEVEL) + 1
   const xpInLevel = stats.totalPoints % XP_PER_LEVEL
-  const rank = RANKS[Math.min(level - 1, RANKS.length - 1)]
+  const rank = t(RANKS[Math.min(level - 1, RANKS.length - 1)])
 
   const logout = () => {
     tactile()
     clearStudentSession()
+    void trackNow('logout', { role: 'student' })
     void supabase.auth.signOut()
     window.location.hash = '#/'
     window.location.reload()
@@ -83,7 +90,7 @@ export default function MobileProfilePage() {
       <div style={{ width: 38, flexShrink: 0 }} />
       <DynamicIsland>
         <Flame size={15} style={{ color: '#F8A23B' }} />
-        <span>{stats.streak} дней</span>
+        <span>{stats.streak} {t('дней')}</span>
         <span style={{ opacity: 0.35 }}>·</span>
         <Zap size={14} style={{ color: 'var(--color-accent)' }} />
         <span>{stats.totalPoints}</span>
@@ -106,7 +113,7 @@ export default function MobileProfilePage() {
             </div>
             <div className="min-w-0">
               <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.1 }}>{name}</div>
-              <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', marginTop: 3 }}>Уровень {level} · {rank}</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', marginTop: 3 }}>{t('Уровень')} {level} · {rank}</div>
             </div>
           </div>
 
@@ -130,7 +137,7 @@ export default function MobileProfilePage() {
           {/* Level / XP hero */}
           <div style={{ borderRadius: 20, padding: '14px 16px', background: 'var(--color-purple-soft)' }}>
             <div className="flex items-center justify-between" style={{ marginBottom: 9 }}>
-              <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-purple-text)' }}>Уровень {level} · {rank}</span>
+              <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-purple-text)' }}>{t('Уровень')} {level} · {rank}</span>
               <span className="flex items-center" style={{ gap: 4, fontSize: 12, fontWeight: 700, color: 'var(--color-purple-text)' }}>
                 <Zap size={13} />{xpInLevel}/{XP_PER_LEVEL} XP
               </span>
@@ -140,45 +147,39 @@ export default function MobileProfilePage() {
             </div>
           </div>
 
-          {/* Stats — header clarifies the scope; the selector switches between
-              account-wide totals and a single subject's own numbers. */}
+          {/* Stats (В4 redesign) — one hero metric (средний балл + спарклайн)
+              leads, secondary numbers sit compactly below. Scope switches via
+              the bottom dock, not a hidden header dropdown. */}
           <div className="flex flex-col" style={{ gap: 10 }}>
-            <div className="flex items-center justify-between" style={{ paddingRight: 2 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Статистика</span>
-              {subjects.length > 0 && (
-                <motion.button
-                  whileTap={{ scale: 0.96 }}
-                  onClick={() => { tactile(); setScopeSheet(true) }}
-                  className="flex items-center cursor-pointer"
-                  style={{ gap: 5, height: 30, padding: '0 12px', borderRadius: 999, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', color: 'var(--color-accent)', fontSize: 12.5, fontWeight: 600 }}
-                >
-                  {scopeLabel}
-                  <ChevronDown size={14} />
-                </motion.button>
-              )}
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+              {t('Статистика')} · {scopeLabel}
+            </span>
+
+            {/* Hero — средний балл + trend */}
+            <div style={{ borderRadius: 20, padding: 16, color: '#fff', background: 'linear-gradient(135deg, #9B6FE8, #6F3FBF)', boxShadow: '0 10px 26px rgba(123,63,204,0.28)' }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div style={{ fontSize: 10.5, fontWeight: 800, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('Средний балл')}</div>
+                  <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, marginTop: 6 }}>{heroAvg ? `${heroAvg}%` : '—'}</div>
+                </div>
+                <TrendingUp size={22} style={{ opacity: 0.9 }} />
+              </div>
+              <Sparkline data={trend} />
             </div>
+
+            {/* Secondary metrics — compact grid */}
             {subjectStats ? (
-              <>
-                <div className="flex" style={{ gap: 10 }}>
-                  <StatCard icon={CheckCircle2} value={subjectStats.completed} label="Выполнено уроков" pair={PAIR.success} />
-                  <StatCard icon={TrendingUp} value={subjectStats.avg ? `${subjectStats.avg}%` : '—'} label="Средний балл" pair={PAIR.info} />
-                </div>
-                <div className="flex" style={{ gap: 10 }}>
-                  <StatCard icon={ListChecks} value={`${subjectStats.progress}%`} label="Пройдено курса" pair={PAIR.focus} />
-                  <StatCard icon={BookOpen} value={subjectStats.total} label="Всего уроков" pair={PAIR.review} />
-                </div>
-              </>
+              <div className="flex" style={{ gap: 8 }}>
+                <MiniStat icon={CheckCircle2} value={subjectStats.completed} label={t('Выполнено')} pair={PAIR.success} />
+                <MiniStat icon={ListChecks} value={`${subjectStats.progress}%`} label={t('Пройдено')} pair={PAIR.focus} />
+                <MiniStat icon={BookOpen} value={subjectStats.total} label={t('Всего уроков')} pair={PAIR.review} />
+              </div>
             ) : (
-              <>
-                <div className="flex" style={{ gap: 10 }}>
-                  <StatCard icon={CheckCircle2} value={stats.completedTasks} label="Выполнено заданий" pair={PAIR.success} />
-                  <StatCard icon={TrendingUp} value={`${stats.avgScore}%`} label="Средний балл" pair={PAIR.info} />
-                </div>
-                <div className="flex" style={{ gap: 10 }}>
-                  <StatCard icon={Flame} value={stats.streak} label="Дней подряд" pair={PAIR.review} />
-                  <StatCard icon={Star} value={stats.stars} label="Звёзды" pair={PAIR.focus} />
-                </div>
-              </>
+              <div className="flex" style={{ gap: 8 }}>
+                <MiniStat icon={CheckCircle2} value={stats.completedTasks} label={t('Заданий')} pair={PAIR.success} />
+                <MiniStat icon={Flame} value={stats.streak} label={t('Дней')} pair={PAIR.warning} />
+                <MiniStat icon={Star} value={stats.stars} label={t('Звёзды')} pair={PAIR.focus} />
+              </div>
             )}
           </div>
 
@@ -186,24 +187,48 @@ export default function MobileProfilePage() {
               separate full-width plates. */}
           <div className="flex flex-col" style={{ gap: 10 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', padding: '4px 2px' }}>
-              Настройки
+              {t('Настройки')}
             </div>
             <div style={{ borderRadius: 18, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>
               {/* Theme — inline Светлая/Тёмная segment */}
               <div className="flex items-center justify-between" style={{ padding: '12px 15px', borderBottom: '1px solid var(--color-border-soft)' }}>
-                <span style={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>Тема оформления</span>
+                <span style={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>{t('Тема оформления')}</span>
                 <button
                   onClick={() => { tactile(); toggle() }}
                   className="flex items-center cursor-pointer"
                   style={{ gap: 2, padding: 3, borderRadius: 999, background: 'var(--color-bg-5)', border: 'none' }}
-                  aria-label="Переключить тему"
+                  aria-label={t('Переключить тему')}
                 >
                   {([false, true] as const).map(d => {
                     const active = dark === d
                     return (
                       <span key={String(d)} className="flex items-center" style={{ gap: 5, height: 28, padding: '0 11px', borderRadius: 999, background: active ? 'rgba(var(--glass-rgb),0.98)' : 'transparent', color: active ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 12.5, fontWeight: 600, boxShadow: active ? 'var(--shadow-xs)' : 'none', transition: 'background 0.2s, color 0.2s' }}>
                         {d ? <Moon size={13} strokeWidth={1.9} /> : <Sun size={13} strokeWidth={1.9} />}
-                        {d ? 'Тёмная' : 'Светлая'}
+                        {d ? t('Тёмная') : t('Светлая')}
+                      </span>
+                    )
+                  })}
+                </button>
+              </div>
+
+              {/* Language — inline RU/EN segment (mirrors the theme toggle) */}
+              <div className="flex items-center justify-between" style={{ padding: '12px 15px', borderBottom: '1px solid var(--color-border-soft)' }}>
+                <span style={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>{t('Язык')}</span>
+                <button
+                  className="flex items-center cursor-pointer"
+                  style={{ gap: 2, padding: 3, borderRadius: 999, background: 'var(--color-bg-5)', border: 'none' }}
+                  aria-label={t('Язык')}
+                >
+                  {(['ru', 'en'] as const).map(l => {
+                    const active = lang === l
+                    return (
+                      <span
+                        key={l}
+                        onClick={() => { tactile(); setLang(l as Lang) }}
+                        className="flex items-center"
+                        style={{ height: 28, padding: '0 13px', borderRadius: 999, background: active ? 'rgba(var(--glass-rgb),0.98)' : 'transparent', color: active ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 12.5, fontWeight: 600, boxShadow: active ? 'var(--shadow-xs)' : 'none', transition: 'background 0.2s, color 0.2s' }}
+                      >
+                        {l === 'ru' ? 'RU' : 'EN'}
                       </span>
                     )
                   })}
@@ -217,7 +242,7 @@ export default function MobileProfilePage() {
                 style={{ width: '100%', padding: '14px 15px', background: 'transparent', border: 'none', borderBottom: canInstall ? '1px solid var(--color-border-soft)' : 'none' }}
               >
                 <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>
-                  <MessageSquarePlus size={18} style={{ color: 'var(--color-muted)' }} />Обратная связь
+                  <MessageSquarePlus size={18} style={{ color: 'var(--color-muted)' }} />{t('Обратная связь')}
                 </span>
                 <ChevronRight size={17} style={{ color: 'var(--color-text-4)' }} />
               </motion.button>
@@ -230,7 +255,7 @@ export default function MobileProfilePage() {
                   style={{ width: '100%', padding: '14px 15px', background: 'transparent', border: 'none' }}
                 >
                   <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>
-                    <Download size={18} style={{ color: 'var(--color-muted)' }} />Установить приложение
+                    <Download size={18} style={{ color: 'var(--color-muted)' }} />{t('Установить приложение')}
                   </span>
                   <ChevronRight size={17} style={{ color: 'var(--color-text-4)' }} />
                 </motion.button>
@@ -244,33 +269,57 @@ export default function MobileProfilePage() {
               style={{ gap: 8, padding: '13px', borderRadius: 16, background: 'transparent', color: PAIR.error.text, border: 'none', fontSize: 14.5, fontWeight: 600 }}
             >
               <LogOut size={17} />
-              Выйти из аккаунта
+              {t('Выйти из аккаунта')}
             </motion.button>
           </div>
         </div>
       </MobileScreen>
+
+      {/* В2 — stats scope switcher (замена спрятанной кнопки в заголовке) */}
+      {subjects.length > 0 && (
+        <MobileDock>
+          <DockSegment
+            options={[{ id: 'all', label: t('Все') }, ...subjects.map(s => ({ id: s.id, label: s.name }))]}
+            value={statScope}
+            onChange={setStatScope}
+          />
+        </MobileDock>
+      )}
+
       <MobileBottomNav />
       {feedbackOpen && <FeedbackModal role="student" onClose={() => setFeedbackOpen(false)} />}
-
-      {/* Stats scope picker */}
-      <MobileSheet open={scopeSheet} onClose={() => setScopeSheet(false)} title="Статистика по">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {[{ id: 'all', name: 'Все предметы' }, ...subjects].map(o => {
-            const active = statScope === o.id
-            return (
-              <button
-                key={o.id}
-                onClick={() => { tactile(); setStatScope(o.id); setScopeSheet(false) }}
-                className="flex items-center justify-between cursor-pointer"
-                style={{ padding: '13px 15px', borderRadius: 14, background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-input)', border: 'none', textAlign: 'left', color: active ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 15, fontWeight: active ? 650 : 500 }}
-              >
-                {o.name}
-                {active && <Check size={18} />}
-              </button>
-            )
-          })}
-        </div>
-      </MobileSheet>
     </>
+  )
+}
+
+// Compact sparkline for the стат-hero. Points map to 0–100 range; endpoint dot
+// emphasised. Pure SVG — no rAF (unsupported in preview).
+function Sparkline({ data }: { data: number[] }) {
+  if (data.length < 2) return <div style={{ height: 30, marginTop: 12 }} />
+  const w = 260, h = 30
+  const max = Math.max(...data, 100), min = Math.min(...data, 0)
+  const span = max - min || 1
+  const pts = data.map((v, i) => {
+    const x = (i / (data.length - 1)) * w
+    const y = h - ((v - min) / span) * h
+    return [x, y] as const
+  })
+  const d = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ')
+  const [ex, ey] = pts[pts.length - 1]
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" style={{ width: '100%', height: 30, marginTop: 12, display: 'block', overflow: 'visible' }}>
+      <path d={d} fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" opacity={0.9} vectorEffect="non-scaling-stroke" />
+      <circle cx={ex} cy={ey} r={3} fill="#fff" />
+    </svg>
+  )
+}
+
+function MiniStat({ icon: Icon, value, label, pair }: { icon: LucideIcon; value: string | number; label: string; pair: { bg: string; text: string } }) {
+  return (
+    <div style={{ flex: 1, minWidth: 0, padding: '12px 12px', borderRadius: 16, background: pair.bg, display: 'flex', flexDirection: 'column', gap: 5 }}>
+      <Icon size={16} style={{ color: pair.text }} />
+      <div style={{ fontSize: 20, fontWeight: 800, color: pair.text, lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: pair.text, opacity: 0.85, lineHeight: 1.2 }}>{label}</div>
+    </div>
   )
 }

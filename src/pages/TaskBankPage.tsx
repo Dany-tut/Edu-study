@@ -16,6 +16,7 @@ import {
 } from '../data/taskBankData'
 import MultiSelectField from '../components/MultiSelectField'
 import { copyToClipboard } from '../lib/clipboard'
+import { trackEvent } from '../lib/analytics'
 import { useCurriculum } from '../store/curriculumStore'
 import { useTaskBank } from '../store/taskBankStore'
 import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../store/taskMetaStore'
@@ -1433,6 +1434,7 @@ export default function TaskBankPage() {
   const tasks         = useTaskBank(s => s.tasks)
   const loadTasks     = useTaskBank(s => s.load)
   useEffect(() => { loadTasks(true) }, [])
+  useEffect(() => { trackEvent('trainer_open') }, [])
 
   const defaultSubject: Subject = (() => {
     const saved = localStorage.getItem('taskbank_subject')

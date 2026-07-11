@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { trackNow } from '../../lib/analytics'
 
 export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogin: () => void; recovery?: boolean }) {
   const [email, setEmail] = useState('')
@@ -29,6 +30,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
       if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
+        void trackNow('login', { role: 'teacher', method: 'auth' })
         onLogin()
       } else if (mode === 'reset') {
         const redirectTo = `${window.location.origin}${window.location.pathname}#/teacher`

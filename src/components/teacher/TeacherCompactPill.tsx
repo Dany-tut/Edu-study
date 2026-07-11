@@ -100,13 +100,8 @@ function PillContent({
 // ── Widget 0: Pending homework ─────────────────────────────────────────────
 function PendingHwPreview({ expanded }: { expanded: boolean }) {
   const setActivePage = useTeacher(s => s.setActivePage)
-  const reviews = useTeacher(s => s.reviews)
-  const { homework: allHomework } = useHomework()
+  const { homework } = useHomework()
 
-  const homework = allHomework.map(hw => {
-    const r = reviews[hw.id]
-    return r ? { ...hw, reviewedCount: Math.max(hw.reviewedCount, Object.keys(r).length) } : hw
-  })
   const toCheck = homework.reduce((a, hw) => a + Math.max(0, hw.submittedCount - hw.reviewedCount), 0)
   const onReview = homework.filter(hw => hw.submittedCount - hw.reviewedCount > 0).length
 
@@ -495,12 +490,8 @@ function QuickActionsWidget({ expanded: _expanded }: { expanded: boolean }) {
 
 // ── Main pill ──────────────────────────────────────────────────────────────
 export default function TeacherCompactPill() {
-  const reviews = useTeacher(s => s.reviews)
   const { homework: allHomework } = useHomework()
-  const hasHwToCheck = allHomework.some(hw => {
-    const reviewed = Object.keys(reviews[hw.id] ?? {}).length
-    return hw.submittedCount - Math.max(hw.reviewedCount, reviewed) > 0
-  })
+  const hasHwToCheck = allHomework.some(hw => hw.submittedCount - hw.reviewedCount > 0)
 
   const WIDGETS = hasHwToCheck ? [0, 1, 2, 3, 4] : [1, 2, 3, 4]
   const total = WIDGETS.length

@@ -102,6 +102,16 @@ export function trackPageView(path: string, meta: Record<string, unknown> = {}) 
   trackEvent('page_view', meta, path)
 }
 
+/**
+ * Track a business event and flush immediately. Use for actions that navigate
+ * away or reload right after (login/logout/register) — a plain buffered
+ * trackEvent would be lost before the next interval flush.
+ */
+export async function trackNow(event: string, meta: Record<string, unknown> = {}, path?: string) {
+  trackEvent(event, meta, path)
+  await flush()
+}
+
 let lastPath = ''
 /** Call on every route change — records dwell time for the previous page. */
 export function trackPath(path: string, meta: Record<string, unknown> = {}) {

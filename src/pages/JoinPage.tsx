@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { setStudentSession } from '../lib/studentSession'
+import { trackNow } from '../lib/analytics'
 
 function getToken() {
   const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '')
@@ -95,6 +96,7 @@ export default function JoinPage() {
       return
     }
 
+    void trackNow('register', { role: 'student' })
     setStudentSession({ id: studentId, name: studentName, groupId })
     // Full reload (not a bare hash change): App's data-load effect runs once on
     // mount and only when a student_session already exists. Navigating by hash

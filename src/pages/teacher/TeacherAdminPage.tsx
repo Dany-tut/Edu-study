@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase'
 import { copyToClipboard } from '../../lib/clipboard'
 import { useTeacher } from '../../store/teacherStore'
 import TeacherAnalytics from '../../components/teacher/TeacherAnalytics'
+import AdminUserActivity from '../../components/teacher/AdminUserActivity'
 import FeedbackRequestsManager from '../../components/teacher/FeedbackRequestsManager'
 import { TEACHER_TABS } from '../../lib/teacherAccess'
 import { WIDGET_REGISTRY } from '../../components/teacher/widgets/registry'
@@ -754,7 +755,7 @@ export default function TeacherAdminPage() {
   const [studentCount, setStudentCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [inviteOpen, setInviteOpen] = useState(false)
-  const [tab, setTab] = useState<'overview' | 'data' | 'analytics' | 'requests'>('overview')
+  const [tab, setTab] = useState<'overview' | 'data' | 'analytics' | 'users' | 'requests'>('overview')
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
@@ -866,7 +867,7 @@ export default function TeacherAdminPage() {
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 4, background: 'var(--color-bg-3)', borderRadius: 12, padding: 3, marginBottom: 24, width: 'fit-content' }}>
-          {([['overview', 'Обзор', Database], ['data', 'Данные', BookOpen], ['analytics', 'Аналитика', BarChart3], ['requests', 'Заявки', Inbox]] as const).map(([id, label, Icon]) => (
+          {([['overview', 'Обзор', Database], ['data', 'Данные', BookOpen], ['analytics', 'Аналитика', BarChart3], ['users', 'Пользователи', Users], ['requests', 'Заявки', Inbox]] as const).map(([id, label, Icon]) => (
             <button
               key={id}
               onClick={() => setTab(id)}
@@ -886,6 +887,8 @@ export default function TeacherAdminPage() {
         </div>
 
         {tab === 'analytics' && <TeacherAnalytics />}
+
+        {tab === 'users' && <AdminUserActivity />}
 
         {tab === 'requests' && <FeedbackRequestsManager />}
 
