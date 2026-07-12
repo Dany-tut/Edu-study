@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Share, X, Plus, Sparkles, WifiOff, Rocket } from 'lucide-react'
 import { subscribeInstall, subscribeShowInstall, hasInstallPrompt, promptInstall, isStandalone, getPlatform } from '../lib/pwaInstall'
 import { useT } from '../lib/i18n'
@@ -46,30 +46,27 @@ export default function InstallPrompt() {
   }
 
   return (
-    <AnimatePresence>
+    <>
       {eligible && (
-        <>
-          {/* Scrim */}
-          <motion.div
-            key="scrim"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            onClick={close}
-            style={{
-              position: 'fixed', inset: 0, zIndex: 9997,
-              background: 'rgba(8,6,16,0.5)',
-              backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)',
-            }}
-          />
+        <motion.div
+          key="scrim"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.25 }}
+          onClick={close}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9997,
+            background: 'rgba(8,6,16,0.5)',
+            backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)',
+          }}
+        />
+      )}
 
-          {/* Sheet */}
+      {eligible && (
           <motion.div
             key="sheet"
             initial={{ y: '110%' }}
             animate={{ y: 0 }}
-            exit={{ y: '110%' }}
             transition={{ type: 'spring', stiffness: 380, damping: 36, mass: 0.9 }}
             style={{
               position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 9998,
@@ -159,9 +156,8 @@ export default function InstallPrompt() {
               </div>
             )}
           </motion.div>
-        </>
       )}
-    </AnimatePresence>
+    </>
   )
 }
 
