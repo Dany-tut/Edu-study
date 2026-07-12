@@ -1,4 +1,4 @@
-import { type Lesson, type LessonStatus } from '../data/mockData'
+import { type Lesson, type LessonStatus, type ScheduleLesson, type Subject } from '../data/mockData'
 import { resolveScheduleLesson } from '../lib/db'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
@@ -42,4 +42,33 @@ export function getDisplayLessonStatus(lesson: Lesson, now: Date = new Date()): 
   // Today (or earlier): an upcoming slot reads as the active lesson (purple ▶);
   // once its time has passed it becomes a missed recording.
   return lessonTimeState(slot.date, slot.time, now).passed ? 'unviewed' : 'current'
+}
+
+// The reconciled status of a single calendar row. This is the ONE place that
+// decides whether a schedule row reads as "engaged" vs "missed", so the calendar
+// and the track can never disagree: it resolves the row to its course lesson and
+// trusts the track's status first, falling back to a time check only when the
+// student never touched the lesson. Cross-row concerns (which future row is the
+// "soonest" highlight) stay with the caller — this judges one row in isolation.
+export type ScheduleRowStatus =
+  | 'completed'   // done on the track
+  | 'submitted'   // sent for review, not yet graded
+  | 'returned'    // returned for rework
+  | 'missed'      // today, its time has passed, and the student never engaged
+  | 'pending'     // future slot, an earlier day, or no track match — nothing to flag
+
+// A row the student demonstrably engaged with — never "missed" regardless of time.
+const ENGAGED_STATUSES: LessonStatus[] = ['completed', 'submitted', 'returned']
+
+export function scheduleRowStatus(
+  row: ScheduleLesson,
+  opts: { dayDate: string; isToday: boolean },
+  subjects: Subject[],
+  now: Date = new Date(),
+): ScheduleRowStatus {
+  const lesson = resolveScheduleLesson(row, subjects).lesson
+  const track = lesson ? getDisplayLessonStatus(lesson, now) : null
+  if (track && ENGAGED_STATUSES.includes(track)) return track as ScheduleRowStatus
+  const passed = lessonTimeState(opts.dayDate, row.time, now).passed
+  return opts.isToday && passed ? 'missed' : 'pending'
 }

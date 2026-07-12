@@ -211,27 +211,17 @@ export default function MobileProfilePage() {
                 </button>
               </div>
 
-              {/* Language — inline RU/EN segment (mirrors the theme toggle) */}
+              {/* Language — label shows the current language; the button offers
+                  the OTHER language and switches to it on tap. */}
               <div className="flex items-center justify-between" style={{ padding: '12px 15px', borderBottom: '1px solid var(--color-border-soft)' }}>
                 <span style={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>{t('Язык')}</span>
                 <button
+                  onClick={() => { tactile(); setLang((lang === 'ru' ? 'en' : 'ru') as Lang) }}
                   className="flex items-center cursor-pointer"
-                  style={{ gap: 2, padding: 3, borderRadius: 999, background: 'var(--color-bg-5)', border: 'none' }}
-                  aria-label={t('Язык')}
+                  style={{ height: 34, padding: '0 15px', borderRadius: 999, background: 'var(--color-bg-5)', border: 'none', color: 'var(--color-accent)', fontSize: 12.5, fontWeight: 600 }}
+                  aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
                 >
-                  {(['ru', 'en'] as const).map(l => {
-                    const active = lang === l
-                    return (
-                      <span
-                        key={l}
-                        onClick={() => { tactile(); setLang(l as Lang) }}
-                        className="flex items-center"
-                        style={{ height: 28, padding: '0 13px', borderRadius: 999, background: active ? 'rgba(var(--glass-rgb),0.98)' : 'transparent', color: active ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 12.5, fontWeight: 600, boxShadow: active ? 'var(--shadow-xs)' : 'none', transition: 'background 0.2s, color 0.2s' }}
-                      >
-                        {l === 'ru' ? 'RU' : 'EN'}
-                      </span>
-                    )
-                  })}
+                  {lang === 'ru' ? 'Русский' : 'English'}
                 </button>
               </div>
 

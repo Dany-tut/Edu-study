@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download } from 'lucide-react'
+import { LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages } from 'lucide-react'
 import MobileScreen from '../../MobileScreen'
 import FeedbackModal from '../../FeedbackModal'
 import TariffModal from '../TariffModal'
@@ -12,7 +12,7 @@ import { fetchMyPlan } from '../../../lib/plan'
 import { useFinanceSummary } from '../../../lib/useFinances'
 import { useHomeData } from '../../../lib/useHomeData'
 import { DEMO_TEACHER_PROFILE, type TeacherProfileModel } from '../../../data/teacherProfileDemo'
-import { useT } from '../../../lib/i18n'
+import { useT, useLang, type Lang } from '../../../lib/i18n'
 import { requestShowInstall, isStandalone } from '../../../lib/pwaInstall'
 
 // MOBILE ONLY teacher profile — bento layout: identity, tariff+quota, live
@@ -37,6 +37,7 @@ function StatTile({ icon, value, label, bg, fg }: { icon: React.ReactNode; value
 
 export default function MobileTeacherProfile() {
   const t = useT()
+  const { lang, setLang } = useLang()
   const [email, setEmail] = useState('')
   const [profile, setProfile] = useState<{ name?: string; subject?: string } | null>(null)
   const [plan, setPlan] = useState<{ planName: string; studentsUsed: number; maxStudents: number | null } | null>(null)
@@ -164,6 +165,19 @@ export default function MobileTeacherProfile() {
               {dark ? <Moon size={18} style={{ color: 'var(--color-muted)' }} /> : <Sun size={18} style={{ color: 'var(--color-muted)' }} />}{t('Тема оформления')}
             </span>
             <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-3)' }}>{dark ? t('Тёмная') : t('Светлая')}</span>
+          </button>
+
+          {/* Язык — надпись показывает текущий язык, тап переключает на другой */}
+          <button
+            onClick={() => { tactile(); setLang((lang === 'ru' ? 'en' : 'ru') as Lang) }}
+            aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
+            className="flex items-center justify-between cursor-pointer"
+            style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
+          >
+            <span className="flex items-center" style={{ gap: 10, fontSize: 14.5, fontWeight: 550, color: 'var(--color-text)' }}>
+              <Languages size={18} style={{ color: 'var(--color-muted)' }} />{lang === 'ru' ? 'Русский язык' : 'English'}
+            </span>
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-accent)' }}>{lang === 'ru' ? 'English' : 'Русский'}</span>
           </button>
 
           {/* Обратная связь */}

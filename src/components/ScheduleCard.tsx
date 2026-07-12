@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { CalendarX2 } from 'lucide-react'
 import { type ScheduleDay, type ScheduleLesson } from '../data/mockData'
 import { resolveScheduleLesson } from '../lib/db'
+import { scheduleRowStatus } from '../lib/lessonStatus'
 import { useStudentData } from '../store/studentDataStore'
 import { IconMissedLesson } from './icons'
 import { useDashboard } from '../store/dashboardStore'
@@ -25,6 +26,7 @@ interface Props {
 
 export default function ScheduleCard({ day, isCenter, distance, onClick, mobile = false, centerWidth }: Props) {
   const t = useT()
+  const subjects = useStudentData(s => s.subjects)
   const openLesson = useDashboard(s => s.openLesson)
   const openCourses = useDashboard(s => s.openCourses)
   const setActiveSubject = useDashboard(s => s.setActiveSubject)
@@ -135,7 +137,13 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                 const st = states.find(s => s.id === lesson.id)!
                 const isUpcoming = lesson.id === upcomingId
                 const isPassed = st.passed
-                const isMissed = day.isToday && isPassed
+                // Single source of truth for "did the student engage vs miss it",
+                // shared with the track so the two can't disagree (see
+                // scheduleRowStatus). The card still owns the cross-row "soonest
+                // upcoming" highlight above.
+                const isMissed = scheduleRowStatus(
+                  lesson, { dayDate: day.date, isToday: day.isToday }, subjects, now,
+                ) === 'missed'
                 const pal = isMissed
                   ? missedPalette
                   : lesson.subject === 'Биология'

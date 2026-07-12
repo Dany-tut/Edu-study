@@ -5543,8 +5543,8 @@ function ScrToggle({ on, label, onChange }: { on: boolean; label: string; onChan
     <button
       onClick={() => onChange(!on)}
       style={{
-        display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px',
-        borderRadius: 10, border: `1.5px solid ${on ? SCR_ACC : 'var(--color-border-medium)'}`,
+        display: 'flex', alignItems: 'center', gap: 8, padding: '9px 15px',
+        borderRadius: 10, border: 'none',
         background: on ? SCR_SOFT : 'var(--color-bg-3)',
         color: on ? SCR_ACC : 'var(--color-text-3)', fontSize: 13, fontWeight: 700,
         cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
@@ -5565,7 +5565,7 @@ function ScrNumInput({ label, value, min, max, step = 1, onChange }: {
       <input
         type="number" value={value} min={min} max={max} step={step}
         onChange={e => onChange(Number(e.target.value))}
-        style={{ width: 90, padding: '8px 12px', borderRadius: 10, border: `1.5px solid ${SCR_ACC}55`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }}
+        style={{ width: 90, padding: '9px 12px', borderRadius: 10, border: 'none', background: SCR_SOFT, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, fontFamily: 'inherit', outline: 'none' }}
       />
     </div>
   )
@@ -5582,7 +5582,7 @@ function ScrPills<T extends string>({ label, all, active, labelMap, onChange }: 
           const on = active.includes(key)
           return (
             <button key={key} onClick={() => onChange(on ? active.filter(k => k !== key) : [...active, key])}
-              style={{ padding: '5px 12px', borderRadius: 8, border: `1.5px solid ${on ? SCR_ACC : 'var(--color-border-medium)'}`, background: on ? SCR_SOFT : 'var(--color-bg-3)', color: on ? SCR_ACC : 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
+              style={{ padding: '6px 13px', borderRadius: 8, border: 'none', background: on ? SCR_SOFT : 'var(--color-bg-3)', color: on ? SCR_ACC : 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
               {labelMap[key]}
             </button>
           )

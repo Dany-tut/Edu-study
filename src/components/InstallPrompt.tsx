@@ -74,7 +74,7 @@ export default function InstallPrompt() {
             style={{
               position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 9998,
               margin: '0 auto', maxWidth: 440,
-              paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 14px)',
+              paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 28px)',
               background: 'var(--color-bg)',
               borderTopLeftRadius: 30, borderTopRightRadius: 30,
               border: '1px solid var(--color-border-soft)', borderBottom: 'none',
@@ -88,8 +88,9 @@ export default function InstallPrompt() {
               background: 'radial-gradient(120% 90% at 50% 0%, rgba(139,111,230,0.20), transparent 68%)',
             }} />
 
-            {/* Grabber + close */}
-            <div style={{ position: 'relative', paddingTop: 10 }}>
+            {/* Grabber + close — lifted above the content below so the close
+                button stays clickable where the two rows overlap. */}
+            <div style={{ position: 'relative', paddingTop: 10, zIndex: 3 }}>
               <div style={{ width: 40, height: 5, borderRadius: 99, background: 'var(--color-border-medium)', margin: '0 auto' }} />
               <button
                 onClick={close}
@@ -111,7 +112,7 @@ export default function InstallPrompt() {
                 {t('Установить «Искру»')}
               </div>
               <div style={{ fontSize: 13.5, color: 'var(--color-text-2)', lineHeight: 1.4, textAlign: 'center', marginTop: 5, maxWidth: 300 }}>
-                {t('Быстрый доступ прямо с экрана «Домой» — без адресной строки, как настоящее приложение')}
+                {t('Быстрый доступ прямо с экрана «Домой» — без адресной строки')}
               </div>
 
               {/* Perks */}
@@ -149,7 +150,7 @@ export default function InstallPrompt() {
                     {t('Нажмите')} <Glyph><Share size={14} strokeWidth={2} /></Glyph> {t('«Поделиться» внизу Safari')}
                   </Step>
                   <Step n={2}>
-                    {t('Выберите')} <b style={{ color: 'var(--color-text)' }}>{t('«На экран „Домой"»')}</b> <Glyph><Plus size={14} strokeWidth={2.4} /></Glyph>
+                    {t('Выберите')} <b style={{ color: 'var(--color-text)' }}>{t('«На экран Домой»')}</b> <Glyph><Plus size={14} strokeWidth={2.4} /></Glyph>
                   </Step>
                   <Step n={3}>
                     {t('Нажмите')} <b style={{ color: 'var(--color-text)' }}>{t('«Добавить»')}</b> {t('— иконка «Искры» появится на экране')}
@@ -164,116 +165,38 @@ export default function InstallPrompt() {
   )
 }
 
-// Tiny iOS status-bar glyphs so the mockup reads as a real device.
-function StatusIcons() {
-  return (
-    <span style={{ display: 'flex', gap: 5, alignItems: 'center', color: '#fff' }}>
-      {/* signal */}
-      <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor" aria-hidden>
-        <rect x="0" y="7" width="3" height="4" rx="1" />
-        <rect x="4.3" y="5" width="3" height="6" rx="1" />
-        <rect x="8.6" y="2.5" width="3" height="8.5" rx="1" />
-        <rect x="12.9" y="0" width="3" height="11" rx="1" opacity="0.5" />
-      </svg>
-      {/* wifi */}
-      <svg width="15" height="11" viewBox="0 0 15 11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
-        <path d="M1 3.4a10 10 0 0 1 13 0M3.4 6a6.4 6.4 0 0 1 8.2 0" />
-        <circle cx="7.5" cy="9" r="0.9" fill="currentColor" stroke="none" />
-      </svg>
-      {/* battery */}
-      <svg width="24" height="12" viewBox="0 0 24 12" fill="none" aria-hidden>
-        <rect x="0.6" y="0.6" width="20" height="10.8" rx="3" stroke="currentColor" strokeOpacity="0.5" />
-        <rect x="2.4" y="2.4" width="15" height="7.2" rx="1.6" fill="currentColor" />
-        <rect x="22" y="4" width="1.6" height="4" rx="0.8" fill="currentColor" fillOpacity="0.5" />
-      </svg>
-    </span>
-  )
-}
-
 /**
- * Compact iPhone mockup — a full, self-contained device (titanium frame,
- * Dynamic Island, status bar) showing the Искра tile with a ＋ badge on a
- * purple home screen. Fully visible (no fold/clip) so nothing reads as cut off.
+ * Phone mockup — the provided Bezel.svg (titanium frame, purple home screen,
+ * Искра tile + ＋ badge). Only the top of the tall device is shown; its bottom
+ * dissolves into the sheet via a fade mask, so the phone reads as rising up
+ * into the panel from below.
  */
 function PhoneMockup() {
   return (
     <div style={{
-      position: 'relative', width: 184, height: 232,
-      // Melt the bottom edge of the device into the sheet — the frame dissolves
-      // instead of ending on a hard line. Fade sits below the content (tile +
-      // neighbour row), so only the dock/frame bottom fades, nothing is cut.
-      WebkitMaskImage: 'linear-gradient(to bottom, #000 0%, #000 82%, transparent 99%)',
-      maskImage: 'linear-gradient(to bottom, #000 0%, #000 82%, transparent 99%)',
+      position: 'relative', width: 210, height: 248,
+      // A clip window over the tall artwork: overflow hides everything below,
+      // and the mask fades the bottom over a long stretch so the device melts
+      // smoothly into the sheet (no hard edge, no second phone peeking below).
+      overflow: 'hidden',
+      WebkitMaskImage: 'linear-gradient(to bottom, #000 0%, #000 52%, transparent 100%)',
+      maskImage: 'linear-gradient(to bottom, #000 0%, #000 52%, transparent 100%)',
     }}>
       {/* soft aura behind the device */}
       <div style={{
         position: 'absolute', left: '50%', top: 26, transform: 'translateX(-50%)',
-        width: 168, height: 168, borderRadius: '50%',
+        width: 176, height: 176, borderRadius: '50%',
         background: 'radial-gradient(circle, rgba(143,111,230,0.5), transparent 70%)', filter: 'blur(10px)',
       }} />
-      {/* phone body — restrained corner radius (~16%, like a real iPhone) */}
-      <div style={{
-        position: 'absolute', left: '50%', top: 4, transform: 'translateX(-50%)',
-        width: 168, height: 224, borderRadius: 30, padding: 5,
-        background: 'linear-gradient(145deg,#42424a 0%,#1b1b1f 46%,#33333a 100%)',
-        boxShadow: '0 24px 48px rgba(70,38,130,0.42), 0 6px 18px rgba(0,0,0,0.45)',
-      }}>
-        {/* screen */}
-        <div style={{
-          position: 'relative', width: '100%', height: '100%', borderRadius: 25, overflow: 'hidden',
-          background: 'linear-gradient(170deg,#9C7DF0 0%,#6F49C9 52%,#512e9a 100%)',
-        }}>
-          {/* status bar */}
-          <div style={{ position: 'absolute', top: 12, left: 18, right: 18, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>9:41</span>
-            <StatusIcons />
-          </div>
-          {/* Dynamic Island */}
-          <div style={{
-            position: 'absolute', top: 9, left: '50%', transform: 'translateX(-50%)',
-            width: 74, height: 23, borderRadius: 99, background: '#08080a',
-            display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 8,
-          }}>
-            <span style={{ width: 6, height: 6, borderRadius: 99, background: '#26263a', boxShadow: 'inset 0 0 2px rgba(130,130,190,0.8)' }} />
-          </div>
-
-          {/* the Искра app tile */}
-          <div style={{ position: 'absolute', top: 58, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-            <div style={{ position: 'relative', width: 60, height: 60 }}>
-              <img
-                src="./apple-touch-icon.png"
-                alt="Искра"
-                width={60}
-                height={60}
-                style={{ display: 'block', width: 60, height: 60, borderRadius: 14, boxShadow: '0 12px 22px rgba(0,0,0,0.42)' }}
-              />
-              {/* + badge */}
-              <div style={{
-                position: 'absolute', top: -8, right: -9, width: 23, height: 23, borderRadius: 99,
-                background: '#34C759', border: '2.5px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 3px 9px rgba(0,0,0,0.32)',
-              }}>
-                <Plus size={12} color="#fff" strokeWidth={3.4} />
-              </div>
-            </div>
-            <span style={{ fontSize: 10.5, fontWeight: 600, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.35)' }}>Искра</span>
-          </div>
-
-          {/* a row of neighbour apps for realism */}
-          <div style={{ position: 'absolute', top: 150, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 15 }}>
-            {[0, 1, 2, 3].map(i => (
-              <div key={i} style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(255,255,255,0.16)' }} />
-            ))}
-          </div>
-
-          {/* dock hint */}
-          <div style={{ position: 'absolute', left: 14, right: 14, bottom: 8, height: 34, borderRadius: 18, background: 'rgba(255,255,255,0.14)' }} />
-
-          {/* glass gloss + a soft fade at the bottom so the screen melts into the sheet */}
-          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(135deg, rgba(255,255,255,0.16), transparent 38%)' }} />
-          <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 54, pointerEvents: 'none', background: 'linear-gradient(to top, rgba(30,16,60,0.4), transparent)' }} />
-        </div>
-      </div>
+      {/* the bezel artwork, with a little top breathing room so the frame isn't clipped */}
+      <img
+        src="./bezel-mockup.svg"
+        alt="Искра"
+        style={{
+          position: 'absolute', left: '50%', top: 8, transform: 'translateX(-50%)',
+          width: 210, height: 'auto', display: 'block',
+        }}
+      />
     </div>
   )
 }
@@ -313,7 +236,7 @@ function Step({ n, children }: { n: number; children: React.ReactNode }) {
       }}>
         {n}
       </span>
-      <span style={{ fontSize: 13.5, lineHeight: 1.4, color: 'var(--color-text-2)' }}>{children}</span>
+      <span style={{ fontSize: 13.5, lineHeight: 1.25, color: 'var(--color-text-2)' }}>{children}</span>
     </div>
   )
 }
