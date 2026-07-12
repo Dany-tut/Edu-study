@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { X, ImagePlus, MessageSquarePlus } from 'lucide-react'
+import { X, ImagePlus, MessageSquarePlus, ChevronDown } from 'lucide-react'
 import TeacherSaveButton from './teacher/TeacherSaveButton'
 import { optimizePhoto, ImageTooLargeError } from '../lib/imageOptim'
 import { submitFeedback, FEEDBACK_SECTIONS, type FeedbackRole } from '../lib/feedbackRequests'
@@ -128,10 +128,23 @@ export default function FeedbackModal({ role, onClose }: { role: FeedbackRole; o
               {/* Раздел */}
               <div style={{ marginBottom: 14 }}>
                 <label style={labelStyle}>{t('Раздел')}</label>
-                <select value={sectionChoice} onChange={e => setSectionChoice(e.target.value)} style={{ ...fieldStyle, cursor: 'pointer' }}>
-                  {FEEDBACK_SECTIONS.map(s => <option key={s} value={s}>{t(s)}</option>)}
-                  <option value={CUSTOM}>{t('Свой вариант…')}</option>
-                </select>
+                <div style={{ position: 'relative' }}>
+                  <select
+                    value={sectionChoice}
+                    onChange={e => setSectionChoice(e.target.value)}
+                    style={{
+                      ...fieldStyle, cursor: 'pointer', paddingRight: 36,
+                      appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none',
+                    }}
+                  >
+                    {FEEDBACK_SECTIONS.map(s => <option key={s} value={s}>{t(s)}</option>)}
+                    <option value={CUSTOM}>{t('Свой вариант…')}</option>
+                  </select>
+                  <ChevronDown
+                    size={16}
+                    style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }}
+                  />
+                </div>
                 {sectionChoice === CUSTOM && (
                   <input
                     autoFocus value={customSection} onChange={e => setCustomSection(e.target.value)}

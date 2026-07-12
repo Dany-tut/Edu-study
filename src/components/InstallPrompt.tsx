@@ -205,8 +205,13 @@ function PhoneMockup() {
         width: 176, height: 176, borderRadius: '50%',
         background: 'radial-gradient(circle, rgba(143,111,230,0.5), transparent 70%)', filter: 'blur(8px)',
       }} />
-      {/* clip window — hides the bottom half of the phone body */}
-      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+      {/* clip window — hides the bottom half of the phone body. Masked (not just
+          clipped) so the frame dissolves into the sheet instead of a hard cut. */}
+      <div style={{
+        position: 'absolute', inset: 0, overflow: 'hidden',
+        WebkitMaskImage: 'linear-gradient(to bottom, #000 0%, #000 78%, transparent 96%)',
+        maskImage: 'linear-gradient(to bottom, #000 0%, #000 78%, transparent 96%)',
+      }}>
         {/* phone body (taller than window) */}
         <div style={{
           position: 'absolute', left: '50%', top: 0, transform: 'translateX(-50%)',
@@ -236,7 +241,7 @@ function PhoneMockup() {
             {/* the Искра app tile */}
             <div style={{ position: 'absolute', top: 70, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 9 }}>
               <div style={{ position: 'relative', width: 62, height: 62, borderRadius: 15, overflow: 'visible' }}>
-                <img src="/icon-192.png" alt="" width={62} height={62} style={{ display: 'block', width: 62, height: 62, borderRadius: 15, boxShadow: '0 12px 22px rgba(0,0,0,0.42)' }} />
+                <img src="/icon-maskable-192.png" alt="" width={62} height={62} style={{ display: 'block', width: 62, height: 62, borderRadius: 15, boxShadow: '0 12px 22px rgba(0,0,0,0.42)' }} />
                 {/* + badge */}
                 <div style={{
                   position: 'absolute', top: -8, right: -10, width: 24, height: 24, borderRadius: 99,

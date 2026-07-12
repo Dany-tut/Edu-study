@@ -118,7 +118,7 @@ function AddGroupModal({ onClose, onSave }: {
             value={subject}
             onChange={v => { setSubject(v); setIcon(subjectIcons[v] ?? '📚') }}
             placeholder={t('Предмет')}
-            options={Object.keys(subjectIcons)}
+            options={Object.keys(subjectIcons).map(o => ({ value: o, label: t(o) }))}
             triggerStyle={selectTriggerStyle}
           />
 
@@ -126,7 +126,7 @@ function AddGroupModal({ onClose, onSave }: {
             value={level}
             onChange={setLevel}
             placeholder={t('Уровень')}
-            options={['ЕГЭ', 'ОГЭ', 'Олимпиада', 'Школа', 'Интенсив']}
+            options={['ЕГЭ', 'ОГЭ', 'Олимпиада', 'Школа', 'Интенсив'].map(o => ({ value: o, label: t(o) }))}
             triggerStyle={selectTriggerStyle}
           />
 
@@ -140,7 +140,7 @@ function AddGroupModal({ onClose, onSave }: {
               setCourseId(c ? c.id : '')
             }}
             placeholder={t('Курс (необязательно)')}
-            options={['Без курса', ...courses.map(c => c.title)]}
+            options={[{ value: 'Без курса', label: t('Без курса') }, ...courses.map(c => c.title)]}
             triggerStyle={selectTriggerStyle}
           />
 
@@ -519,10 +519,10 @@ function TrackFields({
       {/* Основное направление */}
       <div style={{ display: 'flex', gap: 8 }}>
         <div style={{ flex: 1 }}>
-          <TeacherSelect value={subject} onChange={onSubject} placeholder={t('Предмет')} options={Object.keys(SUBJECT_ICONS)} triggerStyle={selectTriggerStyle} />
+          <TeacherSelect value={subject} onChange={onSubject} placeholder={t('Предмет')} options={Object.keys(SUBJECT_ICONS).map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
         </div>
         <div style={{ flex: 1 }}>
-          <TeacherSelect value={level} onChange={onLevel} placeholder={t('Уровень')} options={LEVEL_OPTIONS} triggerStyle={selectTriggerStyle} />
+          <TeacherSelect value={level} onChange={onLevel} placeholder={t('Уровень')} options={LEVEL_OPTIONS.map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
         </div>
       </div>
 
@@ -530,10 +530,10 @@ function TrackFields({
       {tracks.map((tr, i) => (
         <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <div style={{ flex: 1 }}>
-            <TeacherSelect value={tr.subject} onChange={v => setTrack(i, { subject: v })} placeholder={t('Предмет')} options={Object.keys(SUBJECT_ICONS)} triggerStyle={selectTriggerStyle} />
+            <TeacherSelect value={tr.subject} onChange={v => setTrack(i, { subject: v })} placeholder={t('Предмет')} options={Object.keys(SUBJECT_ICONS).map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
           </div>
           <div style={{ flex: 1 }}>
-            <TeacherSelect value={tr.level} onChange={v => setTrack(i, { level: v })} placeholder={t('Уровень')} options={LEVEL_OPTIONS} triggerStyle={selectTriggerStyle} />
+            <TeacherSelect value={tr.level} onChange={v => setTrack(i, { level: v })} placeholder={t('Уровень')} options={LEVEL_OPTIONS.map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
           </div>
           <button
             type="button" onClick={() => removeTrack(i)} title={t('Убрать направление')}
@@ -881,7 +881,7 @@ function GroupCard({
           padding: '3px 9px', borderRadius: 8,
           border: `1px solid ${group.color}33`,
         }}>
-          {group.level}
+          {t(group.level)}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-muted)' }}>
           <Users size={13} strokeWidth={1.8} />
@@ -1047,7 +1047,7 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
     if (phase === 'hidden') {
       setPhase('revealed')
     } else {
-      void copyToClipboard(`Логин: ${login}\nПароль: ${password}`)
+      void copyToClipboard(`${t('Логин')}: ${login}\n${t('Пароль')}: ${password}`)
       setPhase('hidden')
     }
   }
@@ -1221,7 +1221,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, background: group.color + '33', borderRadius: 7, padding: '2px 8px' }}>
                   <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color }} />
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{group.name}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.icon} {group.subject}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)' }}>· {group.icon} {t(group.subject)}</span>
                 </div>
               </div>
             </div>
@@ -1472,7 +1472,7 @@ function TracksSection({
         {/* Текущая карточка — read-only chip */}
         <div style={{ ...chip(group.icon, group.subject, group.level, group.color), alignSelf: 'flex-start' }}>
           <span>{group.icon}</span>
-          <span>{group.subject}{group.level ? ` · ${group.level}` : ''}</span>
+          <span>{t(group.subject)}{group.level ? ` · ${t(group.level)}` : ''}</span>
         </div>
 
         {/* Другие карточки этого ученика — клик открывает, крестик удаляет */}
@@ -1483,7 +1483,7 @@ function TracksSection({
               style={{ ...chip(sc.icon, sc.subject, sc.level, sc.color), cursor: 'pointer', flex: 1, justifyContent: 'flex-start' }}
             >
               <span>{sc.icon}</span>
-              <span>{sc.subject}{sc.level ? ` · ${sc.level}` : ''}</span>
+              <span>{t(sc.subject)}{sc.level ? ` · ${t(sc.level)}` : ''}</span>
             </button>
             <button
               type="button" onClick={() => onRemoveCard(sc.id)} title={t('Удалить карточку')}
@@ -1499,10 +1499,10 @@ function TracksSection({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <div style={{ flex: 1 }}>
-                <TeacherSelect value={subject} onChange={setSubject} placeholder={t('Предмет')} options={Object.keys(SUBJECT_ICONS)} triggerStyle={selectTriggerStyle} />
+                <TeacherSelect value={subject} onChange={setSubject} placeholder={t('Предмет')} options={Object.keys(SUBJECT_ICONS).map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
               </div>
               <div style={{ flex: 1 }}>
-                <TeacherSelect value={level} onChange={setLevel} placeholder={t('Уровень')} options={LEVEL_OPTIONS} triggerStyle={selectTriggerStyle} />
+                <TeacherSelect value={level} onChange={setLevel} placeholder={t('Уровень')} options={LEVEL_OPTIONS.map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
               </div>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
@@ -1596,7 +1596,7 @@ function StudentPanel({
               }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color, flexShrink: 0 }} />
                 <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.name}</span>
-                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>· {group.icon} {group.subject}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>· {group.icon} {t(group.subject)}</span>
               </div>
             </div>
           </div>

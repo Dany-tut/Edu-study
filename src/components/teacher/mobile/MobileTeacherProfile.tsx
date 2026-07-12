@@ -103,8 +103,14 @@ export default function MobileTeacherProfile() {
           </div>
         </div>
 
-        {/* Tariff + quota — span 2, gradient */}
-        <div style={{ gridColumn: 'span 2', padding: '14px 15px', borderRadius: 16, background: 'linear-gradient(135deg, #9B6FE8, #6F3FBF)', color: '#fff' }}>
+        {/* Tariff + quota — span 2, gradient. Same action as the row below
+            (self-serve upgrade doesn't exist — plan.ts: assignment is admin-only,
+            so "upgrade" means "ask via feedback"), otherwise the obvious tap
+            target does nothing while a lookalike row below is the real one. */}
+        <button
+          onClick={() => { tactile(); setFeedbackOpen(true) }}
+          style={{ gridColumn: 'span 2', padding: '14px 15px', borderRadius: 16, background: 'linear-gradient(135deg, #9B6FE8, #6F3FBF)', color: '#fff', border: 'none', textAlign: 'left', cursor: 'pointer' }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 13.5, fontWeight: 700 }}>{t('Тариф')} · {m.planName}</span>
             {quotaPct !== null
@@ -116,7 +122,7 @@ export default function MobileTeacherProfile() {
               <div style={{ width: `${quotaPct}%`, height: '100%', background: '#fff', borderRadius: 20 }} />
             </div>
           )}
-        </div>
+        </button>
 
         {/* Stats — 2×2 */}
         <StatTile icon={<Wallet size={17} />} value={short(m.received)} label={t('Доход за месяц, ₽')} bg="var(--color-green-soft)" fg="var(--color-green-text)" />
