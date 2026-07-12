@@ -199,10 +199,13 @@ export function initAnalytics() {
   getSessionId()
 
   void resolveIdentity().then(() => {
+    let tz: string | null = null
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || null } catch { /**/ }
     trackEvent('session_start', {
       ref: document.referrer || null,
       w: window.innerWidth,
       h: window.innerHeight,
+      tz,
     })
     void flush()
   })

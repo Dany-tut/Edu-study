@@ -80,59 +80,6 @@ function SectionTitle({ children, action }: { children: React.ReactNode; action?
 
 // A tab that smoothly collapses its label and splits into Учителя / Ученики
 // sub-pills when active, and grows the word back when another tab is selected.
-// Used by both «Активность» and «Тепловые карты» — the two tabs that pick a role.
-function SplitTab({ label, active, onActivate, role, onRole, width = 150 }: {
-  label: string; active: boolean; onActivate: () => void
-  role: 'teacher'|'student'; onRole: (r: 'teacher'|'student') => void
-  width?: number
-}) {
-  const t = useT()
-  const subs: [ 'teacher'|'student', string, string ][] = [
-    ['teacher', t('Учителя'), ACCENT],
-    ['student', t('Ученики'), ACCENT_S],
-  ]
-  // Fixed-width container: the label and the sub-pills are stacked in the same
-  // box and cross-fade by opacity — no width/layout animation, so switching
-  // tabs never reflows (and never jitters) the surrounding bar.
-  return (
-    <div
-      onClick={active ? undefined : onActivate}
-      style={{
-        position:'relative', width, borderRadius:9,
-        cursor: active ? 'default' : 'pointer',
-        background: active ? 'var(--color-purple-soft)' : 'transparent',
-        transition:'background 0.2s',
-      }}
-    >
-      {/* collapsed label — stays in flow to define the box height */}
-      <span style={{
-        display:'block', textAlign:'center', whiteSpace:'nowrap',
-        padding:'6px 14px', fontSize:12.5, fontWeight:600,
-        color:'var(--color-text-3)',
-        opacity: active ? 0 : 1, transition:'opacity 0.18s',
-        pointerEvents: active ? 'none' : 'auto',
-      }}>{label}</span>
-      {/* expanded sub-pills — absolute overlay, centred */}
-      <div style={{
-        position:'absolute', inset:0, display:'flex',
-        alignItems:'center', justifyContent:'center', gap:3, padding:3,
-        opacity: active ? 1 : 0, transition:'opacity 0.18s',
-        pointerEvents: active ? 'auto' : 'none',
-      }}>
-        {subs.map(([id,sLabel,color]) => (
-          <button key={id} onClick={e => { e.stopPropagation(); onRole(id) }} style={{
-            padding:'4px 11px', borderRadius:7, border:'none', cursor:'pointer',
-            fontSize:12, fontWeight:600, whiteSpace:'nowrap',
-            background: role===id ? 'var(--color-bg-2)' : 'transparent',
-            color: role===id ? color : 'var(--color-purple)',
-            transition:'background 0.15s, color 0.15s',
-          }}>{sLabel}</button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 function Heatmap({ cells, color }: { cells: HeatCell[]; color: string }) {
   const t = useT()
   const heatMap = new Map<string,number>()
@@ -431,36 +378,47 @@ export default function TeacherAnalytics() {
             }}>{d} {t('дней')}</button>
           ))}
         </div>
+        {/* Static tabs — no width/content morphing, so the bar never twitches
+            when switching. The Учителя/Ученики role split lives in its own
+            stable segmented control below (see next row). */}
         <div style={{ display:'flex', gap:4, marginLeft:'auto', background:'var(--color-bg-3)', borderRadius:12, padding:3 }}>
-          <SplitTab
-            label={t('Активность')}
-            active={activeTab==='activity'}
-            onActivate={() => setActiveTab('activity')}
-            role={heatRole}
-            onRole={setHeatRole}
-          />
-          <button onClick={() => setActiveTab('issues')} style={{
-            padding:'6px 14px', borderRadius:9, border:'none', cursor:'pointer',
-            fontSize:12.5, fontWeight:600,
-            background: activeTab==='issues' ? 'var(--color-purple-soft)' : 'transparent',
-            color: activeTab==='issues' ? 'var(--color-purple)' : 'var(--color-text-3)',
-            transition:'background 0.15s, color 0.15s',
-          }}>{t('Проблемы')}{totalErrors>0 && (
-            <span style={{
-              marginLeft:7, borderRadius:9, padding:'1px 7px',
-              fontSize:11.5, fontWeight:700, lineHeight:'16px',
-              background:'rgba(224,72,72,0.18)', color:'#E86A6A',
-            }}>{totalErrors}</span>
-          )}</button>
-          <SplitTab
-            label={t('Тепловые карты')}
-            active={activeTab==='heatmap'}
-            onActivate={() => setActiveTab('heatmap')}
-            role={heatRole}
-            onRole={setHeatRole}
-          />
+          {([['activity', t('Активность')], ['issues', t('Проблемы')], ['heatmap', t('Тепловые карты')]] as const).map(([id,label]) => (
+            <button key={id} onClick={() => setActiveTab(id)} style={{
+              display:'flex', alignItems:'center', gap:7, whiteSpace:'nowrap',
+              padding:'6px 14px', borderRadius:9, border:'none', cursor:'pointer',
+              fontSize:12.5, fontWeight:600,
+              background: activeTab===id ? 'var(--color-purple-soft)' : 'transparent',
+              color: activeTab===id ? 'var(--color-purple)' : 'var(--color-text-3)',
+              transition:'background 0.15s, color 0.15s',
+            }}>
+              {label}
+              {id==='issues' && totalErrors>0 && (
+                <span style={{
+                  borderRadius:9, padding:'1px 7px',
+                  fontSize:11.5, fontWeight:700, lineHeight:'16px',
+                  background:'rgba(224,72,72,0.18)', color:'#E86A6A',
+                }}>{totalErrors}</span>
+              )}
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* Role split for the activity & heatmap tabs — a stable segmented control
+          that never reflows the tab bar above it. */}
+      {activeTab !== 'issues' && (
+        <div style={{ display:'flex', gap:4, background:'var(--color-bg-3)', borderRadius:12, padding:3, width:'fit-content', marginBottom:20 }}>
+          {([['teacher', t('Учителя'), ACCENT], ['student', t('Ученики'), ACCENT_S]] as const).map(([id,label,color]) => (
+            <button key={id} onClick={() => setHeatRole(id)} style={{
+              padding:'6px 18px', borderRadius:9, border:'none', cursor:'pointer',
+              fontSize:12.5, fontWeight:600,
+              background: heatRole===id ? 'var(--color-bg-2)' : 'transparent',
+              color: heatRole===id ? color : 'var(--color-text-3)',
+              transition:'background 0.15s, color 0.15s',
+            }}>{label}</button>
+          ))}
+        </div>
+      )}
 
       {err && (
         <Card style={{ marginBottom:18, borderColor:'rgba(224,72,72,0.4)' }}>
@@ -471,23 +429,23 @@ export default function TeacherAnalytics() {
       {/* ── TAB: ACTIVITY ── */}
       {activeTab === 'activity' && (
         <>
-          {/* KPI grid */}
+          {/* KPI grid — accented by the selected role */}
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10, marginBottom:24 }}>
-            <Kpi icon={Activity}      label="DAU"              loading={loading} value={overview?.dau ?? '—'}      sub={t('активны за сутки')} />
-            <Kpi icon={Users}         label="WAU"              loading={loading} value={overview?.wau ?? '—'}      sub={t('за 7 дней')} />
-            <Kpi icon={CalendarClock} label="MAU"              loading={loading} value={overview?.mau ?? '—'}      sub={t('за 30 дней')} />
-            <Kpi icon={TrendingUp}    label="Stickiness"       loading={loading}
+            <Kpi icon={Activity}      label="DAU"              accent={currentColor} loading={loading} value={overview?.dau ?? '—'}      sub={t('активны за сутки')} />
+            <Kpi icon={Users}         label="WAU"              accent={currentColor} loading={loading} value={overview?.wau ?? '—'}      sub={t('за 7 дней')} />
+            <Kpi icon={CalendarClock} label="MAU"              accent={currentColor} loading={loading} value={overview?.mau ?? '—'}      sub={t('за 30 дней')} />
+            <Kpi icon={TrendingUp}    label="Stickiness"       accent={currentColor} loading={loading}
               value={overview && overview.mau ? `${Math.round((overview.dau/overview.mau)*100)}%` : '—'}
               sub="DAU / MAU" />
-            <Kpi icon={Layers}        label={t('Сессии')}           loading={loading} value={overview?.sessions ?? '—'} sub={`${t('за')} ${days} ${t('дн.')}`} />
-            <Kpi icon={Activity}      label={t('События')}          loading={loading} value={overview?.events_total ?? '—'} sub={`${t('за')} ${days} ${t('дн.')}`} />
-            <Kpi icon={Users}         label={t('Активные ученики')} loading={loading}
+            <Kpi icon={Layers}        label={t('Сессии')}           accent={currentColor} loading={loading} value={overview?.sessions ?? '—'} sub={`${t('за')} ${days} ${t('дн.')}`} />
+            <Kpi icon={Activity}      label={t('События')}          accent={currentColor} loading={loading} value={overview?.events_total ?? '—'} sub={`${t('за')} ${days} ${t('дн.')}`} />
+            <Kpi icon={Users}         label={t('Активные ученики')} accent={currentColor} loading={loading}
               value={overview ? `${overview.students_active}/${overview.students_total}` : '—'}
               sub={t('за 7 дней')} />
-            <Kpi icon={BookOpen}      label={t('Групп')}            loading={loading} value={overview?.groups_total ?? '—'} sub={t('всего')} />
+            <Kpi icon={BookOpen}      label={t('Групп')}            accent={currentColor} loading={loading} value={overview?.groups_total ?? '—'} sub={t('всего')} />
           </div>
 
-          {/* Role heatmaps — role is chosen via the Активность tab split above */}
+          {/* Role heatmaps — role is chosen via the Учителя/Ученики control above */}
           <SectionTitle>
             {(heatRole==='teacher' ? t('Учителя') : t('Ученики'))} · {t('Тепловая карта активности · МСК')}
           </SectionTitle>
@@ -495,47 +453,27 @@ export default function TeacherAnalytics() {
             <Heatmap cells={currentHeat} color={currentColor} />
           </Card>
 
-          {/* Side by side — teacher vs student summary */}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:24 }}>
+          {/* Summary for the selected role only */}
+          <div style={{ marginBottom:24 }}>
             <Card>
-              <div style={{ fontSize:12, fontWeight:700, color:ACCENT, marginBottom:10 }}>{t('Учителя')}</div>
-              <div style={{ fontSize:11, color:'var(--color-text-3)', lineHeight:1.7 }}>
-                {teacherHeat.length === 0
-                  ? t('Нет данных')
-                  : (() => {
-                      const totH = new Map<number,number>()
-                      for (const c of teacherHeat) totH.set(c.hour,(totH.get(c.hour)??0)+c.cnt)
-                      let max=0,best=-1; for (const [h,v] of totH) { if(v>max){max=v;best=h} }
-                      const totD = new Map<number,number>()
-                      for (const c of teacherHeat) totD.set(c.dow,(totD.get(c.dow)??0)+c.cnt)
-                      let dmax=0,dbest=-1; for (const [d,v] of totD) { if(v>dmax){dmax=v;dbest=d} }
-                      const dNames = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб']
-                      return <>
-                        <div>{t('Пик часа:')} <b style={{color:'var(--color-text)'}}>{best}:00–{best+1}:00</b></div>
-                        <div>{t('Пик дня:')} <b style={{color:'var(--color-text)'}}>{t(dNames[dbest])}</b></div>
-                        <div>{t('Всего событий:')} <b style={{color:'var(--color-text)'}}>{teacherHeat.reduce((a,c)=>a+c.cnt,0)}</b></div>
-                      </>
-                    })()
-                }
+              <div style={{ fontSize:12, fontWeight:700, color:currentColor, marginBottom:10 }}>
+                {heatRole==='teacher' ? t('Учителя') : t('Ученики')}
               </div>
-            </Card>
-            <Card>
-              <div style={{ fontSize:12, fontWeight:700, color:ACCENT_S, marginBottom:10 }}>{t('Ученики')}</div>
               <div style={{ fontSize:11, color:'var(--color-text-3)', lineHeight:1.7 }}>
-                {studentHeat.length === 0
-                  ? t('Нет данных — ученики ещё не заходили')
+                {currentHeat.length === 0
+                  ? (heatRole==='teacher' ? t('Нет данных') : t('Нет данных — ученики ещё не заходили'))
                   : (() => {
                       const totH = new Map<number,number>()
-                      for (const c of studentHeat) totH.set(c.hour,(totH.get(c.hour)??0)+c.cnt)
+                      for (const c of currentHeat) totH.set(c.hour,(totH.get(c.hour)??0)+c.cnt)
                       let max=0,best=-1; for (const [h,v] of totH) { if(v>max){max=v;best=h} }
                       const totD = new Map<number,number>()
-                      for (const c of studentHeat) totD.set(c.dow,(totD.get(c.dow)??0)+c.cnt)
+                      for (const c of currentHeat) totD.set(c.dow,(totD.get(c.dow)??0)+c.cnt)
                       let dmax=0,dbest=-1; for (const [d,v] of totD) { if(v>dmax){dmax=v;dbest=d} }
                       const dNames = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб']
                       return <>
                         <div>{t('Пик часа:')} <b style={{color:'var(--color-text)'}}>{best}:00–{best+1}:00</b></div>
                         <div>{t('Пик дня:')} <b style={{color:'var(--color-text)'}}>{t(dNames[dbest])}</b></div>
-                        <div>{t('Всего событий:')} <b style={{color:'var(--color-text)'}}>{studentHeat.reduce((a,c)=>a+c.cnt,0)}</b></div>
+                        <div>{t('Всего событий:')} <b style={{color:'var(--color-text)'}}>{currentHeat.reduce((a,c)=>a+c.cnt,0)}</b></div>
                       </>
                     })()
                 }
@@ -763,7 +701,7 @@ export default function TeacherAnalytics() {
       {/* ── TAB: HEATMAP (spatial click maps per screen) ── */}
       {activeTab === 'heatmap' && (
         <>
-          {/* Role is chosen via the «Тепловые карты» tab split above */}
+          {/* Role is chosen via the Учителя/Ученики control above */}
           <SectionTitle>
             {(heatRole==='teacher' ? t('Учителя') : t('Ученики'))} · {t('Тепловые карты кликов · по экранам')}
           </SectionTitle>
