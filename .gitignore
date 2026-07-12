@@ -7,3 +7,8 @@ dist/
 .DS_Store
 .vercel
 .env*
+
+# editor/watcher auto-backups
+*.bak
+*.bak[0-9]*
+*.tsx.new
