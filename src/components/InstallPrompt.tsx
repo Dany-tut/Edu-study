@@ -197,7 +197,14 @@ function StatusIcons() {
  */
 function PhoneMockup() {
   return (
-    <div style={{ position: 'relative', width: 184, height: 232 }}>
+    <div style={{
+      position: 'relative', width: 184, height: 232,
+      // Melt the bottom edge of the device into the sheet — the frame dissolves
+      // instead of ending on a hard line. Fade sits below the content (tile +
+      // neighbour row), so only the dock/frame bottom fades, nothing is cut.
+      WebkitMaskImage: 'linear-gradient(to bottom, #000 0%, #000 82%, transparent 99%)',
+      maskImage: 'linear-gradient(to bottom, #000 0%, #000 82%, transparent 99%)',
+    }}>
       {/* soft aura behind the device */}
       <div style={{
         position: 'absolute', left: '50%', top: 26, transform: 'translateX(-50%)',
@@ -262,8 +269,9 @@ function PhoneMockup() {
           {/* dock hint */}
           <div style={{ position: 'absolute', left: 14, right: 14, bottom: 8, height: 34, borderRadius: 18, background: 'rgba(255,255,255,0.14)' }} />
 
-          {/* glass gloss */}
+          {/* glass gloss + a soft fade at the bottom so the screen melts into the sheet */}
           <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(135deg, rgba(255,255,255,0.16), transparent 38%)' }} />
+          <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 54, pointerEvents: 'none', background: 'linear-gradient(to top, rgba(30,16,60,0.4), transparent)' }} />
         </div>
       </div>
     </div>

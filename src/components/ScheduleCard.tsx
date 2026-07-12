@@ -189,7 +189,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                       )}
                     </div>
                     <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>
-                      {t('Занятие')} #{lesson.lessonNumber} {lesson.lessonTitle}
+                      {t('Занятие')} #{lesson.lessonNumber + 1} {lesson.lessonTitle}
                     </p>
                   </div>
                   <div className="flex-shrink-0 flex items-center" style={{ gap: 10 }}>

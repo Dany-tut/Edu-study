@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, BookOpen, Dumbbell, Bell, ChevronLeft, ChevronRight,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star,
-  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun, MessageSquarePlus,
+  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun, MessageSquarePlus, Globe,
   type LucideIcon,
 } from 'lucide-react'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
@@ -21,7 +21,7 @@ import { useTheme } from '../store/themeStore'
 import { useStudentData } from '../store/studentDataStore'
 import NotificationBell from './NotificationBell'
 import NotificationPopup from './NotificationPopup'
-import { useT } from '../lib/i18n'
+import { useT, useLang, type Lang } from '../lib/i18n'
 
 const navItems = [
   { id: 'home',    label: 'Главная',  icon: Home },
@@ -188,6 +188,7 @@ export default function Sidebar() {
   const bellRef = useRef<HTMLDivElement>(null)
   const [notifOpen, setNotifOpen] = useState(false)
   const { dark, toggle: toggleTheme } = useTheme()
+  const { lang, setLang } = useLang()
   const session = getStudentSession()
   const displayName = session?.name ?? ''
   const AVATARS = buildAvatars(displayName)
@@ -643,6 +644,31 @@ export default function Sidebar() {
                           <ArrowUpDown size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                           <span style={{ flex: 1, textAlign: 'left' }}>{t('Настроить виджеты')}</span>
                         </motion.button>
+
+                        {/* Divider */}
+                        <div style={{ height: 1, background: 'var(--color-border)', margin: '10px 0' }} />
+
+                        {/* Language — inline RU/EN segment */}
+                        <div style={{ width: '100%', padding: '9px 8px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <Globe size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                          <span style={{ flex: 1, textAlign: 'left', fontSize: 14, fontWeight: 550, color: 'var(--color-text)' }}>{t('Язык')}</span>
+                          <div role="radiogroup" aria-label={t('Язык')} style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 3, borderRadius: 999, background: 'var(--color-bg-5)' }}>
+                            {(['ru', 'en'] as const).map(l => {
+                              const active = lang === l
+                              return (
+                                <button
+                                  key={l}
+                                  role="radio"
+                                  aria-checked={active}
+                                  onClick={() => setLang(l as Lang)}
+                                  style={{ height: 26, padding: '0 12px', borderRadius: 999, border: 'none', cursor: 'pointer', background: active ? 'rgba(var(--glass-rgb),0.98)' : 'transparent', color: active ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 12.5, fontWeight: 600, boxShadow: active ? 'var(--shadow-xs)' : 'none', transition: 'background 0.2s, color 0.2s' }}
+                                >
+                                  {l === 'ru' ? 'RU' : 'EN'}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>

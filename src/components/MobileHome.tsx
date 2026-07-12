@@ -268,7 +268,7 @@ function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: L
         minHeight: '2.4em',
         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
       }}>
-        {t('Занятие')} #{lesson.number} · {lesson.title}
+        {t('Занятие')} #{lesson.number + 1} · {lesson.title}
       </div>
       <div style={{ height: 6, background: 'rgba(255,255,255,0.25)', borderRadius: 99, overflow: 'hidden', marginBottom: 14 }}>
         <div style={{ width: `${Math.max(4, progress)}%`, height: '100%', background: '#fff', borderRadius: 99 }} />

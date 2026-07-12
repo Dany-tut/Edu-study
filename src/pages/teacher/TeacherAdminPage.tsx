@@ -77,15 +77,24 @@ function MiniBar({ value }: { value: number }) {
   )
 }
 
-function StatCard({ icon: Icon, label, value, sub }: { icon: React.ElementType; label: string; value: string; sub?: string }) {
+function StatCard({ icon: Icon, label, value, sub, loading }: { icon: React.ElementType; label: string; value: string; sub?: string; loading?: boolean }) {
   return (
     <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, padding: '16px 20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
         <Icon size={15} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />
         <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 500 }}>{label}</span>
       </div>
-      <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 4 }}>{sub}</div>}
+      {loading ? (
+        <>
+          <Skeleton w={72} h={26} radius={7} />
+          {sub !== undefined && <Skeleton w={100} h={11} radius={5} style={{ marginTop: 8 }} />}
+        </>
+      ) : (
+        <>
+          <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</div>
+          {sub && <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 4 }}>{sub}</div>}
+        </>
+      )}
     </div>
   )
 }
@@ -761,7 +770,10 @@ export default function TeacherAdminPage() {
   const [studentCount, setStudentCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [inviteOpen, setInviteOpen] = useState(false)
-  const [tab, setTab] = useState<'overview' | 'data' | 'analytics' | 'users' | 'requests'>('overview')
+  const [tab, setTab] = useState<'overview' | 'data' | 'analytics' | 'users' | 'requests'>(() => {
+    const saved = sessionStorage.getItem('admin_tab')
+    return saved === 'data' || saved === 'analytics' || saved === 'users' || saved === 'requests' ? saved : 'overview'
+  })
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
@@ -817,6 +829,10 @@ export default function TeacherAdminPage() {
 
   useEffect(() => { load() }, [])
 
+  // Persist the active tab so F5 doesn't kick the admin back to «Обзор».
+  useEffect(() => { sessionStorage.setItem('admin_tab', tab) }, [tab])
+
+  const firstLoad = loading && !storage
   const dbPct = storage ? pct(storage.db_bytes, storage.db_limit_bytes) : 0
   const storagePct = storage ? pct(storage.storage_bytes, storage.storage_limit_bytes) : 0
 
@@ -910,13 +926,14 @@ export default function TeacherAdminPage() {
         <>
         {/* Stat cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 28 }}>
-          <StatCard icon={Users} label={t('Учителей')} value={String(teachers.length)} sub={t('активных аккаунтов')} />
-          <StatCard icon={BookOpen} label={t('Групп')} value={String(groupCount)} sub={`${studentCount} ${t('учеников')}`} />
+          <StatCard icon={Users} label={t('Учителей')} value={String(teachers.length)} sub={t('активных аккаунтов')} loading={firstLoad} />
+          <StatCard icon={BookOpen} label={t('Групп')} value={String(groupCount)} sub={`${studentCount} ${t('учеников')}`} loading={firstLoad} />
           <StatCard
             icon={Database}
             label={t('База данных')}
             value={storage ? fmtBytes(storage.db_bytes) : '—'}
-            sub={storage ? `${dbPct}% ${t('занято')}` : t('загрузка…')}
+            sub={storage ? `${dbPct}% ${t('занято')}` : ''}
+            loading={firstLoad}
           />
         </div>
 
@@ -940,7 +957,10 @@ export default function TeacherAdminPage() {
             </motion.button>
           </div>
           <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
-            {teachers.map((tr, i) => {
+            {firstLoad && (
+              <div style={{ padding: '16px 18px' }}><Skeleton.List rows={3} /></div>
+            )}
+            {!firstLoad && teachers.map((tr, i) => {
               const initials = tr.name.slice(0, 2).toUpperCase()
               const isTeacher = tr.role !== 'admin'
               const expanded = expandedId === tr.id
@@ -1012,8 +1032,8 @@ export default function TeacherAdminPage() {
                 </div>
               )
             })}
-            {teachers.length === 0 && (
-              <div style={{ padding: '20px 18px', color: 'var(--color-text-3)', fontSize: 13 }}>{loading ? <Skeleton.List rows={3} /> : t('Нет данных')}</div>
+            {!firstLoad && teachers.length === 0 && (
+              <div style={{ padding: '20px 18px', color: 'var(--color-text-3)', fontSize: 13 }}>{t('Нет данных')}</div>
             )}
           </div>
         </div>

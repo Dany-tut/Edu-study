@@ -34,6 +34,23 @@ export default function FeedbackModal({ role, onClose, defaultSection, defaultMe
   const [done, setDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const taRef = useRef<HTMLTextAreaElement>(null)
+
+  // Автовысота текстового поля: старт 4 строки, тянется по тексту до 10, дальше
+  // прокрутка с фейдами сверху/снизу (без ручного растягивания угла).
+  const TA_LINE = 21
+  const TA_PAD = 20
+  const TA_MIN = 4 * TA_LINE + TA_PAD
+  const TA_MAX = 10 * TA_LINE + TA_PAD
+  const [taOverflow, setTaOverflow] = useState(false)
+  useEffect(() => {
+    const el = taRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    const next = Math.min(Math.max(el.scrollHeight, TA_MIN), TA_MAX)
+    el.style.height = next + 'px'
+    setTaOverflow(el.scrollHeight > TA_MAX + 1)
+  }, [message, TA_MIN, TA_MAX])
 
   const section = sectionChoice === CUSTOM ? customSection : sectionChoice
   const canSend = message.trim().length > 0 && (sectionChoice !== CUSTOM || customSection.trim().length > 0) && !saving
@@ -99,7 +116,7 @@ export default function FeedbackModal({ role, onClose, defaultSection, defaultMe
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1200 }}
+        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', zIndex: 1200 }}
       />
       <div style={{ position: 'fixed', inset: 0, zIndex: 1201, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, pointerEvents: 'none' }}>
         <motion.div
@@ -168,10 +185,21 @@ export default function FeedbackModal({ role, onClose, defaultSection, defaultMe
               <div style={{ marginBottom: 14 }}>
                 <label style={labelStyle}>{t('Что случилось?')}</label>
                 <textarea
+                  ref={taRef}
                   value={message} onChange={e => setMessage(e.target.value)}
                   placeholder={t('Опишите проблему как можно подробнее…')}
                   rows={4}
-                  style={{ ...fieldStyle, resize: 'vertical', minHeight: 90 }}
+                  style={{
+                    ...fieldStyle, resize: 'none', display: 'block',
+                    lineHeight: `${TA_LINE}px`, minHeight: TA_MIN, maxHeight: TA_MAX,
+                    overflowY: taOverflow ? 'auto' : 'hidden',
+                    WebkitMaskImage: taOverflow
+                      ? 'linear-gradient(to bottom, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%)'
+                      : undefined,
+                    maskImage: taOverflow
+                      ? 'linear-gradient(to bottom, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%)'
+                      : undefined,
+                  }}
                 />
               </div>
 

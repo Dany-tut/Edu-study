@@ -769,8 +769,7 @@ export function TrainerBankFilterPanel({
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }}
-      transition={{ duration: 0.22 }}
+      initial={false}
       style={{
         width: 264, flexShrink: 0, alignSelf: 'flex-start', position: 'sticky', top: 20,
         background: 'rgba(var(--glass-rgb), 0.9)', backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',

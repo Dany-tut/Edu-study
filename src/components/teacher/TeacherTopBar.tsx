@@ -3,7 +3,7 @@ import {
   Home, Users, ClipboardList, BookOpen, Layers, GraduationCap, Wallet,
   ChevronLeft, ChevronRight,
   LayoutGrid, UserPlus, CheckSquare, LayoutDashboard, LogOut, Moon, Sun,
-  CreditCard, UserCircle, Shield, MessageSquarePlus,
+  CreditCard, UserCircle, Shield, MessageSquarePlus, Globe,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star,
   type LucideIcon,
 } from 'lucide-react'
@@ -24,7 +24,7 @@ import { useTheme } from '../../store/themeStore'
 import NotificationBell from '../NotificationBell'
 import NotificationPopup from '../NotificationPopup'
 import { useNotificationsStore } from '../../store/notificationsStore'
-import { useT } from '../../lib/i18n'
+import { useT, useLang, type Lang } from '../../lib/i18n'
 
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
   { id: 'home',        label: 'Главная',     icon: Home },
@@ -109,6 +109,7 @@ export default function TeacherTopBar() {
   const openConstructor        = useTeacher(s => s.openConstructor)
   const triggerConstructorBack = useTeacher(s => s.triggerConstructorBack)
   const { dark, toggle: toggleTheme } = useTheme()
+  const { lang, setLang } = useLang()
 
   // Admin-configured access — hide revoked tabs & quick actions.
   const canTab = useTeacherAccess(s => s.canTab)
@@ -479,6 +480,30 @@ export default function TeacherTopBar() {
                 </div>
               </motion.button>
             ))}
+
+            {/* Language — inline RU/EN segment */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', width: '100%' }}>
+              <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Globe size={15} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
+              </div>
+              <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{t('Язык')}</div>
+              <div role="radiogroup" aria-label={t('Язык')} style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 3, borderRadius: 999, background: 'var(--color-bg-5)' }}>
+                {(['ru', 'en'] as const).map(l => {
+                  const active = lang === l
+                  return (
+                    <button
+                      key={l}
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => setLang(l as Lang)}
+                      style={{ height: 24, padding: '0 11px', borderRadius: 999, border: 'none', cursor: 'pointer', background: active ? 'rgba(var(--glass-rgb),0.98)' : 'transparent', color: active ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 12, fontWeight: 600, boxShadow: active ? 'var(--shadow-xs)' : 'none', transition: 'background 0.2s, color 0.2s' }}
+                    >
+                      {l === 'ru' ? 'RU' : 'EN'}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
 
             <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 8px' }} />
             <motion.button whileTap={{ scale: 0.98 }}

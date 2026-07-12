@@ -54,22 +54,25 @@ export default function FeedbackRequestsManager() {
   return (
     <div>
       {/* Filter row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
-        {(['all', ...STATUS_ORDER] as const).map(key => {
-          const active = filter === key
-          const label = key === 'all' ? t('Все') : t(STATUS_META[key].label)
-          return (
-            <button key={key} onClick={() => setFilter(key)}
-              style={{
-                padding: '6px 13px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                fontSize: 12.5, fontWeight: 600,
-                background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
-                color: active ? 'var(--color-purple)' : 'var(--color-text-3)',
-              }}>
-              {label} · {counts[key]}
-            </button>
-          )
-        })}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 4, background: 'var(--color-bg-3)', borderRadius: 12, padding: 3 }}>
+          {(['all', ...STATUS_ORDER] as const).map(key => {
+            const active = filter === key
+            const label = key === 'all' ? t('Все') : t(STATUS_META[key].label)
+            return (
+              <button key={key} onClick={() => setFilter(key)}
+                style={{
+                  padding: '6px 13px', borderRadius: 9, border: 'none', cursor: 'pointer',
+                  fontSize: 12.5, fontWeight: 600,
+                  background: active ? 'var(--color-purple-soft)' : 'transparent',
+                  color: active ? 'var(--color-purple)' : 'var(--color-text-3)',
+                  transition: 'background 0.15s, color 0.15s',
+                }}>
+                {label} · {counts[key]}
+              </button>
+            )
+          })}
+        </div>
         <button onClick={load} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}>
           <RefreshCw size={13} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           {t('Обновить')}
@@ -78,7 +81,7 @@ export default function FeedbackRequestsManager() {
 
       {visible.length === 0 && !loading && (
         <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)' }}>
-          <Inbox size={30} strokeWidth={1.6} style={{ opacity: 0.5 }} />
+          <Inbox size={30} strokeWidth={1.6} style={{ opacity: 0.5, display: 'block', margin: '0 auto' }} />
           <div style={{ fontSize: 14, fontWeight: 600, marginTop: 10 }}>{t('Заявок пока нет')}</div>
         </div>
       )}
@@ -102,7 +105,7 @@ export default function FeedbackRequestsManager() {
                     {r.section ? `${r.section} · ` : ''}{fmtDate(r.created_at)}
                   </div>
                 </div>
-                <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: 11.5, fontWeight: 700, background: sm.bg, color: sm.color, flexShrink: 0 }}>{t(sm.label)}</span>
+                <span style={{ padding: '3px 10px', borderRadius: 7, fontSize: 11.5, fontWeight: 700, background: sm.bg, color: sm.color, flexShrink: 0 }}>{t(sm.label)}</span>
               </div>
 
               <div style={{ fontSize: 14, color: 'var(--color-text)', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{r.message}</div>
