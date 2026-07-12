@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useT, t as tGlobal } from '../../lib/i18n'
+import { tzToCountry } from '../../lib/tzCountry'
 
 // ── types ──────────────────────────────────────────────────────────────────
 type Overview = {
@@ -23,6 +24,7 @@ type ErrorRow  = { created_at: string; role: string; path: string; event: string
 type RageHot   = { path: string; element: string; cnt: number }
 type ClickPath = { path: string; teacher_clicks: number; student_clicks: number; total: number }
 type ClickCell = { gx: number; gy: number; cnt: number }
+type GeoRow = { code: string; name: string; flag: string; teachers: number; students: number; total: number }
 
 // ── constants ──────────────────────────────────────────────────────────────
 const ACCENT   = '#786AD7'
@@ -252,7 +254,8 @@ export default function TeacherAnalytics() {
   const [loading, setLoading]             = useState(true)
   const [heatRole, setHeatRole]           = useState<'teacher'|'student'>('teacher')
   const [activeTab, setActiveTab]         = useState<'activity'|'issues'|'heatmap'>('activity')
-  const [overview, setOverview]           = useState<Overview|null>(null)
+  const [overviewT, setOverviewT]         = useState<Overview|null>(null)
+  const [overviewS, setOverviewS]         = useState<Overview|null>(null)
   const [teacherHeat, setTeacherHeat]     = useState<HeatCell[]>([])
   const [studentHeat, setStudentHeat]     = useState<HeatCell[]>([])
   const [daily, setDaily]                 = useState<DailyRow[]>([])
@@ -261,6 +264,7 @@ export default function TeacherAnalytics() {
   const [pageStats, setPageStats]         = useState<PageStat[]>([])
   const [recentErrors, setRecentErrors]   = useState<ErrorRow[]>([])
   const [rageHots, setRageHots]           = useState<RageHot[]>([])
+  const [geo, setGeo]                     = useState<GeoRow[]>([])
   const [errExpanded, setErrExpanded]     = useState(false)
   const [err, setErr]                     = useState<string|null>(null)
   // spatial click heatmaps
@@ -271,8 +275,9 @@ export default function TeacherAnalytics() {
 
   const load = useCallback(async () => {
     setLoading(true); setErr(null)
-    const [ov, th, sh, dl, bd, fn, ps, re, rh] = await Promise.all([
-      supabase.rpc('admin_analytics_overview',        { p_days: days }),
+    const [ovT, ovS, th, sh, dl, bd, fn, ps, re, rh] = await Promise.all([
+      supabase.rpc('admin_analytics_overview_by_role', { p_role:'teacher', p_days: days }),
+      supabase.rpc('admin_analytics_overview_by_role', { p_role:'student', p_days: days }),
       supabase.rpc('admin_activity_heatmap_by_role',  { p_role:'teacher', p_days: days }),
       supabase.rpc('admin_activity_heatmap_by_role',  { p_role:'student', p_days: days }),
       supabase.rpc('admin_daily_activity',            { p_days: days }),
@@ -282,9 +287,10 @@ export default function TeacherAnalytics() {
       supabase.rpc('admin_recent_errors',             { p_limit: 50 }),
       supabase.rpc('admin_rage_hotspots',             { p_days: days }),
     ])
-    if (ov.error && /does not exist|forbidden/i.test(ov.error.message ?? ''))
-      setErr(t('Ошибка загрузки:') + ' ' + ov.error.message)
-    setOverview((ov.data as Overview) ?? null)
+    if (ovT.error && /does not exist|forbidden/i.test(ovT.error.message ?? ''))
+      setErr(t('Ошибка загрузки:') + ' ' + ovT.error.message)
+    setOverviewT((ovT.data as Overview) ?? null)
+    setOverviewS((ovS.data as Overview) ?? null)
     setTeacherHeat((th.data as HeatCell[]) ?? [])
     setStudentHeat((sh.data as HeatCell[]) ?? [])
     setDaily((dl.data as DailyRow[]) ?? [])
@@ -293,6 +299,33 @@ export default function TeacherAnalytics() {
     setPageStats((ps.data as PageStat[]) ?? [])
     setRecentErrors((re.data as ErrorRow[]) ?? [])
     setRageHots((rh.data as RageHot[]) ?? [])
+
+    // Geo breakdown by browser timezone. Each session emits one session_start
+    // carrying meta.tz — we count distinct sessions per country/role.
+    try {
+      const since = new Date(Date.now() - days * 86_400_000).toISOString()
+      const { data: geoRows } = await supabase
+        .from('analytics_events')
+        .select('role, session_id, meta')
+        .eq('event', 'session_start')
+        .gte('created_at', since)
+        .limit(20_000)
+      const seen = new Set<string>()
+      const acc = new Map<string, GeoRow>()
+      for (const r of (geoRows as { role: string; session_id: string; meta: Record<string, unknown> | null }[]) ?? []) {
+        if (r.session_id) { if (seen.has(r.session_id)) continue; seen.add(r.session_id) }
+        const c = tzToCountry(r.meta?.tz as string | undefined)
+        const isTeacher = r.role === 'teacher' || r.role === 'admin'
+        const isStudent = r.role === 'student'
+        if (!isTeacher && !isStudent) continue
+        const row = acc.get(c.code) ?? { code: c.code, name: c.name, flag: c.flag, teachers: 0, students: 0, total: 0 }
+        if (isTeacher) row.teachers++; else row.students++
+        row.total++
+        acc.set(c.code, row)
+      }
+      setGeo([...acc.values()].sort((a, b) => b.total - a.total))
+    } catch { setGeo([]) }
+
     setLoading(false)
   }, [days])
 
@@ -361,6 +394,7 @@ export default function TeacherAnalytics() {
 
   const currentHeat = heatRole === 'teacher' ? teacherHeat : studentHeat
   const currentColor = heatRole === 'teacher' ? ACCENT : ACCENT_S
+  const overview = heatRole === 'teacher' ? overviewT : overviewS
 
   // ── render ────────────────────────────────────────────────────────────────
   return (
@@ -539,6 +573,38 @@ export default function TeacherAnalytics() {
               </Card>
             </div>
           </div>
+
+          {/* Geography by browser timezone */}
+          <SectionTitle>{t('География (по таймзоне браузера)')}</SectionTitle>
+          <Card style={{ marginBottom:24 }}>
+            {loading
+              ? <Skeleton w={200} h={16} />
+              : geo.length===0
+              ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>{t('Нет данных — определяется по часовому поясу браузера при старте сессии.')}</div>
+              : (
+                <>
+                  <div style={{ display:'grid', gridTemplateColumns:'1.6fr 1fr 1fr 1fr', fontSize:11, color:'var(--color-text-3)', fontWeight:600, textTransform:'uppercase', letterSpacing:0.4, paddingBottom:8, borderBottom:'1px solid var(--color-border)' }}>
+                    <span>{t('Страна')}</span>
+                    <span style={{ textAlign:'right', color:ACCENT }}>{t('Учителя')}</span>
+                    <span style={{ textAlign:'right', color:ACCENT_S }}>{t('Ученики')}</span>
+                    <span style={{ textAlign:'right' }}>{t('Всего')}</span>
+                  </div>
+                  {geo.map((g,i) => (
+                    <div key={g.code} style={{ display:'grid', gridTemplateColumns:'1.6fr 1fr 1fr 1fr', alignItems:'center', fontSize:13, padding:'9px 0', borderBottom:i<geo.length-1?'1px solid var(--color-border)':'none' }}>
+                      <span style={{ color:'var(--color-text)', display:'flex', alignItems:'center', gap:8 }}>
+                        <span style={{ fontSize:16 }}>{g.flag}</span>{t(g.name)}
+                      </span>
+                      <span style={{ textAlign:'right', color:'var(--color-text-2)' }}>{g.teachers || '—'}</span>
+                      <span style={{ textAlign:'right', color:'var(--color-text-2)' }}>{g.students || '—'}</span>
+                      <span style={{ textAlign:'right', color:'var(--color-text)', fontWeight:700 }}>{g.total}</span>
+                    </div>
+                  ))}
+                  <div style={{ fontSize:10.5, color:'var(--color-text-3)', marginTop:10 }}>
+                    {t('Приблизительно: таймзона — грубый гео-прокси, не GeoIP. Счёт по сессиям.')}
+                  </div>
+                </>
+              )}
+          </Card>
         </>
       )}
 
