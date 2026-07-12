@@ -190,40 +190,32 @@ export default function MobileProfilePage() {
               {t('Настройки')}
             </div>
             <div style={{ borderRadius: 18, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>
-              {/* Theme — inline Светлая/Тёмная segment */}
-              <div className="flex items-center justify-between" style={{ padding: '12px 15px', borderBottom: '1px solid var(--color-border-soft)' }}>
+              {/* Тема — весь ряд кликабелен, один тап меняет тему */}
+              <button
+                onClick={() => { tactile(); toggle() }}
+                className="flex items-center justify-between cursor-pointer"
+                style={{ width: '100%', padding: '12px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
+                aria-label={t('Переключить тему')}
+              >
                 <span style={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>{t('Тема оформления')}</span>
-                <button
-                  onClick={() => { tactile(); toggle() }}
-                  className="flex items-center cursor-pointer"
-                  style={{ gap: 2, padding: 3, borderRadius: 999, background: 'var(--color-bg-5)', border: 'none' }}
-                  aria-label={t('Переключить тему')}
-                >
-                  {([false, true] as const).map(d => {
-                    const active = dark === d
-                    return (
-                      <span key={String(d)} className="flex items-center" style={{ gap: 5, height: 28, padding: '0 11px', borderRadius: 999, background: active ? 'rgba(var(--glass-rgb),0.98)' : 'transparent', color: active ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 12.5, fontWeight: 600, boxShadow: active ? 'var(--shadow-xs)' : 'none', transition: 'background 0.2s, color 0.2s' }}>
-                        {d ? <Moon size={13} strokeWidth={1.9} /> : <Sun size={13} strokeWidth={1.9} />}
-                        {d ? t('Тёмная') : t('Светлая')}
-                      </span>
-                    )
-                  })}
-                </button>
-              </div>
+                <span className="flex items-center" style={{ gap: 5, height: 34, padding: '0 15px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-accent)', fontSize: 12.5, fontWeight: 600 }}>
+                  {dark ? <Moon size={13} strokeWidth={1.9} /> : <Sun size={13} strokeWidth={1.9} />}
+                  {dark ? t('Тёмная') : t('Светлая')}
+                </span>
+              </button>
 
-              {/* Language — label shows the current language; the button offers
-                  the OTHER language and switches to it on tap. */}
-              <div className="flex items-center justify-between" style={{ padding: '12px 15px', borderBottom: '1px solid var(--color-border-soft)' }}>
+              {/* Язык — весь ряд кликабелен, один тап меняет язык */}
+              <button
+                onClick={() => { tactile(); setLang((lang === 'ru' ? 'en' : 'ru') as Lang) }}
+                className="flex items-center justify-between cursor-pointer"
+                style={{ width: '100%', padding: '12px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
+                aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
+              >
                 <span style={{ fontSize: 15, fontWeight: 550, color: 'var(--color-text)' }}>{t('Язык')}</span>
-                <button
-                  onClick={() => { tactile(); setLang((lang === 'ru' ? 'en' : 'ru') as Lang) }}
-                  className="flex items-center cursor-pointer"
-                  style={{ height: 34, padding: '0 15px', borderRadius: 999, background: 'var(--color-bg-5)', border: 'none', color: 'var(--color-accent)', fontSize: 12.5, fontWeight: 600 }}
-                  aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
-                >
+                <span className="flex items-center" style={{ height: 34, padding: '0 15px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-accent)', fontSize: 12.5, fontWeight: 600 }}>
                   {lang === 'ru' ? 'Русский' : 'English'}
-                </button>
-              </div>
+                </span>
+              </button>
 
               <motion.button
                 whileTap={{ scale: 0.99 }}

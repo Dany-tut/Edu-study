@@ -105,8 +105,10 @@ export default function MobileBottomNav() {
               key={item.id}
               whileTap={{ scale: 0.9 }}
               onClick={() => handleClick(item.id)}
-              className="flex flex-col items-center justify-center cursor-pointer px-3 py-2"
-              style={{ minWidth: 44, minHeight: 44, position: 'relative' }}
+              className="flex flex-col items-center justify-center cursor-pointer py-2"
+              // Equal-width slots (flex:1) so icons stay put regardless of label
+              // length — RU/EN labels no longer shift the dock around.
+              style={{ flex: '1 1 0', minWidth: 0, minHeight: 44, position: 'relative' }}
               aria-label={t(item.label)}
             >
               <Icon
@@ -131,6 +133,9 @@ export default function MobileBottomNav() {
                   fontSize: 9,
                   lineHeight: '12px',
                   overflow: 'hidden',
+                  maxWidth: '100%',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
                   fontWeight: isActive ? 600 : 500,
                   color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
                 }}>

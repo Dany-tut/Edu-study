@@ -175,9 +175,9 @@ export default function MobileTeacherProfile() {
             style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
           >
             <span className="flex items-center" style={{ gap: 10, fontSize: 14.5, fontWeight: 550, color: 'var(--color-text)' }}>
-              <Languages size={18} style={{ color: 'var(--color-muted)' }} />{lang === 'ru' ? 'Русский язык' : 'English'}
+              <Languages size={18} style={{ color: 'var(--color-muted)' }} />{t('Язык')}
             </span>
-            <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-accent)' }}>{lang === 'ru' ? 'English' : 'Русский'}</span>
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-3)' }}>{lang === 'ru' ? 'Русский' : 'English'}</span>
           </button>
 
           {/* Обратная связь */}

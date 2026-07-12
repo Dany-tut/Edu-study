@@ -73,8 +73,10 @@ export default function MobileTeacherNav({
               key={item.id}
               whileTap={{ scale: 0.9 }}
               onClick={() => { if (item.id !== active) { tactile(); onChange(item.id) } }}
-              className="flex flex-col items-center justify-center cursor-pointer px-3 py-2"
-              style={{ minWidth: 44, minHeight: 44, position: 'relative' }}
+              className="flex flex-col items-center justify-center cursor-pointer py-2"
+              // Equal-width slots so icons stay put regardless of label length
+              // (RU/EN labels differ) — the dock no longer shifts between languages.
+              style={{ flex: '1 1 0', minWidth: 0, minHeight: 44, position: 'relative' }}
               aria-label={t(item.label)}
             >
               <div style={{ position: 'relative' }}>
@@ -101,6 +103,9 @@ export default function MobileTeacherNav({
                   fontSize: 9,
                   lineHeight: '12px',
                   overflow: 'hidden',
+                  maxWidth: '100%',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
                   fontWeight: isActive ? 600 : 500,
                   color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
                 }}>
