@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { WIDGET_REGISTRY, type WidgetDef } from './widgets/registry'
 import type { LayoutItem } from '../../lib/useDeskLayouts'
+import { useT } from '../../lib/i18n'
 
 type Props = {
   onClose: () => void
@@ -67,6 +68,7 @@ function findFreePosition(existingItems: { x: number; y: number; w: number; h: n
 }
 
 export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, hiddenWidgets }: Props) {
+  const t = useT()
   const registry = hiddenWidgets?.length
     ? WIDGET_REGISTRY.filter(def => !hiddenWidgets.includes(def.type))
     : WIDGET_REGISTRY
@@ -124,9 +126,9 @@ export default function WidgetLibraryModal({ onClose, onAdd, existingTypes, hidd
             flexShrink: 0,
           }}>
             <div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>Добавить виджет</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{t('Добавить виджет')}</div>
               <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 3 }}>
-                Кликните — виджет появится на столе
+                {t('Кликните — виджет появится на столе')}
               </div>
             </div>
             <button

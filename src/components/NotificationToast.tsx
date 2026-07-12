@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, X, ChevronDown, ChevronUp, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, Bell, RotateCcw, Banknote, NotebookPen } from 'lucide-react'
 import { useNotificationsStore, type Notification } from '../store/notificationsStore'
 import { getContrastColor } from '../lib/utils'
+import { useT } from '../lib/i18n'
 import type { NotifType } from '../store/notificationsStore'
 
 const ICON_MAP: Record<NotifType, React.ReactNode> = {
@@ -94,6 +95,7 @@ function NotifRow({ n, onAction, onRead }: {
 }
 
 export default function NotificationToastContainer() {
+  const t = useT()
   const notifications = useNotificationsStore(s => s.notifications)
   const dismissLive   = useNotificationsStore(s => s.dismissLive)
   const markRead      = useNotificationsStore(s => s.markRead)
@@ -252,7 +254,7 @@ export default function NotificationToastContainer() {
                         border: `1px solid rgba(${rgb},0.2)`, background: 'none', cursor: 'pointer',
                         fontSize: 11.5, fontWeight: 600, color: 'var(--color-muted)',
                       }}>
-                        Закрыть все
+                        {t('Закрыть все')}
                       </button>
                     )}
                   </div>

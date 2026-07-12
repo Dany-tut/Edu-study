@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronRight, MessageSquare } from 'lucide-react'
 import type { Lesson } from '../data/mockData'
+import { useT } from '../lib/i18n'
 
 interface Props {
   lesson: Lesson | null
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export default function MobileLessonSheet({ lesson, onClose }: Props) {
+  const t = useT()
   return (
     <AnimatePresence>
       {lesson && (
@@ -44,18 +46,18 @@ export default function MobileLessonSheet({ lesson, onClose }: Props) {
               </div>
               <div className="flex items-center justify-between mb-4">
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  Урок
+                  {t('Урок')}
                 </span>
                 <button onClick={onClose} className="cursor-pointer">
                   <X size={20} style={{ color: 'var(--color-muted)' }} />
                 </button>
               </div>
               <h3 style={{ fontSize: 22, fontWeight: 650, color: 'var(--color-text)', marginBottom: 16 }}>
-                Занятие #{lesson.number + 1} {lesson.title}
+                {t('Занятие')} #{lesson.number + 1} {lesson.title}
               </h3>
               {lesson.points != null && (
                 <p style={{ fontSize: 16, color: 'var(--color-muted)', marginBottom: 8 }}>
-                  <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{lesson.points}</span> баллов
+                  <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{lesson.points}</span> {t('баллов')}
                 </p>
               )}
               {lesson.comment && (
@@ -74,7 +76,7 @@ export default function MobileLessonSheet({ lesson, onClose }: Props) {
                   minHeight: 56,
                 }}
               >
-                Открыть урок
+                {t('Открыть урок')}
                 <ChevronRight size={16} />
               </motion.button>
             </div>

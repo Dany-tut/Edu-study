@@ -15,6 +15,7 @@ import { expandToPerson } from '../../lib/personGroups'
 import { useGroups, useStudents } from '../../lib/useGroups'
 import { useHomework, useHardSubmissions, hardSubTimeline, type HardSub, type HardTimelineStep } from '../../lib/useHomework'
 import { openLessonInCourseEditor } from '../../lib/teacherNav'
+import { useT, t as tGlobal } from '../../lib/i18n'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -32,28 +33,28 @@ function pluralRu(n: number, one: string, few: string, many: string) {
 
 // "сдано 2 ч назад" style relative time from an ISO/date string.
 function timeAgo(iso?: string): string {
-  if (!iso) return 'недавно'
+  if (!iso) return tGlobal('недавно')
   const diff = Date.now() - new Date(iso).getTime()
-  if (!Number.isFinite(diff) || diff < 0) return 'недавно'
+  if (!Number.isFinite(diff) || diff < 0) return tGlobal('недавно')
   const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `${mins} мин назад`
+  if (mins < 60) return `${mins} ${tGlobal('мин назад')}`
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs} ${pluralRu(hrs, 'час', 'часа', 'часов')} назад`
+  if (hrs < 24) return `${hrs} ${tGlobal(pluralRu(hrs, 'час', 'часа', 'часов'))} ${tGlobal('назад')}`
   const days = Math.floor(hrs / 24)
-  return `${days} ${pluralRu(days, 'день', 'дня', 'дней')} назад`
+  return `${days} ${tGlobal(pluralRu(days, 'день', 'дня', 'дней'))} ${tGlobal('назад')}`
 }
 
 // Компактное относительное время для чипов хронологии: «5 мин», «2 ч», «3 д».
 function shortAgo(iso?: string): string {
   if (!iso) return ''
   const diff = Date.now() - new Date(iso).getTime()
-  if (!Number.isFinite(diff) || diff < 0) return 'только что'
+  if (!Number.isFinite(diff) || diff < 0) return tGlobal('только что')
   const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'только что'
-  if (mins < 60) return `${mins} мин`
+  if (mins < 1) return tGlobal('только что')
+  if (mins < 60) return `${mins} ${tGlobal('мин')}`
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs} ч`
-  return `${Math.floor(hrs / 24)} д`
+  if (hrs < 24) return `${hrs} ${tGlobal('ч')}`
+  return `${Math.floor(hrs / 24)} ${tGlobal('д')}`
 }
 
 function hwStatus(hw: HomeworkItem): 'done' | 'reviewing' | 'waiting' | 'overdue' {
@@ -89,6 +90,7 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 
 // ─── Assign form panel ─────────────────────────────────────────────────────────
 function AssignForm({ onClose }: { onClose: () => void }) {
+  const t = useT()
   const { groups } = useGroups()
   const [selectedGroup, setSelectedGroup] = useState<string>('')
   const [selectedStudent, setSelectedStudent] = useState<string>('')
@@ -130,7 +132,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
         borderTopLeftRadius: 19, borderTopRightRadius: 19,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>Выдать домашнее задание</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Выдать домашнее задание')}</div>
         <button onClick={onClose} style={{
           width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer',
           background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)',
@@ -148,15 +150,15 @@ function AssignForm({ onClose }: { onClose: () => void }) {
           <div style={{ width: 56, height: 56, borderRadius: 20, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <CheckCircle2 size={28} strokeWidth={2} style={{ color: 'var(--color-green-text)' }} />
           </div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>ДЗ выдано!</div>
-          <div style={{ fontSize: 12, color: 'var(--color-muted)', textAlign: 'center' }}>Уведомление отправлено студентам</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('ДЗ выдано!')}</div>
+          <div style={{ fontSize: 12, color: 'var(--color-muted)', textAlign: 'center' }}>{t('Уведомление отправлено студентам')}</div>
         </motion.div>
       ) : (
         <form onSubmit={handleSubmit} style={{ flex: 1, overflowY: 'auto', scrollbarGutter: 'stable', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
           {/* Assign to toggle */}
           <div>
-            <Label>Кому</Label>
+            <Label>{t('Кому')}</Label>
             <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
               {(['group', 'student'] as const).map(mode => (
                 <button
@@ -171,7 +173,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
                     transition: 'all 0.15s',
                   }}
                 >
-                  {mode === 'group' ? 'Группе' : 'Студенту'}
+                  {mode === 'group' ? t('Группе') : t('Студенту')}
                 </button>
               ))}
             </div>
@@ -180,26 +182,26 @@ function AssignForm({ onClose }: { onClose: () => void }) {
           {/* Group select */}
           <div>
             <TeacherSelect value={selectedGroup} onChange={v => { setSelectedGroup(v); setSelectedStudent('') }}
-              placeholder="Группа"
-              options={groups.map(g => ({ value: g.id, label: `${g.name} (${g.studentCount} чел.)` }))} />
+              placeholder={t('Группа')}
+              options={groups.map(g => ({ value: g.id, label: `${g.name} (${g.studentCount} ${t('чел.')})` }))} />
           </div>
 
           {/* Student select (only if assignTo = 'student') */}
           {assignTo === 'student' && (
             <div>
               <TeacherSelect value={selectedStudent} onChange={setSelectedStudent}
-                placeholder="Студент"
+                placeholder={t('Студент')}
                 options={groupStudents.map(s => ({ value: s.id, label: s.name }))} />
             </div>
           )}
 
           {/* Title */}
           <div>
-            <Label>Тема задания</Label>
+            <Label>{t('Тема задания')}</Label>
             <input
               value={title}
               onChange={e => setTitle(e.target.value)}
-              placeholder="Например: Задачи на гидролиз"
+              placeholder={t('Например: Задачи на гидролиз')}
               required
               style={inputStyle}
             />
@@ -207,11 +209,11 @@ function AssignForm({ onClose }: { onClose: () => void }) {
 
           {/* Description */}
           <div>
-            <Label>Описание (необязательно)</Label>
+            <Label>{t('Описание (необязательно)')}</Label>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
-              placeholder="Задание, ссылки, требования..."
+              placeholder={t('Задание, ссылки, требования...')}
               rows={3}
               style={{ ...inputStyle, resize: 'vertical', minHeight: 72 }}
             />
@@ -219,7 +221,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
 
           {/* Due date */}
           <div>
-            <Label>Дедлайн</Label>
+            <Label>{t('Дедлайн')}</Label>
             <input
               type="date"
               value={dueDate}
@@ -243,7 +245,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
             }}
           >
             <Send size={15} strokeWidth={2} />
-            Выдать задание
+            {t('Выдать задание')}
           </motion.button>
         </form>
       )}
@@ -270,6 +272,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
   hw: HomeworkItem; index: number; isSelected: boolean; onClick: () => void
   subject?: { label: string; icon: string; color: string } | null
 }) {
+  const t = useT()
   const status = hwStatus(hw)
   const submittedPct = hw.totalCount > 0 ? Math.round((hw.submittedCount / hw.totalCount) * 100) : 0
   const reviewedPct = hw.submittedCount > 0 ? Math.round((hw.reviewedCount / hw.submittedCount) * 100) : 0
@@ -310,7 +313,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
       {/* Title + two inline segments: основное / сложное */}
       <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-soft)', maxWidth: 280 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 5 }}>
-          {hw.title || <span style={{ color: 'var(--color-text-4)', fontStyle: 'italic' }}>Без названия</span>}
+          {hw.title || <span style={{ color: 'var(--color-text-4)', fontStyle: 'italic' }}>{t('Без названия')}</span>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{
@@ -318,7 +321,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
             fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 7,
             background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
           }}>
-            <ClipboardCheck size={11} strokeWidth={2.4} /> Основное
+            <ClipboardCheck size={11} strokeWidth={2.4} /> {t('Основное')}
           </span>
           {(hw.hardTotal ?? hw.hardTaskIds?.length ?? 0) > 0 && (
             <span style={{
@@ -326,7 +329,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
               fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 7,
               background: 'var(--color-yellow-soft)', color: 'var(--color-yellow-text)',
             }}>
-              <Star size={10} strokeWidth={0} fill="currentColor" /> Сложное
+              <Star size={10} strokeWidth={0} fill="currentColor" /> {t('Сложное')}
             </span>
           )}
         </div>
@@ -374,7 +377,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
           background: STATUS_BG[status],
           borderRadius: 8, padding: '3px 9px', whiteSpace: 'nowrap',
         }}>
-          {STATUS_LABEL[status]}
+          {t(STATUS_LABEL[status])}
         </span>
       </td>
     </motion.tr>
@@ -383,6 +386,7 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
 
 // ─── Homework detail panel ─────────────────────────────────────────────────────
 function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onClose: () => void }) {
+  const t = useT()
   const status = hwStatus(hw)
   const { students: dbStudents } = useStudents(hw.groupId)
   const openHomeworkReview = useTeacher(s => s.openHomeworkReview)
@@ -436,10 +440,10 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {[
-            { label: 'Назначено', value: hw.assignedAt, icon: Clock, color: 'var(--color-muted)', labelColor: 'var(--color-muted)', bg: 'var(--color-bg)' },
-            { label: 'Дедлайн', value: hw.dueDate, icon: AlertCircle, color: 'var(--color-peach-text)', labelColor: 'var(--color-peach-text)', bg: 'var(--color-peach-soft)' },
-            { label: 'Сдали', value: `${hw.submittedCount}/${hw.totalCount}`, icon: ClipboardCheck, color: 'var(--color-purple)', labelColor: 'var(--color-purple)', bg: 'var(--color-purple-soft)' },
-            { label: 'Проверено', value: `${hw.reviewedCount}/${hw.submittedCount}`, icon: CheckCircle2, color: 'var(--color-green-text)', labelColor: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
+            { label: t('Назначено'), value: hw.assignedAt, icon: Clock, color: 'var(--color-muted)', labelColor: 'var(--color-muted)', bg: 'var(--color-bg)' },
+            { label: t('Дедлайн'), value: hw.dueDate, icon: AlertCircle, color: 'var(--color-peach-text)', labelColor: 'var(--color-peach-text)', bg: 'var(--color-peach-soft)' },
+            { label: t('Сдали'), value: `${hw.submittedCount}/${hw.totalCount}`, icon: ClipboardCheck, color: 'var(--color-purple)', labelColor: 'var(--color-purple)', bg: 'var(--color-purple-soft)' },
+            { label: t('Проверено'), value: `${hw.reviewedCount}/${hw.submittedCount}`, icon: CheckCircle2, color: 'var(--color-green-text)', labelColor: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
           ].map(item => (
             <div key={item.label} style={{ background: item.bg, borderRadius: 12, padding: '10px 12px' }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: item.labelColor, opacity: 0.75, marginBottom: 4 }}>{item.label}</div>
@@ -453,7 +457,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
           <div style={{ flex: 1, background: 'var(--color-purple-soft)', borderRadius: 12, padding: '10px 12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
               <ClipboardCheck size={12} strokeWidth={2.4} style={{ color: 'var(--color-accent)' }} />
-              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-accent)' }}>Основное</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-accent)' }}>{t('Основное')}</span>
             </div>
             <div style={{ fontSize: 15, fontWeight: 750, color: 'var(--color-accent)' }}>{hw.submittedCount}/{hw.totalCount}</div>
           </div>
@@ -464,10 +468,10 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
               <Star size={11} strokeWidth={0} fill="currentColor" style={{ color: hasHard ? 'var(--color-yellow-text)' : 'var(--color-text-4)' }} />
-              <span style={{ fontSize: 10, fontWeight: 700, color: hasHard ? 'var(--color-yellow-text)' : 'var(--color-text-4)' }}>Сложное</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: hasHard ? 'var(--color-yellow-text)' : 'var(--color-text-4)' }}>{t('Сложное')}</span>
             </div>
             <div style={{ fontSize: 15, fontWeight: 750, color: hasHard ? 'var(--color-yellow-text)' : 'var(--color-text-4)' }}>
-              {hasHard ? `${hardCount} зад.` : '—'}
+              {hasHard ? `${hardCount} ${t('зад.')}` : '—'}
             </div>
           </div>
         </div>
@@ -499,7 +503,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
           {hw.lessonId
             ? <BookOpen size={15} strokeWidth={2.2} style={{ color: 'var(--color-accent)' }} />
             : <ClipboardList size={15} strokeWidth={2.2} style={{ color: 'var(--color-accent)' }} />}
-          {lessonBusy ? 'Открываю…' : hw.lessonId ? 'Открыть урок' : 'Открыть домашку'}
+          {lessonBusy ? t('Открываю…') : hw.lessonId ? t('Открыть урок') : t('Открыть домашку')}
         </motion.button>
 
         {/* Continue / start review */}
@@ -519,14 +523,14 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
             }}
           >
             <ClipboardList size={16} strokeWidth={2.2} />
-            {pendingReview > 0 ? `Проверить ДЗ · ${pendingReview}` : 'Пересмотреть работы'}
+            {pendingReview > 0 ? `${t('Проверить ДЗ')} · ${pendingReview}` : t('Пересмотреть работы')}
           </motion.button>
         )}
 
         {/* Student list */}
         <div>
           <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 8, textTransform: 'uppercase' }}>
-            Студенты
+            {t('Студенты')}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {groupStudents.map((s, i) => {
@@ -554,7 +558,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
                   {/* Two-status icons: submitted + reviewed */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
                     {/* Submitted by student */}
-                    <div title={submitted ? 'Сдал' : 'Не сдал'} style={{
+                    <div title={submitted ? t('Сдал') : t('Не сдал')} style={{
                       width: 22, height: 22, borderRadius: 7, flexShrink: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       background: submitted ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
@@ -562,7 +566,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
                       <ClipboardCheck size={12} strokeWidth={2.2} style={{ color: submitted ? 'var(--color-accent)' : 'var(--color-text-4)' }} />
                     </div>
                     {/* Reviewed by teacher */}
-                    <div title={returned ? 'На доработку' : reviewed ? 'Проверено' : 'Не проверено'} style={{
+                    <div title={returned ? t('На доработку') : reviewed ? t('Проверено') : t('Не проверено')} style={{
                       width: 22, height: 22, borderRadius: 7, flexShrink: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       background: returned ? 'var(--color-peach-soft)' : reviewed ? 'var(--color-green-soft)' : 'var(--color-bg-3)',
@@ -585,6 +589,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
 
 // ─── Hard submissions section ──────────────────────────────────────────────────
 function HardSubRow({ sub, isSelected, onClick }: { sub: HardSub; isSelected: boolean; onClick: () => void }) {
+  const t = useT()
   const date = sub.updatedAt ? new Date(sub.updatedAt).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) : ''
   const initials = sub.studentName.split(' ').map((p: string) => p[0]).join('').slice(0, 2)
   const isPending = sub.status === 'submitted'
@@ -624,7 +629,7 @@ function HardSubRow({ sub, isSelected, onClick }: { sub: HardSub; isSelected: bo
           background: isPending ? 'var(--color-purple-soft)' : sub.status === 'completed' ? 'var(--color-green-soft)' : 'var(--color-peach-soft)',
           color: isPending ? 'var(--color-purple-text)' : sub.status === 'completed' ? 'var(--color-green-text)' : 'var(--color-peach-text)',
         }}>
-          {isPending ? 'На проверке' : sub.status === 'completed' ? 'Принято' : 'На доработку'}
+          {isPending ? t('На проверке') : sub.status === 'completed' ? t('Принято') : t('На доработку')}
         </span>
       </div>
     </motion.div>
@@ -633,6 +638,7 @@ function HardSubRow({ sub, isSelected, onClick }: { sub: HardSub; isSelected: bo
 
 // ─── Main page ─────────────────────────────────────────────────────────────────
 export default function TeacherHomeworkPage() {
+  const t = useT()
   const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
   const openHardReview = useTeacher(s => s.openHardReview)
   const openHomeworkReview = useTeacher(s => s.openHomeworkReview)
@@ -689,10 +695,10 @@ export default function TeacherHomeworkPage() {
         const ts = parseDdMm(hw.dueDate)
         return {
           key: `hw-${hw.id}`, kind: 'basic' as const, who: hw.groupName, color: hw.color,
-          title: hw.title || 'Без названия',
-          meta: `${pending} ${pluralRu(pending, 'работа', 'работы', 'работ')} на проверке`
-            + (hw.lastSubmittedAt ? ` · сдано ${timeAgo(hw.lastSubmittedAt)}` : ''),
-          due: hw.dueDate ? `дедлайн ${hw.dueDate}` : '', ts,
+          title: hw.title || t('Без названия'),
+          meta: `${pending} ${t(pluralRu(pending, 'работа', 'работы', 'работ'))} ${t('на проверке')}`
+            + (hw.lastSubmittedAt ? ` · ${t('сдано')} ${timeAgo(hw.lastSubmittedAt)}` : ''),
+          due: hw.dueDate ? `${t('дедлайн')} ${hw.dueDate}` : '', ts,
           overdue: ts < startOfToday.getTime(),
           onClick: () => openHomeworkReview(hw.id),
         }
@@ -703,7 +709,7 @@ export default function TeacherHomeworkPage() {
         const steps = hardSubTimeline(sub.taskBlocks, sub.reviewBlocks)
         return {
           key: `hard-${sub.id}`, kind: 'hard' as const, who: sub.studentName, color: 'var(--color-accent)',
-          title: sub.lessonTitle || 'Хард-задание', meta: `сдано ${timeAgo(sub.updatedAt)}`,
+          title: sub.lessonTitle || t('Хард-задание'), meta: `${t('сдано')} ${timeAgo(sub.updatedAt)}`,
           // Лента событий показываем только когда была доработка (>1 шага);
           // одиночная сдача остаётся коротким «сдано N назад».
           steps: steps.length > 1 ? steps : undefined,
@@ -735,7 +741,7 @@ export default function TeacherHomeworkPage() {
             individualGroups={individualGroups}
             selectedGroupId={filterGroup}
             onSelectGroup={setFilterGroup}
-            actionLabel={"Создать\nдомашку"}
+            actionLabel={t('Создать\nдомашку')}
             actionIcon={Plus}
             onAction={openHomeworkCreate}
           />
@@ -748,9 +754,9 @@ export default function TeacherHomeworkPage() {
             style={{ marginRight: panelOpen ? 344 : 0, transition: 'margin-right 0.34s cubic-bezier(0.22,1,0.36,1)' }}
           >
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '2px 4px 11px' }}>
-              <span style={{ fontSize: 16, fontWeight: 760, color: 'var(--color-text)' }}>Нужно проверить</span>
+              <span style={{ fontSize: 16, fontWeight: 760, color: 'var(--color-text)' }}>{t('Нужно проверить')}</span>
               <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 9px', borderRadius: 999, background: 'var(--color-peach-soft)', color: 'var(--color-peach-text)' }}>{queue.length}</span>
-              <span style={{ marginLeft: 'auto', fontSize: 11.5, color: 'var(--color-text-3)' }}>по дедлайну</span>
+              <span style={{ marginLeft: 'auto', fontSize: 11.5, color: 'var(--color-text-3)' }}>{t('по дедлайну')}</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {queue.map(item => (
@@ -779,7 +785,7 @@ export default function TeacherHomeworkPage() {
                         flex: 'none', fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 6,
                         background: item.kind === 'hard' ? 'var(--color-yellow-soft)' : 'var(--color-purple-soft)',
                         color: item.kind === 'hard' ? 'var(--color-yellow-text)' : 'var(--color-accent)',
-                      }}>{item.kind === 'hard' ? '★ Сложное' : 'Основное'}</span>
+                      }}>{item.kind === 'hard' ? `★ ${t('Сложное')}` : t('Основное')}</span>
                     </div>
                     <div style={{ fontSize: 11.5, color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden' }}>
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{item.title}</span>
@@ -790,7 +796,7 @@ export default function TeacherHomeworkPage() {
                             <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                               {i > 0 && <span style={{ color: 'var(--color-text-3)', opacity: 0.7 }}>→</span>}
                               <span
-                                title={s.kind === 'returned' ? 'Возвращено на доработку' : i === 0 ? 'Отправлено на проверку' : 'Отправлено повторно'}
+                                title={s.kind === 'returned' ? t('Возвращено на доработку') : i === 0 ? t('Отправлено на проверку') : t('Отправлено повторно')}
                                 style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: s.kind === 'returned' ? 'var(--color-peach-text)' : 'var(--color-muted)' }}
                               >
                                 {s.kind === 'returned' ? <RotateCcw size={11} /> : <Send size={11} />}
@@ -805,7 +811,7 @@ export default function TeacherHomeworkPage() {
                     </div>
                   </div>
                   <div style={{ flex: 'none', fontSize: 11.5, fontWeight: 600, textAlign: 'right', color: item.overdue ? 'var(--color-red-text)' : 'var(--color-text-3)', marginRight: 4, whiteSpace: 'nowrap' }}>
-                    {item.overdue ? 'просрочено' : item.due || ''}
+                    {item.overdue ? t('просрочено') : item.due || ''}
                   </div>
                   <motion.button
                     whileTap={{ scale: 0.96 }}
@@ -815,7 +821,7 @@ export default function TeacherHomeworkPage() {
                       background: 'var(--grad-purple)', color: '#fff', fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
                     }}
                   >
-                    Проверить
+                    {t('Проверить')}
                   </motion.button>
                 </div>
               ))}
@@ -842,13 +848,13 @@ export default function TeacherHomeworkPage() {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Star size={15} style={{ color: 'var(--color-accent)' }} />
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Хард-уровень · Сданные работы</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Хард-уровень · Сданные работы')}</span>
                   {pendingHardCount > 0 && (
                     <span style={{
                       fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999,
                       background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
                     }}>
-                      {pendingHardCount} на проверке
+                      {pendingHardCount} {t('на проверке')}
                     </span>
                   )}
                 </div>
@@ -875,7 +881,7 @@ export default function TeacherHomeworkPage() {
                     <div style={{ padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
                       {pendingHardSubs.length === 0 && acceptedHardSubs.length > 0 && (
                         <div style={{ padding: '8px 8px 4px', fontSize: 12, color: 'var(--color-muted)' }}>
-                          Всё проверено
+                          {t('Всё проверено')}
                         </div>
                       )}
                       {pendingHardSubs.map(sub => (
@@ -906,7 +912,7 @@ export default function TeacherHomeworkPage() {
                             <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
                           </motion.div>
                           <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)' }}>
-                            Принято · {acceptedHardSubs.length}
+                            {t('Принято')} · {acceptedHardSubs.length}
                           </span>
                         </div>
                         <AnimatePresence initial={false}>
@@ -952,7 +958,7 @@ export default function TeacherHomeworkPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ background: 'var(--color-bg-2)' }}>
-                    {['Группа', 'Задание', 'Назначено', 'Дедлайн', 'Сдано', 'Проверено', 'Статус'].map(col => (
+                    {[t('Группа'), t('Задание'), t('Назначено'), t('Дедлайн'), t('Сдано'), t('Проверено'), t('Статус')].map(col => (
                       <th key={col} style={{
                         padding: '10px 16px', textAlign: 'left',
                         fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)',

@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import { GripVertical, Plus, Minus, X } from 'lucide-react'
 import { useDashboard } from '../store/dashboardStore'
 import { WIDGET_META } from '../data/widgets'
+import { useT } from '../lib/i18n'
 
 const EASE = [0.32, 0.72, 0, 1] as const
 
@@ -14,6 +15,7 @@ type Props = { open: boolean; onClose: () => void }
 // limited to the grip handle (dragListener=false + dragControls) so tapping the
 // row or the "−" button never starts a drag.
 function ShownRow({ id, onHide, disabled }: { id: number; onHide: (id: number) => void; disabled: boolean }) {
+  const t = useT()
   const w = WIDGET_META.find(m => m.id === id)
   const controls = useDragControls()
   if (!w) return null
@@ -55,8 +57,8 @@ function ShownRow({ id, onHide, disabled }: { id: number; onHide: (id: number) =
         whileTap={{ scale: 0.9 }}
         onClick={() => onHide(id)}
         disabled={disabled}
-        aria-label={`Скрыть «${w.label}»`}
-        title={disabled ? 'Должен остаться хотя бы один виджет' : 'Скрыть'}
+        aria-label={`${t('Скрыть')} «${w.label}»`}
+        title={disabled ? t('Должен остаться хотя бы один виджет') : t('Скрыть')}
         style={{
           width: 28, height: 28, borderRadius: 8, flexShrink: 0, border: 'none',
           cursor: disabled ? 'not-allowed' : 'pointer',
@@ -77,6 +79,7 @@ function ShownRow({ id, onHide, disabled }: { id: number; onHide: (id: number) =
 // ids absent from `order`. Edits are committed to the store only on "Готово", so
 // "Отмена" / Esc / backdrop discard them.
 export default function WidgetOrderModal({ open, onClose }: Props) {
+  const t = useT()
   const savedOrder = useDashboard(s => s.widgetOrder)
   const setWidgetOrder = useDashboard(s => s.setWidgetOrder)
   const hiddenWidgets = useDashboard(s => s.hiddenWidgets)
@@ -135,15 +138,15 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
               <div>
-                <h2 style={{ fontSize: 19, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>Виджеты</h2>
+                <h2 style={{ fontSize: 19, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>{t('Виджеты')}</h2>
                 <p style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>
-                  Перетащите за ручку, чтобы изменить порядок. Скрытые — ниже черты.
+                  {t('Перетащите за ручку, чтобы изменить порядок. Скрытые — ниже черты.')}
                 </p>
               </div>
               <motion.button
                 whileTap={{ scale: 0.92 }}
                 onClick={onClose}
-                aria-label="Закрыть"
+                aria-label={t('Закрыть')}
                 style={{
                   width: 34, height: 34, borderRadius: 999, flexShrink: 0, border: 'none', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg-3)', color: 'var(--color-muted)',
@@ -172,7 +175,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '18px 2px 12px' }}>
                   <div style={{ flex: 1, height: 1, background: 'var(--color-text-4)' }} />
                   <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', color: 'var(--color-text-3)' }}>
-                    Скрытые
+                    {t('Скрытые')}
                   </span>
                   <div style={{ flex: 1, height: 1, background: 'var(--color-text-4)' }} />
                 </div>
@@ -199,8 +202,8 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                       <motion.button
                         whileTap={{ scale: 0.9 }}
                         onClick={() => show(w.id)}
-                        aria-label={`Показать «${w.label}»`}
-                        title="Добавить"
+                        aria-label={`${t('Показать')} «${w.label}»`}
+                        title={t('Добавить')}
                         style={{
                           width: 28, height: 28, borderRadius: 8, flexShrink: 0, border: 'none', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -225,7 +228,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                   background: 'transparent', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600,
                 }}
               >
-                Отмена
+                {t('Отмена')}
               </motion.button>
               <motion.button
                 whileTap={{ scale: 0.97 }}
@@ -235,7 +238,7 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                   background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 650,
                 }}
               >
-                Готово
+                {t('Готово')}
               </motion.button>
             </div>
           </motion.div>

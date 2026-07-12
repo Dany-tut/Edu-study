@@ -1,6 +1,7 @@
 import { AlertCircle, ChevronRight, Clock } from 'lucide-react'
 import { useAllStudents, useGroups } from '../../../lib/useGroups'
 import { useTeacher } from '../../../store/teacherStore'
+import { t, useT } from '../../../lib/i18n'
 
 function initials(name: string) {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
@@ -17,18 +18,19 @@ type Reason = { label: string; color: string; bg: string; icon: React.ElementTyp
 function getReason(s: ReturnType<typeof useAllStudents>[number]): Reason {
   const balance = s.lessonBalance ?? 0
   if (s.paymentDue && diffDays(s.paymentDue) < 0) {
-    return { label: 'просрочена оплата', color: 'var(--color-red-text)', bg: 'var(--color-red-soft)', icon: AlertCircle }
+    return { label: t('просрочена оплата'), color: 'var(--color-red-text)', bg: 'var(--color-red-soft)', icon: AlertCircle }
   }
   if (balance < -1) {
-    return { label: `баланс ${balance} зан.`, color: 'var(--color-red-text)', bg: 'var(--color-red-soft)', icon: AlertCircle }
+    return { label: `${t('баланс')} ${balance} ${t('зан.')}`, color: 'var(--color-red-text)', bg: 'var(--color-red-soft)', icon: AlertCircle }
   }
   if (s.paymentDue && diffDays(s.paymentDue) <= 3) {
-    return { label: `оплата через ${diffDays(s.paymentDue)} дн.`, color: '#C07020', bg: 'var(--color-peach-soft)', icon: Clock }
+    return { label: `${t('оплата через')} ${diffDays(s.paymentDue)} ${t('дн.')}`, color: '#C07020', bg: 'var(--color-peach-soft)', icon: Clock }
   }
-  return { label: 'баланс 0 зан.', color: '#C07020', bg: 'var(--color-peach-soft)', icon: Clock }
+  return { label: `${t('баланс')} 0 ${t('зан.')}`, color: '#C07020', bg: 'var(--color-peach-soft)', icon: Clock }
 }
 
 export default function WidgetAttentionStudents() {
+  const t = useT()
   const students = useAllStudents()
   const { groups } = useGroups()
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
@@ -73,7 +75,7 @@ export default function WidgetAttentionStudents() {
         }}>
           <AlertCircle size={14} strokeWidth={2.2} style={{ color: atRisk.length > 0 ? '#C07020' : 'var(--color-green-text)' }} />
         </div>
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Требуют внимания</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Требуют внимания')}</span>
         {atRisk.length > 0 && (
           <span style={{
             fontSize: 11, fontWeight: 700, color: '#C07020',
@@ -92,8 +94,8 @@ export default function WidgetAttentionStudents() {
             height: '100%', gap: 8, color: 'var(--color-text-4)',
           }}>
             <div style={{ fontSize: 28 }}>🎉</div>
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)' }}>Все ученики в норме</span>
-            <span style={{ fontSize: 11, color: 'var(--color-text-4)' }}>никаких срочных вопросов</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)' }}>{t('Все ученики в норме')}</span>
+            <span style={{ fontSize: 11, color: 'var(--color-text-4)' }}>{t('никаких срочных вопросов')}</span>
           </div>
         ) : (
           atRisk.map((s, i) => {

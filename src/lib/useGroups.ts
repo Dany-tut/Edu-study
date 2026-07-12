@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
 import { parseStudentLimitError, studentLimitMessage } from './plan'
+import { t } from './i18n'
 import type { Group, GroupTrack, Student } from '../data/teacherMockData'
 
 // Квота тарифа (0037): триггер students_enforce_limit кидает "STUDENT_LIMIT:<max>" —
@@ -52,7 +53,7 @@ export async function listTeacherCourses(): Promise<GroupCourseOption[]> {
   if (error || !data) return []
   return (data as Array<{ id: string; title: string; subject: string; lessons: { count: number }[] }>).map(c => ({
     id: c.id,
-    title: c.title || 'Без названия',
+    title: c.title || t('Без названия'),
     subject: c.subject ?? '',
     lessonCount: c.lessons?.[0]?.count ?? 0,
   }))

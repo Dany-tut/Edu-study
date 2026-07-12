@@ -9,6 +9,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { PURPLE, subjectTheme } from '../lib/theme'
 import { useNow, lessonTimeState } from '../lib/useNow'
 import ScrollFade from './ScrollFade'
+import { useT } from '../lib/i18n'
 
 interface Props {
   day: ScheduleDay
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export default function ScheduleCard({ day, isCenter, distance, onClick, mobile = false, centerWidth }: Props) {
+  const t = useT()
   const openLesson = useDashboard(s => s.openLesson)
   const openCourses = useDashboard(s => s.openCourses)
   const setActiveSubject = useDashboard(s => s.setActiveSubject)
@@ -75,7 +77,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
     const s = Math.max(0, st.secondsUntil)
     const m = Math.floor(s / 60)
     const sec = s % 60
-    return `через ${m}:${String(sec).padStart(2, '0')}`
+    return `${t('через')} ${m}:${String(sec).padStart(2, '0')}`
   }
 
   const scale = isCenter ? 1 : distance === 1 ? 0.90 : distance === 2 ? 0.82 : 0.74
@@ -91,7 +93,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
       </span>
       {day.isToday && isCenter && (
         <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-purple)', background: 'var(--color-purple-soft)', padding: '2px 8px', borderRadius: 999 }}>
-          Сегодня
+          {t('Сегодня')}
         </span>
       )}
     </div>
@@ -171,7 +173,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                       </span>
                       {isMissed && (
                         <span style={{ fontSize: 10, fontWeight: 700, color: pal.onAccent, background: pal.accent, padding: '2px 7px', borderRadius: 999 }}>
-                          Пропущен
+                          {t('Пропущен')}
                         </span>
                       )}
                       {!isPassed && st.secondsUntil > 0 && st.secondsUntil <= 3600 && (
@@ -187,7 +189,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                       )}
                     </div>
                     <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>
-                      Занятие #{lesson.lessonNumber} {lesson.lessonTitle}
+                      {t('Занятие')} #{lesson.lessonNumber} {lesson.lessonTitle}
                     </p>
                   </div>
                   <div className="flex-shrink-0 flex items-center" style={{ gap: 10 }}>
@@ -209,8 +211,8 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                 style={{ minHeight: 116, padding: '18px 24px', background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}
               >
                 <CalendarX2 size={20} style={{ marginBottom: 8 }} />
-                <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)' }}>Пока нет данных</p>
-                <p style={{ fontSize: 12, marginTop: 3 }}>Преподаватель еще не проставил уроки</p>
+                <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)' }}>{t('Пока нет данных')}</p>
+                <p style={{ fontSize: 12, marginTop: 3 }}>{t('Преподаватель еще не проставил уроки')}</p>
               </div>
             )}
               </div>
@@ -261,8 +263,8 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
               ))
             ) : (
               <div style={{ minHeight: 70, display: 'flex', flexDirection: 'column', justifyContent: 'center', color: 'var(--color-muted)' }}>
-                <p style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text)' }}>Пока нет данных</p>
-                <p style={{ fontSize: 11, marginTop: 3 }}>Уроки еще не проставлены</p>
+                <p style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text)' }}>{t('Пока нет данных')}</p>
+                <p style={{ fontSize: 11, marginTop: 3 }}>{t('Уроки еще не проставлены')}</p>
               </div>
             )}
           </div>

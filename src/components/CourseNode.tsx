@@ -11,6 +11,7 @@ import { TRACK_STATUS } from '../lib/theme'
 import { useNow } from '../lib/useNow'
 import { useDashboard } from '../store/dashboardStore'
 import { useTheme } from '../store/themeStore'
+import { t, useT } from '../lib/i18n'
 import { EMOJI_STEPS } from './HomeworkFlow'
 import HardSatelliteLottie from './HardSatelliteLottie'
 
@@ -50,11 +51,11 @@ function getShapeClass(_shape: LessonShape, _isSquare: boolean): string {
 type HardStatus = 'submitted' | 'returned' | 'completed'
 
 export const HARD_STYLE: Record<HardStatus | 'available' | 'locked', { bg: string; border: string; iconColor: string; label: string }> = {
-  available:  { bg: 'var(--color-purple-soft)', border: 'var(--color-purple)', iconColor: 'var(--color-purple)', label: 'Доступен хард' },
-  submitted:  { bg: 'var(--color-peach-soft)',  border: '#F8A84B', iconColor: '#F8A84B', label: 'На проверке' },
-  returned:   { bg: 'var(--color-yellow-soft)', border: '#F0D060', iconColor: '#F0D060', label: 'Возвращён' },
-  completed:  { bg: 'var(--color-yellow-soft)', border: '#F5C842', iconColor: '#F5C842', label: 'Сдан' },
-  locked:     { bg: TRACK_STATUS.locked.bg, border: TRACK_STATUS.locked.border, iconColor: TRACK_STATUS.locked.icon, label: 'Недоступно' },
+  available:  { bg: 'var(--color-purple-soft)', border: 'var(--color-purple)', iconColor: 'var(--color-purple)', label: t('Доступен хард') },
+  submitted:  { bg: 'var(--color-peach-soft)',  border: '#F8A84B', iconColor: '#F8A84B', label: t('На проверке') },
+  returned:   { bg: 'var(--color-yellow-soft)', border: '#F0D060', iconColor: '#F0D060', label: t('Возвращён') },
+  completed:  { bg: 'var(--color-yellow-soft)', border: '#F5C842', iconColor: '#F5C842', label: t('Сдан') },
+  locked:     { bg: TRACK_STATUS.locked.bg, border: TRACK_STATUS.locked.border, iconColor: TRACK_STATUS.locked.icon, label: t('Недоступно') },
 }
 
 interface Props {
@@ -68,6 +69,7 @@ interface Props {
 
 export default function CourseNode({ lesson, index, isSelected = false, isHighlighted = false, onSelect, onHardSelect }: Props) {
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const tr = useT()
   const now = useNow()
   const dark = useTheme(s => s.dark)
   const assessment = useDashboard(s => s.lessonAssessments[lesson.id])
@@ -176,7 +178,7 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
           borderRadius: isDiamond ? 12 : isSquare ? 16 : 999,
           rotate: isDiamond ? '45deg' : '0deg',
         }}
-        aria-label={`Урок ${lesson.number + 1}: ${lesson.title}`}
+        aria-label={`${tr('Урок')} ${lesson.number + 1}: ${lesson.title}`}
       >
         <div style={{ rotate: isDiamond ? '-45deg' : '0deg', filter: 'brightness(1.9) saturate(1.1)' }}>
           {isCustom || isMissedCurrentLesson
@@ -212,7 +214,7 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
             zIndex: 10,
             boxShadow: `0 2px 8px ${hardStyle.border}66`,
           }}
-          aria-label="Сложный уровень"
+          aria-label={tr('Сложный уровень')}
         >
           {effectiveHardStatus === 'locked' ? (
             <Lock size={12} color={hardStyle.iconColor} strokeWidth={2.5} />

@@ -22,6 +22,7 @@ import { usePersistentState, clearDrafts } from '../../lib/useDraft'
 import { copyToClipboard } from '../../lib/clipboard'
 import { normalizeContact, contactHref, contactLabel } from '../../lib/contactLink'
 import { useTeacher } from '../../store/teacherStore'
+import { useT } from '../../lib/i18n'
 import {
   fetchStudentActiveCourses, type StudentCourseInfo,
   fetchStudentTrainerSections, type TrainerSection,
@@ -44,6 +45,7 @@ function AddGroupModal({ onClose, onSave }: {
   onClose: () => void
   onSave: (g: Omit<Group, 'id' | 'studentCount' | 'lessonsCompleted'>, courseId: string | null) => Promise<void>
 }) {
+  const t = useT()
   // Draft-backed: survives a page reload; cleared on save or explicit close.
   const [name, setName] = usePersistentState('groups.addGroup.name', '')
   const [subject, setSubject] = usePersistentState('groups.addGroup.subject', '')
@@ -105,17 +107,17 @@ function AddGroupModal({ onClose, onSave }: {
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <span style={{ fontSize: 16, fontWeight: 700 }}>Новая группа</span>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>{t('Новая группа')}</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <input value={name} onChange={e => setName(e.target.value)} placeholder="Название" style={inputStyle} />
+          <input value={name} onChange={e => setName(e.target.value)} placeholder={t('Название')} style={inputStyle} />
 
           <TeacherSelect
             value={subject}
             onChange={v => { setSubject(v); setIcon(subjectIcons[v] ?? '📚') }}
-            placeholder="Предмет"
+            placeholder={t('Предмет')}
             options={Object.keys(subjectIcons)}
             triggerStyle={selectTriggerStyle}
           />
@@ -123,7 +125,7 @@ function AddGroupModal({ onClose, onSave }: {
           <TeacherSelect
             value={level}
             onChange={setLevel}
-            placeholder="Уровень"
+            placeholder={t('Уровень')}
             options={['ЕГЭ', 'ОГЭ', 'Олимпиада', 'Школа', 'Интенсив']}
             triggerStyle={selectTriggerStyle}
           />
@@ -137,16 +139,16 @@ function AddGroupModal({ onClose, onSave }: {
               const c = courses.find(x => x.title === title)
               setCourseId(c ? c.id : '')
             }}
-            placeholder="Курс (необязательно)"
+            placeholder={t('Курс (необязательно)')}
             options={['Без курса', ...courses.map(c => c.title)]}
             triggerStyle={selectTriggerStyle}
           />
 
           {selectedCourse ? (
             <div style={{ ...inputStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--color-text-2)', background: 'var(--color-bg-3)' }}>
-              <span>Всего уроков</span>
+              <span>{t('Всего уроков')}</span>
               <span style={{ fontWeight: 700, color: 'var(--color-text)' }}>
-                {selectedCourse.lessonCount} <span style={{ fontWeight: 400, fontSize: 12, color: 'var(--color-text-3)' }}>из курса</span>
+                {selectedCourse.lessonCount} <span style={{ fontWeight: 400, fontSize: 12, color: 'var(--color-text-3)' }}>{t('из курса')}</span>
               </span>
             </div>
           ) : (
@@ -154,14 +156,14 @@ function AddGroupModal({ onClose, onSave }: {
               type="number"
               value={totalLessons === 0 ? '' : totalLessons}
               onChange={e => setTotalLessons(e.target.value === '' ? 0 : Number(e.target.value))}
-              placeholder="Всего уроков"
+              placeholder={t('Всего уроков')}
               min={1}
               style={inputStyle}
             />
           )}
 
           <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 8 }}>Цвет</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 8 }}>{t('Цвет')}</div>
             <div style={{ display: 'flex', gap: 10 }}>
               {GROUP_COLORS.map((c, i) => (
                 <div key={i} onClick={() => setColorIdx(i)} style={{
@@ -184,7 +186,7 @@ function AddGroupModal({ onClose, onSave }: {
             border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
           }}
         >
-          {saving ? 'Сохранение...' : 'Создать группу'}
+          {saving ? t('Сохранение...') : t('Создать группу')}
         </button>
       </motion.div>
     </div>
@@ -200,6 +202,7 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
   onPickExisting: () => void
   onClose: () => void
 }) {
+  const t = useT()
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1000,
@@ -218,7 +221,7 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <span style={{ fontSize: 16, fontWeight: 700 }}>Добавить ученика</span>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>{t('Добавить ученика')}</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -239,9 +242,9 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
               <Users size={18} color="var(--color-accent)" />
             </div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>В группу</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('В группу')}</div>
               <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>
-                {groups.length === 0 ? 'Сначала создайте группу' : `${groups.length} ${groups.length === 1 ? 'группа' : 'групп'}`}
+                {groups.length === 0 ? t('Сначала создайте группу') : `${groups.length} ${groups.length === 1 ? t('группа') : t('групп')}`}
               </div>
             </div>
           </button>
@@ -260,8 +263,8 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
               <User size={18} color="var(--color-green-text)" />
             </div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>1:1 занятие</div>
-              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>Индивидуальный ученик</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('1:1 занятие')}</div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>{t('Индивидуальный ученик')}</div>
             </div>
           </button>
           {hasPeople && (
@@ -280,8 +283,8 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
                 <UserPlus size={18} color="var(--color-accent)" />
               </div>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Существующий человек → 1:1</div>
-                <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>Второй предмет без новой карточки</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Существующий человек → 1:1')}</div>
+                <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2 }}>{t('Второй предмет без новой карточки')}</div>
               </div>
             </button>
           )}
@@ -297,6 +300,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
   groups: Group[]
   initialGroupId: string | null
 }) {
+  const t = useT()
   // Draft-backed: survives a page reload; cleared on save or explicit close.
   const [selectedGroup, setSelectedGroup] = usePersistentState<string>('groups.addStudent.group', initialGroupId ?? groups[0]?.id ?? '')
   const [name, setName] = usePersistentState('groups.addStudent.name', '')
@@ -361,8 +365,8 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
       >
         <div style={{ overflowY: 'auto', padding: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <span style={{ fontSize: 16, fontWeight: 700 }}>{step === 'config' ? 'Настройка ученика' : step === 'link' ? 'Ученик добавлен' : 'Новый ученик'}</span>
-          <button onClick={onClose} aria-label="Закрыть" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>{step === 'config' ? t('Настройка ученика') : step === 'link' ? t('Ученик добавлен') : t('Новый ученик')}</span>
+          <button onClick={onClose} aria-label={t('Закрыть')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
         </div>
 
         {step === 'config' && newStudentId ? (
@@ -374,11 +378,11 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         ) : step === 'link' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ background: 'var(--color-bg-4)', borderRadius: 14, padding: '14px 16px' }}>
-              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 6, fontWeight: 600 }}>ССЫЛКА ДЛЯ РЕГИСТРАЦИИ</div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 6, fontWeight: 600 }}>{t('ССЫЛКА ДЛЯ РЕГИСТРАЦИИ')}</div>
               <div style={{ fontSize: 13, color: 'var(--color-text)', wordBreak: 'break-all', lineHeight: 1.5 }}>{inviteLink}</div>
             </div>
             <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: 0 }}>
-              Отправьте эту ссылку ученику — он перейдёт по ней и создаст свой аккаунт.
+              {t('Отправьте эту ссылку ученику — он перейдёт по ней и создаст свой аккаунт.')}
             </p>
             <button
               onClick={copyLink}
@@ -390,7 +394,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
                 transition: 'background 0.2s',
               }}
             >
-              {copied ? '✓ Скопировано' : 'Скопировать ссылку'}
+              {copied ? t('✓ Скопировано') : t('Скопировать ссылку')}
             </button>
             <button
               onClick={onClose}
@@ -400,7 +404,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
                 border: 'none', cursor: 'pointer',
               }}
             >
-              Закрыть
+              {t('Закрыть')}
             </button>
           </div>
         ) : (
@@ -408,7 +412,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {groups.length > 0 && (
             <label style={labelStyle}>
-              Группа *
+              {t('Группа *')}
               <select
                 value={selectedGroup}
                 onChange={e => setSelectedGroup(e.target.value)}
@@ -420,16 +424,16 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
               </select>
             </label>
           )}
-          <input value={name} onChange={e => setName(e.target.value)} placeholder="Имя *" style={inputStyle} />
-          <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Телефон" style={inputStyle} />
-          <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder="Telegram или VK (@ник или ссылка)" style={inputStyle} />
-          <input value={parent} onChange={e => setParent(e.target.value)} placeholder="Контакт родителя" style={inputStyle} />
+          <input value={name} onChange={e => setName(e.target.value)} placeholder={t('Имя *')} style={inputStyle} />
+          <input value={phone} onChange={e => setPhone(e.target.value)} placeholder={t('Телефон')} style={inputStyle} />
+          <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder={t('Telegram или VK (@ник или ссылка)')} style={inputStyle} />
+          <input value={parent} onChange={e => setParent(e.target.value)} placeholder={t('Контакт родителя')} style={inputStyle} />
           <input
             type="number"
             value={desiredScore === 0 ? '' : desiredScore}
             onChange={e => setDesiredScore(e.target.value === '' ? 0 : Number(e.target.value))}
             onFocus={() => setDesiredScore(0)}
-            placeholder="Целевой балл"
+            placeholder={t('Целевой балл')}
             min={0}
             max={100}
             style={inputStyle}
@@ -438,7 +442,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
             type="number"
             value={paymentAmount === 0 ? '' : paymentAmount}
             onChange={e => setPaymentAmount(e.target.value === '' ? 0 : Number(e.target.value))}
-            placeholder="Стоимость занятия (₽)"
+            placeholder={t('Стоимость занятия (₽)')}
             min={0}
             style={inputStyle}
           />
@@ -454,7 +458,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
             border: 'none', borderRadius: 14, cursor: (name.trim() && selectedGroup) ? 'pointer' : 'not-allowed',
           }}
         >
-          {saving ? 'Сохранение...' : 'Добавить ученика'}
+          {saving ? t('Сохранение...') : t('Добавить ученика')}
         </button>
           </>
         )}
@@ -504,8 +508,9 @@ function TrackFields({
   onSubject: (v: string) => void; onLevel: (v: string) => void
   tracks: GroupTrack[]; onTracksChange: (t: GroupTrack[]) => void
 }) {
+  const t = useT()
   const setTrack = (i: number, patch: Partial<GroupTrack>) =>
-    onTracksChange(tracks.map((t, idx) => idx === i ? { ...t, ...patch } : t))
+    onTracksChange(tracks.map((tr, idx) => idx === i ? { ...tr, ...patch } : tr))
   const removeTrack = (i: number) => onTracksChange(tracks.filter((_, idx) => idx !== i))
   const addTrack = () => onTracksChange([...tracks, { subject: '', level: '' }])
 
@@ -514,24 +519,24 @@ function TrackFields({
       {/* Основное направление */}
       <div style={{ display: 'flex', gap: 8 }}>
         <div style={{ flex: 1 }}>
-          <TeacherSelect value={subject} onChange={onSubject} placeholder="Предмет" options={Object.keys(SUBJECT_ICONS)} triggerStyle={selectTriggerStyle} />
+          <TeacherSelect value={subject} onChange={onSubject} placeholder={t('Предмет')} options={Object.keys(SUBJECT_ICONS)} triggerStyle={selectTriggerStyle} />
         </div>
         <div style={{ flex: 1 }}>
-          <TeacherSelect value={level} onChange={onLevel} placeholder="Уровень" options={LEVEL_OPTIONS} triggerStyle={selectTriggerStyle} />
+          <TeacherSelect value={level} onChange={onLevel} placeholder={t('Уровень')} options={LEVEL_OPTIONS} triggerStyle={selectTriggerStyle} />
         </div>
       </div>
 
       {/* Дополнительные направления */}
-      {tracks.map((t, i) => (
+      {tracks.map((tr, i) => (
         <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <div style={{ flex: 1 }}>
-            <TeacherSelect value={t.subject} onChange={v => setTrack(i, { subject: v })} placeholder="Предмет" options={Object.keys(SUBJECT_ICONS)} triggerStyle={selectTriggerStyle} />
+            <TeacherSelect value={tr.subject} onChange={v => setTrack(i, { subject: v })} placeholder={t('Предмет')} options={Object.keys(SUBJECT_ICONS)} triggerStyle={selectTriggerStyle} />
           </div>
           <div style={{ flex: 1 }}>
-            <TeacherSelect value={t.level} onChange={v => setTrack(i, { level: v })} placeholder="Уровень" options={LEVEL_OPTIONS} triggerStyle={selectTriggerStyle} />
+            <TeacherSelect value={tr.level} onChange={v => setTrack(i, { level: v })} placeholder={t('Уровень')} options={LEVEL_OPTIONS} triggerStyle={selectTriggerStyle} />
           </div>
           <button
-            type="button" onClick={() => removeTrack(i)} title="Убрать направление"
+            type="button" onClick={() => removeTrack(i)} title={t('Убрать направление')}
             style={{
               width: 32, height: 32, flexShrink: 0, borderRadius: 9, cursor: 'pointer',
               border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)',
@@ -552,7 +557,7 @@ function TrackFields({
           color: 'var(--color-accent)', fontSize: 13, fontWeight: 600,
         }}
       >
-        <Plus size={15} /> Ещё направление
+        <Plus size={15} /> {t('Ещё направление')}
       </button>
     </div>
   )
@@ -569,6 +574,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
     tracks: GroupTrack[]
   }) => Promise<{ inviteToken: string | null; studentId: string | null; groupId: string | null }>
 }) {
+  const t = useT()
   // Draft-backed: survives a page reload; cleared on save or explicit close.
   const [name, setName] = usePersistentState('groups.addIndiv.name', '')
   const [subject, setSubject] = usePersistentState('groups.addIndiv.subject', '')
@@ -643,8 +649,8 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
       >
         <div style={{ overflowY: 'auto', padding: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <span style={{ fontSize: 16, fontWeight: 700 }}>{step === 'config' ? 'Настройка ученика' : step === 'link' ? 'Ученик добавлен' : 'Новый ученик 1:1'}</span>
-          <button onClick={onClose} aria-label="Закрыть" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>{step === 'config' ? t('Настройка ученика') : step === 'link' ? t('Ученик добавлен') : t('Новый ученик 1:1')}</span>
+          <button onClick={onClose} aria-label={t('Закрыть')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
         </div>
 
         {step === 'config' && newStudentId ? (
@@ -656,7 +662,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
         ) : step === 'link' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ background: 'var(--color-bg-4)', borderRadius: 14, padding: '14px 16px' }}>
-              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 6, fontWeight: 600 }}>ССЫЛКА ДЛЯ РЕГИСТРАЦИИ</div>
+              <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 6, fontWeight: 600 }}>{t('ССЫЛКА ДЛЯ РЕГИСТРАЦИИ')}</div>
               <div style={{ fontSize: 13, color: 'var(--color-text)', wordBreak: 'break-all', lineHeight: 1.5 }}>{inviteLink}</div>
             </div>
             <button onClick={copyLink} style={{
@@ -665,13 +671,13 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
               color: '#fff', fontWeight: 700, fontSize: 15,
               border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.2s',
             }}>
-              {copied ? '✓ Скопировано' : 'Скопировать ссылку'}
+              {copied ? t('✓ Скопировано') : t('Скопировать ссылку')}
             </button>
             <button onClick={onClose} style={{
               width: '100%', padding: '10px 0',
               background: 'transparent', color: 'var(--color-muted)', fontWeight: 600, fontSize: 14,
               border: 'none', cursor: 'pointer',
-            }}>Закрыть</button>
+            }}>{t('Закрыть')}</button>
           </div>
         ) : (
           <>
@@ -680,24 +686,24 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
                 type="button" onClick={onPickExisting}
                 style={{ width: '100%', marginBottom: 14, padding: '10px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)', borderRadius: 12, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, color: 'var(--color-accent)', fontFamily: 'inherit' }}
               >
-                <UserPlus size={15} /> Выбрать из существующих
+                <UserPlus size={15} /> {t('Выбрать из существующих')}
               </button>
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <input value={name} onChange={e => setName(e.target.value)} placeholder="Имя *" style={inputStyle} />
+              <input value={name} onChange={e => setName(e.target.value)} placeholder={t('Имя *')} style={inputStyle} />
               <TrackFields
                 subject={subject} level={level} onSubject={setSubject} onLevel={setLevel}
                 tracks={tracks} onTracksChange={setTracks}
               />
-              <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Телефон" style={inputStyle} />
-              <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder="Telegram или VK (@ник или ссылка)" style={inputStyle} />
-              <input value={parent} onChange={e => setParent(e.target.value)} placeholder="Контакт родителя" style={inputStyle} />
+              <input value={phone} onChange={e => setPhone(e.target.value)} placeholder={t('Телефон')} style={inputStyle} />
+              <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder={t('Telegram или VK (@ник или ссылка)')} style={inputStyle} />
+              <input value={parent} onChange={e => setParent(e.target.value)} placeholder={t('Контакт родителя')} style={inputStyle} />
               <input
                 type="number"
                 value={desiredScore === 0 ? '' : desiredScore}
                 onChange={e => setDesiredScore(e.target.value === '' ? 0 : Number(e.target.value))}
                 onFocus={() => setDesiredScore(0)}
-                placeholder="Целевой балл"
+                placeholder={t('Целевой балл')}
                 min={0}
                 max={100}
                 style={inputStyle}
@@ -706,10 +712,10 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
                 type="number"
                 value={paymentAmount === 0 ? '' : paymentAmount}
                 onChange={e => setPaymentAmount(e.target.value === '' ? 0 : Number(e.target.value))}
-                placeholder="Стоимость занятия (₽)" min={0} style={inputStyle}
+                placeholder={t('Стоимость занятия (₽)')} min={0} style={inputStyle}
               />
               <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 8 }}>Цвет</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 8 }}>{t('Цвет')}</div>
                 <div style={{ display: 'flex', gap: 10 }}>
                   {INDIV_COLORS.map((c, i) => (
                     <div key={i} onClick={() => setColorIdx(i)} style={{
@@ -731,7 +737,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
                 border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
               }}
             >
-              {saving ? 'Сохранение...' : 'Добавить ученика'}
+              {saving ? t('Сохранение...') : t('Добавить ученика')}
             </button>
           </>
         )}
@@ -812,6 +818,7 @@ function ScrollFadeTable({ children }: { children: React.ReactNode }) {
 function GroupCard({
   group, isActive, onClick, onDelete,
 }: { group: Group; isActive: boolean; onClick: () => void; onDelete: (e: React.MouseEvent) => void }) {
+  const t = useT()
   const progress = Math.round((group.lessonsCompleted / group.totalLessons) * 100)
   const [hovered, setHovered] = useState(false)
   return (
@@ -858,7 +865,7 @@ function GroupCard({
               color: 'var(--color-red-text)', zIndex: 5,
               padding: 0,
             }}
-            title="Удалить группу"
+            title={t('Удалить группу')}
           >
             <Trash2 size={13} strokeWidth={2.2} />
           </motion.button>
@@ -890,11 +897,11 @@ function GroupCard({
       {/* Date + progress — hidden in compact via CSS */}
       <div className="group-card-details">
         <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>
-          с {group.startDate}
+          {t('с')} {group.startDate}
         </div>
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-            <span style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>Прогресс</span>
+            <span style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Прогресс')}</span>
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>
               {group.lessonsCompleted}/{group.totalLessons}
             </span>
@@ -907,7 +914,7 @@ function GroupCard({
               style={{ height: '100%', background: group.color, borderRadius: 99 }}
             />
           </div>
-          <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 4 }}>{progress}% выполнено</div>
+          <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 4 }}>{progress}% {t('выполнено')}</div>
         </div>
       </div>
     </motion.div>
@@ -1024,6 +1031,7 @@ function ScorePill({ value, max = 100 }: { value: number | null; max?: number })
 
 // ─── Student profile panel ────────────────────────────────────────────────────
 function CredentialsSpoiler({ login, password }: { login: string; password: string }) {
+  const t = useT()
   const [phase, setPhase] = useState<'hidden' | 'revealed'>('hidden')
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -1058,11 +1066,11 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
   return (
     <div
       onClick={handleClick}
-      title={phase === 'hidden' ? 'Нажмите чтобы показать' : 'Нажмите чтобы скопировать'}
+      title={phase === 'hidden' ? t('Нажмите чтобы показать') : t('Нажмите чтобы скопировать')}
       style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 6 }}
     >
       <div style={rowStyle}>
-        <span style={{ fontSize: 11, color: 'var(--color-muted)', minWidth: 48 }}>Логин</span>
+        <span style={{ fontSize: 11, color: 'var(--color-muted)', minWidth: 48 }}>{t('Логин')}</span>
         {phase === 'revealed'
           ? <span style={{ ...mono, color: 'var(--color-text)', flex: 1, textAlign: 'right', wordBreak: 'break-all' }}>{login}</span>
           : (
@@ -1077,7 +1085,7 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
         }
       </div>
       <div style={rowStyle}>
-        <span style={{ fontSize: 11, color: 'var(--color-muted)', minWidth: 48 }}>Пароль</span>
+        <span style={{ fontSize: 11, color: 'var(--color-muted)', minWidth: 48 }}>{t('Пароль')}</span>
         {phase === 'revealed'
           ? <span style={{ ...mono, color: 'var(--color-text)', flex: 1, textAlign: 'right' }}>{password}</span>
           : (
@@ -1092,7 +1100,7 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
         }
       </div>
       <div style={{ fontSize: 10, color: 'var(--color-text-3)', textAlign: 'center', marginTop: 2 }}>
-        {phase === 'hidden' ? '● ● ●  нажмите чтобы показать' : 'нажмите ещё раз — скопирует оба поля'}
+        {phase === 'hidden' ? t('● ● ●  нажмите чтобы показать') : t('нажмите ещё раз — скопирует оба поля')}
       </div>
     </div>
   )
@@ -1101,6 +1109,7 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
 function StudentAvatar({
   student, group,
 }: { student: Student; group: Group }) {
+  const t = useT()
   const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
   const [hovered, setHovered] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -1121,7 +1130,7 @@ function StudentAvatar({
       onMouseEnter={() => !isRegistered && setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={() => !isRegistered && copyInvite()}
-      title={isRegistered ? '' : 'Скопировать ссылку приглашения'}
+      title={isRegistered ? '' : t('Скопировать ссылку приглашения')}
     >
       <div style={{
         width: 46, height: 46, borderRadius: 16,
@@ -1156,7 +1165,7 @@ function StudentAvatar({
           position: 'absolute', bottom: -2, right: -2,
           width: 12, height: 12, borderRadius: '50%',
           background: '#F5A623', border: '2px solid var(--color-bg)',
-        }} title="Ещё не зарегистрирован" />
+        }} title={t('Ещё не зарегистрирован')} />
       )}
     </div>
   )
@@ -1166,6 +1175,7 @@ function StudentAvatar({
 
 // ─── Full-screen student card ─────────────────────────────────────────────────
 function StudentFullCard({ student, group, onClose }: { student: Student; group: Group; onClose: () => void }) {
+  const t = useT()
   const [tab, setTab] = useState<'main' | 'trainer'>('main')
   const [trainerSections, setTrainerSections] = useState<TrainerSection[]>([])
   const [wrongTasks, setWrongTasks] = useState<WrongTask[]>([])
@@ -1225,7 +1235,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
               <button key={key} onClick={() => setTab(key)}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, fontWeight: tab === key ? 700 : 500, color: tab === key ? 'var(--color-text)' : 'var(--color-text-3)', borderBottom: `2px solid ${tab === key ? group.color : 'transparent'}`, transition: 'all 0.15s' }}>
                 <Icon size={13} />
-                {label}
+                {t(label)}
               </button>
             ))}
           </div>
@@ -1240,32 +1250,32 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                 {/* Left col */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   <section>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>Контакты</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>{t('Контакты')}</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       <ContactRow icon={Phone} label={student.phone} href={`tel:${student.phone}`} />
                       {student.telegramLink && <ContactRow icon={Send} label={contactLabel(student.telegramLink)} href={contactHref(student.telegramLink)} />}
-                      {student.parentContact && <ContactRow icon={User} label={`Родитель: ${student.parentContact}`} href={`tel:${student.parentContact}`} />}
+                      {student.parentContact && <ContactRow icon={User} label={`${t('Родитель:')} ${student.parentContact}`} href={`tel:${student.parentContact}`} />}
                     </div>
                   </section>
                   <section>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>Прочее</div>
-                    <InfoRow label="Начал(а)" value={student.startedAt} />
-                    <InfoRow label="Последний вход" value={student.lastVisit} />
-                    <InfoRow label="Целевой балл" value={`${student.desiredScore} баллов`} />
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>{t('Прочее')}</div>
+                    <InfoRow label={t('Начал(а)')} value={student.startedAt} />
+                    <InfoRow label={t('Последний вход')} value={student.lastVisit} />
+                    <InfoRow label={t('Целевой балл')} value={`${student.desiredScore} ${t('баллов')}`} />
                   </section>
                 </div>
                 {/* Right col */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   <section>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>Показатели</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>{t('Показатели')}</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                      <ScoreBar label="ДЗ" icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" bg="#D6F5E3" />
-                      <ScoreBar label="Тесты" icon={TrendingUp} value={student.testScore} color="var(--color-purple)" bg="#EFE0FF" />
-                      {student.trialScore !== null && <ScoreBar label="Пробник" icon={Award} value={student.trialScore} color="#F5A623" bg="#FFF3D6" />}
+                      <ScoreBar label={t('ДЗ')} icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" bg="#D6F5E3" />
+                      <ScoreBar label={t('Тесты')} icon={TrendingUp} value={student.testScore} color="var(--color-purple)" bg="#EFE0FF" />
+                      {student.trialScore !== null && <ScoreBar label={t('Пробник')} icon={Award} value={student.trialScore} color="#F5A623" bg="#FFF3D6" />}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', background: 'var(--color-bg)', borderRadius: 10 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                           <Clock size={13} strokeWidth={2} style={{ color: 'var(--color-muted)' }} />
-                          <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Посещаемость</span>
+                          <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Посещаемость')}</span>
                         </div>
                         <span style={{ fontSize: 13, fontWeight: 700, color: student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-yellow-text)' : 'var(--color-red-text)' }}>
                           {student.attendance}%
@@ -1292,7 +1302,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                   })().map(({ val, label, color, bg }) => (
                     <div key={label} style={{ padding: '12px 14px', borderRadius: 14, background: bg, textAlign: 'center' }}>
                       <div style={{ fontSize: 24, fontWeight: 750, color, lineHeight: 1 }}>{val}</div>
-                      <div style={{ fontSize: 11, color, opacity: 0.75, marginTop: 4 }}>{label}</div>
+                      <div style={{ fontSize: 11, color, opacity: 0.75, marginTop: 4 }}>{t(label)}</div>
                     </div>
                   ))}
                 </div>
@@ -1300,11 +1310,11 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
                     <Layers size={14} style={{ color: 'var(--color-muted)' }} />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>По разделам</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('По разделам')}</span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {trainerSections.length === 0 && (
-                      <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '8px 0' }}>Нет данных — ученик ещё не занимался в тренажёре</div>
+                      <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '8px 0' }}>{t('Нет данных — ученик ещё не занимался в тренажёре')}</div>
                     )}
                     {trainerSections.map(({ section, correct, total }) => {
                       const pct = total ? correct / total : 0
@@ -1331,27 +1341,27 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <XCircle size={14} style={{ color: 'var(--color-red-text)' }} />
-                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Задания с ошибками</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Задания с ошибками')}</span>
                     </div>
-                    <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>Нажмите, чтобы дать похожие</span>
+                    <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('Нажмите, чтобы дать похожие')}</span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {wrongTasks.length === 0 && (
-                      <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '4px 0' }}>Нет ошибок — или ученик ещё не занимался в тренажёре</div>
+                      <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '4px 0' }}>{t('Нет ошибок — или ученик ещё не занимался в тренажёре')}</div>
                     )}
-                    {wrongTasks.map(t => (
-                      <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'var(--color-red-soft)', border: '1px solid rgba(244,139,145,0.25)', cursor: 'pointer' }}
+                    {wrongTasks.map(wt => (
+                      <div key={wt.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'var(--color-red-soft)', border: '1px solid rgba(244,139,145,0.25)', cursor: 'pointer' }}
                         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(244,139,145,0.18)' }}
                         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--color-red-soft)' }}>
-                        <span style={{ padding: '2px 7px', borderRadius: 7, fontSize: 11, fontWeight: 700, background: 'rgba(244,139,145,0.35)', color: 'var(--color-red-text)', flexShrink: 0 }}>#{t.id}</span>
-                        <span style={{ fontSize: 13, color: 'var(--color-text)', flex: 1 }}>{t.topic}</span>
-                        <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>Линия {t.line}</span>
+                        <span style={{ padding: '2px 7px', borderRadius: 7, fontSize: 11, fontWeight: 700, background: 'rgba(244,139,145,0.35)', color: 'var(--color-red-text)', flexShrink: 0 }}>#{wt.id}</span>
+                        <span style={{ fontSize: 13, color: 'var(--color-text)', flex: 1 }}>{wt.topic}</span>
+                        <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>{t('Линия')} {wt.line}</span>
                         <CheckCircle2 size={14} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
                       </div>
                     ))}
                   </div>
                   <div style={{ marginTop: 14, padding: '10px 14px', borderRadius: 12, background: 'rgba(155,109,255,0.08)', border: '1px solid rgba(155,109,255,0.2)', fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.6 }}>
-                    💡 Данные тренажёра появятся автоматически, когда ученик начнёт заниматься в банке заданий под своим аккаунтом.
+                    💡 {t('Данные тренажёра появятся автоматически, когда ученик начнёт заниматься в банке заданий под своим аккаунтом.')}
                   </div>
                 </div>
               </motion.div>
@@ -1364,6 +1374,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
 }
 
 function StudentCoursesSection({ student, group }: { student: Student; group: Group }) {
+  const t = useT()
   const [courses, setCourses] = useState<StudentCourseInfo[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -1375,10 +1386,10 @@ function StudentCoursesSection({ student, group }: { student: Student; group: Gr
   return (
     <section>
       <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
-        Активные курсы
+        {t('Активные курсы')}
       </div>
       {!loading && courses.length === 0 && (
-        <div style={{ fontSize: 12, color: 'var(--color-text-3)', padding: '8px 0' }}>Нет активных курсов</div>
+        <div style={{ fontSize: 12, color: 'var(--color-text-3)', padding: '8px 0' }}>{t('Нет активных курсов')}</div>
       )}
       {courses.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1400,7 +1411,7 @@ function StudentCoursesSection({ student, group }: { student: Student; group: Gr
                     style={{ height: '100%', background: group.color, borderRadius: 99 }}
                   />
                 </div>
-                <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 3 }}>{Math.round(pct * 100)}% пройдено</div>
+                <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 3 }}>{Math.round(pct * 100)}% {t('пройдено')}</div>
               </div>
             )
           })}
@@ -1429,6 +1440,7 @@ function TracksSection({
   onRemoveCard: (groupId: string) => Promise<void>
   onOpenCard: (groupId: string) => void
 }) {
+  const t = useT()
   const [adding, setAdding] = useState(false)
   const [subject, setSubject] = useState('')
   const [level, setLevel] = useState('')
@@ -1454,7 +1466,7 @@ function TracksSection({
   return (
     <section>
       <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
-        Направления
+        {t('Направления')}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {/* Текущая карточка — read-only chip */}
@@ -1467,14 +1479,14 @@ function TracksSection({
         {siblings.map(sc => (
           <div key={sc.id} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <button
-              type="button" onClick={() => onOpenCard(sc.id)} title="Открыть карточку"
+              type="button" onClick={() => onOpenCard(sc.id)} title={t('Открыть карточку')}
               style={{ ...chip(sc.icon, sc.subject, sc.level, sc.color), cursor: 'pointer', flex: 1, justifyContent: 'flex-start' }}
             >
               <span>{sc.icon}</span>
               <span>{sc.subject}{sc.level ? ` · ${sc.level}` : ''}</span>
             </button>
             <button
-              type="button" onClick={() => onRemoveCard(sc.id)} title="Удалить карточку"
+              type="button" onClick={() => onRemoveCard(sc.id)} title={t('Удалить карточку')}
               style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               <X size={14} />
@@ -1487,10 +1499,10 @@ function TracksSection({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <div style={{ flex: 1 }}>
-                <TeacherSelect value={subject} onChange={setSubject} placeholder="Предмет" options={Object.keys(SUBJECT_ICONS)} triggerStyle={selectTriggerStyle} />
+                <TeacherSelect value={subject} onChange={setSubject} placeholder={t('Предмет')} options={Object.keys(SUBJECT_ICONS)} triggerStyle={selectTriggerStyle} />
               </div>
               <div style={{ flex: 1 }}>
-                <TeacherSelect value={level} onChange={setLevel} placeholder="Уровень" options={LEVEL_OPTIONS} triggerStyle={selectTriggerStyle} />
+                <TeacherSelect value={level} onChange={setLevel} placeholder={t('Уровень')} options={LEVEL_OPTIONS} triggerStyle={selectTriggerStyle} />
               </div>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
@@ -1498,13 +1510,13 @@ function TracksSection({
                 type="button" onClick={confirmAdd} disabled={!subject.trim() || busy}
                 style={{ flex: 1, padding: '8px 0', borderRadius: 9, cursor: (!subject.trim() || busy) ? 'default' : 'pointer', border: 'none', background: subject.trim() ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)', color: '#fff', fontSize: 12, fontWeight: 700 }}
               >
-                {busy ? 'Создаём…' : 'Создать карточку'}
+                {busy ? t('Создаём…') : t('Создать карточку')}
               </button>
               <button
                 type="button" onClick={() => { setAdding(false); setSubject(''); setLevel('') }}
                 style={{ padding: '8px 12px', borderRadius: 9, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600 }}
               >
-                Отмена
+                {t('Отмена')}
               </button>
             </div>
           </div>
@@ -1513,7 +1525,7 @@ function TracksSection({
             type="button" onClick={() => setAdding(true)}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '7px 0', borderRadius: 9, cursor: 'pointer', border: '1.5px dashed var(--color-border-medium)', background: 'transparent', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600 }}
           >
-            <Plus size={14} /> {individual ? 'Ещё направление' : 'Направление 1:1'}
+            <Plus size={14} /> {individual ? t('Ещё направление') : t('Направление 1:1')}
           </button>
         )}
       </div>
@@ -1525,6 +1537,7 @@ function StudentPanel({
   student, group, onClose, onDelete, onOpenFullCard, onAddHomework, onSaveComment, onResetPassword,
   siblingCards, onAddCard, onRemoveCard, onOpenCard, onAddToGroup,
 }: { student: Student; group: Group; onClose: () => void; onDelete: () => void; onOpenFullCard: () => void; onAddHomework: () => void; onSaveComment: (text: string) => Promise<void>; onResetPassword: () => Promise<string>; siblingCards?: SiblingCard[]; onAddCard?: (subject: string, level: string) => Promise<void>; onRemoveCard?: (groupId: string) => Promise<void>; onOpenCard?: (groupId: string) => void; onAddToGroup?: () => void }) {
+  const t = useT()
   const [comment, setComment] = useState(student.comment ?? '')
   const [commentSaved, setCommentSaved] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -1535,7 +1548,7 @@ function StudentPanel({
     setResetting(true)
     setResetErr(null)
     try { setNewPass(await onResetPassword()) }
-    catch (e) { setResetErr(e instanceof Error ? e.message : 'Не удалось сбросить пароль') }
+    catch (e) { setResetErr(e instanceof Error ? e.message : t('Не удалось сбросить пароль')) }
     finally { setResetting(false) }
   }
   // Re-sync the editor when switching to another student.
@@ -1590,7 +1603,7 @@ function StudentPanel({
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
             <button
               onClick={onOpenFullCard}
-              title="Полная статистика ученика"
+              title={t('Полная статистика ученика')}
               style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0, transition: 'color 0.15s' }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-accent)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-3)' }}
@@ -1616,7 +1629,7 @@ function StudentPanel({
         {(student.email || student.tempPassword) && (
           <section>
             <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
-              Доступ в кабинет
+              {t('Доступ в кабинет')}
             </div>
             <CredentialsSpoiler
               login={student.email ?? ''}
@@ -1627,7 +1640,7 @@ function StudentPanel({
               disabled={resetting}
               style={{ marginTop: 8, width: '100%', padding: '8px', borderRadius: 10, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 12, fontWeight: 600, cursor: resetting ? 'default' : 'pointer' }}
             >
-              {resetting ? 'Сбрасываем…' : newPass ? `Новый пароль: ${newPass}` : 'Сбросить пароль'}
+              {resetting ? t('Сбрасываем…') : newPass ? `${t('Новый пароль:')} ${newPass}` : t('Сбросить пароль')}
             </button>
             {resetErr && (
               <div style={{ marginTop: 6, fontSize: 11, color: 'var(--color-danger, #e5484d)', textAlign: 'center' }}>
@@ -1654,7 +1667,7 @@ function StudentPanel({
         {/* Contacts */}
         <section>
           <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
-            Контакты
+            {t('Контакты')}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <ContactRow icon={Phone} label={student.phone} href={`tel:${student.phone}`} />
@@ -1662,7 +1675,7 @@ function StudentPanel({
               <ContactRow icon={Send} label={contactLabel(student.telegramLink)} href={contactHref(student.telegramLink)} />
             )}
             {student.parentContact && (
-              <ContactRow icon={User} label={`Родитель: ${student.parentContact}`} href={`tel:${student.parentContact}`} />
+              <ContactRow icon={User} label={`${t('Родитель:')} ${student.parentContact}`} href={`tel:${student.parentContact}`} />
             )}
           </div>
         </section>
@@ -1670,13 +1683,13 @@ function StudentPanel({
         {/* Scores */}
         <section>
           <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
-            Показатели
+            {t('Показатели')}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <ScoreBar label="ДЗ" icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" bg="#D6F5E3" />
-            <ScoreBar label="Тесты" icon={TrendingUp} value={student.testScore} color="var(--color-purple)" bg="#EFE0FF" />
+            <ScoreBar label={t('ДЗ')} icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" bg="#D6F5E3" />
+            <ScoreBar label={t('Тесты')} icon={TrendingUp} value={student.testScore} color="var(--color-purple)" bg="#EFE0FF" />
             {student.trialScore !== null && (
-              <ScoreBar label="Пробник" icon={Award} value={student.trialScore} color="#F5A623" bg="#FFF3D6" />
+              <ScoreBar label={t('Пробник')} icon={Award} value={student.trialScore} color="#F5A623" bg="#FFF3D6" />
             )}
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -1684,7 +1697,7 @@ function StudentPanel({
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                 <Clock size={13} strokeWidth={2} style={{ color: 'var(--color-muted)' }} />
-                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Посещаемость</span>
+                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Посещаемость')}</span>
               </div>
               <span style={{
                 fontSize: 13, fontWeight: 700,
@@ -1702,14 +1715,14 @@ function StudentPanel({
         {/* Goal */}
         <section>
           <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
-            Цель
+            {t('Цель')}
           </div>
           <div style={{
             background: 'var(--color-yellow-soft)', border: '1px solid #F8C99166',
             borderRadius: 12, padding: '10px 12px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
-            <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Желаемый балл ЕГЭ</span>
+            <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Желаемый балл ЕГЭ')}</span>
             <span style={{ fontSize: 18, fontWeight: 750, color: 'var(--color-yellow-text)' }}>{student.desiredScore}</span>
           </div>
         </section>
@@ -1717,11 +1730,11 @@ function StudentPanel({
         {/* Info */}
         <section>
           <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, marginBottom: 8, textTransform: 'uppercase' }}>
-            Прочее
+            {t('Прочее')}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <InfoRow label="Начал(а)" value={student.startedAt} />
-            <InfoRow label="Последний вход" value={student.lastVisit} />
+            <InfoRow label={t('Начал(а)')} value={student.startedAt} />
+            <InfoRow label={t('Последний вход')} value={student.lastVisit} />
           </div>
         </section>
 
@@ -1729,18 +1742,18 @@ function StudentPanel({
         <section>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-              Заметка преподавателя
+              {t('Заметка преподавателя')}
             </div>
             {commentSaved && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)' }}>
-                <Check size={11} /> сохранено
+                <Check size={11} /> {t('сохранено')}
               </span>
             )}
           </div>
           <textarea
             value={comment}
             onChange={e => setComment(e.target.value)}
-            placeholder="Добавить заметку..."
+            placeholder={t('Добавить заметку...')}
             rows={3}
             style={{
               width: '100%', boxSizing: 'border-box',
@@ -1779,7 +1792,7 @@ function StudentPanel({
           onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.08)' }}
           onMouseLeave={e => { e.currentTarget.style.filter = 'none' }}
         >
-          <Plus size={15} strokeWidth={2.4} /> Выдать ДЗ допом
+          <Plus size={15} strokeWidth={2.4} /> {t('Выдать ДЗ допом')}
         </button>
         {onAddToGroup && (
           <button
@@ -1795,13 +1808,13 @@ function StudentPanel({
             onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-purple-soft)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-bg-3)' }}
           >
-            <Users size={15} strokeWidth={2.2} /> Добавить в группу
+            <Users size={15} strokeWidth={2.2} /> {t('Добавить в группу')}
           </button>
         )}
         <button
           disabled={deleting}
           onClick={async () => {
-            if (!window.confirm(`Удалить «${student.name}» из системы? Это действие нельзя отменить.`)) return
+            if (!window.confirm(`${t('Удалить')} «${student.name}» ${t('из системы? Это действие нельзя отменить.')}`)) return
             setDeleting(true)
             await onDelete()
           }}
@@ -1816,7 +1829,7 @@ function StudentPanel({
           onMouseEnter={e => { if (!deleting) e.currentTarget.style.background = '#ff453a11' }}
           onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
         >
-          {deleting ? 'Удаление...' : 'Удалить ученика'}
+          {deleting ? t('Удаление...') : t('Удалить ученика')}
         </button>
       </div>
     </div>
@@ -1898,6 +1911,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function TeacherGroupsPage() {
+  const t = useT()
   const { selectedGroupId, setSelectedGroupId } = useTeacher()
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
   const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
@@ -1943,8 +1957,8 @@ export default function TeacherGroupsPage() {
 
   const stripTabConfig: TabConfig = {
     tabs: [
-      { id: 'groups', label: 'Группы' },
-      { id: 'students', label: 'Ученики' },
+      { id: 'groups', label: t('Группы') },
+      { id: 'students', label: t('Ученики') },
     ],
     activeTab: activeStripTab,
     onTabChange: (id) => {
@@ -2165,7 +2179,7 @@ export default function TeacherGroupsPage() {
                         }}>1:1</span>
                       )}
                       <span style={{ fontSize: 12, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flex: 'none' }}>
-                        · {groupStudents.length} студент{groupStudents.length === 1 ? '' : 'ов'}
+                        · {groupStudents.length} {groupStudents.length === 1 ? t('студент') : t('студентов')}
                       </span>
                     </div>
 
@@ -2175,10 +2189,10 @@ export default function TeacherGroupsPage() {
                       display: 'flex', alignItems: 'center', gap: 6,
                     }}>
                       {([
-                        { id: 'all', label: 'Все' },
-                        { id: 'debtors', label: 'Должники' },
-                        { id: 'fading', label: 'Пропадают' },
-                        { id: 'nohw', label: 'Не сдали ДЗ' },
+                        { id: 'all', label: t('Все') },
+                        { id: 'debtors', label: t('Должники') },
+                        { id: 'fading', label: t('Пропадают') },
+                        { id: 'nohw', label: t('Не сдали ДЗ') },
                       ] as { id: RosterFilter; label: string }[]).map(f => {
                         const active = rosterFilter === f.id
                         const count = filterCounts[f.id]
@@ -2216,7 +2230,7 @@ export default function TeacherGroupsPage() {
                         <input
                           value={searchQuery}
                           onChange={e => setSearchQuery(e.target.value)}
-                          placeholder="Поиск ученика…"
+                          placeholder={t('Поиск ученика…')}
                           style={{
                             flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
                             fontSize: 13, color: 'var(--color-text)',
@@ -2239,7 +2253,7 @@ export default function TeacherGroupsPage() {
                               color: '#fff', fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap',
                             }}
                           >
-                            <Plus size={14} strokeWidth={2.6} /> Ученик
+                            <Plus size={14} strokeWidth={2.6} /> {t('Ученик')}
                           </button>
                           {rosterAddMenu && (
                             <>
@@ -2250,11 +2264,11 @@ export default function TeacherGroupsPage() {
                                 boxShadow: '0 12px 40px rgba(0,0,0,0.18)', border: '1px solid var(--color-border-soft)',
                               }}>
                                 <RosterAddItem
-                                  title="Новый ученик" subtitle="создать и выдать логин"
+                                  title={t('Новый ученик')} subtitle={t('создать и выдать логин')}
                                   onClick={() => { setRosterAddMenu(false); setShowAddStudent(true) }}
                                 />
                                 <RosterAddItem
-                                  title="Существующий" subtitle="перенести из другой группы / 1:1"
+                                  title={t('Существующий')} subtitle={t('перенести из другой группы / 1:1')}
                                   onClick={() => { setRosterAddMenu(false); setAddToGroupTarget(activeGroup.id) }}
                                 />
                               </div>
@@ -2270,14 +2284,14 @@ export default function TeacherGroupsPage() {
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ background: 'var(--color-bg-3)' }}>
-                        <Th label="Студент"        sortKey="name"       currentKey={sortKey} dir={sortDir} onSort={handleSort} />
-                        <Th label="Посл. вход"     sortKey="lastVisit"  currentKey={sortKey} dir={sortDir} onSort={handleSort} />
-                        <Th label="ДЗ"             sortKey="hwScore"    currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
-                        <Th label="Тест"           sortKey="testScore"  currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
-                        <Th label="Пробник"        sortKey="trialScore"   currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
-                        <Th label="Посещ."         sortKey="attendance"   currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
-                        <Th label="Посл. оплата"   sortKey="lastPayment"  currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
-                        <Th label="Долг"           sortKey="debt"         currentKey={sortKey} dir={sortDir} onSort={handleSort} right last />
+                        <Th label={t('Студент')}        sortKey="name"       currentKey={sortKey} dir={sortDir} onSort={handleSort} />
+                        <Th label={t('Посл. вход')}     sortKey="lastVisit"  currentKey={sortKey} dir={sortDir} onSort={handleSort} />
+                        <Th label={t('ДЗ')}             sortKey="hwScore"    currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
+                        <Th label={t('Тест')}           sortKey="testScore"  currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
+                        <Th label={t('Пробник')}        sortKey="trialScore"   currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
+                        <Th label={t('Посещ.')}         sortKey="attendance"   currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
+                        <Th label={t('Посл. оплата')}   sortKey="lastPayment"  currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
+                        <Th label={t('Долг')}           sortKey="debt"         currentKey={sortKey} dir={sortDir} onSort={handleSort} right last />
                       </tr>
                     </thead>
                     <tbody>
@@ -2392,8 +2406,8 @@ export default function TeacherGroupsPage() {
             }}
           >
             <Users size={36} strokeWidth={1.3} style={{ margin: '0 auto 12px' }} />
-            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-muted)' }}>Выберите группу</div>
-            <div style={{ fontSize: 12, marginTop: 4 }}>чтобы увидеть список студентов</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-muted)' }}>{t('Выберите группу')}</div>
+            <div style={{ fontSize: 12, marginTop: 4 }}>{t('чтобы увидеть список студентов')}</div>
           </motion.div>
         )}
       </div>
@@ -2433,7 +2447,7 @@ export default function TeacherGroupsPage() {
                 })
                 if (error || !data?.password) {
                   const msg = (data as { error?: string } | null)?.error
-                  throw new Error(msg || 'Не удалось сбросить пароль')
+                  throw new Error(msg || t('Не удалось сбросить пароль'))
                 }
                 return data.password as string
               }}

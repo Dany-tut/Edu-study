@@ -1,8 +1,10 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { TrendingUp } from 'lucide-react'
 import { useTrainerProgress } from '../store/trainerProgressStore'
+import { useT } from '../lib/i18n'
 
 export default function TrainerProgressPill() {
+  const t = useT()
   const { doneCount, wrongCount, totalCount, favCount, todayCorrect, todayWrong, setOpenModal } = useTrainerProgress()
 
   const pct = totalCount ? (doneCount / totalCount) * 100 : 0
@@ -48,7 +50,7 @@ export default function TrainerProgressPill() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <TrendingUp size={13} style={{ color: 'var(--color-green-accent)' }} />
-          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>Прогресс</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t('Прогресс')}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>
@@ -57,7 +59,7 @@ export default function TrainerProgressPill() {
           </span>
           {wrongCount > 0 && (
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-red-text)' }}>
-              {wrongCount} ош.
+              {wrongCount} {t('ош.')}
             </span>
           )}
           {favCount > 0 && (
@@ -89,7 +91,7 @@ export default function TrainerProgressPill() {
             exit={{ opacity: 0, height: 0 }}
             style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}
           >
-            <span style={{ fontSize: 10, color: 'var(--color-muted)' }}>Сегодня</span>
+            <span style={{ fontSize: 10, color: 'var(--color-muted)' }}>{t('Сегодня')}</span>
             {todayCorrect > 0 && (
               <span style={{ padding: '1px 7px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 10, fontWeight: 700 }}>✓ {todayCorrect}</span>
             )}

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useT } from '../lib/i18n'
 import { getStudentSession } from '../lib/studentSession'
 import { trackEvent } from '../lib/analytics'
 
@@ -26,6 +27,7 @@ export function hasStudentConsent(): boolean {
  * lawyer and link a real privacy policy before launch.
  */
 export default function ConsentOverlay({ onAccept }: { onAccept: () => void }) {
+  const t = useT()
   const [checked, setChecked] = useState(false)
   const session = getStudentSession()
   if (!session) return null
@@ -77,7 +79,7 @@ export default function ConsentOverlay({ onAccept }: { onAccept: () => void }) {
             )}
           </span>
           <span style={{ fontSize: 12, lineHeight: 1.4, color: 'var(--color-text-2)' }}>
-            Согласен(а) на обработку данных.
+            {t('Согласен(а) на обработку данных.')}
           </span>
         </label>
 
@@ -92,7 +94,7 @@ export default function ConsentOverlay({ onAccept }: { onAccept: () => void }) {
             transition: 'opacity .15s, background .15s',
           }}
         >
-          Принимаю и продолжаю
+          {t('Принимаю и продолжаю')}
         </button>
       </div>
     </div>

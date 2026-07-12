@@ -18,6 +18,7 @@ import { tactile } from '../lib/feedback'
 import { useNow } from '../lib/useNow'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
+import { useT } from '../lib/i18n'
 import type { Lesson, LessonStatus } from '../data/mockData'
 
 // MOBILE ONLY course (v2) — premium lesson cards (плашки) + level/XP layer.
@@ -39,6 +40,7 @@ const STATUS_VISUAL: Record<LessonStatus, StatusVisual> = {
 }
 
 export default function MobileCourses() {
+  const t = useT()
   const subjects = useStudentData(s => s.subjects)
   const loaded = useStudentData(s => s.loaded)
   const stats = useStudentData(s => s.stats)
@@ -74,7 +76,7 @@ export default function MobileCourses() {
   }, [subject])
 
   const moduleTabs: Array<{ id: number | typeof ALL; label: string }> = subject
-    ? [{ id: ALL, label: 'Все' }, ...subject.modules.map(m => ({ id: m.id, label: m.label }))]
+    ? [{ id: ALL, label: t('Все') }, ...subject.modules.map(m => ({ id: m.id, label: m.label }))]
     : []
 
   // Level / XP from points.
@@ -100,7 +102,7 @@ export default function MobileCourses() {
     <div className="flex items-center justify-between" style={{ gap: 8 }}>
       <GlassPill>
         <FlaskConical size={15} style={{ color: 'var(--color-accent)' }} />
-        {subject?.name ?? 'Курс'}
+        {subject?.name ?? t('Курс')}
       </GlassPill>
       <div className="flex items-center" style={{ gap: 8 }}>
         <GlassPill>
@@ -120,8 +122,8 @@ export default function MobileCourses() {
             {loaded && (
               <>
                 <Lock size={22} style={{ color: 'var(--color-muted)', marginBottom: 4 }} />
-                <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>Курс ещё не открыт</p>
-                <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Преподаватель откроет доступ к урокам</p>
+                <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{t('Курс ещё не открыт')}</p>
+                <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Преподаватель откроет доступ к урокам')}</p>
               </>
             )}
             {!loaded && <Skeleton.Text lines={3} style={{ width: '100%', maxWidth: 280 }} />}
@@ -131,7 +133,7 @@ export default function MobileCourses() {
             {/* Level / XP hero */}
             <div style={{ borderRadius: 20, padding: '14px 16px', background: 'var(--color-purple-soft)' }}>
               <div className="flex items-center justify-between" style={{ marginBottom: 9 }}>
-                <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-purple-text)' }}>Уровень {level} · {rank}</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-purple-text)' }}>{t('Уровень')} {level} · {t(rank)}</span>
                 <span className="flex items-center" style={{ gap: 4, fontSize: 12, fontWeight: 700, color: 'var(--color-purple-text)' }}>
                   <Zap size={13} />{xpInLevel}/{XP_PER_LEVEL} XP
                 </span>
@@ -144,9 +146,9 @@ export default function MobileCourses() {
             {/* Course stats strip — progress visible at a glance */}
             {courseStats && (
               <div className="flex" style={{ gap: 8 }}>
-                <CourseStat value={`${courseStats.done}/${courseStats.total}`} label="Уроков" pair={STATUS_VISUAL.completed} />
-                <CourseStat value={`${courseStats.progress}%`} label="Пройдено" pair={STATUS_VISUAL.current} />
-                <CourseStat value={courseStats.avg ? `${courseStats.avg}%` : '—'} label="Ср. балл" pair={STATUS_VISUAL.submitted} />
+                <CourseStat value={`${courseStats.done}/${courseStats.total}`} label={t('Уроков')} pair={STATUS_VISUAL.completed} />
+                <CourseStat value={`${courseStats.progress}%`} label={t('Пройдено')} pair={STATUS_VISUAL.current} />
+                <CourseStat value={courseStats.avg ? `${courseStats.avg}%` : '—'} label={t('Ср. балл')} pair={STATUS_VISUAL.submitted} />
               </div>
             )}
 
@@ -181,7 +183,7 @@ export default function MobileCourses() {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center text-center" style={{ minHeight: 160, color: 'var(--color-muted)', gap: 4 }}>
-                <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)' }}>В модуле пока нет уроков</p>
+                <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)' }}>{t('В модуле пока нет уроков')}</p>
               </div>
             )}
           </div>
@@ -199,15 +201,15 @@ export default function MobileCourses() {
             />
           )}
           {showModuleIndex && (
-            <DockCircle icon={<LayoutList size={20} />} ariaLabel="Модули" onClick={() => setModuleSheet(true)} />
+            <DockCircle icon={<LayoutList size={20} />} ariaLabel={t('Модули')} onClick={() => setModuleSheet(true)} />
           )}
         </MobileDock>
       )}
 
       {/* Module index — jump to any module without scrolling the chip row */}
-      <MobileSheet open={moduleSheet} onClose={() => setModuleSheet(false)} title="Модули">
+      <MobileSheet open={moduleSheet} onClose={() => setModuleSheet(false)} title={t('Модули')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <ModuleRow label="Все уроки" total={subject?.modules.flatMap(m => m.lessons).length ?? 0}
+          <ModuleRow label={t('Все уроки')} total={subject?.modules.flatMap(m => m.lessons).length ?? 0}
             done={subject?.modules.flatMap(m => m.lessons).filter(l => l.status === 'completed').length ?? 0}
             active={moduleTab === ALL}
             onClick={() => { setModuleTab(ALL); setModuleSheet(false) }} />
@@ -238,6 +240,7 @@ function CourseStat({ value, label, pair }: { value: string; label: string; pair
 }
 
 function ModuleRow({ label, total, done, active, onClick }: { label: string; total: number; done: number; active: boolean; onClick: () => void }) {
+  const t = useT()
   const pct = total > 0 ? Math.round((done / total) * 100) : 0
   return (
     <motion.button
@@ -249,7 +252,7 @@ function ModuleRow({ label, total, done, active, onClick }: { label: string; tot
     >
       <div className="flex-1 min-w-0">
         <div className="truncate" style={{ fontSize: 14.5, fontWeight: 700, color: active ? 'var(--color-accent)' : 'var(--color-text)' }}>{label}</div>
-        <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 3 }}>{done} из {total} · {pct}%</div>
+        <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 3 }}>{done} {t('из')} {total} · {pct}%</div>
       </div>
       <div style={{ width: 40, height: 6, borderRadius: 99, background: 'var(--color-bg-3)', overflow: 'hidden', flexShrink: 0 }}>
         <div style={{ width: `${pct}%`, height: '100%', borderRadius: 99, background: pct === 100 ? 'var(--color-green-accent)' : 'var(--color-accent)' }} />
@@ -259,6 +262,7 @@ function ModuleRow({ label, total, done, active, onClick }: { label: string; tot
 }
 
 function LessonCard({ lesson, status, index, focused, onOpen }: { lesson: Lesson; status: LessonStatus; index: number; focused: boolean; onOpen: () => void }) {
+  const t = useT()
   const v = STATUS_VISUAL[status]
   const Icon = v.icon
   const isLocked = status === 'locked'
@@ -295,7 +299,7 @@ function LessonCard({ lesson, status, index, focused, onOpen }: { lesson: Lesson
           )}
         </div>
         <div className="flex items-center" style={{ gap: 8 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: v.tint }}>{isLocked ? 'Откроется позже' : v.label}</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: v.tint }}>{isLocked ? t('Откроется позже') : t(v.label)}</span>
         </div>
       </div>
       {/* trailing */}

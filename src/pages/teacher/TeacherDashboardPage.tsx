@@ -31,8 +31,10 @@ import { useTeacher, HASH_TO_PAGE, PAGE_TO_HASH } from '../../store/teacherStore
 import { useDeskStore } from '../../store/deskStore'
 import { useDeskLayouts } from '../../lib/useDeskLayouts'
 import { useTeacherAccess, TEACHER_TABS } from '../../lib/teacherAccess'
+import { useT } from '../../lib/i18n'
 
 export default function TeacherDashboardPage() {
+  const t = useT()
   const activePage = useTeacher(s => s.activePage)
   const setActivePage = useTeacher(s => s.setActivePage)
   const headerDocked = useTeacher(s => s.headerDocked)
@@ -130,7 +132,7 @@ export default function TeacherDashboardPage() {
         <DeskSwitcher
           config={config}
           onSetActive={setActiveDesk}
-          onAddDesk={() => addDesk('Стол ' + (config.desks.length + 1))}
+          onAddDesk={() => addDesk(t('Стол') + ' ' + (config.desks.length + 1))}
           onResetDesk={resetDesk}
           onAddWidget={() => setShowWidgetLibrary(true)}
         />

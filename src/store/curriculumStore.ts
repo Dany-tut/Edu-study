@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
+import { t } from '../lib/i18n'
 import {
   type Subject, type SubjectCurriculum,
   getStaticCurriculum, setRuntimeCurriculum,
@@ -197,7 +198,7 @@ export const useCurriculum = create<CurriculumState>()(
 
       addLine: (subject, section, part) => commit(set, subject, d => {
         const nextN = d.lines.reduce((m, l) => Math.max(m, l.n), 0) + 1
-        return { ...d, lines: [...d.lines, { n: nextN, name: `Линия ${nextN}`, section, part }] }
+        return { ...d, lines: [...d.lines, { n: nextN, name: `${t('Линия')} ${nextN}`, section, part }] }
       }),
       updateLine: (subject, n, patch) => commit(set, subject, d => {
         // Block collisions when changing the line number.

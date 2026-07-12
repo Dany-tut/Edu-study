@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { X, Search, Users, Check, User, ChevronLeft } from 'lucide-react'
 import type { Group, Student } from '../../data/teacherMockData'
 import TeacherSelect from './TeacherSelect'
+import { useT } from '../../lib/i18n'
 
 // Identity a group-enrollment reuses. Any object carrying these fields works.
 export type PersonLike = Pick<
@@ -42,6 +43,7 @@ export function PickStudentModal({
   onPick: (person: PersonLike) => void
   onClose: () => void
 }) {
+  const t = useT()
   const [q, setQ] = useState('')
   const query = q.trim().toLowerCase()
   const list = useMemo(
@@ -56,17 +58,17 @@ export function PickStudentModal({
         onClick={e => e.stopPropagation()} style={card}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-          <span style={{ fontSize: 16, fontWeight: 700 }}>Добавить ученика</span>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>{t('Добавить ученика')}</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
         </div>
         <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>
-          в группу <b style={{ color: targetGroup.color }}>{targetGroup.name}</b> — существующий ученик сохранит свой логин
+          {t('в группу')} <b style={{ color: targetGroup.color }}>{targetGroup.name}</b> {t('— существующий ученик сохранит свой логин')}
         </div>
 
         <div style={searchBox}>
           <Search size={15} style={{ color: 'var(--color-text-3)' }} />
           <input
-            autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder="Поиск по имени…"
+            autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t('Поиск по имени…')}
             style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: 'var(--color-text)' }}
           />
         </div>
@@ -74,7 +76,7 @@ export function PickStudentModal({
         <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, minHeight: 60 }}>
           {list.length === 0 && (
             <div style={{ fontSize: 13, color: 'var(--color-text-3)', textAlign: 'center', padding: '24px 0' }}>
-              {people.length === 0 ? 'Нет учеников' : 'Никого не нашлось'}
+              {people.length === 0 ? t('Нет учеников') : t('Никого не нашлось')}
             </div>
           )}
           {list.map(({ key, person, subjects, registered }) => (
@@ -100,8 +102,8 @@ export function PickStudentModal({
                   {person.name}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {subjects.length ? subjects.join(' · ') : 'Без предметов'}
-                  {registered ? ' · есть аккаунт' : ' · не зарегистрирован'}
+                  {subjects.length ? subjects.join(' · ') : t('Без предметов')}
+                  {registered ? t(' · есть аккаунт') : t(' · не зарегистрирован')}
                 </div>
               </div>
             </button>
@@ -123,6 +125,7 @@ export function PickGroupModal({
   onPick: (groupId: string) => void
   onClose: () => void
 }) {
+  const t = useT()
   const [q, setQ] = useState('')
   const query = q.trim().toLowerCase()
   const list = useMemo(
@@ -137,17 +140,17 @@ export function PickGroupModal({
         onClick={e => e.stopPropagation()} style={card}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-          <span style={{ fontSize: 16, fontWeight: 700 }}>Добавить в группу</span>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>{t('Добавить в группу')}</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
         </div>
         <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>
-          <b>{studentName}</b> сохранит свой логин и увидит курс группы
+          <b>{studentName}</b> {t('сохранит свой логин и увидит курс группы')}
         </div>
 
         <div style={searchBox}>
           <Search size={15} style={{ color: 'var(--color-text-3)' }} />
           <input
-            autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder="Поиск группы…"
+            autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t('Поиск группы…')}
             style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: 'var(--color-text)' }}
           />
         </div>
@@ -155,7 +158,7 @@ export function PickGroupModal({
         <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, minHeight: 60 }}>
           {list.length === 0 && (
             <div style={{ fontSize: 13, color: 'var(--color-text-3)', textAlign: 'center', padding: '24px 0' }}>
-              {groups.length === 0 ? 'Нет групп' : 'Уже во всех группах'}
+              {groups.length === 0 ? t('Нет групп') : t('Уже во всех группах')}
             </div>
           )}
           {list.map(g => {
@@ -182,7 +185,7 @@ export function PickGroupModal({
                     {g.name}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2 }}>
-                    {g.level} · {g.studentCount} студ.
+                    {g.level} · {g.studentCount} {t('студ.')}
                   </div>
                 </div>
                 {already && <Check size={16} style={{ color: g.color }} />}
@@ -213,6 +216,7 @@ export function AddExistingIndividualModal({
   onCreate: (person: PersonLike, subject: string, level: string) => Promise<{ inviteToken: string | null; registered: boolean }>
   onClose: () => void
 }) {
+  const t = useT()
   const [step, setStep] = useState<'pick' | 'subject' | 'result'>('pick')
   const [picked, setPicked] = useState<{ person: PersonLike; registered: boolean } | null>(null)
   const [subject, setSubject] = useState('')
@@ -255,7 +259,7 @@ export function AddExistingIndividualModal({
             {step === 'subject' && (
               <button onClick={() => setStep('pick')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex' }}><ChevronLeft size={18} /></button>
             )}
-            {step === 'result' ? 'Карточка 1:1 создана' : 'Существующий ученик → 1:1'}
+            {step === 'result' ? t('Карточка 1:1 создана') : t('Существующий ученик → 1:1')}
           </span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
         </div>
@@ -263,17 +267,17 @@ export function AddExistingIndividualModal({
         {step === 'pick' && (
           <>
             <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>
-              выберите человека — новая карточка переиспользует его аккаунт
+              {t('выберите человека — новая карточка переиспользует его аккаунт')}
             </div>
             <div style={searchBox}>
               <Search size={15} style={{ color: 'var(--color-text-3)' }} />
-              <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder="Поиск по имени…"
+              <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t('Поиск по имени…')}
                 style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: 'var(--color-text)' }} />
             </div>
             <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, minHeight: 60 }}>
               {list.length === 0 && (
                 <div style={{ fontSize: 13, color: 'var(--color-text-3)', textAlign: 'center', padding: '24px 0' }}>
-                  {people.length === 0 ? 'Нет учеников' : 'Никого не нашлось'}
+                  {people.length === 0 ? t('Нет учеников') : t('Никого не нашлось')}
                 </div>
               )}
               {list.map(({ key, person, subjects, registered }) => (
@@ -294,7 +298,7 @@ export function AddExistingIndividualModal({
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{person.name}</div>
                     <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {subjects.length ? subjects.join(' · ') : 'Без предметов'}{registered ? ' · есть аккаунт' : ' · не зарегистрирован'}
+                      {subjects.length ? subjects.join(' · ') : t('Без предметов')}{registered ? t(' · есть аккаунт') : t(' · не зарегистрирован')}
                     </div>
                   </div>
                 </button>
@@ -309,15 +313,15 @@ export function AddExistingIndividualModal({
               <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: 'linear-gradient(135deg, var(--color-accent), var(--color-purple))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#fff' }}>{initials(picked.person.name)}</div>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{picked.person.name}</div>
-                <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>{picked.registered ? 'есть аккаунт — логин сохранится' : 'не зарегистрирован — дадим ссылку'}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-muted)' }}>{picked.registered ? t('есть аккаунт — логин сохранится') : t('не зарегистрирован — дадим ссылку')}</div>
               </div>
             </div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>Направление 1:1</div>
-            <TeacherSelect value={subject} onChange={setSubject} placeholder="Предмет" options={subjectOptions} triggerStyle={selectTrigger} />
-            <TeacherSelect value={level} onChange={setLevel} placeholder="Уровень" options={levelOptions} triggerStyle={selectTrigger} />
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>{t('Направление 1:1')}</div>
+            <TeacherSelect value={subject} onChange={setSubject} placeholder={t('Предмет')} options={subjectOptions} triggerStyle={selectTrigger} />
+            <TeacherSelect value={level} onChange={setLevel} placeholder={t('Уровень')} options={levelOptions} triggerStyle={selectTrigger} />
             <button onClick={create} disabled={!subject.trim() || busy}
               style={{ marginTop: 4, width: '100%', padding: '12px 0', background: subject.trim() ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: subject.trim() && !busy ? 'pointer' : 'not-allowed' }}>
-              {busy ? 'Создаём…' : 'Создать карточку 1:1'}
+              {busy ? t('Создаём…') : t('Создать карточку 1:1')}
             </button>
           </div>
         )}
@@ -327,20 +331,20 @@ export function AddExistingIndividualModal({
             {result?.registered || !inviteLink ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--color-green-soft)', borderRadius: 14, padding: '14px 16px' }}>
                 <User size={18} color="var(--color-green-text)" />
-                <div style={{ fontSize: 13, color: 'var(--color-text)' }}>Готово — ученик увидит карточку по своему логину.</div>
+                <div style={{ fontSize: 13, color: 'var(--color-text)' }}>{t('Готово — ученик увидит карточку по своему логину.')}</div>
               </div>
             ) : (
               <>
                 <div style={{ background: 'var(--color-bg-4)', borderRadius: 14, padding: '14px 16px' }}>
-                  <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 6, fontWeight: 600 }}>ССЫЛКА ДЛЯ РЕГИСТРАЦИИ</div>
+                  <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 6, fontWeight: 600 }}>{t('ССЫЛКА ДЛЯ РЕГИСТРАЦИИ')}</div>
                   <div style={{ fontSize: 13, color: 'var(--color-text)', wordBreak: 'break-all', lineHeight: 1.5 }}>{inviteLink}</div>
                 </div>
                 <button onClick={copy} style={{ width: '100%', padding: '12px 0', background: copied ? '#3FCC8A' : 'var(--color-purple)', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.2s' }}>
-                  {copied ? '✓ Скопировано' : 'Скопировать ссылку'}
+                  {copied ? t('✓ Скопировано') : t('Скопировать ссылку')}
                 </button>
               </>
             )}
-            <button onClick={onClose} style={{ width: '100%', padding: '10px 0', background: 'transparent', color: 'var(--color-muted)', fontWeight: 600, fontSize: 14, border: 'none', cursor: 'pointer' }}>Закрыть</button>
+            <button onClick={onClose} style={{ width: '100%', padding: '10px 0', background: 'transparent', color: 'var(--color-muted)', fontWeight: 600, fontSize: 14, border: 'none', cursor: 'pointer' }}>{t('Закрыть')}</button>
           </div>
         )}
       </motion.div>

@@ -5,6 +5,7 @@ import { useTeacher } from '../../../store/teacherStore'
 import type { TeacherTask } from '../../../store/teacherStore'
 import CreateTaskModal from '../CreateTaskModal'
 import { usePersistentState, clearDrafts } from '../../../lib/useDraft'
+import { useT } from '../../../lib/i18n'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 18 },
@@ -44,6 +45,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
   onRemove: () => void
   onClick: () => void
 }) {
+  const t = useT()
   const rowRef = useRef<HTMLDivElement>(null)
   const [showDelete, setShowDelete] = useState(false)
 
@@ -99,7 +101,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
         textDecoration: task.done ? 'line-through' : 'none',
         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}>
-        {(task.title || (task.typeLabel ?? 'Задача')).replace(/@/g, '')}
+        {(task.title || (task.typeLabel ?? t('Задача'))).replace(/@/g, '')}
       </span>
 
       <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>
@@ -130,6 +132,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
 }
 
 export default function WidgetTodayTasks() {
+  const t = useT()
   const tasks = useTeacher(s => s.tasks)
   const toggleTask = useTeacher(s => s.toggleTask)
   const removeTask = useTeacher(s => s.removeTask)
@@ -146,10 +149,10 @@ export default function WidgetTodayTasks() {
           <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <CardTitle>
               <CheckCircle2 size={14} strokeWidth={2} />
-              Мои задачи
+              {t('Мои задачи')}
             </CardTitle>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: 13, color: 'var(--color-text-4)', fontWeight: 500 }}>Нет задач</span>
+              <span style={{ fontSize: 13, color: 'var(--color-text-4)', fontWeight: 500 }}>{t('Нет задач')}</span>
             </div>
           </Card>
         </motion.div>
@@ -193,7 +196,7 @@ export default function WidgetTodayTasks() {
         <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
           <CardTitle>
             <CheckCircle2 size={14} strokeWidth={2} />
-            Мои задачи
+            {t('Мои задачи')}
             {pending.length > 0 && (
               <span style={{
                 marginLeft: 'auto',

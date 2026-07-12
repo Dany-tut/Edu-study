@@ -4,8 +4,10 @@ import { useMemo } from 'react'
 import { useTeacher } from '../../store/teacherStore'
 import { useHomework, useHomeworkSubmissions } from '../../lib/useHomework'
 import { useStudents } from '../../lib/useGroups'
+import { useT } from '../../lib/i18n'
 
 export default function ReviewNavPill() {
+  const t = useT()
   const reviewingHwId = useTeacher(s => s.reviewingHwId)
   const reviewIdx = useTeacher(s => s.reviewIdx)
   const setReviewIdx = useTeacher(s => s.setReviewIdx)
@@ -68,7 +70,7 @@ export default function ReviewNavPill() {
       }}>
         <CheckCircle2 size={14} style={{ color: allDone ? 'var(--color-green-text)' : 'var(--color-text-4)', flexShrink: 0 }} />
         <span style={{ fontSize: 13, fontWeight: 600, color: allDone ? 'var(--color-green-accent)' : 'var(--color-text-2)', whiteSpace: 'nowrap' }}>
-          {allDone ? 'Все проверены' : `Проверено ${reviewedCount} из ${submitters.length}`}
+          {allDone ? t('Все проверены') : `${t('Проверено')} ${reviewedCount} ${t('из')} ${submitters.length}`}
         </span>
       </div>
     </div>

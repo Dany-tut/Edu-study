@@ -1,5 +1,6 @@
 import { Component, type ReactNode } from 'react'
 import { trackEvent } from '../lib/analytics'
+import { t } from '../lib/i18n'
 
 type Props = { children: ReactNode }
 type State = { error: Error | null }
@@ -43,20 +44,20 @@ export default class ErrorBoundary extends Component<Props, State> {
         gap: 16, padding: '32px 20px', textAlign: 'center',
       }}>
         <div style={{ fontSize: 44, opacity: 0.35 }}>⚠️</div>
-        <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>Что-то пошло не так</div>
+        <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{t('Что-то пошло не так')}</div>
         <div style={{ fontSize: 13, color: 'var(--color-muted)', maxWidth: 360, lineHeight: 1.5 }}>
-          Произошла ошибка на этой странице. Попробуйте обновить — если повторяется, сообщите нам.
+          {t('Произошла ошибка на этой странице. Попробуйте обновить — если повторяется, сообщите нам.')}
         </div>
         <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
           <button
             onClick={() => window.location.reload()}
             style={{ padding: '10px 28px', borderRadius: 12, border: 'none', background: 'var(--grad-purple, #786AD7)', color: '#fff', fontSize: 13, fontWeight: 600, lineHeight: 1.2, cursor: 'pointer', whiteSpace: 'nowrap' }}
           >
-            Обновить
+            {t('Обновить')}
           </button>
         </div>
         <div style={{ position: 'fixed', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', left: 0, right: 0, textAlign: 'center', fontSize: 11, fontWeight: 500, color: 'var(--color-text-3)', letterSpacing: 0.3 }}>
-          Версия {__APP_VERSION__}
+          {t('Версия')} {__APP_VERSION__}
         </div>
       </div>
     )

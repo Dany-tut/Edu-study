@@ -8,6 +8,7 @@ const onPhotoTooLarge = (e: unknown) => {
   else throw e
 }
 import { getContrastColor } from '../../lib/utils'
+import { useT } from '../../lib/i18n'
 
 // ─── Shared table editor (Notion-style) ──────────────────────────────────────
 // Extracted from the trainer creator so the course constructor uses the exact
@@ -68,6 +69,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
   allowCellImages?: boolean
   hint?: boolean
 }) {
+  const t = useT()
   const headers = value.headers
   const rows = value.rows
   const emptyCells = value.emptyCells ?? {}
@@ -220,7 +222,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
               return (
                 <th key={c} onDoubleClick={() => setSel({ type: 'col', index: c })}
                   style={{ borderRight: '1px solid var(--color-border-medium)', borderBottom: '1px solid var(--color-border-strong)', background: colSel ? accentBg : 'var(--color-table-header-bg)', padding: 0, cursor: 'text', transition: 'background 0.12s', minWidth: 90 }}>
-                  <input value={h} onChange={e => setHeader(c, e.target.value)} placeholder={`Заголовок ${c + 1}`}
+                  <input value={h} onChange={e => setHeader(c, e.target.value)} placeholder={`${t('Заголовок')} ${c + 1}`}
                     onPaste={c === 0 ? handlePaste : undefined}
                     style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', color: 'var(--color-text)', padding: '8px 10px', fontWeight: 700, fontFamily: 'inherit', fontSize: 13 }} />
                 </th>
@@ -262,11 +264,11 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                     ) : isExplicitlyEmpty ? (
                       // Student will type here — show "вписать" badge + X to remove
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', minHeight: 34, gap: 4 }}>
-                        <span style={{ fontSize: 11, color: accent, fontWeight: 700, letterSpacing: 0.2 }}>вписать</span>
+                        <span style={{ fontSize: 11, color: accent, fontWeight: 700, letterSpacing: 0.2 }}>{t('вписать')}</span>
                         <button
                           onMouseDown={e => { e.stopPropagation(); setEmpty(key, false) }}
                           style={{ width: 16, height: 16, borderRadius: 4, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
-                          title="Убрать поле ответа"
+                          title={t('Убрать поле ответа')}
                         ><X size={9} /></button>
                       </div>
                     ) : isExplicitlyBlank ? (
@@ -289,22 +291,22 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                           onMouseDown={e => { e.stopPropagation(); setActiveCell(key) }}
                           onClick={e => e.stopPropagation()}
                           style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
-                        >Текст</button>
+                        >{t('Текст')}</button>
                         <button
                           onMouseDown={e => { e.stopPropagation(); setEmpty(key, true) }}
                           onClick={e => e.stopPropagation()}
                           style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
-                        >Вписать</button>
+                        >{t('Вписать')}</button>
                         <button
                           onMouseDown={e => { e.stopPropagation(); setBlank(key, true) }}
                           onClick={e => e.stopPropagation()}
                           style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
-                        >Пусто</button>
+                        >{t('Пусто')}</button>
                         {allowCellImages && (
                           <button
                             onClick={e => { e.stopPropagation(); pickCellImage(key) }}
                             style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
-                          ><Camera size={10} /> Фото</button>
+                          ><Camera size={10} /> {t('Фото')}</button>
                         )}
                       </div>
                     ) : (
@@ -332,17 +334,17 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
           </table>
         </div>
         {bounds.colX.map((x, i) => (
-          <InsertHandle key={`c${i}`} accent={accent} title="Добавить столбец" onClick={() => insertCol(i)}
+          <InsertHandle key={`c${i}`} accent={accent} title={t('Добавить столбец')} onClick={() => insertCol(i)}
             style={{ left: 20 + x - 18, top: 0, width: 36, height: 20 }} />
         ))}
         {bounds.rowY.map((y, j) => (
-          <InsertHandle key={`r${j}`} accent={accent} title="Добавить строку" onClick={() => insertRow(j)}
+          <InsertHandle key={`r${j}`} accent={accent} title={t('Добавить строку')} onClick={() => insertRow(j)}
             style={{ left: 0, top: 20 + y - 18, width: 20, height: 36 }} />
         ))}
       </div>
       {hint && (
         <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>
-          Внутри таблицы клик выделяет строку (по ячейке) или столбец (по заголовку), удалить выделенное — клавишей Delete. Кружки «+» по краям: сверху добавляют столбец, слева — строку.
+          {t('Внутри таблицы клик выделяет строку (по ячейке) или столбец (по заголовку), удалить выделенное — клавишей Delete. Кружки «+» по краям: сверху добавляют столбец, слева — строку.')}
         </div>
       )}
     </>

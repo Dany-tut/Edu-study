@@ -1,13 +1,15 @@
 import { motion } from 'framer-motion'
 import { useStudentData } from '../store/studentDataStore'
+import { useT } from '../lib/i18n'
 
 export default function StatsPanel() {
+  const t = useT()
   const s = useStudentData(d => d.stats)
   const stats = [
-    { label: 'Успеваемость', value: `${s.performance}%`, sub: 'Уровень' },
-    { label: 'Задания', value: `${s.completedTasks}/${s.totalTasks}`, sub: 'Выполнено' },
-    { label: 'Средний балл', value: `${s.avgScore}`, sub: 'За месяц' },
-    { label: 'Серия', value: `${s.streak} дн.`, sub: 'Подряд' },
+    { label: t('Успеваемость'), value: `${s.performance}%`, sub: t('Уровень') },
+    { label: t('Задания'), value: `${s.completedTasks}/${s.totalTasks}`, sub: t('Выполнено') },
+    { label: t('Средний балл'), value: `${s.avgScore}`, sub: t('За месяц') },
+    { label: t('Серия'), value: `${s.streak} ${t('дн.')}`, sub: t('Подряд') },
   ]
   return (
     <motion.div

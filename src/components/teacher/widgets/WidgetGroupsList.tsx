@@ -1,8 +1,10 @@
 import { Users, ChevronRight } from 'lucide-react'
 import { useGroups } from '../../../lib/useGroups'
 import { useTeacher } from '../../../store/teacherStore'
+import { useT } from '../../../lib/i18n'
 
 export default function WidgetGroupsList() {
+  const t = useT()
   const { groups } = useGroups()
   const setActivePage = useTeacher(s => s.setActivePage)
 
@@ -33,7 +35,7 @@ export default function WidgetGroupsList() {
           }}>
             <Users size={14} strokeWidth={2.2} style={{ color: 'var(--color-accent)' }} />
           </div>
-          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Группы</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Группы')}</span>
           <span style={{
             fontSize: 11, fontWeight: 700, color: 'var(--color-accent)',
             background: 'var(--color-purple-soft)', borderRadius: 20, padding: '1px 7px',
@@ -49,7 +51,7 @@ export default function WidgetGroupsList() {
             opacity: 0.85,
           }}
         >
-          Все →
+          {t('Все')} →
         </button>
       </div>
 
@@ -61,7 +63,7 @@ export default function WidgetGroupsList() {
             height: '100%', gap: 8, color: 'var(--color-text-4)',
           }}>
             <Users size={28} strokeWidth={1.5} />
-            <span style={{ fontSize: 13, fontWeight: 600 }}>Групп пока нет</span>
+            <span style={{ fontSize: 13, fontWeight: 600 }}>{t('Групп пока нет')}</span>
           </div>
         ) : (
           groups.map((g, i) => (

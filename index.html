@@ -21,6 +21,10 @@
     <!-- Фавикон + заголовок переключаются по маршруту: ученик (книга) / учитель (искра).
          apple-touch-icon is intentionally NOT switched — iOS reads it once at add-time. -->
     <script>
+      // TEMP: iOS sim smoke-test only — jump straight to teacher login. Revert before shipping.
+      if (!location.hash) location.hash = '#/teacher'
+    </script>
+    <script>
       (function () {
         function syncIcon() {
           var teacher = location.hash.indexOf('#/teacher') === 0

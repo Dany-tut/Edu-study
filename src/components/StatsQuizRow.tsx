@@ -5,19 +5,21 @@ import { quizTimeLimit } from '../data/mockData'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
 import SpoilerText from './SpoilerText'
+import { useT } from '../lib/i18n'
 
 type QuizState = 'preview' | 'active' | 'answered' | 'timeout' | 'done'
 
 export default function StatsQuizRow() {
+  const t = useT()
   const { quizDismissed, dismissQuiz } = useDashboard()
   const dbStats = useStudentData(s => s.stats)
   const quizQuestions = useStudentData(s => s.quizQuestions)
   const dailyQuiz = quizQuestions[0] ?? { id: 'q1', title: '…', subject: 'Химия', answers: [], timeLimit: quizTimeLimit }
   const stats = [
-    { label: 'Успеваемость', value: `${dbStats.performance}%`, sub: 'Уровень успеваемости\nпо программе' },
-    { label: 'Задания', value: `${dbStats.completedTasks}/${dbStats.totalTasks}`, sub: 'Выполнено заданий' },
-    { label: 'Средний балл', value: `${dbStats.avgScore}`, sub: 'За месяц' },
-    { label: 'Серия', value: `${dbStats.streak} дн.`, sub: 'Подряд' },
+    { label: t('Успеваемость'), value: `${dbStats.performance}%`, sub: t('Уровень успеваемости\nпо программе') },
+    { label: t('Задания'), value: `${dbStats.completedTasks}/${dbStats.totalTasks}`, sub: t('Выполнено заданий') },
+    { label: t('Средний балл'), value: `${dbStats.avgScore}`, sub: t('За месяц') },
+    { label: t('Серия'), value: `${dbStats.streak} ${t('дн.')}`, sub: t('Подряд') },
   ]
   const [quizState, setQuizState] = useState<QuizState>('preview')
   const [timeLeft, setTimeLeft] = useState(quizTimeLimit)
@@ -153,7 +155,7 @@ export default function StatsQuizRow() {
                       className="flex-shrink-0"
                       style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', padding: '5px 12px', borderRadius: 999, lineHeight: 1 }}
                     >
-                      Викторина дня
+                      {t('Викторина дня')}
                     </span>
                     <h3 style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.12 }}>
                       <SpoilerText revealed={quizState !== 'preview'}>
@@ -168,7 +170,7 @@ export default function StatsQuizRow() {
                       onClick={dismissQuiz}
                       className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center cursor-pointer"
                       style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg-3)', color: 'var(--color-muted)', borderRadius: 999 }}
-                      aria-label="Закрыть викторину"
+                      aria-label={t('Закрыть викторину')}
                     >
                       <X size={16} />
                     </motion.button>
@@ -177,7 +179,7 @@ export default function StatsQuizRow() {
                     <div className="flex-shrink-0 flex items-center gap-2">
                       <Clock size={16} style={{ color: timerPct < 30 ? '#F48B91' : 'var(--color-muted)' }} />
                       <span style={{ fontSize: 14, fontWeight: 650, color: timerPct < 30 ? '#F48B91' : 'var(--color-muted)', minWidth: 46 }}>
-                        {timeLeft} сек
+                        {timeLeft} {t('сек')}
                       </span>
                       <div style={{ width: 112, height: 6, background: 'var(--color-bg-5)', borderRadius: 999, overflow: 'hidden' }}>
                         <motion.div
@@ -211,9 +213,9 @@ export default function StatsQuizRow() {
                         lineHeight: 1,
                       }}
                     >
-                      Начать
+                      {t('Начать')}
                     </motion.button>
-                    <span style={{ fontSize: 14, color: 'var(--color-muted)' }}>20 секунд на ответ</span>
+                    <span style={{ fontSize: 14, color: 'var(--color-muted)' }}>{t('20 секунд на ответ')}</span>
                   </div>
                 )}
 
@@ -252,7 +254,7 @@ export default function StatsQuizRow() {
                   >
                     <span style={{ fontSize: 18, color: 'var(--color-green-text)' }}>✓</span>
                     <p className="truncate" style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-green-text)' }}>
-                      Ответ принят{selectedAnswerText ? `: ${selectedAnswerText}` : ''}
+                      {t('Ответ принят')}{selectedAnswerText ? `: ${selectedAnswerText}` : ''}
                     </p>
                   </motion.div>
                 )}
@@ -265,7 +267,7 @@ export default function StatsQuizRow() {
                     style={{ padding: '12px 20px', background: 'var(--color-red-soft)', borderRadius: 16 }}
                   >
                     <span style={{ fontSize: 18, color: '#A8282D' }}>⏱</span>
-                    <p style={{ fontSize: 15, fontWeight: 650, color: '#A8282D' }}>Время вышло</p>
+                    <p style={{ fontSize: 15, fontWeight: 650, color: '#A8282D' }}>{t('Время вышло')}</p>
                   </motion.div>
                 )}
               </motion.div>

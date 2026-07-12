@@ -14,6 +14,8 @@ import {
   type SeriesItem, type RotItem, type MemTrial, type StroopTrial,
 } from '../lib/screening/generators'
 
+import { useT } from '../lib/i18n'
+
 const ACC = '#f59e0b'
 
 // Theme-aware correct/incorrect feedback colors (work in both light & dark)
@@ -94,12 +96,13 @@ function SectionProgress({ step, labels }: { step: number; labels: string[] }) {
 // ── Methodology "i" popover ──────────────────────────────────────────────────────
 
 function InfoDot({ info }: { info: DomainInfo }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   return (
     <>
       <button
         onClick={() => setOpen(true)}
-        aria-label="Что измеряет этот блок"
+        aria-label={t('Что измеряет этот блок')}
         style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, borderRadius: '50%', border: `1.5px solid ${ACC}`, background: `${ACC}1a`, color: ACC, cursor: 'pointer', flexShrink: 0, padding: 0 }}
       >
         <Info size={12} />
@@ -122,13 +125,13 @@ function InfoDot({ info }: { info: DomainInfo }) {
                   <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)' }}>{info.dimension}</div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: ACC, letterSpacing: 0.5 }}>{info.chc} · {info.label}</div>
                 </div>
-                <button onClick={() => setOpen(false)} aria-label="Закрыть" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex' }}><X size={18} /></button>
+                <button onClick={() => setOpen(false)} aria-label={t('Закрыть')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex' }}><X size={18} /></button>
               </div>
               {([
-                ['Что измеряет', info.measures],
-                ['Как устроено', info.how],
-                ['Что определяет', info.determines],
-                ['Методология', info.science],
+                [t('Что измеряет'), info.measures],
+                [t('Как устроено'), info.how],
+                [t('Что определяет'), info.determines],
+                [t('Методология'), info.science],
               ] as [string, string][]).map(([h, body]) => (
                 <div key={h} style={{ marginTop: 14 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: ACC, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3 }}>{h}</div>
@@ -147,6 +150,7 @@ function InfoDot({ info }: { info: DomainInfo }) {
 
 interface IntroProps { icon: string; title: string; desc: string; tip: string; step: number; labels: string[]; onStart: () => void; info?: DomainInfo }
 function SectionIntro({ icon, title, desc, tip, step, labels, onStart, info }: IntroProps) {
+  const t = useT()
   return (
     <Wrap>
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
@@ -164,7 +168,7 @@ function SectionIntro({ icon, title, desc, tip, step, labels, onStart, info }: I
             <Lightbulb size={15} style={{ color: ACC, flexShrink: 0, marginTop: 1 }} />
             <span>{tip}</span>
           </div>
-          <Btn onClick={onStart}>Начать <ChevronRight size={15} /></Btn>
+          <Btn onClick={onStart}>{t('Начать')} <ChevronRight size={15} /></Btn>
         </Card>
       </motion.div>
     </Wrap>
@@ -224,6 +228,7 @@ function levelForIndex(k: number, cfg: MatricesConfig): number {
 }
 
 function MatricesSection({ cfg, step, labels, onComplete }: SectionProps<MatricesConfig>) {
+  const t = useT()
   const [items, setItems]     = useState<GenMatrix[]>(() => [generateMatrix(cfg.minLevel, cfg.rules)])
   const [qIdx, setQIdx]       = useState(0)
   const [chosen, setChosen]   = useState<number | null>(null)
@@ -259,9 +264,9 @@ function MatricesSection({ cfg, step, labels, onComplete }: SectionProps<Matrice
       <SectionProgress step={step} labels={labels} />
       <div style={{ textAlign: 'center', marginBottom: 16 }}>
         <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>
-          Задание {qIdx + 1}{cfg.adaptive ? '' : ` из ${cfg.count}`} · уровень {m.level}/5
+          {t('Задание')} {qIdx + 1}{cfg.adaptive ? '' : ` ${t('из')} ${cfg.count}`} · {t('уровень')} {m.level}/5
         </div>
-        <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>Что стоит на месте «?»</div>
+        <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>{t('Что стоит на месте «?»')}</div>
       </div>
 
       <Card style={{ marginBottom: 16 }}>
@@ -312,6 +317,7 @@ function optColors(reveal: boolean, isRight: boolean, picked: boolean, baseBg = 
 // ── Number / letter series ───────────────────────────────────────────────────────
 
 function SeriesSection({ cfg, step, labels, onComplete }: SectionProps<SeriesConfig>) {
+  const t = useT()
   const [items, setItems]     = useState<SeriesItem[]>(() => [generateSeries(cfg.minLevel, cfg.types)])
   const [qIdx, setQIdx]       = useState(0)
   const [chosen, setChosen]   = useState<number | null>(null)
@@ -341,8 +347,8 @@ function SeriesSection({ cfg, step, labels, onComplete }: SectionProps<SeriesCon
     <Wrap>
       <SectionProgress step={step} labels={labels} />
       <div style={{ textAlign: 'center', marginBottom: 16 }}>
-        <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>Задание {qIdx + 1}{cfg.adaptive ? '' : ` из ${cfg.count}`} · уровень {m.level}/5</div>
-        <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>Что следующее?</div>
+        <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Задание')} {qIdx + 1}{cfg.adaptive ? '' : ` ${t('из')} ${cfg.count}`} · {t('уровень')} {m.level}/5</div>
+        <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>{t('Что следующее?')}</div>
       </div>
       <Card style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -378,6 +384,7 @@ function prepareAnalogies(cfg: AnalogiesConfig): PreparedAnalogy[] {
 }
 
 function AnalogiesSection({ cfg, step, labels, onComplete }: SectionProps<AnalogiesConfig>) {
+  const t = useT()
   const [items] = useState<PreparedAnalogy[]>(() => prepareAnalogies(cfg))
   const [qIdx, setQIdx]       = useState(0)
   const [chosen, setChosen]   = useState<number | null>(null)
@@ -406,13 +413,13 @@ function AnalogiesSection({ cfg, step, labels, onComplete }: SectionProps<Analog
     <Wrap>
       <SectionProgress step={step} labels={labels} />
       <div style={{ textAlign: 'center', marginBottom: 16 }}>
-        <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>Задание {qIdx + 1} из {items.length}</div>
-        <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>Подбери по аналогии</div>
+        <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Задание')} {qIdx + 1} {t('из')} {items.length}</div>
+        <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>{t('Подбери по аналогии')}</div>
       </div>
       <Card style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap', fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>
           <span>{m.a}</span><span style={{ color: ACC }}>→</span><span>{m.b}</span>
-          <span style={{ color: 'var(--color-text-3)', margin: '0 6px', fontWeight: 500 }}>как</span>
+          <span style={{ color: 'var(--color-text-3)', margin: '0 6px', fontWeight: 500 }}>{t('как')}</span>
           <span>{m.c}</span><span style={{ color: ACC }}>→</span><span style={{ color: ACC, fontWeight: 900 }}>?</span>
         </div>
       </Card>
@@ -445,6 +452,7 @@ function RotGlyph({ points, rot, mirror, size = 76 }: { points: string; rot: num
 }
 
 function RotationSection({ cfg, step, labels, onComplete }: SectionProps<RotationConfig>) {
+  const t = useT()
   const [items, setItems]     = useState<RotItem[]>(() => [generateRotation(cfg.minLevel)])
   const [qIdx, setQIdx]       = useState(0)
   const [chosen, setChosen]   = useState<number | null>(null)
@@ -474,8 +482,8 @@ function RotationSection({ cfg, step, labels, onComplete }: SectionProps<Rotatio
     <Wrap>
       <SectionProgress step={step} labels={labels} />
       <div style={{ textAlign: 'center', marginBottom: 16 }}>
-        <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>Задание {qIdx + 1}{cfg.adaptive ? '' : ` из ${cfg.count}`} · уровень {m.level}/5</div>
-        <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>Та же фигура, повёрнутая</div>
+        <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Задание')} {qIdx + 1}{cfg.adaptive ? '' : ` ${t('из')} ${cfg.count}`} · {t('уровень')} {m.level}/5</div>
+        <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>{t('Та же фигура, повёрнутая')}</div>
       </div>
       <Card style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'center', padding: '4px 0' }}>
@@ -519,6 +527,7 @@ function makeSpeedTrial(): { left: GenCell[]; right: GenCell[]; same: boolean } 
 }
 
 function SpeedSection({ cfg, step, labels, onComplete }: SectionProps<SpeedConfig>) {
+  const t = useT()
   const [trial, setTrial] = useState(() => makeSpeedTrial())
   const [remain, setRemain] = useState(cfg.durationSec)
   const [flash, setFlash] = useState<boolean | null>(null)
@@ -559,8 +568,8 @@ function SpeedSection({ cfg, step, labels, onComplete }: SectionProps<SpeedConfi
     <Wrap>
       <SectionProgress step={step} labels={labels} />
       <div style={{ textAlign: 'center', marginBottom: 12 }}>
-        <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>Осталось {remain} с · верных: {correctRef.current}</div>
-        <div style={{ fontSize: 15, color: 'var(--color-text-2)', marginTop: 4 }}>Наборы одинаковые?</div>
+        <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Осталось')} {remain} {t('с')} · {t('верных:')} {correctRef.current}</div>
+        <div style={{ fontSize: 15, color: 'var(--color-text-2)', marginTop: 4 }}>{t('Наборы одинаковые?')}</div>
       </div>
       <div style={{ height: 5, borderRadius: 999, background: 'var(--color-bg-5)', marginBottom: 14, overflow: 'hidden' }}>
         <div style={{ height: '100%', width: `${(remain / cfg.durationSec) * 100}%`, background: ACC, transition: 'width 1s linear' }} />
@@ -576,8 +585,8 @@ function SpeedSection({ cfg, step, labels, onComplete }: SectionProps<SpeedConfi
         </div>
       </Card>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <Btn onClick={() => answer(true)} style={{ background: OK_LINE }}>Одинаковые</Btn>
-        <Btn onClick={() => answer(false)} style={{ background: NO_LINE }}>Разные</Btn>
+        <Btn onClick={() => answer(true)} style={{ background: OK_LINE }}>{t('Одинаковые')}</Btn>
+        <Btn onClick={() => answer(false)} style={{ background: NO_LINE }}>{t('Разные')}</Btn>
       </div>
     </Wrap>
   )
@@ -589,6 +598,7 @@ type MemPhase = 'show' | 'recall' | 'feedback'
 const MEM_GRID = 6
 
 function MemorySection({ cfg, step, labels, onComplete }: SectionProps<MemoryConfig>) {
+  const t = useT()
   const [schedule]              = useState<MemTrial[]>(() => buildMemorySchedule(cfg.minSpan, cfg.maxSpan, cfg.backward, MEM_GRID))
   const [trialIdx, setTrialIdx] = useState(0)
   const [memPhase, setMemPhase] = useState<MemPhase>('show')
@@ -638,9 +648,9 @@ function MemorySection({ cfg, step, labels, onComplete }: SectionProps<MemoryCon
     <Wrap>
       <SectionProgress step={step} labels={labels} />
       <div style={{ textAlign: 'center', marginBottom: 16 }}>
-        <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>Раунд {trialIdx + 1} · {trial.cells.length} ячеек{trial.backward ? ' · обратный порядок' : ''}</div>
+        <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Раунд')} {trialIdx + 1} · {trial.cells.length} {t('ячеек')}{trial.backward ? ` · ${t('обратный порядок')}` : ''}</div>
         <div style={{ fontSize: 17, fontWeight: 800, marginTop: 4, color: memPhase === 'feedback' ? (feedback ? OK_TXT : NO_TXT) : 'var(--color-text)' }}>
-          {memPhase === 'show' ? 'Запоминай последовательность' : memPhase === 'recall' ? (trial.backward ? 'Нажимай в ОБРАТНОМ порядке' : 'Нажимай в том же порядке') : feedback ? '✓ Верно!' : '✗ Ошибка'}
+          {memPhase === 'show' ? t('Запоминай последовательность') : memPhase === 'recall' ? (trial.backward ? t('Нажимай в ОБРАТНОМ порядке') : t('Нажимай в том же порядке')) : feedback ? t('✓ Верно!') : t('✗ Ошибка')}
         </div>
       </div>
 
@@ -666,10 +676,10 @@ function MemorySection({ cfg, step, labels, onComplete }: SectionProps<MemoryCon
         <div style={{ minHeight: 48, marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {memPhase === 'feedback' ? (
             <div style={{ width: '100%', textAlign: 'center', padding: '10px', borderRadius: 12, background: feedback ? OK_BG : NO_BG, color: feedback ? OK_TXT : NO_TXT, fontWeight: 700, fontSize: 14 }}>
-              {feedback ? 'Правильно!' : `Нужно было: ${expected.map(c => c + 1).join(' → ')}`}
+              {feedback ? t('Правильно!') : `${t('Нужно было:')} ${expected.map(c => c + 1).join(' → ')}`}
             </div>
           ) : memPhase === 'show' ? (
-            <div style={{ textAlign: 'center', color: 'var(--color-muted)', fontSize: 12 }}>Ячейки загораются — запоминай порядок</div>
+            <div style={{ textAlign: 'center', color: 'var(--color-muted)', fontSize: 12 }}>{t('Ячейки загораются — запоминай порядок')}</div>
           ) : null}
         </div>
       </Card>
@@ -680,6 +690,7 @@ function MemorySection({ cfg, step, labels, onComplete }: SectionProps<MemoryCon
 // ── Stroop (interference, reaction-time + response deadline) ─────────────────────
 
 function StroopSection({ cfg, step, labels, onComplete }: SectionProps<StroopConfig>) {
+  const t = useT()
   const [trials]          = useState<StroopTrial[]>(() => buildStroopTrials(cfg))
   const [idx, setIdx]     = useState(0)
   const [flash, setFlash] = useState<boolean | null>(null)
@@ -713,8 +724,8 @@ function StroopSection({ cfg, step, labels, onComplete }: SectionProps<StroopCon
     <Wrap>
       <SectionProgress step={step} labels={labels} />
       <div style={{ textAlign: 'center', marginBottom: 14 }}>
-        <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>Вопрос {idx + 1} из {trials.length}</div>
-        <div style={{ fontSize: 13, color: 'var(--color-text-2)', marginTop: 4 }}>Цвет ШРИФТА (не слова) — быстро!</div>
+        <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Вопрос')} {idx + 1} {t('из')} {trials.length}</div>
+        <div style={{ fontSize: 13, color: 'var(--color-text-2)', marginTop: 4 }}>{t('Цвет ШРИФТА (не слова) — быстро!')}</div>
       </div>
 
       <Card style={{ marginBottom: 16 }}>
@@ -736,7 +747,7 @@ function StroopSection({ cfg, step, labels, onComplete }: SectionProps<StroopCon
         <div style={{ minHeight: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {flash !== null && (
             <span style={{ fontSize: 16, fontWeight: 700, color: flash ? OK_TXT : NO_TXT }}>
-              {flash ? '✓ Верно' : '✗ Ошибка'}
+              {flash ? t('✓ Верно') : t('✗ Ошибка')}
             </span>
           )}
         </div>
@@ -770,13 +781,14 @@ function prepareMatch(cfg: MatchingConfig): PreparedMatch[] {
 interface Connection { leftIdx: number; rightPos: number; correct: boolean }
 
 function MatchingSection({ cfg, step, labels, onComplete }: SectionProps<MatchingConfig>) {
+  const t = useT()
   const [tasks]                 = useState<PreparedMatch[]>(() => prepareMatch(cfg))
   const [taskIdx, setTaskIdx]   = useState(0)
   const [selected, setSelected] = useState<number | null>(null)
   const [conns, setConns]       = useState<Connection[]>([])
   const [wrongFlash, setWrong]  = useState<{ l: number; r: number } | null>(null)
   const [totalCorrect, setTotal] = useState(0)
-  const totalPairs = tasks.reduce((s, t) => s + t.pairs.length, 0)
+  const totalPairs = tasks.reduce((s, tk) => s + tk.pairs.length, 0)
   useEffect(() => { if (tasks.length === 0) onComplete({ correct: 0, total: 0 }) }, [])
 
   const task = tasks[taskIdx]
@@ -817,9 +829,9 @@ function MatchingSection({ cfg, step, labels, onComplete }: SectionProps<Matchin
     <Wrap>
       <SectionProgress step={step} labels={labels} />
       <div style={{ textAlign: 'center', marginBottom: 14 }}>
-        <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>Задание {taskIdx + 1} из {tasks.length}</div>
+        <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Задание')} {taskIdx + 1} {t('из')} {tasks.length}</div>
         <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginTop: 4 }}>{task.title}</div>
-        <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 4 }}>Нажми левый элемент, потом — соответствующий правый</div>
+        <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 4 }}>{t('Нажми левый элемент, потом — соответствующий правый')}</div>
       </div>
 
       <Card>
@@ -869,6 +881,7 @@ function MatchingSection({ cfg, step, labels, onComplete }: SectionProps<Matchin
 // ── Results ────────────────────────────────────────────────────────────────────
 
 function ResultsScreen({ name, cfg, scores }: { name: string; cfg: ScreeningConfig; scores: Scores }) {
+  const t = useT()
   const sections = activeDomains(cfg).map(key => {
     const sc = scores[key] ?? { correct: 0, total: 0 }
     const info = cfg[key].info
@@ -882,12 +895,12 @@ function ResultsScreen({ name, cfg, scores }: { name: string; cfg: ScreeningConf
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
           <div style={{ fontSize: 40, marginBottom: 8 }}>🧠</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)' }}>Скрининг завершён</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)' }}>{t('Скрининг завершён')}</div>
           <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 4 }}>{name}</div>
         </div>
 
         <Card style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: ACC, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}>Твой профиль</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: ACC, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}>{t('Твой профиль')}</div>
           {sorted.map(s => {
             const col = s.pct >= 70 ? OK_TXT : s.pct >= 40 ? ACC : NO_TXT
             const isTop = s.key === top.key
@@ -913,7 +926,7 @@ function ResultsScreen({ name, cfg, scores }: { name: string; cfg: ScreeningConf
         </Card>
 
         <div style={{ fontSize: 12, color: 'var(--color-muted)', textAlign: 'center', lineHeight: 1.6 }}>
-          Результаты сохранены и переданы преподавателю
+          {t('Результаты сохранены и переданы преподавателю')}
         </div>
       </motion.div>
     </Wrap>
@@ -933,6 +946,7 @@ const SECTIONS = {
 type Mode = 'name' | 'intro' | 'run' | 'results'
 
 export default function CognitiveScreeningPage() {
+  const t = useT()
   const [cfg, setCfg]   = useState<ScreeningConfig>(() => loadScreeningConfig())
   useEffect(() => { fetchScreeningConfig().then(setCfg) }, [])
   const [mode, setMode] = useState<Mode>('name')
@@ -947,7 +961,7 @@ export default function CognitiveScreeningPage() {
   useEffect(() => {
     if (mode !== 'results') return
     appendAnonResult({
-      name: name || 'Аноним',
+      name: name || t('Аноним'),
       subject: 'logic',
       results: Object.fromEntries(seq.map(k => [cfg[k].info.dimension, scores[k] ?? { correct: 0, total: 0 }])),
       answers: {},
@@ -964,23 +978,23 @@ export default function CognitiveScreeningPage() {
           </div>
           <div>
             <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)' }}>{cfg.title}</div>
-            <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{seq.length} разделов · ~{Math.max(6, seq.length * 2)} минут</div>
+            <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{seq.length} {t('разделов')} · ~{Math.max(6, seq.length * 2)} {t('минут')}</div>
           </div>
         </div>
         <Card>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>Введи своё ФИО</div>
-          <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>Результаты передаются преподавателю. Логин не нужен.</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>{t('Введи своё ФИО')}</div>
+          <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>{t('Результаты передаются преподавателю. Логин не нужен.')}</div>
           <div style={{ position: 'relative', marginBottom: 18 }}>
             <User size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
             <input
               autoFocus value={name} onChange={e => setName(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && name.trim().length >= 2) { setStepIdx(0); setMode('intro') } }}
-              placeholder="Например: Иванов Иван Иванович"
+              placeholder={t('Например: Иванов Иван Иванович')}
               style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px 12px 36px', borderRadius: 13, border: `1.5px solid ${name.trim().length >= 2 ? ACC : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none', transition: 'border-color 0.15s' }}
             />
           </div>
           <Btn onClick={() => { setStepIdx(0); setMode('intro') }} disabled={name.trim().length < 2}>
-            Начать <ChevronRight size={15} />
+            {t('Начать')} <ChevronRight size={15} />
           </Btn>
         </Card>
       </motion.div>
@@ -996,7 +1010,7 @@ export default function CognitiveScreeningPage() {
   if (mode === 'intro') return (
     <SectionIntro
       step={stepIdx} labels={labels} icon={info.emoji} title={info.dimension}
-      desc={INTRO[key].desc} tip={INTRO[key].tip} info={info}
+      desc={t(INTRO[key].desc)} tip={t(INTRO[key].tip)} info={info}
       onStart={() => setMode('run')}
     />
   )

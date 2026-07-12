@@ -2,8 +2,10 @@ import { useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Moon, Sun } from 'lucide-react'
 import { useTheme } from '../store/themeStore'
+import { useT } from '../lib/i18n'
 
 export default function ThemeToggleBtn() {
+  const t = useT()
   const { dark, toggle } = useTheme()
   const [showLabel, setShowLabel] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -20,7 +22,7 @@ export default function ThemeToggleBtn() {
       onClick={handleClick}
       whileHover={{ scale: 1.06 }}
       whileTap={{ scale: 0.94 }}
-      aria-label={dark ? 'Тёмная тема' : 'Светлая тема'}
+      aria-label={dark ? t('Тёмная тема') : t('Светлая тема')}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -68,7 +70,7 @@ export default function ThemeToggleBtn() {
               lineHeight: 1,
             }}
           >
-            {dark ? 'Тёмная' : 'Светлая'}
+            {dark ? t('Тёмная') : t('Светлая')}
           </motion.span>
         )}
       </AnimatePresence>

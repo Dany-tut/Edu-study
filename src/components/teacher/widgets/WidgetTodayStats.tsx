@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Users, ClipboardCheck, Clock, TrendingUp } from 'lucide-react'
 import { useHomeData } from '../../../lib/useHomeData'
 import { mskToVietnam } from '../../../lib/utils'
+import { useT } from '../../../lib/i18n'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 18 },
@@ -28,11 +29,12 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 }
 
 function EarningsCard({ delay }: { delay: number }) {
+  const t = useT()
   return (
     <motion.div {...fadeUp(delay)} style={{ flex: 1, minWidth: 0 }}>
       <Card style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-muted)' }}>За месяц</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-muted)' }}>{t('За месяц')}</span>
           <div style={{
             width: 30, height: 30, borderRadius: 10,
             background: 'var(--color-yellow-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -41,14 +43,14 @@ function EarningsCard({ delay }: { delay: number }) {
           </div>
         </div>
         <div style={{ fontSize: 36, fontWeight: 750, color: 'var(--color-text-3)', lineHeight: 1, marginBottom: 6 }}>
-          Нет данных
+          {t('Нет данных')}
         </div>
         <div style={{
           fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)',
           background: 'var(--color-bg-4)', borderRadius: 8, padding: '3px 8px',
           alignSelf: 'flex-start',
         }}>
-          будет позже
+          {t('будет позже')}
         </div>
       </Card>
     </motion.div>
@@ -87,24 +89,25 @@ function StatCard({
 }
 
 export default function WidgetTodayStats() {
+  const t = useT()
   const { groups, totalStudents, pendingCount, todaySchedule, nextLesson } = useHomeData()
 
   return (
     <div style={{ height: '100%', width: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
       <div style={{ display: 'flex', gap: 14, width: '100%' }}>
         <StatCard
-          icon={Users} label="Студентов" value={totalStudents}
-          sub={`${groups.length} группы`}
+          icon={Users} label={t('Студентов')} value={totalStudents}
+          sub={`${groups.length} ${t('группы')}`}
           accentBg="var(--color-green-soft)" accentColor="var(--color-green-text)" delay={0.05}
         />
         <StatCard
-          icon={ClipboardCheck} label="Проверить ДЗ" value={pendingCount}
-          sub="ждут ревью"
+          icon={ClipboardCheck} label={t('Проверить ДЗ')} value={pendingCount}
+          sub={t('ждут ревью')}
           accentBg="var(--color-red-soft)" accentColor="var(--color-red-text)" delay={0.1}
         />
         <StatCard
-          icon={Clock} label="Уроков сегодня" value={todaySchedule.length}
-          sub={nextLesson ? `следующий в ${nextLesson.time} МСК (${mskToVietnam(nextLesson.time)} ВН)` : 'все завершены'}
+          icon={Clock} label={t('Уроков сегодня')} value={todaySchedule.length}
+          sub={nextLesson ? `${t('следующий в')} ${nextLesson.time} ${t('МСК')} (${mskToVietnam(nextLesson.time)} ${t('ВН')})` : t('все завершены')}
           accentBg="var(--color-purple-soft)" accentColor="var(--color-accent)" delay={0.15}
         />
         <EarningsCard delay={0.2} />

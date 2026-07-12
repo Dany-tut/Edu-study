@@ -4,6 +4,7 @@ import { scienceFactInterval } from '../data/mockData'
 import { useStudentData } from '../store/studentDataStore'
 import { getWidgetSizing } from '../lib/widgetSizing'
 import { subjectTheme } from '../lib/theme'
+import { useT } from '../lib/i18n'
 
 type Props = {
   /** true while this widget is the visible one — pauses rotation otherwise */
@@ -13,6 +14,7 @@ type Props = {
 }
 
 export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
+  const t = useT()
   const [index, setIndex] = useState(0)
   const [imgFailed, setImgFailed] = useState(false)
   const scienceFacts = useStudentData(s => s.scienceFacts)
@@ -24,7 +26,7 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
     <div className="flex h-full w-full items-center justify-center flex-col gap-2 overflow-hidden rounded-[24px]"
       style={{ background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid var(--color-border-glass)' }}>
       <span style={{ fontSize: 26 }}>🔬</span>
-      <span style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text-2)' }}>Научные факты</span>
+      <span style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text-2)' }}>{t('Научные факты')}</span>
       <span style={{ fontSize: 12, color: 'var(--color-text-5)' }}>—</span>
     </div>
   )
@@ -100,7 +102,7 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
               background: subjectTheme(fact.subject).soft,
             }}
           >
-            {fact.subject} · научный факт
+            {fact.subject} · {t('научный факт')}
           </span>
         </div>
 
@@ -128,7 +130,7 @@ export default function ScienceFactsWidget({ active, columns = 1 }: Props) {
             <button
               key={f.id}
               onClick={() => goTo(i)}
-              aria-label={`Факт ${i + 1}`}
+              aria-label={`${t('Факт')} ${i + 1}`}
               className="cursor-pointer"
               style={{
                 width: i === index ? 28 : 10,

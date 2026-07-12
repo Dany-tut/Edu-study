@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useT } from '../lib/i18n'
 
 /**
  * Thin global banner shown when the browser goes offline, so failed Supabase
@@ -6,6 +7,7 @@ import { useEffect, useState } from 'react'
  * "no data". Auto-hides on reconnect.
  */
 export default function OfflineBanner() {
+  const t = useT()
   const [offline, setOffline] = useState(typeof navigator !== 'undefined' && !navigator.onLine)
 
   useEffect(() => {
@@ -25,7 +27,7 @@ export default function OfflineBanner() {
       padding: '7px 12px', letterSpacing: 0.2,
       boxShadow: '0 2px 10px rgba(0,0,0,0.18)',
     }}>
-      Нет соединения с интернетом — данные могут не загружаться
+      {t('Нет соединения с интернетом — данные могут не загружаться')}
     </div>
   )
 }

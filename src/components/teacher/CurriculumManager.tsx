@@ -7,6 +7,7 @@ import {
 import { useCurriculum } from '../../store/curriculumStore'
 import { getContrastColor } from '../../lib/utils'
 import type { Subject } from '../../data/taskBankData'
+import { useT } from '../../lib/i18n'
 
 // ── Reveal-on-right-hover ─────────────────────────────────────────────────────
 // The delete button stays hidden until the cursor enters the right quarter of
@@ -50,6 +51,7 @@ function InlineText({ value, onCommit, placeholder, style, inputStyle, bubbleCli
   // of a fixed width — so a long topic name isn't clipped inside its pill.
   autoSize?: boolean
 }) {
+  const t = useT()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
   const ref = useRef<HTMLInputElement>(null)
@@ -76,7 +78,7 @@ function InlineText({ value, onCommit, placeholder, style, inputStyle, bubbleCli
     <span
       onClick={bubbleClick ? undefined : (e => e.stopPropagation())}
       onDoubleClick={e => { e.stopPropagation(); setEditing(true) }}
-      title="Двойной клик, чтобы переименовать"
+      title={t('Двойной клик, чтобы переименовать')}
       style={{ cursor: 'pointer', borderRadius: 6, userSelect: 'none', ...style }}>
       {value || <span style={{ color: 'var(--color-text-4)' }}>{placeholder ?? '—'}</span>}
     </span>
@@ -159,6 +161,7 @@ function LineRow({ subject, l, accent, accentBg, updateLine, removeLine }: {
   updateLine: (subject: Subject, n: number, patch: Partial<{ n: number; name: string; part: 1 | 2 }>) => void
   removeLine: (subject: Subject, n: number) => void
 }) {
+  const t = useT()
   const del = useRightHover()
   return (
     <div {...del.bind} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 11, background: 'var(--color-bg-input)', border: '1px solid var(--color-border-soft)' }}>
@@ -177,7 +180,7 @@ function LineRow({ subject, l, accent, accentBg, updateLine, removeLine }: {
           <button key={p} onClick={() => updateLine(subject, l.n, { part: p })}
             style={{ padding: '3px 9px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', outline: 'none',
               background: l.part === p ? accentBg : 'transparent', color: l.part === p ? accent : 'var(--color-text-3)' }}>
-            Ч{p}
+            {t('Ч')}{p}
           </button>
         ))}
       </div>
@@ -192,6 +195,7 @@ function LineRow({ subject, l, accent, accentBg, updateLine, removeLine }: {
 function SectionCard({ subject, section, accent, accentBg, partFilter }: {
   subject: Subject; section: string; accent: string; accentBg: string; partFilter: 0 | 1 | 2
 }) {
+  const t = useT()
   const data = useCurriculum(s => s.data[subject])
   const { renameSection, removeSection, addTopic, renameTopic, removeTopic, addLine, updateLine, removeLine } = useCurriculum()
   const [open, setOpen] = useState(false)
@@ -228,7 +232,7 @@ function SectionCard({ subject, section, accent, accentBg, partFilter }: {
             <BookOpen size={11} /> {topics.length}
           </span>
         </span>
-        <button onClick={e => { e.stopPropagation(); if (confirm(`Удалить раздел «${section}» со всеми темами и линиями?`)) removeSection(subject, section) }}
+        <button onClick={e => { e.stopPropagation(); if (confirm(`${t('Удалить раздел')} «${section}» ${t('со всеми темами и линиями?')}`)) removeSection(subject, section) }}
           style={{ display: 'flex', width: 30, height: 30, borderRadius: 9, border: 'none', cursor: 'pointer', alignItems: 'center', justifyContent: 'center', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', flexShrink: 0, ...revealStyle(del.visible, 30, 10) }}>
           <Trash2 size={13} />
         </button>
@@ -240,31 +244,31 @@ function SectionCard({ subject, section, accent, accentBg, partFilter }: {
             <div style={{ padding: '4px 16px 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Topics */}
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 8, textTransform: 'uppercase' }}>Темы</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 8, textTransform: 'uppercase' }}>{t('Темы')}</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
                   {topics.map(t => (
                     <TopicChip key={t} subject={subject} section={section} topic={t} accent={accent}
                       renameTopic={renameTopic} removeTopic={removeTopic} />
                   ))}
-                  <AddInline onAdd={v => addTopic(subject, section, v)} placeholder="Тема" accent={accent} />
+                  <AddInline onAdd={v => addTopic(subject, section, v)} placeholder={t('Тема')} accent={accent} />
                 </div>
               </div>
 
               {/* Lines */}
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 8, textTransform: 'uppercase' }}>Линии</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 8, textTransform: 'uppercase' }}>{t('Линии')}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {lines.map(l => (
                     <LineRow key={l.n} subject={subject} l={l} accent={accent} accentBg={accentBg} updateLine={updateLine} removeLine={removeLine} />
                   ))}
                   {lines.length === 0 && (
-                    <div style={{ fontSize: 12, color: 'var(--color-text-4)', padding: '6px 2px' }}>Нет линий{partFilter ? ` (Часть ${partFilter})` : ''}</div>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-4)', padding: '6px 2px' }}>{t('Нет линий')}{partFilter ? ` (${t('Часть')} ${partFilter})` : ''}</div>
                   )}
                 </div>
                 <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                   <button onClick={() => addLine(subject, section, partFilter === 2 ? 2 : 1)}
                     style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 999, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                    <Plus size={13} strokeWidth={2.6} /> Добавить линию
+                    <Plus size={13} strokeWidth={2.6} /> {t('Добавить линию')}
                   </button>
                 </div>
               </div>
@@ -278,6 +282,7 @@ function SectionCard({ subject, section, accent, accentBg, partFilter }: {
 
 // ── Curriculum manager (the "Банк заданий" tab body) ─────────────────────────
 export default function CurriculumManager() {
+  const t = useT()
   const [subject, setSubject] = useState<Subject>('biology')
   const [partFilter, setPartFilter] = useState<0 | 1 | 2>(0)
   const data = useCurriculum(s => s.data[subject])
@@ -302,8 +307,8 @@ export default function CurriculumManager() {
             <Database size={19} />
           </div>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)' }}>Банк заданий — структура</div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>Разделы, темы, линии и части. Меняется всюду в фильтрах тренажёра.</div>
+            <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)' }}>{t('Банк заданий — структура')}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('Разделы, темы, линии и части. Меняется всюду в фильтрах тренажёра.')}</div>
           </div>
         </div>
 
@@ -311,17 +316,17 @@ export default function CurriculumManager() {
           {/* Save status */}
           {saveState === 'saving' && (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>
-              <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }} style={{ display: 'flex' }}><Loader2 size={13} /></motion.span> Сохранение…
+              <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }} style={{ display: 'flex' }}><Loader2 size={13} /></motion.span> {t('Сохранение…')}
             </span>
           )}
           {saveState === 'saved' && (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: 'var(--color-green-text)' }}>
-              <Cloud size={13} /> Сохранено в БД
+              <Cloud size={13} /> {t('Сохранено в БД')}
             </span>
           )}
           {saveState === 'error' && (
-            <span title="Войдите как преподаватель, чтобы сохранять изменения" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 700, color: 'var(--color-red-text)' }}>
-              <CloudOff size={13} /> Не сохранено — нужен вход
+            <span title={t('Войдите как преподаватель, чтобы сохранять изменения')} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 700, color: 'var(--color-red-text)' }}>
+              <CloudOff size={13} /> {t('Не сохранено — нужен вход')}
             </span>
           )}
           {/* Subject pills */}
@@ -331,14 +336,14 @@ export default function CurriculumManager() {
                 style={{ padding: '7px 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
                   background: subject === s ? (s === 'biology' ? 'var(--color-green-soft)' : 'var(--color-purple-soft)') : 'transparent',
                   color: subject === s ? (s === 'biology' ? 'var(--color-green-text)' : 'var(--color-purple-text)') : 'var(--color-muted)' }}>
-                {s === 'biology' ? 'Биология' : 'Химия'}
+                {s === 'biology' ? t('Биология') : t('Химия')}
               </button>
             ))}
           </div>
-          <button onClick={() => { if (confirm('Вернуть стандартную структуру ЕГЭ для этого предмета? Ваши правки будут потеряны.')) resetSubject(subject) }}
-            title="Сбросить к стандарту ЕГЭ"
+          <button onClick={() => { if (confirm(t('Вернуть стандартную структуру ЕГЭ для этого предмета? Ваши правки будут потеряны.'))) resetSubject(subject) }}
+            title={t('Сбросить к стандарту ЕГЭ')}
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 12, border: '1px solid var(--color-border-medium)', cursor: 'pointer', background: 'rgba(var(--glass-rgb),0.9)', color: 'var(--color-muted)', fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit' }}>
-            <RotateCcw size={13} /> Сбросить
+            <RotateCcw size={13} /> {t('Сбросить')}
           </button>
         </div>
       </div>
@@ -346,10 +351,10 @@ export default function CurriculumManager() {
       {/* Stats + part filter */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>
-          {data.sections.length} разделов · {totalTopics} тем · {totalLines} линий
+          {data.sections.length} {t('разделов')} · {totalTopics} {t('тем')} · {totalLines} {t('линий')}
         </span>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 4, padding: 3, borderRadius: 999, background: 'var(--color-bg-3)' }}>
-          {([[0, 'Все'], [1, 'Часть 1'], [2, 'Часть 2']] as [0 | 1 | 2, string][]).map(([p, l]) => (
+          {([[0, t('Все')], [1, t('Часть 1')], [2, t('Часть 2')]] as [0 | 1 | 2, string][]).map(([p, l]) => (
             <button key={p} onClick={() => setPartFilter(p)}
               style={{ padding: '6px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
                 background: partFilter === p ? 'var(--color-surface)' : 'transparent', color: partFilter === p ? 'var(--color-text)' : 'var(--color-muted)',
@@ -368,7 +373,7 @@ export default function CurriculumManager() {
       </div>
 
       <div>
-        <AddInline onAdd={v => addSection(subject, v)} placeholder="Добавить раздел" accent={accent} />
+        <AddInline onAdd={v => addSection(subject, v)} placeholder={t('Добавить раздел')} accent={accent} />
       </div>
     </div>
   )

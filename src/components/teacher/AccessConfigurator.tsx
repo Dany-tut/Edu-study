@@ -3,6 +3,7 @@ import { Lock, BookOpen, Users, LayoutGrid, Copy, Share2, Check } from 'lucide-r
 import { supabase } from '../../lib/supabase'
 import { TEACHER_TABS } from '../../lib/teacherAccess'
 import { WIDGET_REGISTRY } from './widgets/registry'
+import { useT } from '../../lib/i18n'
 
 // Shared admin control for "what a teacher sees and owns". Works in SELECTED
 // (allowed) terms in the UI; callers convert tabs/widgets to the hidden
@@ -67,6 +68,7 @@ export default function AccessConfigurator({
   onGroupsChange: (v: string[]) => void
   showContent?: boolean
 }) {
+  const tr = useT()
   const [courses, setCourses] = useState<ContentOpt[]>([])
   const [groups, setGroups] = useState<ContentOpt[]>([])
 
@@ -103,18 +105,18 @@ export default function AccessConfigurator({
     ...TEACHER_TABS.filter(t => selectedTabs.includes(t.id)).map(t => ({ key: `t-${t.id}`, label: t.label, icon: <LayoutGrid size={13} /> })),
     ...courseAssignments.map(a => {
       const c = courses.find(x => x.id === a.course_id)
-      return { key: `c-${a.course_id}`, label: c?.title ?? 'Курс', icon: <BookOpen size={13} />, badge: a.mode === 'copy' ? 'копия' : 'общий' }
+      return { key: `c-${a.course_id}`, label: c?.title ?? tr('Курс'), icon: <BookOpen size={13} />, badge: a.mode === 'copy' ? tr('копия') : tr('общий') }
     }),
     ...groupIds.map(id => {
       const g = groups.find(x => x.id === id)
-      return { key: `g-${id}`, label: g?.title ?? 'Группа', icon: <Users size={13} /> }
+      return { key: `g-${id}`, label: g?.title ?? tr('Группа'), icon: <Users size={13} /> }
     }),
   ]
 
   return (
     <div>
       {/* Sections */}
-      <SectionTitle>Разделы (что видит)</SectionTitle>
+      <SectionTitle>{tr('Разделы (что видит)')}</SectionTitle>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 18 }}>
         {TEACHER_TABS.map(t => (
           <Chip key={t.id} label={t.label} on={selectedTabs.includes(t.id)} onToggle={() => toggleTab(t.id)} />
@@ -123,8 +125,8 @@ export default function AccessConfigurator({
 
       {/* Widgets */}
       <SectionTitle>
-        Виджеты «Главной»
-        {!homeShown && <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--color-text-3)', textTransform: 'none', letterSpacing: 0 }}>· раздел «Главная» скрыт целиком</span>}
+        {tr('Виджеты «Главной»')}
+        {!homeShown && <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--color-text-3)', textTransform: 'none', letterSpacing: 0 }}>{tr('· раздел «Главная» скрыт целиком')}</span>}
       </SectionTitle>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: showContent ? 18 : 0, opacity: homeShown ? 1 : 0.45, transition: 'opacity 0.15s' }}>
         {WIDGET_REGISTRY.map(def => (
@@ -135,10 +137,10 @@ export default function AccessConfigurator({
       {showContent && (
         <>
           {/* Courses */}
-          <SectionTitle><BookOpen size={12} /> Курсы (что получит)</SectionTitle>
+          <SectionTitle><BookOpen size={12} /> {tr('Курсы (что получит)')}</SectionTitle>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18 }}>
             {courses.length === 0
-              ? <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>Нет курсов.</div>
+              ? <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{tr('Нет курсов.')}</div>
               : courses.map(c => {
                 const a = courseAssign(c.id)
                 return (
@@ -152,8 +154,8 @@ export default function AccessConfigurator({
                     </button>
                     {a && (
                       <div style={{ display: 'flex', gap: 3, background: 'var(--color-bg-3)', borderRadius: 8, padding: 2, flexShrink: 0 }}>
-                        {([['copy', 'Копия', Copy], ['share', 'Общий', Share2]] as const).map(([m, label, Icon]) => (
-                          <button key={m} onClick={() => setCourseMode(c.id, m)} title={m === 'copy' ? 'Независимый дубликат' : 'Общий доступ (read-only)'} style={{
+                        {([['copy', tr('Копия'), Copy], ['share', tr('Общий'), Share2]] as const).map(([m, label, Icon]) => (
+                          <button key={m} onClick={() => setCourseMode(c.id, m)} title={m === 'copy' ? tr('Независимый дубликат') : tr('Общий доступ (read-only)')} style={{
                             display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 6, border: 'none', cursor: 'pointer',
                             fontSize: 11, fontWeight: 600,
                             background: a.mode === m ? 'var(--color-bg)' : 'transparent',
@@ -170,10 +172,10 @@ export default function AccessConfigurator({
           </div>
 
           {/* Groups */}
-          <SectionTitle><Users size={12} /> Группы / ученики (передать)</SectionTitle>
+          <SectionTitle><Users size={12} /> {tr('Группы / ученики (передать)')}</SectionTitle>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 18 }}>
             {groups.length === 0
-              ? <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>Нет групп.</div>
+              ? <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{tr('Нет групп.')}</div>
               : groups.map(g => (
                 <Chip key={g.id} label={`${g.title} · ${g.detail}`} on={groupIds.includes(g.id)} onToggle={() => toggleGroup(g.id)} />
               ))}
@@ -184,7 +186,7 @@ export default function AccessConfigurator({
       {/* Bento summary */}
       {bentoTiles.length > 0 && (
         <>
-          <SectionTitle>Итог доступа</SectionTitle>
+          <SectionTitle>{tr('Итог доступа')}</SectionTitle>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
             {bentoTiles.map(tile => (
               <div key={tile.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)' }}>

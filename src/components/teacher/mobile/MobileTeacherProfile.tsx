@@ -11,6 +11,7 @@ import { fetchMyPlan } from '../../../lib/plan'
 import { useFinanceSummary } from '../../../lib/useFinances'
 import { useHomeData } from '../../../lib/useHomeData'
 import { DEMO_TEACHER_PROFILE, type TeacherProfileModel } from '../../../data/teacherProfileDemo'
+import { useT } from '../../../lib/i18n'
 
 // MOBILE ONLY teacher profile — bento layout: identity, tariff+quota, live
 // stats (доход / долги / ученики / проверить), settings, logout. Wired to real
@@ -33,6 +34,7 @@ function StatTile({ icon, value, label, bg, fg }: { icon: React.ReactNode; value
 }
 
 export default function MobileTeacherProfile() {
+  const t = useT()
   const [email, setEmail] = useState('')
   const [profile, setProfile] = useState<{ name?: string; subject?: string } | null>(null)
   const [plan, setPlan] = useState<{ planName: string; studentsUsed: number; maxStudents: number | null } | null>(null)
@@ -62,11 +64,11 @@ export default function MobileTeacherProfile() {
   const realEmpty = home.totalStudents === 0 && finance.received === 0 && home.pendingCount === 0 && !plan
   const useDemo = import.meta.env.DEV && realEmpty
 
-  const emailName = email ? email.split('@')[0] : 'Учитель'
+  const emailName = email ? email.split('@')[0] : t('Учитель')
   const m: TeacherProfileModel = useDemo ? DEMO_TEACHER_PROFILE : {
     name: profile?.name || emailName,
-    subject: profile?.subject || 'Учительский кабинет',
-    planName: plan?.planName || 'Бета-доступ',
+    subject: profile?.subject || t('Учительский кабинет'),
+    planName: plan?.planName || t('Бета-доступ'),
     studentsUsed: plan?.studentsUsed ?? home.totalStudents,
     maxStudents: plan?.maxStudents ?? null,
     received: finance.received,
@@ -104,10 +106,10 @@ export default function MobileTeacherProfile() {
         {/* Tariff + quota — span 2, gradient */}
         <div style={{ gridColumn: 'span 2', padding: '14px 15px', borderRadius: 16, background: 'linear-gradient(135deg, #9B6FE8, #6F3FBF)', color: '#fff' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 13.5, fontWeight: 700 }}>Тариф · {m.planName}</span>
+            <span style={{ fontSize: 13.5, fontWeight: 700 }}>{t('Тариф')} · {m.planName}</span>
             {quotaPct !== null
-              ? <span style={{ fontSize: 12.5, fontWeight: 600, opacity: 0.9 }}>{m.studentsUsed} / {m.maxStudents} учеников</span>
-              : <span style={{ fontSize: 11.5, fontWeight: 600, opacity: 0.85, background: 'rgba(255,255,255,0.2)', padding: '3px 9px', borderRadius: 20 }}>без лимита</span>}
+              ? <span style={{ fontSize: 12.5, fontWeight: 600, opacity: 0.9 }}>{m.studentsUsed} / {m.maxStudents} {t('учеников')}</span>
+              : <span style={{ fontSize: 11.5, fontWeight: 600, opacity: 0.85, background: 'rgba(255,255,255,0.2)', padding: '3px 9px', borderRadius: 20 }}>{t('без лимита')}</span>}
           </div>
           {quotaPct !== null && (
             <div style={{ height: 6, background: 'rgba(255,255,255,0.3)', borderRadius: 20, marginTop: 10, overflow: 'hidden' }}>
@@ -117,16 +119,16 @@ export default function MobileTeacherProfile() {
         </div>
 
         {/* Stats — 2×2 */}
-        <StatTile icon={<Wallet size={17} />} value={short(m.received)} label="Доход за месяц, ₽" bg="var(--color-green-soft)" fg="var(--color-green-text)" />
+        <StatTile icon={<Wallet size={17} />} value={short(m.received)} label={t('Доход за месяц, ₽')} bg="var(--color-green-soft)" fg="var(--color-green-text)" />
         <StatTile
           icon={<AlertTriangle size={17} />}
           value={m.debt > 0 ? short(m.debt) : '0'}
-          label={m.debt > 0 ? `Долги · ${m.debtorCount} чел.` : 'Долгов нет'}
+          label={m.debt > 0 ? `${t('Долги')} · ${m.debtorCount} ${t('чел.')}` : t('Долгов нет')}
           bg={m.debt > 0 ? 'var(--color-red-soft)' : 'var(--color-bg-3)'}
           fg={m.debt > 0 ? 'var(--color-red-text)' : 'var(--color-muted)'}
         />
-        <StatTile icon={<Users size={17} />} value={m.studentTotal} label={`Ученики · ${m.groupCount} групп`} bg="var(--color-purple-soft)" fg="var(--color-purple-text)" />
-        <StatTile icon={<ClipboardCheck size={17} />} value={m.pending} label={m.pending > 0 ? 'Ждут проверки' : 'Всё проверено'} bg="var(--color-yellow-soft)" fg="var(--color-yellow-text)" />
+        <StatTile icon={<Users size={17} />} value={m.studentTotal} label={`${t('Ученики')} · ${m.groupCount} ${t('групп')}`} bg="var(--color-purple-soft)" fg="var(--color-purple-text)" />
+        <StatTile icon={<ClipboardCheck size={17} />} value={m.pending} label={m.pending > 0 ? t('Ждут проверки') : t('Всё проверено')} bg="var(--color-yellow-soft)" fg="var(--color-yellow-text)" />
 
         {/* Settings — span 2, grouped icon-list (C-style) */}
         <div style={{ gridColumn: 'span 2', marginTop: 4, borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>
@@ -137,10 +139,10 @@ export default function MobileTeacherProfile() {
             style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
           >
             <span className="flex items-center" style={{ gap: 10, fontSize: 14.5, fontWeight: 550, color: 'var(--color-text)' }}>
-              <Sparkles size={18} style={{ color: 'var(--color-purple-text)' }} />Тариф · {m.planName}
+              <Sparkles size={18} style={{ color: 'var(--color-purple-text)' }} />{t('Тариф')} · {m.planName}
             </span>
             {m.maxStudents !== null
-              ? <span style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-purple-text)', background: 'var(--color-purple-soft)', padding: '4px 11px', borderRadius: 20 }}>Повысить</span>
+              ? <span style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-purple-text)', background: 'var(--color-purple-soft)', padding: '4px 11px', borderRadius: 20 }}>{t('Повысить')}</span>
               : <ChevronRight size={17} style={{ color: 'var(--color-text-4)' }} />}
           </button>
 
@@ -151,9 +153,9 @@ export default function MobileTeacherProfile() {
             style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
           >
             <span className="flex items-center" style={{ gap: 10, fontSize: 14.5, fontWeight: 550, color: 'var(--color-text)' }}>
-              {dark ? <Moon size={18} style={{ color: 'var(--color-muted)' }} /> : <Sun size={18} style={{ color: 'var(--color-muted)' }} />}Тема оформления
+              {dark ? <Moon size={18} style={{ color: 'var(--color-muted)' }} /> : <Sun size={18} style={{ color: 'var(--color-muted)' }} />}{t('Тема оформления')}
             </span>
-            <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-3)' }}>{dark ? 'Тёмная' : 'Светлая'}</span>
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-3)' }}>{dark ? t('Тёмная') : t('Светлая')}</span>
           </button>
 
           {/* Обратная связь */}
@@ -163,7 +165,7 @@ export default function MobileTeacherProfile() {
             style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none' }}
           >
             <span className="flex items-center" style={{ gap: 10, fontSize: 14.5, fontWeight: 550, color: 'var(--color-text)' }}>
-              <MessageSquarePlus size={18} style={{ color: 'var(--color-muted)' }} />Обратная связь
+              <MessageSquarePlus size={18} style={{ color: 'var(--color-muted)' }} />{t('Обратная связь')}
             </span>
             <ChevronRight size={17} style={{ color: 'var(--color-text-4)' }} />
           </button>
@@ -173,7 +175,7 @@ export default function MobileTeacherProfile() {
         <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 9, padding: '11px 13px', borderRadius: 14, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)' }}>
           <Monitor size={16} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
           <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)', lineHeight: 1.35 }}>
-            Конструктор курсов и редактор уроков — на компьютере.
+            {t('Конструктор курсов и редактор уроков — на компьютере.')}
           </span>
         </div>
 
@@ -184,7 +186,7 @@ export default function MobileTeacherProfile() {
           className="flex items-center justify-center cursor-pointer"
           style={{ gridColumn: 'span 2', gap: 8, padding: 13, borderRadius: 16, background: 'transparent', color: 'var(--color-red-text)', border: 'none', fontSize: 14.5, fontWeight: 600 }}
         >
-          <LogOut size={17} /> Выйти из аккаунта
+          <LogOut size={17} /> {t('Выйти из аккаунта')}
         </motion.button>
       </div>
       {feedbackOpen && <FeedbackModal role="teacher" onClose={() => setFeedbackOpen(false)} />}

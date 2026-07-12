@@ -2,6 +2,7 @@
 // The actual fetch/parse happens server-side (supabase/functions/import-google-form)
 // since Google Forms doesn't send CORS headers for a browser fetch.
 import { supabase } from './supabase'
+import { t } from './i18n'
 import type { AnswerType, Task, TaskChoice } from '../data/taskBankData'
 
 export function isGoogleFormUrl(url: string): boolean {
@@ -35,7 +36,7 @@ export async function importGoogleForm(url: string): Promise<ImportedForm> {
     // Response on error.context — read it ourselves to surface our JSON { error } body.
     const context = (error as { context?: Response }).context
     const bodyError = context ? await context.clone().json().then(b => b?.error as string | undefined).catch(() => undefined) : undefined
-    throw new Error(bodyError || error.message || 'Не удалось импортировать форму')
+    throw new Error(bodyError || error.message || t('Не удалось импортировать форму'))
   }
   if (data?.error) throw new Error(data.error as string)
   return data as ImportedForm

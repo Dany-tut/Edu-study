@@ -4,6 +4,7 @@ import type { ScheduleItem } from '../../../data/teacherMockData'
 import { useTeacher } from '../../../store/teacherStore'
 import { useHomeData, useOverlayThumb } from '../../../lib/useHomeData'
 import { mskToVietnam } from '../../../lib/utils'
+import { useT } from '../../../lib/i18n'
 
 function nowMskHHMM(): string {
   try {
@@ -17,6 +18,7 @@ function nowMskHHMM(): string {
 
 function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: boolean; isLast: boolean }) {
   const openLessonEditor = useTeacher(s => s.openLessonEditor)
+  const t = useT()
   const isLive = item.status === 'live'
   const isDone = item.status === 'completed'
 
@@ -66,7 +68,7 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
         </span>
         {item.time && (
           <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-4)' }}>
-            {mskToVietnam(item.time)} ВН
+            {mskToVietnam(item.time)} {t('ВН')}
           </span>
         )}
       </span>
@@ -83,13 +85,13 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
           </span>
           {isLive && (
             <span style={{ fontSize: 10.5, fontWeight: 700, color: item.color, letterSpacing: 0.3, flexShrink: 0 }}>
-              ИДЁТ СЕЙЧАС
+              {t('ИДЁТ СЕЙЧАС')}
             </span>
           )}
         </span>
         {(item.subject || item.topic || item.lessonNumber > 0) && (
           <span style={{ fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {[item.subject, item.lessonNumber > 0 ? `Урок ${item.lessonNumber}` : '', item.topic].filter(Boolean).join(' · ')}
+            {[item.subject, item.lessonNumber > 0 ? `${t('Урок')} ${item.lessonNumber}` : '', item.topic].filter(Boolean).join(' · ')}
           </span>
         )}
       </span>
@@ -103,13 +105,14 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
 }
 
 function NowMarker({ time }: { time: string }) {
+  const t = useT()
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '2px 12px 2px 4px' }}>
       <div style={{ width: 22, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
         <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-red-text)', boxShadow: '0 0 0 3px var(--color-red-soft)' }} />
       </div>
       <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 0.4, color: 'var(--color-red-text)', flexShrink: 0 }}>
-        СЕЙЧАС · {time}
+        {t('СЕЙЧАС')} · {time}
       </span>
       <span style={{ flex: 1, height: 1, background: 'linear-gradient(to right, var(--color-red-soft), transparent)' }} />
     </div>
@@ -119,6 +122,7 @@ function NowMarker({ time }: { time: string }) {
 export default function WidgetTodaySchedule() {
   const { todaySchedule, doneCount, nowMarkerIndex } = useHomeData()
   const schedThumb = useOverlayThumb()
+  const t = useT()
 
   return (
     <div style={{
@@ -135,12 +139,12 @@ export default function WidgetTodaySchedule() {
       {/* Title */}
       <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)', letterSpacing: 0.2, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         <Clock size={14} strokeWidth={2} />
-        Расписание сегодня
+        {t('Расписание сегодня')}
         {todaySchedule.length > 0 && (
           <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, letterSpacing: 0 }}>
-            <span style={{ color: 'var(--color-green-text)' }}>{doneCount} провед.</span>
+            <span style={{ color: 'var(--color-green-text)' }}>{doneCount} {t('провед.')}</span>
             <span style={{ color: 'var(--color-text-4)' }}>·</span>
-            <span style={{ color: 'var(--color-accent)' }}>{todaySchedule.length - doneCount} впереди</span>
+            <span style={{ color: 'var(--color-accent)' }}>{todaySchedule.length - doneCount} {t('впереди')}</span>
           </span>
         )}
       </div>
@@ -163,7 +167,7 @@ export default function WidgetTodaySchedule() {
           {todaySchedule.length === 0 ? (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: 'var(--color-text-4)', padding: '24px 0' }}>
               <Clock size={26} strokeWidth={1.5} />
-              <span style={{ fontSize: 13, fontWeight: 600 }}>Сегодня уроков нет</span>
+              <span style={{ fontSize: 13, fontWeight: 600 }}>{t('Сегодня уроков нет')}</span>
             </div>
           ) : todaySchedule.map((item, i) => (
             <div key={item.id}>

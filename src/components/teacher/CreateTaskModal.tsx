@@ -6,6 +6,7 @@ import { useAllStudents, useGroups } from '../../lib/useGroups'
 import { usePersistentState, clearDrafts } from '../../lib/useDraft'
 import TeacherSaveButton from './TeacherSaveButton'
 import ScrollFade from '../ScrollFade'
+import { useT, t as tr } from '../../lib/i18n'
 
 // ─── Task types ───────────────────────────────────────────────────────────────
 
@@ -80,7 +81,7 @@ function getEntitySuggestions(titleText: string, students: Student[], groups: Gr
   const matchedGroups = groups
     .filter(g => g.name.toLowerCase().includes(query))
     .slice(0, 3)
-    .map(g => ({ kind: 'group' as const, id: g.id, label: g.name, sub: `${g.studentCount} студентов`, triggerType: 'с' as const }))
+    .map(g => ({ kind: 'group' as const, id: g.id, label: g.name, sub: `${g.studentCount} ${tr('студентов')}`, triggerType: 'с' as const }))
 
   return [...matchedStudents, ...matchedGroups]
 }
@@ -118,6 +119,7 @@ const navBtnStyle: React.CSSProperties = {
 }
 
 function CalendarPicker({ value, onChange, onClose }: { value: string; onChange: (v: string) => void; onClose: () => void }) {
+  const t = useT()
   const selected = parseDateStr(value)
   const today = new Date()
 
@@ -171,14 +173,14 @@ function CalendarPicker({ value, onChange, onClose }: { value: string; onChange:
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <button onClick={prevMonth} style={navBtnStyle}><ChevronLeft size={14} strokeWidth={2.2} /></button>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
-          {RU_MONTHS[viewMonth]} {viewYear}
+          {t(RU_MONTHS[viewMonth])} {viewYear}
         </span>
         <button onClick={nextMonth} style={navBtnStyle}><ChevronRight size={14} strokeWidth={2.2} /></button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
         {RU_DAYS_SHORT.map(d => (
-          <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: '#B0A8CC', paddingBottom: 4 }}>{d}</div>
+          <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: '#B0A8CC', paddingBottom: 4 }}>{t(d)}</div>
         ))}
       </div>
 
@@ -285,6 +287,7 @@ function TimePicker({ value, onChange, onClose }: { value: string; onChange: (v:
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function TypePill({ type, onRemove }: { type: TaskType; onRemove: () => void }) {
+  const t = useT()
   return (
     <motion.div
       initial={{ maxWidth: 0, opacity: 0 }}
@@ -306,7 +309,7 @@ function TypePill({ type, onRemove }: { type: TaskType; onRemove: () => void }) 
           userSelect: 'none', cursor: 'pointer',
         }}
       >
-        {type.label}
+        {t(type.label)}
       </span>
     </motion.div>
   )
@@ -338,6 +341,7 @@ interface CreateTaskModalProps {
 }
 
 export default function CreateTaskModal({ onClose, onSave, initialTask }: CreateTaskModalProps) {
+  const t = useT()
   const students = useAllStudents()
   const { groups } = useGroups()
 
@@ -497,7 +501,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '18px 20px 0',
           }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{initialTask ? 'Редактировать' : 'Новая задача'}</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{initialTask ? t('Редактировать') : t('Новая задача')}</span>
             <button
               onClick={handleClose}
               style={{
@@ -557,7 +561,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                     onKeyDown={handleTitleKeyDown}
                     onFocus={() => setTitleFocused(true)}
                     onBlur={() => setTitleFocused(false)}
-                    placeholder={taskType ? 'с кем / о чём…' : 'Встреча, Созвон, Урок…'}
+                    placeholder={taskType ? t('с кем / о чём…') : t('Встреча, Созвон, Урок…')}
                     style={{
                       width: '100%', border: 'none', outline: 'none',
                       background: 'transparent',
@@ -627,22 +631,22 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
 
             {/* Type pills row */}
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {TASK_TYPES.map(t => {
-                const active = taskType?.id === t.id
+              {TASK_TYPES.map(tt => {
+                const active = taskType?.id === tt.id
                 return (
                   <button
-                    key={t.id}
-                    onClick={() => { setTaskType(active ? null : t); inputRef.current?.focus() }}
+                    key={tt.id}
+                    onClick={() => { setTaskType(active ? null : tt); inputRef.current?.focus() }}
                     style={{
                       padding: '5px 12px', borderRadius: 20, cursor: 'pointer',
                       fontSize: 12, fontWeight: 650,
-                      background: active ? t.bg : 'var(--color-bg-3)',
-                      color: active ? t.textColor : 'var(--color-muted)',
-                      border: active ? `1.5px solid ${t.color}44` : '1.5px solid transparent',
+                      background: active ? tt.bg : 'var(--color-bg-3)',
+                      color: active ? tt.textColor : 'var(--color-muted)',
+                      border: active ? `1.5px solid ${tt.color}44` : '1.5px solid transparent',
                       transition: 'all 0.15s',
                     }}
                   >
-                    {t.label}
+                    {t(tt.label)}
                   </button>
                 )
               })}
@@ -657,7 +661,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
               <div ref={calendarRef} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 5, position: 'relative' }}>
                 <span style={{ fontSize: 11, fontWeight: 600, color: '#9090A0', letterSpacing: 0.3, display: 'flex', alignItems: 'center', gap: 4 }}>
                   <Calendar size={10} strokeWidth={2} />
-                  ДАТА
+                  {t('ДАТА')}
                 </span>
                 <button
                   onClick={() => { setShowCalendar(v => !v); setShowTimePicker(false) }}
@@ -685,7 +689,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
               <div ref={timePickerRef} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 5, position: 'relative' }}>
                 <span style={{ fontSize: 11, fontWeight: 600, color: '#9090A0', letterSpacing: 0.3, display: 'flex', alignItems: 'center', gap: 4 }}>
                   <Clock size={10} strokeWidth={2} />
-                  ВРЕМЯ
+                  {t('ВРЕМЯ')}
                 </span>
                 <button
                   onClick={() => { setShowTimePicker(v => !v); setShowCalendar(false) }}
@@ -714,12 +718,12 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
             <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
               <span style={{ fontSize: 11, fontWeight: 600, color: '#9090A0', letterSpacing: 0.3, display: 'flex', alignItems: 'center', gap: 4 }}>
                 <MessageSquare size={10} strokeWidth={2} />
-                КОММЕНТАРИЙ
+                {t('КОММЕНТАРИЙ')}
               </span>
               <textarea
                 value={comment}
                 onChange={e => setComment(e.target.value)}
-                placeholder="Заметки, ссылки, напоминание…"
+                placeholder={t('Заметки, ссылки, напоминание…')}
                 rows={2}
                 style={{
                   padding: '9px 12px', borderRadius: 12, border: '1.5px solid var(--color-border-medium)',
@@ -742,10 +746,10 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                   fontSize: 14, fontWeight: 600, color: 'var(--color-muted)', cursor: 'pointer',
                 }}
               >
-                Отмена
+                {t('Отмена')}
               </button>
               <TeacherSaveButton
-                label="Сохранить" savedLabel="Сохранено"
+                label={t('Сохранить')} savedLabel={t('Сохранено')}
                 saved={saved} disabled={!canSave}
                 onClick={handleSave}
                 style={{ flex: 2, borderRadius: 14 }}

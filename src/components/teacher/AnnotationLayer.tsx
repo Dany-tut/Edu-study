@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useLayoutEffect } from 'react'
 import { Pencil, Eraser, Undo2, Trash2, Highlighter } from 'lucide-react'
 import { optimizeCanvas, ImageTooLargeError } from '../../lib/imageOptim'
+import { useT } from '../../lib/i18n'
 
 // Живой оверлей-разметка: прозрачный холст ПОВЕРХ настоящего ответа ученика.
 // Учитель рисует прямо по «Дано»/«Решению» — красным/зелёным, что верно, а что нет.
@@ -28,6 +29,7 @@ export default function AnnotationLayer({
   // вызывается при каждом изменении штрихов (передаёт null после «Очистить»).
   onChange?: (a: Annotation | null) => void
 }) {
+  const t = useT()
   const contentRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [size, setSize] = useState<{ w: number; h: number } | null>(null)
@@ -356,18 +358,18 @@ export default function AnnotationLayer({
           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 12,
           position: 'sticky', top: 8, zIndex: 6,
         }}>
-          <button title="Карандаш" onClick={() => setTool('pen')} style={iconBtn(tool === 'pen', 'var(--color-blue-pill-bg)', 'var(--color-blue-pill-text)')}>
+          <button title={t('Карандаш')} onClick={() => setTool('pen')} style={iconBtn(tool === 'pen', 'var(--color-blue-pill-bg)', 'var(--color-blue-pill-text)')}>
             <Pencil size={13} />
           </button>
-          <button title="Маркер — полупрозрачное выделение в строку" onClick={() => setTool('marker')} style={iconBtn(tool === 'marker', 'var(--color-blue-pill-bg)', 'var(--color-blue-pill-text)')}>
+          <button title={t('Маркер — полупрозрачное выделение в строку')} onClick={() => setTool('marker')} style={iconBtn(tool === 'marker', 'var(--color-blue-pill-bg)', 'var(--color-blue-pill-text)')}>
             <Highlighter size={13} />
           </button>
-          <button title="Ластик" onClick={() => setTool('eraser')} style={iconBtn(tool === 'eraser', 'var(--color-peach-soft)', 'var(--color-peach-text)')}>
+          <button title={t('Ластик')} onClick={() => setTool('eraser')} style={iconBtn(tool === 'eraser', 'var(--color-peach-soft)', 'var(--color-peach-text)')}>
             <Eraser size={13} />
           </button>
           <div style={{ width: 1, height: 16, background: 'var(--color-border-medium)' }} />
           {PEN_COLORS.map(c => (
-            <button key={c} title="Цвет" onClick={() => { setColor(c); if (tool === 'eraser') setTool('pen') }} style={{
+            <button key={c} title={t('Цвет')} onClick={() => { setColor(c); if (tool === 'eraser') setTool('pen') }} style={{
               width: 17, height: 17, borderRadius: '50%', cursor: 'pointer', flexShrink: 0, background: c,
               border: color === c && tool !== 'eraser' ? '2.5px solid var(--color-blue-pill-text)' : '2px solid var(--color-border)',
             }} />
@@ -375,10 +377,10 @@ export default function AnnotationLayer({
           <div style={{ width: 1, height: 16, background: 'var(--color-border-medium)' }} />
           <input type="range" min={1} max={14} value={activeSize} onChange={e => setActiveSize(+e.target.value)} style={{ width: 64 }} />
           <div style={{ flex: 1 }} />
-          <button title="Отменить" onClick={undo} disabled={!canUndo} style={{ ...iconBtn(false), cursor: canUndo ? 'pointer' : 'not-allowed', opacity: canUndo ? 1 : 0.35 }}>
+          <button title={t('Отменить')} onClick={undo} disabled={!canUndo} style={{ ...iconBtn(false), cursor: canUndo ? 'pointer' : 'not-allowed', opacity: canUndo ? 1 : 0.35 }}>
             <Undo2 size={13} />
           </button>
-          <button title="Стереть всю разметку" onClick={clear} style={{ ...iconBtn(false), background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
+          <button title={t('Стереть всю разметку')} onClick={clear} style={{ ...iconBtn(false), background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
             <Trash2 size={13} />
           </button>
         </div>

@@ -15,6 +15,8 @@
 // бросаем ImageTooLargeError. Без потолка один вставленный скан съедает квоту БД.
 
 // Потолки на итоговый data URL (длина строки ≈ байты, base64 — ASCII).
+import { t } from './i18n'
+
 export const PHOTO_CAP_BYTES = 1_500_000   // ~1.5 МБ на фото
 export const CANVAS_CAP_BYTES = 3_000_000  // ~3 МБ на доску/разметку
 const MIN_DIM = 800      // ниже по длинной стороне не ужимаем
@@ -22,7 +24,7 @@ const MIN_QUALITY = 0.5  // ниже качество не роняем
 
 export class ImageTooLargeError extends Error {
   constructor() {
-    super('Файл слишком большой — уменьшите изображение')
+    super(t('Файл слишком большой — уменьшите изображение'))
     this.name = 'ImageTooLargeError'
   }
 }

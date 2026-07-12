@@ -2,6 +2,7 @@
 // Учитель БЕЗ подписки = внутренний/бета-аккаунт: лимиты не применяются,
 // my_plan() возвращает пусто. Назначение тарифа — только админ (Админка).
 import { supabase } from './supabase'
+import { t } from './i18n'
 
 export interface MyPlan {
   plan_code: string
@@ -22,11 +23,11 @@ export interface TeacherPlanRow {
 }
 
 export const PLAN_OPTIONS = [
-  { code: null, label: 'Без тарифа (бета)' },
-  { code: 'free', label: 'Бесплатный · до 3 учеников' },
-  { code: 'solo', label: 'Соло · 690 ₽/мес · до 15' },
-  { code: 'pro', label: 'Про · 1 690 ₽/мес · до 40' },
-  { code: 'school', label: 'Школа · 4 490 ₽/мес · безлимит' },
+  { code: null, label: t('Без тарифа (бета)') },
+  { code: 'free', label: t('Бесплатный · до 3 учеников') },
+  { code: 'solo', label: t('Соло · 690 ₽/мес · до 15') },
+  { code: 'pro', label: t('Про · 1 690 ₽/мес · до 40') },
+  { code: 'school', label: t('Школа · 4 490 ₽/мес · безлимит') },
 ] as const
 
 /** Тариф текущего учителя; null = подписка не назначена (лимитов нет). */
@@ -73,7 +74,7 @@ export function parseStudentLimitError(err: unknown): number | null {
 }
 
 export function studentLimitMessage(max: number): string {
-  return `Достигнут лимит тарифа: ${max} учеников. Чтобы добавить ещё, обновите тариф — напишите нам или администратору.`
+  return `${t('Достигнут лимит тарифа:')} ${max} ${t('учеников. Чтобы добавить ещё, обновите тариф — напишите нам или администратору.')}`
 }
 
 // ── Экран «По пользователям» (админка, миграция 0039) ────────────────────────

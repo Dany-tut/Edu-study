@@ -6,6 +6,7 @@ import {
   AlertTriangle, MousePointerClick, Clock, BookOpen, ChevronDown, ChevronUp,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { useT, t as tGlobal } from '../../lib/i18n'
 
 // ── types ──────────────────────────────────────────────────────────────────
 type Overview = {
@@ -40,7 +41,7 @@ const PATH_LABELS: Record<string,string> = {
   '#/teacher/groups': 'Группы', '#/teacher/constructor': 'Конструктор',
   '#/teacher/admin': 'Админка',
 }
-function pLabel(p: string) { return PATH_LABELS[p] ?? p }
+function pLabel(p: string) { return tGlobal(PATH_LABELS[p] ?? p) }
 
 // ── sub-components ─────────────────────────────────────────────────────────
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
@@ -95,6 +96,7 @@ function TabToggle({ value, onChange, options }: {
 }
 
 function Heatmap({ cells, color }: { cells: HeatCell[]; color: string }) {
+  const t = useT()
   const heatMap = new Map<string,number>()
   let heatMax = 0
   for (const c of cells) { heatMap.set(`${c.dow}-${c.hour}`,c.cnt); if (c.cnt>heatMax) heatMax=c.cnt }
@@ -118,7 +120,7 @@ function Heatmap({ cells, color }: { cells: HeatCell[]; color: string }) {
 
   if (cells.length === 0) return (
     <div style={{ fontSize:12, color:'var(--color-text-3)', padding:'20px 0' }}>
-      Нет данных — данные появятся после первых посещений.
+      {t('Нет данных — данные появятся после первых посещений.')}
     </div>
   )
 
@@ -126,7 +128,7 @@ function Heatmap({ cells, color }: { cells: HeatCell[]; color: string }) {
     <div>
       {peakHour >= 0 && (
         <div style={{ fontSize:12, color:'var(--color-text-3)', marginBottom:12 }}>
-          Пик активности: <b style={{ color:'var(--color-text)' }}>{peakHour}:00–{peakHour+1}:00 МСК</b>
+          {t('Пик активности:')} <b style={{ color:'var(--color-text)' }}>{peakHour}:00–{peakHour+1}:00 {t('МСК')}</b>
         </div>
       )}
       <div style={{ overflowX:'auto' }}>
@@ -139,11 +141,11 @@ function Heatmap({ cells, color }: { cells: HeatCell[]; color: string }) {
         </div>
         {DOW_LABELS.map((label,di) => (
           <div key={label} style={{ display:'flex', gap:4, alignItems:'center', marginBottom:3 }}>
-            <div style={{ width:24, fontSize:10, color:'var(--color-text-3)', fontWeight:600 }}>{label}</div>
+            <div style={{ width:24, fontSize:10, color:'var(--color-text-3)', fontWeight:600 }}>{t(label)}</div>
             {Array.from({length:24}).map((_,h) => {
               const cnt = heatMap.get(`${DOW_PG[di]}-${h}`) ?? 0
               return (
-                <div key={h} title={`${label} ${h}:00 — ${cnt} событий`}
+                <div key={h} title={`${t(label)} ${h}:00 — ${cnt} ${t('событий')}`}
                   style={{ width:16, height:16, borderRadius:3, background:cellColor(cnt), flexShrink:0 }} />
               )
             })}
@@ -151,12 +153,12 @@ function Heatmap({ cells, color }: { cells: HeatCell[]; color: string }) {
         ))}
       </div>
       <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:10, fontSize:10, color:'var(--color-text-3)' }}>
-        меньше
+        {t('меньше')}
         {[0,0.25,0.5,0.75,1].map(a => {
           const hex=color.replace('#',''); const r=parseInt(hex.slice(0,2),16),g=parseInt(hex.slice(2,4),16),b=parseInt(hex.slice(4,6),16)
           return <div key={a} style={{ width:12, height:12, borderRadius:2, background: a===0?'var(--color-bg-3)':`rgba(${r},${g},${b},${(0.12+0.88*a).toFixed(2)})` }} />
         })}
-        больше
+        {t('больше')}
       </div>
     </div>
   )
@@ -188,6 +190,7 @@ function heatColor(t: number): [number,number,number] {
 }
 
 function ClickHeatmap({ cells, label, total }: { cells: ClickCell[]; label: string; total: number }) {
+  const t = useT()
   const ref = useRef<HTMLCanvasElement|null>(null)
   const shot = REFERENCE_SHOTS[label] // label is the raw path key
 
@@ -236,22 +239,22 @@ function ClickHeatmap({ cells, label, total }: { cells: ClickCell[]; label: stri
             <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center',
               flexDirection:'column', gap:6, color:'var(--color-text-3)', pointerEvents:'none' }}>
               <div style={{ fontSize:13, fontWeight:600, opacity:0.5 }}>{pLabel(label)}</div>
-              <div style={{ fontSize:10.5, opacity:0.4 }}>клики по нормализованным координатам экрана</div>
+              <div style={{ fontSize:10.5, opacity:0.4 }}>{t('клики по нормализованным координатам экрана')}</div>
             </div>
           )}
         <canvas ref={ref} style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none' }} />
         {cells.length===0 && (
           <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center',
             fontSize:12, color:'var(--color-text-3)' }}>
-            Нет кликов на этом экране за период
+            {t('Нет кликов на этом экране за период')}
           </div>
         )}
       </div>
       <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:10, fontSize:10.5, color:'var(--color-text-3)' }}>
-        <span>реже</span>
+        <span>{t('реже')}</span>
         <div style={{ width:120, height:8, borderRadius:4, background:'linear-gradient(to right, rgba(46,64,180,0.5), #28b6c0, #46c860, #f0d03a, #e43c30)' }} />
-        <span>чаще</span>
-        <span style={{ marginLeft:'auto' }}>{total.toLocaleString('ru-RU')} кликов</span>
+        <span>{t('чаще')}</span>
+        <span style={{ marginLeft:'auto' }}>{total.toLocaleString('ru-RU')} {t('кликов')}</span>
       </div>
     </div>
   )
@@ -259,6 +262,7 @@ function ClickHeatmap({ cells, label, total }: { cells: ClickCell[]; label: stri
 
 // ── main component ─────────────────────────────────────────────────────────
 export default function TeacherAnalytics() {
+  const t = useT()
   const [days, setDays]                   = useState(30)
   const [loading, setLoading]             = useState(true)
   const [heatRole, setHeatRole]           = useState<'teacher'|'student'>('teacher')
@@ -294,7 +298,7 @@ export default function TeacherAnalytics() {
       supabase.rpc('admin_rage_hotspots',             { p_days: days }),
     ])
     if (ov.error && /does not exist|forbidden/i.test(ov.error.message ?? ''))
-      setErr('Ошибка загрузки: ' + ov.error.message)
+      setErr(t('Ошибка загрузки:') + ' ' + ov.error.message)
     setOverview((ov.data as Overview) ?? null)
     setTeacherHeat((th.data as HeatCell[]) ?? [])
     setStudentHeat((sh.data as HeatCell[]) ?? [])
@@ -340,10 +344,10 @@ export default function TeacherAnalytics() {
   // ── derived ──────────────────────────────────────────────────────────────
   const dailyMax   = Math.max(1, ...daily.map(d => d.events))
   const fSteps     = funnel ? [
-    { label:'Назначено', v:funnel.assigned },
-    { label:'Открыли',   v:funnel.started  },
-    { label:'Сдали',     v:funnel.submitted },
-    { label:'Принято',   v:funnel.completed },
+    { label:t('Назначено'), v:funnel.assigned },
+    { label:t('Открыли'),   v:funnel.started  },
+    { label:t('Сдали'),     v:funnel.submitted },
+    { label:t('Принято'),   v:funnel.completed },
   ] : []
   const fMax       = Math.max(1, ...fSteps.map(s => s.v))
   const bdMax      = Math.max(1, ...breakdown.map(b => b.cnt))
@@ -362,8 +366,8 @@ export default function TeacherAnalytics() {
   // severity badge
   function severity(n: number): { label:string; bg:string; color:string } {
     if (n===0) return { label:'OK', bg:'rgba(63,168,103,0.15)', color:'#2a8a55' }
-    if (n<3)   return { label:'Внимание', bg:'rgba(208,112,32,0.15)', color:'#b05a00' }
-    return        { label:'Проблема', bg:'rgba(224,72,72,0.15)', color:'#c0282a' }
+    if (n<3)   return { label:t('Внимание'), bg:'rgba(208,112,32,0.15)', color:'#b05a00' }
+    return        { label:t('Проблема'), bg:'rgba(224,72,72,0.15)', color:'#c0282a' }
   }
 
   const errorSev = severity(totalErrors)
@@ -386,11 +390,11 @@ export default function TeacherAnalytics() {
               background: days===d ? ACCENT : 'transparent',
               color: days===d ? '#fff' : 'var(--color-text-3)',
               transition:'background 0.15s, color 0.15s',
-            }}>{d} дней</button>
+            }}>{d} {t('дней')}</button>
           ))}
         </div>
         <div style={{ display:'flex', gap:4, background:'var(--color-bg-3)', borderRadius:12, padding:3 }}>
-          {([['activity','Активность'],['issues','Проблемы'],['heatmap','Тепловые карты']] as const).map(([id,label]) => (
+          {([['activity',t('Активность')],['issues',t('Проблемы')],['heatmap',t('Тепловые карты')]] as const).map(([id,label]) => (
             <button key={id} onClick={() => setActiveTab(id)} style={{
               padding:'6px 14px', borderRadius:9, border:'none', cursor:'pointer',
               fontSize:12.5, fontWeight:600,
@@ -421,28 +425,28 @@ export default function TeacherAnalytics() {
         <>
           {/* KPI grid */}
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10, marginBottom:24 }}>
-            <Kpi icon={Activity}      label="DAU"              value={overview?.dau ?? '—'}      sub="активны за сутки" />
-            <Kpi icon={Users}         label="WAU"              value={overview?.wau ?? '—'}      sub="за 7 дней" />
-            <Kpi icon={CalendarClock} label="MAU"              value={overview?.mau ?? '—'}      sub="за 30 дней" />
+            <Kpi icon={Activity}      label="DAU"              value={overview?.dau ?? '—'}      sub={t('активны за сутки')} />
+            <Kpi icon={Users}         label="WAU"              value={overview?.wau ?? '—'}      sub={t('за 7 дней')} />
+            <Kpi icon={CalendarClock} label="MAU"              value={overview?.mau ?? '—'}      sub={t('за 30 дней')} />
             <Kpi icon={TrendingUp}    label="Stickiness"
               value={overview && overview.mau ? `${Math.round((overview.dau/overview.mau)*100)}%` : '—'}
               sub="DAU / MAU" />
-            <Kpi icon={Layers}        label="Сессии"           value={overview?.sessions ?? '—'} sub={`за ${days} дн.`} />
-            <Kpi icon={Activity}      label="События"          value={overview?.events_total ?? '—'} sub={`за ${days} дн.`} />
-            <Kpi icon={Users}         label="Активные ученики"
+            <Kpi icon={Layers}        label={t('Сессии')}           value={overview?.sessions ?? '—'} sub={`${t('за')} ${days} ${t('дн.')}`} />
+            <Kpi icon={Activity}      label={t('События')}          value={overview?.events_total ?? '—'} sub={`${t('за')} ${days} ${t('дн.')}`} />
+            <Kpi icon={Users}         label={t('Активные ученики')}
               value={overview ? `${overview.students_active}/${overview.students_total}` : '—'}
-              sub="за 7 дней" />
-            <Kpi icon={BookOpen}      label="Групп"            value={overview?.groups_total ?? '—'} sub="всего" />
+              sub={t('за 7 дней')} />
+            <Kpi icon={BookOpen}      label={t('Групп')}            value={overview?.groups_total ?? '—'} sub={t('всего')} />
           </div>
 
           {/* Role heatmaps */}
           <SectionTitle action={
             <TabToggle value={heatRole} onChange={v => setHeatRole(v as 'teacher'|'student')} options={[
-              { id:'teacher', label:'Учителя', color:ACCENT },
-              { id:'student', label:'Ученики', color:ACCENT_S },
+              { id:'teacher', label:t('Учителя'), color:ACCENT },
+              { id:'student', label:t('Ученики'), color:ACCENT_S },
             ]} />
           }>
-            Тепловая карта активности · МСК
+            {t('Тепловая карта активности · МСК')}
           </SectionTitle>
           <Card style={{ marginBottom:24 }}>
             <Heatmap cells={currentHeat} color={currentColor} />
@@ -451,10 +455,10 @@ export default function TeacherAnalytics() {
           {/* Side by side — teacher vs student summary */}
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:24 }}>
             <Card>
-              <div style={{ fontSize:12, fontWeight:700, color:ACCENT, marginBottom:10 }}>Учителя</div>
+              <div style={{ fontSize:12, fontWeight:700, color:ACCENT, marginBottom:10 }}>{t('Учителя')}</div>
               <div style={{ fontSize:11, color:'var(--color-text-3)', lineHeight:1.7 }}>
                 {teacherHeat.length === 0
-                  ? 'Нет данных'
+                  ? t('Нет данных')
                   : (() => {
                       const totH = new Map<number,number>()
                       for (const c of teacherHeat) totH.set(c.hour,(totH.get(c.hour)??0)+c.cnt)
@@ -464,19 +468,19 @@ export default function TeacherAnalytics() {
                       let dmax=0,dbest=-1; for (const [d,v] of totD) { if(v>dmax){dmax=v;dbest=d} }
                       const dNames = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб']
                       return <>
-                        <div>Пик часа: <b style={{color:'var(--color-text)'}}>{best}:00–{best+1}:00</b></div>
-                        <div>Пик дня: <b style={{color:'var(--color-text)'}}>{dNames[dbest]}</b></div>
-                        <div>Всего событий: <b style={{color:'var(--color-text)'}}>{teacherHeat.reduce((a,c)=>a+c.cnt,0)}</b></div>
+                        <div>{t('Пик часа:')} <b style={{color:'var(--color-text)'}}>{best}:00–{best+1}:00</b></div>
+                        <div>{t('Пик дня:')} <b style={{color:'var(--color-text)'}}>{t(dNames[dbest])}</b></div>
+                        <div>{t('Всего событий:')} <b style={{color:'var(--color-text)'}}>{teacherHeat.reduce((a,c)=>a+c.cnt,0)}</b></div>
                       </>
                     })()
                 }
               </div>
             </Card>
             <Card>
-              <div style={{ fontSize:12, fontWeight:700, color:ACCENT_S, marginBottom:10 }}>Ученики</div>
+              <div style={{ fontSize:12, fontWeight:700, color:ACCENT_S, marginBottom:10 }}>{t('Ученики')}</div>
               <div style={{ fontSize:11, color:'var(--color-text-3)', lineHeight:1.7 }}>
                 {studentHeat.length === 0
-                  ? 'Нет данных — ученики ещё не заходили'
+                  ? t('Нет данных — ученики ещё не заходили')
                   : (() => {
                       const totH = new Map<number,number>()
                       for (const c of studentHeat) totH.set(c.hour,(totH.get(c.hour)??0)+c.cnt)
@@ -486,9 +490,9 @@ export default function TeacherAnalytics() {
                       let dmax=0,dbest=-1; for (const [d,v] of totD) { if(v>dmax){dmax=v;dbest=d} }
                       const dNames = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб']
                       return <>
-                        <div>Пик часа: <b style={{color:'var(--color-text)'}}>{best}:00–{best+1}:00</b></div>
-                        <div>Пик дня: <b style={{color:'var(--color-text)'}}>{dNames[dbest]}</b></div>
-                        <div>Всего событий: <b style={{color:'var(--color-text)'}}>{studentHeat.reduce((a,c)=>a+c.cnt,0)}</b></div>
+                        <div>{t('Пик часа:')} <b style={{color:'var(--color-text)'}}>{best}:00–{best+1}:00</b></div>
+                        <div>{t('Пик дня:')} <b style={{color:'var(--color-text)'}}>{t(dNames[dbest])}</b></div>
+                        <div>{t('Всего событий:')} <b style={{color:'var(--color-text)'}}>{studentHeat.reduce((a,c)=>a+c.cnt,0)}</b></div>
                       </>
                     })()
                 }
@@ -497,13 +501,13 @@ export default function TeacherAnalytics() {
           </div>
 
           {/* Daily bars */}
-          <SectionTitle>Активность по дням</SectionTitle>
+          <SectionTitle>{t('Активность по дням')}</SectionTitle>
           <Card style={{ marginBottom:24 }}>
             {daily.length === 0
-              ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>Данные появятся после первых посещений.</div>
+              ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>{t('Данные появятся после первых посещений.')}</div>
               : <div style={{ display:'flex', alignItems:'flex-end', gap:3, height:100 }}>
                   {daily.map(d => (
-                    <div key={d.day} title={`${d.day} — ${d.events} событий, ${d.users} польз.`}
+                    <div key={d.day} title={`${d.day} — ${d.events} ${t('событий')}, ${d.users} ${t('польз.')}`}
                       style={{ flex:1, minWidth:2, height:`${Math.max(2,(d.events/dailyMax)*100)}%`, background:ACCENT, borderRadius:'3px 3px 0 0', opacity:0.8 }} />
                   ))}
                 </div>
@@ -513,7 +517,7 @@ export default function TeacherAnalytics() {
           {/* Funnel + Breakdown */}
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
             <div>
-              <SectionTitle>Воронка прогресса</SectionTitle>
+              <SectionTitle>{t('Воронка прогресса')}</SectionTitle>
               <Card>
                 {fSteps.map((s,i) => (
                   <div key={s.label} style={{ marginBottom:i<fSteps.length-1?12:0 }}>
@@ -533,14 +537,14 @@ export default function TeacherAnalytics() {
               </Card>
             </div>
             <div>
-              <SectionTitle>Типы событий</SectionTitle>
+              <SectionTitle>{t('Типы событий')}</SectionTitle>
               <Card>
                 {breakdown.length===0
-                  ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>Нет данных.</div>
+                  ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>{t('Нет данных.')}</div>
                   : breakdown.map((b,i) => (
                       <div key={b.event} style={{ marginBottom:i<breakdown.length-1?10:0 }}>
                         <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
-                          <span style={{ color:'var(--color-text)' }}>{EVENT_LABELS[b.event] ?? b.event}</span>
+                          <span style={{ color:'var(--color-text)' }}>{t(EVENT_LABELS[b.event] ?? b.event)}</span>
                           <span style={{ color:'var(--color-text-3)' }}>{b.cnt}</span>
                         </div>
                         <div style={{ height:6, borderRadius:3, background:'var(--color-bg-3)' }}>
@@ -562,17 +566,17 @@ export default function TeacherAnalytics() {
         <>
           {/* Health overview */}
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:24 }}>
-            <Kpi icon={AlertTriangle} label="JS ошибок"
+            <Kpi icon={AlertTriangle} label={t('JS ошибок')}
               value={totalErrors}
-              sub={totalErrors===0 ? 'Всё чисто' : 'за выбранный период'}
+              sub={totalErrors===0 ? t('Всё чисто') : t('за выбранный период')}
               accent={totalErrors>0 ? '#E04848' : undefined} />
-            <Kpi icon={MousePointerClick} label="Rage-клики"
+            <Kpi icon={MousePointerClick} label={t('Rage-клики')}
               value={totalRage}
-              sub={totalRage===0 ? 'Пользователи не злятся' : 'места путаницы'}
+              sub={totalRage===0 ? t('Пользователи не злятся') : t('места путаницы')}
               accent={totalRage>2 ? '#D07020' : undefined} />
-            <Kpi icon={Clock} label="Bounce-риск"
+            <Kpi icon={Clock} label={t('Bounce-риск')}
               value={bounceRisk}
-              sub={bounceRisk===0 ? 'Страниц с коротким дwell нет' : `страниц с dwell<5с`}
+              sub={bounceRisk===0 ? t('Страниц с коротким dwell нет') : t('страниц с dwell<5с')}
               accent={bounceRisk>0 ? '#D07020' : undefined} />
           </div>
 
@@ -583,27 +587,27 @@ export default function TeacherAnalytics() {
             </div>
             <div>
               <div style={{ fontSize:14, fontWeight:700, color:'var(--color-text)' }}>
-                {issueScore===0 ? 'Платформа работает без видимых проблем' : issueScore<5 ? 'Есть незначительные сигналы' : 'Требует внимания'}
+                {issueScore===0 ? t('Платформа работает без видимых проблем') : issueScore<5 ? t('Есть незначительные сигналы') : t('Требует внимания')}
               </div>
               <div style={{ fontSize:12, color:'var(--color-text-3)', marginTop:2 }}>
-                Комбинированный индекс: ошибки × 1 + rage × 0.5 + bounce-страницы × 2
+                {t('Комбинированный индекс: ошибки × 1 + rage × 0.5 + bounce-страницы × 2')}
               </div>
             </div>
           </Card>
 
           {/* Problem pages */}
-          <SectionTitle>Страницы с проблемами</SectionTitle>
+          <SectionTitle>{t('Страницы с проблемами')}</SectionTitle>
           <Card style={{ marginBottom:24 }}>
             {problemPages.length===0
-              ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>Проблемных страниц не найдено.</div>
+              ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>{t('Проблемных страниц не найдено.')}</div>
               : (
                 <div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 80px 80px 80px 80px', gap:8,
                     fontSize:11, color:'var(--color-text-3)', fontWeight:600, paddingBottom:8,
                     borderBottom:'1px solid var(--color-border)', marginBottom:8 }}>
-                    <span>Страница / роль</span><span style={{textAlign:'center'}}>Визитов</span>
+                    <span>{t('Страница / роль')}</span><span style={{textAlign:'center'}}>{t('Визитов')}</span>
                     <span style={{textAlign:'center'}}>Dwell</span>
-                    <span style={{textAlign:'center', color:'#E04848'}}>Ошибки</span>
+                    <span style={{textAlign:'center', color:'#E04848'}}>{t('Ошибки')}</span>
                     <span style={{textAlign:'center', color:'#D07020'}}>Rage</span>
                   </div>
                   {problemPages.map((p,i) => (
@@ -616,7 +620,7 @@ export default function TeacherAnalytics() {
                       </div>
                       <div style={{ textAlign:'center', color:'var(--color-text-3)' }}>{p.visits}</div>
                       <div style={{ textAlign:'center', color: p.avg_dwell_sec!==null && p.avg_dwell_sec<5?'#D07020':'var(--color-text-3)' }}>
-                        {p.avg_dwell_sec!==null ? `${p.avg_dwell_sec}с` : '—'}
+                        {p.avg_dwell_sec!==null ? `${p.avg_dwell_sec}${t('с')}` : '—'}
                       </div>
                       <div style={{ textAlign:'center', color:p.errors>0?'#E04848':'var(--color-text-3)', fontWeight:p.errors>0?700:400 }}>{p.errors||'—'}</div>
                       <div style={{ textAlign:'center', color:p.rage_clicks>0?'#D07020':'var(--color-text-3)', fontWeight:p.rage_clicks>0?700:400 }}>{p.rage_clicks||'—'}</div>
@@ -630,10 +634,10 @@ export default function TeacherAnalytics() {
           {/* Bounce / short dwell */}
           {slowPages.length > 0 && (
             <>
-              <SectionTitle>Страницы с коротким временем (bounce-риск)</SectionTitle>
+              <SectionTitle>{t('Страницы с коротким временем (bounce-риск)')}</SectionTitle>
               <Card style={{ marginBottom:24 }}>
                 <div style={{ fontSize:12, color:'var(--color-text-3)', marginBottom:10 }}>
-                  Среднее время до ухода &lt;5 с — возможно пользователи не находят нужное или получают ошибку.
+                  {t('Среднее время до ухода <5 с — возможно пользователи не находят нужное или получают ошибку.')}
                 </div>
                 {slowPages.map((p,i) => (
                   <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'6px 0',
@@ -641,7 +645,7 @@ export default function TeacherAnalytics() {
                     <Clock size={12} style={{ color:'#D07020', flexShrink:0 }} />
                     <div style={{ flex:1, color:'var(--color-text)' }}>{pLabel(p.path)}</div>
                     <div style={{ color:'var(--color-text-3)', fontSize:11 }}>{p.role}</div>
-                    <div style={{ fontWeight:700, color:'#D07020', minWidth:40, textAlign:'right' }}>{p.avg_dwell_sec}с</div>
+                    <div style={{ fontWeight:700, color:'#D07020', minWidth:40, textAlign:'right' }}>{p.avg_dwell_sec}{t('с')}</div>
                   </div>
                 ))}
               </Card>
@@ -651,10 +655,10 @@ export default function TeacherAnalytics() {
           {/* Rage hotspots */}
           {rageHots.length > 0 && (
             <>
-              <SectionTitle>Rage-click точки (где кликают в злости)</SectionTitle>
+              <SectionTitle>{t('Rage-click точки (где кликают в злости)')}</SectionTitle>
               <Card style={{ marginBottom:24 }}>
                 <div style={{ fontSize:12, color:'var(--color-text-3)', marginBottom:10 }}>
-                  Многократные быстрые клики — признак нерабочего элемента или непонятного UX.
+                  {t('Многократные быстрые клики — признак нерабочего элемента или непонятного UX.')}
                 </div>
                 {rageHots.slice(0,8).map((r,i) => (
                   <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'6px 0',
@@ -675,18 +679,18 @@ export default function TeacherAnalytics() {
           <SectionTitle action={
             <button onClick={() => setErrExpanded(e=>!e)} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
               {errExpanded ? <ChevronUp size={13}/> : <ChevronDown size={13}/>}
-              {errExpanded ? 'Свернуть' : 'Все ошибки'}
+              {errExpanded ? t('Свернуть') : t('Все ошибки')}
             </button>
           }>
-            Лог ошибок (последние)
+            {t('Лог ошибок (последние)')}
           </SectionTitle>
           <Card>
             {recentErrors.length===0
-              ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>Ошибок нет — отлично!</div>
+              ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>{t('Ошибок нет — отлично!')}</div>
               : (recentErrors.slice(0, errExpanded ? 50 : 8)).map((e,i) => {
                   const isError = e.event !== 'rage_click'
                   const color = isError ? '#E04848' : '#D07020'
-                  const evLabel = EVENT_LABELS[e.event] ?? e.event
+                  const evLabel = t(EVENT_LABELS[e.event] ?? e.event)
                   return (
                     <div key={i} style={{ padding:'8px 0', borderBottom:i<recentErrors.length-1?'1px solid var(--color-border)':undefined, fontSize:11, lineHeight:1.5 }}>
                       <div style={{ display:'flex', alignItems:'flex-start', gap:8 }}>
@@ -718,19 +722,18 @@ export default function TeacherAnalytics() {
         <>
           <SectionTitle action={
             <TabToggle value={heatRole} onChange={v => setHeatRole(v as 'teacher'|'student')} options={[
-              { id:'teacher', label:'Учителя', color:ACCENT },
-              { id:'student', label:'Ученики', color:ACCENT_S },
+              { id:'teacher', label:t('Учителя'), color:ACCENT },
+              { id:'student', label:t('Ученики'), color:ACCENT_S },
             ]} />
           }>
-            Тепловые карты кликов · по экранам
+            {t('Тепловые карты кликов · по экранам')}
           </SectionTitle>
 
           {/* Screen selector — auto-built from captured click paths */}
           <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:16 }}>
             {clickPaths.length === 0
               ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>
-                  Нет данных о кликах за период. Данные начнут собираться после обновления —
-                  каждый клик записывает нормализованные координаты по экрану.
+                  {t('Нет данных о кликах за период. Данные начнут собираться после обновления — каждый клик записывает нормализованные координаты по экрану.')}
                 </div>
               : clickPaths.map(p => {
                   const active = p.path === clickPath
@@ -757,7 +760,7 @@ export default function TeacherAnalytics() {
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
                 <div style={{ fontSize:13, fontWeight:700, color:'var(--color-text)' }}>{pLabel(clickPath)}</div>
                 <div style={{ fontSize:11, color:'var(--color-text-3)' }}>
-                  {clickLoading ? 'Загрузка…' : `${heatRole==='teacher'?'Учителя':'Ученики'} · ${days} дней`}
+                  {clickLoading ? t('Загрузка…') : `${heatRole==='teacher'?t('Учителя'):t('Ученики')} · ${days} ${t('дней')}`}
                 </div>
               </div>
               <ClickHeatmap
@@ -766,8 +769,7 @@ export default function TeacherAnalytics() {
                 total={clickGrid.reduce((a,c)=>a+c.cnt,0)}
               />
               <div style={{ fontSize:11, color:'var(--color-text-3)', marginTop:12, lineHeight:1.6 }}>
-                Пятна показывают, куда чаще всего кликают на этом экране. Красное — горячие зоны,
-                синее — редкие. Помогает тестировщикам и админу видеть, что реально жмут, а что игнорят.
+                {t('Пятна показывают, куда чаще всего кликают на этом экране. Красное — горячие зоны, синее — редкие. Помогает тестировщикам и админу видеть, что реально жмут, а что игнорят.')}
               </div>
             </Card>
           )}

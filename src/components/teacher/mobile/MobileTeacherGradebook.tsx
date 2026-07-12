@@ -10,6 +10,7 @@ import { tactile } from '../../../lib/feedback'
 import { useGroups, useGroupLessons, useLessonRoster, useAttendance, type GroupLesson } from '../../../lib/useGroups'
 import { DEMO_GROUPS, demoLessonsFor, demoRosterFor, isDemoId } from '../../../data/teacherDevDemo'
 import { useTheme } from '../../../store/themeStore'
+import { useT } from '../../../lib/i18n'
 
 // MOBILE ONLY journal: pick group → pick lesson → mark present/absent with a
 // "все присутствовали" shortcut, then save (useAttendance.saveLesson).
@@ -22,6 +23,7 @@ function fmtDate(d: string) {
 function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
   lesson: GroupLesson | null; groupId: string | null; onClose: () => void; onSaved: () => void
 }) {
+  const t = useT()
   const realRoster = useLessonRoster(lesson)
   // DEV-only: demo lesson has no DB roster → derive it from the demo group.
   const roster = import.meta.env.DEV && realRoster.length === 0 && isDemoId(lesson?.id)
@@ -68,12 +70,12 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
     <MobileSheet
       open={!!lesson}
       onClose={onClose}
-      title={lesson ? `${lesson.title || 'Урок'} · ${fmtDate(lesson.date)}` : ''}
+      title={lesson ? `${lesson.title || t('Урок')} · ${fmtDate(lesson.date)}` : ''}
       footer={lesson ? (
         <>
           {saveError && (
             <div style={{ fontSize: 13, fontWeight: 600, color: PAIR.error.text, background: PAIR.error.bg, borderRadius: 12, padding: '10px 14px', textAlign: 'center', marginBottom: 8 }}>
-              Не удалось сохранить — попробуйте ещё раз
+              {t('Не удалось сохранить — попробуйте ещё раз')}
             </div>
           )}
           <motion.button
@@ -83,7 +85,7 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
             className="cursor-pointer"
             style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 14, borderRadius: 16, background: 'var(--color-accent)', color: '#fff', border: 'none', fontSize: 15, fontWeight: 700, opacity: roster.length === 0 ? 0.5 : 1 }}
           >
-            {saving ? <Loader2 size={18} className="animate-spin" /> : <CheckSquare size={18} />} Сохранить журнал
+            {saving ? <Loader2 size={18} className="animate-spin" /> : <CheckSquare size={18} />} {t('Сохранить журнал')}
           </motion.button>
         </>
       ) : undefined}
@@ -95,7 +97,7 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
             className="cursor-pointer"
             style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 650, padding: '8px 14px', borderRadius: 999, background: allPresent ? PAIR.success.bg : 'var(--color-bg-4)', color: allPresent ? PAIR.success.text : 'var(--color-text-2)', border: '1px solid transparent' }}
           >
-            <Check size={15} /> Все присутствовали
+            <Check size={15} /> {t('Все присутствовали')}
           </button>
 
           {roster.map(r => {
@@ -108,14 +110,14 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
                     whileTap={{ scale: 0.9 }}
                     onClick={() => { tactile(); setPresent(p => ({ ...p, [r.id]: true })) }}
                     className="cursor-pointer"
-                    aria-label="присутствовал"
+                    aria-label={t('присутствовал')}
                     style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isPresent ? PAIR.success.bg : 'var(--color-bg-4)', color: isPresent ? PAIR.success.text : 'var(--color-text-4)', border: '1px solid transparent' }}
                   ><Check size={18} /></motion.button>
                   <motion.button
                     whileTap={{ scale: 0.9 }}
                     onClick={() => { tactile(); setPresent(p => ({ ...p, [r.id]: false })) }}
                     className="cursor-pointer"
-                    aria-label="отсутствовал"
+                    aria-label={t('отсутствовал')}
                     style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: !isPresent ? PAIR.error.bg : 'var(--color-bg-4)', color: !isPresent ? PAIR.error.text : 'var(--color-text-4)', border: '1px solid transparent' }}
                   ><X size={18} /></motion.button>
                 </div>
@@ -124,7 +126,7 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
           })}
 
           {roster.length === 0 && (
-            <div style={{ fontSize: 13, color: 'var(--color-muted)', padding: '16px 0', textAlign: 'center' }}>Нет учеников для этого урока</div>
+            <div style={{ fontSize: 13, color: 'var(--color-muted)', padding: '16px 0', textAlign: 'center' }}>{t('Нет учеников для этого урока')}</div>
           )}
         </div>
       )}
@@ -133,6 +135,7 @@ function AttendanceSheet({ lesson, groupId, onClose, onSaved }: {
 }
 
 export default function MobileTeacherGradebook() {
+  const t = useT()
   const { dark } = useTheme()
   const { groups: realGroups } = useGroups()
   const groups = import.meta.env.DEV && realGroups.length === 0 ? DEMO_GROUPS : realGroups
@@ -152,7 +155,7 @@ export default function MobileTeacherGradebook() {
 
   const topZone = (
     <div style={{ display: 'flex', justifyContent: 'center' }}>
-      <GlassPill><CheckSquare size={15} /> Журнал</GlassPill>
+      <GlassPill><CheckSquare size={15} /> {t('Журнал')}</GlassPill>
     </div>
   )
 
@@ -226,19 +229,19 @@ export default function MobileTeacherGradebook() {
                   <CalendarCheck size={18} style={{ color: first ? '#fff' : 'var(--color-muted)' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14.5, fontWeight: 650, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: first ? (dark ? 'rgba(255,220,120,1)' : '#a34e00') : 'var(--color-text)' }}>{l.title || 'Урок'}</div>
+                  <div style={{ fontSize: 14.5, fontWeight: 650, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: first ? (dark ? 'rgba(255,220,120,1)' : '#a34e00') : 'var(--color-text)' }}>{l.title || t('Урок')}</div>
                   <div style={{ fontSize: 12, fontWeight: 500, color: first ? (dark ? 'rgba(255,200,80,0.8)' : 'rgba(163,78,0,0.72)') : 'var(--color-muted)' }}>{fmtDate(l.date)}{l.timeStart ? ` · ${l.timeStart}` : ''}</div>
                 </div>
                 {first && (
                   <span style={{ fontSize: 11, fontWeight: 700, color: dark ? 'rgba(255,200,60,0.9)' : '#b45309', background: dark ? 'rgba(255,160,20,0.18)' : 'rgba(255,150,20,0.16)', borderRadius: 8, padding: '3px 8px', flexShrink: 0 }}>
-                    Ближайший
+                    {t('Ближайший')}
                   </span>
                 )}
               </motion.button>
             )
           })}
           {lessons.length === 0 && (
-            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', padding: '40px 0', textAlign: 'center' }}>Нет запланированных уроков для этой группы</div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', padding: '40px 0', textAlign: 'center' }}>{t('Нет запланированных уроков для этой группы')}</div>
           )}
         </div>
       </div>

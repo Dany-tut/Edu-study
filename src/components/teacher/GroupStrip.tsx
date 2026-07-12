@@ -4,6 +4,7 @@ import { Users, User, Plus } from 'lucide-react'
 import type { Group } from '../../data/teacherMockData'
 import { useStudents } from '../../lib/useGroups'
 import { mergeIndividuals, type PersonGroup } from '../../lib/personGroups'
+import { t, useT } from '../../lib/i18n'
 
 export type TabConfig = {
   tabs: { id: string; label: string }[]
@@ -109,6 +110,7 @@ function ActionPanel({
   onAddGroup,
   onAddIndividual,
 }: { onAddGroup: () => void; onAddIndividual: () => void }) {
+  const t = useT()
   return (
     <div style={{ width: CARD_W, height: CARD_H, display: 'flex', flexDirection: 'column', gap: BTN_GAP }}>
       <motion.button
@@ -128,7 +130,7 @@ function ActionPanel({
         <div style={{ width: 26, height: 26, borderRadius: 8, background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Plus size={14} strokeWidth={2.5} />
         </div>
-        <span style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.2 }}>Создать{'\n'}группу</span>
+        <span style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.2 }}>{t('Создать')}{'\n'}{t('группу')}</span>
       </motion.button>
 
       <motion.button
@@ -150,7 +152,7 @@ function ActionPanel({
         <div style={{ width: 26, height: 26, borderRadius: 8, background: 'rgba(155,109,255,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <User size={13} strokeWidth={2.2} />
         </div>
-        <span style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.2, textAlign: 'left' }}>Добавить{'\n'}1:1</span>
+        <span style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.2, textAlign: 'left' }}>{t('Добавить')}{'\n'}1:1</span>
       </motion.button>
     </div>
   )
@@ -160,6 +162,7 @@ function ActionPanel({
 function GroupMiniCard({
   group, isActive, onClick, onAddToGroup,
 }: { group: Group; isActive: boolean; onClick: () => void; onAddToGroup?: () => void }) {
+  const t = useT()
   const progress = Math.round((group.lessonsCompleted / group.totalLessons) * 100)
   const [hovered, setHovered] = useState(false)
   return (
@@ -192,7 +195,7 @@ function GroupMiniCard({
             initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }}
             transition={{ duration: 0.14 }}
             onClick={e => { e.stopPropagation(); onAddToGroup() }}
-            title="Добавить ученика в группу"
+            title={t('Добавить ученика в группу')}
             style={{
               position: 'absolute', top: 10, right: 10, zIndex: 6,
               width: 26, height: 26, borderRadius: 9, padding: 0,
@@ -219,18 +222,18 @@ function GroupMiniCard({
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
         <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>
-          с {group.startDate}
+          {t('с')} {group.startDate}
         </div>
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-            <span style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>Прогресс</span>
+            <span style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Прогресс')}</span>
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{group.lessonsCompleted}/{group.totalLessons}</span>
           </div>
           <div style={{ height: 6, background: 'var(--color-bg-5)', borderRadius: 99, overflow: 'hidden' }}>
             <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
               style={{ height: '100%', background: group.color, borderRadius: 99 }} />
           </div>
-          <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 4 }}>{progress}% выполнено</div>
+          <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 4 }}>{progress}% {t('выполнено')}</div>
         </div>
       </div>
     </motion.div>
@@ -253,6 +256,7 @@ function MetricCell({ label, value, color, divider }: { label: string; value: st
 function IndividualCard({
   group, isActive, onClick,
 }: { group: Group; isActive: boolean; onClick: () => void }) {
+  const t = useT()
   const initials = group.name.split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase()
   // The 1:1 group owns one student row — pull its metrics for the status footer.
   const { students } = useStudents(group.id)
@@ -312,9 +316,9 @@ function IndividualCard({
 
       {/* Status footer: live metrics from the student record */}
       <div style={{ display: 'flex', gap: 6, marginTop: 11, paddingTop: 10, borderTop: '1px solid var(--color-border-soft)' }}>
-        <MetricCell label="Посещ." value={stu ? `${stu.attendance}%` : '—'} color={stu ? attColor(stu.attendance) : 'var(--color-text-4)'} />
-        <MetricCell label="ДЗ" value={stu ? `${stu.hwScore}` : '—'} color={stu ? hwColor(stu.hwScore) : 'var(--color-text-4)'} divider />
-        <MetricCell label="Цель" value={stu?.desiredScore ? `${stu.desiredScore}` : '—'} color="var(--color-accent)" divider />
+        <MetricCell label={t('Посещ.')} value={stu ? `${stu.attendance}%` : '—'} color={stu ? attColor(stu.attendance) : 'var(--color-text-4)'} />
+        <MetricCell label={t('ДЗ')} value={stu ? `${stu.hwScore}` : '—'} color={stu ? hwColor(stu.hwScore) : 'var(--color-text-4)'} divider />
+        <MetricCell label={t('Цель')} value={stu?.desiredScore ? `${stu.desiredScore}` : '—'} color="var(--color-accent)" divider />
       </div>
     </motion.div>
   )
@@ -394,9 +398,9 @@ function PersonCard({
 
 function pluralSubjects(n: number): string {
   const mod10 = n % 10, mod100 = n % 100
-  if (mod10 === 1 && mod100 !== 11) return 'предмет'
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'предмета'
-  return 'предметов'
+  if (mod10 === 1 && mod100 !== 11) return t('предмет')
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return t('предмета')
+  return t('предметов')
 }
 
 // ─── Strip ────────────────────────────────────────────────────────────────────

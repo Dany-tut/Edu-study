@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
+import { t } from '../lib/i18n'
 
 export type NotifType =
   // legacy / local types
@@ -64,7 +65,7 @@ function rowToNotif(row: NotifRow, live: boolean): Notification {
   // Only teacher rows get a navigable action (student routes are not deep-linkable yet).
   const action =
     row.recipient_role === 'teacher' && row.link?.page
-      ? { label: 'Открыть', page: row.link.page }
+      ? { label: t('Открыть'), page: row.link.page }
       : undefined
   return {
     id: row.id,
@@ -188,7 +189,7 @@ export const useNotificationsStore = create<State>()((set, get) => ({
         createdAt: prevById.get(id)?.createdAt ?? Date.now(),
         read: localRead.has(id) || (prevById.get(id)?.read ?? false),
         live: false,
-        action: { label: 'Заполнить', page: '#/teacher/gradebook' },
+        action: { label: t('Заполнить'), page: '#/teacher/gradebook' },
       }
     })
     return { notifications: [...fresh, ...kept] }

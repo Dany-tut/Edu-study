@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Check, Plus, Trash2 } from 'lucide-react'
 import ScrollFade from '../ScrollFade'
+import { useT } from '../../lib/i18n'
 
 export type TeacherSelectOption = string | { value: string; label: string }
 
@@ -36,6 +37,7 @@ export default function TeacherSelect({
   onAddOption?: (label: string) => void
   onDeleteOption?: (value: string) => void
 }) {
+  const t = useT()
   const editable = !!onAddOption
   const [adding, setAdding] = useState(false)
   const [draft, setDraft] = useState('')
@@ -208,7 +210,7 @@ export default function TeacherSelect({
                         if (e.key === 'Enter') { e.preventDefault(); commitAdd() }
                         if (e.key === 'Escape') { e.preventDefault(); setAdding(false); setDraft('') }
                       }}
-                      placeholder="Название…"
+                      placeholder={t('Название…')}
                       style={{
                         flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
                         fontSize: small ? 11 : 13, color: 'var(--color-text)', fontFamily: 'inherit',
@@ -236,14 +238,14 @@ export default function TeacherSelect({
                       background: 'transparent', color: accent, transition: 'background 0.12s',
                     }}
                   >
-                    <Plus size={small ? 12 : 14} strokeWidth={2.6} /> Добавить
+                    <Plus size={small ? 12 : 14} strokeWidth={2.6} /> {t('Добавить')}
                   </button>
                 )
               )}
               <ScrollFade maxHeight={220} bg="rgba(var(--glass-rgb), 0.96)" overlayScrollbar>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {filtered.length === 0 ? (
-                    <div style={{ padding: '8px 11px', fontSize: 12, color: 'var(--color-text-3)' }}>Ничего не найдено</div>
+                    <div style={{ padding: '8px 11px', fontSize: 12, color: 'var(--color-text-3)' }}>{t('Ничего не найдено')}</div>
                   ) : filtered.map(o => {
                     const selected = o.value === value
                     const showDel = editable && hoverDel === o.value

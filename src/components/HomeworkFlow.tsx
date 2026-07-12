@@ -23,6 +23,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { useStudentData, ownerStudentIdFor } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useNavCollapse } from '../lib/useNavCollapse'
+import { useT, t as tStatic } from '../lib/i18n'
 import QuestionTable from './QuestionTable'
 import HardStarLottie from './HardStarLottie'
 import PartyPopperLottie from './PartyPopperLottie'
@@ -56,6 +57,7 @@ function playSliderTick() {
 }
 
 function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const t = useT()
   const step = EMOJI_STEPS[value]
   const prevValue = React.useRef(value)
   const controls = useAnimationControls()
@@ -95,14 +97,14 @@ function EmojiSlider({ value, onChange }: { value: number; onChange: (v: number)
           animate={{ opacity: 1, y: 0 }}
           style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', textAlign: 'center' }}
         >
-          {step.label}
+          {t(step.label)}
         </motion.p>
       </div>
 
       {/* Labels row */}
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>Сложно</span>
-        <span style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>Легко</span>
+        <span style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Сложно')}</span>
+        <span style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Легко')}</span>
       </div>
 
       {/* Slider track */}
@@ -310,6 +312,7 @@ function ResultModal({
   showHard?: boolean
   onContinue: (emojiIndex: number, goToHard?: boolean) => void
 }) {
+  const t = useT()
   const [emojiValue, setEmojiValue] = useState(() =>
     score !== undefined ? Math.round((score / 100) * (EMOJI_STEPS.length - 1)) : 2
   )
@@ -384,21 +387,21 @@ function ResultModal({
               color: context === 'hard' ? 'var(--color-green-text)' : passed ? 'var(--color-accent)' : 'var(--color-yellow-text)',
               marginBottom: 6,
             }}>
-              {context === 'hard' ? 'Работа отправлена' : 'Тест сдан'}
+              {context === 'hard' ? t('Работа отправлена') : t('Тест сдан')}
             </p>
             <h2 style={{ fontSize: 22, fontWeight: 760, color: 'var(--color-text)', lineHeight: 1.18, marginBottom: 8 }}>
               {context === 'hard'
-                ? 'Отправлено на проверку!'
+                ? t('Отправлено на проверку!')
                 : passed
-                  ? `Отлично, ${score} из 100!`
-                  : `Пока ${score} из 100 баллов`
+                  ? `${t('Отлично')}, ${score} ${t('из 100!')}`
+                  : `${t('Пока')} ${score} ${t('из 100 баллов')}`
               }
             </h2>
             {!(passed && context === 'basic') && (
               <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)' }}>
                 {context === 'hard'
-                  ? 'Преподаватель посмотрит твою работу и даст обратную связь. Обычно это занимает до 24 часов.'
-                  : `До открытия сложного уровня нужно ${recommendationScore}+. Можно вернуться к конспекту и попробовать снова.`
+                  ? t('Преподаватель посмотрит твою работу и даст обратную связь. Обычно это занимает до 24 часов.')
+                  : `${t('До открытия сложного уровня нужно')} ${recommendationScore}+. ${t('Можно вернуться к конспекту и попробовать снова.')}`
                 }
               </p>
             )}
@@ -409,12 +412,12 @@ function ResultModal({
                 fontSize: 42, fontWeight: 760, lineHeight: 1,
                 color: passed ? 'var(--color-accent)' : 'var(--color-yellow-text)',
               }}>{score}</span>
-              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', marginTop: 2 }}>баллов</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', marginTop: 2 }}>{t('баллов')}</p>
             </div>
           )}
           {passed && context === 'basic' && (
             <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)', width: '100%', marginTop: -8 }}>
-              База закрыта уверенно. Открылся необязательный хард-уровень с разбором от преподавателя.
+              {t('База закрыта уверенно. Открылся необязательный хард-уровень с разбором от преподавателя.')}
             </p>
           )}
         </div>
@@ -423,10 +426,10 @@ function ResultModal({
         <div style={{ padding: '24px 28px 28px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <p style={{ fontSize: 15, fontWeight: 760, color: 'var(--color-text)', marginBottom: 4 }}>
-              Оставь свою оценку
+              {t('Оставь свою оценку')}
             </p>
             <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>
-              Насколько понятным оказался материал? Это помогает нам улучшать уроки.
+              {t('Насколько понятным оказался материал? Это помогает нам улучшать уроки.')}
             </p>
           </div>
 
@@ -453,7 +456,7 @@ function ResultModal({
                   cursor: 'pointer',
                 }}
               >
-                Позже
+                {t('Позже')}
               </motion.button>
               <motion.button
                 whileHover={{ y: -1 }}
@@ -473,7 +476,7 @@ function ResultModal({
                 <div style={{ flexShrink: 0 }}>
                   <HardStarLottie size={28} />
                 </div>
-                Приступить к харду
+                {t('Приступить к харду')}
               </motion.button>
             </div>
           ) : (
@@ -490,7 +493,7 @@ function ResultModal({
                 boxShadow: '0 12px 32px rgba(99,84,207,0.32)',
               }}
             >
-              Продолжить
+              {t('Продолжить')}
             </motion.button>
           )}
         </div>
@@ -546,7 +549,7 @@ type LegacyHardRow = {
 
 const SPRING = { type: 'spring', stiffness: 240, damping: 26 } as const
 
-const formatEstimatedTime = (minutes: number) => `~${minutes} мин`
+const formatEstimatedTime = (minutes: number) => `~${minutes} ${tStatic('мин')}`
 
 function getStorageKey(lessonId: string) {
   return `student-dashboard:homework:${lessonId}`
@@ -689,6 +692,7 @@ export default function HomeworkFlow({
   homework,
   onBack,
 }: HomeworkFlowProps) {
+  const t = useT()
   const isMobile = !useIsDesktop()
   const { dark } = useTheme()
   const palette = subjectTheme(subject, dark)
@@ -894,7 +898,7 @@ export default function HomeworkFlow({
   const reviewBlocks: HardTaskReviewBlock[] = isNewHard(hardRow?.review_attachments)
     ? (hardRow!.review_attachments as HardReviewNew).tasks : hardLegacy.reviewBlocks
   const hardTabs: HardTabVM[] = effectiveDefs.map((d, i) => ({
-    key: d.key, title: `Задание ${i + 1}`, statement: d.statement, image: d.image,
+    key: d.key, title: `${t('Задание')} ${i + 1}`, statement: d.statement, image: d.image,
   }))
 
   // Отправка решения по одной вкладке: дописываем НОВЫЙ круг в её историю,
@@ -964,9 +968,9 @@ export default function HomeworkFlow({
       correct: nextCorrect,
       lastQuestionIndex: questionIndex,
       lastCorrect: correct,
-      lastTitle: correct ? 'Справился' : 'Пока мимо',
+      lastTitle: correct ? t('Справился') : t('Пока мимо'),
       lastMessage: correct
-        ? 'Ответ верный, задание засчитано и сохранено в прогрессе.'
+        ? t('Ответ верный, задание засчитано и сохранено в прогрессе.')
         : question.explanation,
     })
 
@@ -1061,7 +1065,7 @@ export default function HomeworkFlow({
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.96 }}
           onClick={() => { clearHomeworkWidgetFeedback(); onBack() }}
-          aria-label="Назад"
+          aria-label={t('Назад')}
           className="flex items-center justify-center cursor-pointer flex-shrink-0"
           style={{
             gap: 4, padding: isMobile ? 9 : '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)',
@@ -1070,7 +1074,7 @@ export default function HomeworkFlow({
           }}
         >
           <ChevronLeft size={18} />
-          {!isMobile && 'Назад'}
+          {!isMobile && t('Назад')}
         </motion.button>
 
         <h1
@@ -1102,7 +1106,7 @@ export default function HomeworkFlow({
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.96 }}
               onClick={() => { clearHomeworkWidgetFeedback(); onBack() }}
-              aria-label="Назад"
+              aria-label={t('Назад')}
               className="flex items-center justify-center cursor-pointer flex-shrink-0"
               style={{
                 gap: 4, padding: isMobile ? 9 : '9px 16px 9px 12px', borderRadius: 999,
@@ -1111,7 +1115,7 @@ export default function HomeworkFlow({
               }}
             >
               <ChevronLeft size={18} />
-              {!isMobile && 'Назад'}
+              {!isMobile && t('Назад')}
             </motion.button>
 
             <div
@@ -1131,7 +1135,7 @@ export default function HomeworkFlow({
                   transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                   style={{ display: 'inline-block', overflow: 'hidden', whiteSpace: 'nowrap', flexShrink: 0 }}
                 >
-                  Домашка по теме&nbsp;«
+                  {t('Домашка по теме')}&nbsp;«
                 </motion.span>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {homework.title.replace(/^Домашка по теме\s*«(.+)»$/, '$1')}
@@ -1184,7 +1188,7 @@ export default function HomeworkFlow({
           >
             <div className="flex items-center" style={{ gap: 10, marginBottom: 12 }}>
               <GraduationCap size={18} />
-              <span style={{ fontSize: 13, fontWeight: 700 }}>Структура домашки</span>
+              <span style={{ fontSize: 13, fontWeight: 700 }}>{t('Структура домашки')}</span>
             </div>
             <p style={{ fontSize: 21, lineHeight: 1.15, fontWeight: 750, marginBottom: 8 }}>
               {selectedLevel === 'basic' ? basicLevel.shortLabel : hardLevel.shortLabel}
@@ -1205,15 +1209,15 @@ export default function HomeworkFlow({
               gap: 12,
             }}
           >
-            <InfoRow label="Дедлайн" value={basicLevel.dueDate} />
-            <InfoRow label="Время" value={selectedEstimatedTime} />
-            <InfoRow label="Формат" value={selectedLevel === 'basic' ? 'Тест с автопроверкой' : 'Проверка преподавателем'} />
+            <InfoRow label={t('Дедлайн')} value={basicLevel.dueDate} />
+            <InfoRow label={t('Время')} value={selectedEstimatedTime} />
+            <InfoRow label={t('Формат')} value={selectedLevel === 'basic' ? t('Тест с автопроверкой') : t('Проверка преподавателем')} />
             <InfoRow
-              label="% справившихся"
+              label={t('% справившихся')}
               value={`${selectedLevel === 'basic' ? basicLevel.peerCompletionRate : hardLevel.peerCompletionRate}%`}
             />
             {selectedLevel === 'basic' && basicLevel.peerAverageScore != null && (
-              <InfoRow label="Средний балл" value={`${basicLevel.peerAverageScore}`} />
+              <InfoRow label={t('Средний балл')} value={`${basicLevel.peerAverageScore}`} />
             )}
           </div>
 
@@ -1229,15 +1233,14 @@ export default function HomeworkFlow({
           >
             <div className="flex items-center" style={{ gap: 8 }}>
               <Sparkles size={16} style={{ color: 'var(--color-accent)' }} />
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Как это работает</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Как это работает')}</p>
             </div>
             <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--color-muted)' }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontWeight: 700, color: 'var(--color-text)' }}>
                 <Clock size={13} />
-                Обычно занимает {selectedEstimatedTime}.
+                {t('Обычно занимает')} {selectedEstimatedTime}.
               </span>{' '}
-              Базовый уровень обязателен и проверяется сразу. Если набираешь {homework.recommendationScore}+ баллов,
-              открывается необязательный хард-уровень с проверкой преподавателем.
+              {t('Базовый уровень обязателен и проверяется сразу. Если набираешь')} {homework.recommendationScore}+ {t('баллов, открывается необязательный хард-уровень с проверкой преподавателем.')}
             </p>
           </div>
 
@@ -1253,7 +1256,7 @@ export default function HomeworkFlow({
                 flexDirection: 'column',
               }}
             >
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-accent)' }}>Что можно приложить</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-accent)' }}>{t('Что можно приложить')}</p>
               <div className="flex flex-wrap" style={{ gap: 8 }}>
                 {hardLevel.teacherTask.acceptedFormats.map(item => (
                   <span
@@ -1316,23 +1319,23 @@ export default function HomeworkFlow({
                     <div>
                       <p style={{ fontSize: 17, fontWeight: 760, color: 'var(--color-text)', marginBottom: 4 }}>
                         {state.basicSubmitted
-                          ? (basicScore >= homework.recommendationScore ? `Тест сдан на ${basicScore} баллов` : `Результат: ${basicScore} из 100`)
-                          : 'Все вопросы отвечены!'
+                          ? (basicScore >= homework.recommendationScore ? `${t('Тест сдан на')} ${basicScore} ${t('баллов')}` : `${t('Результат:')} ${basicScore} ${t('из 100')}`)
+                          : t('Все вопросы отвечены!')
                         }
                       </p>
                       <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-muted)' }}>
                         {state.basicSubmitted
                           ? (basicScore >= homework.recommendationScore
-                            ? 'База закрыта уверенно. Доступен необязательный хард-уровень с разбором от преподавателя.'
-                            : `До открытия харда нужен результат ${homework.recommendationScore}+. Можно вернуться к конспекту и попробовать снова.`)
-                          : 'Проверь ответы и сдай домашку, чтобы зафиксировать результат.'
+                            ? t('База закрыта уверенно. Доступен необязательный хард-уровень с разбором от преподавателя.')
+                            : `${t('До открытия харда нужен результат')} ${homework.recommendationScore}+. ${t('Можно вернуться к конспекту и попробовать снова.')}`)
+                          : t('Проверь ответы и сдай домашку, чтобы зафиксировать результат.')
                         }
                       </p>
                       {state.basicSubmitted && state.selfAssessmentValue !== null && (
                         <div className="flex items-center" style={{ gap: 8, marginTop: 8 }}>
                           <span style={{ fontSize: 20 }}>{EMOJI_STEPS[state.selfAssessmentValue].emoji}</span>
                           <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-muted)' }}>
-                            Самооценка: {EMOJI_STEPS[state.selfAssessmentValue].label}
+                            {t('Самооценка:')} {t(EMOJI_STEPS[state.selfAssessmentValue].label)}
                           </span>
                         </div>
                       )}
@@ -1351,7 +1354,7 @@ export default function HomeworkFlow({
                           boxShadow: '0 12px 28px rgba(99,84,207,0.2)',
                         }}
                       >
-                        Открыть хард
+                        {t('Открыть хард')}
                       </motion.button>
                     )}
                     {!state.basicSubmitted && (
@@ -1367,7 +1370,7 @@ export default function HomeworkFlow({
                         }}
                       >
                         <Send size={16} />
-                        Сдать домашку
+                        {t('Сдать домашку')}
                       </motion.button>
                     )}
                   </div>
@@ -1406,7 +1409,7 @@ export default function HomeworkFlow({
                     <div className="flex flex-wrap items-start justify-between" style={{ gap: 12 }}>
                       <div>
                         <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', marginBottom: 6 }}>
-                          Вопрос {index + 1}
+                          {t('Вопрос')} {index + 1}
                         </p>
                         <h4 style={{ fontSize: 18, lineHeight: 1.35, fontWeight: 720, color: 'var(--color-text)' }}>
                           {question.prompt}
@@ -1430,7 +1433,7 @@ export default function HomeworkFlow({
                         >
                           <CheckCircle2 size={16} style={{ flexShrink: 0, marginTop: 1 }} />
                           <span>
-                            {isCorrect ? 'Верно' : 'Неверно'}
+                            {isCorrect ? t('Верно') : t('Неверно')}
                           </span>
                         </div>
                       )}
@@ -1444,7 +1447,7 @@ export default function HomeworkFlow({
                           }}
                         >
                           <Send size={15} style={{ flexShrink: 0, marginTop: 1 }} />
-                          <span>На проверке у преподавателя</span>
+                          <span>{t('На проверке у преподавателя')}</span>
                         </div>
                       )}
                     </div>
@@ -1522,10 +1525,10 @@ export default function HomeworkFlow({
                         disabled={state.basicSubmitted}
                         rows={qType(question) === 'fill' ? 2 : 4}
                         placeholder={
-                          qType(question) === 'fill' ? 'Впиши слово или фразу…'
-                            : qType(question) === 'whiteboard' ? 'Опиши решение (рисунок на доске приложишь учителю)…'
-                            : qType(question) === 'matching' ? 'Запиши соответствия…'
-                            : 'Развёрнутый ответ…'
+                          qType(question) === 'fill' ? t('Впиши слово или фразу…')
+                            : qType(question) === 'whiteboard' ? t('Опиши решение (рисунок на доске приложишь учителю)…')
+                            : qType(question) === 'matching' ? t('Запиши соответствия…')
+                            : t('Развёрнутый ответ…')
                         }
                         style={{
                           width: '100%', boxSizing: 'border-box', padding: '12px 14px',
@@ -1541,7 +1544,7 @@ export default function HomeworkFlow({
 
                     {showVerdict && !isChoice && !isCorrect && question.referenceAnswer && (
                       <div style={{ padding: '12px 14px', borderRadius: 16, background: 'var(--color-green-soft)', border: '1px solid rgba(110,231,160,0.38)' }}>
-                        <p style={{ fontSize: 12, fontWeight: 800, color: 'var(--color-green-text)', marginBottom: 4 }}>Эталонный ответ</p>
+                        <p style={{ fontSize: 12, fontWeight: 800, color: 'var(--color-green-text)', marginBottom: 4 }}>{t('Эталонный ответ')}</p>
                         <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--color-text-2)' }}>{question.referenceAnswer}</p>
                       </div>
                     )}
@@ -1563,11 +1566,11 @@ export default function HomeworkFlow({
                             marginBottom: 6,
                           }}
                         >
-                          {isCorrect ? 'Справился с заданием' : 'Разберём ошибку'}
+                          {isCorrect ? t('Справился с заданием') : t('Разберём ошибку')}
                         </p>
                         <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--color-text-2)' }}>
                           {isCorrect
-                            ? `Пояснение: ${question.explanation}`
+                            ? `${t('Пояснение:')} ${question.explanation}`
                             : question.explanation}
                         </p>
                       </div>
@@ -1633,11 +1636,10 @@ export default function HomeworkFlow({
                     <Lock size={28} />
                   </div>
                   <h4 style={{ fontSize: 22, fontWeight: 760, color: 'var(--color-text)', marginBottom: 10 }}>
-                    Сначала закрываем базовый уровень
+                    {t('Сначала закрываем базовый уровень')}
                   </h4>
                   <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-muted)', maxWidth: 520 }}>
-                    Хард открывается только после уверенного результата на тесте. Это оставляет его добровольным
-                    и отправляет на проверку только тем, кто уже хорошо справился с базой.
+                    {t('Хард открывается только после уверенного результата на тесте. Это оставляет его добровольным и отправляет на проверку только тем, кто уже хорошо справился с базой.')}
                   </p>
                 </section>
               ) : (
@@ -1750,6 +1752,7 @@ function ProgressStrip({
   questions: HomeworkQuizQuestion[]
   activeIndex: number
 }) {
+  const t = useT()
   if (total === 0) return null
   // -1 means all answered; treat last question as "active" display position
   const active = activeIndex === -1 ? total - 1 : activeIndex
@@ -1772,7 +1775,7 @@ function ProgressStrip({
       }}
     >
       <div className="flex items-center justify-between">
-        <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Прогресс</p>
+        <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Прогресс')}</p>
         {answeredCount > 0 && (
           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-accent)' }}>
             {answeredCount}/{total}
@@ -1835,7 +1838,7 @@ function ProgressStrip({
               fontSize: 11, fontWeight: 700, color: 'var(--color-green-text)',
               background: 'var(--color-green-soft)', padding: '3px 8px', borderRadius: 999,
             }}>
-              ✓ {correctCount} верно
+              ✓ {correctCount} {t('верно')}
             </span>
           )}
           {(gradedCount - correctCount) > 0 && (
@@ -1843,7 +1846,7 @@ function ProgressStrip({
               fontSize: 11, fontWeight: 700, color: '#A8282D',
               background: 'var(--color-red-soft)', padding: '3px 8px', borderRadius: 999,
             }}>
-              ✗ {gradedCount - correctCount} нет
+              ✗ {gradedCount - correctCount} {t('нет')}
             </span>
           )}
         </div>
@@ -1871,6 +1874,7 @@ function BottomProgressBar({
   recommendationScore: number
   onSubmit: () => void
 }) {
+  const t = useT()
   const active = activeIndex === -1 ? total - 1 : activeIndex
   const answeredCount = questions.filter(q => questionAnswered(q, answers[q.id])).length
   const basicCompleted = answeredCount === total && total > 0
@@ -1969,7 +1973,7 @@ function BottomProgressBar({
                 fontSize: 12, fontWeight: 800,
                 color: score >= recommendationScore ? 'var(--color-accent)' : '#9A6000',
               }}>
-                {score >= recommendationScore ? 'Сдано ✓' : `${score} / 100`}
+                {score >= recommendationScore ? t('Сдано ✓') : `${score} / 100`}
               </span>
             ) : basicCompleted ? (
               <span
@@ -1977,7 +1981,7 @@ function BottomProgressBar({
                 style={{ gap: 7, color: 'var(--color-accent)', fontSize: 13, fontWeight: 750 }}
               >
                 <Send size={13} />
-                Сдать домашку
+                {t('Сдать домашку')}
               </span>
             ) : (
               <span style={{ fontSize: 12, color: 'var(--color-muted)', fontWeight: 600 }}>

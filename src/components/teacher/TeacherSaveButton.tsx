@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, Loader2 } from 'lucide-react'
+import { useT } from '../../lib/i18n'
 
 /**
  * The one canonical "save / primary action" button for the teacher platform.
@@ -41,7 +42,7 @@ export function teacherSaveStyle(opts: { accent?: SaveAccent; disabled?: boolean
 }
 
 export default function TeacherSaveButton({
-  label, savedLabel = 'Сохранено!', savingLabel = 'Сохраняю…', onClick,
+  label, savedLabel, savingLabel, onClick,
   accent, disabled = false, saved = false, saving = false,
   icon, fullWidth = false, style,
 }: {
@@ -58,6 +59,9 @@ export default function TeacherSaveButton({
   fullWidth?: boolean
   style?: CSSProperties
 }) {
+  const t = useT()
+  const savedText = savedLabel ?? t('Сохранено!')
+  const savingText = savingLabel ?? t('Сохраняю…')
   return (
     <motion.button
       whileHover={{ scale: disabled || saving ? 1 : 1.03 }}
@@ -98,13 +102,13 @@ export default function TeacherSaveButton({
             <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }} style={{ display: 'flex' }}>
               <Loader2 size={14} strokeWidth={2.5} />
             </motion.span>
-            {savingLabel}
+            {savingText}
           </motion.span>
         ) : saved ? (
           <motion.span key="saved"
             initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
             style={{ display: 'flex', alignItems: 'center', gap: 7, position: 'relative' }}>
-            <Check size={15} strokeWidth={2.5} /> {savedLabel}
+            <Check size={15} strokeWidth={2.5} /> {savedText}
           </motion.span>
         ) : (
           <motion.span key="save"

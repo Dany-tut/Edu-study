@@ -1,5 +1,6 @@
 import { Component, type ReactNode } from 'react'
 import { trackEvent } from '../../lib/analytics'
+import { t } from '../../lib/i18n'
 
 type Props = { children: ReactNode; label?: string }
 type State = { error: Error | null }
@@ -34,14 +35,14 @@ export default class WidgetBoundary extends Component<Props, State> {
         background: 'rgba(var(--glass-rgb),0.5)', borderRadius: 16, border: '1.5px solid var(--color-border-medium)',
       }}>
         <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-2)' }}>
-          Виджет не загрузился
+          {t('Виджет не загрузился')}
         </span>
         <button
           onClick={() => { if (isChunk) window.location.reload(); else this.setState({ error: null }) }}
           style={{ padding: '6px 14px', borderRadius: 10, border: '1px solid var(--color-border-medium)',
             background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
         >
-          {isChunk ? 'Обновить' : 'Повторить'}
+          {isChunk ? t('Обновить') : t('Повторить')}
         </button>
       </div>
     )

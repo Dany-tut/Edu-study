@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { ArrowLeft, Check, Zap, Star, CreditCard, Clock } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
+import { useT } from '../../lib/i18n'
 
 function PlanCard({
   name, price, period, features, badge, current, accent,
@@ -13,6 +14,7 @@ function PlanCard({
   current?: boolean
   accent?: boolean
 }) {
+  const t = useT()
   return (
     <div style={{
       flex: 1, minWidth: 0,
@@ -40,7 +42,7 @@ function PlanCard({
           color: 'var(--color-green-text)',
           fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 8,
         }}>
-          Текущий
+          {t('Текущий')}
         </div>
       )}
 
@@ -84,7 +86,7 @@ function PlanCard({
           cursor: current ? 'default' : 'pointer',
         } as React.CSSProperties}
       >
-        {current ? 'Активен' : 'Скоро'}
+        {current ? t('Активен') : t('Скоро')}
       </button>
     </div>
   )
@@ -92,6 +94,7 @@ function PlanCard({
 
 export default function TeacherPaymentPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
+  const t = useT()
 
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable' }}>
@@ -112,8 +115,8 @@ export default function TeacherPaymentPage() {
             <ArrowLeft size={16} strokeWidth={2} />
           </motion.button>
           <div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>Оплата</div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>Подписка и счета</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Оплата')}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Подписка и счета')}</div>
           </div>
         </div>
 
@@ -131,9 +134,9 @@ export default function TeacherPaymentPage() {
             <Zap size={20} strokeWidth={2} style={{ color: '#fff' }} />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Бесплатный план</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Бесплатный план')}</div>
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>
-              Платные планы появятся в ближайшее время
+              {t('Платные планы появятся в ближайшее время')}
             </div>
           </div>
           <div style={{
@@ -142,38 +145,38 @@ export default function TeacherPaymentPage() {
             background: 'var(--color-bg-3)', borderRadius: 10, padding: '5px 10px',
           }}>
             <Clock size={11} />
-            Скоро
+            {t('Скоро')}
           </div>
         </div>
 
         {/* Plans */}
         <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 14 }}>Планы</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 14 }}>{t('Планы')}</div>
           <div style={{ display: 'flex', gap: 14 }}>
             <PlanCard
-              name="Базовый"
-              price="Бесплатно"
+              name={t('Базовый')}
+              price={t('Бесплатно')}
               current
               features={[
-                'До 30 учеников',
-                'До 5 групп',
-                'Конструктор уроков',
-                'Домашние задания',
-                'Журнал посещаемости',
+                t('До 30 учеников'),
+                t('До 5 групп'),
+                t('Конструктор уроков'),
+                t('Домашние задания'),
+                t('Журнал посещаемости'),
               ]}
             />
             <PlanCard
-              name="Про"
+              name={t('Про')}
               price="$19"
-              period="мес"
+              period={t('мес')}
               accent
-              badge="Скоро"
+              badge={t('Скоро')}
               features={[
-                'Неограниченно учеников',
-                'Неограниченно групп',
-                'Несколько учителей',
-                'Аналитика и отчёты',
-                'Приоритетная поддержка',
+                t('Неограниченно учеников'),
+                t('Неограниченно групп'),
+                t('Несколько учителей'),
+                t('Аналитика и отчёты'),
+                t('Приоритетная поддержка'),
               ]}
             />
           </div>
@@ -181,7 +184,7 @@ export default function TeacherPaymentPage() {
 
         {/* Billing history placeholder */}
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 14 }}>История платежей</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 14 }}>{t('История платежей')}</div>
           <div style={{
             background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)',
             borderRadius: 16, padding: '32px 20px',
@@ -190,8 +193,8 @@ export default function TeacherPaymentPage() {
             <div style={{ width: 44, height: 44, borderRadius: 14, background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <CreditCard size={20} strokeWidth={1.5} style={{ color: 'var(--color-text-3)' }} />
             </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)' }}>Платежей пока нет</div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', opacity: 0.7 }}>История появится после первой оплаты</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)' }}>{t('Платежей пока нет')}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', opacity: 0.7 }}>{t('История появится после первой оплаты')}</div>
           </div>
         </div>
 

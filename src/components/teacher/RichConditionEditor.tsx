@@ -5,6 +5,7 @@ import { X, Image as ImageIcon, PenLine } from 'lucide-react'
 import { useTheme } from '../../store/themeStore'
 import WhiteboardCanvas from './WhiteboardCanvas'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
+import { useT } from '../../lib/i18n'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -85,6 +86,7 @@ export default function RichConditionEditor({
   minHeight?: number
   onSmartPaste?: (question: string, options: string[]) => void
 }) {
+  const t = useT()
   const editorRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const sizeBtnRef = useRef<HTMLButtonElement>(null)
@@ -311,7 +313,7 @@ export default function RichConditionEditor({
             padding: '12px 16px', fontSize: 16, lineHeight: 1.6,
             color: 'var(--color-text-4)', pointerEvents: 'none', zIndex: 1,
           }}>
-            {placeholder ?? 'Введите текст задания…'}
+            {placeholder ?? t('Введите текст задания…')}
           </div>
         )}
 
@@ -418,24 +420,24 @@ export default function RichConditionEditor({
 
               {divider}
 
-              <ToolbarBtn title="Жирный (Ctrl+B)" onClick={() => exec('bold')}>
+              <ToolbarBtn title={t('Жирный (Ctrl+B)')} onClick={() => exec('bold')}>
                 <span style={{ fontWeight: 800, fontSize: 13, lineHeight: 1 }}>B</span>
               </ToolbarBtn>
-              <ToolbarBtn title="Курсив (Ctrl+I)" onClick={() => exec('italic')}>
+              <ToolbarBtn title={t('Курсив (Ctrl+I)')} onClick={() => exec('italic')}>
                 <span style={{ fontStyle: 'italic', fontSize: 13, lineHeight: 1 }}>I</span>
               </ToolbarBtn>
-              <ToolbarBtn title="Подчёркнутый (Ctrl+U)" onClick={() => exec('underline')}>
+              <ToolbarBtn title={t('Подчёркнутый (Ctrl+U)')} onClick={() => exec('underline')}>
                 <span style={{ textDecoration: 'underline', fontSize: 13, lineHeight: 1 }}>U</span>
               </ToolbarBtn>
 
               {divider}
 
-              <ToolbarBtn title="Надстрочный (↑ чтобы войти, пробел/→ выйти)" onClick={() => exec('superscript')}>
+              <ToolbarBtn title={t('Надстрочный (↑ чтобы войти, пробел/→ выйти)')} onClick={() => exec('superscript')}>
                 <span style={{ fontSize: 12, lineHeight: 1, fontFamily: 'inherit' }}>
                   x<sup style={{ fontSize: '68%' }}>2</sup>
                 </span>
               </ToolbarBtn>
-              <ToolbarBtn title="Подстрочный (↓ чтобы войти, пробел/→ выйти)" onClick={() => exec('subscript')}>
+              <ToolbarBtn title={t('Подстрочный (↓ чтобы войти, пробел/→ выйти)')} onClick={() => exec('subscript')}>
                 <span style={{ fontSize: 12, lineHeight: 1, fontFamily: 'inherit' }}>
                   x<sub style={{ fontSize: '68%' }}>2</sub>
                 </span>
@@ -446,7 +448,7 @@ export default function RichConditionEditor({
               {HIGHLIGHT_COLORS.map(({ hex, label }) => (
                 <button
                   key={hex}
-                  title={`Выделить: ${label}`}
+                  title={`${t('Выделить')}: ${t(label)}`}
                   onMouseDown={e => { e.preventDefault(); exec('hiliteColor', hexToRgba(hex, hlAlpha)) }}
                   style={{
                     width: 16, height: 16, borderRadius: 4,
@@ -456,7 +458,7 @@ export default function RichConditionEditor({
                 />
               ))}
               <button
-                title="Убрать выделение"
+                title={t('Убрать выделение')}
                 onMouseDown={e => { e.preventDefault(); exec('hiliteColor', 'transparent') }}
                 style={{
                   width: 16, height: 16, borderRadius: 4,
@@ -471,7 +473,7 @@ export default function RichConditionEditor({
 
               {divider}
 
-              <ToolbarBtn title="Вставить фото (или Ctrl+V)" onClick={() => fileInputRef.current?.click()}>
+              <ToolbarBtn title={t('Вставить фото (или Ctrl+V)')} onClick={() => fileInputRef.current?.click()}>
                 <ImageIcon size={13} />
               </ToolbarBtn>
               <input
@@ -489,7 +491,7 @@ export default function RichConditionEditor({
               {divider}
 
               <ToolbarBtn
-                title="Рисунок (Доска)"
+                title={t('Рисунок (Доска)')}
                 active={drawMode}
                 onClick={() => {
                   const sel = window.getSelection()
@@ -519,13 +521,13 @@ export default function RichConditionEditor({
                 onClick={() => { drawDataRef.current = ''; setDrawMode(false) }}
                 style={{ padding: '6px 14px', borderRadius: 9, border: '1.5px solid var(--color-border-medium)', background: 'transparent', color: 'var(--color-text-3)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}
               >
-                Отменить
+                {t('Отменить')}
               </button>
               <button
                 onClick={insertDrawing}
                 style={{ padding: '6px 14px', borderRadius: 9, border: 'none', background: 'var(--color-blue-pill-bg)', color: 'var(--color-blue-pill-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
               >
-                Вставить рисунок
+                {t('Вставить рисунок')}
               </button>
             </div>
           </motion.div>

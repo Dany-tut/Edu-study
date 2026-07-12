@@ -4,6 +4,7 @@ import { type Desk, type LayoutItem } from '../../lib/useDeskLayouts'
 import { getWidgetDef } from './widgets/registry'
 import WidgetBoundary from './WidgetBoundary'
 import { useDeskStore } from '../../store/deskStore'
+import { useT } from '../../lib/i18n'
 
 const ROW_H = 64          // base row height (edit mode + fallback)
 const ROW_H_MIN = 42      // floor when shrinking to fit a short monitor
@@ -69,6 +70,7 @@ function resolveCollisions(items: LayoutItem[], activeId: string): LayoutItem[] 
 type ShellProps = { item: LayoutItem; editMode: boolean; onRemove: (id: string) => void }
 
 function WidgetShell({ item, editMode, onRemove }: ShellProps) {
+  const t = useT()
   const def = getWidgetDef(item.type)
   const [edges, setEdges] = useState({ top: false, bottom: false })
   const shellRef = useRef<HTMLDivElement>(null)
@@ -90,7 +92,7 @@ function WidgetShell({ item, editMode, onRemove }: ShellProps) {
   if (!def) return (
     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: 'rgba(var(--glass-rgb), 0.5)', borderRadius: 16, border: '1.5px solid var(--color-border-medium)' }}>
-      <span style={{ color: 'var(--color-muted)', fontSize: 13 }}>Неизвестный виджет</span>
+      <span style={{ color: 'var(--color-muted)', fontSize: 13 }}>{t('Неизвестный виджет')}</span>
     </div>
   )
 
@@ -168,6 +170,7 @@ type ResizeState = {
 
 export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveWidget, hiddenWidgets }: Props) {
   const editMode = useDeskStore(s => s.editMode)
+  const t = useT()
 
   // Admin may have revoked specific widgets for this teacher — never render them
   // (persistence still keeps them in desk.items, so nothing is lost).
@@ -385,8 +388,8 @@ export default function DeskCanvas({ desk, onUpdateItems, onAddWidget, onRemoveW
         <div style={{ height: '60vh', display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center', gap: 16 }}>
           <div style={{ fontSize: 48, opacity: 0.3 }}>🗂</div>
-          <div style={{ fontSize: 16, color: 'var(--color-muted)', fontWeight: 500 }}>Рабочий стол пуст</div>
-          <div style={{ fontSize: 13, color: 'var(--color-muted)', opacity: 0.7 }}>Нажмите карандаш, чтобы добавить виджеты</div>
+          <div style={{ fontSize: 16, color: 'var(--color-muted)', fontWeight: 500 }}>{t('Рабочий стол пуст')}</div>
+          <div style={{ fontSize: 13, color: 'var(--color-muted)', opacity: 0.7 }}>{t('Нажмите карандаш, чтобы добавить виджеты')}</div>
         </div>
       ) : (
         <div

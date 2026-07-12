@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
+import { useT } from '../../lib/i18n'
 import { supabase } from '../../lib/supabase'
 import { cardChip, cardChipTone } from '../../lib/pillStyles'
 import { useGroups, useStudents, useAllStudents, resolveIndividualGroup } from '../../lib/useGroups'
@@ -177,6 +178,7 @@ function typeConfig(t: HWTaskType) {
 function SaveToTrainerDialog({
   onChoice,
 }: { onChoice: (c: 'update' | 'both' | 'skip') => void }) {
+  const t = useT()
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -200,16 +202,16 @@ function SaveToTrainerDialog({
           <div style={{ width: 38, height: 38, borderRadius: 12, background: 'var(--color-peach-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <AlertCircle size={20} style={{ color: 'var(--color-peach-text)' }} />
           </div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>Задание изменено</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Задание изменено')}</div>
         </div>
         <div style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 20, lineHeight: 1.55 }}>
-          Это задание взято из тренажера и было изменено. Что сделать с обновлённой версией?
+          {t('Это задание взято из тренажера и было изменено. Что сделать с обновлённой версией?')}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {[
-            { value: 'update' as const, label: 'Обновить в тренажере', desc: 'Заменить оригинал исправленным', color: 'var(--color-accent)', bg: 'var(--color-purple-soft)' },
-            { value: 'both'   as const, label: 'Сохранить оба',        desc: 'Добавить как новое, оригинал сохранить', color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
-            { value: 'skip'   as const, label: 'Только в домашку',     desc: 'В тренажер не добавлять',              color: 'var(--color-muted)', bg: 'var(--color-bg)' },
+            { value: 'update' as const, label: t('Обновить в тренажере'), desc: t('Заменить оригинал исправленным'), color: 'var(--color-accent)', bg: 'var(--color-purple-soft)' },
+            { value: 'both'   as const, label: t('Сохранить оба'),        desc: t('Добавить как новое, оригинал сохранить'), color: 'var(--color-green-text)', bg: 'var(--color-green-soft)' },
+            { value: 'skip'   as const, label: t('Только в домашку'),     desc: t('В тренажер не добавлять'),              color: 'var(--color-muted)', bg: 'var(--color-bg)' },
           ].map(opt => (
             <button
               key={opt.value}
@@ -245,6 +247,7 @@ function TaskCard({
   onUpdate: (updated: Partial<HWTask>) => void
   onDelete: () => void
 }) {
+  const t = useT()
   const cfg = typeConfig(task.type)
   const [expanded, setExpanded] = useState(true)
 
@@ -279,25 +282,25 @@ function TaskCard({
         >
           <GripVertical size={14} style={{ color: 'var(--color-text-4)', flexShrink: 0, cursor: 'grab' }} />
           <div style={cardChip(cfg.color, { flexShrink: 0 })}>
-            {index + 1}. {cfg.label}
+            {index + 1}. {t(cfg.label)}
           </div>
           {task.source === 'bank' && (
             <div style={cardChipTone('neutral', { flexShrink: 0 })}>
-              из тренажера
+              {t('из тренажера')}
             </div>
           )}
           {task.modified && (
             <div style={cardChipTone('peach', { flexShrink: 0 })}>
-              изменено
+              {t('изменено')}
             </div>
           )}
           {needsAnswerFlag(task) && (
             <div style={cardChipTone('peach', { flexShrink: 0 })}>
-              нет ответа
+              {t('нет ответа')}
             </div>
           )}
           <div style={{ flex: 1, fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {stripHtml(task.question) || <span style={{ fontStyle: 'italic' }}>без текста</span>}
+            {stripHtml(task.question) || <span style={{ fontStyle: 'italic' }}>{t('без текста')}</span>}
           </div>
           <button
             onClick={e => { e.stopPropagation(); onDelete() }}
@@ -329,14 +332,14 @@ function TaskCard({
                   <RichConditionEditor
                     value={task.question}
                     onChange={updateQuestion}
-                    placeholder="Условие задания..."
+                    placeholder={t('Условие задания...')}
                   />
                 </div>
 
                 {/* Choice options */}
                 {(task.type === 'single' || task.type === 'multi') && task.choices && (
                   <div>
-                    <Label>Варианты ответа</Label>
+                    <Label>{t('Варианты ответа')}</Label>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {task.choices.map((ch, ci) => (
                         <div key={ci} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -368,7 +371,7 @@ function TaskCard({
                               choices[ci] = e.target.value
                               onUpdate({ choices })
                             }}
-                            placeholder={`Вариант ${ci + 1}`}
+                            placeholder={`${t('Вариант')} ${ci + 1}`}
                             style={{ ...inputStyle, flex: 1 }}
                           />
                           {(task.choices ?? []).length > 2 && (
@@ -389,7 +392,7 @@ function TaskCard({
                         onClick={() => onUpdate({ choices: [...(task.choices ?? []), ''] })}
                         style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                       >
-                        <Plus size={12} /> Добавить вариант
+                        <Plus size={12} /> {t('Добавить вариант')}
                       </button>
                     </div>
                   </div>
@@ -398,7 +401,7 @@ function TaskCard({
                 {/* Match pairs */}
                 {task.type === 'matching' && task.pairs && (
                   <div>
-                    <Label>Пары для сопоставления</Label>
+                    <Label>{t('Пары для сопоставления')}</Label>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {task.pairs.map((pair, pi) => (
                         <div key={pi} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -409,7 +412,7 @@ function TaskCard({
                               pairs[pi] = { ...pairs[pi], left: e.target.value }
                               onUpdate({ pairs })
                             }}
-                            placeholder={`Левая ${pi + 1}`}
+                            placeholder={`${t('Левая')} ${pi + 1}`}
                             style={{ ...inputStyle, flex: 1 }}
                           />
                           <div style={{ color: 'var(--color-text-4)', fontSize: 16 }}>↔</div>
@@ -420,7 +423,7 @@ function TaskCard({
                               pairs[pi] = { ...pairs[pi], right: e.target.value }
                               onUpdate({ pairs })
                             }}
-                            placeholder={`Правая ${pi + 1}`}
+                            placeholder={`${t('Правая')} ${pi + 1}`}
                             style={{ ...inputStyle, flex: 1 }}
                           />
                           {(task.pairs ?? []).length > 2 && (
@@ -437,7 +440,7 @@ function TaskCard({
                         onClick={() => onUpdate({ pairs: [...(task.pairs ?? []), { left: '', right: '' }] })}
                         style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                       >
-                        <Plus size={12} /> Добавить пару
+                        <Plus size={12} /> {t('Добавить пару')}
                       </button>
                     </div>
                   </div>
@@ -454,12 +457,12 @@ function TaskCard({
                   })
                   return (
                     <div>
-                      <Label>Элементы в правильном порядке</Label>
+                      <Label>{t('Элементы в правильном порядке')}</Label>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                         {items.map((it, i) => (
                           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{i + 1}</span>
-                            <input value={it} onChange={e => { const n = [...items]; n[i] = e.target.value; setItems(n) }} placeholder={`Шаг ${i + 1}`} style={{ ...inputStyle, flex: 1 }} />
+                            <input value={it} onChange={e => { const n = [...items]; n[i] = e.target.value; setItems(n) }} placeholder={`${t('Шаг')} ${i + 1}`} style={{ ...inputStyle, flex: 1 }} />
                             <button onClick={() => { if (i > 0) { const n = [...items];[n[i - 1], n[i]] = [n[i], n[i - 1]]; setItems(n) } }} disabled={i === 0} style={reorderBtn(i === 0)}><ArrowUp size={12} /></button>
                             <button onClick={() => { if (i < items.length - 1) { const n = [...items];[n[i + 1], n[i]] = [n[i], n[i + 1]]; setItems(n) } }} disabled={i === items.length - 1} style={reorderBtn(i === items.length - 1)}><ArrowDown size={12} /></button>
                             {items.length > 2 && (
@@ -468,10 +471,10 @@ function TaskCard({
                           </div>
                         ))}
                         <button onClick={() => setItems([...items, ''])} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}>
-                          <Plus size={12} /> Добавить шаг
+                          <Plus size={12} /> {t('Добавить шаг')}
                         </button>
                       </div>
-                      <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>Ученик увидит элементы вперемешку и расставит их в этом порядке.</div>
+                      <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>{t('Ученик увидит элементы вперемешку и расставит их в этом порядке.')}</div>
                     </div>
                   )
                 })()}
@@ -479,7 +482,7 @@ function TaskCard({
                 {/* Table builder */}
                 {task.type === 'tableFill' && (
                   <div>
-                    <Label>Таблица — нажмите «Вписать» в ячейках, куда ученик пишет ответ</Label>
+                    <Label>{t('Таблица — нажмите «Вписать» в ячейках, куда ученик пишет ответ')}</Label>
                     <TableEditor
                       value={task.table ?? { headers: ['Заголовок 1', 'Заголовок 2'], rows: [['', ''], ['', '']] }}
                       onChange={table => onUpdate({ table })}
@@ -493,7 +496,7 @@ function TaskCard({
                 {/* Whiteboard canvas */}
                 {task.type === 'whiteboard' && (
                   <div>
-                    <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginBottom: 6 }}>Ученик нарисует ответ здесь</div>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginBottom: 6 }}>{t('Ученик нарисует ответ здесь')}</div>
                     <WhiteboardCanvas readOnly />
                   </div>
                 )}
@@ -504,7 +507,7 @@ function TaskCard({
                     <input
                       value={task.answer}
                       onChange={e => updateAnswer(e.target.value)}
-                      placeholder="Эталонный ответ..."
+                      placeholder={t('Эталонный ответ...')}
                       style={inputStyle}
                     />
                   </div>
@@ -535,6 +538,7 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard }: {
   onAdd: (type: HWTaskType) => void; onAddHard: (type: HWTaskType) => void
   onImport: () => void; onImportHard: () => void
 }) {
+  const t = useT()
   const [active, setActive] = useState<HWTaskType | null>(null)
   function flash(type: HWTaskType, cb: (t: HWTaskType) => void) {
     cb(type); setActive(type); setTimeout(() => setActive(null), 280)
@@ -559,32 +563,32 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard }: {
       }}
     >
       <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>
-        ТИП ЗАДАНИЯ
+        {t('ТИП ЗАДАНИЯ')}
       </div>
-      {TASK_TYPES.map(t => (
+      {TASK_TYPES.map(tt => (
         <button
-          key={t.type}
-          onClick={() => flash(t.type, onAdd)}
+          key={tt.type}
+          onClick={() => flash(tt.type, onAdd)}
           style={{
             display: 'flex', alignItems: 'center', gap: 10,
             padding: '10px 12px', borderRadius: 13,
-            border: `1.5px solid ${active === t.type ? t.color : 'transparent'}`,
-            background: active === t.type ? t.bg : 'var(--color-bg-2)',
+            border: `1.5px solid ${active === tt.type ? tt.color : 'transparent'}`,
+            background: active === tt.type ? tt.bg : 'var(--color-bg-2)',
             cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
             transition: 'all 0.13s',
           }}
-          onMouseEnter={e => { if (active !== t.type) (e.currentTarget as HTMLButtonElement).style.background = t.bg }}
-          onMouseLeave={e => { if (active !== t.type) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-2)' }}
+          onMouseEnter={e => { if (active !== tt.type) (e.currentTarget as HTMLButtonElement).style.background = tt.bg }}
+          onMouseLeave={e => { if (active !== tt.type) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-2)' }}
         >
           <div style={{
-            width: 32, height: 32, borderRadius: 9, background: t.bg,
+            width: 32, height: 32, borderRadius: 9, background: tt.bg,
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}>
-            <t.icon size={15} style={{ color: t.color }} />
+            <tt.icon size={15} style={{ color: tt.color }} />
           </div>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t.label}</div>
-            <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 1 }}>{t.hint}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t(tt.label)}</div>
+            <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 1 }}>{t(tt.hint)}</div>
           </div>
         </button>
       ))}
@@ -599,16 +603,16 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard }: {
         }}
       >
         <Link2 size={14} style={{ flexShrink: 0 }} />
-        Импорт из Google Forms
+        {t('Импорт из Google Forms')}
       </button>
       <div style={{ height: 1, background: 'var(--color-border)', margin: '6px 0 2px' }} />
       <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>
-        СЛОЖНОЕ ЗАДАНИЕ
+        {t('СЛОЖНОЕ ЗАДАНИЕ')}
       </div>
-      {TASK_TYPES.slice(0, 2).map(t => (
+      {TASK_TYPES.slice(0, 2).map(tt => (
         <button
-          key={'hard-' + t.type}
-          onClick={() => flash(t.type, onAddHard)}
+          key={'hard-' + tt.type}
+          onClick={() => flash(tt.type, onAddHard)}
           style={{
             display: 'flex', alignItems: 'center', gap: 10,
             padding: '8px 12px', borderRadius: 11,
@@ -619,7 +623,7 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard }: {
           }}
         >
           <Star size={13} style={{ color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />
-          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-yellow-text)' }}>{t.label}</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-yellow-text)' }}>{t(tt.label)}</div>
         </button>
       ))}
       <button
@@ -633,7 +637,7 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard }: {
         }}
       >
         <Link2 size={12} style={{ flexShrink: 0 }} />
-        Импорт из Google Forms
+        {t('Импорт из Google Forms')}
       </button>
     </motion.div>
   )
@@ -648,16 +652,17 @@ function ComposeTab({
   onUpdate: (id: string, p: Partial<HWTask>) => void
   onDelete: (id: string) => void
 }) {
+  const t = useT()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <AnimatePresence>
-        {tasks.map((t, i) => (
+        {tasks.map((task, i) => (
           <TaskCard
-            key={t.id}
-            task={t}
+            key={task.id}
+            task={task}
             index={i}
-            onUpdate={p => onUpdate(t.id, p)}
-            onDelete={() => onDelete(t.id)}
+            onUpdate={p => onUpdate(task.id, p)}
+            onDelete={() => onDelete(task.id)}
           />
         ))}
       </AnimatePresence>
@@ -667,8 +672,8 @@ function ComposeTab({
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
         }}>
           <BookOpen size={36} strokeWidth={1.2} />
-          <div style={{ fontSize: 13, fontWeight: 600 }}>Выберите тип задания справа</div>
-          <div style={{ fontSize: 12, color: 'var(--color-text-5)' }}>и оно появится здесь</div>
+          <div style={{ fontSize: 13, fontWeight: 600 }}>{t('Выберите тип задания справа')}</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-5)' }}>{t('и оно появится здесь')}</div>
         </div>
       )}
     </div>
@@ -681,6 +686,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
   task: BankTask; index: number; added: boolean
   onAdd: (bt: BankTask, overrides: { question: string; answer: string; solution: string }, savedToTrainer?: 'update' | 'both') => void
 }) {
+  const t = useT()
   const addTaskToBank   = useTaskBank(s => s.addTask)
   const replaceTaskInBank = useTaskBank(s => s.replaceTask)
   const removeTaskFromBank = useTaskBank(s => s.removeTask)
@@ -746,14 +752,14 @@ function BankTaskCard({ task, index, added, onAdd }: {
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)' }}>Задание {index + 1}</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)' }}>{t('Задание')} {index + 1}</span>
             <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
             <span style={cardChipTone('red')}>№{task.id}</span>
-            <span style={cardChipTone('neutral')}>{task.line} линия</span>
-            <span style={cardChipTone('neutral')}>Часть {task.part}</span>
+            <span style={cardChipTone('neutral')}>{task.line} {t('линия')}</span>
+            <span style={cardChipTone('neutral')}>{t('Часть')} {task.part}</span>
             {modified && (
               <span style={cardChip('var(--color-accent)')}>
-                изменено
+                {t('изменено')}
               </span>
             )}
           </div>
@@ -761,7 +767,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
           <AutoTextarea
             value={editedQuestion}
             onChange={setEditedQuestion}
-            placeholder="Текст задания…"
+            placeholder={t('Текст задания…')}
             style={{ fontSize: 15, lineHeight: 1.45, fontWeight: 650, color: 'var(--color-text)' }}
           />
         </div>
@@ -780,7 +786,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
               transition: 'all 0.15s', whiteSpace: 'nowrap',
             }}
           >
-            {added ? <><Check size={12} /> Добавлено</> : <><Plus size={12} /> Добавить</>}
+            {added ? <><Check size={12} /> {t('Добавлено')}</> : <><Plus size={12} /> {t('Добавить')}</>}
           </button>
 
           {/* Trainer actions — appear once the task is edited; the row lingers
@@ -799,7 +805,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
                 {(modified || variantId !== null) && (
                 <button
                   onClick={toggleVariant}
-                  title="Добавить как новое задание в тренажёр (новый номер)"
+                  title={t('Добавить как новое задание в тренажёр (новый номер)')}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 7,
                     padding: '6px 10px', borderRadius: 10, cursor: 'pointer',
@@ -821,8 +827,8 @@ function BankTaskCard({ task, index, added, onAdd }: {
                     }} />
                   </span>
                   {variantId !== null
-                    ? <>В тренажёре · №{variantId}</>
-                    : <>В тренажёр</>}
+                    ? <>{t('В тренажёре')} · №{variantId}</>
+                    : <>{t('В тренажёр')}</>}
                 </button>
                 )}
 
@@ -830,7 +836,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
                 {(modified || justReplaced) && (
                 <button
                   onClick={replaceInTrainer}
-                  title="Заменить оригинал в тренажёре этим текстом"
+                  title={t('Заменить оригинал в тренажёре этим текстом')}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 5,
                     padding: '6px 12px', borderRadius: 10, cursor: 'pointer',
@@ -841,7 +847,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
                     fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'all 0.15s',
                   }}
                 >
-                  {justReplaced ? <><Check size={12} /> Заменено</> : <><Shuffle size={12} /> Заменить</>}
+                  {justReplaced ? <><Check size={12} /> {t('Заменено')}</> : <><Shuffle size={12} /> {t('Заменить')}</>}
                 </button>
                 )}
               </motion.div>
@@ -878,7 +884,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
 
       {/* Solution block — answer + solution editable */}
       <div style={{ padding: '14px 18px', background: palette.soft, borderRadius: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <p style={{ fontSize: 12, fontWeight: 700, color: palette.text, margin: 0 }}>Правильный ответ</p>
+        <p style={{ fontSize: 12, fontWeight: 700, color: palette.text, margin: 0 }}>{t('Правильный ответ')}</p>
         <input
           value={editedAnswer}
           onChange={e => setEditedAnswer(e.target.value)}
@@ -888,13 +894,13 @@ function BankTaskCard({ task, index, added, onAdd }: {
             border: '1.5px solid rgba(0,0,0,0.1)',
             background: 'rgba(var(--glass-rgb), 0.85)',
           }}
-          placeholder="Введите правильный ответ..."
+          placeholder={t('Введите правильный ответ...')}
         />
-        <p style={{ fontSize: 11, fontWeight: 700, color: palette.text, margin: '4px 0 0' }}>Пояснение</p>
+        <p style={{ fontSize: 11, fontWeight: 700, color: palette.text, margin: '4px 0 0' }}>{t('Пояснение')}</p>
         <AutoTextarea
           value={editedSolution}
           onChange={setEditedSolution}
-          placeholder="Пояснение к решению…"
+          placeholder={t('Пояснение к решению…')}
           style={{
             fontSize: 12, lineHeight: 1.6, color: 'var(--color-text-2)',
             background: 'rgba(var(--glass-rgb), 0.6)', borderRadius: 10,
@@ -907,7 +913,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingTop: 2, borderTop: '1px solid var(--color-border-soft)' }}>
         <span style={{ fontSize: 11, color: 'var(--color-text-5)', flex: 1 }}>{task.section} → {task.topic} · {task.source}</span>
         <button onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-5)', cursor: 'pointer', fontFamily: 'inherit' }}>
-          <AlertCircle size={10} />{reported ? 'Отправлено' : 'Ошибка'}
+          <AlertCircle size={10} />{reported ? t('Отправлено') : t('Ошибка')}
         </button>
       </div>
     </div>
@@ -964,6 +970,7 @@ function TrainerTab({
   filters: TrainerFilters
   onAdd: (bt: BankTask, overrides: { question: string; answer: string; solution: string }, savedToTrainer?: 'update' | 'both') => void
 }) {
+  const t = useT()
   const bankTasks = useTaskBank(s => s.tasks)
   const filtered = bankTasks.filter(t => {
     if (filters.subject && t.subject !== filters.subject) return false
@@ -983,7 +990,7 @@ function TrainerTab({
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {filtered.length === 0 && (
         <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-4)', fontSize: 13 }}>
-          Нет заданий по выбранным фильтрам
+          {t('Нет заданий по выбранным фильтрам')}
         </div>
       )}
       {filtered.map((bt, i) => (
@@ -1008,6 +1015,7 @@ function PreviewTab({
   onDelete: (id: string) => void
   onOpenTrainerDialog: (id: string) => void
 }) {
+  const t = useT()
   const bankTasks = useTaskBank(s => s.tasks)
   const [showAnswer, setShowAnswer] = useState<Set<string>>(new Set())
 
@@ -1023,17 +1031,17 @@ function PreviewTab({
     return (
       <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-text-4)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
         <Eye size={36} strokeWidth={1.2} />
-        <div style={{ fontSize: 13, fontWeight: 600 }}>Добавьте задания для предпросмотра</div>
+        <div style={{ fontSize: 13, fontWeight: 600 }}>{t('Добавьте задания для предпросмотра')}</div>
       </div>
     )
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {tasks.map((t, i) => {
-        const cfg = typeConfig(t.type)
+      {tasks.map((task, i) => {
+        const cfg = typeConfig(task.type)
         return (
-          <GlassCard key={t.id} style={{ padding: '14px 16px' }}>
+          <GlassCard key={task.id} style={{ padding: '14px 16px' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
               <div style={{
                 width: 26, height: 26, borderRadius: 8, background: cfg.bg,
@@ -1045,77 +1053,77 @@ function PreviewTab({
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
                   <span style={cardChip(cfg.color)}>
-                    {cfg.label}
+                    {t(cfg.label)}
                   </span>
-                  {t.modified && (
+                  {task.modified && (
                     <button
-                      onClick={() => onOpenTrainerDialog(t.id)}
+                      onClick={() => onOpenTrainerDialog(task.id)}
                       style={cardChipTone('peach', { border: 'none', cursor: 'pointer', fontFamily: 'inherit' })}
                     >
-                      ⚠ изменено
+                      ⚠ {t('изменено')}
                     </button>
                   )}
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--color-text)', lineHeight: 1.55, marginBottom: 8 }}>
-                  {stripHtml(t.question) || <span style={{ color: 'var(--color-text-4)', fontStyle: 'italic' }}>Без текста</span>}
+                  {stripHtml(task.question) || <span style={{ color: 'var(--color-text-4)', fontStyle: 'italic' }}>{t('Без текста')}</span>}
                 </div>
 
-                {(t.type === 'single' || t.type === 'multi') && t.choices && (
+                {(task.type === 'single' || task.type === 'multi') && task.choices && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8 }}>
-                    {t.choices.map((ch, ci) => (
+                    {task.choices.map((ch, ci) => (
                       <div key={ci} style={{
                         display: 'flex', alignItems: 'center', gap: 8,
                         padding: '5px 10px', borderRadius: 8,
-                        background: (t.correctChoices ?? []).includes(ci) ? 'var(--color-green-soft)' : 'var(--color-bg)',
+                        background: (task.correctChoices ?? []).includes(ci) ? 'var(--color-green-soft)' : 'var(--color-bg)',
                       }}>
                         <div style={{
                           width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-                          background: (t.correctChoices ?? []).includes(ci) ? 'var(--color-green-text)' : 'var(--color-text-4)',
+                          background: (task.correctChoices ?? []).includes(ci) ? 'var(--color-green-text)' : 'var(--color-text-4)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}>
-                          {(t.correctChoices ?? []).includes(ci) && <Check size={10} style={{ color: '#fff' }} />}
+                          {(task.correctChoices ?? []).includes(ci) && <Check size={10} style={{ color: '#fff' }} />}
                         </div>
-                        <span style={{ fontSize: 12, color: 'var(--color-text)' }}>{ch || `Вариант ${ci + 1}`}</span>
+                        <span style={{ fontSize: 12, color: 'var(--color-text)' }}>{ch || `${t('Вариант')} ${ci + 1}`}</span>
                       </div>
                     ))}
                   </div>
                 )}
 
-                {t.type === 'matching' && t.pairs && (
+                {task.type === 'matching' && task.pairs && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8 }}>
-                    {t.pairs.map((p, pi) => (
+                    {task.pairs.map((p, pi) => (
                       <div key={pi} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <div style={{ flex: 1, padding: '5px 10px', borderRadius: 8, background: 'var(--color-purple-soft)', fontSize: 12, color: 'var(--color-accent)', fontWeight: 600 }}>
-                          {p.left || `Левая ${pi + 1}`}
+                          {p.left || `${t('Левая')} ${pi + 1}`}
                         </div>
                         <span style={{ color: 'var(--color-text-4)' }}>↔</span>
                         <div style={{ flex: 1, padding: '5px 10px', borderRadius: 8, background: 'var(--color-peach-soft)', fontSize: 12, color: 'var(--color-peach-text)', fontWeight: 600 }}>
-                          {p.right || `Правая ${pi + 1}`}
+                          {p.right || `${t('Правая')} ${pi + 1}`}
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
 
-                {(t.type === 'extended' || t.type === 'fill') && (
+                {(task.type === 'extended' || task.type === 'fill') && (
                   <button
-                    onClick={() => toggleAnswer(t.id)}
+                    onClick={() => toggleAnswer(task.id)}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 5,
                       padding: '4px 10px', borderRadius: 8, border: 'none',
-                      background: showAnswer.has(t.id) ? 'var(--color-green-soft)' : 'var(--color-bg)',
+                      background: showAnswer.has(task.id) ? 'var(--color-green-soft)' : 'var(--color-bg)',
                       cursor: 'pointer', fontSize: 11, fontWeight: 600,
-                      color: showAnswer.has(t.id) ? 'var(--color-green-text)' : 'var(--color-muted)',
+                      color: showAnswer.has(task.id) ? 'var(--color-green-text)' : 'var(--color-muted)',
                       fontFamily: 'inherit', marginBottom: 4,
                     }}
                   >
                     <Eye size={12} />
-                    {showAnswer.has(t.id) ? t.answer || 'нет ответа' : 'Показать ответ'}
+                    {showAnswer.has(task.id) ? task.answer || t('нет ответа') : t('Показать ответ')}
                   </button>
                 )}
               </div>
               <button
-                onClick={() => onDelete(t.id)}
+                onClick={() => onDelete(task.id)}
                 style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
               >
                 <Trash2 size={13} />
@@ -1136,6 +1144,7 @@ function TrainerFilterPanel({
   filters: TrainerFilters
   onChange: (f: Partial<TrainerFilters>) => void
 }) {
+  const t = useT()
   const bankTasks = useTaskBank(s => s.tasks)
   const merge = useOptionMerger()
   useCurriculum(s => s.version) // re-render when the taxonomy is edited
@@ -1190,7 +1199,7 @@ function TrainerFilterPanel({
       {/* Header with filter icon */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
         <Search size={14} style={{ color: 'var(--color-text-3)' }} />
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Фильтры</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Фильтры')}</span>
       </div>
 
       {/* Subject pills */}
@@ -1207,18 +1216,18 @@ function TrainerFilterPanel({
               fontFamily: 'inherit', transition: 'all 0.15s',
             }}
           >
-            {opt.l}
+            {t(opt.l)}
           </button>
         ))}
       </div>
 
       {/* Dropdown filters */}
-      <MultiSelectField label="Раздел" options={sectionOptions} values={filters.sections}
+      <MultiSelectField label={t('Раздел')} options={sectionOptions} values={filters.sections}
         onChange={v => onChange({ sections: v })} small />
-      <MultiSelectField label="Тема" options={topicOptions} values={filters.topics}
+      <MultiSelectField label={t('Тема')} options={topicOptions} values={filters.topics}
         onChange={v => onChange({ topics: v })} small />
       <div>
-        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Часть</div>
+        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('Часть')}</div>
         <div style={{ display: 'flex', gap: 6 }}>
           {(['1', '2'] as string[]).map(p => {
             const active = filters.parts.includes(p)
@@ -1233,9 +1242,9 @@ function TrainerFilterPanel({
           })}
         </div>
       </div>
-      <MultiSelectField label="Линия" options={allLines} values={filters.lines}
+      <MultiSelectField label={t('Линия')} options={allLines} values={filters.lines}
         onChange={v => onChange({ lines: v })} small />
-      <FilterSelect label="Источник" options={merge(SOURCES, SOURCE_SCOPE)} value={filters.source}
+      <FilterSelect label={t('Источник')} options={merge(SOURCES, SOURCE_SCOPE)} value={filters.source}
         onChange={v => onChange({ source: v })} />
 
       {hasFilters && (
@@ -1243,12 +1252,12 @@ function TrainerFilterPanel({
           onClick={() => onChange({ sections: [], topics: [], parts: [], lines: [], source: '' })}
           style={{ padding: '8px 0', borderRadius: 12, background: 'var(--color-red-soft)', border: 'none', fontSize: 12, color: 'var(--color-red-text)', cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit' }}
         >
-          Сбросить фильтры
+          {t('Сбросить фильтры')}
         </button>
       )}
 
       <div style={{ fontSize: 11, color: 'var(--color-text-4)', textAlign: 'center', marginTop: 4 }}>
-        {bankTasks.length} заданий в базе
+        {bankTasks.length} {t('заданий в базе')}
       </div>
       </div>
     </motion.div>
@@ -1266,6 +1275,7 @@ function HardTaskAccordion({
   onDelete: (id: string) => void
   onAdd: (type: HWTaskType) => void
 }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [assignTo, setAssignTo] = useState<'all' | 'selected'>('all')
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set())
@@ -1304,15 +1314,15 @@ function HardTaskAccordion({
       >
         <Star size={16} style={{ color: '#F59E0B', fill: '#F59E0B' }} />
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-yellow-text)', flex: 1, textAlign: 'left' }}>
-          Сложное задание
+          {t('Сложное задание')}
         </span>
         {tasks.length > 0 && (
           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-yellow-text)', background: 'rgba(255,180,0,0.2)', borderRadius: 8, padding: '2px 8px' }}>
-            {tasks.length} зад.
+            {tasks.length} {t('зад.')}
           </span>
         )}
         <span style={{ fontSize: 11, color: 'var(--color-yellow-text)', fontWeight: 600 }}>
-          {open ? 'Свернуть' : 'Добавить'}
+          {open ? t('Свернуть') : t('Добавить')}
         </span>
         {open ? <ChevronUp size={14} style={{ color: 'var(--color-yellow-text)' }} /> : <ChevronDown size={14} style={{ color: 'var(--color-yellow-text)' }} />}
       </button>
@@ -1334,12 +1344,12 @@ function HardTaskAccordion({
               display: 'flex', flexDirection: 'column', gap: 14,
             }}>
               <div style={{ fontSize: 12, color: 'var(--color-yellow-text)', lineHeight: 1.5 }}>
-                Это задание откроется только студентам, набравшим <strong>80%+</strong> в основном ДЗ.
+                {t('Это задание откроется только студентам, набравшим')} <strong>80%+</strong> {t('в основном ДЗ.')}
               </div>
 
               {/* Assign to */}
               <div>
-                <Label>Назначить</Label>
+                <Label>{t('Назначить')}</Label>
                 <div style={{ display: 'flex', gap: 6 }}>
                   {[{ v: 'all', l: 'Всем в группе' }, { v: 'selected', l: 'Выбранным' }].map(opt => (
                     <button
@@ -1353,7 +1363,7 @@ function HardTaskAccordion({
                         fontFamily: 'inherit', transition: 'all 0.15s',
                       }}
                     >
-                      {opt.l}
+                      {t(opt.l)}
                     </button>
                   ))}
                 </div>
@@ -1362,7 +1372,7 @@ function HardTaskAccordion({
               {/* Student picker */}
               {assignTo === 'selected' && groupStudents.length > 0 && (
                 <div>
-                  <Label>Студенты ({selectedStudents.size} выбрано)</Label>
+                  <Label>{t('Студенты')} ({selectedStudents.size} {t('выбрано')})</Label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 180, overflowY: 'auto', paddingRight: 10 }}>
                     {groupStudents.map(s => {
                       const sel = selectedStudents.has(s.id)
@@ -1401,20 +1411,20 @@ function HardTaskAccordion({
               {/* Mini tabs */}
               <div>
                 <div style={{ display: 'flex', gap: 4, marginBottom: 12, background: 'var(--color-bg)', borderRadius: 11, padding: 3 }}>
-                  {[{ v: 'compose', l: 'Составить' }, { v: 'trainer', l: 'Из тренажера' }].map(t => (
+                  {[{ v: 'compose', l: 'Составить' }, { v: 'trainer', l: 'Из тренажера' }].map(opt => (
                     <button
-                      key={t.v}
-                      onClick={() => setTab(t.v as 'compose' | 'trainer')}
+                      key={opt.v}
+                      onClick={() => setTab(opt.v as 'compose' | 'trainer')}
                       style={{
                         flex: 1, padding: '7px 0', borderRadius: 9, border: 'none', cursor: 'pointer',
                         fontSize: 12, fontWeight: 600,
-                        background: tab === t.v ? 'var(--color-surface)' : 'transparent',
-                        color: tab === t.v ? 'var(--color-accent)' : 'var(--color-muted)',
+                        background: tab === opt.v ? 'var(--color-surface)' : 'transparent',
+                        color: tab === opt.v ? 'var(--color-accent)' : 'var(--color-muted)',
                         fontFamily: 'inherit', transition: 'all 0.15s',
-                        boxShadow: tab === t.v ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+                        boxShadow: tab === opt.v ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
                       }}
                     >
-                      {t.l}
+                      {t(opt.l)}
                     </button>
                   ))}
                 </div>
@@ -1424,12 +1434,12 @@ function HardTaskAccordion({
                     <ComposeTab tasks={tasks} onUpdate={onUpdate} onDelete={onDelete} />
                     <div style={{ marginTop: 10 }}>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                        {TASK_TYPES.map(t => (
-                          <button key={t.type} onClick={() => onAdd(t.type)} style={{
+                        {TASK_TYPES.map(tt => (
+                          <button key={tt.type} onClick={() => onAdd(tt.type)} style={{
                             display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 10,
-                            border: 'none', background: t.bg, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: t.color, fontFamily: 'inherit',
+                            border: 'none', background: tt.bg, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: tt.color, fontFamily: 'inherit',
                           }}>
-                            <t.icon size={12} /> {t.label}
+                            <tt.icon size={12} /> {t(tt.label)}
                           </button>
                         ))}
                       </div>
@@ -1441,11 +1451,11 @@ function HardTaskAccordion({
                     addedIds={addedIds}
                     filters={trainerFilters}
                     onAdd={(bt, overrides, savedToTrainer) => {
-                      const t = taskFromBank({ ...bt, question: overrides.question, answer: overrides.answer, solution: overrides.solution })
+                      const nt = taskFromBank({ ...bt, question: overrides.question, answer: overrides.answer, solution: overrides.solution })
                       const edited = overrides.question !== bt.question || overrides.answer !== bt.answer || overrides.solution !== bt.solution
-                      t.modified = edited && !savedToTrainer
-                      t.savedToTrainer = savedToTrainer
-                      onUpdate(t.id, t)
+                      nt.modified = edited && !savedToTrainer
+                      nt.savedToTrainer = savedToTrainer
+                      onUpdate(nt.id, nt)
                       setAddedIds(prev => new Set(prev).add(bt.id))
                     }}
                   />
@@ -1484,6 +1494,7 @@ const RU_MONTHS = ['Январь','Февраль','Март','Апрель','М
 const RU_DAYS_SHORT = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс']
 
 function CalendarPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const today = todayDotStr()
@@ -1540,7 +1551,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
       >
         <Calendar size={14} strokeWidth={2} style={{ flexShrink: 0, color: value ? 'var(--color-text)' : 'var(--color-text-3)' }} />
         <div style={{ flex: 1, fontSize: 13, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400 }}>
-          {value || 'Выберите дату'}
+          {value || t('Выберите дату')}
         </div>
         {value && (
           <span
@@ -1576,14 +1587,14 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
             {/* Month nav */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <button style={navBtnStyle} onClick={prevMonth}><ChevronLeft size={14} /></button>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{RU_MONTHS[viewMonth]} {viewYear}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t(RU_MONTHS[viewMonth])} {viewYear}</span>
               <button style={navBtnStyle} onClick={nextMonth}><ChevronRight size={14} /></button>
             </div>
 
             {/* Day headers */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
               {RU_DAYS_SHORT.map(d => (
-                <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: 'var(--color-text-4)', padding: '2px 0' }}>{d}</div>
+                <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: 'var(--color-text-4)', padding: '2px 0' }}>{t(d)}</div>
               ))}
             </div>
 
@@ -1621,6 +1632,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
 // ─── Group picker ───────────────────────────────────────────────────────────────
 
 function GroupPicker({ value, onChange }: { value: string; onChange: (id: string) => void }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const { groups } = useGroups()
@@ -1648,7 +1660,7 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
       >
         <Users size={14} strokeWidth={2} style={{ flexShrink: 0, color: selected ? 'var(--color-accent)' : 'var(--color-text-3)' }} />
         <div style={{ flex: 1, fontSize: 13, color: selected ? 'var(--color-accent)' : 'var(--color-text-3)', fontWeight: selected ? 600 : 400 }}>
-          {selected ? selected.name : 'Группа'}
+          {selected ? selected.name : t('Группа')}
         </div>
         {selected && (
           <span
@@ -1721,6 +1733,7 @@ function LessonPicker({
   title: string
   onChange: (id: string) => void
 }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [fade, setFade] = useState({ top: 0, bottom: 0 })
@@ -1738,10 +1751,10 @@ function LessonPicker({
 
   // Suggest lessons whose title overlaps with the homework title
   const suggested = useMemo(() => {
-    const t = title.trim().toLowerCase()
-    if (!t) return []
+    const q = title.trim().toLowerCase()
+    if (!q) return []
     return courseLessons.filter(l => {
-      const words = t.split(/\s+/).filter(w => w.length > 3)
+      const words = q.split(/\s+/).filter(w => w.length > 3)
       return words.some(w => l.lessonTitle.toLowerCase().includes(w))
     })
   }, [title])
@@ -1783,7 +1796,7 @@ function LessonPicker({
               <div style={{ fontSize: 10, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.courseTitle}</div>
             </>
           ) : (
-            <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>Без привязки</div>
+            <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{t('Без привязки')}</div>
           )}
         </div>
         {selected && (
@@ -1825,7 +1838,7 @@ function LessonPicker({
                 autoFocus
                 value={query}
                 onChange={e => setQuery(e.target.value)}
-                placeholder="Поиск урока..."
+                placeholder={t('Поиск урока...')}
                 style={{
                   width: '100%', boxSizing: 'border-box', padding: `7px ${query ? 30 : 10}px 7px 30px`,
                   borderRadius: 9, border: 'none',
@@ -1856,7 +1869,7 @@ function LessonPicker({
                   <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, background: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <X size={13} style={{ color: 'var(--color-text-3)' }} />
                   </div>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: !value ? 'var(--color-accent)' : 'var(--color-muted)' }}>Без привязки</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: !value ? 'var(--color-accent)' : 'var(--color-muted)' }}>{t('Без привязки')}</span>
                   {!value && <Check size={13} style={{ color: 'var(--color-accent)', marginLeft: 'auto' }} />}
                 </button>
 
@@ -1865,13 +1878,13 @@ function LessonPicker({
                   <>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 8px 4px' }}>
                       <Sparkles size={11} style={{ color: 'var(--color-accent)' }} />
-                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-accent)', letterSpacing: 0.3 }}>ПОДХОДЯТ К ТЕМЕ</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-accent)', letterSpacing: 0.3 }}>{t('ПОДХОДЯТ К ТЕМЕ')}</span>
                     </div>
                     {suggested.map(l => (
                       <LessonOption key={l.id} lesson={l} active={value === l.id} suggested onClick={() => { onChange(l.id); setOpen(false) }} />
                     ))}
                     <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '6px 8px' }} />
-                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3, padding: '2px 8px 4px' }}>ВСЕ УРОКИ</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3, padding: '2px 8px 4px' }}>{t('ВСЕ УРОКИ')}</div>
                   </>
                 )}
 
@@ -1881,7 +1894,7 @@ function LessonPicker({
                 ))}
 
                 {filtered.length === 0 && (
-                  <div style={{ padding: '10px 8px', fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>Ничего не найдено</div>
+                  <div style={{ padding: '10px 8px', fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>{t('Ничего не найдено')}</div>
                 )}
               </div>
 
@@ -1936,6 +1949,7 @@ type Meta = {
 }
 
 function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>) => void }) {
+  const t = useT()
   const allStudents = useAllStudents()
   const [subjectFilter, setSubjectFilter] = useState('')
 
@@ -1965,7 +1979,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
                 fontFamily: 'inherit', transition: 'all 0.15s',
               }}
             >
-              {mode === 'group' ? 'Группе' : 'Студенту'}
+              {mode === 'group' ? t('Группе') : t('Студенту')}
             </button>
           ))}
         </div>
@@ -1991,7 +2005,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
                       color: subjectFilter === opt.v ? 'var(--color-accent)' : 'var(--color-muted)',
                     }}
                   >
-                    {opt.label}
+                    {t(opt.label)}
                   </button>
                 ))}
               </div>
@@ -1999,7 +2013,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
             <TeacherSelect
               value={meta.studentId}
               onChange={id => onChange({ studentId: id })}
-              placeholder="Студент"
+              placeholder={t('Студент')}
               options={scopedStudents.map(s => ({
                 value: s.id,
                 label: s.subject ? `${s.name} · ${s.subject}` : s.name,
@@ -2012,7 +2026,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
         <input
           value={meta.title}
           onChange={e => onChange({ title: e.target.value })}
-          placeholder="Тема задания"
+          placeholder={t('Тема задания')}
           style={inputStyle}
         />
 
@@ -2020,7 +2034,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
         <textarea
           value={meta.description}
           onChange={e => onChange({ description: e.target.value })}
-          placeholder="Описание, ссылки, требования..."
+          placeholder={t('Описание, ссылки, требования...')}
           rows={3}
           style={{ ...inputStyle, resize: 'vertical', minHeight: 68 }}
         />
@@ -2048,6 +2062,7 @@ function stripHeavyFields(tasks: HWTask[]) {
 }
 
 export default function TeacherHomeworkCreatePage() {
+  const t = useT()
   const setActivePage = useTeacher(s => s.setActivePage)
   const selectedGroupId = useTeacher(s => s.selectedGroupId)
   const editingHomeworkId = useTeacher(s => s.editingHomeworkId)
@@ -2175,8 +2190,8 @@ export default function TeacherHomeworkCreatePage() {
     boxShadow: 'var(--shadow-lg)',
   } as const
 
-  const backBtn = <><ArrowLeft size={15} strokeWidth={2} /> Назад</>
-  const draftLabel = 'Черновик'
+  const backBtn = <><ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}</>
+  const draftLabel = t('Черновик')
 
   function updateMeta(p: Partial<Meta>) { setMeta(m => ({ ...m, ...p })) }
 
@@ -2334,7 +2349,7 @@ export default function TeacherHomeworkCreatePage() {
               padding: '9px 16px', borderRadius: 999, ...dockGlass,
               fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
             }}>
-              {meta.title || (isEditing ? 'Редактировать домашку' : 'Создать домашнее задание')}
+              {meta.title || (isEditing ? t('Редактировать домашку') : t('Создать домашнее задание'))}
             </div>
 
             <div style={{ flexGrow: 1, flexBasis: 0 }} />
@@ -2349,7 +2364,7 @@ export default function TeacherHomeworkCreatePage() {
               {draftLabel}
             </button>
             <TeacherSaveButton
-              label={isEditing ? 'Сохранить' : 'Опубликовать'} savedLabel={isEditing ? 'Сохранено!' : 'Опубликовано!'}
+              label={isEditing ? t('Сохранить') : t('Опубликовать')} savedLabel={isEditing ? t('Сохранено!') : t('Опубликовано!')}
               icon={<Send size={14} />}
               saved={published} onClick={handlePublish}
               style={{ boxShadow: '0 6px 20px rgba(99,84,207,0.32)', pointerEvents: 'auto' }}
@@ -2389,13 +2404,13 @@ export default function TeacherHomeworkCreatePage() {
             maxWidth: '44%', pointerEvents: 'none',
             fontSize: 18, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center',
           }}>
-            {isEditing ? 'Редактировать домашку' : 'Создать домашнее задание'}
+            {isEditing ? t('Редактировать домашку') : t('Создать домашнее задание')}
             {meta.title && <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}> — {meta.title}</span>}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', fontWeight: 600 }}>
-              {hwTasks.length} зад.{hardTasks.length > 0 ? ` + ${hardTasks.length} сложн.` : ''}
+              {hwTasks.length} {t('зад.')}{hardTasks.length > 0 ? ` + ${hardTasks.length} ${t('сложн.')}` : ''}
             </div>
             <button
               style={{
@@ -2407,7 +2422,7 @@ export default function TeacherHomeworkCreatePage() {
               {draftLabel}
             </button>
             <TeacherSaveButton
-              label={isEditing ? 'Сохранить' : 'Опубликовать'} savedLabel={isEditing ? 'Сохранено!' : 'Опубликовано!'}
+              label={isEditing ? t('Сохранить') : t('Опубликовать')} savedLabel={isEditing ? t('Сохранено!') : t('Опубликовано!')}
               icon={<Send size={14} />}
               saved={published} onClick={handlePublish}
             />
@@ -2453,7 +2468,7 @@ export default function TeacherHomeworkCreatePage() {
                 }}
               >
                 <tab.icon size={14} />
-                {tab.label}
+                {t(tab.label)}
                 {tab.key === 'preview' && hwTasks.length > 0 && (
                   <span style={{
                     fontSize: 10, fontWeight: 700,
@@ -2515,7 +2530,7 @@ export default function TeacherHomeworkCreatePage() {
                       <div style={{ marginTop: 20 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                           <Star size={14} style={{ color: '#F59E0B', fill: '#F59E0B' }} />
-                          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-yellow-text)' }}>Сложное задание (80%+)</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-yellow-text)' }}>{t('Сложное задание (80%+)')}</span>
                         </div>
                         <PreviewTab
                           tasks={hardTasks}
@@ -2593,10 +2608,10 @@ export default function TeacherHomeworkCreatePage() {
                   <div style={{ width: 38, height: 38, borderRadius: 12, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <BookOpen size={20} style={{ color: 'var(--color-accent)' }} />
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>Публикация домашки</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Публикация домашки')}</div>
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 6, lineHeight: 1.55 }}>
-                  Домашнее задание будет привязано к уроку:
+                  {t('Домашнее задание будет привязано к уроку:')}
                 </div>
                 <div style={{ background: 'var(--color-purple-soft)', borderRadius: 12, padding: '10px 14px', marginBottom: 20 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-accent)' }}>{lesson?.lessonTitle}</div>
@@ -2607,14 +2622,14 @@ export default function TeacherHomeworkCreatePage() {
                     onClick={() => setShowPublishConfirm(false)}
                     style={{ flex: 1, padding: '10px 0', borderRadius: 14, border: '1.5px solid rgba(0,0,0,0.1)', cursor: 'pointer', background: 'transparent', fontSize: 13, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                   >
-                    Отмена
+                    {t('Отмена')}
                   </button>
                   <motion.button
                     whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                     onClick={doPublish}
                     style={{ flex: 2, padding: '10px 0', borderRadius: 14, border: 'none', cursor: 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit', boxShadow: '0 4px 14px rgba(99,84,207,0.3)' }}
                   >
-                    <Send size={14} /> Опубликовать
+                    <Send size={14} /> {t('Опубликовать')}
                   </motion.button>
                 </div>
               </motion.div>

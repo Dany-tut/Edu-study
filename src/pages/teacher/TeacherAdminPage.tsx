@@ -14,6 +14,7 @@ import { WIDGET_REGISTRY } from '../../components/teacher/widgets/registry'
 import AccessConfigurator, { hiddenTabsFrom, hiddenWidgetsFrom, selectedTabsFrom, selectedWidgetsFrom, type CourseAssignment } from '../../components/teacher/AccessConfigurator'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { PLAN_OPTIONS, adminSetTeacherPlan, type TeacherPlanRow } from '../../lib/plan'
+import { useT, t as tGlobal } from '../../lib/i18n'
 
 type StorageStats = {
   db_bytes: number
@@ -55,9 +56,9 @@ type TeacherContentRow = {
 }
 
 function fmtBytes(n: number): string {
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} КБ`
-  if (n < 1024 * 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)} МБ`
-  return `${(n / (1024 * 1024 * 1024)).toFixed(2)} ГБ`
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} ${tGlobal('КБ')}`
+  if (n < 1024 * 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)} ${tGlobal('МБ')}`
+  return `${(n / (1024 * 1024 * 1024)).toFixed(2)} ${tGlobal('ГБ')}`
 }
 
 function pct(used: number, limit: number) {
@@ -90,6 +91,7 @@ function StatCard({ icon: Icon, label, value, sub }: { icon: React.ElementType; 
 }
 
 function InviteModal({ onClose }: { onClose: () => void }) {
+  const t = useT()
   const [email, setEmail] = useState('')
   const [copied, setCopied] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -110,7 +112,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
       p_group_ids: groupIds,
     })
     setCreating(false)
-    if (err || !data) { setError(err?.message || 'Не удалось создать приглашение'); return }
+    if (err || !data) { setError(err?.message || t('Не удалось создать приглашение')); return }
     setLink(`${window.location.origin}${window.location.pathname}#/join-teacher?token=${data}`)
   }
 
@@ -150,8 +152,8 @@ function InviteModal({ onClose }: { onClose: () => void }) {
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>Пригласить учителя</div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>Выберите доступ и контент — они «запекутся» в ссылку</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{t('Пригласить учителя')}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{t('Выберите доступ и контент — они «запекутся» в ссылку')}</div>
           </div>
           <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: 10, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
             <X size={14} />
@@ -165,23 +167,23 @@ function InviteModal({ onClose }: { onClose: () => void }) {
                 <Check size={20} strokeWidth={2.5} style={{ color: 'var(--color-green-text)' }} />
               </div>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Приглашение готово</div>
-                <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>Отправьте ссылку учителю — доступ применится при регистрации.</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Приглашение готово')}</div>
+                <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('Отправьте ссылку учителю — доступ применится при регистрации.')}</div>
               </div>
             </div>
             <div style={{ fontSize: 12, color: 'var(--color-text-2)', background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)', borderRadius: 12, padding: '10px 12px', wordBreak: 'break-all', marginBottom: 12 }}>{link}</div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={copyLink} style={{ flex: 1, padding: '11px', borderRadius: 12, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 {copied ? <Check size={15} strokeWidth={2.5} /> : <Copy size={15} />}
-                {copied ? 'Скопировано!' : 'Скопировать ссылку'}
+                {copied ? t('Скопировано!') : t('Скопировать ссылку')}
               </button>
-              <button onClick={onClose} style={{ padding: '11px 18px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Готово</button>
+              <button onClick={onClose} style={{ padding: '11px 18px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>{t('Готово')}</button>
             </div>
           </div>
         ) : (
           <>
             <div style={{ marginBottom: 18 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 6 }}>Email учителя (необязательно, подставится в форму)</label>
+              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', display: 'block', marginBottom: 6 }}>{t('Email учителя (необязательно, подставится в форму)')}</label>
               <div style={{ position: 'relative' }}>
                 <Mail size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
                 <input
@@ -218,7 +220,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
                 fontSize: 14, fontWeight: 600, cursor: creating ? 'wait' : 'pointer',
               }}
             >
-              {creating ? 'Создаём…' : 'Создать пригласительную ссылку'}
+              {creating ? t('Создаём…') : t('Создать пригласительную ссылку')}
             </button>
           </>
         )}
@@ -231,6 +233,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
 
 
 function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hiddenTabs: string[], hiddenWidgets: string[]) => void }) {
+  const t = useT()
   const [selectedTabs, setSelectedTabs] = useState<string[]>(selectedTabsFrom(teacher.hiddenTabs))
   const [selectedWidgets, setSelectedWidgets] = useState<string[]>(selectedWidgetsFrom(teacher.hiddenWidgets))
   const [courseAssignments, setCourseAssignments] = useState<CourseAssignment[]>([])
@@ -283,7 +286,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
     })
     setPwLoading(false)
     if (err || !data?.password) {
-      const msg = (data as { error?: string } | null)?.error || err?.message || 'Не удалось сбросить пароль'
+      const msg = (data as { error?: string } | null)?.error || err?.message || t('Не удалось сбросить пароль')
       setPwError(msg); return
     }
     setPwValue(data.password as string)
@@ -318,7 +321,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
         if (e) throw e
       }
     } catch (e: any) {
-      setSaving(false); setError('Доступы сохранены, но контент выдать не удалось: ' + (e?.message ?? e)); return
+      setSaving(false); setError(t('Доступы сохранены, но контент выдать не удалось:') + ' ' + (e?.message ?? e)); return
     }
 
     setSaving(false)
@@ -333,14 +336,14 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
       {/* Read-only: what the teacher ALREADY has. The picker below is "give more". */}
       {current && current.length > 0 && (
         <div style={{ marginBottom: 14, padding: '12px 14px', borderRadius: 12, background: 'var(--color-bg-3)', border: '1px solid var(--color-border)' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>Уже у учителя</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>{t('Уже у учителя')}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {current.map(r => (
               <span key={`${r.kind}-${r.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: 'var(--color-text-2)', background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 8, padding: '4px 9px' }}>
                 {r.kind === 'course' ? <BookOpen size={12} strokeWidth={2} /> : <Users size={12} strokeWidth={2} />}
                 {r.title}
                 <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}>
-                  · {r.kind === 'course' ? `${r.detail} ур.` : `${r.detail} уч.`}{r.via === 'shared' ? ' · share' : ''}
+                  · {r.kind === 'course' ? `${r.detail} ${t('ур.')}` : `${r.detail} ${t('уч.')}`}{r.via === 'shared' ? ' · share' : ''}
                 </span>
               </span>
             ))}
@@ -348,7 +351,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
         </div>
       )}
       <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginBottom: 14, lineHeight: 1.5 }}>
-        Отметьте разделы/виджеты, которые учитель <b>видит</b>, и курсы/группы, которые ему <b>выдать</b>. Курсы/группы применяются при сохранении.
+        {t('Отметьте разделы/виджеты, которые учитель')} <b>{t('видит')}</b>{t(', и курсы/группы, которые ему')} <b>{t('выдать')}</b>{t('. Курсы/группы применяются при сохранении.')}
       </div>
 
       <AccessConfigurator
@@ -370,7 +373,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
           }}
         >
           {saved ? <Check size={14} strokeWidth={2.6} /> : null}
-          {saving ? 'Сохраняем…' : saved ? 'Сохранено' : 'Сохранить'}
+          {saving ? t('Сохраняем…') : saved ? t('Сохранено') : t('Сохранить')}
         </button>
         {error && <span style={{ fontSize: 11, color: '#E04848' }}>{error}</span>}
       </div>
@@ -378,7 +381,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
       {/* Тариф (0037): ручное назначение админом; «без тарифа» = бета-аккаунт,
           лимит учеников не применяется. Оплата пока вне системы (ручные счета). */}
       <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--color-border)' }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>Тариф</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>{t('Тариф')}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <select
             value={plan ?? ''}
@@ -391,15 +394,15 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
             }}
           >
             {PLAN_OPTIONS.map(o => (
-              <option key={o.code ?? 'none'} value={o.code ?? ''}>{o.label}</option>
+              <option key={o.code ?? 'none'} value={o.code ?? ''}>{t(o.label)}</option>
             ))}
           </select>
-          {planSaving && <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>Сохраняем…</span>}
+          {planSaving && <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('Сохраняем…')}</span>}
           {planSaved && <Check size={14} strokeWidth={2.6} style={{ color: '#3FA867' }} />}
           {planError && <span style={{ fontSize: 11, color: '#E04848' }}>{planError}</span>}
         </div>
         <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 8, lineHeight: 1.5 }}>
-          Лимит учеников применяется при добавлении новых. «Без тарифа» — внутренний/бета-аккаунт без ограничений.
+          {t('Лимит учеников применяется при добавлении новых. «Без тарифа» — внутренний/бета-аккаунт без ограничений.')}
         </div>
       </div>
 
@@ -418,12 +421,12 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
             }}
           >
             <KeyRound size={13} strokeWidth={2} />
-            {pwLoading ? 'Сбрасываем…' : 'Сбросить пароль'}
+            {pwLoading ? t('Сбрасываем…') : t('Сбросить пароль')}
           </button>
           {pwValue && (
             <div
               onClick={() => { void copyToClipboard(pwValue).then(ok => { if (ok) { setPwCopied(true); setTimeout(() => setPwCopied(false), 1500) } }) }}
-              title="Скопировать"
+              title={t('Скопировать')}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
                 padding: '7px 12px', borderRadius: 10,
@@ -438,7 +441,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
         </div>
         {pwValue && (
           <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 8, lineHeight: 1.5 }}>
-            Новый пароль показан один раз — скопируйте и передайте учителю. Он войдёт с ним и сможет сменить его сам.
+            {t('Новый пароль показан один раз — скопируйте и передайте учителю. Он войдёт с ним и сможет сменить его сам.')}
           </div>
         )}
       </div>
@@ -462,6 +465,7 @@ type ContentRow = {
 // but is_admin()-gated). This is how the admin cleans up ownerless/legacy data
 // that would otherwise leak into new teachers' cabinets.
 function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
+  const t = useT()
   const [rows, setRows] = useState<ContentRow[]>([])
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -506,24 +510,24 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
               fontSize: 12, fontWeight: 600,
               background: filter === id ? 'var(--color-purple-soft)' : 'transparent',
               color: filter === id ? 'var(--color-purple)' : 'var(--color-text-3)',
-            }}>{label}</button>
+            }}>{t(label)}</button>
           ))}
         </div>
         {orphanCount > 0 && (
           <span style={{ fontSize: 12, color: '#D07020', fontWeight: 600 }}>
-            {orphanCount} без владельца
+            {orphanCount} {t('без владельца')}
           </span>
         )}
-        <button onClick={load} title="Обновить" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
+        <button onClick={load} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
           <RefreshCw size={13} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
-          Обновить
+          {t('Обновить')}
         </button>
       </div>
 
       {loading && rows.length === 0 ? (
         <div style={{ padding: '24px 0' }}><Skeleton.List rows={4} /></div>
       ) : shown.length === 0 ? (
-        <div style={{ fontSize: 13, color: 'var(--color-text-3)', padding: '24px 0' }}>Пусто.</div>
+        <div style={{ fontSize: 13, color: 'var(--color-text-3)', padding: '24px 0' }}>{t('Пусто.')}</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {shown.map(row => (
@@ -546,8 +550,8 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
                   {row.kind === 'course'
-                    ? `Курс · ${row.detail} уроков${row.status ? ` · ${row.status === 'published' ? 'опубликован' : 'черновик'}` : ''}`
-                    : `Группа · ${row.detail} учеников`}
+                    ? `${t('Курс')} · ${row.detail} ${t('уроков')}${row.status ? ` · ${row.status === 'published' ? t('опубликован') : t('черновик')}` : ''}`
+                    : `${t('Группа')} · ${row.detail} ${t('учеников')}`}
                 </div>
               </div>
               {/* Owner select — canonical styled dropdown */}
@@ -555,10 +559,10 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
                 <TeacherSelect
                   small
                   clearable={false}
-                  placeholder="— без владельца —"
+                  placeholder={t('— без владельца —')}
                   value={row.owner_id ?? ''}
                   onChange={v => reassign(row, v)}
-                  options={teachers.map(t => ({ value: t.id, label: `${t.name}${t.role === 'admin' ? ' (Босс)' : ''}` }))}
+                  options={teachers.map(tc => ({ value: tc.id, label: `${tc.name}${tc.role === 'admin' ? ` (${t('Босс')})` : ''}` }))}
                   triggerStyle={{
                     padding: '7px 10px', borderRadius: 9, fontWeight: 600,
                     background: 'var(--color-bg-3)',
@@ -569,7 +573,7 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
               <button
                 onClick={() => setConfirmDel(row)}
                 disabled={busyId === row.id}
-                title="Удалить"
+                title={t('Удалить')}
                 style={{
                   width: 30, height: 30, borderRadius: 9, flexShrink: 0, cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -598,16 +602,16 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                 <ShieldAlert size={18} strokeWidth={2} style={{ color: '#E04848' }} />
-                <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>Удалить безвозвратно?</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)' }}>{t('Удалить безвозвратно?')}</div>
               </div>
               <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.5, marginBottom: 18 }}>
                 {confirmDel.kind === 'course'
-                  ? <>Курс <b>«{confirmDel.title}»</b> и все его уроки/модули будут удалены навсегда.</>
-                  : <>Группа <b>«{confirmDel.title}»</b> со всеми учениками, расписанием, ДЗ и журналом будет удалена навсегда.</>}
+                  ? <>{t('Курс')} <b>«{confirmDel.title}»</b> {t('и все его уроки/модули будут удалены навсегда.')}</>
+                  : <>{t('Группа')} <b>«{confirmDel.title}»</b> {t('со всеми учениками, расписанием, ДЗ и журналом будет удалена навсегда.')}</>}
               </div>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                <button onClick={() => setConfirmDel(null)} style={{ padding: '8px 16px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Отмена</button>
-                <button onClick={() => doDelete(confirmDel)} style={{ padding: '8px 16px', borderRadius: 11, border: 'none', background: '#E04848', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Удалить</button>
+                <button onClick={() => setConfirmDel(null)} style={{ padding: '8px 16px', borderRadius: 11, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('Отмена')}</button>
+                <button onClick={() => doDelete(confirmDel)} style={{ padding: '8px 16px', borderRadius: 11, border: 'none', background: '#E04848', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{t('Удалить')}</button>
               </div>
             </motion.div>
           </motion.div>,
@@ -634,6 +638,7 @@ type AdminTaskRow = {
 // reassign a task to another teacher, or delete it. Backed by admin_tasks_*
 // RPCs (RLS-bypassing but is_admin()-gated).
 function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
+  const t = useT()
   const [rows, setRows] = useState<AdminTaskRow[]>([])
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -663,30 +668,30 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
 
   // Group tasks under their owner for a clear per-teacher view.
   const groups = teachers
-    .map(t => ({ teacher: t, tasks: rows.filter(r => r.owner_id === t.id) }))
+    .map(tt => ({ teacher: tt, tasks: rows.filter(r => r.owner_id === tt.id) }))
     .filter(g => g.tasks.length > 0)
-  const orphans = rows.filter(r => !r.owner_id || !teachers.some(t => t.id === r.owner_id))
+  const orphans = rows.filter(r => !r.owner_id || !teachers.some(tt => tt.id === r.owner_id))
 
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-          Задачи учителей
+          {t('Задачи учителей')}
         </div>
-        <button onClick={load} title="Обновить" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
+        <button onClick={load} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
           <RefreshCw size={13} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
-          Обновить
+          {t('Обновить')}
         </button>
       </div>
 
       {loading && rows.length === 0 ? (
         <div style={{ padding: '24px 0' }}><Skeleton.List rows={4} /></div>
       ) : rows.length === 0 ? (
-        <div style={{ fontSize: 13, color: 'var(--color-text-3)', padding: '24px 0' }}>Ни у кого нет задач.</div>
+        <div style={{ fontSize: 13, color: 'var(--color-text-3)', padding: '24px 0' }}>{t('Ни у кого нет задач.')}</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {[...groups.map(g => ({ label: g.teacher.name, ownerId: g.teacher.id, tasks: g.tasks })),
-            ...(orphans.length ? [{ label: 'Без владельца', ownerId: null as string | null, tasks: orphans }] : [])]
+            ...(orphans.length ? [{ label: t('Без владельца'), ownerId: null as string | null, tasks: orphans }] : [])]
             .map(group => (
             <div key={group.ownerId ?? 'orphan'}>
               <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', marginBottom: 8 }}>
@@ -705,17 +710,17 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
                         {row.type_label ? `${row.type_label} · ` : ''}{row.title || '—'}
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
-                        {[row.date, row.time].filter(Boolean).join(' · ') || 'без даты'}{row.done ? ' · выполнено' : ''}
+                        {[row.date, row.time].filter(Boolean).join(' · ') || t('без даты')}{row.done ? ` · ${t('выполнено')}` : ''}
                       </div>
                     </div>
                     <div style={{ width: 168, flexShrink: 0, pointerEvents: busyId === row.id ? 'none' : 'auto' }}>
                       <TeacherSelect
                         small
                         clearable={false}
-                        placeholder="— без владельца —"
+                        placeholder={t('— без владельца —')}
                         value={row.owner_id ?? ''}
                         onChange={v => reassign(row, v)}
-                        options={teachers.map(t => ({ value: t.id, label: `${t.name}${t.role === 'admin' ? ' (Босс)' : ''}` }))}
+                        options={teachers.map(tc => ({ value: tc.id, label: `${tc.name}${tc.role === 'admin' ? ` (${t('Босс')})` : ''}` }))}
                         triggerStyle={{
                           padding: '7px 10px', borderRadius: 9, fontWeight: 600,
                           background: 'var(--color-bg-3)',
@@ -726,7 +731,7 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
                     <button
                       onClick={() => doDelete(row)}
                       disabled={busyId === row.id}
-                      title="Удалить"
+                      title={t('Удалить')}
                       style={{
                         width: 30, height: 30, borderRadius: 9, flexShrink: 0, cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -747,6 +752,7 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
 }
 
 export default function TeacherAdminPage() {
+  const t = useT()
   const setActivePage = useTeacher(s => s.setActivePage)
   const [storage, setStorage] = useState<StorageStats | null>(null)
   const [teachers, setTeachers] = useState<TeacherRow[]>([])
@@ -821,9 +827,9 @@ export default function TeacherAdminPage() {
       <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center', color: 'var(--color-text-3)' }}>
           <ShieldAlert size={32} strokeWidth={1.6} style={{ opacity: 0.6 }} />
-          <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', marginTop: 10 }}>Раздел доступен только администратору</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', marginTop: 10 }}>{t('Раздел доступен только администратору')}</div>
           <button onClick={() => setActivePage('home')} style={{ marginTop: 16, padding: '8px 18px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-            На главную
+            {t('На главную')}
           </button>
         </div>
       </div>
@@ -849,25 +855,25 @@ export default function TeacherAdminPage() {
             <ArrowLeft size={16} strokeWidth={2} />
           </motion.button>
           <div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>Администрирование</div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>Управление платформой</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Администрирование')}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Управление платформой')}</div>
           </div>
           {tab === 'overview' && (
             <motion.button
               whileTap={{ scale: 0.94 }}
               onClick={load}
-              title="Обновить"
+              title={t('Обновить')}
               style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}
             >
               <RefreshCw size={13} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
-              Обновить
+              {t('Обновить')}
             </motion.button>
           )}
         </div>
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 4, background: 'var(--color-bg-3)', borderRadius: 12, padding: 3, marginBottom: 24, width: 'fit-content' }}>
-          {([['overview', 'Обзор', Database], ['data', 'Данные', BookOpen], ['analytics', 'Аналитика', BarChart3], ['users', 'Пользователи', Users], ['requests', 'Заявки', Inbox]] as const).map(([id, label, Icon]) => (
+          {([['overview', t('Обзор'), Database], ['data', t('Данные'), BookOpen], ['analytics', t('Аналитика'), BarChart3], ['users', t('Пользователи'), Users], ['requests', t('Заявки'), Inbox]] as const).map(([id, label, Icon]) => (
             <button
               key={id}
               onClick={() => setTab(id)}
@@ -904,20 +910,20 @@ export default function TeacherAdminPage() {
         <>
         {/* Stat cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 28 }}>
-          <StatCard icon={Users} label="Учителей" value={String(teachers.length)} sub="активных аккаунтов" />
-          <StatCard icon={BookOpen} label="Групп" value={String(groupCount)} sub={`${studentCount} учеников`} />
+          <StatCard icon={Users} label={t('Учителей')} value={String(teachers.length)} sub={t('активных аккаунтов')} />
+          <StatCard icon={BookOpen} label={t('Групп')} value={String(groupCount)} sub={`${studentCount} ${t('учеников')}`} />
           <StatCard
             icon={Database}
-            label="База данных"
+            label={t('База данных')}
             value={storage ? fmtBytes(storage.db_bytes) : '—'}
-            sub={storage ? `${dbPct}% занято` : 'загрузка…'}
+            sub={storage ? `${dbPct}% ${t('занято')}` : t('загрузка…')}
           />
         </div>
 
         {/* Teachers */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>Учителя</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>{t('Учителя')}</div>
             <motion.button
               whileTap={{ scale: 0.96 }}
               onClick={() => setInviteOpen(true)}
@@ -930,25 +936,25 @@ export default function TeacherAdminPage() {
               }}
             >
               <UserPlus size={13} strokeWidth={2.5} />
-              Добавить учителя
+              {t('Добавить учителя')}
             </motion.button>
           </div>
           <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
-            {teachers.map((t, i) => {
-              const initials = t.name.slice(0, 2).toUpperCase()
-              const isTeacher = t.role !== 'admin'
-              const expanded = expandedId === t.id
-              const restrictCount = t.hiddenTabs.length + t.hiddenWidgets.length
+            {teachers.map((tr, i) => {
+              const initials = tr.name.slice(0, 2).toUpperCase()
+              const isTeacher = tr.role !== 'admin'
+              const expanded = expandedId === tr.id
+              const restrictCount = tr.hiddenTabs.length + tr.hiddenWidgets.length
               return (
-                <div key={t.id} style={{ borderTop: i > 0 ? '1px solid var(--color-border)' : undefined }}>
+                <div key={tr.id} style={{ borderTop: i > 0 ? '1px solid var(--color-border)' : undefined }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px' }}>
                     <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
                       {initials}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {t.name}
-                        {t.role === 'admin' && (
+                        {tr.name}
+                        {tr.role === 'admin' && (
                           <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-purple)', background: 'rgba(155,109,255,0.12)', borderRadius: 6, padding: '1px 6px', textTransform: 'uppercase', letterSpacing: 0.3 }}>admin</span>
                         )}
                         {isTeacher && restrictCount > 0 && (
@@ -957,22 +963,22 @@ export default function TeacherAdminPage() {
                           </span>
                         )}
                         {isTeacher && (
-                          <span style={{ fontSize: 10, fontWeight: 700, color: '#1F9B6B', background: 'rgba(31,155,107,0.12)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }} title="Учитель зарегистрирован">
-                            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#1F9B6B' }} />активен
+                          <span style={{ fontSize: 10, fontWeight: 700, color: '#1F9B6B', background: 'rgba(31,155,107,0.12)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }} title={t('Учитель зарегистрирован')}>
+                            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#1F9B6B' }} />{t('активен')}
                           </span>
                         )}
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        {t.username && <span>@{t.username}</span>}
-                        {t.subject && <><span>·</span><span>{t.subject}</span></>}
+                        {tr.username && <span>@{tr.username}</span>}
+                        {tr.subject && <><span>·</span><span>{tr.subject}</span></>}
                         <span>·</span>
-                        <span>{t.groupCount} групп · {t.studentCount} учеников</span>
+                        <span>{tr.groupCount} {t('групп')} · {tr.studentCount} {t('учеников')}</span>
                       </div>
                     </div>
                     {isTeacher && (
                       <button
-                        onClick={() => setExpandedId(expanded ? null : t.id)}
-                        title="Настроить доступы"
+                        onClick={() => setExpandedId(expanded ? null : tr.id)}
+                        title={t('Настроить доступы')}
                         style={{
                           display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
                           padding: '7px 12px', borderRadius: 10, cursor: 'pointer',
@@ -983,7 +989,7 @@ export default function TeacherAdminPage() {
                         }}
                       >
                         <SlidersHorizontal size={13} strokeWidth={2} />
-                        Доступы
+                        {t('Доступы')}
                       </button>
                     )}
                   </div>
@@ -997,8 +1003,8 @@ export default function TeacherAdminPage() {
                         style={{ overflow: 'hidden' }}
                       >
                         <AccessEditor
-                          teacher={t}
-                          onSaved={(ht, hw) => setTeachers(prev => prev.map(x => x.id === t.id ? { ...x, hiddenTabs: ht, hiddenWidgets: hw } : x))}
+                          teacher={tr}
+                          onSaved={(ht, hw) => setTeachers(prev => prev.map(x => x.id === tr.id ? { ...x, hiddenTabs: ht, hiddenWidgets: hw } : x))}
                         />
                       </motion.div>
                     )}
@@ -1007,7 +1013,7 @@ export default function TeacherAdminPage() {
               )
             })}
             {teachers.length === 0 && (
-              <div style={{ padding: '20px 18px', color: 'var(--color-text-3)', fontSize: 13 }}>{loading ? <Skeleton.List rows={3} /> : 'Нет данных'}</div>
+              <div style={{ padding: '20px 18px', color: 'var(--color-text-3)', fontSize: 13 }}>{loading ? <Skeleton.List rows={3} /> : t('Нет данных')}</div>
             )}
           </div>
         </div>
@@ -1016,7 +1022,7 @@ export default function TeacherAdminPage() {
         {pendingInvites.length > 0 && (
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>
-              Приглашения · не активированы
+              {t('Приглашения · не активированы')}
             </div>
             <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
               {pendingInvites.map((inv, i) => {
@@ -1028,26 +1034,26 @@ export default function TeacherAdminPage() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {inv.email || 'Без email'}
+                        {inv.email || t('Без email')}
                         <span style={{ fontSize: 10, fontWeight: 700, color: '#C77700', background: 'rgba(199,119,0,0.12)', borderRadius: 6, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#C77700' }} />не активировано
+                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#C77700' }} />{t('не активировано')}
                         </span>
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>
-                        Создано {new Date(inv.createdAt).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                        {t('Создано')} {new Date(inv.createdAt).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })}
                         {inv.createdByName ? ` · ${inv.createdByName}` : ''}
                       </div>
                     </div>
                     <button
                       onClick={() => { void copyToClipboard(link) }}
-                      title="Скопировать ссылку"
+                      title={t('Скопировать ссылку')}
                       style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '7px 12px', borderRadius: 10, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600 }}
                     >
-                      <Copy size={13} strokeWidth={2} />Ссылка
+                      <Copy size={13} strokeWidth={2} />{t('Ссылка')}
                     </button>
                     <button
                       onClick={() => revokeInvite(inv.token)}
-                      title="Отозвать приглашение"
+                      title={t('Отозвать приглашение')}
                       style={{ display: 'flex', alignItems: 'center', flexShrink: 0, padding: '7px 9px', borderRadius: 10, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: '#E04848' }}
                     >
                       <Trash2 size={13} strokeWidth={2} />
@@ -1061,12 +1067,12 @@ export default function TeacherAdminPage() {
 
         {/* Storage */}
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>Хранилище</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>{t('Хранилище')}</div>
           <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
             <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 12 }}>
               <Database size={16} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginBottom: 6 }}>База данных</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginBottom: 6 }}>{t('База данных')}</div>
                 <MiniBar value={dbPct} />
               </div>
               <span style={{ fontSize: 12, color: 'var(--color-text-3)', flexShrink: 0 }}>{storage ? fmtBytes(storage.db_bytes) : '—'}</span>
@@ -1074,7 +1080,7 @@ export default function TeacherAdminPage() {
             <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
               <HardDrive size={16} strokeWidth={2} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginBottom: 6 }}>Файловое хранилище</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginBottom: 6 }}>{t('Файловое хранилище')}</div>
                 <MiniBar value={storagePct} />
               </div>
               <span style={{ fontSize: 12, color: 'var(--color-text-3)', flexShrink: 0 }}>{storage ? fmtBytes(storage.storage_bytes) : '—'}</span>
@@ -1083,7 +1089,7 @@ export default function TeacherAdminPage() {
               onClick={() => setActivePage('storage')}
               style={{ padding: '10px 18px', borderTop: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600 }}
             >
-              Подробная статистика <ChevronRight size={13} />
+              {t('Подробная статистика')} <ChevronRight size={13} />
             </div>
           </div>
         </div>

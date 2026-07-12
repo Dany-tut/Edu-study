@@ -17,6 +17,8 @@ import {
 import MultiSelectField from '../components/MultiSelectField'
 import { copyToClipboard } from '../lib/clipboard'
 import { trackEvent } from '../lib/analytics'
+// Дедуп trainer_open: dual-layout монтирует TaskBankPage дважды.
+let lastTrainerOpen = 0
 import { useCurriculum } from '../store/curriculumStore'
 import { useTaskBank } from '../store/taskBankStore'
 import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../store/taskMetaStore'
@@ -35,6 +37,7 @@ import { GlassPill, GlassIconButton } from '../components/mobileChrome'
 import MobileBell from '../components/MobileBell'
 import { glassCircle } from '../lib/mobileTokens'
 import { tactile } from '../lib/feedback'
+import { useT } from '../lib/i18n'
 
 type StatusFilter = 'all' | 'done' | 'undone'
 type SortMode = 'newest' | 'oldest' | 'easy' | 'hard' | 'subject' | 'line'
@@ -67,6 +70,7 @@ const SORT_OPTIONS: [SortMode, string][] = [
 function FilterField({ label, options, value, onChange, accent }: {
   label: string; options: string[]; value: string; onChange: (v: string) => void; accent: string
 }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -147,11 +151,11 @@ function FilterField({ label, options, value, onChange, accent }: {
                   onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-bg-5)' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                   style={{ width: '100%', padding: '8px 8px', borderRadius: 9, textAlign: 'left', background: 'transparent', border: 'none', fontSize: 12, color: 'var(--color-text-3)', cursor: 'pointer', transition: 'background 0.13s ease' }}>
-                  — Сбросить
+                  {t('— Сбросить')}
                 </button>
               )}
               {shown.length === 0 ? (
-                <div style={{ padding: '10px 8px', fontSize: 12, color: 'var(--color-text-5)' }}>Ничего не найдено</div>
+                <div style={{ padding: '10px 8px', fontSize: 12, color: 'var(--color-text-5)' }}>{t('Ничего не найдено')}</div>
               ) : shown.map(opt => {
                 const rest = opt === value ? `${accent}14` : 'transparent'
                 return (
@@ -173,6 +177,7 @@ function FilterField({ label, options, value, onChange, accent }: {
 
 // ── Copyable №-badge ─────────────────────────────────────────────────────────
 function NumberBadge({ id, onCopied, icon }: { id: number; onCopied: () => void; icon?: ReactNode }) {
+  const t = useT()
   const [tipped, setTipped] = useState(false)
   function copy(e: React.MouseEvent) {
     e.stopPropagation()
@@ -184,7 +189,7 @@ function NumberBadge({ id, onCopied, icon }: { id: number; onCopied: () => void;
   return (
     <span
       onClick={copy}
-      title="Скопировать номер"
+      title={t('Скопировать номер')}
       style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
     >
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: icon ? '2px 8px 2px 6px' : '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: 'var(--color-red-soft)', color: 'var(--color-red-text)', transition: 'background 0.15s ease' }}>
@@ -223,7 +228,7 @@ function NumberBadge({ id, onCopied, icon }: { id: number; onCopied: () => void;
                 <path d="M1.5 4.5l2.2 2.2 3.3-3.7" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-green-text)', letterSpacing: 0.1 }}>Скопировано</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-green-text)', letterSpacing: 0.1 }}>{t('Скопировано')}</span>
           </motion.span>
         )}
       </AnimatePresence>
@@ -241,6 +246,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
   onCopyId: () => void
   mobile?: boolean
 }) {
+  const t = useT()
   const [showSolution, setShowSolution] = useState(false)
   // Mobile table has two modes: fit-to-block (columns wrap to screen width) and
   // zoom (natural size, scrolls horizontally). Toggled by the ⤢ button.
@@ -306,25 +312,25 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               <>
                 <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-text)', minWidth: 14, textAlign: 'center' }}>{index + 1}</span>
                 <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: `${palette.accent}33`, color: 'var(--color-text)' }}>
-                  {task.line} линия
+                  {task.line} {t('линия')}
                 </span>
                 <NumberBadge id={task.id} onCopied={onCopyId} icon={<Database size={10} strokeWidth={2.4} />} />
               </>
             ) : (
               <>
-                <span style={{ fontSize: 11, fontWeight: 700, color: palette.text }}>Задание {index + 1}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: palette.text }}>{t('Задание')} {index + 1}</span>
                 <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
                 <NumberBadge id={task.id} onCopied={onCopyId} />
                 <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: `${palette.accent}33`, color: 'var(--color-text)' }}>
-                  {task.line} · {lineNames[task.line] ?? `Линия ${task.line}`}
+                  {task.line} · {lineNames[task.line] ?? `${t('Линия')} ${task.line}`}
                 </span>
-                <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>Часть {task.part}</span>
+                <span style={{ padding: '2px 7px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>{t('Часть')} {task.part}</span>
               </>
             )}
           </div>
           {mobile && task.topic && (
             <div style={{ fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.3, marginTop: -1 }}>
-              <span style={{ fontWeight: 600 }}>Тема:</span> {task.topic}
+              <span style={{ fontWeight: 600 }}>{t('Тема:')}</span> {task.topic}
             </div>
           )}
         </div>
@@ -332,12 +338,12 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           {state !== undefined && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)', color: isCorrect ? 'var(--color-green-text)' : 'var(--color-red-text)', fontSize: 13, fontWeight: 700 }}>
               {isCorrect ? <CheckCircle2 size={15} /> : <XCircle size={15} />}
-              {isCorrect ? 'Верно' : 'Неверно'}
+              {isCorrect ? t('Верно') : t('Неверно')}
             </div>
           )}
           <button
             onClick={() => { tap(); onFavorite(task.id) }}
-            aria-label={isFav ? 'Убрать из избранного' : 'В избранное'}
+            aria-label={isFav ? t('Убрать из избранного') : t('В избранное')}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: 'none', border: 'none', padding: 0, cursor: 'pointer', outline: 'none',
@@ -389,7 +395,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               <span style={{ fontSize: mobile ? 13 : 15, color: 'var(--color-text)', lineHeight: rowTextLH }}>{c.text}</span>
             </div>
           ))}
-          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{task.answerType === 'multi' ? 'Введите буквы всех верных вариантов, напр. АБГ' : 'Введите букву верного варианта'}</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{task.answerType === 'multi' ? t('Введите буквы всех верных вариантов, напр. АБГ') : t('Введите букву верного варианта')}</div>
         </div>
       )}
 
@@ -416,7 +422,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                 </div>
               ))}
             </div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 6 }}>Сопоставьте и введите, напр. А2 Б1 В3</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 6 }}>{t('Сопоставьте и введите, напр. А2 Б1 В3')}</div>
           </div>
         )
       })()}
@@ -432,7 +438,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               </div>
             ))}
           </div>
-          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 6 }}>Введите порядок цифрами, напр. 3142</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 6 }}>{t('Введите порядок цифрами, напр. 3142')}</div>
         </div>
       )}
 
@@ -456,7 +462,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               setInputOverflow(measuredWidth > innerWidth)
             }}
             onKeyDown={e => e.key === 'Enter' && inputVal.trim() && check()}
-            placeholder="Введите ответ"
+            placeholder={t('Введите ответ')}
             style={{
               width: '100%', boxSizing: 'border-box', height: answerH,
               padding: '0 16px', borderRadius: 16, fontSize: mobile ? 16 : 14, outline: 'none',
@@ -531,7 +537,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                       boxShadow: `0 4px 14px ${palette.ring}`,
                     }}
                   >
-                    <CheckCircle2 size={14} />Проверить
+                    <CheckCircle2 size={14} />{t('Проверить')}
                   </motion.button>
                 )}
               </AnimatePresence>
@@ -595,7 +601,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                         )}
                       </AnimatePresence>
                     </span>
-                    Решение
+                    {t('Решение')}
                   </motion.button>
                 )}
               </AnimatePresence>
@@ -609,7 +615,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         {showSolution && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.18 }} style={{ overflow: 'hidden' }}>
             <div style={{ padding: '14px 18px', background: palette.soft, borderRadius: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: palette.text }}>Правильный ответ</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: palette.text }}>{t('Правильный ответ')}</p>
               <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{task.answer}</p>
               <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-2)', whiteSpace: 'pre-wrap' }}>{task.solution}</p>
             </div>
@@ -623,10 +629,10 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           ? <span style={{ flex: 1 }} />
           : <span style={{ fontSize: 11, color: 'var(--color-muted)', flex: 1 }}>{task.section} → {task.topic} · {task.source}</span>}
         <button onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-3)', cursor: 'pointer' }}>
-          <AlertTriangle size={10} />{reported ? 'Отправлено' : 'Ошибка'}
+          <AlertTriangle size={10} />{reported ? t('Отправлено') : t('Ошибка')}
         </button>
         <button onClick={share} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: 'var(--color-text-3)', cursor: 'pointer' }}>
-          <Share2 size={10} />{copied ? 'Скопировано' : 'Поделиться'}
+          <Share2 size={10} />{copied ? t('Скопировано') : t('Поделиться')}
         </button>
       </div>
     </div>
@@ -642,6 +648,7 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
   onAnswer: (id: number, value: string, correct: boolean | null) => void
   onCopyId: () => void
 }) {
+  const t = useT()
   const [inputVal, setInputVal] = useState(answered.get(task.id)?.value ?? '')
   const [showSolution, setShowSolution] = useState(false)
   const state = answered.get(task.id)
@@ -682,7 +689,7 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
           value={inputVal}
           onChange={e => setInputVal(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && inputVal.trim() && check()}
-          placeholder="Ответ"
+          placeholder={t('Ответ')}
           style={{
             flex: 1, minWidth: 0, padding: '7px 10px', borderRadius: 10, fontSize: 12, outline: 'none',
             border: `1px solid ${state ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'var(--color-border-medium)'}`,
@@ -711,7 +718,7 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
         {showSolution && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }} style={{ overflow: 'hidden' }}>
             <div style={{ padding: '10px 12px', background: palette.soft, borderRadius: 12, fontSize: 12, color: 'var(--color-text-2)', lineHeight: 1.5 }}>
-              <strong style={{ color: palette.text }}>Ответ: </strong>{task.answer}
+              <strong style={{ color: palette.text }}>{t('Ответ: ')}</strong>{task.answer}
             </div>
           </motion.div>
         )}
@@ -722,9 +729,10 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
 
 // ── Sort dropdown ─────────────────────────────────────────────────────────────
 function SortDropdown({ value, onChange }: { value: SortMode; onChange: (v: SortMode) => void }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
-  const label = SORT_OPTIONS.find(([v]) => v === value)?.[1] ?? 'Новые'
+  const label = t(SORT_OPTIONS.find(([v]) => v === value)?.[1] ?? 'Новые')
   // While the menu is open: swallow wheel events over the dropdown so the page
   // behind it doesn't scroll (native listener — React's wheel handler is passive
   // and can't preventDefault); but if the wheel happens anywhere else on the
@@ -761,7 +769,7 @@ function SortDropdown({ value, onChange }: { value: SortMode; onChange: (v: Sort
         <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
         <span style={{ display: 'grid', justifyItems: 'start' }}>
           {SORT_OPTIONS.map(([, lbl]) => (
-            <span key={lbl} aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden' }}>{lbl}</span>
+            <span key={lbl} aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden' }}>{t(lbl)}</span>
           ))}
           <span style={{ gridArea: '1 / 1' }}>{label}</span>
         </span>
@@ -794,7 +802,7 @@ function SortDropdown({ value, onChange }: { value: SortMode; onChange: (v: Sort
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-bg-5)' }}
               onMouseLeave={e => { e.currentTarget.style.background = value === val ? 'var(--color-bg-5)' : 'transparent' }}
             >
-              {label}
+              {t(label)}
               {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
             </button>
           ))}
@@ -813,6 +821,7 @@ const STATUS_OPTIONS: [StatusFilter, string][] = [
 ]
 
 function StatusTabs({ value, onChange, mobile, accent }: { value: StatusFilter; onChange: (v: StatusFilter) => void; mobile?: boolean; accent?: string }) {
+  const t = useT()
   const pill = useFloatingPill(value)
   // Mobile: match the surrounding filter fields (like «Часть 1/2») — three
   // equal grey segments that tint to the subject accent when selected, instead
@@ -837,7 +846,7 @@ function StatusTabs({ value, onChange, mobile, accent }: { value: StatusFilter; 
                 transition: 'background 0.15s, color 0.15s',
               }}
             >
-              {label}
+              {t(label)}
             </button>
           )
         })}
@@ -894,8 +903,8 @@ function StatusTabs({ value, onChange, mobile, accent }: { value: StatusFilter; 
           }}
         >
           <span style={{ display: 'grid', justifyItems: 'center' }}>
-            <span aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden', fontWeight: 700 }}>{label}</span>
-            <span style={{ gridArea: '1 / 1' }}>{label}</span>
+            <span aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden', fontWeight: 700 }}>{t(label)}</span>
+            <span style={{ gridArea: '1 / 1' }}>{t(label)}</span>
           </span>
         </button>
       ))}
@@ -910,6 +919,7 @@ function SuggestBox({ section, lineNames, onPickLine, accent }: {
   onPickLine: (line: string) => void
   accent: string
 }) {
+  const t = useT()
   const map = BIOLOGY_SECTION_LINE_MAP[section]
   if (!map || (map.lines.length === 0 && map.part2Lines.length === 0)) return null
   return (
@@ -926,7 +936,7 @@ function SuggestBox({ section, lineNames, onPickLine, accent }: {
       }}>
         <div style={{ fontSize: 11, fontWeight: 600, color: accent, marginBottom: 7, display: 'flex', alignItems: 'center', gap: 5, lineHeight: 1.2 }}>
           <Sparkles size={15} />
-          Рекомендуемые линии для «{section}»
+          {t('Рекомендуемые линии для')} «{section}»
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
           {map.lines.map(n => (
@@ -953,7 +963,7 @@ function SuggestBox({ section, lineNames, onPickLine, accent }: {
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `${accent}48` }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = `${accent}33` }}
             >
-              №{n} · Ч2
+              №{n} · {t('Ч2')}
             </button>
           ))}
         </div>
@@ -1019,6 +1029,7 @@ function StatsBar({ doneCount, wrongCount, totalCount, favCount, todayCorrect, t
   onOpenModal: () => void; onRetryWrong: () => void
   onToggleFav: () => void; showFavOnly: boolean
 }) {
+  const t = useT()
   const [active, setActive] = useState<'correct' | 'today' | 'wrong' | 'fav' | null>(null)
   const toggle = (key: typeof active) => setActive(a => a === key ? null : key)
   const pct = totalCount ? Math.round((doneCount / totalCount) * 100) : 0
@@ -1028,8 +1039,8 @@ function StatsBar({ doneCount, wrongCount, totalCount, favCount, todayCorrect, t
       <div style={{ display: 'flex', gap: 8 }}>
         <StatChip
           value={doneCount}
-          label="Решено верно"
-          detail={`из ${totalCount} заданий`}
+          label={t('Решено верно')}
+          detail={`${t('из')} ${totalCount} ${t('заданий')}`}
           bg="var(--color-green-soft)"
           border="rgba(110,231,160,0.28)"
           color="var(--color-green-text)"
@@ -1038,8 +1049,8 @@ function StatsBar({ doneCount, wrongCount, totalCount, favCount, todayCorrect, t
         />
         <StatChip
           value={todayCorrect}
-          label="Верно сегодня"
-          detail={todayWrong > 0 ? `${todayWrong} ошибок` : 'отличный день!'}
+          label={t('Верно сегодня')}
+          detail={todayWrong > 0 ? `${todayWrong} ${t('ошибок')}` : t('отличный день!')}
           bg="rgba(139,92,246,0.10)"
           border="rgba(139,92,246,0.22)"
           color="#7c3aed"
@@ -1048,8 +1059,8 @@ function StatsBar({ doneCount, wrongCount, totalCount, favCount, todayCorrect, t
         />
         <StatChip
           value={wrongCount}
-          label="Ошибок"
-          detail="нажми — повторить"
+          label={t('Ошибок')}
+          detail={t('нажми — повторить')}
           bg="var(--color-red-soft)"
           border="rgba(244,139,145,0.28)"
           color="var(--color-red-text)"
@@ -1058,8 +1069,8 @@ function StatsBar({ doneCount, wrongCount, totalCount, favCount, todayCorrect, t
         />
         <StatChip
           value={favCount}
-          label="В избранном"
-          detail={showFavOnly ? 'скрыть остальные' : 'показать только'}
+          label={t('В избранном')}
+          detail={showFavOnly ? t('скрыть остальные') : t('показать только')}
           bg="var(--color-yellow-soft, rgba(248,239,140,0.22))"
           border="rgba(248,200,50,0.3)"
           color="#7A6B00"
@@ -1087,7 +1098,7 @@ function StatsBar({ doneCount, wrongCount, totalCount, favCount, todayCorrect, t
               {active === 'correct' && (<>
                 <div style={{ flex: 1, minWidth: 180 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                    <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Правильность</span>
+                    <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Правильность')}</span>
                     <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-green-text)' }}>{pct}%</span>
                   </div>
                   <div style={{ height: 6, borderRadius: 999, background: 'var(--color-bg-5)', overflow: 'hidden', display: 'flex' }}>
@@ -1099,37 +1110,37 @@ function StatsBar({ doneCount, wrongCount, totalCount, favCount, todayCorrect, t
                 </div>
                 <button onClick={onOpenModal}
                   style={{ padding: '7px 14px', borderRadius: 10, border: 'none', background: `${palette.accent}20`, color: palette.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-                  Детали →
+                  {t('Детали →')}
                 </button>
               </>)}
 
               {active === 'today' && (<>
-                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Сегодня:</span>
-                {todayCorrect > 0 && <span style={{ padding: '4px 12px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700 }}>✓ {todayCorrect} верно</span>}
-                {todayWrong   > 0 && <span style={{ padding: '4px 12px', borderRadius: 999, background: 'var(--color-red-soft)',   color: 'var(--color-red-text)',   fontSize: 13, fontWeight: 700 }}>✗ {todayWrong} ошибок</span>}
-                {todayCorrect === 0 && todayWrong === 0 && <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>Ещё не решал сегодня</span>}
+                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Сегодня:')}</span>
+                {todayCorrect > 0 && <span style={{ padding: '4px 12px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700 }}>✓ {todayCorrect} {t('верно')}</span>}
+                {todayWrong   > 0 && <span style={{ padding: '4px 12px', borderRadius: 999, background: 'var(--color-red-soft)',   color: 'var(--color-red-text)',   fontSize: 13, fontWeight: 700 }}>✗ {todayWrong} {t('ошибок')}</span>}
+                {todayCorrect === 0 && todayWrong === 0 && <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('Ещё не решал сегодня')}</span>}
               </>)}
 
               {active === 'wrong' && (<>
-                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{wrongCount} заданий с ошибкой</span>
+                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{wrongCount} {t('заданий с ошибкой')}</span>
                 {wrongCount > 0 && (
                   <button onClick={() => { onRetryWrong(); setActive(null) }}
                     style={{ padding: '7px 14px', borderRadius: 10, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <XCircle size={13} />Повторить ошибки
+                    <XCircle size={13} />{t('Повторить ошибки')}
                   </button>
                 )}
                 <button onClick={onOpenModal}
                   style={{ padding: '7px 14px', borderRadius: 10, border: '1px solid var(--color-border-medium)', background: 'transparent', color: 'var(--color-text-2)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                  Полная статистика
+                  {t('Полная статистика')}
                 </button>
               </>)}
 
               {active === 'fav' && (<>
-                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{favCount} в избранном</span>
+                <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{favCount} {t('в избранном')}</span>
                 <button onClick={() => { onToggleFav(); setActive(null) }}
                   style={{ padding: '7px 14px', borderRadius: 10, border: `1px solid ${showFavOnly ? 'rgba(248,200,50,0.4)' : 'var(--color-border-medium)'}`, background: showFavOnly ? 'rgba(248,239,140,0.22)' : 'transparent', color: showFavOnly ? '#7A6B00' : 'var(--color-text-2)', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
                   <Star size={13} fill={showFavOnly ? 'currentColor' : 'none'} />
-                  {showFavOnly ? 'Показать все' : 'Только избранное'}
+                  {showFavOnly ? t('Показать все') : t('Только избранное')}
                 </button>
               </>)}
             </div>
@@ -1158,6 +1169,7 @@ function ProgressModal({
   onRetryMistakes: () => void
   onSimilarTasks: (lines: number[]) => void
 }) {
+  const t = useT()
   const today = new Date().toISOString().slice(0, 10)
   const totalCorrect = useMemo(() => [...answered.values()].filter(a => a.correct === true).length, [answered])
   const totalWrong   = useMemo(() => [...answered.values()].filter(a => a.correct === false).length, [answered])
@@ -1166,10 +1178,10 @@ function ProgressModal({
 
   const sectionStats = useMemo(() => {
     const s: Record<string, { correct: number; wrong: number }> = {}
-    tasks.forEach(t => {
-      const ans = answered.get(t.id)
+    tasks.forEach(task => {
+      const ans = answered.get(task.id)
       if (!ans || ans.correct === null) return
-      const sec = t.section || 'Без раздела'
+      const sec = task.section || t('Без раздела')
       if (!s[sec]) s[sec] = { correct: 0, wrong: 0 }
       ans.correct ? s[sec].correct++ : s[sec].wrong++
     })
@@ -1204,16 +1216,16 @@ function ProgressModal({
         {/* Header */}
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <div style={{ fontSize: 17, fontWeight: 750, color: 'var(--color-text)' }}>Мой прогресс</div>
+            <div style={{ fontSize: 17, fontWeight: 750, color: 'var(--color-text)' }}>{t('Мой прогресс')}</div>
             <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
               <X size={14} />
             </button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
             {[
-              { val: totalCorrect, label: 'Верно', bg: 'var(--color-green-soft)', border: 'rgba(110,231,160,0.3)', color: 'var(--color-green-text)' },
-              { val: totalWrong,   label: 'Ошибок', bg: 'var(--color-red-soft)',   border: 'rgba(244,139,145,0.3)', color: 'var(--color-red-text)' },
-              { val: favorites.size, label: 'Избранное', bg: `${palette.accent}18`, border: `${palette.accent}33`, color: palette.text },
+              { val: totalCorrect, label: t('Верно'), bg: 'var(--color-green-soft)', border: 'rgba(110,231,160,0.3)', color: 'var(--color-green-text)' },
+              { val: totalWrong,   label: t('Ошибок'), bg: 'var(--color-red-soft)',   border: 'rgba(244,139,145,0.3)', color: 'var(--color-red-text)' },
+              { val: favorites.size, label: t('Избранное'), bg: `${palette.accent}18`, border: `${palette.accent}33`, color: palette.text },
             ].map(({ val, label, bg, border, color }) => (
               <div key={label} style={{ padding: '10px 12px', borderRadius: 14, background: bg, border: `1px solid ${border}`, textAlign: 'center' }}>
                 <div style={{ fontSize: 22, fontWeight: 750, color, lineHeight: 1 }}>{val}</div>
@@ -1228,17 +1240,17 @@ function ProgressModal({
 
           {(todayCorrect > 0 || todayWrong > 0) && (
             <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8 }}>Сегодня</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8 }}>{t('Сегодня')}</div>
               <div style={{ display: 'flex', gap: 8 }}>
-                {todayCorrect > 0 && <span style={{ padding: '5px 12px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700 }}>✓ {todayCorrect} верно</span>}
-                {todayWrong   > 0 && <span style={{ padding: '5px 12px', borderRadius: 999, background: 'var(--color-red-soft)',   color: 'var(--color-red-text)',   fontSize: 13, fontWeight: 700 }}>✗ {todayWrong} ошибок</span>}
+                {todayCorrect > 0 && <span style={{ padding: '5px 12px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700 }}>✓ {todayCorrect} {t('верно')}</span>}
+                {todayWrong   > 0 && <span style={{ padding: '5px 12px', borderRadius: 999, background: 'var(--color-red-soft)',   color: 'var(--color-red-text)',   fontSize: 13, fontWeight: 700 }}>✗ {todayWrong} {t('ошибок')}</span>}
               </div>
             </div>
           )}
 
           {sectionStats.length > 0 && (
             <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10 }}>По разделам</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10 }}>{t('По разделам')}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                 {sectionStats.map(([sec, s]) => {
                   const total = s.correct + s.wrong
@@ -1265,20 +1277,20 @@ function ProgressModal({
           {wrongTasks.length > 0 && (
             <div style={{ paddingBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, textTransform: 'uppercase' }}>Ошибки ({wrongTasks.length})</div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, textTransform: 'uppercase' }}>{t('Ошибки')} ({wrongTasks.length})</div>
                 <button onClick={onRetryMistakes} style={{ padding: '4px 12px', borderRadius: 999, border: 'none', background: `${palette.accent}22`, color: palette.text, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
-                  Повторить все →
+                  {t('Повторить все →')}
                 </button>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                {wrongTasks.slice(0, 12).map(t => (
-                  <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 11, background: 'var(--color-red-soft)', border: '1px solid rgba(244,139,145,0.25)' }}>
-                    <span style={{ padding: '2px 7px', borderRadius: 7, fontSize: 10, fontWeight: 700, background: 'rgba(244,139,145,0.35)', color: 'var(--color-red-text)', flexShrink: 0 }}>#{t.id}</span>
-                    <span style={{ flex: 1, fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} dangerouslySetInnerHTML={{ __html: t.question.replace(/<[^>]*>/g, '').slice(0, 55) }} />
-                    <span style={{ fontSize: 10, color: 'var(--color-text-3)', flexShrink: 0 }}>Л.{t.line}</span>
+                {wrongTasks.slice(0, 12).map(wt => (
+                  <div key={wt.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 11, background: 'var(--color-red-soft)', border: '1px solid rgba(244,139,145,0.25)' }}>
+                    <span style={{ padding: '2px 7px', borderRadius: 7, fontSize: 10, fontWeight: 700, background: 'rgba(244,139,145,0.35)', color: 'var(--color-red-text)', flexShrink: 0 }}>#{wt.id}</span>
+                    <span style={{ flex: 1, fontSize: 12, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} dangerouslySetInnerHTML={{ __html: wt.question.replace(/<[^>]*>/g, '').slice(0, 55) }} />
+                    <span style={{ fontSize: 10, color: 'var(--color-text-3)', flexShrink: 0 }}>{t('Л.')}{wt.line}</span>
                   </div>
                 ))}
-                {wrongTasks.length > 12 && <div style={{ fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>и ещё {wrongTasks.length - 12}…</div>}
+                {wrongTasks.length > 12 && <div style={{ fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>{t('и ещё')} {wrongTasks.length - 12}…</div>}
               </div>
             </div>
           )}
@@ -1286,8 +1298,8 @@ function ProgressModal({
           {answered.size === 0 && (
             <div style={{ textAlign: 'center', padding: '40px 0' }}>
               <div style={{ fontSize: 32, marginBottom: 10 }}>🎯</div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-2)' }}>Ещё нет решённых заданий</div>
-              <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 5 }}>Начни отвечать — здесь появится статистика</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-2)' }}>{t('Ещё нет решённых заданий')}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 5 }}>{t('Начни отвечать — здесь появится статистика')}</div>
             </div>
           )}
         </div>
@@ -1297,12 +1309,12 @@ function ProgressModal({
           <div style={{ padding: '14px 24px 20px', flexShrink: 0, display: 'flex', gap: 8 }}>
             <button onClick={onRetryMistakes}
               style={{ flex: 1, padding: '11px 0', borderRadius: 14, border: 'none', background: palette.accent, color: palette.onAccent, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: `0 6px 18px ${palette.ring}` }}>
-              <XCircle size={14} />Повторить ошибки
+              <XCircle size={14} />{t('Повторить ошибки')}
             </button>
             {wrongLines.length > 0 && (
               <button onClick={() => onSimilarTasks(wrongLines)}
                 style={{ flex: 1, padding: '11px 0', borderRadius: 14, border: `1px solid ${palette.accent}44`, background: `${palette.accent}14`, fontSize: 13, fontWeight: 600, cursor: 'pointer', color: palette.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                <Target size={14} />Похожие задания
+                <Target size={14} />{t('Похожие задания')}
               </button>
             )}
           </div>
@@ -1323,19 +1335,20 @@ function MobileProgressSheet({ open, onClose, tasks, answered, favorites, palett
   onRetryMistakes: () => void
   onSimilarTasks: (lines: number[]) => void
 }) {
+  const t = useT()
   const today = new Date().toISOString().slice(0, 10)
   const totalCorrect = useMemo(() => [...answered.values()].filter(a => a.correct === true).length, [answered])
   const totalWrong   = useMemo(() => [...answered.values()].filter(a => a.correct === false).length, [answered])
   const todayCorrect = useMemo(() => [...answered.values()].filter(a => a.correct === true  && a.date === today).length, [answered, today])
-  const wrongTasks   = useMemo(() => tasks.filter(t => answered.get(t.id)?.correct === false), [tasks, answered])
-  const wrongLines   = useMemo(() => [...new Set(wrongTasks.map(t => t.line))], [wrongTasks])
+  const wrongTasks   = useMemo(() => tasks.filter(wt => answered.get(wt.id)?.correct === false), [tasks, answered])
+  const wrongLines   = useMemo(() => [...new Set(wrongTasks.map(wt => wt.line))], [wrongTasks])
 
   const sectionStats = useMemo(() => {
     const s: Record<string, { correct: number; wrong: number }> = {}
-    tasks.forEach(t => {
-      const ans = answered.get(t.id)
+    tasks.forEach(wt => {
+      const ans = answered.get(wt.id)
       if (!ans || ans.correct === null) return
-      const sec = t.section || 'Без раздела'
+      const sec = wt.section || t('Без раздела')
       if (!s[sec]) s[sec] = { correct: 0, wrong: 0 }
       ans.correct ? s[sec].correct++ : s[sec].wrong++
     })
@@ -1343,14 +1356,14 @@ function MobileProgressSheet({ open, onClose, tasks, answered, favorites, palett
   }, [tasks, answered])
 
   return (
-    <MobileSheet open={open} onClose={onClose} title="Мой прогресс">
+    <MobileSheet open={open} onClose={onClose} title={t('Мой прогресс')}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Stats row */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
           {[
-            { val: totalCorrect, label: 'Верно', bg: 'var(--color-green-soft)', color: 'var(--color-green-text)' },
-            { val: totalWrong,   label: 'Ошибок', bg: 'var(--color-red-soft)',   color: 'var(--color-red-text)' },
-            { val: favorites.size, label: 'Избранное', bg: `${palette.accent}18`, color: palette.text },
+            { val: totalCorrect, label: t('Верно'), bg: 'var(--color-green-soft)', color: 'var(--color-green-text)' },
+            { val: totalWrong,   label: t('Ошибок'), bg: 'var(--color-red-soft)',   color: 'var(--color-red-text)' },
+            { val: favorites.size, label: t('Избранное'), bg: `${palette.accent}18`, color: palette.text },
           ].map(({ val, label, bg, color }) => (
             <div key={label} style={{ padding: '10px 8px', borderRadius: 14, background: bg, textAlign: 'center' }}>
               <div style={{ fontSize: 22, fontWeight: 750, color, lineHeight: 1 }}>{val}</div>
@@ -1362,14 +1375,14 @@ function MobileProgressSheet({ open, onClose, tasks, answered, favorites, palett
         {/* Today */}
         {todayCorrect > 0 && (
           <div style={{ padding: '10px 12px', borderRadius: 12, background: 'var(--color-green-soft)' }}>
-            <span style={{ fontSize: 12, color: 'var(--color-green-text)', fontWeight: 700 }}>Сегодня верно: {todayCorrect}</span>
+            <span style={{ fontSize: 12, color: 'var(--color-green-text)', fontWeight: 700 }}>{t('Сегодня верно:')} {todayCorrect}</span>
           </div>
         )}
 
         {/* By section */}
         {sectionStats.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>По разделам</div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{t('По разделам')}</div>
             {sectionStats.map(([sec, s]) => {
               const total = s.correct + s.wrong
               const pct = total ? s.correct / total : 0
@@ -1394,12 +1407,12 @@ function MobileProgressSheet({ open, onClose, tasks, answered, favorites, palett
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 4 }}>
             <button onClick={onRetryMistakes}
               style={{ width: '100%', padding: '13px', borderRadius: 14, border: 'none', background: palette.accent, color: palette.onAccent, fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: `0 4px 14px ${palette.ring}` }}>
-              <XCircle size={15} />Повторить ошибки ({wrongTasks.length})
+              <XCircle size={15} />{t('Повторить ошибки')} ({wrongTasks.length})
             </button>
             {wrongLines.length > 0 && (
               <button onClick={() => onSimilarTasks(wrongLines)}
                 style={{ width: '100%', padding: '13px', borderRadius: 14, border: `1px solid ${palette.accent}44`, background: `${palette.accent}14`, fontSize: 14, fontWeight: 600, cursor: 'pointer', color: palette.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                <Target size={15} />Похожие задания
+                <Target size={15} />{t('Похожие задания')}
               </button>
             )}
           </div>
@@ -1407,8 +1420,8 @@ function MobileProgressSheet({ open, onClose, tasks, answered, favorites, palett
 
         {answered.size === 0 && (
           <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--color-text-3)' }}>
-            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Ещё нет решённых заданий</div>
-            <div style={{ fontSize: 12 }}>Начни отвечать — здесь появится статистика</div>
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{t('Ещё нет решённых заданий')}</div>
+            <div style={{ fontSize: 12 }}>{t('Начни отвечать — здесь появится статистика')}</div>
           </div>
         )}
       </div>
@@ -1418,6 +1431,7 @@ function MobileProgressSheet({ open, onClose, tasks, answered, favorites, palett
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function TaskBankPage() {
+  const t = useT()
   const { dark } = useTheme()
   const isDesktop = useIsDesktop()
   // Same scroll-driven collapse the bottom nav uses, so the control dock drops
@@ -1434,7 +1448,14 @@ export default function TaskBankPage() {
   const tasks         = useTaskBank(s => s.tasks)
   const loadTasks     = useTaskBank(s => s.load)
   useEffect(() => { loadTasks(true) }, [])
-  useEffect(() => { trackEvent('trainer_open') }, [])
+  // Dual-layout (desktop+mobile оба в DOM) монтирует страницу дважды → дедуп по
+  // короткому окну, чтобы одно открытие тренажёра давало одно событие.
+  useEffect(() => {
+    if (Date.now() - lastTrainerOpen > 2000) {
+      lastTrainerOpen = Date.now()
+      trackEvent('trainer_open')
+    }
+  }, [])
 
   const defaultSubject: Subject = (() => {
     const saved = localStorage.getItem('taskbank_subject')
@@ -1704,7 +1725,7 @@ export default function TaskBankPage() {
             <div className="flex items-center justify-between" style={{ gap: 8 }}>
               <GlassPill onClick={() => { setSubjectPersist(subject === 'biology' ? 'chemistry' : 'biology'); resetOnSubject() }}>
                 <FlaskConical size={15} style={{ color: 'var(--color-accent)' }} />
-                {subject === 'biology' ? 'Биология' : 'Химия'}
+                {subject === 'biology' ? t('Биология') : t('Химия')}
               </GlassPill>
               <div className="flex items-center" style={{ gap: 8 }}>
                 <GlassPill>
@@ -1718,10 +1739,10 @@ export default function TaskBankPage() {
         >
           {filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '56px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-              <span>Заданий не найдено — измените фильтры</span>
+              <span>{t('Заданий не найдено — измените фильтры')}</span>
               <button onClick={() => { tactile(); clearFilters() }}
                 style={{ padding: '8px 18px', borderRadius: 999, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                Сбросить фильтры
+                {t('Сбросить фильтры')}
               </button>
             </div>
           ) : (
@@ -1759,9 +1780,9 @@ export default function TaskBankPage() {
             {/* Filter / sort / fav — on expand they scale down, blur and drift
                 right while fading, staggered left→right. */}
             {[
-              { k: 'filter', icon: <Filter size={20} />, onClick: () => setSheet('filters'), opts: { label: 'Фильтры', badge: activeFilters } },
-              { k: 'sort', icon: <ArrowUpDown size={20} />, onClick: () => setSheet('sort'), opts: { label: 'Сортировка' } },
-              { k: 'fav', icon: <Star size={20} fill={showFavOnly ? 'currentColor' : 'none'} />, onClick: () => setShowFavOnly(f => !f), opts: { label: 'Избранное', active: showFavOnly } },
+              { k: 'filter', icon: <Filter size={20} />, onClick: () => setSheet('filters'), opts: { label: t('Фильтры'), badge: activeFilters } },
+              { k: 'sort', icon: <ArrowUpDown size={20} />, onClick: () => setSheet('sort'), opts: { label: t('Сортировка') } },
+              { k: 'fav', icon: <Star size={20} fill={showFavOnly ? 'currentColor' : 'none'} />, onClick: () => setShowFavOnly(f => !f), opts: { label: t('Избранное'), active: showFavOnly } },
             ].map((c, idx) => (
               <motion.div
                 key={c.k}
@@ -1815,7 +1836,7 @@ export default function TaskBankPage() {
               animate={{ width: searchExpanded ? dockW : (navCollapsed ? 42 : 50), paddingLeft: navCollapsed ? 11 : 15 }}
               transition={FIELD_MORPH}
               onClick={() => { if (!searchExpanded) { setDockW(dockRef.current?.offsetWidth ?? 0); setSearchExpanded(true) } }}
-              aria-label="Поиск"
+              aria-label={t('Поиск')}
               style={{
                 position: 'absolute', left: 0, top: 0, bottom: 0,
                 // Collapsed: centre the icon in the circle (no side padding, so it
@@ -1843,13 +1864,13 @@ export default function TaskBankPage() {
                   icon ≈ centred); input/✕ stay clipped until expanded. fontSize
                   16 prevents iOS auto-zoom on focus. */}
               <Search size={20} style={{ flexShrink: 0 }} />
-              <input ref={mSearchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по тексту"
+              <input ref={mSearchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder={t('Поиск по тексту')}
                 style={{ flex: searchExpanded ? 1 : 0, width: searchExpanded ? undefined : 0, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: 'var(--color-text)', opacity: searchExpanded ? 1 : 0, pointerEvents: searchExpanded ? 'auto' : 'none',
                   // Soft fade on the right edge so long text/placeholder melts out
                   // before the ✕ instead of hard-clipping against the pill edge.
                   maskImage: 'linear-gradient(to right, #000 calc(100% - 18px), transparent)', WebkitMaskImage: 'linear-gradient(to right, #000 calc(100% - 18px), transparent)' }} />
               {searchExpanded && (
-                <button onClick={e => { e.stopPropagation(); setSearch(''); setSearchExpanded(false) }} aria-label="Закрыть поиск"
+                <button onClick={e => { e.stopPropagation(); setSearch(''); setSearchExpanded(false) }} aria-label={t('Закрыть поиск')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', flexShrink: 0, padding: 0 }}>
                   <X size={18} />
                 </button>
@@ -1859,10 +1880,10 @@ export default function TaskBankPage() {
         </div>
 
         {/* Filters sheet */}
-        <MobileSheet open={sheet === 'filters'} onClose={() => setSheet(null)} title="Фильтры">
+        <MobileSheet open={sheet === 'filters'} onClose={() => setSheet(null)} title={t('Фильтры')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <MultiSelectField label="Раздел" options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} />
-            <MultiSelectField label="Тема" options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} />
+            <MultiSelectField label={t('Раздел')} options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} />
+            <MultiSelectField label={t('Тема')} options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} />
             <div style={{ display: 'flex', gap: 8 }}>
               {['1', '2'].map(p => {
                 const active = parts.includes(p)
@@ -1875,12 +1896,12 @@ export default function TaskBankPage() {
                   color: active ? palette.accent : 'var(--color-muted)',
                   opacity: avail ? 1 : 0.4,
                 }}>
-                  Часть {p}
+                  {t('Часть')} {p}
                 </button>
               )})}
             </div>
-            <MultiSelectField label="Линия" options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} />
-            <FilterField label="Источник" options={allSources} value={source} onChange={setSource} accent={palette.accent} />
+            <MultiSelectField label={t('Линия')} options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} />
+            <FilterField label={t('Источник')} options={allSources} value={source} onChange={setSource} accent={palette.accent} />
             <StatusTabs value={statusFilter} onChange={setStatusFilter} mobile accent={palette.accent} />
             {/* Always reserve the button's slot so toggling filters doesn't
                 change the sheet height (grabber would otherwise jump). */}
@@ -1888,18 +1909,18 @@ export default function TaskBankPage() {
               aria-hidden={!hasFilters} tabIndex={hasFilters ? 0 : -1}
               style={{ marginTop: 2, padding: '11px', borderRadius: 12, background: 'rgba(176,48,64,0.10)', border: 'none', fontSize: 13, color: 'var(--color-red-text)', fontWeight: 600,
                 cursor: hasFilters ? 'pointer' : 'default', opacity: hasFilters ? 1 : 0, pointerEvents: hasFilters ? 'auto' : 'none', transition: 'opacity 0.15s ease' }}>
-              Сбросить фильтры
+              {t('Сбросить фильтры')}
             </button>
           </div>
         </MobileSheet>
 
         {/* Sort sheet */}
-        <MobileSheet open={sheet === 'sort'} onClose={() => setSheet(null)} title="Сортировка">
+        <MobileSheet open={sheet === 'sort'} onClose={() => setSheet(null)} title={t('Сортировка')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {SORT_OPTIONS.map(([mode, label]) => (
               <button key={mode} onClick={() => { tactile(); setSortMode(mode); setSheet(null) }}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: sortMode === mode ? 'var(--color-purple-soft)' : 'transparent', color: sortMode === mode ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 15, fontWeight: 600 }}>
-                {label}
+                {t(label)}
                 {sortMode === mode && <CheckCircle2 size={18} />}
               </button>
             ))}
@@ -1960,7 +1981,7 @@ export default function TaskBankPage() {
                 <path d="M2 5l2.5 2.5 3.5-4" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>Сохранено в буфере</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>{t('Сохранено в буфере')}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1997,7 +2018,7 @@ export default function TaskBankPage() {
             whileTap={{ scale: 0.95 }}
           >
             <ArrowUp size={15} strokeWidth={2.5} />
-            Наверх
+            {t('Наверх')}
           </motion.button>
         )}
       </AnimatePresence>
@@ -2015,14 +2036,14 @@ export default function TaskBankPage() {
           className="flex items-center cursor-pointer flex-shrink-0"
           style={{ gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600 }}
         >
-          <ChevronLeft size={18} />Назад
+          <ChevronLeft size={18} />{t('Назад')}
         </motion.button>
 
         <h1
           className="flex-1 min-w-0 text-center"
           style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', margin: 0 }}
         >
-          Банк заданий ЕГЭ‑2026
+          {t('Банк заданий ЕГЭ‑2026')}
         </h1>
 
         <div className="flex-shrink-0" style={{ width: 92 }} />
@@ -2047,14 +2068,14 @@ export default function TaskBankPage() {
               className="flex items-center cursor-pointer flex-shrink-0"
               style={{ gap: 4, padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, pointerEvents: 'auto' }}
             >
-              <ChevronLeft size={18} />Назад
+              <ChevronLeft size={18} />{t('Назад')}
             </motion.button>
 
             <div
               className="min-w-0 flex items-center"
               style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', flexShrink: 1, padding: '9px 16px', borderRadius: 999, ...dockGlass, pointerEvents: 'auto' }}
             >
-              <span className="truncate">Банк заданий · {subject === 'biology' ? 'Биология' : 'Химия'}</span>
+              <span className="truncate">{t('Банк заданий')} · {subject === 'biology' ? t('Биология') : t('Химия')}</span>
             </div>
 
             <div style={{ flexGrow: 1, flexBasis: 0 }} />
@@ -2088,7 +2109,7 @@ export default function TaskBankPage() {
           >
             <div className="flex items-center" style={{ gap: 8, marginBottom: 10 }}>
               <BookOpen size={16} />
-              <span style={{ fontSize: 12, fontWeight: 700 }}>Тренажёр ЕГЭ</span>
+              <span style={{ fontSize: 12, fontWeight: 700 }}>{t('Тренажёр ЕГЭ')}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
               {(['biology', 'chemistry'] as Subject[]).map(s => (
@@ -2101,12 +2122,12 @@ export default function TaskBankPage() {
                     color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                     whiteSpace: 'nowrap', lineHeight: 1, boxSizing: 'border-box',
                   }}>
-                  {s === 'biology' ? 'Биология' : 'Химия'}
+                  {s === 'biology' ? t('Биология') : t('Химия')}
                 </button>
               ))}
             </div>
             <p style={{ fontSize: 13, lineHeight: 1.45, color: 'rgba(255,255,255,0.88)' }}>
-              Отработай все линии заданий<br />и подготовься к экзамену.
+              {t('Отработай все линии заданий')}<br />{t('и подготовься к экзамену.')}
             </p>
           </div>
 
@@ -2114,10 +2135,10 @@ export default function TaskBankPage() {
           <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
             <div className="flex items-center" style={{ gap: 7 }}>
               <Filter size={15} style={{ color: palette.text }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Фильтры</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Фильтры')}</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <MultiSelectField label="Раздел" options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} />
+              <MultiSelectField label={t('Раздел')} options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} />
               <AnimatePresence>
                 {sections.length > 0 && subject === 'biology' && (
                   <SuggestBox
@@ -2128,7 +2149,7 @@ export default function TaskBankPage() {
                   />
                 )}
               </AnimatePresence>
-              <MultiSelectField label="Тема" options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} />
+              <MultiSelectField label={t('Тема')} options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} />
               <div style={{ display: 'flex', gap: 6 }}>
                 {['1', '2'].map(p => {
                   const active = parts.includes(p)
@@ -2142,17 +2163,17 @@ export default function TaskBankPage() {
                     opacity: avail ? 1 : 0.4,
                     transition: 'all 0.15s ease',
                   }}>
-                    Часть {p}
+                    {t('Часть')} {p}
                   </button>
                 )})}
               </div>
-              <MultiSelectField label="Линия" options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} />
-              <FilterField label="Источник" options={allSources}  value={source}  onChange={setSource} accent={palette.accent} />
+              <MultiSelectField label={t('Линия')} options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} />
+              <FilterField label={t('Источник')} options={allSources}  value={source}  onChange={setSource} accent={palette.accent} />
             </div>
             {hasFilters && (
               <button onClick={clearFilters}
                 style={{ padding: '8px 0', borderRadius: 12, background: 'rgba(176,48,64,0.10)', border: '1px solid rgba(176,48,64,0.18)', fontSize: 12, color: 'rgba(176,48,64,0.75)', cursor: 'pointer', fontWeight: 600 }}>
-                Сбросить фильтры
+                {t('Сбросить фильтры')}
               </button>
             )}
           </div>
@@ -2175,7 +2196,7 @@ export default function TaskBankPage() {
                 onChange={e => setSearch(e.target.value)}
                 onFocus={() => setSearchOpen(true)}
                 onBlur={() => { if (!search) setSearchOpen(false); }}
-                placeholder={searchOpen || search ? 'Поиск по тексту или №...' : 'Поиск'}
+                placeholder={searchOpen || search ? t('Поиск по тексту или №...') : t('Поиск')}
                 style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, background: 'transparent', color: 'var(--color-text)', minWidth: 0, width: searchOpen || search ? 'auto' : 0, pointerEvents: searchOpen || search ? 'auto' : 'none' }}
               />
               {search && <button onClick={e => { e.stopPropagation(); setSearch(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1, flexShrink: 0 }}>×</button>}
@@ -2188,12 +2209,12 @@ export default function TaskBankPage() {
             <button onClick={() => setShowFavOnly(f => !f)}
               style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 14px', borderRadius: 999, background: showFavOnly ? (dark ? 'rgba(248,239,140,0.18)' : 'rgba(248,239,140,0.28)') : 'rgba(var(--glass-rgb), 0.88)', border: `1px solid ${showFavOnly ? (dark ? 'rgba(248,239,140,0.45)' : 'rgba(248,239,140,0.55)') : 'var(--color-border-medium)'}`, fontSize: 12, cursor: 'pointer', color: showFavOnly ? (dark ? '#F4E97A' : '#8A7800') : 'var(--color-text-3)', fontWeight: showFavOnly ? 700 : 400 }}>
               <Star size={13} fill={showFavOnly ? 'currentColor' : 'none'} />
-              {showFavOnly ? `Избранное (${favorites.size})` : 'Избранное'}
+              {showFavOnly ? `${t('Избранное')} (${favorites.size})` : t('Избранное')}
             </button>
 
 
             <span style={{ marginLeft: 'auto', fontSize: 12, color: dark ? 'var(--color-text-3)' : 'var(--color-text-2)' }}>
-              Всего: {filtered.length}
+              {t('Всего:')} {filtered.length}
             </span>
 
           </div>
@@ -2201,10 +2222,10 @@ export default function TaskBankPage() {
           {/* Tasks */}
           {filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-              <span>Заданий не найдено — измените фильтры</span>
+              <span>{t('Заданий не найдено — измените фильтры')}</span>
               <button onClick={clearFilters}
                 style={{ padding: '8px 18px', borderRadius: 999, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                Сбросить фильтры
+                {t('Сбросить фильтры')}
               </button>
             </div>
           ) : (

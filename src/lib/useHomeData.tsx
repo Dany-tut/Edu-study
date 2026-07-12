@@ -4,6 +4,7 @@ import { useTeacher } from '../store/teacherStore'
 import { useGroups, useAllStudents, useJournalPending } from './useGroups'
 import { useHomework, useHardSubmissions } from './useHomework'
 import { supabase } from './supabase'
+import { t, useT } from './i18n'
 
 function diffDays(isoA: string, isoB: string) {
   return Math.round((new Date(isoA).getTime() - new Date(isoB).getTime()) / 86400000)
@@ -13,13 +14,13 @@ function diffDays(isoA: string, isoB: string) {
 function agoLabel(iso?: string): string {
   if (!iso) return ''
   const diff = Date.now() - new Date(iso).getTime()
-  if (!Number.isFinite(diff) || diff < 0) return 'сдано только что'
+  if (!Number.isFinite(diff) || diff < 0) return t('сдано только что')
   const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `сдано ${mins} мин назад`
+  if (mins < 60) return `${t('сдано')} ${mins} ${t('мин назад')}`
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `сдано ${hrs} ч назад`
+  if (hrs < 24) return `${t('сдано')} ${hrs} ${t('ч назад')}`
   const days = Math.floor(hrs / 24)
-  return `сдано ${days} дн назад`
+  return `${t('сдано')} ${days} ${t('дн назад')}`
 }
 
 export function useOverlayThumb() {
@@ -58,6 +59,7 @@ export function useOverlayThumb() {
 }
 
 export function useHomeData() {
+  const t = useT()
   const openHardReview = useTeacher(s => s.openHardReview)
   const openHomeworkReview = useTeacher(s => s.openHomeworkReview)
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
@@ -120,29 +122,29 @@ export function useHomeData() {
     ...pendingHomework.filter(hw => hw.submittedCount > 0).map(hw => ({
       id: `hw-${hw.id}`,
       type: 'check-hw' as Reminder['type'],
-      text: `Проверить ДЗ — ${hw.groupName}`,
-      detail: `${hw.submittedCount} из ${hw.totalCount} сдали`
+      text: `${t('Проверить ДЗ')} — ${hw.groupName}`,
+      detail: `${hw.submittedCount} ${t('из')} ${hw.totalCount} ${t('сдали')}`
         + (hw.lastSubmittedAt ? ` · ${agoLabel(hw.lastSubmittedAt)}` : ''),
       urgency: 'high' as Reminder['urgency'],
     })),
     ...pendingHard.map(s => ({
       id: `hard-${s.id}`,
       type: 'check-hw' as Reminder['type'],
-      text: `Сложное ДЗ — ${s.studentName.split(' ')[0]}`,
+      text: `${t('Сложное ДЗ')} — ${s.studentName.split(' ')[0]}`,
       detail: s.updatedAt ? `${s.lessonTitle} · ${agoLabel(s.updatedAt)}` : s.lessonTitle,
       urgency: 'high' as Reminder['urgency'],
     })),
     ...allStudents.filter(s => s.paymentDue && diffDays(s.paymentDue, TODAY) <= 7).map(s => ({
       id: `pay-${s.id}`,
       type: 'payment-debt' as Reminder['type'],
-      text: `Оплата — ${s.name.split(' ')[0]}`,
+      text: `${t('Оплата')} — ${s.name.split(' ')[0]}`,
       detail: s.paymentAmount ? `${s.paymentAmount.toLocaleString('ru-RU')} ₽` : '',
       urgency: (diffDays(s.paymentDue!, TODAY) < 0 ? 'high' : 'medium') as Reminder['urgency'],
     })),
     ...pendingJournals.map(p => ({
       id: `journal-${p.scheduleId}`,
       type: 'fill-journal' as Reminder['type'],
-      text: `Журнал — ${p.scopeName}`,
+      text: `${t('Журнал')} — ${p.scopeName}`,
       detail: `${p.date.slice(5).replace('-', '.')} · ${p.title}`,
       urgency: 'medium' as Reminder['urgency'],
     })),

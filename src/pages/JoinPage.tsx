@@ -5,6 +5,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { setStudentSession } from '../lib/studentSession'
 import { trackNow } from '../lib/analytics'
+import { useT } from '../lib/i18n'
 
 function getToken() {
   const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '')
@@ -25,6 +26,7 @@ const card: React.CSSProperties = {
 }
 
 export default function JoinPage() {
+  const t = useT()
   const token = getToken()
   const [step, setStep] = useState<Step>('loading')
   const [studentName, setStudentName] = useState('')
@@ -73,7 +75,7 @@ export default function JoinPage() {
       options: { data: { role: 'student', name: studentName } },
     })
     if (authErr || !authData.user) {
-      setErrorMsg(authErr?.message || 'Ошибка при регистрации. Попробуйте ещё раз.')
+      setErrorMsg(authErr?.message || t('Ошибка при регистрации. Попробуйте ещё раз.'))
       setSaving(false)
       return
     }
@@ -91,7 +93,7 @@ export default function JoinPage() {
       p_password: password,
     })
     if (error) {
-      setErrorMsg('Ошибка при сохранении. Попробуйте ещё раз.')
+      setErrorMsg(t('Ошибка при сохранении. Попробуйте ещё раз.'))
       setSaving(false)
       return
     }
@@ -125,17 +127,17 @@ export default function JoinPage() {
         {step === 'error' && (
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 32, marginBottom: 12 }}>🔗</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 8 }}>Ссылка недействительна</div>
-            <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>Попросите учителя отправить новую ссылку.</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 8 }}>{t('Ссылка недействительна')}</div>
+            <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Попросите учителя отправить новую ссылку.')}</div>
           </div>
         )}
 
         {step === 'form' && (
           <>
             <div style={{ marginBottom: 24 }}>
-              <div style={{ fontSize: 22, fontWeight: 750, color: 'var(--color-text)' }}>Добро пожаловать!</div>
+              <div style={{ fontSize: 22, fontWeight: 750, color: 'var(--color-text)' }}>{t('Добро пожаловать!')}</div>
               <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 4 }}>
-                Придумайте логин и пароль для <strong style={{ color: 'var(--color-text)' }}>{studentName}</strong>
+                {t('Придумайте логин и пароль для')} <strong style={{ color: 'var(--color-text)' }}>{studentName}</strong>
               </div>
             </div>
 
@@ -145,12 +147,12 @@ export default function JoinPage() {
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="Email (логин)"
+                  placeholder={t('Email (логин)')}
                   style={{ ...inputStyle, marginTop: 0, borderColor: emailTouched && !emailValid ? '#F48B91' : 'var(--color-border)' }}
                   autoFocus
                 />
                 {emailTouched && !emailValid && (
-                  <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>Укажите почту со знаком @</span>
+                  <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>{t('Укажите почту со знаком @')}</span>
                 )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -159,14 +161,14 @@ export default function JoinPage() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    placeholder="Пароль"
+                    placeholder={t('Пароль')}
                     style={{ ...inputStyle, marginTop: 0, paddingRight: 44, borderColor: passwordTouched && !passwordValid ? '#F48B91' : 'var(--color-border)' }}
                     onKeyDown={e => e.key === 'Enter' && handleRegister()}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(v => !v)}
-                    aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                    aria-label={showPassword ? t('Скрыть пароль') : t('Показать пароль')}
                     style={{
                       position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -178,7 +180,7 @@ export default function JoinPage() {
                   </button>
                 </div>
                 {passwordTouched && !passwordValid && (
-                  <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>Пароль должен быть не менее 6 символов</span>
+                  <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>{t('Пароль должен быть не менее 6 символов')}</span>
                 )}
               </div>
             </div>
@@ -200,7 +202,7 @@ export default function JoinPage() {
                 cursor: emailValid && passwordValid ? 'pointer' : 'not-allowed',
               }}
             >
-              {saving ? 'Сохранение...' : 'Войти в платформу'}
+              {saving ? t('Сохранение...') : t('Войти в платформу')}
             </button>
           </>
         )}

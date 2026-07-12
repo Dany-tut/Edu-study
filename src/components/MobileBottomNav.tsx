@@ -6,6 +6,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
+import { useT } from '../lib/i18n'
 
 // Shared ease/duration for the collapse so the dock shrinks and the labels
 // fade as one synchronized motion.
@@ -20,6 +21,7 @@ const items = [
 ]
 
 export default function MobileBottomNav() {
+  const t = useT()
   const [active, setActive] = useState('home')
   const scheduleTodayIndex = useStudentData(s => s.scheduleTodayIndex)
   const subjects = useStudentData(s => s.subjects)
@@ -105,7 +107,7 @@ export default function MobileBottomNav() {
               onClick={() => handleClick(item.id)}
               className="flex flex-col items-center justify-center cursor-pointer px-3 py-2"
               style={{ minWidth: 44, minHeight: 44, position: 'relative' }}
-              aria-label={item.label}
+              aria-label={t(item.label)}
             >
               <Icon
                 size={20}
@@ -132,7 +134,7 @@ export default function MobileBottomNav() {
                   fontWeight: isActive ? 600 : 500,
                   color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
                 }}>
-                {item.label}
+                {t(item.label)}
               </motion.span>
             </motion.button>
           )

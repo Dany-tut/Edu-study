@@ -1,5 +1,6 @@
 import { Users, Layers, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useAllStudents, useGroups } from '../../../lib/useGroups'
+import { useT } from '../../../lib/i18n'
 
 type StatCardProps = {
   icon: React.ElementType
@@ -53,6 +54,7 @@ function StatCard({ icon: Icon, label, value, sub, accentBg, accentColor }: Stat
 }
 
 export default function WidgetStudentStats() {
+  const t = useT()
   const students = useAllStudents()
   const { groups } = useGroups()
 
@@ -65,33 +67,33 @@ export default function WidgetStudentStats() {
     <div style={{ width: '100%', height: '100%', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
       <StatCard
         icon={Users}
-        label="Учеников"
+        label={t('Учеников')}
         value={totalStudents}
-        sub={`в ${totalGroups} группах`}
+        sub={`${t('в')} ${totalGroups} ${t('группах')}`}
         accentBg="var(--color-purple-soft)"
         accentColor="var(--color-accent)"
       />
       <StatCard
         icon={Layers}
-        label="Групп"
+        label={t('Групп')}
         value={totalGroups}
-        sub="активных"
+        sub={t('активных')}
         accentBg="var(--color-blue-pill-bg, rgba(59,91,219,0.12))"
         accentColor="#3B5BDB"
       />
       <StatCard
         icon={CheckCircle2}
-        label="Активных"
+        label={t('Активных')}
         value={activeStudents}
-        sub="без задолженностей"
+        sub={t('без задолженностей')}
         accentBg="var(--color-green-soft)"
         accentColor="var(--color-green-text)"
       />
       <StatCard
         icon={AlertCircle}
-        label="Должников"
+        label={t('Должников')}
         value={debtStudents}
-        sub={debtStudents > 0 ? 'требуют внимания' : 'всё в порядке'}
+        sub={debtStudents > 0 ? t('требуют внимания') : t('всё в порядке')}
         accentBg={debtStudents > 0 ? 'var(--color-red-soft)' : 'var(--color-green-soft)'}
         accentColor={debtStudents > 0 ? 'var(--color-red-text)' : 'var(--color-green-text)'}
       />

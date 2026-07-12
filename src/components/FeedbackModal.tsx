@@ -5,6 +5,7 @@ import { X, ImagePlus, MessageSquarePlus } from 'lucide-react'
 import TeacherSaveButton from './teacher/TeacherSaveButton'
 import { optimizePhoto, ImageTooLargeError } from '../lib/imageOptim'
 import { submitFeedback, FEEDBACK_SECTIONS, type FeedbackRole } from '../lib/feedbackRequests'
+import { useT } from '../lib/i18n'
 
 // Общая форма обратной связи для учителя и ученика. Раздел из списка ИЛИ
 // вписанный вручную, текст, скриншоты (Ctrl+V или файлом → base64). Уходит в
@@ -14,6 +15,7 @@ const CUSTOM = '__custom__'
 const MAX_ATTACHMENTS = 5
 
 export default function FeedbackModal({ role, onClose }: { role: FeedbackRole; onClose: () => void }) {
+  const t = useT()
   const [sectionChoice, setSectionChoice] = useState<string>(FEEDBACK_SECTIONS[0])
   const [customSection, setCustomSection] = useState('')
   const [message, setMessage] = useState('')
@@ -59,7 +61,7 @@ export default function FeedbackModal({ role, onClose }: { role: FeedbackRole; o
     setError(null)
     const { error } = await submitFeedback({ role, section, message, attachments: photos })
     setSaving(false)
-    if (error) { setError('Не удалось отправить. Попробуйте ещё раз.'); return }
+    if (error) { setError(t('Не удалось отправить. Попробуйте ещё раз.')); return }
     setDone(true)
     setTimeout(onClose, 1400)
   }
@@ -107,8 +109,8 @@ export default function FeedbackModal({ role, onClose }: { role: FeedbackRole; o
               <MessageSquarePlus size={19} style={{ color: 'var(--color-purple)' }} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)' }}>Обратная связь</div>
-              <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>Опишите ошибку или пожелание — заявка уйдёт администратору</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)' }}>{t('Обратная связь')}</div>
+              <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Опишите ошибку или пожелание — заявка уйдёт администратору')}</div>
             </div>
             <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: 9, border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <X size={16} />
@@ -118,22 +120,22 @@ export default function FeedbackModal({ role, onClose }: { role: FeedbackRole; o
           {done ? (
             <div style={{ padding: '28px 8px', textAlign: 'center' }}>
               <div style={{ fontSize: 40, marginBottom: 8 }}>✅</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>Спасибо! Заявка отправлена</div>
-              <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 4 }}>Мы посмотрим её в ближайшее время.</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{t('Спасибо! Заявка отправлена')}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 4 }}>{t('Мы посмотрим её в ближайшее время.')}</div>
             </div>
           ) : (
             <>
               {/* Раздел */}
               <div style={{ marginBottom: 14 }}>
-                <label style={labelStyle}>Раздел</label>
+                <label style={labelStyle}>{t('Раздел')}</label>
                 <select value={sectionChoice} onChange={e => setSectionChoice(e.target.value)} style={{ ...fieldStyle, cursor: 'pointer' }}>
-                  {FEEDBACK_SECTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-                  <option value={CUSTOM}>Свой вариант…</option>
+                  {FEEDBACK_SECTIONS.map(s => <option key={s} value={s}>{t(s)}</option>)}
+                  <option value={CUSTOM}>{t('Свой вариант…')}</option>
                 </select>
                 {sectionChoice === CUSTOM && (
                   <input
                     autoFocus value={customSection} onChange={e => setCustomSection(e.target.value)}
-                    placeholder="Название раздела или экрана"
+                    placeholder={t('Название раздела или экрана')}
                     style={{ ...fieldStyle, marginTop: 8 }}
                   />
                 )}
@@ -141,10 +143,10 @@ export default function FeedbackModal({ role, onClose }: { role: FeedbackRole; o
 
               {/* Сообщение */}
               <div style={{ marginBottom: 14 }}>
-                <label style={labelStyle}>Что случилось?</label>
+                <label style={labelStyle}>{t('Что случилось?')}</label>
                 <textarea
                   value={message} onChange={e => setMessage(e.target.value)}
-                  placeholder="Опишите проблему как можно подробнее…"
+                  placeholder={t('Опишите проблему как можно подробнее…')}
                   rows={4}
                   style={{ ...fieldStyle, resize: 'vertical', minHeight: 90 }}
                 />
@@ -152,7 +154,7 @@ export default function FeedbackModal({ role, onClose }: { role: FeedbackRole; o
 
               {/* Вложения */}
               <div style={{ marginBottom: 18 }}>
-                <label style={labelStyle}>Скриншоты (необязательно)</label>
+                <label style={labelStyle}>{t('Скриншоты (необязательно)')}</label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {photos.map((src, i) => (
                     <div key={i} style={{ position: 'relative', width: 72, height: 72, borderRadius: 10, overflow: 'hidden', border: '1px solid var(--color-border)' }}>
@@ -171,18 +173,18 @@ export default function FeedbackModal({ role, onClose }: { role: FeedbackRole; o
                       style={{ width: 72, height: 72, borderRadius: 10, border: '1.5px dashed var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}
                     >
                       <ImagePlus size={18} />
-                      <span style={{ fontSize: 10, fontWeight: 600 }}>Добавить</span>
+                      <span style={{ fontSize: 10, fontWeight: 600 }}>{t('Добавить')}</span>
                     </button>
                   )}
                 </div>
-                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 7 }}>Можно вставить из буфера через Ctrl + V</div>
+                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 7 }}>{t('Можно вставить из буфера через Ctrl + V')}</div>
                 <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={e => { void addFiles(e.target.files); e.target.value = '' }} />
               </div>
 
               {error && <div style={{ fontSize: 13, color: 'var(--color-red-text, #e5484d)', marginBottom: 12 }}>{error}</div>}
 
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <TeacherSaveButton label="Отправить" savedLabel="Отправлено" savingLabel="Отправляю…" onClick={send} disabled={!canSend} saving={saving} fullWidth={isPhone} />
+                <TeacherSaveButton label={t('Отправить')} savedLabel={t('Отправлено')} savingLabel={t('Отправляю…')} onClick={send} disabled={!canSend} saving={saving} fullWidth={isPhone} />
               </div>
             </>
           )}

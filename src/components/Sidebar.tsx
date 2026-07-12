@@ -21,6 +21,7 @@ import { useTheme } from '../store/themeStore'
 import { useStudentData } from '../store/studentDataStore'
 import NotificationBell from './NotificationBell'
 import NotificationPopup from './NotificationPopup'
+import { useT } from '../lib/i18n'
 
 const navItems = [
   { id: 'home',    label: 'Главная',  icon: Home },
@@ -131,12 +132,13 @@ function SettingsRow({ icon: Icon, label, onClick, active = false, danger = fals
 
 // Header for a sub-view: a back button + the view title.
 function MenuHeader({ title, onBack }: { title: string; onBack: () => void }) {
+  const t = useT()
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
       <motion.button
         whileTap={{ scale: 0.9 }}
         onClick={onBack}
-        aria-label="Назад"
+        aria-label={t('Назад')}
         style={{
           width: 26, height: 26, borderRadius: 8, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -162,6 +164,7 @@ function ColumnsGlyph({ n }: { n: number }) {
 }
 
 export default function Sidebar() {
+  const t = useT()
   const [activeItem, setActiveItem] = useState('home')
   const [collapsed, setCollapsed] = useState(false)
   // When the lesson page auto-docks the bar (scrolled), the chevron can still
@@ -420,7 +423,7 @@ export default function Sidebar() {
                 ? 'inset 0 0 0 1.5px rgba(255,255,255,0.5), 0 0 14px rgba(255,255,255,0.2)'
                 : 'inset 0 0 0 1px rgba(255,255,255,0.25)',
             }}
-            aria-label="Сменить аватар"
+            aria-label={t('Сменить аватар')}
             aria-haspopup="menu"
             aria-expanded={pickerOpen}
           >
@@ -460,7 +463,7 @@ export default function Sidebar() {
                 >
                   {/* Main panel: avatar grid + the Настройки entry. Always visible. */}
                   <div role="menu" style={panelBox}>
-                    <div style={{ ...labelStyle, marginBottom: 18 }}>Выбери аватар</div>
+                    <div style={{ ...labelStyle, marginBottom: 18 }}>{t('Выбери аватар')}</div>
                     <div
                       style={{
                         display: 'grid',
@@ -510,18 +513,18 @@ export default function Sidebar() {
                     <div style={{ height: 1, background: 'var(--color-border)', margin: '12px 8px' }} />
                     <SettingsRow
                       icon={Settings}
-                      label="Настройки"
+                      label={t('Настройки')}
                       active={menuView !== 'root'}
                       onClick={() => setMenuView(menuView === 'root' ? 'settings' : 'root')}
                     />
                     <SettingsRow
                       icon={MessageSquarePlus}
-                      label="Обратная связь"
+                      label={t('Обратная связь')}
                       onClick={() => { setFeedbackOpen(true); closePicker() }}
                     />
                     <SettingsRow
                       icon={LogOut}
-                      label="Выйти"
+                      label={t('Выйти')}
                       danger
                       onClick={() => { clearStudentSession(); void trackNow('logout', { role: 'student' }); void supabase.auth.signOut(); window.location.hash = '#/'; window.location.reload(); closePicker() }}
                     />
@@ -543,10 +546,10 @@ export default function Sidebar() {
                         transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }}
                         style={{ ...panelBox, transformOrigin: 'left top', marginTop: 158 }}
                       >
-                        <MenuHeader title="Назад" onBack={() => setMenuView('root')} />
+                        <MenuHeader title={t('Назад')} onBack={() => setMenuView('root')} />
 
                         {/* Columns picker */}
-                        <div style={{ ...labelStyle, marginBottom: 8 }}>Блоков в строке</div>
+                        <div style={{ ...labelStyle, marginBottom: 8 }}>{t('Блоков в строке')}</div>
                         <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
                           {([1, 2, 3] as WidgetColumns[]).map(n => {
                             const selected = widgetColumns === n
@@ -559,7 +562,7 @@ export default function Sidebar() {
                                 onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                                 role="menuitemradio"
                                 aria-checked={selected}
-                                aria-label={`${n} в строке`}
+                                aria-label={`${n} ${t('в строке')}`}
                                 style={{
                                   flex: 1, height: 40, borderRadius: 12, border: 'none', cursor: 'pointer',
                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -598,7 +601,7 @@ export default function Sidebar() {
                               ? <Sun size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                               : <Moon size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
                             }
-                            <span style={{ flex: 1, textAlign: 'left' }}>{dark ? 'Светлая тема' : 'Тёмная тема'}</span>
+                            <span style={{ flex: 1, textAlign: 'left' }}>{dark ? t('Светлая тема') : t('Тёмная тема')}</span>
                           </motion.button>
                         ) : (
                           <div style={{
@@ -609,7 +612,7 @@ export default function Sidebar() {
                             fontSize: 14, fontWeight: 550,
                           }}>
                             <Moon size={17} strokeWidth={1.9} style={{ flexShrink: 0 }} />
-                            <span style={{ flex: 1, textAlign: 'left' }}>Тёмная тема</span>
+                            <span style={{ flex: 1, textAlign: 'left' }}>{t('Тёмная тема')}</span>
                             <span style={{
                               fontSize: 11, fontWeight: 600,
                               padding: '2px 7px', borderRadius: 20,
@@ -617,7 +620,7 @@ export default function Sidebar() {
                               color: 'var(--color-accent)',
                               letterSpacing: 0.2,
                               flexShrink: 0,
-                            }}>скоро</span>
+                            }}>{t('скоро')}</span>
                           </div>
                         )}
 
@@ -625,7 +628,7 @@ export default function Sidebar() {
                         <motion.button
                           whileTap={{ scale: 0.985 }}
                           onClick={() => { setOrderModalOpen(true); closePicker() }}
-                          aria-label="Настроить виджеты"
+                          aria-label={t('Настроить виджеты')}
                           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                           style={{
@@ -638,7 +641,7 @@ export default function Sidebar() {
                           }}
                         >
                           <ArrowUpDown size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-                          <span style={{ flex: 1, textAlign: 'left' }}>Настроить виджеты</span>
+                          <span style={{ flex: 1, textAlign: 'left' }}>{t('Настроить виджеты')}</span>
                         </motion.button>
                       </motion.div>
                     )}
@@ -745,7 +748,7 @@ export default function Sidebar() {
                 transition={transition}
                 style={{ display: 'block', overflow: 'hidden', whiteSpace: 'nowrap' }}
               >
-                {item.label}
+                {t(item.label)}
               </motion.span>
             </motion.button>
           )
@@ -779,7 +782,7 @@ export default function Sidebar() {
             cursor: 'pointer', color: isCompact ? 'var(--color-text-2)' : 'var(--color-muted)',
             background: 'none', border: 'none',
           }}
-          aria-label={isCompact ? 'Развернуть' : 'Свернуть'}
+          aria-label={isCompact ? t('Развернуть') : t('Свернуть')}
         >
           {isCompact ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </motion.button>

@@ -5,14 +5,16 @@
 // recalled well and resets items that were forgotten. This is the most evidence-backed lever
 // for long-term retention (distributed practice + retrieval practice).
 
+import { t } from './i18n'
+
 export type ReviewGrade = 0 | 1 | 2 | 3 | 4 | 5
 
 // Student-facing buttons map onto SM-2 grades.
 export const GRADE_BUTTONS: { grade: ReviewGrade; label: string; tone: 'bad' | 'hard' | 'good' | 'easy' }[] = [
-  { grade: 1, label: 'Не помню', tone: 'bad' },
-  { grade: 3, label: 'Трудно',   tone: 'hard' },
-  { grade: 4, label: 'Хорошо',   tone: 'good' },
-  { grade: 5, label: 'Легко',    tone: 'easy' },
+  { grade: 1, label: t('Не помню'), tone: 'bad' },
+  { grade: 3, label: t('Трудно'),   tone: 'hard' },
+  { grade: 4, label: t('Хорошо'),   tone: 'good' },
+  { grade: 5, label: t('Легко'),    tone: 'easy' },
 ]
 
 export interface SrsState {
@@ -52,10 +54,10 @@ export function review(state: Omit<SrsState, 'dueAt'>, grade: ReviewGrade, nowMs
 
 /** Human-readable next interval for UI ("через 3 дня"). */
 export function intervalLabel(days: number): string {
-  if (days <= 0) return 'сегодня'
-  if (days === 1) return 'завтра'
-  if (days < 5) return `через ${days} дня`
-  if (days < 30) return `через ${days} дней`
+  if (days <= 0) return t('сегодня')
+  if (days === 1) return t('завтра')
+  if (days < 5) return `${t('через')} ${days} ${t('дня')}`
+  if (days < 30) return `${t('через')} ${days} ${t('дней')}`
   const m = Math.round(days / 30)
-  return m === 1 ? 'через месяц' : `через ${m} мес.`
+  return m === 1 ? t('через месяц') : `${t('через')} ${m} ${t('мес.')}`
 }

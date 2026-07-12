@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Bell } from 'lucide-react'
 import { useNotificationsStore } from '../store/notificationsStore'
 import { playDing } from '../lib/playDing'
+import { useT } from '../lib/i18n'
 
 // Ring keyframe: swing like a real bell then settle
 const ringVariants = {
@@ -30,6 +31,7 @@ type Props = {
 }
 
 export default function NotificationBell({ size = 16, hoverBg = 'rgba(155,109,255,0.14)', onClick }: Props) {
+  const t = useT()
   const notifications   = useNotificationsStore(s => s.notifications)
   const dismissLive     = useNotificationsStore(s => s.dismissLive)
   const unread          = notifications.filter(n => !n.read).length
@@ -59,7 +61,7 @@ export default function NotificationBell({ size = 16, hoverBg = 'rgba(155,109,25
       whileHover={{ scale: 1.08, backgroundColor: hoverBg }}
       whileTap={{ scale: 0.94 }}
       onClick={handleClick}
-      aria-label="Уведомления"
+      aria-label={t('Уведомления')}
       style={{
         position: 'relative',
         width: 36, height: 44, borderRadius: 14,

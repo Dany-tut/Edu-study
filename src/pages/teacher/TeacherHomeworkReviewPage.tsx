@@ -13,6 +13,7 @@ import RichConditionEditor from '../../components/teacher/RichConditionEditor'
 import WhiteboardCanvas from '../../components/teacher/WhiteboardCanvas'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { readDraft, writeDraft, clearDraft } from '../../lib/useDraft'
+import { useT, t } from '../../lib/i18n'
 
 // Фото/доска учителя — base64, живут только в черновике до отправки (в review_attachments).
 type ReviewDraft = { score: string; taskScores: Record<string, string>; comment: string; photos: string[]; board: string | null }
@@ -33,15 +34,16 @@ function formatSubmittedAt(iso?: string): string | null {
   let rel: string
   if (diffDays <= 0) {
     const diffHours = Math.floor(diffMs / 3600000)
-    rel = diffHours <= 0 ? 'только что' : `${diffHours} ч назад`
-  } else if (diffDays === 1) rel = 'вчера'
-  else if (diffDays < 5) rel = `${diffDays} дня назад`
-  else rel = `${diffDays} дней назад`
-  return `${date} в ${time} · ${rel}`
+    rel = diffHours <= 0 ? t('только что') : `${diffHours} ${t('ч назад')}`
+  } else if (diffDays === 1) rel = t('вчера')
+  else if (diffDays < 5) rel = `${diffDays} ${t('дня назад')}`
+  else rel = `${diffDays} ${t('дней назад')}`
+  return `${date} ${t('в')} ${time} · ${rel}`
 }
 
 // ─── Student summary card (left rail) ───────────────────────────────────────
 function StudentSummary({ student, group }: { student: Student; group: Group }) {
+  const t = useT()
   return (
     <div className="flex flex-col" style={{ gap: 16 }}>
       {/* Identity */}
@@ -84,17 +86,17 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
         }}
       >
         <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-          Сводка по ученику
+          {t('Сводка по ученику')}
         </div>
-        <ScoreBar label="ДЗ" icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" />
-        <ScoreBar label="Тесты" icon={TrendingUp} value={student.testScore} color="var(--color-purple)" />
+        <ScoreBar label={t('ДЗ')} icon={ClipboardCheck} value={student.hwScore} color="#5FD68A" />
+        <ScoreBar label={t('Тесты')} icon={TrendingUp} value={student.testScore} color="var(--color-purple)" />
         {student.trialScore !== null && (
-          <ScoreBar label="Пробник" icon={Award} value={student.trialScore} color="#F5A623" />
+          <ScoreBar label={t('Пробник')} icon={Award} value={student.trialScore} color="#F5A623" />
         )}
         <div className="flex items-center justify-between" style={{ padding: '7px 10px', background: 'var(--color-bg)', borderRadius: 10 }}>
           <div className="flex items-center" style={{ gap: 7 }}>
             <Clock size={13} strokeWidth={2} style={{ color: 'var(--color-muted)' }} />
-            <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Посещаемость</span>
+            <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Посещаемость')}</span>
           </div>
           <span style={{
             fontSize: 13, fontWeight: 700,
@@ -107,7 +109,7 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
           padding: '7px 10px', borderRadius: 10,
           background: 'var(--color-yellow-soft)', border: '1px solid color-mix(in srgb, var(--color-yellow-text) 28%, transparent)',
         }}>
-          <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Желаемый балл</span>
+          <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Желаемый балл')}</span>
           <span style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-yellow-text)' }}>{student.desiredScore}</span>
         </div>
       </div>
@@ -118,7 +120,7 @@ function StudentSummary({ student, group }: { student: Student; group: Group }) 
           background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)',
         }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>
-            Заметка
+            {t('Заметка')}
           </div>
           <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)' }}>{student.comment}</p>
         </div>
@@ -160,6 +162,7 @@ function ReviewBottomBar({
   onJump: (i: number) => void
   color: string
 }) {
+  const t = useT()
   const reviewedCount = submitters.filter(s => reviews[s.id]).length
   const remaining = submitters.length - reviewedCount
 
@@ -217,11 +220,11 @@ function ReviewBottomBar({
       }}>
         {remaining === 0 ? (
           <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-green-text)', whiteSpace: 'nowrap' }}>
-            Все проверены ✓
+            {t('Все проверены ✓')}
           </span>
         ) : (
           <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
-            Осталось {remaining} из {submitters.length}
+            {t('Осталось')} {remaining} {t('из')} {submitters.length}
           </span>
         )}
       </div>
@@ -241,11 +244,12 @@ function TaskScoreGrid({
   total: number
   maxTotal: number
 }) {
+  const t = useT()
   const pct = maxTotal > 0 ? Math.round((total / maxTotal) * 100) : 0
   return (
     <div className="flex flex-col" style={{ gap: 8 }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 2 }}>
-        БАЛЛЫ ЗА ЗАДАНИЯ
+        {t('БАЛЛЫ ЗА ЗАДАНИЯ')}
       </div>
       {tasks.map(task => {
         const val = taskScores[task.id] ?? ''
@@ -280,7 +284,7 @@ function TaskScoreGrid({
         background: groupColorSoft, border: `1px solid ${groupColor}33`,
         display: 'flex', alignItems: 'center', gap: 10,
       }}>
-        <div style={{ flex: 1, fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Итого</div>
+        <div style={{ flex: 1, fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Итого')}</div>
         <span style={{ fontSize: 20, fontWeight: 800, color: groupColor }}>{total}</span>
         <span style={{ fontSize: 13, color: 'var(--color-text-3)' }}>/ {maxTotal}</span>
         <span style={{
@@ -303,6 +307,7 @@ function ReviewAttachEditor({
   onBoard: (board: string | null) => void
   color: string
 }) {
+  const t = useT()
   const [showBoard, setShowBoard] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -327,10 +332,10 @@ function ReviewAttachEditor({
         onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
       <div style={{ display: 'flex', gap: 8 }}>
         <button onClick={() => fileRef.current?.click()} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 12.5, fontWeight: 700 }}>
-          <ImageIcon size={14} /> Фото
+          <ImageIcon size={14} /> {t('Фото')}
         </button>
         <button onClick={() => setShowBoard(v => !v)} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: `1px solid ${showBoard || board ? color : 'var(--color-border-medium)'}`, background: showBoard || board ? color + '22' : 'var(--color-bg-2)', color: showBoard || board ? color : 'var(--color-text)', fontSize: 12.5, fontWeight: 700 }}>
-          <PenLine size={14} /> {board ? 'Доска ✓' : 'Доска'}
+          <PenLine size={14} /> {board ? t('Доска ✓') : t('Доска')}
         </button>
       </div>
       {error && <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-peach-text)', marginTop: 8 }}>{error}</div>}
@@ -351,6 +356,7 @@ function ReviewAttachEditor({
 
 // ─── Main page ──────────────────────────────────────────────────────────────
 export default function TeacherHomeworkReviewPage() {
+  const t = useT()
   const reviewingHwId = useTeacher(s => s.reviewingHwId)
   const setActivePage = useTeacher(s => s.setActivePage)
   const reviewIdx = useTeacher(s => s.reviewIdx)
@@ -410,14 +416,14 @@ export default function TeacherHomeworkReviewPage() {
     return (
       <div className="flex flex-col items-center justify-center" style={{ flex: 1, color: 'var(--color-muted)', gap: 12 }}>
         <p style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)' }}>
-          {hw && group ? 'Пока никто не сдал работу' : 'Домашка не найдена'}
+          {hw && group ? t('Пока никто не сдал работу') : t('Домашка не найдена')}
         </p>
         <button onClick={() => setActivePage('homework')} style={{
           padding: '9px 18px', borderRadius: 999, border: 'none', cursor: 'pointer',
           background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 600,
           boxShadow: '0 4px 14px rgba(99,84,207,0.38)',
         }}>
-          К списку ДЗ
+          {t('К списку ДЗ')}
         </button>
       </div>
     )
@@ -520,7 +526,7 @@ export default function TeacherHomeworkReviewPage() {
           }}
         >
           <ChevronLeft size={18} />
-          Назад
+          {t('Назад')}
         </motion.button>
 
         <span style={{
@@ -618,19 +624,19 @@ export default function TeacherHomeworkReviewPage() {
                 }}>
                   <div className="flex items-center" style={{ gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
                     <FileText size={16} style={{ color: group.color }} />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Работа ученика</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Работа ученика')}</span>
                     {formatSubmittedAt(currentSubmission?.submittedAt) && (
                       <span className="flex items-center" style={{
                         gap: 5, marginLeft: 'auto', padding: '4px 10px', borderRadius: 999,
                         background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 11.5, fontWeight: 600,
                       }}>
                         <Clock size={12} />
-                        Сдано {formatSubmittedAt(currentSubmission?.submittedAt)}
+                        {t('Сдано')} {formatSubmittedAt(currentSubmission?.submittedAt)}
                       </span>
                     )}
                   </div>
                   <p style={{ fontSize: 14.5, lineHeight: 1.65, color: 'var(--color-text)', whiteSpace: 'pre-line' }}>
-                    {currentSubmission?.comment || 'Ученик не оставил комментарий к сдаче.'}
+                    {currentSubmission?.comment || t('Ученик не оставил комментарий к сдаче.')}
                   </p>
                   <div className="flex items-center flex-wrap" style={{ gap: 8, marginTop: 16 }}>
                     {['solution.pdf', 'photo-1.jpg'].map(f => (
@@ -653,7 +659,7 @@ export default function TeacherHomeworkReviewPage() {
                 }}>
                   <div className="flex items-center" style={{ gap: 8, marginBottom: 16 }}>
                     <Star size={16} style={{ color: '#F5A623' }} />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Оценка и комментарий</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Оценка и комментарий')}</span>
                   </div>
 
                   {/* Score field */}
@@ -671,7 +677,7 @@ export default function TeacherHomeworkReviewPage() {
                     ) : (
                       <>
                         <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 6 }}>
-                          БАЛЛ (0–100)
+                          {t('БАЛЛ (0–100)')}
                         </div>
                         <div className="flex items-center" style={{ gap: 10 }}>
                           <input
@@ -705,12 +711,12 @@ export default function TeacherHomeworkReviewPage() {
                   {/* Comment */}
                   <div style={{ marginBottom: 18 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 6 }}>
-                      ЗАМЕЧАНИЯ / КОММЕНТАРИЙ
+                      {t('ЗАМЕЧАНИЯ / КОММЕНТАРИЙ')}
                     </div>
                     <RichConditionEditor
                       value={draft.comment}
                       onChange={html => setDraft({ comment: html })}
-                      placeholder="Что получилось, что доработать..."
+                      placeholder={t('Что получилось, что доработать...')}
                       autoGrow
                       minHeight={148}
                     />
@@ -719,7 +725,7 @@ export default function TeacherHomeworkReviewPage() {
                   {/* Приложить к проверке — фото + доска (как в проверке сложных) */}
                   <div style={{ marginBottom: 18 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 6 }}>
-                      ПРИЛОЖИТЬ К ОТВЕТУ
+                      {t('ПРИЛОЖИТЬ К ОТВЕТУ')}
                     </div>
                     <ReviewAttachEditor
                       photos={draft.photos}
@@ -744,7 +750,7 @@ export default function TeacherHomeworkReviewPage() {
                       }}
                     >
                       <Check size={17} strokeWidth={2.4} />
-                      Засчитать и начислить баллы
+                      {t('Засчитать и начислить баллы')}
                     </motion.button>
                     <motion.button
                       whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
@@ -757,12 +763,12 @@ export default function TeacherHomeworkReviewPage() {
                       }}
                     >
                       <RotateCcw size={16} strokeWidth={2.2} />
-                      Вернуть на доработку
+                      {t('Вернуть на доработку')}
                     </motion.button>
                   </div>
                   <p style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Send size={12} />
-                    Решение и комментарий уйдут ученику в его кабинет.
+                    {t('Решение и комментарий уйдут ученику в его кабинет.')}
                   </p>
                 </div>
 
@@ -784,8 +790,8 @@ export default function TeacherHomeworkReviewPage() {
                       <CheckCircle2 size={24} />
                     </div>
                     <div style={{ flex: 1, minWidth: 160 }}>
-                      <div style={{ fontSize: 15, fontWeight: 750, color: 'var(--color-text)' }}>Все работы проверены!</div>
-                      <div style={{ fontSize: 13, color: 'var(--color-green-text)', marginTop: 2 }}>Задача «Проверить ДЗ» отмечена на главной.</div>
+                      <div style={{ fontSize: 15, fontWeight: 750, color: 'var(--color-text)' }}>{t('Все работы проверены!')}</div>
+                      <div style={{ fontSize: 13, color: 'var(--color-green-text)', marginTop: 2 }}>{t('Задача «Проверить ДЗ» отмечена на главной.')}</div>
                     </div>
                     <motion.button
                       whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
@@ -795,7 +801,7 @@ export default function TeacherHomeworkReviewPage() {
                         background: 'var(--color-green-accent)', color: '#fff', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap',
                       }}
                     >
-                      К списку ДЗ
+                      {t('К списку ДЗ')}
                     </motion.button>
                   </motion.div>
                 )}

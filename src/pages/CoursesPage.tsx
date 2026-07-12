@@ -15,6 +15,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { useFloatingPill } from '../lib/useFloatingPill'
 import { useStudentData } from '../store/studentDataStore'
 import MobileSheet from '../components/MobileSheet'
+import { useT } from '../lib/i18n'
 
 type StatusFilter = 'all' | 'active' | 'done'
 const FILTER_OPTIONS: Array<{ id: StatusFilter; label: string }> = [
@@ -43,6 +44,7 @@ const FIELD_MORPH = { type: 'spring', stiffness: 520, damping: 38, mass: 0.7 } a
 const DOCK_COLLAPSE = { duration: 0.28, ease: [0.32, 0.72, 0, 1] as const }
 
 export default function CoursesPage() {
+  const t = useT()
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
   const setActiveSubject = useDashboard(s => s.setActiveSubject)
   const activeModuleId = useDashboard(s => s.activeModuleId)
@@ -127,7 +129,7 @@ export default function CoursesPage() {
   }, [searchExpanded])
 
   const moduleTabs: Array<{ id: number | typeof ALL; label: string }> = subject ? [
-    { id: ALL, label: 'Все' },
+    { id: ALL, label: t('Все') },
     ...subject.modules.map(m => ({ id: m.id, label: m.label })),
   ] : []
 
@@ -136,8 +138,8 @@ export default function CoursesPage() {
       <div className="flex flex-col items-center justify-center text-center" style={{ minHeight: 300, gap: 8 }}>
         {loaded && (
           <>
-            <p style={{ fontSize: 16, fontWeight: 650, color: 'var(--color-text)' }}>Курсы ещё не добавлены</p>
-            <p style={{ fontSize: 13, marginTop: 4, color: 'var(--color-muted)' }}>Преподаватель откроет доступ к урокам</p>
+            <p style={{ fontSize: 16, fontWeight: 650, color: 'var(--color-text)' }}>{t('Курсы ещё не добавлены')}</p>
+            <p style={{ fontSize: 13, marginTop: 4, color: 'var(--color-muted)' }}>{t('Преподаватель откроет доступ к урокам')}</p>
           </>
         )}
         {!loaded && <Skeleton.Text lines={3} style={{ width: '100%', maxWidth: 320 }} />}
@@ -169,7 +171,7 @@ export default function CoursesPage() {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Поиск"
+            placeholder={t('Поиск')}
             style={{
               flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
               fontSize: 14, fontWeight: 500, color: 'var(--color-text)',
@@ -408,7 +410,7 @@ export default function CoursesPage() {
                   </span>
                 )}
                 <span style={{ fontSize: 15, fontWeight: 650, color: st.label, lineHeight: 1.2 }}>
-                  Занятие №{lesson.number + 1}
+                  {t('Занятие №')}{lesson.number + 1}
                 </span>
                 <span
                   className="line-clamp-2"
@@ -428,8 +430,8 @@ export default function CoursesPage() {
           }}
         >
           <Search size={22} style={{ marginBottom: 8 }} />
-          <p style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)' }}>Ничего не найдено</p>
-          <p style={{ fontSize: 13, marginTop: 3 }}>Попробуйте изменить запрос или модуль</p>
+          <p style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)' }}>{t('Ничего не найдено')}</p>
+          <p style={{ fontSize: 13, marginTop: 3 }}>{t('Попробуйте изменить запрос или модуль')}</p>
         </div>
       )}
 
@@ -459,8 +461,8 @@ export default function CoursesPage() {
             {/* Filter / sort — on expand they scale down, blur and drift right
                 while fading, staggered left→right. */}
             {[
-              { k: 'filter', icon: <SlidersHorizontal size={20} />, onClick: () => setFilterSheet(true), opts: { label: 'Фильтр', active: statusFilter !== 'all' } },
-              { k: 'sort', icon: <ArrowUpDown size={20} />, onClick: () => setSortDesc(v => !v), opts: { label: sortDesc ? 'Сначала новые' : 'Сначала старые', active: sortDesc } },
+              { k: 'filter', icon: <SlidersHorizontal size={20} />, onClick: () => setFilterSheet(true), opts: { label: t('Фильтр'), active: statusFilter !== 'all' } },
+              { k: 'sort', icon: <ArrowUpDown size={20} />, onClick: () => setSortDesc(v => !v), opts: { label: sortDesc ? t('Сначала новые') : t('Сначала старые'), active: sortDesc } },
             ].map((c, idx) => (
               <motion.div
                 key={c.k}
@@ -516,7 +518,7 @@ export default function CoursesPage() {
               animate={{ width: searchExpanded ? dockW : (navCollapsed ? 42 : 50), paddingLeft: navCollapsed ? 11 : 15 }}
               transition={FIELD_MORPH}
               onClick={() => { if (!searchExpanded) { tactile(); setDockW(dockRef.current?.offsetWidth ?? 0); setSearchExpanded(true) } }}
-              aria-label="Поиск"
+              aria-label={t('Поиск')}
               style={{
                 position: 'absolute', left: 0, top: 0, bottom: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
@@ -532,11 +534,11 @@ export default function CoursesPage() {
               }}
             >
               <Search size={20} style={{ flexShrink: 0 }} />
-              <input ref={mSearchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по занятиям"
+              <input ref={mSearchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder={t('Поиск по занятиям')}
                 style={{ flex: searchExpanded ? 1 : 0, width: searchExpanded ? undefined : 0, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: 'var(--color-text)', opacity: searchExpanded ? 1 : 0, pointerEvents: searchExpanded ? 'auto' : 'none',
                   maskImage: 'linear-gradient(to right, #000 calc(100% - 18px), transparent)', WebkitMaskImage: 'linear-gradient(to right, #000 calc(100% - 18px), transparent)' }} />
               {searchExpanded && (
-                <button onClick={e => { e.stopPropagation(); setSearch(''); setSearchExpanded(false) }} aria-label="Закрыть поиск"
+                <button onClick={e => { e.stopPropagation(); setSearch(''); setSearchExpanded(false) }} aria-label={t('Закрыть поиск')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', display: 'flex', flexShrink: 0, padding: 0 }}>
                   <X size={18} />
                 </button>
@@ -547,7 +549,7 @@ export default function CoursesPage() {
       )}
 
       {/* ── Filter sheet (mobile) ── */}
-      <MobileSheet open={filterSheet} onClose={() => setFilterSheet(false)} title="Показывать">
+      <MobileSheet open={filterSheet} onClose={() => setFilterSheet(false)} title={t('Показывать')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {FILTER_OPTIONS.map(o => {
             const active = statusFilter === o.id
@@ -564,7 +566,7 @@ export default function CoursesPage() {
                   fontSize: 15, fontWeight: active ? 650 : 500,
                 }}
               >
-                {o.label}
+                {t(o.label)}
                 {active && <Check size={18} />}
               </button>
             )

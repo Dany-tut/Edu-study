@@ -7,6 +7,7 @@ import {
 import type { Reminder } from '../../../data/teacherMockData'
 import { useTheme } from '../../../store/themeStore'
 import { useHomeData, useOverlayThumb } from '../../../lib/useHomeData'
+import { t, useT } from '../../../lib/i18n'
 
 const reminderIcons: Record<Reminder['type'], React.ElementType> = {
   'check-hw': ClipboardCheck,
@@ -24,10 +25,10 @@ const reminderAccent = (item: Pick<Reminder, 'type' | 'urgency'>) => {
 
 // Text shown on the high-urgency badge — spells out *why* it's flagged.
 const urgencyLabel = (type: Reminder['type']) =>
-  type === 'payment-debt' ? 'Просрочено'
-  : type === 'fill-journal' ? 'Не заполнен'
-  : type === 'check-hw' ? 'Давно ждёт'
-  : 'Срочно'
+  type === 'payment-debt' ? t('Просрочено')
+  : type === 'fill-journal' ? t('Не заполнен')
+  : type === 'check-hw' ? t('Давно ждёт')
+  : t('Срочно')
 
 function ReminderRow({ item, done, onAction, style: styleOverride }: {
   item: Reminder; done?: boolean; onAction?: () => void; style?: React.CSSProperties
@@ -74,7 +75,7 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: {
             color: done ? 'var(--color-green-text)' : 'var(--color-text-3)',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
-            {done ? 'Готово' : item.detail}
+            {done ? t('Готово') : item.detail}
           </div>
         )}
       </div>
@@ -97,12 +98,12 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: {
 }
 
 const stackTypeLabel: Record<Reminder['type'], string> = {
-  'check-hw': 'ДЗ на проверку',
-  'fill-journal': 'Журнал',
-  'payment-debt': 'Оплата',
-  'fill-widget': 'Виджет',
-  'make-trainer': 'Тренажёр',
-  'send-push': 'Уведомление',
+  'check-hw': t('ДЗ на проверку'),
+  'fill-journal': t('Журнал'),
+  'payment-debt': t('Оплата'),
+  'fill-widget': t('Виджет'),
+  'make-trainer': t('Тренажёр'),
+  'send-push': t('Уведомление'),
 }
 
 const COLLAPSE = {
@@ -203,7 +204,7 @@ function ReminderGroupStack({ items, getAction, isDone }: {
                   {stackTypeLabel[front.type]} · {items.length}
                 </span>
                 <span style={{ fontSize: 11, color: collapseColor, display: 'flex', alignItems: 'center', gap: 3 }}>
-                  Свернуть <ChevronRight size={11} style={{ transform: 'rotate(-90deg)' }} />
+                  {t('Свернуть')} <ChevronRight size={11} style={{ transform: 'rotate(-90deg)' }} />
                 </span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -288,6 +289,7 @@ function RemindersScroll({ reminders, reminderAction, reminderDone }: {
 }
 
 export default function WidgetTodayReminders() {
+  const t = useT()
   const { reminders, reminderAction, reminderDone } = useHomeData()
 
   return (
@@ -304,7 +306,7 @@ export default function WidgetTodayReminders() {
     }}>
       <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-muted)', letterSpacing: 0.2, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         <AlertCircle size={14} strokeWidth={2} />
-        Напоминания
+        {t('Напоминания')}
       </div>
       <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
         <RemindersScroll

@@ -4,6 +4,7 @@ import { scienceMemeInterval } from '../data/mockData'
 import { useStudentData } from '../store/studentDataStore'
 import { getWidgetSizing } from '../lib/widgetSizing'
 import { subjectTheme } from '../lib/theme'
+import { useT } from '../lib/i18n'
 
 type Props = {
   /** true while this widget is the visible one — pauses rotation otherwise */
@@ -13,6 +14,7 @@ type Props = {
 }
 
 export default function MemesWidget({ active, columns = 1 }: Props) {
+  const t = useT()
   const [index, setIndex] = useState(0)
   const scienceMemes = useStudentData(s => s.scienceMemes)
 
@@ -23,7 +25,7 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
     <div className="flex h-full w-full items-center justify-center flex-col gap-2 overflow-hidden rounded-[24px]"
       style={{ background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid var(--color-border-glass)' }}>
       <span style={{ fontSize: 26 }}>😄</span>
-      <span style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text-2)' }}>Мемы</span>
+      <span style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text-2)' }}>{t('Мемы')}</span>
       <span style={{ fontSize: 12, color: 'var(--color-text-5)' }}>—</span>
     </div>
   )
@@ -96,7 +98,7 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
               background: 'var(--color-purple-soft)',
             }}
           >
-            {meme.subject} · мем
+            {meme.subject} · {t('мем')}
           </span>
         </div>
 
@@ -131,7 +133,7 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
             <button
               key={m.id}
               onClick={() => goTo(i)}
-              aria-label={`Мем ${i + 1}`}
+              aria-label={`${t('Мем')} ${i + 1}`}
               className="cursor-pointer"
               style={{
                 width: i === index ? 28 : 10,

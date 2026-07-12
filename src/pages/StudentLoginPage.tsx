@@ -4,6 +4,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { setStudentSession } from '../lib/studentSession'
 import { trackNow } from '../lib/analytics'
+import { useT } from '../lib/i18n'
 
 const inputStyle: React.CSSProperties = {
   // Explicit minHeight + lineHeight so an empty password field can't render
@@ -20,6 +21,7 @@ const inputStyle: React.CSSProperties = {
 }
 
 export default function StudentLoginPage() {
+  const t = useT()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -31,10 +33,17 @@ export default function StudentLoginPage() {
     setLoading(true)
     setError('')
 
+    // Normalize input the same way the browser's autofill would deliver it:
+    // iOS keyboards on a home-screen PWA can auto-capitalize the email and
+    // leave stray spaces around a hand-typed password, which then mismatch
+    // credentials that log in fine from the browser (where Keychain autofills).
+    const emailNorm = email.trim().toLowerCase()
+    const passwordNorm = password.trim()
+
     // 1) Preferred path — Supabase Auth (students carry auth_user_id).
     const { data: authData } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
+      email: emailNorm,
+      password: passwordNorm,
     })
     if (authData?.user) {
       // A 1:1 student can own several subject cards (rows) sharing one auth_user_id,
@@ -59,12 +68,12 @@ export default function StudentLoginPage() {
 
     // 2) Fallback — legacy temp_password login for students not yet migrated.
     const { data, error: rpcError } = await supabase.rpc('student_login', {
-      p_email: email.trim(),
-      p_password: password,
+      p_email: emailNorm,
+      p_password: passwordNorm,
     })
     setLoading(false)
     if (rpcError || !data || data.length === 0) {
-      setError('Неверный email или пароль')
+      setError(t('Неверный email или пароль'))
       return
     }
     const s = data[0] as { id: string; name: string; group_id: string }
@@ -89,13 +98,18 @@ export default function StudentLoginPage() {
         }}
       >
         <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 22, fontWeight: 750, color: 'var(--color-text)' }}>Вход в кабинет</div>
-          <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 4 }}>Введите email и пароль</div>
+          <div style={{ fontSize: 22, fontWeight: 750, color: 'var(--color-text)' }}>{t('Вход в кабинет')}</div>
+          <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 4 }}>{t('Введите email и пароль')}</div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <input
             type="email"
+            inputMode="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            autoComplete="username"
             value={email}
             onChange={e => setEmail(e.target.value)}
             placeholder="Email"
@@ -106,17 +120,21 @@ export default function StudentLoginPage() {
           <div style={{ position: 'relative' }}>
             <input
               type={showPassword ? 'text' : 'password'}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              autoComplete="current-password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              placeholder="Пароль"
-              aria-label="Пароль"
+              placeholder={t('Пароль')}
+              aria-label={t('Пароль')}
               style={{ ...inputStyle, paddingRight: 44 }}
               onKeyDown={e => e.key === 'Enter' && handleLogin()}
             />
             <button
               type="button"
               onClick={() => setShowPassword(v => !v)}
-              aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+              aria-label={showPassword ? t('Скрыть пароль') : t('Показать пароль')}
               style={{
                 position: 'absolute', right: 10, top: '50%',
                 transform: 'translateY(-50%)',
@@ -148,11 +166,11 @@ export default function StudentLoginPage() {
             cursor: email.trim() && password ? 'pointer' : 'not-allowed',
           }}
         >
-          {loading ? 'Вход...' : 'Войти'}
+          {loading ? t('Вход...') : t('Войти')}
         </button>
 
         <div style={{ marginTop: 16, fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>
-          Если забыли пароль — обратитесь к учителю
+          {t('Если забыли пароль — обратитесь к учителю')}
         </div>
       </motion.div>
     </div>

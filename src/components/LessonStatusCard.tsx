@@ -4,6 +4,7 @@ import type { ElementType, ReactElement } from 'react'
 import LiquidGlass from 'liquid-glass-react'
 import { IconSentForReview, IconReturned, IconLessonRecording } from './icons'
 import type { LessonStatus } from '../data/mockData'
+import { t, useT } from '../lib/i18n'
 
 type AnyIcon = ElementType | ((props: { color?: string; size?: number }) => ReactElement)
 
@@ -22,7 +23,7 @@ const configs: Record<LessonStatus, CardConfig> = {
     bg: 'var(--color-green-soft)',
     badgeBg: 'rgba(110,231,160,0.3)',
     badgeText: 'var(--color-green-text)',
-    badgeLabel: 'Выполнено',
+    badgeLabel: t('Выполнено'),
     icon: CheckCircle2,
     textColor: 'var(--color-green-text)',
   },
@@ -30,7 +31,7 @@ const configs: Record<LessonStatus, CardConfig> = {
     bg: 'var(--color-yellow-soft)',
     badgeBg: 'rgba(248,239,140,0.5)',
     badgeText: '#7A6A00',
-    badgeLabel: 'Возвращено на доработку',
+    badgeLabel: t('Возвращено на доработку'),
     icon: IconReturned,
     custom: true,
     textColor: '#4A3F00',
@@ -39,7 +40,7 @@ const configs: Record<LessonStatus, CardConfig> = {
     bg: 'var(--color-red-soft)',
     badgeBg: 'rgba(244,139,145,0.3)',
     badgeText: '#A8282D',
-    badgeLabel: 'Запись урока',
+    badgeLabel: t('Запись урока'),
     icon: IconLessonRecording,
     custom: true,
     textColor: '#6B1115',
@@ -48,7 +49,7 @@ const configs: Record<LessonStatus, CardConfig> = {
     bg: 'var(--color-peach-soft)',
     badgeBg: 'rgba(248,201,145,0.4)',
     badgeText: '#8A4A00',
-    badgeLabel: 'Отправлено на проверку',
+    badgeLabel: t('Отправлено на проверку'),
     icon: IconSentForReview,
     custom: true,
     textColor: '#5A2F00',
@@ -57,7 +58,7 @@ const configs: Record<LessonStatus, CardConfig> = {
     bg: 'var(--color-purple-soft)',
     badgeBg: 'rgba(156,140,240,0.25)',
     badgeText: 'var(--color-accent)',
-    badgeLabel: 'Текущий урок',
+    badgeLabel: t('Текущий урок'),
     icon: Lock,
     textColor: '#4A1A8A',
   },
@@ -65,7 +66,7 @@ const configs: Record<LessonStatus, CardConfig> = {
     bg: 'var(--color-bg-3)',
     badgeBg: 'rgba(189,189,194,0.4)',
     badgeText: 'var(--color-muted)',
-    badgeLabel: 'Недоступно',
+    badgeLabel: t('Недоступно'),
     icon: Lock,
     textColor: '#4A4A4F',
   },
@@ -81,11 +82,12 @@ interface Props {
 
 export default function LessonStatusCard({
   status,
-  title = 'Строение атома',
+  title = t('Строение атома'),
   lessonNumber = 23,
   points,
   index = 0,
 }: Props) {
+  const tr = useT()
   const cfg = configs[status]
   const Icon = cfg.icon
 
@@ -163,7 +165,7 @@ export default function LessonStatusCard({
                 overflowWrap: 'anywhere',
               }}
             >
-              Занятие #{lessonNumber} {title}
+              {tr('Занятие')} #{lessonNumber} {title}
             </h3>
           </div>
 
@@ -176,7 +178,7 @@ export default function LessonStatusCard({
                 {points}
               </span>
               <span style={{ fontSize: 'clamp(24px, 2.3vw, 38px)', fontWeight: 500, color: cfg.textColor, lineHeight: 1, marginTop: 6 }}>
-                баллов
+                {tr('баллов')}
               </span>
             </div>
           )}

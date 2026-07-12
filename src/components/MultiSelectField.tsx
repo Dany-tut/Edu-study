@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Check, X } from 'lucide-react'
 import ScrollFade from './ScrollFade'
+import { useT } from '../lib/i18n'
 
 // ── Multi-select combobox ────────────────────────────────────────────────────
 // Telegram-style trigger: selected chips live INSIDE the field, and the search
@@ -22,6 +23,7 @@ export default function MultiSelectField({
   accentBg?: string
   small?: boolean
 }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [pos, setPos] = useState<{ top: number; bottom: number; left: number; width: number; up: boolean } | null>(null)
@@ -170,7 +172,7 @@ export default function MultiSelectField({
               <ScrollFade maxHeight={224} bg="rgba(var(--glass-rgb), 0.96)" overlayScrollbar>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {shown.length === 0 ? (
-                    <div style={{ padding: '8px 11px', fontSize: 12, color: 'var(--color-text-3)' }}>Ничего не найдено</div>
+                    <div style={{ padding: '8px 11px', fontSize: 12, color: 'var(--color-text-3)' }}>{t('Ничего не найдено')}</div>
                   ) : shown.map(o => {
                     const selected = values.includes(o)
                     return (

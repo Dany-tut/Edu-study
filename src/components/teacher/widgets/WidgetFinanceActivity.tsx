@@ -1,15 +1,16 @@
 import { CheckCircle2, Wallet } from 'lucide-react'
 import { usePayments } from '../../../lib/useFinances'
 import { useAllStudents } from '../../../lib/useGroups'
+import { t, useT } from '../../../lib/i18n'
 
 function fmtDate(iso: string) {
   const d = new Date(iso)
   const now = new Date()
   const diffMs = now.getTime() - d.getTime()
   const diffDays = Math.floor(diffMs / 86_400_000)
-  if (diffDays === 0) return 'сегодня'
-  if (diffDays === 1) return 'вчера'
-  if (diffDays < 7)  return `${diffDays} дн. назад`
+  if (diffDays === 0) return t('сегодня')
+  if (diffDays === 1) return t('вчера')
+  if (diffDays < 7)  return `${diffDays} ${t('дн. назад')}`
   return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
 }
 
@@ -18,6 +19,7 @@ function initials(name: string) {
 }
 
 export default function WidgetFinanceActivity() {
+  const t = useT()
   const { payments, loading } = usePayments()
   const students = useAllStudents()
 
@@ -52,7 +54,7 @@ export default function WidgetFinanceActivity() {
           <Wallet size={14} strokeWidth={2.2} style={{ color: 'var(--color-green-text)' }} />
         </div>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
-          История платежей
+          {t('История платежей')}
         </span>
       </div>
 
@@ -68,7 +70,7 @@ export default function WidgetFinanceActivity() {
             height: '100%', gap: 8, color: 'var(--color-text-4)',
           }}>
             <Wallet size={28} strokeWidth={1.5} />
-            <span style={{ fontSize: 13, fontWeight: 600 }}>Платежей ещё нет</span>
+            <span style={{ fontSize: 13, fontWeight: 600 }}>{t('Платежей ещё нет')}</span>
           </div>
         ) : (
           recent.map((p, i) => {
@@ -98,11 +100,11 @@ export default function WidgetFinanceActivity() {
                 {/* Name + note */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {student?.name.split(' ').slice(0, 2).join(' ') ?? 'Ученик'}
+                    {student?.name.split(' ').slice(0, 2).join(' ') ?? t('Ученик')}
                   </div>
                   {(p.note || p.lessonsPaid > 0) && (
                     <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
-                      {[p.note, p.lessonsPaid > 0 ? `${p.lessonsPaid} зан.` : ''].filter(Boolean).join(' · ')}
+                      {[p.note, p.lessonsPaid > 0 ? `${p.lessonsPaid} ${t('зан.')}` : ''].filter(Boolean).join(' · ')}
                     </div>
                   )}
                 </div>

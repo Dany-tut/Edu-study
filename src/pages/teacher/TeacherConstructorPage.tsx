@@ -36,7 +36,7 @@ import { getContrastColor, getCircleShadow } from '../../lib/utils'
 import { copyToClipboard } from '../../lib/clipboard'
 import { supabase } from '../../lib/supabase'
 import { getOwnerId } from '../../lib/owner'
-import { optimizePhoto } from '../../lib/imageOptim'
+import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { usePersistentState, readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 import { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from '../../data/apChemistry'
 import { AP_LESSON_CONTENT } from '../../data/apChemistryLessons'
@@ -2189,7 +2189,7 @@ function CreatorView({
   function onPickImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    optimizePhoto(file).then(src => { if (src) setTkImage(src) })
+    optimizePhoto(file).then(src => { if (src) setTkImage(src) }).catch(e => { if (e instanceof ImageTooLargeError) window.alert(e.message) })
   }
 
   function resetTaskForm() {
@@ -3045,7 +3045,7 @@ function CreatorView({
                     imageItems.forEach(item => {
                       const file = item.getAsFile()
                       if (!file) return
-                      optimizePhoto(file).then(src => { if (src) setExplPhotos(prev => [...prev, src]) })
+                      optimizePhoto(file).then(src => { if (src) setExplPhotos(prev => [...prev, src]) }).catch(e => { if (e instanceof ImageTooLargeError) window.alert(e.message) })
                     })
                   }}
                   placeholder="Почему этот ответ верный…"
@@ -3070,7 +3070,7 @@ function CreatorView({
                     <input type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => {
                       const files = Array.from(e.target.files || [])
                       files.forEach(file => {
-                        optimizePhoto(file).then(src => { if (src) setExplPhotos(prev => [...prev, src]) })
+                        optimizePhoto(file).then(src => { if (src) setExplPhotos(prev => [...prev, src]) }).catch(e => { if (e instanceof ImageTooLargeError) window.alert(e.message) })
                       })
                       e.target.value = ''
                     }} />
@@ -3301,7 +3301,7 @@ function CreatorView({
                             e.preventDefault()
                             const file = imgItem.getAsFile()
                             if (!file) return
-                            optimizePhoto(file).then(src => { if (src) setTkImage(src); setCondImgPickerOpen(false) })
+                            optimizePhoto(file).then(src => { if (src) setTkImage(src); setCondImgPickerOpen(false) }).catch(e => { if (e instanceof ImageTooLargeError) window.alert(e.message) })
                           }}
                           style={{ padding: '12px 10px', textAlign: 'center', fontSize: 12, color: 'var(--color-text-3)', outline: 'none', cursor: 'default', background: 'var(--color-bg-2)' }}
                         >

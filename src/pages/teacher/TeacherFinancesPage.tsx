@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { useAllStudents, useGroups } from '../../lib/useGroups'
 import { usePayments, useFinanceSummary, addPayment, deletePayment } from '../../lib/useFinances'
+import { useT } from '../../lib/i18n'
 import type { Student } from '../../data/teacherMockData'
 
 // ── helpers ────────────────────────────────────────────────────────────────────
@@ -52,6 +53,7 @@ function AddPaymentModal({
   onClose: () => void
   onSaved: () => void
 }) {
+  const t = useT()
   const [amount, setAmount] = useState(student.paymentAmount ? String(student.paymentAmount) : '')
   const [lessons, setLessons] = useState('4')
   const [note, setNote] = useState('')
@@ -112,7 +114,7 @@ function AddPaymentModal({
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>Отметить оплату</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Отметить оплату')}</div>
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{student.name}</div>
           </div>
           <button onClick={onClose} style={{
@@ -127,7 +129,7 @@ function AddPaymentModal({
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Сумма, ₽</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('Сумма, ₽')}</div>
             <input
               style={inputStyle}
               type="number"
@@ -139,7 +141,7 @@ function AddPaymentModal({
           </div>
 
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Занятий оплачено</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('Занятий оплачено')}</div>
             <input
               style={inputStyle}
               type="number"
@@ -150,10 +152,10 @@ function AddPaymentModal({
           </div>
 
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Заметка (необязательно)</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('Заметка (необязательно)')}</div>
             <input
               style={inputStyle}
-              placeholder="Перевод на карту..."
+              placeholder={t('Перевод на карту...')}
               value={note}
               onChange={e => setNote(e.target.value)}
             />
@@ -177,10 +179,10 @@ function AddPaymentModal({
           } as React.CSSProperties}
         >
           {saved
-            ? <><Check size={15} /> Сохранено</>
+            ? <><Check size={15} /> {t('Сохранено')}</>
             : saving
-              ? 'Сохраняем...'
-              : 'Сохранить платёж'
+              ? t('Сохраняем...')
+              : t('Сохранить платёж')
           }
         </motion.button>
       </motion.div>
@@ -203,6 +205,7 @@ function StudentRow({
   expanded: boolean
   onToggle: () => void
 }) {
+  const t = useT()
   const status = getStatus(student)
   const { payments, reload } = usePayments(student.id)
 
@@ -251,10 +254,10 @@ function StudentRow({
             <span style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 400, marginLeft: 6 }}>{groupName}</span>
           </div>
           <div style={{ fontSize: 11, color: statusColor, marginTop: 1, display: 'flex', alignItems: 'center', gap: 4 }}>
-            {status === 'overdue' && <><AlertCircle size={11} /> просрочено {Math.abs(diffDays(student.paymentDue!))} дн.</>}
-            {status === 'soon'    && <><Clock size={11} /> через {diffDays(student.paymentDue!)} дн.</>}
-            {status === 'pending' && <><Clock size={11} /> до {fmtDate(student.paymentDue!)}</>}
-            {status === 'ok'     && balance > 0 && <><CheckCircle2 size={11} /> баланс {balance} зан.</>}
+            {status === 'overdue' && <><AlertCircle size={11} /> {t('просрочено')} {Math.abs(diffDays(student.paymentDue!))} {t('дн.')}</>}
+            {status === 'soon'    && <><Clock size={11} /> {t('через')} {diffDays(student.paymentDue!)} {t('дн.')}</>}
+            {status === 'pending' && <><Clock size={11} /> {t('до')} {fmtDate(student.paymentDue!)}</>}
+            {status === 'ok'     && balance > 0 && <><CheckCircle2 size={11} /> {t('баланс')} {balance} {t('зан.')}</>}
             {status === 'ok'     && balance <= 0 && '—'}
           </div>
         </div>
@@ -267,7 +270,7 @@ function StudentRow({
           color: balance < 0 ? 'var(--color-red-text)' : balance === 0 ? 'var(--color-text-3)' : 'var(--color-green-text)',
           flexShrink: 0,
         }}>
-          {balance > 0 ? `+${balance}` : balance} зан.
+          {balance > 0 ? `+${balance}` : balance} {t('зан.')}
         </div>
 
         {/* Amount */}
@@ -298,7 +301,7 @@ function StudentRow({
             cursor: 'pointer', flexShrink: 0,
           } as React.CSSProperties}
         >
-          Оплачено
+          {t('Оплачено')}
         </motion.button>
 
         {/* Expand toggle */}
@@ -324,7 +327,7 @@ function StudentRow({
             }}>
               {payments.length === 0 ? (
                 <div style={{ padding: '14px 14px', fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>
-                  История платежей пуста
+                  {t('История платежей пуста')}
                 </div>
               ) : payments.map((p, i) => (
                 <div key={p.id} style={{
@@ -335,7 +338,7 @@ function StudentRow({
                   <CheckCircle2 size={13} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                   <div style={{ flex: 1, fontSize: 12, color: 'var(--color-text-2)' }}>
                     {fmtDate(p.paidAt)}
-                    {p.lessonsPaid > 0 && <span style={{ color: 'var(--color-text-3)' }}> · {p.lessonsPaid} зан.</span>}
+                    {p.lessonsPaid > 0 && <span style={{ color: 'var(--color-text-3)' }}> · {p.lessonsPaid} {t('зан.')}</span>}
                     {p.note && <span style={{ color: 'var(--color-text-3)' }}> · {p.note}</span>}
                   </div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-green-text)' }}>
@@ -363,6 +366,7 @@ function StudentRow({
 // ── Main page ──────────────────────────────────────────────────────────────────
 
 export default function TeacherFinancesPage() {
+  const t = useT()
   const students = useAllStudents()
   const { groups } = useGroups()
   const summary  = useFinanceSummary()
@@ -392,10 +396,10 @@ export default function TeacherFinancesPage() {
   const soonCount    = useMemo(() => studentsWithDue.filter(s => getStatus(s) === 'soon' || getStatus(s) === 'pending').length, [studentsWithDue])
 
   const tabs: { id: FilterTab; label: string; count?: number }[] = [
-    { id: 'all',     label: 'Все' },
-    { id: 'overdue', label: 'Просрочено', count: overdueCount },
-    { id: 'soon',    label: 'На подходе',  count: soonCount },
-    { id: 'paid',    label: 'Оплачено' },
+    { id: 'all',     label: t('Все') },
+    { id: 'overdue', label: t('Просрочено'), count: overdueCount },
+    { id: 'soon',    label: t('На подходе'),  count: soonCount },
+    { id: 'paid',    label: t('Оплачено') },
   ]
 
   // Lifted under the topbar so content melts into the progressive-blur strip
@@ -415,7 +419,7 @@ export default function TeacherFinancesPage() {
               <Wallet size={18} strokeWidth={2} style={{ color: '#fff' }} />
             </div>
             <div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>Финансы</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Финансы')}</div>
               <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>
                 {new Date().toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
               </div>
@@ -433,7 +437,7 @@ export default function TeacherFinancesPage() {
               cursor: 'pointer',
             } as React.CSSProperties}
           >
-            <Plus size={15} /> Платёж
+            <Plus size={15} /> {t('Платёж')}
           </motion.button>
         </div>
 
@@ -446,10 +450,10 @@ export default function TeacherFinancesPage() {
           marginBottom: 20,
         }}>
           {[
-            { label: 'Получено',  value: fmt(summary.received),  color: 'var(--color-green-text)', icon: <CheckCircle2 size={13} /> },
-            { label: 'Ожидается', value: fmt(summary.expected),  color: 'var(--color-text)',        icon: <Clock size={13} /> },
-            { label: 'Долг',      value: fmt(summary.debt),      color: 'var(--color-red-text)',    icon: <AlertCircle size={13} /> },
-            { label: 'Прогноз',   value: fmt(summary.forecast),  color: 'var(--color-text)',        icon: <TrendingUp size={13} /> },
+            { label: t('Получено'),  value: fmt(summary.received),  color: 'var(--color-green-text)', icon: <CheckCircle2 size={13} /> },
+            { label: t('Ожидается'), value: fmt(summary.expected),  color: 'var(--color-text)',        icon: <Clock size={13} /> },
+            { label: t('Долг'),      value: fmt(summary.debt),      color: 'var(--color-red-text)',    icon: <AlertCircle size={13} /> },
+            { label: t('Прогноз'),   value: fmt(summary.forecast),  color: 'var(--color-text)',        icon: <TrendingUp size={13} /> },
           ].map((item, i, arr) => (
             <div key={item.label} style={{
               flex: 1, padding: '14px 8px', textAlign: 'center',
@@ -508,7 +512,7 @@ export default function TeacherFinancesPage() {
             }}>
               <CheckCircle2 size={32} strokeWidth={1.5} style={{ color: 'var(--color-text-3)' }} />
               <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>
-                {filter === 'overdue' ? 'Просрочек нет' : 'Ничего не найдено'}
+                {filter === 'overdue' ? t('Просрочек нет') : t('Ничего не найдено')}
               </div>
             </div>
           ) : (

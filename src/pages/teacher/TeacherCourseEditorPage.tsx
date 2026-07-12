@@ -13,6 +13,7 @@ import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { getContrastColor } from '../../lib/utils'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
+import { useT } from '../../lib/i18n'
 import type { Task as BankTask } from '../../data/taskBankData'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
 import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
@@ -272,6 +273,7 @@ function LeftCourseMeta({
   course: CourseEdData
   setCourse: React.Dispatch<React.SetStateAction<CourseEdData>>
 }) {
+  const t = useT()
   // Title is a textarea so long names wrap onto a 2nd line instead of clipping;
   // auto-grow it to fit its content (1–2+ lines) on mount and on edit.
   const titleRef = useRef<HTMLTextAreaElement>(null)
@@ -290,25 +292,25 @@ function LeftCourseMeta({
         value={course.title}
         onChange={e => setCourse(c => ({ ...c, title: e.target.value }))}
         style={{ ...inputSt, fontSize: 14, fontWeight: 600, padding: '11px 14px', lineHeight: 1.35, resize: 'none', overflow: 'hidden' }}
-        placeholder="Название курса"
+        placeholder={t('Название курса')}
       />
 
       {/* Subject + level */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div>
-          <Label>Предмет</Label>
+          <Label>{t('Предмет')}</Label>
           <TeacherSelect
             value={course.subject}
             options={COURSE_SUBJECTS}
             onChange={v => setCourse(c => ({ ...c, subject: v }))}
-            placeholder="Выберите предмет"
+            placeholder={t('Выберите предмет')}
             clearable={false}
             accent="var(--color-green-text)"
             accentBg="var(--color-green-soft)"
           />
         </div>
         <div>
-          <Label>Уровень</Label>
+          <Label>{t('Уровень')}</Label>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {['ОГЭ', 'ЕГЭ', 'Олимпиада', 'Школа'].map(l => {
               const active = course.level === l
@@ -336,7 +338,7 @@ function LeftCourseMeta({
         value={course.description ?? ''}
         onChange={e => setCourse(c => ({ ...c, description: e.target.value }))}
         style={{ ...inputSt, resize: 'none', minHeight: 160, lineHeight: 1.6 }}
-        placeholder="Описание курса — что разберём, для кого курс, что получит ученик…"
+        placeholder={t('Описание курса — что разберём, для кого курс, что получит ученик…')}
       />
     </OverlayScrollArea>
   )
@@ -370,12 +372,13 @@ function AccessModeSelect({
   onChange: (v: AccessMode) => void
   placeholder?: string
 }) {
+  const t = useT()
   return (
     <TeacherSelect
       value={value}
-      options={ACCESS_MODE_OPTIONS}
+      options={ACCESS_MODE_OPTIONS.map(o => ({ ...o, label: t(o.label) }))}
       onChange={v => onChange(v as AccessMode)}
-      placeholder={placeholder ?? 'Доступ'}
+      placeholder={placeholder ?? t('Доступ')}
       clearable={false}
       small
       accent="var(--color-green-text)"
@@ -397,6 +400,7 @@ function AssignPicker({
   onToggle: (id: string) => void
   kind: 'group' | 'student'
 }) {
+  const t = useT()
   const [q, setQ] = useState('')
   const [expanded, setExpanded] = useState(false)
   const query = q.trim().toLowerCase()
@@ -418,7 +422,7 @@ function AssignPicker({
         <Search size={15} style={{ color: 'var(--color-text-3)' }} />
         <input
           value={q} onChange={e => setQ(e.target.value)}
-          placeholder={kind === 'group' ? 'Поиск группы…' : 'Поиск ученика…'}
+          placeholder={kind === 'group' ? t('Поиск группы…') : t('Поиск ученика…')}
           style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: 'var(--color-text)' }}
         />
         {q && <X size={13} style={{ color: 'var(--color-text-3)', cursor: 'pointer' }} onClick={() => setQ('')} />}
@@ -453,7 +457,7 @@ function AssignPicker({
         })}
         {shown.length === 0 && (
           <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '12px 0' }}>
-            {items.length === 0 ? (kind === 'group' ? 'Групп нет' : 'Ученики не найдены') : 'Ничего не нашлось'}
+            {items.length === 0 ? (kind === 'group' ? t('Групп нет') : t('Ученики не найдены')) : t('Ничего не нашлось')}
           </div>
         )}
       </div>
@@ -464,7 +468,7 @@ function AssignPicker({
           background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)',
           color: 'var(--color-text-2)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
         }}>
-          Показать всех ({hiddenCount})
+          {t('Показать всех')} ({hiddenCount})
         </button>
       )}
       {!query && expanded && (
@@ -473,7 +477,7 @@ function AssignPicker({
           background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)',
           color: 'var(--color-text-2)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
         }}>
-          Свернуть
+          {t('Свернуть')}
         </button>
       )}
     </div>
@@ -490,6 +494,7 @@ function CenterCourseAccess({
   accessModes: Record<string, AccessMode>
   setAccessModes: React.Dispatch<React.SetStateAction<Record<string, AccessMode>>>
 }) {
+  const t = useT()
   const [assignTab, setAssignTab] = useState<'group' | 'student'>('group')
 
   const modeOf = (id: string): AccessMode => accessModes[id] ?? 'by_date'
@@ -536,8 +541,8 @@ function CenterCourseAccess({
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <Users size={15} style={{ color: 'var(--color-green-text)' }} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Кому дать доступ</span>
-            <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>— кому виден весь курс</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Кому дать доступ')}</span>
+            <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('— кому виден весь курс')}</span>
           </div>
 
           {/* Tabs */}
@@ -550,7 +555,7 @@ function CenterCourseAccess({
                 color: assignTab === tab ? 'var(--color-green-text)' : 'var(--color-text-2)',
                 transition: 'all 0.15s', fontFamily: 'inherit',
               }}>
-                {tab === 'group' ? 'Группе' : 'Ученику'}
+                {tab === 'group' ? t('Группе') : t('Ученику')}
               </button>
             ))}
           </div>
@@ -577,7 +582,7 @@ function CenterCourseAccess({
           {(assignedGroups.length > 0 || assignedStudents.length > 0) && (
             <div style={{ marginTop: 14 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', marginBottom: 8 }}>
-                Уровень доступа
+                {t('Уровень доступа')}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {assignedGroups.map(g => {
@@ -592,7 +597,7 @@ function CenterCourseAccess({
                       <AccessModeSelect
                         value={gm === 'mixed' ? '' : gm}
                         onChange={v => setGroupMode(g.id, v)}
-                        placeholder={gm === 'mixed' ? 'Разный' : undefined}
+                        placeholder={gm === 'mixed' ? t('Разный') : undefined}
                       />
                     </div>
                   )
@@ -608,8 +613,8 @@ function CenterCourseAccess({
                 ))}
               </div>
               <div style={{ marginTop: 8, fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.5 }}>
-                <b>Всё открыто</b> — доступны все уроки сразу · <b>Настраиваемый</b> — открываешь уроки вручную ·{' '}
-                <b>По датам</b> — урок открывается, когда наступает его дата (для онгоинг-курса)
+                <b>{t('Всё открыто')}</b> {t('— доступны все уроки сразу ·')} <b>{t('Настраиваемый')}</b> {t('— открываешь уроки вручную ·')}{' '}
+                <b>{t('По датам')}</b> {t('— урок открывается, когда наступает его дата (для онгоинг-курса)')}
               </div>
             </div>
           )}
@@ -634,6 +639,7 @@ function ScheduleCard({
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
 }) {
+  const t = useT()
   const isRec = scope === 'rec'
   const date = isRec ? lesson.recDate : lesson.scheduledDate
   const time = isRec ? lesson.recTime : lesson.scheduledTime
@@ -711,11 +717,11 @@ function ScheduleCard({
   const accent = 'var(--color-green-text)'
   const footerText = isRec
     ? (mirrors
-        ? `Появится у ученика как запись · урок зеркалит эту дату`
-        : `Появится у ученика как запись ${date} в ${time}`)
+        ? t('Появится у ученика как запись · урок зеркалит эту дату')
+        : `${t('Появится у ученика как запись')} ${date} ${t('в')} ${time}`)
     : (lesson.lessonSchedManual
-        ? `Отдельный узел «Урок» ${date} в ${time}`
-        : `Зеркалит «Запись» — пока даты совпадают, это один узел`)
+        ? `${t('Отдельный узел «Урок»')} ${date} ${t('в')} ${time}`
+        : t('Зеркалит «Запись» — пока даты совпадают, это один узел'))
 
   return (
     <div style={{
@@ -730,7 +736,7 @@ function ScheduleCard({
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 14 }}>
         <Calendar size={14} style={{ color: date ? accent : 'var(--color-muted)' }} />
         <span style={{ fontSize: 13, fontWeight: 700, color: date ? 'var(--color-text)' : 'var(--color-text-3)' }}>
-          {isRec ? 'Дата записи' : 'Дата урока'}
+          {isRec ? t('Дата записи') : t('Дата урока')}
         </span>
         {date && (
           <button
@@ -742,18 +748,18 @@ function ScheduleCard({
         )}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <CalendarPicker value={date ?? ''} onChange={setDate} placeholder="Дата" />
+        <CalendarPicker value={date ?? ''} onChange={setDate} placeholder={t('Дата')} />
         <PickerSelect
           value={time ?? ''}
           onChange={setTime}
           icon={Clock}
-          placeholder="Начало"
+          placeholder={t('Начало')}
           allowEmpty
           options={Array.from({ length: 32 }, (_, i) => {
             const h = Math.floor(i / 2) + 7
             const m = i % 2 === 0 ? '00' : '30'
-            const t = `${String(h).padStart(2, '0')}:${m}`
-            return { value: t, label: t }
+            const tm = `${String(h).padStart(2, '0')}:${m}`
+            return { value: tm, label: tm }
           })}
         />
         <PickerSelect
@@ -762,7 +768,7 @@ function ScheduleCard({
           icon={Clock}
           options={[45, 60, 90, 120, 150, 180].map(m => ({
             value: String(m),
-            label: m < 60 ? `${m} мин` : `${m / 60} ч${m % 60 ? ` ${m % 60} м` : ''}`,
+            label: m < 60 ? `${m} ${t('мин')}` : `${m / 60} ${t('ч')}${m % 60 ? ` ${m % 60} ${t('м')}` : ''}`,
           }))}
         />
       </div>
@@ -782,6 +788,7 @@ function CenterRecording({
   lesson: CELesson
   onSaveVideo: (url: string) => void
 }) {
+  const t = useT()
   const [linkMode, setLinkMode] = useState(false)
   const [videoUrl, setVideoUrl] = useState(lesson.videoUrl ?? '')
 
@@ -791,10 +798,10 @@ function CenterRecording({
       <OverlayScrollArea style={{ flex: 1 }} padding="28px 36px">
         <div style={{ maxWidth: 640, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <Label>Запись урока</Label>
+            <Label>{t('Запись урока')}</Label>
             <button onClick={() => { setVideoUrl(lesson.videoUrl ?? ''); setLinkMode(true) }}
               style={{ fontSize: 11, color: 'var(--color-green-text)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
-              Изменить
+              {t('Изменить')}
             </button>
           </div>
           <div style={{
@@ -818,22 +825,22 @@ function CenterRecording({
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
         <div style={{ width: '100%', maxWidth: 480, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <Label>Ссылка на запись</Label>
+          <Label>{t('Ссылка на запись')}</Label>
           <input
             value={videoUrl}
             onChange={e => setVideoUrl(e.target.value)}
-            placeholder="Вставьте ссылку RuTube / YouTube"
+            placeholder={t('Вставьте ссылку RuTube / YouTube')}
             style={{ ...inputSt, fontSize: 14, padding: '12px 16px' }}
             autoFocus
           />
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => setLinkMode(false)}
               style={{ padding: '9px 18px', borderRadius: 12, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-              Отмена
+              {t('Отмена')}
             </button>
             <button onClick={() => { onSaveVideo(videoUrl); setLinkMode(false) }}
               style={{ flex: 1, padding: '9px 18px', borderRadius: 12, border: 'none', background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-              Сохранить
+              {t('Сохранить')}
             </button>
           </div>
         </div>
@@ -848,16 +855,16 @@ function CenterRecording({
           <Video size={32} style={{ color: 'var(--color-green-text)' }} />
         </div>
         <div>
-          <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>Добавьте запись урока</div>
-          <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>После созвона — вставьте ссылку RuTube / YouTube</div>
+          <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>{t('Добавьте запись урока')}</div>
+          <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('После созвона — вставьте ссылку RuTube / YouTube')}</div>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => setLinkMode(true)}
             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: 'none', background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-            <Link2 size={14} /> Вставить ссылку
+            <Link2 size={14} /> {t('Вставить ссылку')}
           </button>
           <button style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 14, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-            <Upload size={14} /> Загрузить файл
+            <Upload size={14} /> {t('Загрузить файл')}
           </button>
         </div>
       </div>
@@ -888,6 +895,7 @@ function CenterLesson({
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
 }) {
+  const t = useT()
   const refWorkbook = useRef<HTMLInputElement>(null)
   const refNotebook = useRef<HTMLInputElement>(null)
   const refMaterial = useRef<HTMLInputElement>(null)
@@ -917,7 +925,7 @@ function CenterLesson({
     <OverlayScrollArea style={{ flex: 1 }} padding="28px 36px">
       <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div>
-          <Label>Название урока</Label>
+          <Label>{t('Название урока')}</Label>
           <input
             value={lesson.title}
             onChange={e => onUpdate({ ...lesson, title: e.target.value })}
@@ -950,9 +958,9 @@ function CenterLesson({
                     <Icon size={18} style={{ color: 'var(--color-green-text)' }} />
                   </div>
                   <div style={{ textAlign: 'center', width: '100%', minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: fileName ? 'var(--color-green-text)' : 'var(--color-text-2)' }}>{label}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: fileName ? 'var(--color-green-text)' : 'var(--color-text-2)' }}>{t(label)}</div>
                     <div style={{ fontSize: 10, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: fileName ? 'var(--color-green-text)' : 'var(--color-muted)' }}>
-                      {fileName ?? 'Загрузить файл'}
+                      {fileName ?? t('Загрузить файл')}
                     </div>
                   </div>
                 </button>
@@ -976,12 +984,12 @@ function CenterLesson({
         </div>
 
         <div>
-          <Label>Описание урока</Label>
+          <Label>{t('Описание урока')}</Label>
           <textarea
             value={lesson.description ?? ''}
             onChange={e => onUpdate({ ...lesson, description: e.target.value })}
             style={{ ...inputSt, resize: 'none', minHeight: 100, lineHeight: 1.6 }}
-            placeholder="Краткое содержание урока, что разобрали, ключевые моменты…"
+            placeholder={t('Краткое содержание урока, что разобрали, ключевые моменты…')}
           />
         </div>
       </div>
@@ -1012,7 +1020,7 @@ function CenterLesson({
                 width: 290, boxShadow: '0 24px 64px rgba(0,0,0,0.35)',
               }}
             >
-              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', marginBottom: 2 }}>Куда добавить файл?</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', marginBottom: 2 }}>{t('Куда добавить файл?')}</div>
               <div style={{
                 fontSize: 11, color: 'var(--color-muted)', wordBreak: 'break-all',
                 padding: '6px 10px', borderRadius: 8, background: 'var(--color-bg-3)', marginBottom: 4,
@@ -1035,13 +1043,13 @@ function CenterLesson({
                   <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Icon size={14} style={{ color: 'var(--color-green-text)' }} />
                   </div>
-                  {label}
-                  {lesson[field] && <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--color-muted)', fontWeight: 400 }}>заменить</span>}
+                  {t(label)}
+                  {lesson[field] && <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--color-muted)', fontWeight: 400 }}>{t('заменить')}</span>}
                 </button>
               ))}
               <button onClick={() => setPastePicker(null)}
                 style={{ padding: '7px', borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-muted)', fontSize: 12, fontFamily: 'inherit', marginTop: 2 }}>
-                Отмена
+                {t('Отмена')}
               </button>
             </motion.div>
           </motion.div>
@@ -1119,8 +1127,8 @@ function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon
   useEffect(() => {
     if (!open) return
     function onDown(e: MouseEvent) {
-      const t = e.target as Node
-      if (ref.current?.contains(t) || popRef.current?.contains(t)) return
+      const tgt = e.target as Node
+      if (ref.current?.contains(tgt) || popRef.current?.contains(tgt)) return
       setOpen(false)
     }
     document.addEventListener('mousedown', onDown)
@@ -1191,7 +1199,9 @@ function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon
   )
 }
 
-function CalendarPicker({ value, onChange, placeholder = 'Выберите дату' }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+function CalendarPicker({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  const t = useT()
+  const ph = placeholder ?? t('Выберите дату')
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const popRef = useRef<HTMLDivElement>(null)
@@ -1220,8 +1230,8 @@ function CalendarPicker({ value, onChange, placeholder = 'Выберите да�
   useEffect(() => {
     if (!open) return
     function onDown(e: MouseEvent) {
-      const t = e.target as Node
-      if (ref.current?.contains(t) || popRef.current?.contains(t)) return
+      const tgt = e.target as Node
+      if (ref.current?.contains(tgt) || popRef.current?.contains(tgt)) return
       setOpen(false)
     }
     document.addEventListener('mousedown', onDown)
@@ -1257,7 +1267,7 @@ function CalendarPicker({ value, onChange, placeholder = 'Выберите да�
       >
         <Calendar size={13} style={{ flexShrink: 0, color: value ? 'var(--color-text)' : 'var(--color-text-3)' }} />
         <span style={{ flex: 1, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400 }}>
-          {value || placeholder}
+          {value || ph}
         </span>
         {value ? (
           <button onClick={e => { e.stopPropagation(); onChange('') }}
@@ -1286,12 +1296,12 @@ function CalendarPicker({ value, onChange, placeholder = 'Выберите да�
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <button style={navBtnSt} onClick={prevMonth}><ChevronLeft size={13} /></button>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{RU_MONTHS_CAL[viewMonth]} {viewYear}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t(RU_MONTHS_CAL[viewMonth])} {viewYear}</span>
               <button style={navBtnSt} onClick={nextMonth}><ChevronRight size={13} /></button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
               {RU_DAYS_SHORT.map(d => (
-                <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: 'var(--color-text-4)', padding: '2px 0' }}>{d}</div>
+                <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: 'var(--color-text-4)', padding: '2px 0' }}>{t(d)}</div>
               ))}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
@@ -1350,6 +1360,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
   onDelete: () => void
   onGripDown?: () => void
 }) {
+  const t = useT()
   const cfg = TASK_TYPES.find(x => x.type === task.type)!
   const [expanded, setExpanded] = useState(true)
   const imgInputRef = useRef<HTMLInputElement>(null)
@@ -1379,10 +1390,10 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
           fontSize: 11, fontWeight: 700, color: cfg.color, background: cfg.bg,
           borderRadius: 7, padding: '2px 8px', flexShrink: 0,
         }}>
-          {index + 1}. {cfg.label}
+          {index + 1}. {t(cfg.label)}
         </div>
         <div style={{ flex: 1, fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {task.question || <span style={{ fontStyle: 'italic' }}>без текста</span>}
+          {task.question || <span style={{ fontStyle: 'italic' }}>{t('без текста')}</span>}
         </div>
         <button
           onClick={e => { e.stopPropagation(); onDelete() }}
@@ -1408,7 +1419,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
               <textarea
                 value={task.question ?? ''}
                 onChange={e => onUpdate({ ...task, question: e.target.value })}
-                placeholder="Условие задания..."
+                placeholder={t('Условие задания...')}
                 style={{ ...inputSt, resize: 'none', minHeight: 72, fontSize: 13, lineHeight: 1.55 }}
               />
 
@@ -1433,7 +1444,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                     ))}
                     <span style={{ fontSize: 11, color: 'var(--color-text-3)', marginLeft: 2 }}>{task.imageSize ?? 100}%</span>
                     <button onClick={() => imgInputRef.current?.click()} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 11, color: 'var(--color-text-3)', fontFamily: 'inherit' }}>
-                      <Camera size={12} /> Заменить
+                      <Camera size={12} /> {t('Заменить')}
                     </button>
                     <button onClick={() => onUpdate({ ...task, image: undefined, imageSize: undefined })} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', color: 'var(--color-text-3)' }}>
                       <X size={12} />
@@ -1446,14 +1457,14 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
               ) : (
                 <button onClick={() => imgInputRef.current?.click()}
                   style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: '1.5px dashed var(--color-border-medium)', background: 'var(--color-bg-2)', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-3)', fontFamily: 'inherit' }}>
-                  <Camera size={13} /> Добавить фото к условию
+                  <Camera size={13} /> {t('Добавить фото к условию')}
                 </button>
               )}
 
               {/* Choice options */}
               {(task.type === 'single' || task.type === 'multi') && (
                 <div>
-                  <Label>Варианты ответа</Label>
+                  <Label>{t('Варианты ответа')}</Label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {choices.map((ch, ci) => {
                       const isCorrect = correctChoices.includes(ci)
@@ -1484,7 +1495,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                           <input
                             value={ch}
                             onChange={e => { const next = [...choices]; next[ci] = e.target.value; onUpdate({ ...task, choices: next }) }}
-                            placeholder={`Вариант ${letter}…`}
+                            placeholder={`${t('Вариант')} ${letter}…`}
                             style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }}
                           />
                         </div>
@@ -1507,7 +1518,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                       onClick={() => onUpdate({ ...task, choices: [...choices, ''] })}
                       style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                     >
-                      <Plus size={12} /> Добавить вариант
+                      <Plus size={12} /> {t('Добавить вариант')}
                     </button>
                   </div>
                 </div>
@@ -1516,21 +1527,21 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
               {/* Match pairs */}
               {task.type === 'matching' && (
                 <div>
-                  <Label>Пары для сопоставления</Label>
+                  <Label>{t('Пары для сопоставления')}</Label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {pairs.map((pair, pi) => (
                       <div key={pi} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <input
                           value={pair.left}
                           onChange={e => { const next = [...pairs]; next[pi] = { ...pair, left: e.target.value }; onUpdate({ ...task, pairs: next }) }}
-                          placeholder={`Левая ${pi + 1}`}
+                          placeholder={`${t('Левая')} ${pi + 1}`}
                           style={{ ...inputSt, flex: 1 }}
                         />
                         <div style={{ color: 'var(--color-text-4)', fontSize: 16, flexShrink: 0 }}>↔</div>
                         <input
                           value={pair.right}
                           onChange={e => { const next = [...pairs]; next[pi] = { ...pair, right: e.target.value }; onUpdate({ ...task, pairs: next }) }}
-                          placeholder={`Правая ${pi + 1}`}
+                          placeholder={`${t('Правая')} ${pi + 1}`}
                           style={{ ...inputSt, flex: 1 }}
                         />
                         {pairs.length > 2 && (
@@ -1547,7 +1558,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                       onClick={() => onUpdate({ ...task, pairs: [...pairs, { left: '', right: '' }] })}
                       style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                     >
-                      <Plus size={12} /> Добавить пару
+                      <Plus size={12} /> {t('Добавить пару')}
                     </button>
                   </div>
                 </div>
@@ -1564,24 +1575,24 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 })
                 return (
                   <div>
-                    <Label>Элементы в правильном порядке</Label>
+                    <Label>{t('Элементы в правильном порядке')}</Label>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {items.map((it, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{i + 1}</span>
-                          <input value={it} onChange={e => { const n = [...items]; n[i] = e.target.value; setItems(n) }} placeholder={`Шаг ${i + 1}`} style={{ ...inputSt, flex: 1 }} />
-                          <button onClick={() => { if (i > 0) { const n = [...items];[n[i - 1], n[i]] = [n[i], n[i - 1]]; setItems(n) } }} disabled={i === 0} style={reorderBtn(i === 0)} title="Выше"><ArrowUp size={12} /></button>
-                          <button onClick={() => { if (i < items.length - 1) { const n = [...items];[n[i + 1], n[i]] = [n[i], n[i + 1]]; setItems(n) } }} disabled={i === items.length - 1} style={reorderBtn(i === items.length - 1)} title="Ниже"><ArrowDown size={12} /></button>
+                          <input value={it} onChange={e => { const n = [...items]; n[i] = e.target.value; setItems(n) }} placeholder={`${t('Шаг')} ${i + 1}`} style={{ ...inputSt, flex: 1 }} />
+                          <button onClick={() => { if (i > 0) { const n = [...items];[n[i - 1], n[i]] = [n[i], n[i - 1]]; setItems(n) } }} disabled={i === 0} style={reorderBtn(i === 0)} title={t('Выше')}><ArrowUp size={12} /></button>
+                          <button onClick={() => { if (i < items.length - 1) { const n = [...items];[n[i + 1], n[i]] = [n[i], n[i + 1]]; setItems(n) } }} disabled={i === items.length - 1} style={reorderBtn(i === items.length - 1)} title={t('Ниже')}><ArrowDown size={12} /></button>
                           {items.length > 2 && (
                             <button onClick={() => setItems(items.filter((_, j) => j !== i))} style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}><X size={11} /></button>
                           )}
                         </div>
                       ))}
                       <button onClick={() => setItems([...items, ''])} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}>
-                        <Plus size={12} /> Добавить шаг
+                        <Plus size={12} /> {t('Добавить шаг')}
                       </button>
                     </div>
-                    <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>Ученик увидит элементы вперемешку и расставит их в этом порядке.</div>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>{t('Ученик увидит элементы вперемешку и расставит их в этом порядке.')}</div>
                   </div>
                 )
               })()}
@@ -1589,7 +1600,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
               {/* Table builder */}
               {task.type === 'tableFill' && (
                 <div>
-                  <Label>Таблица — нажмите «Вписать» в ячейках, куда ученик пишет ответ</Label>
+                  <Label>{t('Таблица — нажмите «Вписать» в ячейках, куда ученик пишет ответ')}</Label>
                   <TableEditor
                     value={task.table ?? { headers: ['Заголовок 1', 'Заголовок 2'], rows: [['', ''], ['', '']] }}
                     onChange={table => onUpdate({ ...task, table })}
@@ -1609,7 +1620,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 }}>
                   <PenLine size={15} style={{ color: 'var(--color-blue-pill-text)', flexShrink: 0 }} />
                   <span style={{ fontSize: 12, color: 'var(--color-blue-pill-text)', fontWeight: 600 }}>
-                    Ученик нарисует решение по этому вопросу на доске
+                    {t('Ученик нарисует решение по этому вопросу на доске')}
                   </span>
                 </div>
               )}
@@ -1619,7 +1630,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 <input
                   value={task.answer ?? ''}
                   onChange={e => onUpdate({ ...task, answer: e.target.value })}
-                  placeholder="Эталонный ответ..."
+                  placeholder={t('Эталонный ответ...')}
                   style={inputSt}
                 />
               )}
@@ -1644,6 +1655,7 @@ function hwFields(hwTab: 'lesson' | 'rec') {
 // ─── Bank picker (collapsible «Из тренажёра» list) ───────────────────────────
 
 function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: boolean }) {
+  const t = useT()
   const bankTasks = useTaskBank(s => s.tasks)
   const loadBank = useTaskBank(s => s.load)
   const [open, setOpen] = useState(false)
@@ -1665,7 +1677,7 @@ function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: b
         padding: '10px 12px', borderRadius: 13, border: `1.5px dashed ${border}`,
         background: accentBg, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, color: accent,
       }}>
-        <BookOpen size={14} /> {open ? 'Скрыть тренажёр' : 'Из тренажёра'}
+        <BookOpen size={14} /> {open ? t('Скрыть тренажёр') : t('Из тренажёра')}
       </button>
       <AnimatePresence initial={false}>
         {open && (
@@ -1679,7 +1691,7 @@ function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: b
                 <input
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder="Поиск задания…"
+                  placeholder={t('Поиск задания…')}
                   style={{ ...inputSt, fontSize: 11.5, padding: '6px 9px 6px 26px' }}
                 />
               </div>
@@ -1692,13 +1704,13 @@ function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: b
                   >
                     <Plus size={11} style={{ flexShrink: 0, marginTop: 2, color: 'var(--color-green-text)' }} />
                     <span style={{ overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                      {bt.questionTable ? '📊 ' : ''}{bt.question || 'Без текста'}
+                      {bt.questionTable ? '📊 ' : ''}{bt.question || t('Без текста')}
                     </span>
                   </button>
                 ))}
                 {filtered.length === 0 && (
                   <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '6px 8px' }}>
-                    {bankTasks.length === 0 ? 'Банк пуст' : 'Ничего не найдено'}
+                    {bankTasks.length === 0 ? t('Банк пуст') : t('Ничего не найдено')}
                   </div>
                 )}
               </OverlayScrollArea>
@@ -1720,6 +1732,7 @@ function HomeworkLeftPanel({
   hwTab: 'lesson' | 'rec'
   setHwTab: (t: 'lesson' | 'rec') => void
 }) {
+  const t = useT()
   const F = hwFields(hwTab)
   const tasks = (lesson[F.tasks] as HWTask[] | undefined) ?? []
 
@@ -1764,17 +1777,17 @@ function HomeworkLeftPanel({
         {([
           { id: 'lesson', label: 'ДЗ урока', n: (lesson.hwTasks ?? []).length },
           { id: 'rec',    label: 'ДЗ записи', n: (lesson.recHwTasks ?? []).length },
-        ] as const).map(t => (
-          <button key={t.id} onClick={() => setHwTab(t.id)} style={{
+        ] as const).map(tt => (
+          <button key={tt.id} onClick={() => setHwTab(tt.id)} style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '7px 8px', borderRadius: 9,
             border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
-            background: hwTab === t.id ? 'var(--color-green-soft)' : 'transparent',
-            color: hwTab === t.id ? 'var(--color-green-text)' : 'var(--color-text-3)',
+            background: hwTab === tt.id ? 'var(--color-green-soft)' : 'transparent',
+            color: hwTab === tt.id ? 'var(--color-green-text)' : 'var(--color-text-3)',
             transition: 'background 0.13s',
           }}>
-            {t.label}
-            {t.n > 0 && (
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: hwTab === t.id ? 'var(--btn-green-bg)' : 'var(--color-bg-3)', color: hwTab === t.id ? '#fff' : 'var(--color-muted)' }}>{t.n}</span>
+            {t(tt.label)}
+            {tt.n > 0 && (
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999, background: hwTab === tt.id ? 'var(--btn-green-bg)' : 'var(--color-bg-3)', color: hwTab === tt.id ? '#fff' : 'var(--color-muted)' }}>{tt.n}</span>
             )}
           </button>
         ))}
@@ -1785,13 +1798,13 @@ function HomeworkLeftPanel({
           value={(lesson[F.title] as string | undefined) ?? ''}
           onChange={e => patch({ [F.title]: e.target.value })}
           style={{ ...inputSt, padding: '7px 10px', fontSize: 12 }}
-          placeholder="Название задания"
+          placeholder={t('Название задания')}
         />
       </div>
       <div>
         <CalendarPicker
           value={(lesson[F.date] as string | undefined) ?? ''}
-          placeholder="Дата сдачи"
+          placeholder={t('Дата сдачи')}
           // Editing the due date by hand detaches it from the lesson/recording date;
           // clearing it re-attaches so it resumes mirroring that date.
           onChange={v => patch({ [F.date]: v, [F.dateManual]: !!v })}
@@ -1802,13 +1815,13 @@ function HomeworkLeftPanel({
 
       {/* Аккордеон: открыта всегда ровно одна секция (тип / сложное). */}
       <AccordionSection
-        title="ТИП ЗАДАНИЯ"
+        title={t('ТИП ЗАДАНИЯ')}
         count={basicCount}
         open={openSection === 'basic'}
         onToggle={() => setOpenSection(s => s === 'basic' ? 'hard' : 'basic')}
       >
-        {TASK_TYPES.map(t => (
-          <button key={t.type} onClick={() => addTask(t.type, false)} title={t.hint} style={{
+        {TASK_TYPES.map(tt => (
+          <button key={tt.type} onClick={() => addTask(tt.type, false)} title={t(tt.hint)} style={{
             display: 'flex', alignItems: 'center', gap: 10,
             padding: '10px 10px', borderRadius: 13,
             border: 'none', background: 'var(--color-bg-2)',
@@ -1818,12 +1831,12 @@ function HomeworkLeftPanel({
           onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
           onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
           >
-            <div style={{ width: 34, height: 34, borderRadius: 9, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <t.Icon size={15} style={{ color: t.color }} />
+            <div style={{ width: 34, height: 34, borderRadius: 9, background: tt.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <tt.Icon size={15} style={{ color: tt.color }} />
             </div>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t.label}</div>
-              <div style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 1 }}>{t.hint}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t(tt.label)}</div>
+              <div style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 1 }}>{t(tt.hint)}</div>
             </div>
           </button>
         ))}
@@ -1833,14 +1846,14 @@ function HomeworkLeftPanel({
       <div style={{ height: 1, background: 'var(--color-border-soft)', margin: '2px 4px' }} />
 
       <AccordionSection
-        title="СЛОЖНОЕ ЗАДАНИЕ"
+        title={t('СЛОЖНОЕ ЗАДАНИЕ')}
         count={hardCount}
         accent="#B45309"
         open={openSection === 'hard'}
         onToggle={() => setOpenSection(s => s === 'hard' ? 'basic' : 'hard')}
       >
-        {hardTaskTypes.map(t => (
-          <button key={t.type + '_hard'} onClick={() => addTask(t.type, true)} style={{
+        {hardTaskTypes.map(tt => (
+          <button key={tt.type + '_hard'} onClick={() => addTask(tt.type, true)} style={{
             display: 'flex', alignItems: 'center', gap: 8,
             padding: '10px 12px', borderRadius: 13,
             border: 'none', background: 'rgba(245,158,11,0.1)',
@@ -1851,7 +1864,7 @@ function HomeworkLeftPanel({
           onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
           >
             <Star size={14} style={{ color: '#F59E0B', fill: '#F59E0B', flexShrink: 0 }} />
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#B45309' }}>{t.label}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#B45309' }}>{t(tt.label)}</span>
           </button>
         ))}
         <BankPicker hard onPick={bt => addFromBank(bt, true)} />
@@ -1924,6 +1937,7 @@ function CenterHomework({
   onUpdate: (updated: CELesson) => void
   hwTab: 'lesson' | 'rec'
 }) {
+  const t = useT()
   const F = hwFields(hwTab)
   const tasks = (lesson[F.tasks] as HWTask[] | undefined) ?? []
 
@@ -1960,7 +1974,7 @@ function CenterHomework({
       {tasks.length === 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 280, gap: 10 }}>
           <BookOpen size={36} style={{ opacity: 0.15, color: 'var(--color-muted)' }} />
-          <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>Выберите тип задания слева</span>
+          <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Выберите тип задания слева')}</span>
         </div>
       ) : (
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -2010,6 +2024,7 @@ function CenterTestView({
   onUpdate: (updated: CELesson) => void
   onBack: () => void
 }) {
+  const t = useT()
   const tasks = lesson.testTasks ?? []
   function removeTask(id: string) { onUpdate({ ...lesson, testTasks: tasks.filter(t => t.id !== id) }) }
   function updateTask(updated: HWTask) { onUpdate({ ...lesson, testTasks: tasks.map(t => t.id === updated.id ? updated : t) }) }
@@ -2020,13 +2035,13 @@ function CenterTestView({
       <div style={{ padding: '10px 16px 12px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 11px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 11, fontWeight: 700 }}>
-            <ClipboardCheck size={12} /> Финальный тест
+            <ClipboardCheck size={12} /> {t('Финальный тест')}
           </div>
         </div>
-        <Label>Название теста</Label>
-        <input value={lesson.title} onChange={e => onUpdate({ ...lesson, title: e.target.value })} style={{ ...inputSt, padding: '8px 11px', fontSize: 13 }} placeholder="Например: Контрольная по модулю 1" />
+        <Label>{t('Название теста')}</Label>
+        <input value={lesson.title} onChange={e => onUpdate({ ...lesson, title: e.target.value })} style={{ ...inputSt, padding: '8px 11px', fontSize: 13 }} placeholder={t('Например: Контрольная по модулю 1')} />
         <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
-          <Unlock size={11} /> Откроется у студента автоматически после прохождения предыдущего модуля
+          <Unlock size={11} /> {t('Откроется у студента автоматически после прохождения предыдущего модуля')}
         </div>
       </div>
 
@@ -2035,7 +2050,7 @@ function CenterTestView({
         {tasks.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 280, gap: 10 }}>
             <ClipboardCheck size={36} style={{ opacity: 0.15, color: 'var(--color-muted)' }} />
-            <span style={{ fontSize: 13, color: 'var(--color-muted)', textAlign: 'center', maxWidth: 240 }}>Выберите тип вопроса слева — составьте сами или возьмите из тренажёра</span>
+            <span style={{ fontSize: 13, color: 'var(--color-muted)', textAlign: 'center', maxWidth: 240 }}>{t('Выберите тип вопроса слева — составьте сами или возьмите из тренажёра')}</span>
           </div>
         ) : (
           <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -2054,6 +2069,7 @@ function TestLeftPanel({ lesson, onUpdate }: {
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
 }) {
+  const t = useT()
   const tasks = lesson.testTasks ?? []
   const addTask = (type: HWTaskType) => onUpdate({ ...lesson, testTasks: [...tasks, makeHWTask(type, false)] })
   const addFromBank = (bt: BankTask) => onUpdate({ ...lesson, testTasks: [...tasks, hwTaskFromBank(bt, false)] })
@@ -2064,9 +2080,9 @@ function TestLeftPanel({ lesson, onUpdate }: {
       padding="16px 14px 18px"
       scrollStyle={{ gap: 10, display: 'flex', flexDirection: 'column' }}
     >
-      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, padding: '0 4px' }}>СОСТАВИТЬ ВОПРОС</div>
-      {TASK_TYPES.map(t => (
-        <button key={t.type} onClick={() => addTask(t.type)} title={t.hint} style={{
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, padding: '0 4px' }}>{t('СОСТАВИТЬ ВОПРОС')}</div>
+      {TASK_TYPES.map(tt => (
+        <button key={tt.type} onClick={() => addTask(tt.type)} title={t(tt.hint)} style={{
           display: 'flex', alignItems: 'center', gap: 10, padding: '10px 10px', borderRadius: 13,
           border: 'none', background: 'var(--color-bg-2)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%',
           transition: 'opacity 0.12s',
@@ -2074,12 +2090,12 @@ function TestLeftPanel({ lesson, onUpdate }: {
           onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
           onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
         >
-          <div style={{ width: 34, height: 34, borderRadius: 9, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <t.Icon size={15} style={{ color: t.color }} />
+          <div style={{ width: 34, height: 34, borderRadius: 9, background: tt.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <tt.Icon size={15} style={{ color: tt.color }} />
           </div>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t.label}</div>
-            <div style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 1 }}>{t.hint}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t(tt.label)}</div>
+            <div style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 1 }}>{t(tt.hint)}</div>
           </div>
         </button>
       ))}
@@ -2121,6 +2137,7 @@ function StudentsLeftPanel({
   groups: Array<{ id: string; name: string }>
   allStudents: Array<{ id: string; name: string; groupId?: string }>
 }) {
+  const t = useT()
   const [addTab, setAddTab] = useState<'group' | 'student'>('student')
   const { ref: choicesRef, fade: choicesFade, thumb: choicesThumb, onScroll: handleChoicesScroll } = useOverlayScroll()
   const [query, setQuery] = useState('')
@@ -2161,7 +2178,7 @@ function StudentsLeftPanel({
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
         <Users size={14} style={{ color: 'var(--color-green-text)' }} />
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Добавить к уроку</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Добавить к уроку')}</span>
       </div>
 
       {/* student / group toggle */}
@@ -2174,7 +2191,7 @@ function StudentsLeftPanel({
             color: addTab === tab ? 'var(--color-green-text)' : 'var(--color-text-3)',
             transition: 'background 0.13s',
           }}>
-            {tab === 'group' ? 'Группа' : 'Ученик'}
+            {tab === 'group' ? t('Группа') : t('Ученик')}
           </button>
         ))}
       </div>
@@ -2183,7 +2200,7 @@ function StudentsLeftPanel({
       <input
         value={query}
         onChange={e => setQuery(e.target.value)}
-        placeholder={addTab === 'student' ? 'Поиск ученика…' : 'Поиск группы…'}
+        placeholder={addTab === 'student' ? t('Поиск ученика…') : t('Поиск группы…')}
         style={{ ...inputSt, padding: '7px 10px', fontSize: 12 }}
       />
 
@@ -2219,7 +2236,7 @@ function StudentsLeftPanel({
         })}
         {addTab === 'student' && studentChoices.length === 0 && (
           <span style={{ fontSize: 11.5, color: 'var(--color-muted)', padding: '4px 2px' }}>
-            {q ? 'Никого не найдено' : 'Все ученики уже в базовой аудитории'}
+            {q ? t('Никого не найдено') : t('Все ученики уже в базовой аудитории')}
           </span>
         )}
 
@@ -2249,7 +2266,7 @@ function StudentsLeftPanel({
         })}
         {addTab === 'group' && groupChoices.length === 0 && (
           <span style={{ fontSize: 11.5, color: 'var(--color-muted)', padding: '4px 2px' }}>
-            {q ? 'Ничего не найдено' : 'Все группы уже в базовой аудитории'}
+            {q ? t('Ничего не найдено') : t('Все группы уже в базовой аудитории')}
           </span>
         )}
         </div>
@@ -2271,6 +2288,7 @@ function CenterLessonStudents({
   accessModes: Record<string, AccessMode>
   setAccessModes: React.Dispatch<React.SetStateAction<Record<string, AccessMode>>>
 }) {
+  const t = useT()
   const {
     extraGroupIds, extraStudentIds,
     courseGroups, courseStudents, extraGroups, extraStudentsList, totalBaseline,
@@ -2311,8 +2329,8 @@ function CenterLessonStudents({
   const baselineEmpty = totalBaseline.size === 0
   const extraEmpty = extraGroups.length === 0 && extraStudentsList.length === 0
   const n = totalReach.size
-  const reachWord = n === 1 ? 'ученик' : n >= 2 && n <= 4 ? 'ученика' : 'учеников'
-  const reachVerb = n === 1 ? 'видит этот урок' : 'видят этот урок'
+  const reachWord = n === 1 ? t('ученик') : n >= 2 && n <= 4 ? t('ученика') : t('учеников')
+  const reachVerb = n === 1 ? t('видит этот урок') : t('видят этот урок')
 
   return (
     <OverlayScrollArea style={{ flex: 1 }} padding="24px 36px">
@@ -2339,13 +2357,13 @@ function CenterLessonStudents({
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-muted)' }} />
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>
-              Базовая аудитория курса
+              {t('Базовая аудитория курса')}
             </span>
-            <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>· {totalBaseline.size} уч.</span>
+            <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>· {totalBaseline.size} {t('уч.')}</span>
           </div>
           {baselineEmpty ? (
             <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>
-              Никто не назначен на курс — задайте аудиторию в настройках курса
+              {t('Никто не назначен на курс — задайте аудиторию в настройках курса')}
             </span>
           ) : (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -2376,11 +2394,11 @@ function CenterLessonStudents({
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-green-text)' }} />
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>
-                Как открываются уроки
+                {t('Как открываются уроки')}
               </span>
             </div>
             <div style={{ fontSize: 11, color: 'var(--color-muted)', marginBottom: 10, marginLeft: 16 }}>
-              Порядок открытия уроков для каждого участника курса
+              {t('Порядок открытия уроков для каждого участника курса')}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {courseGroups.map(g => {
@@ -2397,7 +2415,7 @@ function CenterLessonStudents({
                     <AccessModeSelect
                       value={gm === 'mixed' ? '' : gm}
                       onChange={v => setGroupMode(g.id, v)}
-                      placeholder={gm === 'mixed' ? 'Разный' : undefined}
+                      placeholder={gm === 'mixed' ? t('Разный') : undefined}
                     />
                   </div>
                 )
@@ -2422,8 +2440,8 @@ function CenterLessonStudents({
                 { label: 'Настраиваемый', desc: 'открываешь вручную' },
               ].map(m => (
                 <div key={m.label} style={{ display: 'flex', alignItems: 'baseline', gap: 8, fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.4 }}>
-                  <span style={{ flexShrink: 0, fontWeight: 700, color: 'var(--color-text-3)', minWidth: 96 }}>{m.label}</span>
-                  <span>{m.desc}</span>
+                  <span style={{ flexShrink: 0, fontWeight: 700, color: 'var(--color-text-3)', minWidth: 96 }}>{t(m.label)}</span>
+                  <span>{t(m.desc)}</span>
                 </div>
               ))}
             </div>
@@ -2438,7 +2456,7 @@ function CenterLessonStudents({
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-green-text)' }} />
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
-              Дополнительно для этого урока
+              {t('Дополнительно для этого урока')}
             </span>
             {!extraEmpty && (
               <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>
@@ -2452,7 +2470,7 @@ function CenterLessonStudents({
               padding: '16px 14px', borderRadius: 12, border: '1.5px dashed var(--color-border-medium)',
               fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5, textAlign: 'center',
             }}>
-              Добавьте учеников или группы в панели слева — они получат доступ к&nbsp;этому уроку сверх базовой аудитории курса.
+              {t('Добавьте учеников или группы в панели слева — они получат доступ к этому уроку сверх базовой аудитории курса.')}
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -2463,7 +2481,7 @@ function CenterLessonStudents({
                 }}>
                   <Users size={14} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                   <span style={{ fontSize: 13, fontWeight: 600, flex: 1, color: 'var(--color-green-text)' }}>{g.name}</span>
-                  <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--color-green-text)', opacity: 0.7 }}>группа</span>
+                  <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--color-green-text)', opacity: 0.7 }}>{t('группа')}</span>
                   <button onClick={() => removeExtraGroup(g.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-green-text)', padding: 0, display: 'flex', flexShrink: 0 }}>
                     <X size={13} />
                   </button>
@@ -2500,6 +2518,7 @@ function LessonRow({
   checked?: boolean; multiMode?: boolean; displayIndex?: number
   onClick: (e: React.MouseEvent) => void; onDelete: () => void
 }) {
+  const t = useT()
   return (
     <motion.button
       className="lesson-row"
@@ -2534,17 +2553,17 @@ function LessonRow({
         color: selected ? 'color-mix(in srgb, color-mix(in srgb, var(--color-teal-pill-text) 55%, var(--color-green-text)) 78%, #000)' : 'var(--color-text)',
         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}>
-        {lesson.title || (lesson.kind === 'test' ? 'Тест без названия' : 'Урок без названия')}
+        {lesson.title || (lesson.kind === 'test' ? t('Тест без названия') : t('Урок без названия'))}
       </span>
       {/* Open-for-students badge */}
       {isOpen && (
-        <span title="Открыт ученикам" style={{
+        <span title={t('Открыт ученикам')} style={{
           display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0,
           padding: '2px 7px 2px 5px', borderRadius: 999,
           background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
           fontSize: 10, fontWeight: 700,
         }}>
-          <Unlock size={9} strokeWidth={2.5} /> Открыт
+          <Unlock size={9} strokeWidth={2.5} /> {t('Открыт')}
         </span>
       )}
       {/* Multi-select check → checkmark; selected → trash; otherwise indicator dots */}
@@ -2561,8 +2580,8 @@ function LessonRow({
       ) : selected ? (
         <div
           role="button"
-          aria-label="Удалить"
-          title="Удалить"
+          aria-label={t('Удалить')}
+          title={t('Удалить')}
           onClick={e => { e.stopPropagation(); onDelete() }}
           style={{
             width: 22, height: 22, borderRadius: 6, flexShrink: 0,
@@ -2578,11 +2597,11 @@ function LessonRow({
       ) : (
         <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
           {lesson.kind === 'test'
-            ? (lesson.testTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title="Вопросы" />
+            ? (lesson.testTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title={t('Вопросы')} />
             : <>
-                {lesson.videoUrl && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title="Запись" />}
-                {(lesson.hwTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title="ДЗ" />}
-                {((lesson.extraStudentIds?.length ?? 0) + (lesson.extraGroupIds?.length ?? 0)) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#F59E0B', opacity: 0.7 }} title="Доп. ученики" />}
+                {lesson.videoUrl && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title={t('Запись')} />}
+                {(lesson.hwTasks?.length ?? 0) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-green-text)', opacity: 0.7 }} title={t('ДЗ')} />}
+                {((lesson.extraStudentIds?.length ?? 0) + (lesson.extraGroupIds?.length ?? 0)) > 0 && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#F59E0B', opacity: 0.7 }} title={t('Доп. ученики')} />}
               </>}
         </div>
       )}
@@ -2600,6 +2619,7 @@ function RightPanelLessons({
   openLessonShortIds: Set<string>
   lessonShortIdById: Record<string, string>
 }) {
+  const t = useT()
   const [newTitle, setNewTitle] = useState('')
   const [addingModule, setAddingModule] = useState(false)
   const [newModuleLabel, setNewModuleLabel] = useState('')
@@ -2631,17 +2651,17 @@ function RightPanelLessons({
   }
 
   function addLesson() {
-    const t = newTitle.trim()
-    if (!t) return
+    const title = newTitle.trim()
+    if (!title) return
     const lessonId = uid()
-    appendLesson({ id: lessonId, title: t, number: course.lessons.length + 1 })
+    appendLesson({ id: lessonId, title, number: course.lessons.length + 1 })
     setNewTitle('')
     onSelectLesson(lessonId)
   }
 
   function addTest() {
     const lessonId = uid()
-    appendLesson({ id: lessonId, title: 'Финальный тест', number: course.lessons.length + 1, kind: 'test', testTasks: [] })
+    appendLesson({ id: lessonId, title: t('Финальный тест'), number: course.lessons.length + 1, kind: 'test', testTasks: [] })
     onSelectLesson(lessonId)
   }
 
@@ -2778,8 +2798,8 @@ function RightPanelLessons({
       onDragEnd={clearDrag}
     >
       <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Уроки</span>
-        <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>{course.lessons.length} шт.</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Уроки')}</span>
+        <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>{course.lessons.length} {t('шт.')}</span>
       </div>
 
       {/* Bulk-action bar — visible once one or more lessons are multi-selected */}
@@ -2794,7 +2814,7 @@ function RightPanelLessons({
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', background: 'var(--color-green-soft)' }}>
               <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-green-text)', flex: 1 }}>
-                Выбрано: {selectedIds.size}
+                {t('Выбрано:')} {selectedIds.size}
               </span>
               <div style={{ position: 'relative' }}>
                 <button
@@ -2805,7 +2825,7 @@ function RightPanelLessons({
                     fontSize: 11, fontWeight: 700, fontFamily: 'inherit',
                   }}
                 >
-                  <FolderInput size={12} /> В модуль
+                  <FolderInput size={12} /> {t('В модуль')}
                 </button>
                 <AnimatePresence>
                   {moveMenuOpen && (
@@ -2820,7 +2840,7 @@ function RightPanelLessons({
                       }}
                     >
                       {course.modules.length === 0 ? (
-                        <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '8px 10px' }}>Нет модулей</div>
+                        <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '8px 10px' }}>{t('Нет модулей')}</div>
                       ) : course.modules.map(m => (
                         <button
                           key={m.id}
@@ -2842,18 +2862,18 @@ function RightPanelLessons({
               </div>
               <button
                 onClick={bulkDelete}
-                title="Удалить выбранные"
+                title={t('Удалить выбранные')}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 4, padding: '5px 9px', borderRadius: 8,
                   border: 'none', background: 'rgba(192,48,58,0.14)', color: 'var(--color-red-text)',
                   cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit',
                 }}
               >
-                <Trash2 size={12} /> Удалить
+                <Trash2 size={12} /> {t('Удалить')}
               </button>
               <button
                 onClick={clearSelection}
-                title="Снять выделение"
+                title={t('Снять выделение')}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26,
                   borderRadius: 8, border: 'none', background: 'transparent', color: 'var(--color-text-3)', cursor: 'pointer',
@@ -2911,7 +2931,7 @@ function RightPanelLessons({
                   setActiveModuleId(prev => prev === mod.id ? null : mod.id)
                   if (!mod.expanded) toggleModule(mod.id)
                 }}
-                title="Новые уроки будут добавляться в этот модуль"
+                title={t('Новые уроки будут добавляться в этот модуль')}
                 onDragOver={e => {
                   e.preventDefault()
                   e.stopPropagation()
@@ -2929,7 +2949,7 @@ function RightPanelLessons({
               >
                 <span
                   role="button"
-                  aria-label={mod.expanded ? 'Свернуть' : 'Развернуть'}
+                  aria-label={mod.expanded ? t('Свернуть') : t('Развернуть')}
                   onClick={e => { e.stopPropagation(); toggleModule(mod.id) }}
                   style={{ display: 'flex', flexShrink: 0, cursor: 'pointer', padding: 1, margin: -1 }}
                 >
@@ -2963,7 +2983,7 @@ function RightPanelLessons({
                 ) : (
                   <span
                     onDoubleClick={e => { e.stopPropagation(); setEditingModuleLabel(mod.label); setEditingModuleId(mod.id) }}
-                    title="Двойной клик — переименовать"
+                    title={t('Двойной клик — переименовать')}
                     style={{ flex: 1, fontSize: 12, fontWeight: 700, color: isActive ? 'var(--color-green-text)' : 'var(--color-text)', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                   >
                     {mod.label}
@@ -2971,7 +2991,7 @@ function RightPanelLessons({
                 )}
                 {dragging && isTarget && !mod.expanded && (
                   <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-green-text)', background: 'var(--color-bg)', borderRadius: 999, padding: '2px 6px', flexShrink: 0 }}>
-                    в конец
+                    {t('в конец')}
                   </span>
                 )}
                 <span style={{ fontSize: 10, color: 'var(--color-muted)', flexShrink: 0 }}>{modLessons.length}</span>
@@ -2994,7 +3014,7 @@ function RightPanelLessons({
                     {modLessons.length === 0 ? (
                       isTarget
                         ? <DropLine />
-                        : <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '6px 10px', fontStyle: 'italic' }}>Нет уроков</div>
+                        : <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '6px 10px', fontStyle: 'italic' }}>{t('Нет уроков')}</div>
                     ) : (
                       <>
                         {modLessons.map((l, i) => (
@@ -3028,7 +3048,7 @@ function RightPanelLessons({
 
         {course.lessons.length === 0 && (
           <div style={{ textAlign: 'center', padding: '28px 0', color: 'var(--color-muted)', fontSize: 12 }}>
-            Уроки ещё не добавлены
+            {t('Уроки ещё не добавлены')}
           </div>
         )}
         </div>
@@ -3040,7 +3060,7 @@ function RightPanelLessons({
             <input
               value={newModuleLabel}
               onChange={e => setNewModuleLabel(e.target.value)}
-              placeholder="Название модуля"
+              placeholder={t('Название модуля')}
               style={{ ...inputSt, fontSize: 12, padding: '7px 10px' }}
               autoFocus
               onKeyDown={e => { if (e.key === 'Enter') addModule(); if (e.key === 'Escape') setAddingModule(false) }}
@@ -3048,11 +3068,11 @@ function RightPanelLessons({
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={() => setAddingModule(false)}
                 style={{ flex: 1, padding: '6px 0', borderRadius: 9, border: '1.5px solid var(--color-border)', background: 'transparent', cursor: 'pointer', fontSize: 11, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit' }}>
-                Отмена
+                {t('Отмена')}
               </button>
               <button onClick={addModule}
                 style={{ flex: 1, padding: '6px 0', borderRadius: 9, border: 'none', background: 'var(--color-green-soft)', cursor: 'pointer', fontSize: 11, fontWeight: 700, color: 'var(--color-green-text)', fontFamily: 'inherit' }}>
-                Создать
+                {t('Создать')}
               </button>
             </div>
           </div>
@@ -3062,7 +3082,7 @@ function RightPanelLessons({
               <input
                 value={newTitle}
                 onChange={e => setNewTitle(e.target.value)}
-                placeholder="Название урока…"
+                placeholder={t('Название урока…')}
                 style={{ ...inputSt, fontSize: 12, padding: '7px 10px' }}
                 onKeyDown={e => { if (e.key === 'Enter') addLesson() }}
               />
@@ -3082,7 +3102,7 @@ function RightPanelLessons({
                 cursor: 'pointer', fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontFamily: 'inherit',
               }}>
-                <Layers size={11} /> Модуль
+                <Layers size={11} /> {t('Модуль')}
               </button>
               <button onClick={addTest} style={{
                 flex: 1, padding: '6px 0', borderRadius: 9,
@@ -3090,7 +3110,7 @@ function RightPanelLessons({
                 cursor: 'pointer', fontSize: 11, fontWeight: 600, color: 'var(--color-green-text)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontFamily: 'inherit',
               }}>
-                <ClipboardCheck size={11} /> Тест
+                <ClipboardCheck size={11} /> {t('Тест')}
               </button>
             </div>
           </>
@@ -3112,6 +3132,7 @@ const LESSON_MODES: { id: LessonMode; label: string }[] = [
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function TeacherCourseEditorPage() {
+  const t = useT()
   const { setActivePage, editingCourseJson, setCourseEdited } = useTeacher()
   const { groups } = useGroups()
   const allStudents = useAllStudents()
@@ -3291,7 +3312,7 @@ export default function TeacherCourseEditorPage() {
     const lesson = course.lessons.find(l => l.id === lessonId)
     const hasAudience = course.groupIds.length > 0 || course.studentIds.length > 0
     if (!hasAudience) {
-      setPublishErr('Выберите, кому виден курс (группа или ученик) — иначе урок нельзя открыть.')
+      setPublishErr(t('Выберите, кому виден курс (группа или ученик) — иначе урок нельзя открыть.'))
       return
     }
     if (lesson && !lessonScheduled(lesson)) {
@@ -3715,7 +3736,7 @@ export default function TeacherCourseEditorPage() {
     const ok = await syncAccessToSupabase(clone)
     setHandoutBusy(false)
     if (ok) { setHandoutDone(true); setTimeout(() => setHandoutOpen(false), 1200) }
-    else setPublishErr('Не удалось создать копию курса — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.')
+    else setPublishErr(t('Не удалось создать копию курса — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.'))
   }
 
   function handleSave(overrideCourse?: CourseEdData) {
@@ -3729,7 +3750,7 @@ export default function TeacherCourseEditorPage() {
       setSaving(false)
       clearCourseDraftAfterSync(seq, ok as boolean)
       if (ok) { setPublishErr(null); flash() }
-      else setPublishErr('Не удалось сохранить курс — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.')
+      else setPublishErr(t('Не удалось сохранить курс — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.'))
     })
   }
 
@@ -3745,10 +3766,10 @@ export default function TeacherCourseEditorPage() {
   // lesson — остальные уроки можно оставить без расписания.
   function publishBlocker(c: CourseEdData): string | null {
     const hasAudience = c.groupIds.length > 0 || c.studentIds.length > 0
-    if (!hasAudience) return 'Выберите, кому виден курс (группа или ученик) — иначе можно только сохранить в черновик.'
+    if (!hasAudience) return t('Выберите, кому виден курс (группа или ученик) — иначе можно только сохранить в черновик.')
     const realLessons = c.lessons.filter(l => l.kind !== 'test')
     if (realLessons.length > 0 && !realLessons.some(lessonScheduled)) {
-      return 'Укажите дату и время хотя бы для одного урока — иначе можно только сохранить в черновик.'
+      return t('Укажите дату и время хотя бы для одного урока — иначе можно только сохранить в черновик.')
     }
     return null
   }
@@ -3771,7 +3792,7 @@ export default function TeacherCourseEditorPage() {
       setSaving(false)
       clearCourseDraftAfterSync(seq, ok as boolean)
       if (ok) flash()
-      else setPublishErr('Не удалось опубликовать курс — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.')
+      else setPublishErr(t('Не удалось опубликовать курс — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.'))
     })
   }
 
@@ -3810,7 +3831,7 @@ export default function TeacherCourseEditorPage() {
   // Clear a shown error once the teacher fixes what was missing.
   useEffect(() => { if (!liveBlocker) setPublishErr(null) }, [liveBlocker])
 
-  const courseTitle = course.title || 'Создать курс'
+  const courseTitle = course.title || t('Создать курс')
 
   return (
     <div
@@ -3847,8 +3868,8 @@ export default function TeacherCourseEditorPage() {
                 </button>
               )}
               <TeacherSaveButton
-                label={course.status === 'published' ? 'Сохранить' : 'Опубликовать'}
-                savedLabel={course.status === 'published' ? 'Сохранено!' : 'Опубликовано!'}
+                label={course.status === 'published' ? t('Сохранить') : t('Опубликовать')}
+                savedLabel={course.status === 'published' ? t('Сохранено!') : t('Опубликовано!')}
                 icon={<Send size={14} />}
                 saved={savedFlash}
                 saving={saving}
@@ -3879,7 +3900,7 @@ export default function TeacherCourseEditorPage() {
                 whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
                 onClick={() => setSelectedLessonId(null)}
                 style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                <ChevronLeft size={15} strokeWidth={2} /> Курс
+                <ChevronLeft size={15} strokeWidth={2} /> {t('Курс')}
               </motion.button>
             )}
           </AnimatePresence>
@@ -3890,25 +3911,25 @@ export default function TeacherCourseEditorPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {course.dbCourseId && (
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={openHandout}
-              title="Скопировать курс для другой группы со своим стартом дат"
+              title={t('Скопировать курс для другой группы со своим стартом дат')}
               style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '9px 15px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-              <Copy size={14} strokeWidth={2} /> Выдать группе
+              <Copy size={14} strokeWidth={2} /> {t('Выдать группе')}
             </motion.button>
           )}
           {course.status !== 'published' ? (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={() => handleSave()}
               style={{ padding: '9px 18px', borderRadius: 999, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', ...draftActiveStyle, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 7 }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--color-yellow-text)', flexShrink: 0 }} /> Черновик
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--color-yellow-text)', flexShrink: 0 }} /> {t('Черновик')}
             </motion.button>
           ) : (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={handleUnpublish}
               style={{ padding: '9px 18px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
-              В черновик
+              {t('В черновик')}
             </motion.button>
           )}
           <TeacherSaveButton
-            label={course.status === 'published' ? 'Сохранить' : 'Опубликовать'}
-            savedLabel={course.status === 'published' ? 'Сохранено!' : 'Опубликовано!'}
+            label={course.status === 'published' ? t('Сохранить') : t('Опубликовать')}
+            savedLabel={course.status === 'published' ? t('Сохранено!') : t('Опубликовано!')}
             icon={<Send size={14} />}
             saved={savedFlash}
             saving={saving}
@@ -3932,17 +3953,17 @@ export default function TeacherCourseEditorPage() {
                 <Copy size={17} strokeWidth={2.2} color="var(--color-green-text)" />
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 15.5, fontWeight: 700, color: 'var(--color-text)' }}>Выдать новой группе</div>
-                <div style={{ fontSize: 12.5, color: 'var(--color-muted)' }}>Свежая копия курса — свой старт, ноль прогресса</div>
+                <div style={{ fontSize: 15.5, fontWeight: 700, color: 'var(--color-text)' }}>{t('Выдать новой группе')}</div>
+                <div style={{ fontSize: 12.5, color: 'var(--color-muted)' }}>{t('Свежая копия курса — свой старт, ноль прогресса')}</div>
               </div>
               <button onClick={() => !handoutBusy && setHandoutOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: 4 }}><X size={18} /></button>
             </div>
 
             {/* Group picker */}
-            <div style={{ marginTop: 16, fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 8 }}>Кому выдать</div>
+            <div style={{ marginTop: 16, fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 8 }}>{t('Кому выдать')}</div>
             {handoutGroups.length === 0 ? (
               <div style={{ fontSize: 13, color: 'var(--color-muted)', padding: '10px 12px', background: 'var(--color-bg-3)', borderRadius: 12 }}>
-                Все группы уже назначены на этот курс. Создайте новую группу в разделе «Группы».
+                {t('Все группы уже назначены на этот курс. Создайте новую группу в разделе «Группы».')}
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 200, overflow: 'auto' }}>
@@ -3966,18 +3987,18 @@ export default function TeacherCourseEditorPage() {
             {courseHasDates && (
               <>
                 <div style={{ marginTop: 16, fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Calendar size={14} /> Старт нового потока
+                  <Calendar size={14} /> {t('Старт нового потока')}
                 </div>
                 <input type="date" value={handoutStart} onChange={e => setHandoutStart(e.target.value)}
                   style={{ width: '100%', padding: '10px 12px', borderRadius: 12, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13.5, fontFamily: 'inherit' }} />
                 <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 6 }}>
-                  {handoutStart ? 'Все даты уроков и домашек сдвинутся так, чтобы первый урок был в этот день (интервалы сохранятся).' : 'Оставьте пустым — даты скопируются как есть.'}
+                  {handoutStart ? t('Все даты уроков и домашек сдвинутся так, чтобы первый урок был в этот день (интервалы сохранятся).') : t('Оставьте пустым — даты скопируются как есть.')}
                 </div>
               </>
             )}
 
             {/* Title */}
-            <div style={{ marginTop: 16, fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 8 }}>Название копии</div>
+            <div style={{ marginTop: 16, fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-2)', marginBottom: 8 }}>{t('Название копии')}</div>
             <input value={handoutTitle} onChange={e => setHandoutTitle(e.target.value)}
               style={{ width: '100%', padding: '10px 12px', borderRadius: 12, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 13.5, fontFamily: 'inherit' }} />
 

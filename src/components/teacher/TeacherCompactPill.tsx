@@ -12,6 +12,7 @@ import { useJournalPending } from '../../lib/useGroups'
 import { tactile } from '../../lib/feedback'
 import { mskToVietnam, getContrastColor } from '../../lib/utils'
 import { useNotificationsStore, type Notification } from '../../store/notificationsStore'
+import { useT } from '../../lib/i18n'
 
 const TOPBAR_H = 60
 const COLLAPSED_H = TOPBAR_H
@@ -99,6 +100,7 @@ function PillContent({
 
 // ── Widget 0: Pending homework ─────────────────────────────────────────────
 function PendingHwPreview({ expanded }: { expanded: boolean }) {
+  const t = useT()
   const setActivePage = useTeacher(s => s.setActivePage)
   const { homework } = useHomework()
 
@@ -119,8 +121,8 @@ function PendingHwPreview({ expanded }: { expanded: boolean }) {
           {toCheck > 0 ? toCheck : '✓'}
         </div>
       }
-      kicker="Сегодня · домашки"
-      title={toCheck > 0 ? `${toCheck} работ ждут проверки` : 'Всё проверено — красавец!'}
+      kicker={t('Сегодня · домашки')}
+      title={toCheck > 0 ? `${toCheck} ${t('работ ждут проверки')}` : t('Всё проверено — красавец!')}
       expanded={expanded}
       action={toCheck > 0 ? (
         <button
@@ -138,12 +140,12 @@ function PendingHwPreview({ expanded }: { expanded: boolean }) {
       detail={
         toCheck > 0 ? (
           <div style={{ display: 'flex', gap: 8 }}>
-            <StatBadge label="Заданий" value={`${onReview}`} color="var(--color-peach-text)" bg="var(--color-peach-soft)" />
-            <StatBadge label="Работ" value={`${toCheck}`} color="var(--color-purple-text)" bg="var(--color-purple-soft)" />
+            <StatBadge label={t('Заданий')} value={`${onReview}`} color="var(--color-peach-text)" bg="var(--color-peach-soft)" />
+            <StatBadge label={t('Работ')} value={`${toCheck}`} color="var(--color-purple-text)" bg="var(--color-purple-soft)" />
           </div>
         ) : (
           <span style={{ color: 'var(--color-text-2)', lineHeight: 1.4 }}>
-            Сданные работы появятся здесь автоматически.
+            {t('Сданные работы появятся здесь автоматически.')}
           </span>
         )
       }
@@ -165,6 +167,7 @@ function StatBadge({ label, value, color, bg }: { label: string; value: string; 
 
 // ── Widget 1: Today's schedule ─────────────────────────────────────────────
 function SchedulePreview({ expanded }: { expanded: boolean }) {
+  const t = useT()
   const { schedule: todaySchedule } = useScheduleToday()
   const now = new Date()
   const nowMin = now.getHours() * 60 + now.getMinutes()
@@ -186,8 +189,8 @@ function SchedulePreview({ expanded }: { expanded: boolean }) {
           <BookOpen size={18} />
         </div>
       }
-      kicker="Расписание · сегодня"
-      title={next ? `${next.time} МСК (${mskToVietnam(next.time)} ВН) · ${next.groupName}` : 'Занятий больше нет'}
+      kicker={t('Расписание · сегодня')}
+      title={next ? `${next.time} ${t('МСК')} (${mskToVietnam(next.time)} ${t('ВН')}) · ${next.groupName}` : t('Занятий больше нет')}
       expanded={expanded}
       detail={
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -204,7 +207,7 @@ function SchedulePreview({ expanded }: { expanded: boolean }) {
                   width: 52, flexShrink: 0,
                 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-blue-pill-text)' }}>{s.time}</span>
-                  <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--color-text-3)' }}>{mskToVietnam(s.time)} ВН</span>
+                  <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--color-text-3)' }}>{mskToVietnam(s.time)} {t('ВН')}</span>
                 </span>
                 <span style={{ fontSize: 12, color: 'var(--color-text)', fontWeight: 500 }}>{s.groupName}</span>
                 {s.topic && (
@@ -218,7 +221,7 @@ function SchedulePreview({ expanded }: { expanded: boolean }) {
           })}
           {todaySchedule.length > 3 && (
             <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
-              + ещё {todaySchedule.length - 3} занятий
+              + {t('ещё')} {todaySchedule.length - 3} {t('занятий')}
             </span>
           )}
         </div>
@@ -229,6 +232,7 @@ function SchedulePreview({ expanded }: { expanded: boolean }) {
 
 // ── Widget 2: Lessons awaiting grades + attendance ─────────────────────────
 function PendingGradesPreview({ expanded }: { expanded: boolean }) {
+  const t = useT()
   const pendingJournals = useJournalPending(null)
   const openGradebook = useTeacher(s => s.openGradebook)
   const next = pendingJournals[0]
@@ -247,14 +251,14 @@ function PendingGradesPreview({ expanded }: { expanded: boolean }) {
           <ClipboardList size={18} />
         </div>
       }
-      kicker={pendingJournals.length > 0 ? `Журнал · ${pendingJournals.length} не заполнено` : 'Журнал · за урок'}
-      title={next ? `${next.title} · ${next.scopeName}` : 'Все уроки заполнены'}
+      kicker={pendingJournals.length > 0 ? `${t('Журнал')} · ${pendingJournals.length} ${t('не заполнено')}` : t('Журнал · за урок')}
+      title={next ? `${next.title} · ${next.scopeName}` : t('Все уроки заполнены')}
       expanded={expanded}
       detail={
         pendingJournals.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <span style={{ color: 'var(--color-text-2)', lineHeight: 1.4 }}>
-              Нужно заполнить журнал:
+              {t('Нужно заполнить журнал:')}
             </span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {pendingJournals.slice(0, 5).map(p => (
@@ -285,7 +289,7 @@ function PendingGradesPreview({ expanded }: { expanded: boolean }) {
           </div>
         ) : (
           <span style={{ color: 'var(--color-text-2)', lineHeight: 1.4 }}>
-            Все журналы заполнены — отличная работа!
+            {t('Все журналы заполнены — отличная работа!')}
           </span>
         )
       }
@@ -295,6 +299,7 @@ function PendingGradesPreview({ expanded }: { expanded: boolean }) {
 
 // ── Widget 3: Weekly earnings ──────────────────────────────────────────────
 function EarningsPreview({ expanded }: { expanded: boolean }) {
+  const t = useT()
   return (
     <PillContent
       avatar={
@@ -307,12 +312,12 @@ function EarningsPreview({ expanded }: { expanded: boolean }) {
           <BarChart2 size={18} />
         </div>
       }
-      kicker="Заработок · неделя"
-      title="Нет данных"
+      kicker={t('Заработок · неделя')}
+      title={t('Нет данных')}
       expanded={expanded}
       detail={
         <span style={{ color: 'var(--color-text-2)', lineHeight: 1.4 }}>
-          Данные о заработке появятся здесь позже.
+          {t('Данные о заработке появятся здесь позже.')}
         </span>
       }
     />
@@ -362,6 +367,7 @@ function NotifPreview({ latest, extra, onAction, onClose }: {
   onAction: () => void
   onClose: () => void
 }) {
+  const t = useT()
   const accent = notifColor(latest.type)
   return (
     <PillContent
@@ -374,7 +380,7 @@ function NotifPreview({ latest, extra, onAction, onClose }: {
           {notifIcon(latest.type)}
         </div>
       }
-      kicker="Уведомление"
+      kicker={t('Уведомление')}
       title={latest.title}
       detail={
         <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
@@ -431,12 +437,13 @@ function PreviewById({ widgetId, expanded }: { widgetId: number; expanded: boole
 
 // ── Widget 4: Quick-action pills ──────────────────────────────────────────
 function QuickActionsWidget({ expanded: _expanded }: { expanded: boolean }) {
+  const t = useT()
   const setActivePage = useTeacher(s => s.setActivePage)
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
   const actions = [
-    { icon: BookOpen,      label: 'Создать урок', bg: 'var(--color-green-soft)', iconColor: '#2A9D5C', page: 'lesson-editor'   as const },
-    { icon: ClipboardList, label: 'Создать ДЗ',   bg: 'var(--color-purple-soft)', iconColor: 'var(--color-accent)', page: 'homework-create' as const },
-    { icon: BarChart2,     label: 'Статистика',   bg: 'var(--color-peach-soft)', iconColor: '#C47800', page: 'gradebook'       as const },
+    { icon: BookOpen,      label: t('Создать урок'), bg: 'var(--color-green-soft)', iconColor: '#2A9D5C', page: 'lesson-editor'   as const },
+    { icon: ClipboardList, label: t('Создать ДЗ'),   bg: 'var(--color-purple-soft)', iconColor: 'var(--color-accent)', page: 'homework-create' as const },
+    { icon: BarChart2,     label: t('Статистика'),   bg: 'var(--color-peach-soft)', iconColor: '#C47800', page: 'gradebook'       as const },
   ]
   return (
     <div
@@ -490,6 +497,7 @@ function QuickActionsWidget({ expanded: _expanded }: { expanded: boolean }) {
 
 // ── Main pill ──────────────────────────────────────────────────────────────
 export default function TeacherCompactPill() {
+  const t = useT()
   const { homework: allHomework } = useHomework()
   const hasHwToCheck = allHomework.some(hw => hw.submittedCount - hw.reviewedCount > 0)
 
@@ -767,8 +775,8 @@ export default function TeacherCompactPill() {
           {!notifActive && total > 1 && !expanded && (
             <>
               {[
-                { side: 'left' as const, label: 'Предыдущий', d: -1 },
-                { side: 'right' as const, label: 'Следующий', d: 1 },
+                { side: 'left' as const, label: t('Предыдущий'), d: -1 },
+                { side: 'right' as const, label: t('Следующий'), d: 1 },
               ].map(({ side, label, d }) => (
                 <button
                   key={side}

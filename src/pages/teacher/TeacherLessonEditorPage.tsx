@@ -13,6 +13,7 @@ import type { HomeworkTemplate, Group, Student, ScheduleItem } from '../../data/
 import { useGroups, useAllStudents } from '../../lib/useGroups'
 import { supabase } from '../../lib/supabase'
 import ScrollFade from '../../components/ScrollFade'
+import { useT, t as tGlobal } from '../../lib/i18n'
 
 // ─── Static homework templates (formerly mock data) ────────────────────────────
 
@@ -81,6 +82,7 @@ const RU_MONTHS = ['Январь','Февраль','Март','Апрель','М
 const RU_DAYS_SHORT = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс']
 
 function CalendarPickerLesson({ value, onChange, onClose }: { value: string; onChange: (v: string) => void; onClose: () => void }) {
+  const t = useT()
   const selected = parseDateDot(value)
   const today = new Date()
   const [viewYear, setViewYear] = useState(selected?.getFullYear() ?? today.getFullYear())
@@ -118,12 +120,12 @@ function CalendarPickerLesson({ value, onChange, onClose }: { value: string; onC
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <button onClick={prevMonth} style={navBtnStyle}><ChevronLeft size={14} strokeWidth={2.2} /></button>
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{RU_MONTHS[viewMonth]} {viewYear}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t(RU_MONTHS[viewMonth])} {viewYear}</span>
         <button onClick={nextMonth} style={navBtnStyle}><ChevronRight size={14} strokeWidth={2.2} /></button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
         {RU_DAYS_SHORT.map(d => (
-          <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: '#B0A8CC', paddingBottom: 4 }}>{d}</div>
+          <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: '#B0A8CC', paddingBottom: 4 }}>{t(d)}</div>
         ))}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
@@ -196,7 +198,7 @@ function TimePickerLesson({ value, onChange, onClose }: { value: string; onChang
 
 function fileExt(name: string) {
   const dot = name.lastIndexOf('.')
-  const ext = dot >= 0 ? name.slice(dot + 1).toUpperCase() : 'ФАЙЛ'
+  const ext = dot >= 0 ? name.slice(dot + 1).toUpperCase() : tGlobal('ФАЙЛ')
   return ext.length > 4 ? ext.slice(0, 4) : ext
 }
 
@@ -206,6 +208,7 @@ function UploadTile({
   icon: React.ElementType; label: string
   files: string[]; onAddFiles: (names: string[]) => void; onRemove: (i: number) => void; multiple?: boolean
 }) {
+  const t = useT()
   const has = files.length > 0
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -240,7 +243,7 @@ function UploadTile({
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.2 }}>{label}</p>
           <p style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>
-            {has ? `${files.length} файл${files.length > 1 ? (files.length < 5 ? 'а' : 'ов') : ''}` : 'Загрузить файл'}
+            {has ? `${files.length} ${t('файлов')}` : t('Загрузить файл')}
           </p>
         </div>
         {!has && <Upload size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
@@ -287,6 +290,7 @@ function HwPicker({
   onPick: (t: HomeworkTemplate | null) => void
   onCreateNew: () => void
 }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   // Scroll-driven fade strength (0–1) for the top & bottom edges. Both start at
@@ -341,13 +345,13 @@ function HwPicker({
         }
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 13.5, fontWeight: 700, lineHeight: 1.2 }}>
-            {isBase ? 'Основная домашка' : 'Сложный уровень'}
+            {isBase ? t('Основная домашка') : t('Сложный уровень')}
           </div>
           <div style={{
             fontSize: 11.5, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             color: value ? 'var(--color-green-text)' : 'rgba(255,255,255,0.8)', fontWeight: value ? 600 : 500,
           }}>
-            {value ? `${value.title} · ${value.taskCount} зад.` : 'Выбрать из конструктора'}
+            {value ? `${value.title} · ${value.taskCount} ${t('зад.')}` : t('Выбрать из конструктора')}
           </div>
         </div>
         {value && (
@@ -389,7 +393,7 @@ function HwPicker({
                 autoFocus
                 value={query}
                 onChange={e => setQuery(e.target.value)}
-                placeholder="Поиск шаблона..."
+                placeholder={t('Поиск шаблона...')}
                 style={{
                   width: '100%', boxSizing: 'border-box', padding: `8px ${query ? 30 : 10}px 8px 32px`,
                   borderRadius: 10, border: '1.5px solid rgba(0,0,0,0.08)',
@@ -416,13 +420,13 @@ function HwPicker({
                   <>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px 6px' }}>
                       <Sparkles size={12} style={{ color: 'var(--color-green-text)' }} />
-                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)', letterSpacing: 0.3 }}>ПОДХОДЯТ К УРОКУ</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)', letterSpacing: 0.3 }}>{t('ПОДХОДЯТ К УРОКУ')}</span>
                     </div>
                     {suggested.map(t => (
                       <HwOption key={t.id} t={t} active={value?.id === t.id} suggested onClick={() => { onPick(t); setOpen(false) }} />
                     ))}
                     <div style={{ height: 1, background: 'rgba(0,0,0,0.06)', margin: '6px 8px' }} />
-                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3, padding: '2px 8px 6px' }}>ВСЕ ШАБЛОНЫ</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3, padding: '2px 8px 6px' }}>{t('ВСЕ ШАБЛОНЫ')}</div>
                   </>
                 )}
                 {options.filter(t => !suggestedIds.has(t.id)).map(t => (
@@ -430,7 +434,7 @@ function HwPicker({
                 ))}
                 <div style={{ height: 8 }} />
                 {options.length === 0 && suggested.length === 0 && (
-                  <div style={{ padding: '12px 8px', fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>Ничего не найдено</div>
+                  <div style={{ padding: '12px 8px', fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>{t('Ничего не найдено')}</div>
                 )}
                 {/* Create new */}
                 <div style={{ height: 1, background: 'rgba(0,0,0,0.06)', margin: '6px 4px' }} />
@@ -448,8 +452,8 @@ function HwPicker({
                     <Plus size={15} style={{ color: 'var(--color-green-text)' }} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-green-text)' }}>Создать новую</div>
-                    <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>Перейти в конструктор</div>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-green-text)' }}>{t('Создать новую')}</div>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Перейти в конструктор')}</div>
                   </div>
                 </button>
               </div>
@@ -499,7 +503,7 @@ function HwOption({ t, active, suggested, onClick }: {
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</div>
-        <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{t.subject} · {t.taskCount} зад.</div>
+        <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{t.subject} · {t.taskCount} {tGlobal('зад.')}</div>
       </div>
       {suggested && <Sparkles size={13} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />}
       {active && <Check size={15} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />}
@@ -548,6 +552,7 @@ function HomeworkSelectorCard({
 type Timecode = { time: string; label: string }
 
 function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: Timecode[]) => void }) {
+  const t = useT()
   return (
     <div className="flex flex-col h-full" style={{
       borderRadius: 24, background: 'rgba(var(--glass-rgb), 0.96)',
@@ -556,7 +561,7 @@ function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: 
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
         <ListVideo size={17} style={{ color: 'var(--color-green-text)' }} />
-        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Таймкоды</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Таймкоды')}</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, overflowY: 'auto', scrollbarGutter: 'stable' }}>
         {codes.map((tc, i) => (
@@ -570,7 +575,7 @@ function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: 
             <input
               value={tc.label}
               onChange={e => { const c = [...codes]; c[i] = { ...c[i], label: e.target.value }; onChange(c) }}
-              placeholder="Глава..."
+              placeholder={t('Глава...')}
               style={{ ...inputStyle, flex: 1, padding: '7px 10px' }}
             />
             <button
@@ -583,7 +588,7 @@ function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: 
         ))}
         {codes.length === 0 && (
           <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--color-text-4)', fontSize: 12 }}>
-            Добавьте главы видео
+            {t('Добавьте главы видео')}
           </div>
         )}
       </div>
@@ -596,7 +601,7 @@ function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: 
           fontSize: 12.5, fontWeight: 600, color: 'var(--color-green-text)', fontFamily: 'inherit',
         }}
       >
-        <Plus size={13} /> Таймкод
+        <Plus size={13} /> {t('Таймкод')}
       </button>
     </div>
   )
@@ -605,6 +610,7 @@ function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: 
 // ─── Video zone ────────────────────────────────────────────────────────────────
 
 function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => void }) {
+  const t = useT()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
 
@@ -623,7 +629,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
           <Video size={30} style={{ color: '#fff' }} />
         </div>
         <div style={{ textAlign: 'center', padding: '0 20px' }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Запись прикреплена</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{t('Запись прикреплена')}</div>
           <div style={{ fontSize: 12, color: 'var(--color-border-glass)', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 360, whiteSpace: 'nowrap' }}>{url}</div>
         </div>
         <button
@@ -634,7 +640,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
             color: '#fff', fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit',
           }}
         >
-          <X size={13} /> Удалить
+          <X size={13} /> {t('Удалить')}
         </button>
       </div>
     )
@@ -653,8 +659,8 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
         <Video size={30} style={{ color: 'var(--color-green-text)' }} />
       </div>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>Добавьте запись урока</div>
-        <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>После созвона — вставьте ссылку RuTube, YouTube или свою (ONIX Stream и т.п.)</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>{t('Добавьте запись урока')}</div>
+        <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>{t('После созвона — вставьте ссылку RuTube, YouTube или свою (ONIX Stream и т.п.)')}</div>
       </div>
 
       {editing ? (
@@ -675,7 +681,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
               fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
             }}
           >
-            ОК
+            {t('ОК')}
           </button>
         </div>
       ) : (
@@ -689,7 +695,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
               boxShadow: '0 4px 14px rgba(74,222,128,0.3)',
             }}
           >
-            <Link2 size={15} /> Вставить ссылку
+            <Link2 size={15} /> {t('Вставить ссылку')}
           </button>
           <button
             onClick={() => onChange('https://rutube.ru/video/upload-' + Math.random().toString(36).slice(2, 8))}
@@ -699,7 +705,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
               color: 'var(--color-muted)', fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit',
             }}
           >
-            <Upload size={15} /> Загрузить файл
+            <Upload size={15} /> {t('Загрузить файл')}
           </button>
         </div>
       )}
@@ -725,7 +731,7 @@ function resolveRecipient(r: Recipient, groups: Group[], students: Student[]) {
   if (r.kind === 'group') {
     const g = groups.find(x => x.id === r.id)
     return {
-      name: g?.name ?? 'Группа',
+      name: g?.name ?? tGlobal('Группа'),
       sub: g ? `${g.level} · ${g.subject}` : '',
       icon: g?.icon ?? '👥',
       initials: '',
@@ -736,7 +742,7 @@ function resolveRecipient(r: Recipient, groups: Group[], students: Student[]) {
   const initials = (s?.name ?? '?').split(' ').map(p => p[0]).join('').slice(0, 2)
   const g = s ? groups.find(x => x.id === s.groupId) : undefined
   return {
-    name: s?.name ?? 'Студент',
+    name: s?.name ?? tGlobal('Студент'),
     sub: g?.name ?? '',
     icon: '',
     initials,
@@ -749,6 +755,7 @@ function resolveRecipient(r: Recipient, groups: Group[], students: Student[]) {
 function AudiencePicker({
   recipients, onChange,
 }: { recipients: Recipient[]; onChange: (r: Recipient[]) => void }) {
+  const t = useT()
   const { groups } = useGroups()
   const students = useAllStudents()
   const [open, setOpen] = useState(false)
@@ -785,7 +792,7 @@ function AudiencePicker({
 
   return (
     <div ref={ref}>
-      <Label>Кому</Label>
+      <Label>{t('Кому')}</Label>
 
       {/* Selected chips */}
       {recipients.length > 0 && (
@@ -847,7 +854,7 @@ function AudiencePicker({
           }}
         >
           <Plus size={14} strokeWidth={2.4} />
-          {recipients.length === 0 ? 'Группа или ученик' : 'Добавить ещё'}
+          {recipients.length === 0 ? t('Группа или ученик') : t('Добавить ещё')}
         </button>
 
         <AnimatePresence>
@@ -872,7 +879,7 @@ function AudiencePicker({
                     autoFocus
                     value={query}
                     onChange={e => setQuery(e.target.value)}
-                    placeholder="Поиск группы или ученика…"
+                    placeholder={t('Поиск группы или ученика…')}
                     style={{ ...inputStyle, paddingLeft: 30, paddingRight: query ? 30 : undefined }}
                   />
                   {query && (
@@ -887,7 +894,7 @@ function AudiencePicker({
                 {/* Groups */}
                 {groupMatches.length > 0 && (
                   <>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, padding: '6px 8px 4px' }}>ГРУППЫ</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, padding: '6px 8px 4px' }}>{t('ГРУППЫ')}</div>
                     {groupMatches.map(g => (
                       <button
                         key={g.id}
@@ -912,7 +919,7 @@ function AudiencePicker({
                 {/* Students */}
                 {studentMatches.length > 0 && (
                   <>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, padding: '8px 8px 4px' }}>УЧЕНИКИ</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, padding: '8px 8px 4px' }}>{t('УЧЕНИКИ')}</div>
                     {studentMatches.slice(0, 40).map(s => {
                       const initials = s.name.split(' ').map(p => p[0]).join('').slice(0, 2)
                       const g = groups.find(x => x.id === s.groupId)
@@ -940,7 +947,7 @@ function AudiencePicker({
 
                 {groupMatches.length === 0 && studentMatches.length === 0 && (
                   <div style={{ padding: '20px 8px', textAlign: 'center', fontSize: 12, color: 'var(--color-text-4)' }}>
-                    Ничего не найдено
+                    {t('Ничего не найдено')}
                   </div>
                 )}
               </div>
@@ -953,7 +960,7 @@ function AudiencePicker({
                     background: 'var(--color-bg)', color: 'var(--color-muted)', fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit',
                   }}
                 >
-                  Готово
+                  {t('Готово')}
                 </button>
               </div>
             </motion.div>
@@ -971,6 +978,7 @@ const pickerRow: React.CSSProperties = {
 }
 
 function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>) => void }) {
+  const t = useT()
   const [showCal, setShowCal] = useState(false)
   const [showStartTime, setShowStartTime] = useState(false)
   const [showEndTime, setShowEndTime] = useState(false)
@@ -1008,20 +1016,20 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
       />
 
       <div>
-        <Label>Название урока</Label>
+        <Label>{t('Название урока')}</Label>
         <input
           value={meta.title}
           onChange={e => onChange({ title: e.target.value })}
-          placeholder="Например: Основные оксиды"
+          placeholder={t('Например: Основные оксиды')}
           style={inputStyle}
         />
         <div style={{ fontSize: 10.5, color: 'var(--color-text-4)', marginTop: 4, lineHeight: 1.4 }}>
-          По названию подберём домашки из конструктора
+          {t('По названию подберём домашки из конструктора')}
         </div>
       </div>
 
       <div>
-        <Label>Номер занятия</Label>
+        <Label>{t('Номер занятия')}</Label>
         <input
           value={meta.lessonNumber}
           onChange={e => onChange({ lessonNumber: e.target.value })}
@@ -1031,7 +1039,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
       </div>
 
       <div>
-        <Label>Дата</Label>
+        <Label>{t('Дата')}</Label>
         <div ref={calRef} style={{ position: 'relative' }}>
           <button
             onClick={() => { setShowCal(v => !v); setShowStartTime(false); setShowEndTime(false) }}
@@ -1053,7 +1061,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
       </div>
 
       <div>
-        <Label>Время</Label>
+        <Label>{t('Время')}</Label>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div ref={startRef} style={{ position: 'relative', flex: 1 }}>
             <button
@@ -1101,6 +1109,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
 // ─── Main page ─────────────────────────────────────────────────────────────────
 
 export default function TeacherLessonEditorPage() {
+  const t = useT()
   const setActivePage = useTeacher(s => s.setActivePage)
   const editingScheduleId = useTeacher(s => s.editingScheduleId)
 
@@ -1189,11 +1198,11 @@ export default function TeacherLessonEditorPage() {
     // Gate publish: needs an audience (кому/для кого) and a date + time.
     // Otherwise the teacher can still save it as a draft.
     if (meta.recipients.length === 0) {
-      setPublishErr('Выберите, кому назначить урок (группа или ученик) — иначе можно только сохранить черновик.')
+      setPublishErr(t('Выберите, кому назначить урок (группа или ученик) — иначе можно только сохранить черновик.'))
       return
     }
     if (!meta.date || !meta.startTime) {
-      setPublishErr('Укажите дату и время урока — иначе можно только сохранить черновик.')
+      setPublishErr(t('Укажите дату и время урока — иначе можно только сохранить черновик.'))
       return
     }
     setPublishErr(null)
@@ -1242,10 +1251,10 @@ export default function TeacherLessonEditorPage() {
 
   const backBtn = (
     <>
-      <ArrowLeft size={15} strokeWidth={2} /> Назад
+      <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
     </>
   )
-  const draftLabel = 'Черновик'
+  const draftLabel = t('Черновик')
   // Highlighted "Черновик" look — the lesson is a draft until published.
   const draftActiveStyle = {
     border: '1.5px solid var(--color-yellow-text)',
@@ -1293,7 +1302,7 @@ export default function TeacherLessonEditorPage() {
             maxWidth: '44%', pointerEvents: 'none',
             fontSize: 18, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center',
           }}>
-            {isNew ? 'Создать урок' : 'Урок'}
+            {isNew ? t('Создать урок') : t('Урок')}
             {meta.title && <span style={{ color: 'var(--color-text-3)', fontWeight: 500 }}> — {meta.title}</span>}
           </div>
 
@@ -1308,7 +1317,7 @@ export default function TeacherLessonEditorPage() {
               {!published && draftDot} {draftLabel}
             </button>
             <TeacherSaveButton
-              label="Опубликовать урок" savedLabel="Опубликовано!"
+              label={t('Опубликовать урок')} savedLabel={t('Опубликовано!')}
               icon={<Send size={14} />}
               saved={published} onClick={handlePublish}
             />
@@ -1351,7 +1360,7 @@ export default function TeacherLessonEditorPage() {
                   fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto',
                 }}
               >
-                {meta.title || (isNew ? 'Создать урок' : 'Урок')}
+                {meta.title || (isNew ? t('Создать урок') : t('Урок'))}
               </div>
 
               <div style={{ flexGrow: 1, flexBasis: 0 }} />
@@ -1367,7 +1376,7 @@ export default function TeacherLessonEditorPage() {
                 {!published && draftDot} {draftLabel}
               </button>
               <TeacherSaveButton
-                label="Опубликовать урок" savedLabel="Опубликовано!"
+                label={t('Опубликовать урок')} savedLabel={t('Опубликовано!')}
                 icon={<Send size={14} />}
                 saved={published} onClick={handlePublish}
                 style={{ boxShadow: '0 6px 20px rgba(74,222,128,0.25)', pointerEvents: 'auto' }}
@@ -1416,13 +1425,13 @@ export default function TeacherLessonEditorPage() {
 
             {/* Row 2: materials + homework */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 14, alignItems: 'start' }}>
-              <UploadTile icon={NotebookPen} label="Рабочая тетрадь" files={workbook}
+              <UploadTile icon={NotebookPen} label={t('Рабочая тетрадь')} files={workbook}
                 onAddFiles={names => setWorkbook(f => [...f, ...names])}
                 onRemove={i => setWorkbook(f => f.filter((_, j) => j !== i))} />
-              <UploadTile icon={FileText} label="Конспект" files={notes}
+              <UploadTile icon={FileText} label={t('Конспект')} files={notes}
                 onAddFiles={names => setNotes(f => [...f, ...names])}
                 onRemove={i => setNotes(f => f.filter((_, j) => j !== i))} />
-              <UploadTile icon={FolderOpen} label="Материалы" files={materials} multiple
+              <UploadTile icon={FolderOpen} label={t('Материалы')} files={materials} multiple
                 onAddFiles={names => setMaterials(f => [...f, ...names])}
                 onRemove={i => setMaterials(f => f.filter((_, j) => j !== i))} />
               <HomeworkSelectorCard
@@ -1442,12 +1451,12 @@ export default function TeacherLessonEditorPage() {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <FileText size={17} style={{ color: 'var(--color-green-text)' }} />
-                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Описание урока</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Описание урока')}</span>
               </div>
               <textarea
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                placeholder="Краткое содержание урока, что разобрали, ключевые моменты..."
+                placeholder={t('Краткое содержание урока, что разобрали, ключевые моменты...')}
                 rows={5}
                 style={{ ...inputStyle, resize: 'vertical', minHeight: 120, lineHeight: 1.6, background: 'var(--color-bg-input)' }}
               />

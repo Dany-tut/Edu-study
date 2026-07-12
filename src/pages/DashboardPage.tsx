@@ -23,6 +23,7 @@ import { useStudentPrefsSync } from '../lib/useStudentPrefsSync'
 import { getStudentSession } from '../lib/studentSession'
 import { fetchStudentAssignments, checkAssignmentSubmitted, type TestAssignment } from '../data/diagnosticData'
 import { ClipboardList, ChevronRight } from 'lucide-react'
+import { useT } from '../lib/i18n'
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024)
@@ -327,6 +328,7 @@ const SUBJECT_LABEL: Record<string, string> = {
 }
 
 function AssignedTestsBlock() {
+  const t = useT()
   const session = getStudentSession()
   const [assignments, setAssignments] = useState<(TestAssignment & { done: boolean })[]>([])
 
@@ -363,7 +365,7 @@ function AssignedTestsBlock() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
         <ClipboardList size={14} style={{ color: 'var(--color-accent)' }} />
         <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: 0.4 }}>
-          Назначенные тесты
+          {t('Назначенные тесты')}
         </span>
         <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', borderRadius: 6, padding: '1px 7px' }}>
           {pending.length}
@@ -380,12 +382,12 @@ function AssignedTestsBlock() {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{a.title}</div>
               <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 2 }}>
-                {SUBJECT_LABEL[a.subject] ?? a.subject}
-                {a.dueDate && <span style={{ marginLeft: 8, color: 'var(--color-peach-text)' }}>до {a.dueDate}</span>}
+                {t(SUBJECT_LABEL[a.subject] ?? a.subject)}
+                {a.dueDate && <span style={{ marginLeft: 8, color: 'var(--color-peach-text)' }}>{t('до')} {a.dueDate}</span>}
               </div>
             </div>
             <span style={{ padding: '3px 9px', borderRadius: 8, fontSize: 11, fontWeight: 700, background: a.assignType === 'trial' ? 'rgba(245,166,35,0.12)' : 'var(--color-purple-soft)', color: a.assignType === 'trial' ? '#F5A623' : 'var(--color-purple-text)' }}>
-              {a.assignType === 'trial' ? 'Пробник' : 'Тест'}
+              {a.assignType === 'trial' ? t('Пробник') : t('Тест')}
             </span>
             <ChevronRight size={15} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
           </motion.div>

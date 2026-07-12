@@ -5,6 +5,7 @@ import { useNotificationsStore, type Notification } from '../store/notifications
 import type { NotifType } from '../store/notificationsStore'
 import { useDashboard } from '../store/dashboardStore'
 import { findLessonById } from '../data/lessonContent'
+import { t, useT } from '../lib/i18n'
 import { Bell, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, RotateCcw, Banknote, NotebookPen } from 'lucide-react'
 
 const ICON_MAP: Record<NotifType, React.ReactNode> = {
@@ -31,10 +32,10 @@ function getIcon(type: string) {
 
 function timeAgo(ts: number) {
   const diff = Math.floor((Date.now() - ts) / 1000)
-  if (diff < 60)    return 'только что'
-  if (diff < 3600)  return `${Math.floor(diff / 60)} мин назад`
-  if (diff < 86400) return `${Math.floor(diff / 3600)} ч назад`
-  return `${Math.floor(diff / 86400)} д назад`
+  if (diff < 60)    return t('только что')
+  if (diff < 3600)  return `${Math.floor(diff / 60)} ${t('мин назад')}`
+  if (diff < 86400) return `${Math.floor(diff / 3600)} ${t('ч назад')}`
+  return `${Math.floor(diff / 86400)} ${t('д назад')}`
 }
 
 function NotifRow({ n, onActivate }: { n: Notification; onActivate: (n: Notification) => void }) {
@@ -88,6 +89,7 @@ type Props = {
 }
 
 export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
+  const t = useT()
   const notifications = useNotificationsStore(s => s.notifications)
   const markRead      = useNotificationsStore(s => s.markRead)
   const markAllRead   = useNotificationsStore(s => s.markAllRead)
@@ -183,7 +185,7 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
               <Bell size={15} style={{ color: 'var(--color-muted)' }} />
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
-                Уведомления
+                {t('Уведомления')}
               </span>
               {unread > 0 && (
                 <span style={{
@@ -199,7 +201,7 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
                 fontSize: 11, fontWeight: 600, color: 'var(--color-accent)',
                 background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               }}>
-                Прочитать все
+                {t('Прочитать все')}
               </button>
             )}
           </div>
@@ -220,7 +222,7 @@ export default function NotificationPopup({ open, anchorRef, onClose }: Props) {
             >
               {notifications.length === 0 ? (
                 <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--color-muted)', fontSize: 13 }}>
-                  Нет уведомлений
+                  {t('Нет уведомлений')}
                 </div>
               ) : (
                 notifications.map(n => <NotifRow key={n.id} n={n} onActivate={activate} />)

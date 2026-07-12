@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from './supabase'
+import { t } from './i18n'
 import type { TeacherPage } from '../store/teacherStore'
 
 // ── Nav tabs that can be gated ─────────────────────────────────────────────
@@ -7,12 +8,12 @@ import type { TeacherPage } from '../store/teacherStore'
 export type TeacherTabId = 'home' | 'groups' | 'homework' | 'gradebook' | 'constructor' | 'finances'
 
 export const TEACHER_TABS: { id: TeacherTabId; label: string }[] = [
-  { id: 'home',        label: 'Главная' },
-  { id: 'groups',      label: 'Группы' },
-  { id: 'homework',    label: 'ДЗ' },
-  { id: 'gradebook',   label: 'Журнал' },
-  { id: 'constructor', label: 'Конструктор' },
-  { id: 'finances',    label: 'Финансы' },
+  { id: 'home',        label: t('Главная') },
+  { id: 'groups',      label: t('Группы') },
+  { id: 'homework',    label: t('ДЗ') },
+  { id: 'gradebook',   label: t('Журнал') },
+  { id: 'constructor', label: t('Конструктор') },
+  { id: 'finances',    label: t('Финансы') },
 ]
 
 // Which nav tab a given (sub-)page belongs to. Pages that map to `null` are

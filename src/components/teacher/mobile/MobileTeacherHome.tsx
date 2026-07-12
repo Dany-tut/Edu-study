@@ -19,6 +19,7 @@ import { loadTestAssignments, type TestAssignment } from '../../../data/diagnost
 import { DEMO_TEACHER_HOME, type TeacherHomeModel, type AttentionItem, type AttentionTagKind } from '../../../data/teacherHomeDemo'
 import type { ScheduleItem } from '../../../data/teacherMockData'
 import type { MTab } from './MobileTeacherNav'
+import { useT, t } from '../../../lib/i18n'
 
 const BASE_URL = window.location.origin + window.location.pathname
 const DIAG_SUBJECTS: { id: string; label: string }[] = [
@@ -60,17 +61,17 @@ function deriveAttention(students: any[]): AttentionItem[] {
     if (s.paymentDue && diffDays(s.paymentDue, TODAY) < 0) {
       picked = {
         id: s.id, name: s.name, initials: initialsOf(s.name), contact: s.telegramLink || undefined, tagKind: 'danger', rank: 0,
-        tag: 'долг', sub: `${Math.abs(diffDays(s.paymentDue, TODAY))} дн. просрочки${s.debt ? ` · ${rub(s.debt)}` : ''}`,
+        tag: t('долг'), sub: `${Math.abs(diffDays(s.paymentDue, TODAY))} ${t('дн. просрочки')}${s.debt ? ` · ${rub(s.debt)}` : ''}`,
       }
     } else if ((s.hwScore ?? 100) > 0 && (s.hwScore ?? 100) < 50) {
       picked = {
         id: s.id, name: s.name, initials: initialsOf(s.name), contact: s.telegramLink || undefined, tagKind: 'warning', rank: 1,
-        tag: `балл ${s.hwScore}`, sub: 'низкий результат по ДЗ',
+        tag: `${t('балл')} ${s.hwScore}`, sub: t('низкий результат по ДЗ'),
       }
     } else if ((s.attendance ?? 100) > 0 && (s.attendance ?? 100) < 70) {
       picked = {
         id: s.id, name: s.name, initials: initialsOf(s.name), contact: s.telegramLink || undefined, tagKind: 'warning', rank: 2,
-        tag: 'пропуски', sub: `посещаемость ${s.attendance}%`,
+        tag: t('пропуски'), sub: `${t('посещаемость')} ${s.attendance}%`,
       }
     }
     if (picked) items.push(picked)
@@ -125,6 +126,7 @@ function Hero({ state, review, hard, oldestDays, onOpen }: {
   review: number; hard: number; oldestDays: number
   onOpen: () => void
 }) {
+  const t = useT()
   if (state === 'calm') {
     return (
       <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, background: PAIR.success.bg, padding: '22px 16px', textAlign: 'center' }}>
@@ -133,9 +135,9 @@ function Hero({ state, review, hard, oldestDays, onOpen }: {
           <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--color-bg-1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
             <PartyPopper size={26} style={{ color: PAIR.success.text }} />
           </div>
-          <div style={{ fontSize: 16, fontWeight: 750, color: PAIR.success.text }}>Всё проверено — инбокс пуст</div>
+          <div style={{ fontSize: 16, fontWeight: 750, color: PAIR.success.text }}>{t('Всё проверено — инбокс пуст')}</div>
           <div style={{ fontSize: 12.5, fontWeight: 500, color: PAIR.success.text, opacity: 0.85, marginTop: 4, lineHeight: 1.4 }}>
-            Ни одной работы в очереди. Спокойный день ✨
+            {t('Ни одной работы в очереди. Спокойный день ✨')}
           </div>
         </div>
       </div>
@@ -144,8 +146,8 @@ function Hero({ state, review, hard, oldestDays, onOpen }: {
   const danger = state === 'overdue'
   const pair = danger ? PAIR.error : PAIR.focus
   const sub = danger
-    ? `${hard} сложных · ${review - hard} обычных · старейшая ждёт ${oldestDays} дн.`
-    : `${hard} сложных · ${review - hard} обычных — свежие, без просрочки`
+    ? `${hard} ${t('сложных')} · ${review - hard} ${t('обычных')} · ${t('старейшая ждёт')} ${oldestDays} ${t('дн.')}`
+    : `${hard} ${t('сложных')} · ${review - hard} ${t('обычных')} — ${t('свежие, без просрочки')}`
   return (
     <div style={{ borderRadius: 20, background: pair.bg, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -153,7 +155,7 @@ function Hero({ state, review, hard, oldestDays, onOpen }: {
           <ClipboardCheck size={21} style={{ color: pair.text }} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 15.5, fontWeight: 750, color: pair.text, lineHeight: 1.25 }}>{review} работ ждут проверки</div>
+          <div style={{ fontSize: 15.5, fontWeight: 750, color: pair.text, lineHeight: 1.25 }}>{review} {t('работ ждут проверки')}</div>
           <div style={{ fontSize: 11.5, fontWeight: 500, color: pair.text, opacity: 0.82, marginTop: 2 }}>{sub}</div>
         </div>
       </div>
@@ -163,7 +165,7 @@ function Hero({ state, review, hard, oldestDays, onOpen }: {
         className="cursor-pointer"
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, width: '100%', marginTop: 12, padding: '11px', borderRadius: 12, background: pair.text, color: '#fff', fontSize: 13.5, fontWeight: 700 }}
       >
-        <ArrowRight size={16} /> Проверить сейчас
+        <ArrowRight size={16} /> {t('Проверить сейчас')}
       </motion.button>
     </div>
   )
@@ -173,6 +175,7 @@ function Hero({ state, review, hard, oldestDays, onOpen }: {
 function MoneyStrip({ received, debt, debtorCount, plannedLessons, onOpen }: {
   received: number; debt: number; debtorCount: number; plannedLessons: number; onOpen: () => void
 }) {
+  const t = useT()
   return (
     <motion.button
       whileTap={{ scale: 0.99 }}
@@ -184,14 +187,14 @@ function MoneyStrip({ received, debt, debtorCount, plannedLessons, onOpen }: {
         <Wallet size={18} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-text)' }}>Доход за месяц · {rub(received)}</div>
+        <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-text)' }}>{t('Доход за месяц')} · {rub(received)}</div>
         <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 1 }}>
-          {plannedLessons > 0 ? `ещё ${plannedLessons} занятий по расписанию` : 'нет запланированных занятий'}
+          {plannedLessons > 0 ? `${t('ещё')} ${plannedLessons} ${t('занятий по расписанию')}` : t('нет запланированных занятий')}
         </div>
       </div>
       {debt > 0 && (
         <span style={{ flexShrink: 0, fontSize: 11.5, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: 'var(--color-red-soft)', color: 'var(--color-red-text)' }}>
-          {debtorCount} долг{debtorCount === 1 ? '' : debtorCount < 5 ? 'а' : 'ов'} {rub(debt)}
+          {debtorCount} {debtorCount === 1 ? t('долг') : debtorCount < 5 ? t('долга') : t('долгов')} {rub(debt)}
         </span>
       )}
     </motion.button>
@@ -206,6 +209,7 @@ const statusDot: Record<ScheduleItem['status'], string> = {
 }
 
 function NextLessonCard({ item, onOpen }: { item: ScheduleItem; onOpen: () => void }) {
+  const t = useT()
   return (
     <div style={{ borderRadius: 16, background: 'var(--color-bg-1)', border: '1.5px solid var(--color-purple-soft)', padding: '13px 14px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -214,20 +218,20 @@ function NextLessonCard({ item, onOpen }: { item: ScheduleItem; onOpen: () => vo
           <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 7 }}>
             {item.time} · {item.groupName}
             <span style={{ fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' }}>
-              {item.status === 'live' ? 'идёт' : 'ближайший'}
+              {item.status === 'live' ? t('идёт') : t('ближайший')}
             </span>
           </div>
           <div style={{ fontSize: 11.5, color: 'var(--color-muted)', marginTop: 2 }}>
-            {item.topic}{item.studentCount > 1 ? ` · ${item.studentCount} учеников` : ''}
+            {item.topic}{item.studentCount > 1 ? ` · ${item.studentCount} ${t('учеников')}` : ''}
           </div>
         </div>
       </div>
       <div style={{ display: 'flex', gap: 8, marginTop: 11 }}>
         <motion.button whileTap={{ scale: 0.97 }} onClick={() => { tactile(); onOpen() }} className="cursor-pointer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '8px 0', borderRadius: 10, background: 'var(--color-accent)', color: '#fff', fontSize: 12.5, fontWeight: 700 }}>
-          <Play size={13} /> Открыть
+          <Play size={13} /> {t('Открыть')}
         </motion.button>
         <button className="cursor-pointer" style={{ flex: 1, padding: '8px 0', borderRadius: 10, background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12.5, fontWeight: 600, border: '1px solid var(--color-border-soft)' }}>
-          Материалы
+          {t('Материалы')}
         </button>
       </div>
     </div>
@@ -235,6 +239,7 @@ function NextLessonCard({ item, onOpen }: { item: ScheduleItem; onOpen: () => vo
 }
 
 function ScheduleRow({ item, last }: { item: ScheduleItem; last: boolean }) {
+  const t = useT()
   const done = item.status === 'completed'
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '10px 0', borderBottom: last ? 'none' : '1px solid var(--color-border-soft)' }}>
@@ -242,7 +247,7 @@ function ScheduleRow({ item, last }: { item: ScheduleItem; last: boolean }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text)' }}>{item.time} · {item.groupName}</div>
         <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 1 }}>
-          {done ? 'проведён' : item.topic}
+          {done ? t('проведён') : item.topic}
         </div>
       </div>
       {done
@@ -257,6 +262,7 @@ function AttentionRow({ item, last, onRemind, onOpen }: {
   item: AttentionItem; last: boolean; onRemind: () => void; onOpen: () => void
 }) {
   const c = TAG_COLORS[item.tagKind]
+  const t = useT()
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: last ? 'none' : '1px solid var(--color-border-soft)' }}>
       <div style={{ width: 32, height: 32, borderRadius: '50%', background: c.avBg, color: c.avText, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11.5, fontWeight: 700, flexShrink: 0 }}>{item.initials}</div>
@@ -267,7 +273,7 @@ function AttentionRow({ item, last, onRemind, onOpen }: {
         </div>
         <div style={{ fontSize: 10.5, color: 'var(--color-muted)', marginTop: 1 }}>{item.sub}</div>
       </button>
-      <button onClick={() => { tactile(); onRemind() }} aria-label="Напомнить в Telegram" className="cursor-pointer flex-shrink-0" style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--color-bg-3)', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--color-border-soft)' }}>
+      <button onClick={() => { tactile(); onRemind() }} aria-label={t('Напомнить в Telegram')} className="cursor-pointer flex-shrink-0" style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--color-bg-3)', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--color-border-soft)' }}>
         <Send size={14} />
       </button>
     </div>
@@ -275,6 +281,7 @@ function AttentionRow({ item, last, onRemind, onOpen }: {
 }
 
 function LinkRow({ label, sub, url }: { label: string; sub?: string; url: string }) {
+  const t = useT()
   const [copied, setCopied] = useState(false)
   const copy = () => {
     tactile()
@@ -290,13 +297,14 @@ function LinkRow({ label, sub, url }: { label: string; sub?: string; url: string
       </div>
       <span className="flex items-center flex-shrink-0" style={{ gap: 5, padding: '7px 12px', borderRadius: 999, background: copied ? 'var(--color-green-soft)' : 'var(--color-accent)', color: copied ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700, transition: 'background 0.18s' }}>
         {copied ? <Check size={13} /> : <Copy size={13} />}
-        {copied ? 'Готово' : 'Копировать'}
+        {copied ? t('Готово') : t('Копировать')}
       </span>
     </button>
   )
 }
 
 export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MTab) => void }) {
+  const t = useT()
   const home = useHomeData()
   const { submissions } = useHardSubmissions()
   const finance = useFinanceSummary()
@@ -346,7 +354,7 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
   const topZone = (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
       <GlassPill>
-        <span style={{ fontWeight: 750 }}>{model.name ? `Привет, ${model.name}` : 'Кабинет учителя'}</span>
+        <span style={{ fontWeight: 750 }}>{model.name ? `${t('Привет')}, ${model.name}` : t('Кабинет учителя')}</span>
       </GlassPill>
       <GlassPill>
         <Users size={15} style={{ color: 'var(--color-accent)' }} /> {model.studentTotal}
@@ -380,7 +388,7 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
         {/* 3 — schedule */}
         {model.schedule.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <SectionLabel>Сегодня</SectionLabel>
+            <SectionLabel>{t('Сегодня')}</SectionLabel>
             {nextLesson && <NextLessonCard item={nextLesson} onOpen={() => onNavigate('gradebook')} />}
             {restSchedule.length > 0 && (
               <div style={{ borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', padding: '2px 13px' }}>
@@ -402,8 +410,8 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
           >
             <AlertTriangle size={18} style={{ color: PAIR.warning.text, flexShrink: 0 }} />
             <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: 14, fontWeight: 700, color: PAIR.warning.text }}>Журнал не заполнен</span>
-              <span style={{ display: 'block', fontSize: 12, fontWeight: 500, color: PAIR.warning.text, opacity: 0.82, marginTop: 2 }}>{model.journalPending} урок(а) ждут отметки</span>
+              <span style={{ display: 'block', fontSize: 14, fontWeight: 700, color: PAIR.warning.text }}>{t('Журнал не заполнен')}</span>
+              <span style={{ display: 'block', fontSize: 12, fontWeight: 500, color: PAIR.warning.text, opacity: 0.82, marginTop: 2 }}>{model.journalPending} {t('урок(а) ждут отметки')}</span>
             </span>
             <ChevronRight size={18} style={{ color: PAIR.warning.text, opacity: 0.7, flexShrink: 0 }} />
           </motion.button>
@@ -412,7 +420,7 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
         {/* 4 — attention */}
         {model.attention.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <SectionLabel action="все ›" onAction={() => onNavigate('students')}>Требуют внимания</SectionLabel>
+            <SectionLabel action={t('все ›')} onAction={() => onNavigate('students')}>{t('Требуют внимания')}</SectionLabel>
             <div style={{ borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', padding: '4px 13px' }}>
               {model.attention.map((a, i) => (
                 <AttentionRow
@@ -439,8 +447,8 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
         >
           <Link2 size={18} style={{ color: PAIR.success.text, flexShrink: 0 }} />
           <span style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: 'block', fontSize: 14, fontWeight: 700, color: PAIR.success.text }}>Ссылки на тесты</span>
-            <span style={{ display: 'block', fontSize: 12, fontWeight: 500, color: PAIR.success.text, opacity: 0.82, marginTop: 2 }}>скопировать ученикам — диагностики и назначения</span>
+            <span style={{ display: 'block', fontSize: 14, fontWeight: 700, color: PAIR.success.text }}>{t('Ссылки на тесты')}</span>
+            <span style={{ display: 'block', fontSize: 12, fontWeight: 500, color: PAIR.success.text, opacity: 0.82, marginTop: 2 }}>{t('скопировать ученикам — диагностики и назначения')}</span>
           </span>
           <ChevronRight size={18} style={{ color: PAIR.success.text, opacity: 0.7, flexShrink: 0 }} />
         </button>
@@ -449,30 +457,30 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
           <BookOpen size={17} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
           <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-muted)', lineHeight: 1.35 }}>
-            Полный конструктор курсов, тренажёров и редактор уроков — на компьютере.
+            {t('Полный конструктор курсов, тренажёров и редактор уроков — на компьютере.')}
           </span>
         </div>
       </div>
 
       {/* Test links sheet */}
-      <MobileSheet open={linksOpen} onClose={() => setLinksOpen(false)} title="Ссылки на тесты">
+      <MobileSheet open={linksOpen} onClose={() => setLinksOpen(false)} title={t('Ссылки на тесты')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 8 }}>
           {activeAssignments.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Активные назначения</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{t('Активные назначения')}</div>
               {activeAssignments.map(a => (
-                <LinkRow key={a.id} label={a.title} sub={`${a.assignType === 'trial' ? 'Пробник' : 'Тест'}${a.dueDate ? ` · до ${a.dueDate}` : ''}`} url={diagLink(a.subject, a.id)} />
+                <LinkRow key={a.id} label={a.title} sub={`${a.assignType === 'trial' ? t('Пробник') : t('Тест')}${a.dueDate ? ` · ${t('до')} ${a.dueDate}` : ''}`} url={diagLink(a.subject, a.id)} />
               ))}
             </div>
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Диагностики по предметам</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{t('Диагностики по предметам')}</div>
             {DIAG_SUBJECTS.map(s => (
-              <LinkRow key={s.id} label={s.label} sub="открытая диагностика" url={diagLink(s.id)} />
+              <LinkRow key={s.id} label={t(s.label)} sub={t('открытая диагностика')} url={diagLink(s.id)} />
             ))}
           </div>
           <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.4, padding: '0 2px' }}>
-            Ссылку можно отправить ученику в любом мессенджере — он откроет тест по ней.
+            {t('Ссылку можно отправить ученику в любом мессенджере — он откроет тест по ней.')}
           </div>
         </div>
       </MobileSheet>

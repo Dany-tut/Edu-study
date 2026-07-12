@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Pencil, Plus, RotateCcw, Check } from 'lucide-react'
 import { useDeskStore } from '../../store/deskStore'
 import type { DeskConfig } from '../../lib/useDeskLayouts'
+import { useT } from '../../lib/i18n'
 
 type Props = {
   config: DeskConfig
@@ -22,6 +23,7 @@ const GLASS_STYLE: React.CSSProperties = {
 }
 
 export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDesk, onAddWidget }: Props) {
+  const t = useT()
   const editMode = useDeskStore(s => s.editMode)
   const setEditMode = useDeskStore(s => s.setEditMode)
   const [hovered, setHovered] = useState(false)
@@ -92,7 +94,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
             }}
           >
             <Plus size={12} />
-            Стол
+            {t('Стол')}
           </button>
         </div>
 
@@ -110,7 +112,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
             }}
           >
             <Plus size={14} />
-            Виджет
+            {t('Виджет')}
           </button>
         )}
 
@@ -126,7 +128,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
           }}
         >
           <RotateCcw size={13} />
-          Сбросить
+          {t('Сбросить')}
         </button>
 
         <button
@@ -142,7 +144,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
           }}
         >
           <Check size={14} />
-          Готово
+          {t('Готово')}
         </button>
       </motion.div>
     )
@@ -233,7 +235,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
                 animate={{ opacity: pencilHovered ? 1 : 0, width: pencilHovered ? 32 : 8 }}
                 transition={{ duration: 0.15 }}
                 onClick={() => setEditMode(true)}
-                title="Редактировать столы"
+                title={t('Редактировать столы')}
                 style={{
                   height: 32, borderRadius: 100,
                   border: 'none',

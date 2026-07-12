@@ -10,6 +10,7 @@
  * HomeworkFlow (сдача пишется в lesson_progress по ключу `hw-<id>` / `hw-<id>-hard`).
  */
 import { supabase } from './supabase'
+import { t } from './i18n'
 import type { Subject, Lesson } from '../data/mockData'
 import type { AuthoredHomework, AuthoredHomeworkTask } from '../data/lessonContent'
 import type { HardTaskDef } from './useHomework'
@@ -155,7 +156,7 @@ export async function fetchStandaloneSubject(groupId: string): Promise<Subject |
     .filter(({ homework }) => (homework.hwTasks?.length ?? 0) > 0)
     .map(({ hw, homework, idx }): Lesson => ({
       id: `hw-${hw.id}`,
-      title: hw.title?.trim() || `Домашнее задание ${idx + 1}`,
+      title: hw.title?.trim() || `${t('Домашнее задание')} ${idx + 1}`,
       number: idx + 1,
       status: 'locked',
       shape: 'circle',
@@ -170,10 +171,10 @@ export async function fetchStandaloneSubject(groupId: string): Promise<Subject |
     id: HW_SUBJECT_ID,
     // Таблетка предмета в треке: имя предмета, выбранного при создании ДЗ (из
     // группы). Курс рядом показывается по своему названию — отдельной таблеткой.
-    name: subjectName ? `Домашка · ${subjectName}` : 'Домашние задания',
+    name: subjectName ? `${t('Домашка')} · ${subjectName}` : t('Домашние задания'),
     progress: 0,
     activeModuleId: 1,
     accessMode: 'full', // ноды ДЗ всегда открыты для решения
-    modules: [{ id: 1, label: 'Домашние задания', lessons }],
+    modules: [{ id: 1, label: t('Домашние задания'), lessons }],
   }
 }

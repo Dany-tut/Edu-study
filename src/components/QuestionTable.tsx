@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Minimize2, Maximize2 } from 'lucide-react'
+import { useT } from '../lib/i18n'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // QuestionTable — ONE table renderer for every surface (trainer, homework,
@@ -44,6 +45,7 @@ export default function QuestionTable({
   blankAsInput?: boolean
   disabled?: boolean
 }) {
+  const t = useT()
   // Mobile only: false = scroll (natural), true = shrink-to-fit (scaled down).
   const [compact, setCompact] = useState(false)
   const [atStart, setAtStart] = useState(true)
@@ -133,7 +135,7 @@ export default function QuestionTable({
           value={getVal(key)}
           onChange={e => putVal(key, e.target.value)}
           disabled={disabled}
-          placeholder="Впиши…"
+          placeholder={t('Впиши…')}
           style={{ width: '100%', minWidth: 84, boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', padding: cellPad, fontFamily: 'inherit', fontSize: mobile ? 16 : 13, color: 'var(--color-accent)', fontWeight: 600 }}
         />
       )
@@ -224,7 +226,7 @@ export default function QuestionTable({
       {mobile && (
         <motion.button
           onClick={() => setCompact(v => !v)}
-          aria-label={compact ? 'Показать в натуральную величину' : 'Вписать в экран'}
+          aria-label={compact ? t('Показать в натуральную величину') : t('Вписать в экран')}
           whileTap={{ scale: 0.9 }}
           animate={{ opacity: scaled ? 0.4 : 1 }}
           transition={{ duration: 0.2 }}

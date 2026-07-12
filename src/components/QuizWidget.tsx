@@ -5,6 +5,7 @@ import { quizTimeLimit, type QuizAnswer } from '../data/mockData'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
 import SpoilerText from './SpoilerText'
+import { useT } from '../lib/i18n'
 
 function shuffleAnswers(id: string, answers: QuizAnswer[]): QuizAnswer[] {
   let seed = 0x811c9dc5
@@ -42,6 +43,7 @@ const cardStyle: React.CSSProperties = {
 type Props = { active?: boolean; columns?: number }
 
 export default function QuizWidget({ active = true, columns = 1 }: Props) {
+  const t = useT()
   const scale = columns >= 3 ? 0.82 : columns >= 2 ? 0.9 : 1
   const padX = 22 * scale
   const padY = 18 * scale
@@ -167,7 +169,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
           <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1 }}>
             {correct}/{TOTAL}
           </div>
-          <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4 }}>правильных ответов</div>
+          <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4 }}>{t('правильных ответов')}</div>
         </div>
         {/* Result dots row */}
         <div className="flex items-center gap-1 flex-wrap justify-center" style={{ maxWidth: 260 }}>
@@ -191,7 +193,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
             color: '#fff', fontSize: 13.5, fontWeight: 650, lineHeight: 1,
           }}
         >
-          Начать заново
+          {t('Начать заново')}
         </motion.button>
       </div>
     )
@@ -207,7 +209,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
         <div className="flex min-w-0 flex-1 flex-col items-start" style={{ gap: compact ? 6 : 8 }}>
           {!compact && (
             <span style={{ fontSize: 12 * scale, fontWeight: 650, color: 'var(--color-accent)', background: 'var(--color-purple-soft)', padding: '5px 12px', borderRadius: 999, lineHeight: 1, flexShrink: 0 }}>
-              Викторина дня
+              {t('Викторина дня')}
             </span>
           )}
           {compact && (
@@ -233,14 +235,14 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
           <div className="flex-shrink-0 flex items-center gap-2">
             <Clock size={16} style={{ color: timerPct < 30 ? '#F48B91' : 'var(--color-muted)' }} />
             <span style={{ fontSize: 14, fontWeight: 650, color: timerPct < 30 ? '#F48B91' : 'var(--color-muted)', minWidth: 46 }}>
-              {timeLeft} сек
+              {timeLeft} {t('сек')}
             </span>
             <motion.button
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.96 }}
               onClick={handleStop}
               style={{ width: 30, height: 30, borderRadius: 999, flexShrink: 0, background: 'var(--color-bg-3)', color: 'var(--color-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-              aria-label="Остановить"
+              aria-label={t('Остановить')}
             >
               <Pause size={15} fill="currentColor" />
             </motion.button>
@@ -274,12 +276,12 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
               borderRadius: 16, color: '#fff', fontSize: 14 * scale, fontWeight: 650, lineHeight: 1, cursor: 'pointer',
             }}
           >
-            {quizResumeIndex > 0 ? 'Продолжить' : 'Начать'}
+            {quizResumeIndex > 0 ? t('Продолжить') : t('Начать')}
           </motion.button>
           <span style={{ fontSize: 14, color: 'var(--color-muted)' }}>
             {quizResumeIndex > 0
-              ? `Остановлено на вопросе ${quizResumeIndex + 1} из ${TOTAL}`
-              : `${TOTAL} ${TOTAL === 1 ? 'вопрос' : TOTAL >= 2 && TOTAL <= 4 ? 'вопроса' : 'вопросов'} · ${quizTimeLimit} сек на каждый`}
+              ? `${t('Остановлено на вопросе')} ${quizResumeIndex + 1} ${t('из')} ${TOTAL}`
+              : `${TOTAL} ${TOTAL === 1 ? t('вопрос') : TOTAL >= 2 && TOTAL <= 4 ? t('вопроса') : t('вопросов')} · ${quizTimeLimit} ${t('сек на каждый')}`}
           </span>
         </div>
       )}
@@ -316,7 +318,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
               onClick={() => goToQuestion(current - 1)}
               disabled={current === 0}
               style={{ width: 26, height: 26, borderRadius: 999, flexShrink: 0, background: 'var(--color-bg-3)', color: 'var(--color-muted)', cursor: current === 0 ? 'default' : 'pointer', opacity: current === 0 ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              aria-label="Предыдущий вопрос"
+              aria-label={t('Предыдущий вопрос')}
             >
               <ChevronLeft size={16} />
             </motion.button>
@@ -326,7 +328,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
                 <button
                   key={q.id}
                   onClick={() => goToQuestion(i)}
-                  aria-label={`Вопрос ${i + 1}`}
+                  aria-label={`${t('Вопрос')} ${i + 1}`}
                   className="cursor-pointer"
                   style={{ width: i === current ? 18 : 7, height: 7, borderRadius: 999, background: dotColor(i), transition: 'width 0.3s ease, background 0.3s ease' }}
                 />
@@ -339,7 +341,7 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
               onClick={() => goToQuestion(current + 1)}
               disabled={current === TOTAL - 1}
               style={{ width: 26, height: 26, borderRadius: 999, flexShrink: 0, background: 'var(--color-bg-3)', color: 'var(--color-muted)', cursor: current === TOTAL - 1 ? 'default' : 'pointer', opacity: current === TOTAL - 1 ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              aria-label="Следующий вопрос"
+              aria-label={t('Следующий вопрос')}
             >
               <ChevronRight size={16} />
             </motion.button>
@@ -370,10 +372,10 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
             </span>
             <p style={{ fontSize: 15, fontWeight: 650, lineHeight: 1.35, color: quizState === 'timeout' ? 'var(--color-red-text)' : results[current] === 'correct' ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>
               {quizState === 'timeout'
-                ? 'Время вышло'
+                ? t('Время вышло')
                 : results[current] === 'correct'
-                  ? `Верно: ${shuffledAnswers.find(a => a.id === selectedAnswer)?.text ?? ''}`
-                  : `Неверно: ${shuffledAnswers.find(a => a.id === selectedAnswer)?.text ?? ''}`}
+                  ? `${t('Верно')}: ${shuffledAnswers.find(a => a.id === selectedAnswer)?.text ?? ''}`
+                  : `${t('Неверно')}: ${shuffledAnswers.find(a => a.id === selectedAnswer)?.text ?? ''}`}
             </p>
           </motion.div>
         )}

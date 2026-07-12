@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, Reorder } from 'framer-motion'
 import { X, GripVertical, Minus, Plus, BarChart2, CalendarDays, ClipboardCheck, Bell, CreditCard, Users, BookOpen, type LucideIcon } from 'lucide-react'
+import { useT } from '../../lib/i18n'
 
 type Widget = {
   id: string
@@ -34,6 +35,7 @@ function WidgetIcon({ icon: Icon, bg, color }: { icon: LucideIcon; bg: string; c
 }
 
 export default function WidgetsModal({ onClose }: { onClose: () => void }) {
+  const t = useT()
   const [widgets, setWidgets] = useState<Widget[]>(DEFAULT_WIDGETS)
 
   const visible  = widgets.filter(w => w.visible)
@@ -76,10 +78,10 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
             <div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)' }}>Виджеты</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text)' }}>{t('Виджеты')}</div>
               <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4, lineHeight: 1.4 }}>
-                Перетащите за ручку, чтобы изменить порядок.<br />
-                Скрытые — ниже черты.
+                {t('Перетащите за ручку, чтобы изменить порядок.')}<br />
+                {t('Скрытые — ниже черты.')}
               </div>
             </div>
             <button
@@ -114,7 +116,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                 >
                   <GripVertical size={16} color="#C0C0CC" style={{ flexShrink: 0 }} />
                   <WidgetIcon icon={w.icon} bg={w.bg} color={w.color} />
-                  <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>{w.label}</span>
+                  <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>{t(w.label)}</span>
                   <button
                     onClick={() => toggle(w.id)}
                     style={{
@@ -137,7 +139,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                 fontSize: 11, fontWeight: 600, color: '#A0A0AC', letterSpacing: '0.08em',
                 textAlign: 'center', margin: '16px 0 10px',
               }}>
-                СКРЫТЫЕ
+                {t('СКРЫТЫЕ')}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {hidden.map(w => (
@@ -155,7 +157,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                     <div>
                       <WidgetIcon icon={w.icon} bg={w.bg} color={w.color} />
                     </div>
-                    <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: 'var(--color-muted)' }}>{w.label}</span>
+                    <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: 'var(--color-muted)' }}>{t(w.label)}</span>
                     <button
                       onClick={() => toggle(w.id)}
                       style={{
@@ -181,7 +183,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                 background: 'rgba(var(--glass-rgb), 0.6)', fontSize: 14, fontWeight: 600, color: 'var(--color-text-2)', cursor: 'pointer',
               }}
             >
-              Отмена
+              {t('Отмена')}
             </button>
             <button
               onClick={onClose}
@@ -191,7 +193,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                 fontSize: 14, fontWeight: 600, cursor: 'pointer',
               }}
             >
-              Готово
+              {t('Готово')}
             </button>
           </div>
         </motion.div>

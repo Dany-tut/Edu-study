@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Home, Users, ClipboardCheck, CheckSquare, User } from 'lucide-react'
 import { tactile } from '../../../lib/feedback'
 import { useNavCollapse } from '../../../lib/useNavCollapse'
+import { useT } from '../../../lib/i18n'
 
 // Shared ease/duration for the scroll collapse (matches the student dock).
 const COLLAPSE = { duration: 0.28, ease: [0.32, 0.72, 0, 1] as const }
@@ -33,6 +34,7 @@ export default function MobileTeacherNav({
   reviewBadge?: number
   hidden?: MTab[]
 }) {
+  const t = useT()
   const visibleItems = items.filter(item => !hidden.includes(item.id))
   const collapsed = useNavCollapse()
   return (
@@ -73,7 +75,7 @@ export default function MobileTeacherNav({
               onClick={() => { if (item.id !== active) { tactile(); onChange(item.id) } }}
               className="flex flex-col items-center justify-center cursor-pointer px-3 py-2"
               style={{ minWidth: 44, minHeight: 44, position: 'relative' }}
-              aria-label={item.label}
+              aria-label={t(item.label)}
             >
               <div style={{ position: 'relative' }}>
                 <Icon
@@ -102,7 +104,7 @@ export default function MobileTeacherNav({
                   fontWeight: isActive ? 600 : 500,
                   color: isActive ? 'var(--color-accent)' : 'var(--color-muted)',
                 }}>
-                {item.label}
+                {t(item.label)}
               </motion.span>
             </motion.button>
           )

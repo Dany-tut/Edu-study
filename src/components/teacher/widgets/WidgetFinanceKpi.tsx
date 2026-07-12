@@ -1,5 +1,6 @@
 import { TrendingUp, Clock, AlertCircle, Sparkles } from 'lucide-react'
 import { useFinanceSummary } from '../../../lib/useFinances'
+import { useT } from '../../../lib/i18n'
 
 function fmt(n: number) {
   return n.toLocaleString('ru-RU')
@@ -58,38 +59,39 @@ function KpiCard({ icon: Icon, label, value, sub, accentBg, accentColor }: KpiCa
 
 export default function WidgetFinanceKpi() {
   const s = useFinanceSummary()
+  const t = useT()
 
   return (
     <div style={{ width: '100%', height: '100%', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
       <KpiCard
         icon={TrendingUp}
-        label="Получено"
+        label={t('Получено')}
         value={`${fmt(s.received)} ₽`}
-        sub="в этом месяце"
+        sub={t('в этом месяце')}
         accentBg="var(--color-green-soft)"
         accentColor="var(--color-green-text)"
       />
       <KpiCard
         icon={Clock}
-        label="Ожидается"
+        label={t('Ожидается')}
         value={`${fmt(s.expected)} ₽`}
-        sub="не оплачено"
+        sub={t('не оплачено')}
         accentBg="var(--color-peach-soft)"
         accentColor="#C07020"
       />
       <KpiCard
         icon={AlertCircle}
-        label="Долг"
+        label={t('Долг')}
         value={`${fmt(s.debt)} ₽`}
-        sub={s.debt > 0 ? 'просрочено' : 'долгов нет'}
+        sub={s.debt > 0 ? t('просрочено') : t('долгов нет')}
         accentBg={s.debt > 0 ? 'var(--color-red-soft)' : 'var(--color-green-soft)'}
         accentColor={s.debt > 0 ? 'var(--color-red-text)' : 'var(--color-green-text)'}
       />
       <KpiCard
         icon={Sparkles}
-        label="Прогноз"
+        label={t('Прогноз')}
         value={`${fmt(s.forecast)} ₽`}
-        sub="до конца месяца"
+        sub={t('до конца месяца')}
         accentBg="var(--color-purple-soft)"
         accentColor="var(--color-accent)"
       />

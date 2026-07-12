@@ -9,6 +9,7 @@ import GroupStrip from '../../components/teacher/GroupStrip'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import { useGroups, useStudents, useAttendance, useGroupLessons, useLessonRoster, useJournalPending } from '../../lib/useGroups'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
+import { useT } from '../../lib/i18n'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -100,6 +101,7 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 
 // ─── Attendance tab ────────────────────────────────────────────────────────────
 function AttendanceTab({ groupId }: { groupId: string | null }) {
+  const t = useT()
   const { students: groupStudents } = useStudents(groupId)
   const { records } = useAttendance(groupId)
 
@@ -116,7 +118,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
     <Card>
       {dates.length === 0 && groupStudents.length === 0 ? (
         <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--color-text-3)', fontSize: 13 }}>
-          Нет данных — выберите группу и отметьте посещаемость
+          {t('Нет данных — выберите группу и отметьте посещаемость')}
         </div>
       ) : (
         <ScrollFadeTable>
@@ -128,7 +130,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                   color: 'var(--color-text-3)', borderBottom: '1px solid var(--color-border-soft)',
                   position: 'sticky', left: 0, background: 'var(--color-surface)', zIndex: 1, whiteSpace: 'nowrap',
                 }}>
-                  Студент
+                  {t('Студент')}
                 </th>
                 {dates.map(d => (
                   <th key={d} style={{
@@ -143,7 +145,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
                   padding: '10px 14px', textAlign: 'center', fontSize: 11, fontWeight: 700,
                   color: 'var(--color-accent)', borderBottom: '1px solid var(--color-border-soft)', whiteSpace: 'nowrap',
                 }}>
-                  Итого
+                  {t('Итого')}
                 </th>
               </tr>
             </thead>
@@ -227,6 +229,7 @@ function AttendanceTab({ groupId }: { groupId: string | null }) {
 
 // ─── Scores tab ────────────────────────────────────────────────────────────────
 function ScoresTab({ groupId }: { groupId: string | null }) {
+  const t = useT()
   const { students: groupStudents } = useStudents(groupId)
 
   const avgHw = Math.round(groupStudents.reduce((a, s) => a + s.hwScore, 0) / groupStudents.length)
@@ -245,14 +248,14 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
                 color: 'var(--color-text-3)', borderBottom: '1px solid var(--color-border-soft)',
                 position: 'sticky', left: 0, background: 'var(--color-bg-2)', zIndex: 1,
               }}>
-                Студент
+                {t('Студент')}
               </th>
               {['ДЗ', 'Тесты', 'Пробник', 'Цель', 'Посещ.'].map(col => (
                 <th key={col} style={{
                   padding: '10px 16px', textAlign: 'center', fontSize: 11, fontWeight: 700,
                   color: 'var(--color-text-3)', borderBottom: '1px solid var(--color-border-soft)', whiteSpace: 'nowrap',
                 }}>
-                  {col}
+                  {t(col)}
                 </th>
               ))}
             </tr>
@@ -307,7 +310,7 @@ function ScoresTab({ groupId }: { groupId: string | null }) {
                 background: 'var(--color-purple-soft)', zIndex: 1,
                 fontSize: 11, fontWeight: 700, color: 'var(--color-accent)',
               }}>
-                Среднее
+                {t('Среднее')}
               </td>
               <td style={{ padding: '10px 16px', textAlign: 'center' }}>
                 <ScorePill value={avgHw} />
@@ -370,6 +373,7 @@ function GradeButton({ value, selected, onMouseDown, onMouseEnter }: {
 }
 
 function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: string | null; onClose: () => void; initialLessonId?: string }) {
+  const t = useT()
   const { groups } = useGroups()
   const { saveLesson, records } = useAttendance(groupId)
   const lessons = useGroupLessons(groupId)
@@ -417,7 +421,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
   }, [isoDate, groupStudents.length, records.length])
 
   const accent = lessonGroup?.color ?? 'var(--color-accent)'
-  const headerName = selectedLesson?.scopeName || lessonGroup?.name || 'Все группы'
+  const headerName = selectedLesson?.scopeName || lessonGroup?.name || t('Все группы')
 
   const isPresent = (id: string) => present[id] ?? true
 
@@ -450,7 +454,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
       setSaved(true)
       setTimeout(onClose, 900)
     } catch (e: any) {
-      setSaveError(e?.message ?? 'Ошибка сохранения')
+      setSaveError(e?.message ?? t('Ошибка сохранения'))
     }
   }
 
@@ -495,10 +499,10 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
               <span style={{ fontSize: 11, color: 'var(--color-text-3)', fontWeight: 600 }}>{dateLabel}</span>
             </div>
             <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>
-              Оценки за урок
+              {t('Оценки за урок')}
             </h2>
             <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--color-text-3)' }}>
-              Присутствовало {presentCount} из {groupStudents.length} · оценок выставлено {gradedCount}
+              {t('Присутствовало')} {presentCount} {t('из')} {groupStudents.length} · {t('оценок выставлено')} {gradedCount}
             </p>
           </div>
           <button
@@ -516,22 +520,22 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
         {/* Lesson picker — grades & attendance are recorded against this lesson */}
         <div style={{ padding: '12px 24px', borderBottom: '1px solid var(--color-border-soft)' }}>
           <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3, display: 'block', marginBottom: 6 }}>
-            УРОК
+            {t('УРОК')}
           </span>
           {lessons.length === 0 ? (
             <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>
-              Нет уроков в расписании — оценки запишутся на сегодня ({dateLabel})
+              {t('Нет уроков в расписании — оценки запишутся на сегодня')} ({dateLabel})
             </div>
           ) : (
             <TeacherSelect
               value={lessonId}
               onChange={setLessonId}
-              placeholder="Выберите урок"
+              placeholder={t('Выберите урок')}
               options={lessons.map(l => {
                 const [, m, d] = l.date.split('-')
                 const titlePart = l.title && l.title !== String(l.lessonNumber) ? ` — ${l.title}` : ''
                 const scopePart = l.scopeName ? ` · ${l.scopeName}` : ''
-                return { value: l.id, label: `${d}.${m} · Урок ${l.lessonNumber}${titlePart}${scopePart}` }
+                return { value: l.id, label: `${d}.${m} · ${t('Урок')} ${l.lessonNumber}${titlePart}${scopePart}` }
               })}
             />
           )}
@@ -544,9 +548,9 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
           background: 'var(--color-bg-2)',
           borderBottom: '1px solid var(--color-border-soft)',
         }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3 }}>СТУДЕНТ</span>
-          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3, textAlign: 'center' }}>ПРИСУТСТВИЕ</span>
-          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3, paddingLeft: 16 }}>ОЦЕНКА ЗА УРОК</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3 }}>{t('СТУДЕНТ')}</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3, textAlign: 'center' }}>{t('ПРИСУТСТВИЕ')}</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3, paddingLeft: 16 }}>{t('ОЦЕНКА ЗА УРОК')}</span>
         </div>
 
         {/* Student list — continuous drag tracking via mousemove + elementFromPoint */}
@@ -660,10 +664,10 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
               background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}
           >
-            Отмена
+            {t('Отмена')}
           </button>
           <TeacherSaveButton
-            label="Сохранить" savedLabel="Сохранено"
+            label={t('Сохранить')} savedLabel={t('Сохранено')}
             saved={saved} onClick={handleSave}
           />
         </div>
@@ -674,6 +678,7 @@ function LessonGradeModal({ groupId, onClose, initialLessonId }: { groupId: stri
 
 // ─── Main page ─────────────────────────────────────────────────────────────────
 export default function TeacherGradebookPage() {
+  const t = useT()
   const [activeTab, setActiveTab] = useState<'attendance' | 'scores'>('attendance')
   const activeGroupId = useTeacher(s => s.selectedGroupId)
   const setActiveGroupId = useTeacher(s => s.setSelectedGroupId)
@@ -715,8 +720,8 @@ export default function TeacherGradebookPage() {
 
   const tabConfig: TabConfig = {
     tabs: [
-      { id: 'attendance', label: 'Посещаемость' },
-      { id: 'scores', label: 'Оценки' },
+      { id: 'attendance', label: t('Посещаемость') },
+      { id: 'scores', label: t('Оценки') },
     ],
     activeTab,
     onTabChange: (id) => setActiveTab(id as 'attendance' | 'scores'),
@@ -752,7 +757,7 @@ export default function TeacherGradebookPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 11 }}>
               <Clock size={17} style={{ color: 'var(--color-yellow-text)' }} />
               <span style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--color-text)' }}>
-                Журнал не заполнен · {pendingJournals.length} {pluralRu(pendingJournals.length, 'урок', 'урока', 'уроков')}
+                {t('Журнал не заполнен')} · {pendingJournals.length} {pluralRu(pendingJournals.length, t('урок'), t('урока'), t('уроков'))}
               </span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
@@ -773,7 +778,7 @@ export default function TeacherGradebookPage() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {p.scopeName || p.title || 'Урок'}
+                        {p.scopeName || p.title || t('Урок')}
                       </div>
                       <div style={{ fontSize: 11.5, color: 'var(--color-muted)' }}>
                         {dd}.{mm}{p.timeStart ? ` · ${p.timeStart}` : ''}{p.title && p.scopeName ? ` · ${p.title}` : ''}
@@ -788,7 +793,7 @@ export default function TeacherGradebookPage() {
                         boxShadow: '0 2px 10px rgba(246,228,122,0.35)',
                       }}
                     >
-                      Заполнить
+                      {t('Заполнить')}
                     </motion.button>
                   </div>
                 )
@@ -837,7 +842,7 @@ export default function TeacherGradebookPage() {
           }}
         >
           <Download size={14} strokeWidth={2} />
-          Экспорт CSV
+          {t('Экспорт CSV')}
         </motion.button>
       </motion.div>
 

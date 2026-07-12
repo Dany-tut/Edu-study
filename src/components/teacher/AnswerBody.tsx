@@ -1,6 +1,7 @@
 import WhiteboardCanvas from './WhiteboardCanvas'
 import { Image as ImageIcon, PenLine } from 'lucide-react'
 import { sanitizeHtml } from '../../lib/sanitizeHtml'
+import { useT } from '../../lib/i18n'
 
 // Тело ответа ученика: текст/HTML + фото + доска. ОДИН источник разметки для
 // страницы проверки (учитель) и для возврата (ученик) — чтобы живая разметка
@@ -24,6 +25,7 @@ export default function AnswerBody({
   onZoomPhoto?: (src: string) => void
   photosClickable?: boolean
 }) {
+  const t = useT()
   const isHtml = !!comment && /<\/?[a-z][\s\S]*>/i.test(comment)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
@@ -43,7 +45,7 @@ export default function AnswerBody({
 
       {!!photos?.length && (
         <div>
-          <Label><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ImageIcon size={13} /> Фото · {photos.length}</span></Label>
+          <Label><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ImageIcon size={13} /> {t('Фото')} · {photos.length}</span></Label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
             {photos.map((src, i) => (
               <button
@@ -61,7 +63,7 @@ export default function AnswerBody({
 
       {board && (
         <div>
-          <Label><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><PenLine size={13} /> Доска</span></Label>
+          <Label><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><PenLine size={13} /> {t('Доска')}</span></Label>
           <WhiteboardCanvas readOnly initialData={board} />
         </div>
       )}

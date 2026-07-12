@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { t } from './i18n'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -50,5 +51,5 @@ export function formatMskVn(hhmm: string | null | undefined): string {
   if (!hhmm) return ''
   const msk = hhmm.trim()
   if (!/^\d{1,2}:\d{2}/.test(msk)) return msk
-  return `${msk} МСК (${mskToVietnam(msk)} Вьетнам)`
+  return `${msk} ${t('МСК')} (${mskToVietnam(msk)} ${t('Вьетнам')})`
 }

@@ -14,6 +14,7 @@ import { useFloatingPill } from '../lib/useFloatingPill'
 import { playTransitionDrop } from '../lib/sound'
 import { EMOJI_STEPS } from './HomeworkFlow'
 import HardStarLottie from './HardStarLottie'
+import { useT } from '../lib/i18n'
 
 const NODE_SIZE = 56
 const DETAIL_CARD_WIDTH = 340
@@ -52,6 +53,7 @@ const detailStyles: Record<LessonStatus, { bg: string; badgeBg: string; badgeTex
 }
 
 function TrackForSubject({ subject }: { subject: Subject }) {
+  const t = useT()
   const { activeModuleId, setActiveModule, setTrackPopoverOpen, openLesson, openHomeworkForLesson, highlightLessonId, lessonAssessments } = useDashboard()
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null)
   const [selectedHardLessonId, setSelectedHardLessonId] = useState<string | null>(null)
@@ -382,12 +384,12 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                             : <DetailIcon size={14} />
                           }
                           <span style={{ fontSize: 13, fontWeight: 500, lineHeight: 1, whiteSpace: 'nowrap' }}>
-                            {selectedLesson.kind === 'test' ? 'финальный тест' : selectedDetail.badgeLabel}
+                            {selectedLesson.kind === 'test' ? t('финальный тест') : t(selectedDetail.badgeLabel)}
                           </span>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <span style={{ fontSize: 12, fontWeight: 500, color: selectedDetail.badgeText, lineHeight: 1 }}>
-                            Занятие #{selectedLesson.number + 1}
+                            {t('Занятие')} #{selectedLesson.number + 1}
                             {fmtLessonDate(selectedLesson.scheduledDate) && (
                               <span style={{ color: 'var(--color-muted)', fontWeight: 500 }}> · {fmtLessonDate(selectedLesson.scheduledDate)}</span>
                             )}
@@ -412,7 +414,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                           return (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                               <span style={{ fontSize: 18 }}>{EMOJI_STEPS[a.emojiIndex].emoji}</span>
-                              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-accent)' }}>{a.score} баллов</span>
+                              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-accent)' }}>{a.score} {t('баллов')}</span>
                               <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>· {EMOJI_STEPS[a.emojiIndex].label}</span>
                             </div>
                           )
@@ -425,12 +427,12 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                               {selectedLesson.points}
                             </span>
                             <span style={{ fontSize: 14, fontWeight: 600, lineHeight: 1, color: selectedDetail.textColor, marginTop: 4 }}>
-                              баллов
+                              {t('баллов')}
                             </span>
                           </div>
                         ) : (
                           <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)' }}>
-                            Нет оценки
+                            {t('Нет оценки')}
                           </span>
                         )}
                       </div>
@@ -450,7 +452,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                         width: 'fit-content',
                       }}
                     >
-                      Недоступно
+                      {t('Недоступно')}
                     </span>
                   ) : (
                     <div style={{ display: 'flex', flexWrap: 'nowrap', gap: 8, width: '100%' }}>
@@ -472,7 +474,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                           flex: 1,
                         }}
                       >
-                        {selectedLesson.kind === 'test' ? 'Пройти тест' : 'Открыть урок'}
+                        {selectedLesson.kind === 'test' ? t('Пройти тест') : t('Открыть урок')}
                       </motion.button>
                       {(() => {
                         const a = lessonAssessments[selectedLesson.id]
@@ -502,7 +504,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                             }}
                           >
                             <HardStarLottie size={26} />
-                            Хард-уровень
+                            {t('Хард-уровень')}
                           </motion.button>
                         )
                       })()}
@@ -585,7 +587,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                         lineHeight: 1.25,
                       }}
                     >
-                      Сложный уровень · {selectedHardLesson.title}
+                      {t('Сложный уровень')} · {selectedHardLesson.title}
                     </span>
 
                     {/* Score row — оценка 1–5, которую учитель выставил при приёмке хард-задания.
@@ -611,11 +613,11 @@ function TrackForSubject({ subject }: { subject: Subject }) {
 
                     {/* Description */}
                     <span style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5 }}>
-                      {hardStatus === 'available' && 'Ты набрал достаточно баллов, чтобы попробовать сложный уровень. Это необязательное задание, но оно принесёт тебе звезду.'}
-                      {hardStatus === 'submitted' && 'Работа отправлена на проверку. Преподаватель проверит её и даст обратную связь.'}
-                      {hardStatus === 'returned' && 'Преподаватель вернул работу на доработку. Открой урок, чтобы прочитать комментарии и исправить ошибки.'}
-                      {hardStatus === 'completed' && 'Сложный уровень принят! Ты отлично справился с заданием повышенной сложности.'}
-                      {hardStatus === 'locked' && 'Сложный уровень откроется, когда ты сдашь базовую домашку на 80 баллов или выше. Пересдай основное задание, чтобы разблокировать хард.'}
+                      {hardStatus === 'available' && t('Ты набрал достаточно баллов, чтобы попробовать сложный уровень. Это необязательное задание, но оно принесёт тебе звезду.')}
+                      {hardStatus === 'submitted' && t('Работа отправлена на проверку. Преподаватель проверит её и даст обратную связь.')}
+                      {hardStatus === 'returned' && t('Преподаватель вернул работу на доработку. Открой урок, чтобы прочитать комментарии и исправить ошибки.')}
+                      {hardStatus === 'completed' && t('Сложный уровень принят! Ты отлично справился с заданием повышенной сложности.')}
+                      {hardStatus === 'locked' && t('Сложный уровень откроется, когда ты сдашь базовую домашку на 80 баллов или выше. Пересдай основное задание, чтобы разблокировать хард.')}
                     </span>
 
                     {/* Action button — скрыт для locked: хард недоступен, пока базовая < 80 */}
@@ -637,7 +639,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                         boxShadow: '0 4px 14px rgba(99,84,207,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
                       }}
                     >
-                      Открыть урок
+                      {t('Открыть урок')}
                     </motion.button>
                     )}
                   </div>
@@ -653,6 +655,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
 }
 
 export default function CourseTrack() {
+  const t = useT()
   const { activeSubjectId, setActiveSubject } = useDashboard()
   const subjects = useStudentData(s => s.subjects)
   const loaded = useStudentData(s => s.loaded)
@@ -671,8 +674,8 @@ export default function CourseTrack() {
         {loaded && (
           <>
             <Lock size={22} style={{ opacity: 0.35, color: 'var(--color-muted)' }} />
-            <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-3)' }}>Курсы ещё не добавлены</p>
-            <p style={{ fontSize: 12, color: 'var(--color-muted)' }}>Преподаватель откроет доступ к урокам</p>
+            <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-3)' }}>{t('Курсы ещё не добавлены')}</p>
+            <p style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Преподаватель откроет доступ к урокам')}</p>
           </>
         )}
         {!loaded && <Skeleton.Text lines={3} style={{ width: '100%', maxWidth: 280 }} />}

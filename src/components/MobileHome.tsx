@@ -14,6 +14,7 @@ import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { tactile } from '../lib/feedback'
 import { PAIR } from '../lib/mobileTokens'
+import { useT, t as tt } from '../lib/i18n'
 import type { LucideIcon } from 'lucide-react'
 import type { Lesson } from '../data/mockData'
 
@@ -27,14 +28,15 @@ import type { Lesson } from '../data/mockData'
 // no longer crammed in here.
 
 function fmtUntil(mins: number) {
-  if (mins <= 0) return 'идёт сейчас'
-  if (mins < 60) return `через ${mins} мин`
+  if (mins <= 0) return tt('идёт сейчас')
+  if (mins < 60) return `${tt('через')} ${mins} ${tt('мин')}`
   const h = Math.floor(mins / 60)
   const m = mins % 60
-  return m ? `через ${h} ч ${m} мин` : `через ${h} ч`
+  return m ? `${tt('через')} ${h} ${tt('ч')} ${m} ${tt('мин')}` : `${tt('через')} ${h} ${tt('ч')}`
 }
 
 export default function MobileHome() {
+  const t = useT()
   const subjects = useStudentData(s => s.subjects)
   const scheduleDays = useStudentData(s => s.scheduleDays)
   const stats = useStudentData(s => s.stats)
@@ -82,19 +84,19 @@ export default function MobileHome() {
       const graded = lessons.filter(l => typeof l.points === 'number')
       const avg = graded.length ? Math.round(graded.reduce((s, l) => s + (l.points ?? 0), 0) / graded.length) : 0
       return [
-        { icon: Flame, value: stats.streak, label: 'дней', pair: PAIR.warning },
-        { icon: CheckCircle2, value: completed, label: 'уроков', pair: PAIR.success },
-        { icon: TrendingUp, value: avg ? `${avg}%` : '—', label: 'ср. балл', pair: PAIR.info },
-        { icon: BookOpen, value: `${scopedSubject.progress}%`, label: 'курс', pair: PAIR.focus },
+        { icon: Flame, value: stats.streak, label: t('дней'), pair: PAIR.warning },
+        { icon: CheckCircle2, value: completed, label: t('уроков'), pair: PAIR.success },
+        { icon: TrendingUp, value: avg ? `${avg}%` : '—', label: t('ср. балл'), pair: PAIR.info },
+        { icon: BookOpen, value: `${scopedSubject.progress}%`, label: t('курс'), pair: PAIR.focus },
       ]
     }
     return [
-      { icon: Flame, value: stats.streak, label: 'дней', pair: PAIR.warning },
-      { icon: CheckCircle2, value: stats.completedTasks, label: 'заданий', pair: PAIR.success },
-      { icon: TrendingUp, value: `${stats.avgScore}%`, label: 'ср. балл', pair: PAIR.info },
-      { icon: Zap, value: stats.totalPoints, label: 'XP', pair: PAIR.focus },
+      { icon: Flame, value: stats.streak, label: t('дней'), pair: PAIR.warning },
+      { icon: CheckCircle2, value: stats.completedTasks, label: t('заданий'), pair: PAIR.success },
+      { icon: TrendingUp, value: `${stats.avgScore}%`, label: t('ср. балл'), pair: PAIR.info },
+      { icon: Zap, value: stats.totalPoints, label: t('XP'), pair: PAIR.focus },
     ]
-  }, [scopedSubject, stats])
+  }, [scopedSubject, stats, t])
 
   const todayLessons = scheduleDays.find(d => d.isToday)?.lessons ?? []
 
@@ -111,12 +113,12 @@ export default function MobileHome() {
         {nextToday ? (
           <>
             <Calendar size={15} style={{ color: 'var(--color-accent)' }} />
-            <span>Урок {fmtUntil(nextToday.st.minutesUntil)}</span>
+            <span>{t('Урок')} {fmtUntil(nextToday.st.minutesUntil)}</span>
           </>
         ) : (
           <>
             <Flame size={15} style={{ color: '#F8A23B' }} />
-            <span>{stats.streak} дней</span>
+            <span>{stats.streak} {t('дней')}</span>
             <span style={{ opacity: 0.35 }}>·</span>
             <Zap size={14} style={{ color: 'var(--color-accent)' }} />
             <span>{stats.totalPoints}</span>
@@ -124,7 +126,7 @@ export default function MobileHome() {
         )}
       </DynamicIsland>
       <div ref={bellRef} style={{ display: 'inline-flex' }}>
-        <GlassIconButton icon={<Bell size={16} />} dot={notifUnread > 0} ariaLabel="Уведомления" onClick={() => setNotifOpen(o => !o)} />
+        <GlassIconButton icon={<Bell size={16} />} dot={notifUnread > 0} ariaLabel={t('Уведомления')} onClick={() => setNotifOpen(o => !o)} />
       </div>
       <NotificationPopup open={notifOpen} anchorRef={bellRef} onClose={() => setNotifOpen(false)} />
     </div>
@@ -140,8 +142,8 @@ export default function MobileHome() {
           ) : (
             <div className="flex flex-col items-center justify-center text-center" style={{ gap: 8, padding: '40px 16px', borderRadius: 22, background: 'var(--color-bg-3)' }}>
               <Lock size={22} style={{ color: 'var(--color-muted)' }} />
-              <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>Курс ещё не открыт</p>
-              <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Преподаватель скоро добавит уроки</p>
+              <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Курс ещё не открыт')}</p>
+              <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Преподаватель скоро добавит уроки')}</p>
             </div>
           )}
 
@@ -156,8 +158,8 @@ export default function MobileHome() {
           {todayLessons.length > 0 && (
             <div style={{ borderRadius: 20, background: 'var(--color-surface)', border: '1px solid var(--color-border-glass)', boxShadow: 'var(--shadow-sm)', padding: 14 }}>
               <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
-                <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-text)' }}>Сегодня</span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)' }}>{todayLessons.length} занятия</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-text)' }}>{t('Сегодня')}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-accent)' }}>{todayLessons.length} {t('занятия')}</span>
               </div>
               <div className="flex flex-col">
                 {todayLessons.map((l, i) => (
@@ -181,33 +183,33 @@ export default function MobileHome() {
 
           {/* Быстрые действия */}
           <div className="flex" style={{ gap: 12 }}>
-            <QuickTile icon={<Dumbbell size={20} />} title="Тренажёр" sub="Решай задания" bg="var(--color-green-soft)" fg="var(--color-green-text)" onClick={() => setActivePage('trainer')} />
-            <QuickTile icon={<BookOpen size={20} />} title="Курс" sub="Уроки и путь" bg="var(--color-purple-soft)" fg="var(--color-purple-text)" onClick={() => openCourses()} />
+            <QuickTile icon={<Dumbbell size={20} />} title={t('Тренажёр')} sub={t('Решай задания')} bg="var(--color-green-soft)" fg="var(--color-green-text)" onClick={() => setActivePage('trainer')} />
+            <QuickTile icon={<BookOpen size={20} />} title={t('Курс')} sub={t('Уроки и путь')} bg="var(--color-purple-soft)" fg="var(--color-purple-text)" onClick={() => openCourses()} />
           </div>
 
           {/* Виджеты дня */}
           {(quizQuestions.length > 0 || scienceFacts.length > 0 || scienceMemes.length > 0) && (
             <div>
-              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Виджеты дня</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Виджеты дня')}</p>
               <div style={{ marginLeft: -16, marginRight: -16 }}>
                 <MobileHScroll padX={16} gap={10}>
                   {quizQuestions[0] && (
                     <WidgetCard
-                      tag="Вопрос дня" icon={<HelpCircle size={15} />}
+                      tag={t('Вопрос дня')} icon={<HelpCircle size={15} />}
                       accent="var(--color-purple-text)" bg="var(--color-purple-soft)"
                       text={quizQuestions[0].title}
                     />
                   )}
                   {scienceFacts[0] && (
                     <WidgetCard
-                      tag="Факт дня" icon={<Atom size={15} />}
+                      tag={t('Факт дня')} icon={<Atom size={15} />}
                       accent="var(--color-green-text)" bg="var(--color-green-soft)"
                       text={scienceFacts[0].text}
                     />
                   )}
                   {scienceMemes[0] && (
                     <WidgetCard
-                      tag="Мем дня" icon={<Star size={15} />}
+                      tag={t('Мем дня')} icon={<Star size={15} />}
                       accent="#B07A00" bg="var(--color-yellow-soft)"
                       text={scienceMemes[0].setup}
                     />
@@ -223,7 +225,7 @@ export default function MobileHome() {
       {multiCourse && (
         <MobileDock>
           <DockSegment
-            options={[{ id: '__all__', label: 'Все' }, ...subjects.map(s => ({ id: s.id, label: s.name }))]}
+            options={[{ id: '__all__', label: t('Все') }, ...subjects.map(s => ({ id: s.id, label: s.name }))]}
             value={scopedSubject?.id ?? '__all__'}
             onChange={id => setHomeSubjectId(id === '__all__' ? null : id)}
           />
@@ -246,8 +248,9 @@ function MiniStat({ icon: Icon, value, label, pair }: { icon: LucideIcon; value:
 }
 
 function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: Lesson; subjectName: string; progress: number; onContinue: () => void }) {
+  const t = useT()
   const status = getDisplayLessonStatus(lesson)
-  const label = status === 'current' ? 'Продолжить' : 'Начать'
+  const label = status === 'current' ? t('Продолжить') : t('Начать')
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -265,13 +268,13 @@ function HeroContinue({ lesson, subjectName, progress, onContinue }: { lesson: L
         minHeight: '2.4em',
         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
       }}>
-        Занятие #{lesson.number} · {lesson.title}
+        {t('Занятие')} #{lesson.number} · {lesson.title}
       </div>
       <div style={{ height: 6, background: 'rgba(255,255,255,0.25)', borderRadius: 99, overflow: 'hidden', marginBottom: 14 }}>
         <div style={{ width: `${Math.max(4, progress)}%`, height: '100%', background: '#fff', borderRadius: 99 }} />
       </div>
       <div className="flex items-center justify-between">
-        <span style={{ fontSize: 12, opacity: 0.85 }}>{progress}% пройдено</span>
+        <span style={{ fontSize: 12, opacity: 0.85 }}>{progress}% {t('пройдено')}</span>
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={() => { tactile(); onContinue() }}
@@ -304,6 +307,7 @@ function QuickTile({ icon, title, sub, bg, fg, onClick }: { icon: React.ReactNod
 import type { Subject } from '../data/mockData'
 
 function PendingHWCard({ subjects, onOpenHW }: { subjects: Subject[]; onOpenHW: () => void }) {
+  const t = useT()
   const pending = subjects.flatMap(s =>
     s.modules.flatMap(m => m.lessons
       .filter(l => l.status === 'current' || l.status === 'returned')
@@ -326,12 +330,12 @@ function PendingHWCard({ subjects, onOpenHW }: { subjects: Subject[]; onOpenHW: 
         <ClipboardList size={20} style={{ color: '#B07A00' }} />
       </div>
       <div className="flex-1 min-w-0">
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#B07A00', marginBottom: 2 }}>Домашнее задание</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#B07A00', marginBottom: 2 }}>{t('Домашнее задание')}</div>
         <div className="truncate" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>
           {first.lesson.title} · {first.subjectName}
         </div>
         {pending.length > 1 && (
-          <div style={{ fontSize: 11, color: '#B07A00', marginTop: 2 }}>+{pending.length - 1} ещё</div>
+          <div style={{ fontSize: 11, color: '#B07A00', marginTop: 2 }}>+{pending.length - 1} {t('ещё')}</div>
         )}
       </div>
       <ChevronRight size={16} style={{ color: '#B07A00', flexShrink: 0 }} />

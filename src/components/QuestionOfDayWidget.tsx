@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
 import { Check, Sparkles } from 'lucide-react'
 import { useStudentData } from '../store/studentDataStore'
+import { useT } from '../lib/i18n'
 
 type Props = {
   /** carousel passes this; unused here (no timer/rotation) */
@@ -11,6 +12,7 @@ type Props = {
 }
 
 export default function QuestionOfDayWidget({ columns = 1 }: Props) {
+  const t = useT()
   const [revealed, setRevealed] = useState(false)
   const quizQuestions = useStudentData(s => s.quizQuestions)
   // One question per calendar day, picked deterministically.
@@ -47,7 +49,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
           }}
         >
           <Sparkles size={12 * scale} strokeWidth={2.2} />
-          Вопрос дня
+          {t('Вопрос дня')}
         </span>
         <span style={{ fontSize: 12 * scale, fontWeight: 500, color: 'var(--color-muted)' }}>{q.subject}</span>
       </div>
@@ -81,7 +83,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
                 color: '#fff', fontSize: 14 * scale, fontWeight: 650,
               }}
             >
-              Показать ответ
+              {t('Показать ответ')}
             </motion.button>
           ) : (
             <motion.div
@@ -110,7 +112,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
                   color: 'var(--color-muted)', fontSize: 13 * scale, fontWeight: 600,
                 }}
               >
-                Скрыть
+                {t('Скрыть')}
               </button>
             </motion.div>
           )}

@@ -3,6 +3,7 @@ import { AlertCircle, Clock, Check } from 'lucide-react'
 import { useAllStudents, useGroups } from '../../../lib/useGroups'
 import { useTeacher } from '../../../store/teacherStore'
 import { addPayment } from '../../../lib/useFinances'
+import { t, useT } from '../../../lib/i18n'
 
 function initials(name: string) {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
@@ -17,14 +18,15 @@ function diffDays(iso: string) {
 type StatusMeta = { color: string; bg: string; label: string; icon: React.ElementType }
 
 function getStatusMeta(paymentDue?: string): StatusMeta {
-  if (!paymentDue) return { color: 'var(--color-text-3)', bg: 'var(--color-bg-3)', label: 'нет данных', icon: Clock }
+  if (!paymentDue) return { color: 'var(--color-text-3)', bg: 'var(--color-bg-3)', label: t('нет данных'), icon: Clock }
   const d = diffDays(paymentDue)
-  if (d < 0)  return { color: 'var(--color-red-text)', bg: 'var(--color-red-soft)', label: `просрочено ${Math.abs(d)} дн.`, icon: AlertCircle }
-  if (d <= 3) return { color: '#C07020', bg: 'var(--color-peach-soft)', label: `через ${d} дн.`, icon: Clock }
-  return { color: '#C07020', bg: 'var(--color-peach-soft)', label: `до ${new Date(paymentDue).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}`, icon: Clock }
+  if (d < 0)  return { color: 'var(--color-red-text)', bg: 'var(--color-red-soft)', label: `${t('просрочено')} ${Math.abs(d)} ${t('дн.')}`, icon: AlertCircle }
+  if (d <= 3) return { color: '#C07020', bg: 'var(--color-peach-soft)', label: `${t('через')} ${d} ${t('дн.')}`, icon: Clock }
+  return { color: '#C07020', bg: 'var(--color-peach-soft)', label: `${t('до')} ${new Date(paymentDue).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}`, icon: Clock }
 }
 
 export default function WidgetFinanceOverdue() {
+  const t = useT()
   const students = useAllStudents()
   const { groups } = useGroups()
   const setActivePage = useTeacher(s => s.setActivePage)
@@ -70,8 +72,8 @@ export default function WidgetFinanceOverdue() {
         }}>
           <Check size={22} strokeWidth={2.5} style={{ color: 'var(--color-green-text)' }} />
         </div>
-        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-2)' }}>Задолженностей нет</div>
-        <div style={{ fontSize: 12, color: 'var(--color-text-4)' }}>все ученики в порядке</div>
+        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-2)' }}>{t('Задолженностей нет')}</div>
+        <div style={{ fontSize: 12, color: 'var(--color-text-4)' }}>{t('все ученики в порядке')}</div>
       </div>
     )
   }
@@ -103,7 +105,7 @@ export default function WidgetFinanceOverdue() {
           }}>
             <AlertCircle size={14} strokeWidth={2.2} style={{ color: 'var(--color-red-text)' }} />
           </div>
-          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>Должники</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Должники')}</span>
           <span style={{
             fontSize: 11, fontWeight: 700, color: 'var(--color-red-text)',
             background: 'var(--color-red-soft)', borderRadius: 20, padding: '1px 7px',
@@ -119,7 +121,7 @@ export default function WidgetFinanceOverdue() {
             opacity: 0.85,
           }}
         >
-          Все →
+          {t('Все')} →
         </button>
       </div>
 
@@ -194,7 +196,7 @@ export default function WidgetFinanceOverdue() {
                   display: 'flex', alignItems: 'center', gap: 4,
                 } as React.CSSProperties}
               >
-                {isPaid ? <><Check size={11} /> Готово</> : 'Оплачено'}
+                {isPaid ? <><Check size={11} /> {t('Готово')}</> : t('Оплачено')}
               </button>
             </div>
           )

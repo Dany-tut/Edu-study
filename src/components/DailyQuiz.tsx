@@ -6,17 +6,19 @@ import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
 import StatsPanel from './StatsPanel'
 import { cn } from '../lib/utils'
+import { useT } from '../lib/i18n'
 
 type QuizState = 'preview' | 'active' | 'answered' | 'timeout' | 'done'
 
 function SpoilerQuestion({ text }: { text: string }) {
+  const t = useT()
   const [revealed, setRevealed] = useState(false)
   return (
     <div
       className="flex items-center justify-center my-5 px-2 py-4 rounded-2xl cursor-pointer select-none"
       style={{ minHeight: 64, background: 'var(--color-purple-soft)', position: 'relative', overflow: 'hidden' }}
       onClick={() => setRevealed(r => !r)}
-      title={revealed ? 'Скрыть' : 'Показать вопрос'}
+      title={revealed ? t('Скрыть') : t('Показать вопрос')}
     >
       <p
         style={{
@@ -46,7 +48,7 @@ function SpoilerQuestion({ text }: { text: string }) {
             pointerEvents: 'none',
           }}
         >
-          спойлер
+          {t('спойлер')}
         </span>
       )}
     </div>
@@ -54,6 +56,7 @@ function SpoilerQuestion({ text }: { text: string }) {
 }
 
 export default function DailyQuiz() {
+  const t = useT()
   const { quizDismissed, dismissQuiz } = useDashboard()
   const quizQuestions = useStudentData(s => s.quizQuestions)
   const dailyQuiz = { ...(quizQuestions[0] ?? { id: 'q1', title: '…', subject: 'Химия', answers: [] }), timeLimit: quizTimeLimit }
@@ -115,7 +118,7 @@ export default function DailyQuiz() {
               className="inline-block px-3 py-1 rounded-full text-xs font-semibold"
               style={{ background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600 }}
             >
-              Викторина дня
+              {t('Викторина дня')}
             </span>
           </div>
           {quizState === 'preview' && (
@@ -125,7 +128,7 @@ export default function DailyQuiz() {
               onClick={dismissQuiz}
               className="ml-4 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer"
               style={{ background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}
-              aria-label="Закрыть"
+              aria-label={t('Закрыть')}
             >
               <X size={14} />
             </motion.button>
@@ -146,7 +149,7 @@ export default function DailyQuiz() {
             <div className="flex items-center gap-2 mb-2">
               <Clock size={14} style={{ color: timerPct < 30 ? '#F48B91' : 'var(--color-muted)' }} />
               <span style={{ fontSize: 13, fontWeight: 600, color: timerPct < 30 ? '#F48B91' : 'var(--color-muted)' }}>
-                {timeLeft} сек
+                {timeLeft} {t('сек')}
               </span>
             </div>
             <div className="h-2 rounded-full" style={{ background: 'var(--color-bg-5)' }}>
@@ -174,9 +177,9 @@ export default function DailyQuiz() {
               className="px-6 py-3 rounded-[32px] text-white font-semibold cursor-pointer"
               style={{ background: 'var(--grad-purple)', fontSize: 15 }}
             >
-              Начать
+              {t('Начать')}
             </motion.button>
-            <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>20 секунд на ответ</span>
+            <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('20 секунд на ответ')}</span>
           </div>
         )}
 
@@ -215,7 +218,7 @@ export default function DailyQuiz() {
           >
             <span style={{ fontSize: 22 }}>✓</span>
             <div>
-              <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-green-text)' }}>Ответ принят</p>
+              <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-green-text)' }}>{t('Ответ принят')}</p>
               <p style={{ fontSize: 13, color: 'var(--color-green-text)' }}>
                 {dailyQuiz.answers.find(a => a.id === selectedAnswer)?.text}
               </p>
@@ -232,7 +235,7 @@ export default function DailyQuiz() {
             style={{ background: 'var(--color-red-soft)' }}
           >
             <span style={{ fontSize: 22 }}>⏱</span>
-            <p style={{ fontSize: 16, fontWeight: 600, color: '#A8282D' }}>Время вышло</p>
+            <p style={{ fontSize: 16, fontWeight: 600, color: '#A8282D' }}>{t('Время вышло')}</p>
           </motion.div>
         )}
       </motion.div>

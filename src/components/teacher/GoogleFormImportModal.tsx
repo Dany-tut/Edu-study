@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Link2, AlertCircle, Loader2, Check } from 'lucide-react'
 import { isGoogleFormUrl, importGoogleForm, type ImportedForm, type ImportedQuestion } from '../../lib/googleFormsImport'
 import { typeVisual } from '../../data/taskTypeVisuals'
+import { useT } from '../../lib/i18n'
 
 const TYPE_LABELS: Record<string, string> = {
   single: 'Один ответ', multi: 'Несколько верных', fill: 'Вписать ответ',
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export default function GoogleFormImportModal({ open, onClose, onImport }: Props) {
+  const t = useT()
   const [url, setUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -37,7 +39,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
     const trimmed = url.trim()
     if (!trimmed) return
     if (!isGoogleFormUrl(trimmed)) {
-      setError('Это не похоже на ссылку Google Forms (forms.gle или docs.google.com/forms/...)')
+      setError(t('Это не похоже на ссылку Google Forms (forms.gle или docs.google.com/forms/...)'))
       return
     }
     setLoading(true)
@@ -46,7 +48,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
       const parsed = await importGoogleForm(trimmed)
       setForm(parsed)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Не удалось импортировать форму')
+      setError(e instanceof Error ? e.message : t('Не удалось импортировать форму'))
     } finally {
       setLoading(false)
     }
@@ -104,7 +106,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
             <div style={{ width: 38, height: 38, borderRadius: 12, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <Link2 size={19} style={{ color: 'var(--color-accent)' }} />
             </div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>Импорт из Google Forms</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Импорт из Google Forms')}</div>
             <button onClick={handleClose} style={{ marginLeft: 'auto', width: 28, height: 28, borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)' }}>
               <X size={14} />
             </button>
@@ -113,7 +115,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
           {!form && (
             <div style={{ marginTop: 14 }}>
               <div style={{ fontSize: 12.5, color: 'var(--color-muted)', lineHeight: 1.55, marginBottom: 12 }}>
-                Вставьте ссылку на Google-форму с доступом «Всем, у кого есть ссылка». Правильные ответы Google не отдаёт — отметьте их вручную после импорта.
+                {t('Вставьте ссылку на Google-форму с доступом «Всем, у кого есть ссылка». Правильные ответы Google не отдаёт — отметьте их вручную после импорта.')}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <input
@@ -137,7 +139,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
                   }}
                 >
                   {loading ? <Loader2 size={14} style={{ animation: 'gfim-spin 1s linear infinite' }} /> : null}
-                  Разобрать
+                  {t('Разобрать')}
                 </button>
               </div>
               {error && (
@@ -154,7 +156,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
               <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginTop: 10 }}>{form.title}</div>
               {form.description && <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{form.description}</div>}
               <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', margin: '8px 0 6px' }}>
-                Найдено вопросов: {form.questions.length} · выбрано: {selectedCount}
+                {t('Найдено вопросов:')} {form.questions.length} · {t('выбрано:')} {selectedCount}
               </div>
               <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 6, paddingRight: 2 }}>
                 {form.questions.map((q, i) => (
@@ -166,7 +168,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
                   onClick={() => setForm(null)}
                   style={{ padding: '9px 16px', borderRadius: 12, border: '1.5px solid var(--color-border)', background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
                 >
-                  Назад
+                  {t('Назад')}
                 </button>
                 <button
                   onClick={handleImport}
@@ -177,7 +179,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
                     opacity: importing || !selectedCount ? 0.6 : 1,
                   }}
                 >
-                  Импортировать {selectedCount || ''}
+                  {t('Импортировать')} {selectedCount || ''}
                 </button>
               </div>
             </>
@@ -191,6 +193,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
 }
 
 function QuestionRow({ q, index, excluded, onToggle }: { q: ImportedQuestion; index: number; excluded: boolean; onToggle: () => void }) {
+  const t = useT()
   const visual = typeVisual(q.type)
   const needsAnswer = q.type !== 'extended'
   return (
@@ -213,11 +216,11 @@ function QuestionRow({ q, index, excluded, onToggle }: { q: ImportedQuestion; in
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 3 }}>
           <span style={{ fontSize: 10.5, fontWeight: 700, color: visual.color, background: visual.bg, padding: '2px 7px', borderRadius: 999 }}>
-            {TYPE_LABELS[q.type] ?? q.type}
+            {t(TYPE_LABELS[q.type] ?? q.type)}
           </span>
           {needsAnswer && (
             <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--color-peach-text)', background: 'var(--color-peach-soft)', padding: '2px 7px', borderRadius: 999 }}>
-              нет ответа — отметьте вручную
+              {t('нет ответа — отметьте вручную')}
             </span>
           )}
         </div>

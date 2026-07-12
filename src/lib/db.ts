@@ -4,6 +4,7 @@
  */
 import { supabase } from './supabase'
 import { trackEvent } from './analytics'
+import { t } from './i18n'
 import type { HardTaskStudentBlock, HardTaskReviewBlock } from './useHomework'
 
 /**
@@ -689,7 +690,7 @@ export async function fetchStudentHwHistory(studentId: string): Promise<StudentH
     const dateObj = new Date(row.updated_at)
     const dateStr = dateObj.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '')
     return {
-      title: titleById.get(hwId) ?? `ДЗ #${hwId.slice(0, 6)}`,
+      title: titleById.get(hwId) ?? `${t('ДЗ')} #${hwId.slice(0, 6)}`,
       date: dateStr,
       score: row.score ?? 0,
       maxScore: 100,
@@ -786,7 +787,7 @@ export async function fetchStudentTrainerSections(
 
   const bySource = new Map<string, { correct: number; total: number }>()
   for (const row of data as any[]) {
-    const key = row.source ?? 'Другое'
+    const key = row.source ?? t('Другое')
     if (!bySource.has(key)) bySource.set(key, { correct: 0, total: 0 })
     const s = bySource.get(key)!
     s.total++
@@ -814,7 +815,7 @@ export async function fetchStudentWrongTasks(
 
   return (data as any[]).map((row, i) => ({
     id: typeof row.id === 'number' ? row.id : i + 1000,
-    topic: row.source ?? row.subject ?? 'Неизвестная тема',
+    topic: row.source ?? row.subject ?? t('Неизвестная тема'),
     line: 0,
   }))
 }

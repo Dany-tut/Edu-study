@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Play, Pause, RotateCcw } from 'lucide-react'
 import { useDashboard, POMO_DURATIONS, type PomoMode } from '../store/dashboardStore'
 import { getWidgetSizing } from '../lib/widgetSizing'
+import { useT } from '../lib/i18n'
 
 type Props = {
   /** how many widget blocks share the row — scales the type down when >1 */
@@ -18,6 +19,7 @@ function format(sec: number) {
 }
 
 export default function PomodoroWidget({ columns = 1 }: Props) {
+  const t = useT()
   const {
     pomoMode, pomoSecondsLeft, pomoRunning, pomoCompleted,
     pomoStart, pomoPause, pomoReset, pomoSwitchMode,
@@ -62,7 +64,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
             {format(pomoSecondsLeft)}
           </span>
           <span style={{ fontSize: 10 * sz.scale, fontWeight: 600, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 2 }}>
-            {MODE_LABEL[pomoMode]}
+            {t(MODE_LABEL[pomoMode])}
           </span>
         </div>
       </div>
@@ -86,20 +88,20 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
                   transition: 'color 0.2s, background 0.2s',
                 }}
               >
-                {MODE_LABEL[m]}
+                {t(MODE_LABEL[m])}
               </button>
             ))}
           </div>
           <span style={{ fontSize: 12 * sz.scale, fontWeight: 500, color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>
-            🍅 {pomoCompleted} {pomoCompleted === 1 ? 'сессия' : 'сессий'}
+            🍅 {pomoCompleted} {pomoCompleted === 1 ? t('сессия') : t('сессий')}
           </span>
         </div>
 
         <div className="flex flex-1 items-center" style={{ minHeight: 0 }}>
           <p style={{ fontSize: 13 * sz.scale, fontWeight: 500, color: 'var(--color-muted)', lineHeight: 1.3 }}>
             {pomoMode === 'focus'
-              ? 'Сосредоточься на работе без отвлечений.'
-              : 'Сделай паузу — отдохни и восстановись.'}
+              ? t('Сосредоточься на работе без отвлечений.')
+              : t('Сделай паузу — отдохни и восстановись.')}
           </p>
         </div>
 
@@ -108,7 +110,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
             whileHover={{ scale: 1.015 }}
             whileTap={{ scale: 0.98 }}
             onClick={pomoRunning ? pomoPause : pomoStart}
-            aria-label={pomoRunning ? 'Пауза' : 'Начать фокус'}
+            aria-label={pomoRunning ? t('Пауза') : t('Начать фокус')}
             className="flex cursor-pointer items-center justify-center gap-2"
             style={{
               height: btnH, padding: `0 ${22 * sz.scale}px`, borderRadius: 16,
@@ -118,13 +120,13 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
             }}
           >
             {pomoRunning ? <Pause size={16 * sz.scale} /> : <Play size={16 * sz.scale} />}
-            {pomoRunning ? 'Пауза' : 'Начать'}
+            {pomoRunning ? t('Пауза') : t('Начать')}
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.94 }}
             onClick={pomoReset}
-            aria-label="Сбросить таймер"
+            aria-label={t('Сбросить таймер')}
             className="flex cursor-pointer items-center justify-center"
             style={{ width: btnH, height: btnH, borderRadius: 16, background: 'var(--color-bg-3)', color: 'var(--color-muted)' }}
           >

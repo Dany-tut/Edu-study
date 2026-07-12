@@ -4,6 +4,7 @@ import { courseReactionInterval } from '../data/mockData'
 import { useStudentData } from '../store/studentDataStore'
 import { getWidgetSizing } from '../lib/widgetSizing'
 import { useDashboard } from '../store/dashboardStore'
+import { useT } from '../lib/i18n'
 
 type Props = {
   /** true while this widget is the visible one — pauses rotation otherwise */
@@ -13,6 +14,7 @@ type Props = {
 }
 
 export default function ReactionsWidget({ active, columns = 1 }: Props) {
+  const t = useT()
   const [index, setIndex] = useState(0)
   const openLessonForReaction = useDashboard(s => s.openLessonForReaction)
   const courseReactions = useStudentData(s => s.courseReactions)
@@ -24,7 +26,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
     <div className="flex h-full w-full items-center justify-center flex-col gap-2 overflow-hidden rounded-[24px]"
       style={{ background: 'rgba(var(--glass-rgb), 0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid var(--color-border-glass)' }}>
       <span style={{ fontSize: 26 }}>⚗️</span>
-      <span style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text-2)' }}>Реакции курса</span>
+      <span style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text-2)' }}>{t('Реакции курса')}</span>
       <span style={{ fontSize: 12, color: 'var(--color-text-5)' }}>—</span>
     </div>
   )
@@ -58,7 +60,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
          paragraph highlighted. */}
       <div
         role="button"
-        aria-label={`Открыть урок «${reaction.lesson}»`}
+        aria-label={`${t('Открыть урок')} «${reaction.lesson}»`}
         onClick={openLesson}
         className="relative flex-shrink-0 cursor-pointer"
         style={{
@@ -102,13 +104,13 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
               color: 'var(--color-blue-pill-text)', background: 'var(--color-blue-pill-bg)',
             }}
           >
-            Химия · реакция курса
+            {t('Химия · реакция курса')}
           </span>
         </div>
 
         <div
           role="button"
-          aria-label={`Открыть урок «${reaction.lesson}»`}
+          aria-label={`${t('Открыть урок')} «${reaction.lesson}»`}
           onClick={openLesson}
           className="flex flex-1 flex-col justify-center cursor-pointer"
           style={{ gap: 6 }}
@@ -133,7 +135,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
               <p style={{ fontSize: 13 * sz.scale, fontWeight: 500, color: 'var(--color-muted)', marginTop: 4 }}>
                 {reaction.name} · <span
                   style={{ color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'underline', textDecorationColor: 'rgba(123,97,255,0.4)', textUnderlineOffset: 3 }}
-                >Урок «{reaction.lesson}»</span>
+                >{t('Урок')} «{reaction.lesson}»</span>
               </p>
             </motion.div>
           </AnimatePresence>
@@ -145,7 +147,7 @@ export default function ReactionsWidget({ active, columns = 1 }: Props) {
             <button
               key={r.id}
               onClick={() => goTo(i)}
-              aria-label={`Реакция ${i + 1}`}
+              aria-label={`${t('Реакция')} ${i + 1}`}
               className="cursor-pointer"
               style={{
                 width: i === index ? 28 : 10,

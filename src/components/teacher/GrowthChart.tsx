@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from 'react'
 import { loadAnonResults, type AnonDiagResult } from '../../data/diagnosticData'
+import { useT } from '../../lib/i18n'
 
 interface Point { t: number; pct: number; date: string }
 
@@ -14,6 +15,7 @@ function overallPct(r: AnonDiagResult): number {
 }
 
 export default function GrowthChart({ name, subject }: { name: string; subject?: string }) {
+  const t = useT()
   const [points, setPoints] = useState<Point[] | null>(null)
 
   useEffect(() => {
@@ -29,7 +31,7 @@ export default function GrowthChart({ name, subject }: { name: string; subject?:
   if (!points) return null
   if (points.length < 2) return (
     <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '8px 0' }}>
-      Динамика появится после второго прохождения{points.length === 1 ? ` (сейчас 1 попытка, ${points[0].pct}%)` : ''}.
+      {t('Динамика появится после второго прохождения')}{points.length === 1 ? ` (${t('сейчас 1 попытка')}, ${points[0].pct}%)` : ''}.
     </div>
   )
 
@@ -44,7 +46,7 @@ export default function GrowthChart({ name, subject }: { name: string; subject?:
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>Динамика ({points.length} прохожд.)</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{t('Динамика')} ({points.length} {t('прохожд.')})</span>
         <span style={{ fontSize: 12, fontWeight: 700, color: delta >= 0 ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>
           {delta >= 0 ? '▲ +' : '▼ '}{delta}%
         </span>

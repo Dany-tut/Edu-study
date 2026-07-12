@@ -24,6 +24,7 @@ import { useTheme } from '../../store/themeStore'
 import NotificationBell from '../NotificationBell'
 import NotificationPopup from '../NotificationPopup'
 import { useNotificationsStore } from '../../store/notificationsStore'
+import { useT } from '../../lib/i18n'
 
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
   { id: 'home',        label: 'Главная',     icon: Home },
@@ -64,6 +65,7 @@ const quickActions: QuickItem[] = [
 ]
 
 export default function TeacherTopBar() {
+  const t = useT()
   const [collapsed, setCollapsed]     = useState(false)
   const [addOpen, setAddOpen]         = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -81,7 +83,7 @@ export default function TeacherTopBar() {
   useEffect(() => {
     syncJournalNotifs(pendingJournals.map(p => ({
       id: p.scheduleId,
-      title: `Журнал — ${p.scopeName}`,
+      title: `${t('Журнал')} — ${p.scopeName}`,
       body: `${p.date.slice(5).replace('-', '.')} · ${p.title}`,
     })))
   }, [pendingJournals, syncJournalNotifs])
@@ -227,14 +229,14 @@ export default function TeacherTopBar() {
   }
 
   const profileMenuItems = [
-    { icon: UserCircle,  label: 'Настройки профиля', sub: 'имя, аватар',         action: 'profile' },
-    { icon: LayoutDashboard, label: 'Настроить виджеты', sub: 'как у учеников',  action: 'widgets' },
-    { icon: dark ? Sun : Moon, label: dark ? 'Светлая тема' : 'Тёмная тема', sub: 'переключить', action: 'theme' },
-    { icon: CreditCard,  label: 'Оплата',             sub: 'подписка и счета',   action: 'payment' },
-    { icon: MessageSquarePlus, label: 'Обратная связь', sub: 'сообщить об ошибке', action: 'feedback' },
+    { icon: UserCircle,  label: t('Настройки профиля'), sub: t('имя, аватар'),         action: 'profile' },
+    { icon: LayoutDashboard, label: t('Настроить виджеты'), sub: t('как у учеников'),  action: 'widgets' },
+    { icon: dark ? Sun : Moon, label: dark ? t('Светлая тема') : t('Тёмная тема'), sub: t('переключить'), action: 'theme' },
+    { icon: CreditCard,  label: t('Оплата'),             sub: t('подписка и счета'),   action: 'payment' },
+    { icon: MessageSquarePlus, label: t('Обратная связь'), sub: t('сообщить об ошибке'), action: 'feedback' },
     // Админка + аналитика — только для админа; у учителей пункт не появляется.
     ...(teacherRole === 'admin'
-      ? [{ icon: Shield, label: 'Админка', sub: 'аналитика, хранилище', action: 'admin' }]
+      ? [{ icon: Shield, label: t('Админка'), sub: t('аналитика, хранилище'), action: 'admin' }]
       : []),
   ]
 
@@ -317,7 +319,7 @@ export default function TeacherTopBar() {
                 maxWidth: collapsed ? 0 : 200, opacity: collapsed ? 0 : 1,
                 transition: 'max-width 0.5s cubic-bezier(0.42,0,0.58,1), opacity 0.28s ease-in-out',
               }}>
-                {item.label}
+                {t(item.label)}
               </span>
               {badgeCount > 0 && (
                 <span style={{ position: 'absolute', top: 4, right: collapsed ? 1 : 3, minWidth: 17, height: 17, borderRadius: 9, padding: '0 5px', background: 'linear-gradient(135deg, #E5484D, #A8282D)', color: '#fff', fontSize: 10.5, fontWeight: 800, lineHeight: 1, letterSpacing: '0.2px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, boxShadow: '0 2px 6px rgba(168,40,45,0.5), 0 0 0 1.5px var(--color-bg)' }}>
@@ -342,7 +344,7 @@ export default function TeacherTopBar() {
           whileHover={{ scale: 1.06, backgroundColor: 'rgba(155,109,255,0.14)' }}
           whileTap={{ scale: 0.96 }}
           onClick={() => setAddOpen(o => !o)}
-          aria-label="Действия"
+          aria-label={t('Действия')}
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 44, borderRadius: 14, border: 'none', cursor: 'pointer', background: 'none', color: 'var(--color-muted)' }}
         >
           <LayoutGrid size={17} strokeWidth={2} />
@@ -352,7 +354,7 @@ export default function TeacherTopBar() {
           whileHover={{ scale: 1.08, backgroundColor: 'rgba(155,109,255,0.14)' }}
           whileTap={{ scale: 0.96 }}
           onClick={() => setCollapsed(c => !c)}
-          aria-label={collapsed ? 'Развернуть' : 'Свернуть'}
+          aria-label={collapsed ? t('Развернуть') : t('Свернуть')}
           style={{ width: 36, height: 44, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--color-muted)', background: 'none', border: 'none' }}
         >
           <motion.span
@@ -389,7 +391,7 @@ export default function TeacherTopBar() {
         }}>
           <div style={{ paddingLeft: 8 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.2 }}>{teacherName}</div>
-            <div style={{ fontSize: 10, color: 'var(--color-muted)', lineHeight: 1.2 }}>{teacherRole === 'admin' ? 'Админ' : 'Учитель'}</div>
+            <div style={{ fontSize: 10, color: 'var(--color-muted)', lineHeight: 1.2 }}>{teacherRole === 'admin' ? t('Админ') : t('Учитель')}</div>
           </div>
         </div>
       </motion.div>
@@ -422,8 +424,8 @@ export default function TeacherTopBar() {
                     <action.icon size={15} strokeWidth={2} style={{ color: action.color }} />
                   </div>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>{action.label}</div>
-                    <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{action.sub}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>{t(action.label)}</div>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{t(action.sub)}</div>
                   </div>
                 </motion.button>
               )
@@ -447,7 +449,7 @@ export default function TeacherTopBar() {
                 <AvatarIcon size={18} strokeWidth={1.8} style={{ color: '#fff' }} />
               </div>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>{teacherName || (teacherRole === 'admin' ? 'Админ' : 'Учитель')}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>{teacherName || (teacherRole === 'admin' ? t('Админ') : t('Учитель'))}</div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-3)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teacherEmail}</div>
               </div>
             </div>
@@ -488,7 +490,7 @@ export default function TeacherTopBar() {
               <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: dark ? 'rgba(220,38,38,0.18)' : 'rgba(220,38,38,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <LogOut size={15} strokeWidth={2} style={{ color: dark ? '#FC8181' : '#C53030' }} />
               </div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: dark ? '#FC8181' : '#C53030', lineHeight: 1.3 }}>Выйти</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: dark ? '#FC8181' : '#C53030', lineHeight: 1.3 }}>{t('Выйти')}</div>
             </motion.button>
           </motion.div>
           </div>

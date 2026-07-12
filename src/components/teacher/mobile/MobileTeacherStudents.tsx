@@ -7,6 +7,7 @@ import { GlassPill } from '../../mobileChrome'
 import { PAIR } from '../../../lib/mobileTokens'
 import { useGroups, useStudents } from '../../../lib/useGroups'
 import { contactLabel } from '../../../lib/contactLink'
+import { useT } from '../../../lib/i18n'
 import type { Group, Student } from '../../../data/teacherMockData'
 import { DEMO_GROUPS, demoStudentsFor } from '../../../data/teacherDevDemo'
 
@@ -30,6 +31,7 @@ function MetricRow({ icon, label, value, danger }: { icon: React.ReactNode; labe
 }
 
 function StudentSheet({ student, group, onClose }: { student: Student | null; group: Group; onClose: () => void }) {
+  const t = useT()
   return (
     <MobileSheet open={!!student} onClose={onClose} title={student?.name}>
       {student && (
@@ -37,22 +39,22 @@ function StudentSheet({ student, group, onClose }: { student: Student | null; gr
           <div style={{ display: 'flex', gap: 8, padding: '4px 0 14px' }}>
             <div style={{ flex: 1, padding: '12px', borderRadius: 14, background: PAIR.success.bg, textAlign: 'center' }}>
               <div style={{ fontSize: 20, fontWeight: 750, color: PAIR.success.text }}>{student.hwScore}%</div>
-              <div style={{ fontSize: 11, fontWeight: 500, color: PAIR.success.text, opacity: 0.85 }}>ДЗ</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: PAIR.success.text, opacity: 0.85 }}>{t('ДЗ')}</div>
             </div>
             <div style={{ flex: 1, padding: '12px', borderRadius: 14, background: PAIR.info.bg, textAlign: 'center' }}>
               <div style={{ fontSize: 20, fontWeight: 750, color: PAIR.info.text }}>{student.testScore}%</div>
-              <div style={{ fontSize: 11, fontWeight: 500, color: PAIR.info.text, opacity: 0.85 }}>тесты</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: PAIR.info.text, opacity: 0.85 }}>{t('тесты')}</div>
             </div>
             <div style={{ flex: 1, padding: '12px', borderRadius: 14, background: PAIR.review.bg, textAlign: 'center' }}>
               <div style={{ fontSize: 20, fontWeight: 750, color: PAIR.review.text }}>{student.attendance}%</div>
-              <div style={{ fontSize: 11, fontWeight: 500, color: PAIR.review.text, opacity: 0.85 }}>посещ.</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: PAIR.review.text, opacity: 0.85 }}>{t('посещ.')}</div>
             </div>
           </div>
-          <MetricRow icon={<span style={{ fontSize: 15 }}>{group.icon}</span>} label="Предмет" value={`${group.subject} · ${group.name}`} />
-          {student.phone && <MetricRow icon={<Phone size={16} />} label="Телефон" value={student.phone} />}
+          <MetricRow icon={<span style={{ fontSize: 15 }}>{group.icon}</span>} label={t('Предмет')} value={`${group.subject} · ${group.name}`} />
+          {student.phone && <MetricRow icon={<Phone size={16} />} label={t('Телефон')} value={student.phone} />}
           {student.telegramLink && <MetricRow icon={<Send size={16} />} label={contactLabel(student.telegramLink) === 'VK' ? 'VK' : 'Telegram'} value={contactLabel(student.telegramLink)} />}
-          <MetricRow icon={<CalendarCheck size={16} />} label="Последний визит" value={student.lastVisit} />
-          <MetricRow icon={<Wallet size={16} />} label="Долг" value={student.debt ? `${student.debt.toLocaleString('ru-RU')} ₽` : 'нет'} danger={(student.debt ?? 0) > 0} />
+          <MetricRow icon={<CalendarCheck size={16} />} label={t('Последний визит')} value={student.lastVisit} />
+          <MetricRow icon={<Wallet size={16} />} label={t('Долг')} value={student.debt ? `${student.debt.toLocaleString('ru-RU')} ₽` : t('нет')} danger={(student.debt ?? 0) > 0} />
         </div>
       )}
     </MobileSheet>
@@ -71,6 +73,7 @@ function SoloStudentSheet({ group, onClose }: { group: Group | null; onClose: ()
 }
 
 function GroupRoster({ group, onBack }: { group: Group; onBack: () => void }) {
+  const t = useT()
   const { students: realStudents } = useStudents(group.id)
   // DEV-only: for a demo group (no real roster in the DB) fall back to demo students.
   const students = import.meta.env.DEV && realStudents.length === 0
@@ -82,7 +85,7 @@ function GroupRoster({ group, onBack }: { group: Group; onBack: () => void }) {
     <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <button onClick={onBack} className="cursor-pointer" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, color: 'var(--color-muted)', padding: '2px 0' }}>
-          <ArrowLeft size={17} /> Все группы
+          <ArrowLeft size={17} /> {t('Все группы')}
         </button>
         <div style={{ fontSize: 20, fontWeight: 750, color: 'var(--color-text)' }}>{group.icon} {group.name}</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -97,14 +100,14 @@ function GroupRoster({ group, onBack }: { group: Group; onBack: () => void }) {
               <div style={{ width: 38, height: 38, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{initials(s.name)}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 14.5, fontWeight: 650, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</div>
-                <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)' }}>ДЗ {s.hwScore}% · посещ. {s.attendance}%</div>
+                <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)' }}>{t('ДЗ')} {s.hwScore}% · {t('посещ.')} {s.attendance}%</div>
               </div>
-              {(s.debt ?? 0) > 0 && <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: PAIR.error.bg, color: PAIR.error.text, flexShrink: 0 }}>долг</span>}
+              {(s.debt ?? 0) > 0 && <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: PAIR.error.bg, color: PAIR.error.text, flexShrink: 0 }}>{t('долг')}</span>}
               <ChevronRight size={17} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
             </motion.button>
           ))}
           {students.length === 0 && (
-            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', padding: '20px 0', textAlign: 'center' }}>В группе пока нет учеников</div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', padding: '20px 0', textAlign: 'center' }}>{t('В группе пока нет учеников')}</div>
           )}
         </div>
       </div>
@@ -122,6 +125,7 @@ const FILTERS: { key: StudentsFilter; label: string }[] = [
 ]
 
 export default function MobileTeacherStudents() {
+  const t = useT()
   const { groups: realGroups } = useGroups()
   // DEV-only: no logged-in teacher locally → show demo groups instead of empty.
   const groups = import.meta.env.DEV && realGroups.length === 0 ? DEMO_GROUPS : realGroups
@@ -135,7 +139,7 @@ export default function MobileTeacherStudents() {
 
   const topZone = (
     <div style={{ display: 'flex', justifyContent: 'center' }}>
-      <GlassPill><Users size={15} /> Ученики</GlassPill>
+      <GlassPill><Users size={15} /> {t('Ученики')}</GlassPill>
     </div>
   )
 
@@ -164,7 +168,7 @@ export default function MobileTeacherStudents() {
                     transition: 'background 0.15s, color 0.15s',
                   }}
                 >
-                  {f.label}
+                  {t(f.label)}
                 </button>
               )
             })}
@@ -181,7 +185,7 @@ export default function MobileTeacherStudents() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.name}</div>
                 <div style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-muted)' }}>
-                  {g.isIndividual ? 'Индивидуально' : `${g.studentCount} учеников`}{g.level ? ` · ${g.level}` : ''}
+                  {g.isIndividual ? t('Индивидуально') : `${g.studentCount} ${t('учеников')}`}{g.level ? ` · ${g.level}` : ''}
                 </div>
               </div>
               <ChevronRight size={18} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
@@ -189,7 +193,7 @@ export default function MobileTeacherStudents() {
           ))}
           {visibleGroups.length === 0 && (
             <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', padding: '40px 0', textAlign: 'center' }}>
-              {groups.length === 0 ? 'Групп пока нет. Создайте их на компьютере.' : filter === 'individual' ? 'Нет индивидуальных учеников' : 'Нет групп'}
+              {groups.length === 0 ? t('Групп пока нет. Создайте их на компьютере.') : filter === 'individual' ? t('Нет индивидуальных учеников') : t('Нет групп')}
             </div>
           )}
           <SoloStudentSheet group={soloGroup} onClose={() => setSoloGroup(null)} />

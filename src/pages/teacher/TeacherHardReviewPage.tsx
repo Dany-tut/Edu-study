@@ -10,6 +10,7 @@ import {
 import { openHardSubHomework } from '../../lib/teacherNav'
 import { clearDrafts } from '../../lib/useDraft'
 import HardConversation, { type HardTabVM, type ReviewPayload } from '../../components/teacher/HardConversation'
+import { useT } from '../../lib/i18n'
 
 const glass: React.CSSProperties = {
   background: 'rgba(var(--glass-rgb), 0.88)',
@@ -21,6 +22,7 @@ const glass: React.CSSProperties = {
 }
 
 export default function TeacherHardReviewPage() {
+  const t = useT()
   const setActivePage = useTeacher(s => s.setActivePage)
   const openHomeworkEdit = useTeacher(s => s.openHomeworkEdit)
   const reviewingHardId = useTeacher(s => s.reviewingHardId)
@@ -37,22 +39,22 @@ export default function TeacherHardReviewPage() {
   if (!sub) {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 14 }}>
-        <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>Работа не найдена</div>
-        <button onClick={() => setActivePage('homework')} style={{ padding: '9px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>Назад</button>
+        <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>{t('Работа не найдена')}</div>
+        <button onClick={() => setActivePage('homework')} style={{ padding: '9px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-2)', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{t('Назад')}</button>
       </div>
     )
   }
 
   const initials = sub.studentName.split(' ').map(p => p[0]).join('').slice(0, 2)
   const date = sub.updatedAt ? new Date(sub.updatedAt).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''
-  const statusLabel = sub.status === 'completed' ? 'Принято' : sub.status === 'returned' ? 'Возвращено' : 'На проверке'
+  const statusLabel = sub.status === 'completed' ? t('Принято') : sub.status === 'returned' ? t('Возвращено') : t('На проверке')
   const statusColor = sub.status === 'completed' ? 'var(--color-green-text)' : sub.status === 'returned' ? 'var(--color-peach-text)' : 'var(--color-purple-text)'
   const statusBg = sub.status === 'completed' ? 'var(--color-green-soft)' : sub.status === 'returned' ? 'var(--color-peach-soft)' : 'var(--color-purple-soft)'
 
   // Вкладки = задания, присланные учеником (снапшот условия лежит в блоке).
   const tabs: HardTabVM[] = sub.taskBlocks.map((tb, i) => ({
     key: tb.key,
-    title: `Задание ${i + 1}`,
+    title: `${t('Задание')} ${i + 1}`,
     statement: tb.statement,
   }))
 
@@ -98,12 +100,12 @@ export default function TeacherHardReviewPage() {
             color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
           }}
         >
-          <ArrowLeft size={15} strokeWidth={2} /> Назад
+          <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
         </motion.button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
           <Star size={16} style={{ color: 'var(--color-accent)' }} fill="currentColor" />
           <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            Хард-уровень · {sub.lessonTitle || sub.baseRef}
+            {t('Хард-уровень')} · {sub.lessonTitle || sub.baseRef}
           </span>
           <span style={{ fontSize: 11, fontWeight: 700, color: statusColor, background: statusBg, padding: '3px 9px', borderRadius: 8 }}>
             {statusLabel}
@@ -121,12 +123,12 @@ export default function TeacherHardReviewPage() {
               </div>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{sub.studentName}</div>
-                <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2 }}>Сдано {date}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2 }}>{t('Сдано')} {date}</div>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <div style={{ flex: 1, background: 'var(--color-purple-soft)', borderRadius: 12, padding: '10px 12px' }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-accent)', opacity: 0.75, marginBottom: 4 }}>Базовая</div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-accent)', opacity: 0.75, marginBottom: 4 }}>{t('Базовая')}</div>
                 <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-accent)' }}>2/2</div>
               </div>
             </div>
@@ -150,11 +152,11 @@ export default function TeacherHardReviewPage() {
               }}
             >
               <ClipboardList size={15} strokeWidth={2.2} style={{ color: 'var(--color-accent)' }} />
-              {hwBusy ? 'Открываю…' : 'Открыть домашку'}
+              {hwBusy ? t('Открываю…') : t('Открыть домашку')}
             </motion.button>
             {hwMissing && (
               <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 8, lineHeight: 1.4 }}>
-                Эта работа не связана с домашкой (хард-задание из урока).
+                {t('Эта работа не связана с домашкой (хард-задание из урока).')}
               </div>
             )}
           </div>

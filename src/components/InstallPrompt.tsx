@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Share, X, Plus, Sparkles, WifiOff, Rocket } from 'lucide-react'
 import { subscribeInstall, subscribeShowInstall, hasInstallPrompt, promptInstall, isStandalone, getPlatform } from '../lib/pwaInstall'
+import { useT } from '../lib/i18n'
 
 const DISMISS_KEY = 'pwa_install_dismissed_v1'
 function dismissed(): boolean { try { return localStorage.getItem(DISMISS_KEY) === '1' } catch { return false } }
@@ -15,6 +16,7 @@ function markDismissed() { try { localStorage.setItem(DISMISS_KEY, '1') } catch 
  * once at the app root.
  */
 export default function InstallPrompt() {
+  const t = useT()
   const platform = getPlatform()
   const [canPrompt, setCanPrompt] = useState(hasInstallPrompt())
   const [hidden, setHidden] = useState(dismissed() || isStandalone())
@@ -91,7 +93,7 @@ export default function InstallPrompt() {
               <div style={{ width: 40, height: 5, borderRadius: 99, background: 'var(--color-border-medium)', margin: '0 auto' }} />
               <button
                 onClick={close}
-                aria-label="Закрыть"
+                aria-label={t('Закрыть')}
                 style={{
                   position: 'absolute', top: 8, right: 12, width: 32, height: 32, borderRadius: 999,
                   border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-muted)', cursor: 'pointer',
@@ -106,17 +108,17 @@ export default function InstallPrompt() {
               <PhoneMockup />
 
               <div style={{ fontSize: 21, fontWeight: 780, color: 'var(--color-text)', marginTop: 18, letterSpacing: '-0.01em' }}>
-                Установить «Искру»
+                {t('Установить «Искру»')}
               </div>
               <div style={{ fontSize: 13.5, color: 'var(--color-text-2)', lineHeight: 1.4, textAlign: 'center', marginTop: 5, maxWidth: 300 }}>
-                Быстрый доступ прямо с экрана «Домой» — без адресной строки, как настоящее приложение
+                {t('Быстрый доступ прямо с экрана «Домой» — без адресной строки, как настоящее приложение')}
               </div>
 
               {/* Perks */}
               <div style={{ display: 'flex', gap: 8, marginTop: 16, width: '100%' }}>
-                <Perk icon={Rocket} label="Мгновенный запуск" />
-                <Perk icon={Sparkles} label="На весь экран" />
-                <Perk icon={WifiOff} label="Работает офлайн" />
+                <Perk icon={Rocket} label={t('Мгновенный запуск')} />
+                <Perk icon={Sparkles} label={t('На весь экран')} />
+                <Perk icon={WifiOff} label={t('Работает офлайн')} />
               </div>
             </div>
 
@@ -134,23 +136,23 @@ export default function InstallPrompt() {
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                   }}
                 >
-                  <Plus size={18} strokeWidth={2.6} /> Установить приложение
+                  <Plus size={18} strokeWidth={2.6} /> {t('Установить приложение')}
                 </button>
               </div>
             ) : (
               <div style={{ padding: '18px 22px 4px' }}>
                 <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 12 }}>
-                  Как установить
+                  {t('Как установить')}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <Step n={1}>
-                    Нажмите <Glyph><Share size={14} strokeWidth={2} /></Glyph> «Поделиться» внизу Safari
+                    {t('Нажмите')} <Glyph><Share size={14} strokeWidth={2} /></Glyph> {t('«Поделиться» внизу Safari')}
                   </Step>
                   <Step n={2}>
-                    Выберите <b style={{ color: 'var(--color-text)' }}>«На экран „Домой"»</b> <Glyph><Plus size={14} strokeWidth={2.4} /></Glyph>
+                    {t('Выберите')} <b style={{ color: 'var(--color-text)' }}>{t('«На экран „Домой"»')}</b> <Glyph><Plus size={14} strokeWidth={2.4} /></Glyph>
                   </Step>
                   <Step n={3}>
-                    Нажмите <b style={{ color: 'var(--color-text)' }}>«Добавить»</b> — иконка «Искры» появится на экране
+                    {t('Нажмите')} <b style={{ color: 'var(--color-text)' }}>{t('«Добавить»')}</b> {t('— иконка «Искры» появится на экране')}
                   </Step>
                 </div>
               </div>

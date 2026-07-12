@@ -17,6 +17,7 @@ import { useStudentData } from '../store/studentDataStore'
 import { useTrainerProgress } from '../store/trainerProgressStore'
 import { useTeacher } from '../store/teacherStore'
 import { tactile } from '../lib/feedback'
+import { t, useT } from '../lib/i18n'
 
 /**
  * The minimalist "pill" the WidgetCarousel morphs into when the user leaves the
@@ -36,12 +37,12 @@ const PILL_WIDTH = 320
 
 // One-line "kicker" tags + accent colours per widget id.
 const META: Record<number, { kicker: string; accent: string }> = {
-  0: { kicker: 'Сегодня', accent: 'var(--color-accent)' },
-  1: { kicker: 'Научный факт', accent: '#2D6BE0' },
-  2: { kicker: 'Реакция курса', accent: '#1E9E63' },
-  3: { kicker: 'Фокус', accent: 'var(--color-accent)' },
-  4: { kicker: 'Мем', accent: '#E0852D' },
-  5: { kicker: 'Вопрос дня', accent: '#0E7A6F' },
+  0: { kicker: t('Сегодня'), accent: 'var(--color-accent)' },
+  1: { kicker: t('Научный факт'), accent: '#2D6BE0' },
+  2: { kicker: t('Реакция курса'), accent: '#1E9E63' },
+  3: { kicker: t('Фокус'), accent: 'var(--color-accent)' },
+  4: { kicker: t('Мем'), accent: '#E0852D' },
+  5: { kicker: t('Вопрос дня'), accent: '#0E7A6F' },
 }
 
 // Compact previews per widget id. `expanded` toggles the longer copy that
@@ -58,6 +59,7 @@ function useRotatingIndex(length: number, intervalSec: number, paused: boolean) 
 }
 
 function StatsPreview({ expanded }: { expanded: boolean }) {
+  const t = useT()
   const homeworkFeedback = useDashboard(s => s.homeworkWidgetFeedback)
   const answerFlight = useDashboard(s => s.answerFlight)
   // Pulse the pill avatar once when a new answer lands (flight cleared → feedback updated).
@@ -124,7 +126,7 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
             textTransform: 'uppercase', color: 'var(--color-text-3)',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
-            Домашка · {lessonTitle}
+            {t('Домашка')} · {lessonTitle}
           </span>
 
           {/* Title row: status + score pill */}
@@ -133,14 +135,14 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
               fontSize: 13, fontWeight: 700, color: accentColor,
               whiteSpace: 'nowrap',
             }}>
-              {lastCorrect ? 'Верно' : 'Пока мимо'}
+              {lastCorrect ? t('Верно') : t('Пока мимо')}
             </span>
             <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', fontWeight: 500 }}>·</span>
             <span style={{
               fontSize: 11.5, fontWeight: 600, color: 'var(--color-text-2)',
               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
             }}>
-              вопрос {lastQuestionIndex + 1} из {total}
+              {t('вопрос')} {lastQuestionIndex + 1} {t('из')} {total}
             </span>
             {/* score pill — only after ≥1 answered */}
             {correct > 0 && (
@@ -204,24 +206,25 @@ function StatsPreview({ expanded }: { expanded: boolean }) {
         </div>
       }
       kicker={META[0].kicker}
-      title="Пока недостаточно данных"
+      title={t('Пока недостаточно данных')}
       expanded={expanded}
-      detail="Данные появятся после первых занятий."
+      detail={t('Данные появятся после первых занятий.')}
     />
   )
 }
 
 function ScienceFactPreview({ expanded, paused }: { expanded: boolean; paused: boolean }) {
+  const t = useT()
   const scienceFacts = useStudentData(s => s.scienceFacts)
   const i = useRotatingIndex(scienceFacts.length || 1, scienceFactInterval, paused)
   const fact = scienceFacts[i]
   if (!fact) return (
     <PillContent
       avatar={<div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #3FCB8A, #1E9E63)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20 }}>🔬</div>}
-      kicker="Научный факт"
+      kicker={t('Научный факт')}
       title="—"
       expanded={expanded}
-      detail="Загружаем интересные факты…"
+      detail={t('Загружаем интересные факты…')}
     />
   )
   return (
@@ -242,7 +245,7 @@ function ScienceFactPreview({ expanded, paused }: { expanded: boolean; paused: b
           {fact.emoji}
         </div>
       }
-      kicker={`${fact.subject} · факт`}
+      kicker={`${fact.subject} · ${t('факт')}`}
       title={fact.text.split('—')[0].trim().replace(/[.,]$/, '')}
       expanded={expanded}
       detail={fact.text}
@@ -251,16 +254,17 @@ function ScienceFactPreview({ expanded, paused }: { expanded: boolean; paused: b
 }
 
 function ReactionPreview({ expanded, paused }: { expanded: boolean; paused: boolean }) {
+  const t = useT()
   const courseReactions = useStudentData(s => s.courseReactions)
   const i = useRotatingIndex(courseReactions.length || 1, courseReactionInterval, paused)
   const r = courseReactions[i]
   if (!r) return (
     <PillContent
       avatar={<div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #5A9BF0, #1F6FB8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20 }}>⚗️</div>}
-      kicker="Химия · Реакция"
+      kicker={t('Химия · Реакция')}
       title="—"
       expanded={expanded}
-      detail="Загружаем реакции курса…"
+      detail={t('Загружаем реакции курса…')}
     />
   )
   return (
@@ -281,10 +285,10 @@ function ReactionPreview({ expanded, paused }: { expanded: boolean; paused: bool
           {r.emoji}
         </div>
       }
-      kicker={`Химия · ${r.name}`}
+      kicker={`${t('Химия')} · ${r.name}`}
       title={r.equation}
       expanded={expanded}
-      detail={`${r.name} · Урок «${r.lesson}»`}
+      detail={`${r.name} · ${t('Урок')} «${r.lesson}»`}
     />
   )
 }
@@ -302,6 +306,7 @@ function fmtClock(total: number) {
 // and the play + repeat actions. Rendered inside the pill's detail slot so it
 // only becomes interactive once the pill grows.
 function PomoControls() {
+  const t = useT()
   const {
     pomoTimerMode, pomoMode, pomoRunning, pomoFocusDuration,
     pomoStart, pomoPause, pomoReset, pomoSetPreset, pomoSetTimerMode,
@@ -315,7 +320,7 @@ function PomoControls() {
     <div onClick={stop} style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 2 }}>
       {/* Timer ↔ Stopwatch segmented control */}
       <div style={{ display: 'flex', alignSelf: 'flex-start', background: 'rgba(0,0,0,0.18)', borderRadius: 999, padding: 3, gap: 2 }}>
-        {([['timer', 'Таймер'], ['stopwatch', 'Секундомер']] as const).map(([mode, label]) => {
+        {([['timer', t('Таймер')], ['stopwatch', t('Секундомер')]] as const).map(([mode, label]) => {
           const active = pomoTimerMode === mode
           return (
             <button
@@ -365,7 +370,7 @@ function PomoControls() {
       <div style={{ display: 'flex', gap: 8 }}>
         <button
           onClick={e => { stop(e); pomoRunning ? pomoPause() : pomoStart() }}
-          aria-label={pomoRunning ? 'Пауза' : 'Старт'}
+          aria-label={pomoRunning ? t('Пауза') : t('Старт')}
           style={{
             flex: 1, height: 38, borderRadius: 12, border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -375,11 +380,11 @@ function PomoControls() {
           }}
         >
           {pomoRunning ? <Pause size={15} /> : <Play size={15} />}
-          {pomoRunning ? 'Пауза' : 'Старт'}
+          {pomoRunning ? t('Пауза') : t('Старт')}
         </button>
         <button
           onClick={e => { stop(e); pomoReset() }}
-          aria-label="Повторить"
+          aria-label={t('Повторить')}
           style={{
             width: 38, height: 38, borderRadius: 12, border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -394,6 +399,7 @@ function PomoControls() {
 }
 
 function PomoPreview({ expanded }: { expanded: boolean }) {
+  const t = useT()
   const pomoMode = useDashboard(s => s.pomoMode)
   const pomoTimerMode = useDashboard(s => s.pomoTimerMode)
   const pomoSecondsLeft = useDashboard(s => s.pomoSecondsLeft)
@@ -402,10 +408,10 @@ function PomoPreview({ expanded }: { expanded: boolean }) {
 
   const isStopwatch = pomoTimerMode === 'stopwatch'
   const seconds = isStopwatch ? pomoStopwatchSeconds : pomoSecondsLeft
-  const kicker = isStopwatch ? 'Секундомер' : pomoMode === 'focus' ? 'Фокус' : 'Перерыв'
+  const kicker = isStopwatch ? t('Секундомер') : pomoMode === 'focus' ? t('Фокус') : t('Перерыв')
   const title = isStopwatch
-    ? `${fmtClock(seconds)} прошло`
-    : `${fmtClock(seconds)} осталось`
+    ? `${fmtClock(seconds)} ${t('прошло')}`
+    : `${fmtClock(seconds)} ${t('осталось')}`
 
   return (
     <PillContent
@@ -433,16 +439,17 @@ function PomoPreview({ expanded }: { expanded: boolean }) {
 }
 
 function MemePreview({ expanded, paused }: { expanded: boolean; paused: boolean }) {
+  const t = useT()
   const scienceMemes = useStudentData(s => s.scienceMemes)
   const i = useRotatingIndex(scienceMemes.length || 1, scienceMemeInterval, paused)
   const m = scienceMemes[i]
   if (!m) return (
     <PillContent
       avatar={<div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #F0A83F, var(--color-purple))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20 }}>😄</div>}
-      kicker="Мем"
+      kicker={t('Мем')}
       title="—"
       expanded={expanded}
-      detail="Загружаем мемы курса…"
+      detail={t('Загружаем мемы курса…')}
     />
   )
   return (
@@ -463,7 +470,7 @@ function MemePreview({ expanded, paused }: { expanded: boolean; paused: boolean 
           {m.emoji}
         </div>
       }
-      kicker={`${m.subject} · мем`}
+      kicker={`${m.subject} · ${t('мем')}`}
       title={m.setup}
       expanded={expanded}
       detail={m.punchline}
@@ -476,6 +483,7 @@ function MemePreview({ expanded, paused }: { expanded: boolean; paused: boolean 
 // The whole bar is the hit area. Re-hides whenever the pill collapses, so the
 // next expand starts hidden again.
 function AnswerSpoiler({ text, expanded }: { text: string; expanded: boolean }) {
+  const tr = useT()
   const [phase, setPhase] = useState<'hidden' | 'dissolving' | 'shown'>('hidden')
   const barRef = useRef<HTMLButtonElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -539,7 +547,7 @@ function AnswerSpoiler({ text, expanded }: { text: string; expanded: boolean }) 
 
   return (
     <span style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
-      <span style={{ flexShrink: 0 }}>Ответ:</span>
+      <span style={{ flexShrink: 0 }}>{tr('Ответ:')}</span>
       {phase === 'shown' ? (
         <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.28 }}>
           {text}
@@ -550,7 +558,7 @@ function AnswerSpoiler({ text, expanded }: { text: string; expanded: boolean }) 
             ref={barRef}
             type="button"
             onClick={dissolve}
-            aria-label="Показать ответ"
+            aria-label={tr('Показать ответ')}
             style={{
               position: 'absolute', inset: 0, width: '100%', height: '100%',
               border: 'none', padding: 0, borderRadius: 999,
@@ -581,6 +589,7 @@ function AnswerSpoiler({ text, expanded }: { text: string; expanded: boolean }) 
 }
 
 function QuestionOfDayPreview({ expanded }: { expanded: boolean }) {
+  const t = useT()
   const quizQuestions = useStudentData(s => s.quizQuestions)
   const day = new Date().getDate()
   const q = quizQuestions[day % Math.max(quizQuestions.length, 1)] ?? quizQuestions[0] ?? { id: 'q1', title: '…', subject: 'Химия', answers: [] }
@@ -604,15 +613,16 @@ function QuestionOfDayPreview({ expanded }: { expanded: boolean }) {
           ✨
         </div>
       }
-      kicker={`${q.subject} · вопрос`}
+      kicker={`${q.subject} · ${t('вопрос')}`}
       title={q.title}
       expanded={expanded}
-      detail={correct ? <AnswerSpoiler text={correct.text} expanded={expanded} /> : 'Открой виджет, чтобы посмотреть ответ.'}
+      detail={correct ? <AnswerSpoiler text={correct.text} expanded={expanded} /> : t('Открой виджет, чтобы посмотреть ответ.')}
     />
   )
 }
 
 function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
+  const t = useT()
   const { doneCount, wrongCount, totalCount, todayCorrect, setOpenModal } = useTrainerProgress()
   const pct = totalCount ? Math.round((doneCount / totalCount) * 100) : 0
 
@@ -651,7 +661,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
           fontSize: 10.5, fontWeight: 600, letterSpacing: 0.3,
           textTransform: 'uppercase', color: 'var(--color-text-3)',
         }}>
-          Тренажёр · прогресс
+          {t('Тренажёр · прогресс')}
         </span>
 
         {/* Pills — smoothly morph between collapsed capsule and expanded tile */}
@@ -667,7 +677,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             >
               <motion.span initial={false} animate={{ fontSize: expanded ? 18 : 12 }} transition={PILL_T} style={{ whiteSpace: 'nowrap' }}>✓ {doneCount}</motion.span>
               <motion.span initial={false} animate={{ opacity: expanded ? 0.75 : 0, maxHeight: expanded ? 16 : 0 }} transition={PILL_T} style={{ fontSize: 9.5, overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                {totalCount > 0 ? `Верно из ${totalCount}` : 'Верно'}
+                {totalCount > 0 ? `${t('Верно из')} ${totalCount}` : t('Верно')}
               </motion.span>
             </motion.div>
 
@@ -681,7 +691,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
               >
                 <motion.span initial={false} animate={{ fontSize: expanded ? 18 : 12 }} transition={PILL_T} style={{ whiteSpace: 'nowrap' }}>+{todayCorrect}</motion.span>
                 <motion.span initial={false} animate={{ opacity: expanded ? 0.85 : 0, maxHeight: expanded ? 16 : 0 }} transition={PILL_T} style={{ fontSize: 9.5, overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                  Сегодня
+                  {t('Сегодня')}
                 </motion.span>
               </motion.div>
             )}
@@ -696,14 +706,14 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
               >
                 <motion.span initial={false} animate={{ fontSize: expanded ? 18 : 12 }} transition={PILL_T} style={{ whiteSpace: 'nowrap' }}>✗ {wrongCount}</motion.span>
                 <motion.span initial={false} animate={{ opacity: expanded ? 0.85 : 0, maxHeight: expanded ? 16 : 0 }} transition={PILL_T} style={{ fontSize: 9.5, overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                  Ошибок
+                  {t('Ошибок')}
                 </motion.span>
               </motion.div>
             )}
           </div>
         ) : (
           <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-text-3)' }}>
-            Начни решать задания
+            {t('Начни решать задания')}
           </span>
         )}
 
@@ -722,7 +732,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             )}
             <button onClick={e => { e.stopPropagation(); setOpenModal(true) }}
               style={{ flexShrink: 0, padding: '3px 8px', borderRadius: 999, border: 'none', background: 'rgba(52,200,119,0.15)', color: '#27A85A', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
-              Подробнее →
+              {t('Подробнее →')}
             </button>
           </div>
         </motion.div>
@@ -896,6 +906,7 @@ function StudentNotifPreview({ latest, extra, onAction, onClose }: {
   onAction: () => void
   onClose: () => void
 }) {
+  const t = useT()
   const accent = sNotifColor(latest.type)
   const hexAccent = accent.startsWith('#') ? accent : '#786AD7'
   return (
@@ -911,7 +922,7 @@ function StudentNotifPreview({ latest, extra, onAction, onClose }: {
 
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 2 }}>
         <span style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: 0.3, textTransform: 'uppercase', color: 'var(--color-text-3)' }}>
-          Уведомление
+          {t('Уведомление')}
         </span>
         <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.25 }}>
           {latest.title}
@@ -956,6 +967,7 @@ function StudentNotifPreview({ latest, extra, onAction, onClose }: {
 }
 
 function PreviewById({ widgetId, expanded }: { widgetId: number; expanded: boolean }) {
+  const t = useT()
   const paused = false
 
   switch (widgetId) {
@@ -973,10 +985,10 @@ function PreviewById({ widgetId, expanded }: { widgetId: number; expanded: boole
             🧠
           </div>
         }
-        kicker="Викторина"
-        title="Викторина ждёт на главной"
+        kicker={t('Викторина')}
+        title={t('Викторина ждёт на главной')}
         expanded={expanded}
-        detail="Вернись на главную страницу, чтобы пройти викторину."
+        detail={t('Вернись на главную страницу, чтобы пройти викторину.')}
       />
     )
     default: return <StatsPreview expanded={expanded} />
@@ -984,6 +996,7 @@ function PreviewById({ widgetId, expanded }: { widgetId: number; expanded: boole
 }
 
 export default function CompactWidgetPill() {
+  const t = useT()
   const widgetOrder = useDashboard(s => s.widgetOrder)
   // On a scrolled lesson the whole top line docks over the dark video and the
   // top bar switches to its more opaque glass; the pill matches it so every
@@ -1280,7 +1293,7 @@ export default function CompactWidgetPill() {
         <>
           <button
             type="button"
-            aria-label="Предыдущий виджет"
+            aria-label={t('Предыдущий виджет')}
             onClick={e => { e.stopPropagation(); goTo(idx - 1, -1) }}
             style={{
               position: 'absolute',
@@ -1307,7 +1320,7 @@ export default function CompactWidgetPill() {
           </button>
           <button
             type="button"
-            aria-label="Следующий виджет"
+            aria-label={t('Следующий виджет')}
             onClick={e => { e.stopPropagation(); goTo(idx + 1, 1) }}
             style={{
               position: 'absolute',
@@ -1343,7 +1356,7 @@ export default function CompactWidgetPill() {
       {showMiniPlay && (
         <button
           type="button"
-          aria-label={pomoRunning ? 'Пауза' : 'Старт'}
+          aria-label={pomoRunning ? t('Пауза') : t('Старт')}
           onClick={e => { e.stopPropagation(); tactile(); pomoRunning ? pomoPause() : pomoStart() }}
           style={{
             position: 'absolute',

@@ -10,6 +10,7 @@ import MemesWidget from './MemesWidget'
 import QuestionOfDayWidget from './QuestionOfDayWidget'
 import TrainerProgressWidget from './TrainerProgressWidget'
 import { useDashboard } from '../store/dashboardStore'
+import { useT } from '../lib/i18n'
 
 const WIDGETS = ['Статистика', 'Научные факты', 'Реакции', 'Фокус', 'Мемы', 'Вопрос дня'] as const
 const COUNT = WIDGETS.length
@@ -23,6 +24,7 @@ const variants = {
 }
 
 export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: number } = {}) {
+  const t = useT()
   const [[page, dir], setPage] = useState<[number, number]>([0, 0])
   const [dotsVisible, setDotsVisible] = useState(false)
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -106,7 +108,7 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
         onClick={goLeft}
         style={{ y: '-50%' }}
         className="carousel-nav carousel-nav--left"
-        aria-label="Предыдущий виджет"
+        aria-label={t('Предыдущий виджет')}
       >
         <ChevronLeft size={16} />
       </motion.button>
@@ -159,7 +161,7 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
         onClick={goRight}
         style={{ y: '-50%' }}
         className="carousel-nav carousel-nav--right"
-        aria-label="Следующий виджет"
+        aria-label={t('Следующий виджет')}
       >
         <ChevronRight size={16} />
       </motion.button>
@@ -178,7 +180,7 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
           <button
             key={i}
             onClick={() => goTo(i, i > page ? 1 : -1)}
-            aria-label={`Страница ${i + 1}`}
+            aria-label={`${t('Страница')} ${i + 1}`}
             className="cursor-pointer"
             style={{
               width: i === page ? 22 : 7,

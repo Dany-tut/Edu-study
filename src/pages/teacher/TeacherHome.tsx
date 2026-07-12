@@ -16,6 +16,7 @@ import { supabase } from '../../lib/supabase'
 import { getOwnerId } from '../../lib/owner'
 import { mskToVietnam } from '../../lib/utils'
 import { usePersistentState, clearDrafts } from '../../lib/useDraft'
+import { useT, t } from '../../lib/i18n'
 
 const SPRING = { type: 'spring', stiffness: 340, damping: 30 } as const
 const fadeUp = (delay = 0) => ({
@@ -57,6 +58,7 @@ function CardTitle({ children }: { children: React.ReactNode }) {
 
 // ─── Stat card ─────────────────────────────────────────────────────────────
 function EarningsCard({ delay }: { delay: number }) {
+  const t = useT()
   const [amount, setAmount] = useState<number | null>(null)
   const [payments, setPayments] = useState(0)
   useEffect(() => {
@@ -85,7 +87,7 @@ function EarningsCard({ delay }: { delay: number }) {
     <motion.div {...fadeUp(delay)} style={{ flex: 1, minWidth: 0 }}>
       <Card style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-muted)' }}>За месяц</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-muted)' }}>{t('За месяц')}</span>
           <div style={{
             width: 30, height: 30, borderRadius: 10,
             background: 'var(--color-yellow-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -102,7 +104,7 @@ function EarningsCard({ delay }: { delay: number }) {
           background: amount != null ? 'var(--color-yellow-soft)' : 'var(--color-bg-4)',
           borderRadius: 8, padding: '3px 8px', alignSelf: 'flex-start',
         }}>
-          {amount != null ? `${payments} оплат` : 'загрузка...'}
+          {amount != null ? `${payments} ${t('оплат')}` : t('загрузка...')}
         </div>
       </Card>
     </motion.div>
@@ -155,6 +157,7 @@ function nowMskHHMM(): string {
 // One stop on the day's timeline. The left rail draws the connecting line + status dot;
 // `isFirst`/`isLast` trim the line so it doesn't dangle past the ends.
 function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: boolean; isLast: boolean }) {
+  const t = useT()
   const openLessonEditor = useTeacher(s => s.openLessonEditor)
   const isLive = item.status === 'live'
   const isDone = item.status === 'completed'
@@ -208,7 +211,7 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
         </span>
         {item.time && (
           <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-4)' }}>
-            {mskToVietnam(item.time)} ВН
+            {mskToVietnam(item.time)} {t('ВН')}
           </span>
         )}
       </span>
@@ -226,13 +229,13 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
           </span>
           {isLive && (
             <span style={{ fontSize: 10.5, fontWeight: 700, color: item.color, letterSpacing: 0.3, flexShrink: 0 }}>
-              ИДЁТ СЕЙЧАС
+              {t('ИДЁТ СЕЙЧАС')}
             </span>
           )}
         </span>
         {(item.subject || item.topic || item.lessonNumber > 0) && (
           <span style={{ fontSize: 12, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {[item.subject, item.lessonNumber > 0 ? `Урок ${item.lessonNumber}` : '', item.topic].filter(Boolean).join(' · ')}
+            {[item.subject, item.lessonNumber > 0 ? `${t('Урок')} ${item.lessonNumber}` : '', item.topic].filter(Boolean).join(' · ')}
           </span>
         )}
       </span>
@@ -248,13 +251,14 @@ function ScheduleRow({ item, isFirst, isLast }: { item: ScheduleItem; isFirst: b
 
 // Thin divider that marks the current moment between finished and upcoming lessons.
 function NowMarker({ time }: { time: string }) {
+  const t = useT()
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '2px 12px 2px 4px' }}>
       <div style={{ width: 22, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
         <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-red-text)', boxShadow: '0 0 0 3px var(--color-red-soft)' }} />
       </div>
       <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 0.4, color: 'var(--color-red-text)', flexShrink: 0 }}>
-        СЕЙЧАС · {time}
+        {t('СЕЙЧАС')} · {time}
       </span>
       <span style={{ flex: 1, height: 1, background: 'linear-gradient(to right, var(--color-red-soft), transparent)' }} />
     </div>
@@ -272,6 +276,7 @@ function formatDue(iso: string): string {
 }
 
 function PaymentBlock({ students, groups }: { students: Student[]; groups: Group[] }) {
+  const t = useT()
   const TODAY = new Date().toISOString().split('T')[0]
   const withPayment = students.filter(s => s.paymentDue)
   if (!withPayment.length) return null
@@ -331,12 +336,12 @@ function PaymentBlock({ students, groups }: { students: Student[]; groups: Group
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
         <Banknote size={13} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />
         <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-          Оплата
+          {t('Оплата')}
         </span>
       </div>
-      <Section label="Просрочено" color="#E04848" bg="var(--color-red-soft)" items={overdue} />
-      <Section label="На этой неделе" color="#D07020" bg="var(--color-peach-soft)" items={thisWeek} />
-      <Section label="В этом месяце" color="#5A7A9A" bg="var(--color-bg-3)" items={thisMonth} />
+      <Section label={t('Просрочено')} color="#E04848" bg="var(--color-red-soft)" items={overdue} />
+      <Section label={t('На этой неделе')} color="#D07020" bg="var(--color-peach-soft)" items={thisWeek} />
+      <Section label={t('В этом месяце')} color="#5A7A9A" bg="var(--color-bg-3)" items={thisMonth} />
     </div>
   )
 }
@@ -360,12 +365,13 @@ const reminderAccent = (item: Pick<Reminder, 'type' | 'urgency'>) => {
 
 // Text shown on the high-urgency badge — spells out *why* it's flagged.
 const urgencyLabel = (type: Reminder['type']) =>
-  type === 'payment-debt' ? 'Просрочено'
-  : type === 'fill-journal' ? 'Не заполнен'
-  : type === 'check-hw' ? 'Давно ждёт'
-  : 'Срочно'
+  type === 'payment-debt' ? t('Просрочено')
+  : type === 'fill-journal' ? t('Не заполнен')
+  : type === 'check-hw' ? t('Давно ждёт')
+  : t('Срочно')
 
 function ReminderRow({ item, done, onAction, style: styleOverride }: { item: Reminder; done?: boolean; onAction?: () => void; style?: React.CSSProperties }) {
+  const t = useT()
   const Icon = done ? CheckCircle2 : reminderIcons[item.type]
   // Кликабельно только пока есть куда вести и дело не закрыто.
   const clickable = !done && !!onAction
@@ -409,7 +415,7 @@ function ReminderRow({ item, done, onAction, style: styleOverride }: { item: Rem
             color: done ? 'var(--color-green-text)' : 'var(--color-text-3)',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
-            {done ? 'Готово' : item.detail}
+            {done ? t('Готово') : item.detail}
           </div>
         )}
       </div>
@@ -459,6 +465,7 @@ function ReminderGroupStack({ items, getAction, isDone }: {
   getAction: (r: Reminder) => (() => void) | undefined
   isDone: (r: Reminder) => boolean
 }) {
+  const t = useT()
   const [expanded, setExpanded] = useState(false)
   const dark = useTheme(s => s.dark)
   const collapseColor = dark ? 'var(--color-text-3)' : 'var(--color-text-4)'
@@ -566,10 +573,10 @@ function ReminderGroupStack({ items, getAction, isDone }: {
               }}
             >
               <span style={{ fontSize: 11, fontWeight: 700, color: accent }}>
-                {stackTypeLabel[front.type]} · {items.length}
+                {t(stackTypeLabel[front.type])} · {items.length}
               </span>
               <span style={{ fontSize: 11, color: collapseColor, display: 'flex', alignItems: 'center', gap: 3 }}>
-                Свернуть <ChevronRight size={11} style={{ transform: 'rotate(-90deg)' }} />
+                {t('Свернуть')} <ChevronRight size={11} style={{ transform: 'rotate(-90deg)' }} />
               </span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -635,6 +642,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
   onRemove: () => void
   onClick: () => void
 }) {
+  const t = useT()
   const rowRef = useRef<HTMLDivElement>(null)
   const [showDelete, setShowDelete] = useState(false)
 
@@ -690,7 +698,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
         textDecoration: task.done ? 'line-through' : 'none',
         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}>
-        {(task.title || (task.typeLabel ?? 'Задача')).replace(/@/g, '')}
+        {(task.title || (task.typeLabel ?? t('Задача'))).replace(/@/g, '')}
       </span>
 
       <span style={{ fontSize: 11, color: 'var(--color-text-3)', flexShrink: 0 }}>
@@ -722,6 +730,7 @@ function TaskRow({ task, onToggle, onRemove, onClick }: {
 
 // ─── My Tasks block ─────────────────────────────────────────────────────────
 function MyTasksBlock() {
+  const t = useT()
   const tasks = useTeacher(s => s.tasks)
   const toggleTask = useTeacher(s => s.toggleTask)
   const removeTask = useTeacher(s => s.removeTask)
@@ -769,7 +778,7 @@ function MyTasksBlock() {
       <Card>
         <CardTitle>
           <CheckCircle2 size={14} strokeWidth={2} />
-          Мои задачи
+          {t('Мои задачи')}
           {pending.length > 0 && (
             <span style={{
               marginLeft: 'auto',
@@ -914,6 +923,7 @@ function RemindersScroll({ reminders, reminderAction, reminderDone, allStudents,
 
 // ─── Main component ─────────────────────────────────────────────────────────
 export default function TeacherHome() {
+  const t = useT()
   const { setActivePage, openGradebook } = useTeacher()
   const openHardReview = useTeacher(s => s.openHardReview)
   const openHomeworkReview = useTeacher(s => s.openHomeworkReview)
@@ -980,28 +990,28 @@ export default function TeacherHome() {
     ...pendingHomework.filter(hw => hw.submittedCount > 0).map(hw => ({
       id: `hw-${hw.id}`,
       type: 'check-hw' as Reminder['type'],
-      text: `Проверить ДЗ — ${hw.groupName}`,
-      detail: `${hw.submittedCount} из ${hw.totalCount} сдали`,
+      text: `${t('Проверить ДЗ')} — ${hw.groupName}`,
+      detail: `${hw.submittedCount} ${t('из')} ${hw.totalCount} ${t('сдали')}`,
       urgency: 'high' as Reminder['urgency'],
     })),
     ...pendingHard.map(s => ({
       id: `hard-${s.id}`,
       type: 'check-hw' as Reminder['type'],
-      text: `Сложное ДЗ — ${s.studentName.split(' ')[0]}`,
+      text: `${t('Сложное ДЗ')} — ${s.studentName.split(' ')[0]}`,
       detail: s.lessonTitle,
       urgency: 'high' as Reminder['urgency'],
     })),
     ...allStudents.filter(s => s.paymentDue && diffDays(s.paymentDue, TODAY) <= 7).map(s => ({
       id: `pay-${s.id}`,
       type: 'payment-debt' as Reminder['type'],
-      text: `Оплата — ${s.name.split(' ')[0]}`,
+      text: `${t('Оплата')} — ${s.name.split(' ')[0]}`,
       detail: s.paymentAmount ? `${s.paymentAmount.toLocaleString('ru-RU')} ₽` : '',
       urgency: (diffDays(s.paymentDue!, TODAY) < 0 ? 'high' : 'medium') as Reminder['urgency'],
     })),
     ...pendingJournals.map(p => ({
       id: `journal-${p.scheduleId}`,
       type: 'fill-journal' as Reminder['type'],
-      text: `Журнал — ${p.scopeName}`,
+      text: `${t('Журнал')} — ${p.scopeName}`,
       detail: `${p.date.slice(5).replace('-', '.')} · ${p.title}`,
       urgency: 'medium' as Reminder['urgency'],
     })),
@@ -1043,18 +1053,18 @@ export default function TeacherHome() {
       <section style={{ padding: '16px 32px 0', flexShrink: 0 }}>
         <div style={{ display: 'flex', gap: 14 }}>
           <StatCard
-            icon={Users} label="Студентов" value={totalStudents}
-            sub={`${groups.length} группы`}
+            icon={Users} label={t('Студентов')} value={totalStudents}
+            sub={`${groups.length} ${t('группы')}`}
             accentBg="var(--color-green-soft)" accentColor="var(--color-green-text)" delay={0.05}
           />
           <StatCard
-            icon={ClipboardCheck} label="Проверить ДЗ" value={pendingCount}
-            sub="ждут ревью"
+            icon={ClipboardCheck} label={t('Проверить ДЗ')} value={pendingCount}
+            sub={t('ждут ревью')}
             accentBg="var(--color-red-soft)" accentColor="var(--color-red-text)" delay={0.1}
           />
           <StatCard
-            icon={Clock} label="Уроков сегодня" value={todaySchedule.length}
-            sub={nextLesson ? `следующий в ${nextLesson.time} МСК (${mskToVietnam(nextLesson.time)} ВН)` : 'все завершены'}
+            icon={Clock} label={t('Уроков сегодня')} value={todaySchedule.length}
+            sub={nextLesson ? `${t('следующий в')} ${nextLesson.time} ${t('МСК')} (${mskToVietnam(nextLesson.time)} ${t('ВН')})` : t('все завершены')}
             accentBg="var(--color-purple-soft)" accentColor="var(--color-accent)" delay={0.15}
           />
           <EarningsCard delay={0.2} />
@@ -1077,12 +1087,12 @@ export default function TeacherHome() {
             <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <CardTitle>
                 <Clock size={14} strokeWidth={2} />
-                Расписание сегодня
+                {t('Расписание сегодня')}
                 {todaySchedule.length > 0 && (
                   <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, letterSpacing: 0 }}>
-                    <span style={{ color: 'var(--color-green-text)' }}>{doneCount} провед.</span>
+                    <span style={{ color: 'var(--color-green-text)' }}>{doneCount} {t('провед.')}</span>
                     <span style={{ color: 'var(--color-text-4)' }}>·</span>
-                    <span style={{ color: 'var(--color-accent)' }}>{todaySchedule.length - doneCount} впереди</span>
+                    <span style={{ color: 'var(--color-accent)' }}>{todaySchedule.length - doneCount} {t('впереди')}</span>
                   </span>
                 )}
               </CardTitle>
@@ -1104,7 +1114,7 @@ export default function TeacherHome() {
                   {todaySchedule.length === 0 ? (
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: 'var(--color-text-4)', padding: '24px 0' }}>
                       <Clock size={26} strokeWidth={1.5} />
-                      <span style={{ fontSize: 13, fontWeight: 600 }}>Сегодня уроков нет</span>
+                      <span style={{ fontSize: 13, fontWeight: 600 }}>{t('Сегодня уроков нет')}</span>
                     </div>
                   ) : todaySchedule.map((item, i) => (
                     <div key={item.id}>
@@ -1130,7 +1140,7 @@ export default function TeacherHome() {
             <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <CardTitle>
                 <AlertCircle size={14} strokeWidth={2} />
-                Напоминания
+                {t('Напоминания')}
               </CardTitle>
               <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
                 <RemindersScroll

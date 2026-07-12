@@ -3,6 +3,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { WIDGET_META } from '../../data/widgets'
 import { fetchTeacherCourses, configureNewStudent, type TeacherCourseOption } from '../../lib/useGroups'
 import TeacherSelect from './TeacherSelect'
+import { useT } from '../../lib/i18n'
 
 // Config step shown between "student created" and the invite link: pick which
 // dashboard widgets the student sees (teacher-enforced hard-hide) and optionally
@@ -15,6 +16,7 @@ export default function NewStudentConfig({
   groupId: string | null
   onDone: () => void
 }) {
+  const t = useT()
   // Widgets are shown-by-default; the set holds ids the teacher chose to hide.
   const [hidden, setHidden] = useState<Set<number>>(new Set())
   const [courseId, setCourseId] = useState<string>('')
@@ -41,19 +43,19 @@ export default function NewStudentConfig({
   }
 
   const courseOptions = [
-    { value: '', label: 'Без курса' },
+    { value: '', label: t('Без курса') },
     ...courses.map(c => ({ value: c.id, label: c.title })),
   ]
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: 0 }}>
-        Настройте, что увидит ученик. Можно оставить по умолчанию.
+        {t('Настройте, что увидит ученик. Можно оставить по умолчанию.')}
       </p>
 
       {/* Widgets */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)' }}>ВИДЖЕТЫ</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)' }}>{t('ВИДЖЕТЫ')}</span>
         {WIDGET_META.map(w => {
           const isHidden = hidden.has(w.id)
           return (
@@ -87,11 +89,11 @@ export default function NewStudentConfig({
 
       {/* Course (optional) */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)' }}>КУРС (НЕОБЯЗАТЕЛЬНО)</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)' }}>{t('КУРС (НЕОБЯЗАТЕЛЬНО)')}</span>
         <TeacherSelect
           value={courseId}
           onChange={setCourseId}
-          placeholder="Без курса"
+          placeholder={t('Без курса')}
           options={courseOptions}
         />
       </div>
@@ -105,7 +107,7 @@ export default function NewStudentConfig({
           border: 'none', borderRadius: 14, cursor: saving ? 'not-allowed' : 'pointer',
         }}
       >
-        {saving ? 'Сохранение...' : 'Продолжить'}
+        {saving ? t('Сохранение...') : t('Продолжить')}
       </button>
     </div>
   )

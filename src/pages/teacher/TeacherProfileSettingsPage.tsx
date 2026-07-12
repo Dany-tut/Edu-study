@@ -7,6 +7,7 @@ import {
 import { supabase } from '../../lib/supabase'
 import { useTeacher } from '../../store/teacherStore'
 import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'
+import { useT } from '../../lib/i18n'
 
 // `scale` = optical-size correction so every glyph reads the same visual weight
 // inside the circle (lucide icons have different natural fill — a Star looks
@@ -25,6 +26,7 @@ const AVATARS: AvatarOption[] = [
 ]
 
 export default function TeacherProfileSettingsPage() {
+  const t = useT()
   const setActivePage = useTeacher(s => s.setActivePage)
 
   // Snapshot before usePersistentState mirrors initial values into storage —
@@ -90,8 +92,8 @@ export default function TeacherProfileSettingsPage() {
             <ArrowLeft size={16} strokeWidth={2} />
           </motion.button>
           <div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>Настройки профиля</div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>Имя, аватар и данные аккаунта</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Настройки профиля')}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Имя, аватар и данные аккаунта')}</div>
           </div>
         </div>
 
@@ -116,7 +118,7 @@ export default function TeacherProfileSettingsPage() {
             <AvatarIcon size={Math.round(40 * (selectedAvatar.scale ?? 1))} strokeWidth={1.8} style={{ color: '#fff', position: 'relative' }} />
           </motion.div>
           <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginBottom: 16 }}>
-            {role === 'admin' ? 'Администратор' : 'Учитель'}
+            {role === 'admin' ? t('Администратор') : t('Учитель')}
           </div>
 
           {/* Avatar grid — same recipe as the student sidebar picker */}
@@ -155,7 +157,7 @@ export default function TeacherProfileSettingsPage() {
             value={name}
             onChange={e => setName(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSave()}
-            placeholder="Имя"
+            placeholder={t('Имя')}
             style={inputStyle}
           />
 
@@ -163,15 +165,15 @@ export default function TeacherProfileSettingsPage() {
             <div style={{ position: 'relative' }}>
               <input value={email} readOnly placeholder="Email" style={{ ...inputStyle, color: 'var(--color-text-3)', cursor: 'not-allowed' }} />
               <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 11, color: 'var(--color-text-3)', background: 'var(--color-bg-3)', padding: '2px 6px', borderRadius: 6, border: '1px solid var(--color-border)' }}>
-                только чтение
+                {t('только чтение')}
               </div>
             </div>
-            <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 5 }}>Для смены email обратитесь в поддержку</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 5 }}>{t('Для смены email обратитесь в поддержку')}</div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)' }}>
             <User size={15} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />
-            <span style={{ fontSize: 14, color: 'var(--color-text-3)' }}>{role === 'admin' ? 'Администратор' : 'Учитель'}</span>
+            <span style={{ fontSize: 14, color: 'var(--color-text-3)' }}>{role === 'admin' ? t('Администратор') : t('Учитель')}</span>
           </div>
 
           {error && (
@@ -193,7 +195,7 @@ export default function TeacherProfileSettingsPage() {
             }}
           >
             <Save size={15} strokeWidth={2.5} />
-            {saving ? 'Сохраняем…' : saved ? 'Сохранено!' : 'Сохранить'}
+            {saving ? t('Сохраняем…') : saved ? t('Сохранено!') : t('Сохранить')}
           </motion.button>
         </div>
 

@@ -12,6 +12,7 @@ import PartyPopperLottie from '../components/PartyPopperLottie'
 import { captureMistake } from '../data/reviewDeck'
 import { logConfidence } from '../data/confidence'
 import { getContrastColor, getCircleShadow } from '../lib/utils'
+import { t, useT } from '../lib/i18n'
 
 // ── Confetti + sound (self-contained, no external deps) ────────────────────────
 function playVictorySound() {
@@ -88,6 +89,7 @@ function DiagConfetti({ bannerRef }: { bannerRef: React.RefObject<HTMLDivElement
 
 // ── Done screen ───────────────────────────────────────────────────────────────
 function DiagDoneScreen({ accentColor, onBack }: { accentColor: string; onBack: () => void }) {
+  const t = useT()
   const bannerRef = useRef<HTMLDivElement>(null)
   return (
     <div style={{
@@ -116,13 +118,13 @@ function DiagDoneScreen({ accentColor, onBack }: { accentColor: string; onBack: 
         </div>
 
         <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'var(--color-purple-text)', marginBottom: 10 }}>
-          Диагностика завершена
+          {t('Диагностика завершена')}
         </div>
         <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 12 }}>
-          Молодец! Ты справился 🎉
+          {t('Молодец! Ты справился 🎉')}
         </div>
         <div style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.6, marginBottom: 28, maxWidth: 300 }}>
-          Результаты сохранены и отправлены преподавателю — он ознакомится с ними и свяжется с тобой :)
+          {t('Результаты сохранены и отправлены преподавателю — он ознакомится с ними и свяжется с тобой :)')}
         </div>
 
       </motion.div>
@@ -132,9 +134,9 @@ function DiagDoneScreen({ accentColor, onBack }: { accentColor: string; onBack: 
 
 // ── Subject theme ──────────────────────────────────────────────────────────────
 const THEME: Record<Exclude<DiagSubject, 'logic'>, { accent: string; soft: string; label: string; sublabel: string }> = {
-  biology:      { accent: '#22c55e', soft: '#dcfce7',                 label: 'Биология',       sublabel: 'Диагностика знаний' },
-  chemistry:    { accent: '#8B5CF6', soft: 'rgba(139,92,246,0.12)',   label: 'Химия',           sublabel: 'Диагностика знаний' },
-  'ap-chem-ru': { accent: '#3b82f6', soft: 'rgba(59,130,246,0.12)',   label: 'AP Химия',        sublabel: 'Диагностика · RU'   },
+  biology:      { accent: '#22c55e', soft: '#dcfce7',                 label: t('Биология'),       sublabel: t('Диагностика знаний') },
+  chemistry:    { accent: '#8B5CF6', soft: 'rgba(139,92,246,0.12)',   label: t('Химия'),           sublabel: t('Диагностика знаний') },
+  'ap-chem-ru': { accent: '#3b82f6', soft: 'rgba(59,130,246,0.12)',   label: t('AP Химия'),        sublabel: t('Диагностика · RU')   },
   'ap-chem-en': { accent: '#14b8a6', soft: 'rgba(20,184,166,0.12)',   label: 'AP Chemistry',    sublabel: 'Diagnostic · EN'    },
 }
 
@@ -145,11 +147,12 @@ function metaFromRow(row: CustomTestMeta): { label: string; accent: string; soft
 }
 function inferMeta(id: string): { label: string; accent: string; soft: string } {
   const label = id.replace(/^custom-/, '').replace(/--\d+$/, '').replace(/-+/g, ' ').trim()
-  return { label: label || 'Тест', accent: '#786AD7', soft: '#786AD722' }
+  return { label: label || t('Тест'), accent: '#786AD7', soft: '#786AD722' }
 }
 
 // ── Main page ──────────────────────────────────────────────────────────────────
 export default function DiagnosticTestPage() {
+  const t = useT()
   const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '')
   const rawSubject = params.get('subject') ?? 'biology'
 
@@ -189,8 +192,8 @@ export default function DiagnosticTestPage() {
   }, [fetchSubject])
 
   const theme = customMeta
-    ? { accent: customMeta.accent, soft: customMeta.soft, label: customMeta.label, sublabel: 'Тест' }
-    : (THEME[subject as Exclude<DiagSubject, 'logic'>] ?? { accent: '#786AD7', soft: '#786AD722', label: 'Тест', sublabel: 'Тест' })
+    ? { accent: customMeta.accent, soft: customMeta.soft, label: customMeta.label, sublabel: t('Тест') }
+    : (THEME[subject as Exclude<DiagSubject, 'logic'>] ?? { accent: '#786AD7', soft: '#786AD722', label: t('Тест'), sublabel: t('Тест') })
 
   // If opened via assignment, skip name entry and use student's name
   const [step, setStep] = useState<'name' | 'test' | 'done'>(assignedStudentName ? 'test' : 'name')
@@ -259,12 +262,12 @@ export default function DiagnosticTestPage() {
   if (!questionsLoading && questions.length === 0) {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-        <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>Тест не найден</div>
+        <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{t('Тест не найден')}</div>
         <div style={{ fontSize: 14, color: 'var(--color-muted)', textAlign: 'center', maxWidth: 320 }}>
-          Вопросы этого теста не удалось загрузить. Возможно, тест был создан на другом устройстве и не сохранился на сервер.
+          {t('Вопросы этого теста не удалось загрузить. Возможно, тест был создан на другом устройстве и не сохранился на сервер.')}
         </div>
         <button onClick={goBack} style={{ padding: '10px 20px', borderRadius: 12, border: 'none', background: '#786AD7', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-          На главную
+          {t('На главную')}
         </button>
       </div>
     )
@@ -289,8 +292,8 @@ export default function DiagnosticTestPage() {
               <Target size={26} style={{ color: theme.accent }} />
             </div>
             <div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)' }}>Диагностика</div>
-              <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>{theme.label} · {total} вопросов</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)' }}>{t('Диагностика')}</div>
+              <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>{theme.label} · {total} {t('вопросов')}</div>
             </div>
           </div>
 
@@ -299,9 +302,9 @@ export default function DiagnosticTestPage() {
             borderRadius: 22, padding: '28px 24px', display: 'flex', flexDirection: 'column', gap: 18,
           }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>Введи своё ФИО</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', marginBottom: 6 }}>{t('Введи своё ФИО')}</div>
               <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 12 }}>
-                Результаты сохранятся у твоего преподавателя.<br />Логин и пароль не нужны.
+                {t('Результаты сохранятся у твоего преподавателя.')}<br />{t('Логин и пароль не нужны.')}
               </div>
               <div style={{ position: 'relative' }}>
                 <User size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
@@ -310,7 +313,7 @@ export default function DiagnosticTestPage() {
                   value={studentName}
                   onChange={e => setStudentName(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter' && studentName.trim().length >= 2) setStep('test') }}
-                  placeholder="Например: Иванов Иван Иванович"
+                  placeholder={t('Например: Иванов Иван Иванович')}
                   style={{
                     width: '100%', boxSizing: 'border-box',
                     padding: '12px 14px 12px 36px', borderRadius: 13,
@@ -336,7 +339,7 @@ export default function DiagnosticTestPage() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
             >
-              Начать тест <ChevronRight size={16} />
+              {t('Начать тест')} <ChevronRight size={16} />
             </motion.button>
           </div>
         </motion.div>
@@ -374,7 +377,7 @@ export default function DiagnosticTestPage() {
               color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
             }}
           >
-            <ArrowLeft size={14} /> Выйти
+            <ArrowLeft size={14} /> {t('Выйти')}
           </button>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -386,7 +389,7 @@ export default function DiagnosticTestPage() {
               <Target size={14} style={{ color: theme.accent }} />
             </div>
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
-              Диагностика · {theme.label}
+              {t('Диагностика')} · {theme.label}
             </span>
           </div>
 
@@ -435,9 +438,9 @@ export default function DiagnosticTestPage() {
             {/* Confidence gate — shown when teacher enabled it; must pick before answering */}
             {askConfidence && picked === undefined && (
               <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 8 }}>Насколько уверен в ответе?</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', marginBottom: 8 }}>{t('Насколько уверен в ответе?')}</div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  {([[true, 'Уверен', '#22c55e'], [false, 'Не уверен', '#f59e0b']] as [boolean, string, string][]).map(([val, label, col]) => (
+                  {([[true, t('Уверен'), '#22c55e'], [false, t('Не уверен'), '#f59e0b']] as [boolean, string, string][]).map(([val, label, col]) => (
                     <button key={label} onClick={() => setConfident(val)}
                       style={{ flex: 1, padding: '10px 0', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
                         border: `1.5px solid ${confident === val ? col : 'var(--color-border-medium)'}`,
@@ -535,11 +538,11 @@ export default function DiagnosticTestPage() {
                     }
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: isRight ? '#22c55e' : '#ef4444' }}>
-                        {isRight ? 'Верно!' : 'Неверно'}
+                        {isRight ? t('Верно!') : t('Неверно')}
                       </div>
                       {!isRight && (
                         <div style={{ fontSize: 12, color: 'var(--color-text-2)', marginTop: 2 }}>
-                          Правильный ответ: <span style={{ fontWeight: 600, color: '#22c55e' }}>{q.options[q.correct]}</span>
+                          {t('Правильный ответ:')} <span style={{ fontWeight: 600, color: '#22c55e' }}>{q.options[q.correct]}</span>
                         </div>
                       )}
                     </div>
@@ -564,7 +567,7 @@ export default function DiagnosticTestPage() {
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                   }}
                 >
-                  Следующий вопрос <ChevronRight size={16} />
+                  {t('Следующий вопрос')} <ChevronRight size={16} />
                 </motion.button>
               )}
             </AnimatePresence>

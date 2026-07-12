@@ -1,5 +1,6 @@
 import { useStudentData } from '../store/studentDataStore'
 import StarStickerLottie from './StarStickerLottie'
+import { useT } from '../lib/i18n'
 
 const STAT_ICONS: Record<string, string> = {
   'Успеваемость': '📈',
@@ -8,17 +9,19 @@ const STAT_ICONS: Record<string, string> = {
 }
 
 function EmptyValue({ icon }: { icon: string }) {
+  const t = useT()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
       <span style={{ fontSize: 28, opacity: 0.25, filter: 'grayscale(1)' }}>{icon}</span>
       <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-4)', letterSpacing: 0.2 }}>
-        нет данных
+        {t('нет данных')}
       </span>
     </div>
   )
 }
 
 export default function StatsWidget({ columns = 1 }: { columns?: number }) {
+  const t = useT()
   const dbStats = useStudentData(s => s.stats)
   const loaded = useStudentData(s => s.loaded)
 
@@ -56,7 +59,7 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
               {s.value ?? <EmptyValue icon={STAT_ICONS[s.label]} />}
             </span>
             <span className="stat-label" style={{ fontWeight: 500, color: 'var(--color-muted)' }}>
-              {s.label}
+              {t(s.label)}
             </span>
           </div>
         ))}
@@ -74,7 +77,7 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
             )}
           </span>
           <span className="stat-label" style={{ fontWeight: 500, color: 'var(--color-muted)' }}>
-            Звёзды
+            {t('Звёзды')}
           </span>
         </div>
       </div>

@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { trackNow } from '../../lib/analytics'
+import { useT } from '../../lib/i18n'
 
 export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogin: () => void; recovery?: boolean }) {
+  const t = useT()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -36,11 +38,11 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
         const redirectTo = `${window.location.origin}${window.location.pathname}#/teacher`
         const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
         if (error) throw error
-        setNotice('Письмо для сброса пароля отправлено. Проверьте почту.')
+        setNotice(t('Письмо для сброса пароля отправлено. Проверьте почту.'))
       } else if (mode === 'newpassword') {
         const { error } = await supabase.auth.updateUser({ password })
         if (error) throw error
-        setNotice('Пароль обновлён. Входим…')
+        setNotice(t('Пароль обновлён. Входим…'))
         onLogin()
       }
     } catch (err: any) {
@@ -51,14 +53,14 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
   }
 
   const titles: Record<typeof mode, string> = {
-    login: 'Войдите в аккаунт',
-    reset: 'Сброс пароля',
-    newpassword: 'Новый пароль',
+    login: t('Войдите в аккаунт'),
+    reset: t('Сброс пароля'),
+    newpassword: t('Новый пароль'),
   }
   const buttonLabels: Record<typeof mode, string> = {
-    login: 'Войти',
-    reset: 'Отправить письмо',
-    newpassword: 'Сохранить пароль',
+    login: t('Войти'),
+    reset: t('Отправить письмо'),
+    newpassword: t('Сохранить пароль'),
   }
 
   return (
@@ -82,7 +84,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
       }}>
         <div style={{ fontSize: 36, marginBottom: 8 }}>👩‍🏫</div>
         <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)', margin: '0 0 4px' }}>
-          Платформа учителя
+          {t('Платформа учителя')}
         </h1>
         <p style={{ color: 'var(--color-muted)', fontSize: 14, margin: '0 0 28px' }}>
           {titles[mode]}
@@ -98,12 +100,16 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
               autoComplete="email"
               required
               style={{
-                padding: '12px 16px',
+                minHeight: 50,
+                lineHeight: '22px',
+                padding: '13px 16px',
                 borderRadius: 14,
                 border: '1.5px solid var(--color-border-medium)',
-                fontSize: 15,
+                fontSize: 16,
                 outline: 'none',
+                boxSizing: 'border-box',
                 color: 'var(--color-text)',
+                WebkitTextFillColor: 'var(--color-text)',
                 background: 'var(--color-bg-input)',
               }}
             />
@@ -112,7 +118,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
           <div style={{ position: 'relative' }}>
             <input
               type={showPassword ? 'text' : 'password'}
-              placeholder={mode === 'newpassword' ? 'Новый пароль' : 'Пароль'}
+              placeholder={mode === 'newpassword' ? t('Новый пароль') : t('Пароль')}
               value={password}
               onChange={e => setPassword(e.target.value)}
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
@@ -120,19 +126,22 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
               style={{
                 width: '100%',
                 boxSizing: 'border-box',
-                padding: '12px 44px 12px 16px',
+                minHeight: 50,
+                lineHeight: '22px',
+                padding: '13px 44px 13px 16px',
                 borderRadius: 14,
                 border: '1.5px solid var(--color-border-medium)',
-                fontSize: 15,
+                fontSize: 16,
                 outline: 'none',
                 color: 'var(--color-text)',
+                WebkitTextFillColor: 'var(--color-text)',
                 background: 'var(--color-bg-input)',
               }}
             />
             <button
               type="button"
               onClick={() => setShowPassword(v => !v)}
-              aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+              aria-label={showPassword ? t('Скрыть пароль') : t('Показать пароль')}
               style={{
                 position: 'absolute',
                 right: 10,
@@ -160,7 +169,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
               onClick={() => switchMode('reset')}
               style={{ alignSelf: 'flex-end', color: 'var(--color-purple)', cursor: 'pointer', fontSize: 13, fontWeight: 600, marginTop: -4 }}
             >
-              Забыли пароль?
+              {t('Забыли пароль?')}
             </span>
           )}
 
@@ -190,7 +199,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
               marginTop: 4,
             }}
           >
-            {loading ? 'Загрузка...' : buttonLabels[mode]}
+            {loading ? t('Загрузка...') : buttonLabels[mode]}
           </button>
         </form>
 
@@ -198,10 +207,10 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
           <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--color-muted)' }}>
             {mode === 'reset' ? (
               <span onClick={() => switchMode('login')} style={{ color: 'var(--color-purple)', cursor: 'pointer', fontWeight: 600 }}>
-                ← Назад ко входу
+                {t('← Назад ко входу')}
               </span>
             ) : (
-              'Аккаунт создаётся по ссылке-приглашению от администратора.'
+              t('Аккаунт создаётся по ссылке-приглашению от администратора.')
             )}
           </p>
         )}

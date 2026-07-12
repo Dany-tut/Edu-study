@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { trackNow } from '../lib/analytics'
+import { useT } from '../lib/i18n'
 
 // Teacher self-registration from an admin invite link (#/join-teacher?token=…).
 // Mirrors JoinPage: create an auth account (role: teacher), then apply the baked
@@ -29,6 +30,7 @@ const card: React.CSSProperties = {
 }
 
 export default function JoinTeacherPage() {
+  const t = useT()
   const token = getToken()
   const [step, setStep] = useState<Step>('loading')
   const [firstName, setFirstName] = useState('')
@@ -79,7 +81,7 @@ export default function JoinTeacherPage() {
       },
     })
     if (authErr || !authData.user) {
-      setErrorMsg(authErr?.message || 'Ошибка при регистрации. Попробуйте ещё раз.')
+      setErrorMsg(authErr?.message || t('Ошибка при регистрации. Попробуйте ещё раз.'))
       setSaving(false)
       return
     }
@@ -89,7 +91,7 @@ export default function JoinTeacherPage() {
     // dropping them.
     const { error: applyErr } = await supabase.rpc('apply_teacher_invite', { p_token: token })
     if (applyErr) {
-      setErrorMsg('Аккаунт создан, но не удалось применить настройки доступа: ' + applyErr.message)
+      setErrorMsg(t('Аккаунт создан, но не удалось применить настройки доступа: ') + applyErr.message)
       setSaving(false)
       return
     }
@@ -111,53 +113,53 @@ export default function JoinTeacherPage() {
         {step === 'error' && (
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 32, marginBottom: 12 }}>🔗</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 8 }}>Ссылка недействительна</div>
-            <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>Возможно, приглашение уже использовано или его срок истёк. Попросите администратора отправить новое.</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 8 }}>{t('Ссылка недействительна')}</div>
+            <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Возможно, приглашение уже использовано или его срок истёк. Попросите администратора отправить новое.')}</div>
           </div>
         )}
 
         {step === 'form' && (
           <>
             <div style={{ marginBottom: 24 }}>
-              <div style={{ fontSize: 22, fontWeight: 750, color: 'var(--color-text)' }}>Добро пожаловать в «Искру»!</div>
-              <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 4 }}>Создайте аккаунт преподавателя</div>
+              <div style={{ fontSize: 22, fontWeight: 750, color: 'var(--color-text)' }}>{t('Добро пожаловать в «Искру»!')}</div>
+              <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 4 }}>{t('Создайте аккаунт преподавателя')}</div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ display: 'flex', gap: 10 }}>
-                <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Имя" style={inputStyle} autoFocus />
-                <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Фамилия" style={inputStyle} />
+                <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={t('Имя')} style={inputStyle} autoFocus />
+                <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder={t('Фамилия')} style={inputStyle} />
               </div>
-              <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Предмет (напр. Химия)" style={inputStyle} />
+              <input value={subject} onChange={e => setSubject(e.target.value)} placeholder={t('Предмет (напр. Химия)')} style={inputStyle} />
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <input
-                  type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email (логин)"
+                  type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t('Email (логин)')}
                   style={{ ...inputStyle, borderColor: emailTouched && !emailValid ? '#F48B91' : 'var(--color-border)' }}
                 />
-                {emailTouched && !emailValid && <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>Укажите почту со знаком @</span>}
+                {emailTouched && !emailValid && <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>{t('Укажите почту со знаком @')}</span>}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <div style={{ position: 'relative' }}>
                   <input
-                    type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Пароль"
+                    type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder={t('Пароль')}
                     style={{ ...inputStyle, paddingRight: 44, borderColor: passwordTouched && !passwordValid ? '#F48B91' : 'var(--color-border)' }}
                     onKeyDown={e => e.key === 'Enter' && handleRegister()}
                   />
-                  <button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                  <button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? t('Скрыть пароль') : t('Показать пароль')}
                     style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', padding: 4, cursor: 'pointer', color: 'var(--color-muted)' }}>
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                {passwordTouched && !passwordValid && <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>Пароль должен быть не менее 6 символов</span>}
+                {passwordTouched && !passwordValid && <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>{t('Пароль должен быть не менее 6 символов')}</span>}
               </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14 }}>
               <ConsentRow checked={consent} onChange={setConsent}>
-                Я соглашаюсь на обработку персональных данных платформы «Искра».
+                {t('Я соглашаюсь на обработку персональных данных платформы «Искра».')}
               </ConsentRow>
               <ConsentRow checked={analyticsOptIn} onChange={setAnalyticsOptIn}>
-                Разрешаю анонимный сбор аналитики использования, чтобы платформа становилась лучше.
+                {t('Разрешаю анонимный сбор аналитики использования, чтобы платформа становилась лучше.')}
               </ConsentRow>
             </div>
 
@@ -175,7 +177,7 @@ export default function JoinTeacherPage() {
                 cursor: emailValid && passwordValid && consent ? 'pointer' : 'not-allowed',
               }}
             >
-              {saving ? 'Создаём аккаунт...' : 'Войти в платформу'}
+              {saving ? t('Создаём аккаунт...') : t('Войти в платформу')}
             </button>
           </>
         )}

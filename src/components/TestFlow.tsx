@@ -9,6 +9,7 @@ import { getStudentSession } from '../lib/studentSession'
 import { useStudentData } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import QuestionTable from './QuestionTable'
+import { useT } from '../lib/i18n'
 
 const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ')
 
@@ -41,6 +42,7 @@ function gradeTask(t: TestTask, answer: string | number | number[] | undefined):
 }
 
 export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: () => void }) {
+  const t = useT()
   const tasks = lesson.testTasks ?? []
   const isDesktop = useIsDesktop()
   const reload = useStudentData(s => s.load)
@@ -92,14 +94,14 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
           style={{ width: 72, height: 72, borderRadius: '50%', background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px' }}>
           <CheckCircle2 size={38} style={{ color: 'var(--color-green-text)' }} />
         </motion.div>
-        <h2 style={{ fontSize: 22, fontWeight: 750, color: 'var(--color-text)', marginBottom: 6 }}>Тест отправлен!</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 750, color: 'var(--color-text)', marginBottom: 6 }}>{t('Тест отправлен!')}</h2>
         <p style={{ fontSize: 14, color: 'var(--color-muted)', marginBottom: 20 }}>
           {result.gradable > 0
-            ? `Верно ${result.correct} из ${result.gradable} · ${result.score}%`
-            : 'Ответы отправлены преподавателю на проверку'}
+            ? `${t('Верно')} ${result.correct} ${t('из')} ${result.gradable} · ${result.score}%`
+            : t('Ответы отправлены преподавателю на проверку')}
         </p>
         <button onClick={onBack} style={{ padding: '11px 26px', borderRadius: 14, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-          К курсу
+          {t('К курсу')}
         </button>
       </div>
     )
@@ -115,40 +117,40 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
     <div style={{ maxWidth: 720, margin: '0 auto', padding: '12px 20px 80px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-        <button onClick={onBack} aria-label="Назад" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: isDesktop ? '7px 12px' : 7, borderRadius: 999, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit' }}>
-          <ChevronLeft size={15} /> {isDesktop && 'Назад'}
+        <button onClick={onBack} aria-label={t('Назад')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: isDesktop ? '7px 12px' : 7, borderRadius: 999, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit' }}>
+          <ChevronLeft size={15} /> {isDesktop && t('Назад')}
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '5px 13px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 12, fontWeight: 700 }}>
-          <ClipboardCheck size={14} /> Финальный тест
+          <ClipboardCheck size={14} /> {t('Финальный тест')}
         </div>
       </div>
 
-      <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', marginBottom: 4 }}>{lesson.title || 'Тест'}</h1>
-      <p style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 24 }}>{tasks.length} вопрос{tasks.length === 1 ? '' : tasks.length < 5 ? 'а' : 'ов'}</p>
+      <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text)', marginBottom: 4 }}>{lesson.title || t('Тест')}</h1>
+      <p style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 24 }}>{tasks.length} {t(tasks.length === 1 ? 'вопрос' : 'вопросов')}</p>
 
       {tasks.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-muted)' }}>В тесте пока нет вопросов</div>
+        <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-muted)' }}>{t('В тесте пока нет вопросов')}</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {tasks.map((t, i) => {
-            const tp = taskType(t)
-            const seqItems = t.sequenceItems ?? []
-            const seqOrder = (answers[t.id] as number[] | undefined) ?? seqItems.map((_, idx) => idx)
+          {tasks.map((task, i) => {
+            const tp = taskType(task)
+            const seqItems = task.sequenceItems ?? []
+            const seqOrder = (answers[task.id] as number[] | undefined) ?? seqItems.map((_, idx) => idx)
 
             return (
-              <div key={t.id} style={{ background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)', borderRadius: 16, padding: '18px 20px' }}>
+              <div key={task.id} style={{ background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)', borderRadius: 16, padding: '18px 20px' }}>
                 <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
                   <div style={{ width: 26, height: 26, borderRadius: 8, background: 'var(--color-purple-soft)', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', paddingTop: 3 }}>{t.question || t.label}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', paddingTop: 3 }}>{task.question || task.label}</div>
                 </div>
 
                 {/* single — radio */}
                 {tp === 'single' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 36 }}>
-                    {(t.choices ?? []).map((ch, ci) => {
-                      const selected = answers[t.id] === ci
+                    {(task.choices ?? []).map((ch, ci) => {
+                      const selected = answers[task.id] === ci
                       return (
-                        <button key={ci} onClick={() => setAnswer(t.id, ci)} style={{
+                        <button key={ci} onClick={() => setAnswer(task.id, ci)} style={{
                           display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
                           padding: '11px 14px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
                           border: selected ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border-soft)',
@@ -166,10 +168,10 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                 {/* multi — checkboxes */}
                 {tp === 'multi' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 36 }}>
-                    {(t.choices ?? []).map((ch, ci) => {
-                      const selected = ((answers[t.id] as number[] | undefined) ?? []).includes(ci)
+                    {(task.choices ?? []).map((ch, ci) => {
+                      const selected = ((answers[task.id] as number[] | undefined) ?? []).includes(ci)
                       return (
-                        <button key={ci} onClick={() => toggleMulti(t.id, ci)} style={{
+                        <button key={ci} onClick={() => toggleMulti(task.id, ci)} style={{
                           display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
                           padding: '11px 14px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
                           border: selected ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border-soft)',
@@ -196,15 +198,15 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                   <div style={{ paddingLeft: 36 }}>
                     {tp === 'fill'
                       ? <input
-                          value={(answers[t.id] as string) ?? ''}
-                          onChange={e => setAnswer(t.id, e.target.value)}
-                          placeholder="Твой ответ…"
+                          value={(answers[task.id] as string) ?? ''}
+                          onChange={e => setAnswer(task.id, e.target.value)}
+                          placeholder={t('Твой ответ…')}
                           style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
                         />
                       : <textarea
-                          value={(answers[t.id] as string) ?? ''}
-                          onChange={e => setAnswer(t.id, e.target.value)}
-                          placeholder="Развёрнутый ответ…"
+                          value={(answers[task.id] as string) ?? ''}
+                          onChange={e => setAnswer(task.id, e.target.value)}
+                          placeholder={t('Развёрнутый ответ…')}
                           rows={4}
                           style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }}
                         />
@@ -215,9 +217,9 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                 {/* matching — pairs reference + textarea */}
                 {tp === 'matching' && (
                   <div style={{ paddingLeft: 36 }}>
-                    {(t.pairs?.length ?? 0) > 0 && (
+                    {(task.pairs?.length ?? 0) > 0 && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 10 }}>
-                        {t.pairs!.map((pair, pi) => (
+                        {task.pairs!.map((pair, pi) => (
                           <div key={pi} style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--color-text-2)' }}>
                             <span style={{ fontWeight: 600 }}>{pair.left}</span>
                             <span style={{ color: 'var(--color-muted)' }}>→</span>
@@ -227,9 +229,9 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                       </div>
                     )}
                     <textarea
-                      value={(answers[t.id] as string) ?? ''}
-                      onChange={e => setAnswer(t.id, e.target.value)}
-                      placeholder="Запиши соответствия…"
+                      value={(answers[task.id] as string) ?? ''}
+                      onChange={e => setAnswer(task.id, e.target.value)}
+                      placeholder={t('Запиши соответствия…')}
                       rows={3}
                       style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }}
                     />
@@ -246,11 +248,11 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                           {seqItems[itemIdx]}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                          <button onClick={() => moveSeq(t.id, seqItems, pos, -1)} disabled={pos === 0}
+                          <button onClick={() => moveSeq(task.id, seqItems, pos, -1)} disabled={pos === 0}
                             style={{ width: 24, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: pos === 0 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: pos === 0 ? 0.4 : 1 }}>
                             <ArrowUp size={12} style={{ color: 'var(--color-text-3)' }} />
                           </button>
-                          <button onClick={() => moveSeq(t.id, seqItems, pos, 1)} disabled={pos === seqOrder.length - 1}
+                          <button onClick={() => moveSeq(task.id, seqItems, pos, 1)} disabled={pos === seqOrder.length - 1}
                             style={{ width: 24, height: 22, borderRadius: 6, border: 'none', background: 'var(--color-bg-3)', cursor: pos === seqOrder.length - 1 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: pos === seqOrder.length - 1 ? 0.4 : 1 }}>
                             <ArrowDown size={12} style={{ color: 'var(--color-text-3)' }} />
                           </button>
@@ -261,17 +263,17 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                 )}
 
                 {/* tableFill — cells with blanks */}
-                {tp === 'tableFill' && t.table && (
+                {tp === 'tableFill' && task.table && (
                   <div style={{ paddingLeft: 36 }}>
                     {/* Unified table renderer — tests keep their per-cell answer
                         map and treat both empty and blank cells as fill-in. */}
                     <QuestionTable
-                      table={t.table}
+                      table={task.table}
                       mobile={!isDesktop}
                       interactive
                       blankAsInput
-                      cellValue={key => (answers[`${t.id}_${key}`] as string) ?? ''}
-                      onCellChange={(key, v) => setAnswer(`${t.id}_${key}`, v)}
+                      cellValue={key => (answers[`${task.id}_${key}`] as string) ?? ''}
+                      onCellChange={(key, v) => setAnswer(`${task.id}_${key}`, v)}
                     />
                   </div>
                 )}
@@ -280,9 +282,9 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                 {tp === 'whiteboard' && (
                   <div style={{ paddingLeft: 36 }}>
                     <textarea
-                      value={(answers[t.id] as string) ?? ''}
-                      onChange={e => setAnswer(t.id, e.target.value)}
-                      placeholder="Опиши решение (рисунок на доске приложишь учителю)…"
+                      value={(answers[task.id] as string) ?? ''}
+                      onChange={e => setAnswer(task.id, e.target.value)}
+                      placeholder={t('Опиши решение (рисунок на доске приложишь учителю)…')}
                       rows={3}
                       style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }}
                     />
@@ -306,7 +308,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
               cursor: submitting ? 'wait' : 'pointer', fontFamily: 'inherit',
               boxShadow: '0 8px 24px rgba(99,84,207,0.35)', opacity: submitting ? 0.7 : 1,
             }}>
-            {submitting ? 'Отправляем…' : `Отправить тест (${answeredCount}/${tasks.length})`}
+            {submitting ? t('Отправляем…') : `${t('Отправить тест')} (${answeredCount}/${tasks.length})`}
           </motion.button>
         </div>
       )}

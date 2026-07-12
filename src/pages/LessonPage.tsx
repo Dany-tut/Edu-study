@@ -12,6 +12,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import { videoEmbedSrc } from '../lib/videoSource'
 import type { CourseReaction } from '../data/mockData'
 import { EMOJI_STEPS } from '../components/HomeworkFlow'
+import { useT } from '../lib/i18n'
 
 type Tint = 'bw' | 'color'
 
@@ -102,6 +103,7 @@ function downloadFile(filename: string) {
 // download actions — ч/б or цвет — each downloading the file in that variant,
 // mirroring the "Материалы" tile so all three line up at one height.
 function DownloadTile({ icon: Icon, label }: { icon: typeof NotebookPen; label: string }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -115,8 +117,8 @@ function DownloadTile({ icon: Icon, label }: { icon: typeof NotebookPen; label: 
   }, [open])
 
   const opts: Array<{ id: Tint; label: string }> = [
-    { id: 'bw', label: 'ч/б' },
-    { id: 'color', label: 'цвет' },
+    { id: 'bw', label: t('ч/б') },
+    { id: 'color', label: t('цвет') },
   ]
 
   return (
@@ -147,7 +149,7 @@ function DownloadTile({ icon: Icon, label }: { icon: typeof NotebookPen; label: 
         </div>
         <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
           <p style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.15 }}>{label}</p>
-          <p style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>PDF · скачать</p>
+          <p style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>PDF · {t('скачать')}</p>
         </div>
         <ChevronDown
           size={15}
@@ -199,6 +201,7 @@ function DownloadTile({ icon: Icon, label }: { icon: typeof NotebookPen; label: 
 
 // "Материалы" tile with a dropdown of reference files.
 function MaterialsTile({ materials }: { materials: LessonMaterial[] }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -238,8 +241,8 @@ function MaterialsTile({ materials }: { materials: LessonMaterial[] }) {
           <FolderOpen size={16} strokeWidth={1.9} />
         </div>
         <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
-          <p style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.15 }}>Материалы</p>
-          <p style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{materials.length} файла</p>
+          <p style={{ fontSize: 13, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.15 }}>{t('Материалы')}</p>
+          <p style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{materials.length} {t('файла')}</p>
         </div>
         <ChevronDown
           size={15}
@@ -320,6 +323,7 @@ function readBasicProgress(lessonId: string, homework: LessonHomework): { unlock
 }
 
 function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homework: LessonHomework; onOpen: () => void }) {
+  const t = useT()
   const [{ unlocked, score }, setProgress] = useState(() => readBasicProgress(lessonId, homework))
   const assessment = useDashboard(s => s.lessonAssessments[lessonId])
   // Which row is hovered, if any. The hovered row becomes the highlighted white
@@ -352,15 +356,15 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
   const hardIconSize = (!hardUnlocked && !hardStatus) ? 18 : 20
 
   const rows = [
-    { id: 'base' as const, icon: GraduationCap, iconSize: 20, title: 'Домашка' },
-    ...(hardUnlocked || hardStatus ? [{ id: 'hard' as const, icon: hardIcon, iconSize: hardIconSize, title: 'Сложный уровень' }] : []),
+    { id: 'base' as const, icon: GraduationCap, iconSize: 20, title: t('Домашка') },
+    ...(hardUnlocked || hardStatus ? [{ id: 'hard' as const, icon: hardIcon, iconSize: hardIconSize, title: t('Сложный уровень') }] : []),
   ]
   const basicEstimatedTime = homework.levels.find(level => level.id === 'basic')?.estimatedMinutes
 
   const hardStatusLabel =
-    hardStatus === 'submitted' ? { icon: Clock,     text: 'На проверке', color: 'var(--color-peach-text)' } :
-    hardStatus === 'returned'  ? { icon: RotateCcw, text: 'Возвращён',   color: 'var(--color-yellow-text)' } :
-    hardStatus === 'completed' ? { icon: Star,      text: 'Сдан',        color: 'var(--color-green-text)' } :
+    hardStatus === 'submitted' ? { icon: Clock,     text: t('На проверке'), color: 'var(--color-peach-text)' } :
+    hardStatus === 'returned'  ? { icon: RotateCcw, text: t('Возвращён'),   color: 'var(--color-yellow-text)' } :
+    hardStatus === 'completed' ? { icon: Star,      text: t('Сдан'),        color: 'var(--color-green-text)' } :
     null
 
   return (
@@ -432,7 +436,7 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
                 style={{ gap: 4, flexShrink: 0, fontSize: 12, fontWeight: 700, color: 'var(--color-accent)' }}
               >
                 <Clock size={13} />
-                ~{basicEstimatedTime} мин
+                ~{basicEstimatedTime} {t('мин')}
               </span>
             )}
             {id === 'base' && !basicSubmitted && (unlocked || basicSubmitted) && !isActive && (
@@ -486,10 +490,10 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
           >
             <div className="flex items-center" style={{ gap: 8, marginBottom: 4 }}>
               <Lock size={14} style={{ flexShrink: 0 }} />
-              <span style={{ fontSize: 13, fontWeight: 700 }}>Сложный уровень</span>
+              <span style={{ fontSize: 13, fontWeight: 700 }}>{t('Сложный уровень')}</span>
             </div>
             <p style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.45, color: 'rgba(255,255,255,0.82)' }}>
-              Задание с проверкой преподавателем. Откроется, когда сдашь базовый уровень на {homework.recommendationScore}+ баллов.
+              {t('Задание с проверкой преподавателем. Откроется, когда сдашь базовый уровень на')} {homework.recommendationScore}+ {t('баллов.')}
             </p>
           </motion.div>
         )}
@@ -499,6 +503,7 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
 }
 
 export default function LessonPage() {
+  const t = useT()
   const isDesktop = useIsDesktop()
   const courseReactions = useStudentData(s => s.courseReactions)
   const currentLessonId = useDashboard(s => s.currentLessonId)
@@ -581,12 +586,12 @@ export default function LessonPage() {
   if (!lesson) {
     return (
       <div className="flex flex-col items-center justify-center" style={{ minHeight: 300, color: 'var(--color-muted)' }}>
-        <p style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)' }}>Урок не найден</p>
+        <p style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)' }}>{t('Урок не найден')}</p>
         <button
           onClick={closeLesson}
           style={{ marginTop: 12, padding: '8px 18px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--color-text)', color: '#fff', fontSize: 13, fontWeight: 600 }}
         >
-          Назад
+          {t('Назад')}
         </button>
       </div>
     )
@@ -663,7 +668,7 @@ export default function LessonPage() {
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.96 }}
           onClick={closeLesson}
-          aria-label="Назад"
+          aria-label={t('Назад')}
           className="flex items-center justify-center cursor-pointer flex-shrink-0"
           style={{
             gap: 4, padding: isDesktop ? '9px 16px 9px 12px' : 9, borderRadius: 999, border: '1px solid var(--color-border-soft)',
@@ -672,14 +677,14 @@ export default function LessonPage() {
           }}
         >
           <ChevronLeft size={18} />
-          {isDesktop && 'Назад'}
+          {isDesktop && t('Назад')}
         </motion.button>
 
         <h1
           className="flex-1 min-w-0 truncate text-center"
           style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}
         >
-          Занятие #{lesson.number + 1} {lesson.title}
+          {t('Занятие')} #{lesson.number + 1} {lesson.title}
         </h1>
 
         <div
@@ -715,7 +720,7 @@ export default function LessonPage() {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.96 }}
               onClick={closeLesson}
-              aria-label="Назад"
+              aria-label={t('Назад')}
               className="flex items-center justify-center cursor-pointer flex-shrink-0"
               style={{
                 gap: 4, padding: isDesktop ? '9px 16px 9px 12px' : 9, borderRadius: 999,
@@ -724,7 +729,7 @@ export default function LessonPage() {
               }}
             >
               <ChevronLeft size={18} />
-              {isDesktop && 'Назад'}
+              {isDesktop && t('Назад')}
             </motion.button>
 
             <div
@@ -812,7 +817,7 @@ export default function LessonPage() {
                 key={startSeconds}
                 ref={iframeRef}
                 src={videoEmbedSrc(videoSource, startSeconds)}
-                title={`Видео урока: ${lesson.title}`}
+                title={`${t('Видео урока:')} ${lesson.title}`}
                 allow="clipboard-write; autoplay; fullscreen; encrypted-media; picture-in-picture"
                 allowFullScreen
                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }}
@@ -827,12 +832,12 @@ export default function LessonPage() {
                     padding: '5px 12px', borderRadius: 999, backdropFilter: 'blur(8px)',
                   }}
                 >
-                  {lesson.subject === 'biology' ? 'Биология' : 'Химия'}
+                  {lesson.subject === 'biology' ? t('Биология') : t('Химия')}
                 </span>
 
                 <button
                   onClick={() => playFrom(detail.timecodes[activeChapter]?.seconds ?? 0)}
-                  aria-label="Смотреть"
+                  aria-label={t('Смотреть')}
                   className="absolute inset-0 flex items-center justify-center cursor-pointer"
                   style={{ border: 'none', background: 'transparent' }}
                 >
@@ -878,7 +883,7 @@ export default function LessonPage() {
           >
             <div className="flex items-center" style={{ gap: 8, marginBottom: 6 }}>
               <ListVideo size={17} style={{ color: 'var(--color-accent)' }} />
-              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Таймкоды</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Таймкоды')}</span>
             </div>
             <div className="flex flex-col flex-1" style={{ gap: 2, overflowY: 'auto', paddingRight: 10 }}>
               {detail.timecodes.map((tc, i) => {
@@ -931,7 +936,7 @@ export default function LessonPage() {
         >
           <div className="flex items-center" style={{ gap: 8 }}>
             <FileText size={17} style={{ color: 'var(--color-accent)' }} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>Описание</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Описание')}</span>
           </div>
           {detail.paragraphs.map(p => (
             <div
@@ -969,8 +974,8 @@ export default function LessonPage() {
           alignItems: 'start',
         }}
       >
-        <DownloadTile icon={NotebookPen} label="Рабочая тетрадь" />
-        <DownloadTile icon={FileText} label="Конспект" />
+        <DownloadTile icon={NotebookPen} label={t('Рабочая тетрадь')} />
+        <DownloadTile icon={FileText} label={t('Конспект')} />
         <MaterialsTile materials={detail.materials} />
         {detail.homework && (
           <div style={{ gridColumn: isDesktop ? 'auto' : '1 / -1' }}>

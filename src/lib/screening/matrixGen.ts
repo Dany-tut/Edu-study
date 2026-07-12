@@ -6,6 +6,7 @@
 // and never ambiguous.
 
 import type { MatrixRuleKey } from '../../data/screeningConfig'
+import { t } from '../i18n'
 
 export type Shape = 'circle' | 'square' | 'triangle' | 'diamond'
 export type Fill = 'outline' | 'solid' | 'striped'
@@ -120,7 +121,7 @@ export function generateMatrix(level: number, enabledRules: MatrixRuleKey[]): Ge
       for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
         applyAttr(grid[r][c], attr, three[(r + c + off) % 3])
       }
-      ruleSummary.push(`${RULE_LABEL[attr]}: распределение`)
+      ruleSummary.push(`${t(RULE_LABEL[attr])}: ${t('распределение')}`)
     } else {
       const start = rint(L)
       const stepC = 1 + rint(Math.max(1, L - 1))
@@ -128,7 +129,7 @@ export function generateMatrix(level: number, enabledRules: MatrixRuleKey[]): Ge
       for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
         applyAttr(grid[r][c], attr, vals[(start + c * stepC + r * stepR) % L])
       }
-      ruleSummary.push(`${RULE_LABEL[attr]}: прогрессия`)
+      ruleSummary.push(`${t(RULE_LABEL[attr])}: ${t('прогрессия')}`)
     }
   }
 

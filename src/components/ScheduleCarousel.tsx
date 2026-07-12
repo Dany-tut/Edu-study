@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
+import { useT } from '../lib/i18n'
 import ScheduleCard from './ScheduleCard'
 
 // Side card widths by distance from center — must match ScheduleCard.
@@ -10,6 +11,7 @@ const SLOT_WIDTH_DESKTOP: Record<number, number> = { 1: 160, 2: 130, 3: 110 }
 const SLOT_WIDTH_MOBILE: Record<number, number> = { 1: 84, 2: 60, 3: 44 }
 
 export default function ScheduleCarousel() {
+  const t = useT()
   const { scheduleIndex, setScheduleIndex } = useDashboard()
   const scheduleDays = useStudentData(s => s.scheduleDays)
   const total = scheduleDays.length
@@ -54,7 +56,7 @@ export default function ScheduleCarousel() {
   if (total === 0) {
     return (
       <div className="flex items-center justify-center" style={{ height: 198 }}>
-        <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>Расписание не добавлено</p>
+        <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Расписание не добавлено')}</p>
       </div>
     )
   }
