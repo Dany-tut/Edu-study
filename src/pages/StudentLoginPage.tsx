@@ -62,8 +62,16 @@ export default function StudentLoginPage() {
         window.location.reload()
         return
       }
-      // Authed but not a student account — sign back out to avoid a stray session.
-      await supabase.auth.signOut()
+      // Authed but not a student → it's a teacher/admin account. Keep the session
+      // and route to the teacher cabinet instead of rejecting the login. This makes
+      // one login screen work for everyone: the app opens at the student form (the
+      // root URL, e.g. inside the installed PWA), and a teacher who signs in here
+      // lands in their cabinet rather than seeing a false "wrong password".
+      setLoading(false)
+      void trackNow('login', { role: 'teacher', method: 'auth' })
+      window.location.hash = '#/teacher'
+      window.location.reload()
+      return
     }
 
     // 2) Fallback — legacy temp_password login for students not yet migrated.
