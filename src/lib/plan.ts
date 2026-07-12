@@ -30,6 +30,40 @@ export const PLAN_OPTIONS = [
   { code: 'school', label: t('Школа · 4 490 ₽/мес · безлимит') },
 ] as const
 
+// Тарифы для витрины (мобильный экран «Тариф»). Оплата пока не подключена —
+// выбор тарифа = заявка в «Обратную связь», админ назначает вручную.
+export interface PlanTier {
+  code: 'free' | 'solo' | 'pro' | 'school'
+  name: string
+  priceRub: number
+  maxStudents: number | null
+  tagline: string
+  features: string[]
+}
+
+export const PLAN_TIERS: PlanTier[] = [
+  {
+    code: 'free', name: 'Бесплатный', priceRub: 0, maxStudents: 3,
+    tagline: 'Попробовать платформу',
+    features: ['До 3 учеников', 'Курсы и тренажёр', 'Проверка домашних заданий'],
+  },
+  {
+    code: 'solo', name: 'Соло', priceRub: 690, maxStudents: 15,
+    tagline: 'Для репетитора',
+    features: ['До 15 учеников', 'Все возможности «Бесплатного»', 'Журнал и финансы', 'Аналитика по ученикам'],
+  },
+  {
+    code: 'pro', name: 'Про', priceRub: 1690, maxStudents: 40,
+    tagline: 'Для практики на потоке',
+    features: ['До 40 учеников', 'Все возможности «Соло»', 'Группы и назначенные ДЗ', 'Приоритетная поддержка'],
+  },
+  {
+    code: 'school', name: 'Школа', priceRub: 4490, maxStudents: null,
+    tagline: 'Для школы или центра',
+    features: ['Без лимита учеников', 'Все возможности «Про»', 'Несколько преподавателей', 'Персональный менеджер'],
+  },
+]
+
 /** Тариф текущего учителя; null = подписка не назначена (лимитов нет). */
 export async function fetchMyPlan(): Promise<MyPlan | null> {
   const { data, error } = await supabase.rpc('my_plan')

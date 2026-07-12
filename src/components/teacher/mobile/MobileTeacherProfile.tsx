@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles } from 'lucide-react'
+import { LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download } from 'lucide-react'
 import MobileScreen from '../../MobileScreen'
 import FeedbackModal from '../../FeedbackModal'
+import TariffModal from '../TariffModal'
 import { tactile } from '../../../lib/feedback'
 import { supabase } from '../../../lib/supabase'
 import { trackNow } from '../../../lib/analytics'
@@ -12,6 +13,7 @@ import { useFinanceSummary } from '../../../lib/useFinances'
 import { useHomeData } from '../../../lib/useHomeData'
 import { DEMO_TEACHER_PROFILE, type TeacherProfileModel } from '../../../data/teacherProfileDemo'
 import { useT } from '../../../lib/i18n'
+import { requestShowInstall, isStandalone } from '../../../lib/pwaInstall'
 
 // MOBILE ONLY teacher profile — bento layout: identity, tariff+quota, live
 // stats (доход / долги / ученики / проверить), settings, logout. Wired to real
@@ -39,6 +41,7 @@ export default function MobileTeacherProfile() {
   const [profile, setProfile] = useState<{ name?: string; subject?: string } | null>(null)
   const [plan, setPlan] = useState<{ planName: string; studentsUsed: number; maxStudents: number | null } | null>(null)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [tariffOpen, setTariffOpen] = useState(false)
   const { dark, toggle: toggleTheme } = useTheme()
 
   const finance = useFinanceSummary()
@@ -103,12 +106,11 @@ export default function MobileTeacherProfile() {
           </div>
         </div>
 
-        {/* Tariff + quota — span 2, gradient. Same action as the row below
-            (self-serve upgrade doesn't exist — plan.ts: assignment is admin-only,
-            so "upgrade" means "ask via feedback"), otherwise the obvious tap
-            target does nothing while a lookalike row below is the real one. */}
+        {/* Tariff + quota — span 2, gradient. Opens the tariff screen (same as
+            the «Повысить» row below). Payment isn't wired, so choosing a plan
+            there files a prefilled feedback request; admin assigns it by hand. */}
         <button
-          onClick={() => { tactile(); setFeedbackOpen(true) }}
+          onClick={() => { tactile(); setTariffOpen(true) }}
           style={{ gridColumn: 'span 2', padding: '14px 15px', borderRadius: 16, background: 'linear-gradient(135deg, #9B6FE8, #6F3FBF)', color: '#fff', border: 'none', textAlign: 'left', cursor: 'pointer' }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -140,7 +142,7 @@ export default function MobileTeacherProfile() {
         <div style={{ gridColumn: 'span 2', marginTop: 4, borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', overflow: 'hidden' }}>
           {/* Тариф — actionable row (A-style «Повысить») */}
           <button
-            onClick={() => { tactile(); setFeedbackOpen(true) }}
+            onClick={() => { tactile(); setTariffOpen(true) }}
             className="flex items-center justify-between cursor-pointer"
             style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border-soft)' }}
           >
@@ -168,13 +170,27 @@ export default function MobileTeacherProfile() {
           <button
             onClick={() => { tactile(); setFeedbackOpen(true) }}
             className="flex items-center justify-between cursor-pointer"
-            style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none' }}
+            style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none', borderBottom: isStandalone() ? 'none' : '1px solid var(--color-border-soft)' }}
           >
             <span className="flex items-center" style={{ gap: 10, fontSize: 14.5, fontWeight: 550, color: 'var(--color-text)' }}>
               <MessageSquarePlus size={18} style={{ color: 'var(--color-muted)' }} />{t('Обратная связь')}
             </span>
             <ChevronRight size={17} style={{ color: 'var(--color-text-4)' }} />
           </button>
+
+          {/* Установить приложение — скрыта, если уже запущено как PWA */}
+          {!isStandalone() && (
+            <button
+              onClick={() => { tactile(); requestShowInstall() }}
+              className="flex items-center justify-between cursor-pointer"
+              style={{ width: '100%', padding: '13px 15px', background: 'transparent', border: 'none' }}
+            >
+              <span className="flex items-center" style={{ gap: 10, fontSize: 14.5, fontWeight: 550, color: 'var(--color-text)' }}>
+                <Download size={18} style={{ color: 'var(--color-muted)' }} />{t('Установить приложение')}
+              </span>
+              <ChevronRight size={17} style={{ color: 'var(--color-text-4)' }} />
+            </button>
+          )}
         </div>
 
         {/* Desktop tools footer — span 2, compact */}
@@ -196,6 +212,7 @@ export default function MobileTeacherProfile() {
         </motion.button>
       </div>
       {feedbackOpen && <FeedbackModal role="teacher" onClose={() => setFeedbackOpen(false)} />}
+      {tariffOpen && <TariffModal currentName={m.planName} currentMaxStudents={m.maxStudents} onClose={() => setTariffOpen(false)} />}
     </MobileScreen>
   )
 }

@@ -14,11 +14,21 @@ import { useT } from '../lib/i18n'
 const CUSTOM = '__custom__'
 const MAX_ATTACHMENTS = 5
 
-export default function FeedbackModal({ role, onClose }: { role: FeedbackRole; onClose: () => void }) {
+export default function FeedbackModal({ role, onClose, defaultSection, defaultMessage }: {
+  role: FeedbackRole
+  onClose: () => void
+  /** Предзаполнить раздел (напр. «Тариф»); если его нет в списке — уйдёт в «Свой вариант». */
+  defaultSection?: string
+  /** Предзаполнить текст сообщения. */
+  defaultMessage?: string
+}) {
   const t = useT()
-  const [sectionChoice, setSectionChoice] = useState<string>(FEEDBACK_SECTIONS[0])
-  const [customSection, setCustomSection] = useState('')
-  const [message, setMessage] = useState('')
+  const knownSection = defaultSection && (FEEDBACK_SECTIONS as readonly string[]).includes(defaultSection)
+  const [sectionChoice, setSectionChoice] = useState<string>(
+    defaultSection ? (knownSection ? defaultSection : CUSTOM) : FEEDBACK_SECTIONS[0],
+  )
+  const [customSection, setCustomSection] = useState(defaultSection && !knownSection ? defaultSection : '')
+  const [message, setMessage] = useState(defaultMessage ?? '')
   const [photos, setPhotos] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
   const [done, setDone] = useState(false)

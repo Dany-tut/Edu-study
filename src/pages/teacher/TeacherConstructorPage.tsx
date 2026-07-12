@@ -94,6 +94,7 @@ function GoogleFormBankCategoryModal({
   onClose: () => void
   onConfirm: (meta: { subject: Subject; section: string; topic: string; part: 1 | 2; line: number; source: string }) => Promise<void>
 }) {
+  const t = useT()
   const [subject, setSubject] = useState<Subject>(initialSubject)
   const [section, setSection] = useState('')
   const [topic, setTopic] = useState('')
@@ -454,6 +455,7 @@ function SegBtn({ label, active, color, bg, onClick }: { label: string; active: 
 function PanelHeader({ title, accent, accentBg, Icon, onClose, onExpand }: {
   title: string; accent: string; accentBg: string; Icon: React.ElementType; onClose: () => void; onExpand?: () => void
 }) {
+  const t = useT()
   return (
     <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -478,6 +480,7 @@ function PanelHeader({ title, accent, accentBg, Icon, onClose, onExpand }: {
 
 // Per-type accent keyed off the legacy `accent` colour the call sites already pass.
 function SaveBtn({ accent, onClick }: { accent: string; accentBg?: string; onClick: () => void }) {
+  const t = useT()
   const a = (accent === '#8B4900' || accent === 'var(--color-peach-text)') ? SAVE_ACCENTS.trainer
     : (accent === '#1a7a3f' || accent === 'var(--color-green-text)') ? SAVE_ACCENTS.widget
     : SAVE_ACCENTS.purple
@@ -497,6 +500,7 @@ function CourseEditor({
   onClose: () => void
   onExpand: () => void
 }) {
+  const t = useT()
   const [title, setTitle] = useState(course.title)
   const [subject, setSubject] = useState(course.subject)
   const [level, setLevel] = useState(course.level)
@@ -649,6 +653,7 @@ function CourseEditor({
 function TrainerEditor({
   trainer, onSave, onClose,
 }: { trainer: Trainer; onSave: (t: Trainer) => void; onClose: () => void }) {
+  const t = useT()
   const [title, setTitle] = useState(trainer.title)
   const [topic, setTopic] = useState(trainer.topic)
   const [difficulty, setDifficulty] = useState<Difficulty>(trainer.difficulty)
@@ -786,6 +791,7 @@ function TrainerEditor({
 function WidgetEditor({
   widget, trainers, onSave, onClose,
 }: { widget: Widget; trainers: Trainer[]; onSave: (w: Widget) => void; onClose: () => void }) {
+  const t = useT()
   const [title, setTitle] = useState(widget.title)
   const [type, setType] = useState<WidgetType>(widget.type)
   const [linkedId, setLinkedId] = useState<string>(widget.linkedTrainerId ?? '')
@@ -1066,6 +1072,7 @@ export interface CardActions {
 // every constructor card. Each button stops propagation so it never triggers the
 // card's own onClick (open editor).
 function CardActionBar({ actions, visible, accentColor }: { actions: CardActions; visible: boolean; accentColor: string }) {
+  const t = useT()
   const btn = (onClick: () => void, title: string, danger: boolean, children: React.ReactNode) => (
     <button
       title={title}
@@ -1150,6 +1157,7 @@ const TRAINER_BG      = 'var(--color-purple-soft)'
 // доступ", group_ids + student_ids). A green check overlay means lessons are
 // already opened for at least one of them (enrolled — lesson_progress exists).
 function StudentsBadge({ access, enrolled }: { access: { id: string; name: string }[]; enrolled: { id: string; name: string }[] }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const count = access.length
   const enrolledIds = new Set(enrolled.map(s => s.id))
@@ -1210,6 +1218,7 @@ function StudentsBadge({ access, enrolled }: { access: { id: string; name: strin
 }
 
 function CourseCard({ course, isSelected, onClick, actions, students, access }: { course: Course; isSelected: boolean; onClick: () => void; actions?: CardActions; students?: { id: string; name: string }[]; access?: { id: string; name: string }[] }) {
+  const t = useT()
   return (
     <ContentCard
       accentColor={COURSE_COLOR} accentBg={COURSE_BG} actions={actions}
@@ -1240,6 +1249,7 @@ function CourseCard({ course, isSelected, onClick, actions, students, access }: 
 }
 
 function TrainerCard({ trainer, isSelected, onClick }: { trainer: Trainer; isSelected: boolean; onClick: () => void }) {
+  const t = useT()
   return (
     <ContentCard
       accentColor={TRAINER_COLOR} accentBg={TRAINER_BG}
@@ -1261,6 +1271,7 @@ function TrainerCard({ trainer, isSelected, onClick }: { trainer: Trainer; isSel
 }
 
 function WidgetCard({ widget, isSelected, onClick, actions }: { widget: Widget; isSelected: boolean; onClick: () => void; actions?: CardActions }) {
+  const t = useT()
   const TypeIcon = WTYPE_ICON[widget.type]
   return (
     <ContentCard
@@ -1301,6 +1312,7 @@ const WIDGET_SORT_OPTS: [WidgetSortMode, string][] = [
 ]
 
 function WidgetSortDropdown({ value, onChange }: { value: WidgetSortMode; onChange: (v: WidgetSortMode) => void }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const label = WIDGET_SORT_OPTS.find(([v]) => v === value)?.[1] ?? t('Новые')
   const accent = 'var(--color-blue-pill-text)'
@@ -1349,6 +1361,7 @@ const COURSE_SORT_OPTS: [CourseSortMode, string][] = [
 ]
 
 function CourseSortDropdown({ value, onChange }: { value: CourseSortMode; onChange: (v: CourseSortMode) => void }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const label = COURSE_SORT_OPTS.find(([v]) => v === value)?.[1] ?? t('Новые')
   const accent = 'var(--color-green-text)'
@@ -1393,6 +1406,7 @@ function CourseSortDropdown({ value, onChange }: { value: CourseSortMode; onChan
 
 // Segmented status filter: Все / Черновик / Опубликован.
 function CourseStatusFilter({ value, onChange }: { value: '' | CourseStatus; onChange: (v: '' | CourseStatus) => void }) {
+  const t = useT()
   const opts: ['' | CourseStatus, string][] = [['', t('Все')], ['draft', t('Черновик')], ['published', t('Опубликован')]]
   return (
     <div style={{ display: 'flex', padding: 2, borderRadius: 999, background: 'var(--color-bg-3)', gap: 2 }}>
@@ -1419,6 +1433,7 @@ function CourseStatusFilter({ value, onChange }: { value: '' | CourseStatus; onC
 function WidgetFilterPanel({
   filters, onChange, total,
 }: { filters: WidgetFilters; onChange: (f: Partial<WidgetFilters>) => void; total: number }) {
+  const t = useT()
   const accent = 'var(--color-blue-pill-text)'
   const accentBg = 'var(--color-blue-pill-bg)'
   const hasFilters = !!(filters.search || filters.type || filters.linked)
@@ -1512,6 +1527,7 @@ function WidgetGroupsView({
   onToggleCheck: (id: string) => void; onOpenWidget: (w: Widget) => void
   onDuplicateWidget: (w: Widget) => void; onDeleteWidget: (w: Widget) => void
 }) {
+  const t = useT()
   const groups = useMemo(() =>
     (Object.keys(WTYPE_LABEL) as WidgetType[])
       .map(wt => ({ wt, ws: widgets.filter(w => w.type === wt) }))
@@ -1622,6 +1638,7 @@ function TabBtn({ tab, activeTab, label, icon: Icon, color, bg, onClick, onPlus 
 function LessonNameInput({ value, onChange, onAdd }: {
   value: string; onChange: (v: string) => void; onAdd: (title: string) => void
 }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const courseLessons = useCourseLessons()
@@ -1733,6 +1750,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
   onSwitch: (idx: number) => void
   onClose: () => void
 }) {
+  const t = useT()
   const shortId = `${dbCourseId}-${lessonIndex}`
   const lessonTitle = lessons[lessonIndex]?.title ?? ''
   const emptyTask: HomeworkTeacherTask = { topic: '', prompt: '', teacherNote: '', placeholder: '', acceptedFormats: [] }
@@ -1944,6 +1962,7 @@ function CreatorView({
   onSaveWidget: (w: Widget) => void
   onCancel: () => void
 }) {
+  const t = useT()
   const [mode, setMode] = useState<Exclude<Tab, 'testing' | 'bank'>>(initialMode)
   const addTask = useTaskBank(s => s.addTask)
   const replaceTask = useTaskBank(s => s.replaceTask)
@@ -3447,6 +3466,7 @@ function getIconByKey(key?: string): React.ElementType {
 function IconPickerField({ iconKey, onChange, accent }: {
   iconKey: string; onChange: (key: string) => void; accent: string
 }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const searchRef = useRef<HTMLInputElement>(null)
@@ -3843,6 +3863,7 @@ function ColorPickerPopup({ value, onChange, onClose, anchor }: {
 }
 
 function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
+  const t = useT()
   const { label, accent, soft } = SUBJECT_META[subject]
 
   const [questions, setQuestions] = useState<DiagQuestion[]>(() => loadDiagQuestions(subject))
@@ -4031,6 +4052,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
 }
 
 function StudentPickerModal({ onPick, onClose }: { onPick: (studentId: string, name: string) => void; onClose: () => void }) {
+  const t = useT()
   const allStudents = useAllStudents()
   const [search, setSearch] = useState('')
   const filtered = allStudents.filter(s => s.name.toLowerCase().includes(search.toLowerCase()))
@@ -4097,6 +4119,7 @@ function DiagnosticStudentCard({
   onUnlink: () => void
   onDelete: () => void
 }) {
+  const t = useT()
   const [expanded, setExpanded] = useState(false)
   const [questions, setQuestions] = useState(() => loadDiagQuestions(result.subject))
   useEffect(() => { fetchDiagQuestions(result.subject).then(setQuestions) }, [result.subject])
@@ -4300,6 +4323,7 @@ function DiagnosticStudentCard({
 }
 
 function DiagnosticManagement({ onBack }: { onBack: () => void }) {
+  const t = useT()
   const [anonResults, setAnonResults] = useState<AnonDiagResult[]>([])
   const [pickerFor, setPickerFor] = useState<string | null>(null)
   const allStudents = useAllStudents()
@@ -4462,6 +4486,7 @@ function DiagResultsTable({
   onOpenEditor: () => void
   onRefresh: () => void
 }) {
+  const t = useT()
   const { label, accent, soft } = getSubjectMeta(subject)
   const [copied, setCopied] = useState(false)
 
@@ -4576,6 +4601,7 @@ function DiagResultStudentPanel({
   onClose: () => void
   onRefresh: () => void
 }) {
+  const t = useT()
   const { accent, soft } = getSubjectMeta(result.subject)
   const Icon = getSubjectIcon(result.subject)
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -4798,6 +4824,7 @@ function DiagCalendarPicker({ value, onChange, onClose, anchorRef, accent = 'var
 }
 
 function DiagTimePicker({ value, onChange, onClose, anchorRef, accent = 'var(--color-accent)' }: { value: string; onChange: (v: string) => void; onClose: () => void; anchorRef?: React.RefObject<HTMLElement | null>; accent?: string }) {
+  const t = useT()
   const listRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const pos = useAnchoredPos(anchorRef, 248)
@@ -4908,6 +4935,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   initialChip, initialLabel,
   onColorChange, onIconChange, onLabelChange, onChipChange,
 }, ref) {
+  const t = useT()
   const initialMeta = getSubjectMeta(subject)
   const isCustomTest = CUSTOM_META.has(subject)
   const [accentState, setAccentState] = useState(initialMeta.accent)
@@ -5190,10 +5218,10 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
               <>
                 {/* Type toggle */}
                 <div style={{ display: 'flex', gap: 6 }}>
-                  {(['test', 'trial'] as const).map(t => (
+                  {(['test', 'trial'] as const).map(ty => (
                     <button key={ty} onClick={() => setAssignType(ty)}
                       style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: 'none', outline: 'none', background: assignType === ty ? `${accent}20` : 'var(--color-bg-3)', color: assignType === ty ? accent : 'var(--color-text-3)', fontSize: 12, fontWeight: assignType === ty ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
-                      {ty === 'test' ? 'Контрольная' : 'Пробник'}
+                      {ty === 'test' ? t('Контрольная') : t('Пробник')}
                     </button>
                   ))}
                 </div>
@@ -5571,6 +5599,7 @@ function ScreeningDomainEditor({
   cfg: ScreeningConfig
   onPatch: (key: DomainKey, p: Record<string, unknown>) => void
 }) {
+  const t = useT()
   const dom = cfg[domainKey]
   const p = (patch: Record<string, unknown>) => onPatch(domainKey, patch)
   const row: React.CSSProperties = { display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }
@@ -5693,6 +5722,7 @@ function ScreeningDomainEditor({
 
 // Analogy pool editor
 function ScreeningAnalogyEditor({ items, onChange }: { items: AnalogyItem[]; onChange: (v: AnalogyItem[]) => void }) {
+  const t = useT()
   const [editId, setEditId] = useState<string | null>(null)
   const [ea, setEa] = useState(''); const [eb, setEb] = useState(''); const [ec, setEc] = useState('')
   const [eans, setEans] = useState(''); const [edist, setEdist] = useState(''); const [elv, setElv] = useState(1)
@@ -5762,6 +5792,7 @@ function ScreeningAnalogyEditor({ items, onChange }: { items: AnalogyItem[]; onC
 
 // Stroop color editor
 function ScreeningColorEditor({ colors, onChange }: { colors: { name: string; hex: string }[]; onChange: (v: { name: string; hex: string }[]) => void }) {
+  const t = useT()
   const inputStyle: React.CSSProperties = { padding: '7px 10px', borderRadius: 9, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }
   return (
     <div>
@@ -5793,6 +5824,7 @@ function ScreeningColorEditor({ colors, onChange }: { colors: { name: string; he
 
 // Matching tasks editor
 function ScreeningMatchEditor({ tasks, onChange }: { tasks: MatchTask[]; onChange: (v: MatchTask[]) => void }) {
+  const t = useT()
   const [openId, setOpenId] = useState<string | null>(tasks[0]?.id ?? null)
 
   function updateTask(id: string, patch: Partial<MatchTask>) {
@@ -5868,6 +5900,7 @@ function ScreeningMatchEditor({ tasks, onChange }: { tasks: MatchTask[]; onChang
 }
 
 function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
+  const t = useT()
   const [cfg, setCfg] = useState<ScreeningConfig>(() => loadScreeningConfig())
   const [selectedDomain, setSelectedDomain] = useState<DomainKey | 'meta'>('meta')
   const [dirty, setDirty] = useState(false)
@@ -6127,6 +6160,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
   allStudents: import('../../data/teacherMockData').Student[]
   onAssign: (a: Omit<TestAssignment, 'id' | 'createdAt'>) => Promise<void>
 }) {
+  const t = useT()
   const [title, setTitle] = useState('')
   const [accent, setAccent] = useState(CREATOR_ACCENTS[0].hex)
   const [iconKey, setIconKey] = useState('FileText')
@@ -6328,10 +6362,10 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
               {distMode === 'assign' ? (
                 <>
                   <div style={{ display: 'flex', gap: 6 }}>
-                    {(['test', 'trial'] as const).map(t => (
+                    {(['test', 'trial'] as const).map(ty => (
                       <button key={ty} onClick={() => setAssignType(ty)}
                         style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: 'none', outline: 'none', background: assignType === ty ? `${accent}20` : 'var(--color-bg-3)', color: assignType === ty ? accent : 'var(--color-text-3)', fontSize: 12, fontWeight: assignType === ty ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
-                        {ty === 'test' ? 'Контрольная' : 'Пробник'}
+                        {ty === 'test' ? t('Контрольная') : t('Пробник')}
                       </button>
                     ))}
                   </div>
@@ -6547,10 +6581,10 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
               </button>
               <div style={{ borderTop: '1px solid var(--color-border-soft)', marginTop: 2 }} />
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>{t('Тип вопроса')}</div>
-              {(['mc', 'screening'] as const).map(t => (
+              {(['mc', 'screening'] as const).map(ty => (
                 <button key={ty} onClick={() => editIdx !== null && setEditType(ty)}
                   style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 12px', borderRadius: 12, border: `2px solid ${editType === ty && editIdx !== null ? accent : 'var(--color-border-medium)'}`, background: editType === ty && editIdx !== null ? accent : 'var(--color-bg-2)', color: editType === ty && editIdx !== null ? '#fff' : editIdx !== null ? 'var(--color-text-2)' : 'var(--color-muted)', fontWeight: 600, fontSize: 13, cursor: editIdx !== null ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'all 0.14s', textAlign: 'left' }}>
-                  {ty === 'mc' ? <><FileText size={14} style={{ flexShrink: 0 }} /> {'Текст / выбор'}</> : <><Brain size={14} style={{ flexShrink: 0 }} /> {'Скрининг-блок'}</>}
+                  {ty === 'mc' ? <><FileText size={14} style={{ flexShrink: 0 }} /> {t('Текст / выбор')}</> : <><Brain size={14} style={{ flexShrink: 0 }} /> {t('Скрининг-блок')}</>}
                 </button>
               ))}
               {editType === 'screening' && editIdx !== null && (
@@ -6608,6 +6642,7 @@ function getChipStyle(chip: string, fallbackAccent?: string, dark?: boolean) {
 }
 
 function ChipPicker({ value, onChange, fallbackAccent }: { value: string; onChange: (chip: string) => void; fallbackAccent?: string }) {
+  const t = useT()
   const [adding, setAdding] = useState(false)
   const [custom, setCustom] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -6668,6 +6703,7 @@ function ChipPicker({ value, onChange, fallbackAccent }: { value: string; onChan
 
 // ─── Diagnostic Card ─────────────────────────────────────────────────────────
 function DiagnosticCard({ subject, isSelected, onClick, chipOverride }: { subject: DiagSubject; isSelected: boolean; onClick: () => void; chipOverride?: string }) {
+  const t = useT()
   const { label, accent, soft } = getSubjectMeta(subject)
   const Icon = getSubjectIcon(subject)
   const [questions, setQuestions] = useState(() => loadDiagQuestions(subject))
@@ -6694,6 +6730,7 @@ function DiagnosticCard({ subject, isSelected, onClick, chipOverride }: { subjec
 }
 
 function CustomTestCard({ test, isSelected, onClick }: { test: CustomTest; isSelected: boolean; onClick: () => void }) {
+  const t = useT()
   const { label, accent } = test
   const soft = accent + '22'
   const [qCount, setQCount] = useState(() => loadDiagQuestions(test.id as DiagSubject).length)
@@ -6726,6 +6763,7 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
   onClose: () => void
   onEditTest: () => void
 }) {
+  const t = useT()
   const { label, accent, soft } = getSubjectMeta(subject)
   const Icon = getSubjectIcon(subject)
   const [questions, setQuestions] = useState(() => loadDiagQuestions(subject))
@@ -6889,6 +6927,7 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
 
 // ─── Diagnostic Editor Panel (questions editor) ───────────────────────────────
 function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onClose: () => void }) {
+  const t = useT()
   const { label, accent, soft } = SUBJECT_META[subject]
   const Icon = SUBJECT_ICON_MAP[subject]
 
@@ -6975,6 +7014,7 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function TeacherConstructorPage() {
+  const t = useT()
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     const s = localStorage.getItem('constructor-active-tab') as Tab | null
     return (s && ['course','trainer','widget','testing'].includes(s)) ? s : 'course'
@@ -7430,9 +7470,9 @@ export default function TeacherConstructorPage() {
     } else if (activeTab === 'widget') {
       widgets.filter(w => checkedIds.has(w.id)).forEach(w => duplicateWidget(w))
     } else if (activeTab === 'trainer') {
-      allTasks.filter(t => checkedIds.has(String(t.id))).forEach(t => {
-        const { id: _drop, ...copy } = t as any
-        addBankTask({ ...copy, text: copy.text ? (copy.text) + ' (копия)' : copy.text })
+      allTasks.filter(t => checkedIds.has(String(t.id))).forEach(tk => {
+        const { id: _drop, ...copy } = tk as any
+        addBankTask({ ...copy, text: copy.text ? (copy.text) + t(' (копия)') : copy.text })
       })
     } else if (activeTab === 'testing') {
       for (const ct of customTests.filter(ct => checkedIds.has(ct.id))) {
@@ -8033,6 +8073,7 @@ function AssignTestModal({
   onClose: () => void
   onSave: (a: Omit<TestAssignment, 'id' | 'createdAt'>) => void
 }) {
+  const t = useT()
   const [assignType, setAssignType] = useState<'test' | 'trial'>('test')
   const [recipientMode, setRecipientMode] = useState<'group' | 'student'>('group')
   const [selectedGroupId, setSelectedGroupId] = useState('')
@@ -8085,10 +8126,10 @@ function AssignTestModal({
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>{t('Тип')}</div>
             <div style={{ display: 'flex', gap: 8 }}>
-              {(['test', 'trial'] as const).map(t => (
+              {(['test', 'trial'] as const).map(ty => (
                 <button key={ty} onClick={() => setAssignType(ty)}
                   style={{ padding: '7px 16px', borderRadius: 10, border: `1.5px solid ${assignType === ty ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: assignType === ty ? 'var(--color-purple-soft)' : 'transparent', color: assignType === ty ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.13s' }}>
-                  {ty === 'test' ? 'Контрольная' : 'Пробник (ЕГЭ)'}
+                  {ty === 'test' ? t('Контрольная') : t('Пробник (ЕГЭ)')}
                 </button>
               ))}
             </div>
@@ -8145,6 +8186,7 @@ function AssignmentsPanel({
   onSelect: (id: string) => void
   onDelete: (id: string) => void
 }) {
+  const t = useT()
   return (
     <div style={{ padding: '24px 32px 0' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>

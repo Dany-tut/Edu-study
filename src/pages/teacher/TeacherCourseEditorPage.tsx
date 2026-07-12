@@ -13,7 +13,7 @@ import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { getContrastColor } from '../../lib/utils'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
-import { useT } from '../../lib/i18n'
+import { useT, t } from '../../lib/i18n'
 import type { Task as BankTask } from '../../data/taskBankData'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
 import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
@@ -244,7 +244,7 @@ function makeHWTask(type: HWTaskType, isHard: boolean): HWTask {
     correctChoices: type === 'single' ? [0] : type === 'multi' ? [0] : undefined,
     pairs: type === 'matching' ? [{ left: '', right: '' }, { left: '', right: '' }] : undefined,
     sequenceItems: type === 'sequence' ? ['', ''] : undefined,
-    table: type === 'tableFill' ? { headers: ['Заголовок 1', 'Заголовок 2'], rows: [['', ''], ['', '']] } : undefined,
+    table: type === 'tableFill' ? { headers: [t('Заголовок 1'), t('Заголовок 2')], rows: [['', ''], ['', '']] } : undefined,
   }
 }
 
@@ -301,7 +301,7 @@ function LeftCourseMeta({
           <Label>{t('Предмет')}</Label>
           <TeacherSelect
             value={course.subject}
-            options={COURSE_SUBJECTS}
+            options={COURSE_SUBJECTS.map(o => ({ ...o, label: t(o.label) }))}
             onChange={v => setCourse(c => ({ ...c, subject: v }))}
             placeholder={t('Выберите предмет')}
             clearable={false}
@@ -326,7 +326,7 @@ function LeftCourseMeta({
                     fontWeight: active ? 600 : 400, fontSize: 13,
                     transition: 'all 0.12s',
                   }}
-                >{l}</button>
+                >{t(l)}</button>
               )
             })}
           </div>
@@ -1329,11 +1329,11 @@ function CalendarPicker({ value, onChange, placeholder }: { value: string; onCha
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10 }}>
               <button onClick={() => { onChange(''); setOpen(false) }}
                 style={{ fontSize: 12, color: 'var(--color-muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
-                Очистить
+                {t('Очистить')}
               </button>
               <button onClick={() => { onChange(todayStr); setOpen(false) }}
                 style={{ fontSize: 12, color: 'var(--color-green-text)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700 }}>
-                Сегодня
+                {t('Сегодня')}
               </button>
             </div>
           </motion.div>
@@ -1602,7 +1602,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 <div>
                   <Label>{t('Таблица — нажмите «Вписать» в ячейках, куда ученик пишет ответ')}</Label>
                   <TableEditor
-                    value={task.table ?? { headers: ['Заголовок 1', 'Заголовок 2'], rows: [['', ''], ['', '']] }}
+                    value={task.table ?? { headers: [t('Заголовок 1'), t('Заголовок 2')], rows: [['', ''], ['', '']] }}
                     onChange={table => onUpdate({ ...task, table })}
                     accent={cfg.color}
                     accentBg={cfg.bg}
@@ -3316,7 +3316,7 @@ export default function TeacherCourseEditorPage() {
       return
     }
     if (lesson && !lessonScheduled(lesson)) {
-      setPublishErr(`Укажите дату и время для урока «${lesson.title || `Урок ${lesson.number}`}» — иначе его нельзя открыть.`)
+      setPublishErr(`${t('Укажите дату и время для урока «')}${lesson.title || `${t('Урок')} ${lesson.number}`}${t('» — иначе его нельзя открыть.')}`)
       return
     }
     setPublishErr(null)
@@ -3687,7 +3687,7 @@ export default function TeacherCourseEditorPage() {
 
   function openHandout() {
     setHandoutGroupId(null)
-    setHandoutTitle(`${course.title} · поток 2`)
+    setHandoutTitle(`${course.title} · ${t('поток 2')}`)
     setHandoutStart('')
     setHandoutDone(false)
     setHandoutOpen(true)
@@ -3852,7 +3852,7 @@ export default function TeacherCourseEditorPage() {
             >
               <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={handleBack}
                 style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', pointerEvents: 'auto' }}>
-                <ArrowLeft size={15} strokeWidth={2} /> Назад
+                <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
               </motion.button>
               <div style={{ flexShrink: 1, minWidth: 0, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '9px 16px', borderRadius: 999, ...dockGlass, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto' }}>
                 {courseTitle}
@@ -3860,11 +3860,11 @@ export default function TeacherCourseEditorPage() {
               <div style={{ flexGrow: 1 }} />
               {course.status !== 'published' ? (
                 <button onClick={() => handleSave()} style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 999, ...dockGlass, ...draftActiveStyle, cursor: 'pointer', fontSize: 13.5, fontFamily: 'inherit', pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--color-yellow-text)', flexShrink: 0 }} /> Черновик
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--color-yellow-text)', flexShrink: 0 }} /> {t('Черновик')}
                 </button>
               ) : (
                 <button onClick={handleUnpublish} style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 999, ...dockGlass, cursor: 'pointer', fontSize: 13.5, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit', pointerEvents: 'auto' }}>
-                  В черновик
+                  {t('В черновик')}
                 </button>
               )}
               <TeacherSaveButton
@@ -3889,7 +3889,7 @@ export default function TeacherCourseEditorPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={handleBack}
             style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-            <ArrowLeft size={15} strokeWidth={2} /> Назад
+            <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
           </motion.button>
           <AnimatePresence>
             {selectedLesson && (
@@ -4005,17 +4005,17 @@ export default function TeacherCourseEditorPage() {
             <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
               <button onClick={() => !handoutBusy && setHandoutOpen(false)}
                 style={{ padding: '11px 18px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'transparent', color: 'var(--color-text-2)', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                Отмена
+                {t('Отмена')}
               </button>
               <TeacherSaveButton
-                label="Создать копию"
-                savedLabel="Готово!"
+                label={t('Создать копию')}
+                savedLabel={t('Готово!')}
                 icon={<Copy size={14} />}
                 accent={SAVE_ACCENTS.success}
                 fullWidth
                 saved={handoutDone}
                 saving={handoutBusy}
-                savingLabel="Создаю…"
+                savingLabel={t('Создаю…')}
                 disabled={!handoutGroupId}
                 onClick={runHandout}
                 style={{ flex: 1 }} />
@@ -4164,7 +4164,7 @@ export default function TeacherCourseEditorPage() {
                 <div style={{ padding: '10px 16px 12px', borderBottom: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                     <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-                      {selectedLesson.title || 'Урок без названия'}
+                      {selectedLesson.title || t('Урок без названия')}
                     </span>
                     {course.dbCourseId && (() => {
                       const isOpened = openLessonShortIds.has(lessonShortIdById[selectedLesson.id])
@@ -4192,8 +4192,8 @@ export default function TeacherCourseEditorPage() {
                           }}
                         >
                           {isOpened
-                            ? <><Check size={13} /> Открыт</>
-                            : <><Unlock size={13} /> Открыть урок</>
+                            ? <><Check size={13} /> {t('Открыт')}</>
+                            : <><Unlock size={13} /> {t('Открыть урок')}</>
                           }
                         </motion.button>
                       )
@@ -4221,7 +4221,7 @@ export default function TeacherCourseEditorPage() {
                               }}
                             />
                           )}
-                          <span style={{ position: 'relative', zIndex: 1 }}>{m.label}</span>
+                          <span style={{ position: 'relative', zIndex: 1 }}>{t(m.label)}</span>
                         </button>
                       )
                     })}

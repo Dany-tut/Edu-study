@@ -484,7 +484,7 @@ function TaskCard({
                   <div>
                     <Label>{t('Таблица — нажмите «Вписать» в ячейках, куда ученик пишет ответ')}</Label>
                     <TableEditor
-                      value={task.table ?? { headers: ['Заголовок 1', 'Заголовок 2'], rows: [['', ''], ['', '']] }}
+                      value={task.table ?? { headers: [t('Заголовок 1'), t('Заголовок 2')], rows: [['', ''], ['', '']] }}
                       onChange={table => onUpdate({ table })}
                       accent={cfg.color}
                       accentBg={cfg.bg}

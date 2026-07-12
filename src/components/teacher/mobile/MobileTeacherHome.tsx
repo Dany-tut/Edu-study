@@ -17,8 +17,10 @@ import { useFinanceSummary } from '../../../lib/useFinances'
 import { useJournalPending } from '../../../lib/useGroups'
 import { loadTestAssignments, type TestAssignment } from '../../../data/diagnosticData'
 import { DEMO_TEACHER_HOME, type TeacherHomeModel, type AttentionItem, type AttentionTagKind } from '../../../data/teacherHomeDemo'
-import type { ScheduleItem } from '../../../data/teacherMockData'
+import type { ScheduleItem, Student, Group } from '../../../data/teacherMockData'
 import type { MTab } from './MobileTeacherNav'
+import { StudentSheet } from './MobileTeacherStudents'
+import { DEMO_GROUPS, DEMO_STUDENTS_BY_GROUP } from '../../../data/teacherDevDemo'
 import { useT, t } from '../../../lib/i18n'
 
 const BASE_URL = window.location.origin + window.location.pathname
@@ -311,6 +313,26 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
   const journalPending = useJournalPending(null)
 
   const [linksOpen, setLinksOpen] = useState(false)
+  // Tapping an "требуют внимания" row opens that student's card in place — not
+  // the whole Ученики tab. Keep the last selection mounted so the sheet can play
+  // its close animation after `open` flips to false.
+  const [attSel, setAttSel] = useState<{ student: Student; group: Group } | null>(null)
+  const [attOpen, setAttOpen] = useState(false)
+
+  // Resolve an attention item's student id → full Student + its Group. Real data
+  // first (production); fall back to the DEV demo dataset so the preview works too.
+  function openStudentCard(id: string) {
+    let student = home.allStudents.find((s: Student) => s.id === id) ?? null
+    let group = student ? home.groups.find((g: Group) => g.id === student!.groupId) ?? null : null
+    if ((!student || !group) && import.meta.env.DEV) {
+      for (const list of Object.values(DEMO_STUDENTS_BY_GROUP)) {
+        const hit = list.find(s => s.id === id)
+        if (hit) { student = hit; group = DEMO_GROUPS.find(g => g.id === hit.groupId) ?? null; break }
+      }
+    }
+    if (student && group) { setAttSel({ student, group }); setAttOpen(true) }
+    else onNavigate('students') // fallback: no match → old behaviour
+  }
   const [assignments, setAssignments] = useState<TestAssignment[]>([])
   useEffect(() => { loadTestAssignments().then(setAssignments).catch(() => {}) }, [])
   const activeAssignments = assignments.filter(a => !a.closed)
@@ -427,7 +449,7 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
                   key={a.id}
                   item={a}
                   last={i === model.attention.length - 1}
-                  onOpen={() => onNavigate('students')}
+                  onOpen={() => openStudentCard(a.id)}
                   onRemind={() => {
                     // Есть контакт ученика → открываем чат в Telegram/VK; иначе — карточка ученика.
                     if (a.contact) window.open(contactHref(a.contact), '_blank', 'noopener')
@@ -484,6 +506,16 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
           </div>
         </div>
       </MobileSheet>
+
+      {/* Student card opened from the "требуют внимания" list */}
+      {attSel && (
+        <StudentSheet
+          student={attSel.student}
+          group={attSel.group}
+          open={attOpen}
+          onClose={() => setAttOpen(false)}
+        />
+      )}
     </MobileScreen>
   )
 }

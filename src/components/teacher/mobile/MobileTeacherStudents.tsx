@@ -1,15 +1,16 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Users, ChevronRight, ArrowLeft, Phone, Send, Wallet, CalendarCheck } from 'lucide-react'
+import { Users, ChevronRight, ArrowLeft, Phone, Send, Wallet, CalendarCheck, Check } from 'lucide-react'
 import MobileScreen from '../../MobileScreen'
 import MobileSheet from '../../MobileSheet'
 import { GlassPill } from '../../mobileChrome'
 import { PAIR } from '../../../lib/mobileTokens'
-import { useGroups, useStudents } from '../../../lib/useGroups'
+import { useGroups, useStudents, useAllStudents } from '../../../lib/useGroups'
+import { useHomework } from '../../../lib/useHomework'
 import { contactLabel } from '../../../lib/contactLink'
 import { useT } from '../../../lib/i18n'
 import type { Group, Student } from '../../../data/teacherMockData'
-import { DEMO_GROUPS, demoStudentsFor } from '../../../data/teacherDevDemo'
+import { DEMO_GROUPS, DEMO_STUDENTS_BY_GROUP, demoStudentsFor } from '../../../data/teacherDevDemo'
 
 // MOBILE ONLY students browser: groups list → tap → roster → tap student →
 // detail sheet (contacts, attendance, scores, debt). Read-focused; editing the
@@ -18,6 +19,94 @@ import { DEMO_GROUPS, demoStudentsFor } from '../../../data/teacherDevDemo'
 function initials(name: string) {
   const p = name.trim().split(/\s+/)
   return ((p[0]?.[0] ?? '') + (p[1]?.[0] ?? '')).toUpperCase() || '—'
+}
+
+// ── "smart mix" right-side signal for a person row: money → academics → nothing.
+// Debt outranks weak homework outranks poor attendance; a healthy student shows
+// no chip (quiet by default — only what needs action draws the eye).
+type Signal = { text: string; kind: 'danger' | 'warning' }
+function studentSignal(s: Student, t: (k: string) => string): Signal | null {
+  if ((s.debt ?? 0) > 0) return { kind: 'danger', text: `${t('долг')} ${(s.debt ?? 0).toLocaleString('ru-RU')}` }
+  if ((s.hwScore ?? 100) > 0 && (s.hwScore ?? 100) < 50) return { kind: 'warning', text: `${t('ДЗ')} ${s.hwScore}%` }
+  if ((s.attendance ?? 100) > 0 && (s.attendance ?? 100) < 70) return { kind: 'warning', text: t('пропуски') }
+  return null
+}
+
+function SignalChip({ signal }: { signal: Signal }) {
+  const c = signal.kind === 'danger' ? PAIR.error : PAIR.review
+  return (
+    <span style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: c.bg, color: c.text, flexShrink: 0, whiteSpace: 'nowrap' }}>{signal.text}</span>
+  )
+}
+
+// Unified person row — one visual language for a student everywhere (group roster
+// and the individuals list). Avatar with initials (never a placeholder silhouette),
+// name, subject + ДЗ + посещаемость, and the smart-mix signal on the right.
+function PersonRow({ student, subject, onClick }: { student: Student; subject?: string; onClick: () => void }) {
+  const t = useT()
+  const signal = studentSignal(student, t)
+  return (
+    <motion.button
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className="cursor-pointer"
+      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left', width: '100%' }}
+    >
+      <div style={{ width: 40, height: 40, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{initials(student.name)}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 14.5, fontWeight: 650, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{student.name}</div>
+        <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {subject ? `${subject} · ` : ''}{t('ДЗ')} {student.hwScore}% · {t('посещ.')} {student.attendance}%
+        </div>
+      </div>
+      {signal && <SignalChip signal={signal} />}
+      <ChevronRight size={17} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
+    </motion.button>
+  )
+}
+
+// Aggregate shown on a group row — average homework, debtors, and how many
+// submissions are waiting for review, so the teacher sees where to dive in.
+type GroupAgg = { avgHw: number | null; debtCount: number; pending: number }
+
+function GroupRow({ group, agg, onClick }: { group: Group; agg: GroupAgg; onClick: () => void }) {
+  const t = useT()
+  return (
+    <motion.button
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className="cursor-pointer"
+      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left', width: '100%' }}
+    >
+      <div style={{ width: 42, height: 42, borderRadius: 12, background: group.colorSoft, color: group.color, fontSize: 19, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{group.icon}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.name}</div>
+        <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)' }}>
+          {group.studentCount} {t('учеников')}{agg.avgHw != null ? ` · ${t('ср. ДЗ')} ${agg.avgHw}%` : ''}
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3, flexShrink: 0 }}>
+        {agg.pending > 0 && <span style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: PAIR.review.bg, color: PAIR.review.text, whiteSpace: 'nowrap' }}>{agg.pending} {t('проверить')}</span>}
+        {agg.debtCount > 0 && <span style={{ fontSize: 10.5, fontWeight: 600, color: PAIR.error.text, whiteSpace: 'nowrap' }}>{agg.debtCount} {t('долг')}</span>}
+        {agg.pending === 0 && agg.debtCount === 0 && (
+          <span style={{ fontSize: 11, fontWeight: 600, color: PAIR.success.text, display: 'flex', alignItems: 'center', gap: 3 }}><Check size={12} /> {t('всё сдано')}</span>
+        )}
+      </div>
+    </motion.button>
+  )
+}
+
+// Small tappable summary tile for the "Все" header (debtors / to-review / total).
+function SummaryTile({ value, label, tone }: { value: number; label: string; tone: 'danger' | 'warning' | 'accent' }) {
+  const c = tone === 'danger' ? { bg: PAIR.error.bg, text: PAIR.error.text }
+    : tone === 'warning' ? { bg: PAIR.review.bg, text: PAIR.review.text }
+    : { bg: 'var(--color-bg-4)', text: 'var(--color-accent)' }
+  return (
+    <div style={{ flex: 1, background: c.bg, borderRadius: 12, padding: '8px 4px', textAlign: 'center' }}>
+      <div style={{ fontSize: 17, fontWeight: 750, color: c.text }}>{value}</div>
+      <div style={{ fontSize: 10, fontWeight: 600, color: c.text, opacity: 0.9 }}>{label}</div>
+    </div>
+  )
 }
 
 function MetricRow({ icon, label, value, danger }: { icon: React.ReactNode; label: string; value: string; danger?: boolean }) {
@@ -30,10 +119,15 @@ function MetricRow({ icon, label, value, danger }: { icon: React.ReactNode; labe
   )
 }
 
-function StudentSheet({ student, group, onClose }: { student: Student | null; group: Group; onClose: () => void }) {
+export function StudentSheet({ student, group, open, loading, onClose }: { student: Student | null; group: Group; open: boolean; loading?: boolean; onClose: () => void }) {
   const t = useT()
   return (
-    <MobileSheet open={!!student} onClose={onClose} title={student?.name}>
+    <MobileSheet open={open} onClose={onClose} title={student?.name ?? group.name}>
+      {!student && (
+        <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-muted)', padding: '28px 0', textAlign: 'center' }}>
+          {loading ? t('Загрузка…') : t('Нет данных об ученике')}
+        </div>
+      )}
       {student && (
         <div style={{ display: 'flex', flexDirection: 'column', paddingBottom: 8 }}>
           <div style={{ display: 'flex', gap: 8, padding: '4px 0 14px' }}>
@@ -61,17 +155,6 @@ function StudentSheet({ student, group, onClose }: { student: Student | null; gr
   )
 }
 
-// 1:1 groups hold a single student — tapping one opens the student sheet
-// directly over the groups list, skipping the pointless roster-of-one.
-function SoloStudentSheet({ group, onClose }: { group: Group | null; onClose: () => void }) {
-  const { students: realStudents } = useStudents(group?.id ?? '')
-  const students = import.meta.env.DEV && group && realStudents.length === 0
-    ? demoStudentsFor(group.id)
-    : realStudents
-  if (!group) return null
-  return <StudentSheet student={students[0] ?? null} group={group} onClose={onClose} />
-}
-
 function GroupRoster({ group, onBack }: { group: Group; onBack: () => void }) {
   const t = useT()
   const { students: realStudents } = useStudents(group.id)
@@ -90,28 +173,14 @@ function GroupRoster({ group, onBack }: { group: Group; onBack: () => void }) {
         <div style={{ fontSize: 20, fontWeight: 750, color: 'var(--color-text)' }}>{group.icon} {group.name}</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {students.map(s => (
-            <motion.button
-              key={s.id}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setSelected(s)}
-              className="cursor-pointer"
-              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderRadius: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left' }}
-            >
-              <div style={{ width: 38, height: 38, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{initials(s.name)}</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14.5, fontWeight: 650, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</div>
-                <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-muted)' }}>{t('ДЗ')} {s.hwScore}% · {t('посещ.')} {s.attendance}%</div>
-              </div>
-              {(s.debt ?? 0) > 0 && <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: PAIR.error.bg, color: PAIR.error.text, flexShrink: 0 }}>{t('долг')}</span>}
-              <ChevronRight size={17} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
-            </motion.button>
+            <PersonRow key={s.id} student={s} onClick={() => setSelected(s)} />
           ))}
           {students.length === 0 && (
             <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', padding: '20px 0', textAlign: 'center' }}>{t('В группе пока нет учеников')}</div>
           )}
         </div>
       </div>
-      <StudentSheet student={selected} group={group} onClose={() => setSelected(null)} />
+      <StudentSheet student={selected} group={group} open={!!selected} onClose={() => setSelected(null)} />
     </>
   )
 }
@@ -124,18 +193,59 @@ const FILTERS: { key: StudentsFilter; label: string }[] = [
   { key: 'individual', label: '1:1' },
 ]
 
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, textTransform: 'uppercase', margin: '6px 2px 2px' }}>{children}</div>
+  )
+}
+
 export default function MobileTeacherStudents() {
   const t = useT()
   const { groups: realGroups } = useGroups()
-  // DEV-only: no logged-in teacher locally → show demo groups instead of empty.
-  const groups = import.meta.env.DEV && realGroups.length === 0 ? DEMO_GROUPS : realGroups
+  const realStudents = useAllStudents()
+  const { homework } = useHomework()
+  // DEV-only: no logged-in teacher locally → show demo content instead of empty.
+  const dev = import.meta.env.DEV
+  const groups = dev && realGroups.length === 0 ? DEMO_GROUPS : realGroups
+  const allStudents = dev && realStudents.length === 0
+    ? (Object.values(DEMO_STUDENTS_BY_GROUP).flat() as Student[])
+    : realStudents
+
   const [openGroup, setOpenGroup] = useState<Group | null>(null)
-  const [soloGroup, setSoloGroup] = useState<Group | null>(null)
+  const [sel, setSel] = useState<{ student: Student; group: Group } | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
   const [filter, setFilter] = useState<StudentsFilter>('all')
 
-  const visibleGroups = groups.filter(g =>
-    filter === 'all' ? true : filter === 'individual' ? g.isIndividual : !g.isIndividual,
-  )
+  const openStudent = (student: Student) => {
+    const group = groups.find(g => g.id === student.groupId)
+    if (group) { setSel({ student, group }); setSheetOpen(true) }
+  }
+
+  // Per-group aggregates (avg homework, debtors, pending review) + top-line totals.
+  const { aggFor, totals } = useMemo(() => {
+    const pendingByGroup = new Map<string, number>()
+    for (const h of homework) {
+      if (h.status === 'closed') continue
+      const p = Math.max(0, (h.submittedCount ?? 0) - (h.reviewedCount ?? 0))
+      if (p > 0) pendingByGroup.set(h.groupId, (pendingByGroup.get(h.groupId) ?? 0) + p)
+    }
+    const aggFor = (g: Group): GroupAgg => {
+      const list = allStudents.filter(s => s.groupId === g.id)
+      const avgHw = list.length ? Math.round(list.reduce((n, s) => n + (s.hwScore ?? 0), 0) / list.length) : null
+      return { avgHw, debtCount: list.filter(s => (s.debt ?? 0) > 0).length, pending: pendingByGroup.get(g.id) ?? 0 }
+    }
+    const totals = {
+      debtors: allStudents.filter(s => (s.debt ?? 0) > 0).length,
+      pending: [...pendingByGroup.values()].reduce((a, b) => a + b, 0),
+      students: allStudents.length,
+    }
+    return { aggFor, totals }
+  }, [groups, allStudents, homework])
+
+  const groupList = groups.filter(g => !g.isIndividual)
+  const individuals = allStudents.filter(s => s.isIndividual)
+  const showGroups = filter === 'all' || filter === 'groups'
+  const showIndividuals = filter === 'all' || filter === 'individual'
 
   const topZone = (
     <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -148,8 +258,8 @@ export default function MobileTeacherStudents() {
       {openGroup ? (
         <GroupRoster group={openGroup} onBack={() => setOpenGroup(null)} />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ display: 'flex', gap: 6, padding: 4, borderRadius: 14, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', marginBottom: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 6, padding: 4, borderRadius: 14, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
             {FILTERS.map(f => {
               const active = filter === f.key
               return (
@@ -158,11 +268,7 @@ export default function MobileTeacherStudents() {
                   onClick={() => setFilter(f.key)}
                   className="cursor-pointer"
                   style={{
-                    flex: 1,
-                    padding: '8px 0',
-                    borderRadius: 10,
-                    fontSize: 13.5,
-                    fontWeight: 650,
+                    flex: 1, padding: '8px 0', borderRadius: 10, fontSize: 13.5, fontWeight: 650,
                     color: active ? '#fff' : 'var(--color-muted)',
                     background: active ? 'var(--color-avatar-bg)' : 'transparent',
                     transition: 'background 0.15s, color 0.15s',
@@ -173,30 +279,42 @@ export default function MobileTeacherStudents() {
               )
             })}
           </div>
-          {visibleGroups.map(g => (
-            <motion.button
-              key={g.id}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => (g.isIndividual ? setSoloGroup(g) : setOpenGroup(g))}
-              className="cursor-pointer"
-              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px', borderRadius: 18, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left' }}
-            >
-              <div style={{ width: 44, height: 44, borderRadius: 14, background: g.colorSoft, color: g.color, fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{g.icon}</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.name}</div>
-                <div style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-muted)' }}>
-                  {g.isIndividual ? t('Индивидуально') : `${g.studentCount} ${t('учеников')}`}{g.level ? ` · ${g.level}` : ''}
-                </div>
-              </div>
-              <ChevronRight size={18} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
-            </motion.button>
-          ))}
-          {visibleGroups.length === 0 && (
+
+          {filter === 'all' && allStudents.length > 0 && (
+            <div style={{ display: 'flex', gap: 8, margin: '4px 0 2px' }}>
+              <SummaryTile value={totals.debtors} label={t('долги')} tone="danger" />
+              <SummaryTile value={totals.pending} label={t('проверить')} tone="warning" />
+              <SummaryTile value={totals.students} label={t('учеников')} tone="accent" />
+            </div>
+          )}
+
+          {showGroups && groupList.length > 0 && (
+            <>
+              {filter === 'all' && <SectionLabel>{t('Группы')}</SectionLabel>}
+              {groupList.map(g => (
+                <GroupRow key={g.id} group={g} agg={aggFor(g)} onClick={() => setOpenGroup(g)} />
+              ))}
+            </>
+          )}
+
+          {showIndividuals && individuals.length > 0 && (
+            <>
+              {filter === 'all' && <SectionLabel>{t('Индивидуальные')}</SectionLabel>}
+              {individuals.map(s => (
+                <PersonRow key={s.id} student={s} subject={s.subject} onClick={() => openStudent(s)} />
+              ))}
+            </>
+          )}
+
+          {((showGroups && groupList.length === 0 && !showIndividuals) ||
+            (showIndividuals && individuals.length === 0 && !showGroups) ||
+            (groupList.length === 0 && individuals.length === 0)) && (
             <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-muted)', padding: '40px 0', textAlign: 'center' }}>
               {groups.length === 0 ? t('Групп пока нет. Создайте их на компьютере.') : filter === 'individual' ? t('Нет индивидуальных учеников') : t('Нет групп')}
             </div>
           )}
-          <SoloStudentSheet group={soloGroup} onClose={() => setSoloGroup(null)} />
+
+          {sel && <StudentSheet student={sel.student} group={sel.group} open={sheetOpen} onClose={() => setSheetOpen(false)} />}
         </div>
       )}
     </MobileScreen>
