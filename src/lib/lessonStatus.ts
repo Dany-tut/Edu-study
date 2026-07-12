@@ -59,6 +59,17 @@ export type ScheduleRowStatus =
 
 // A row the student demonstrably engaged with — never "missed" regardless of time.
 const ENGAGED_STATUSES: LessonStatus[] = ['completed', 'submitted', 'returned']
+const isEngaged = (s: LessonStatus | null): boolean => s != null && ENGAGED_STATUSES.includes(s)
+
+function findLessonById(subjects: Subject[], id: string): Lesson | null {
+  for (const s of subjects) {
+    for (const m of s.modules) {
+      const l = m.lessons.find(x => x.id === id)
+      if (l) return l
+    }
+  }
+  return null
+}
 
 export function scheduleRowStatus(
   row: ScheduleLesson,
@@ -67,8 +78,20 @@ export function scheduleRowStatus(
   now: Date = new Date(),
 ): ScheduleRowStatus {
   const lesson = resolveScheduleLesson(row, subjects).lesson
-  const track = lesson ? getDisplayLessonStatus(lesson, now) : null
-  if (track && ENGAGED_STATUSES.includes(track)) return track as ScheduleRowStatus
+  let track = lesson ? getDisplayLessonStatus(lesson, now) : null
+
+  // A recording (`~rec`) node carries no progress of its own — homework and
+  // completion live on the sibling lesson node (same short_id, minus `~rec`).
+  // Submitting the homework means the student caught up even if they skipped the
+  // live session, so a recording row inherits the lesson node's engagement: done
+  // homework ⇒ never "missed".
+  if (lesson?.nodeType === 'rec' && !isEngaged(track)) {
+    const base = findLessonById(subjects, lesson.id.replace(/~rec$/, ''))
+    const baseTrack = base ? getDisplayLessonStatus(base, now) : null
+    if (isEngaged(baseTrack)) track = baseTrack
+  }
+
+  if (isEngaged(track)) return track as ScheduleRowStatus
   const passed = lessonTimeState(opts.dayDate, row.time, now).passed
   return opts.isToday && passed ? 'missed' : 'pending'
 }

@@ -81,39 +81,43 @@ function SectionTitle({ children, action }: { children: React.ReactNode; action?
 // A tab that smoothly collapses its label and splits into Учителя / Ученики
 // sub-pills when active, and grows the word back when another tab is selected.
 // Used by both «Активность» and «Тепловые карты» — the two tabs that pick a role.
-function SplitTab({ label, active, onActivate, role, onRole }: {
+function SplitTab({ label, active, onActivate, role, onRole, width = 150 }: {
   label: string; active: boolean; onActivate: () => void
   role: 'teacher'|'student'; onRole: (r: 'teacher'|'student') => void
+  width?: number
 }) {
   const t = useT()
   const subs: [ 'teacher'|'student', string, string ][] = [
     ['teacher', t('Учителя'), ACCENT],
     ['student', t('Ученики'), ACCENT_S],
   ]
+  // Fixed-width container: the label and the sub-pills are stacked in the same
+  // box and cross-fade by opacity — no width/layout animation, so switching
+  // tabs never reflows (and never jitters) the surrounding bar.
   return (
     <div
       onClick={active ? undefined : onActivate}
       style={{
-        display:'flex', alignItems:'center', borderRadius:9,
+        position:'relative', width, borderRadius:9,
         cursor: active ? 'default' : 'pointer',
         background: active ? 'var(--color-purple-soft)' : 'transparent',
         transition:'background 0.2s',
       }}
     >
-      {/* collapsed label */}
+      {/* collapsed label — stays in flow to define the box height */}
       <span style={{
-        display:'inline-block', overflow:'hidden', whiteSpace:'nowrap',
-        maxWidth: active ? 0 : 140, opacity: active ? 0 : 1,
-        padding: active ? '6px 0' : '6px 14px',
-        fontSize:12.5, fontWeight:600, color:'var(--color-text-3)',
-        transition:'max-width 0.25s ease, opacity 0.18s, padding 0.25s ease',
+        display:'block', textAlign:'center', whiteSpace:'nowrap',
+        padding:'6px 14px', fontSize:12.5, fontWeight:600,
+        color:'var(--color-text-3)',
+        opacity: active ? 0 : 1, transition:'opacity 0.18s',
+        pointerEvents: active ? 'none' : 'auto',
       }}>{label}</span>
-      {/* expanded sub-pills */}
+      {/* expanded sub-pills — absolute overlay, centred */}
       <div style={{
-        display:'flex', gap:3, overflow:'hidden',
-        maxWidth: active ? 220 : 0, opacity: active ? 1 : 0,
-        padding: active ? 3 : 0,
-        transition:'max-width 0.25s ease, opacity 0.18s, padding 0.25s ease',
+        position:'absolute', inset:0, display:'flex',
+        alignItems:'center', justifyContent:'center', gap:3, padding:3,
+        opacity: active ? 1 : 0, transition:'opacity 0.18s',
+        pointerEvents: active ? 'auto' : 'none',
       }}>
         {subs.map(([id,sLabel,color]) => (
           <button key={id} onClick={e => { e.stopPropagation(); onRole(id) }} style={{
