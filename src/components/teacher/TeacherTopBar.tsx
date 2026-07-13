@@ -443,7 +443,7 @@ export default function TeacherTopBar() {
       <AnimatePresence>
         {profileOpen && profileAnchor && (
           <div ref={profileDropRef} style={{ position: 'fixed', top: profileAnchor.top, left: profileAnchor.left, zIndex: 1000, transform: 'translateX(-50%)' }}>
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.16, ease: EASE } }} transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }} style={{ transformOrigin: 'top center', ...dropdownStyle, minWidth: 224 }}>
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.16, ease: EASE } }} transition={{ type: 'spring', stiffness: 460, damping: 24, mass: 0.8 }} style={{ transformOrigin: 'top center', ...dropdownStyle, width: 252, minWidth: 252 }}>
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px 10px' }}>
               <div style={{ width: 36, height: 36, borderRadius: '50%', background: selectedAvatar.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(106,90,230,0.35)' }}>
@@ -474,28 +474,30 @@ export default function TeacherTopBar() {
                 <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <item.icon size={15} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
                 </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>{item.label}</div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{item.sub}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.sub}</div>
                 </div>
               </motion.button>
             ))}
 
-            {/* Language — label shows the current language; the button offers
-                the OTHER language and switches to it on click. */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', width: '100%' }}>
+            {/* Language — whole row toggles between RU/EN; the pill just shows
+                the current language. */}
+            <motion.button whileTap={{ scale: 0.98 }}
+              onClick={() => setLang((lang === 'ru' ? 'en' : 'ru') as Lang)}
+              aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.12s', width: '100%' }}
+            >
               <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Globe size={15} strokeWidth={2} style={{ color: 'var(--color-text-2)' }} />
               </div>
-              <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{t('Язык')}</div>
-              <button
-                onClick={() => setLang((lang === 'ru' ? 'en' : 'ru') as Lang)}
-                aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
-                style={{ height: 28, padding: '0 13px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--color-bg-5)', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600, transition: 'background 0.2s, color 0.2s' }}
-              >
+              <div style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t('Язык')}</div>
+              <span style={{ flexShrink: 0, height: 28, display: 'inline-flex', alignItems: 'center', padding: '0 13px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600 }}>
                 {lang === 'ru' ? 'Русский' : 'English'}
-              </button>
-            </div>
+              </span>
+            </motion.button>
 
             <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 8px' }} />
             <motion.button whileTap={{ scale: 0.98 }}
