@@ -29,6 +29,12 @@ type GeoRow = { code: string; name: string; flag: string; teachers: number; stud
 // ── constants ──────────────────────────────────────────────────────────────
 const ACCENT   = '#786AD7'
 const ACCENT_S = '#2E8F76'  // student colour (deep teal)
+// hex → rgba string; lets accent-tinted fills follow the selected role colour.
+const withAlpha = (hex: string, a: number) => {
+  const h = hex.replace('#','')
+  const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16)
+  return `rgba(${r},${g},${b},${a})`
+}
 const GRID_W = 48, GRID_H = 30  // must match admin_click_heatmap() in 0014
 const DOW_LABELS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс']
 const DOW_PG     = [1,2,3,4,5,6,0] // pg extract(dow): 0=Sun
@@ -444,7 +450,7 @@ export default function TeacherAnalytics() {
         <div style={{ display:'flex', gap:4, background:'var(--color-bg-3)', borderRadius:12, padding:3, width:'fit-content', marginBottom:20 }}>
           {([['teacher', t('Учителя'), ACCENT], ['student', t('Ученики'), ACCENT_S]] as const).map(([id,label,color]) => (
             <button key={id} onClick={() => setHeatRole(id)} style={{
-              padding:'6px 18px', borderRadius:9, border:'none', cursor:'pointer',
+              padding:'6px 14px', borderRadius:9, border:'none', cursor:'pointer',
               fontSize:12.5, fontWeight:600,
               background: heatRole===id ? 'var(--color-bg-2)' : 'transparent',
               color: heatRole===id ? color : 'var(--color-text-3)',
@@ -523,7 +529,7 @@ export default function TeacherAnalytics() {
               : <div style={{ display:'flex', alignItems:'flex-end', gap:3, height:100 }}>
                   {daily.map(d => (
                     <div key={d.day} title={`${d.day} — ${d.events} ${t('событий')}, ${d.users} ${t('польз.')}`}
-                      style={{ flex:1, minWidth:2, height:`${Math.max(2,(d.events/dailyMax)*100)}%`, background:ACCENT, borderRadius:'3px 3px 0 0', opacity:0.8 }} />
+                      style={{ flex:1, minWidth:2, height:`${Math.max(2,(d.events/dailyMax)*100)}%`, background:currentColor, borderRadius:'3px 3px 0 0', opacity:0.8 }} />
                   ))}
                 </div>
             }
@@ -545,7 +551,7 @@ export default function TeacherAnalytics() {
                     <div style={{ height:8, borderRadius:4, background:'var(--color-bg-3)' }}>
                       <motion.div initial={{width:0}} animate={{width:`${(s.v/fMax)*100}%`}}
                         transition={{duration:0.5,delay:i*0.06}}
-                        style={{ height:'100%', borderRadius:4, background:ACCENT }} />
+                        style={{ height:'100%', borderRadius:4, background:currentColor }} />
                     </div>
                   </div>
                 ))}
@@ -565,7 +571,7 @@ export default function TeacherAnalytics() {
                         <div style={{ height:6, borderRadius:3, background:'var(--color-bg-3)' }}>
                           <div style={{ width:`${(b.cnt/bdMax)*100}%`, height:'100%', borderRadius:3,
                             background: b.event.includes('error')||b.event.includes('rejection') ? '#E04848'
-                              : b.event==='rage_click' ? '#D07020' : ACCENT, opacity:0.75 }} />
+                              : b.event==='rage_click' ? '#D07020' : currentColor, opacity:0.75 }} />
                         </div>
                       </div>
                     ))
@@ -784,8 +790,8 @@ export default function TeacherAnalytics() {
                   return (
                     <button key={p.path} onClick={() => setClickPath(p.path)} style={{
                       display:'flex', alignItems:'center', gap:7, padding:'7px 12px', borderRadius:10,
-                      border:'1px solid', borderColor: active ? ACCENT : 'var(--color-border)',
-                      background: active ? 'rgba(120,106,215,0.12)' : 'var(--color-bg-2)',
+                      border:'1px solid', borderColor: active ? currentColor : 'var(--color-border)',
+                      background: active ? withAlpha(currentColor,0.12) : 'var(--color-bg-2)',
                       color: active ? 'var(--color-text)' : 'var(--color-text-3)',
                       fontSize:12, fontWeight:600, cursor:'pointer', transition:'border-color .15s, background .15s',
                     }}>
