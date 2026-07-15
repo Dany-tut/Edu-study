@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown, Loader2 } from 'lucide-react'
-import { PLAN_TIERS, adminSetTeacherPlan } from '../../lib/plan'
-import { useT } from '../../lib/i18n'
+import { PLAN_TIERS, adminSetTeacherPlan, planPrice } from '../../lib/plan'
+import { useT, useLang } from '../../lib/i18n'
 
 // Админ назначает/повышает тариф учителю. Используется в таблице «По учителям»
 // и в заявках от учителей («Хочу перейти на тариф …»). Дёргает admin_set_teacher_plan
 // (RPC с внутренней проверкой is_admin), после успеха — onChanged().
-
-const priceLabel = (rub: number) => (rub === 0 ? '0 ₽' : `${rub.toLocaleString('ru-RU')} ₽/мес`)
 
 export default function AssignPlanButton({ teacherId, currentCode, onChanged, size = 'md' }: {
   teacherId: string
@@ -16,6 +14,7 @@ export default function AssignPlanButton({ teacherId, currentCode, onChanged, si
   size?: 'sm' | 'md'
 }) {
   const t = useT()
+  const { lang } = useLang()
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [ok, setOk] = useState(false)
@@ -73,7 +72,7 @@ export default function AssignPlanButton({ teacherId, currentCode, onChanged, si
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 700 }}>{t(p.name)}</div>
                   <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
-                    {priceLabel(p.priceRub)} · {p.maxStudents == null ? t('безлимит') : `${t('до')} ${p.maxStudents}`}
+                    {planPrice(p, lang)}{p.priceRub > 0 ? `/${t('мес')}` : ''} · {p.maxStudents == null ? t('безлимит') : `${t('до')} ${p.maxStudents}`}
                   </div>
                 </div>
                 {busy === p.code ? <Loader2 size={14} className="spin" style={{ animation: 'spin 1s linear infinite' }} />

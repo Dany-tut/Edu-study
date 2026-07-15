@@ -2,11 +2,9 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Check, Zap, CreditCard, Send } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
-import { useT } from '../../lib/i18n'
-import { PLAN_TIERS, fetchMyPlan, type MyPlan, type PlanTier } from '../../lib/plan'
+import { useT, useLang } from '../../lib/i18n'
+import { PLAN_TIERS, fetchMyPlan, planPrice, type MyPlan, type PlanTier } from '../../lib/plan'
 import { submitFeedback } from '../../lib/feedbackRequests'
-
-const priceRub = (n: number, t: (s: string) => string) => (n === 0 ? t('Бесплатно') : `${n.toLocaleString('ru-RU')} ₽`)
 
 function PlanCard({ tier, current, onRequest, requesting, requested }: {
   tier: PlanTier
@@ -16,6 +14,7 @@ function PlanCard({ tier, current, onRequest, requesting, requested }: {
   requested: boolean
 }) {
   const t = useT()
+  const { lang } = useLang()
   const accent = tier.code === 'pro'
   return (
     <div style={{
@@ -32,7 +31,7 @@ function PlanCard({ tier, current, onRequest, requesting, requested }: {
       )}
       <div style={{ fontSize: 13, fontWeight: 700, color: accent ? 'rgba(255,255,255,0.78)' : 'var(--color-text-3)', marginBottom: 8 }}>{t(tier.name)}</div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 3 }}>
-        <span style={{ fontSize: 30, fontWeight: 800, color: accent ? '#fff' : 'var(--color-text)', letterSpacing: '-1px' }}>{priceRub(tier.priceRub, t)}</span>
+        <span style={{ fontSize: 30, fontWeight: 800, color: accent ? '#fff' : 'var(--color-text)', letterSpacing: '-1px' }}>{tier.priceRub === 0 ? t('Бесплатно') : planPrice(tier, lang)}</span>
         {tier.priceRub > 0 && <span style={{ fontSize: 12, color: accent ? 'rgba(255,255,255,0.6)' : 'var(--color-text-3)' }}>/{t('мес')}</span>}
       </div>
       <div style={{ fontSize: 12.5, color: accent ? 'rgba(255,255,255,0.7)' : 'var(--color-text-3)' }}>
@@ -75,6 +74,7 @@ function PlanCard({ tier, current, onRequest, requesting, requested }: {
 export default function TeacherPaymentPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const t = useT()
+  const { lang } = useLang()
   const [plan, setPlan] = useState<MyPlan | null>(null)
   const [requesting, setRequesting] = useState<string | null>(null)
   const [requested, setRequested] = useState<string | null>(null)
@@ -86,7 +86,7 @@ export default function TeacherPaymentPage() {
 
   async function request(tier: PlanTier) {
     setRequesting(tier.code)
-    const message = `${t('Хочу перейти на тариф')} «${t(tier.name)}» (${tier.priceRub === 0 ? t('бесплатно') : `${tier.priceRub.toLocaleString('ru-RU')} ₽/${t('мес')}`}).`
+    const message = `${t('Хочу перейти на тариф')} «${t(tier.name)}» (${tier.priceRub === 0 ? t('бесплатно') : `${planPrice(tier, lang)}/${t('мес')}`}).`
     await submitFeedback({ role: 'teacher', section: 'Тариф', message, attachments: [] })
     setRequesting(null)
     setRequested(tier.code)
@@ -141,7 +141,7 @@ export default function TeacherPaymentPage() {
             ))}
           </div>
           <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 12, lineHeight: 1.5 }}>
-            {t('Оплата подключается вручную: заявка уходит администратору, он активирует тариф. Цены указаны в рублях.')}
+            {t('Оплата подключается вручную: заявка уходит администратору, он активирует тариф.')}
           </div>
         </div>
 

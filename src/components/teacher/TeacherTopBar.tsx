@@ -3,7 +3,7 @@ import {
   Home, Users, ClipboardList, BookOpen, Layers, GraduationCap, Wallet,
   ChevronLeft, ChevronRight,
   LayoutGrid, UserPlus, CheckSquare, LayoutDashboard, LogOut, Moon, Sun,
-  CreditCard, UserCircle, Shield, MessageSquarePlus, MessageCircle, Globe,
+  CreditCard, UserCircle, Shield, MessageSquarePlus, MessageCircle, Globe, Zap,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star,
   type LucideIcon,
 } from 'lucide-react'
@@ -25,6 +25,7 @@ import NotificationBell from '../NotificationBell'
 import NotificationPopup from '../NotificationPopup'
 import { useNotificationsStore } from '../../store/notificationsStore'
 import { useT, useLang, type Lang } from '../../lib/i18n'
+import { fetchMyPlan, PLAN_TIERS, type MyPlan } from '../../lib/plan'
 
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
   { id: 'home',        label: 'Главная',     icon: Home },
@@ -154,6 +155,9 @@ export default function TeacherTopBar() {
     })
   }, [])
 
+  const [myPlan, setMyPlan] = useState<MyPlan | null>(null)
+  useEffect(() => { fetchMyPlan().then(setMyPlan) }, [])
+
   const selectedAvatar = AVATARS.find(a => a.id === avatarId) ?? AVATARS[0]
   const AvatarIcon = selectedAvatar.Icon
 
@@ -217,6 +221,22 @@ export default function TeacherTopBar() {
   }, [headerDocked])
 
   const isHome = activePage === 'home'
+
+  // Тариф для бейджа в меню профиля: name + ползунок учеников + число дней.
+  const planTier = PLAN_TIERS.find(p => p.code === (myPlan?.plan_code ?? 'free')) ?? PLAN_TIERS[0]
+  const planLimit = myPlan?.max_students ?? planTier.maxStudents
+  const planUsed = myPlan?.students_used ?? null
+  const planPct = planLimit != null && planUsed != null ? Math.min(100, Math.round((planUsed / planLimit) * 100)) : null
+  const planDaysLeft = myPlan?.expires_at
+    ? Math.max(0, Math.ceil((new Date(myPlan.expires_at).getTime() - Date.now()) / 86400000))
+    : null
+  const dayWord = (n: number) => {
+    const a = n % 10, b = n % 100
+    if (a === 1 && b !== 11) return t('день')
+    if (a >= 2 && a <= 4 && (b < 10 || b >= 20)) return t('дня')
+    return t('дней')
+  }
+  const planEnding = (planDaysLeft != null && planDaysLeft <= 7) || (planPct != null && planPct >= 90)
 
   const dropdownStyle: React.CSSProperties = {
     background: 'rgba(var(--glass-rgb), 0.92)',
@@ -457,6 +477,33 @@ export default function TeacherTopBar() {
                 <div style={{ fontSize: 11, color: 'var(--color-text-3)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teacherEmail}</div>
               </div>
             </div>
+
+            {/* Тариф: название + ползунок учеников + число дней до конца */}
+            <button
+              onClick={() => { setActivePage('payment'); setProfileOpen(false) }}
+              style={{ display: 'block', width: 'calc(100% - 16px)', margin: '2px 8px 8px', padding: '9px 11px', borderRadius: 12, textAlign: 'left', cursor: 'pointer', background: 'var(--color-purple-soft)', border: '1px solid var(--color-border)' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: planPct != null ? 7 : 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                  <Zap size={13} strokeWidth={2.2} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+                  <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(planTier.name)}</span>
+                </div>
+                {planDaysLeft != null && (
+                  <span style={{ fontSize: 11, fontWeight: 600, flexShrink: 0, color: planEnding ? 'var(--color-red-text)' : 'var(--color-text-3)' }}>
+                    {planDaysLeft === 0 ? t('истекает сегодня') : `${t('осталось')} ${planDaysLeft} ${dayWord(planDaysLeft)}`}
+                  </span>
+                )}
+              </div>
+              {planPct != null && (
+                <>
+                  <div style={{ height: 5, borderRadius: 3, background: 'var(--color-bg-3)', overflow: 'hidden' }}>
+                    <div style={{ width: `${planPct}%`, height: '100%', borderRadius: 3, background: planEnding ? 'var(--color-red-text)' : 'var(--grad-purple)' }} />
+                  </div>
+                  <div style={{ fontSize: 10.5, color: 'var(--color-text-3)', marginTop: 4 }}>{planUsed} / {planLimit} {t('учеников')}</div>
+                </>
+              )}
+            </button>
+
             <div style={{ height: 1, background: 'var(--color-border)', margin: '0 8px 4px' }} />
 
             {profileMenuItems.map(item => (

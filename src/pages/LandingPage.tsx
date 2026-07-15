@@ -4,8 +4,9 @@ import {
   Send, X, GraduationCap, User, Check, Sparkles,
   BookOpen, ClipboardCheck, BarChart3, Users, Bell, PencilRuler,
 } from 'lucide-react'
-import { PLAN_TIERS } from '../lib/plan'
+import { PLAN_TIERS, planPrice } from '../lib/plan'
 import { submitLead } from '../lib/leads'
+import { useLang } from '../lib/i18n'
 
 const ACCENT = '#786AD7'          // фирменный фиолетовый
 const MINT_A = '#7FE7C4'          // мятный CTA (как на макете)
@@ -21,9 +22,8 @@ const FEATURES = [
   { icon: BookOpen, title: 'Тренажёр и курсы', text: 'Банк заданий и готовые курсы — ученик занимается сам, вы контролируете.' },
 ]
 
-const money = (n: number) => n === 0 ? '0 ₽' : `${n.toLocaleString('ru-RU')} ₽`
-
 export default function LandingPage() {
+  const { lang } = useLang()
   const [leadOpen, setLeadOpen] = useState(false)
   const [chooserOpen, setChooserOpen] = useState(false)
   const [presetPlan, setPresetPlan] = useState<string>('')
@@ -97,7 +97,7 @@ export default function LandingPage() {
                 <div style={{ fontSize: 17, fontWeight: 700 }}>{p.name}</div>
                 <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 3 }}>{p.tagline}</div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '18px 0 4px' }}>
-                  <span style={{ fontSize: 30, fontWeight: 800, letterSpacing: -0.5 }}>{money(p.priceRub)}</span>
+                  <span style={{ fontSize: 30, fontWeight: 800, letterSpacing: -0.5 }}>{planPrice(p, lang)}</span>
                   {p.priceRub > 0 && <span style={{ fontSize: 13, color: 'var(--color-text-3)' }}>/ мес</span>}
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--color-text-2)', marginBottom: 16 }}>
@@ -110,7 +110,7 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <button onClick={() => openLead(`${p.name} · ${money(p.priceRub)}`)}
+                <button onClick={() => openLead(`${p.name} · ${planPrice(p, lang)}`)}
                   style={{ ...(featured ? mintBtn : outlineBtn), marginTop: 20, justifyContent: 'center', width: '100%' }}>
                   {p.priceRub === 0 ? 'Начать бесплатно' : 'Оставить заявку'}
                 </button>
@@ -197,6 +197,7 @@ function RoleChooser({ onClose }: { onClose: () => void }) {
 
 // ── Форма заявки (как на макете) ─────────────────────────────────────────────
 function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose: () => void }) {
+  const { lang } = useLang()
   const [name, setName] = useState('')
   const [contact, setContact] = useState('')
   const [plan, setPlan] = useState(presetPlan)
@@ -242,7 +243,7 @@ function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose: () =>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', margin: '4px 0 8px' }}>Интересующий тариф</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8 }}>
                   {PLAN_TIERS.map(p => {
-                    const label = `${p.name} · ${money(p.priceRub)}`
+                    const label = `${p.name} · ${planPrice(p, lang)}`
                     const active = plan === label
                     return (
                       <button key={p.code} type="button" onClick={() => setPlan(active ? '' : label)} style={{
@@ -252,7 +253,7 @@ function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose: () =>
                         color: 'var(--color-text)', transition: 'all .12s',
                       }}>
                         <div style={{ fontSize: 14, fontWeight: 700 }}>{p.name}</div>
-                        <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{money(p.priceRub)}</div>
+                        <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{planPrice(p, lang)}</div>
                       </button>
                     )
                   })}

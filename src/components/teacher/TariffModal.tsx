@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { X, Check, Sparkles } from 'lucide-react'
-import { PLAN_TIERS, type PlanTier } from '../../lib/plan'
+import { PLAN_TIERS, planPrice, type PlanTier } from '../../lib/plan'
 import { tactile } from '../../lib/feedback'
 import { submitFeedback } from '../../lib/feedbackRequests'
-import { useT } from '../../lib/i18n'
+import { useT, useLang } from '../../lib/i18n'
 
 // Витрина тарифов (мобильный профиль учителя). Оплата не подключена: выбор
 // тарифа сразу шлёт заявку админу (без формы обратной связи), админ
@@ -17,6 +17,7 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose }
   onClose: () => void
 }) {
   const t = useT()
+  const { lang } = useLang()
   const [requesting, setRequesting] = useState<PlanTier | null>(null)
   const [sentPlan, setSentPlan] = useState<PlanTier | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -25,7 +26,7 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose }
     tactile()
     setRequesting(p)
     setError(null)
-    const message = `${t('Хочу перейти на тариф')} «${t(p.name)}» (${p.priceRub === 0 ? t('бесплатно') : `${p.priceRub.toLocaleString('ru-RU')} ₽/${t('мес')}`}).`
+    const message = `${t('Хочу перейти на тариф')} «${t(p.name)}» (${p.priceRub === 0 ? t('бесплатно') : `${planPrice(p, lang)}/${t('мес')}`}).`
     const { error } = await submitFeedback({ role: 'teacher', section: 'Тариф', message, attachments: [] })
     setRequesting(null)
     if (error) { setError(t('Не удалось отправить. Попробуйте ещё раз.')); return }
@@ -47,7 +48,7 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose }
     return false
   }
 
-  const price = (n: number) => (n === 0 ? t('бесплатно') : `${n.toLocaleString('ru-RU')} ₽`)
+  const price = (p: PlanTier) => (p.priceRub === 0 ? t('бесплатно') : planPrice(p, lang))
 
   return createPortal(
     <>
@@ -105,7 +106,7 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose }
                       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
                         <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)' }}>{t(p.name)}</div>
                         <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>
-                          {price(p.priceRub)}{p.priceRub > 0 && <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text-3)' }}> /{t('мес')}</span>}
+                          {price(p)}{p.priceRub > 0 && <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text-3)' }}> /{t('мес')}</span>}
                         </div>
                       </div>
                       <div style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-muted)', marginTop: 2 }}>{t(p.tagline)}</div>

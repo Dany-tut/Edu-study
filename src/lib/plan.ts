@@ -2,7 +2,7 @@
 // Учитель БЕЗ подписки = внутренний/бета-аккаунт: лимиты не применяются,
 // my_plan() возвращает пусто. Назначение тарифа — только админ (Админка).
 import { supabase } from './supabase'
-import { t } from './i18n'
+import { t, type Lang } from './i18n'
 
 export interface MyPlan {
   plan_code: string
@@ -24,18 +24,20 @@ export interface TeacherPlanRow {
 
 export const PLAN_OPTIONS = [
   { code: null, label: t('Без тарифа (бета)') },
-  { code: 'free', label: t('Бесплатный · до 3 учеников') },
-  { code: 'solo', label: t('Соло · 690 ₽/мес · до 15') },
-  { code: 'pro', label: t('Про · 1 690 ₽/мес · до 40') },
-  { code: 'school', label: t('Школа · 4 490 ₽/мес · безлимит') },
+  { code: 'free', label: t('Бесплатный · до 2 учеников') },
+  { code: 'basic', label: t('Базовый · 490 ₽/мес · до 5') },
+  { code: 'pro', label: t('Про · 990 ₽/мес · до 15') },
+  { code: 'school', label: t('Школа · 2 490 ₽/мес · до 30') },
+  { code: 'unlimited', label: t('Безлимит · 4 990 ₽/мес · безлимит') },
 ] as const
 
 // Тарифы для витрины (мобильный экран «Тариф»). Оплата пока не подключена —
 // выбор тарифа = заявка в «Обратную связь», админ назначает вручную.
 export interface PlanTier {
-  code: 'free' | 'solo' | 'pro' | 'school'
+  code: 'free' | 'basic' | 'pro' | 'school' | 'unlimited'
   name: string
   priceRub: number
+  priceUsd: number
   maxStudents: number | null
   tagline: string
   features: string[]
@@ -43,26 +45,42 @@ export interface PlanTier {
 
 export const PLAN_TIERS: PlanTier[] = [
   {
-    code: 'free', name: 'Бесплатный', priceRub: 0, maxStudents: 3,
+    code: 'free', name: 'Бесплатный', priceRub: 0, priceUsd: 0, maxStudents: 2,
     tagline: 'Попробовать платформу',
-    features: ['До 3 учеников', 'Курсы и тренажёр', 'Проверка домашних заданий'],
+    features: ['До 2 учеников', 'Курсы и тренажёр', 'Проверка домашних заданий'],
   },
   {
-    code: 'solo', name: 'Соло', priceRub: 690, maxStudents: 15,
+    code: 'basic', name: 'Базовый', priceRub: 490, priceUsd: 6, maxStudents: 5,
+    tagline: 'Для старта',
+    features: ['До 5 учеников', 'Все возможности «Бесплатного»', 'Журнал и финансы'],
+  },
+  {
+    code: 'pro', name: 'Про', priceRub: 990, priceUsd: 12, maxStudents: 15,
     tagline: 'Для репетитора',
-    features: ['До 15 учеников', 'Все возможности «Бесплатного»', 'Журнал и финансы', 'Аналитика по ученикам'],
+    features: ['До 15 учеников', 'Все возможности «Базового»', 'Аналитика по ученикам', 'Группы и назначенные ДЗ'],
   },
   {
-    code: 'pro', name: 'Про', priceRub: 1690, maxStudents: 40,
+    code: 'school', name: 'Школа', priceRub: 2490, priceUsd: 29, maxStudents: 30,
     tagline: 'Для практики на потоке',
-    features: ['До 40 учеников', 'Все возможности «Соло»', 'Группы и назначенные ДЗ', 'Приоритетная поддержка'],
+    features: ['До 30 учеников', 'Все возможности «Про»', 'Приоритетная поддержка'],
   },
   {
-    code: 'school', name: 'Школа', priceRub: 4490, maxStudents: null,
+    code: 'unlimited', name: 'Безлимит', priceRub: 4990, priceUsd: 59, maxStudents: null,
     tagline: 'Для школы или центра',
-    features: ['Без лимита учеников', 'Все возможности «Про»', 'Несколько преподавателей', 'Персональный менеджер'],
+    features: ['Без лимита учеников', 'Все возможности «Школы»', 'Несколько преподавателей', 'Персональный менеджер'],
   },
 ]
+
+// Цена тарифа в валюте локали: RU → рубли, EN → доллары. `full`=false отдаёт
+// только сумму («990 ₽» / «$12»); для нулевой цены сумму «0 ₽» / «$0».
+export function planPrice(tier: { priceRub: number; priceUsd: number }, lang: Lang): string {
+  return lang === 'en'
+    ? `$${tier.priceUsd}`
+    : `${tier.priceRub.toLocaleString('ru-RU')} ₽`
+}
+
+/** Подпись периода: «мес» / «mo» (через словарь). */
+export function planPeriod(): string { return t('мес') }
 
 /** Тариф текущего учителя; null = подписка не назначена (лимитов нет). */
 export async function fetchMyPlan(): Promise<MyPlan | null> {
