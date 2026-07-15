@@ -3,7 +3,7 @@ import {
   Home, Users, ClipboardList, BookOpen, Layers, GraduationCap, Wallet,
   ChevronLeft, ChevronRight,
   LayoutGrid, UserPlus, CheckSquare, LayoutDashboard, LogOut, Moon, Sun,
-  CreditCard, UserCircle, Shield, MessageSquarePlus, Globe,
+  CreditCard, UserCircle, Shield, MessageSquarePlus, MessageCircle, Globe,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star,
   type LucideIcon,
 } from 'lucide-react'
@@ -233,11 +233,14 @@ export default function TeacherTopBar() {
     { icon: UserCircle,  label: t('Настройки профиля'), sub: t('имя, аватар'),         action: 'profile' },
     { icon: LayoutDashboard, label: t('Настроить виджеты'), sub: t('как у учеников'),  action: 'widgets' },
     { icon: dark ? Sun : Moon, label: dark ? t('Светлая тема') : t('Тёмная тема'), sub: t('переключить'), action: 'theme' },
-    { icon: CreditCard,  label: t('Оплата'),             sub: t('подписка и счета'),   action: 'payment' },
+    { icon: CreditCard,  label: t('Тарифы'),             sub: t('подписка и счета'),   action: 'payment' },
     { icon: MessageSquarePlus, label: t('Обратная связь'), sub: t('сообщить об ошибке'), action: 'feedback' },
-    // Админка + аналитика — только для админа; у учителей пункт не появляется.
+    // Диалоги + Админка — только для админа; у учителей пункты не появляются.
     ...(teacherRole === 'admin'
-      ? [{ icon: Shield, label: t('Админка'), sub: t('аналитика, хранилище'), action: 'admin' }]
+      ? [
+          { icon: MessageCircle, label: t('Диалоги'), sub: t('чат с ботом и заявки'), action: 'dialogs' },
+          { icon: Shield, label: t('Админка'), sub: t('аналитика, хранилище'), action: 'admin' },
+        ]
       : []),
   ]
 
@@ -464,6 +467,12 @@ export default function TeacherTopBar() {
                   if (item.action === 'profile') setActivePage('profile-settings')
                   if (item.action === 'payment') setActivePage('payment')
                   if (item.action === 'admin') setActivePage('admin')
+                  if (item.action === 'dialogs') {
+                    // Открыть Админку сразу на «Заявки» → «Диалоги».
+                    sessionStorage.setItem('admin_tab', 'requests')
+                    sessionStorage.setItem('feedback_view', 'dialogs')
+                    setActivePage('admin')
+                  }
                   if (item.action === 'feedback') setFeedbackOpen(true)
                   setProfileOpen(false)
                 }}

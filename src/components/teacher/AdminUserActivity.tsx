@@ -5,6 +5,7 @@ import {
   type UserActivityRow, type TeacherUsageRow,
 } from '../../lib/plan'
 import { t, useT } from '../../lib/i18n'
+import AssignPlanButton from './AssignPlanButton'
 
 // Админский экран «По пользователям»: активное время, last seen, сессии по
 // каждому пользователю + per-teacher usage (активные ученики = будущий счётчик
@@ -190,6 +191,7 @@ function PeopleTable({ rows }: { rows: UserActivityRow[] }) {
 
 function TeachersTable({ rows }: { rows: TeacherUsageRow[] }) {
   const t = useT()
+  const [plans, setPlans] = useState<Record<string, string | null>>({})
   if (rows.length === 0) return <Empty />
   return (
     <TableShell>
@@ -207,7 +209,14 @@ function TeachersTable({ rows }: { rows: TeacherUsageRow[] }) {
         {rows.map(r => (
           <tr key={r.teacher_id}>
             <td style={{ ...tdStyle, color: 'var(--color-text)', fontWeight: 600 }}>{r.name}</td>
-            <td style={tdStyle}>{r.plan_code ? (PLAN_LABEL[r.plan_code] ?? r.plan_code) : <span style={{ color: 'var(--color-text-3)' }}>{t('без тарифа')}</span>}</td>
+            <td style={tdStyle}>
+              <AssignPlanButton
+                teacherId={r.teacher_id}
+                currentCode={plans[r.teacher_id] !== undefined ? plans[r.teacher_id] : r.plan_code}
+                onChanged={code => setPlans(p => ({ ...p, [r.teacher_id]: code }))}
+                size="sm"
+              />
+            </td>
             <td style={numTd}><b style={{ color: 'var(--color-text)' }}>{r.active_students}</b> / {r.total_students}</td>
             <td style={numTd}>{fmtMin(r.active_min)}</td>
             <td style={numTd}>{r.sessions}</td>

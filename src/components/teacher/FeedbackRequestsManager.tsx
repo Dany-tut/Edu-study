@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import type { FeedbackRequest, FeedbackStatus } from '../../lib/feedbackRequests'
 import { useT } from '../../lib/i18n'
 import TgDialogs from './TgDialogs'
+import AssignPlanButton from './AssignPlanButton'
 
 // Вкладка «Заявки» в Админке: список обратной связи от учеников и учителей.
 // data-URL картинки нельзя открыть через window.open → показываем в оверлее.
@@ -29,7 +30,12 @@ export default function FeedbackRequestsManager() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<FeedbackStatus | 'all'>('all')
   const [lightbox, setLightbox] = useState<string | null>(null)
-  const [view, setView] = useState<'requests' | 'dialogs'>('requests')
+  const [view, setView] = useState<'requests' | 'dialogs'>(() => {
+    // Быстрый переход из меню профиля «Диалоги» кладёт сюда флаг.
+    const v = sessionStorage.getItem('feedback_view')
+    if (v) sessionStorage.removeItem('feedback_view')
+    return v === 'dialogs' ? 'dialogs' : 'requests'
+  })
 
   async function load() {
     setLoading(true)
@@ -145,7 +151,7 @@ export default function FeedbackRequestsManager() {
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: 6, marginTop: 14 }}>
+              <div style={{ display: 'flex', gap: 6, marginTop: 14, alignItems: 'center', flexWrap: 'wrap' }}>
                 {STATUS_ORDER.map(s => (
                   <button key={s} onClick={() => setStatus(r.id, s)} disabled={r.status === s}
                     style={{
@@ -158,6 +164,12 @@ export default function FeedbackRequestsManager() {
                     {t(STATUS_META[s].label)}
                   </button>
                 ))}
+                {/* Заявка от учителя (в т.ч. запрос смены тарифа) → назначить тариф прямо тут */}
+                {r.author_role === 'teacher' && r.author_id && (
+                  <div style={{ marginLeft: 'auto' }}>
+                    <AssignPlanButton teacherId={r.author_id} onChanged={() => setStatus(r.id, 'done')} size="sm" />
+                  </div>
+                )}
               </div>
             </div>
           )
