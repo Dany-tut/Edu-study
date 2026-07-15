@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Inbox, GraduationCap, User, X, RefreshCw } from 'lucide-react'
+import { Inbox, GraduationCap, User, X, RefreshCw, MessageCircle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import type { FeedbackRequest, FeedbackStatus } from '../../lib/feedbackRequests'
 import { useT } from '../../lib/i18n'
+import TgDialogs from './TgDialogs'
 
 // Вкладка «Заявки» в Админке: список обратной связи от учеников и учителей.
 // data-URL картинки нельзя открыть через window.open → показываем в оверлее.
@@ -28,6 +29,7 @@ export default function FeedbackRequestsManager() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<FeedbackStatus | 'all'>('all')
   const [lightbox, setLightbox] = useState<string | null>(null)
+  const [view, setView] = useState<'requests' | 'dialogs'>('requests')
 
   async function load() {
     setLoading(true)
@@ -53,6 +55,25 @@ export default function FeedbackRequestsManager() {
 
   return (
     <div>
+      {/* Верхний переключатель: разовые заявки ↔ диалоги из Telegram-бота */}
+      <div style={{ display: 'flex', gap: 4, background: 'var(--color-bg-3)', borderRadius: 12, padding: 3, width: 'fit-content', marginBottom: 18 }}>
+        {([['requests', t('Заявки'), Inbox], ['dialogs', t('Диалоги'), MessageCircle]] as const).map(([id, label, Icon]) => (
+          <button key={id} onClick={() => setView(id)} style={{
+            display: 'flex', alignItems: 'center', gap: 7, padding: '7px 15px', borderRadius: 9, border: 'none', cursor: 'pointer',
+            fontSize: 12.5, fontWeight: 600,
+            background: view === id ? 'var(--color-purple-soft)' : 'transparent',
+            color: view === id ? 'var(--color-purple)' : 'var(--color-text-3)',
+            transition: 'background 0.15s, color 0.15s',
+          }}>
+            <Icon size={14} /> {label}
+          </button>
+        ))}
+      </div>
+
+      {view === 'dialogs' && <TgDialogs />}
+
+      {view === 'requests' && (
+      <>
       {/* Filter row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', gap: 4, background: 'var(--color-bg-3)', borderRadius: 12, padding: 3 }}>
@@ -158,6 +179,8 @@ export default function FeedbackRequestsManager() {
           </motion.div>
         )}
       </AnimatePresence>
+      </>
+      )}
     </div>
   )
 }
