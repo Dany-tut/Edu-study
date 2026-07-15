@@ -89,7 +89,8 @@ export default function FeedbackRequestsManager() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {visible.map(r => {
           const sm = STATUS_META[r.status]
-          const RoleIcon = r.author_role === 'teacher' ? GraduationCap : User
+          const RoleIcon = r.author_role === 'teacher' ? GraduationCap : r.author_role === 'lead' ? Inbox : User
+          const roleLabel = r.author_role === 'teacher' ? t('учитель') : r.author_role === 'lead' ? t('заявка с лендинга') : t('ученик')
           return (
             <div key={r.id} style={{ borderRadius: 16, border: '1px solid var(--color-border)', background: 'var(--color-bg-2)', padding: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
@@ -98,9 +99,12 @@ export default function FeedbackRequestsManager() {
                 </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-text)' }}>
-                    {r.author_name || (r.author_role === 'teacher' ? t('Учитель') : t('Ученик'))}
-                    <span style={{ fontWeight: 500, color: 'var(--color-text-3)' }}> · {r.author_role === 'teacher' ? t('учитель') : t('ученик')}</span>
+                    {r.author_name || (r.author_role === 'teacher' ? t('Учитель') : r.author_role === 'lead' ? t('Заявка') : t('Ученик'))}
+                    <span style={{ fontWeight: 500, color: 'var(--color-text-3)' }}> · {roleLabel}</span>
                   </div>
+                  {r.contact && (
+                    <div style={{ fontSize: 12.5, color: 'var(--color-text-2)', marginTop: 2, fontWeight: 600 }}>{r.contact}</div>
+                  )}
                   <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 1 }}>
                     {r.section ? `${r.section} · ` : ''}{fmtDate(r.created_at)}
                   </div>

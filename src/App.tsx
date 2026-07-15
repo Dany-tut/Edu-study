@@ -5,6 +5,7 @@ import TeacherLoginPage from './pages/teacher/TeacherLoginPage'
 import JoinPage from './pages/JoinPage'
 import JoinTeacherPage from './pages/JoinTeacherPage'
 import StudentLoginPage from './pages/StudentLoginPage'
+import LandingPage from './pages/LandingPage'
 import DiagnosticTestPage from './pages/DiagnosticTestPage'
 import ReviewSession from './components/ReviewSession'
 import { supabase } from './lib/supabase'
@@ -108,9 +109,12 @@ export default function App() {
     )
   }
 
-  // Student routes
+  // Public landing (главная для гостя) + student routes
   const studentSession = getStudentSession()
-  if (!studentSession) return <StudentLoginPage />
+  if (!studentSession) {
+    if (hash.startsWith('#/login')) return <StudentLoginPage />
+    return <LandingPage />
+  }
   // 152-ФЗ consent gate: overlay ON TOP of the cabinet (dashboard stays mounted
   // behind it) so a fault in the gate can never blank the app.
   return (

@@ -4,7 +4,7 @@ import { getStudentSession } from './studentSession'
 // Обратная связь: ученик/учитель шлёт заявку об ошибке → таблица feedback_requests
 // → вкладка «Заявки» в Админке. См. миграцию 0031_feedback_requests.sql.
 
-export type FeedbackRole = 'teacher' | 'student'
+export type FeedbackRole = 'teacher' | 'student' | 'lead'
 export type FeedbackStatus = 'new' | 'in_progress' | 'done'
 
 // Предустановленные разделы + «Свой вариант» для ручного ввода в форме.
@@ -27,6 +27,7 @@ export type FeedbackRequest = {
   author_role: FeedbackRole
   author_id: string | null
   author_name: string | null
+  contact: string | null
   section: string | null
   message: string
   attachments: string[]
