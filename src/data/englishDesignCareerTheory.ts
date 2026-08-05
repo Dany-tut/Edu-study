@@ -35,21 +35,25 @@
  * которые легко удаляют. Если ролик исчезнет, урок не сломается: поле
  * необязательное, вкладка «Запись» просто не появится.
  */
+// Каждый идентификатор проверен запросом к oEmbed YouTube: ролик существует и
+// принадлежит заявленному автору. Проверять обязательно — по памяти
+// идентификаторы восстанавливаются неверно, и вместо доклада о переговорах в
+// уроке оказывается что-то совершенно другое.
 export const ENDC_VIDEO: Record<string, string> = {
-  // Самопрезентация и рассказ о себе
-  'endc-01': 'https://www.youtube.com/watch?v=Unzc731iCUY',   // TED: How to speak so that people want to listen
-  'endc-12': 'https://www.youtube.com/watch?v=Unzc731iCUY',
-  // Язык тела и уверенность перед собеседованием
-  'endc-10': 'https://www.youtube.com/watch?v=Ks-_Mh1QhMc',   // TED: Your body language may shape who you are
-  // Защита портфолио и публичное выступление
-  'endc-14': 'https://www.youtube.com/watch?v=8S0FDjFBj8o',   // TED: How to start a movement (о подаче идеи)
-  // Обратная связь и работа с критикой
-  'endc-15': 'https://www.youtube.com/watch?v=FWTNVYUiTSY',   // TED: The secret to giving great feedback
-  'endc-16': 'https://www.youtube.com/watch?v=FWTNVYUiTSY',
-  // Переговоры и уверенность в разговоре о деньгах
-  'endc-20': 'https://www.youtube.com/watch?v=6Af6b_wyiwI',   // TED: Getting stuck in the negatives / переговорная уверенность
-  // Работа в команде и несогласие
-  'endc-26': 'https://www.youtube.com/watch?v=lmyZMtPVodo',   // TED: Dare to disagree
+  // Самопрезентация: как звучать так, чтобы слушали
+  'endc-01': 'https://www.youtube.com/watch?v=eIho2S0ZahI',   // TED — Julian Treasure, How to Speak So That People Want to Listen
+  'endc-12': 'https://www.youtube.com/watch?v=eIho2S0ZahI',
+  // Уверенность перед собеседованием
+  'endc-10': 'https://www.youtube.com/watch?v=Ks-_Mh1QhMc',   // TED — Amy Cuddy, Your Body Language May Shape Who You Are
+  // Защита портфолио: как держать внимание зала
+  'endc-14': 'https://www.youtube.com/watch?v=eIho2S0ZahI',
+  // Обратная связь в обе стороны
+  'endc-15': 'https://www.youtube.com/watch?v=wtl5UrrgU8c',   // TED — LeeAnn Renninger, The secret to giving great feedback
+  'endc-16': 'https://www.youtube.com/watch?v=wtl5UrrgU8c',
+  // Переговоры о деньгах
+  'endc-20': 'https://www.youtube.com/watch?v=Xd0o2H3MPMk',   // TED — Ruchi Sinha, 3 steps to getting what you want in a negotiation
+  // Несогласие внутри команды
+  'endc-26': 'https://www.youtube.com/watch?v=PY_kd46RfVE',   // TED — Margaret Heffernan, Dare to disagree
 }
 
 export const ENDC_THEORY: Record<string, string> = {

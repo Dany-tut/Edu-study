@@ -64,6 +64,10 @@
   --reminder-card-medium-border: rgba(255,170,30,0.35);
   --reminder-card-high-border: rgba(210,70,80,0.28);
   --color-purple: #9C8CF0;
+  /* Заливка чекбокса/радио. Отдельно от --color-purple: тот светлый, потому что
+     работает как ЦВЕТ ТЕКСТА и подложек, а под белой галочкой давал контраст
+     2.2:1. Здесь наоборот — фон под белым, поэтому темнее (5.9:1). */
+  --color-control-accent: #6353C4;
   --color-avatar-bg: #7B6BD4;
   --color-purple-soft: #E7E4FB;
   --color-rose-soft: #FFE1F0;
@@ -199,6 +203,9 @@
   --color-pill-active-shadow: 0 1px 4px rgba(0,0,0,0.30);
 
   --color-purple: #B3A6F7;
+  /* Тёмная тема: чуть светлее светлотемного варианта, иначе квадрат тонет в
+     фоне карточки, но всё ещё 5.2:1 под белой галочкой. */
+  --color-control-accent: #6B5FC0;
   --color-avatar-bg: #6B5FC0;
   /* Dark-theme accent = --color-purple («стало»). */
   --color-accent: #B3A6F7;

@@ -26,13 +26,44 @@ import { toDataUri, esc, sheet, PAPER, INK, MUTED, GRID, TILE, ACCENT, ACCENT_SO
 
 const W = 640
 
-/** Подпись-сноска под картинкой: то, что в таблицу не влезает. */
-function noteLine(w: number, y: number, note?: string): string {
-  if (!note) return ''
-  return `<text x="${w / 2}" y="${y}" text-anchor="middle" font-size="11.5" fill="${MUTED}">${esc(note)}</text>`
+/**
+ * Сноска под схемой — то, что в таблицу не влезает.
+ *
+ * Переносится по словам: длинная сноска в одну строку просто уезжала за край
+ * листа и обрезалась, а обрезается там как раз оговорка, ради которой сноска
+ * и написана.
+ */
+const NOTE_FS = 11.5
+const NOTE_LH = 16
+
+function noteLines(note: string, w: number): string[] {
+  const max = Math.max(Math.floor((w - 36) / (NOTE_FS * 0.53)), 20)
+  const lines: string[] = []
+  let line = ''
+  for (const word of note.split(' ')) {
+    if (line && (line + ' ' + word).length > max) { lines.push(line); line = word }
+    else line = line ? `${line} ${word}` : word
+  }
+  if (line) lines.push(line)
+  return lines
 }
 
-const noteH = (note?: string) => (note ? 26 : 8)
+const noteH = (note?: string, w = W) => (note ? 10 + noteLines(note, w).length * NOTE_LH : 8)
+
+/**
+ * Сноска, прижатая к нижнему краю листа.
+ *
+ * Позицию считаем от высоты листа, а не от конца содержимого: сноска в две
+ * строки, поставленная по фиксированному отступу, вылезала за нижний край и
+ * обрезалась вместе со второй строкой.
+ */
+function noteAt(w: number, h: number, note?: string): string {
+  if (!note) return ''
+  const first = h - noteH(note, w) + 18
+  return noteLines(note, w)
+    .map((line, i) => `<text x="${w / 2}" y="${first + i * NOTE_LH}" text-anchor="middle" font-size="${NOTE_FS}" fill="${MUTED}">${esc(line)}</text>`)
+    .join('')
+}
 
 // ─── Таблица письма ──────────────────────────────────────────────────────────
 
@@ -64,7 +95,7 @@ export function charGrid(
   const x0 = (w - gridW) / 2 + headW
   const y0 = 46 + headH
   const gridH = rows.length * cellH + (rows.length - 1) * gap
-  const h = y0 + gridH + noteH(opts.note)
+  const h = y0 + gridH + noteH(opts.note, w)
 
   const parts: string[] = []
 
@@ -86,12 +117,14 @@ export function charGrid(
       parts.push(
         `<rect x="${x}" y="${y}" width="${cellW}" height="${cellH}" rx="10" fill="${fill}" stroke="${cell.dim ? GRID : INK}" stroke-width="${cell.dim ? 1 : 1.3}"/>` +
         `<text x="${x + cellW / 2}" y="${y + (cell.read ? 32 : 38)}" text-anchor="middle" font-size="${cell.sym.length > 2 ? 18 : 24}" font-weight="600" fill="${ink}">${esc(cell.sym)}</text>` +
-        (cell.read ? `<text x="${x + cellW / 2}" y="${y + 50}" text-anchor="middle" font-size="11.5" fill="${MUTED}">${esc(cell.read)}</text>` : ''),
+        // Чтение длиннее пары знаков ужимаем: иначе подпись вылезает за клетку
+        // и наезжает на соседнюю.
+        (cell.read ? `<text x="${x + cellW / 2}" y="${y + 50}" text-anchor="middle" font-size="${cell.read.length > 7 ? 8.5 : 11.5}" fill="${MUTED}">${esc(cell.read)}</text>` : ''),
       )
     })
   })
 
-  parts.push(noteLine(w, y0 + gridH + 18, opts.note))
+  parts.push(noteAt(w, h, opts.note))
   return toDataUri(sheet(w, h, title, parts.join('')))
 }
 
@@ -125,7 +158,7 @@ export function formTable(
   const headH = 32, rowH = 34
   const y0 = 46
   const tableH = headH + rows.length * rowH
-  const h = y0 + tableH + noteH(opts.note)
+  const h = y0 + tableH + noteH(opts.note, w)
 
   const parts: string[] = []
   const colX = (c: number) => x0 + cw.slice(0, c).reduce((a, b) => a + b, 0)
@@ -151,7 +184,7 @@ export function formTable(
     })
   })
   parts.push(`<rect x="${x0}" y="${y0}" width="${cw.reduce((a, b) => a + b, 0)}" height="${tableH}" rx="8" fill="none" stroke="${INK}" stroke-width="1.3"/>`)
-  parts.push(noteLine(w, y0 + tableH + 18, opts.note))
+  parts.push(noteAt(w, h, opts.note))
   return toDataUri(sheet(w, h, title, parts.join('')))
 }
 
@@ -187,7 +220,7 @@ export function formulaStrip(
   const x0 = (w - (bw.reduce((a, b) => a + b, 0) + gap * (chunks.length - 1))) / 2
   const y0 = 54, boxH = 46
   const exampleY = y0 + boxH + 44
-  const h = exampleY + (opts.example ? 12 : -14) + noteH(opts.note) + 10
+  const h = exampleY + (opts.example ? 12 : -14) + noteH(opts.note, w) + 10
 
   const parts: string[] = []
   let x = x0
@@ -207,7 +240,7 @@ export function formulaStrip(
   if (opts.example) {
     parts.push(`<text x="${w / 2}" y="${exampleY}" text-anchor="middle" font-size="13.5" font-weight="600" fill="${INK}">${esc(opts.example)}</text>`)
   }
-  parts.push(noteLine(w, h - 10, opts.note))
+  parts.push(noteAt(w, h, opts.note))
   return toDataUri(sheet(w, h, title, parts.join('')))
 }
 
@@ -256,7 +289,7 @@ export function contrastPair(
     col(right, 30 + colW + 30, false) +
     `<circle cx="${w / 2}" cy="${y0 + boxH / 2}" r="15" fill="${PAPER}" stroke="${INK}" stroke-width="1.3"/>` +
     `<text x="${w / 2}" y="${y0 + boxH / 2 + 4}" text-anchor="middle" font-size="11" font-weight="700" fill="${INK}">vs</text>` +
-    noteLine(w, y0 + boxH + 20, opts.note)
+    noteAt(w, h, opts.note)
 
   return toDataUri(sheet(w, h, title, body))
 }
@@ -299,7 +332,7 @@ export function timelineFigure(
       (p.sub ? `<text x="${x}" y="${y + 28}" text-anchor="middle" font-size="12" fill="${MUTED}">${esc(p.sub)}</text>` : ''),
     )
   })
-  parts.push(noteLine(w, h - 12, opts.note))
+  parts.push(noteAt(w, h, opts.note))
   return toDataUri(sheet(w, h, title, parts.join('')))
 }
 
@@ -344,7 +377,7 @@ export function ladderFigure(
       (step.sub ? `<text x="${x + 16}" y="${y + 37}" font-size="11.5" fill="${MUTED}">${esc(step.sub)}</text>` : ''),
     )
   })
-  parts.push(noteLine(w, h - 10, opts.note))
+  parts.push(noteAt(w, h, opts.note))
   return toDataUri(sheet(w, h, title, parts.join('')))
 }
 
@@ -414,7 +447,7 @@ export function clockRow(title: string, items: ClockItem[], opts: { note?: strin
   const r = 42
   const w = Math.max(items.length * (r * 2 + 46) + 20, 320)
   const y = 96
-  const h = y + r + 58 + noteH(opts.note)
+  const h = y + r + 58 + noteH(opts.note, w)
   const step = w / items.length
 
   const hand = (cx: number, cy: number, angleDeg: number, len: number, width: number) => {
@@ -437,6 +470,6 @@ export function clockRow(title: string, items: ClockItem[], opts: { note?: strin
       `<text x="${cx}" y="${y + r + 26}" text-anchor="middle" font-size="13" font-weight="700" fill="${ACCENT}">${esc(item.label)}</text>`,
     ]
   })
-  parts.push(noteLine(w, h - 12, opts.note))
+  parts.push(noteAt(w, h, opts.note))
   return toDataUri(sheet(w, h, title, parts.join('')))
 }

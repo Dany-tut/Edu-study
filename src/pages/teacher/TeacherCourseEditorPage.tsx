@@ -24,6 +24,7 @@ import ScrollFade from '../../components/ScrollFade'
 import { useOverlayScroll, ScrollOverlays, OverlayScrollArea, fadeMask } from '../../components/teacher/OverlayScroll'
 import { getOwnerId } from '../../lib/owner'
 import TableEditor from '../../components/teacher/TableEditor'
+import Radio from '../../components/Radio'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { taskTypesFor, makeTask, TASK_TYPES as TASK_TYPES_BY_ID, type TaskTypeId, type TaskPayload } from '../../data/taskTypes'
 import { supabase } from '../../lib/supabase'
@@ -1824,11 +1825,15 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                           placeholder={side === 'A' ? t('Вариант A') : t('Вариант B')}
                           style={inputSt}
                         />
-                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-2)', cursor: 'pointer' }}>
-                          <input type="radio" name={`mp-${task.id}`} checked={(task.correctPair ?? 'A') === side}
-                            onChange={() => onUpdate({ ...task, correctPair: side })} />
+                        <Radio
+                          name={`mp-${task.id}`}
+                          checked={(task.correctPair ?? 'A') === side}
+                          onChange={() => onUpdate({ ...task, correctPair: side })}
+                          size={16}
+                          labelStyle={{ gap: 6, fontSize: 12, color: 'var(--color-text-2)' }}
+                        >
                           {t('верный')}
-                        </label>
+                        </Radio>
                       </div>
                     ))}
                   </div>
@@ -3403,22 +3408,25 @@ const LESSON_MODES: { id: LessonMode; label: string }[] = [
 
 // ─── Left rail geometry ───────────────────────────────────────────────────────
 // Обёртки рельса режут по overflow (нужно для анимации ширины и скролла), а
-// карточки внутри — с тенью. Поэтому коробка обёртки шире карточки на BLEED с
-// боков и снизу, а отрицательные margin возвращают колонку ровно на место:
+// карточки внутри — с тенью. Поэтому коробка обёртки шире карточки на BLEED со
+// ВСЕХ четырёх сторон, а отрицательные margin возвращают колонку ровно на место:
 // тень рисуется в этот запас, карточка не выглядит обрезанной по краям.
 const RAIL_W = 248
 const RAIL_BLEED = 24
+// Сверху запас меньше: тень уходит вверх всего на ~8px (blur 28 / 2 − сдвиг 6),
+// а широкая полоса легла бы поверх кнопок шапки и перехватывала их клики.
+const RAIL_BLEED_TOP = 12
 const RAIL_BOX = RAIL_W + RAIL_BLEED * 2
 // Свёрнутое состояние = 2×BLEED, а не 0: с учётом отрицательных полей вклад в
 // поток тогда ровно 0, иначе на выходе анимации колонка «уезжала» бы влево.
 const RAIL_COLLAPSED = RAIL_BLEED * 2
 const railWrapSt: React.CSSProperties = {
   flexShrink: 0, alignSelf: 'stretch', minHeight: 0, overflow: 'hidden',
-  margin: `0 -${RAIL_BLEED}px -${RAIL_BLEED}px`,
+  margin: `-${RAIL_BLEED_TOP}px -${RAIL_BLEED}px -${RAIL_BLEED}px`,
 }
 const railInnerSt: React.CSSProperties = {
   width: RAIL_BOX, height: '100%', minHeight: 0,
-  padding: `0 ${RAIL_BLEED}px ${RAIL_BLEED}px`,
+  padding: `${RAIL_BLEED_TOP}px ${RAIL_BLEED}px ${RAIL_BLEED}px`,
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────

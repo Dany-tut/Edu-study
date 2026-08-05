@@ -20,6 +20,7 @@ import {
 import * as LucideIcons from 'lucide-react'
 import RichConditionEditor, { parseSmartPaste } from '../../components/teacher/RichConditionEditor'
 import TableEditor from '../../components/teacher/TableEditor'
+import Radio from '../../components/Radio'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { bankSubjectOptions, subjectIcon } from '../../lib/subjects'
 import { levelOptions, matchesLevel } from '../../lib/courseLevels'
@@ -1985,10 +1986,11 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
                       }}
                     />
                     {q.options.map(o => (
-                      <label key={o.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <input type="radio" name={`correct-${q.id}`} checked={q.correctOptionId === o.id} onChange={() => setQ(qi, { correctOptionId: o.id })} title={t("Верный ответ")} />
+                      <div key={o.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Radio name={`correct-${q.id}`} checked={q.correctOptionId === o.id}
+                          onChange={() => setQ(qi, { correctOptionId: o.id })} title={t("Верный ответ")} />
                         <input value={o.text} onChange={e => setOpt(qi, o.id, e.target.value)} placeholder={t("Вариант ответа")} style={{ ...inputSt, flex: 1 }} />
-                      </label>
+                      </div>
                     ))}
                     <input value={q.explanation} onChange={e => setQ(qi, { explanation: e.target.value })} placeholder={t("Пояснение (после ответа)")} style={{ ...inputSt, fontSize: 12 }} />
                   </div>
