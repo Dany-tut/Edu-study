@@ -2,6 +2,8 @@
 // tint UI by subject (Schedule, Memes, ScienceFacts, lesson chrome, etc.)
 // import from here instead of hardcoding hex literals.
 
+import { resolveSubjectPalette } from './subjects'
+
 export interface SubjectPalette {
   /** Text color on a neutral/white surface. AA contrast vs white. */
   text: string
@@ -15,52 +17,11 @@ export interface SubjectPalette {
   ring: string
 }
 
-const BIOLOGY: SubjectPalette = {
-  text: '#0E8F5F',
-  soft: '#DFF7EC',
-  accent: '#1DB97D',
-  onAccent: '#FFFFFF',
-  ring: 'rgba(29,185,125,0.16)',
-}
-
-const BIOLOGY_DARK: SubjectPalette = {
-  text: '#4ECFA0',
-  soft: '#0D2B1E',
-  accent: '#2ABD8A',
-  onAccent: '#FFFFFF',
-  ring: 'rgba(42,189,138,0.25)',
-}
-
-// Literal hex (not CSS vars): these values get hex-alpha suffixes appended at
-// call sites — e.g. `${palette.accent}cc` — which is invalid against a var().
-const CHEMISTRY: SubjectPalette = {
-  text: '#3D33A0',
-  soft: '#E7E4FB',
-  accent: '#6354CF',
-  onAccent: '#FFFFFF',
-  ring: 'rgba(99,84,207,0.16)',
-}
-
-const CHEMISTRY_DARK: SubjectPalette = {
-  text: '#C08AFF',
-  soft: '#201336',
-  accent: '#9B6FE8',
-  onAccent: '#FFFFFF',
-  ring: 'rgba(155,111,232,0.25)',
-}
-
-// Accept either the Russian display name or the English id used in mock data.
+// Subject palettes (incl. the literal hex for chemistry/biology) now live in the
+// subject registry so every subject — not just two — has one. Accepts either the
+// Russian display name or the English id; unknown subjects fall back to chemistry.
 export function subjectTheme(subject: string | undefined, dark = false): SubjectPalette {
-  switch (subject) {
-    case 'Биология':
-    case 'biology':
-      return dark ? BIOLOGY_DARK : BIOLOGY
-    case 'Химия':
-    case 'chemistry':
-      return dark ? CHEMISTRY_DARK : CHEMISTRY
-    default:
-      return dark ? CHEMISTRY_DARK : CHEMISTRY
-  }
+  return resolveSubjectPalette(subject, dark)
 }
 
 // Brand purple — reserved for "now / today / current focus" UI (today pill,

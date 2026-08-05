@@ -10,6 +10,7 @@ import {
   Search, Plus,
 } from 'lucide-react'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
+import { SUBJECT_ICON_MAP } from '../../lib/subjects'
 import NewStudentConfig from '../../components/teacher/NewStudentConfig'
 import GroupStrip, { type TabConfig } from '../../components/teacher/GroupStrip'
 import {
@@ -66,10 +67,7 @@ function AddGroupModal({ onClose, onSave }: {
   // When a course is chosen, the lesson count is derived from it (read-only).
   const effectiveTotal = selectedCourse ? selectedCourse.lessonCount : totalLessons
 
-  const subjectIcons: Record<string, string> = {
-    'Химия': '🧪', 'Биология': '🧬', 'Физика': '⚡', 'Математика': '📐',
-    'Русский': '📝', 'Литература': '📖', 'История': '🏛️', 'Английский': '🇬🇧',
-  }
+  const subjectIcons = SUBJECT_ICON_MAP
 
   async function handleSave() {
     if (!name.trim()) return
@@ -483,10 +481,7 @@ const selectTriggerStyle: React.CSSProperties = {
   border: '1.5px solid var(--color-border-medium)', fontSize: 14,
   background: 'var(--color-bg-4)',
 }
-const SUBJECT_ICONS: Record<string, string> = {
-  'Химия': '🧪', 'Биология': '🧬', 'Физика': '⚡', 'Математика': '📐',
-  'Русский': '📝', 'Литература': '📖', 'История': '🏛️', 'Английский': '🇬🇧',
-}
+const SUBJECT_ICONS = SUBJECT_ICON_MAP
 
 const LEVEL_OPTIONS = ['ЕГЭ', 'ОГЭ', 'Олимпиада', 'Школа', 'Интенсив']
 

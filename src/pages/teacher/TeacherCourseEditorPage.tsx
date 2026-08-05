@@ -15,6 +15,7 @@ import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useT, t } from '../../lib/i18n'
 import type { Task as BankTask } from '../../data/taskBankData'
+import { courseSubjectOptions } from '../../lib/subjects'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
 import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
@@ -346,17 +347,8 @@ function LeftCourseMeta({
 
 // ─── CENTER: Course access — who gets the course (no lesson selected) ─────────
 
-// Subjects a course can belong to (icons mirror SUBJECT_ICONS in TeacherGroupsPage).
-const COURSE_SUBJECTS = [
-  { value: 'Химия', label: '🧪 Химия' },
-  { value: 'Биология', label: '🧬 Биология' },
-  { value: 'Физика', label: '⚡ Физика' },
-  { value: 'Математика', label: '📐 Математика' },
-  { value: 'Русский', label: '📝 Русский' },
-  { value: 'Литература', label: '📖 Литература' },
-  { value: 'История', label: '🏛️ История' },
-  { value: 'Английский', label: '🇬🇧 Английский' },
-]
+// Subjects a course can belong to — sourced from the subject registry.
+const COURSE_SUBJECTS = courseSubjectOptions()
 
 type AccessMode = 'full' | 'custom' | 'by_date'
 const ACCESS_MODE_OPTIONS: Array<{ value: AccessMode; label: string }> = [

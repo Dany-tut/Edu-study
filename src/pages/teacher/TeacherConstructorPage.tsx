@@ -21,6 +21,7 @@ import * as LucideIcons from 'lucide-react'
 import RichConditionEditor, { parseSmartPaste } from '../../components/teacher/RichConditionEditor'
 import TableEditor from '../../components/teacher/TableEditor'
 import { typeVisual } from '../../data/taskTypeVisuals'
+import { bankSubjectOptions } from '../../lib/subjects'
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagQuestions,
   loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult,
@@ -134,7 +135,7 @@ function GoogleFormBankCategoryModal({
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <TeacherSelect value={subject} onChange={v => { setSubject(v as Subject); setSection(''); setTopic('') }} placeholder={t("Предмет")}
-            options={[{ value: 'chemistry', label: t('Химия') }, { value: 'biology', label: t('Биология') }]} />
+            options={bankSubjectOptions(false).map(o => ({ value: o.value, label: t(o.label) }))} />
           <TeacherSelect value={section} onChange={v => { setSection(v); setTopic('') }} placeholder={t("Раздел")}
             options={sections.map(s => ({ value: s, label: s }))} />
           <TeacherSelect value={topic} onChange={setTopic} placeholder={t("Тема")}
