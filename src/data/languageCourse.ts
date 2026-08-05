@@ -92,6 +92,18 @@ export interface LangUnit {
    * отдельным блоком в конце урока.
    */
   figures?: UnitFigure[]
+  /**
+   * Ссылка на видео к уроку — обычно YouTube.
+   *
+   * Встраивание чужого ролика по ссылке законно (это делает сам YouTube своим
+   * плеером), в отличие от скачивания и перезалива. Поэтому в сиде лежит именно
+   * ссылка, а не файл: мы ничего не копируем и не размещаем у себя.
+   *
+   * Берутся ролики каналов, которые сами разрешают встраивание и держат
+   * стабильный уровень: для языка это объяснения носителей, для карьерных тем —
+   * доклады и разборы.
+   */
+  videoUrl?: string
   /** Словарь юнита. */
   vocab: VocabItem[]
   /** Задания домашней работы. */
@@ -403,6 +415,7 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
       `Артефакт: ${unit.artifact}`,
     ].join('\n'),
     ...theoryOf(unit),
+    videoUrl: unit.videoUrl,
     hwTitle: `Юнит ${unit.n}. ${unit.title}`,
     hwTarget: unit.artifact,
     hwTasks: [
