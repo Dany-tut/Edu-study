@@ -3154,12 +3154,17 @@ function RightPanelLessons({
                         if (e.key === 'Enter') { renameModule(mod.id, editingModuleLabel); setEditingModuleId(null) }
                         else if (e.key === 'Escape') setEditingModuleId(null)
                       }}
+                      // Рамка по периметру в узкой строке упиралась в шеврон слева
+                      // и в счётчик уроков справа. Вместо коробки — подчёркивание:
+                      // ширина ровно по тексту, по бокам ничего не прибавляется,
+                      // и текст при входе в правку не сдвигается ни на пиксель.
                       style={{
-                        position: 'absolute', left: -6, right: -6, top: -3, bottom: -3,
+                        position: 'absolute', left: 0, right: 0, top: 0, bottom: -3,
                         boxSizing: 'border-box', width: 'auto',
                         fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
-                        color: 'var(--color-text)', background: 'var(--color-bg)',
-                        border: '1.5px solid var(--color-green-text)', borderRadius: 6, padding: '0 6px', outline: 'none',
+                        color: 'var(--color-text)', background: 'transparent',
+                        border: 'none', borderBottom: '1.5px solid var(--color-green-text)',
+                        borderRadius: 0, padding: 0, outline: 'none',
                       }}
                     />
                   )}

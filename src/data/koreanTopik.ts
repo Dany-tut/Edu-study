@@ -46,6 +46,7 @@ import {
   dictation, dictationBank, minPair, describeImage, reading,
 } from './languageCourse'
 import { roomSceneImage } from './seedImages'
+import { KOREAN_THEORY } from './koreanTopikTheory'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -1338,7 +1339,9 @@ export const KOREAN_TOPIK: LanguageCourseSpec = {
   guidedHours: '250–300',
   scopeNote: 'Охват — A1→A2 (TOPIK I, уровни 1급–2급). Продолжение до B1–B2 (TOPIK II) — следующий курс.',
   modules: KOREAN_MODULES,
-  units: KOREAN_UNITS,
+  // Конспекты живут отдельным файлом: здесь — последовательность и задания,
+  // там — то, что ученик читает. Так оба файла остаются обозримыми.
+  units: KOREAN_UNITS.map(u => ({ ...u, theory: KOREAN_THEORY[u.shortId] ?? u.theory })),
 }
 
 export const COURSE_SUMMARY = courseSummary(KOREAN_TOPIK)

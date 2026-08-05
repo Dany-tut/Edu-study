@@ -14,6 +14,10 @@ const ACCENT = '#786AD7'
 const ACCENT_2 = '#6F3FBF'
 const ACCENT_L = '#A99BF0'
 const OK = '#4FBF9A'
+// Тот же зелёный, но под белым текстом: на #4FBF9A белый даёт контраст 2.3:1 и
+// «Отправлено»/«Принято» читаются с трудом. Тёмный вариант вытягивает до 4.6:1.
+// Светлый OK остаётся для зелёного ТЕКСТА на тёмном фоне — там всё наоборот.
+const OK_SOLID = '#1E8464'
 const WARN = '#E8A54F'
 
 // ── Мок-кабинет в окне Safari ────────────────────────────────────────────────
@@ -564,7 +568,7 @@ function MockSchedule({ query }: { query: string }) {
                 <button onClick={() => hold(s.id)} style={{
                   display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', borderRadius: 9, cursor: 'pointer',
                   fontSize: 11.5, fontWeight: 700, border: '1px solid transparent', color: '#fff',
-                  background: on ? OK : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`, transition: 'background .2s',
+                  background: on ? OK_SOLID : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`, transition: 'background .2s',
                 }}>
                   {on ? <><Check size={12} /> Проведено</> : <><Play size={11} /> Провести</>}
                 </button>
@@ -696,7 +700,7 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
           }} style={{
             display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 9,
             fontSize: 11.5, fontWeight: 700, cursor: 'pointer', color: '#fff', border: 'none',
-            background: accepted.includes(cur.n) ? OK : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`,
+            background: accepted.includes(cur.n) ? OK_SOLID : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`,
           }}>
             <Check size={12} /> {accepted.includes(cur.n) ? 'Принято' : 'Принять'}
           </button>
@@ -1012,14 +1016,14 @@ function MockStudent() {
                     width: 30, height: 30, borderRadius: 999, flexShrink: 0, cursor: 'pointer', display: 'grid', placeItems: 'center',
                     fontSize: 11, fontWeight: 700, transition: 'transform .15s, box-shadow .15s',
                     color: state === 'lock' ? 'var(--color-text-3)' : '#fff',
-                    background: state === 'done' ? OK : state === 'now' ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` : 'var(--color-surface)',
+                    background: state === 'done' ? OK_SOLID : state === 'now' ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` : 'var(--color-surface)',
                     border: `1px solid ${state === 'lock' ? 'var(--color-border)' : 'transparent'}`,
                     boxShadow: on ? `0 0 0 3px color-mix(in srgb, ${ACCENT} 30%, transparent)` : 'none',
                   }}>
                     {state === 'done' ? <Check size={14} /> : state === 'now' ? <Play size={12} /> : <Lock size={11} />}
                   </button>
                   {i < LESSONS.length - 1 && (
-                    <div style={{ flex: 1, height: 3, borderRadius: 999, background: i < done ? OK : 'color-mix(in srgb, var(--color-text-3) 16%, transparent)', transition: 'background .3s' }} />
+                    <div style={{ flex: 1, height: 3, borderRadius: 999, background: i < done ? OK_SOLID : 'color-mix(in srgb, var(--color-text-3) 16%, transparent)', transition: 'background .3s' }} />
                   )}
                 </div>
               )
@@ -1035,7 +1039,7 @@ function MockStudent() {
             <button onClick={submit} disabled={sent} style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 10, border: 'none',
               fontSize: 12.5, fontWeight: 700, color: '#fff', cursor: sent ? 'default' : 'pointer',
-              background: sent ? OK : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`,
+              background: sent ? OK_SOLID : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`,
               transition: 'background .2s',
             }}>
               {sent ? <><Check size={14} /> Отправлено</> : 'Сдать домашку'}
@@ -1044,11 +1048,9 @@ function MockStudent() {
               Открыть конспект
             </button>
           </div>
-          {sent && (
-            <div className="lp-mock-panel" style={{ marginTop: 10, padding: '8px 10px', borderRadius: 10, fontSize: 11.5, color: OK, background: `color-mix(in srgb, ${OK} 12%, transparent)`, border: `1px solid color-mix(in srgb, ${OK} 30%, transparent)` }}>
-              Работа ушла преподавателю — он увидит её в очереди проверки.
-            </div>
-          )}
+          {/* Плашки «работа ушла преподавателю» здесь нет намеренно: она
+              появлялась по клику и роняла левую колонку в скролл, а сам факт
+              отправки уже сказан кнопкой «Отправлено». */}
         </div>
 
         {/* полка стикеров живёт в левой колонке: так обе колонки примерно равны

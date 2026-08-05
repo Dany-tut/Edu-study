@@ -61,6 +61,16 @@ export function stickerSettings(score: number | null | undefined): StickerSettin
   return { ...base, finish: 'matte', overlay: 'none', holoIntensity: 0.04, bands: 4, ink: 1, grain: 0.04, pattern: 'linear' }
 }
 
+/**
+ * Что нарисовано в середине печати. Балл — не единственный вариант: коллекция
+ * из одних цифр выглядит как шесть копий одного стикера, потому что редкостей
+ * всего пять, а работ — десятки. Эмблема даёт различие при той же редкости.
+ */
+export type StickerEmblem = 'score' | 'rocket' | 'trophy' | 'laurel' | 'star' | 'bolt'
+
+/** Порядок важен: по хешу подписи берётся индекс, менять — значит перетасовать уже выданные стикеры. */
+const EMBLEMS: StickerEmblem[] = ['score', 'rocket', 'trophy', 'laurel', 'star', 'bolt']
+
 export interface StickerArtSpec {
   score: number
   /** Верхняя подпись, напр. «Задание 13» */
@@ -69,15 +79,32 @@ export interface StickerArtSpec {
   sublabel?: string
   /** Пиксельный размер квадратного артворка */
   px?: number
+  /** Принудительная эмблема; по умолчанию выводится из подписей. */
+  emblem?: StickerEmblem
+}
+
+/**
+ * Стабильный отпечаток стикера. Одна и та же работа всегда даёт одну и ту же
+ * эмблему и форму высечки — иначе стикер «менялся» бы при каждой перерисовке,
+ * а коллекционная вещь обязана быть постоянной.
+ */
+function fingerprint(spec: StickerArtSpec): number {
+  const key = `${spec.label ?? ''}|${spec.sublabel ?? ''}`
+  let h = 2166136261
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return Math.abs(h)
 }
 
 /** Фестончатый контур («печать») — он же линия высечки стикера. */
-function scallopPath(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, lobes: number, depth: number) {
+function scallopPath(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, lobes: number, depth: number, phase = 0) {
   ctx.beginPath()
   const steps = lobes * 24
   for (let i = 0; i <= steps; i++) {
     const a = (i / steps) * Math.PI * 2 - Math.PI / 2
-    const rr = r * (1 - depth + depth * Math.cos(a * lobes) * 0.5 + depth * 0.5)
+    const rr = r * (1 - depth + depth * Math.cos(a * lobes + phase) * 0.5 + depth * 0.5)
     const x = cx + Math.cos(a) * rr
     const y = cy + Math.sin(a) * rr
     if (i === 0) ctx.moveTo(x, y)
@@ -99,9 +126,15 @@ export function drawStickerArt(spec: StickerArtSpec): HTMLCanvasElement {
   const c = px / 2
   const R = px * 0.46
 
+  // Отпечаток: он же выбирает эмблему и слегка меняет высечку, чтобы две
+  // работы с одинаковым баллом не выглядели одним и тем же стикером.
+  const fp = fingerprint(spec)
+  const emblem = spec.emblem ?? EMBLEMS[fp % EMBLEMS.length]
+  const lobes = [12, 14, 16][(fp >> 3) % 3]
+
   // Корпус печати держим светлым: рендер подмешивает под краску серебряную
   // фольгу (ink < 1), и радужные полосы читаются только на светлом.
-  scallopPath(ctx, c, c, R, 14, 0.075)
+  scallopPath(ctx, c, c, R, lobes, 0.075, ((fp >> 5) % 6) * 0.26)
   const body = ctx.createLinearGradient(0, c - R, 0, c + R)
   body.addColorStop(0, '#FFFFFF')
   body.addColorStop(0.55, tier.inkLight)
@@ -130,12 +163,16 @@ export function drawStickerArt(spec: StickerArtSpec): HTMLCanvasElement {
   ctx.fillStyle = disc
   ctx.fill()
 
-  // балл
+  // лицо стикера: балл цифрой либо эмблема
   ctx.fillStyle = tier.inkDark
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.font = `800 ${px * 0.4}px "Manrope", "Inter", system-ui, sans-serif`
-  ctx.fillText(String(tier.score), c, c - px * 0.02)
+  if (emblem === 'score') {
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.font = `800 ${px * 0.4}px "Manrope", "Inter", system-ui, sans-serif`
+    ctx.fillText(String(tier.score), c, c - px * 0.02)
+  } else {
+    drawEmblem(ctx, emblem, c, c - px * 0.02, R * 0.36, tier)
+  }
 
   // Звёзды по числу баллов — дуга снизу. Пустые места не рисуем вовсе: бледная
   // звезда «которой нет» на мелком стикере читается как полноценная, и балл 4
@@ -152,6 +189,105 @@ export function drawStickerArt(spec: StickerArtSpec): HTMLCanvasElement {
   if (spec.sublabel) arcText(ctx, spec.sublabel.toUpperCase(), c, c, R * 0.95, px * 0.04, `${tier.inkDark}B0`, true)
 
   return canvas
+}
+
+/**
+ * Эмблема в середине печати. Рисуется в квадрате [-1, 1], масштабируется на s,
+ * поэтому одинаково узнаётся и на плитке 46px, и на открытом стикере 240px.
+ * Контуры намеренно крупные и без мелких деталей — на 46px тонкая линия
+ * схлопывается в кашу.
+ */
+function drawEmblem(
+  ctx: CanvasRenderingContext2D,
+  emblem: StickerEmblem,
+  cx: number, cy: number, s: number,
+  tier: StickerTier,
+) {
+  ctx.save()
+  ctx.translate(cx, cy)
+  ctx.scale(s, s)
+  ctx.fillStyle = tier.inkDark
+  ctx.strokeStyle = tier.inkDark
+  ctx.lineJoin = 'round'
+  ctx.lineCap = 'round'
+
+  if (emblem === 'rocket') {
+    // корпус
+    ctx.beginPath()
+    ctx.moveTo(0, -1.05)
+    ctx.bezierCurveTo(0.5, -0.45, 0.42, 0.15, 0.3, 0.5)
+    ctx.lineTo(-0.3, 0.5)
+    ctx.bezierCurveTo(-0.42, 0.15, -0.5, -0.45, 0, -1.05)
+    ctx.closePath()
+    ctx.fill()
+    // крылья
+    ctx.beginPath()
+    ctx.moveTo(-0.3, 0.06); ctx.lineTo(-0.78, 0.62); ctx.lineTo(-0.3, 0.52); ctx.closePath()
+    ctx.moveTo(0.3, 0.06); ctx.lineTo(0.78, 0.62); ctx.lineTo(0.3, 0.52); ctx.closePath()
+    ctx.fill()
+    // иллюминатор — светлым, иначе на мелком размере корпус читается как капля
+    ctx.beginPath()
+    ctx.arc(0, -0.34, 0.2, 0, Math.PI * 2)
+    ctx.fillStyle = tier.inkLight
+    ctx.fill()
+    // выхлоп
+    ctx.beginPath()
+    ctx.moveTo(-0.17, 0.56); ctx.lineTo(0, 1.05); ctx.lineTo(0.17, 0.56); ctx.closePath()
+    ctx.fillStyle = tier.inkDark
+    ctx.fill()
+  } else if (emblem === 'trophy') {
+    // чаша
+    ctx.beginPath()
+    ctx.moveTo(-0.52, -0.78)
+    ctx.lineTo(0.52, -0.78)
+    ctx.lineTo(0.44, -0.12)
+    ctx.bezierCurveTo(0.4, 0.2, -0.4, 0.2, -0.44, -0.12)
+    ctx.closePath()
+    ctx.fill()
+    // ручки
+    ctx.lineWidth = 0.16
+    ctx.beginPath(); ctx.arc(-0.62, -0.44, 0.28, Math.PI * 0.55, Math.PI * 1.5); ctx.stroke()
+    ctx.beginPath(); ctx.arc(0.62, -0.44, 0.28, Math.PI * 1.5, Math.PI * 0.45); ctx.stroke()
+    // ножка и основание
+    ctx.beginPath(); ctx.rect(-0.12, 0.16, 0.24, 0.42); ctx.fill()
+    ctx.beginPath(); ctx.rect(-0.46, 0.58, 0.92, 0.22); ctx.fill()
+  } else if (emblem === 'laurel') {
+    // две ветви, раскрытые кверху; между ними — маленькая звезда
+    ctx.lineWidth = 0.13
+    for (const dir of [-1, 1]) {
+      ctx.beginPath()
+      ctx.moveTo(dir * 0.18, 0.92)
+      ctx.quadraticCurveTo(dir * 0.98, 0.35, dir * 0.66, -0.88)
+      ctx.stroke()
+      for (let i = 0; i < 4; i++) {
+        const t = 0.18 + i * 0.22
+        const lx = dir * (0.28 + t * 0.95 - t * t * 0.5)
+        const ly = 0.86 - t * 1.75
+        ctx.save()
+        ctx.translate(lx, ly)
+        ctx.rotate(dir * (0.9 - t))
+        ctx.beginPath()
+        ctx.ellipse(dir * 0.18, 0, 0.24, 0.115, 0, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.restore()
+      }
+    }
+    drawStar(ctx, 0, -0.36, 0.33, tier.inkDark)
+  } else if (emblem === 'star') {
+    drawStar(ctx, 0, 0, 1.02, tier.inkDark)
+  } else if (emblem === 'bolt') {
+    ctx.beginPath()
+    ctx.moveTo(0.28, -1.02)
+    ctx.lineTo(-0.62, 0.1)
+    ctx.lineTo(-0.1, 0.1)
+    ctx.lineTo(-0.28, 1.02)
+    ctx.lineTo(0.62, -0.12)
+    ctx.lineTo(0.1, -0.12)
+    ctx.closePath()
+    ctx.fill()
+  }
+
+  ctx.restore()
 }
 
 function drawStar(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, fill: string) {
@@ -191,6 +327,11 @@ function arcText(ctx: CanvasRenderingContext2D, text: string, cx: number, cy: nu
     ctx.restore()
   })
   ctx.restore()
+}
+
+// ВРЕМЕННО: отладочный доступ к отрисовке для подбора эмблем. Снять после проверки.
+if (import.meta.env?.DEV && typeof window !== 'undefined') {
+  ;(window as unknown as Record<string, unknown>).__drawStickerArt = drawStickerArt
 }
 
 /** Артворк как ImageBitmap для WebGL-рендера. */
