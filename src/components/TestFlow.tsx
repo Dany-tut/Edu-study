@@ -3,7 +3,9 @@ import { motion } from 'framer-motion'
 import { ChevronLeft, ClipboardCheck, CheckCircle2, ArrowUp, ArrowDown } from 'lucide-react'
 import { type Lesson, type TestTask } from '../data/mockData'
 import { normalizeTaskType } from '../data/taskTypeVisuals'
-import { gradeTask, isAutoGradable, type TaskAnswer } from '../data/taskTypes'
+import { gradeTask, isAutoGradable, sentenceTokens, type TaskAnswer } from '../data/taskTypes'
+import WordBankSolver from './WordBankSolver'
+import AudioPlayer from './AudioPlayer'
 import { upsertLessonProgress } from '../lib/db'
 import { ownerStudentIdFor } from '../store/studentDataStore'
 import { getStudentSession } from '../lib/studentSession'
@@ -267,6 +269,34 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                       placeholder={t('Опиши решение (рисунок на доске приложишь учителю)…')}
                       rows={3}
                       style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }}
+                    />
+                  </div>
+                )}
+
+                {/* wordBank / listenBank — arrange word tiles (auto-graded via gradeTask) */}
+                {(tp === 'wordBank' || tp === 'listenBank') && (
+                  <div style={{ paddingLeft: 36, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {tp === 'listenBank' && (
+                      <AudioPlayer audioUrl={task.audioUrl} ttsText={task.ttsText} ttsVoice={task.ttsVoice} allowSlow={task.allowSlow} lang={task.lang} />
+                    )}
+                    <WordBankSolver
+                      tokens={sentenceTokens(task.sentence ?? '')}
+                      distractors={task.distractors ?? []}
+                      value={(answers[task.id] as string[] | undefined) ?? []}
+                      onChange={words => setAnswer(task.id, words)}
+                    />
+                  </div>
+                )}
+
+                {/* listenType — audio dictation: hear → type (auto-graded) */}
+                {tp === 'listenType' && (
+                  <div style={{ paddingLeft: 36, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <AudioPlayer audioUrl={task.audioUrl} ttsText={task.ttsText} ttsVoice={task.ttsVoice} allowSlow={task.allowSlow} lang={task.lang} />
+                    <input
+                      value={(answers[task.id] as string) ?? ''}
+                      onChange={e => setAnswer(task.id, e.target.value)}
+                      placeholder={t('Напечатай, что услышал…')}
+                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
                     />
                   </div>
                 )}

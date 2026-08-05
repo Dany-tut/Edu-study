@@ -35,10 +35,11 @@ import TableEditor from '../../components/teacher/TableEditor'
 import { useOverlayScroll, ScrollOverlays } from '../../components/teacher/OverlayScroll'
 import GoogleFormImportModal from '../../components/teacher/GoogleFormImportModal'
 import type { ImportedQuestion } from '../../lib/googleFormsImport'
+import { taskTypesFor, makeTask as makeRegistryTask, type TaskTypeId } from '../../data/taskTypes'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-type HWTaskType = 'single' | 'multi' | 'fill' | 'extended' | 'matching' | 'sequence' | 'tableFill' | 'whiteboard'
+type HWTaskType = TaskTypeId
 
 type HWTask = {
   id: string
@@ -59,15 +60,15 @@ type HWTask = {
 }
 
 function makeTask(type: HWTaskType): HWTask {
+  // Дефолты по типу берутся из единого реестра (src/data/taskTypes.ts);
+  // здесь добавляются только поля, специфичные для этой страницы.
+  const { id: _id, label: _label, isHard: _isHard, ...defaults } = makeRegistryTask(type)
   return {
     id: Math.random().toString(36).slice(2),
     source: 'custom', modified: false,
-    type, question: '', answer: '',
-    choices: (type === 'single' || type === 'multi') ? ['', '', '', ''] : undefined,
-    correctChoices: type === 'single' ? [0] : type === 'multi' ? [0] : undefined,
-    pairs: type === 'matching' ? [{ left: '', right: '' }, { left: '', right: '' }] : undefined,
-    sequenceItems: type === 'sequence' ? ['', ''] : undefined,
-    table: type === 'tableFill' ? { headers: ['Заголовок 1', 'Заголовок 2'], rows: [['', ''], ['', '']] } : undefined,
+    question: '', answer: '',
+    ...defaults,
+    type,
   }
 }
 
@@ -159,16 +160,13 @@ function FilterSelect({ label, options, value, onChange }: {
 
 // ─── Task type config ──────────────────────────────────────────────────────────
 
-const TASK_TYPES: { type: HWTaskType; label: string; hint: string; icon: React.ElementType; color: string; bg: string }[] = [
-  { type: 'single',     label: 'Один ответ',          hint: 'Один верный вариант',  icon: CheckSquare, color: 'var(--color-green-text)',       bg: 'var(--color-green-soft)' },
-  { type: 'multi',      label: 'Несколько верных',    hint: 'Несколько вариантов',   icon: CheckSquare, color: 'var(--color-green-text)',       bg: 'var(--color-green-soft)' },
-  { type: 'fill',       label: 'Вписать ответ',       hint: 'Слово / фраза',         icon: Type,        color: 'var(--color-peach-text)',       bg: 'var(--color-peach-soft)' },
-  { type: 'extended',   label: 'Развёрнутый ответ',   hint: 'Текст, рассуждение',    icon: AlignLeft,   color: 'var(--color-accent)',           bg: 'var(--color-purple-soft)' },
-  { type: 'matching',   label: 'Сопоставление',       hint: 'Таблица А1 Б2 В3',      icon: Shuffle,     color: 'var(--color-rose-text)',        bg: 'var(--color-rose-soft)' },
-  { type: 'sequence',   label: 'Последовательность',  hint: 'Расставить порядок',    icon: ArrowUpDown, color: 'var(--color-yellow-text)',      bg: 'var(--color-yellow-soft)' },
-  { type: 'tableFill',  label: 'Заполнить таблицу',   hint: 'Ячейки с пропусками',   icon: TableIcon,   color: 'var(--color-teal-pill-text)',   bg: 'var(--color-teal-pill-bg)' },
-  { type: 'whiteboard', label: 'Доска',               hint: 'Рисунок на доске',      icon: PenLine,     color: 'var(--color-blue-pill-text)',   bg: 'var(--color-blue-pill-bg)' },
-]
+// Единый реестр (src/data/taskTypes.ts) — подписи, иконки и цвета одни и те же
+// здесь, в редакторе курса и в тренажёре. Раньше цвета были продублированы
+// вручную и успели разойтись с общей палитрой.
+const TASK_TYPES: { type: HWTaskType; label: string; hint: string; icon: React.ElementType; color: string; bg: string }[] =
+  taskTypesFor().map(d => ({
+    type: d.id, label: d.label, hint: d.hint, icon: d.Icon, ...d.visual,
+  }))
 
 function typeConfig(t: HWTaskType) {
   return TASK_TYPES.find(x => x.type === t) ?? TASK_TYPES[0]
@@ -526,16 +524,9 @@ function TaskCard({
 
 // ─── Right panel: task type picker (shown on compose tab) ─────────────────────
 
-const TASK_TYPE_DESCS: Record<HWTaskType, string> = {
-  single:     'Один верный вариант',
-  multi:      'Несколько вариантов',
-  fill:       'Слово / фраза',
-  extended:   'Текст, рассуждение',
-  matching:   'Таблица А1 Б2 В3',
-  sequence:   'Расставить порядок',
-  tableFill:  'Ячейки с пропусками',
-  whiteboard: 'Рисунок на доске',
-}
+const TASK_TYPE_DESCS: Record<HWTaskType, string> = Object.fromEntries(
+  taskTypesFor({ language: true }).map(d => [d.id, d.hint]),
+) as Record<HWTaskType, string>
 
 function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard }: {
   onAdd: (type: HWTaskType) => void; onAddHard: (type: HWTaskType) => void

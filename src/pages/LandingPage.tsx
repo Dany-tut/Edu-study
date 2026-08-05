@@ -40,11 +40,26 @@ export default function LandingPage() {
 
   const openLead = (plan = '') => { setPresetPlan(plan); setLeadOpen(true) }
 
+  const wideTier = PLAN_TIERS.find(p => p.maxStudents == null)
+  const gridTiers = PLAN_TIERS.filter(p => p !== wideTier)
+
+  // высота фиксированной шапки → спейсер + scroll-margin для якорей
+  const headerRef = useRef<HTMLElement>(null)
+  const [headerH, setHeaderH] = useState(64)
+  useEffect(() => {
+    const el = headerRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => setHeaderH(el.offsetHeight))
+    ro.observe(el)
+    setHeaderH(el.offsetHeight)
+    return () => ro.disconnect()
+  }, [])
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-bg)', color: 'var(--color-text)', overflowX: 'hidden' }}>
       {/* ── Top bar ── */}
-      <header style={{
-        position: 'sticky', top: 0, zIndex: 20, display: 'flex', alignItems: 'center',
+      <header ref={headerRef} style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 20, display: 'flex', alignItems: 'center',
         gap: 16, padding: '14px clamp(16px, 5vw, 56px)',
         background: 'color-mix(in srgb, var(--color-bg) 78%, transparent)',
         backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
@@ -65,6 +80,8 @@ export default function LandingPage() {
           <button onClick={() => openLead()} style={primaryBtn}>Оставить заявку</button>
         </div>
       </header>
+      {/* спейсер под фиксированную шапку */}
+      <div aria-hidden style={{ height: headerH }} />
 
       {/* ── Hero ── */}
       <section style={{ position: 'relative', padding: 'clamp(44px, 8vw, 96px) clamp(16px, 5vw, 56px) 0' }}>
@@ -165,18 +182,20 @@ export default function LandingPage() {
       <section id="tariffs" style={{ padding: 'clamp(64px, 9vw, 110px) clamp(16px, 5vw, 56px) 0', maxWidth: 1180, margin: '0 auto' }}>
         <Reveal><h2 style={sectionTitle}>Тарифы</h2></Reveal>
         <Reveal delay={0.05}><p style={sectionSub}>Оплата подключается вручную: оставьте заявку — мы активируем нужный тариф.</p></Reveal>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 16, marginTop: 40, alignItems: 'stretch' }}>
-          {PLAN_TIERS.map((p, i) => {
+        {/* 4 основных тарифа сеткой + «Безлимит» широкой карточкой — иначе
+            пятая карточка висит сиротой в ряду из четырёх */}
+        <div className="lp-tariffs" style={{ marginTop: 46 }}>
+          {gridTiers.map((p, i) => {
             const featured = p.code === 'pro'
+            const limit = p.maxStudents == null ? 'Без лимита учеников' : `До ${p.maxStudents} учеников`
             return (
               <Reveal key={p.code} delay={i * 0.05} style={{ height: '100%' }}>
-                <div style={{
+                <div className="lp-tariff" style={{
                   position: 'relative', display: 'flex', flexDirection: 'column', height: '100%',
                   padding: '26px 22px', borderRadius: 20,
                   background: featured ? `linear-gradient(180deg, color-mix(in srgb, ${ACCENT} 16%, var(--color-surface)), var(--color-surface))` : 'var(--color-surface)',
                   border: `1.5px solid ${featured ? ACCENT : 'var(--color-border)'}`,
                   boxShadow: featured ? `0 20px 46px -22px ${ACCENT}` : 'none',
-                  transform: featured ? 'translateY(-6px)' : 'none',
                 }}>
                   {featured && (
                     <div style={{ position: 'absolute', top: -11, left: 22, padding: '4px 12px', borderRadius: 999, background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`, color: '#fff', fontSize: 11.5, fontWeight: 700, letterSpacing: 0.2 }}>
@@ -184,26 +203,18 @@ export default function LandingPage() {
                     </div>
                   )}
                   <div style={{ fontSize: 17, fontWeight: 700 }}>{p.name}</div>
-                  <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 3, minHeight: 34 }}>{p.tagline}</div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '16px 0 4px' }}>
+                  <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 3 }}>{p.tagline}</div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '18px 0 3px' }}>
                     <span style={{ fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>{planPrice(p, lang)}</span>
                     {p.priceRub > 0 && <span style={{ fontSize: 13, color: 'var(--color-text-3)' }}>/ мес</span>}
                   </div>
-                  <div style={{ fontSize: 13, color: 'var(--color-text-2)', marginBottom: 18 }}>
-                    {p.maxStudents == null ? 'Без лимита учеников' : `До ${p.maxStudents} учеников`}
-                  </div>
+                  <div style={{ fontSize: 13, color: 'var(--color-text-2)' }}>{limit}</div>
+                  <div style={{ height: 1, background: 'var(--color-border)', opacity: 0.7, margin: '18px 0' }} />
                   <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
-                    {p.features.map(f => (
-                      <li key={f} style={{ display: 'flex', gap: 8, fontSize: 13.5, color: 'var(--color-text-2)', lineHeight: 1.4 }}>
-                        <span style={{ flexShrink: 0, marginTop: 1, width: 18, height: 18, borderRadius: 999, display: 'grid', placeItems: 'center', background: `color-mix(in srgb, ${ACCENT} 22%, transparent)` }}>
-                          <Check size={12} style={{ color: ACCENT }} />
-                        </span>
-                        {f}
-                      </li>
-                    ))}
+                    {p.features.filter(f => f !== limit).map(f => <PlanFeature key={f} text={f} />)}
                   </ul>
                   <button onClick={() => openLead(`${p.name} · ${planPrice(p, lang)}`)}
-                    style={{ ...(featured ? primaryBtn : outlineBtn), marginTop: 22, justifyContent: 'center', width: '100%', padding: '12px' }}>
+                    style={{ ...(featured ? primaryBtn : outlineBtn), marginTop: 24, justifyContent: 'center', width: '100%', padding: '12px' }}>
                     {p.priceRub === 0 ? 'Начать бесплатно' : 'Оставить заявку'}
                   </button>
                 </div>
@@ -211,6 +222,36 @@ export default function LandingPage() {
             )
           })}
         </div>
+
+        {wideTier && (
+          <Reveal delay={0.2}>
+            <div className="lp-tariff lp-tariff-wide" style={{
+              marginTop: 16, padding: '26px 26px', borderRadius: 20,
+              border: '1.5px solid var(--color-border)',
+              background: `linear-gradient(120deg, color-mix(in srgb, ${ACCENT} 9%, var(--color-surface)), var(--color-surface) 62%)`,
+              display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap',
+            }}>
+              <div style={{ minWidth: 190 }}>
+                <div style={{ fontSize: 17, fontWeight: 700 }}>{wideTier.name}</div>
+                <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginTop: 3 }}>{wideTier.tagline}</div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 14 }}>
+                  <span style={{ fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>{planPrice(wideTier, lang)}</span>
+                  <span style={{ fontSize: 13, color: 'var(--color-text-3)' }}>/ мес</span>
+                </div>
+              </div>
+              <ul style={{
+                listStyle: 'none', padding: 0, margin: 0, flex: 1, minWidth: 260,
+                display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px 22px',
+              }}>
+                {wideTier.features.map(f => <PlanFeature key={f} text={f} />)}
+              </ul>
+              <button onClick={() => openLead(`${wideTier.name} · ${planPrice(wideTier, lang)}`)}
+                style={{ ...outlineBtn, justifyContent: 'center', padding: '12px 26px', flexShrink: 0 }}>
+                Оставить заявку
+              </button>
+            </div>
+          </Reveal>
+        )}
       </section>
 
       {/* ── CTA band ── */}
@@ -240,8 +281,16 @@ export default function LandingPage() {
 
       <style>{`
         .lp-nav a:hover { color: var(--color-text); }
+        #how, #features, #tariffs { scroll-margin-top: ${headerH + 16}px; }
         .lp-feature:hover { transform: translateY(-3px); border-color: color-mix(in srgb, ${ACCENT} 45%, var(--color-border)); }
         @media (max-width: 760px) { .lp-nav { display: none !important; } }
+
+        .lp-tariffs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: stretch; }
+        @media (max-width: 1020px) { .lp-tariffs { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 560px)  { .lp-tariffs { grid-template-columns: 1fr; } }
+        .lp-tariff { transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+        .lp-tariff:hover { transform: translateY(-4px); border-color: color-mix(in srgb, ${ACCENT} 45%, var(--color-border)); }
+        @media (max-width: 700px) { .lp-tariff-wide { flex-direction: column; align-items: stretch; } .lp-tariff-wide > button { width: 100%; } }
       `}</style>
 
       {/* ── Modals ── */}
@@ -569,6 +618,18 @@ const pill = (ok: boolean): React.CSSProperties => ({
   color: ok ? OK : ACCENT,
   background: ok ? `color-mix(in srgb, ${OK} 16%, transparent)` : `color-mix(in srgb, ${ACCENT} 14%, transparent)`,
 })
+
+// строка возможности тарифа (сетка и широкая карточка «Безлимита»)
+function PlanFeature({ text }: { text: string }) {
+  return (
+    <li style={{ display: 'flex', gap: 8, fontSize: 13.5, color: 'var(--color-text-2)', lineHeight: 1.4 }}>
+      <span style={{ flexShrink: 0, marginTop: 1, width: 18, height: 18, borderRadius: 999, display: 'grid', placeItems: 'center', background: `color-mix(in srgb, ${ACCENT} 22%, transparent)` }}>
+        <Check size={12} style={{ color: ACCENT }} />
+      </span>
+      {text}
+    </li>
+  )
+}
 
 // ── Reveal-on-scroll (scroll-слушатель + rect, без rAF/IO) ───────────────────
 // IntersectionObserver в некоторых окружениях (в т.ч. превью) не досылает колбэки

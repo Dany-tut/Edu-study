@@ -22,6 +22,8 @@ export interface SubjectDef {
   icon: string
   /** True when the subject ships an ЕГЭ task bank + curriculum (biology, chemistry today). */
   hasBank: boolean
+  /** True for language subjects — unlocks the language task-type palette (audio, word-bank, essay…). */
+  isLanguage?: boolean
   light: SubjectPalette
   dark: SubjectPalette
 }
@@ -57,10 +59,10 @@ export const SUBJECTS: SubjectDef[] = [
   { id: 'biology', name: 'Биология', icon: '🧬', hasBank: true, light: BIOLOGY_LIGHT, dark: BIOLOGY_DARK },
   { id: 'physics', name: 'Физика', icon: '⚡', hasBank: false, ...palettePair('#0E9B9B', '#37C2C2', '#0B7A7A', '#5FD6D6') },
   { id: 'math', name: 'Математика', icon: '📐', hasBank: false, ...palettePair('#2B7FFF', '#5C9CFF', '#1E5FD6', '#8FBCFF') },
-  { id: 'russian', name: 'Русский', icon: '📝', hasBank: false, ...palettePair('#E0567F', '#EC7EA0', '#B23A60', '#F0A0BB') },
-  { id: 'literature', name: 'Литература', icon: '📖', hasBank: false, ...palettePair('#A25AD4', '#BE86E6', '#7E3DAE', '#CFA3EE') },
+  { id: 'russian', name: 'Русский', icon: '📝', hasBank: false, isLanguage: true, ...palettePair('#E0567F', '#EC7EA0', '#B23A60', '#F0A0BB') },
+  { id: 'literature', name: 'Литература', icon: '📖', hasBank: false, isLanguage: true, ...palettePair('#A25AD4', '#BE86E6', '#7E3DAE', '#CFA3EE') },
   { id: 'history', name: 'История', icon: '🏛️', hasBank: false, ...palettePair('#C08A3E', '#D6A860', '#93661F', '#E0BE86') },
-  { id: 'english', name: 'Английский', icon: '🇬🇧', hasBank: false, ...palettePair('#E4572E', '#F0805E', '#B23E1C', '#F5A186') },
+  { id: 'english', name: 'Английский', icon: '🇬🇧', hasBank: false, isLanguage: true, ...palettePair('#E4572E', '#F0805E', '#B23E1C', '#F5A186') },
 ]
 
 // Lookup by either the English id or the Russian name, case-insensitive.
@@ -136,4 +138,9 @@ export function bankSubjectOptionsFor(allowed: string[] | null | undefined, with
 /** Bank-subject ids scoped to a teacher's allowed set — replaces default ['biology','chemistry']. */
 export function bankSubjectIdsFor(allowed: string[] | null | undefined): string[] {
   return allowedSubjectDefs(allowed).filter(s => s.hasBank).map(s => s.id)
+}
+
+/** True if the subject (by id or Russian name) is a language subject — gates the language task palette. */
+export function isLanguageSubject(idOrName: string | undefined): boolean {
+  return !!getSubject(idOrName)?.isLanguage
 }

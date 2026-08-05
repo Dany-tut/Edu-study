@@ -15,7 +15,8 @@ import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useT, t } from '../../lib/i18n'
 import type { Task as BankTask } from '../../data/taskBankData'
-import { courseSubjectOptions } from '../../lib/subjects'
+import { courseSubjectOptions, isLanguageSubject } from '../../lib/subjects'
+import AudioStimulusEditor from '../../components/teacher/AudioStimulusEditor'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
 import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
@@ -52,6 +53,21 @@ interface HWTask {
   image?: string
   /** Размер условия-картинки в % (10–100). */
   imageSize?: number
+  /** wordBank / listenBank — эталонное предложение (режется по пробелам на плитки). */
+  sentence?: string
+  /** wordBank / listenBank — лишние плитки-обманки. */
+  distractors?: string[]
+  /** Аудио-стимул: путь в бакете task-media (5A) либо текст для синтеза. */
+  audioUrl?: string
+  ttsText?: string
+  ttsVoice?: string
+  /** Разрешить замедленное воспроизведение (кнопка «черепаха»). */
+  allowSlow?: boolean
+  /** speaking — сколько секунд на подготовку и на ответ. */
+  prepSeconds?: number
+  responseSeconds?: number
+  /** speaking — эталонный текст для чтения вслух (если задание «прочитай», а не свободное). */
+  targetText?: string
   /** id исходного задания в тренажёре (если задание добавлено «из тренажёра»). */
   bankId?: number
 }
@@ -220,9 +236,11 @@ function GlassCard({ children, style }: { children: React.ReactNode; style?: Rea
 
 // Палитра, подписи и дефолты берутся из единого реестра (src/data/taskTypes.ts).
 // Чтобы добавить новый тип задания, правится только реестр — здесь ничего.
-const TASK_TYPES: { type: HWTaskType; label: string; hint: string; Icon: React.ElementType; color: string; bg: string }[] =
-  taskTypesFor().map(d => ({
-    type: d.id, label: d.label, hint: d.hint, Icon: d.Icon, ...d.visual,
+// All types (incl. language) — panels filter to what the current course should
+// show. `languageOnly` gates the language types behind a language subject.
+const TASK_TYPES: { type: HWTaskType; label: string; hint: string; Icon: React.ElementType; color: string; bg: string; languageOnly: boolean }[] =
+  taskTypesFor({ language: true }).map(d => ({
+    type: d.id, label: d.label, hint: d.hint, Icon: d.Icon, ...d.visual, languageOnly: d.languageOnly,
   }))
 
 // Свежее задание с дефолтами по типу — общая фабрика для всех мест добавления.
@@ -1607,6 +1625,61 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                   style={inputSt}
                 />
               )}
+
+              {/* wordBank / listenBank — reference sentence + optional distractor tiles */}
+              {(task.type === 'wordBank' || task.type === 'listenBank') && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <input
+                    value={task.sentence ?? ''}
+                    onChange={e => onUpdate({ ...task, sentence: e.target.value })}
+                    placeholder={t('Эталонное предложение — разобьётся на плитки по словам')}
+                    style={inputSt}
+                  />
+                  <input
+                    value={(task.distractors ?? []).join(', ')}
+                    onChange={e => onUpdate({ ...task, distractors: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                    placeholder={t('Лишние слова-обманки через запятую (необязательно)')}
+                    style={inputSt}
+                  />
+                </div>
+              )}
+
+              {/* listenType — audio stimulus + reference answer (auto-graded) */}
+              {task.type === 'listenType' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <AudioStimulusEditor
+                    value={{ audioUrl: task.audioUrl, ttsText: task.ttsText, allowSlow: task.allowSlow }}
+                    onChange={patch => onUpdate({ ...task, ...patch })}
+                    inputStyle={inputSt}
+                  />
+                  <input
+                    value={task.answer ?? ''}
+                    onChange={e => onUpdate({ ...task, answer: e.target.value })}
+                    placeholder={t('Что ученик должен напечатать (эталон)')}
+                    style={inputSt}
+                  />
+                </div>
+              )}
+
+              {/* speaking — read-aloud target + response window (teacher-reviewed) */}
+              {task.type === 'speaking' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <input
+                    value={task.targetText ?? ''}
+                    onChange={e => onUpdate({ ...task, targetText: e.target.value })}
+                    placeholder={t('Текст для чтения вслух (необязательно — иначе свободный ответ)')}
+                    style={inputSt}
+                  />
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input type="number" min={0} value={task.prepSeconds ?? 20}
+                      onChange={e => onUpdate({ ...task, prepSeconds: Number(e.target.value) })}
+                      placeholder={t('Подготовка, сек')} style={{ ...inputSt, flex: 1 }} />
+                    <input type="number" min={5} value={task.responseSeconds ?? 90}
+                      onChange={e => onUpdate({ ...task, responseSeconds: Number(e.target.value) })}
+                      placeholder={t('Ответ, сек')} style={{ ...inputSt, flex: 1 }} />
+                  </div>
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -1698,16 +1771,19 @@ function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: b
 // ─── LEFT: Homework meta + task-type picker ──────────────────────────────────
 
 function HomeworkLeftPanel({
-  lesson, onUpdate, hwTab, setHwTab,
+  lesson, onUpdate, hwTab, setHwTab, isLanguage = false,
 }: {
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
   hwTab: 'lesson' | 'rec'
   setHwTab: (t: 'lesson' | 'rec') => void
+  isLanguage?: boolean
 }) {
   const t = useT()
   const F = hwFields(hwTab)
   const tasks = (lesson[F.tasks] as HWTask[] | undefined) ?? []
+  // Language types only appear for language courses; other courses keep the base palette.
+  const palette = TASK_TYPES.filter(tt => isLanguage || !tt.languageOnly)
 
   // Аккордеон: открыта ровно одна секция (по умолчанию — обычные типы).
   const [openSection, setOpenSection] = useState<'basic' | 'hard'>('basic')
@@ -1793,7 +1869,7 @@ function HomeworkLeftPanel({
         open={openSection === 'basic'}
         onToggle={() => setOpenSection(s => s === 'basic' ? 'hard' : 'basic')}
       >
-        {TASK_TYPES.map(tt => (
+        {palette.map(tt => (
           <button key={tt.type} onClick={() => addTask(tt.type, false)} title={t(tt.hint)} style={{
             display: 'flex', alignItems: 'center', gap: 10,
             padding: '10px 10px', borderRadius: 13,
@@ -2038,12 +2114,14 @@ function CenterTestView({
 }
 
 // ─── LEFT: Test question-type picker (matches HomeworkLeftPanel as a rail card) ─
-function TestLeftPanel({ lesson, onUpdate }: {
+function TestLeftPanel({ lesson, onUpdate, isLanguage = false }: {
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
+  isLanguage?: boolean
 }) {
   const t = useT()
   const tasks = lesson.testTasks ?? []
+  const palette = TASK_TYPES.filter(tt => isLanguage || !tt.languageOnly)
   const addTask = (type: HWTaskType) => onUpdate({ ...lesson, testTasks: [...tasks, makeHWTask(type, false)] })
   const addFromBank = (bt: BankTask) => onUpdate({ ...lesson, testTasks: [...tasks, hwTaskFromBank(bt, false)] })
   return (
@@ -2054,7 +2132,7 @@ function TestLeftPanel({ lesson, onUpdate }: {
       scrollStyle={{ gap: 10, display: 'flex', flexDirection: 'column' }}
     >
       <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, padding: '0 4px' }}>{t('СОСТАВИТЬ ВОПРОС')}</div>
-      {TASK_TYPES.map(tt => (
+      {palette.map(tt => (
         <button key={tt.type} onClick={() => addTask(tt.type)} title={t(tt.hint)} style={{
           display: 'flex', alignItems: 'center', gap: 10, padding: '10px 10px', borderRadius: 13,
           border: 'none', background: 'var(--color-bg-2)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%',
@@ -4075,6 +4153,7 @@ export default function TeacherCourseEditorPage() {
                         onUpdate={updateLesson}
                         hwTab={hwTab}
                         setHwTab={setHwTab}
+                        isLanguage={isLanguageSubject(course.subject)}
                       />
                     )}
                     {lessonMode === 'students' && (
@@ -4100,7 +4179,7 @@ export default function TeacherCourseEditorPage() {
               style={{ flexShrink: 0, alignSelf: 'flex-start', overflow: 'hidden', position: 'sticky', top: 4 }}
             >
               <div style={{ width: 248 }}>
-                <TestLeftPanel lesson={selectedLesson} onUpdate={updateLesson} />
+                <TestLeftPanel lesson={selectedLesson} onUpdate={updateLesson} isLanguage={isLanguageSubject(course.subject)} />
               </div>
             </motion.div>
           )}
