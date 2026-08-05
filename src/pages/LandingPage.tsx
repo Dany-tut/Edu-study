@@ -10,10 +10,10 @@ import { submitLead } from '../lib/leads'
 import { useLang } from '../lib/i18n'
 import ThemeToggleBtn from '../components/ThemeToggleBtn'
 
-const ACCENT = '#786AD7'          // фирменный фиолетовый
+const ACCENT = '#786AD7'          // фирменный фиолетовый (как в кабинете)
 const ACCENT_2 = '#6F3FBF'        // глубокий фиолет для градиента
-const MINT_A = '#7FE7C4'          // мятный CTA
-const MINT_B = '#57C9A6'
+const ACCENT_L = '#A99BF0'        // светлый лиловый — свечение, вторая точка градиента
+const OK = '#4FBF9A'              // только семантика «принято/готово», не бренд
 
 // ── УТП платформы ────────────────────────────────────────────────────────────
 const FEATURES = [
@@ -62,7 +62,7 @@ export default function LandingPage() {
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
           <ThemeToggleBtn />
           <button onClick={() => setChooserOpen(true)} style={ghostBtn}>Личный кабинет</button>
-          <button onClick={() => openLead()} style={mintBtn}>Оставить заявку</button>
+          <button onClick={() => openLead()} style={primaryBtn}>Оставить заявку</button>
         </div>
       </header>
 
@@ -73,7 +73,7 @@ export default function LandingPage() {
           position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden',
         }}>
           <div style={{ position: 'absolute', top: -160, left: '50%', transform: 'translateX(-50%)', width: 900, height: 520, background: `radial-gradient(ellipse at center, color-mix(in srgb, ${ACCENT} 34%, transparent), transparent 68%)`, filter: 'blur(20px)' }} />
-          <div style={{ position: 'absolute', top: 40, right: '6%', width: 360, height: 360, background: `radial-gradient(circle, color-mix(in srgb, ${MINT_A} 26%, transparent), transparent 70%)`, filter: 'blur(24px)' }} />
+          <div style={{ position: 'absolute', top: 40, right: '6%', width: 360, height: 360, background: `radial-gradient(circle, color-mix(in srgb, ${ACCENT_L} 30%, transparent), transparent 70%)`, filter: 'blur(24px)' }} />
         </div>
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 940, margin: '0 auto', textAlign: 'center' }}>
@@ -91,7 +91,7 @@ export default function LandingPage() {
             <h1 style={{ fontSize: 'clamp(34px, 6.4vw, 64px)', lineHeight: 1.04, fontWeight: 800, letterSpacing: -1.4, margin: 0 }}>
               Вся преподавательская<br />
               операционка —{' '}
-              <span style={{ background: `linear-gradient(120deg, ${ACCENT}, ${MINT_B})`, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
+              <span style={{ background: `linear-gradient(120deg, ${ACCENT}, ${ACCENT_L})`, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
                 в одном окне
               </span>
             </h1>
@@ -104,7 +104,7 @@ export default function LandingPage() {
           </Reveal>
           <Reveal delay={0.15}>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 34 }}>
-              <button onClick={() => openLead()} style={{ ...mintBtn, padding: '15px 30px', fontSize: 16, boxShadow: `0 12px 30px -10px ${MINT_B}` }}>
+              <button onClick={() => openLead()} style={{ ...primaryBtn, padding: '15px 30px', fontSize: 16, boxShadow: `0 12px 30px -10px ${ACCENT}` }}>
                 <Send size={17} /> Оставить заявку
               </button>
               <button onClick={() => setChooserOpen(true)} style={{ ...ghostBtn, padding: '15px 28px', fontSize: 16 }}>
@@ -195,15 +195,15 @@ export default function LandingPage() {
                   <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
                     {p.features.map(f => (
                       <li key={f} style={{ display: 'flex', gap: 8, fontSize: 13.5, color: 'var(--color-text-2)', lineHeight: 1.4 }}>
-                        <span style={{ flexShrink: 0, marginTop: 1, width: 18, height: 18, borderRadius: 999, display: 'grid', placeItems: 'center', background: `color-mix(in srgb, ${MINT_B} 22%, transparent)` }}>
-                          <Check size={12} style={{ color: MINT_B }} />
+                        <span style={{ flexShrink: 0, marginTop: 1, width: 18, height: 18, borderRadius: 999, display: 'grid', placeItems: 'center', background: `color-mix(in srgb, ${ACCENT} 22%, transparent)` }}>
+                          <Check size={12} style={{ color: ACCENT }} />
                         </span>
                         {f}
                       </li>
                     ))}
                   </ul>
                   <button onClick={() => openLead(`${p.name} · ${planPrice(p, lang)}`)}
-                    style={{ ...(featured ? mintBtn : outlineBtn), marginTop: 22, justifyContent: 'center', width: '100%', padding: '12px' }}>
+                    style={{ ...(featured ? primaryBtn : outlineBtn), marginTop: 22, justifyContent: 'center', width: '100%', padding: '12px' }}>
                     {p.priceRub === 0 ? 'Начать бесплатно' : 'Оставить заявку'}
                   </button>
                 </div>
@@ -217,13 +217,13 @@ export default function LandingPage() {
       <section style={{ padding: 'clamp(64px, 9vw, 110px) clamp(16px, 5vw, 56px) 0', maxWidth: 980, margin: '0 auto' }}>
         <Reveal>
           <div style={{ position: 'relative', overflow: 'hidden', padding: 'clamp(34px, 6vw, 60px)', borderRadius: 28, background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`, color: '#fff', textAlign: 'center' }}>
-            <div aria-hidden style={{ position: 'absolute', top: -80, right: -60, width: 320, height: 320, background: `radial-gradient(circle, color-mix(in srgb, ${MINT_A} 40%, transparent), transparent 70%)`, filter: 'blur(10px)', opacity: 0.5 }} />
+            <div aria-hidden style={{ position: 'absolute', top: -80, right: -60, width: 320, height: 320, background: `radial-gradient(circle, color-mix(in srgb, ${ACCENT_L} 55%, transparent), transparent 70%)`, filter: 'blur(10px)', opacity: 0.5 }} />
             <div style={{ position: 'relative' }}>
               <h2 style={{ fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 800, margin: 0, letterSpacing: -0.6 }}>Готовы попробовать?</h2>
               <p style={{ fontSize: 16.5, opacity: 0.92, margin: '14px auto 28px', maxWidth: 500, lineHeight: 1.55 }}>
                 Оставьте контакт — расскажем, как начать, и поможем перенести учеников.
               </p>
-              <button onClick={() => openLead()} style={{ ...mintBtn, padding: '15px 32px', fontSize: 16, boxShadow: '0 14px 34px -12px rgba(0,0,0,0.4)' }}>
+              <button onClick={() => openLead()} style={{ ...onAccentBtn, padding: '15px 32px', fontSize: 16, boxShadow: '0 14px 34px -12px rgba(0,0,0,0.4)' }}>
                 <Send size={17} /> Оставить заявку
               </button>
             </div>
@@ -296,7 +296,7 @@ function ProductMock() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
             {[
               { k: 'Учеников', v: '24', c: ACCENT },
-              { k: 'На проверку', v: '5', c: MINT_B },
+              { k: 'На проверку', v: '5', c: ACCENT_L },
               { k: 'Средний балл', v: '4.3', c: '#E8A54F' },
             ].map(s => (
               <div key={s.k} style={{ padding: '12px 13px', borderRadius: 12, background: 'var(--color-bg)', border: '1px solid var(--color-border)' }}>
@@ -310,7 +310,7 @@ function ProductMock() {
             <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 12 }}>Сдачи домашек за неделю</div>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 64 }}>
               {[42, 58, 35, 72, 50, 88, 64].map((h, i) => (
-                <div key={i} style={{ flex: 1, height: `${h}%`, borderRadius: 5, background: i === 5 ? `linear-gradient(180deg, ${MINT_A}, ${MINT_B})` : `color-mix(in srgb, ${ACCENT} 40%, transparent)` }} />
+                <div key={i} style={{ flex: 1, height: `${h}%`, borderRadius: 5, background: i === 5 ? `linear-gradient(180deg, ${ACCENT_L}, ${ACCENT})` : `color-mix(in srgb, ${ACCENT} 40%, transparent)` }} />
               ))}
             </div>
           </div>
@@ -321,12 +321,12 @@ function ProductMock() {
               { n: 'Марк В.', t: 'Курс · Урок 12', ok: true },
             ].map(r => (
               <div key={r.n} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 11, background: 'var(--color-bg)', border: '1px solid var(--color-border)' }}>
-                <span style={{ width: 28, height: 28, borderRadius: 999, flexShrink: 0, background: `linear-gradient(135deg, ${ACCENT}, ${MINT_B})` }} />
+                <span style={{ width: 28, height: 28, borderRadius: 999, flexShrink: 0, background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_L})` }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 700 }}>{r.n}</div>
                   <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.t}</div>
                 </div>
-                <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 9px', borderRadius: 999, color: r.ok ? MINT_B : ACCENT, background: r.ok ? `color-mix(in srgb, ${MINT_B} 16%, transparent)` : `color-mix(in srgb, ${ACCENT} 14%, transparent)` }}>
+                <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 9px', borderRadius: 999, color: r.ok ? OK : ACCENT, background: r.ok ? `color-mix(in srgb, ${OK} 16%, transparent)` : `color-mix(in srgb, ${ACCENT} 14%, transparent)` }}>
                   {r.ok ? 'Принято' : 'Проверить'}
                 </span>
               </div>
@@ -393,7 +393,7 @@ function RoleChooser({ onClose }: { onClose: () => void }) {
         <p style={{ fontSize: 14, color: 'var(--color-text-2)', margin: '0 0 22px' }}>Кто вы?</p>
         <div style={{ display: 'grid', gap: 12 }}>
           <button onClick={() => go('#/login')} style={roleBtn}>
-            <div style={{ ...roleIcon, background: `color-mix(in srgb, ${MINT_B} 20%, transparent)`, color: MINT_B }}><User size={22} /></div>
+            <div style={{ ...roleIcon, background: `color-mix(in srgb, ${ACCENT_L} 20%, transparent)`, color: ACCENT_L }}><User size={22} /></div>
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontWeight: 700, fontSize: 16 }}>Я ученик</div>
               <div style={{ fontSize: 13, color: 'var(--color-text-3)' }}>Вход по логину и паролю от учителя</div>
@@ -438,14 +438,14 @@ function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose: () =>
         <ModalClose onClose={onClose} />
         {done ? (
           <div style={{ textAlign: 'center', padding: '18px 8px' }}>
-            <div style={{ width: 60, height: 60, borderRadius: 999, margin: '0 auto 18px', display: 'grid', placeItems: 'center', background: `color-mix(in srgb, ${MINT_B} 22%, transparent)`, color: MINT_B }}>
+            <div style={{ width: 60, height: 60, borderRadius: 999, margin: '0 auto 18px', display: 'grid', placeItems: 'center', background: `color-mix(in srgb, ${OK} 22%, transparent)`, color: OK }}>
               <Check size={30} />
             </div>
             <h3 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 8px' }}>Заявка отправлена</h3>
             <p style={{ fontSize: 14.5, color: 'var(--color-text-2)', margin: '0 0 24px', lineHeight: 1.5 }}>
               Спасибо! Мы свяжемся с вами по указанному контакту.
             </p>
-            <button onClick={onClose} style={{ ...mintBtn, width: '100%', justifyContent: 'center', padding: '13px' }}>Готово</button>
+            <button onClick={onClose} style={{ ...primaryBtn, width: '100%', justifyContent: 'center', padding: '13px' }}>Готово</button>
           </div>
         ) : (
           <>
@@ -478,7 +478,7 @@ function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose: () =>
               </div>
               <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Сообщение — коротко о задаче (необязательно)" rows={3} style={{ ...field, resize: 'vertical', minHeight: 84 }} />
               {error && <div style={{ fontSize: 13, color: '#E86A6A', fontWeight: 600 }}>{error}</div>}
-              <button onClick={send} disabled={sending} style={{ ...mintBtn, width: '100%', justifyContent: 'center', padding: '14px', fontSize: 16, opacity: sending ? 0.7 : 1, cursor: sending ? 'default' : 'pointer' }}>
+              <button onClick={send} disabled={sending} style={{ ...primaryBtn, width: '100%', justifyContent: 'center', padding: '14px', fontSize: 16, opacity: sending ? 0.7 : 1, cursor: sending ? 'default' : 'pointer' }}>
                 <Send size={17} /> {sending ? 'Отправляем…' : 'Отправить заявку'}
               </button>
             </div>
@@ -516,10 +516,16 @@ function ModalClose({ onClose }: { onClose: () => void }) {
 }
 
 // ── Styles ───────────────────────────────────────────────────────────────────
-const mintBtn: React.CSSProperties = {
+const primaryBtn: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 12,
-  border: 'none', cursor: 'pointer', fontSize: 14.5, fontWeight: 700, color: '#0C2A22',
-  background: `linear-gradient(135deg, ${MINT_A}, ${MINT_B})`,
+  border: 'none', cursor: 'pointer', fontSize: 14.5, fontWeight: 700, color: '#fff',
+  background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`,
+}
+// на фиолетовой CTA-плашке фиолетовая кнопка сливается — там светлая
+const onAccentBtn: React.CSSProperties = {
+  display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 12,
+  border: 'none', cursor: 'pointer', fontSize: 14.5, fontWeight: 700, color: ACCENT_2,
+  background: '#fff',
 }
 const ghostBtn: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12,
