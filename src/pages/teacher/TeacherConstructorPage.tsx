@@ -37,6 +37,7 @@ import { getContrastColor, getCircleShadow } from '../../lib/utils'
 import { copyToClipboard } from '../../lib/clipboard'
 import { supabase } from '../../lib/supabase'
 import { getOwnerId } from '../../lib/owner'
+import { useTeacherAccess } from '../../lib/teacherAccess'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { usePersistentState, readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 import { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from '../../data/apChemistry'
@@ -7222,11 +7223,20 @@ export default function TeacherConstructorPage() {
   // Готовые курсы идут отдельным хвостом списка: они ещё не в БД, поэтому не
   // участвуют в сортировке своих курсов и не показываются под фильтром
   // «Опубликован» и в режиме редактирования (удалять и дублировать нечего).
+  //
+  // Видит их ТОЛЬКО админ-босс: базовый контент заводится у него, а учителям
+  // раздаётся дальше — сохранённый курс шарится через course_shares (карточка
+  // учителя / ссылка-приглашение). Пока доступ не загружен, считаем «не админ»:
+  // лучше показать секцию на кадр позже, чем мигнуть ею у обычного учителя.
+  const isAdmin = useTeacherAccess(s => s.isAdmin)
+  const accessLoaded = useTeacherAccess(s => s.loaded)
+  useEffect(() => { if (!accessLoaded) useTeacherAccess.getState().load() }, [accessLoaded])
   const visibleSeeds = useMemo(() => {
+    if (!accessLoaded || !isAdmin) return []
     if (courseStatus === 'published') return []
     const taken = new Set(courses.map(c => c.id))
     return COURSE_SEEDS.filter(s => !taken.has(seedCourseId(s, ownerId)))
-  }, [courses, courseStatus, ownerId])
+  }, [courses, courseStatus, ownerId, isAdmin, accessLoaded])
   const removeTask = useTaskBank(s => s.removeTask)
   const addBankTask = useTaskBank(s => s.addTask)
   const loadTasks = useTaskBank(s => s.load)
