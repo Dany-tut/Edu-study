@@ -84,6 +84,61 @@ function renderHighlightedParagraph(text: string, reactionId?: string, activeRea
   )
 }
 
+/**
+ * Иллюстрация конспекта — абзац, у которого задан `image`.
+ *
+ * Картинка нарисована как «лист бумаги» со светлым фоном (см. svgSheet.ts), в
+ * тёмной теме её нельзя класть на прозрачный фон вплотную: получается яркое
+ * пятно с рваным краем. Поэтому лист сидит в собственной рамке с полем.
+ *
+ * По клику открывается на весь экран: схемы письма и таблицы форм в ширину
+ * колонки конспекта читаемы на мониторе, но не на телефоне.
+ */
+function TheoryFigure({ src, caption }: { src: string; caption?: string }) {
+  const [zoom, setZoom] = useState(false)
+  return (
+    <>
+      <figure style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <button
+          onClick={() => setZoom(true)}
+          style={{
+            padding: 10, borderRadius: 16, cursor: 'zoom-in',
+            border: '1px solid var(--color-border-soft)',
+            background: 'rgba(255,255,255,0.9)',
+            display: 'block', width: '100%',
+          }}
+        >
+          <img src={src} alt={caption ?? ''} style={{ display: 'block', width: '100%', height: 'auto', borderRadius: 8 }} />
+        </button>
+        {caption && (
+          <figcaption style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)', textAlign: 'center' }}>
+            {caption}
+          </figcaption>
+        )}
+      </figure>
+      <AnimatePresence>
+        {zoom && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setZoom(false)}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 400, cursor: 'zoom-out',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: 20, background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)',
+            }}
+          >
+            <img
+              src={src}
+              alt={caption ?? ''}
+              style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 12, background: '#fff' }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  )
+}
+
 // Mock "download": there's no backend yet, so we hand the browser a small
 // generated PDF blob named after the file. Swap this for a real fetch later.
 function downloadFile(filename: string) {
@@ -938,7 +993,9 @@ export default function LessonPage() {
             <FileText size={17} style={{ color: 'var(--color-accent)' }} />
             <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Описание')}</span>
           </div>
-          {detail.paragraphs.map(p => (
+          {detail.paragraphs.map(p => p.image ? (
+            <TheoryFigure key={p.id} src={p.image} caption={p.text} />
+          ) : (
             <div
               key={p.id}
               ref={el => { if (p.reactionId) paragraphRefs.current[p.reactionId] = el }}

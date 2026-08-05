@@ -5,7 +5,7 @@ import StickerRevealModal from './StickerRevealModal'
 import { useStickers } from '../lib/stickers'
 
 export default function StickerRevealGate() {
-  const { fresh, dismissFresh } = useStickers()
+  const { fresh, emblems, dismissFresh } = useStickers()
   if (!fresh.length) return null
-  return <StickerRevealModal items={fresh} onClose={dismissFresh} />
+  return <StickerRevealModal items={fresh} emblems={emblems} onClose={dismissFresh} />
 }

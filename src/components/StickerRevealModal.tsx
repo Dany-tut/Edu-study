@@ -6,9 +6,12 @@ import { X, ChevronRight } from 'lucide-react'
 import HoloSticker from './HoloSticker'
 import { tierOf } from '../lib/holo/presets'
 import type { EarnedSticker } from '../lib/stickers'
+import type { StickerEmblem } from '../lib/holo/presets'
 import { useT } from '../lib/i18n'
 
-export default function StickerRevealModal({ items, onClose }: { items: EarnedSticker[]; onClose: () => void }) {
+// emblems приходит снаружи и посчитан по ВСЕЙ коллекции: своя раздача по items
+// нарисовала бы здесь не тот стикер, который потом лежит в коллекции.
+export default function StickerRevealModal({ items, emblems, onClose }: { items: EarnedSticker[]; emblems: Record<string, StickerEmblem>; onClose: () => void }) {
   const t = useT()
   const [i, setI] = useState(0)
   const cur = items[i]
@@ -52,6 +55,8 @@ export default function StickerRevealModal({ items, onClose }: { items: EarnedSt
               score={cur.score}
               label={`${t('задание')} ${cur.taskIndex}`}
               sublabel={cur.lessonTitle.slice(0, 22)}
+              stickerId={cur.id}
+              emblem={emblems[cur.id]}
               size={240}
               reveal
             />

@@ -66,10 +66,22 @@ export function stickerSettings(score: number | null | undefined): StickerSettin
  * из одних цифр выглядит как шесть копий одного стикера, потому что редкостей
  * всего пять, а работ — десятки. Эмблема даёт различие при той же редкости.
  */
-export type StickerEmblem = 'score' | 'rocket' | 'trophy' | 'laurel' | 'star' | 'bolt'
+export type StickerEmblem =
+  | 'score' | 'rocket' | 'trophy' | 'laurel' | 'star' | 'bolt'
+  | 'crown' | 'gem' | 'flame' | 'medal'
 
-/** Порядок важен: по хешу подписи берётся индекс, менять — значит перетасовать уже выданные стикеры. */
-const EMBLEMS: StickerEmblem[] = ['score', 'rocket', 'trophy', 'laurel', 'star', 'bolt']
+/**
+ * Пул для автоматической раздачи. Цифры (`score`) в него НЕ входят: балл и так
+ * читается по звёздам под эмблемой и по редкости фольги, а в ряду эмблем один
+ * стикер с голым числом выглядит как недорисованный. `score` остаётся
+ * допустимым значением — его можно задать явно.
+ *
+ * Порядок важен: по хешу берётся стартовый индекс, перестановка перетасует уже
+ * выданные стикеры.
+ */
+const AUTO_EMBLEMS: StickerEmblem[] = [
+  'rocket', 'trophy', 'laurel', 'star', 'bolt', 'crown', 'gem', 'flame', 'medal',
+]
 
 export interface StickerArtSpec {
   score: number
@@ -79,8 +91,25 @@ export interface StickerArtSpec {
   sublabel?: string
   /** Пиксельный размер квадратного артворка */
   px?: number
-  /** Принудительная эмблема; по умолчанию выводится из подписей. */
+  /** Принудительная эмблема; по умолчанию выводится из отпечатка. */
   emblem?: StickerEmblem
+  /**
+   * Устойчивая личность стикера (id награды, ключ коллекции). Именно она держит
+   * артворк: подписи у витрины и у открытого стикера разные (в плитке помещается
+   * только верхняя строка), и без общего id один и тот же стикер рисовался с
+   * разной эмблемой и разной высечкой.
+   */
+  stickerId?: string
+}
+
+/** FNV-1a. Нужен отдельно от spec: по нему же раздаются эмблемы коллекции. */
+function hashOf(key: string): number {
+  let h = 2166136261
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return Math.abs(h)
 }
 
 /**
@@ -89,13 +118,32 @@ export interface StickerArtSpec {
  * а коллекционная вещь обязана быть постоянной.
  */
 function fingerprint(spec: StickerArtSpec): number {
-  const key = `${spec.label ?? ''}|${spec.sublabel ?? ''}`
-  let h = 2166136261
-  for (let i = 0; i < key.length; i++) {
-    h ^= key.charCodeAt(i)
-    h = Math.imul(h, 16777619)
+  return hashOf(spec.stickerId ?? `${spec.label ?? ''}|${spec.sublabel ?? ''}`)
+}
+
+/**
+ * Раздаёт коллекции эмблемы БЕЗ повторов: хеш даёт стартовое место, занятое
+ * место уступается следующему свободному. Хеша одного мало — при пуле в 9
+ * эмблем шесть стикеров сталкиваются примерно в половине случаев, что и видно
+ * как две одинаковые звезды в ряду.
+ *
+ * Считаем в порядке отсортированных id, а не в порядке показа: тогда сортировка
+ * коллекции (сначала новые / по баллу) не перетасовывает уже выданные эмблемы.
+ * Когда стикеров больше, чем эмблем, пул идёт на второй круг — уникальность
+ * держится внутри девятки, дальше повтор неизбежен.
+ */
+export function assignEmblems(ids: string[]): Record<string, StickerEmblem> {
+  const N = AUTO_EMBLEMS.length
+  const out: Record<string, StickerEmblem> = {}
+  let used = new Set<number>()
+  for (const id of [...ids].sort()) {
+    if (used.size >= N) used = new Set()
+    let i = hashOf(id) % N
+    while (used.has(i)) i = (i + 1) % N
+    used.add(i)
+    out[id] = AUTO_EMBLEMS[i]
   }
-  return Math.abs(h)
+  return out
 }
 
 /** Фестончатый контур («печать») — он же линия высечки стикера. */
@@ -129,7 +177,7 @@ export function drawStickerArt(spec: StickerArtSpec): HTMLCanvasElement {
   // Отпечаток: он же выбирает эмблему и слегка меняет высечку, чтобы две
   // работы с одинаковым баллом не выглядели одним и тем же стикером.
   const fp = fingerprint(spec)
-  const emblem = spec.emblem ?? EMBLEMS[fp % EMBLEMS.length]
+  const emblem = spec.emblem ?? AUTO_EMBLEMS[fp % AUTO_EMBLEMS.length]
   const lobes = [12, 14, 16][(fp >> 3) % 3]
 
   // Корпус печати держим светлым: рендер подмешивает под краску серебряную
@@ -285,6 +333,75 @@ function drawEmblem(
     ctx.lineTo(0.1, -0.12)
     ctx.closePath()
     ctx.fill()
+  } else if (emblem === 'crown') {
+    // три зубца одним контуром: на 46px раздельные зубцы сливаются в гребёнку
+    ctx.beginPath()
+    ctx.moveTo(-0.92, -0.28)
+    ctx.lineTo(-0.5, 0.16)
+    ctx.lineTo(0, -0.62)
+    ctx.lineTo(0.5, 0.16)
+    ctx.lineTo(0.92, -0.28)
+    ctx.lineTo(0.72, 0.78)
+    ctx.lineTo(-0.72, 0.78)
+    ctx.closePath()
+    ctx.fill()
+    // камень в ободе — светлым, иначе корона читается как трапеция
+    ctx.beginPath()
+    ctx.arc(0, 0.46, 0.15, 0, Math.PI * 2)
+    ctx.fillStyle = tier.inkLight
+    ctx.fill()
+    ctx.fillStyle = tier.inkDark
+  } else if (emblem === 'gem') {
+    ctx.beginPath()
+    ctx.moveTo(-0.6, -0.5)
+    ctx.lineTo(0.6, -0.5)
+    ctx.lineTo(0.96, -0.04)
+    ctx.lineTo(0, 0.96)
+    ctx.lineTo(-0.96, -0.04)
+    ctx.closePath()
+    ctx.fill()
+    // грани светлым: без них камень выглядит пятиугольным пятном
+    ctx.strokeStyle = tier.inkLight
+    ctx.lineWidth = 0.1
+    ctx.beginPath()
+    ctx.moveTo(-0.96, -0.04); ctx.lineTo(0.96, -0.04)
+    ctx.moveTo(-0.6, -0.5); ctx.lineTo(-0.34, -0.04); ctx.lineTo(0, 0.96)
+    ctx.moveTo(0.6, -0.5); ctx.lineTo(0.34, -0.04)
+    ctx.stroke()
+    ctx.strokeStyle = tier.inkDark
+  } else if (emblem === 'flame') {
+    ctx.beginPath()
+    ctx.moveTo(0, -1.05)
+    ctx.bezierCurveTo(0.74, -0.24, 0.66, 0.52, 0.18, 0.9)
+    ctx.bezierCurveTo(-0.06, 1.04, -0.52, 0.94, -0.64, 0.48)
+    ctx.bezierCurveTo(-0.78, -0.04, -0.3, -0.44, 0, -1.05)
+    ctx.closePath()
+    ctx.fill()
+    ctx.beginPath()
+    ctx.moveTo(0.02, -0.22)
+    ctx.bezierCurveTo(0.38, 0.18, 0.3, 0.54, 0.04, 0.7)
+    ctx.bezierCurveTo(-0.24, 0.56, -0.32, 0.2, 0.02, -0.22)
+    ctx.closePath()
+    ctx.fillStyle = tier.inkLight
+    ctx.fill()
+    ctx.fillStyle = tier.inkDark
+  } else if (emblem === 'medal') {
+    // ленты
+    ctx.beginPath()
+    ctx.moveTo(-0.6, -1.02); ctx.lineTo(-0.18, -1.02); ctx.lineTo(-0.1, -0.2); ctx.lineTo(-0.48, -0.24)
+    ctx.closePath()
+    ctx.moveTo(0.6, -1.02); ctx.lineTo(0.18, -1.02); ctx.lineTo(0.1, -0.2); ctx.lineTo(0.48, -0.24)
+    ctx.closePath()
+    ctx.fill()
+    // диск с светлой сердцевиной
+    ctx.beginPath()
+    ctx.arc(0, 0.3, 0.68, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.beginPath()
+    ctx.arc(0, 0.3, 0.38, 0, Math.PI * 2)
+    ctx.fillStyle = tier.inkLight
+    ctx.fill()
+    ctx.fillStyle = tier.inkDark
   }
 
   ctx.restore()
@@ -327,11 +444,6 @@ function arcText(ctx: CanvasRenderingContext2D, text: string, cx: number, cy: nu
     ctx.restore()
   })
   ctx.restore()
-}
-
-// ВРЕМЕННО: отладочный доступ к отрисовке для подбора эмблем. Снять после проверки.
-if (import.meta.env?.DEV && typeof window !== 'undefined') {
-  ;(window as unknown as Record<string, unknown>).__drawStickerArt = drawStickerArt
 }
 
 /** Артворк как ImageBitmap для WebGL-рендера. */

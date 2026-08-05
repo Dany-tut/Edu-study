@@ -32,7 +32,7 @@ import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import WhiteboardCanvas from '../../components/teacher/WhiteboardCanvas'
 import RichConditionEditor from '../../components/teacher/RichConditionEditor'
 import TableEditor from '../../components/teacher/TableEditor'
-import { useOverlayScroll, ScrollOverlays } from '../../components/teacher/OverlayScroll'
+import { useOverlayScroll, ScrollOverlays, fadeMask } from '../../components/teacher/OverlayScroll'
 import GoogleFormImportModal from '../../components/teacher/GoogleFormImportModal'
 import type { ImportedQuestion } from '../../lib/googleFormsImport'
 import { taskTypesFor, makeTask as makeRegistryTask, type TaskTypeId } from '../../data/taskTypes'
@@ -1188,10 +1188,11 @@ function TrainerFilterPanel({
         margin: '0 24px 20px 0',
       }}
     >
-      <ScrollOverlays fade={filterFade} thumb={filterThumb} />
+      <ScrollOverlays thumb={filterThumb} />
       <div ref={filterScrollRef} onScroll={onFilterScroll} className="no-scrollbar" style={{
         flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain',
         display: 'flex', flexDirection: 'column', padding: '16px', gap: 10,
+        ...fadeMask(filterFade),
       }}>
       {/* Header with filter icon */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>

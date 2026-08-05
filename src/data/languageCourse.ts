@@ -22,14 +22,16 @@
 // браузерный синтез эталоном произношения быть не может.
 //
 // КАРТИНКИ
-// Типы imageDescribe / imageCompare в сидах не используются: своих картинок с
-// понятной лицензией у нас нет, а задание без картинки бессмысленно. Учитель
-// добавляет их сам — тип в редакторе доступен.
+// Чужих изображений с понятной лицензией у нас нет, поэтому всё, что рисуется в
+// курсе, рисуется нами векторно и лежит строкой data-URI: иллюстрации конспекта
+// (unit.figures → lessonFigures.ts) и картинки заданий «опишите / сравните»
+// (seedImages.ts). Фотографий в сидах нет — их учитель добавляет сам.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { TASK_TYPES } from './taskTypes'
 import type { TaskPayload, TaskTypeId } from './taskTypes'
 import { getSubject } from '../lib/subjects'
+import { figureMarker, packTheoryImages, type TheoryImage } from '../lib/theoryImages'
 import type { CELesson, CEModule, CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 /** Стандартное занятие — столько же по умолчанию подставляет редактор урока. */
@@ -78,10 +80,28 @@ export interface LangUnit {
    * а не замена написанному тексту.
    */
   theory?: string
+  /**
+   * Иллюстрации конспекта: таблица письма, схема форм, шкала вежливости.
+   *
+   * Языковой конспект — это в первую очередь таблицы и схемы: строй слога,
+   * ряды каны, лестница вежливых уровней. Текстом они не объясняются, а
+   * пересказываются. Рисуются векторно в lessonFigures.ts — своя картинка,
+   * никакой чужой лицензии, ничего не грузится по сети.
+   *
+   * Встают в конспект после первого абзаца — то есть сразу после правила, а не
+   * отдельным блоком в конце урока.
+   */
+  figures?: UnitFigure[]
   /** Словарь юнита. */
   vocab: VocabItem[]
   /** Задания домашней работы. */
   tasks: SeedTask[]
+}
+
+/** Иллюстрация конспекта: картинка (data-URI из lessonFigures.ts) и подпись. */
+export interface UnitFigure {
+  src: string
+  caption: string
 }
 
 /** Модуль — группа юнитов с общей задачей. */
@@ -284,6 +304,34 @@ function composeTheory(unit: LangUnit): string {
   ].join('\n\n')
 }
 
+/**
+ * Конспект юнита для редактора: текст плюс иллюстрации.
+ *
+ * Картинки встают строкой-маркером после первого абзаца — то есть сразу за
+ * правилом, которое они показывают. Сам data-URI уезжает в theoryImages: в
+ * поле «Конспект» учитель должен видеть свой текст, а не километр base64
+ * (разбор маркеров — в lib/theoryImages.ts).
+ */
+function theoryOf(unit: LangUnit): { theory: string; theoryImages: TheoryImage[] } {
+  const text = unit.theory?.trim() || composeTheory(unit)
+  if (!unit.figures?.length) return { theory: text, theoryImages: [] }
+
+  const paras = text.split(/\n\s*\n/)
+  // В собранном конспекте (composeTheory) правило — второй абзац, а третий
+  // объясняет, зачем оно здесь: картинка идёт за ними, до списка слов. В
+  // написанном руками конспекте якоря нет — там картинка встаёт после первого
+  // абзаца, и место правится в редакторе.
+  const ruleAt = paras.findIndex(p => p.startsWith('Правило:'))
+  const at = Math.min(ruleAt >= 0 ? ruleAt + 2 : 1, paras.length)
+  const withFigures = [
+    ...paras.slice(0, at),
+    ...unit.figures.map(f => figureMarker(f.caption, f.src)),
+    ...paras.slice(at),
+  ].join('\n\n')
+  const packed = packTheoryImages(withFigures)
+  return { theory: packed.theory, theoryImages: packed.images }
+}
+
 /** Сводка курса — для карточки курса, кнопки сида и страницы описания. */
 export interface CourseSummary {
   title: string
@@ -354,7 +402,7 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
       `Лексика: ${unit.vocabTheme}`,
       `Артефакт: ${unit.artifact}`,
     ].join('\n'),
-    theory: unit.theory?.trim() || composeTheory(unit),
+    ...theoryOf(unit),
     hwTitle: `Юнит ${unit.n}. ${unit.title}`,
     hwTarget: unit.artifact,
     hwTasks: [

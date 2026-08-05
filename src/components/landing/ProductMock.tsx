@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import HoloSticker from '../HoloSticker'
 import StickerBadge from '../StickerBadge'
-import { tierOf } from '../../lib/holo/presets'
+import { tierOf, assignEmblems } from '../../lib/holo/presets'
 import {
   ChevronLeft, ChevronRight, RotateCw, Plus, Share, Copy, PanelLeft, ShieldCheck,
   Search, Bell, LayoutGrid, Users, ClipboardCheck, BookOpen, BarChart3,
@@ -1165,6 +1165,10 @@ function StepsTask() {
 
 // Полка стикеров: клик по бейджу поднимает его в голо-превью.
 // Живой WebGL-рендер держим один — остальные бейджи статичные.
+// Эмблемы раздаются один раз на всю полку: хеш сам по себе даёт коллизии, и в
+// ряду появлялись две одинаковые звезды.
+const SHELF_EMBLEMS = assignEmblems(COLLECTION.map(c => c.label))
+
 function StickerShelf() {
   const [sel, setSel] = useState(0)
   const cur = COLLECTION[sel]
@@ -1179,7 +1183,8 @@ function StickerShelf() {
         <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>{got} из {COLLECTION.length}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-        <HoloSticker key={sel} score={cur.score} sublabel={cur.label} size={76} reveal />
+        <HoloSticker key={sel} score={cur.score} sublabel={cur.label} stickerId={cur.label}
+          emblem={SHELF_EMBLEMS[cur.label]} size={76} reveal />
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 12.5, fontWeight: 800, color: tier.ink }}>{tier.name}</div>
           <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{cur.got ? tier.hint : 'Сдайте задание на 5 — и стикер откроется'}</div>
@@ -1187,7 +1192,8 @@ function StickerShelf() {
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {COLLECTION.map((c, i) => (
-          <StickerBadge key={c.label} score={c.score} label={c.label} size={46} locked={!c.got} onClick={() => setSel(i)}
+          <StickerBadge key={c.label} score={c.score} label={c.label} stickerId={c.label}
+            emblem={SHELF_EMBLEMS[c.label]} size={46} locked={!c.got} onClick={() => setSel(i)}
             // Стикер круглый, поэтому и рамка выделения круглая: с borderRadius 10
             // outline обводил квадрат, и на клике вылезали его углы.
             style={{ cursor: 'pointer', outline: sel === i ? `2px solid ${ACCENT}` : 'none', outlineOffset: 3, borderRadius: '50%' }} />

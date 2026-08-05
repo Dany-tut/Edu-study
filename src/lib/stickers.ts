@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { getStudentSession } from './studentSession'
 import { isNewHard, teacherComments, type HardTaskReviewBlock } from './useHomework'
+import { assignEmblems, type StickerEmblem } from './holo/presets'
 
 export interface EarnedSticker {
   /** Стабильный id: строка прогресса + ключ задания */
@@ -101,6 +102,8 @@ export interface StickerCollection {
   /** Полученные, но ещё не показанные ученику */
   fresh: EarnedSticker[]
   byScore: Record<number, number>
+  /** Эмблема каждого стикера, раздана по ВСЕЙ коллекции — id → эмблема */
+  emblems: Record<string, StickerEmblem>
   loading: boolean
   reload: () => void
   /** Пометить стикеры показанными (после reveal-модалки) */
@@ -142,8 +145,13 @@ export function useStickers(): StickerCollection {
     return acc
   }, {})
 
+  // Раздаём по всей коллекции, а не по подмножеству экрана: reveal-модалка
+  // показывает только новые стикеры, и своя раздача дала бы там другую эмблему,
+  // чем в коллекции.
+  const emblems = assignEmblems(stickers.map(s => s.id))
+
   return {
-    stickers, fresh, byScore, loading,
+    stickers, fresh, byScore, emblems, loading,
     reload: () => void load(),
     dismissFresh: () => {
       if (studentId) markSeen(studentId, fresh.map(s => s.id))

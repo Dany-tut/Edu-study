@@ -1,19 +1,21 @@
 // Виджет «Стикеры» — коллекция наград за принятые задания.
 // В сетке рисуем дешёвые StickerBadge (canvas 2D), а голо-рендер (WebGL)
 // включаем только для выбранного стикера в модалке: контекстов WebGL мало.
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, X } from 'lucide-react'
 import StickerBadge from './StickerBadge'
 import HoloSticker from './HoloSticker'
-import { tierOf, STICKER_TIERS } from '../lib/holo/presets'
+import { tierOf, STICKER_TIERS, assignEmblems } from '../lib/holo/presets'
 import { useStickers, type EarnedSticker } from '../lib/stickers'
 import { useT } from '../lib/i18n'
 
 export default function StickersWidget({ columns }: { columns: number }) {
   const t = useT()
-  const { stickers, byScore, loading } = useStickers()
+  // emblems раздан хуком по всей коллекции: по одному хешу эмблемы повторяются,
+  // и в ряду оказывались два одинаковых стикера.
+  const { stickers, byScore, emblems, loading } = useStickers()
   const [open, setOpen] = useState(false)
   const wide = columns >= 2
   const top = stickers.slice(0, wide ? 6 : 4)
@@ -42,7 +44,8 @@ export default function StickersWidget({ columns }: { columns: number }) {
         <>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {top.map(s => (
-              <StickerBadge key={s.id} score={s.score} label={`${t('задание')} ${s.taskIndex}`} size={wide ? 66 : 56} onClick={() => setOpen(true)} />
+              <StickerBadge key={s.id} score={s.score} label={`${t('задание')} ${s.taskIndex}`}
+                stickerId={s.id} emblem={emblems[s.id]} size={wide ? 66 : 56} onClick={() => setOpen(true)} />
             ))}
           </div>
           <div style={{ display: 'flex', gap: 6, marginTop: 'auto', flexWrap: 'wrap' }}>
@@ -68,6 +71,7 @@ export function StickerCollectionModal({ stickers, onClose }: { stickers: Earned
   const t = useT()
   const [sel, setSel] = useState<EarnedSticker | null>(stickers[0] ?? null)
   const tier = sel ? tierOf(sel.score) : null
+  const emblems = useMemo(() => assignEmblems(stickers.map(s => s.id)), [stickers])
 
   return createPortal(
     <AnimatePresence>
@@ -105,6 +109,8 @@ export function StickerCollectionModal({ stickers, onClose }: { stickers: Earned
                     score={sel.score}
                     label={`${t('задание')} ${sel.taskIndex}`}
                     sublabel={sel.lessonTitle.slice(0, 22)}
+                    stickerId={sel.id}
+                    emblem={emblems[sel.id]}
                     size={200}
                   />
                   <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-text)' }}>«{t(tier!.name)}»</div>
@@ -122,6 +128,8 @@ export function StickerCollectionModal({ stickers, onClose }: { stickers: Earned
                   key={s.id}
                   score={s.score}
                   label={`${t('задание')} ${s.taskIndex}`}
+                  stickerId={s.id}
+                  emblem={emblems[s.id]}
                   size={78}
                   onClick={() => setSel(s)}
                   style={sel?.id === s.id ? { outline: '2px solid var(--color-accent)', outlineOffset: 3, borderRadius: '50%' } : undefined}

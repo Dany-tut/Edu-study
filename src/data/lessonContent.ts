@@ -122,8 +122,12 @@ export interface LessonHomework {
 }
 /** One paragraph of the lesson's written notes. When `reactionId` is set, the
  *  paragraph introduces a specific reaction from `courseReactions` and the
- *  lesson page can scroll to / highlight it on request. */
-export interface LessonParagraph { id: string; text: string; reactionId?: string }
+ *  lesson page can scroll to / highlight it on request.
+ *
+ *  `image` превращает абзац в иллюстрацию: картинка рисуется на месте абзаца, а
+ *  `text` становится подписью под ней. Так схема стоит там, где она объясняет
+ *  (сразу после правила), а не отдельным блоком в конце урока. */
+export interface LessonParagraph { id: string; text: string; reactionId?: string; image?: string }
 /** Authored, editable lesson body — konspekt paragraphs + homework. Stored per
  *  lesson in Supabase (`lessons.content`); when empty we fall back to code. */
 export interface LessonContentData {

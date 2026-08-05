@@ -71,9 +71,14 @@ function InlineText({ value, onCommit, placeholder, style, inputStyle, bubbleCli
           if (e.key === 'Escape') { e.preventDefault(); setEditing(false) }
         }}
         // Spread the display `style` first so the input keeps the same layout
-        // slot (flex:1 etc.) — otherwise the section input collapses and shoves
-        // the # / 📖 badges leftwards while editing.
-        style={{ ...style, border: '1.5px solid var(--color-accent)', borderRadius: 8, padding: '3px 8px', outline: 'none', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontFamily: 'inherit', boxSizing: 'border-box', ...inputStyle }}
+        // слот (flex:1 и т.п.) — иначе инпут раздела схлопывается и сдвигает
+        // бейджи # / 📖 влево.
+        //
+        // Правка-на-месте = подчёркивание, а не коробка. Рамка по периметру с
+        // паддингом раздувала строку по высоте и упиралась в соседей (шеврон
+        // слева, бейджи справа), а текст прыгал на ширину паддинга. Линия снизу
+        // занимает ровно место текста: ничего не двигается.
+        style={{ ...style, border: 'none', borderBottom: '1.5px solid var(--color-accent)', borderRadius: 0, padding: 0, outline: 'none', background: 'transparent', color: 'var(--color-text)', fontFamily: 'inherit', boxSizing: 'border-box', ...inputStyle }}
       />
     )
   }
@@ -142,9 +147,9 @@ function TopicChip({ subject, section, topic, accent, renameTopic, removeTopic }
       <InlineText value={topic} onCommit={v => renameTopic(subject, section, topic, v)}
         bubbleClick autoSize
         style={{ fontSize: 12.5, color: armed ? 'var(--color-red-text)' : 'var(--color-text)', fontWeight: 500 }}
-        // Height-neutral input (no border/padding box) so a double-click to edit
-        // doesn't make the pill taller; the edit ring is a boxShadow (no layout).
-        inputStyle={{ fontSize: 12.5, padding: '0 2px', border: 'none', background: 'transparent', boxShadow: '0 0 0 1.5px var(--color-accent)', borderRadius: 6 }} />
+        // Кольцо вокруг текста внутри пилюли давало вторую рамку в 3–4px от
+        // первой. Оставляем базовое подчёркивание — правится только размер шрифта.
+        inputStyle={{ fontSize: 12.5 }} />
       {showCross && (
         <button onClick={e => { e.stopPropagation(); removeTopic(subject, section, topic) }}
           style={{ display: 'flex', width: 18, height: 18, borderRadius: 999, border: 'none', cursor: 'pointer', alignItems: 'center', justifyContent: 'center', background: 'transparent', color: 'var(--color-red-text)', flexShrink: 0 }}>

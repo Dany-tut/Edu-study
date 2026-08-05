@@ -2,13 +2,17 @@
 // Нужен там, где стикеров много (коллекция, списки) — WebGL-контекстов в
 // браузере всего ~16, поэтому голо-рендер оставляем для «открытого» стикера.
 import { useEffect, useRef, type CSSProperties } from 'react'
-import { drawStickerArt, tierOf } from '../lib/holo/presets'
+import { drawStickerArt, tierOf, type StickerEmblem } from '../lib/holo/presets'
 
 interface Props {
   score: number
   label?: string
   sublabel?: string
   size?: number
+  /** Личность стикера — держит эмблему и высечку одинаковыми во всех размерах */
+  stickerId?: string
+  /** Готовая эмблема из assignEmblems(); без неё выводится из stickerId */
+  emblem?: StickerEmblem
   /** Приглушить (стикер ещё не получен) */
   locked?: boolean
   onClick?: () => void
@@ -29,7 +33,7 @@ function injectShineCss() {
   document.head.appendChild(el)
 }
 
-export default function StickerBadge({ score, label, sublabel, size = 96, locked, onClick, style }: Props) {
+export default function StickerBadge({ score, label, sublabel, size = 96, stickerId, emblem, locked, onClick, style }: Props) {
   const ref = useRef<HTMLCanvasElement>(null)
   const tier = tierOf(score)
 
@@ -39,13 +43,13 @@ export default function StickerBadge({ score, label, sublabel, size = 96, locked
     if (!canvas) return
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
     const px = Math.round(size * dpr)
-    const art = drawStickerArt({ score, label, sublabel, px })
+    const art = drawStickerArt({ score, label, sublabel, px, stickerId, emblem })
     canvas.width = px
     canvas.height = px
     const ctx = canvas.getContext('2d')!
     ctx.clearRect(0, 0, px, px)
     ctx.drawImage(art, 0, 0)
-  }, [score, label, sublabel, size])
+  }, [score, label, sublabel, size, stickerId, emblem])
 
   return (
     <div

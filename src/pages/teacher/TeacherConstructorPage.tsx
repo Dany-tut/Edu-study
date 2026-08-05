@@ -45,6 +45,7 @@ import { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from '../../data/apChemistry'
 import { COURSE_SEEDS, seedTooltip, seedCourseId, type CourseSeed } from '../../data/courseSeeds'
 import { AP_LESSON_CONTENT } from '../../data/apChemistryLessons'
 import type { LessonContentData, LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from '../../data/lessonContent'
+import { paragraphsToTheory } from '../../lib/theoryImages'
 import { useTeacher } from '../../store/teacherStore'
 import { useTheme } from '../../store/themeStore'
 import { useT, t } from '../../lib/i18n'
@@ -1451,12 +1452,18 @@ function CourseSortDropdown({ value, onChange }: { value: CourseSortMode; onChan
  * фильтровать не по чему (один предмет, ни одного заполненного уровня) —
  * кнопка не рисуется вообще, чтобы не занимать строку мёртвым контролом.
  */
-function CourseFacetDropdown({ value, options, allLabel, icon, minWidth = 92, onChange }: {
+function CourseFacetDropdown({ value, options, allLabel, icon, minWidth = 92, iconGap = 6, onChange }: {
   value: string
   options: string[]
   allLabel: string
   icon: ReactNode
   minWidth?: number
+  /**
+   * Отступ иконка→текст. Дефолт годится для эмодзи и иконок с полями, но у
+   * стрелочных lucide-иконок штрих доходит до края бокса, и при gap 6 остриё
+   * почти касается буквы — таким иконкам ставим 7.
+   */
+  iconGap?: number
   onChange: (v: string) => void
 }) {
   const [open, setOpen] = useState(false)
@@ -1467,7 +1474,7 @@ function CourseFacetDropdown({ value, options, allLabel, icon, minWidth = 92, on
   return (
     <div style={{ position: 'relative' }}>
       <button onClick={() => setOpen(o => !o)} onBlur={() => setTimeout(() => setOpen(false), 120)}
-        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 999,
+        style={{ display: 'flex', alignItems: 'center', gap: iconGap, padding: '7px 12px', borderRadius: 999,
           background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.9)',
           border: `1px solid ${value ? 'var(--color-border-strong)' : open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
           fontSize: 12, fontWeight: value ? 700 : 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -7475,7 +7482,7 @@ export default function TeacherConstructorPage() {
     if (course.dbCourseId) {
       const { data: dbCourse } = await supabase
         .from('courses')
-        .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, homework)')
+        .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, description, kind, test_tasks, content, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, homework)')
         .eq('short_id', course.dbCourseId)
         .single()
       if (dbCourse) {
@@ -7483,7 +7490,15 @@ export default function TeacherConstructorPage() {
         studentIds = (dbCourse as any).student_ids ?? []
         const dbModules = [...((dbCourse as any).course_modules ?? [])].sort((a, b) => a.position - b.position)
         const dbLessons = [...((dbCourse as any).lessons ?? [])].sort((a, b) => (a.lesson_number ?? a.position ?? 0) - (b.lesson_number ?? b.position ?? 0))
-        lessons = dbLessons.map((l: any, i: number) => ({
+        lessons = dbLessons.map((l: any, i: number) => {
+        // Конспект: абзацы lessons.content → одна строка редактора, картинки —
+        // в отдельный список. Без обратной сборки повторное открытие курса
+        // приходило с пустым полем «Конспект», а следующее «Сохранить»
+        // затирало конспект в БД.
+        const theory = paragraphsToTheory(
+          Array.isArray(l.content?.paragraphs) ? l.content.paragraphs : [],
+        )
+        return {
           id: l.short_id,
           title: l.title,
           number: (l.lesson_number ?? i) + 1,
@@ -7491,6 +7506,8 @@ export default function TeacherConstructorPage() {
           testTasks: Array.isArray(l.test_tasks) ? l.test_tasks : [],
           videoUrl: l.youtube_url ?? undefined,
           description: l.description ?? undefined,
+          theory: theory.theory || undefined,
+          theoryImages: theory.images,
           scheduledDate: l.scheduled_date ?? undefined,
           scheduledTime: l.scheduled_time ?? undefined,
           scheduledDuration: l.scheduled_duration ?? undefined,
@@ -7509,7 +7526,8 @@ export default function TeacherConstructorPage() {
           recHwDate: l.homework?.recHwDate ?? undefined,
           recHwDateManual: l.homework?.recHwDateManual ?? false,
           recHwTasks: Array.isArray(l.homework?.recHwTasks) ? l.homework.recHwTasks : [],
-        }))
+        }
+        })
         if (dbModules.length > 0) {
           modules = dbModules.map((m: any) => ({
             id: m.id, label: m.label, expanded: true,
@@ -8098,7 +8116,7 @@ export default function TeacherConstructorPage() {
                     onChange={setCourseSubject}
                   />
                   <CourseFacetDropdown
-                    value={courseLevel} options={levelOpts} allLabel={t('Все уровни')} minWidth={72}
+                    value={courseLevel} options={levelOpts} allLabel={t('Все уровни')} minWidth={72} iconGap={7}
                     icon={<TrendingUp size={12} />}
                     onChange={setCourseLevel}
                   />

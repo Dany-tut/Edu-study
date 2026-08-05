@@ -4,7 +4,7 @@
 // Пока грузится (или если WebGL/anim недоступны) показываем статичный
 // StickerBadge, так что компонент всегда что-то рисует.
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import { stickerSettings, stickerBitmap, tierOf } from '../lib/holo/presets'
+import { stickerSettings, stickerBitmap, tierOf, type StickerEmblem } from '../lib/holo/presets'
 import type { StickerSettings } from '../lib/holo/settings'
 import type { HoloRenderer } from '../lib/holo/three-renderer'
 import StickerBadge from './StickerBadge'
@@ -23,6 +23,10 @@ interface Props {
   reveal?: boolean
   /** Точечная правка пресета фольги (для витрин/подбора) */
   tweak?: Partial<StickerSettings>
+  /** Личность стикера — держит эмблему и высечку одинаковыми в витрине и здесь */
+  stickerId?: string
+  /** Готовая эмблема из assignEmblems(); без неё выводится из stickerId */
+  emblem?: StickerEmblem
   style?: CSSProperties
 }
 
@@ -75,7 +79,8 @@ const reducedMotion = () =>
   typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
 export default function HoloSticker({
-  score, label, sublabel, size = 220, interactive = true, sweep = true, reveal = false, tweak, style,
+  score, label, sublabel, size = 220, interactive = true, sweep = true, reveal = false, tweak,
+  stickerId, emblem, style,
 }: Props) {
   const hostRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -111,7 +116,7 @@ export default function HoloSticker({
     ;(async () => {
       const [{ HoloRenderer: R }, bitmap] = await Promise.all([
         import('../lib/holo/three-renderer'),
-        stickerBitmap({ score, label, sublabel }),
+        stickerBitmap({ score, label, sublabel, stickerId, emblem }),
       ])
       const canvas = canvasRef.current
       if (dead || !canvas) return
@@ -179,7 +184,7 @@ export default function HoloSticker({
       rendRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [score, label, sublabel, reveal])
+  }, [score, label, sublabel, reveal, stickerId, emblem])
 
   const tier = tierOf(score)
 
@@ -206,7 +211,7 @@ export default function HoloSticker({
           pointerEvents: 'none', opacity: live || !fallbackReady ? 0 : 1, transition: 'opacity 200ms ease',
         }}
       >
-        <StickerBadge score={score} label={label} sublabel={sublabel} size={Math.round(size * FALLBACK_SCALE)} />
+        <StickerBadge score={score} label={label} sublabel={sublabel} stickerId={stickerId} emblem={emblem} size={Math.round(size * FALLBACK_SCALE)} />
       </div>
     </div>
   )

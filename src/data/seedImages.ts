@@ -6,45 +6,11 @@
 // планы рисуются здесь векторно и отдаются как data-URI: изображение целиком
 // наше, ничего не грузится по сети, ничего не лежит в бакете.
 //
-// ПОЧЕМУ SVG В data-URI, А НЕ ФАЙЛ В STORAGE
-// Сид не должен тащить за собой медиа: он открывается в редакторе как черновик,
-// и до «Сохранить» в БД ничего нет. График весит 1–3 КБ текстом — это дешевле
-// любого PNG и переживает копирование курса вместе с JSONB. Ученику приходит
-// обычная строка в поле images, которую <img> рисует как есть.
-//
-// ЧИТАЕМОСТЬ В ТЁМНОЙ ТЕМЕ
-// Картинка — это «лист бумаги»: у каждой явный светлый фон и тёмные линии.
-// Подстраиваться под тему нельзя (это статичный src внутри <img>), а тёмное по
-// тёмному было бы невидимым. Светлый лист на тёмном фоне выглядит нормально.
+// Обёртка листа, палитра и кодирование в data-URI лежат в svgSheet.ts — их
+// делит с иллюстрациями конспекта (lessonFigures.ts).
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** SVG-разметка → data-URI для <img src>. */
-function toDataUri(svg: string): string {
-  // Схлопываем переносы и лишние пробелы: в data-URI они кодируются посимвольно
-  // и раздувают строку впустую.
-  const compact = svg.replace(/\s*\n\s*/g, ' ').trim()
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(compact)}`
-}
-
-const PAPER = '#FFFFFF'
-const INK = '#1F2430'
-const MUTED = '#6B7280'
-const GRID = '#D7DBE3'
-
-/** Общая обёртка: белый лист, рамка, заголовок. */
-function sheet(w: number, h: number, title: string, body: string): string {
-  return `
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" font-family="Helvetica, Arial, sans-serif">
-    <rect width="${w}" height="${h}" fill="${PAPER}"/>
-    <text x="${w / 2}" y="28" text-anchor="middle" font-size="15" font-weight="700" fill="${INK}">${esc(title)}</text>
-    ${body}
-  </svg>`
-}
-
-/** Экранирование текста внутри SVG. */
-function esc(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
+import { toDataUri, esc, sheet, PAPER, INK, MUTED, GRID } from './svgSheet'
 
 // ─── График динамики ─────────────────────────────────────────────────────────
 

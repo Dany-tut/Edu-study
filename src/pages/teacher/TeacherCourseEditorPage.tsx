@@ -21,13 +21,17 @@ import { useGroups, useAllStudents } from '../../lib/useGroups'
 import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import ScrollFade from '../../components/ScrollFade'
-import { useOverlayScroll, ScrollOverlays, OverlayScrollArea } from '../../components/teacher/OverlayScroll'
+import { useOverlayScroll, ScrollOverlays, OverlayScrollArea, fadeMask } from '../../components/teacher/OverlayScroll'
 import { getOwnerId } from '../../lib/owner'
 import TableEditor from '../../components/teacher/TableEditor'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { taskTypesFor, makeTask, TASK_TYPES as TASK_TYPES_BY_ID, type TaskTypeId, type TaskPayload } from '../../data/taskTypes'
 import { supabase } from '../../lib/supabase'
 import { readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
+import {
+  theoryToParagraphs, appendTheoryImage, removeTheoryImage, captionOf,
+  type TheoryImage,
+} from '../../lib/theoryImages'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -64,6 +68,13 @@ export interface CELesson {
    * строки описания и домашки.
    */
   theory?: string
+  /**
+   * Иллюстрации конспекта. В тексте конспекта на них ссылается строка-маркер
+   * `![подпись](img:1)` — она задаёт место картинки между абзацами, а сам
+   * data-URI держится здесь, иначе поле «Конспект» превращается в простыню
+   * base64. Разбор и сборка — в lib/theoryImages.ts.
+   */
+  theoryImages?: TheoryImage[]
   notebookFile?: string
   workbookFile?: string
   materialFile?: string
@@ -912,6 +923,86 @@ const FILE_CARDS: Array<{ field: FileField; Icon: React.ElementType; label: stri
   { field: 'materialFile', Icon: FolderOpen,  label: 'Материалы' },
 ]
 
+/**
+ * Иллюстрации конспекта.
+ *
+ * Картинка встаёт в конспект строкой-маркером `![подпись](img:N)`: место
+ * картинки задаёт текст, а не отдельный список, поэтому схему можно поставить
+ * ровно после правила, которое она объясняет. Здесь — только загрузка,
+ * превью и удаление; подпись учитель правит прямо в маркере.
+ */
+function TheoryImages({
+  lesson, onUpdate,
+}: {
+  lesson: CELesson
+  onUpdate: (updated: CELesson) => void
+}) {
+  const t = useT()
+  const fileRef = useRef<HTMLInputElement>(null)
+  const images = lesson.theoryImages ?? []
+
+  function add(file: File) {
+    optimizePhoto(file)
+      .then(url => {
+        const next = appendTheoryImage(lesson.theory ?? '', images, url, t('Подпись к картинке'))
+        onUpdate({ ...lesson, theory: next.theory, theoryImages: next.images })
+      })
+      .catch(err => { if (err instanceof ImageTooLargeError) window.alert(err.message); else throw err })
+  }
+
+  function remove(key: string) {
+    const next = removeTheoryImage(lesson.theory ?? '', images, key)
+    onUpdate({ ...lesson, theory: next.theory, theoryImages: next.images })
+  }
+
+  return (
+    <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }}
+        onChange={e => { const f = e.target.files?.[0]; if (f) add(f); e.target.value = '' }}
+      />
+      {images.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
+          {images.map(img => (
+            <div key={img.key} style={{
+              position: 'relative', padding: 8, borderRadius: 12,
+              border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)',
+            }}>
+              <img src={img.src} alt="" style={{ display: 'block', width: '100%', borderRadius: 8, background: '#fff' }} />
+              <div style={{ marginTop: 6, fontSize: 11, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <code style={{ fontSize: 10, color: 'var(--color-muted)' }}>img:{img.key}</code>
+                {' · '}{captionOf(lesson.theory ?? '', img.key) || t('нет в тексте конспекта')}
+              </div>
+              <button onClick={() => remove(img.key)}
+                style={{
+                  position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%',
+                  border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)',
+                }}
+              >
+                <X size={11} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <button onClick={() => fileRef.current?.click()}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 10,
+            border: '1.5px dashed var(--color-border-medium)', background: 'transparent',
+            cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', fontFamily: 'inherit',
+          }}
+        >
+          <Camera size={13} /> {t('Картинка в конспект')}
+        </button>
+        <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>
+          {t('Картинка встаёт туда, где в тексте стоит её строка ![подпись](img:1) — строку можно двигать между абзацами.')}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 function CenterLesson({
   lesson, onUpdate,
 }: {
@@ -1026,6 +1117,7 @@ function CenterLesson({
             style={{ lineHeight: 1.7 }}
             placeholder={t('Объяснение темы, правила, таблицы, разбор ошибок. Пустая строка — новый абзац. Это ученик читает на вкладке «Конспект».')}
           />
+          <TheoryImages lesson={lesson} onUpdate={onUpdate} />
         </div>
       </div>
 
@@ -1840,7 +1932,7 @@ function BankPicker({ onPick, hard }: { onPick: (bt: BankTask) => void; hard?: b
                   style={{ ...inputSt, fontSize: 11.5, padding: '6px 9px 6px 26px' }}
                 />
               </div>
-              <OverlayScrollArea style={{ maxHeight: 260 }} bg="rgba(var(--glass-rgb), 0.7)" scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <OverlayScrollArea style={{ maxHeight: 260 }} scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {filtered.slice(0, 80).map(bt => (
                   <button
                     key={bt.id}
@@ -1917,10 +2009,11 @@ function HomeworkLeftPanel({
       // 100vh вылезали за неё и обрезали низ списка типов заданий.
       maxHeight: '100%', position: 'relative', overflow: 'hidden',
     }}>
-      <ScrollOverlays fade={hwFade} thumb={hwThumb} bg="rgba(var(--glass-rgb), 0.88)" />
+      <ScrollOverlays thumb={hwThumb} />
       <div ref={hwScrollRef} onScroll={onHwScroll} className="no-scrollbar" style={{
         flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain',
         padding: '16px 14px 18px', display: 'flex', flexDirection: 'column', gap: 12,
+        ...fadeMask(hwFade),
       }}>
       {/* Target toggle: lesson HW vs recording HW — single line, no icons */}
       <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 12, background: 'var(--color-bg-2)' }}>
@@ -2230,7 +2323,6 @@ function TestLeftPanel({ lesson, onUpdate, isLanguage = false }: {
   return (
     <OverlayScrollArea
       style={{ width: 248, flexShrink: 0, background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)', borderRadius: 18, maxHeight: '100%' }}
-      bg="rgba(var(--glass-rgb), 0.7)"
       padding="16px 14px 18px"
       scrollStyle={{ gap: 10, display: 'flex', flexDirection: 'column' }}
     >
@@ -2360,8 +2452,8 @@ function StudentsLeftPanel({
 
       {/* choices list */}
       <div style={{ minHeight: 0, position: 'relative' }}>
-        <ScrollOverlays fade={choicesFade} thumb={choicesThumb} bg="rgba(var(--glass-rgb), 0.88)" />
-        <div ref={choicesRef} onScroll={handleChoicesScroll} className="no-scrollbar" style={{ maxHeight: 306, overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 5 }}>
+        <ScrollOverlays thumb={choicesThumb} />
+        <div ref={choicesRef} onScroll={handleChoicesScroll} className="no-scrollbar" style={{ maxHeight: 306, overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 5, ...fadeMask(choicesFade) }}>
         {addTab === 'student' && studentChoices.map(s => {
           const on = extraStudentIds.includes(s.id)
           return (
@@ -3041,7 +3133,7 @@ function RightPanelLessons({
       </AnimatePresence>
 
       <div style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex', overflow: 'hidden' }}>
-        <ScrollOverlays fade={fade} thumb={thumb} />
+        <ScrollOverlays thumb={thumb} />
         {/* Click on the empty area (not a row/module) clears every selection. */}
         <div
           ref={scrollRef}
@@ -3049,7 +3141,7 @@ function RightPanelLessons({
           className="no-scrollbar"
           // overscrollBehavior: доскроллив список уроков до конца, мы раньше
           // «дотягивали» прокрутку до страницы и уезжала вся вёрстка.
-          style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', padding: '8px 10px' }}
+          style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', padding: '8px 10px', ...fadeMask(fade) }}
           onClick={e => {
             if (e.target !== e.currentTarget) return
             clearSelection()
@@ -3669,10 +3761,11 @@ export default function TeacherCourseEditorPage() {
       // содержимое, заведённое другим путём, пустым массивом абзацев.
       content: lesson.theory?.trim()
         ? {
-            paragraphs: lesson.theory.split(/\n\s*\n/).map((text, pi) => ({
-              id: `${shortIdByLessonId[lesson.id] ?? lesson.id}-p${pi + 1}`,
-              text: text.trim(),
-            })),
+            paragraphs: theoryToParagraphs(
+              lesson.theory,
+              lesson.theoryImages,
+              shortIdByLessonId[lesson.id] ?? lesson.id,
+            ),
           }
         : {},
       kind: lesson.kind ?? 'lesson',
