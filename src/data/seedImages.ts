@@ -167,8 +167,8 @@ export function barChartImage(spec: BarChartSpec): string {
 export function processFlowImage(title: string, steps: string[]): string {
   const w = 680, perRow = 3
   const rows = Math.ceil(steps.length / perRow)
-  const h = 70 + rows * 110
   const boxW = 180, boxH = 68, gapX = 30, gapY = 42
+  const h = 56 + rows * boxH + (rows - 1) * gapY + 22
   const startX = (w - (perRow * boxW + (perRow - 1) * gapX)) / 2
 
   const parts: string[] = []
@@ -260,40 +260,45 @@ export function townMapImage(variant: 'before' | 'after'): string {
  * превращается в чтение.
  */
 export function roomSceneImage(): string {
-  const w = 480, h = 330
+  const w = 520, h = 340
+  const floor = 286
   const body = `
     <rect x="16" y="40" width="${w - 32}" height="${h - 60}" rx="10" fill="#FAFBFD" stroke="${INK}" stroke-width="1.5"/>
+    <!-- линия пола: без неё «на столе» и «под столом» читаются неоднозначно -->
+    <line x1="17" y1="${floor}" x2="${w - 17}" y2="${floor}" stroke="${GRID}" stroke-width="2"/>
     <!-- окно -->
-    <rect x="52" y="66" width="104" height="76" rx="4" fill="#DCEBF7" stroke="${INK}" stroke-width="1.5"/>
-    <line x1="104" y1="66" x2="104" y2="142" stroke="${INK}" stroke-width="1.2"/>
-    <line x1="52" y1="104" x2="156" y2="104" stroke="${INK}" stroke-width="1.2"/>
-    <!-- стол -->
-    <rect x="210" y="150" width="180" height="12" rx="3" fill="#C89B67" stroke="${INK}" stroke-width="1.3"/>
-    <rect x="220" y="162" width="10" height="66" fill="#C89B67" stroke="${INK}" stroke-width="1.2"/>
-    <rect x="370" y="162" width="10" height="66" fill="#C89B67" stroke="${INK}" stroke-width="1.2"/>
-    <!-- книга на столе -->
-    <rect x="240" y="132" width="46" height="18" rx="2" fill="#E4573A" stroke="${INK}" stroke-width="1.2"/>
-    <!-- чашка на столе -->
-    <circle cx="330" cy="141" r="10" fill="#FFFFFF" stroke="${INK}" stroke-width="1.3"/>
-    <path d="M 340 138 q 10 3 0 8" fill="none" stroke="${INK}" stroke-width="1.3"/>
-    <!-- стул -->
-    <rect x="250" y="228" width="76" height="10" rx="2" fill="#9BA6B8" stroke="${INK}" stroke-width="1.2"/>
-    <rect x="252" y="238" width="8" height="46" fill="#9BA6B8" stroke="${INK}" stroke-width="1.1"/>
-    <rect x="316" y="238" width="8" height="46" fill="#9BA6B8" stroke="${INK}" stroke-width="1.1"/>
-    <rect x="316" y="180" width="10" height="50" fill="#9BA6B8" stroke="${INK}" stroke-width="1.1"/>
-    <!-- сумка под столом -->
-    <rect x="252" y="196" width="44" height="32" rx="4" fill="#6E7BA8" stroke="${INK}" stroke-width="1.2"/>
-    <path d="M 262 196 q 12 -14 24 0" fill="none" stroke="${INK}" stroke-width="1.3"/>
-    <!-- кошка на стуле -->
-    <ellipse cx="410" cy="252" rx="30" ry="18" fill="#D9C48A" stroke="${INK}" stroke-width="1.3"/>
-    <circle cx="384" cy="240" r="13" fill="#D9C48A" stroke="${INK}" stroke-width="1.3"/>
-    <path d="M 376 231 l 2 -10 l 8 6 z" fill="#D9C48A" stroke="${INK}" stroke-width="1.1"/>
-    <path d="M 392 231 l 4 -9 l 5 8 z" fill="#D9C48A" stroke="${INK}" stroke-width="1.1"/>
-    <path d="M 438 246 q 18 -6 12 -22" fill="none" stroke="${INK}" stroke-width="2"/>
+    <rect x="48" y="70" width="104" height="76" rx="4" fill="#DCEBF7" stroke="${INK}" stroke-width="1.5"/>
+    <line x1="100" y1="70" x2="100" y2="146" stroke="${INK}" stroke-width="1.2"/>
+    <line x1="48" y1="108" x2="152" y2="108" stroke="${INK}" stroke-width="1.2"/>
     <!-- часы на стене -->
-    <circle cx="404" cy="92" r="24" fill="${PAPER}" stroke="${INK}" stroke-width="1.5"/>
-    <line x1="404" y1="92" x2="404" y2="78" stroke="${INK}" stroke-width="2"/>
-    <line x1="404" y1="92" x2="415" y2="97" stroke="${INK}" stroke-width="2"/>
+    <circle cx="452" cy="100" r="24" fill="${PAPER}" stroke="${INK}" stroke-width="1.5"/>
+    <line x1="452" y1="100" x2="452" y2="86" stroke="${INK}" stroke-width="2"/>
+    <line x1="452" y1="100" x2="463" y2="105" stroke="${INK}" stroke-width="2"/>
+    <!-- стол: столешница и две ножки до пола -->
+    <rect x="196" y="176" width="184" height="12" rx="3" fill="#C89B67" stroke="${INK}" stroke-width="1.3"/>
+    <rect x="206" y="188" width="11" height="${floor - 188}" fill="#C89B67" stroke="${INK}" stroke-width="1.2"/>
+    <rect x="359" y="188" width="11" height="${floor - 188}" fill="#C89B67" stroke="${INK}" stroke-width="1.2"/>
+    <!-- книга на столе -->
+    <rect x="222" y="158" width="50" height="18" rx="2" fill="#E4573A" stroke="${INK}" stroke-width="1.2"/>
+    <!-- чашка на столе -->
+    <circle cx="330" cy="166" r="10" fill="${PAPER}" stroke="${INK}" stroke-width="1.3"/>
+    <path d="M 340 163 q 10 3 0 8" fill="none" stroke="${INK}" stroke-width="1.3"/>
+    <!-- сумка на полу под столом -->
+    <rect x="256" y="248" width="52" height="38" rx="5" fill="#6E7BA8" stroke="${INK}" stroke-width="1.2"/>
+    <path d="M 268 248 q 14 -16 28 0" fill="none" stroke="${INK}" stroke-width="1.3"/>
+    <!-- стул справа от стола, спинкой к стене -->
+    <rect x="404" y="216" width="76" height="10" rx="2" fill="#9BA6B8" stroke="${INK}" stroke-width="1.2"/>
+    <rect x="470" y="160" width="10" height="56" fill="#9BA6B8" stroke="${INK}" stroke-width="1.1"/>
+    <rect x="408" y="226" width="8" height="${floor - 226}" fill="#9BA6B8" stroke="${INK}" stroke-width="1.1"/>
+    <rect x="468" y="226" width="8" height="${floor - 226}" fill="#9BA6B8" stroke="${INK}" stroke-width="1.1"/>
+    <!-- кошка на полу слева -->
+    <ellipse cx="110" cy="266" rx="32" ry="19" fill="#D9C48A" stroke="${INK}" stroke-width="1.3"/>
+    <circle cx="82" cy="252" r="14" fill="#D9C48A" stroke="${INK}" stroke-width="1.3"/>
+    <path d="M 73 243 l 1 -11 l 9 7 z" fill="#D9C48A" stroke="${INK}" stroke-width="1.1"/>
+    <path d="M 90 242 l 5 -10 l 5 9 z" fill="#D9C48A" stroke="${INK}" stroke-width="1.1"/>
+    <circle cx="78" cy="251" r="1.6" fill="${INK}"/>
+    <circle cx="88" cy="251" r="1.6" fill="${INK}"/>
+    <path d="M 142 260 q 20 -8 14 -26" fill="none" stroke="${INK}" stroke-width="2"/>
   `
   return toDataUri(sheet(w, h, 'Комната', body))
 }

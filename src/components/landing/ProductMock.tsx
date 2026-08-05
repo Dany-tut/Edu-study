@@ -746,10 +746,12 @@ function AwardCard({ score, who, nonce }: { score: number; who: string; nonce: n
       background: `linear-gradient(135deg, color-mix(in srgb, ${tier.ink} 16%, var(--color-bg)), var(--color-bg))`,
       borderColor: `color-mix(in srgb, ${tier.ink} 45%, var(--color-border))`,
     }}>
-      {/* стикер вдвое крупнее карточки и намеренно вылезает за её края */}
+      {/* Стикер крупный и лежит внахлёст: сама печать занимает ~2/3 квадрата
+          (остальное — воздух под отогнутый уголок), поэтому поля отрицательные
+          с запасом — иначе кажется, что стикер аккуратно вписан в карточку. */}
       <HoloSticker
         key={nonce} score={score} label={`балл ${score}`} sublabel="задание 13" size={156} reveal
-        style={{ margin: '-28px 0 -28px -10px', flex: '0 0 auto' }}
+        style={{ margin: '-49px 0 -49px -45px', flex: '0 0 auto' }}
       />
       <div style={{ minWidth: 0 }}>
         <div style={{ fontSize: 12.5, fontWeight: 800 }}>{who} получает стикер</div>
