@@ -5252,8 +5252,18 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
       {/* ── 2-column body ── */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, padding: '0 24px 48px' }}>
 
-        {/* ── LEFT: assignment panel ── */}
-        <div style={{ width: 300, flexShrink: 0, position: 'sticky', top: 20, alignSelf: 'flex-start', maxHeight: 'calc(100vh - 190px)', overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* ── LEFT: assignment panel ──
+             Колонка со своим скроллом (overflow режет), а карточки внутри — с
+             тенью. Поэтому по краям запас, а отрицательные поля возвращают
+             колонку ровно на место: тень рисуется в запас и не срезается
+             линейкой. Сверху запас меньше — тень уходит вверх всего на ~8px, а
+             широкая полоса перехватывала бы клики по кнопкам шапки. */}
+        <div style={{
+          width: 300 + 48, flexShrink: 0, position: 'sticky', top: 20 - 12, alignSelf: 'flex-start',
+          margin: '-12px -24px -24px', padding: '12px 24px 24px',
+          maxHeight: 'calc(100vh - 154px)', overflowY: 'auto', overscrollBehavior: 'contain',
+          display: 'flex', flexDirection: 'column', gap: 12,
+        }}>
 
           {/* 3-mode card */}
           <GlassCard style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>

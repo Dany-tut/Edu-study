@@ -46,7 +46,8 @@ import {
   dictation, dictationBank, minPair, describeImage,
 } from './languageCourse'
 import { roomSceneImage } from './seedImages'
-import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem } from './languageCourse'
+import { charGrid, formTable, formulaStrip, contrastPair, clockRow } from './lessonFigures'
+import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 export const JAPANESE_MODULES: LangModule[] = [
@@ -1165,6 +1166,115 @@ export const JAPANESE_UNITS: LangUnit[] = [
   },
 ]
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Иллюстрации конспектов
+//
+// Кана, группы глаголов и て-форма — это таблицы; пересказывать их прозой
+// бессмысленно, ученик всё равно перерисует их себе. Место в конспекте задаёт
+// UnitFigure.after; здесь конспекты собираются из полей юнита, поэтому картинка
+// встаёт сразу после правила (см. languageCourse.ts).
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const JAPANESE_FIGURES: CourseFigures = {
+  'jajl-01': [{
+    caption: 'Один знак — один слог, и так вся таблица',
+    src: charGrid('Хирагана: ряды あ–な', [
+      [{ sym: 'あ', read: 'a' }, { sym: 'い', read: 'i' }, { sym: 'う', read: 'u' }, { sym: 'え', read: 'e' }, { sym: 'お', read: 'o' }],
+      [{ sym: 'か', read: 'ka' }, { sym: 'き', read: 'ki' }, { sym: 'く', read: 'ku' }, { sym: 'け', read: 'ke' }, { sym: 'こ', read: 'ko' }],
+      [{ sym: 'さ', read: 'sa' }, { sym: 'し', read: 'shi' }, { sym: 'す', read: 'su' }, { sym: 'せ', read: 'se' }, { sym: 'そ', read: 'so' }],
+      [{ sym: 'た', read: 'ta' }, { sym: 'ち', read: 'chi' }, { sym: 'つ', read: 'tsu' }, { sym: 'て', read: 'te' }, { sym: 'と', read: 'to' }],
+      [{ sym: 'な', read: 'na' }, { sym: 'に', read: 'ni' }, { sym: 'ぬ', read: 'nu' }, { sym: 'ね', read: 'ne' }, { sym: 'の', read: 'no' }],
+    ], {
+      colHeads: ['a', 'i', 'u', 'e', 'o'],
+      rowHeads: ['—', 'k', 's', 't', 'n'],
+      note: 'し, ち, つ выпадают из ряда: si/ti/tu не бывает — это shi, chi, tsu',
+    }),
+  }],
+
+  'jajl-02': [{
+    caption: 'Вторая половина таблицы — с пропусками, которых нет в русском алфавите',
+    src: charGrid('Хирагана: ряды は–わ', [
+      [{ sym: 'は', read: 'ha' }, { sym: 'ひ', read: 'hi' }, { sym: 'ふ', read: 'fu' }, { sym: 'へ', read: 'he' }, { sym: 'ほ', read: 'ho' }],
+      [{ sym: 'ま', read: 'ma' }, { sym: 'み', read: 'mi' }, { sym: 'む', read: 'mu' }, { sym: 'め', read: 'me' }, { sym: 'も', read: 'mo' }],
+      [{ sym: 'や', read: 'ya' }, null, { sym: 'ゆ', read: 'yu' }, null, { sym: 'よ', read: 'yo' }],
+      [{ sym: 'ら', read: 'ra' }, { sym: 'り', read: 'ri' }, { sym: 'る', read: 'ru' }, { sym: 'れ', read: 're' }, { sym: 'ろ', read: 'ro' }],
+      [{ sym: 'わ', read: 'wa' }, null, null, null, { sym: 'を', read: 'o (частица)' }],
+    ], {
+      colHeads: ['a', 'i', 'u', 'e', 'o'],
+      rowHeads: ['h', 'm', 'y', 'r', 'w'],
+      note: 'Отдельно стоит ん. В роли частиц は читается «ва», へ — «э», を — всегда «о»',
+    }),
+  }],
+
+  'jajl-05': [{
+    caption: 'Схема первой фразы: тема — что о ней — связка',
+    src: formulaStrip('X は Y です', [
+      { text: 'わたしは', note: 'тема, は = «ва»' },
+      { text: 'がくせい', note: 'кто или что' },
+      { text: 'です', note: 'связка', key: true },
+    ], {
+      example: 'わたしは がくせいです — «Я студент»',
+      note: 'Отрицание — じゃありません, вопрос — та же фраза плюс か в конце',
+    }),
+  }],
+
+  'jajl-07': [{
+    caption: 'Три группы глаголов — и всё спряжение ます-формы',
+    src: formTable('ます-форма', ['Группа', 'Словарная', 'ます-форма', 'Что произошло'], [
+      ['годан', 'いく', 'いきます', 'く → き'],
+      ['годан', 'のむ', 'のみます', 'む → み'],
+      ['годан', 'はなす', 'はなします', 'す → し'],
+      ['итидан', 'たべる', 'たべます', 'る отпадает'],
+      ['нерегул.', 'する', 'します', 'запомнить'],
+      ['нерегул.', 'くる', 'きます', 'запомнить'],
+    ], { note: 'Годан меняет гласную последнего слога на i-ряд, итидан просто теряет る' }),
+  }],
+
+  'jajl-09': [{
+    caption: 'に и で — точка и площадка действия',
+    src: contrastPair('に и で', {
+      head: 'に', sub: 'куда, где находится, когда',
+      items: ['がっこうに いきます — иду в школу', 'いえに います — я дома', '７じに おきます — встаю в семь'],
+    }, {
+      head: 'で', sub: 'где происходит действие, чем',
+      items: ['としょかんで べんきょうします — занимаюсь в библиотеке', 'でんしゃで いきます — еду на электричке', 'えんぴつで かきます — пишу карандашом'],
+    }, { note: 'あります/います и движение → に; любое другое действие → で' }),
+  }],
+
+  'jajl-14': [{
+    caption: 'Два типа прилагательных склоняются по-разному',
+    src: formTable('い- и な-прилагательные', ['Форма', 'たかい (дорогой)', 'しずかな (тихий)'], [
+      ['настоящее', 'たかいです', 'しずかです'],
+      ['отрицание', 'たかくないです', 'しずかじゃありません'],
+      ['прошедшее', 'たかかったです', 'しずかでした'],
+      ['прош. отриц.', 'たかくなかったです', 'しずかじゃありませんでした'],
+      ['перед сущ.', 'たかい ビル', 'しずかな まち'],
+    ], { note: 'い-прилагательное меняется само, な-прилагательное меняет связку. いい — исключение: よくない, よかった' }),
+  }],
+
+  'jajl-16': [{
+    caption: 'Часы и минуты: нерегулярные чтения запоминаются сразу',
+    src: clockRow('なんじ ですか', [
+      { h: 4, m: 0, label: 'よじ' },
+      { h: 9, m: 30, label: 'くじ さんじゅっぷん' },
+      { h: 7, m: 1, label: 'しちじ いっぷん' },
+    ], { note: 'Не «ёнじ», а よじ; не «きゅうじ», а くじ; минуты чередуют ふん и ぷん' }),
+  }],
+
+  'jajl-21': [{
+    caption: 'て-форма строится по окончанию словарной формы',
+    src: formTable('て-форма', ['Окончание', 'Пример', 'て-форма', 'Правило'], [
+      ['う・つ・る', 'まつ', 'まって', 'っ + て'],
+      ['む・ぶ・ぬ', 'のむ', 'のんで', 'ん + で'],
+      ['く', 'かく', 'かいて', 'い + て'],
+      ['ぐ', 'およぐ', 'およいで', 'い + で'],
+      ['す', 'はなす', 'はなして', 'し + て'],
+      ['итидан', 'たべる', 'たべて', 'る → て'],
+      ['нерегул.', 'する / くる', 'して / きて', 'запомнить'],
+    ], { note: 'Одно исключение: いく → いって, а не «いいて»' }),
+  }],
+}
+
 export const JAPANESE_JLPT: LanguageCourseSpec = {
   key: 'jajl',
   title: 'Японский с нуля — до JLPT N5',
@@ -1175,6 +1285,7 @@ export const JAPANESE_JLPT: LanguageCourseSpec = {
   scopeNote: 'Охват — с нуля: кана, ~60 кандзи, грамматика N5 с выходом на N4. Полный N4 и далее — следующий курс.',
   modules: JAPANESE_MODULES,
   units: JAPANESE_UNITS,
+  figures: JAPANESE_FIGURES,
 }
 
 export const COURSE_SUMMARY = courseSummary(JAPANESE_JLPT)
