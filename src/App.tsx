@@ -81,6 +81,8 @@ export default function App() {
     return () => { supabase.removeChannel(channel) }
   }, [loadStudentData])
 
+  // Лендинг доступен по явному адресу даже при активном входе (для просмотра)
+  if (hash.startsWith('#/landing')) return <LandingPage />
   if (hash.startsWith('#/join-teacher')) return <JoinTeacherPage />
   if (hash.startsWith('#/join')) return <JoinPage />
   if (hash.startsWith('#/diagnostic')) return <DiagnosticTestPage />
