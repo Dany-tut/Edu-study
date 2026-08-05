@@ -190,12 +190,17 @@ export interface Lesson {
   title: string
   trainerId: string | null
   widgetId: string | null
+  /** Длительность урока в минутах. Не задана — считаем по умолчанию (90). */
+  minutes?: number
 }
 
 export interface Course {
   id: string; title: string; subject: string; level: string
   description: string; lessons: Lesson[]
   color: string; bg: string; status: CourseStatus; lastEdited: string
+  /** Готовая подпись часов — только у готовых курсов, там это вилка «180–200».
+   *  У обычного курса часы считаются из уроков (courseHours). */
+  hoursLabel?: string
   /** short_id of the matching Supabase course, when this course is published to
    *  the DB. Enrollment (writing lesson_progress) targets this course's lessons. */
   dbCourseId?: string
@@ -378,7 +383,10 @@ function fmtDate(iso: string | null | undefined) {
 function dbCourseToLocal(c: any, uid?: string | null): Course {
   const lessons = (c.lessons ?? [])
     .sort((a: any, b: any) => a.lesson_number - b.lesson_number)
-    .map((l: any) => ({ id: l.short_id ?? l.id, title: l.title, trainerId: l.trainer_id ?? null, widgetId: l.widget_id ?? null }))
+    .map((l: any) => ({
+      id: l.short_id ?? l.id, title: l.title, trainerId: l.trainer_id ?? null, widgetId: l.widget_id ?? null,
+      minutes: l.scheduled_duration ?? l.rec_duration ?? undefined,
+    }))
   return {
     id: c.short_id, title: c.title, subject: c.subject ?? 'Химия', level: c.level ?? 'ЕГЭ',
     description: c.description ?? '', color: c.color ?? 'var(--color-purple)', bg: c.bg ?? 'var(--color-purple-soft)',
@@ -1153,6 +1161,22 @@ function ContentCard({ accentColor, accentBg, borderColor, isSelected, onClick, 
 
 const COURSE_COLOR    = 'var(--color-purple)'            // hex — for border/shadow concatenation
 const COURSE_BG       = 'var(--color-purple-soft)'
+
+// Урок без проставленной длительности считаем стандартным: 90 минут — то же
+// значение по умолчанию, что подставляет редактор урока.
+const DEFAULT_LESSON_MINUTES = 90
+
+/**
+ * Часы курса для карточки. У готового курса это вилка из спеки («180–200»),
+ * у обычного — сумма длительностей уроков; невыставленные считаются по 90 мин,
+ * поэтому подпись есть у каждого курса, а не только у расписанных вручную.
+ */
+function courseHours(course: Course): string {
+  if (course.hoursLabel) return course.hoursLabel
+  const minutes = course.lessons.reduce((sum, l) => sum + (l.minutes ?? DEFAULT_LESSON_MINUTES), 0)
+  const hours = minutes / 60
+  return Number.isInteger(hours) ? String(hours) : hours.toFixed(1).replace('.', ',')
+}
 const TRAINER_COLOR   = 'var(--color-purple)'
 const TRAINER_BG      = 'var(--color-purple-soft)'
 
@@ -1246,7 +1270,7 @@ function CourseCard({ course, isSelected, onClick, actions, students, access }: 
           )}
         </>
       }
-      footerRight={<><Clock size={11} strokeWidth={2} />{course.lastEdited}</>}
+      footerRight={<><Clock size={11} strokeWidth={2} />{courseHours(course)} {t('ч')}</>}
     />
   )
 }
@@ -1262,7 +1286,8 @@ function seedToCourse(seed: CourseSeed, id: string): Course {
     lessons: Array.from({ length: s.units }, (_, i) => ({
       id: `${id}-l${i + 1}`, title: '', trainerId: null, widgetId: null,
     })),
-    color: COURSE_COLOR, bg: COURSE_BG, status: 'draft', lastEdited: s.guidedHours + ' ч',
+    color: COURSE_COLOR, bg: COURSE_BG, status: 'draft',
+    lastEdited: '', hoursLabel: s.guidedHours,
   }
 }
 
@@ -7331,7 +7356,7 @@ export default function TeacherConstructorPage() {
         id: string; title: string; subject: string; level: string
         status: 'draft' | 'published'; color: string; bg: string
         description?: string; dbCourseId?: string
-        lessons: Array<{ id: string; title: string; number?: number; videoUrl?: string; description?: string }>
+        lessons: Array<{ id: string; title: string; number?: number; videoUrl?: string; description?: string; scheduledDuration?: number; recDuration?: number }>
         modules: Array<{ id: string; label: string; lessonIds: string[] }>
         groupIds?: string[]; studentIds?: string[]
       }
@@ -7340,7 +7365,10 @@ export default function TeacherConstructorPage() {
         description: ed.description ?? '', status: ed.status,
         color: ed.color, bg: ed.bg, dbCourseId: ed.dbCourseId,
         lastEdited: new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }),
-        lessons: ed.lessons.map(l => ({ id: l.id, title: l.title, trainerId: null, widgetId: null })),
+        lessons: ed.lessons.map(l => ({
+          id: l.id, title: l.title, trainerId: null, widgetId: null,
+          minutes: l.scheduledDuration ?? l.recDuration,
+        })),
         groupIds: ed.groupIds ?? [], studentIds: ed.studentIds ?? [],
       }
       setCourses(prev => prev.some(c => c.id === updated.id) ? prev.map(c => c.id === updated.id ? updated : c) : [updated, ...prev])
@@ -7984,7 +8012,9 @@ export default function TeacherConstructorPage() {
                 style={{ display: (activeTab === 'trainer' || activeTab === 'widget' || activeTab === 'bank') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
                 {activeTab === 'course' && filteredCourses.map(c => (
                   <div key={c.id} className={flashId === c.id ? 'constructor-card-flash' : undefined}
-                    title={seedById.has(c.id) ? seedTooltip(seedById.get(c.id)!) : undefined} style={{ position: 'relative' }}>
+                    // В футере теперь часы, поэтому дата правки живёт в подсказке.
+                    title={seedById.has(c.id) ? seedTooltip(seedById.get(c.id)!) : c.lastEdited ? `${t('Изменён')} ${c.lastEdited}` : undefined}
+                    style={{ position: 'relative' }}>
                     <CourseCard course={c} isSelected={false}
                       students={enrollmentByCourse[c.id]}
                       access={accessByCourse[c.id]}
