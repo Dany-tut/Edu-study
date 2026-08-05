@@ -75,5 +75,8 @@ export function seedCourseId(seed: CourseSeed, ownerId: string | null): string {
 /** Подпись-подсказка: уровень, объём, часы. */
 export function seedTooltip(seed: CourseSeed): string {
   const s = seed.summary
-  return `${s.level} · ${s.units} юнитов · ${s.taskCount} заданий · ${s.vocabCount} слов · ${s.guidedHours} ч`
+  // Часы в футере плитки — время занятий; здесь показываем полный ориентир,
+  // в него входит и самостоятельная работа ученика.
+  return `${s.level} · ${s.units} юнитов по ${s.lessonMinutes} мин · ${s.taskCount} заданий · `
+    + `${s.vocabCount} слов · с самостоятельной — ${s.guidedHours} ч`
 }

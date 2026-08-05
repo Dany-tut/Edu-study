@@ -198,9 +198,6 @@ export interface Course {
   id: string; title: string; subject: string; level: string
   description: string; lessons: Lesson[]
   color: string; bg: string; status: CourseStatus; lastEdited: string
-  /** Готовая подпись часов — только у готовых курсов, там это вилка «180–200».
-   *  У обычного курса часы считаются из уроков (courseHours). */
-  hoursLabel?: string
   /** short_id of the matching Supabase course, when this course is published to
    *  the DB. Enrollment (writing lesson_progress) targets this course's lessons. */
   dbCourseId?: string
@@ -1167,12 +1164,13 @@ const COURSE_BG       = 'var(--color-purple-soft)'
 const DEFAULT_LESSON_MINUTES = 90
 
 /**
- * Часы курса для карточки. У готового курса это вилка из спеки («180–200»),
- * у обычного — сумма длительностей уроков; невыставленные считаются по 90 мин,
- * поэтому подпись есть у каждого курса, а не только у расписанных вручную.
+ * Часы курса для карточки — сумма длительностей уроков; невыставленные считаются
+ * по 90 мин, поэтому подпись есть у каждого курса, а не только у расписанных
+ * вручную. Готовый курс считается так же: у его уроков длительность проставлена
+ * в спеке, поэтому плитка показывает то же число, что и после «Сохранить».
+ * Ориентир по учебным часам (guidedHours) — другая величина, он в описании.
  */
 function courseHours(course: Course): string {
-  if (course.hoursLabel) return course.hoursLabel
   const minutes = course.lessons.reduce((sum, l) => sum + (l.minutes ?? DEFAULT_LESSON_MINUTES), 0)
   const hours = minutes / 60
   return Number.isInteger(hours) ? String(hours) : hours.toFixed(1).replace('.', ',')
@@ -1284,10 +1282,9 @@ function seedToCourse(seed: CourseSeed, id: string): Course {
     id, title: s.title, subject: seed.subject, level: s.level,
     description: s.scopeNote ?? '',
     lessons: Array.from({ length: s.units }, (_, i) => ({
-      id: `${id}-l${i + 1}`, title: '', trainerId: null, widgetId: null,
+      id: `${id}-l${i + 1}`, title: '', trainerId: null, widgetId: null, minutes: s.lessonMinutes,
     })),
-    color: COURSE_COLOR, bg: COURSE_BG, status: 'draft',
-    lastEdited: '', hoursLabel: s.guidedHours,
+    color: COURSE_COLOR, bg: COURSE_BG, status: 'draft', lastEdited: '',
   }
 }
 

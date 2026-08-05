@@ -32,6 +32,9 @@ import type { TaskPayload, TaskTypeId } from './taskTypes'
 import { getSubject } from '../lib/subjects'
 import type { CELesson, CEModule, CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
+/** Стандартное занятие — столько же по умолчанию подставляет редактор урока. */
+const DEFAULT_LESSON_MINUTES = 90
+
 // ─── Модель ──────────────────────────────────────────────────────────────────
 
 /** Слово словаря юнита. Ложится в карточки и в интервальные повторения. */
@@ -90,8 +93,14 @@ export interface LanguageCourseSpec {
   level: string
   /** BCP-47 изучаемого языка — идёт в задания для синтеза речи. */
   lang: string
-  /** Ориентир по учебным часам. */
+  /** Ориентир по учебным часам — включая самостоятельную работу. */
   guidedHours: string
+  /**
+   * Длительность одного занятия в минутах. Это НЕ guidedHours / число юнитов:
+   * там весь труд ученика, а здесь только время в классе. Не задана — курс
+   * считается по стандартным 90 минутам.
+   */
+  lessonMinutes?: number
   /** Честная граница охвата: что в курсе есть и чего в нём ещё нет. */
   scopeNote?: string
   modules: LangModule[]
@@ -188,6 +197,8 @@ export interface CourseSummary {
   vocabCount: number
   taskCount: number
   guidedHours: string
+  /** Длительность занятия в минутах — из неё считаются часы курса в списке. */
+  lessonMinutes: number
   scopeNote?: string
 }
 
@@ -199,6 +210,7 @@ export function courseSummary(spec: LanguageCourseSpec): CourseSummary {
     vocabCount: spec.units.reduce((sum, u) => sum + u.vocab.length, 0),
     taskCount: spec.units.reduce((sum, u) => sum + u.tasks.length, 0),
     guidedHours: spec.guidedHours,
+    lessonMinutes: spec.lessonMinutes ?? DEFAULT_LESSON_MINUTES,
     scopeNote: spec.scopeNote,
   }
 }
@@ -236,6 +248,10 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
     title: `${unit.n}. ${unit.title}`,
     number: unit.n,
     kind: 'lesson',
+    // Дата занятия у сида не проставлена (её ставит учитель под свою группу),
+    // а длительность известна заранее — из неё считаются часы курса в списке
+    // и длина события в расписании, когда дата появится.
+    scheduledDuration: spec.lessonMinutes ?? DEFAULT_LESSON_MINUTES,
     description: [
       `Цель: ${unit.goal}`,
       `Грамматика: ${unit.grammar}`,
