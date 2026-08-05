@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import HoloSticker from '../HoloSticker'
+import StickerBadge from '../StickerBadge'
 import { tierOf } from '../../lib/holo/presets'
 import {
   ChevronLeft, ChevronRight, RotateCw, Plus, Share, Copy, PanelLeft, ShieldCheck,
   Search, Bell, LayoutGrid, Users, ClipboardCheck, BookOpen, BarChart3,
   Pencil, Circle, MessageSquare, Check, X, Flame, Play, Lock,
+  CalendarDays, Clock, Undo2, Sparkles, ArrowRight,
 } from 'lucide-react'
 
 const ACCENT = '#786AD7'
@@ -23,6 +25,7 @@ const WARN = '#E8A54F'
 const SECTIONS = [
   { key: 'Обзор', slug: 'обзор', sub: 'Сегодня, 3 занятия · 5 работ на проверку', icon: LayoutGrid },
   { key: 'Группы', slug: 'группы', sub: '4 группы · 24 ученика', icon: Users },
+  { key: 'Расписание', slug: 'расписание', sub: 'Неделя 16–22 сентября · 7 занятий', icon: CalendarDays },
   { key: 'Домашки', slug: 'домашки', sub: '5 работ ждут проверки', icon: ClipboardCheck },
   { key: 'Журнал', slug: 'журнал', sub: 'Посещаемость и оценки', icon: BookOpen },
   { key: 'Аналитика', slug: 'аналитика', sub: 'Прогресс за месяц', icon: BarChart3 },
@@ -51,6 +54,12 @@ export default function ProductMock() {
     setHistory(next)
     setHIdx(next.length - 1)
     setBellOpen(false)
+  }
+  // переход по названию раздела — чтобы плитки «Обзора» вели куда надо
+  // и порядок SECTIONS можно было менять, не правя индексы
+  const goKey = (key: string) => {
+    const i = SECTIONS.findIndex(s => s.key === key)
+    if (i >= 0) go(i)
   }
   const back = () => hIdx > 0 && setHIdx(hIdx - 1)
   const forward = () => hIdx < history.length - 1 && setHIdx(hIdx + 1)
@@ -191,8 +200,9 @@ export default function ProductMock() {
                   Неактивные скрыты visibility: место держат, клики не ловят. */}
               <div style={{ display: 'grid' }}>
                 {[
-                  <MockOverview query={query} accepted={accepted} onAccept={accept} />,
+                  <MockOverview query={query} accepted={accepted} onAccept={accept} onGo={goKey} />,
                   <MockGroups query={query} />,
+                  <MockSchedule query={query} />,
                   <MockHomework query={query} accepted={accepted} onAccept={accept} />,
                   <MockJournal query={query} />,
                   <MockAnalytics />,
@@ -324,7 +334,9 @@ function BellPopup({ onClose }: { onClose: () => void }) {
 const WEEK = { '7 дней': [42, 58, 35, 72, 50, 88, 64], '30 дней': [55, 40, 78, 62, 90, 48, 70] } as const
 const WEEK_LABELS = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс']
 
-function MockOverview({ query, accepted, onAccept }: { query: string; accepted: string[]; onAccept: (n: string) => void }) {
+function MockOverview({ query, accepted, onAccept, onGo }: {
+  query: string; accepted: string[]; onAccept: (n: string) => void; onGo: (key: string) => void
+}) {
   const [period, setPeriod] = useState<keyof typeof WEEK>('7 дней')
   const [hover, setHover] = useState<number | null>(null)
   const bars = WEEK[period]
@@ -337,14 +349,18 @@ function MockOverview({ query, accepted, onAccept }: { query: string; accepted: 
 
   return (
     <>
+      {/* плитки — точки входа в разделы, как в живом кабинете */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 14 }}>
         {[
-          { k: 'Учеников', v: '24', c: ACCENT },
-          { k: 'На проверку', v: String(pending), c: pending ? ACCENT_L : OK },
-          { k: 'Средний балл', v: (4.3 + accepted.length * 0.1).toFixed(1), c: WARN },
+          { k: 'Учеников', v: '24', c: ACCENT, to: 'Группы' },
+          { k: 'На проверку', v: String(pending), c: pending ? ACCENT_L : OK, to: 'Домашки' },
+          { k: 'Средний балл', v: (4.3 + accepted.length * 0.1).toFixed(1), c: WARN, to: 'Аналитика' },
         ].map(s => (
-          <div key={s.k} className="lp-row" style={{ ...mockCard, border: '1px solid var(--color-border)' }}>
-            <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginBottom: 6 }}>{s.k}</div>
+          <div key={s.k} className="lp-row lp-clickrow" onClick={() => onGo(s.to)} title={`Открыть «${s.to}»`}
+            style={{ ...mockCard, border: '1px solid var(--color-border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--color-text-3)', marginBottom: 6 }}>
+              {s.k} <ArrowRight size={11} style={{ opacity: 0.55 }} />
+            </div>
             <div style={{ fontSize: 22, fontWeight: 800, color: s.c, transition: 'color .2s' }}>{s.v}</div>
           </div>
         ))}
@@ -450,12 +466,129 @@ function MockGroups({ query }: { query: string }) {
   )
 }
 
+// ── Расписание: неделя, перенос занятий, «провести» ──────────────────────────
+const DAY_LABELS = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс']
+const WEEK_DATES = ['16.09', '17.09', '18.09', '19.09', '20.09', '21.09', '22.09']
+type Slot = { id: string; day: number; time: string; who: string; topic: string; solo: boolean }
+const SCHEDULE: Slot[] = [
+  { id: 's1', day: 0, time: '18:00', who: 'ЕГЭ Математика', topic: 'Иррациональные уравнения', solo: false },
+  { id: 's2', day: 1, time: '16:00', who: 'ОГЭ Русский', topic: 'Сочинение 9.3', solo: false },
+  { id: 's3', day: 1, time: '19:30', who: 'Юля Т.', topic: 'Разбор варианта 7', solo: true },
+  { id: 's4', day: 3, time: '18:00', who: 'ЕГЭ Математика', topic: 'Параметры · часть 2', solo: false },
+  { id: 's5', day: 4, time: '17:00', who: 'Тимур А.', topic: 'Тригонометрия с нуля', solo: true },
+  { id: 's6', day: 5, time: '16:00', who: 'ОГЭ Русский', topic: 'Изложение', solo: false },
+  { id: 's7', day: 5, time: '18:30', who: 'ЕГЭ Математика', topic: 'Пробник', solo: false },
+]
+
+function MockSchedule({ query }: { query: string }) {
+  const [slots, setSlots] = useState(SCHEDULE)
+  const [day, setDay] = useState(1)
+  const [held, setHeld] = useState<string[]>([])   // «проведено» → в журнал
+  const [added, setAdded] = useState(0)
+  const q = query.trim().toLowerCase()
+  const match = (s: Slot) => !q || s.who.toLowerCase().includes(q) || s.topic.toLowerCase().includes(q)
+
+  const visible = slots.filter(match)
+  const ofDay = visible.filter(s => s.day === day).sort((a, b) => a.time.localeCompare(b.time))
+  // перенос: занятие уезжает на следующий день недели, вс → пн
+  const move = (id: string) => setSlots(list => list.map(s => (s.id === id ? { ...s, day: (s.day + 1) % 7 } : s)))
+  const hold = (id: string) => setHeld(h => (h.includes(id) ? h.filter(x => x !== id) : [...h, id]))
+  const add = () => {
+    const n = added + 1
+    setAdded(n)
+    setSlots(list => [...list, { id: `new${n}`, day, time: '20:00', who: 'Новая группа', topic: 'Тема не задана', solo: false }])
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* полоса недели — кликом выбираем день */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
+        {DAY_LABELS.map((d, i) => {
+          const cnt = visible.filter(s => s.day === i).length
+          const on = day === i
+          return (
+            <button key={d} onClick={() => setDay(i)} className="lp-chip" style={{
+              padding: '8px 4px', borderRadius: 10, cursor: 'pointer', textAlign: 'center',
+              border: `1px solid ${on ? `color-mix(in srgb, ${ACCENT} 55%, var(--color-border))` : 'var(--color-border)'}`,
+              background: on ? `color-mix(in srgb, ${ACCENT} 12%, var(--color-bg))` : 'var(--color-bg)',
+              color: on ? ACCENT : 'var(--color-text-2)',
+            }}>
+              <div style={{ fontSize: 10.5, opacity: 0.75 }}>{d}</div>
+              <div style={{ fontSize: 13, fontWeight: 800 }}>{WEEK_DATES[i].slice(0, 2)}</div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 3, marginTop: 4, height: 5 }}>
+                {Array.from({ length: cnt }).map((_, k) => (
+                  <span key={k} style={{ width: 5, height: 5, borderRadius: 999, background: on ? ACCENT : `color-mix(in srgb, ${ACCENT} 45%, transparent)` }} />
+                ))}
+              </div>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* занятия выбранного дня */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {ofDay.map(s => {
+          const on = held.includes(s.id)
+          return (
+            <div key={s.id} className="lp-row" style={{ ...mockRow, alignItems: 'stretch', gap: 12, padding: '11px 13px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: 46, flexShrink: 0 }}>
+                <span style={{ fontSize: 13, fontWeight: 800, color: on ? OK : ACCENT }}>{s.time}</span>
+                <span style={{ fontSize: 10, color: 'var(--color-text-3)' }}>{s.solo ? '1:1' : 'группа'}</span>
+              </div>
+              <div style={{ width: 3, borderRadius: 999, background: on ? OK : `linear-gradient(180deg, ${ACCENT}, ${ACCENT_2})`, flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.who}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.topic}</div>
+              </div>
+              <div className="lp-slot-btns" style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                <button onClick={() => move(s.id)} title="Перенести на следующий день" style={{
+                  ...iconBtnBase, width: 28, height: 28, borderRadius: 9, color: 'var(--color-text-2)',
+                  background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+                }}><ChevronRight size={14} /></button>
+                <button onClick={() => hold(s.id)} style={{
+                  display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', borderRadius: 9, cursor: 'pointer',
+                  fontSize: 11.5, fontWeight: 700, border: '1px solid transparent', color: '#fff',
+                  background: on ? OK : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`, transition: 'background .2s',
+                }}>
+                  {on ? <><Check size={12} /> Проведено</> : <><Play size={11} /> Провести</>}
+                </button>
+              </div>
+            </div>
+          )
+        })}
+        {!ofDay.length && (
+          <div style={{ ...mockCard, textAlign: 'center', padding: '20px 0', fontSize: 12, color: 'var(--color-text-3)' }}>
+            {q ? 'Ничего не нашлось — очистите поиск' : `${DAY_LABELS[day]}, ${WEEK_DATES[day]} — занятий нет`}
+          </div>
+        )}
+        <button onClick={add} className="lp-clickrow" style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '9px 0', borderRadius: 11,
+          fontSize: 12, fontWeight: 700, cursor: 'pointer', color: ACCENT,
+          background: `color-mix(in srgb, ${ACCENT} 8%, transparent)`,
+          border: `1px dashed color-mix(in srgb, ${ACCENT} 40%, transparent)`,
+        }}><Plus size={13} /> Добавить занятие</button>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 10.5, color: 'var(--color-text-3)' }}>
+        <Clock size={12} /> Проведённые занятия сразу попадают в журнал — отмечать дважды не нужно.
+      </div>
+      <style>{`@media (max-width: 560px){ .lp-slot-btns{ flex-direction: column; align-items: stretch !important; } }`}</style>
+    </div>
+  )
+}
+
 // ── Домашки: проверка части 2 с аннотацией ───────────────────────────────────
 const HW_QUEUE = [
   { n: 'Анна К.', t: 'Часть 2 · вар. 7', task: 'задание 13' },
   { n: 'Игорь П.', t: 'Часть 2 · вар. 5', task: 'задание 15' },
   { n: 'Марк В.', t: 'Урок 12', task: 'задание 9' },
   { n: 'Лена С.', t: 'Тренажёр · линия 8', task: 'задание 8' },
+]
+// частые замечания — вставляются в комментарий одним кликом
+const NOTE_PRESETS = [
+  { k: 'ОДЗ', text: 'здесь потеряли ОДЗ — минус 1 балл.' },
+  { k: 'Арифметика', text: 'в третьей строке −6 вместо −4, дальше всё верно.' },
+  { k: 'Оформление', text: 'нет пояснения к переходу — на экзамене снимут балл.' },
 ]
 
 function MockHomework({ query, accepted, onAccept }: { query: string; accepted: string[]; onAccept: (n: string) => void }) {
@@ -464,6 +597,8 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
   const [pick, setPick] = useState(0)
   const [tools, setTools] = useState<string[]>(['pen', 'note'])
   const [grade, setGrade] = useState<number | null>(null)
+  const [note, setNote] = useState(0)                 // выбранный шаблон комментария
+  const [rework, setRework] = useState<string[]>([])  // отправленные на доработку
   // выданный стикер: балл + счётчик, чтобы перезапускать анимацию «приклеивания»
   const [award, setAward] = useState<{ score: number; n: number; who: string } | null>(null)
   const cur = list[Math.min(pick, list.length - 1)] ?? HW_QUEUE[0]
@@ -498,9 +633,22 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
             </>}
           </svg>
           {tools.includes('note') && (
-            <div className="lp-mock-panel" style={{ marginTop: 8, padding: '8px 10px', borderRadius: 10, fontSize: 11.5, lineHeight: 1.4, color: 'var(--color-text-2)', background: `color-mix(in srgb, ${ACCENT} 12%, transparent)`, border: `1px solid color-mix(in srgb, ${ACCENT} 30%, transparent)` }}>
-              <b style={{ color: ACCENT }}>Комментарий:</b> здесь потеряли ОДЗ — минус 1 балл.
-            </div>
+            <>
+              <div key={note} className="lp-mock-panel" style={{ marginTop: 8, padding: '8px 10px', borderRadius: 10, fontSize: 11.5, lineHeight: 1.4, color: 'var(--color-text-2)', background: `color-mix(in srgb, ${ACCENT} 12%, transparent)`, border: `1px solid color-mix(in srgb, ${ACCENT} 30%, transparent)` }}>
+                <b style={{ color: ACCENT }}>Комментарий:</b> {NOTE_PRESETS[note].text}
+              </div>
+              {/* заготовки комментариев — учитель не печатает одно и то же руками */}
+              <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+                {NOTE_PRESETS.map((p, i) => (
+                  <button key={p.k} className="lp-chip" onClick={() => setNote(i)} style={{
+                    padding: '4px 9px', borderRadius: 999, fontSize: 10.5, fontWeight: note === i ? 700 : 500, cursor: 'pointer',
+                    color: note === i ? '#fff' : 'var(--color-text-2)',
+                    background: note === i ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` : 'var(--color-surface)',
+                    border: '1px solid var(--color-border)',
+                  }}>{p.k}</button>
+                ))}
+              </div>
+            </>
           )}
         </div>
         {/* вердикт */}
@@ -514,12 +662,23 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
               border: '1px solid var(--color-border)',
             }}>{g}</button>
           ))}
+          {/* вернуть на доработку: работа остаётся у ученика, стикер не выдаётся */}
+          <button onClick={() => setRework(r => (r.includes(cur.n) ? r.filter(x => x !== cur.n) : [...r, cur.n]))} style={{
+            marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', borderRadius: 9,
+            fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
+            color: rework.includes(cur.n) ? '#fff' : WARN,
+            background: rework.includes(cur.n) ? WARN : `color-mix(in srgb, ${WARN} 13%, transparent)`,
+            border: `1px solid color-mix(in srgb, ${WARN} 40%, transparent)`, transition: 'background .2s, color .2s',
+          }}>
+            <Undo2 size={12} /> {rework.includes(cur.n) ? 'Отправлено' : 'На доработку'}
+          </button>
           <button onClick={() => {
             const g = grade ?? 4
             onAccept(cur.n); setGrade(g)
+            setRework(r => r.filter(x => x !== cur.n))
             setAward(a => ({ score: g, n: (a?.n ?? 0) + 1, who: cur.n }))
           }} style={{
-            marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 9,
+            display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 9,
             fontSize: 11.5, fontWeight: 700, cursor: 'pointer', color: '#fff', border: 'none',
             background: accepted.includes(cur.n) ? OK : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})`,
           }}>
@@ -544,7 +703,9 @@ function MockHomework({ query, accepted, onAccept }: { query: string; accepted: 
                 <div style={{ fontSize: 12.5, fontWeight: 700 }}>{r.n}</div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{r.t}</div>
               </div>
-              <span style={pill(ok)}>{ok ? 'Принято' : 'Проверить'}</span>
+              {rework.includes(r.n) && !ok
+                ? <span style={{ ...pill(false), color: WARN, background: `color-mix(in srgb, ${WARN} 15%, transparent)` }}>Доработка</span>
+                : <span style={pill(ok)}>{ok ? 'Принято' : 'Проверить'}</span>}
             </div>
           )
         })}
@@ -592,18 +753,35 @@ function MockJournal({ query }: { query: string }) {
   const q = query.trim().toLowerCase()
   const rows = JOURNAL_ROWS.filter(r => !q || r.n.toLowerCase().includes(q))
   const bump = (k: string, cur: string) => setEdits(e => ({ ...e, [k]: CYCLE[(CYCLE.indexOf(cur) + 1) % CYCLE.length] }))
+  const val = (name: string, i: number, base: string) => edits[`${name}-${i}`] ?? base
+
+  // клик по дате — отметить всю колонку присутствующими; повторный клик снимает
+  const markColumn = (i: number) => {
+    const all = rows.every(r => val(r.n, i, r.cells[i]) === '✓')
+    setEdits(e => {
+      const next = { ...e }
+      rows.forEach(r => { if (all) delete next[`${r.n}-${i}`]; else next[`${r.n}-${i}`] = '✓' })
+      return next
+    })
+  }
 
   return (
     <div style={{ ...mockCard, overflowX: 'auto' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: `96px repeat(${DATES.length}, 1fr)`, gap: 6, minWidth: 330 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: `96px repeat(${DATES.length}, 1fr) 44px`, gap: 6, minWidth: 380 }}>
         <div />
-        {DATES.map(d => <div key={d} style={{ fontSize: 10.5, color: 'var(--color-text-3)', textAlign: 'center', fontWeight: 600 }}>{d}</div>)}
+        {DATES.map((d, i) => (
+          <button key={d} className="lp-chip" onClick={() => markColumn(i)} title="Отметить всех присутствующими"
+            style={{ fontSize: 10.5, color: 'var(--color-text-3)', fontWeight: 600, cursor: 'pointer', border: 'none', background: 'transparent', padding: '2px 0', borderRadius: 6 }}>
+            {d}
+          </button>
+        ))}
+        <div style={{ fontSize: 10.5, color: 'var(--color-text-3)', textAlign: 'center', fontWeight: 600 }}>ср.</div>
         {rows.map(r => (
           <JournalRow key={r.n} name={r.n} cells={r.cells} edits={edits} onCell={bump} />
         ))}
       </div>
       <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap', fontSize: 10.5, color: 'var(--color-text-3)' }}>
-        <span>Кликните по клетке — отметка меняется: · → ✓ → 5 → 4 → 3</span>
+        <span>Клик по клетке меняет отметку: · → ✓ → 5 → 4 → 3. Клик по дате — отметить всю колонку.</span>
       </div>
       {!rows.length && <Empty />}
     </div>
@@ -613,22 +791,24 @@ function MockJournal({ query }: { query: string }) {
 function JournalRow({ name, cells, edits, onCell }: {
   name: string; cells: string[]; edits: Record<string, string>; onCell: (k: string, cur: string) => void
 }) {
+  const values = cells.map((base, i) => edits[`${name}-${i}`] ?? base)
+  const marks = values.filter(v => /^[2-5]$/.test(v)).map(Number)
+  const avg = marks.length ? (marks.reduce((a, b) => a + b, 0) / marks.length).toFixed(1) : '—'
   return (
     <>
       <div style={{ fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap' }}>
         <Avatar name={name} size={20} /> {name}
       </div>
-      {cells.map((base, i) => {
-        const k = `${name}-${i}`
-        const v = edits[k] ?? base
+      {values.map((v, i) => {
         const { c, bg } = cellColor(v)
         return (
-          <div key={k} className="lp-cell" onClick={() => onCell(k, v)}
+          <div key={`${name}-${i}`} className="lp-cell" onClick={() => onCell(`${name}-${i}`, v)}
             style={{ height: 30, borderRadius: 8, display: 'grid', placeItems: 'center', fontSize: 12.5, fontWeight: 700, color: c, background: bg }}>
             {v}
           </div>
         )
       })}
+      <div style={{ height: 30, display: 'grid', placeItems: 'center', fontSize: 12, fontWeight: 800, color: marks.length ? ACCENT : 'var(--color-text-3)' }}>{avg}</div>
     </>
   )
 }
@@ -648,10 +828,18 @@ const RANGES = {
   'Квартал': [22, 35, 30, 48, 44, 62, 58, 74, 70, 88],
 } as const
 
+// срез по группе: сдвиг кривой и своё распределение оценок
+const SLICES = {
+  'Все': { shift: 0, bars: [12, 34, 78, 92], hw: '92%', act: '21 / 24' },
+  'ЕГЭ Матем.': { shift: 8, bars: [6, 22, 70, 96], hw: '96%', act: '12 / 12' },
+  'ОГЭ Русский': { shift: -10, bars: [20, 52, 74, 60], hw: '81%', act: '6 / 8' },
+} as const
+
 function MockAnalytics() {
   const [range, setRange] = useState<keyof typeof RANGES>('Месяц')
+  const [slice, setSlice] = useState<keyof typeof SLICES>('Все')
   const [hover, setHover] = useState<number | null>(null)
-  const line = RANGES[range]
+  const line = RANGES[range].map(v => Math.max(6, Math.min(94, v + SLICES[slice].shift)))
   const pts = line.map((v, i) => `${(i / (line.length - 1)) * 100},${100 - v}`).join(' ')
   // 0..100 графика → правдоподобный балл 3.0–4.9 (та же шкала в тултипе и в дельте)
   const score = (v: number) => 3 + v / 50
@@ -660,6 +848,10 @@ function MockAnalytics() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>Срез</span>
+        <Segmented value={slice} options={Object.keys(SLICES) as (keyof typeof SLICES)[]} onChange={s => { setSlice(s); setHover(null) }} />
+      </div>
       <div style={mockCard}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 12, fontWeight: 700 }}>Средний балл потока</span>
@@ -705,8 +897,11 @@ function MockAnalytics() {
         <div style={mockCard}>
           <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 12 }}>Распределение оценок</div>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 56 }}>
-            {[{ g: '2', h: 12 }, { g: '3', h: 34 }, { g: '4', h: 78 }, { g: '5', h: 92 }].map(b => (
-              <div key={b.g} className="lp-bar" title={`Оценка ${b.g}`} style={{ flex: 1, height: `${b.h}%`, borderRadius: 5, background: `linear-gradient(180deg, ${ACCENT_L}, ${ACCENT})` }} />
+            {SLICES[slice].bars.map((h, i) => (
+              <div key={i} className="lp-bar" title={`Оценка ${i + 2}`} style={{
+                flex: 1, height: `${h}%`, borderRadius: 5, background: `linear-gradient(180deg, ${ACCENT_L}, ${ACCENT})`,
+                transition: 'height .3s cubic-bezier(.22,1,.36,1)',
+              }} />
             ))}
           </div>
           <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
@@ -714,7 +909,7 @@ function MockAnalytics() {
           </div>
         </div>
         <div style={{ ...mockCard, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 12 }}>
-          {[{ k: 'Сдаваемость ДЗ', v: '92%' }, { k: 'Активных за неделю', v: '21 / 24' }].map(s => (
+          {[{ k: 'Сдаваемость ДЗ', v: SLICES[slice].hw }, { k: 'Активных за неделю', v: SLICES[slice].act }].map(s => (
             <div key={s.k}>
               <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{s.k}</div>
               <div style={{ fontSize: 20, fontWeight: 800, color: ACCENT }}>{s.v}</div>
@@ -734,12 +929,25 @@ const QUIZ = {
   opts: ['x ≥ 3', 'x > 3', 'x ≤ 3', 'x ∈ ℝ'],
   right: 0,
 }
+// задание «последовательность»: порядок шагов решения проверяется автоматически
+const STEPS = ['Записать ОДЗ', 'Возвести обе части в квадрат', 'Решить квадратное уравнение', 'Отсеять корни по ОДЗ']
+const STEPS_SHUFFLED = [2, 0, 3, 1]   // как шаги лежат в банке до сборки
+// коллекция стикеров: балл за задание = редкость фольги
+const COLLECTION = [
+  { score: 5, label: 'Урок 11', sub: 'Уравнения', got: true },
+  { score: 4, label: 'Урок 10', sub: 'Степени', got: true },
+  { score: 5, label: 'Вариант 6', sub: 'Часть 2', got: true },
+  { score: 3, label: 'Линия 8', sub: 'Тренажёр', got: true },
+  { score: 5, label: 'Урок 12', sub: 'ещё не открыт', got: false },
+  { score: 4, label: 'Пробник', sub: 'ещё не открыт', got: false },
+]
 
 function MockStudent() {
   const [done, setDone] = useState(3)          // сколько уроков пройдено
   const [pick, setPick] = useState(3)          // выбранный узел трека
   const [sent, setSent] = useState(false)
   const [answer, setAnswer] = useState<number | null>(null)
+  const [mode, setMode] = useState<'Тест' | 'Порядок'>('Тест')
   const pct = Math.round((done / LESSONS.length) * 100)
 
   const submit = () => {
@@ -819,12 +1027,20 @@ function MockStudent() {
             </div>
           )}
         </div>
+
+        {/* полка стикеров живёт в левой колонке: так обе колонки примерно равны
+            по высоте, и переключение вкладок браузера не меняет высоту окна */}
+        <StickerShelf />
       </div>
 
-      {/* тренажёр-квиз */}
+      {/* тренажёр: два типа заданий — тест и сборка последовательности */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={mockCard}>
-          <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Тренажёр · линия 8</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <span style={{ fontSize: 12, fontWeight: 700 }}>Тренажёр · линия 8</span>
+            <Segmented value={mode} options={['Тест', 'Порядок']} onChange={setMode} />
+          </div>
+          {mode === 'Порядок' ? <StepsTask /> : <>
           <div style={{ fontSize: 13, marginBottom: 12 }}>{QUIZ.q}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
             {QUIZ.opts.map((o, i) => {
@@ -853,6 +1069,7 @@ function MockStudent() {
               {answer === QUIZ.right ? 'Верно: подкоренное выражение неотрицательно.' : 'Не то: корень определён и при x = 3 — знак нестрогий.'}
             </div>
           )}
+          </>}
         </div>
         <div style={{ ...mockCard, display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ width: 30, height: 30, borderRadius: 9, display: 'grid', placeItems: 'center', color: ACCENT, background: `color-mix(in srgb, ${ACCENT} 13%, transparent)` }}>
@@ -864,6 +1081,91 @@ function MockStudent() {
         </div>
       </div>
       <style>{`@media (max-width: 700px){ .lp-mock-st{ grid-template-columns: 1fr !important; } }`}</style>
+    </div>
+  )
+}
+
+// Задание «расставь по порядку»: клик по шагу отправляет его в решение,
+// клик по шагу в решении возвращает обратно. Проверка — когда собраны все.
+function StepsTask() {
+  const [order, setOrder] = useState<number[]>([])
+  const bank = STEPS_SHUFFLED.filter(i => !order.includes(i))
+  const full = order.length === STEPS.length
+  const ok = full && order.every((v, i) => v === i)
+
+  return (
+    <div>
+      <div style={{ fontSize: 13, marginBottom: 10 }}>Расставьте шаги решения √(x − 3) = x − 5</div>
+      {/* собранное решение */}
+      <div style={{
+        display: 'flex', flexDirection: 'column', gap: 6, minHeight: 42, padding: 8, borderRadius: 10, marginBottom: 8,
+        background: 'var(--color-surface)', border: `1px dashed ${full ? (ok ? `color-mix(in srgb, ${OK} 45%, transparent)` : 'color-mix(in srgb, #ED6A5E 45%, transparent)') : 'var(--color-border)'}`,
+        transition: 'border-color .2s',
+      }}>
+        {order.map((s, pos) => {
+          const right = full && s === pos
+          return (
+            <button key={s} onClick={() => setOrder(o => o.filter(x => x !== s))} className="lp-chip" style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 9, cursor: 'pointer',
+              fontSize: 12, fontWeight: 600, textAlign: 'left', border: '1px solid var(--color-border)',
+              color: full ? (right ? OK : '#ED6A5E') : 'var(--color-text)',
+              background: full ? `color-mix(in srgb, ${right ? OK : '#ED6A5E'} 12%, transparent)` : 'var(--color-bg)',
+              transition: 'background .15s, color .15s',
+            }}>
+              <span style={{ width: 17, height: 17, borderRadius: 999, flexShrink: 0, display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 800, color: '#fff', background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_2})` }}>{pos + 1}</span>
+              {STEPS[s]}
+            </button>
+          )
+        })}
+        {!order.length && <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', padding: '5px 2px' }}>Кликайте по шагам ниже — они встанут по порядку</div>}
+      </div>
+      {/* банк шагов */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {bank.map(s => (
+          <button key={s} onClick={() => setOrder(o => [...o, s])} className="lp-chip" style={{
+            padding: '7px 11px', borderRadius: 9, cursor: 'pointer', fontSize: 12, fontWeight: 600,
+            color: 'var(--color-text)', background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+          }}>{STEPS[s]}</button>
+        ))}
+      </div>
+      {full && (
+        <div className="lp-mock-panel" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, fontSize: 11.5, lineHeight: 1.45, color: ok ? OK : 'var(--color-text-2)' }}>
+          {ok ? 'Верно — порядок шагов правильный, задание засчитано.' : 'Порядок не тот: ОДЗ пишут до возведения в квадрат.'}
+          {!ok && <button onClick={() => setOrder([])} style={{ marginLeft: 'auto', padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', color: ACCENT, background: `color-mix(in srgb, ${ACCENT} 12%, transparent)`, border: 'none' }}>Заново</button>}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Полка стикеров: клик по бейджу поднимает его в голо-превью.
+// Живой WebGL-рендер держим один — остальные бейджи статичные.
+function StickerShelf() {
+  const [sel, setSel] = useState(0)
+  const cur = COLLECTION[sel]
+  const tier = tierOf(cur.score)
+  const got = COLLECTION.filter(c => c.got).length
+
+  return (
+    <div style={mockCard}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+        <Sparkles size={13} style={{ color: ACCENT }} />
+        <span style={{ fontSize: 12, fontWeight: 700 }}>Коллекция стикеров</span>
+        <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>{got} из {COLLECTION.length}</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+        <HoloSticker key={sel} score={cur.score} label={`балл ${cur.score}`} sublabel={cur.label} size={76} reveal />
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 800, color: tier.ink }}>{tier.name}</div>
+          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{cur.got ? tier.hint : 'Сдайте задание на 5 — и стикер откроется'}</div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {COLLECTION.map((c, i) => (
+          <StickerBadge key={c.label} score={c.score} label={c.label} size={46} locked={!c.got} onClick={() => setSel(i)}
+            style={{ cursor: 'pointer', outline: sel === i ? `2px solid ${ACCENT}` : 'none', outlineOffset: 2, borderRadius: 10 }} />
+        ))}
+      </div>
     </div>
   )
 }

@@ -63,6 +63,9 @@ export const SUBJECTS: SubjectDef[] = [
   { id: 'literature', name: 'Литература', icon: '📖', hasBank: false, isLanguage: true, ...palettePair('#A25AD4', '#BE86E6', '#7E3DAE', '#CFA3EE') },
   { id: 'history', name: 'История', icon: '🏛️', hasBank: false, ...palettePair('#C08A3E', '#D6A860', '#93661F', '#E0BE86') },
   { id: 'english', name: 'Английский', icon: '🇬🇧', hasBank: false, isLanguage: true, ...palettePair('#E4572E', '#F0805E', '#B23E1C', '#F5A186') },
+  { id: 'korean', name: 'Корейский', icon: '🇰🇷', hasBank: false, isLanguage: true, ...palettePair('#3F51B5', '#7A88DC', '#2F3C8C', '#A3ADEA') },
+  { id: 'japanese', name: 'Японский', icon: '🇯🇵', hasBank: false, isLanguage: true, ...palettePair('#B3122B', '#DE5468', '#8C0E21', '#EF8C9A') },
+  { id: 'portuguese', name: 'Португальский', icon: '🇧🇷', hasBank: false, isLanguage: true, ...palettePair('#2E8B37', '#5CB565', '#1F6B27', '#8FD196') },
 ]
 
 // Lookup by either the English id or the Russian name, case-insensitive.
