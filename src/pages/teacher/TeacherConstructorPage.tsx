@@ -14,7 +14,7 @@ import {
   CheckCircle, Circle, Globe, Copy, Search, LayoutGrid,
   Settings, TrendingUp, ArrowLeftRight, RotateCcw, Palette,
   ChevronLeft, ChevronRight, Calendar, Users, UsersRound, Pipette,
-  Calculator, Star, Lightbulb, Microscope, Music, Languages, Sigma,
+  Calculator, Star, Lightbulb, Microscope, Music, Sigma,
   Lock,
 } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
@@ -40,7 +40,6 @@ import { getOwnerId } from '../../lib/owner'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { usePersistentState, readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 import { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from '../../data/apChemistry'
-import { buildEnglishDesignCareerCourse, COURSE_SUMMARY as ENDC_SUMMARY } from '../../data/englishDesignCareer'
 import { AP_LESSON_CONTENT } from '../../data/apChemistryLessons'
 import type { LessonContentData, LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from '../../data/lessonContent'
 import { useTeacher } from '../../store/teacherStore'
@@ -7393,13 +7392,6 @@ export default function TeacherConstructorPage() {
     openCourseEditor(JSON.stringify(edData))
   }
 
-  // Готовый курс из сида: открывается в редакторе уже заполненным, но ничем не
-  // отличается от курса, набранного руками — пока учитель не сохранит, в БД
-  // ничего не появляется, а после сохранения курс принадлежит ему целиком.
-  function goToSeedCourseEditor() {
-    openCourseEditor(JSON.stringify(buildEnglishDesignCareerCourse(uid())))
-  }
-
   const selectedCourse  = courses.find(c => c.id === selectedId) ?? null
   const selectedWidget  = widgets.find(w => w.id === selectedId) ?? null
   // Side panel only for courses now; widgets open full-screen like trainers.
@@ -7750,22 +7742,6 @@ export default function TeacherConstructorPage() {
                   return <TabBtn key={t} tab={t} activeTab={activeTab} label={cfg.label} icon={cfg.Icon} color={cfg.color} bg={cfg.bg}
                     onClick={() => t === activeTab ? handlePlus() : handleTabChange(t)} onPlus={handlePlus} />
                 })}
-
-                {activeTab === 'course' && !editMode && (
-                  <button
-                    onClick={goToSeedCourseEditor}
-                    title={t('Открыть готовый курс в редакторе: ') + ENDC_SUMMARY.units + t(' юнитов, ') + ENDC_SUMMARY.taskCount + t(' заданий')}
-                    style={{
-                      marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 7,
-                      padding: '10px 18px', borderRadius: 14, border: '1.5px solid var(--color-border-medium)', cursor: 'pointer',
-                      background: 'rgba(var(--glass-rgb),0.9)', color: 'var(--color-text)', fontSize: 13, fontWeight: 700,
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)', flexShrink: 0,
-                    }}
-                  >
-                    <Languages size={14} strokeWidth={2.4} />
-                    {t('Готовый курс: английский')}
-                  </button>
-                )}
 
                 {activeTab === 'trainer' && !editMode && (
                   <button
