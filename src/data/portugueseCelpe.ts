@@ -41,8 +41,9 @@
 import {
   buildLanguageCourse, courseSummary, allVocab, unitByShortId, moduleOfUnit,
   one, many, fill, wb, order, pairsOf, grid, write, say, readAloud,
-  dictation, dictationBank, minPair,
+  dictation, dictationBank, minPair, describeImage,
 } from './languageCourse'
+import { streetMapImage } from './seedImages'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -616,6 +617,26 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
       ]),
       wb('Eu vou ao trabalho de metrô e demora quarenta minutos.', 'Соберите предложение «Я езжу на работу на метро, это занимает сорок минут».', ['no', 'a pé']),
       say('Объясните, как добраться от вашего дома до работы: транспорт, пересадки, сколько занимает.', 75),
+      describeImage(
+        'Você está no ponto vermelho. Explique em voz alta como chegar à farmácia e depois à escola. Use à direita, à esquerda, em frente, na esquina, perto de.',
+        streetMapImage(),
+        {
+          responseMode: 'speak',
+          responseSeconds: 90,
+          facts: [
+            'O ponto vermelho fica na Rua das Flores, perto da padaria',
+            'A farmácia fica do outro lado da Avenida Central, ao norte da Rua das Flores',
+            'A escola fica ao sul da Rua das Flores, do mesmo lado da padaria',
+            'A praça fica ao sul, do outro lado da Avenida Central',
+            'A Avenida Central cruza a Rua das Flores',
+          ],
+          distractorFacts: [
+            'Há um metrô no mapa (não há)',
+            'A escola fica ao lado da farmácia (estão em lados opostos da avenida)',
+          ],
+          expectedStructures: ['à direita / à esquerda', 'em frente', 'na esquina', 'perto de / ao lado de', 'vire, siga, atravesse'],
+        },
+      ),
     ],
   },
   {

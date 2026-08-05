@@ -43,8 +43,9 @@
 import {
   buildLanguageCourse, courseSummary, allVocab, unitByShortId, moduleOfUnit,
   one, many, fill, wb, order, pairsOf, grid, write, say, readAloud,
-  dictation, dictationBank, minPair,
+  dictation, dictationBank, minPair, describeImage,
 } from './languageCourse'
+import { roomSceneImage } from './seedImages'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -460,6 +461,28 @@ export const KOREAN_UNITS: LangUnit[] = [
       wb('저는 오늘 시간이 없어요.', 'Соберите предложение «Сегодня у меня нет времени».', ['을', '있어요']),
       dictationBank('Соберите услышанное из плиток.', '선생님, 저는 질문이 있어요.', ['없어요', '어디에']),
       write('Напишите 6 предложений: три про то, что у вас есть (있어요), три — чего нет (없어요).'),
+      describeImage(
+        'Напишите 6 предложений о том, что есть в этой комнате и чего в ней нет. Схема: «место + 에 + предмет + 이/가 + 있어요/없어요».',
+        roomSceneImage(),
+        {
+          facts: [
+            '책상이 있어요 (есть стол)',
+            '의자가 있어요 (есть стул)',
+            '책이 있어요 (есть книга)',
+            '가방이 있어요 (есть сумка)',
+            '고양이가 있어요 (есть кошка)',
+            '시계가 있어요 (есть часы)',
+            '창문이 있어요 (есть окно)',
+            '커피가 있어요 (есть чашка)',
+          ],
+          distractorFacts: [
+            '침대 (кровати на картинке нет)',
+            '텔레비전 (телевизора нет)',
+            '강아지 (собаки нет — там кошка)',
+          ],
+          expectedStructures: ['이/가 + 있어요 / 없어요', '에 для места', '위 / 아래 / 옆 если знаете'],
+        },
+      ),
     ],
   },
   {

@@ -33,6 +33,14 @@ function webglOk() {
   } catch { return false }
 }
 
+/** «Приклеивание»: сколько уголок висит отогнутым, прежде чем лечь, и сколько ложится */
+const REVEAL_HOLD = 350
+const REVEAL_MS = 1700
+/** Насколько сильно отогнут уголок в начале и как скручена плёнка (start → end) */
+const REVEAL_PEEL = 0.72
+const REVEAL_CURL_START = 0.17
+const REVEAL_CURL_END = 0.11
+
 const reducedMotion = () =>
   typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -71,9 +79,14 @@ export default function HoloSticker({
       rendRef.current = renderer
       renderer.setImage(bitmap)
 
+      // отсчёт «приклеивания» — от ПЕРВОГО кадра, а не от монтирования:
+      // иначе загрузка чанка+битмапа съедает половину анимации.
+      let peel0 = 0
+
       const draw = () => {
         frames++
         if (!visible) return
+        if (!peel0) peel0 = performance.now()
         const dpr = Math.min(window.devicePixelRatio || 1, 2)
         const w = Math.round(canvas.clientWidth * dpr)
         const h = Math.round(canvas.clientHeight * dpr)
@@ -89,9 +102,17 @@ export default function HoloSticker({
           renderer.setTilt(Math.sin(el / 1600) * 0.75, Math.cos(el / 2300) * 0.45)
         }
         const s = settings.current
-        // «приклеивание»: отогнутый уголок ложится за 900 мс
-        const peel = reveal && !still ? Math.max(0, 0.55 * (1 - el / 900)) : 0
-        renderer.render({ settings: { ...s, peelAmount: peel, curl: 0.11 }, imgAspect: 1 })
+        // «приклеивание»: сильно отогнутый уголок висит, потом мягко ложится (smoothstep);
+        // вместе с ним разгибается и радиус скрутки — так плёнка «прилипает», а не падает.
+        let peel = 0
+        let curl = REVEAL_CURL_END
+        if (reveal && !still) {
+          const t = Math.min(1, Math.max(0, (performance.now() - peel0 - REVEAL_HOLD) / REVEAL_MS))
+          const k = 1 - t * t * (3 - 2 * t)          // 1 → 0, плавно на обоих концах
+          peel = REVEAL_PEEL * k
+          curl = REVEAL_CURL_END + (REVEAL_CURL_START - REVEAL_CURL_END) * k
+        }
+        renderer.render({ settings: { ...s, peelAmount: peel, curl }, imgAspect: 1 })
         if (!live) setLive(true)
       }
 

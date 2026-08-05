@@ -39,10 +39,51 @@
 import {
   buildLanguageCourse, courseSummary, allVocab, unitByShortId, moduleOfUnit,
   one, many, fill, wb, order, pairsOf, grid, write, say,
-  dictation,
+  dictation, describeImage, compareImages,
 } from './languageCourse'
+import { lineChartImage, barChartImage, processFlowImage, townMapImage } from './seedImages'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
+
+// ─── Материал для Writing Task 1 ─────────────────────────────────────────────
+//
+// Графики нарисованы нами (src/data/seedImages.ts), данные вымышленные и взяты
+// правдоподобными. Числа заданы здесь один раз: из них строится и картинка, и
+// список фактов, по которым учитель проверяет описание, — так они не разойдутся.
+
+const INTERNET_CHART = lineChartImage({
+  title: 'Households with home internet access, 2000–2020',
+  yUnit: '%',
+  xLabels: ['2000', '2005', '2010', '2015', '2020'],
+  yMax: 100, yStep: 20,
+  series: [
+    { name: 'Country A', color: '#2B7FFF', values: [18, 46, 72, 86, 92] },
+    { name: 'Country B', color: '#E4573A', values: [4, 12, 31, 58, 79] },
+  ],
+})
+
+const LEISURE_CHART = barChartImage({
+  title: 'Average hours per week spent on leisure activities, by age group',
+  yUnit: 'hours',
+  groups: ['18–29', '30–44', '45–59', '60+'],
+  yMax: 20, yStep: 5,
+  series: [
+    { name: 'Streaming video', color: '#6354CF', values: [14, 11, 9, 12] },
+    { name: 'Reading', color: '#1DB97D', values: [3, 4, 7, 13] },
+  ],
+})
+
+const GLASS_PROCESS = processFlowImage('How container glass is recycled', [
+  'Used glass collected from households',
+  'Sorted by colour and washed',
+  'Crushed into small pieces (cullet)',
+  'Melted in a furnace at 1500°C',
+  'Moulded into new bottles and jars',
+  'Packed and sent to bottling plants',
+])
+
+const TOWN_BEFORE = townMapImage('before')
+const TOWN_AFTER = townMapImage('after')
 
 export const IELTS_MODULES: LangModule[] = [
   { title: 'Как оценивают и что чинить', subtitle: 'Критерии, перефразирование, сложные структуры, регистр', units: [1, 2, 3, 4] },
@@ -726,7 +767,59 @@ export const IELTS_UNITS: LangUnit[] = [
       wb('Overall, car ownership increased steadily while bus use declined over the same period.',
         'Put the words in order — this is an overview sentence.',
         ['because', 'I think']),
-      write('Find two line graphs with data over time (any public statistics source). For each, write 160–180 words in 20 minutes: one introduction sentence paraphrasing the title, one overview sentence with the main trend, and two body paragraphs with selected figures. No causes, no opinions.'),
+      describeImage(
+        'Write a Task 1 answer of at least 150 words in 20 minutes. Paraphrase the title, give one overview sentence with the main trend, then select and compare the key figures. Do not explain the causes and do not give an opinion.',
+        INTERNET_CHART,
+        {
+          responseSeconds: 1200,
+          facts: [
+            'Both countries increased over the whole period',
+            'Country A started at 18% in 2000 and reached 92% in 2020',
+            'Country B started at 4% in 2000 and reached 79% in 2020',
+            'Country A was always above Country B',
+            'The gap was widest around 2010 (72% against 31%)',
+            'Country A grew fastest between 2000 and 2010, then levelled off',
+            'Country B grew fastest between 2010 and 2015',
+          ],
+          distractorFacts: [
+            'Cheaper broadband caused the rise (no reason is shown)',
+            'Country B will overtake Country A (no forecast is shown)',
+            'Mobile internet is included (the chart says home access only)',
+          ],
+          expectedStructures: [
+            'overview sentence with «overall»',
+            'past simple for finished trends',
+            'comparatives: higher than, twice as many',
+            'approximation: just under, roughly',
+            'trend verbs: rose, levelled off, narrowed',
+          ],
+        },
+      ),
+      describeImage(
+        'Second Task 1 practice, same rules, 20 minutes and at least 150 words. This chart compares groups rather than time — select what is worth comparing instead of listing every bar.',
+        LEISURE_CHART,
+        {
+          responseSeconds: 1200,
+          facts: [
+            'Streaming is the more popular activity in every group except 60+',
+            'Streaming peaks at 14 hours among 18–29 year olds',
+            'Reading rises steadily with age, from 3 to 13 hours',
+            'The 60+ group is the only one where reading (13) exceeds streaming (12)',
+            'The 45–59 group is the closest to balanced apart from 60+ (9 against 7)',
+          ],
+          distractorFacts: [
+            'Older people have more free time (not shown by the chart)',
+            'Streaming is falling over time (the chart shows age groups, not years)',
+          ],
+          expectedStructures: [
+            'overview naming the two opposite patterns',
+            'superlatives: the highest, the lowest',
+            'whereas / while for contrast between groups',
+            'figures in brackets or with «at»',
+          ],
+        },
+      ),
+      write('Compare the two answers you have just written. For each, check three things and note what you would change: is there exactly one overview sentence, did you select figures rather than list them all, and did you avoid explaining causes?'),
     ],
   },
   {
@@ -785,7 +878,58 @@ export const IELTS_UNITS: LangUnit[] = [
       wb('Once the beans have been roasted, they are ground and packed for distribution.',
         'Put the words in order — a process sentence with a passive and a sequence marker.',
         ['because', 'sharply']),
-      write('Write two Task 1 answers of about 160 words each in 20 minutes: one describing a process you know well (how coffee is made, how waste is recycled, how a package reaches a customer) using passives and sequence markers, and one describing how your own neighbourhood changed between two years, using was replaced by / was converted into.'),
+      describeImage(
+        'Describe this process in at least 150 words in 20 minutes. State how many stages there are and what the process starts and ends with, then describe the stages in order. Use passives and sequence markers.',
+        GLASS_PROCESS,
+        {
+          responseSeconds: 1200,
+          facts: [
+            'The process has six stages',
+            'It begins with used glass collected from households',
+            'It ends with packing and delivery to bottling plants',
+            'Glass is sorted by colour and washed before crushing',
+            'The crushed glass is called cullet',
+            'Melting happens in a furnace at 1500°C',
+            'It is a cycle of manufacturing, not a natural process',
+          ],
+          distractorFacts: [
+            'The process takes a certain number of days (no timing is shown)',
+            'Recycling saves a stated amount of energy (no figures are given)',
+            'People are shown doing the work (no actors appear in the diagram)',
+          ],
+          expectedStructures: [
+            'passive voice: is collected, is melted',
+            'sequence: firstly, subsequently, once … has been',
+            'the final stage / at this point',
+          ],
+        },
+      ),
+      compareImages(
+        'The maps show the same area in 1995 and 2025. Write at least 150 words in 20 minutes: give an overview of how the area changed overall, then describe the specific changes. Do not speculate about why they happened.',
+        [TOWN_BEFORE, TOWN_AFTER],
+        {
+          responseSeconds: 1200,
+          facts: [
+            'The area became far more built up over the thirty years',
+            'The woodland north of Main Road was replaced by a housing estate',
+            'The farmland south of the road became a car park and station',
+            'The small shop was replaced by a larger shopping centre',
+            'A new railway line was built in the south-east',
+            'The school and the river are unchanged',
+            'Main Road runs east to west through the middle of both maps',
+          ],
+          distractorFacts: [
+            'The population grew (no figures are shown)',
+            'The river was diverted (it is in the same place on both maps)',
+            'The school was rebuilt (only its surroundings changed)',
+          ],
+          expectedStructures: [
+            'passive for change: was replaced by, was converted into, was constructed',
+            'what stayed the same: remained unchanged',
+            'position: to the north of, adjacent to, on the outskirts',
+          ],
+        },
+      ),
     ],
   },
   {

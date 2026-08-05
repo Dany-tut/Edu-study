@@ -171,6 +171,40 @@ export const dictationBank = (question: string, sentence: string, distractors: s
 export const minPair = (question: string, a: string, b: string, correct: 'A' | 'B'): SeedTask =>
   ({ type: 'minimalPair', question, pairA: a, pairB: b, correctPair: correct, ttsText: correct === 'A' ? a : b, allowSlow: true })
 
+/**
+ * Опоры для проверки описания картинки. Вердикт всегда за учителем, но эти поля
+ * позволяют проверять ответ, не отправляя саму картинку модели: `facts` — что на
+ * ней есть, `distractorFacts` — чего нет (ловит шаблонные ответы «по мотивам
+ * темы»), `expectedStructures` — какие конструкции задание должно вытянуть.
+ */
+export interface ImageTaskHints {
+  facts?: string[]
+  distractorFacts?: string[]
+  expectedStructures?: string[]
+  responseMode?: 'write' | 'speak'
+  responseSeconds?: number
+}
+
+/** Описать одну картинку — письменно или голосом. */
+export const describeImage = (question: string, image: string, hints: ImageTaskHints = {}): SeedTask => ({
+  type: 'imageDescribe', question, images: [image],
+  responseMode: hints.responseMode ?? 'write',
+  prepSeconds: hints.responseMode === 'speak' ? 20 : 0,
+  responseSeconds: hints.responseSeconds ?? 90,
+  facts: hints.facts ?? [], distractorFacts: hints.distractorFacts ?? [],
+  expectedStructures: hints.expectedStructures ?? [],
+})
+
+/** Сравнить две картинки — «было / стало», «здесь / там». */
+export const compareImages = (question: string, images: string[], hints: ImageTaskHints = {}): SeedTask => ({
+  type: 'imageCompare', question, images,
+  responseMode: hints.responseMode ?? 'write',
+  prepSeconds: hints.responseMode === 'speak' ? 20 : 0,
+  responseSeconds: hints.responseSeconds ?? 90,
+  facts: hints.facts ?? [], distractorFacts: hints.distractorFacts ?? [],
+  expectedStructures: hints.expectedStructures ?? [],
+})
+
 // ─── Сборка курса для конструктора ───────────────────────────────────────────
 
 /**

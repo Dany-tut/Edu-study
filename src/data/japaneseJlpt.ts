@@ -43,8 +43,9 @@
 import {
   buildLanguageCourse, courseSummary, allVocab, unitByShortId, moduleOfUnit,
   one, many, fill, wb, order, pairsOf, grid, write, say, readAloud,
-  dictation, dictationBank, minPair,
+  dictation, dictationBank, minPair, describeImage,
 } from './languageCourse'
+import { roomSceneImage } from './seedImages'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -469,6 +470,27 @@ export const JAPANESE_UNITS: LangUnit[] = [
       wb('つくえの うえに ほんが あります。', 'Соберите предложение «На столе лежит книга».', ['います', 'で']),
       dictationBank('Соберите услышанное из плиток.', 'へやに ねこが います。', ['あります', 'で']),
       write('Опишите свою комнату: 6 предложений с あります/います и словами места.'),
+      describeImage(
+        'Напишите 6 предложений об этой комнате. Следите за выбором глагола: предметы — あります, живое — います.',
+        roomSceneImage(),
+        {
+          facts: [
+            'つくえが あります (есть стол)',
+            'いすが あります (есть стул)',
+            'つくえの うえに ほんが あります (книга на столе)',
+            'つくえの したに かばんが あります (сумка под столом)',
+            'ねこが います (есть кошка — живое, います)',
+            'とけいが あります (есть часы)',
+            'まどが あります (есть окно)',
+          ],
+          distractorFacts: [
+            'ねこが あります (ошибка: кошка живая, нужно います)',
+            'ベッド (кровати на картинке нет)',
+            'ひとが います (людей на картинке нет)',
+          ],
+          expectedStructures: ['あります / います', 'の うえに / の したに / の となりに', 'が для подлежащего'],
+        },
+      ),
     ],
   },
   {

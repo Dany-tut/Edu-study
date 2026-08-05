@@ -741,11 +741,16 @@ function AwardCard({ score, who, nonce }: { score: number; who: string; nonce: n
   const tier = tierOf(score)
   return (
     <div className="lp-mock-panel" style={{
-      ...mockCard, display: 'flex', alignItems: 'center', gap: 12, padding: 12,
+      ...mockCard, position: 'relative', zIndex: 1,
+      display: 'flex', alignItems: 'center', gap: 12, padding: 12,
       background: `linear-gradient(135deg, color-mix(in srgb, ${tier.ink} 16%, var(--color-bg)), var(--color-bg))`,
       borderColor: `color-mix(in srgb, ${tier.ink} 45%, var(--color-border))`,
     }}>
-      <HoloSticker key={nonce} score={score} label={`балл ${score}`} sublabel="задание 13" size={78} reveal />
+      {/* стикер вдвое крупнее карточки и намеренно вылезает за её края */}
+      <HoloSticker
+        key={nonce} score={score} label={`балл ${score}`} sublabel="задание 13" size={156} reveal
+        style={{ margin: '-28px 0 -28px -10px', flex: '0 0 auto' }}
+      />
       <div style={{ minWidth: 0 }}>
         <div style={{ fontSize: 12.5, fontWeight: 800 }}>{who} получает стикер</div>
         <div style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>«{tier.name}» · {score} из 5 — в коллекцию</div>
