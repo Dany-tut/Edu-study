@@ -1,5 +1,5 @@
 import { type Lesson } from './mockData'
-import { normalizeTaskType, type StoredTaskType } from './taskTypes'
+import { normalizeTaskType, type StoredTaskType, type TaskPayload } from './taskTypes'
 import { useStudentData } from '../store/studentDataStore'
 import { AP_LESSON_CONTENT, type ApLessonContent } from './apChemistryLessons'
 import { parseVideoSource, type VideoSource } from '../lib/videoSource'
@@ -30,26 +30,40 @@ export interface HomeworkQuizQuestion {
   /** Reference table for a 'table' task; emptyCells «r,c» are the cells the
    *  student fills, checked against the matching reference cell. */
   table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; blankCells?: Record<string, boolean>; cellImages?: Record<string, string>; cellImageSizes?: Record<string, number> }
+
+  // ─── языковые задания ───
+  /** wordBank / listenBank — эталонное предложение (режется на плитки по пробелам). */
+  sentence?: string
+  /** wordBank / listenBank — лишние плитки-обманки. */
+  distractors?: string[]
+  /** Аудио-стимул: путь в бакете task-media либо текст для синтеза речи. */
+  audioUrl?: string
+  ttsText?: string
+  ttsVoice?: string
+  allowSlow?: boolean
+  /** Код изучаемого языка (en, ko, ja, pt-BR) — нужен синтезу речи. */
+  lang?: string
+  /** minimalPair — два похожих варианта и какой прозвучал. */
+  pairA?: string
+  pairB?: string
+  correctPair?: 'A' | 'B'
+  /** speaking / imageDescribe — сколько думать и сколько говорить. */
+  prepSeconds?: number
+  responseSeconds?: number
+  /** imageDescribe / imageCompare — картинки и режим ответа. */
+  images?: string[]
+  responseMode?: 'write' | 'speak'
+  /** Дополнительные принимаемые формулировки для свободного ввода. */
+  altAnswers?: string[]
 }
 
 /** One task as persisted by the course editor's «Домашки» tab
  *  (lessons.homework JSONB). Mirrors the teacher editor's HWTask / TestTask. */
-export interface AuthoredHomeworkTask {
-  id: string
-  type: 'single' | 'multi' | 'fill' | 'extended' | 'matching' | 'sequence' | 'tableFill' | 'whiteboard'
-     | 'text' | 'choice' | 'match' | 'table'  // legacy aliases
-  isHard: boolean
-  label?: string
-  question?: string
-  answer?: string
-  choices?: string[]
-  correctChoices?: number[]
-  pairs?: Array<{ left: string; right: string }>
-  sequenceItems?: string[]
-  table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; blankCells?: Record<string, boolean>; cellImages?: Record<string, string>; cellImageSizes?: Record<string, number> }
-  image?: string
-  imageSize?: number
-}
+/** Поля берутся из TaskPayload (src/data/taskTypes.ts) — единый источник правды.
+ *  Здесь union типов был продублирован в четвёртый раз и уже отставал: он не знал
+ *  ни одного языкового типа, поэтому аудио и запись голоса до ученика не доходили.
+ *  Отличие от TaskPayload одно: label необязателен (старые записи его не имеют). */
+export type AuthoredHomeworkTask = Omit<TaskPayload, 'label'> & { label?: string }
 /** Teacher-authored homework attached to a lesson (lessons.homework JSONB). */
 export interface AuthoredHomework {
   hwTitle?: string | null
@@ -235,9 +249,26 @@ function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): HomeworkQui
     id: t.id, prompt, options: [], correctOptionId: '', explanation: '',
     type: tp,
     referenceAnswer: t.answer?.trim() || undefined,
+    altAnswers: t.altAnswers,
     pairs: tp === 'matching' ? t.pairs : undefined,
     sequenceItems: tp === 'sequence' ? (t.sequenceItems ?? []).filter(s => s.trim()) : undefined,
     table: tp === 'tableFill' ? t.table : undefined,
+
+    // Языковые поля переносятся как есть — решатели сами берут нужное по типу.
+    sentence: t.sentence,
+    distractors: t.distractors,
+    audioUrl: t.audioUrl,
+    ttsText: t.ttsText,
+    ttsVoice: t.ttsVoice,
+    allowSlow: t.allowSlow,
+    lang: t.lang,
+    pairA: t.pairA,
+    pairB: t.pairB,
+    correctPair: t.correctPair,
+    prepSeconds: t.prepSeconds,
+    responseSeconds: t.responseSeconds,
+    images: t.images,
+    responseMode: t.responseMode,
   }
 }
 

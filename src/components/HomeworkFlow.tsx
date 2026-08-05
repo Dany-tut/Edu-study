@@ -25,6 +25,10 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useT, t as tStatic } from '../lib/i18n'
 import QuestionTable from './QuestionTable'
+import WordBankSolver from './WordBankSolver'
+import AudioPlayer from './AudioPlayer'
+import VoiceRecorder from './VoiceRecorder'
+import { sentenceTokens } from '../data/taskTypes'
 import HardStarLottie from './HardStarLottie'
 import PartyPopperLottie from './PartyPopperLottie'
 
@@ -566,6 +570,12 @@ function questionIsChoice(q: HomeworkQuizQuestion) {
   const tp = qType(q)
   return !q.type || tp === 'single' || tp === 'multi'
 }
+// Ответ на «собрать предложение» хранится строкой (как и все ответы базового
+// уровня), а решателю нужен массив. Плитки получены разбиением по пробелам, так
+// что склейка через пробел разбирается обратно один в один.
+const parseWords = (s: string | undefined) => (s ?? '').split(' ').filter(Boolean)
+const joinWords = (w: string[]) => w.join(' ')
+
 /** Множественный выбор — ответ хранится как отсортированный список id через запятую. */
 function questionIsMulti(q: HomeworkQuizQuestion) {
   return qType(q) === 'multi'
@@ -583,6 +593,12 @@ function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
 function questionAutoGradable(q: HomeworkQuizQuestion) {
   if (questionIsMulti(q)) return q.options.length > 0 && (q.correctOptionIds?.length ?? 0) > 0
   if (questionIsChoice(q)) return q.options.length > 0 && !!q.correctOptionId
+  const langTp = qType(q)
+  // Языковые типы: проверяются машиной, если задан эталон.
+  if (langTp === 'wordBank' || langTp === 'listenBank') return sentenceTokens(q.sentence ?? '').length >= 2
+  if (langTp === 'listenType') return !!q.referenceAnswer?.trim()
+  if (langTp === 'minimalPair') return !!q.pairA && !!q.pairB && !!q.correctPair
+  // speaking / imageDescribe / imageCompare — только учителем.
   const tp = qType(q)
   if (tp === 'fill' || tp === 'extended') return !!q.referenceAnswer?.trim()
   if (tp === 'sequence') return (q.sequenceItems?.length ?? 0) >= 2
@@ -593,6 +609,23 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
   if (!ans) return false
   if (questionIsMulti(q)) return joinIds(parseIds(ans)) === joinIds(q.correctOptionIds ?? [])
   if (questionIsChoice(q)) return ans === q.correctOptionId
+  {
+    const langTp = qType(q)
+    if (langTp === 'wordBank' || langTp === 'listenBank') {
+      if (!questionAutoGradable(q)) return false
+      const want = sentenceTokens(q.sentence ?? '')
+      const got = parseWords(ans)
+      return got.length === want.length
+        && got.every((w, i) => normAnswer(w) === normAnswer(want[i]))
+    }
+    if (langTp === 'listenType') {
+      if (!questionAutoGradable(q)) return false
+      const target = normAnswer(ans)
+      return normAnswer(q.referenceAnswer!) === target
+        || (q.altAnswers ?? []).some(a => normAnswer(a) === target)
+    }
+    if (langTp === 'minimalPair') return ans === q.correctPair
+  }
   const tp = qType(q)
   if (tp === 'fill' || tp === 'extended') {
     return questionAutoGradable(q) && normAnswer(ans) === normAnswer(q.referenceAnswer!)
@@ -1531,6 +1564,144 @@ export default function HomeworkFlow({
                       disabled={state.basicSubmitted}
                       onChange={v => setFreeAnswer(question.id, v)}
                     />
+
+                    /* ── языковые задания ── */
+
+                    /* Собрать предложение из плиток. listenBank — то же самое,
+                       но сверху плеер: сначала слушаешь, потом собираешь. */
+                    ) : (qType(question) === 'wordBank' || qType(question) === 'listenBank')
+                        && (question.sentence ?? '').trim() ? (
+                    <div className="flex flex-col" style={{ gap: 12 }}>
+                      {qType(question) === 'listenBank' && (
+                        <AudioPlayer
+                          audioUrl={question.audioUrl}
+                          ttsText={question.ttsText || question.sentence}
+                          ttsVoice={question.ttsVoice}
+                          allowSlow={question.allowSlow}
+                          lang={question.lang}
+                        />
+                      )}
+                      <WordBankSolver
+                        tokens={sentenceTokens(question.sentence!)}
+                        distractors={question.distractors ?? []}
+                        value={parseWords(selectedAnswer)}
+                        disabled={state.basicSubmitted}
+                        onChange={words => setFreeAnswer(question.id, joinWords(words))}
+                      />
+                    </div>
+
+                    /* Диктант: слушаешь и печатаешь. */
+                    ) : qType(question) === 'listenType' ? (
+                    <div className="flex flex-col" style={{ gap: 12 }}>
+                      <AudioPlayer
+                        audioUrl={question.audioUrl}
+                        ttsText={question.ttsText || question.referenceAnswer}
+                        ttsVoice={question.ttsVoice}
+                        allowSlow={question.allowSlow}
+                        lang={question.lang}
+                      />
+                      <input
+                        value={selectedAnswer ?? ''}
+                        onChange={e => setFreeAnswer(question.id, e.target.value)}
+                        disabled={state.basicSubmitted}
+                        placeholder={t('Запиши, что услышал…')}
+                        style={{
+                          width: '100%', boxSizing: 'border-box', padding: '12px 14px',
+                          borderRadius: 16, fontFamily: 'inherit', fontSize: 14,
+                          color: 'var(--color-text)', background: 'var(--color-bg-input)', outline: 'none',
+                          border: `1px solid ${showVerdict ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'var(--color-border)'}`,
+                          opacity: state.basicSubmitted ? 0.85 : 1,
+                        }}
+                      />
+                    </div>
+
+                    /* Похожие звуки: прозвучал один из двух — какой? */
+                    ) : qType(question) === 'minimalPair' && question.pairA && question.pairB ? (
+                    <div className="flex flex-col" style={{ gap: 12 }}>
+                      <AudioPlayer
+                        audioUrl={question.audioUrl}
+                        ttsText={question.ttsText || (question.correctPair === 'B' ? question.pairB : question.pairA)}
+                        ttsVoice={question.ttsVoice}
+                        allowSlow={question.allowSlow}
+                        lang={question.lang}
+                      />
+                      <div className="grid" style={{ gap: 10, gridTemplateColumns: '1fr 1fr' }}>
+                        {(['A', 'B'] as const).map(side => {
+                          const text = side === 'A' ? question.pairA! : question.pairB!
+                          const active = selectedAnswer === side
+                          const right = question.correctPair === side
+                          return (
+                            <button
+                              key={side}
+                              disabled={state.basicSubmitted}
+                              onClick={() => setFreeAnswer(question.id, side)}
+                              className="cursor-pointer"
+                              style={{
+                                padding: '16px 14px', borderRadius: 18, fontFamily: 'inherit',
+                                fontSize: 17, fontWeight: 700, color: 'var(--color-text)',
+                                border: `1px solid ${
+                                  showVerdict && right ? '#6EE7A0'
+                                    : showVerdict && active ? '#F48B91'
+                                    : active ? 'rgba(99,84,207,0.38)' : 'var(--color-border)'
+                                }`,
+                                background: showVerdict && right ? 'var(--color-green-soft)'
+                                  : showVerdict && active ? 'var(--color-red-soft)'
+                                  : active ? 'var(--color-purple-soft)' : 'var(--color-bg-input)',
+                              }}
+                            >
+                              {text}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    /* Устный ответ: запись голоса. Проверяет учитель. */
+                    ) : qType(question) === 'speaking' ? (
+                    <VoiceRecorder
+                      value={selectedAnswer || null}
+                      maxSeconds={question.responseSeconds ?? 120}
+                      onChange={path => setFreeAnswer(question.id, path ?? '')}
+                    />
+
+                    /* Описать картинку — письменно или голосом. */
+                    ) : (qType(question) === 'imageDescribe' || qType(question) === 'imageCompare') ? (
+                    <div className="flex flex-col" style={{ gap: 12 }}>
+                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                        {(question.images ?? []).filter(Boolean).map((src, ii) => (
+                          <img
+                            key={ii} src={src} alt=""
+                            style={{
+                              maxWidth: (question.images ?? []).length > 1 ? 'calc(50% - 5px)' : '100%',
+                              borderRadius: 16, border: '1px solid var(--color-border)',
+                            }}
+                          />
+                        ))}
+                      </div>
+                      {question.responseMode === 'speak' ? (
+                        <VoiceRecorder
+                          value={selectedAnswer || null}
+                          maxSeconds={question.responseSeconds ?? 90}
+                          onChange={path => setFreeAnswer(question.id, path ?? '')}
+                        />
+                      ) : (
+                        <textarea
+                          value={selectedAnswer ?? ''}
+                          onChange={e => setFreeAnswer(question.id, e.target.value)}
+                          disabled={state.basicSubmitted}
+                          rows={5}
+                          placeholder={t('Опиши, что видишь…')}
+                          style={{
+                            width: '100%', boxSizing: 'border-box', padding: '12px 14px',
+                            borderRadius: 16, resize: 'vertical', fontFamily: 'inherit',
+                            fontSize: 14, lineHeight: 1.5, color: 'var(--color-text)',
+                            background: 'var(--color-bg-input)', outline: 'none',
+                            border: '1px solid var(--color-border)',
+                            opacity: state.basicSubmitted ? 0.85 : 1,
+                          }}
+                        />
+                      )}
+                    </div>
                     ) : (
                     <div className="flex flex-col" style={{ gap: 10 }}>
                       {qType(question) === 'matching' && (question.pairs?.length ?? 0) > 0 && (
