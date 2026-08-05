@@ -3401,6 +3401,26 @@ const LESSON_MODES: { id: LessonMode; label: string }[] = [
   { id: 'students',  label: 'Ученики' },
 ]
 
+// ─── Left rail geometry ───────────────────────────────────────────────────────
+// Обёртки рельса режут по overflow (нужно для анимации ширины и скролла), а
+// карточки внутри — с тенью. Поэтому коробка обёртки шире карточки на BLEED с
+// боков и снизу, а отрицательные margin возвращают колонку ровно на место:
+// тень рисуется в этот запас, карточка не выглядит обрезанной по краям.
+const RAIL_W = 248
+const RAIL_BLEED = 24
+const RAIL_BOX = RAIL_W + RAIL_BLEED * 2
+// Свёрнутое состояние = 2×BLEED, а не 0: с учётом отрицательных полей вклад в
+// поток тогда ровно 0, иначе на выходе анимации колонка «уезжала» бы влево.
+const RAIL_COLLAPSED = RAIL_BLEED * 2
+const railWrapSt: React.CSSProperties = {
+  flexShrink: 0, alignSelf: 'stretch', minHeight: 0, overflow: 'hidden',
+  margin: `0 -${RAIL_BLEED}px -${RAIL_BLEED}px`,
+}
+const railInnerSt: React.CSSProperties = {
+  width: RAIL_BOX, height: '100%', minHeight: 0,
+  padding: `0 ${RAIL_BLEED}px ${RAIL_BLEED}px`,
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function TeacherCourseEditorPage() {
@@ -4297,14 +4317,14 @@ export default function TeacherCourseEditorPage() {
           {!selectedLesson ? (
             <motion.div
               key="meta-rail"
-              initial={{ opacity: 0, width: 0 }}
-              animate={{ opacity: 1, width: 248 }}
-              exit={{ opacity: 0, width: 0 }}
+              initial={{ opacity: 0, width: RAIL_COLLAPSED }}
+              animate={{ opacity: 1, width: RAIL_BOX }}
+              exit={{ opacity: 0, width: RAIL_COLLAPSED }}
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              style={{ flexShrink: 0, alignSelf: 'stretch', minHeight: 0, overflow: 'hidden' }}
+              style={railWrapSt}
             >
               {/* Hugs its content, same 248 width as the lesson rail. */}
-              <div style={{ width: 248, height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+              <div style={{ ...railInnerSt, display: 'flex', flexDirection: 'column' }}>
                 <GlassCard style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', maxHeight: '100%' }}>
                   <LeftCourseMeta course={course} setCourse={setCourse} />
                 </GlassCard>
@@ -4313,17 +4333,17 @@ export default function TeacherCourseEditorPage() {
           ) : selectedLesson.kind !== 'test' ? (
             <motion.div
               key="lesson-rail"
-              initial={{ opacity: 0, width: 0 }}
-              animate={{ opacity: 1, width: 248 }}
-              exit={{ opacity: 0, width: 0 }}
+              initial={{ opacity: 0, width: RAIL_COLLAPSED }}
+              animate={{ opacity: 1, width: RAIL_BOX }}
+              exit={{ opacity: 0, width: RAIL_COLLAPSED }}
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              style={{ flexShrink: 0, alignSelf: 'stretch', minHeight: 0, overflow: 'hidden' }}
+              style={railWrapSt}
             >
               {/* Inner fixed-width so the rail content never reflows while the
                   outer width animates. Per-tab card cross-fades.
                   Скроллер здесь же: карточки расписания и «Кому дать доступ»
                   своего скролла не имеют, а в невысоком окне не помещаются. */}
-              <div className="no-scrollbar" style={{ width: 248, height: '100%', minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain' }}>
+              <div className="no-scrollbar" style={{ ...railInnerSt, overflowY: 'auto', overscrollBehavior: 'contain' }}>
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
                     key={lessonMode === 'homework' ? 'rail-hw' : lessonMode === 'students' ? 'rail-students' : 'rail-sched'}
@@ -4365,13 +4385,13 @@ export default function TeacherCourseEditorPage() {
           ) : (
             <motion.div
               key="test-rail"
-              initial={{ opacity: 0, width: 0 }}
-              animate={{ opacity: 1, width: 248 }}
-              exit={{ opacity: 0, width: 0 }}
+              initial={{ opacity: 0, width: RAIL_COLLAPSED }}
+              animate={{ opacity: 1, width: RAIL_BOX }}
+              exit={{ opacity: 0, width: RAIL_COLLAPSED }}
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              style={{ flexShrink: 0, alignSelf: 'stretch', minHeight: 0, overflow: 'hidden' }}
+              style={railWrapSt}
             >
-              <div style={{ width: 248, height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+              <div style={{ ...railInnerSt, display: 'flex', flexDirection: 'column' }}>
                 <TestLeftPanel lesson={selectedLesson} onUpdate={updateLesson} isLanguage={isLanguageSubject(course.subject)} />
               </div>
             </motion.div>

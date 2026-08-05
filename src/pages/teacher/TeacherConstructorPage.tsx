@@ -1461,7 +1461,7 @@ function CourseFacetDropdown({ value, options, allLabel, icon, minWidth = 92, ic
   /**
    * Отступ иконка→текст. Дефолт годится для эмодзи и иконок с полями, но у
    * стрелочных lucide-иконок штрих доходит до края бокса, и при gap 6 остриё
-   * почти касается буквы — таким иконкам ставим 7.
+   * почти касается буквы — таким иконкам ставим 9.
    */
   iconGap?: number
   onChange: (v: string) => void
@@ -8116,7 +8116,7 @@ export default function TeacherConstructorPage() {
                     onChange={setCourseSubject}
                   />
                   <CourseFacetDropdown
-                    value={courseLevel} options={levelOpts} allLabel={t('Все уровни')} minWidth={72} iconGap={7}
+                    value={courseLevel} options={levelOpts} allLabel={t('Все уровни')} minWidth={72} iconGap={9}
                     icon={<TrendingUp size={12} />}
                     onChange={setCourseLevel}
                   />

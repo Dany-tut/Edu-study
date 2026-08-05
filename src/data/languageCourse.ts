@@ -24,7 +24,7 @@
 // КАРТИНКИ
 // Чужих изображений с понятной лицензией у нас нет, поэтому всё, что рисуется в
 // курсе, рисуется нами векторно и лежит строкой data-URI: иллюстрации конспекта
-// (unit.figures → lessonFigures.ts) и картинки заданий «опишите / сравните»
+// (spec.figures → lessonFigures.ts) и картинки заданий «опишите / сравните»
 // (seedImages.ts). Фотографий в сидах нет — их учитель добавляет сам.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -81,18 +81,6 @@ export interface LangUnit {
    */
   theory?: string
   /**
-   * Иллюстрации конспекта: таблица письма, схема форм, шкала вежливости.
-   *
-   * Языковой конспект — это в первую очередь таблицы и схемы: строй слога,
-   * ряды каны, лестница вежливых уровней. Текстом они не объясняются, а
-   * пересказываются. Рисуются векторно в lessonFigures.ts — своя картинка,
-   * никакой чужой лицензии, ничего не грузится по сети.
-   *
-   * Встают в конспект после первого абзаца — то есть сразу после правила, а не
-   * отдельным блоком в конце урока.
-   */
-  figures?: UnitFigure[]
-  /**
    * Ссылка на видео к уроку — обычно YouTube.
    *
    * Встраивание чужого ролика по ссылке законно (это делает сам YouTube своим
@@ -114,7 +102,26 @@ export interface LangUnit {
 export interface UnitFigure {
   src: string
   caption: string
+  /**
+   * После какого абзаца конспекта встаёт картинка (1 — после первого).
+   *
+   * Схема объясняет конкретное место в тексте, и место это не всегда второе:
+   * строение слога нужно показать после правила сборки, а не после вводного
+   * абзаца. Не задано — картинка встаёт сразу после правила (в собранном
+   * конспекте это третий абзац), иначе после первого.
+   */
+  after?: number
 }
+
+/**
+ * Иллюстрации курса: shortId юнита → его схемы.
+ *
+ * Лежат отдельно от юнитов, а не полем внутри каждого. Юнит — это данные
+ * (слова, задания, формулировки), а схема — вызов рисовалки из
+ * lessonFigures.ts; вперемешку они превращают массив контента в код. Ключ —
+ * shortId, поэтому схема не «съезжает» при вставке юнита в середину курса.
+ */
+export type CourseFigures = Record<string, UnitFigure[]>
 
 /** Модуль — группа юнитов с общей задачей. */
 export interface LangModule {
@@ -130,7 +137,12 @@ export interface LanguageCourseSpec {
   title: string
   /** Русское название предмета — значение courses.subject (см. lib/subjects.ts). */
   subject: string
-  /** Уровень строкой, как его увидит ученик: «A1 → A2 (TOPIK I)». */
+  /**
+   * Уровень строкой, как его увидит ученик: «A2 → B1», «TOPIK I → TOPIK II
+   * (3급–4급)». У языков со своей шкалой (корейский, японский, китайский)
+   * пишем её, а не CEFR: официальных A1–C2 у них нет, и фильтр «Уровень» в
+   * Конструкторе разбирает строку именно по родной шкале (lib/courseLevels.ts).
+   */
   level: string
   /** BCP-47 изучаемого языка — идёт в задания для синтеза речи. */
   lang: string
@@ -146,6 +158,8 @@ export interface LanguageCourseSpec {
   scopeNote?: string
   modules: LangModule[]
   units: LangUnit[]
+  /** Иллюстрации конспекта по shortId юнита — см. CourseFigures. */
+  figures?: CourseFigures
 }
 
 // ─── Хелперы для заданий ─────────────────────────────────────────────────────
@@ -324,23 +338,25 @@ function composeTheory(unit: LangUnit): string {
  * поле «Конспект» учитель должен видеть свой текст, а не километр base64
  * (разбор маркеров — в lib/theoryImages.ts).
  */
-function theoryOf(unit: LangUnit): { theory: string; theoryImages: TheoryImage[] } {
+function theoryOf(unit: LangUnit, figures: UnitFigure[] = []): { theory: string; theoryImages: TheoryImage[] } {
   const text = unit.theory?.trim() || composeTheory(unit)
-  if (!unit.figures?.length) return { theory: text, theoryImages: [] }
+  if (!figures.length) return { theory: text, theoryImages: [] }
 
   const paras = text.split(/\n\s*\n/)
-  // В собранном конспекте (composeTheory) правило — второй абзац, а третий
-  // объясняет, зачем оно здесь: картинка идёт за ними, до списка слов. В
-  // написанном руками конспекте якоря нет — там картинка встаёт после первого
-  // абзаца, и место правится в редакторе.
+  // Якорь по умолчанию: в собранном конспекте (composeTheory) второй абзац —
+  // правило, третий объясняет, зачем оно здесь, поэтому картинка идёт за ними и
+  // до списка слов. В написанном руками конспекте такого якоря нет — там
+  // картинка встаёт после первого абзаца, а точное место задаёт figure.after.
   const ruleAt = paras.findIndex(p => p.startsWith('Правило:'))
-  const at = Math.min(ruleAt >= 0 ? ruleAt + 2 : 1, paras.length)
-  const withFigures = [
-    ...paras.slice(0, at),
-    ...unit.figures.map(f => figureMarker(f.caption, f.src)),
-    ...paras.slice(at),
-  ].join('\n\n')
-  const packed = packTheoryImages(withFigures)
+  const fallback = ruleAt >= 0 ? ruleAt + 2 : 1
+
+  const out: string[] = []
+  paras.forEach((para, i) => {
+    out.push(para)
+    const here = figures.filter(f => Math.min(f.after ?? fallback, paras.length) === i + 1)
+    here.forEach(f => out.push(figureMarker(f.caption, f.src)))
+  })
+  const packed = packTheoryImages(out.join('\n\n'))
   return { theory: packed.theory, theoryImages: packed.images }
 }
 
@@ -414,7 +430,7 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
       `Лексика: ${unit.vocabTheme}`,
       `Артефакт: ${unit.artifact}`,
     ].join('\n'),
-    ...theoryOf(unit),
+    ...theoryOf(unit, spec.figures?.[unit.shortId]),
     videoUrl: unit.videoUrl,
     hwTitle: `Юнит ${unit.n}. ${unit.title}`,
     hwTarget: unit.artifact,

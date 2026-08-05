@@ -287,7 +287,9 @@ export function timelineFigure(
       <path d="M 0 0 L 10 5 L 0 10 z" fill="${INK}"/></marker></defs>`,
     `<line x1="${x0 - 16}" y1="${y}" x2="${x1 + 16}" y2="${y}" stroke="${INK}" stroke-width="1.6" marker-end="url(#tl)"/>`,
   ]
-  if (opts.axis) parts.push(`<text x="${x1 + 12}" y="${y - 12}" text-anchor="end" font-size="11" fill="${MUTED}">${esc(opts.axis)}</text>`)
+  // Подпись оси — в правом верхнем углу листа: у самой стрелки она садится на
+  // подпись последней точки.
+  if (opts.axis) parts.push(`<text x="${w - 20}" y="46" text-anchor="end" font-size="11" fill="${MUTED}">${esc(opts.axis)} →</text>`)
 
   points.forEach((p, i) => {
     const x = points.length === 1 ? (x0 + x1) / 2 : x0 + i * step
@@ -360,8 +362,11 @@ export function hangulSyllableFigure(): string {
   const box = (x: number, y: number, bw: number, bh: number, sym: string, label: string, tone: 'ink' | 'accent' | 'muted') => {
     const stroke = tone === 'accent' ? ACCENT : tone === 'muted' ? MUTED : INK
     const fill = tone === 'accent' ? ACCENT_SOFT : TILE
+    // Кегль от высоты клетки: в «этаже» слога (26 px) знак 26 px не помещается
+    // и вылезает за рамку.
+    const fs = bh < 40 ? 19 : 26
     return `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="8" fill="${fill}" stroke="${stroke}" stroke-width="1.4" stroke-dasharray="${tone === 'muted' ? '5 4' : '0'}"/>` +
-      `<text x="${x + bw / 2}" y="${y + bh / 2 + 9}" text-anchor="middle" font-size="26" font-weight="600" fill="${stroke}">${esc(sym)}</text>` +
+      `<text x="${x + bw / 2}" y="${y + bh / 2 + fs / 3}" text-anchor="middle" font-size="${fs}" font-weight="600" fill="${stroke}">${esc(sym)}</text>` +
       `<text x="${x + bw / 2}" y="${y + bh + 15}" text-anchor="middle" font-size="11" fill="${MUTED}">${esc(label)}</text>`
   }
 

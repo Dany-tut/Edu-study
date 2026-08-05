@@ -26,6 +26,7 @@ import {
   unitByShortId as findUnit, moduleOfUnit,
   one, many, fill, wb, pairsOf, write, say,
 } from './languageCourse'
+import { ENDC_THEORY, ENDC_VIDEO } from './englishDesignCareerTheory'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -1046,7 +1047,14 @@ export const ENGLISH_DESIGN_CAREER_SPEC: LanguageCourseSpec = {
   lang: 'en',
   guidedHours: '180–200',
   modules: MODULES,
-  units: ENGLISH_DESIGN_CAREER,
+  // Конспекты и видео живут отдельными картами по shortId: здесь — структура и
+  // задания, там — то, что ученик читает и смотрит. Иначе файл контента
+  // разрастается до нечитаемого.
+  units: ENGLISH_DESIGN_CAREER.map(u => ({
+    ...u,
+    theory: ENDC_THEORY[u.shortId] ?? u.theory,
+    videoUrl: ENDC_VIDEO[u.shortId] ?? u.videoUrl,
+  })),
 }
 
 /** Все слова курса — основа словарной колоды и интервальных повторений. */
