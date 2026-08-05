@@ -26,11 +26,22 @@ interface Props {
   style?: CSSProperties
 }
 
+// Проба WebGL съедает настоящий контекст, а их в браузере всего ~16. Каждый клик
+// по коллекции ремонтирует стикер, так что без кэша пробники быстро выбирают
+// лимит, и браузер гасит САМЫЙ СТАРЫЙ контекст — то есть тот, в котором сейчас
+// рисуется открытый стикер. Проверяем один раз на вкладку.
+let webglSupport: boolean | null = null
 function webglOk() {
+  if (webglSupport !== null) return webglSupport
   try {
     const c = document.createElement('canvas')
-    return !!(c.getContext('webgl2') || c.getContext('webgl'))
-  } catch { return false }
+    const gl = c.getContext('webgl2') || c.getContext('webgl')
+    // контекст пробника больше не нужен — отдаём его обратно драйверу сразу,
+    // не дожидаясь сборщика мусора
+    gl?.getExtension('WEBGL_lose_context')?.loseContext()
+    webglSupport = !!gl
+  } catch { webglSupport = false }
+  return webglSupport
 }
 
 /** «Приклеивание»: сколько уголок висит отогнутым, прежде чем лечь, и сколько ложится */

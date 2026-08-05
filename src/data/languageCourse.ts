@@ -69,6 +69,15 @@ export interface LangUnit {
   vocabTheme: string
   /** Что ученик создаёт своими руками к концу юнита. */
   artifact: string
+  /**
+   * Конспект урока — то, что ученик читает перед домашкой.
+   *
+   * Это главная содержательная часть языкового урока: правило, таблица форм,
+   * разбор типичной ошибки. Абзацы разделяются пустой строкой. Пока не задан,
+   * конспект собирается из полей выше (см. composeTheory) — но это заглушка,
+   * а не замена написанному тексту.
+   */
+  theory?: string
   /** Словарь юнита. */
   vocab: VocabItem[]
   /** Задания домашней работы. */
@@ -255,6 +264,26 @@ function vocabCard(word: VocabItem, id: string, lang: string) {
   )
 }
 
+/**
+ * Запасной конспект для юнитов, где текст ещё не написан руками.
+ *
+ * Собирается из уже заданных полей, чтобы урок не был пустым. Это заглушка:
+ * настоящий конспект пишется в unit.theory и объясняет правило, а не
+ * перечисляет его название.
+ */
+function composeTheory(unit: LangUnit): string {
+  const words = unit.vocab
+    .map(w => `• ${w.reading ? `${w.term} (${w.reading})` : w.term} — ${w.ru}${w.example ? `\n   ${w.example}` : ''}`)
+    .join('\n')
+  return [
+    `Что вы сможете после урока: ${unit.goal}.`,
+    `Правило: ${unit.grammar}`,
+    unit.grammarWhy,
+    `Слова урока (${unit.vocabTheme}):\n${words}`,
+    `К концу урока вы сделаете: ${unit.artifact}.`,
+  ].join('\n\n')
+}
+
 /** Сводка курса — для карточки курса, кнопки сида и страницы описания. */
 export interface CourseSummary {
   title: string
@@ -325,6 +354,7 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
       `Лексика: ${unit.vocabTheme}`,
       `Артефакт: ${unit.artifact}`,
     ].join('\n'),
+    theory: unit.theory?.trim() || composeTheory(unit),
     hwTitle: `Юнит ${unit.n}. ${unit.title}`,
     hwTarget: unit.artifact,
     hwTasks: [

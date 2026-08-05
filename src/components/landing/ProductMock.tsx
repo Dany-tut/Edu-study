@@ -1186,7 +1186,9 @@ function StickerShelf() {
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {COLLECTION.map((c, i) => (
           <StickerBadge key={c.label} score={c.score} label={c.label} size={46} locked={!c.got} onClick={() => setSel(i)}
-            style={{ cursor: 'pointer', outline: sel === i ? `2px solid ${ACCENT}` : 'none', outlineOffset: 2, borderRadius: 10 }} />
+            // Стикер круглый, поэтому и рамка выделения круглая: с borderRadius 10
+            // outline обводил квадрат, и на клике вылезали его углы.
+            style={{ cursor: 'pointer', outline: sel === i ? `2px solid ${ACCENT}` : 'none', outlineOffset: 3, borderRadius: '50%' }} />
         ))}
       </div>
     </div>

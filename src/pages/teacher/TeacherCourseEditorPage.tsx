@@ -56,6 +56,14 @@ export interface CELesson {
   testTasks?: HWTask[]
   videoUrl?: string
   description?: string
+  /**
+   * Конспект урока — то, что ученик читает на вкладке «Конспект».
+   * Хранится в lessons.content как массив абзацев; здесь держим одной строкой,
+   * абзацы разделяются пустой строкой. Раньше поля не было вовсе: объяснить
+   * грамматику внутри курса было негде, и языковые уроки состояли из одной
+   * строки описания и домашки.
+   */
+  theory?: string
   notebookFile?: string
   workbookFile?: string
   materialFile?: string
@@ -1008,6 +1016,17 @@ function CenterLesson({
             placeholder={t('Краткое содержание урока, что разобрали, ключевые моменты…')}
           />
         </div>
+
+        <div>
+          <Label>{t('Конспект')}</Label>
+          <AutoTextarea
+            value={lesson.theory ?? ''}
+            onChange={v => onUpdate({ ...lesson, theory: v })}
+            minHeight={160}
+            style={{ lineHeight: 1.7 }}
+            placeholder={t('Объяснение темы, правила, таблицы, разбор ошибок. Пустая строка — новый абзац. Это ученик читает на вкладке «Конспект».')}
+          />
+        </div>
       </div>
 
       {/* Ctrl+V paste picker */}
@@ -1894,7 +1913,9 @@ function HomeworkLeftPanel({
       boxShadow: 'var(--shadow-sm-page)',
       borderRadius: 18,
       display: 'flex', flexDirection: 'column',
-      maxHeight: 'calc(100vh - 120px)', position: 'relative', overflow: 'hidden',
+      // По высоте колонки, а не окна: колонка уже обрезана вьюпортом, а лишние
+      // 100vh вылезали за неё и обрезали низ списка типов заданий.
+      maxHeight: '100%', position: 'relative', overflow: 'hidden',
     }}>
       <ScrollOverlays fade={hwFade} thumb={hwThumb} bg="rgba(var(--glass-rgb), 0.88)" />
       <div ref={hwScrollRef} onScroll={onHwScroll} className="no-scrollbar" style={{
@@ -2208,7 +2229,7 @@ function TestLeftPanel({ lesson, onUpdate, isLanguage = false }: {
   const addFromBank = (bt: BankTask) => onUpdate({ ...lesson, testTasks: [...tasks, hwTaskFromBank(bt, false)] })
   return (
     <OverlayScrollArea
-      style={{ width: 248, flexShrink: 0, background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)', borderRadius: 18, maxHeight: 'calc(100vh - 120px)' }}
+      style={{ width: 248, flexShrink: 0, background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)', borderRadius: 18, maxHeight: '100%' }}
       bg="rgba(var(--glass-rgb), 0.7)"
       padding="16px 14px 18px"
       scrollStyle={{ gap: 10, display: 'flex', flexDirection: 'column' }}
@@ -3026,7 +3047,9 @@ function RightPanelLessons({
           ref={scrollRef}
           onScroll={onScrollFade}
           className="no-scrollbar"
-          style={{ flex: 1, overflowY: 'auto', padding: '8px 10px' }}
+          // overscrollBehavior: доскроллив список уроков до конца, мы раньше
+          // «дотягивали» прокрутку до страницы и уезжала вся вёрстка.
+          style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', padding: '8px 10px' }}
           onClick={e => {
             if (e.target !== e.currentTarget) return
             clearSelection()
@@ -3636,6 +3659,17 @@ export default function TeacherCourseEditorPage() {
       lesson_number: i,
       youtube_url: lesson.videoUrl ?? null,
       description: lesson.description ?? null,
+      // Конспект → lessons.content.paragraphs, откуда его читает вкладка
+      // «Конспект» у ученика. Пустой конспект пишем как {}, чтобы не затирать
+      // содержимое, заведённое другим путём, пустым массивом абзацев.
+      content: lesson.theory?.trim()
+        ? {
+            paragraphs: lesson.theory.split(/\n\s*\n/).map((text, pi) => ({
+              id: `${shortIdByLessonId[lesson.id] ?? lesson.id}-p${pi + 1}`,
+              text: text.trim(),
+            })),
+          }
+        : {},
       kind: lesson.kind ?? 'lesson',
       test_tasks: lesson.testTasks ?? [],
       scheduled_date: lesson.scheduledDate ?? null,
@@ -3957,17 +3991,10 @@ export default function TeacherCourseEditorPage() {
     flash()
   }
 
-  const docked = useTeacher(s => s.headerDocked)
+  // Страница редактора не прокручивается целиком, поэтому «прилипшей» шапки
+  // здесь нет — флаг только сбрасываем, чтобы он не остался от прошлой страницы.
   const setDocked = useTeacher(s => s.setHeaderDocked)
-  useEffect(() => () => setDocked(false), [])
-
-  const dockGlass = {
-    border: '1px solid var(--color-border-glass)',
-    background: 'rgba(var(--glass-rgb), 0.86)',
-    backdropFilter: 'blur(14px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-    boxShadow: 'var(--shadow-lg)',
-  } as const
+  useEffect(() => { setDocked(false); return () => setDocked(false) }, [])
 
   // Highlighted "Черновик" look — shown while the course IS a draft, so it reads
   // as the current state rather than a muted secondary action.
@@ -3985,63 +4012,20 @@ export default function TeacherCourseEditorPage() {
 
   const courseTitle = course.title || t('Создать курс')
 
+  // Страница сама НЕ скроллится: три колонки прокручиваются каждая своим
+  // внутренним скроллом и не тянут за собой соседей. Раньше общим скроллером
+  // была страница — правая колонка дотягивала прокрутку до неё (chaining) и
+  // уезжала вся вёрстка вместе с центром, а центр, наоборот, не скроллился
+  // совсем: он растягивал страницу, и его собственному скроллеру было нечего
+  // прокручивать.
   return (
-    {/* Страница сама НЕ скроллится: три колонки прокручиваются каждая своим
-        внутренним скроллом и не тянут за собой соседей. Раньше страница была
-        общим скроллером — правая колонка дотягивала прокрутку до неё (chaining)
-        и уезжала вся вёрстка вместе с центром, а центр, наоборот, не скроллился
-        совсем: он растягивал страницу, и его собственному скроллеру было нечего
-        прокручивать. */}
     <div
       style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', marginTop: -100, paddingTop: 100 }}
     >
-      {/* ── Docked twin ── */}
-      <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>
-        <AnimatePresence>
-          {docked && (
-            <motion.div
-              key="course-editor-dock"
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: [0, 6, -3.5, 1.5, -0.5, 0] }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
-              style={{ display: 'flex', alignItems: 'center', gap: 12, pointerEvents: 'none' }}
-            >
-              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={handleBack}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '9px 16px 9px 12px', borderRadius: 999, ...dockGlass, color: 'var(--color-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', pointerEvents: 'auto' }}>
-                <ArrowLeft size={15} strokeWidth={2} /> {t('Назад')}
-              </motion.button>
-              <div style={{ flexShrink: 1, minWidth: 0, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '9px 16px', borderRadius: 999, ...dockGlass, fontSize: 14, fontWeight: 700, color: 'var(--color-text)', pointerEvents: 'auto' }}>
-                {courseTitle}
-              </div>
-              <div style={{ flexGrow: 1 }} />
-              {course.status !== 'published' ? (
-                <button onClick={() => handleSave()} style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 999, ...dockGlass, ...draftActiveStyle, cursor: 'pointer', fontSize: 13.5, fontFamily: 'inherit', pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--color-yellow-text)', flexShrink: 0 }} /> {t('Черновик')}
-                </button>
-              ) : (
-                <button onClick={handleUnpublish} style={{ flexShrink: 0, padding: '9px 16px', borderRadius: 999, ...dockGlass, cursor: 'pointer', fontSize: 13.5, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit', pointerEvents: 'auto' }}>
-                  {t('В черновик')}
-                </button>
-              )}
-              <TeacherSaveButton
-                label={course.status === 'published' ? t('Сохранить') : t('Опубликовать')}
-                savedLabel={course.status === 'published' ? t('Сохранено!') : t('Опубликовано!')}
-                icon={<Send size={14} />}
-                saved={savedFlash}
-                saving={saving}
-                onClick={course.status === 'published' ? () => handleSave() : handlePublish}
-                style={{ pointerEvents: 'auto' }} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* ── At-rest header ── */}
+      {/* ── Шапка. Всегда на месте: страница не скроллится, прятать её в
+             «доке» больше нечем и незачем — «Назад» и «Опубликовать» под рукой. ── */}
       <motion.div
-        animate={{ opacity: docked ? 0 : 1 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
-        style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
+        style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 24px 14px' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={handleBack}
@@ -4190,6 +4174,7 @@ export default function TeacherCourseEditorPage() {
             initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
             style={{
+              flexShrink: 0,
               margin: '0 24px 8px', padding: '10px 14px', borderRadius: 12,
               border: '1px solid var(--color-red-soft)', background: 'var(--color-red-soft)',
               color: 'var(--color-red-text)', fontSize: 13, fontWeight: 600,
@@ -4202,8 +4187,9 @@ export default function TeacherCourseEditorPage() {
         )}
       </AnimatePresence>
 
-      {/* ── 3-column body ── */}
-      <div style={{ display: 'flex', gap: 14, padding: '4px 20px 24px', minHeight: 'calc(100vh - 100px)' }}>
+      {/* ── 3-column body — ровно по высоте окна (flex:1 + minHeight:0), чтобы
+             колонки не могли вытянуть страницу и остались независимыми ── */}
+      <div style={{ display: 'flex', gap: 14, padding: '4px 20px 24px', flex: 1, minHeight: 0 }}>
 
         {/* LEFT rail — single column whose WIDTH animates between the course
             card (320), the lesson rail (248) and collapsed (0, for a test).
@@ -4217,11 +4203,11 @@ export default function TeacherCourseEditorPage() {
               animate={{ opacity: 1, width: 248 }}
               exit={{ opacity: 0, width: 0 }}
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              style={{ flexShrink: 0, alignSelf: 'flex-start', overflow: 'hidden', position: 'sticky', top: 4 }}
+              style={{ flexShrink: 0, alignSelf: 'stretch', minHeight: 0, overflow: 'hidden' }}
             >
               {/* Hugs its content, same 248 width as the lesson rail. */}
-              <div style={{ width: 248 }}>
-                <GlassCard style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <div style={{ width: 248, height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                <GlassCard style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', maxHeight: '100%' }}>
                   <LeftCourseMeta course={course} setCourse={setCourse} />
                 </GlassCard>
               </div>
@@ -4233,11 +4219,13 @@ export default function TeacherCourseEditorPage() {
               animate={{ opacity: 1, width: 248 }}
               exit={{ opacity: 0, width: 0 }}
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              style={{ flexShrink: 0, alignSelf: 'flex-start', overflow: 'hidden', position: 'sticky', top: 4 }}
+              style={{ flexShrink: 0, alignSelf: 'stretch', minHeight: 0, overflow: 'hidden' }}
             >
               {/* Inner fixed-width so the rail content never reflows while the
-                  outer width animates. Per-tab card cross-fades. */}
-              <div style={{ width: 248 }}>
+                  outer width animates. Per-tab card cross-fades.
+                  Скроллер здесь же: карточки расписания и «Кому дать доступ»
+                  своего скролла не имеют, а в невысоком окне не помещаются. */}
+              <div className="no-scrollbar" style={{ width: 248, height: '100%', minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain' }}>
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
                     key={lessonMode === 'homework' ? 'rail-hw' : lessonMode === 'students' ? 'rail-students' : 'rail-sched'}
@@ -4245,6 +4233,7 @@ export default function TeacherCourseEditorPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -5 }}
                     transition={{ duration: 0.13 }}
+                    style={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}
                   >
                     {(lessonMode === 'recording' || lessonMode === 'lesson') && (
                       <ScheduleCard
@@ -4282,9 +4271,9 @@ export default function TeacherCourseEditorPage() {
               animate={{ opacity: 1, width: 248 }}
               exit={{ opacity: 0, width: 0 }}
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              style={{ flexShrink: 0, alignSelf: 'flex-start', overflow: 'hidden', position: 'sticky', top: 4 }}
+              style={{ flexShrink: 0, alignSelf: 'stretch', minHeight: 0, overflow: 'hidden' }}
             >
-              <div style={{ width: 248 }}>
+              <div style={{ width: 248, height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                 <TestLeftPanel lesson={selectedLesson} onUpdate={updateLesson} isLanguage={isLanguageSubject(course.subject)} />
               </div>
             </motion.div>
@@ -4425,7 +4414,7 @@ export default function TeacherCourseEditorPage() {
         </div>
 
         {/* RIGHT: always lesson list */}
-        <GlassCard style={{ width: 288, flexShrink: 0, alignSelf: 'flex-start', position: 'sticky', top: 4, maxHeight: 'calc(100vh - 190px)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <GlassCard style={{ width: 288, flexShrink: 0, alignSelf: 'flex-start', maxHeight: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <RightPanelLessons
             course={course} setCourse={setCourse}
             selectedLessonId={selectedLessonId} onSelectLesson={handleSelectLesson}
