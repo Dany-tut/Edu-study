@@ -46,8 +46,12 @@ import {
   dictation, dictationBank, minPair, describeImage, reading,
 } from './languageCourse'
 import { roomSceneImage } from './seedImages'
+import {
+  charGrid, formTable, formulaStrip, contrastPair, ladderFigure, clockRow,
+  hangulSyllableFigure,
+} from './lessonFigures'
 import { KOREAN_THEORY } from './koreanTopikTheory'
-import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem } from './languageCourse'
+import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 // Порядок юнитов выстроен по принципу, который вытащен из разбора TTMIK:
