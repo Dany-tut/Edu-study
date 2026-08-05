@@ -59,6 +59,9 @@ export interface HomeworkQuizQuestion {
   passage?: string
   passageTitle?: string
   passageTranslation?: string
+  /** flashcard — лицевая и оборотная сторона карточки. */
+  front?: string
+  back?: string
 }
 
 /** One task as persisted by the course editor's «Домашки» tab
@@ -281,6 +284,8 @@ function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): HomeworkQui
     passage: t.passage,
     passageTitle: t.passageTitle,
     passageTranslation: t.passageTranslation,
+    front: t.front,
+    back: t.back,
   }
 }
 

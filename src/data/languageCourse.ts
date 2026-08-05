@@ -239,10 +239,20 @@ function editorTask(seed: SeedTask, id: string, lang: string) {
   return { isHard: false, label: def.label, lang, ...def.makeDefault(), ...seed, id }
 }
 
-/** Слово словаря → карточка «лицо/оборот». Чтение приписывается к лицевой стороне. */
+/**
+ * Слово словаря → карточка «лицо/оборот». Чтение приписывается к лицевой стороне.
+ *
+ * `question` заполняется обязательно: и редактор, и списки заданий показывают
+ * именно его. Без него десятки словарных карточек выглядели в редакторе
+ * одинаковыми пустыми блоками «без текста», и понять, какое слово в какой,
+ * было нельзя.
+ */
 function vocabCard(word: VocabItem, id: string, lang: string) {
   const front = word.reading ? `${word.term} (${word.reading})` : word.term
-  return editorTask({ type: 'flashcard', front, back: word.ru }, id, lang)
+  return editorTask(
+    { type: 'flashcard', question: front, front, back: word.ru },
+    id, lang,
+  )
 }
 
 /** Сводка курса — для карточки курса, кнопки сида и страницы описания. */

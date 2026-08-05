@@ -5861,9 +5861,18 @@ function ScreeningAnalogyEditor({ items, onChange }: { items: AnalogyItem[]; onC
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <input value={edist} onChange={e => setEdist(e.target.value)} placeholder={t("Дистракторы через запятую")} style={{ ...inputStyle }} />
-                <select value={elv} onChange={e => setElv(Number(e.target.value))} style={{ padding: '7px 10px', borderRadius: 9, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', outline: 'none' }}>
-                  {[1,2,3,4,5].map(l => <option key={l} value={l}>{t('Ур.')} {l}</option>)}
-                </select>
+                <div style={{ width: 110, flexShrink: 0 }}>
+                  <TeacherSelect
+                    value={String(elv)}
+                    onChange={v => setElv(Number(v))}
+                    options={[1,2,3,4,5].map(l => ({ value: String(l), label: `${t('Ур.')} ${l}` }))}
+                    clearable={false}
+                    small
+                    accent={SCR_ACC}
+                    accentBg={SCR_SOFT}
+                    triggerStyle={{ padding: '7px 10px', borderRadius: 9, border: `1.5px solid ${SCR_ACC}44`, background: 'var(--color-bg-input)', fontSize: 13 }}
+                  />
+                </div>
               </div>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                 <button onClick={() => setEditId(null)} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{t('Отмена')}</button>

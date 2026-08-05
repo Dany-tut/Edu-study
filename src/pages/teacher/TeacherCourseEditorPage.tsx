@@ -25,7 +25,7 @@ import { useOverlayScroll, ScrollOverlays, OverlayScrollArea } from '../../compo
 import { getOwnerId } from '../../lib/owner'
 import TableEditor from '../../components/teacher/TableEditor'
 import { typeVisual } from '../../data/taskTypeVisuals'
-import { taskTypesFor, makeTask, TASK_TYPES as TASK_TYPES_BY_ID, type TaskTypeId } from '../../data/taskTypes'
+import { taskTypesFor, makeTask, TASK_TYPES as TASK_TYPES_BY_ID, type TaskTypeId, type TaskPayload } from '../../data/taskTypes'
 import { supabase } from '../../lib/supabase'
 import { readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 
@@ -35,46 +35,16 @@ type LessonMode = 'recording' | 'lesson' | 'homework' | 'students'
 
 type HWTaskType = TaskTypeId
 
-interface HWTask {
-  id: string
-  type: HWTaskType
-  isHard: boolean
-  label: string
-  question?: string
-  answer?: string
-  choices?: string[]
-  correctChoices?: number[]
-  pairs?: Array<{ left: string; right: string }>
-  /** Последовательность — элементы в правильном порядке (для type === 'sequence'). */
-  sequenceItems?: string[]
-  /** Таблица — заголовки колонок + строки-эталон + помеченные «?» ячейки + фото в ячейках. */
-  table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; blankCells?: Record<string, boolean>; cellImages?: Record<string, string>; cellImageSizes?: Record<string, number> }
-  /** Условие-картинка. */
-  image?: string
-  /** Размер условия-картинки в % (10–100). */
-  imageSize?: number
-  /** wordBank / listenBank — эталонное предложение (режется по пробелам на плитки). */
-  sentence?: string
-  /** wordBank / listenBank — лишние плитки-обманки. */
-  distractors?: string[]
-  /** Аудио-стимул: путь в бакете task-media (5A) либо текст для синтеза. */
-  audioUrl?: string
-  ttsText?: string
-  ttsVoice?: string
-  /** Разрешить замедленное воспроизведение (кнопка «черепаха»). */
-  allowSlow?: boolean
-  /** speaking — сколько секунд на подготовку и на ответ. */
-  prepSeconds?: number
-  responseSeconds?: number
-  /** speaking — эталонный текст для чтения вслух (если задание «прочитай», а не свободное). */
-  targetText?: string
-  /** minimalPair — два похожих варианта и какой из них прозвучал. */
-  pairA?: string
-  pairB?: string
-  correctPair?: 'A' | 'B'
-  /** id исходного задания в тренажёре (если задание добавлено «из тренажёра»). */
-  bankId?: number
-}
+/**
+ * Задание в редакторе курса. Поля берутся из TaskPayload (src/data/taskTypes.ts)
+ * — единый источник правды. Это был пятый по счёту рукописный дубликат той же
+ * структуры, и он успел отстать: в нём не было ни front/back у словарной
+ * карточки, ни passage у заданий на чтение, поэтому эти типы приезжали в
+ * редактор пустыми. Отличие от TaskPayload одно: тип здесь только канонический,
+ * легаси-написания в редактор не попадают.
+ */
+type HWTask = Omit<TaskPayload, 'type'> & { type: HWTaskType }
+
 
 export interface CELesson {
   id: string
@@ -1706,6 +1676,26 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 </div>
               )}
 
+              {/* flashcard — словарная карточка: лицо (слово) и оборот (перевод).
+                  Без этого блока карточки выглядели в редакторе пустыми: у них
+                  нет ни вариантов, ни эталона в обычном поле, только front/back. */}
+              {task.type === 'flashcard' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <input
+                    value={task.front ?? ''}
+                    onChange={e => onUpdate({ ...task, front: e.target.value, question: e.target.value })}
+                    placeholder={t('Лицевая сторона — слово на изучаемом языке')}
+                    style={inputSt}
+                  />
+                  <input
+                    value={task.back ?? ''}
+                    onChange={e => onUpdate({ ...task, back: e.target.value })}
+                    placeholder={t('Оборот — перевод. Несколько вариантов через запятую')}
+                    style={inputSt}
+                  />
+                </div>
+              )}
+
               {/* minimalPair — audio + two look-alike options, pick which was heard */}
               {task.type === 'minimalPair' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1933,10 +1923,12 @@ function HomeworkLeftPanel({
       </div>
 
       <div>
-        <input
+        {/* Названия юнитов длинные («Юнит 1. Хангыль: гласные и первые слова») —
+            в одну строку они обрезались, поэтому поле растёт по тексту. */}
+        <AutoTextarea
           value={(lesson[F.title] as string | undefined) ?? ''}
-          onChange={e => patch({ [F.title]: e.target.value })}
-          style={{ ...inputSt, padding: '7px 10px', fontSize: 12 }}
+          onChange={v => patch({ [F.title]: v })}
+          style={{ padding: '7px 10px', fontSize: 12, lineHeight: 1.35 }}
           placeholder={t('Название задания')}
         />
       </div>
@@ -3068,11 +3060,20 @@ function RightPanelLessons({
           return (
             <div key={mod.id} style={{ marginBottom: 6 }}>
               <button
-                onClick={() => {
-                  setActiveModuleId(prev => prev === mod.id ? null : mod.id)
-                  if (!mod.expanded) toggleModule(mod.id)
+                onClick={e => {
+                  // e.detail > 1 — это второй клик двойного, его глотаем:
+                  // раскрытие/сворачивание должно реагировать только на одиночный.
+                  if (e.detail > 1) return
+                  setActiveModuleId(mod.id)
+                  toggleModule(mod.id)
                 }}
-                title={t('Новые уроки будут добавляться в этот модуль')}
+                onDoubleClick={() => {
+                  // Первый клик двойного уже переключил модуль — откатываем и правим название.
+                  toggleModule(mod.id)
+                  setEditingModuleLabel(mod.label)
+                  setEditingModuleId(mod.id)
+                }}
+                title={t('Клик — свернуть/раскрыть, двойной клик — переименовать')}
                 onDragOver={e => {
                   e.preventDefault()
                   e.stopPropagation()
@@ -3091,7 +3092,8 @@ function RightPanelLessons({
                 <span
                   role="button"
                   aria-label={mod.expanded ? t('Свернуть') : t('Развернуть')}
-                  onClick={e => { e.stopPropagation(); toggleModule(mod.id) }}
+                  onClick={e => { e.stopPropagation(); if (e.detail > 1) return; toggleModule(mod.id) }}
+                  onDoubleClick={e => e.stopPropagation()}
                   style={{ display: 'flex', flexShrink: 0, cursor: 'pointer', padding: 1, margin: -1 }}
                 >
                   <ChevronDown
@@ -3103,33 +3105,42 @@ function RightPanelLessons({
                     }}
                   />
                 </span>
-                {editingModuleId === mod.id ? (
-                  <input
-                    autoFocus
-                    value={editingModuleLabel}
-                    onChange={e => setEditingModuleLabel(e.target.value)}
-                    onClick={e => e.stopPropagation()}
-                    onBlur={() => { renameModule(mod.id, editingModuleLabel); setEditingModuleId(null) }}
-                    onKeyDown={e => {
-                      e.stopPropagation()
-                      if (e.key === 'Enter') { renameModule(mod.id, editingModuleLabel); setEditingModuleId(null) }
-                      else if (e.key === 'Escape') setEditingModuleId(null)
-                    }}
-                    style={{
-                      flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
-                      color: 'var(--color-text)', background: 'var(--color-bg)',
-                      border: '1.5px solid var(--color-green-text)', borderRadius: 6, padding: '2px 6px', outline: 'none',
-                    }}
-                  />
-                ) : (
+                {/* Ширину и высоту строки всегда задаёт текст-подложка: инпут лежит
+                    абсолютным оверлеем, а его рамка уходит в отрицательные отступы —
+                    поэтому по двойному клику строка не подрастает. */}
+                <span style={{ flex: 1, minWidth: 0, position: 'relative' }}>
                   <span
-                    onDoubleClick={e => { e.stopPropagation(); setEditingModuleLabel(mod.label); setEditingModuleId(mod.id) }}
-                    title={t('Двойной клик — переименовать')}
-                    style={{ flex: 1, fontSize: 12, fontWeight: 700, color: isActive ? 'var(--color-green-text)' : 'var(--color-text)', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    style={{
+                      display: 'block', fontSize: 12, fontWeight: 700,
+                      color: editingModuleId === mod.id ? 'transparent' : (isActive ? 'var(--color-green-text)' : 'var(--color-text)'),
+                      textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}
                   >
                     {mod.label}
                   </span>
-                )}
+                  {editingModuleId === mod.id && (
+                    <input
+                      autoFocus
+                      value={editingModuleLabel}
+                      onChange={e => setEditingModuleLabel(e.target.value)}
+                      onClick={e => e.stopPropagation()}
+                      onDoubleClick={e => e.stopPropagation()}
+                      onBlur={() => { renameModule(mod.id, editingModuleLabel); setEditingModuleId(null) }}
+                      onKeyDown={e => {
+                        e.stopPropagation()
+                        if (e.key === 'Enter') { renameModule(mod.id, editingModuleLabel); setEditingModuleId(null) }
+                        else if (e.key === 'Escape') setEditingModuleId(null)
+                      }}
+                      style={{
+                        position: 'absolute', left: -6, right: -6, top: -3, bottom: -3,
+                        boxSizing: 'border-box', width: 'auto',
+                        fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+                        color: 'var(--color-text)', background: 'var(--color-bg)',
+                        border: '1.5px solid var(--color-green-text)', borderRadius: 6, padding: '0 6px', outline: 'none',
+                      }}
+                    />
+                  )}
+                </span>
                 {dragging && isTarget && !mod.expanded && (
                   <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-green-text)', background: 'var(--color-bg)', borderRadius: 999, padding: '2px 6px', flexShrink: 0 }}>
                     {t('в конец')}
@@ -3975,9 +3986,14 @@ export default function TeacherCourseEditorPage() {
   const courseTitle = course.title || t('Создать курс')
 
   return (
+    {/* Страница сама НЕ скроллится: три колонки прокручиваются каждая своим
+        внутренним скроллом и не тянут за собой соседей. Раньше страница была
+        общим скроллером — правая колонка дотягивала прокрутку до неё (chaining)
+        и уезжала вся вёрстка вместе с центром, а центр, наоборот, не скроллился
+        совсем: он растягивал страницу, и его собственному скроллеру было нечего
+        прокручивать. */}
     <div
-      onScroll={e => setDocked((e.currentTarget as HTMLElement).scrollTop > 64)}
-      style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}
+      style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', marginTop: -100, paddingTop: 100 }}
     >
       {/* ── Docked twin ── */}
       <div className="docked-pills-row" style={{ position: 'fixed', top: 30, left: 32, right: 32, zIndex: 80, pointerEvents: 'none' }}>

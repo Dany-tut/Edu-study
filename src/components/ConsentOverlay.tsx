@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Checkbox from './Checkbox'
 import { useT } from '../lib/i18n'
 import { getStudentSession } from '../lib/studentSession'
 import { trackEvent } from '../lib/analytics'
@@ -50,38 +51,11 @@ export default function ConsentOverlay({ onAccept }: { onAccept: () => void }) {
         border: '1px solid var(--color-border-medium)', padding: '22px 20px 18px',
         boxShadow: '0 24px 60px rgba(0,0,0,0.4)', maxHeight: '90vh', overflowY: 'auto',
       }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 9, cursor: 'pointer' }}>
-          <input
-            type="checkbox"
-            checked={checked}
-            onChange={e => setChecked(e.target.checked)}
-            style={{ position: 'absolute', opacity: 0, width: 0, height: 0, margin: 0 }}
-          />
-          <span
-            aria-hidden
-            style={{
-              width: 18,
-              height: 18,
-              flexShrink: 0,
-              borderRadius: 6,
-              border: `1.5px solid ${checked ? 'var(--color-purple, #786AD7)' : 'var(--color-border-medium)'}`,
-              background: checked ? 'var(--color-purple, #786AD7)' : 'var(--color-bg-input)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'background 0.15s ease, border-color 0.15s ease',
-            }}
-          >
-            {checked && (
-              <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-                <path d="M2.5 6.2L4.8 8.5L9.5 3.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-          </span>
+        <Checkbox checked={checked} onChange={setChecked} accent="var(--color-purple, #786AD7)" labelStyle={{ display: 'flex' }}>
           <span style={{ fontSize: 12, lineHeight: 1.4, color: 'var(--color-text-2)' }}>
             {t('Согласен(а) на обработку данных.')}
           </span>
-        </label>
+        </Checkbox>
 
         <button
           onClick={accept}

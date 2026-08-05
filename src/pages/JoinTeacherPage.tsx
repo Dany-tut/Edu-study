@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Skeleton from '../components/Skeleton'
+import Checkbox from '../components/Checkbox'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -188,30 +189,13 @@ export default function JoinTeacherPage() {
 
 function ConsentRow({ checked, onChange, children }: { checked: boolean; onChange: (v: boolean) => void; children: React.ReactNode }) {
   return (
-    <label style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 12.5, color: 'var(--color-muted)', lineHeight: 1.45, cursor: 'pointer' }}>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={e => onChange(e.target.checked)}
-        style={{ position: 'absolute', opacity: 0, width: 0, height: 0, margin: 0 }}
-      />
-      <span
-        aria-hidden
-        style={{
-          marginTop: 1, width: 18, height: 18, flexShrink: 0, borderRadius: 6,
-          border: `1.5px solid ${checked ? 'var(--color-purple)' : 'var(--color-border)'}`,
-          background: checked ? 'var(--color-purple)' : 'var(--color-bg-input)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: 'background 0.15s ease, border-color 0.15s ease',
-        }}
-      >
-        {checked && (
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-            <path d="M2.5 6.2L4.8 8.5L9.5 3.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        )}
-      </span>
-      <span>{children}</span>
-    </label>
+    <Checkbox
+      checked={checked}
+      onChange={onChange}
+      align="start"
+      labelStyle={{ display: 'flex', fontSize: 12.5, color: 'var(--color-muted)', lineHeight: 1.45 }}
+    >
+      {children}
+    </Checkbox>
   )
 }

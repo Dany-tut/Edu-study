@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { Upload, X, Volume2, Loader2 } from 'lucide-react'
 import { uploadMedia, MediaTooLargeError } from '../../lib/mediaStorage'
 import AudioPlayer from '../AudioPlayer'
+import Checkbox from '../Checkbox'
 import { useT } from '../../lib/i18n'
 
 // Редактор аудио-стимула для языковых заданий (listenType/listenBank/minimalPair).
@@ -84,10 +85,14 @@ export default function AudioStimulusEditor({
       )}
 
       {/* «Медленно» доступно для любого источника */}
-      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12.5, color: 'var(--color-text-2)' }}>
-        <input type="checkbox" checked={!!value.allowSlow} onChange={e => onChange({ allowSlow: e.target.checked })} />
+      <Checkbox
+        checked={!!value.allowSlow}
+        onChange={v => onChange({ allowSlow: v })}
+        size={17}
+        labelStyle={{ fontSize: 12.5, color: 'var(--color-text-2)', gap: 8 }}
+      >
         {t('Разрешить замедленное воспроизведение')}
-      </label>
+      </Checkbox>
 
       {error && <div style={{ fontSize: 11.5, color: 'var(--color-red-text)' }}>{error}</div>}
       <input ref={fileRef} type="file" accept="audio/*" style={{ display: 'none' }}

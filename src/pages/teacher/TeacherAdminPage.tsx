@@ -16,6 +16,9 @@ import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { PLAN_OPTIONS, adminSetTeacherPlan, type TeacherPlanRow } from '../../lib/plan'
 import { useT, t as tGlobal } from '../../lib/i18n'
 
+// Маркер «без тарифа» для дропдауна (в БД это NULL).
+const NO_PLAN = '__no_plan__'
+
 type StorageStats = {
   db_bytes: number
   db_limit_bytes: number
@@ -405,20 +408,21 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
       <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--color-border)' }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>{t('Тариф')}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <select
-            value={plan ?? ''}
-            onChange={e => { void savePlan(e.target.value === '' ? null : e.target.value) }}
-            disabled={planSaving}
-            style={{
-              padding: '8px 12px', borderRadius: 12, fontSize: 13, fontWeight: 600,
-              border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
-              color: 'var(--color-text-2)', cursor: planSaving ? 'wait' : 'pointer', outline: 'none',
-            }}
-          >
-            {PLAN_OPTIONS.map(o => (
-              <option key={o.code ?? 'none'} value={o.code ?? ''}>{t(o.label)}</option>
-            ))}
-          </select>
+          {/* NO_PLAN — свой маркер вместо '': пустую строку TeacherSelect трактует
+              как «нет выбора» и такую опцию не показывает. */}
+          <div style={{ width: 260, pointerEvents: planSaving ? 'none' : undefined, opacity: planSaving ? 0.6 : 1 }}>
+            <TeacherSelect
+              value={plan ?? NO_PLAN}
+              onChange={v => { void savePlan(v === NO_PLAN ? null : v) }}
+              options={PLAN_OPTIONS.map(o => ({ value: o.code ?? NO_PLAN, label: t(o.label) }))}
+              clearable={false}
+              triggerStyle={{
+                padding: '8px 12px', borderRadius: 12, fontSize: 13, fontWeight: 600,
+                border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
+                color: 'var(--color-text-2)',
+              }}
+            />
+          </div>
           {planSaving && <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('Сохраняем…')}</span>}
           {planSaved && <Check size={14} strokeWidth={2.6} style={{ color: '#3FA867' }} />}
           {planError && <span style={{ fontSize: 11, color: '#E04848' }}>{planError}</span>}

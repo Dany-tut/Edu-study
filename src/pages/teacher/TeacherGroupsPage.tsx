@@ -411,15 +411,13 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
           {groups.length > 0 && (
             <label style={labelStyle}>
               {t('Группа *')}
-              <select
+              <TeacherSelect
                 value={selectedGroup}
-                onChange={e => setSelectedGroup(e.target.value)}
-                style={{ ...inputStyle, appearance: 'none' }}
-              >
-                {groups.map(g => (
-                  <option key={g.id} value={g.id}>{g.icon} {g.name}</option>
-                ))}
-              </select>
+                onChange={setSelectedGroup}
+                options={groups.map(g => ({ value: g.id, label: `${g.icon} ${g.name}` }))}
+                clearable={false}
+                triggerStyle={selectTriggerStyle}
+              />
             </label>
           )}
           <input value={name} onChange={e => setName(e.target.value)} placeholder={t('Имя *')} style={inputStyle} />

@@ -598,6 +598,7 @@ function questionAutoGradable(q: HomeworkQuizQuestion) {
   if (langTp === 'wordBank' || langTp === 'listenBank') return sentenceTokens(q.sentence ?? '').length >= 2
   if (langTp === 'listenType') return !!q.referenceAnswer?.trim()
   if (langTp === 'minimalPair') return !!q.pairA && !!q.pairB && !!q.correctPair
+  if (langTp === 'flashcard') return !!q.back?.trim()
   // speaking / imageDescribe / imageCompare — только учителем.
   const tp = qType(q)
   if (tp === 'fill' || tp === 'extended') return !!q.referenceAnswer?.trim()
@@ -625,6 +626,14 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
         || (q.altAnswers ?? []).some(a => normAnswer(a) === target)
     }
     if (langTp === 'minimalPair') return ans === q.correctPair
+    if (langTp === 'flashcard') {
+      if (!q.back?.trim()) return false
+      // Перевод часто даётся с уточнением в скобках («идти, ехать») — принимаем
+      // и полный вариант, и любую из перечисленных через запятую частей.
+      const target = normAnswer(ans)
+      const variants = q.back.split(/[,;]/).map(s => normAnswer(s.replace(/\([^)]*\)/g, '')))
+      return normAnswer(q.back) === target || variants.some(v => v && v === target)
+    }
   }
   const tp = qType(q)
   if (tp === 'fill' || tp === 'extended') {
@@ -1684,6 +1693,38 @@ export default function HomeworkFlow({
                           )
                         })}
                       </div>
+                    </div>
+
+                    /* Словарная карточка: показываем лицо, ученик вписывает перевод.
+                       Без этой ветки карточка проваливалась в общий текстареа с
+                       подписью «развёрнутый ответ» — то есть выглядела как эссе. */
+                    ) : qType(question) === 'flashcard' ? (
+                    <div className="flex flex-col" style={{ gap: 10 }}>
+                      <div style={{
+                        padding: '18px 16px', borderRadius: 16, textAlign: 'center',
+                        background: 'var(--color-teal-pill-bg)', color: 'var(--color-teal-pill-text)',
+                        fontSize: 22, fontWeight: 700, lineHeight: 1.3,
+                      }}>
+                        {question.front || question.prompt}
+                      </div>
+                      <input
+                        value={selectedAnswer ?? ''}
+                        onChange={e => setFreeAnswer(question.id, e.target.value)}
+                        disabled={state.basicSubmitted}
+                        placeholder={t('Перевод…')}
+                        style={{
+                          width: '100%', boxSizing: 'border-box', padding: '12px 14px',
+                          borderRadius: 16, fontFamily: 'inherit', fontSize: 14,
+                          color: 'var(--color-text)', background: 'var(--color-bg-input)', outline: 'none',
+                          border: `1px solid ${showVerdict ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'var(--color-border)'}`,
+                          opacity: state.basicSubmitted ? 0.85 : 1,
+                        }}
+                      />
+                      {showVerdict && !isCorrect && question.back && (
+                        <div style={{ fontSize: 13, color: 'var(--color-green-text)', fontWeight: 600 }}>
+                          {t('Правильно')}: {question.back}
+                        </div>
+                      )}
                     </div>
 
                     /* Устный ответ: запись голоса. Проверяет учитель. */
