@@ -45,6 +45,14 @@ const REVEAL_PEEL = 0.5
 const REVEAL_CURL_START = 0.17
 const REVEAL_CURL_END = 0.11
 
+/**
+ * Во сколько раз печать в WebGL мельче квадрата: камера fov 24° с z=3.2 показывает
+ * 1.36 юнита, плоскость — settings.size (0.86) × 1.15. Статичный бейдж рисует арт
+ * во весь квадрат, поэтому без этой поправки подмена рендера читается как рывок
+ * «сначала большой → через секунду нормальный».
+ */
+const FALLBACK_SCALE = 0.73
+
 const reducedMotion = () =>
   typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -163,11 +171,15 @@ export default function HoloSticker({
       onPointerLeave={() => { pointerRef.current = null }}
     >
       <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
-      {!live && (
-        <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}>
-          <StickerBadge score={score} label={label} sublabel={sublabel} size={size} />
-        </div>
-      )}
+      {/* бейдж не размонтируем резко, а гасим — подмена статики на WebGL не мигает */}
+      <div
+        style={{
+          position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
+          pointerEvents: 'none', opacity: live ? 0 : 1, transition: 'opacity 200ms ease',
+        }}
+      >
+        <StickerBadge score={score} label={label} sublabel={sublabel} size={Math.round(size * FALLBACK_SCALE)} />
+      </div>
     </div>
   )
 }
