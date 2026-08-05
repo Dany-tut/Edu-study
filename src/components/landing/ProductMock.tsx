@@ -755,7 +755,9 @@ function AwardCard({ score, who, nonce }: { score: number; who: string; nonce: n
           с запасом — иначе кажется, что стикер аккуратно вписан в карточку. */}
       <HoloSticker
         key={nonce} score={score} sublabel="задание 13" size={156} reveal
-        style={{ margin: '-97px 0 -1px -45px', flex: '0 0 auto' }}
+        // Верхнее и нижнее поля меняем встречно (-20 / +20): сумма полей та же,
+        // поэтому карточка не меняет высоту — сдвигается только сам стикер.
+        style={{ margin: '-77px 0 -21px -45px', flex: '0 0 auto' }}
       />
       <div style={{ minWidth: 0 }}>
         <div style={{ fontSize: 12.5, fontWeight: 800 }}>{who} получает стикер</div>

@@ -352,21 +352,26 @@ function drawEmblem(
     ctx.fill()
     ctx.fillStyle = tier.inkDark
   } else if (emblem === 'gem') {
+    // Камень занимал по вертикали -0.5…0.96 — центр контура уходил на 0.23 ВНИЗ
+    // от начала координат, то есть от середины светлой шайбы, и на фоне ровно
+    // сидящих звезды/кубка/молнии кристалл читался как съехавший. Здесь габарит
+    // симметричный (-0.84…0.84) и по высоте такой же, как у остальных эмблем:
+    // раньше он был на четверть ниже и казался мельче соседей.
     ctx.beginPath()
-    ctx.moveTo(-0.6, -0.5)
-    ctx.lineTo(0.6, -0.5)
-    ctx.lineTo(0.96, -0.04)
-    ctx.lineTo(0, 0.96)
-    ctx.lineTo(-0.96, -0.04)
+    ctx.moveTo(-0.69, -0.84)
+    ctx.lineTo(0.69, -0.84)
+    ctx.lineTo(1.1, -0.31)
+    ctx.lineTo(0, 0.84)
+    ctx.lineTo(-1.1, -0.31)
     ctx.closePath()
     ctx.fill()
     // грани светлым: без них камень выглядит пятиугольным пятном
     ctx.strokeStyle = tier.inkLight
     ctx.lineWidth = 0.1
     ctx.beginPath()
-    ctx.moveTo(-0.96, -0.04); ctx.lineTo(0.96, -0.04)
-    ctx.moveTo(-0.6, -0.5); ctx.lineTo(-0.34, -0.04); ctx.lineTo(0, 0.96)
-    ctx.moveTo(0.6, -0.5); ctx.lineTo(0.34, -0.04)
+    ctx.moveTo(-1.1, -0.31); ctx.lineTo(1.1, -0.31)
+    ctx.moveTo(-0.69, -0.84); ctx.lineTo(-0.39, -0.31); ctx.lineTo(0, 0.84)
+    ctx.moveTo(0.69, -0.84); ctx.lineTo(0.39, -0.31)
     ctx.stroke()
     ctx.strokeStyle = tier.inkDark
   } else if (emblem === 'flame') {
