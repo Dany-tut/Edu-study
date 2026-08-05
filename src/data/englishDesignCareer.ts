@@ -21,55 +21,23 @@
 // Tatoeba (CC BY) с указанием источника.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { TASK_TYPES } from './taskTypes'
-import type { TaskPayload, TaskTypeId } from './taskTypes'
-import { getSubject } from '../lib/subjects'
-import type { CELesson, CEModule, CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
+import {
+  buildLanguageCourse, courseSummary, allVocab,
+  unitByShortId as findUnit, moduleOfUnit,
+  one, many, fill, wb, pairsOf, write, say,
+} from './languageCourse'
+import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem } from './languageCourse'
+import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 // ─── Модель ──────────────────────────────────────────────────────────────────
+//
+// Модель, хелперы заданий и сборщик — общие для всех языковых курсов и живут в
+// languageCourse.ts. Здесь остаются прежние имена как псевдонимы: на них
+// ссылается контент этого файла и внешние импорты.
 
-/** Слово словаря юнита. Ложится в карточки и в интервальные повторения. */
-export interface VocabItem {
-  /** Английское слово или словосочетание. */
-  en: string
-  /** Русский перевод. */
-  ru: string
-  /** Пример употребления — контекст важнее изолированного слова. */
-  example?: string
-}
-
-export interface EnglishUnit {
-  /** Порядковый номер, 1-based. */
-  n: number
-  /** Короткий стабильный id — ключ для lessons.short_id и прогресса. */
-  shortId: string
-  /** Заголовок для ученика. */
-  title: string
-  /** Коммуникативная цель — что ученик сможет после юнита. */
-  goal: string
-  /** Грамматика юнита. */
-  grammar: string
-  /** Зачем эта грамматика именно здесь. */
-  grammarWhy: string
-  /** Лексическая тема. */
-  vocabTheme: string
-  /** Что ученик создаёт своими руками к концу юнита. */
-  artifact: string
-  /** Словарь юнита. */
-  vocab: VocabItem[]
-  /** Задания домашней работы. */
-  tasks: SeedTask[]
-}
-
-/** Задание в сиде — без id и label, они проставляются при сборке. */
-export type SeedTask = Omit<Partial<TaskPayload>, 'type'> & { type: TaskTypeId }
-
-/** Модуль — группа юнитов с общей задачей. */
-export interface EnglishModule {
-  title: string
-  subtitle: string
-  units: number[]
-}
+export type { VocabItem, SeedTask } from './languageCourse'
+export type EnglishUnit = LangUnit
+export type EnglishModule = LangModule
 
 export const MODULES: EnglishModule[] = [
   { title: 'Кто я и что я умею', subtitle: 'Профиль, резюме, портфолио, кейс', units: [1, 2, 3, 4, 5, 6] },
@@ -78,35 +46,6 @@ export const MODULES: EnglishModule[] = [
   { title: 'Оффер и старт', subtitle: 'Тестовое, переговоры, онбординг', units: [19, 20, 21, 22, 23] },
   { title: 'Работа в команде', subtitle: 'Стендапы, переписка, обратная связь, клиенты', units: [24, 25, 26, 27, 28] },
 ]
-
-// ─── Хелперы для заданий ─────────────────────────────────────────────────────
-
-/** Собрать предложение из слов — тренирует порядок слов, больной вопрос у русскоязычных. */
-const wb = (sentence: string, question: string, distractors: string[] = []): SeedTask =>
-  ({ type: 'wordBank', question, sentence, distractors })
-
-/** Вписать слово — точечная отработка формы. */
-const fill = (question: string, answer: string, altAnswers?: string[]): SeedTask =>
-  ({ type: 'fill', question, answer, altAnswers })
-
-/** Один верный вариант. */
-const one = (question: string, choices: string[], correct: number): SeedTask =>
-  ({ type: 'single', question, choices, correctChoices: [correct] })
-
-/** Несколько верных вариантов. */
-const many = (question: string, choices: string[], correct: number[]): SeedTask =>
-  ({ type: 'multi', question, choices, correctChoices: correct })
-
-/** Свободный ответ — идёт учителю. */
-const write = (question: string): SeedTask => ({ type: 'extended', question })
-
-/** Записать голос — учитель слушает; при подключённом ИИ добавится разбор. */
-const say = (question: string, responseSeconds = 90): SeedTask =>
-  ({ type: 'speaking', question, prepSeconds: 20, responseSeconds })
-
-/** Пары слово—перевод. */
-const pairsOf = (question: string, items: [string, string][]): SeedTask =>
-  ({ type: 'matching', question, pairs: items.map(([left, right]) => ({ left, right })) })
 
 // ─── Юниты ───────────────────────────────────────────────────────────────────
 
@@ -1099,110 +1038,34 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
 
 // ─── Производные ─────────────────────────────────────────────────────────────
 
+export const ENGLISH_DESIGN_CAREER_SPEC: LanguageCourseSpec = {
+  key: 'endc',
+  title: 'Английский для дизайнера — от письма до оффера',
+  subject: 'Английский',
+  level: 'A2 → B1',
+  lang: 'en',
+  guidedHours: '180–200',
+  modules: MODULES,
+  units: ENGLISH_DESIGN_CAREER,
+}
+
 /** Все слова курса — основа словарной колоды и интервальных повторений. */
-export const ALL_VOCAB: VocabItem[] = ENGLISH_DESIGN_CAREER.flatMap(u => u.vocab)
+export const ALL_VOCAB: VocabItem[] = allVocab(ENGLISH_DESIGN_CAREER_SPEC)
 
 /** Юнит по короткому id. */
 export function unitByShortId(shortId: string): EnglishUnit | undefined {
-  return ENGLISH_DESIGN_CAREER.find(u => u.shortId === shortId)
+  return findUnit(ENGLISH_DESIGN_CAREER_SPEC, shortId)
 }
 
 /** Модуль, которому принадлежит юнит. */
 export function moduleOf(n: number): EnglishModule | undefined {
-  return MODULES.find(m => m.units.includes(n))
+  return moduleOfUnit(ENGLISH_DESIGN_CAREER_SPEC, n)
 }
-
-/** Юнит по номеру — модули ссылаются на юниты номерами, а уроки живут по shortId. */
-const UNIT_BY_N = new Map(ENGLISH_DESIGN_CAREER.map(u => [u.n, u]))
 
 /** Сводка курса — для карточки курса и страницы описания. */
-export const COURSE_SUMMARY = {
-  title: 'Английский для дизайнера — от письма до оффера',
-  level: 'A2 → B1',
-  units: ENGLISH_DESIGN_CAREER.length,
-  vocabCount: ALL_VOCAB.length,
-  taskCount: ENGLISH_DESIGN_CAREER.reduce((sum, u) => sum + u.tasks.length, 0),
-  /** Ориентир CEFR: A2→B1 — примерно 180–200 учебных часов. */
-  guidedHours: '180–200',
-} as const
+export const COURSE_SUMMARY = courseSummary(ENGLISH_DESIGN_CAREER_SPEC)
 
-// ─── Сборка курса для конструктора ───────────────────────────────────────────
-//
-// Конструктор не хранит собственную копию контента: сид переводится в ту же
-// форму CourseEdData, в которой учитель правит любой свой курс, и открывается
-// в редакторе. После «Сохранить» это обычный курс учителя (created_by = он),
-// который можно резать, дополнять и выдавать группам — сид больше не участвует.
-//
-// Соответствие: юнит → урок, задания юнита → ДЗ урока, словарь → карточки в том
-// же ДЗ (тип flashcard проверяется автоматически), модули сида → модули курса.
-
-const ENGLISH_PALETTE = getSubject('english')?.light
-const ACCENT = ENGLISH_PALETTE?.accent ?? '#E4572E'
-const ACCENT_SOFT = ENGLISH_PALETTE?.soft ?? 'rgba(228,87,46,0.14)'
-
-/**
- * Задание сида → задание редактора. Дефолты типа кладутся первыми, поля сида
- * их перекрывают: так задание не приезжает в редактор с пустыми обязательными
- * полями (например, `allowSlow` у аудио-типов), но и не теряет своё содержимое.
- */
-function editorTask(seed: SeedTask, id: string) {
-  const def = TASK_TYPES[seed.type]
-  return { isHard: false, label: def.label, ...def.makeDefault(), ...seed, id }
-}
-
-/** Слово словаря → карточка «лицо/оборот». */
-function vocabCard(word: VocabItem, id: string) {
-  return editorTask({ type: 'flashcard', front: word.en, back: word.ru }, id)
-}
-
-/**
- * Собрать курс для редактора. `courseId` приходит снаружи (конструктор выдаёт
- * свежий), поэтому два добавления сида дают два независимых курса, а не
- * перезапись первого. Идентификаторы уроков внутри курса стабильны — short_id
- * в БД всё равно выводится от id курса (см. lessonShortIdMap).
- */
+/** Собрать курс для редактора конструктора. */
 export function buildEnglishDesignCareerCourse(courseId: string): CourseEdData {
-  const lessons: CELesson[] = ENGLISH_DESIGN_CAREER.map(unit => ({
-    id: unit.shortId,
-    title: `${unit.n}. ${unit.title}`,
-    number: unit.n,
-    kind: 'lesson',
-    description: [
-      `Цель: ${unit.goal}`,
-      `Грамматика: ${unit.grammar}`,
-      `Почему здесь: ${unit.grammarWhy}`,
-      `Лексика: ${unit.vocabTheme}`,
-      `Артефакт: ${unit.artifact}`,
-    ].join('\n'),
-    hwTitle: `Юнит ${unit.n}. ${unit.title}`,
-    hwTarget: unit.artifact,
-    hwTasks: [
-      ...unit.tasks.map((task, i) => editorTask(task, `${unit.shortId}-t${i + 1}`)),
-      ...unit.vocab.map((word, i) => vocabCard(word, `${unit.shortId}-v${i + 1}`)),
-    ],
-  }))
-
-  const modules: CEModule[] = MODULES.map((m, i) => ({
-    id: `endc-m${i + 1}`,
-    label: m.title,
-    expanded: i === 0,
-    lessonIds: m.units.map(n => UNIT_BY_N.get(n)?.shortId).filter((id): id is string => !!id),
-  }))
-
-  return {
-    id: courseId,
-    title: COURSE_SUMMARY.title,
-    subject: 'Английский',
-    level: COURSE_SUMMARY.level,
-    status: 'draft',
-    color: ACCENT,
-    bg: ACCENT_SOFT,
-    groupIds: [],
-    studentIds: [],
-    modules,
-    lessons,
-    description:
-      `${COURSE_SUMMARY.units} юнитов, ${COURSE_SUMMARY.vocabCount} слов, ` +
-      `${COURSE_SUMMARY.taskCount} заданий. Ориентир CEFR — ${COURSE_SUMMARY.guidedHours} учебных часов.`,
-  }
+  return buildLanguageCourse(ENGLISH_DESIGN_CAREER_SPEC, courseId)
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import HoloSticker from '../HoloSticker'
 import StickerBadge from '../StickerBadge'
@@ -47,6 +47,11 @@ export default function ProductMock() {
 
   const section = history[hIdx]
   const sec = SECTIONS[section]
+  // окно мока — фиксированной высоты (см. .lp-page): что бы внутри ни нажали,
+  // секция «Как это работает» под ним не должна прыгать. Всё, что не влезло,
+  // скроллится внутри страницы — ровно как в настоящем браузере.
+  const pageRef = useRef<HTMLDivElement>(null)
+  useEffect(() => { pageRef.current?.scrollTo({ top: 0 }) }, [section, tab, nonce])
 
   const go = (i: number) => {
     if (i === section) return
@@ -131,7 +136,7 @@ export default function ProductMock() {
 
         {/* ── страница ── */}
         {tab === 'teacher' ? (
-          <div style={{ display: 'flex', minHeight: 390 }}>
+          <div className="lp-page" style={{ display: 'flex' }}>
             {/* сайдбар */}
             <div className="lp-mock-side" style={{ width: 178, flexShrink: 0, borderRight: '1px solid var(--color-border)', padding: '16px 12px', background: 'color-mix(in srgb, var(--color-bg) 25%, var(--color-surface))' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, fontSize: 15, marginBottom: 18, padding: '0 4px' }}>
@@ -154,7 +159,7 @@ export default function ProductMock() {
             </div>
 
             {/* контент */}
-            <div style={{ flex: 1, padding: 18, minWidth: 0, position: 'relative' }}>
+            <div ref={pageRef} className="lp-scroll" style={{ flex: 1, padding: 18, minWidth: 0, position: 'relative' }}>
               {/* мобильные вкладки разделов */}
               <div className="lp-mock-tabs" style={{ display: 'none', gap: 6, marginBottom: 14, overflowX: 'auto', paddingBottom: 2 }}>
                 {SECTIONS.map((s, i) => (
@@ -224,7 +229,7 @@ export default function ProductMock() {
             </div>
           </div>
         ) : (
-          <div key={`student-${nonce}`} className="lp-mock-panel" style={{ minHeight: 390, padding: 18 }}>
+          <div key={`student-${nonce}`} ref={pageRef} className="lp-mock-panel lp-page lp-scroll" style={{ padding: 18 }}>
             <MockStudent />
           </div>
         )}
@@ -236,6 +241,15 @@ export default function ProductMock() {
       </div>
 
       <style>{`
+        /* высота окна мока прибита гвоздями: любые клики внутри скроллят
+           страницу мока, а не двигают секции лендинга под ним */
+        .lp-page { height: 538px; }
+        /* overscroll не запираем: на телефоне свайп по моку должен доводить
+           страницу лендинга дальше, а не залипать внутри окна */
+        .lp-scroll { overflow-y: auto; overflow-x: hidden; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--color-text-3) 35%, transparent) transparent; }
+        .lp-scroll::-webkit-scrollbar { width: 8px; }
+        .lp-scroll::-webkit-scrollbar-track { background: transparent; }
+        .lp-scroll::-webkit-scrollbar-thumb { border-radius: 999px; background: color-mix(in srgb, var(--color-text-3) 32%, transparent); }
         .lp-mock-nav:hover { background: color-mix(in srgb, ${ACCENT} 8%, transparent); }
         .lp-mock-panel { animation: lpPanelIn .28s cubic-bezier(.22,1,.36,1); }
         @keyframes lpPanelIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -253,7 +267,9 @@ export default function ProductMock() {
         .lp-bar { transition: filter .15s, transform .15s; cursor: pointer; }
         .lp-bar:hover { filter: brightness(1.15); }
         .lp-chip { cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
+        @media (max-width: 900px){ .lp-page{ height: 600px; } }
         @media (max-width: 640px){
+          .lp-page{ height: 640px; }
           .lp-mock-side{ display:none !important; }
           .lp-mock-tabs{ display:flex !important; }
           .lp-nav-btns, .lp-tool-right{ display:none !important; }

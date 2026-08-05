@@ -195,6 +195,21 @@ function matchesText(given: string, t: TaskPayload): boolean {
   return (t.altAnswers ?? []).some(a => normAnswer(a) === target)
 }
 
+/**
+ * Ячейки таблицы, которые заполняет ученик, — ключи «строка,столбец».
+ * Пропуск считается проверяемым только если в эталонной строке для него есть
+ * непустое значение: иначе сверять не с чем.
+ */
+function fillableCellKeys(t: TaskPayload): string[] {
+  const rows = t.table?.rows ?? []
+  const empty = t.table?.emptyCells ?? {}
+  return Object.keys(empty).filter(key => {
+    if (!empty[key]) return false
+    const [r, c] = key.split(',').map(Number)
+    return !!rows[r]?.[c]?.trim()
+  })
+}
+
 /** Слова эталонного предложения — плитки для сборки. */
 export function sentenceTokens(sentence: string): string[] {
   return sentence.trim().split(/\s+/).filter(Boolean)
@@ -332,19 +347,19 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
     label: 'Заполнить таблицу', hint: 'Ячейки с пропусками',
     Icon: TableIcon,
     makeDefault: () => ({ table: { headers: ['Заголовок 1', 'Заголовок 2'], rows: [['', ''], ['', '']] } }),
-    isGradable: t => {
-      const blanks = t.table?.blankCells ?? {}
-      return Object.values(blanks).some(Boolean)
-    },
+    // Проверяются ячейки из emptyCells — именно они рисуются полем ввода
+    // (QuestionTable) и именно их редактор помечает как «пропуск». blankCells —
+    // это ячейка-прочерк «—» в условии, у неё нет эталонного значения, поэтому
+    // в проверку она не входит. Ключ ячейки — «строка,столбец».
+    isGradable: t => fillableCellKeys(t).length > 0,
     grade: (t, a) => {
-      if (!TASK_TYPES.tableFill.isGradable(t)) return NOT_AUTO
+      const keys = fillableCellKeys(t)
+      if (keys.length === 0) return NOT_AUTO
       if (!a || typeof a !== 'object' || Array.isArray(a)) return { auto: true, correct: false }
       const given = a as Record<string, string>
       const rows = t.table?.rows ?? []
-      const blanks = t.table?.blankCells ?? {}
-      const keys = Object.keys(blanks).filter(k => blanks[k])
       const correct = keys.every(key => {
-        const [r, c] = key.split('-').map(Number)
+        const [r, c] = key.split(',').map(Number)
         const want = rows[r]?.[c] ?? ''
         return normAnswer(given[key] ?? '') === normAnswer(want)
       })

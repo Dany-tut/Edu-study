@@ -21,7 +21,7 @@ import * as LucideIcons from 'lucide-react'
 import RichConditionEditor, { parseSmartPaste } from '../../components/teacher/RichConditionEditor'
 import TableEditor from '../../components/teacher/TableEditor'
 import { typeVisual } from '../../data/taskTypeVisuals'
-import { bankSubjectOptions } from '../../lib/subjects'
+import { bankSubjectOptions, getSubject } from '../../lib/subjects'
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagQuestions,
   loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult,
@@ -40,6 +40,7 @@ import { getOwnerId } from '../../lib/owner'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { usePersistentState, readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 import { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from '../../data/apChemistry'
+import { COURSE_SEEDS, seedIcon, seedTooltip, seedCourseId, type CourseSeed } from '../../data/courseSeeds'
 import { AP_LESSON_CONTENT } from '../../data/apChemistryLessons'
 import type { LessonContentData, LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from '../../data/lessonContent'
 import { useTeacher } from '../../store/teacherStore'
@@ -1245,6 +1246,27 @@ function CourseCard({ course, isSelected, onClick, actions, students, access }: 
         </>
       }
       footerRight={<><Clock size={11} strokeWidth={2} />{course.lastEdited}</>}
+    />
+  )
+}
+
+// Карточка готового курса. Стоит в общем списке рядом со своими курсами, но
+// живёт не в БД: пока учитель не откроет её и не сохранит, курса у него нет.
+// Поэтому у неё нет ни чекбокса удаления, ни дублирования — только открыть.
+function SeedCourseCard({ seed, onClick }: { seed: CourseSeed; onClick: () => void }) {
+  const t = useT()
+  const palette = getSubject(seed.subject)?.light
+  const s = seed.summary
+  return (
+    <ContentCard
+      accentColor={palette?.accent ?? COURSE_COLOR} accentBg={palette?.soft ?? COURSE_BG}
+      isSelected={false} onClick={onClick}
+      icon={<span style={{ fontSize: 17, lineHeight: 1 }}>{seedIcon(seed)}</span>}
+      badge={<span style={cardChip(palette?.accent ?? 'var(--color-purple-text)')}>{t('Готовый')}</span>}
+      title={s.title}
+      subtitle={`${seed.subject} · ${s.level}`}
+      footerLeft={<><GraduationCap size={13} strokeWidth={1.8} /><span>{s.units} {t('юнитов')} · {s.taskCount} {t('заданий')}</span></>}
+      footerRight={<><Clock size={11} strokeWidth={2} />{s.guidedHours} {t('ч')}</>}
     />
   )
 }
@@ -7082,6 +7104,7 @@ export default function TeacherConstructorPage() {
   const [trainers, setTrainers] = useState<Trainer[]>(_cachedTrainers ?? [])
   const [widgets, setWidgets] = useState<Widget[]>(_cachedWidgets ?? [])
   const [dbLoading, setDbLoading] = useState(_cachedCourses === null)
+  const [ownerId, setOwnerId] = useState<string | null>(null)
   const [editMode, setEditMode] = useState(false)
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set())
   const [flashId, setFlashId] = useState<string | null>(null)
@@ -7092,6 +7115,7 @@ export default function TeacherConstructorPage() {
       // Courses are per-teacher: only load the ones this teacher owns, so a new
       // teacher doesn't inherit every course ever created (multi-tenant isolation).
       const uid = await getOwnerId()
+      setOwnerId(uid)
       const sharedIds = await fetchSharedCourseIds(uid)
       const courseQuery = sharedIds.length
         ? supabase.from('courses').select('*, lessons(*)').or(`created_by.eq.${uid},id.in.(${sharedIds.join(',')})`).order('created_at')
@@ -7195,6 +7219,14 @@ export default function TeacherConstructorPage() {
     if (courseSort === 'az') return sorted.sort((a, b) => a.title.localeCompare(b.title, 'ru'))
     return sorted
   }, [courses, courseSort, courseStatus])
+  // Готовые курсы идут отдельным хвостом списка: они ещё не в БД, поэтому не
+  // участвуют в сортировке своих курсов и не показываются под фильтром
+  // «Опубликован» и в режиме редактирования (удалять и дублировать нечего).
+  const visibleSeeds = useMemo(() => {
+    if (courseStatus === 'published') return []
+    const taken = new Set(courses.map(c => c.id))
+    return COURSE_SEEDS.filter(s => !taken.has(seedCourseId(s, ownerId)))
+  }, [courses, courseStatus, ownerId])
   const removeTask = useTaskBank(s => s.removeTask)
   const addBankTask = useTaskBank(s => s.addTask)
   const loadTasks = useTaskBank(s => s.load)
@@ -7378,6 +7410,12 @@ export default function TeacherConstructorPage() {
       groupIds, studentIds, modules, lessons,
     }
     openCourseEditor(JSON.stringify(edData))
+  }
+
+  // Готовый курс из сида. Id курса стабилен (`seed-<ключ>`), а не случайный:
+  // повторное открытие того же сида ведёт в тот же курс, а не плодит копии.
+  async function goToSeedCourseEditor(seed: CourseSeed) {
+    openCourseEditor(JSON.stringify(seed.build(seedCourseId(seed, ownerId ?? await getOwnerId()))))
   }
 
   function goToNewCourseEditor() {
@@ -7928,7 +7966,10 @@ export default function TeacherConstructorPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10 }}>
                   <CourseSortDropdown value={courseSort} onChange={setCourseSort} />
                   <CourseStatusFilter value={courseStatus} onChange={setCourseStatus} />
-                  <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>{filteredCourses.length} {t('курсов')}</span>
+                  <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>
+                    {filteredCourses.length} {t('курсов')}
+                    {!editMode && visibleSeeds.length > 0 && ` + ${visibleSeeds.length} ${t('готовых')}`}
+                  </span>
                 </div>
               )}
               <div
@@ -7970,6 +8011,18 @@ export default function TeacherConstructorPage() {
                         </button>
                       </>
                     )}
+                  </div>
+                ))}
+                {activeTab === 'course' && !editMode && visibleSeeds.length > 0 && (
+                  <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 10, marginTop: 6 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)' }}>{t('Готовые курсы')}</span>
+                    <span style={{ flex: 1, height: 1, background: 'var(--color-border)' }} />
+                    <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('Открывается в редакторе как черновик')}</span>
+                  </div>
+                )}
+                {activeTab === 'course' && !editMode && visibleSeeds.map(seed => (
+                  <div key={seed.key} title={seedTooltip(seed)} style={{ position: 'relative' }}>
+                    <SeedCourseCard seed={seed} onClick={() => { void goToSeedCourseEditor(seed) }} />
                   </div>
                 ))}
                 {activeTab === 'testing' && DIAG_SUBJECTS.map(subject => (
