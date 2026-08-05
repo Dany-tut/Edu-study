@@ -24,6 +24,7 @@ import { useOverlayScroll, ScrollOverlays, OverlayScrollArea } from '../../compo
 import { getOwnerId } from '../../lib/owner'
 import TableEditor from '../../components/teacher/TableEditor'
 import { typeVisual } from '../../data/taskTypeVisuals'
+import { taskTypesFor, makeTask, TASK_TYPES as TASK_TYPES_BY_ID, type TaskTypeId } from '../../data/taskTypes'
 import { supabase } from '../../lib/supabase'
 import { readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 
@@ -31,7 +32,7 @@ import { readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 
 type LessonMode = 'recording' | 'lesson' | 'homework' | 'students'
 
-type HWTaskType = 'single' | 'multi' | 'fill' | 'extended' | 'matching' | 'sequence' | 'tableFill' | 'whiteboard'
+type HWTaskType = TaskTypeId
 
 interface HWTask {
   id: string
@@ -217,36 +218,16 @@ function GlassCard({ children, style }: { children: React.ReactNode; style?: Rea
 
 // ─── Task type definitions ────────────────────────────────────────────────────
 
-// Colours come from the shared per-type palette (taskTypeVisuals) so a given
-// concept looks identical here and in the trainer creator.
-const TASK_TYPES: { type: HWTaskType; label: string; hint: string; Icon: React.ElementType; color: string; bg: string }[] = [
-  { type: 'single',    label: 'Один ответ',         hint: 'Один верный вариант',  Icon: CheckSquare, ...typeVisual('single') },
-  { type: 'multi',     label: 'Несколько верных',   hint: 'Несколько вариантов',  Icon: CheckSquare, ...typeVisual('multi') },
-  { type: 'fill',      label: 'Вписать ответ',      hint: 'Слово / фраза',        Icon: Type,        ...typeVisual('fill') },
-  { type: 'extended',  label: 'Развёрнутый ответ',  hint: 'Текст, рассуждение',   Icon: AlignLeft,   ...typeVisual('extended') },
-  { type: 'matching',  label: 'Сопоставление',      hint: 'Таблица А1 Б2 В3',     Icon: Shuffle,     ...typeVisual('matching') },
-  { type: 'sequence',  label: 'Последовательность', hint: 'Расставить порядок',   Icon: ArrowUpDown, ...typeVisual('sequence') },
-  { type: 'tableFill', label: 'Заполнить таблицу',  hint: 'Ячейки с пропусками',  Icon: TableIcon,   ...typeVisual('tableFill') },
-  { type: 'whiteboard',label: 'Доска',              hint: 'Рисунок на доске',     Icon: PenLine,     ...typeVisual('whiteboard') },
-]
-
-const typeLabel: Record<HWTaskType, string> = {
-  single: 'Один ответ', multi: 'Несколько верных',
-  fill: 'Вписать ответ', extended: 'Развёрнутый ответ',
-  matching: 'Сопоставление', sequence: 'Последовательность',
-  tableFill: 'Заполнить таблицу', whiteboard: 'Доска',
-}
+// Палитра, подписи и дефолты берутся из единого реестра (src/data/taskTypes.ts).
+// Чтобы добавить новый тип задания, правится только реестр — здесь ничего.
+const TASK_TYPES: { type: HWTaskType; label: string; hint: string; Icon: React.ElementType; color: string; bg: string }[] =
+  taskTypesFor().map(d => ({
+    type: d.id, label: d.label, hint: d.hint, Icon: d.Icon, ...d.visual,
+  }))
 
 // Свежее задание с дефолтами по типу — общая фабрика для всех мест добавления.
 function makeHWTask(type: HWTaskType, isHard: boolean): HWTask {
-  return {
-    id: uid(), type, isHard, label: typeLabel[type],
-    choices: (type === 'single' || type === 'multi') ? ['', '', '', ''] : undefined,
-    correctChoices: type === 'single' ? [0] : type === 'multi' ? [0] : undefined,
-    pairs: type === 'matching' ? [{ left: '', right: '' }, { left: '', right: '' }] : undefined,
-    sequenceItems: type === 'sequence' ? ['', ''] : undefined,
-    table: type === 'tableFill' ? { headers: [t('Заголовок 1'), t('Заголовок 2')], rows: [['', ''], ['', '']] } : undefined,
-  }
+  return makeTask(type, isHard, uid()) as HWTask
 }
 
 // Задание «из тренажёра»: переносим условие + ответ, а табличные задания —
@@ -257,7 +238,7 @@ function hwTaskFromBank(bt: BankTask, isHard: boolean): HWTask {
     id: uid(),
     type: hasTable ? 'tableFill' : 'extended',
     isHard,
-    label: hasTable ? typeLabel.tableFill : typeLabel.extended,
+    label: TASK_TYPES_BY_ID[hasTable ? 'tableFill' : 'extended'].label,
     question: bt.question,
     answer: bt.answer,
     table: hasTable ? { headers: [...bt.questionTable!.headers], rows: bt.questionTable!.rows.map(r => [...r]) } : undefined,

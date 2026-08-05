@@ -566,10 +566,22 @@ function questionIsChoice(q: HomeworkQuizQuestion) {
   const tp = qType(q)
   return !q.type || tp === 'single' || tp === 'multi'
 }
+/** Множественный выбор — ответ хранится как отсортированный список id через запятую. */
+function questionIsMulti(q: HomeworkQuizQuestion) {
+  return qType(q) === 'multi'
+}
+const parseIds = (s: string | undefined) => (s ?? '').split(',').filter(Boolean).sort()
+const joinIds = (ids: string[]) => [...ids].sort().join(',')
+/** Переключить вариант в множественном выборе. */
+function toggleId(current: string | undefined, id: string) {
+  const set = parseIds(current)
+  return joinIds(set.includes(id) ? set.filter(x => x !== id) : [...set, id])
+}
 function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
   return questionIsChoice(q) ? !!ans : !!(ans && ans.trim())
 }
 function questionAutoGradable(q: HomeworkQuizQuestion) {
+  if (questionIsMulti(q)) return q.options.length > 0 && (q.correctOptionIds?.length ?? 0) > 0
   if (questionIsChoice(q)) return q.options.length > 0 && !!q.correctOptionId
   const tp = qType(q)
   if (tp === 'fill' || tp === 'extended') return !!q.referenceAnswer?.trim()
@@ -579,6 +591,7 @@ function questionAutoGradable(q: HomeworkQuizQuestion) {
 }
 function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
   if (!ans) return false
+  if (questionIsMulti(q)) return joinIds(parseIds(ans)) === joinIds(q.correctOptionIds ?? [])
   if (questionIsChoice(q)) return ans === q.correctOptionId
   const tp = qType(q)
   if (tp === 'fill' || tp === 'extended') {
@@ -948,10 +961,14 @@ export default function HomeworkFlow({
   const answerQuestion = (questionIndex: number, questionId: string, optionId: string) => {
     const question = basicQuestions.find(item => item.id === questionId)
     if (!question) return
-    if (state.basicAnswers[questionId]) return
+    const multi = questionIsMulti(question)
+    // Одиночный выбор фиксируется первым же нажатием; множественный можно
+    // переключать, пока базовый уровень не отправлен.
+    if (multi ? state.basicSubmitted : !!state.basicAnswers[questionId]) return
 
-    const correct = optionId === question.correctOptionId
-    const nextAnswers = { ...state.basicAnswers, [questionId]: optionId }
+    const value = multi ? toggleId(state.basicAnswers[questionId], optionId) : optionId
+    const nextAnswers = { ...state.basicAnswers, [questionId]: value }
+    const correct = questionCorrect(question, value)
     const nextAnswered = basicQuestions.filter(item => questionAnswered(item, nextAnswers[item.id])).length
     const nextCorrect = basicQuestions.filter(item => questionCorrect(item, nextAnswers[item.id])).length
 
@@ -1455,14 +1472,22 @@ export default function HomeworkFlow({
                     {isChoice ? (
                     <div className="grid" style={{ gap: 10 }}>
                       {question.options.map(option => {
-                        const active = selectedAnswer === option.id
-                        const correct = option.id === question.correctOptionId
-                        const wrongSelected = answered && active && !correct
-                        const correctSelected = answered && correct
+                        const multi = questionIsMulti(question)
+                        const active = multi
+                          ? parseIds(selectedAnswer).includes(option.id)
+                          : selectedAnswer === option.id
+                        const correct = multi
+                          ? (question.correctOptionIds ?? []).includes(option.id)
+                          : option.id === question.correctOptionId
+                        // Разбор верных/неверных показываем только после отправки —
+                        // иначе множественный выбор подсвечивал бы ответ на лету.
+                        const reveal = multi ? state.basicSubmitted : answered
+                        const wrongSelected = reveal && active && !correct
+                        const correctSelected = reveal && correct
                         return (
                           <button
                             key={option.id}
-                            disabled={answered}
+                            disabled={multi ? state.basicSubmitted : answered}
                             onClick={() => answerQuestion(index, question.id, option.id)}
                             className="cursor-pointer text-left"
                             style={{

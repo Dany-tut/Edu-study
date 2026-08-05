@@ -1,6 +1,11 @@
 // ─── Shared answer/task-type palette ─────────────────────────────────────────
-// Canonical type IDs (8 types):
-//   single | multi | fill | extended | matching | sequence | tableFill | whiteboard
+// Colour only. The canonical list of types, their labels, defaults and grading
+// live in src/data/taskTypes.ts — that file is the source of truth; this one
+// just says what each family looks like.
+//
+// Colour follows the ANSWER FAMILY, not the individual type, so related tasks
+// read as related: choice → green, fill-in → peach, order → yellow/rose,
+// audio → blue, free production → purple, vocabulary → teal.
 //
 // Legacy aliases normalised by normalizeTaskType() below — use it when reading
 // data that was written before the rename (DB rows, JSONB homework payloads).
@@ -23,6 +28,20 @@ export const TYPE_VISUALS: Record<string, TypeVisual> = {
   extended:   { color: 'var(--color-purple)',         bg: 'var(--color-purple-soft)' },
   // whiteboard drawing → blue
   whiteboard: { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
+
+  // ─── language-course types ───
+  // assembling a sentence is an ordering task → yellow, like sequence
+  wordBank:      { color: 'var(--color-yellow-text)',    bg: 'var(--color-yellow-soft)' },
+  // everything driven by audio → blue
+  listenType:    { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
+  listenBank:    { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
+  minimalPair:   { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
+  // free production the teacher reviews → purple, like extended
+  speaking:      { color: 'var(--color-purple)',         bg: 'var(--color-purple-soft)' },
+  imageDescribe: { color: 'var(--color-purple)',         bg: 'var(--color-purple-soft)' },
+  imageCompare:  { color: 'var(--color-purple)',         bg: 'var(--color-purple-soft)' },
+  // vocabulary → teal
+  flashcard:     { color: 'var(--color-teal-pill-text)', bg: 'var(--color-teal-pill-bg)' },
 }
 
 export function typeVisual(t: string): TypeVisual {

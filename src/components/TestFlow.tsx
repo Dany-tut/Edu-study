@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { ChevronLeft, ClipboardCheck, CheckCircle2, ArrowUp, ArrowDown } from 'lucide-react'
 import { type Lesson, type TestTask } from '../data/mockData'
 import { normalizeTaskType } from '../data/taskTypeVisuals'
+import { gradeTask, isAutoGradable, type TaskAnswer } from '../data/taskTypes'
 import { upsertLessonProgress } from '../lib/db'
 import { ownerStudentIdFor } from '../store/studentDataStore'
 import { getStudentSession } from '../lib/studentSession'
@@ -11,47 +12,26 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import QuestionTable from './QuestionTable'
 import { useT } from '../lib/i18n'
 
-const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ')
-
 function taskType(t: TestTask) { return normalizeTaskType(t.type) }
-
-/** Auto-gradable tasks. */
-function isGradable(t: TestTask) {
-  const tp = taskType(t)
-  if (tp === 'single') return true
-  if (tp === 'multi') return (t.correctChoices?.length ?? 0) > 0
-  if ((tp === 'fill' || tp === 'extended') && (t.answer ?? '').trim()) return true
-  return false
-}
-
-function gradeTask(t: TestTask, answer: string | number | number[] | undefined): boolean {
-  const tp = taskType(t)
-  if (tp === 'single') {
-    return typeof answer === 'number' && (t.correctChoices ?? []).includes(answer)
-  }
-  if (tp === 'multi') {
-    if (!Array.isArray(answer)) return false
-    const correct = [...(t.correctChoices ?? [])].sort()
-    const given = [...answer].sort()
-    return correct.length === given.length && correct.every((v, i) => v === given[i])
-  }
-  if (tp === 'fill' || tp === 'extended') {
-    return typeof answer === 'string' && norm(answer) === norm(t.answer ?? '')
-  }
-  return false
-}
 
 export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: () => void }) {
   const t = useT()
   const tasks = lesson.testTasks ?? []
   const isDesktop = useIsDesktop()
   const reload = useStudentData(s => s.load)
-  const [answers, setAnswers] = useState<Record<string, string | number | number[]>>({})
+  const [answers, setAnswers] = useState<Record<string, TaskAnswer>>({})
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState<{ score: number; correct: number; gradable: number } | null>(null)
 
-  function setAnswer(id: string, value: string | number | number[]) {
+  function setAnswer(id: string, value: TaskAnswer) {
     setAnswers(a => ({ ...a, [id]: value }))
+  }
+
+  /** Табличный ответ — вложенный объект «ключ ячейки → значение» под id задания.
+   *  Раньше ячейки лежали плоско под `${id}_${key}`, из-за чего проверить таблицу
+   *  целиком было нечем и она не оценивалась вовсе. */
+  function setCell(id: string, key: string, value: string) {
+    setAnswers(a => ({ ...a, [id]: { ...(a[id] as Record<string, string> | undefined), [key]: value } }))
   }
 
   function toggleMulti(id: string, idx: number) {
@@ -73,8 +53,8 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
     if (!session) return
     setSubmitting(true)
 
-    const gradable = tasks.filter(isGradable)
-    const correct = gradable.filter(t => gradeTask(t, answers[t.id])).length
+    const gradable = tasks.filter(isAutoGradable)
+    const correct = gradable.filter(t => gradeTask(t, answers[t.id] ?? null).correct).length
     const score = gradable.length > 0 ? Math.round((correct / gradable.length) * 100) : 0
 
     await upsertLessonProgress(ownerStudentIdFor(lesson.subject), lesson.id, lesson.subject, {
@@ -272,8 +252,8 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                       mobile={!isDesktop}
                       interactive
                       blankAsInput
-                      cellValue={key => (answers[`${task.id}_${key}`] as string) ?? ''}
-                      onCellChange={(key, v) => setAnswer(`${task.id}_${key}`, v)}
+                      cellValue={key => (answers[task.id] as Record<string, string> | undefined)?.[key] ?? ''}
+                      onCellChange={(key, v) => setCell(task.id, key, v)}
                     />
                   </div>
                 )}

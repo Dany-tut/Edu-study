@@ -1,24 +1,14 @@
 export type LessonStatus = 'completed' | 'returned' | 'unviewed' | 'submitted' | 'current' | 'locked'
 export type LessonShape = 'circle' | 'square' | 'diamond'
 
-export type TestTaskType =
-  | 'single' | 'multi' | 'fill' | 'extended' | 'matching' | 'sequence' | 'tableFill' | 'whiteboard'
-  | 'text' | 'choice' | 'match' | 'table'  // legacy aliases — normalised on read
+import type { StoredTaskType, TaskPayload } from './taskTypes'
 
-/** A single quiz task on a course test node. Mirrors the teacher editor's HWTask. */
-export interface TestTask {
-  id: string
-  type: TestTaskType
-  isHard: boolean
-  label: string
-  question?: string
-  answer?: string
-  choices?: string[]
-  correctChoices?: number[]
-  pairs?: Array<{ left: string; right: string }>
-  sequenceItems?: string[]
-  table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; blankCells?: Record<string, boolean> }
-}
+/** @deprecated Используй StoredTaskType из ./taskTypes — там единственный union. */
+export type TestTaskType = StoredTaskType
+
+/** A single quiz task on a course test node. Mirrors the teacher editor's HWTask.
+ *  Поля описаны в TaskPayload (src/data/taskTypes.ts) — единый источник правды. */
+export type TestTask = TaskPayload
 
 export interface Lesson {
   id: string

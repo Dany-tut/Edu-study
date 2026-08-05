@@ -1,4 +1,5 @@
 import { type Lesson } from './mockData'
+import { normalizeTaskType, type StoredTaskType } from './taskTypes'
 import { useStudentData } from '../store/studentDataStore'
 import { AP_LESSON_CONTENT, type ApLessonContent } from './apChemistryLessons'
 import { parseVideoSource, type VideoSource } from '../lib/videoSource'
@@ -17,8 +18,9 @@ export interface HomeworkQuizQuestion {
   /** Authored task type. Absent / 'choice' → multiple-choice (default). The
    *  remaining types render a free-text answer, mirroring TestFlow — except
    *  'sequence' and 'table', which render their own interactive solvers. */
-  type?: 'single' | 'multi' | 'fill' | 'extended' | 'matching' | 'sequence' | 'tableFill' | 'whiteboard'
-       | 'text' | 'choice' | 'match' | 'table'  // legacy aliases — normalised on read
+  type?: StoredTaskType
+  /** Все верные варианты для 'multi'. Для 'single' не заполняется. */
+  correctOptionIds?: string[]
   /** Эталон for text/fill — when set, the answer is auto-checked against it. */
   referenceAnswer?: string
   /** Pairs for a 'match' task (shown read-only as reference). */
@@ -210,22 +212,32 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
  *  auto-check against the эталон, match/whiteboard are teacher-reviewed). */
 function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): HomeworkQuizQuestion {
   const prompt = t.question?.trim() || t.label || `Задание ${i + 1}`
-  if (t.type === 'choice') {
+  // ВАЖНО: тип приводим к каноническому. Редактор курса пишет 'single'/'multi'/
+  // 'matching'/'tableFill', а раньше здесь проверялись только легаси-написания
+  // ('choice'/'match'/'table') — из-за чего задание с выбором ответа уезжало в
+  // ветку свободного текста, получало options: [] и показывалось ученику вообще
+  // без вариантов ответа. Решить такое задание было нельзя.
+  const tp = normalizeTaskType(t.type)
+
+  if (tp === 'single' || tp === 'multi') {
     const options = (t.choices ?? []).map((text, ci) => ({ id: String(ci), text: text || `Вариант ${ci + 1}` }))
-    const correctIdx = (t.correctChoices ?? [])[0]
+    const correctIdx = (t.correctChoices ?? [])
     return {
       id: t.id, prompt, options,
-      correctOptionId: correctIdx != null ? String(correctIdx) : '',
-      explanation: '', type: 'choice',
+      correctOptionId: correctIdx[0] != null ? String(correctIdx[0]) : '',
+      // Для multi нужны все верные варианты, а не только первый.
+      correctOptionIds: tp === 'multi' ? correctIdx.map(String) : undefined,
+      explanation: '', type: tp,
     }
   }
+
   return {
     id: t.id, prompt, options: [], correctOptionId: '', explanation: '',
-    type: t.type,
+    type: tp,
     referenceAnswer: t.answer?.trim() || undefined,
-    pairs: t.type === 'match' ? t.pairs : undefined,
-    sequenceItems: t.type === 'sequence' ? (t.sequenceItems ?? []).filter(s => s.trim()) : undefined,
-    table: t.type === 'table' ? t.table : undefined,
+    pairs: tp === 'matching' ? t.pairs : undefined,
+    sequenceItems: tp === 'sequence' ? (t.sequenceItems ?? []).filter(s => s.trim()) : undefined,
+    table: tp === 'tableFill' ? t.table : undefined,
   }
 }
 
