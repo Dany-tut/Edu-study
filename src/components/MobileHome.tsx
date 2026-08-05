@@ -10,6 +10,7 @@ import MobileHScroll from './MobileHScroll'
 import { DynamicIsland, GlassIconButton } from './mobileChrome'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
 import { useNow, lessonTimeState } from '../lib/useNow'
+import MobileStickersRow from './MobileStickersRow'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { tactile } from '../lib/feedback'
@@ -186,6 +187,9 @@ export default function MobileHome() {
             <QuickTile icon={<Dumbbell size={20} />} title={t('Тренажёр')} sub={t('Решай задания')} bg="var(--color-green-soft)" fg="var(--color-green-text)" onClick={() => setActivePage('trainer')} />
             <QuickTile icon={<BookOpen size={20} />} title={t('Курс')} sub={t('Уроки и путь')} bg="var(--color-purple-soft)" fg="var(--color-purple-text)" onClick={() => openCourses()} />
           </div>
+
+          {/* Стикеры за принятые задания */}
+          <MobileStickersRow />
 
           {/* Виджеты дня */}
           {(quizQuestions.length > 0 || scienceFacts.length > 0 || scienceMemes.length > 0) && (

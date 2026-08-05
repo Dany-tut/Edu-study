@@ -58,6 +58,7 @@ export type HardSolution = {
   answer: string
   photos: string[]
   board: string | null
+  voice?: string | null  // путь в бакете task-media (5A) — голосовой ответ (speaking)
 }
 
 // Один комментарий учителя (закрывает круг вердиктом).

@@ -21,7 +21,10 @@
 // Tatoeba (CC BY) с указанием источника.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { TASK_TYPES } from './taskTypes'
 import type { TaskPayload, TaskTypeId } from './taskTypes'
+import { getSubject } from '../lib/subjects'
+import type { CELesson, CEModule, CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 // ─── Модель ──────────────────────────────────────────────────────────────────
 
@@ -1109,6 +1112,9 @@ export function moduleOf(n: number): EnglishModule | undefined {
   return MODULES.find(m => m.units.includes(n))
 }
 
+/** Юнит по номеру — модули ссылаются на юниты номерами, а уроки живут по shortId. */
+const UNIT_BY_N = new Map(ENGLISH_DESIGN_CAREER.map(u => [u.n, u]))
+
 /** Сводка курса — для карточки курса и страницы описания. */
 export const COURSE_SUMMARY = {
   title: 'Английский для дизайнера — от письма до оффера',
@@ -1119,3 +1125,84 @@ export const COURSE_SUMMARY = {
   /** Ориентир CEFR: A2→B1 — примерно 180–200 учебных часов. */
   guidedHours: '180–200',
 } as const
+
+// ─── Сборка курса для конструктора ───────────────────────────────────────────
+//
+// Конструктор не хранит собственную копию контента: сид переводится в ту же
+// форму CourseEdData, в которой учитель правит любой свой курс, и открывается
+// в редакторе. После «Сохранить» это обычный курс учителя (created_by = он),
+// который можно резать, дополнять и выдавать группам — сид больше не участвует.
+//
+// Соответствие: юнит → урок, задания юнита → ДЗ урока, словарь → карточки в том
+// же ДЗ (тип flashcard проверяется автоматически), модули сида → модули курса.
+
+const ENGLISH_PALETTE = getSubject('english')?.light
+const ACCENT = ENGLISH_PALETTE?.accent ?? '#E4572E'
+const ACCENT_SOFT = ENGLISH_PALETTE?.soft ?? 'rgba(228,87,46,0.14)'
+
+/**
+ * Задание сида → задание редактора. Дефолты типа кладутся первыми, поля сида
+ * их перекрывают: так задание не приезжает в редактор с пустыми обязательными
+ * полями (например, `allowSlow` у аудио-типов), но и не теряет своё содержимое.
+ */
+function editorTask(seed: SeedTask, id: string) {
+  const def = TASK_TYPES[seed.type]
+  return { isHard: false, label: def.label, ...def.makeDefault(), ...seed, id }
+}
+
+/** Слово словаря → карточка «лицо/оборот». */
+function vocabCard(word: VocabItem, id: string) {
+  return editorTask({ type: 'flashcard', front: word.en, back: word.ru }, id)
+}
+
+/**
+ * Собрать курс для редактора. `courseId` приходит снаружи (конструктор выдаёт
+ * свежий), поэтому два добавления сида дают два независимых курса, а не
+ * перезапись первого. Идентификаторы уроков внутри курса стабильны — short_id
+ * в БД всё равно выводится от id курса (см. lessonShortIdMap).
+ */
+export function buildEnglishDesignCareerCourse(courseId: string): CourseEdData {
+  const lessons: CELesson[] = ENGLISH_DESIGN_CAREER.map(unit => ({
+    id: unit.shortId,
+    title: `${unit.n}. ${unit.title}`,
+    number: unit.n,
+    kind: 'lesson',
+    description: [
+      `Цель: ${unit.goal}`,
+      `Грамматика: ${unit.grammar}`,
+      `Почему здесь: ${unit.grammarWhy}`,
+      `Лексика: ${unit.vocabTheme}`,
+      `Артефакт: ${unit.artifact}`,
+    ].join('\n'),
+    hwTitle: `Юнит ${unit.n}. ${unit.title}`,
+    hwTarget: unit.artifact,
+    hwTasks: [
+      ...unit.tasks.map((task, i) => editorTask(task, `${unit.shortId}-t${i + 1}`)),
+      ...unit.vocab.map((word, i) => vocabCard(word, `${unit.shortId}-v${i + 1}`)),
+    ],
+  }))
+
+  const modules: CEModule[] = MODULES.map((m, i) => ({
+    id: `endc-m${i + 1}`,
+    label: m.title,
+    expanded: i === 0,
+    lessonIds: m.units.map(n => UNIT_BY_N.get(n)?.shortId).filter((id): id is string => !!id),
+  }))
+
+  return {
+    id: courseId,
+    title: COURSE_SUMMARY.title,
+    subject: 'Английский',
+    level: COURSE_SUMMARY.level,
+    status: 'draft',
+    color: ACCENT,
+    bg: ACCENT_SOFT,
+    groupIds: [],
+    studentIds: [],
+    modules,
+    lessons,
+    description:
+      `${COURSE_SUMMARY.units} юнитов, ${COURSE_SUMMARY.vocabCount} слов, ` +
+      `${COURSE_SUMMARY.taskCount} заданий. Ориентир CEFR — ${COURSE_SUMMARY.guidedHours} учебных часов.`,
+  }
+}

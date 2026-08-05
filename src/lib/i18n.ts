@@ -1621,6 +1621,30 @@ const EN: Record<string, string> = {
   "Выбранным": "Selected",
   "Опубликовать": "Publish",
   "Сохранить вопрос": "Save question",
+
+  // — Стикеры за задания —
+  "Стикеры": "Stickers",
+  "Мои стикеры": "My stickers",
+  "Новый стикер": "New sticker",
+  "Стикер": "Sticker",
+  "добавлен в коллекцию": "added to the collection",
+  "Ученик получил стикер": "The student earned a sticker",
+  "В коллекцию": "To the collection",
+  "Вся коллекция →": "Whole collection →",
+  "все": "all",
+  "задание": "task",
+  "шт. · по одному за каждое принятое задание": "pcs · one per accepted task",
+  "Сдай сложное задание — учитель примет его и поставит балл, а ты получишь стикер. Балл 5 — голограмма.": "Submit a hard task — once the teacher accepts it and gives a score, you get a sticker. Score 5 is a hologram.",
+  "Голограмма": "Hologram",
+  "Фольга": "Foil",
+  "Глянец": "Gloss",
+  "Матовый": "Matte",
+  "Картон": "Cardboard",
+  "Безупречно — задание принято с первого раза": "Flawless — accepted on the first try",
+  "Почти идеально — мелкие шероховатости": "Nearly perfect — minor rough edges",
+  "Решено, но с ошибками": "Solved, but with mistakes",
+  "Есть над чем поработать": "Room to improve",
+  "Задание засчитано частично": "Task partially credited",
 }
 
 const DICTS: Record<Lang, Record<string, string>> = { ru: {}, en: EN }

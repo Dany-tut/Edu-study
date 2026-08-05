@@ -9,6 +9,7 @@ import PomodoroWidget from './PomodoroWidget'
 import MemesWidget from './MemesWidget'
 import QuestionOfDayWidget from './QuestionOfDayWidget'
 import TrainerProgressWidget from './TrainerProgressWidget'
+import StickersWidget from './StickersWidget'
 import { useDashboard } from '../store/dashboardStore'
 import { useT } from '../lib/i18n'
 
@@ -89,6 +90,7 @@ export default function WidgetCarousel({ columnsOverride }: { columnsOverride?: 
     if (p === 6) return <QuizWidget active={isActive} columns={perPage} />
     if (p === 0) return <StatsWidget columns={perPage} />
     if (p === 7) return <TrainerProgressWidget columns={perPage} />
+    if (p === 8) return <StickersWidget columns={perPage} />
     if (p === 1) return <ScienceFactsWidget active={isActive} columns={perPage} />
     if (p === 2) return <ReactionsWidget active={isActive} columns={perPage} />
     if (p === 3) return <PomodoroWidget columns={perPage} />

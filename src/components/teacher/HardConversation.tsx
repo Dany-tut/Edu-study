@@ -7,6 +7,10 @@ import RichConditionEditor from './RichConditionEditor'
 import WhiteboardCanvas from './WhiteboardCanvas'
 import AnnotationLayer, { type Annotation } from './AnnotationLayer'
 import AnswerBody from './AnswerBody'
+import AudioPlayer from '../AudioPlayer'
+import VoiceRecorder from '../VoiceRecorder'
+import HoloSticker from '../HoloSticker'
+import { tierOf } from '../../lib/holo/presets'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { usePersistentState } from '../../lib/useDraft'
 import { getContrastColor } from '../../lib/utils'
@@ -90,6 +94,12 @@ function SolutionCard({ ev, onZoomPhoto }: { ev: HardEvent & { kind: 'solution' 
         {fmtDate(ev.at) && <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', marginTop: 4 }}>{fmtDate(ev.at)}</div>}
       </div>
       <AnswerBody comment={ev.answer} photos={ev.photos} board={ev.board} onZoomPhoto={onZoomPhoto} photosClickable={!!onZoomPhoto} />
+      {ev.voice && (
+        <div style={{ marginTop: 12 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', display: 'block', marginBottom: 6 }}>{t('Голосовой ответ')}</span>
+          <AudioPlayer audioUrl={ev.voice} compact />
+        </div>
+      )}
     </div>
   )
 }
@@ -166,18 +176,19 @@ function Timeline({ events, onZoomPhoto }: { events: HardEvent[]; onZoomPhoto?: 
 function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
   isFollowUp: boolean; busy?: boolean
   palette: { accent: string; soft: string; text: string; ring: string }
-  onSubmit: (payload: { answer: string; photos: string[]; board: string | null }) => void
+  onSubmit: (payload: { answer: string; photos: string[]; board: string | null; voice: string | null }) => void
 }) {
   const t = useT()
   const [draft, setDraft] = useState('')
   const [photos, setPhotos] = useState<string[]>([])
   const [photoError, setPhotoError] = useState<string | null>(null)
   const [board, setBoard] = useState<string | null>(null)
+  const [voice, setVoice] = useState<string | null>(null)
   const [showBoard, setShowBoard] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const draftText = draft.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
-  const has = !!(draftText || /<img/i.test(draft) || photos.length || board)
+  const has = !!(draftText || /<img/i.test(draft) || photos.length || board || voice)
 
   function addPhotos(files: FileList | null) {
     if (!files) return
@@ -216,6 +227,10 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
       )}
       {photoError && <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-peach-text)' }}>{photoError}</div>}
       {showBoard && <WhiteboardCanvas initialData={board ?? undefined} onSave={setBoard} />}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-text-2)' }}>{t('Голосовой ответ')}</span>
+        <VoiceRecorder value={voice} onChange={setVoice} />
+      </div>
       <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
@@ -226,7 +241,7 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
             <PenLine size={16} /> {board ? t('Доска ✓') : t('Доска')}
           </button>
         </div>
-        <motion.button whileHover={{ y: has && !busy ? -1 : 0 }} whileTap={{ scale: 0.99 }} disabled={!has || busy} onClick={() => onSubmit({ answer: draft, photos, board })}
+        <motion.button whileHover={{ y: has && !busy ? -1 : 0 }} whileTap={{ scale: 0.99 }} disabled={!has || busy} onClick={() => onSubmit({ answer: draft, photos, board, voice })}
           style={{ padding: '13px 22px', borderRadius: 16, border: 'none', background: has && !busy ? palette.accent : 'var(--color-bg-5)', color: has && !busy ? getContrastColor(palette.accent) : 'var(--color-text-3)', fontSize: 14, fontWeight: 750, cursor: has && !busy ? 'pointer' : 'default', minWidth: 200, boxShadow: has && !busy ? `0 6px 16px ${palette.ring}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <Send size={15} /> {busy ? t('Отправляю…') : t('Отправить решение')}
         </motion.button>
@@ -286,6 +301,12 @@ function TeacherComposer({ draftKey, solution, busy, onReview }: {
           <AnnotationLayer active={annotating} value={annotation} onChange={setAnnotation}>
             <AnswerBody comment={solution.answer} photos={solution.photos} board={solution.board} photosClickable={false} />
           </AnnotationLayer>
+          {solution.voice && (
+            <div style={{ marginTop: 12 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', display: 'block', marginBottom: 6 }}>{t('Голосовой ответ ученика')}</span>
+              <AudioPlayer audioUrl={solution.voice} compact />
+            </div>
+          )}
         </div>
       )}
 
@@ -360,7 +381,7 @@ export default function HardConversation({
   activeKey: string
   onSelectTab: (key: string) => void
   onZoomPhoto?: (src: string) => void
-  onSubmitSolution?: (key: string, payload: { answer: string; photos: string[]; board: string | null }) => void
+  onSubmitSolution?: (key: string, payload: { answer: string; photos: string[]; board: string | null; voice: string | null }) => void
   onReview?: (key: string, payload: ReviewPayload) => void
   busy?: boolean
   palette?: { accent: string; soft: string; text: string; ring: string }
@@ -424,9 +445,24 @@ export default function HardConversation({
         </div>
       )}
       {status === 'completed' && (
-        <div style={{ padding: '14px 18px', borderRadius: 16, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700 }}>
-          <Star size={16} fill="currentColor" /> {t('Задание принято')}{typeof score === 'number' ? ` · ${score}/5` : ''}.
-        </div>
+        typeof score === 'number' ? (
+          // Балл за задание = стикер: редкость фольги растёт от 1 к 5.
+          <div style={{ padding: '14px 18px', borderRadius: 16, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <HoloSticker score={score} label={`${t('балл')} ${score}`} sublabel={tab.title.slice(0, 22)} size={104} />
+            <div style={{ minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700 }}>
+                <Star size={16} fill="currentColor" /> {t('Задание принято')} · {score}/5
+              </div>
+              <div style={{ fontSize: 12.5, color: 'var(--color-green-text)', opacity: 0.85, marginTop: 3 }}>
+                {role === 'student' ? `${t('Стикер')} «${t(tierOf(score).name)}» ${t('добавлен в коллекцию')}` : `${t('Ученик получил стикер')} «${t(tierOf(score).name)}»`}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div style={{ padding: '14px 18px', borderRadius: 16, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700 }}>
+            <Star size={16} fill="currentColor" /> {t('Задание принято')}.
+          </div>
+        )
       )}
       {role === 'teacher' && status === 'returned' && (
         <div style={{ padding: '14px 18px', borderRadius: 16, background: 'var(--color-peach-soft)', display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-peach-text)', fontSize: 13, fontWeight: 600 }}>

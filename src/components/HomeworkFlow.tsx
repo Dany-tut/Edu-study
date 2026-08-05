@@ -916,7 +916,7 @@ export default function HomeworkFlow({
 
   // Отправка решения по одной вкладке: дописываем НОВЫЙ круг в её историю,
   // сохраняя предыдущие решения и не трогая остальные задания / ревью учителя.
-  async function submitTabSolution(key: string, payload: { answer: string; photos: string[]; board: string | null }) {
+  async function submitTabSolution(key: string, payload: { answer: string; photos: string[]; board: string | null; voice: string | null }) {
     const session = getStudentSession()
     if (!session?.id) return
     setHardBusy(true)

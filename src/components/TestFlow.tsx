@@ -300,6 +300,30 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                     />
                   </div>
                 )}
+
+                {/* minimalPair — audio + pick which of two look-alikes was heard (auto-graded) */}
+                {tp === 'minimalPair' && (
+                  <div style={{ paddingLeft: 36, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <AudioPlayer audioUrl={task.audioUrl} ttsText={task.ttsText} ttsVoice={task.ttsVoice} allowSlow={task.allowSlow} lang={task.lang} />
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      {(['A', 'B'] as const).map(side => {
+                        const label = side === 'A' ? task.pairA : task.pairB
+                        const selected = answers[task.id] === side
+                        return (
+                          <button key={side} onClick={() => setAnswer(task.id, side)} style={{
+                            flex: 1, padding: '14px 16px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
+                            fontSize: 15, fontWeight: 700, textAlign: 'center',
+                            border: selected ? '1.5px solid var(--color-accent)' : '1.5px solid var(--color-border-soft)',
+                            background: selected ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
+                            color: selected ? 'var(--color-accent)' : 'var(--color-text)',
+                          }}>
+                            {label || side}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })}

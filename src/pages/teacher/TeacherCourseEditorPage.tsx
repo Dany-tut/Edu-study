@@ -68,6 +68,10 @@ interface HWTask {
   responseSeconds?: number
   /** speaking — эталонный текст для чтения вслух (если задание «прочитай», а не свободное). */
   targetText?: string
+  /** minimalPair — два похожих варианта и какой из них прозвучал. */
+  pairA?: string
+  pairB?: string
+  correctPair?: 'A' | 'B'
   /** id исходного задания в тренажёре (если задание добавлено «из тренажёра»). */
   bankId?: number
 }
@@ -1626,9 +1630,16 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 />
               )}
 
-              {/* wordBank / listenBank — reference sentence + optional distractor tiles */}
+              {/* wordBank / listenBank — reference sentence + optional distractor tiles (listenBank adds audio) */}
               {(task.type === 'wordBank' || task.type === 'listenBank') && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {task.type === 'listenBank' && (
+                    <AudioStimulusEditor
+                      value={{ audioUrl: task.audioUrl, ttsText: task.ttsText, allowSlow: task.allowSlow }}
+                      onChange={patch => onUpdate({ ...task, ...patch })}
+                      inputStyle={inputSt}
+                    />
+                  )}
                   <input
                     value={task.sentence ?? ''}
                     onChange={e => onUpdate({ ...task, sentence: e.target.value })}
@@ -1641,6 +1652,34 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                     placeholder={t('Лишние слова-обманки через запятую (необязательно)')}
                     style={inputSt}
                   />
+                </div>
+              )}
+
+              {/* minimalPair — audio + two look-alike options, pick which was heard */}
+              {task.type === 'minimalPair' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <AudioStimulusEditor
+                    value={{ audioUrl: task.audioUrl, ttsText: task.ttsText, allowSlow: task.allowSlow }}
+                    onChange={patch => onUpdate({ ...task, ...patch })}
+                    inputStyle={inputSt}
+                  />
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {(['A', 'B'] as const).map(side => (
+                      <div key={side} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <input
+                          value={(side === 'A' ? task.pairA : task.pairB) ?? ''}
+                          onChange={e => onUpdate({ ...task, [side === 'A' ? 'pairA' : 'pairB']: e.target.value })}
+                          placeholder={side === 'A' ? t('Вариант A') : t('Вариант B')}
+                          style={inputSt}
+                        />
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-2)', cursor: 'pointer' }}>
+                          <input type="radio" name={`mp-${task.id}`} checked={(task.correctPair ?? 'A') === side}
+                            onChange={() => onUpdate({ ...task, correctPair: side })} />
+                          {t('верный')}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 

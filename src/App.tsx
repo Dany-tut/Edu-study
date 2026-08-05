@@ -12,6 +12,7 @@ import { supabase } from './lib/supabase'
 import { getStudentSession } from './lib/studentSession'
 import { initAnalytics, trackPath } from './lib/analytics'
 import ConsentOverlay, { hasStudentConsent } from './components/ConsentOverlay'
+import StickerRevealGate from './components/StickerRevealGate'
 import InstallPrompt from './components/InstallPrompt'
 import type { Session } from '@supabase/supabase-js'
 import './store/themeStore' // initialise theme + apply data-theme before first render
@@ -125,6 +126,8 @@ export default function App() {
       {!consented && <ConsentOverlay onAccept={() => setConsented(true)} />}
       {/* Install banner shows only once consent is given (student) */}
       {consented && <InstallPrompt />}
+      {/* Новые стикеры за принятые задания — после согласия, поверх кабинета */}
+      {consented && <StickerRevealGate />}
     </>
   )
 }
