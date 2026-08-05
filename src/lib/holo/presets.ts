@@ -132,12 +132,7 @@ export function drawStickerArt(spec: StickerArtSpec): HTMLCanvasElement {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.font = `800 ${px * 0.4}px "Manrope", "Inter", system-ui, sans-serif`
-  ctx.fillText(String(tier.score), c, c - px * 0.035)
-
-  // «из 5»
-  ctx.fillStyle = `${tier.ink}CC`
-  ctx.font = `700 ${px * 0.075}px "Manrope", "Inter", system-ui, sans-serif`
-  ctx.fillText('из 5', c, c + px * 0.13)
+  ctx.fillText(String(tier.score), c, c - px * 0.02)
 
   // звёзды по числу баллов — дуга снизу
   const stars = tier.score

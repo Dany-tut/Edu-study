@@ -750,7 +750,7 @@ function AwardCard({ score, who, nonce }: { score: number; who: string; nonce: n
           (остальное — воздух под отогнутый уголок), поэтому поля отрицательные
           с запасом — иначе кажется, что стикер аккуратно вписан в карточку. */}
       <HoloSticker
-        key={nonce} score={score} label={`балл ${score}`} sublabel="задание 13" size={156} reveal
+        key={nonce} score={score} sublabel="задание 13" size={156} reveal
         style={{ margin: '-49px 0 -49px -45px', flex: '0 0 auto' }}
       />
       <div style={{ minWidth: 0 }}>
@@ -1177,7 +1177,7 @@ function StickerShelf() {
         <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>{got} из {COLLECTION.length}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-        <HoloSticker key={sel} score={cur.score} label={`балл ${cur.score}`} sublabel={cur.label} size={76} reveal />
+        <HoloSticker key={sel} score={cur.score} sublabel={cur.label} size={76} reveal />
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 12.5, fontWeight: 800, color: tier.ink }}>{tier.name}</div>
           <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{cur.got ? tier.hint : 'Сдайте задание на 5 — и стикер откроется'}</div>

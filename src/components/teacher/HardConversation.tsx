@@ -448,7 +448,7 @@ export default function HardConversation({
         typeof score === 'number' ? (
           // Балл за задание = стикер: редкость фольги растёт от 1 к 5.
           <div style={{ padding: '14px 18px', borderRadius: 16, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', gap: 14 }}>
-            <HoloSticker score={score} label={`${t('балл')} ${score}`} sublabel={tab.title.slice(0, 22)} size={104} />
+            <HoloSticker score={score} sublabel={tab.title.slice(0, 22)} size={104} />
             <div style={{ minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-green-text)', fontSize: 13, fontWeight: 700 }}>
                 <Star size={16} fill="currentColor" /> {t('Задание принято')} · {score}/5
