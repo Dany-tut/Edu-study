@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { t } from '../lib/i18n'
 import {
   type Subject, type SubjectCurriculum,
-  getStaticCurriculum, setRuntimeCurriculum,
+  getStaticCurriculum, setRuntimeCurriculum, CURRICULUM_SUBJECT_IDS,
 } from '../data/taskBankData'
 
 // ── Editable curriculum taxonomy ─────────────────────────────────────────────
@@ -43,10 +43,9 @@ function seedSubject(subject: Subject): SubjectData {
   return { sections, topics, lines }
 }
 
-const seed = (): Record<Subject, SubjectData> => ({
-  biology: seedSubject('biology'),
-  chemistry: seedSubject('chemistry'),
-})
+// Seed every configured curriculum subject from its static defaults.
+const seed = (): Record<string, SubjectData> =>
+  Object.fromEntries(CURRICULUM_SUBJECT_IDS.map(id => [id, seedSubject(id)]))
 
 // Derive the runtime SubjectCurriculum (lineNames + sectionLineMap) from editable data.
 function derive(d: SubjectData): SubjectCurriculum {
@@ -62,15 +61,14 @@ function derive(d: SubjectData): SubjectCurriculum {
   return { sections: d.sections, topics: d.topics, lineNames, sectionLineMap }
 }
 
-function syncRuntime(data: Record<Subject, SubjectData>) {
-  setRuntimeCurriculum('biology', derive(data.biology))
-  setRuntimeCurriculum('chemistry', derive(data.chemistry))
+function syncRuntime(data: Record<string, SubjectData>) {
+  for (const id of Object.keys(data)) setRuntimeCurriculum(id, derive(data[id]))
 }
 
 // ── Supabase persistence ─────────────────────────────────────────────────────
 // One row per subject: { subject, data: jsonb }. Writes are debounced per
 // subject so typing a line name doesn't fire a request per keystroke.
-const saveTimers: Partial<Record<Subject, ReturnType<typeof setTimeout>>> = {}
+const saveTimers: Record<string, ReturnType<typeof setTimeout>> = {}
 function persistSubject(subject: Subject, data: SubjectData) {
   if (saveTimers[subject]) clearTimeout(saveTimers[subject])
   useCurriculum.setState({ saveState: 'saving' })
@@ -85,7 +83,7 @@ function persistSubject(subject: Subject, data: SubjectData) {
 }
 
 interface CurriculumState {
-  data: Record<Subject, SubjectData>
+  data: Record<string, SubjectData>
   version: number
   loaded: boolean
   loading: boolean
@@ -111,8 +109,9 @@ function commit(
   fn: (d: SubjectData) => SubjectData,
 ) {
   set(s => {
-    const updated = fn(s.data[subject])
-    if (updated === s.data[subject]) return s // no-op guard (e.g. duplicate name)
+    const base = s.data[subject] ?? seedSubject(subject) // seed a not-yet-loaded subject on first edit
+    const updated = fn(base)
+    if (updated === base) return s // no-op guard (e.g. duplicate name)
     const next = { ...s.data, [subject]: updated }
     syncRuntime(next)
     persistSubject(subject, updated)
@@ -140,7 +139,7 @@ export const useCurriculum = create<CurriculumState>()(
           set(s => {
             const next = { ...s.data }
             for (const row of data as { subject: Subject; data: SubjectData }[]) {
-              if (row.subject === 'biology' || row.subject === 'chemistry') next[row.subject] = row.data
+              if (row.subject && row.data) next[row.subject] = row.data
             }
             syncRuntime(next)
             return { data: next, version: s.version + 1, loaded: true, loading: false }
@@ -149,10 +148,10 @@ export const useCurriculum = create<CurriculumState>()(
           const seeded = seed()
           syncRuntime(seeded)
           set({ data: seeded, loaded: true, loading: false, version: get().version + 1 })
-          await supabase.from('curriculum').upsert([
-            { subject: 'biology', data: seeded.biology },
-            { subject: 'chemistry', data: seeded.chemistry },
-          ], { onConflict: 'subject' })
+          await supabase.from('curriculum').upsert(
+            Object.entries(seeded).map(([subject, d]) => ({ subject, data: d })),
+            { onConflict: 'subject' },
+          )
         }
       },
 

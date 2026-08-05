@@ -23,6 +23,9 @@ import {
 import type { Task as BankTask, Subject } from '../../data/taskBankData'
 import { useCurriculum } from '../../store/curriculumStore'
 import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
+import { useTeacherAccess } from '../../lib/teacherAccess'
+import { bankSubjectOptionsFor, bankSubjectIdsFor, subjectIcon } from '../../lib/subjects'
+import SubjectPicker from '../../components/teacher/SubjectPicker'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import MultiSelectField from '../../components/MultiSelectField'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
@@ -1148,12 +1151,15 @@ function TrainerFilterPanel({
   const bankTasks = useTaskBank(s => s.tasks)
   const merge = useOptionMerger()
   useCurriculum(s => s.version) // re-render when the taxonomy is edited
-  const subjScopes = filters.subject ? [filters.subject] : ['biology', 'chemistry']
+  const allowedSubjects = useTeacherAccess(s => s.subjects) // [] for admins/unrestricted = all
+  const bankIds = bankSubjectIdsFor(allowedSubjects)
+  const defaultBankId = bankIds[0] || 'biology'
+  const subjScopes = filters.subject ? [filters.subject] : bankIds
   const sectionOptions = merge(
-    sectionsForSubject((filters.subject || 'biology') as Subject),
+    sectionsForSubject((filters.subject || defaultBankId) as Subject),
     subjScopes.map(s => sectionScope(s)),
   )
-  const topicsMap = topicsForSubject((filters.subject || 'biology') as Subject)
+  const topicsMap = topicsForSubject((filters.subject || defaultBankId) as Subject)
   const baseTopicOptions = filters.sections.length
     ? [...new Set(filters.sections.flatMap(s => topicsMap[s] ?? []))]
     : Object.values(topicsMap).flat()
@@ -1202,24 +1208,15 @@ function TrainerFilterPanel({
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Фильтры')}</span>
       </div>
 
-      {/* Subject pills */}
-      <div style={{ display: 'flex', gap: 5 }}>
-        {[{ v: '', l: 'Все' }, { v: 'biology', l: 'Биология' }, { v: 'chemistry', l: 'Химия' }].map(opt => (
-          <button
-            key={opt.v}
-            onClick={() => onChange({ subject: opt.v, sections: [], topics: [], lines: [] })}
-            style={{
-              flex: 1, padding: '6px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
-              fontSize: 11, fontWeight: 600,
-              background: filters.subject === opt.v ? 'var(--color-purple-soft)' : 'var(--color-bg)',
-              color: filters.subject === opt.v ? 'var(--color-accent)' : 'var(--color-muted)',
-              fontFamily: 'inherit', transition: 'all 0.15s',
-            }}
-          >
-            {t(opt.l)}
-          </button>
-        ))}
-      </div>
+      {/* Subject picker — adaptive (segments ≤3, dropdown 4+), scoped to teacher's bank subjects */}
+      <SubjectPicker
+        options={bankSubjectOptionsFor(allowedSubjects).map(o => ({ value: o.value, label: t(o.label), icon: o.value ? subjectIcon(o.value) : undefined }))}
+        value={filters.subject}
+        onChange={v => onChange({ subject: v, sections: [], topics: [], lines: [] })}
+        accent="var(--color-accent)" accentBg="var(--color-purple-soft)" activeColor="var(--color-accent)"
+        idleBg="var(--color-bg)" size="sm"
+        ariaLabel={t('Предмет')}
+      />
 
       {/* Dropdown filters */}
       <MultiSelectField label={t('Раздел')} options={sectionOptions} values={filters.sections}

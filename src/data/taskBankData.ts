@@ -1,4 +1,9 @@
-export type Subject = 'biology' | 'chemistry'
+// A subject id from the registry (src/lib/subjects.ts). Deliberately an OPEN
+// string, not a closed union: the runtime registry — not the type system — is the
+// source of valid subjects, so a new exam subject is added as data, never a type
+// edit. Curriculum data for subjects that have a bank lives in STATIC_CURRICULUM
+// below, keyed by this id.
+export type Subject = string
 
 export type QuestionType = 'choice' | 'free'
 export type ScoreMode = 'perOption' | 'criteria' | 'whole'
@@ -308,31 +313,41 @@ export type SubjectCurriculum = {
   sectionLineMap: Record<string, { lines: number[]; part2Lines: number[] }>
 }
 
-const STATIC_CURRICULUM: Record<Subject, SubjectCurriculum> = {
+// Config map: subject id → its static ЕГЭ taxonomy. Adding a bank subject means
+// adding an entry here (and marking hasBank in the registry) — no type changes.
+const STATIC_CURRICULUM: Record<string, SubjectCurriculum> = {
   biology:   { sections: BIOLOGY_SECTIONS,   topics: BIOLOGY_TOPICS,   lineNames: BIOLOGY_LINES,   sectionLineMap: BIOLOGY_SECTION_LINE_MAP },
   chemistry: { sections: CHEMISTRY_SECTIONS, topics: CHEMISTRY_TOPICS, lineNames: CHEMISTRY_LINES, sectionLineMap: CHEMISTRY_SECTION_LINE_MAP },
 }
-const runtimeCurriculum: Record<Subject, SubjectCurriculum> = {
-  biology:   STATIC_CURRICULUM.biology,
-  chemistry: STATIC_CURRICULUM.chemistry,
-}
+
+/** Subject ids that ship a static curriculum. Derived from the config, not hardcoded. */
+export const CURRICULUM_SUBJECT_IDS: string[] = Object.keys(STATIC_CURRICULUM)
+
+// Neutral fallback so an unknown / not-yet-configured subject yields empty options
+// instead of crashing (Record index access isn't undefined-checked by the compiler).
+const EMPTY_CURRICULUM: SubjectCurriculum = { sections: [], topics: {}, lineNames: {}, sectionLineMap: {} }
+
+// Runtime copy — seeded from the static config, overridden per subject by the
+// teacher's live edits (curriculumStore). Auto-scales to every configured subject.
+const runtimeCurriculum: Record<string, SubjectCurriculum> = { ...STATIC_CURRICULUM }
+
 /** Replace the live taxonomy for a subject (called by curriculumStore). */
 export function setRuntimeCurriculum(subject: Subject, c: SubjectCurriculum) { runtimeCurriculum[subject] = c }
-export function getStaticCurriculum(subject: Subject): SubjectCurriculum { return STATIC_CURRICULUM[subject] }
+export function getStaticCurriculum(subject: Subject): SubjectCurriculum { return STATIC_CURRICULUM[subject] ?? EMPTY_CURRICULUM }
 
 // ── Cascade helpers — shared by the student & teacher trainers ───────────────
 // All selection arrays use "empty = no constraint" semantics.
 export function sectionsForSubject(subject: Subject): string[] {
-  return runtimeCurriculum[subject].sections
+  return (runtimeCurriculum[subject] ?? EMPTY_CURRICULUM).sections
 }
 export function sectionLineMap(subject: Subject): Record<string, { lines: number[]; part2Lines: number[] }> {
-  return runtimeCurriculum[subject].sectionLineMap
+  return (runtimeCurriculum[subject] ?? EMPTY_CURRICULUM).sectionLineMap
 }
 export function topicsForSubject(subject: Subject): Record<string, string[]> {
-  return runtimeCurriculum[subject].topics
+  return (runtimeCurriculum[subject] ?? EMPTY_CURRICULUM).topics
 }
 export function lineNamesForSubject(subject: Subject): Record<number, string> {
-  return runtimeCurriculum[subject].lineNames
+  return (runtimeCurriculum[subject] ?? EMPTY_CURRICULUM).lineNames
 }
 
 /** Line numbers implied by the chosen sections + parts. Empty selection = unconstrained. */

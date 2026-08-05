@@ -107,3 +107,33 @@ export function bankSubjectOptions(withAll = true): { value: string; label: stri
 
 /** English ids of every subject that has a task bank — replaces hardcoded ['biology','chemistry']. */
 export const BANK_SUBJECT_IDS: string[] = SUBJECTS.filter(s => s.hasBank).map(s => s.id)
+
+// ── Per-teacher scope helpers ────────────────────────────────────────────────
+// A teacher's allowed set (profiles.subjects) uses "empty = ALL subjects"
+// semantics — matching the hidden_tabs convention. These helpers collapse that
+// rule so call sites never special-case the empty array.
+
+/** Subject defs a teacher may use. Empty/undefined allow-list = every subject. */
+export function allowedSubjectDefs(allowed: string[] | null | undefined): SubjectDef[] {
+  if (!allowed || allowed.length === 0) return SUBJECTS
+  const ids = new Set(allowed.map(a => getSubject(a)?.id).filter(Boolean) as string[])
+  return SUBJECTS.filter(s => ids.has(s.id))
+}
+
+/** True if the subject is within the teacher's allowed set (empty set = all). */
+export function isSubjectAllowed(idOrName: string | undefined, allowed: string[] | null | undefined): boolean {
+  if (!allowed || allowed.length === 0) return true
+  const id = getSubject(idOrName)?.id
+  return !!id && allowedSubjectDefs(allowed).some(s => s.id === id)
+}
+
+/** Bank-subject filter options scoped to a teacher's allowed set. */
+export function bankSubjectOptionsFor(allowed: string[] | null | undefined, withAll = true): { value: string; label: string }[] {
+  const opts = allowedSubjectDefs(allowed).filter(s => s.hasBank).map(s => ({ value: s.id, label: s.name }))
+  return withAll ? [{ value: '', label: 'Все' }, ...opts] : opts
+}
+
+/** Bank-subject ids scoped to a teacher's allowed set — replaces default ['biology','chemistry']. */
+export function bankSubjectIdsFor(allowed: string[] | null | undefined): string[] {
+  return allowedSubjectDefs(allowed).filter(s => s.hasBank).map(s => s.id)
+}

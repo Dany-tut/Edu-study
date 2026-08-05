@@ -7,6 +7,9 @@ import {
 import { useCurriculum } from '../../store/curriculumStore'
 import { getContrastColor } from '../../lib/utils'
 import type { Subject } from '../../data/taskBankData'
+import { useTeacherAccess } from '../../lib/teacherAccess'
+import { bankSubjectOptionsFor, subjectIcon } from '../../lib/subjects'
+import SubjectPicker from './SubjectPicker'
 import { useT } from '../../lib/i18n'
 
 // ── Reveal-on-right-hover ─────────────────────────────────────────────────────
@@ -284,6 +287,14 @@ function SectionCard({ subject, section, accent, accentBg, partFilter }: {
 export default function CurriculumManager() {
   const t = useT()
   const [subject, setSubject] = useState<Subject>('biology')
+  const allowedSubjects = useTeacherAccess(s => s.subjects) // [] = all
+  const subjectOptions = bankSubjectOptionsFor(allowedSubjects, false).map(o => ({ value: o.value, label: t(o.label), icon: subjectIcon(o.value) }))
+  // Keep the active subject within the allowed set.
+  useEffect(() => {
+    if (subjectOptions.length && !subjectOptions.some(o => o.value === subject)) {
+      setSubject(subjectOptions[0].value as Subject)
+    }
+  }, [subjectOptions, subject])
   const [partFilter, setPartFilter] = useState<0 | 1 | 2>(0)
   const data = useCurriculum(s => s.data[subject])
   const addSection = useCurriculum(s => s.addSection)
@@ -329,16 +340,14 @@ export default function CurriculumManager() {
               <CloudOff size={13} /> {t('Не сохранено — нужен вход')}
             </span>
           )}
-          {/* Subject pills */}
-          <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 999, background: 'var(--color-bg-3)' }}>
-            {(['biology', 'chemistry'] as Subject[]).map(s => (
-              <button key={s} onClick={() => setSubject(s)}
-                style={{ padding: '7px 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
-                  background: subject === s ? (s === 'biology' ? 'var(--color-green-soft)' : 'var(--color-purple-soft)') : 'transparent',
-                  color: subject === s ? (s === 'biology' ? 'var(--color-green-text)' : 'var(--color-purple-text)') : 'var(--color-muted)' }}>
-                {s === 'biology' ? t('Биология') : t('Химия')}
-              </button>
-            ))}
+          {/* Subject picker — adaptive; scoped to the teacher's bank subjects */}
+          <div style={{ minWidth: 180 }}>
+            <SubjectPicker
+              options={subjectOptions}
+              value={subject}
+              onChange={v => setSubject(v as Subject)}
+              ariaLabel={t('Предмет')}
+            />
           </div>
           <button onClick={() => { if (confirm(t('Вернуть стандартную структуру ЕГЭ для этого предмета? Ваши правки будут потеряны.'))) resetSubject(subject) }}
             title={t('Сбросить к стандарту ЕГЭ')}

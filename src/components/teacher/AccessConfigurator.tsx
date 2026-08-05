@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Lock, BookOpen, Users, LayoutGrid, Copy, Share2, Check } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { TEACHER_TABS } from '../../lib/teacherAccess'
+import { SUBJECTS } from '../../lib/subjects'
 import { WIDGET_REGISTRY } from './widgets/registry'
 import { useT } from '../../lib/i18n'
 
@@ -56,6 +57,7 @@ export default function AccessConfigurator({
   selectedWidgets, onWidgetsChange,
   courseAssignments, onCoursesChange,
   groupIds, onGroupsChange,
+  subjects, onSubjectsChange,
   showContent = true,
 }: {
   selectedTabs: string[]
@@ -66,6 +68,10 @@ export default function AccessConfigurator({
   onCoursesChange: (v: CourseAssignment[]) => void
   groupIds: string[]
   onGroupsChange: (v: string[]) => void
+  // Subject allow-list (registry ids). EMPTY = all subjects. Section renders only
+  // when onSubjectsChange is provided.
+  subjects?: string[]
+  onSubjectsChange?: (v: string[]) => void
   showContent?: boolean
 }) {
   const tr = useT()
@@ -101,6 +107,10 @@ export default function AccessConfigurator({
   const toggleGroup = (id: string) =>
     onGroupsChange(groupIds.includes(id) ? groupIds.filter(x => x !== id) : [...groupIds, id])
 
+  const subjList = subjects ?? []
+  const toggleSubject = (id: string) =>
+    onSubjectsChange?.(subjList.includes(id) ? subjList.filter(x => x !== id) : [...subjList, id])
+
   const bentoTiles: { key: string; label: string; icon: React.ReactNode; badge?: string }[] = [
     ...TEACHER_TABS.filter(t => selectedTabs.includes(t.id)).map(t => ({ key: `t-${t.id}`, label: t.label, icon: <LayoutGrid size={13} /> })),
     ...courseAssignments.map(a => {
@@ -115,6 +125,21 @@ export default function AccessConfigurator({
 
   return (
     <div>
+      {/* Subjects — allow-list; empty = all subjects */}
+      {onSubjectsChange && (
+        <>
+          <SectionTitle>
+            {tr('Предметы (что видит)')}
+            {subjList.length === 0 && <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--color-text-3)', textTransform: 'none', letterSpacing: 0 }}>{tr('· пусто = все предметы')}</span>}
+          </SectionTitle>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 18 }}>
+            {SUBJECTS.map(s => (
+              <Chip key={s.id} label={`${s.icon} ${s.name}`} on={subjList.includes(s.id)} onToggle={() => toggleSubject(s.id)} />
+            ))}
+          </div>
+        </>
+      )}
+
       {/* Sections */}
       <SectionTitle>{tr('Разделы (что видит)')}</SectionTitle>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 18 }}>

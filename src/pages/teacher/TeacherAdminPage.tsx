@@ -35,6 +35,7 @@ type TeacherRow = {
   studentCount: number
   hiddenTabs: string[]
   hiddenWidgets: string[]
+  subjects: string[]
 }
 
 // A teacher who was invited but hasn't signed up yet — lives only in
@@ -108,6 +109,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
   const [link, setLink] = useState('')
   const [selectedTabs, setSelectedTabs] = useState<string[]>(TEACHER_TABS.map(t => t.id))
   const [selectedWidgets, setSelectedWidgets] = useState<string[]>(WIDGET_REGISTRY.map(w => w.type))
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]) // empty = all subjects
   const [courseAssignments, setCourseAssignments] = useState<CourseAssignment[]>([])
   const [groupIds, setGroupIds] = useState<string[]>([])
 
@@ -119,6 +121,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
       p_hidden_widgets: hiddenWidgetsFrom(selectedWidgets),
       p_course_assignments: courseAssignments,
       p_group_ids: groupIds,
+      p_subjects: selectedSubjects,
     })
     setCreating(false)
     if (err || !data) { setError(err?.message || t('Не удалось создать приглашение')); return }
@@ -216,6 +219,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
               selectedWidgets={selectedWidgets} onWidgetsChange={setSelectedWidgets}
               courseAssignments={courseAssignments} onCoursesChange={setCourseAssignments}
               groupIds={groupIds} onGroupsChange={setGroupIds}
+              subjects={selectedSubjects} onSubjectsChange={setSelectedSubjects}
             />
 
             {error && <div style={{ fontSize: 11, color: '#E04848', marginTop: 12 }}>{error}</div>}
@@ -241,10 +245,11 @@ function InviteModal({ onClose }: { onClose: () => void }) {
 }
 
 
-function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hiddenTabs: string[], hiddenWidgets: string[]) => void }) {
+function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hiddenTabs: string[], hiddenWidgets: string[], subjects: string[]) => void }) {
   const t = useT()
   const [selectedTabs, setSelectedTabs] = useState<string[]>(selectedTabsFrom(teacher.hiddenTabs))
   const [selectedWidgets, setSelectedWidgets] = useState<string[]>(selectedWidgetsFrom(teacher.hiddenWidgets))
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>(teacher.subjects) // empty = all
   const [courseAssignments, setCourseAssignments] = useState<CourseAssignment[]>([])
   const [groupIds, setGroupIds] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
@@ -314,6 +319,13 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
     })
     if (err) { setSaving(false); setError(err.message); return }
 
+    // 1b. Subject scope (empty = all).
+    const { error: sErr } = await supabase.rpc('admin_set_teacher_subjects', {
+      p_teacher: teacher.id,
+      p_subjects: selectedSubjects,
+    })
+    if (sErr) { setSaving(false); setError(sErr.message); return }
+
     // 2. Provision selected content to this teacher (incremental — cleared after).
     try {
       for (const a of courseAssignments) {
@@ -337,7 +349,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
     setCourseAssignments([]); setGroupIds([])
     setSaved(true)
     setTimeout(() => setSaved(false), 1800)
-    onSaved(hiddenTabs, hiddenWidgets)
+    onSaved(hiddenTabs, hiddenWidgets, selectedSubjects)
   }
 
   return (
@@ -368,6 +380,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
         selectedWidgets={selectedWidgets} onWidgetsChange={setSelectedWidgets}
         courseAssignments={courseAssignments} onCoursesChange={setCourseAssignments}
         groupIds={groupIds} onGroupsChange={setGroupIds}
+        subjects={selectedSubjects} onSubjectsChange={setSelectedSubjects}
       />
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 18 }}>
@@ -809,6 +822,7 @@ export default function TeacherAdminPage() {
         studentCount: Number(t.student_count ?? 0),
         hiddenTabs: (t.hidden_tabs as string[] | null) ?? [],
         hiddenWidgets: (t.hidden_widgets as string[] | null) ?? [],
+        subjects: (t.subjects as string[] | null) ?? [],
       })))
     }
     setPendingInvites(Array.isArray(invitesRes.data)
@@ -1024,7 +1038,7 @@ export default function TeacherAdminPage() {
                       >
                         <AccessEditor
                           teacher={tr}
-                          onSaved={(ht, hw) => setTeachers(prev => prev.map(x => x.id === tr.id ? { ...x, hiddenTabs: ht, hiddenWidgets: hw } : x))}
+                          onSaved={(ht, hw, subs) => setTeachers(prev => prev.map(x => x.id === tr.id ? { ...x, hiddenTabs: ht, hiddenWidgets: hw, subjects: subs } : x))}
                         />
                       </motion.div>
                     )}

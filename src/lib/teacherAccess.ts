@@ -47,6 +47,8 @@ type AccessState = {
   isAdmin: boolean
   hiddenTabs: string[]
   hiddenWidgets: string[]
+  // Allowed subject scope (profiles.subjects). EMPTY = all subjects (no restriction).
+  subjects: string[]
   load: () => Promise<void>
   canTab: (id: TeacherTabId) => boolean
   canPage: (page: TeacherPage) => boolean
@@ -58,6 +60,7 @@ export const useTeacherAccess = create<AccessState>((set, get) => ({
   isAdmin: false,
   hiddenTabs: [],
   hiddenWidgets: [],
+  subjects: [],
 
   load: async () => {
     const { data: userData } = await supabase.auth.getUser()
@@ -67,12 +70,12 @@ export const useTeacherAccess = create<AccessState>((set, get) => ({
     const isAdmin = user?.app_metadata?.role === 'admin'
     // Admins are never restricted; skip the profile read for them.
     if (!user || isAdmin) {
-      set({ loaded: true, isAdmin: !!isAdmin, hiddenTabs: [], hiddenWidgets: [] })
+      set({ loaded: true, isAdmin: !!isAdmin, hiddenTabs: [], hiddenWidgets: [], subjects: [] })
       return
     }
     const { data } = await supabase
       .from('profiles')
-      .select('hidden_tabs, hidden_widgets')
+      .select('hidden_tabs, hidden_widgets, subjects')
       .eq('id', user.id)
       .maybeSingle()
     set({
@@ -80,6 +83,7 @@ export const useTeacherAccess = create<AccessState>((set, get) => ({
       isAdmin: false,
       hiddenTabs: (data?.hidden_tabs as string[] | null) ?? [],
       hiddenWidgets: (data?.hidden_widgets as string[] | null) ?? [],
+      subjects: (data?.subjects as string[] | null) ?? [],
     })
   },
 
