@@ -151,6 +151,28 @@ export const grid = (
 /** Свободный письменный ответ — идёт учителю. */
 export const write = (question: string): SeedTask => ({ type: 'extended', question })
 
+/**
+ * Чтение в экзаменационном формате: один отрывок — несколько вопросов к нему.
+ *
+ * Нужно потому, что TOPIK I и JLPT состоят из чтения и аудирования, а
+ * говорения в них нет вовсе. Курс, который тренирует только грамматику и речь,
+ * готовит человека, знающего язык и проваливающего экзамен на чтении.
+ *
+ * Возвращает массив заданий с общим passage — решатель показывает текст один
+ * раз на всю группу подряд идущих заданий с одинаковым отрывком.
+ */
+export const reading = (
+  passage: string,
+  questions: SeedTask[],
+  opts: { title?: string; translation?: string } = {},
+): SeedTask[] =>
+  questions.map(q => ({
+    ...q,
+    passage,
+    passageTitle: opts.title,
+    passageTranslation: opts.translation,
+  }))
+
 /** Записать голос — учитель слушает; при подключённом ИИ добавится разбор. */
 export const say = (question: string, responseSeconds = 90): SeedTask =>
   ({ type: 'speaking', question, prepSeconds: 20, responseSeconds })

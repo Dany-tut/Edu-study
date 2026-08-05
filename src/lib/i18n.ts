@@ -77,6 +77,8 @@ const EN: Record<string, string> = {
   "Ответ: ": "Answer: ",
   "Новые": "Newest",
   "Старые": "Oldest",
+  "Все предметы": "All subjects",
+  "Все уровни": "All levels",
   "Простые": "Easy",
   "Сложные": "Hard",
   "Не решённые": "Unsolved",

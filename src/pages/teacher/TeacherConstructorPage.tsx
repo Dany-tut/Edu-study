@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, forwardRef, useImperativeHandle, type ReactNode } from 'react'
 import Skeleton from '../../components/Skeleton'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -21,7 +21,8 @@ import * as LucideIcons from 'lucide-react'
 import RichConditionEditor, { parseSmartPaste } from '../../components/teacher/RichConditionEditor'
 import TableEditor from '../../components/teacher/TableEditor'
 import { typeVisual } from '../../data/taskTypeVisuals'
-import { bankSubjectOptions } from '../../lib/subjects'
+import { bankSubjectOptions, subjectIcon } from '../../lib/subjects'
+import { levelOptions, matchesLevel } from '../../lib/courseLevels'
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagQuestions,
   loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult,
@@ -1434,6 +1435,64 @@ function CourseSortDropdown({ value, onChange }: { value: CourseSortMode; onChan
                 onMouseEnter={e => { e.currentTarget.style.background = accentSoft }}
                 onMouseLeave={e => { e.currentTarget.style.background = value === val ? accentSoft : 'transparent' }}>
                 {lbl}
+                {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+/**
+ * Дропдаун-фильтр списка курсов (предмет, уровень). От CourseSortDropdown
+ * отличается тем, что опции приходят снаружи и зависят от данных: если
+ * фильтровать не по чему (один предмет, ни одного заполненного уровня) —
+ * кнопка не рисуется вообще, чтобы не занимать строку мёртвым контролом.
+ */
+function CourseFacetDropdown({ value, options, allLabel, icon, minWidth = 92, onChange }: {
+  value: string
+  options: string[]
+  allLabel: string
+  icon: ReactNode
+  minWidth?: number
+  onChange: (v: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  if (options.length < 2) return null
+  const accent = 'var(--color-green-text)'
+  const accentSoft = 'color-mix(in srgb, var(--color-green-text) 11%, transparent)'
+  const rows = ['', ...options]
+  return (
+    <div style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)} onBlur={() => setTimeout(() => setOpen(false), 120)}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 999,
+          background: open ? 'rgba(var(--glass-rgb), 0.98)' : 'rgba(var(--glass-rgb), 0.9)',
+          border: `1px solid ${value ? 'var(--color-border-strong)' : open ? 'var(--color-border-strong)' : 'var(--color-border)'}`,
+          fontSize: 12, fontWeight: value ? 700 : 600, color: 'var(--color-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
+        <span style={{ display: 'flex', color: 'var(--color-text-3)' }}>{icon}</span>
+        <span style={{ minWidth, textAlign: 'left' }}>{value || allLabel}</span>
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
+          <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
+            style={{ position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 170, maxHeight: 320, overflowY: 'auto',
+              background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              border: '1px solid var(--color-border-glass)', borderRadius: 14, boxShadow: '0 12px 32px rgba(0,0,0,0.12)', padding: 5 }}>
+            {rows.map(val => (
+              <button key={val || '__all'} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                  width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
+                  background: value === val ? accentSoft : 'transparent',
+                  fontSize: 13, fontWeight: value === val ? 700 : 400, color: 'var(--color-text)',
+                  cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
+                onMouseEnter={e => { e.currentTarget.style.background = accentSoft }}
+                onMouseLeave={e => { e.currentTarget.style.background = value === val ? accentSoft : 'transparent' }}>
+                {val || allLabel}
                 {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               </button>
             ))}
@@ -7228,6 +7287,8 @@ export default function TeacherConstructorPage() {
   }, [widgets, widgetFilters])
   const [courseSort, setCourseSort] = useState<CourseSortMode>('newest')
   const [courseStatus, setCourseStatus] = useState<'' | CourseStatus>('')
+  const [courseSubject, setCourseSubject] = useState('')
+  const [courseLevel, setCourseLevel] = useState('')
   // Готовые курсы стоят в общем списке обычными плитками — отдельной секции нет.
   // Отличие только внутреннее: курса ещё нет в БД, он соберётся из сида при
   // открытии и станет настоящим после «Сохранить». Поэтому их нет в режиме
@@ -7250,14 +7311,37 @@ export default function TeacherConstructorPage() {
     }
     return map
   }, [courses, ownerId, isAdmin, accessLoaded, editMode])
+  // Всё, что вообще показывается на вкладке: свои курсы + плитки сидов. Из этого
+  // же списка собираются опции фильтров, поэтому пустых вариантов не бывает.
+  const allCourses = useMemo(
+    () => [...courses, ...[...seedById].map(([id, s]) => seedToCourse(s, id))],
+    [courses, seedById],
+  )
+  const subjectOpts = useMemo(
+    () => [...new Set(allCourses.map(c => c.subject.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru')),
+    [allCourses],
+  )
+  // Уровни считаем уже ПОСЛЕ отбора по предмету — иначе физике предложат ступени
+  // языковых курсов, а языкам ЕГЭ.
+  const levelOpts = useMemo(
+    () => levelOptions(courseSubject ? allCourses.filter(c => c.subject.trim() === courseSubject) : allCourses),
+    [allCourses, courseSubject],
+  )
+  // Сменили предмет — выбранный уровень мог исчезнуть из его списка. Без сброса
+  // список курсов молча опустел бы под фильтром, которого уже не видно.
+  useEffect(() => {
+    if (courseLevel && !levelOpts.includes(courseLevel)) setCourseLevel('')
+  }, [levelOpts, courseLevel])
   const filteredCourses = useMemo(() => {
-    let cs = [...courses, ...[...seedById].map(([id, s]) => seedToCourse(s, id))]
+    let cs = allCourses
     if (courseStatus) cs = cs.filter(c => c.status === courseStatus)
+    if (courseSubject) cs = cs.filter(c => c.subject.trim() === courseSubject)
+    if (courseLevel) cs = cs.filter(c => matchesLevel(c, courseLevel))
     const sorted = [...cs]
     if (courseSort === 'newest') return sorted.reverse()
     if (courseSort === 'az') return sorted.sort((a, b) => a.title.localeCompare(b.title, 'ru'))
     return sorted
-  }, [courses, seedById, courseSort, courseStatus])
+  }, [allCourses, courseSort, courseStatus, courseSubject, courseLevel])
   const removeTask = useTaskBank(s => s.removeTask)
   const addBankTask = useTaskBank(s => s.addTask)
   const loadTasks = useTaskBank(s => s.load)
@@ -7999,6 +8083,16 @@ export default function TeacherConstructorPage() {
               {activeTab === 'course' && !dbLoading && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10 }}>
                   <CourseSortDropdown value={courseSort} onChange={setCourseSort} />
+                  <CourseFacetDropdown
+                    value={courseSubject} options={subjectOpts} allLabel={t('Все предметы')}
+                    icon={<span style={{ fontSize: 12 }}>{courseSubject ? subjectIcon(courseSubject) : '📚'}</span>}
+                    onChange={setCourseSubject}
+                  />
+                  <CourseFacetDropdown
+                    value={courseLevel} options={levelOpts} allLabel={t('Все уровни')} minWidth={72}
+                    icon={<TrendingUp size={12} />}
+                    onChange={setCourseLevel}
+                  />
                   <CourseStatusFilter value={courseStatus} onChange={setCourseStatus} />
                   <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>
                     {filteredCourses.length} {t('курсов')}

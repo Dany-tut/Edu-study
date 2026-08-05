@@ -34,8 +34,15 @@ function webglOk() {
 }
 
 /** «Приклеивание»: сколько уголок висит отогнутым, прежде чем лечь, и сколько ложится */
-const REVEAL_HOLD = 350
+const REVEAL_HOLD = 260
 const REVEAL_MS = 1700
+/**
+ * В reveal-режиме статичный бейдж не показываем сразу: он плоский, и его
+ * подмена на отогнутый WebGL читалась как «стикер приклеился → отклеился до
+ * половины → приклеился снова». Пока грузится чанк, место просто пустое, а
+ * бейдж всплывает только если WebGL за это время так и не ожил.
+ */
+const FALLBACK_DELAY = 900
 /**
  * С какого места начинается приклеивание: линия сгиба идёт от дальнего угла (0)
  * к противоположному (1), так что 0.5 — ровно середина стикера. Больше — и
@@ -63,9 +70,19 @@ export default function HoloSticker({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rendRef = useRef<HoloRenderer | null>(null)
   const [live, setLive] = useState(false)     // рендер запустился — можно прятать бейдж
+  // Вне reveal бейдж нужен сразу (иначе список стикеров мигает пустотой),
+  // в reveal — только как аварийная замена, если WebGL не запустился.
+  const [fallbackReady, setFallbackReady] = useState(!reveal)
   const pointerRef = useRef<{ x: number; y: number } | null>(null)
   const settings = useRef<StickerSettings>(stickerSettings(score))
   settings.current = { ...stickerSettings(score), ...tweak }
+
+  useEffect(() => {
+    if (!reveal) { setFallbackReady(true); return }
+    setFallbackReady(false)
+    const t = setTimeout(() => setFallbackReady(true), FALLBACK_DELAY)
+    return () => clearTimeout(t)
+  }, [reveal, score, label, sublabel])
 
   useEffect(() => {
     let dead = false
@@ -175,7 +192,7 @@ export default function HoloSticker({
       <div
         style={{
           position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
-          pointerEvents: 'none', opacity: live ? 0 : 1, transition: 'opacity 200ms ease',
+          pointerEvents: 'none', opacity: live || !fallbackReady ? 0 : 1, transition: 'opacity 200ms ease',
         }}
       >
         <StickerBadge score={score} label={label} sublabel={sublabel} size={Math.round(size * FALLBACK_SCALE)} />

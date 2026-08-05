@@ -55,6 +55,10 @@ export interface HomeworkQuizQuestion {
   responseMode?: 'write' | 'speak'
   /** Дополнительные принимаемые формулировки для свободного ввода. */
   altAnswers?: string[]
+  /** Текст для чтения над условием; перевод открывается после ответа. */
+  passage?: string
+  passageTitle?: string
+  passageTranslation?: string
 }
 
 /** One task as persisted by the course editor's «Домашки» tab
@@ -242,6 +246,11 @@ function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): HomeworkQui
       // Для multi нужны все верные варианты, а не только первый.
       correctOptionIds: tp === 'multi' ? correctIdx.map(String) : undefined,
       explanation: '', type: tp,
+      // Экзаменационное чтение — это почти всегда выбор ответа к отрывку,
+      // поэтому passage обязан переноситься и в этой ветке тоже.
+      passage: t.passage,
+      passageTitle: t.passageTitle,
+      passageTranslation: t.passageTranslation,
     }
   }
 
@@ -269,6 +278,9 @@ function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): HomeworkQui
     responseSeconds: t.responseSeconds,
     images: t.images,
     responseMode: t.responseMode,
+    passage: t.passage,
+    passageTitle: t.passageTitle,
+    passageTranslation: t.passageTranslation,
   }
 }
 

@@ -1456,6 +1456,36 @@ export default function HomeworkFlow({
                         : '0 8px 24px rgba(0,0,0,0.04)',
                     }}
                   >
+                    {/* Текст для чтения. К одному отрывку обычно идёт несколько
+                        вопросов подряд — показываем его один раз на группу, иначе
+                        экран занят повторами одного и того же объявления. */}
+                    {question.passage && question.passage !== basicQuestions[index - 1]?.passage && (
+                      <div style={{
+                        padding: '14px 16px', borderRadius: 16, marginBottom: 4,
+                        background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
+                      }}>
+                        {question.passageTitle && (
+                          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.3, textTransform: 'uppercase', color: 'var(--color-text-3)', marginBottom: 8 }}>
+                            {question.passageTitle}
+                          </p>
+                        )}
+                        <div style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--color-text)', whiteSpace: 'pre-wrap' }}>
+                          {question.passage}
+                        </div>
+                        {/* Перевод — только после ответа, иначе читать оригинал незачем. */}
+                        {question.passageTranslation && state.basicSubmitted && (
+                          <details style={{ marginTop: 10 }}>
+                            <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 700, color: 'var(--color-accent)' }}>
+                              {t('Перевод')}
+                            </summary>
+                            <div style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-2)', marginTop: 6, whiteSpace: 'pre-wrap' }}>
+                              {question.passageTranslation}
+                            </div>
+                          </details>
+                        )}
+                      </div>
+                    )}
+
                     <div className="flex flex-wrap items-start justify-between" style={{ gap: 12 }}>
                       <div>
                         <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', marginBottom: 6 }}>

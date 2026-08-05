@@ -21,12 +21,15 @@ export interface StickerTier {
   shine: number
 }
 
+// Название стикера — про работу ученика, а не про материал печати: «Фольга» и
+// «Глянец» описывали способ рендера, ученику это ничего не говорит. Уровень
+// редкости и так виден по самой фольге, поэтому слово несёт оценку.
 export const STICKER_TIERS: Record<StickerScore, StickerTier> = {
-  5: { score: 5, name: 'Голограмма', hint: 'Безупречно — задание принято с первого раза', ink: '#786AD7', inkLight: '#C6BDFF', inkDark: '#211858', shine: 1 },
-  4: { score: 4, name: 'Фольга',     hint: 'Почти идеально — мелкие шероховатости',       ink: '#4F8BE8', inkLight: '#AFCDFF', inkDark: '#123059', shine: 0.72 },
-  3: { score: 3, name: 'Глянец',     hint: 'Решено, но с ошибками',                        ink: '#4FBF9A', inkLight: '#A8EBD6', inkDark: '#0F4436', shine: 0.4 },
-  2: { score: 2, name: 'Матовый',    hint: 'Есть над чем поработать',                      ink: '#E8A54F', inkLight: '#FFDCA8', inkDark: '#5E3D0F', shine: 0.18 },
-  1: { score: 1, name: 'Картон',     hint: 'Задание засчитано частично',                   ink: '#98A0B0', inkLight: '#D6DBE4', inkDark: '#333A45', shine: 0.06 },
+  5: { score: 5, name: 'Безупречно',  hint: 'Принято с первого раза, без замечаний', ink: '#786AD7', inkLight: '#C6BDFF', inkDark: '#211858', shine: 1 },
+  4: { score: 4, name: 'Уверенно',    hint: 'Всё верно, поправить пару мелочей',     ink: '#4F8BE8', inkLight: '#AFCDFF', inkDark: '#123059', shine: 0.72 },
+  3: { score: 3, name: 'Хорошо',      hint: 'Решено, но с ошибками',                 ink: '#4FBF9A', inkLight: '#A8EBD6', inkDark: '#0F4436', shine: 0.4 },
+  2: { score: 2, name: 'Почти',       hint: 'Ход верный, есть над чем поработать',   ink: '#E8A54F', inkLight: '#FFDCA8', inkDark: '#5E3D0F', shine: 0.18 },
+  1: { score: 1, name: 'Первый шаг',  hint: 'Задание засчитано частично',            ink: '#98A0B0', inkLight: '#D6DBE4', inkDark: '#333A45', shine: 0.06 },
 }
 
 export function tierOf(score: number | null | undefined): StickerTier {
@@ -134,12 +137,14 @@ export function drawStickerArt(spec: StickerArtSpec): HTMLCanvasElement {
   ctx.font = `800 ${px * 0.4}px "Manrope", "Inter", system-ui, sans-serif`
   ctx.fillText(String(tier.score), c, c - px * 0.02)
 
-  // звёзды по числу баллов — дуга снизу
+  // Звёзды по числу баллов — дуга снизу. Пустые места не рисуем вовсе: бледная
+  // звезда «которой нет» на мелком стикере читается как полноценная, и балл 4
+  // выглядит как 5. Оставшиеся звёзды центрируем по дуге.
   const stars = tier.score
   const starR = R * 0.7
-  for (let i = 0; i < 5; i++) {
-    const a = Math.PI / 2 + (i - 2) * 0.235
-    drawStar(ctx, c + Math.cos(a) * starR, c + Math.sin(a) * starR, px * 0.036, i < stars ? tier.inkDark : 'rgba(255,255,255,0.75)')
+  for (let i = 0; i < stars; i++) {
+    const a = Math.PI / 2 + (i - (stars - 1) / 2) * 0.235
+    drawStar(ctx, c + Math.cos(a) * starR, c + Math.sin(a) * starR, px * 0.036, tier.inkDark)
   }
 
   // подписи по дуге сверху и снизу

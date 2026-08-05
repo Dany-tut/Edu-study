@@ -212,6 +212,55 @@ const inputSt: React.CSSProperties = {
   outline: 'none', fontFamily: 'inherit',
 }
 
+/**
+ * Textarea, которая обнимает текст: высота = содержимому, внутреннего скролла нет.
+ * Пересчитываем на каждое изменение значения и на смену ширины (панель тянется) —
+ * ResizeObserver сравнивает именно ширину, иначе собственный set height зациклит.
+ */
+function AutoTextarea({
+  value, onChange, minHeight = 0, style, ...rest
+}: Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'value' | 'onChange'> & {
+  value: string
+  onChange: (v: string) => void
+  minHeight?: number
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null)
+
+  const fit = () => {
+    const el = ref.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${Math.max(minHeight, el.scrollHeight)}px`
+  }
+
+  useLayoutEffect(fit, [value, minHeight])
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    let w = el.clientWidth
+    const ro = new ResizeObserver(() => {
+      if (el.clientWidth === w) return
+      w = el.clientWidth
+      fit()
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  return (
+    <textarea
+      ref={ref}
+      rows={1}
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      style={{ ...inputSt, resize: 'none', overflow: 'hidden', ...style }}
+      {...rest}
+    />
+  )
+}
+
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 5 }}>
@@ -981,10 +1030,11 @@ function CenterLesson({
 
         <div>
           <Label>{t('Описание урока')}</Label>
-          <textarea
+          <AutoTextarea
             value={lesson.description ?? ''}
-            onChange={e => onUpdate({ ...lesson, description: e.target.value })}
-            style={{ ...inputSt, resize: 'none', minHeight: 100, lineHeight: 1.6 }}
+            onChange={v => onUpdate({ ...lesson, description: v })}
+            minHeight={64}
+            style={{ lineHeight: 1.6 }}
             placeholder={t('Краткое содержание урока, что разобрали, ключевые моменты…')}
           />
         </div>
