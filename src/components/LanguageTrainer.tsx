@@ -4,7 +4,8 @@ import { textsForLang, type ReadingText, type ReadingQuestion } from '../data/re
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { subjectTheme } from '../lib/theme'
 import { useT } from '../lib/i18n'
-import ReviewSession from './ReviewSession'
+import CardDeck from './CardDeck'
+import { addCards } from '../data/reviewDeck'
 import { ownerStudentIdFor } from '../store/studentDataStore'
 import VoiceRecorder from './VoiceRecorder'
 
@@ -24,7 +25,7 @@ type Mode = 'reading' | 'vocab' | 'listening' | 'speaking'
 
 const MODES: { id: Mode; label: string; hint: string; Icon: typeof BookOpen }[] = [
   { id: 'reading',   label: 'Чтение',     hint: 'Тексты с вопросами',       Icon: BookOpen },
-  { id: 'vocab',     label: 'Слова',      hint: 'Повторение по расписанию', Icon: Layers },
+  { id: 'vocab',     label: 'Карточки',   hint: 'Свайп: знаю / не помню',   Icon: Layers },
   { id: 'listening', label: 'Аудирование', hint: 'Лекции и разговоры',      Icon: Headphones },
   { id: 'speaking',  label: 'Говорение',  hint: 'Записать и отправить',     Icon: Mic },
 ]
@@ -68,6 +69,39 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
     (!fLevel || x.level === fLevel) &&
     (!fSkill || x.skill === fSkill) &&
     (!fTopic || x.topic === fTopic)), [allTexts, fLevel, fSkill, fTopic])
+
+  // ── Колода карточек ────────────────────────────────────────────────────────
+  //
+  // Пустая колода у новичка — нормальное состояние: карточки набираются из
+  // ошибок, а ошибиться он ещё не успел. Поэтому даём взять словари прочитанных
+  // текстов — двадцать слов, с которыми режим сразу имеет смысл. Явной кнопкой,
+  // а не молча: колода ученика — его вещь, и наполнять её за него без спроса
+  // значит однажды выдать ему сотню чужих слов.
+  const deckOwner = useMemo(() => ({ studentId: ownerStudentIdFor(subjectId) }), [subjectId])
+  const [deckKey, setDeckKey] = useState(0)
+  const [seeding, setSeeding] = useState(false)
+  const [seedNote, setSeedNote] = useState('')
+  const glossaryCards = useMemo(() => allTexts.flatMap(txt => txt.glossary.map(g => ({
+    subject: subjectId,
+    source: 'manual' as const,
+    prompt: g.term,
+    answer: g.ru,
+  }))), [allTexts, subjectId])
+
+  async function seedFromTexts() {
+    setSeeding(true)
+    setSeedNote('')
+    try {
+      const added = await addCards(deckOwner, glossaryCards)
+      setSeedNote(added > 0 ? `${t('Добавлено карточек:')} ${added}` : t('Все эти слова уже в колоде.'))
+      if (added > 0) setDeckKey(k => k + 1)
+    } catch (e) {
+      console.error('seedFromTexts:', e)
+      setSeedNote(t('Не получилось добавить слова. Попробуй ещё раз.'))
+    } finally {
+      setSeeding(false)
+    }
+  }
 
   if (openText) {
     return <Reader text={openText} accent={palette.accent} onBack={() => setOpenText(null)} />
@@ -142,7 +176,34 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
           <p style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 14, lineHeight: 1.6 }}>
             {t('Слова из уроков и ошибок повторяются по расписанию: каждое возвращается ровно тогда, когда его вот-вот забудешь.')}
           </p>
-          <ReviewSession owner={{ studentId: ownerStudentIdFor(subjectId) }} />
+          <CardDeck
+            // key перезапускает сессию после подгрузки слов: колода читается
+            // один раз на монтировании, иначе новые карточки появятся только
+            // после ухода со вкладки и обратно.
+            key={deckKey}
+            owner={deckOwner}
+            accent={palette.accent}
+            lang={lang}
+            subject={subjectId}
+            emptyExtra={
+              glossaryCards.length > 0 ? (
+                <button
+                  onClick={seedFromTexts}
+                  disabled={seeding}
+                  style={{
+                    padding: '10px 18px', borderRadius: 999, cursor: seeding ? 'default' : 'pointer',
+                    border: `1.5px solid ${palette.accent}`, background: 'transparent', color: palette.accent,
+                    fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
+                  }}
+                >
+                  {seeding ? t('Добавляю…') : `${t('Взять слова из текстов')} · ${glossaryCards.length}`}
+                </button>
+              ) : null
+            }
+          />
+          {seedNote && (
+            <div style={{ marginTop: 12, textAlign: 'center', fontSize: 12, color: 'var(--color-muted)' }}>{seedNote}</div>
+          )}
         </div>
       )}
 
