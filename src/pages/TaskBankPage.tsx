@@ -28,6 +28,7 @@ import { useTrainerProgress } from '../store/trainerProgressStore'
 import { subjectTheme, PURPLE } from '../lib/theme'
 import { getSubject, BANK_SUBJECT_IDS, subjectIcon } from '../lib/subjects'
 import LanguageTrainer from '../components/LanguageTrainer'
+import TrainerSkeleton from '../components/trainer/TrainerSkeleton'
 import CardDeck, { type DeckSource } from '../components/CardDeck'
 import { captureMistake, deckOwner, type ReviewCard } from '../data/reviewDeck'
 import { getContrastColor } from '../lib/utils'
@@ -1556,6 +1557,21 @@ export default function TaskBankPage() {
   const langSubject = getSubject(activeCourse?.subject) ?? getSubject(activeSubjectId)
   const isLangTrainer = !!langSubject?.isLanguage
 
+  // Пока курсы не приехали, развилка «язык или банк» не решена: subjects пуст, а
+  // activeSubjectId ещё стоит на стартовом 'chemistry' — то есть ЛЮБОЙ ученик на
+  // первом кадре после F5 попадает в банк ЕГЭ и видит его секунду, даже если у
+  // него корейский. Показываем нейтральный скелетон вместо неверного ответа.
+  const dataLoaded = useStudentData(s => s.loaded)
+  // Страховка от вечного скелетона: load() падает в catch только на сетевой
+  // аварии, но если он всё же не доехал — через 6 с показываем что есть, лучше
+  // не тот тренажёр, чем бесконечная серая заглушка.
+  const [waitedTooLong, setWaitedTooLong] = useState(false)
+  useEffect(() => {
+    if (dataLoaded) return
+    const id = setTimeout(() => setWaitedTooLong(true), 6000)
+    return () => clearTimeout(id)
+  }, [dataLoaded])
+
   // Предметы переключателя — производные от данных, а не фиксированная пара
   // «Химия | Биология». Показываем только те, по которым в банке реально есть
   // задания: ученику с одной химией второй переключатель не нужен, а ученику с
@@ -1815,6 +1831,26 @@ export default function TaskBankPage() {
     WebkitBackdropFilter: 'blur(14px) saturate(180%)',
     boxShadow: 'var(--shadow-lg)',
   } as const
+
+  // ── Скелетон ────────────────────────────────────────────────────────────────
+  // Строго ПЕРЕД развилкой и после всех хуков. Общая геометрия обоих тренажёров,
+  // так что содержимое проявляется на месте плашек, а не сменяет чужой экран.
+  if (!dataLoaded && !waitedTooLong) {
+    return (
+      <>
+        {/* На телефоне страница монтируется без обёртки MobileScreen — верхний
+            отступ под чёлку и нижний под навигацию скелетон несёт сам. */}
+        <div style={isDesktop ? undefined : {
+          minHeight: '100dvh', background: 'var(--color-bg)',
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 66px)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 110px)',
+        }}>
+          <TrainerSkeleton />
+        </div>
+        {!isDesktop && <MobileBottomNav />}
+      </>
+    )
+  }
 
   // ── Языковой тренажёр ───────────────────────────────────────────────────────
   // Ставится ПОСЛЕ всех хуков (иначе нарушится порядок вызова) и ДО обеих вёрсток:

@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect, useCallback, type CSSProperties } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Users, User, Plus } from 'lucide-react'
 import type { Group } from '../../data/teacherMockData'
@@ -325,10 +325,54 @@ function IndividualCard({
 }
 
 // ─── Merged person card (several 1:1 subject-groups → one card with chips) ─────
+const CHIP_GAP = 6
+// The card is a fixed CARD_H tall, so the chip area is finite: two rows fit under
+// the badge + avatar block. Anything past that collapses into a «+N» chip instead
+// of being sliced in half by the card's bottom edge.
+const CHIP_ROWS = 2
+const CHIP_AREA_W = CARD_W - 32 // card width minus horizontal padding
+const chipBase: CSSProperties = {
+  display: 'inline-flex', alignItems: 'center', gap: 4, boxSizing: 'border-box',
+  fontSize: 11, fontWeight: 600, lineHeight: '13px',
+  borderRadius: 8, padding: '3px 9px', maxWidth: '100%', flexShrink: 0,
+}
+
+/** Estimated rendered width of a chip (11px semibold + icon + padding + border).
+ *  Deliberately rounds up: over-estimating wraps a chip early, under-estimating
+ *  would push it onto an invisible third row. */
+function chipWidth(label: string, hasIcon: boolean): number {
+  return Math.min(CHIP_AREA_W, 22 + (hasIcon ? 16 : 0) + label.length * 7)
+}
+
+/** Greedy row-packing: how many chips survive within CHIP_ROWS rows. */
+function packSubjects(subjects: PersonGroup['subjects']) {
+  const rows = [0]
+  const place = (w: number) => {
+    const i = rows.length - 1
+    if (rows[i] === 0) { rows[i] = w; return true }
+    if (rows[i] + CHIP_GAP + w <= CHIP_AREA_W) { rows[i] += CHIP_GAP + w; return true }
+    if (rows.length >= CHIP_ROWS) return false
+    rows.push(w)
+    return true
+  }
+  let fit = 0
+  while (fit < subjects.length && place(chipWidth(subjects[fit].subject, true))) fit++
+  if (fit === subjects.length) return { visible: subjects, hiddenCount: 0 }
+  // Room for the «+N» chip — drop trailing chips until it fits.
+  while (fit > 0 && !place(chipWidth(`+${subjects.length - fit}`, false))) {
+    fit--
+    rows.length = 0
+    rows.push(0)
+    for (let i = 0; i < fit; i++) place(chipWidth(subjects[i].subject, true))
+  }
+  return { visible: subjects.slice(0, fit), hiddenCount: subjects.length - fit }
+}
+
 function PersonCard({
   person, isActive, onClick,
 }: { person: PersonGroup; isActive: boolean; onClick: () => void }) {
   const initials = person.name.split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase()
+  const { visible: visibleSubjects, hiddenCount } = packSubjects(person.subjects)
   return (
     <motion.div
       whileHover={{ y: -2, boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }}
@@ -350,7 +394,7 @@ function PersonCard({
       }}
     >
       {/* 1:1 badge + count */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 11 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
         <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: person.color, background: person.color + '22', padding: '2px 8px', borderRadius: 7, border: `1px solid ${person.color}33` }}>
           1:1
         </span>
@@ -358,7 +402,7 @@ function PersonCard({
       </div>
 
       {/* Avatar + name + subject count */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
         <div style={{
           width: 42, height: 42, borderRadius: 13, flexShrink: 0,
           background: `linear-gradient(135deg, ${person.color}, ${person.color}cc)`,
@@ -378,19 +422,28 @@ function PersonCard({
         </div>
       </div>
 
-      {/* Subject chips (labels only) */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignContent: 'flex-start', flex: 1, minHeight: 0, overflow: 'hidden' }}>
-        {person.subjects.map(s => (
+      {/* Subject chips (labels only). Fixed-height rows so the last chip never
+          gets sliced by the card's bottom edge; the tail collapses into «+N». */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: CHIP_GAP, alignContent: 'flex-start', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+        {visibleSubjects.map(s => (
           <span key={s.groupId} style={{
-            display: 'inline-flex', alignItems: 'center', gap: 4,
-            fontSize: 11, fontWeight: 600, color: s.color,
+            ...chipBase,
+            color: s.color,
             background: s.color + '1E', border: `1px solid ${s.color}3A`,
-            borderRadius: 8, padding: '3px 9px', maxWidth: '100%',
           }}>
-            <span>{s.icon}</span>
+            <span style={{ fontSize: 10, lineHeight: 1 }}>{s.icon}</span>
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.subject}</span>
           </span>
         ))}
+        {hiddenCount > 0 && (
+          <span style={{
+            ...chipBase,
+            color: 'var(--color-muted)',
+            background: 'var(--color-surface-2)', border: '1px solid var(--color-border-soft)',
+          }}>
+            +{hiddenCount}
+          </span>
+        )}
       </div>
     </motion.div>
   )

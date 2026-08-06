@@ -3,250 +3,126 @@
 //
 // ЗАЧЕМ. Колода повторений набирается сама: слова уроков, ошибки домашки. Это
 // правильно и это работает — но только для того, кто уже учится. Человек,
-// который открыл тренажёр в первый день, видел пустую стопку и надпись
-// «карточки появятся сами». Тысяча готовых фраз при этом лежала в
-// data/survivalKo.ts и не была видна ниоткуда.
+// открывший тренажёр в первый день, видел пустую стопку и надпись «карточки
+// появятся сами», а тысяча готовых фраз лежала в data/survivalKo.ts и не была
+// видна ниоткуда.
 //
-// Поэтому здесь витрина: полки слева, стопки справа. Стопка — это тема
-// разговорника целиком (кофейня, метро, аптека), и её можно прогнать прямо
-// сейчас, ничего не сдав и ничего не открыв.
+// ЧТО ЗДЕСЬ, А ЧТО В РЕЙЛЕ. Этот файл — только сетка стопок и прогон одной
+// стопки. Полки, источник и настройки показа живут в рейле, который собирает
+// LanguageTrainer: рейл общий на все режимы тренажёра, и класть половину его
+// содержимого сюда значило бы, что при переключении режима часть рейла
+// перерисовывается из другого места. Поэтому сюда приходят уже отфильтрованные
+// темы, а фильтрация остаётся снаружи.
 //
-// ДВА РЕЖИМА ОДНОЙ ВКЛАДКИ. «Повторение» — старая колода по расписанию, она
-// осталась главной и стоит первой. Стопки — это материал, а не расписание:
-// прогон стопки НЕ двигает интервалы, потому что интервал имеет смысл только
-// для того, что ученик уже видел. Незнакомое из стопки уходит в колоду
-// повторений (см. onVerdict) — и дальше живёт по расписанию, как всё остальное.
+// ПРОГРЕСС ТЕМЫ — доля фраз, уже попавших в колоду повторений. Считается по
+// одному запросу на весь экран (knownPrompts), а не по запросу на тему: тем 38.
 //
-// ПОЧЕМУ ПОЛКИ СЛЕВА, А НЕ ЧИПСАМИ СВЕРХУ. Тем тридцать восемь. Ряд чипсов на
-// такое количество переносится в четыре строки и съедает экран до того, как
-// покажется первая карточка; вертикальный список читается одним движением
-// глаз и не двигает сетку при выборе.
+// ПРОГОН СТОПКИ НЕ ДВИГАЕТ ИНТЕРВАЛЫ. Интервал имеет смысл для того, что ученик
+// уже видел; фраза из разговорника попадает в расписание в момент, когда он
+// честно нажал «не знаю» (см. onVerdict), и дальше живёт как всё остальное.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useState } from 'react'
-import { ChevronLeft, Layers, Search, Sparkles, Check } from 'lucide-react'
-import {
-  survivalShelves, type SurvivalShelf, type SurvivalThemeCards, type SurvivalBook,
-} from '../data/survivalPhrases'
-import { loadSurvivalBook } from '../data/survivalBooks'
+import { useMemo, useState } from 'react'
+import { ChevronLeft, Layers, Sparkles, Check, Volume2 } from 'lucide-react'
+import type { SurvivalThemeCards, SurvivalBook, Phrase } from '../data/survivalPhrases'
 import { addCards, captureMistake, type ReviewCard } from '../data/reviewDeck'
 import { vocabImage } from '../data/vocabImages'
 import { INITIAL_SRS } from '../lib/srs'
+import { speechLocale, speechText } from '../lib/speech'
 import { useT } from '../lib/i18n'
 import CardDeck, { type DeckSource } from './CardDeck'
-import { Chips } from './LanguageTrainer'
-import Skeleton from './Skeleton'
+import { Tile, TileGrid, TileMeter, TileChip, Empty } from './trainer/TrainerShell'
 
 type Owner = { studentId?: string; anonName?: string }
 
-export default function PhraseDecks({ lang, subjectId, accent, owner }: {
-  lang: string
-  subjectId: string
-  accent: string
-  owner: Owner
-}) {
-  const t = useT()
-  const [book, setBook] = useState<SurvivalBook | null | undefined>(undefined)
-  const [openId, setOpenId] = useState<string | null>(null)
+/** Настройки показа из рейла — общие для витрины и прогона. */
+export interface PhraseView {
+  /** Показывать романизацию вместе с ответом. */
+  reading: boolean
+  /** Лицевая сторона — перевод, а не оригинал. */
+  reverse: boolean
+}
 
-  useEffect(() => {
-    let alive = true
-    setBook(undefined)
-    loadSurvivalBook(lang).then(b => { if (alive) setBook(b ?? null) })
-    return () => { alive = false }
-  }, [lang])
+/** Как проходят стопку: свайп-колодой или чтением списком. */
+export type RunMode = 'swipe' | 'list'
 
-  const shelves = useMemo(() => survivalShelves(book ?? undefined), [book])
-  const open = useMemo(
-    () => shelves.flatMap(s => s.themes).find(x => x.theme.id === openId) ?? null,
-    [shelves, openId],
-  )
+/** Сколько фраз темы уже лежит в колоде повторений. */
+export function inDeckCount(item: SurvivalThemeCards, known: Set<string>): number {
+  return item.phrases.reduce((n, p) => n + (known.has(p.term) ? 1 : 0), 0)
+}
 
-  if (book === undefined) return <Skeleton.Text lines={4} style={{ maxWidth: 420 }} />
-  if (!book || shelves.length === 0) return null
-
-  if (open) {
-    return (
-      <ThemeSession
-        book={book}
-        item={open}
-        lang={lang}
-        subjectId={subjectId}
-        accent={accent}
-        owner={owner}
-        onBack={() => setOpenId(null)}
-      />
-    )
-  }
-
-  return <Hub shelves={shelves} accent={accent} onOpen={setOpenId} t={t} />
+/** Доля фраз темы, уже лежащих в колоде, 0…100. */
+export function themeProgress(item: SurvivalThemeCards, known: Set<string>): number {
+  if (item.phrases.length === 0) return 0
+  return Math.round((inDeckCount(item, known) / item.phrases.length) * 100)
 }
 
 // ─── Витрина ─────────────────────────────────────────────────────────────────
 
-function Hub({ shelves, accent, onOpen, t }: {
-  shelves: SurvivalShelf[]
+export default function PhraseDecks({ themes, known, accent, onOpen }: {
+  /** Уже отфильтрованные темы — фильтрация живёт в рейле. */
+  themes: SurvivalThemeCards[]
+  known: Set<string>
   accent: string
   onOpen: (themeId: string) => void
-  t: (s: string) => string
 }) {
-  // Полка по умолчанию — первая, а не «все»: тридцать восемь наборов сразу это
-  // стена, из которой ученик не выбирает, а закрывает вкладку.
-  const [shelf, setShelf] = useState(0)
-  const [query, setQuery] = useState('')
-
-  const q = query.trim().toLowerCase()
-  // Поиск идёт по ВСЕМ полкам и молча отменяет выбор раздела: человек, который
-  // ищет «аптеку», не должен ещё и угадывать, в каком она разделе.
-  const visible = useMemo(() => {
-    const pool = q ? shelves.flatMap(s => s.themes) : (shelves[shelf]?.themes ?? [])
-    if (!q) return pool
-    return pool.filter(x =>
-      x.theme.title.toLowerCase().includes(q) ||
-      x.theme.vocabTheme.toLowerCase().includes(q) ||
-      x.theme.goal.toLowerCase().includes(q))
-  }, [shelves, shelf, q])
-
-  const total = shelves.reduce((s, x) => s + x.count, 0)
-  const shelfTitles = shelves.map(s => t(s.title))
-
+  const t = useT()
+  if (themes.length === 0) {
+    return <Empty text="Ничего не нашлось. Сбрось фильтр слева или поищи другое слово." />
+  }
   return (
-    <div>
-      {/* Разделы — тем же фильтром-чипсами, что «Уровень» и «Тема» в чтении.
-          Раньше здесь была своя боковая колонка, и наборы фраз выглядели чужим
-          экраном внутри тренажёра, хотя это такой же список материала. */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-        <Chips
-          label={t('Раздел')}
-          value={q ? '' : shelfTitles[shelf] ?? ''}
-          options={shelfTitles}
-          onChange={v => {
-            setQuery('')
-            const i = shelfTitles.indexOf(v)
-            // Повторный клик по выбранному разделу гасит его (Chips отдаёт ''),
-            // но состояния «ничего не выбрано» здесь нет — возвращаем первый.
-            setShelf(i >= 0 ? i : 0)
-          }}
-          accent={accent}
-        />
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-        <div style={{ position: 'relative', width: '100%', maxWidth: 340 }}>
-          <Search
-            size={14}
-            style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)' }}
-          />
-          <input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder={t('Найти тему')}
-            style={{
-              width: '100%', padding: '9px 12px 9px 32px', borderRadius: 12,
-              border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-input)',
-              color: 'var(--color-text)', fontFamily: 'inherit', fontSize: 13, outline: 'none',
-            }}
-          />
-        </div>
-      </div>
-
-      {!q && shelves[shelf] && (
-        <p style={{ fontSize: 12.5, color: 'var(--color-muted)', textAlign: 'center', marginBottom: 12 }}>
-          {t(shelves[shelf].subtitle)}
-        </p>
-      )}
-
-      {visible.length === 0 ? (
-        <div style={{
-          padding: '30px 20px', borderRadius: 16, textAlign: 'center',
-          border: '1px dashed var(--color-border-medium)', background: 'var(--color-bg-2)',
-          fontSize: 13, color: 'var(--color-muted)',
-        }}>
-          {t('Ничего не нашлось. Попробуй другое слово или выбери другой раздел.')}
-        </div>
-      ) : (
-        // Один столбец — как тексты в чтении и записи в аудировании. Плитками
-        // наборы читались как отдельный раздел приложения, хотя это ровно
-        // такой же список материала.
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {visible.map(x => <Stack key={x.theme.id} item={x} accent={accent} onOpen={onOpen} t={t} />)}
-        </div>
-      )}
-
-      <div style={{ marginTop: 16, textAlign: 'center', fontSize: 11.5, color: 'var(--color-text-3)' }}>
-        {t('Всего в разговорнике')}: {total} {t('фраз')}
-      </div>
-    </div>
-  )
-}
-
-/**
- * Один набор — строка списка: чипс с числом фраз, цель, название и примеры.
- *
- * Раньше набор рисовался «стопкой» с двумя подложками сзади. Идея была
- * показать, что за плашкой пачка карточек, но рядом с плоскими списками
- * чтения и аудирования это выглядело другим приложением. Число фраз в чипсе
- * говорит то же самое и не ломает строй.
- */
-function Stack({ item, accent, onOpen, t }: {
-  item: SurvivalThemeCards
-  accent: string
-  onOpen: (id: string) => void
-  t: (s: string) => string
-}) {
-  const { theme, phrases } = item
-  const preview = phrases.slice(0, 3).map(p => p.term).join(' · ')
-
-  return (
-    <button
-      onClick={() => onOpen(theme.id)}
-      style={{
-        textAlign: 'left', padding: '16px 18px', borderRadius: 18, cursor: 'pointer',
-        border: '1px solid var(--color-border)', background: 'var(--color-bg-2)',
-        fontFamily: 'inherit', width: '100%',
-      }}
-    >
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' }}>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', gap: 5,
-          fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999,
-          background: `${accent}22`, color: accent,
-        }}>
-          <Layers size={11} /> {phrases.length} {t('фраз')}
-        </span>
-        <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t(theme.goal)}</span>
-      </div>
-      <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>
-        {t(theme.title)}
-      </div>
-      {/* Примеры на изучаемом языке: по ним набор узнаётся быстрее, чем по
-          названию — сразу видно, что именно придётся говорить. */}
-      <div style={{
-        fontSize: 12.5, color: 'var(--color-text-3)', lineHeight: 1.5,
-        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-      }}>
-        {preview}
-      </div>
-    </button>
+    <TileGrid min={218}>
+      {themes.map(x => {
+        const pct = themeProgress(x, known)
+        const inDeck = inDeckCount(x, known)
+        return (
+          <Tile key={x.theme.id} accent={accent} stack onClick={() => onOpen(x.theme.id)}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <TileChip>{x.phrases.length} {t('фраз')}</TileChip>
+              {pct >= 100 && (
+                <TileChip tone="accent" accent="var(--color-green-text)" soft="var(--color-green-soft)">
+                  {t('выучено')}
+                </TileChip>
+              )}
+            </span>
+            <span style={{ fontSize: 14.5, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.3 }}>
+              {t(x.theme.title)}
+            </span>
+            {/* Превью — настоящие фразы на изучаемом языке, а не пересказ темы:
+                по трём строкам сразу видно и уровень, и содержимое. */}
+            <span style={{
+              flex: 1, fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45,
+              overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2,
+            }}>
+              {x.phrases.slice(0, 3).map(p => p.term).join(' · ')}
+            </span>
+            <TileMeter value={pct} />
+            <span style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--color-text-3)' }}>
+              <span>{inDeck > 0 ? `${inDeck} ${t('в колоде')}` : t('не начата')}</span>
+              <span style={{ color: pct > 0 ? 'var(--color-green-text)' : undefined, fontWeight: pct > 0 ? 700 : 400 }}>
+                {pct > 0 ? `${pct}%` : '—'}
+              </span>
+            </span>
+          </Tile>
+        )
+      })}
+    </TileGrid>
   )
 }
 
 // ─── Прогон одной стопки ─────────────────────────────────────────────────────
 
-function ThemeSession({ book, item, lang, subjectId, accent, owner, onBack }: {
+export function ThemeSession({ book, item, lang, subjectId, accent, owner, view, run }: {
   book: SurvivalBook
   item: SurvivalThemeCards
   lang: string
   subjectId: string
   accent: string
   owner: Owner
-  onBack: () => void
+  view: PhraseView
+  run: RunMode
 }) {
-  const t = useT()
   const { theme, phrases } = item
-  const note = book.notes[theme.id]
-  const [added, setAdded] = useState<number | null>(null)
-  const [adding, setAdding] = useState(false)
 
   // Стабильный объект: он лежит в зависимостях загрузки стопки, и новый объект
   // на каждый рендер перезапускал бы сессию (см. DeckSource).
@@ -255,12 +131,13 @@ function ThemeSession({ book, item, lang, subjectId, accent, owner, onBack }: {
       id: `sv-${book.key}-${theme.id}-${i}`,
       subject: subjectId,
       source: 'manual',
-      prompt: ph.term,
-      answer: ph.ru,
-      reading: ph.reading,
+      // Обратное направление — это другой навык: вспомнить фразу по смыслу
+      // труднее, чем узнать её глазами. Меняем местами обе стороны целиком, а
+      // не только показ, иначе озвучка читала бы русский текст чужим голосом.
+      prompt: view.reverse ? ph.ru : ph.term,
+      answer: view.reverse ? ph.term : ph.ru,
+      reading: view.reading ? ph.reading : undefined,
       note: ph.note,
-      // У фразы картинки обычно нет — рисуются предметы, а не «разогрейте,
-      // пожалуйста». Но однословные карточки разговорника её получают.
       image: vocabImage(ph.ru),
       ease: INITIAL_SRS.ease,
       intervalDays: INITIAL_SRS.intervalDays,
@@ -269,108 +146,186 @@ function ThemeSession({ book, item, lang, subjectId, accent, owner, onBack }: {
       dueAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
     })),
-    // Прогон материала, а не повторение по расписанию: интервалов у фразы из
-    // разговорника ещё нет — они появятся, когда она попадёт в колоду.
     grading: 'binary',
     onVerdict: (card, known) => {
       if (known) return
-      // Незнакомое уходит в колоду повторений само. Это главный смысл прогона:
-      // ученик не выписывает слова руками, а просто честно жмёт «не знаю».
+      // Незнакомое уходит в колоду само — в этом весь смысл прогона: ученик не
+      // выписывает слова руками, а честно жмёт «не знаю».
       captureMistake({
         ...owner, subject: subjectId, source: 'manual',
-        prompt: card.prompt, answer: card.answer,
+        // В колоду фраза всегда ложится оригиналом вперёд, как её положила бы
+        // домашка: направление показа — настройка сессии, а не свойство слова.
+        prompt: view.reverse ? card.answer : card.prompt,
+        answer: view.reverse ? card.prompt : card.answer,
       }).catch(e => console.error('PhraseDecks capture:', e))
     },
     judge: true,
     label: theme.title,
     doneTitle: 'Стопка пройдена',
-  }), [phrases, book.key, theme.id, theme.title, subjectId, owner])
+  }), [phrases, book.key, theme.id, theme.title, subjectId, owner, view.reverse, view.reading])
 
-  async function takeAll() {
-    setAdding(true)
+  if (run === 'list') return <PhraseList phrases={phrases} accent={accent} view={view} lang={lang} />
+
+  return (
+    <CardDeck
+      key={`${theme.id}-${view.reverse ? 'r' : 'f'}`}
+      owner={owner}
+      accent={accent}
+      lang={view.reverse ? undefined : lang}
+      subject={subjectId}
+      source={source}
+    />
+  )
+}
+
+/**
+ * Стопка списком — чтение глазами перед прогоном.
+ *
+ * Нужен потому, что свайп проверяет память, а первый заход по новой теме
+ * памяти ещё не имеет: карточка «봉투 필요하세요?» человеку, который видит фразу
+ * впервые, — это сорок нажатий «не знаю» подряд. Список даёт прочитать тему
+ * целиком за минуту и только потом идти в колоду.
+ */
+function PhraseList({ phrases, accent, view, lang }: {
+  phrases: Phrase[]; accent: string; view: PhraseView; lang: string
+}) {
+  const t = useT()
+  const [open, setOpen] = useState<number | null>(null)
+
+  function say(text: string) {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return
+    const u = new SpeechSynthesisUtterance(speechText(text))
+    u.lang = speechLocale(lang) ?? lang
+    window.speechSynthesis.cancel()
+    window.speechSynthesis.speak(u)
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {phrases.map((p, i) => {
+        const on = open === i
+        return (
+          <div
+            key={`${p.term}-${i}`}
+            onClick={() => setOpen(on ? null : i)}
+            style={{
+              display: 'flex', alignItems: 'flex-start', gap: 12, padding: '11px 14px', borderRadius: 14,
+              background: 'var(--color-bg-2)',
+              border: `1px solid ${on ? `${accent}55` : 'var(--color-border-soft)'}`,
+              cursor: p.note ? 'pointer' : 'default',
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)' }}>{p.term}</div>
+              {view.reading && p.reading && (
+                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 2 }}>{p.reading}</div>
+              )}
+              {/* Заметка раскрывается по клику, а не висит всегда: у половины
+                  фраз она в три строки, и лист темы стал бы простынёй. */}
+              {on && p.note && (
+                <div style={{ fontSize: 12.5, color: 'var(--color-muted)', marginTop: 6, lineHeight: 1.5 }}>
+                  {p.note}
+                </div>
+              )}
+            </div>
+            <div style={{ fontSize: 13.5, color: 'var(--color-text-2)', flexShrink: 0, maxWidth: '42%', textAlign: 'right', lineHeight: 1.4 }}>
+              {p.ru}
+              {p.note && !on && <span style={{ color: 'var(--color-text-3)' }}> ·</span>}
+            </div>
+            <button
+              onClick={e => { e.stopPropagation(); say(p.term) }}
+              aria-label={t('Послушать')}
+              style={{
+                flexShrink: 0, display: 'flex', border: 'none', background: 'none',
+                cursor: 'pointer', color: accent, padding: 0,
+              }}
+            >
+              <Volume2 size={15} />
+            </button>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ─── Части, которые собирает рейл и строка ───────────────────────────────────
+
+/** Возврат к витрине — живёт в строке управления. */
+export function BackToSets({ onBack }: { onBack: () => void }) {
+  const t = useT()
+  return (
+    <button
+      onClick={onBack}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 5, padding: '9px 14px', borderRadius: 999,
+        border: '1px solid var(--color-border-medium)', background: 'rgba(var(--glass-rgb), 0.88)',
+        cursor: 'pointer', fontSize: 12.5, fontWeight: 550, color: 'var(--color-text-2)', fontFamily: 'inherit',
+      }}
+    >
+      <ChevronLeft size={14} /> {t('К наборам')}
+    </button>
+  )
+}
+
+/** «Всю тему в повторение» — в рейле сессии. */
+export function TakeWholeTheme({ phrases, owner, subjectId, accent, onAdded }: {
+  phrases: Phrase[]
+  owner: Owner
+  subjectId: string
+  accent: string
+  onAdded?: () => void
+}) {
+  const t = useT()
+  const [added, setAdded] = useState<number | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  async function take() {
+    setBusy(true)
     try {
       const n = await addCards(owner, phrases.map(ph => ({
         subject: subjectId, source: 'manual' as const, prompt: ph.term, answer: ph.ru,
       })))
       setAdded(n)
+      if (n > 0) onAdded?.()
     } catch (e) {
-      console.error('PhraseDecks takeAll:', e)
+      console.error('TakeWholeTheme:', e)
       setAdded(0)
     } finally {
-      setAdding(false)
+      setBusy(false)
     }
   }
 
+  const done = added !== null
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
-        <button
-          onClick={onBack}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 5, padding: '7px 13px', borderRadius: 999,
-            border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer',
-            fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit',
-          }}
-        >
-          <ChevronLeft size={15} /> {t('К наборам')}
-        </button>
-        <button
-          onClick={takeAll}
-          disabled={adding || added !== null}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6, padding: '7px 13px', borderRadius: 999,
-            border: `1px solid ${added !== null ? 'var(--color-border-soft)' : `${accent}66`}`,
-            background: 'transparent', cursor: adding || added !== null ? 'default' : 'pointer',
-            fontSize: 13, fontWeight: 650, fontFamily: 'inherit',
-            color: added !== null ? 'var(--color-muted)' : accent,
-          }}
-        >
-          {added !== null
-            ? <><Check size={14} /> {added > 0 ? `${t('в колоде')} +${added}` : t('уже в колоде')}</>
-            : <><Sparkles size={14} /> {adding ? t('Добавляю…') : t('Всю тему в повторение')}</>}
-        </button>
-      </div>
+    <button
+      onClick={take}
+      disabled={busy || done}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%',
+        padding: '9px 12px', borderRadius: 12, cursor: busy || done ? 'default' : 'pointer',
+        fontFamily: 'inherit', fontSize: 12.5, fontWeight: 650,
+        border: `1px solid ${done ? 'var(--color-border-soft)' : `${accent}66`}`,
+        background: 'transparent', color: done ? 'var(--color-muted)' : accent,
+      }}
+    >
+      {done
+        ? <><Check size={14} /> {added > 0 ? `${t('в колоде')} +${added}` : t('уже в колоде')}</>
+        : <><Sparkles size={14} /> {busy ? t('Добавляю…') : t('Всю тему в повторение')}</>}
+    </button>
+  )
+}
 
-      <h3 style={{ fontSize: 19, fontWeight: 800, color: 'var(--color-text)', marginBottom: 4 }}>
-        {t(theme.title)}
-      </h3>
-      <p style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.6, marginBottom: 12 }}>
-        {t(theme.goal)}
-      </p>
-
-      {/* Формула темы над стопкой, а не внутри карточек: это то, что
-          переставляется под себя, и его нужно держать перед глазами всю
-          сессию, а не вспоминать по одной карточке. */}
-      {note && (
-        <div style={{
-          padding: '11px 14px', borderRadius: 14, marginBottom: 18,
-          background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
-        }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: accent, marginBottom: 4, lineHeight: 1.45 }}>
-            {note.formula}
-          </div>
-          <div style={{ fontSize: 12.5, lineHeight: 1.6, color: 'var(--color-text-2)' }}>
-            {note.note}
-          </div>
-        </div>
-      )}
-
-      <CardDeck
-        key={theme.id}
-        owner={owner}
-        accent={accent}
-        lang={lang}
-        subject={subjectId}
-        source={source}
-      />
-
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-        marginTop: 14, fontSize: 11.5, color: 'var(--color-text-3)',
-      }}>
-        <Layers size={12} />
-        {t('«Не знаю» кладёт фразу в колоду повторений — вернётся по расписанию.')}
-      </div>
+/** Подпись под колодой — что делает «не знаю». */
+export function DeckHint() {
+  const t = useT()
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+      fontSize: 11.5, color: 'var(--color-text-3)',
+    }}>
+      <Layers size={12} />
+      {t('«Не знаю» кладёт фразу в колоду повторений — вернётся по расписанию.')}
     </div>
   )
 }

@@ -35,7 +35,7 @@ import {
 // ─── Цвета для выбора группы ─────────────────────────────────────────────────
 const GROUP_COLORS = [
   { color: 'var(--color-purple)', soft: '#EFE0FF' },
-  { color: '#6DBB9A', soft: '#DAF2E8' },
+  { color: '#3F8F6B', soft: '#D6EDE2' },
   { color: '#FF8F6D', soft: '#FFE8DF' },
   { color: '#6D9BFF', soft: '#DCE8FF' },
   { color: '#FFB96D', soft: '#FFF1DC' },
@@ -497,7 +497,7 @@ const SUBJECT_ICONS = SUBJECT_ICON_MAP
 
 const INDIV_COLORS = [
   { color: 'var(--color-purple)', soft: '#EFE0FF' },
-  { color: '#6DBB9A', soft: '#DAF2E8' },
+  { color: '#3F8F6B', soft: '#D6EDE2' },
   { color: '#FF8F6D', soft: '#FFE8DF' },
   { color: '#6D9BFF', soft: '#DCE8FF' },
   { color: '#FFB96D', soft: '#FFF1DC' },

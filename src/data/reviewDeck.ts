@@ -240,6 +240,33 @@ export async function dueCount(
   return count ?? 0
 }
 
+/**
+ * Все prompt'ы, которые уже лежат в колоде владельца.
+ *
+ * ЗАЧЕМ ЦЕЛИКОМ, А НЕ ПРОВЕРКОЙ СПИСКА. Витрине наборов нужен прогресс сразу по
+ * всем темам: «сколько из сорока фраз кофейни уже в колоде». Проверять
+ * вхождение списком (.in('prompt', …)) значит слать полторы тысячи значений в
+ * URL — это и не пройдёт по длине, и превратится в запрос на каждую тему.
+ * Колода одного ученика — это сотни строк, поэтому дешевле забрать её ключи
+ * один раз и считать пересечения в памяти.
+ *
+ * Возвращается Set: витрина обходит 38 тем по 40 фраз, и линейный поиск по
+ * массиву превратил бы это в 60 тысяч сравнений на каждый рендер.
+ */
+export async function knownPrompts(
+  owner: { studentId?: string; anonName?: string },
+  subjects?: string[],
+): Promise<Set<string>> {
+  const col = owner.studentId ? 'student_id' : 'anon_name'
+  const val = owner.studentId ?? owner.anonName ?? ''
+  if (!val) return new Set()
+  let q = supabase.from('review_cards').select('prompt').eq(col, val)
+  if (subjects?.length) q = q.in('subject', subjects)
+  const { data, error } = await q
+  if (error) { console.error('knownPrompts:', error); return new Set() }
+  return new Set((data ?? []).map(r => r.prompt as string))
+}
+
 /** Grade a card and persist the new SM-2 schedule. */
 export async function gradeCard(card: ReviewCard, grade: ReviewGrade): Promise<ReviewCard> {
   const next = review(card, grade, Date.now())

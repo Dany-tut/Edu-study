@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, HelpCircle } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
@@ -8,12 +8,24 @@ import { subjectTheme } from '../lib/theme'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
 import CardDeck from './CardDeck'
-import PhraseDecks from './PhraseDecks'
-import { addCards, deckOwner, dueCount } from '../data/reviewDeck'
-import { hasSurvivalBook } from '../data/survivalBooks'
+import PhraseDecks, {
+  ThemeSession, BackToSets, TakeWholeTheme, DeckHint, themeProgress, inDeckCount,
+  type PhraseView, type RunMode,
+} from './PhraseDecks'
+import TrainerShell, {
+  RailHero, RailCard, RailModes, RailSegment, RailList, RailToggle, RailStat,
+  Toolbar, SearchPill, StatusTabs, ToolButton, SortMenu, ToolCount,
+  Tile, TileGrid, TileMeter, TileChip, Empty as ShellEmpty,
+} from './trainer/TrainerShell'
+import MultiSelectField from './MultiSelectField'
+import { addCards, deckOwner, dueCount, knownPrompts } from '../data/reviewDeck'
+import { hasSurvivalBook, loadSurvivalBook } from '../data/survivalBooks'
+import { survivalShelves, type SurvivalBook, type SurvivalThemeCards } from '../data/survivalPhrases'
+import { allResults, resultFrom, saveResult, type MaterialKind } from '../lib/trainerProgress'
 import VoiceRecorder from './VoiceRecorder'
 import GlossedText from './GlossedText'
 import Coachmarks, { type CoachStep } from './Coachmarks'
+import Skeleton from './Skeleton'
 import { hasLexicon } from '../lib/lexicon'
 import { submitTrainerVoice, countTrainerVoice } from '../lib/trainerSpeaking'
 import { ownerStudentIdFor, subjectAliases, useStudentData } from '../store/studentDataStore'
@@ -39,16 +51,21 @@ const MODES: { id: Mode; label: string; hint: string; Icon: typeof BookOpen }[] 
   { id: 'speaking',  label: 'Говорение',  hint: 'Записать и отправить',     Icon: Mic },
 ]
 
-// Общая колонка для всех экранов тренажёра — список режимов, читалка,
-// аудирование. Ширина одна на всех намеренно: экраны переключаются на месте, и
-// разная колонка сдвигала бы содержимое вбок на каждом переходе.
-//
-// width: '100%' здесь обязателен. Родитель (.dashboard-main) — flex-колонка, а у
-// флекс-элемента с auto-полем по поперечной оси растяжение отключается: без явной
-// ширины блок ужимается до max-content своего содержимого. Ширина тогда разная у
-// каждой вкладки, а из-за центрирования вся вёрстка — включая ряд вкладок —
-// прыгает вбок при переключении.
-const column = { width: '100%', maxWidth: 860, margin: '0 auto', padding: '8px 20px 80px' } as const
+/**
+ * Корзины длительности — общий фильтр чтения и аудирования.
+ *
+ * Выбирают материал именно так: «есть десять минут» или «есть три». Уровень и
+ * тема отвечают на вопрос «потяну ли», длительность — на «влезет ли сейчас», и
+ * без неё библиотека фильтруется только по первому.
+ */
+const LENGTHS: { value: string; label: string; fit: (m: number) => boolean }[] = [
+  { value: 's', label: 'до 3 мин', fit: m => m <= 3 },
+  { value: 'm', label: '3–5', fit: m => m > 3 && m <= 5 },
+  { value: 'l', label: '5+', fit: m => m > 5 },
+]
+
+/** Пересечение выбранного списка со значением. Пустой список = «все». */
+const anyOf = (picked: string[], value: string) => picked.length === 0 || picked.includes(value)
 
 export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
   /** Код изучаемого языка: en, ko, ja, pt-BR. */
@@ -67,30 +84,74 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
 
   const allTexts = useMemo(() => textsForLang(lang), [lang])
 
-  // Фильтры по той же разметке, что у заданий: уровень / навык / тема.
-  // Показываем только те значения, которые реально встречаются в текстах —
-  // иначе ученик выбирает «B2» и получает пустой экран.
-  const [fLevel, setFLevel] = useState('')
-  const [fSkill, setFSkill] = useState('')
-  const [fTopic, setFTopic] = useState('')
+  const audio = useMemo(() => listeningForLang(lang), [lang])
+
+  // ── Фильтры библиотек ──────────────────────────────────────────────────────
+  //
+  // Та же разметка, что у заданий: уровень / навык / тема плюс длительность.
+  // Множественный выбор, а не одиночный: «покажи A1 и A2» — нормальный запрос,
+  // а старые чипсы позволяли только одно значение на ось.
+  //
+  // В списки попадают только те значения, которые реально встречаются в
+  // материалах: иначе ученик выбирает «B2» и получает пустой экран.
   const tax = useMemo(() => languageTaxonomy(subject), [subject])
-  const present = <K extends keyof ReadingText>(key: K, order: string[]) => {
-    const found = new Set(allTexts.map(x => String(x[key])))
+  const present = (values: string[], order: string[]) => {
+    const found = new Set(values)
     const ordered = order.filter(v => found.has(v))
-    // Значения, которых нет в таксономии, всё равно показываем — иначе текст
-    // с нестандартной пометкой стал бы недоступен через фильтр.
+    // Значения вне таксономии всё равно показываем — иначе материал с
+    // нестандартной пометкой станет недоступен через фильтр.
     const rest = [...found].filter(v => !order.includes(v))
     return [...ordered, ...rest]
   }
-  const audio = useMemo(() => listeningForLang(lang), [lang])
-  const levelOpts = present('level', tax?.levels ?? [])
-  const skillOpts = present('skill', tax?.skills ?? [])
-  const topicOpts = present('topic', tax?.topics ?? [])
 
-  const texts = useMemo(() => allTexts.filter(x =>
-    (!fLevel || x.level === fLevel) &&
-    (!fSkill || x.skill === fSkill) &&
-    (!fTopic || x.topic === fTopic)), [allTexts, fLevel, fSkill, fTopic])
+  const [fLevel, setFLevel] = useState<string[]>([])
+  const [fSkill, setFSkill] = useState<string[]>([])
+  const [fTopic, setFTopic] = useState<string[]>([])
+  const [fLen, setFLen] = useState('')
+
+  // Общая строка управления — одна на все режимы, поэтому и состояние общее.
+  const [query, setQuery] = useState('')
+  const [status, setStatus] = useState('')
+  const [sort, setSort] = useState('order')
+
+  // Смена режима сбрасывает выборку: фильтры у режимов разные, и «Уровень B1»,
+  // унесённый из чтения в аудирование, молча прячет половину записей.
+  function switchMode(m: Mode) {
+    setMode(m)
+    setFLevel([]); setFSkill([]); setFTopic([]); setFLen('')
+    setQuery(''); setStatus(''); setSort('order')
+  }
+
+  // Результаты по материалам — из localStorage, см. lib/trainerProgress.ts.
+  // Читаются один раз на отрисовку списка, а не на каждую карточку.
+  const [resultsKey, setResultsKey] = useState(0)
+  const results = useMemo(() => allResults(), [resultsKey])
+
+  const isLang = mode === 'reading' || mode === 'listening'
+  const pool = mode === 'listening' ? audio : allTexts
+  const kind: MaterialKind = mode === 'listening' ? 'listening' : 'reading'
+
+  const levelOpts = useMemo(() => present(pool.map(x => x.level), tax?.levels ?? []), [pool, tax])
+  const topicOpts = useMemo(() => present(pool.map(x => x.topic), tax?.topics ?? []), [pool, tax])
+  const skillOpts = useMemo(() => present(allTexts.map(x => x.skill), tax?.skills ?? []), [allTexts, tax])
+
+  /** Отфильтрованная и отсортированная библиотека текущего режима. */
+  const library = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const out = pool.filter(x => {
+      if (!anyOf(fLevel, x.level)) return false
+      if (!anyOf(fTopic, x.topic)) return false
+      if (mode === 'reading' && !anyOf(fSkill, (x as ReadingText).skill)) return false
+      if (fLen && !LENGTHS.find(l => l.value === fLen)?.fit(x.minutes)) return false
+      if (status === 'new' && resultFrom(kind, x.id, results)) return false
+      if (status === 'done' && !resultFrom(kind, x.id, results)) return false
+      if (q && !`${x.title} ${x.topic}`.toLowerCase().includes(q)) return false
+      return true
+    })
+    if (sort === 'level') out.sort((a, b) => levelOpts.indexOf(a.level) - levelOpts.indexOf(b.level))
+    if (sort === 'short') out.sort((a, b) => a.minutes - b.minutes)
+    return out
+  }, [pool, fLevel, fTopic, fSkill, fLen, status, query, sort, kind, results, levelOpts, mode])
 
   // ── Колода карточек ────────────────────────────────────────────────────────
   //
@@ -146,6 +207,65 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
       .catch(() => { /* цифра на таблетке — не повод ронять вкладку */ })
     return () => { alive = false }
   }, [hasBook, owner, deckSubjects])
+
+  // ── Разговорник ────────────────────────────────────────────────────────────
+  //
+  // Книга и прогресс грузятся ЗДЕСЬ, а не внутри витрины: рейл показывает полки
+  // со счётчиками и должен знать их до того, как отрисуется содержимое справа.
+  // Книга ленивая (≈100 КБ на язык) — см. data/survivalBooks.ts.
+  const [book, setBook] = useState<SurvivalBook | null | undefined>(undefined)
+  const [known, setKnown] = useState<Set<string>>(() => new Set())
+  const [knownKey, setKnownKey] = useState(0)
+  const [shelf, setShelf] = useState('')
+  const [openTheme, setOpenTheme] = useState<string | null>(null)
+  const [run, setRun] = useState<RunMode>('swipe')
+  const [phraseView, setPhraseView] = useState<PhraseView>({ reading: true, reverse: false })
+
+  useEffect(() => {
+    if (!hasBook) { setBook(null); return }
+    let alive = true
+    setBook(undefined)
+    loadSurvivalBook(lang).then(b => { if (alive) setBook(b ?? null) })
+    return () => { alive = false }
+  }, [hasBook, lang])
+
+  // Что из разговорника уже в колоде — по одному запросу на экран, а не на тему.
+  useEffect(() => {
+    let alive = true
+    knownPrompts(owner, deckSubjects)
+      .then(s => { if (alive) setKnown(s) })
+      .catch(() => { /* прогресс — не повод ронять вкладку */ })
+    return () => { alive = false }
+  }, [owner, deckSubjects, knownKey])
+
+  const shelves = useMemo(() => survivalShelves(book ?? undefined), [book])
+  const allThemes = useMemo(() => shelves.flatMap(s => s.themes), [shelves])
+  const openItem = useMemo(
+    () => allThemes.find(x => x.theme.id === openTheme) ?? null,
+    [allThemes, openTheme],
+  )
+
+  /** Темы под текущей полкой, поиском, статусом и сортировкой. */
+  const visibleThemes = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    // Поиск идёт по всем полкам и молча снимает выбор слева: человек, который
+    // ищет «аптеку», не должен ещё и угадывать, в каком она разделе.
+    const base = q
+      ? allThemes
+      : (shelf ? (shelves.find(s => s.title === shelf)?.themes ?? []) : allThemes)
+
+    const out = base.filter(x => {
+      if (q && !`${x.theme.title} ${x.theme.vocabTheme} ${x.theme.goal}`.toLowerCase().includes(q)) return false
+      const pct = themeProgress(x, known)
+      if (status === 'new' && pct > 0) return false
+      if (status === 'wip' && (pct === 0 || pct >= 100)) return false
+      if (status === 'done' && pct < 100) return false
+      return true
+    })
+    if (sort === 'size') out.sort((a, b) => b.phrases.length - a.phrases.length)
+    if (sort === 'progress') out.sort((a, b) => themeProgress(b, known) - themeProgress(a, known))
+    return out
+  }, [allThemes, shelves, shelf, query, status, sort, known])
   const glossaryCards = useMemo(() => allTexts.flatMap(txt => txt.glossary.map(g => ({
     subject: subjectId,
     source: 'manual' as const,
@@ -169,189 +289,346 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
   }
 
   if (openText) {
-    return <Reader text={openText} accent={palette.accent} lang={lang} onBack={() => setOpenText(null)} />
+    return (
+      <Reader
+        text={openText}
+        accent={palette.accent}
+        palette={palette}
+        lang={lang}
+        owner={owner}
+        subjectId={subjectId}
+        onBack={() => { setOpenText(null); setResultsKey(k => k + 1) }}
+      />
+    )
   }
   if (openAudio) {
-    return <Listener item={openAudio} accent={palette.accent} lang={lang} onBack={() => setOpenAudio(null)} />
+    return (
+      <Listener
+        item={openAudio}
+        accent={palette.accent}
+        palette={palette}
+        lang={lang}
+        onBack={() => { setOpenAudio(null); setResultsKey(k => k + 1) }}
+      />
+    )
   }
 
-  return (
-    <div style={column}>
-      {/* Переключатель режимов.
-          Ряд центрируется по колонке: карточки текстов занимают её целиком и
-          читаются как центрированный блок, а четыре узкие вкладки, прижатые
-          влево, выглядели рядом с ними съехавшими. */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 22 }}>
-        {MODES.map(m => {
-          const active = m.id === mode
-          return (
-            <button
-              key={m.id}
-              onClick={() => setMode(m.id)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px',
-                borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
-                border: `1.5px solid ${active ? palette.accent : 'var(--color-border-soft)'}`,
-                background: active ? palette.soft : 'var(--color-bg-2)',
-                color: active ? palette.accent : 'var(--color-text-2)',
-              }}
-            >
-              <m.Icon size={16} /> {t(m.label)}
-            </button>
-          )
-        })}
-      </div>
+  // ── Рейл ───────────────────────────────────────────────────────────────────
+  //
+  // Собирается здесь целиком, а не по кускам из режимов: рейл общий, и если
+  // каждый режим дорисовывал бы в него свою часть, при переключении половина
+  // колонки перерисовывалась бы из другого места.
 
-      {mode === 'reading' && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-          <Chips label={t('Уровень')} value={fLevel} options={levelOpts} onChange={setFLevel} accent={palette.accent} />
-          <Chips label={t('Навык')}   value={fSkill} options={skillOpts} onChange={setFSkill} accent={palette.accent} />
-          <Chips label={t('Тема')}    value={fTopic} options={topicOpts} onChange={setFTopic} accent={palette.accent} />
-        </div>
+  const modeCounts: Record<Mode, number | undefined> = {
+    reading: allTexts.length,
+    vocab: hasBook ? allThemes.reduce((n, x) => n + x.phrases.length, 0) : undefined,
+    listening: audio.length,
+    speaking: SPEAKING_PROMPTS.length,
+  }
+
+  const heroSubtitle =
+    mode === 'vocab' && hasBook ? `${allThemes.reduce((n, x) => n + x.phrases.length, 0)} ${t('фраз')} · ${allThemes.length} ${t('ситуаций')}`
+    : mode === 'reading' ? `${allTexts.length} ${t('текстов')}`
+    : mode === 'listening' ? `${audio.length} ${t('записей')}`
+    : `${SPEAKING_PROMPTS.length} ${t('заданий')}`
+
+  const filtersOn = fLevel.length > 0 || fTopic.length > 0 || fSkill.length > 0 || !!fLen
+  const clearFilters = () => { setFLevel([]); setFTopic([]); setFSkill([]); setFLen('') }
+
+  const rail = (
+    <>
+      <RailHero title={subject} subtitle={heroSubtitle} palette={palette} />
+
+      <RailCard title="Режим" accent={palette.accent} icon={<Layers size={15} />}>
+        <RailModes
+          items={MODES.map(m => ({ id: m.id, label: m.label, count: modeCounts[m.id], Icon: m.Icon }))}
+          value={mode}
+          onChange={switchMode}
+          accent={palette.accent}
+          soft={palette.soft}
+        />
+      </RailCard>
+
+      {isLang && (
+        <RailCard
+          title="Фильтры"
+          accent={palette.accent}
+          icon={<SlidersHorizontal size={15} />}
+          action={filtersOn ? { label: t('Сбросить'), onClick: clearFilters } : undefined}
+        >
+          {levelOpts.length > 1 && (
+            <MultiSelectField label={t('Уровень')} options={levelOpts} values={fLevel} onChange={setFLevel}
+              accent={palette.accent} accentBg={palette.soft} small />
+          )}
+          {topicOpts.length > 1 && (
+            <MultiSelectField label={t('Тема')} options={topicOpts} values={fTopic} onChange={setFTopic}
+              accent={palette.accent} accentBg={palette.soft} small />
+          )}
+          {mode === 'reading' && skillOpts.length > 1 && (
+            <MultiSelectField label={t('Навык')} options={skillOpts} values={fSkill} onChange={setFSkill}
+              accent={palette.accent} accentBg={palette.soft} small />
+          )}
+          <RailSegment options={LENGTHS.map(l => ({ value: l.value, label: l.label }))}
+            value={fLen} onChange={setFLen} accent={palette.accent} soft={palette.soft} />
+        </RailCard>
       )}
 
-      {mode === 'reading' && (
-        texts.length === 0 ? (
-          <Empty text={allTexts.length === 0
-            ? t('Для этого языка текстов пока нет. Учитель может добавить свои.')
-            : t('Под выбранные фильтры ничего не подошло. Сбрось один из них.')} />
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {texts.map(txt => (
-              <button
-                key={txt.id}
-                onClick={() => setOpenText(txt)}
-                style={{
-                  textAlign: 'left', padding: '16px 18px', borderRadius: 18, cursor: 'pointer',
-                  border: '1px solid var(--color-border)', background: 'var(--color-bg-2)',
-                  fontFamily: 'inherit',
-                }}
-              >
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-                  <span style={{ fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999, background: palette.soft, color: palette.accent }}>
-                    {txt.level}
-                  </span>
-                  <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>
-                    {txt.topic} · {txt.minutes} {t('мин')} · {txt.questions.length} {t('вопроса')}
-                  </span>
+      {mode === 'vocab' && hasBook && !openItem && (
+        <>
+          <RailCard title="Фильтры" accent={palette.accent} icon={<SlidersHorizontal size={15} />}
+            action={shelf ? { label: t('Все полки'), onClick: () => setShelf('') } : undefined}>
+            <RailSegment
+              options={[
+                { value: 'sets', label: 'Наборы' },
+                { value: 'due', label: 'Повторение', badge: due },
+              ]}
+              value={vocabView}
+              onChange={v => v && setVocabView(v as 'due' | 'sets')}
+              accent={palette.accent}
+              soft={palette.soft}
+              clearable={false}
+            />
+            {vocabView === 'sets' && shelves.length > 0 && (
+              <RailList
+                items={shelves.map(s => ({ id: s.title, label: t(s.title), hint: String(s.count) }))}
+                value={shelf}
+                onChange={v => setShelf(v === shelf ? '' : v)}
+                accent={palette.accent}
+                soft={palette.soft}
+              />
+            )}
+          </RailCard>
+          <RailCard title="Показ" accent={palette.accent} icon={<Eye size={15} />}>
+            <RailToggle label="Романизация" on={phraseView.reading}
+              onChange={v => setPhraseView(s => ({ ...s, reading: v }))} accent={palette.accent} />
+            <RailToggle label="Сначала перевод" on={phraseView.reverse}
+              onChange={v => setPhraseView(s => ({ ...s, reverse: v }))} accent={palette.accent} />
+          </RailCard>
+        </>
+      )}
+
+      {mode === 'vocab' && openItem && (
+        <>
+          <RailCard title="Формула темы" accent={palette.accent} icon={<Sparkle size={15} />}>
+            {book?.notes[openItem.theme.id] ? (
+              <>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: palette.accent, lineHeight: 1.45 }}>
+                  {book.notes[openItem.theme.id].formula}
                 </div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{txt.title}</div>
-              </button>
-            ))}
-          </div>
-        )
+                <div style={{ fontSize: 12, lineHeight: 1.55, color: 'var(--color-text-2)' }}>
+                  {book.notes[openItem.theme.id].note}
+                </div>
+              </>
+            ) : (
+              <div style={{ fontSize: 12.5, color: 'var(--color-text-2)', lineHeight: 1.5 }}>{t(openItem.theme.goal)}</div>
+            )}
+          </RailCard>
+          <RailCard title="Тема" accent={palette.accent} icon={<Layers size={15} />}>
+            <RailStat label="Фраз в теме" value={openItem.phrases.length} />
+            <RailStat label="Уже в колоде" value={inDeckCount(openItem, known)} tone="good" />
+            <TakeWholeTheme
+              phrases={openItem.phrases}
+              owner={owner}
+              subjectId={subjectId}
+              accent={palette.accent}
+              onAdded={() => setKnownKey(k => k + 1)}
+            />
+          </RailCard>
+          <RailCard title="Показ" accent={palette.accent} icon={<Eye size={15} />}>
+            <RailToggle label="Романизация" on={phraseView.reading}
+              onChange={v => setPhraseView(s => ({ ...s, reading: v }))} accent={palette.accent} />
+            <RailToggle label="Сначала перевод" on={phraseView.reverse}
+              onChange={v => setPhraseView(s => ({ ...s, reverse: v }))} accent={palette.accent} />
+          </RailCard>
+        </>
       )}
 
-      {mode === 'vocab' && hasBook && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 16 }}>
-          {([
-            // Наборы идут первыми: с них начинают, а повторение наполняется из
-            // них же и до первого «не знаю» пустое.
-            { id: 'sets' as const, label: 'Наборы фраз' },
-            { id: 'due' as const, label: 'Повторение' },
-          ]).map(v => {
-            const on = v.id === vocabView
-            return (
-              <button
-                key={v.id}
-                onClick={() => setVocabView(v.id)}
-                style={{
-                  padding: '7px 15px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
-                  fontSize: 13, fontWeight: 700,
-                  border: `1px solid ${on ? palette.accent : 'var(--color-border-soft)'}`,
-                  background: on ? 'var(--color-bg-3)' : 'transparent',
-                  color: on ? palette.accent : 'var(--color-text-2)',
-                }}
-              >
-                {t(v.label)}
-                {v.id === 'due' && due > 0 && (
-                  <span style={{
-                    marginLeft: 6, padding: '1px 7px', borderRadius: 999, fontSize: 11, fontWeight: 800,
-                    background: palette.soft, color: palette.accent,
-                  }}>
-                    {due}
+      {mode === 'vocab' && !hasBook && (
+        <RailCard title="Колода" accent={palette.accent} icon={<Layers size={15} />}>
+          <RailStat label="На сегодня" value={due} tone={due > 0 ? 'warn' : undefined} />
+          <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+            {t('Разговорника для этого языка пока нет — колода набирается из уроков и ошибок.')}
+          </div>
+        </RailCard>
+      )}
+    </>
+  )
+
+  // ── Строка управления ──────────────────────────────────────────────────────
+
+  const SORTS_LIB = [
+    { value: 'order', label: 'По порядку' },
+    { value: 'level', label: 'По уровню' },
+    { value: 'short', label: 'Покороче' },
+  ]
+  const SORTS_SETS = [
+    { value: 'order', label: 'По порядку' },
+    { value: 'size', label: 'По размеру' },
+    { value: 'progress', label: 'По прогрессу' },
+  ]
+
+  let toolbar: React.ReactNode = null
+  if (isLang) {
+    toolbar = (
+      <Toolbar>
+        <SearchPill value={query} onChange={setQuery} placeholder={t('Название или тема…')} />
+        <StatusTabs
+          options={[
+            { value: '', label: 'Все' },
+            { value: 'new', label: mode === 'listening' ? 'Не слушал' : 'Не читал' },
+            { value: 'done', label: 'Пройдено' },
+          ]}
+          value={status}
+          onChange={setStatus}
+        />
+        <SortMenu options={SORTS_LIB} value={sort} onChange={setSort} />
+        <ToolCount>{t('Всего:')} {library.length}</ToolCount>
+      </Toolbar>
+    )
+  } else if (mode === 'vocab' && hasBook && vocabView === 'sets' && !openItem) {
+    toolbar = (
+      <Toolbar>
+        <SearchPill value={query} onChange={setQuery} placeholder={t('Найти тему…')} />
+        <StatusTabs
+          options={[
+            { value: '', label: 'Все' },
+            { value: 'new', label: 'Не начатые' },
+            { value: 'wip', label: 'В работе' },
+            { value: 'done', label: 'Выучено' },
+          ]}
+          value={status}
+          onChange={setStatus}
+        />
+        <SortMenu options={SORTS_SETS} value={sort} onChange={setSort} />
+        <ToolCount>
+          {visibleThemes.reduce((n, x) => n + x.phrases.length, 0)} {t('фраз')} · {visibleThemes.length} {t('тем')}
+        </ToolCount>
+      </Toolbar>
+    )
+  } else if (mode === 'vocab' && openItem) {
+    toolbar = (
+      <Toolbar>
+        <BackToSets onBack={() => setOpenTheme(null)} />
+        <StatusTabs
+          options={[{ value: 'swipe', label: 'Свайп' }, { value: 'list', label: 'Списком' }]}
+          value={run}
+          onChange={v => setRun(v as RunMode)}
+        />
+        <ToolCount>{t(openItem.theme.title)}</ToolCount>
+      </Toolbar>
+    )
+  }
+
+  // ── Содержимое ─────────────────────────────────────────────────────────────
+
+  let content: React.ReactNode = null
+
+  if (isLang) {
+    content = library.length === 0 ? (
+      <ShellEmpty text={pool.length === 0
+        ? 'Для этого языка материалов пока нет. Учитель может добавить свои.'
+        : 'Под выбранные фильтры ничего не подошло. Сбрось один из них.'} />
+    ) : (
+      <TileGrid min={236}>
+        {library.map(x => {
+          const res = resultFrom(kind, x.id, results)
+          return (
+            <Tile
+              key={x.id}
+              accent={palette.accent}
+              onClick={() => (mode === 'listening' ? setOpenAudio(x as ListeningItem) : setOpenText(x as ReadingText))}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <TileChip tone="accent" accent={palette.accent} soft={palette.soft}>{x.level}</TileChip>
+                <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
+                  {x.topic} · {x.minutes} {t('мин')}
+                </span>
+              </span>
+              <span style={{ flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
+                {x.title}
+              </span>
+              <TileMeter value={res ? Math.round((res.score / Math.max(res.total, 1)) * 100) : 0} />
+              <span style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--color-text-3)' }}>
+                <span>{res ? t('пройдено') : `${x.questions.length} ${t('вопроса')}`}</span>
+                {res && (
+                  <span style={{ color: 'var(--color-green-text)', fontWeight: 700 }}>
+                    {res.score} / {res.total}
                   </span>
                 )}
-              </button>
-            )
-          })}
-        </div>
-      )}
-
-      {mode === 'vocab' && vocabView === 'sets' && hasBook && (
-        <PhraseDecks lang={lang} subjectId={subjectId} accent={palette.accent} owner={owner} />
-      )}
-
-      {mode === 'vocab' && vocabView === 'due' && (
-        <div>
-          <p style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 14, lineHeight: 1.6 }}>
-            {t('Слова из уроков и ошибок повторяются по расписанию: каждое возвращается ровно тогда, когда его вот-вот забудешь.')}
-          </p>
-          <CardDeck
-            // key перезапускает сессию после подгрузки слов: колода читается
-            // один раз на монтировании, иначе новые карточки появятся только
-            // после ухода со вкладки и обратно.
-            key={deckKey}
-            owner={owner}
-            accent={palette.accent}
-            lang={lang}
-            subject={subjectId}
-            emptyExtra={
-              glossaryCards.length > 0 ? (
-                <button
-                  onClick={seedFromTexts}
-                  disabled={seeding}
-                  style={{
-                    padding: '10px 18px', borderRadius: 999, cursor: seeding ? 'default' : 'pointer',
-                    border: `1.5px solid ${palette.accent}`, background: 'transparent', color: palette.accent,
-                    fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
-                  }}
-                >
-                  {seeding ? t('Добавляю…') : `${t('Взять слова из текстов')} · ${glossaryCards.length}`}
-                </button>
-              ) : null
-            }
-          />
-          {seedNote && (
-            <div style={{ marginTop: 12, textAlign: 'center', fontSize: 12, color: 'var(--color-muted)' }}>{seedNote}</div>
-          )}
-        </div>
-      )}
-
-      {mode === 'listening' && (
-        audio.length === 0 ? (
-          <Empty text={t('Для этого языка материалов пока нет.')} />
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {audio.map(a => (
+              </span>
+            </Tile>
+          )
+        })}
+      </TileGrid>
+    )
+  } else if (mode === 'vocab' && openItem && book) {
+    content = (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <ThemeSession
+          book={book}
+          item={openItem}
+          lang={lang}
+          subjectId={subjectId}
+          accent={palette.accent}
+          owner={owner}
+          view={phraseView}
+          run={run}
+        />
+        {run === 'swipe' && <DeckHint />}
+      </div>
+    )
+  } else if (mode === 'vocab' && vocabView === 'sets' && hasBook) {
+    content = book === undefined
+      ? <Skeleton.Text lines={4} style={{ maxWidth: 420 }} />
+      : (
+        <PhraseDecks
+          themes={visibleThemes}
+          known={known}
+          accent={palette.accent}
+          onOpen={id => { setOpenTheme(id); setQuery(''); setStatus(''); setRun('swipe') }}
+        />
+      )
+  } else if (mode === 'vocab') {
+    content = (
+      <div>
+        <p style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 14, lineHeight: 1.6 }}>
+          {t('Слова из уроков и ошибок повторяются по расписанию: каждое возвращается ровно тогда, когда его вот-вот забудешь.')}
+        </p>
+        <CardDeck
+          // key перезапускает сессию после подгрузки слов: колода читается один
+          // раз на монтировании, иначе новые карточки появятся только после
+          // ухода со вкладки и обратно.
+          key={deckKey}
+          owner={owner}
+          accent={palette.accent}
+          lang={lang}
+          subject={subjectId}
+          emptyExtra={
+            glossaryCards.length > 0 ? (
               <button
-                key={a.id}
-                onClick={() => setOpenAudio(a)}
+                onClick={seedFromTexts}
+                disabled={seeding}
                 style={{
-                  textAlign: 'left', padding: '16px 18px', borderRadius: 18, cursor: 'pointer',
-                  border: '1px solid var(--color-border)', background: 'var(--color-bg-2)', fontFamily: 'inherit',
+                  padding: '10px 18px', borderRadius: 999, cursor: seeding ? 'default' : 'pointer',
+                  border: `1.5px solid ${palette.accent}`, background: 'transparent', color: palette.accent,
+                  fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
                 }}
               >
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-                  <span style={{ fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999, background: palette.soft, color: palette.accent }}>
-                    {a.level}
-                  </span>
-                  <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>
-                    {a.topic} · {a.minutes} {t('мин')} · {a.questions.length} {t('вопроса')}
-                  </span>
-                </div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{a.title}</div>
+                {seeding ? t('Добавляю…') : `${t('Взять слова из текстов')} · ${glossaryCards.length}`}
               </button>
-            ))}
-          </div>
-        )
-      )}
+            ) : null
+          }
+        />
+        {seedNote && (
+          <div style={{ marginTop: 12, textAlign: 'center', fontSize: 12, color: 'var(--color-muted)' }}>{seedNote}</div>
+        )}
+      </div>
+    )
+  } else {
+    content = <Speaking subjectId={subjectId} subject={subject} accent={palette.accent} />
+  }
 
-      {mode === 'speaking' && (
-        <Speaking subjectId={subjectId} subject={subject} accent={palette.accent} />
-      )}
-    </div>
-  )
+  return <TrainerShell rail={rail} toolbar={toolbar}>{content}</TrainerShell>
 }
 
 /** Одна ось фильтра: подпись + значения. Пустое значение = «все». */
@@ -398,11 +675,26 @@ function Empty({ text }: { text: string }) {
 
 // ─── Читалка ─────────────────────────────────────────────────────────────────
 
+// Читалка и аудирование занимают экран целиком, минуя витрину TrainerShell, —
+// колонку они держат сами. Ширина одна на обеих: экраны переключаются на месте,
+// и разная колонка сдвигала бы содержимое вбок на каждом переходе.
+//
+// width: '100%' здесь обязателен. Родитель — flex-колонка, а у флекс-элемента с
+// auto-полем по поперечной оси растяжение отключается: без явной ширины блок
+// ужимается до max-content своего содержимого.
+const column = { width: '100%', maxWidth: 860, margin: '0 auto', padding: '8px 20px 80px' } as const
+
 /** Онбординг проходится один раз на браузер, потом только по кнопке «Подсказки». */
 const TOUR_KEY = 'lang-reader-tour-v1'
 
-function Reader({ text, accent, lang, onBack }: {
-  text: ReadingText; accent: string; lang: string; onBack: () => void
+function Reader({ text, accent, palette, lang, owner, subjectId, onBack }: {
+  text: ReadingText
+  accent: string
+  palette: { accent: string; text: string; soft: string; ring: string }
+  lang: string
+  owner: { studentId?: string; anonName?: string }
+  subjectId: string
+  onBack: () => void
 }) {
   const t = useT()
   const [answers, setAnswers] = useState<Record<number, number>>({})
@@ -411,6 +703,34 @@ function Reader({ text, accent, lang, onBack }: {
 
   const correctCount = text.questions.filter((q, i) => answers[i] === q.correct).length
   const allAnswered = text.questions.every((_, i) => answers[i] !== undefined)
+
+  // Результат записывается в момент проверки, а не при уходе с экрана: ученик
+  // закрывает вкладку прямо на разборе ошибок, и «сохраню на выходе» означало
+  // бы, что половина результатов теряется.
+  function check() {
+    setChecked(true)
+    saveResult('reading', text.id, correctCount, text.questions.length)
+  }
+
+  // Слова текста одной кнопкой в колоду — прямо отсюда. Раньше за этим нужно
+  // было уйти на вкладку «Карточки» и найти там кнопку под пустой колодой,
+  // то есть ровно тогда, когда слова уже забыты.
+  const [tookWords, setTookWords] = useState<number | null>(null)
+  const [takingWords, setTakingWords] = useState(false)
+  async function takeWords() {
+    setTakingWords(true)
+    try {
+      const n = await addCards(owner, text.glossary.map(g => ({
+        subject: subjectId, source: 'manual' as const, prompt: g.term, answer: g.ru,
+      })))
+      setTookWords(n)
+    } catch (e) {
+      console.error('Reader takeWords:', e)
+      setTookWords(0)
+    } finally {
+      setTakingWords(false)
+    }
+  }
 
   // Слова из глоссария подсвечиваются прямо в тексте: клик показывает перевод,
   // не уводя со страницы. Это и есть главная механика чтения на языке —
@@ -483,47 +803,86 @@ function Reader({ text, accent, lang, onBack }: {
     },
   ]
 
+  // Рейл читалки — единственный экран, где он не про выбор материала, а про
+  // работу с уже открытым. Озвучка и словарик жили под текстом и над ним: до
+  // словаря нужно было доскроллить мимо вопросов, то есть ровно тогда, когда
+  // он уже не нужен, а плеер уезжал вверх на первом же движении.
+  const rail = (
+    <>
+      <RailHero title={text.title} subtitle={`${text.level} · ${text.topic} · ${text.minutes} ${t('мин')}`} palette={palette} />
+
+      <RailCard title="Послушать" accent={accent} icon={<Volume2 size={15} />}>
+        <div ref={audioRef}>
+          <AudioPlayer ttsText={text.body} lang={lang} allowSlow />
+        </div>
+      </RailCard>
+
+      {text.glossary.length > 0 && (
+        <RailCard title="Словарь текста" accent={accent} icon={<ListChecks size={15} />}>
+          {/* Список, а не сетка плашек: в рейле у слова есть вся ширина
+              строки, поэтому перевод помещается рядом и не требует ни
+              раскрытия, ни зарезервированного места под две строки. */}
+          <div ref={chipsRef}>
+            <RailList
+              items={text.glossary.map(g => ({
+                id: g.term,
+                label: g.term,
+                hint: glossMap.get(g.term.toLowerCase()) ?? '',
+              }))}
+              value={gloss ?? ''}
+              onChange={v => setGloss(v === gloss ? null : v)}
+              accent={accent}
+              soft={palette.soft}
+            />
+          </div>
+          <button
+            onClick={takeWords}
+            disabled={takingWords || tookWords !== null}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%',
+              padding: '9px 12px', borderRadius: 12,
+              cursor: takingWords || tookWords !== null ? 'default' : 'pointer',
+              fontFamily: 'inherit', fontSize: 12.5, fontWeight: 650,
+              border: `1px solid ${tookWords !== null ? 'var(--color-border-soft)' : `${accent}66`}`,
+              background: 'transparent',
+              color: tookWords !== null ? 'var(--color-muted)' : accent,
+            }}
+          >
+            {tookWords !== null
+              ? (tookWords > 0 ? `${t('в колоде')} +${tookWords}` : t('уже в колоде'))
+              : (takingWords ? t('Добавляю…') : `${t('Все слова в колоду')} · ${text.glossary.length}`)}
+          </button>
+        </RailCard>
+      )}
+
+      <RailCard title="Вопросы" accent={accent} icon={<CheckCircle2 size={15} />}>
+        <RailStat
+          label="Отвечено"
+          value={`${Object.keys(answers).length} / ${text.questions.length}`}
+          tone={allAnswered ? 'good' : undefined}
+        />
+        {checked && <RailStat label="Верно" value={`${correctCount} / ${text.questions.length}`} tone="good" />}
+      </RailCard>
+    </>
+  )
+
+  const toolbar = (
+    <Toolbar>
+      <ToolButton onClick={onBack}>
+        <ChevronLeft size={14} /> {t('К списку')}
+      </ToolButton>
+      <ToolButton onClick={() => setTour(true)} accent={accent}>
+        <HelpCircle size={14} /> {t('Подсказки')}
+      </ToolButton>
+      {text.credit && <ToolCount>{text.credit}</ToolCount>}
+    </Toolbar>
+  )
+
   return (
-    <div style={column}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-        <button
-          onClick={onBack}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 5, padding: '7px 13px', borderRadius: 999,
-            border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer',
-            fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit',
-          }}
-        >
-          <ChevronLeft size={15} /> {t('К списку')}
-        </button>
-        <button
-          onClick={() => setTour(true)}
-          title={t('Показать подсказки')}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 999,
-            border: `1px solid ${accent}55`, background: 'transparent', cursor: 'pointer',
-            fontSize: 13, fontWeight: 650, color: accent, fontFamily: 'inherit',
-          }}
-        >
-          <HelpCircle size={15} /> {t('Подсказки')}
-        </button>
-      </div>
-
-      <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', marginBottom: 4 }}>{text.title}</h1>
-      <p style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>
-        {text.level} · {text.topic} · {text.minutes} {t('мин')}
-        {text.credit && ` · ${text.credit}`}
-      </p>
-
-      {/* Озвучка текста. Синтез, а не запись диктора: файла к каждому тексту у
-          нас нет, а слышать ритм фразы и границы слов нужно с первого дня. */}
-      <div ref={audioRef} style={{ marginBottom: 14 }}>
-        <AudioPlayer ttsText={text.body} lang={lang} allowSlow />
-      </div>
-
+    <TrainerShell rail={rail} toolbar={toolbar}>
       <div ref={bodyRef} style={{
-        padding: '18px 20px', borderRadius: 18, background: 'var(--color-bg-2)',
-        border: '1px solid var(--color-border-soft)', marginBottom: 12,
+        padding: '20px 22px', borderRadius: 18, background: 'var(--color-bg-2)',
+        border: '1px solid var(--color-border-soft)',
       }}>
         {glossed ? (
           <GlossedText
@@ -531,66 +890,16 @@ function Reader({ text, accent, lang, onBack }: {
             lang={lang}
             extra={text.glossary}
             accent={accent}
-            style={{ fontSize: 16, lineHeight: 1.85, color: 'var(--color-text)' }}
+            style={{ fontSize: 16.5, lineHeight: 1.85, color: 'var(--color-text)' }}
           />
         ) : (
-          <div style={{ fontSize: 16, lineHeight: 1.85, color: 'var(--color-text)', whiteSpace: 'pre-wrap', ...proseWrap }}>
+          <div style={{ fontSize: 16.5, lineHeight: 1.85, color: 'var(--color-text)', whiteSpace: 'pre-wrap', ...proseWrap }}>
             {text.body}
           </div>
         )}
       </div>
 
-      {/* Словарик: тап по слову раскрывает перевод.
-          Плашки лежат в сетке фиксированной ширины, а место под перевод (две
-          строки) зарезервировано всегда — просто прозрачно, пока слово не
-          выбрано. Иначе выбор растягивал бы плашку, ряд переносился заново и
-          вопросы уезжали вниз прямо под пальцем. Две строки, а не одна: самые
-          длинные пояснения в библиотеке под 40 знаков, в одну строку они
-          обрезались бы многоточием. */}
-      {text.glossary.length > 0 && (
-        <div ref={chipsRef} style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-          gap: 8, marginBottom: 22,
-        }}>
-          {text.glossary.map(g => {
-            const on = gloss === g.term
-            const ru = glossMap.get(g.term.toLowerCase()) ?? ''
-            return (
-              <button
-                key={g.term}
-                onClick={() => setGloss(on ? null : g.term)}
-                title={ru}
-                style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
-                  minWidth: 0, padding: '12px 14px', borderRadius: 16, cursor: 'pointer',
-                  fontFamily: 'inherit', textAlign: 'center',
-                  border: `1px solid ${on ? accent : 'var(--color-border-soft)'}`,
-                  background: on ? 'var(--color-bg-3)' : 'var(--color-bg-2)',
-                  transition: 'border-color .15s, background .15s',
-                }}
-              >
-                <span style={{
-                  maxWidth: '100%', fontSize: 17, fontWeight: 650, lineHeight: '24px',
-                  color: on ? accent : 'var(--color-text-2)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
-                  {g.term}
-                </span>
-                <span style={{
-                  display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2,
-                  maxWidth: '100%', height: 40, overflow: 'hidden',
-                  fontSize: 14, fontWeight: 500, lineHeight: '20px',
-                  color: 'var(--color-muted)', opacity: on ? 1 : 0, transition: 'opacity .15s',
-                }}>
-                  {ru}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-      )}
-
-      <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 12 }}>
+      <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>
         {t('Вопросы к тексту')}
       </h2>
 
@@ -616,10 +925,10 @@ function Reader({ text, accent, lang, onBack }: {
       {!checked ? (
         <button
           ref={checkRef}
-          onClick={() => setChecked(true)}
+          onClick={check}
           disabled={!allAnswered}
           style={{
-            marginTop: 22, width: '100%', padding: '13px', borderRadius: 16, border: 'none',
+            width: '100%', padding: '13px', borderRadius: 16, border: 'none',
             cursor: allAnswered ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
             fontSize: 15, fontWeight: 700, color: '#fff',
             background: allAnswered ? accent : 'var(--color-border-medium)',
@@ -629,7 +938,7 @@ function Reader({ text, accent, lang, onBack }: {
         </button>
       ) : (
         <div style={{
-          marginTop: 22, padding: '16px 18px', borderRadius: 18, textAlign: 'center',
+          padding: '16px 18px', borderRadius: 18, textAlign: 'center',
           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
         }}>
           <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', marginBottom: 4 }}>
@@ -650,7 +959,7 @@ function Reader({ text, accent, lang, onBack }: {
       )}
 
       <Coachmarks steps={steps} open={tour} onClose={closeTour} accent={accent} />
-    </div>
+    </TrainerShell>
   )
 }
 
@@ -710,7 +1019,11 @@ function QuestionCard({ q, index, value, checked, accent, glossLang, glossExtra,
 // ─── Прослушивание ───────────────────────────────────────────────────────────
 
 function Listener({ item, accent, lang, onBack }: {
-  item: ListeningItem; accent: string; lang: string; onBack: () => void
+  item: ListeningItem
+  accent: string
+  palette: { accent: string; text: string; soft: string; ring: string }
+  lang: string
+  onBack: () => void
 }) {
   const t = useT()
   const [answers, setAnswers] = useState<Record<number, number>>({})

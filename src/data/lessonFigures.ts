@@ -116,7 +116,12 @@ export function charGrid(
 ): string {
   const cols = Math.max(...rows.map(r => r.length))
   const cellW = 66, cellH = 60, gap = 6
-  const headW = opts.rowHeads?.length ? 54 : 0
+  // Полоса под подписи строк считается по самой длинной из них: на фиксированных
+  // 54 px «с выдохом» и «слитные» обрезались левым краем листа, а обрезалось там
+  // ровно то слово, ради которого подпись и стоит.
+  const headW = opts.rowHeads?.length
+    ? Math.max(54, ...opts.rowHeads.map(head => textW(head, 12) + 20))
+    : 0
   const headH = opts.colHeads?.length ? 22 : 0
   const gridW = headW + cols * cellW + (cols - 1) * gap
   const w = Math.max(gridW + 40, 320)

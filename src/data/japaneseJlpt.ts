@@ -1422,6 +1422,48 @@ export const JAPANESE_UNITS: LangUnit[] = [
 
 export const JAPANESE_FIGURES: CourseFigures = {
   'jajl-01': [{
+    // Сначала обе азбуки целиком: 46 + 46 знаков — конечный список, который
+    // виден одним взглядом. Без этого первый урок показывал 25 знаков и не
+    // отвечал на главный вопрос новичка — «а сколько их всего».
+    after: 5,
+    caption: 'Вся хирагана: 46 знаков, пять столбцов по гласным',
+    src: charGrid('Годзюон целиком — хирагана', [
+      [{ sym: 'あ', read: 'a' }, { sym: 'い', read: 'i' }, { sym: 'う', read: 'u' }, { sym: 'え', read: 'e' }, { sym: 'お', read: 'o' }],
+      [{ sym: 'か', read: 'ka' }, { sym: 'き', read: 'ki' }, { sym: 'く', read: 'ku' }, { sym: 'け', read: 'ke' }, { sym: 'こ', read: 'ko' }],
+      [{ sym: 'さ', read: 'sa' }, { sym: 'し', read: 'shi' }, { sym: 'す', read: 'su' }, { sym: 'せ', read: 'se' }, { sym: 'そ', read: 'so' }],
+      [{ sym: 'た', read: 'ta' }, { sym: 'ち', read: 'chi' }, { sym: 'つ', read: 'tsu' }, { sym: 'て', read: 'te' }, { sym: 'と', read: 'to' }],
+      [{ sym: 'な', read: 'na' }, { sym: 'に', read: 'ni' }, { sym: 'ぬ', read: 'nu' }, { sym: 'ね', read: 'ne' }, { sym: 'の', read: 'no' }],
+      [{ sym: 'は', read: 'ha', dim: true }, { sym: 'ひ', read: 'hi', dim: true }, { sym: 'ふ', read: 'fu', dim: true }, { sym: 'へ', read: 'he', dim: true }, { sym: 'ほ', read: 'ho', dim: true }],
+      [{ sym: 'ま', read: 'ma', dim: true }, { sym: 'み', read: 'mi', dim: true }, { sym: 'む', read: 'mu', dim: true }, { sym: 'め', read: 'me', dim: true }, { sym: 'も', read: 'mo', dim: true }],
+      [{ sym: 'や', read: 'ya', dim: true }, null, { sym: 'ゆ', read: 'yu', dim: true }, null, { sym: 'よ', read: 'yo', dim: true }],
+      [{ sym: 'ら', read: 'ra', dim: true }, { sym: 'り', read: 'ri', dim: true }, { sym: 'る', read: 'ru', dim: true }, { sym: 'れ', read: 're', dim: true }, { sym: 'ろ', read: 'ro', dim: true }],
+      [{ sym: 'わ', read: 'wa', dim: true }, null, { sym: 'ん', read: 'n', dim: true }, null, { sym: 'を', read: 'o', dim: true }],
+    ], {
+      colHeads: ['a', 'i', 'u', 'e', 'o'],
+      rowHeads: ['—', 'k', 's', 't', 'n', 'h', 'm', 'y', 'r', 'w'],
+      note: 'Яркие пять рядов — этот урок, бледные — следующий. Пропуски в рядах や и わ настоящие: таких слогов в языке нет',
+    }),
+  }, {
+    after: 5,
+    caption: 'Та же таблица, записанная катаканой — те же слоги, другие значки',
+    src: charGrid('Годзюон целиком — катакана', [
+      [{ sym: 'ア', read: 'a' }, { sym: 'イ', read: 'i' }, { sym: 'ウ', read: 'u' }, { sym: 'エ', read: 'e' }, { sym: 'オ', read: 'o' }],
+      [{ sym: 'カ', read: 'ka' }, { sym: 'キ', read: 'ki' }, { sym: 'ク', read: 'ku' }, { sym: 'ケ', read: 'ke' }, { sym: 'コ', read: 'ko' }],
+      [{ sym: 'サ', read: 'sa' }, { sym: 'シ', read: 'shi' }, { sym: 'ス', read: 'su' }, { sym: 'セ', read: 'se' }, { sym: 'ソ', read: 'so' }],
+      [{ sym: 'タ', read: 'ta' }, { sym: 'チ', read: 'chi' }, { sym: 'ツ', read: 'tsu' }, { sym: 'テ', read: 'te' }, { sym: 'ト', read: 'to' }],
+      [{ sym: 'ナ', read: 'na' }, { sym: 'ニ', read: 'ni' }, { sym: 'ヌ', read: 'nu' }, { sym: 'ネ', read: 'ne' }, { sym: 'ノ', read: 'no' }],
+      [{ sym: 'ハ', read: 'ha' }, { sym: 'ヒ', read: 'hi' }, { sym: 'フ', read: 'fu' }, { sym: 'ヘ', read: 'he' }, { sym: 'ホ', read: 'ho' }],
+      [{ sym: 'マ', read: 'ma' }, { sym: 'ミ', read: 'mi' }, { sym: 'ム', read: 'mu' }, { sym: 'メ', read: 'me' }, { sym: 'モ', read: 'mo' }],
+      [{ sym: 'ヤ', read: 'ya' }, null, { sym: 'ユ', read: 'yu' }, null, { sym: 'ヨ', read: 'yo' }],
+      [{ sym: 'ラ', read: 'ra' }, { sym: 'リ', read: 'ri' }, { sym: 'ル', read: 'ru' }, { sym: 'レ', read: 're' }, { sym: 'ロ', read: 'ro' }],
+      [{ sym: 'ワ', read: 'wa' }, null, { sym: 'ン', read: 'n' }, null, { sym: 'ヲ', read: 'o' }],
+    ], {
+      colHeads: ['a', 'i', 'u', 'e', 'o'],
+      rowHeads: ['—', 'k', 's', 't', 'n', 'h', 'm', 'y', 'r', 'w'],
+      note: 'Катакану учить отдельным заходом не надо: клетки те же, меняется только начертание. Её разбираем в уроке 3',
+    }),
+  }, {
+    after: 6,
     caption: 'Один знак — один слог, и так вся таблица',
     src: charGrid('Хирагана: ряды あ–な', [
       [{ sym: 'あ', read: 'a' }, { sym: 'い', read: 'i' }, { sym: 'う', read: 'u' }, { sym: 'え', read: 'e' }, { sym: 'お', read: 'o' }],

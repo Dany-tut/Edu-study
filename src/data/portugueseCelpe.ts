@@ -46,7 +46,7 @@ import {
 import { streetMapImage } from './seedImages'
 import { PORTUGUESE_THEORY, PORTUGUESE_VIDEO } from './portugueseCelpeTheory'
 import { PORTUGUESE_EXTRA } from './portugueseCelpeExtra'
-import { formTable, contrastPair, clockRow } from './lessonFigures'
+import { charGrid, formTable, contrastPair, clockRow } from './lessonFigures'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { PORTUGUESE_FIGURES_EXTRA } from './portugueseCelpeFigures'
@@ -1219,6 +1219,21 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
 
 export const PORTUGUESE_FIGURES: CourseFigures = {
   'ptbr-01': [{
+    // Алфавит целиком — с бразильскими названиями букв. Названия нужны не для
+    // красоты: их спрашивают в первый же день («как пишется фамилия?»), а по
+    // англоязычной привычке ученик диктует «эйч, джей, дабл-ю» и его не понимают.
+    after: 4,
+    caption: 'Все 26 букв и как они называются по-бразильски',
+    src: charGrid('Алфавит целиком', [
+      [{ sym: 'A', read: 'а' }, { sym: 'B', read: 'бэ' }, { sym: 'C', read: 'сэ' }, { sym: 'D', read: 'дэ' }, { sym: 'E', read: 'э' }, { sym: 'F', read: 'эфи' }, { sym: 'G', read: 'жэ' }],
+      [{ sym: 'H', read: 'ага' }, { sym: 'I', read: 'и' }, { sym: 'J', read: 'жота' }, { sym: 'K', read: 'ка' }, { sym: 'L', read: 'эли' }, { sym: 'M', read: 'эми' }, { sym: 'N', read: 'эни' }],
+      [{ sym: 'O', read: 'о' }, { sym: 'P', read: 'пэ' }, { sym: 'Q', read: 'кэ' }, { sym: 'R', read: 'эхи' }, { sym: 'S', read: 'эси' }, { sym: 'T', read: 'тэ' }, { sym: 'U', read: 'у' }],
+      [{ sym: 'V', read: 'вэ' }, { sym: 'W', read: 'дабл-ю' }, { sym: 'X', read: 'шис' }, { sym: 'Y', read: 'ипсилон' }, { sym: 'Z', read: 'зэ' }, null, null],
+    ], {
+      note: 'H в начале слова не читается вовсе (hoje [ожи]), а название буквы R — «эхи»: одиночная r между гласными звучит как «р», в начале слова как «х»',
+    }),
+  }, {
+    after: 6,
     caption: 'Буквосочетания читаются не по буквам',
     src: formTable('Как читаются диграфы', ['Написано', 'Звучит', 'Пример'], [
       ['ch', 'ш', 'chave — «шави» (ключ)'],
