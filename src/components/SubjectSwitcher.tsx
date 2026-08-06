@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, Check } from 'lucide-react'
+import ScrollFade from './ScrollFade'
 import { supabase } from '../lib/supabase'
 import { getStudentSession, setStudentSession } from '../lib/studentSession'
 
