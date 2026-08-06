@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
@@ -27,7 +27,7 @@ import GlossedText from './GlossedText'
 import Coachmarks, { type CoachStep } from './Coachmarks'
 import Skeleton from './Skeleton'
 import { hasLexicon } from '../lib/lexicon'
-import { submitTrainerVoice, countTrainerVoice } from '../lib/trainerSpeaking'
+import { submitTrainerVoice, listTrainerVoice, type VoiceEntry } from '../lib/trainerSpeaking'
 import { ownerStudentIdFor, subjectAliases, useStudentData } from '../store/studentDataStore'
 
 // Тренажёр для языковых предметов.
@@ -114,12 +114,17 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
   const [status, setStatus] = useState('')
   const [sort, setSort] = useState('order')
 
+  // Говорение считает свои задания само (список собирается из разговорника), а
+  // рейлу и строке нужны только числа — поэтому они поднимаются оттуда сюда.
+  const [kindFilter, setKindFilter] = useState('')
+  const [speakCounts, setSpeakCounts] = useState({ total: 0, sent: 0, shown: 0 })
+
   // Смена режима сбрасывает выборку: фильтры у режимов разные, и «Уровень B1»,
   // унесённый из чтения в аудирование, молча прячет половину записей.
   function switchMode(m: Mode) {
     setMode(m)
     setFLevel([]); setFSkill([]); setFTopic([]); setFLen('')
-    setQuery(''); setStatus(''); setSort('order')
+    setQuery(''); setStatus(''); setSort('order'); setKindFilter('')
   }
 
   // Результаты по материалам — из localStorage, см. lib/trainerProgress.ts.
@@ -319,18 +324,20 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
   // каждый режим дорисовывал бы в него свою часть, при переключении половина
   // колонки перерисовывалась бы из другого места.
 
+  const speakTotal = countSpeakTasks(allThemes)
+
   const modeCounts: Record<Mode, number | undefined> = {
     reading: allTexts.length,
     vocab: hasBook ? allThemes.reduce((n, x) => n + x.phrases.length, 0) : undefined,
     listening: audio.length,
-    speaking: SPEAKING_PROMPTS.length,
+    speaking: speakTotal,
   }
 
   const heroSubtitle =
     mode === 'vocab' && hasBook ? `${allThemes.reduce((n, x) => n + x.phrases.length, 0)} ${t('фраз')} · ${allThemes.length} ${t('ситуаций')}`
     : mode === 'reading' ? `${allTexts.length} ${t('текстов')}`
     : mode === 'listening' ? `${audio.length} ${t('записей')}`
-    : `${SPEAKING_PROMPTS.length} ${t('заданий')}`
+    : `${speakTotal} ${t('заданий')} · ${speakCounts.sent} ${t('записей')}`
 
   const filtersOn = fLevel.length > 0 || fTopic.length > 0 || fSkill.length > 0 || !!fLen
   const clearFilters = () => { setFLevel([]); setFTopic([]); setFSkill([]); setFLen('') }
@@ -443,6 +450,29 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
         </>
       )}
 
+      {mode === 'speaking' && (
+        <RailCard
+          title="Фильтры"
+          accent={palette.accent}
+          icon={<SlidersHorizontal size={15} />}
+          action={kindFilter ? { label: t('Все'), onClick: () => setKindFilter('') } : undefined}
+        >
+          <RailSegment
+            options={[
+              { value: 'roleplay', label: 'Ролевые' },
+              { value: 'story', label: 'Рассказ' },
+              { value: 'aloud', label: 'Вслух' },
+            ]}
+            value={kindFilter}
+            onChange={setKindFilter}
+            accent={palette.accent}
+            soft={palette.soft}
+          />
+          <RailStat label="Заданий" value={speakTotal} />
+          <RailStat label="Моих записей" value={speakCounts.sent} tone={speakCounts.sent > 0 ? 'good' : undefined} />
+        </RailCard>
+      )}
+
       {mode === 'vocab' && !hasBook && (
         <RailCard title="Колода" accent={palette.accent} icon={<Layers size={15} />}>
           <RailStat label="На сегодня" value={due} tone={due > 0 ? 'warn' : undefined} />
@@ -503,6 +533,22 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
         <ToolCount>
           {visibleThemes.reduce((n, x) => n + x.phrases.length, 0)} {t('фраз')} · {visibleThemes.length} {t('тем')}
         </ToolCount>
+      </Toolbar>
+    )
+  } else if (mode === 'speaking') {
+    toolbar = (
+      <Toolbar>
+        <SearchPill value={query} onChange={setQuery} placeholder={t('Найти задание…')} />
+        <StatusTabs
+          options={[
+            { value: '', label: 'Все' },
+            { value: 'new', label: 'Не записаны' },
+            { value: 'done', label: 'Записано' },
+          ]}
+          value={status}
+          onChange={setStatus}
+        />
+        <ToolCount>{t('Всего:')} {speakCounts.shown}</ToolCount>
       </Toolbar>
     )
   } else if (mode === 'vocab' && openItem) {
@@ -625,7 +671,19 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
       </div>
     )
   } else {
-    content = <Speaking subjectId={subjectId} subject={subject} accent={palette.accent} />
+    content = (
+      <Speaking
+        subjectId={subjectId}
+        subject={subject}
+        accent={palette.accent}
+        palette={palette}
+        themes={allThemes}
+        query={query}
+        kindFilter={kindFilter}
+        status={status}
+        onCounts={setSpeakCounts}
+      />
+    )
   }
 
   return <TrainerShell rail={rail} toolbar={toolbar}>{content}</TrainerShell>
@@ -1143,9 +1201,29 @@ function Listener({ item, accent, palette, lang, onBack }: {
 
 // ─── Говорение ───────────────────────────────────────────────────────────────
 
-// Набор заданий намеренно маленький и постоянный: смысл режима в том, чтобы
-// записывать ОДНО И ТО ЖЕ раз в месяц и слышать собственный прогресс. Изнутри
-// он не слышен вообще, а на двух записях подряд очевиден за десять секунд.
+/**
+ * Задание на говорение.
+ *
+ * `id` собирается из вида и ключа темы и в базу не уходит: записи опознаются по
+ * тексту задания (см. VoiceEntry.prompt), потому что формулировка — это и есть
+ * то, что видит преподаватель. Заводить ради связи отдельный идентификатор
+ * значило бы хранить его в двух местах и однажды разойтись.
+ */
+interface SpeakTask {
+  id: string
+  kind: 'story' | 'roleplay' | 'aloud'
+  title: string
+  prompt: string
+  seconds: number
+}
+
+/**
+ * Рассказы о себе — постоянный набор.
+ *
+ * Он намеренно маленький и не меняется: смысл в том, чтобы записывать ОДНО И ТО
+ * ЖЕ раз в месяц и слышать собственный прогресс. Изнутри он не слышен вообще, а
+ * на двух записях подряд очевиден за десять секунд.
+ */
 const SPEAKING_PROMPTS = [
   'Расскажи о себе: имя, чем занимаешься, зачем учишь язык. Минута.',
   'Опиши свой обычный день с утра до вечера.',
@@ -1154,90 +1232,211 @@ const SPEAKING_PROMPTS = [
   'Какие у тебя планы на ближайший год?',
 ]
 
-function Speaking({ subjectId, subject, accent }: {
-  subjectId: string; subject: string; accent: string
+const STORY_TASKS: SpeakTask[] = SPEAKING_PROMPTS.map((prompt, i) => ({
+  id: `story-${i}`,
+  kind: 'story',
+  title: prompt.split(/[:.]/)[0],
+  prompt,
+  seconds: 60,
+}))
+
+/**
+ * Задания из разговорника.
+ *
+ * Ролевые сценарии написаны для каждой ситуации и до сих пор были видны только
+ * внутри курса — в тренажёре режим предлагал пять рассказов о себе и всё.
+ * Здесь они наконец доезжают до ученика, а чтение вслух собирается из первых
+ * фраз темы: это единственное задание, где произношение проверяется не на
+ * придуманном тексте, а на том, что человек реально будет говорить.
+ */
+/**
+ * Сколько заданий даст разговорник. Считается БЕЗ сборки списка: цифра нужна
+ * рейлу на всех режимах, в том числе пока говорение ни разу не открывали, а
+ * строить ради неё восемьдесят объектов на каждый рендер незачем.
+ */
+function countSpeakTasks(themes: SurvivalThemeCards[]): number {
+  return themes.reduce((n, x) => n + 1 + (x.phrases.length >= 5 ? 1 : 0), 0) + STORY_TASKS.length
+}
+
+function bookTasks(themes: SurvivalThemeCards[]): SpeakTask[] {
+  const out: SpeakTask[] = []
+  for (const x of themes) {
+    out.push({
+      id: `role-${x.theme.id}`,
+      kind: 'roleplay',
+      title: x.theme.title,
+      prompt: x.theme.roleplay,
+      seconds: 90,
+    })
+    if (x.phrases.length >= 5) {
+      out.push({
+        id: `aloud-${x.theme.id}`,
+        kind: 'aloud',
+        title: x.theme.title,
+        prompt: `Прочитайте вслух пять фраз темы: ${x.phrases.slice(0, 5).map(p => p.term).join(' · ')}`,
+        seconds: 45,
+      })
+    }
+  }
+  return out
+}
+
+const KIND_LABEL: Record<SpeakTask['kind'], string> = {
+  story: 'Рассказ',
+  roleplay: 'Ролевое',
+  aloud: 'Чтение вслух',
+}
+
+function Speaking({ subjectId, subject, accent, palette, themes, query, kindFilter, status, onCounts }: {
+  subjectId: string
+  subject: string
+  accent: string
+  palette: { accent: string; text: string; soft: string; ring: string }
+  themes: SurvivalThemeCards[]
+  query: string
+  kindFilter: string
+  status: string
+  /** Отдаёт наверх счётчики для рейла и строки — их считает этот компонент. */
+  onCounts: (c: { total: number; sent: number; shown: number }) => void
 }) {
   const t = useT()
-  const [promptIdx, setPromptIdx] = useState(0)
-  const [sent, setSent] = useState(0)
-  const [status, setStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle')
+  const [open, setOpen] = useState<SpeakTask | null>(null)
+  const [entries, setEntries] = useState<VoiceEntry[]>([])
+  const [sendState, setSendState] = useState<'idle' | 'sending' | 'done' | 'error'>('idle')
 
   const owner = useMemo(() => ownerStudentIdFor(subjectId), [subjectId])
 
+  const tasks = useMemo(() => [...bookTasks(themes), ...STORY_TASKS], [themes])
+
   useEffect(() => {
     let alive = true
-    countTrainerVoice(owner, subjectId)
-      .then(n => { if (alive) setSent(n) })
-      .catch(() => {})
+    listTrainerVoice(owner, subjectId)
+      .then(rows => { if (alive) setEntries(rows) })
+      .catch(() => { /* лента — не повод ронять режим */ })
     return () => { alive = false }
-  }, [owner, subjectId])
+  }, [owner, subjectId, sendState])
+
+  /** По каким заданиям запись уже уходила. Ключ — текст задания. */
+  const sentPrompts = useMemo(() => new Set(entries.map(e => e.prompt).filter(Boolean)), [entries])
+
+  const shown = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return tasks.filter(x => {
+      if (kindFilter && x.kind !== kindFilter) return false
+      const done = sentPrompts.has(x.prompt)
+      if (status === 'new' && done) return false
+      if (status === 'done' && !done) return false
+      if (q && !`${x.title} ${x.prompt}`.toLowerCase().includes(q)) return false
+      return true
+    })
+  }, [tasks, kindFilter, status, query, sentPrompts])
+
+  useEffect(() => {
+    onCounts({ total: tasks.length, sent: entries.length, shown: shown.length })
+  }, [tasks.length, entries.length, shown.length, onCounts])
 
   async function handleRecorded(path: string | null) {
-    if (!path) return
-    setStatus('sending')
+    if (!path || !open) return
+    setSendState('sending')
     try {
-      await submitTrainerVoice(owner, subjectId, subject, path, SPEAKING_PROMPTS[promptIdx])
-      setSent(n => n + 1)
-      setStatus('done')
+      await submitTrainerVoice(owner, subjectId, subject, path, open.prompt)
+      setSendState('done')
     } catch (e) {
       console.error('submitTrainerVoice:', e)
-      setStatus('error')
+      setSendState('error')
     }
   }
 
+  // ── Одно задание ───────────────────────────────────────────────────────────
+  if (open) {
+    const mine = entries.filter(e => e.prompt === open.prompt)
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{
+          padding: '16px 18px', borderRadius: 18,
+          background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <TileChip tone="accent" accent={accent} soft={palette.soft}>{t(KIND_LABEL[open.kind])}</TileChip>
+            <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{open.seconds} {t('с')}</span>
+          </div>
+          <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-text)' }}>{t(open.prompt)}</p>
+        </div>
+
+        <VoiceRecorder value={null} onChange={handleRecorded} maxSeconds={open.seconds + 30} />
+
+        {sendState === 'sending' && (
+          <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Отправляем преподавателю…')}</p>
+        )}
+        {sendState === 'done' && (
+          <p style={{ fontSize: 13, color: 'var(--color-green-text)', fontWeight: 600 }}>
+            {t('Записано и отправлено. Преподаватель послушает и разберёт.')}
+          </p>
+        )}
+        {sendState === 'error' && (
+          <p style={{ fontSize: 13, color: 'var(--color-red-text)', fontWeight: 600 }}>
+            {t('Не получилось отправить. Проверь связь и попробуй ещё раз.')}
+          </p>
+        )}
+
+        {/* История именно этого задания — то, ради чего режим и нужен: две
+            записи с разницей в месяц стоят рядом и слушаются подряд. */}
+        {mine.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)' }}>
+              {t('Ваши записи по этому заданию')}: {mine.length}
+            </div>
+            {mine.map(e => (
+              <div key={e.id} style={{
+                display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 12,
+                background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
+              }}>
+                <Mic size={14} style={{ color: accent, flexShrink: 0 }} />
+                <span style={{ flex: 1, fontSize: 12.5, color: 'var(--color-text-2)' }}>
+                  {new Date(e.at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+                </span>
+                <TileChip>{t('на проверке')}</TileChip>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ── Список заданий ─────────────────────────────────────────────────────────
+  if (shown.length === 0) {
+    return <ShellEmpty text="Под выбранные фильтры ничего не подошло. Сбрось один из них." />
+  }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{
-        padding: '16px 18px', borderRadius: 18,
-        background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
-      }}>
-        <p style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.3, color: 'var(--color-text-3)', marginBottom: 8 }}>
-          {t('Задание')}
-        </p>
-        <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-text)' }}>
-          {t(SPEAKING_PROMPTS[promptIdx])}
-        </p>
-      </div>
-
-      <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
-        {SPEAKING_PROMPTS.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => { setPromptIdx(i); setStatus('idle') }}
-            style={{
-              width: 30, height: 30, borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
-              fontSize: 13, fontWeight: 700,
-              border: `1px solid ${i === promptIdx ? accent : 'var(--color-border-soft)'}`,
-              background: i === promptIdx ? 'var(--color-bg-3)' : 'var(--color-bg-2)',
-              color: i === promptIdx ? accent : 'var(--color-text-3)',
-            }}
-          >
-            {i + 1}
-          </button>
-        ))}
-      </div>
-
-      <VoiceRecorder value={null} onChange={handleRecorded} maxSeconds={120} />
-
-      {status === 'sending' && (
-        <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Отправляем преподавателю…')}</p>
-      )}
-      {status === 'done' && (
-        <p style={{ fontSize: 13, color: 'var(--color-green-text)', fontWeight: 600 }}>
-          {t('Записано и отправлено. Преподаватель послушает и разберёт.')}
-        </p>
-      )}
-      {status === 'error' && (
-        <p style={{ fontSize: 13, color: 'var(--color-red-text)', fontWeight: 600 }}>
-          {t('Не получилось отправить. Проверь связь и попробуй ещё раз.')}
-        </p>
-      )}
-
-      <p style={{ fontSize: 12.5, color: 'var(--color-muted)', lineHeight: 1.6 }}>
-        {sent > 0
-          ? `${t('Отправлено записей:')} ${sent}. ${t('Запиши то же задание через месяц и послушай обе подряд — прогресс изнутри не слышен, а на записи заметен сразу.')}`
-          : t('Записи не стираются: можно вернуться к тому же заданию через месяц и сравнить себя с собой.')}
-      </p>
-    </div>
+    <TileGrid min={236}>
+      {shown.map(x => {
+        const done = sentPrompts.has(x.prompt)
+        return (
+          <Tile key={x.id} accent={accent} onClick={() => { setOpen(x); setSendState('idle') }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <TileChip tone="accent" accent={accent} soft={palette.soft}>{t(KIND_LABEL[x.kind])}</TileChip>
+              <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{x.seconds} {t('с')}</span>
+            </span>
+            <span style={{ fontSize: 14.5, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.3 }}>
+              {t(x.title)}
+            </span>
+            <span style={{
+              flex: 1, fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45,
+              overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3,
+            }}>
+              {t(x.prompt)}
+            </span>
+            <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
+              <span style={{ color: 'var(--color-text-3)' }}>
+                {done ? t('записано') : t('не записано')}
+              </span>
+              {done && <Check size={13} style={{ color: 'var(--color-green-text)' }} />}
+            </span>
+          </Tile>
+        )
+      })}
+    </TileGrid>
   )
 }

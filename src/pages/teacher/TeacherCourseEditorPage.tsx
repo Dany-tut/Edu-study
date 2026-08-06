@@ -7,7 +7,7 @@ import {
   PenLine, Star, ChevronRight, ChevronDown, Users,
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
-  ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Copy,
+  ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Copy, RefreshCw,
 } from 'lucide-react'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { useTeacher } from '../../store/teacherStore'
@@ -30,6 +30,9 @@ import { typeVisual } from '../../data/taskTypeVisuals'
 import { taskTypesFor, makeTask, TASK_TYPES as TASK_TYPES_BY_ID, type TaskTypeId, type TaskPayload, type PatternItem } from '../../data/taskTypes'
 import { supabase } from '../../lib/supabase'
 import { readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
+import { restoreSeedTheory } from '../../data/seedTheory'
+import { diffAgainstSeed, applySeedChanges, type SeedDiff } from '../../lib/seedSync'
+import SeedSyncDialog from '../../components/teacher/SeedSyncDialog'
 import {
   theoryToParagraphs, appendTheoryImage, removeTheoryImage, captionOf,
   type TheoryImage,
@@ -3589,6 +3592,28 @@ export default function TeacherCourseEditorPage() {
     return draft ?? base
   })
 
+  // Конспект, потерянный при сохранении, добираем из сида — иначе редактор
+  // показывает пустое поле и следующее «Сохранить» закрепляет пустоту в БД
+  // (разбор храповика — в data/seedTheory.ts). Накрывает и залипший черновик,
+  // потому что чинится уже после того, как состояние собрано.
+  //
+  // Эффектом, а не в инициализаторе: контент сида приезжает отдельным чанком и
+  // добирается асинхронно. Пока он едет, редактор показывает то, что пришло из
+  // БД, — то есть ровно то же, что показывал бы и раньше; починка досыпается
+  // следом. Правки учителя при этом не затираются: setCourse сверяет, что за
+  // это время состояние не ушло вперёд.
+  const theoryRestored = useRef(false)
+  useEffect(() => {
+    if (theoryRestored.current) return
+    theoryRestored.current = true
+    let alive = true
+    ;(async () => {
+      const fixed = await restoreSeedTheory(course)
+      if (alive && fixed !== course) setCourse(c => (c === course ? fixed : c))
+    })()
+    return () => { alive = false }
+  }, [course])
+
   // ── Draft persistence ───────────────────────────────────────────────────────
   // Mirror every edit of the main course object into sessionStorage so no input
   // is lost on a reload/remount. Cleared ONLY after a successful save (see
@@ -3612,6 +3637,23 @@ export default function TeacherCourseEditorPage() {
   function clearCourseDraftAfterSync(seqAtSave: number, synced: boolean) {
     if (synced && draftSeq.current === seqAtSave) clearDrafts(draftNs)
   }
+
+  // ── Сверка с сидом ─────────────────────────────────────────────────────────
+  //
+  // Считается на каждое изменение курса, потому что после применения список
+  // обязан схлопнуться: кнопка с числом «12» над курсом, где уже всё подтянуто,
+  // врала бы. Сборка сида не бесплатна, но и не горяча — курс меняется от
+  // действий человека, а не в кадре анимации.
+  // Асинхронно: сборка сида требует его чанка (см. courseSeeds.ts). До ответа
+  // список изменений пуст — кнопка «Подтянуть из сида» просто не показывается,
+  // а не мигает неверным числом.
+  const [seedDiff, setSeedDiff] = useState<SeedDiff>({ seedKey: null, changes: [] })
+  useEffect(() => {
+    let alive = true
+    diffAgainstSeed(course).then(d => { if (alive) setSeedDiff(d) })
+    return () => { alive = false }
+  }, [course])
+  const [seedSyncOpen, setSeedSyncOpen] = useState(false)
 
   // Remember which lesson + tab the teacher was on, so a page refresh lands them
   // back where they were (per-tab, keyed by course).
@@ -4321,6 +4363,16 @@ export default function TeacherCourseEditorPage() {
           <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* Сверка с готовым курсом. Кнопка есть только у курса, собранного из
+              сида, и только когда расхождения реально нашлись: «Подтянуть»,
+              которая каждый раз отвечает «всё совпадает», — это шум в шапке. */}
+          {seedDiff.changes.length > 0 && (
+            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={() => setSeedSyncOpen(true)}
+              title={t('Показать, что изменилось в готовом курсе с момента добавления')}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '9px 15px', borderRadius: 999, border: '1px solid var(--color-accent)', background: 'var(--color-purple-soft)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+              <RefreshCw size={14} strokeWidth={2} /> {t('Подтянуть из сида')} · {seedDiff.changes.length}
+            </motion.button>
+          )}
           {course.dbCourseId && (
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={openHandout}
               title={t('Скопировать курс для другой группы со своим стартом дат')}
@@ -4349,6 +4401,22 @@ export default function TeacherCourseEditorPage() {
             style={{}} />
         </div>
       </motion.div>
+
+      {/* ── Сверка с готовым курсом ── */}
+      {seedSyncOpen && (
+        <SeedSyncDialog
+          diff={seedDiff}
+          onClose={() => setSeedSyncOpen(false)}
+          onApply={async keys => {
+            // Сид уже в памяти — его чанк подгрузился, когда считался diff, —
+            // но применение всё равно ждёт промиса, а не собирает курс в
+            // сеттере: setCourse обязан получить объект, а не обещание.
+            const applied = await applySeedChanges(course, keys)
+            setCourse(applied)
+            setSeedSyncOpen(false)
+          }}
+        />
+      )}
 
       {/* ── «Выдать новой группе» modal ── */}
       {handoutOpen && createPortal(

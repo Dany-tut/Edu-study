@@ -957,6 +957,23 @@ const EN: Record<string, string> = {
   "Ответ:": "Answer:",
   "Показать ответ": "Show answer",
 
+  // — Сверка курса с готовым (сидом) —
+  "Подтянуть из сида": "Pull from template",
+  "Показать, что изменилось в готовом курсе с момента добавления": "Show what changed in the template since you added it",
+  "Что изменилось в готовом курсе": "What changed in the template",
+  "Применится к курсу в редакторе — в базу уйдёт после «Сохранить»": "Applies to the course in the editor — saved to the database on “Save”",
+  "Расхождений нет — курс совпадает с готовым.": "No differences — the course matches the template.",
+  "Добавится": "Will be added",
+  "Ничего не затирает: этих уроков и заданий в курсе просто нет.": "Nothing is overwritten: these lessons and tasks are simply missing.",
+  "Перезапишется": "Will be overwritten",
+  "Может стереть ваши правки — отметьте только то, что готовы отдать сиду.": "May erase your edits — tick only what you are willing to hand back.",
+  "отметить все": "select all",
+  "снять все": "clear all",
+  "подробнее": "details",
+  "скрыть": "hide",
+  "Выбрано:": "Selected:",
+  "Применить": "Apply",
+
   // — Подстановочный дрилл —
   "Дрилл по шаблону": "Pattern drill",
   "Одна конструкция, несколько подстановок": "One structure, several substitutions",

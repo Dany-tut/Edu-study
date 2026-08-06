@@ -107,20 +107,30 @@ export const PORTUGUESE_VIDEO_EXTRA: Record<string, string> = {
 /** Английский для дизайнера: CareerVidz и разборы деловой переписки. */
 export const ENDC_VIDEO_EXTRA: Record<string, string> = {
   'endc-02': yt('QCydftAlEn0'), // 11 powerful resume words — глаголы достижений
+  'endc-03': yt('SN-CSA39Dwk'), // Top 7 CV mistakes — первая как раз «обязанности вместо результата»
   'endc-04': yt('Y9Pyv-GWbmg'), // How to write a CV or resume
+  'endc-05': yt('ZVZfWfqmRBY'), // Mizko: как показывать кейс на собеседовании
+  'endc-06': yt('YW7a9jdhPGw'), // NNgroup: Presenting Your UX Case Study
   'endc-07': yt('ntCDxb4TX5M'), // Cover letter that gets you hired
   'endc-08': yt('WIHEAhNqBdU'), // 3-sentence cover letter
   'endc-09': yt('fvtM-SHkc98'), // ATS-friendly resume
   'endc-10': yt('zJ1knywBYrA'), // Top 7 interview questions — скрининг
   'endc-11': yt('xIOU-8DzTY0'), // How to be a great communicator
   'endc-13': yt('uQEuo7woEEk'), // STAR interview questions & answers
+  'endc-14': yt('ZVZfWfqmRBY'), // тот же разбор кейса — теперь про защиту вслух
   'endc-15': yt('xIOU-8DzTY0'), // тот же разбор — про слушать и уточнять
   'endc-16': yt('xIOU-8DzTY0'),
   'endc-17': yt('BD6mIshlv0I'), // Top 11 interview questions — в том числе ваши вопросы
+  'endc-18': yt('HZw-DY6ryQo'), // Thank you email after the interview
+  'endc-19': yt('YW7a9jdhPGw'), // защита решения — та же логика, что в кейсе
   'endc-21': yt('aBQEIg4UMd4'), // 3-step script to negotiate your offer
   'endc-22': yt('QxM74kikM6o'), // How to introduce yourself to a new team
+  'endc-23': yt('xIOU-8DzTY0'),
+  'endc-24': yt('5V66BfrijUk'), // Speak English Confidently at Stand-Up Meetings
+  'endc-25': yt('1XctnF7C74s'), // HBR: 8 Email Etiquette Tips
   'endc-26': yt('xIOU-8DzTY0'),
   'endc-27': yt('Tg_utwR43xM'), // Negotiate in English — деловой созвон
+  'endc-28': yt('MsxcpZr1LpM'), // живой стендап разработчиков — язык на реальной работе
 }
 
 /** IELTS: E2 IELTS и IELTS Liz — по секциям экзамена. */

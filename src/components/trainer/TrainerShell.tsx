@@ -17,18 +17,51 @@
 // повторена его визуальная логика, а не импортированы его куски. Когда банк
 // поедет сюда, свои копии он потеряет — сверять придётся именно с этим файлом.
 //
-// ШИРИНА РЕЙЛА. 300 px, как в банке. На узком экране (< 1000) рейл уезжает
-// НАД содержимым, а не сжимается: сжатая до 180 px карточка фильтров
-// нечитаема, а телефону всё равно нужна своя вёрстка со шторками.
+// ШИРИНА РЕЙЛА. 300 px, как в банке. Сжимать его нельзя: карточка фильтров на
+// 180 px нечитаема. Поэтому на узком экране (< 1000) рейл целиком уходит в
+// нижнюю шторку — тем же приёмом, что фильтры банка на телефоне, и открывается
+// одной кнопкой над строкой управления. Ставить его НАД содержимым (как было
+// сначала) не годится: три карточки подряд занимают весь первый экран, и до
+// результатов нужно пролистать фильтры, которыми в этот момент не пользуются.
+//
+// ВЫСОТА РЕЙЛА. Рейл не длиннее экрана: карточка упирается в нижний край окна и
+// дальше листается ВНУТРИ себя. Раньше он был просто sticky по всей своей
+// натуральной высоте — режимы + фильтры + показ не влезали в 720 px, и низ
+// рейла можно было достать только прокруткой всей страницы, то есть уехав от
+// сетки результатов. Теперь центр и рейл листаются независимо.
+//
+// ГОРИЗОНТАЛЬ. Своей максимальной ширины и авто-полей у скелета НЕТ: на широком
+// мониторе они уводили тренажёр в центр, тогда как банк ЕГЭ, уроки и курсы
+// прижаты к левому краю отступом .dashboard-main (32 px). Отступ по бокам даёт
+// родитель; свой остаётся только на узком экране, где обёртки кабинета нет.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Search, Check } from 'lucide-react'
+import { ChevronDown, Search, Check, SlidersHorizontal } from 'lucide-react'
 import { useT } from '../../lib/i18n'
+import MobileSheet from '../MobileSheet'
 
 const RAIL_W = 300
+
+/**
+ * Прилипание рейла — ровно его же отступ в потоке.
+ *
+ * Смещение sticky отсчитывается от СОДЕРЖИМОГО панели прокрутки, а не от её
+ * рамки: верхние 100 px кабинета (место под плавающую шапку) — это padding
+ * панели, и в отсчёт они не входят. Поэтому top равен собственному верхнему
+ * отступу скелета: рейл прилипает там же, где стоит, и при прокрутке не
+ * сдвигается ни на пиксель. Число больше (108) уронило бы карточку на те самые
+ * 100 px ниже строки управления.
+ */
+const RAIL_TOP = 8
+
+/** Просвет под рейлом до низа окна. */
+const RAIL_BOTTOM = 24
+
+/** Высота рейла на первом кадре, до замера: экран минус шапка кабинета. */
+const RAIL_MAX_FALLBACK = `calc(100vh - ${100 + RAIL_TOP + RAIL_BOTTOM}px)`
 
 /** Ширина, ниже которой рейл встаёт над содержимым. */
 const BREAK = 1000
@@ -54,32 +87,97 @@ export default function TrainerShell({ rail, toolbar, children }: {
   toolbar?: React.ReactNode
   children: React.ReactNode
 }) {
+  const t = useT()
   const narrow = useNarrow()
+  const [sheet, setSheet] = useState(false)
+  const railRef = useRef<HTMLElement>(null)
+
+  // Ушли с телефона на десктоп — шторка обязана закрыться сама, иначе она
+  // останется висеть поверх уже нарисованного рейла.
+  useEffect(() => { if (!narrow) setSheet(false) }, [narrow])
+
+  // Высота рейла считается по факту, а не по формуле: карточка прилипла и
+  // больше не двигается, значит её верх в окне — величина постоянная, и остаток
+  // до низа экрана и есть та высота, после которой начинается свой скролл.
+  // Замер вместо константы — чтобы шапка кабинета могла менять высоту (или
+  // вовсе отсутствовать, если скелет позовут из другого места), а рейл всё
+  // равно доставал ровно до нижнего края окна.
+  const [railMax, setRailMax] = useState<number | null>(null)
+  useLayoutEffect(() => {
+    if (narrow) { setRailMax(null); return }
+    const measure = () => {
+      const el = railRef.current
+      if (!el) return
+      setRailMax(Math.max(240, window.innerHeight - el.getBoundingClientRect().top - RAIL_BOTTOM))
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [narrow])
+
   return (
     <div style={{
-      width: '100%', maxWidth: 1280, margin: '0 auto', padding: '8px 20px 80px',
+      width: '100%', padding: narrow ? '8px 16px 80px' : '8px 0 80px',
       display: 'flex', flexDirection: narrow ? 'column' : 'row',
       gap: narrow ? 16 : 22, alignItems: 'flex-start',
     }}>
+      {/* На узком экране рейл уходит в шторку целиком — см. кнопку «Фильтры»
+          ниже. Раньше он просто вставал НАД содержимым: три карточки подряд
+          занимали весь первый экран, и до самих результатов нужно было
+          пролистать фильтры, которыми в тот момент никто не пользуется. */}
+      {narrow ? (
+        <MobileSheet open={sheet} onClose={() => setSheet(false)} title={t('Фильтры')}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>{rail}</div>
+        </MobileSheet>
+      ) : null}
+
       {/* sticky отдельной обёрткой, а не на самой карточке: у карточки есть
           собственный фон и тень, и position на ней ловит их в отдельный слой,
           из-за чего тень начинает мигать при остановке скролла. */}
       <div style={{
-        position: narrow ? 'static' : 'sticky', top: 8,
+        display: narrow ? 'none' : 'block',
+        position: narrow ? 'static' : 'sticky', top: RAIL_TOP,
         flexShrink: 0, width: narrow ? '100%' : RAIL_W,
       }}>
-        <aside style={{
-          display: 'flex', flexDirection: 'column', gap: 14,
-          padding: 14, borderRadius: 24,
-          background: 'rgba(var(--glass-rgb), 0.97)',
-          border: '1px solid var(--color-border-glass)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
-        }}>
+        <aside
+          ref={railRef}
+          className="no-scrollbar"
+          style={{
+            display: 'flex', flexDirection: 'column', gap: 14,
+            padding: 14, borderRadius: 24,
+            background: 'rgba(var(--glass-rgb), 0.97)',
+            border: '1px solid var(--color-border-glass)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+            // Карточка обнимает содержимое, пока оно короче экрана, и только
+            // упёршись в нижний край окна отдаёт остаток собственному скроллу.
+            ...(narrow ? null : {
+              maxHeight: railMax ?? RAIL_MAX_FALLBACK,
+              overflowY: 'auto' as const,
+              overscrollBehavior: 'contain' as const,
+            }),
+          }}
+        >
           {rail}
         </aside>
       </div>
 
       <main style={{ flex: 1, minWidth: 0, width: narrow ? '100%' : undefined, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* Кнопка открытия шторки идёт ПЕРЕД строкой управления, а не внутри
+            неё: строку собирает вызывающий, и вставлять туда чужой элемент
+            значило бы, что каждый режим обязан помнить про телефон. */}
+        {narrow && (
+          <button
+            onClick={() => setSheet(true)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+              padding: '11px 16px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+              fontSize: 13.5, fontWeight: 700, color: 'var(--color-text)',
+              background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-medium)',
+            }}
+          >
+            <SlidersHorizontal size={15} /> {t('Режим и фильтры')}
+          </button>
+        )}
         {toolbar}
         {children}
       </main>
@@ -276,8 +374,19 @@ export function RailList({ items, value, onChange, accent, soft }: {
   accent: string
   soft: string
 }) {
+  // На широком экране скроллится сам рейл, и вложенная 300-пиксельная коробка
+  // была бы вторым скроллом внутри первого: колесо над списком дёргало бы то
+  // его, то карточку. На узком рейл лежит НАД содержимым во всю ширину и своего
+  // скролла не имеет — там ограничение по высоте остаётся.
+  const narrow = useNarrow()
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 300, overflowY: 'auto' }} className="no-scrollbar">
+    <div
+      className="no-scrollbar"
+      style={{
+        display: 'flex', flexDirection: 'column', gap: 2,
+        ...(narrow ? { maxHeight: 300, overflowY: 'auto' as const } : null),
+      }}
+    >
       {items.map(i => {
         const on = i.id === value
         return (

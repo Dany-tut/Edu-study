@@ -36,6 +36,7 @@ import {
   dictation, dictationBank, drill,
 } from './languageCourse'
 import { formTable, contrastPair, ladderFigure } from './lessonFigures'
+import { KOREAN2_THEORY } from './koreanTopik2Theory'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -1165,6 +1166,7 @@ export const KOREAN2_UNITS: LangUnit[] = [
 
 export const KOREAN2_FIGURES: CourseFigures = {
   'kot2-05': [{
+    after: 3,
     caption: 'Косвенная речь: форма зависит от того, что за часть речи цитируется',
     src: formTable('~다고 하다', ['Что цитируем', 'Прямая речь', 'Косвенная'], [
       ['глагол', '간다 / 가요', '간다고 해요'],
@@ -1175,6 +1177,7 @@ export const KOREAN2_FIGURES: CourseFigures = {
   }],
 
   'kot2-07': [{
+    after: 4,
     caption: 'Три способа сказать «чтобы» — и они не взаимозаменяемы',
     src: formTable('Цель: ~(으)러 / ~(으)려고 / ~기 위해', ['Форма', 'Когда', 'Пример'], [
       ['~(으)러', 'только с глаголами движения', '밥 먹으러 가요'],
@@ -1184,6 +1187,7 @@ export const KOREAN2_FIGURES: CourseFigures = {
   }],
 
   'kot2-13': [{
+    after: 3,
     caption: 'У части глаголов уважительная форма — отдельное слово',
     src: formTable('Гоноратив: супплетивные формы', ['Обычный', 'Уважительный', 'Значение'], [
       ['먹다 / 마시다', '드시다 / 잡수시다', 'есть, пить'],
@@ -1195,6 +1199,7 @@ export const KOREAN2_FIGURES: CourseFigures = {
   }],
 
   'kot2-14': [{
+    after: 3,
     caption: 'Один и тот же набор суффиксов даёт пассив и каузатив',
     src: formTable('Пассив и каузатив на 이/히/리/기', ['Активный', 'Пассив', 'Каузатив'], [
       ['먹다 есть', '먹히다 быть съеденным', '먹이다 кормить'],
@@ -1206,6 +1211,7 @@ export const KOREAN2_FIGURES: CourseFigures = {
   }],
 
   'kot2-16': [{
+    after: 4,
     caption: 'Степени уверенности: от догадки до уверенного вывода',
     src: ladderFigure('Насколько вы уверены', [
       { label: '~(으)ㄹ 것이다 / 겠지요', sub: 'уверен, но допускаю ошибку' },
@@ -1216,6 +1222,7 @@ export const KOREAN2_FIGURES: CourseFigures = {
   }],
 
   'kot2-17': [{
+    after: 2,
     caption: 'Письменный стиль — не «вежливее», а просто другой',
     src: contrastPair('해요체 и 해라체', {
       head: '해요체', sub: 'речь, сообщения, разговор',
@@ -1236,7 +1243,9 @@ export const KOREAN_TOPIK2: LanguageCourseSpec = {
   guidedHours: '280–340',
   scopeNote: 'Продолжение курса «Корейский с нуля». Вход — уверенный 해요체 и базовые частицы. Цель — 3급–4급; 5급–6급 остаются за рамками.',
   modules: KOREAN2_MODULES,
-  units: KOREAN2_UNITS,
+  // Конспекты живут отдельным файлом: здесь — последовательность и задания,
+  // там — то, что ученик читает.
+  units: KOREAN2_UNITS.map(u => ({ ...u, theory: KOREAN2_THEORY[u.shortId] ?? u.theory })),
   figures: KOREAN2_FIGURES,
 }
 

@@ -78,13 +78,21 @@ export async function submitTrainerVoice(
     v: 2,
     tasks: [{
       key: TASK_KEY,
-      statement: prompt,
+      // Постоянная подпись блока. Раньше сюда писали текст последнего задания,
+      // и это было ошибкой в обе стороны: преподаватель видел под ВСЕМИ
+      // записями формулировку той, что пришла последней, а ученик не мог
+      // узнать, на какое задание он уже отвечал. Задание принадлежит записи, а
+      // не ленте, поэтому переехало в саму запись.
+      statement: 'Говорение — тренажёр',
       solutions: [
         ...solutions,
         {
           id: `${Date.now()}`,
           at: new Date().toISOString(),
-          answer: '',
+          // Текстовое поле решения занято формулировкой: у голосового ответа
+          // своего текста нет, а преподавателю нужно видеть, что именно
+          // просили сказать, рядом с каждой записью.
+          answer: prompt,
           photos: [],
           board: null,
           voice: voicePath,
@@ -106,6 +114,40 @@ export async function submitTrainerVoice(
   }, { onConflict: 'student_id,lesson_ref' })
 
   if (error) throw error
+}
+
+/** Одна отправленная запись — то, что показывает экран говорения. */
+export interface VoiceEntry {
+  id: string
+  /** ISO — когда отправлено. */
+  at: string
+  /** Формулировка задания. У записей, сделанных до правки, пустая. */
+  prompt: string
+  /** Путь файла в бакете task-media. */
+  voice: string
+}
+
+/**
+ * Лента записей ученика по предмету, от новых к старым.
+ *
+ * Возвращает ВСЕ записи, а не сводку: экран говорения показывает по ним и
+ * статус каждого задания («это я уже записывал»), и историю, в которой две
+ * записи одного задания с разницей в месяц стоят рядом — ради этого сравнения
+ * режим и существует.
+ */
+export async function listTrainerVoice(studentId: string, subjectId: string): Promise<VoiceEntry[]> {
+  const { data } = await supabase
+    .from('lesson_progress')
+    .select('attachments')
+    .eq('student_id', studentId)
+    .eq('lesson_ref', trainerSpeakingRef(subjectId))
+    .maybeSingle()
+
+  const att = (data?.attachments ?? null) as Attachments | null
+  const solutions = att?.tasks?.find(x => x.key === TASK_KEY)?.solutions ?? []
+  return solutions
+    .map(s => ({ id: s.id, at: s.at, prompt: s.answer ?? '', voice: s.voice }))
+    .sort((a, b) => b.at.localeCompare(a.at))
 }
 
 /** Сколько записей ученик уже отправил по этому предмету. */

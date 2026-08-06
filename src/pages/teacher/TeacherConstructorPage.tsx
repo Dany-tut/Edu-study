@@ -7755,7 +7755,9 @@ export default function TeacherConstructorPage() {
   // Готовый курс из сида. Id курса стабилен (`seed-<ключ>`), а не случайный:
   // повторное открытие того же сида ведёт в тот же курс, а не плодит копии.
   async function goToSeedCourseEditor(seed: CourseSeed) {
-    openCourseEditor(JSON.stringify(seed.build(seedCourseId(seed, ownerId ?? await getOwnerId()))))
+    // build асинхронный: контент курса приезжает своим чанком по клику, а не
+    // лежит в главном бандле у всех (см. courseSeeds.ts).
+    openCourseEditor(JSON.stringify(await seed.build(seedCourseId(seed, ownerId ?? await getOwnerId()))))
   }
 
   function goToNewCourseEditor() {
