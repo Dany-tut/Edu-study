@@ -21,6 +21,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
 import { RotateCcw, Volume2, Undo2, Layers } from 'lucide-react'
 import { dueCards, gradeCard, type ReviewCard } from '../data/reviewDeck'
+import { subjectAliases, useStudentData } from '../store/studentDataStore'
 import { intervalLabel, review, type ReviewGrade } from '../lib/srs'
 import { haptic } from '../lib/feedback'
 import { speechLocale, speechMs, speechText } from '../lib/speech'
@@ -120,6 +121,12 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
   accent: string
   /** Код языка для озвучки (en, ko, ja). Без него кнопка «послушать» не рисуется. */
   lang?: string
+  /**
+   * Предмет экрана (слаг реестра или русское имя). Задан — колода читается
+   * только по нему: в языковом тренажёре чужие карточки и лимит сессии съедают,
+   * и озвучиваются голосом не того языка. Не задан — вся колода, как на общем
+   * экране повторения.
+   */
   subject?: string
   /** Что показать под пустой колодой — например «загрузить слова из текстов». */
   emptyExtra?: React.ReactNode
@@ -136,9 +143,16 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
 
   const binary = source?.grading === 'binary'
 
+  // Синонимы предмета зависят от курсов ученика, а те приезжают асинхронно:
+  // считать список один раз на монтировании значит на холодной загрузке
+  // потерять карточки, записанные под short_id курса. Поэтому подписываемся на
+  // курсы — колода перечитается, когда список приедет.
+  const courses = useStudentData(s => s.subjects)
+  const subjects = useMemo(() => subject ? subjectAliases(subject) : undefined, [subject, courses])
+
   useEffect(() => {
     let alive = true
-    const load = source ? source.load() : dueCards(owner ?? {}, 20)
+    const load = source ? source.load() : dueCards(owner ?? {}, 20, subjects)
     load.then(cards => {
       if (!alive) return
       // Демо-подмена только у колоды повторений: своя стопка пустая значит
@@ -147,7 +161,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
       setQueue(buildQueue(use, source ? source.judge ?? false : true))
     })
     return () => { alive = false }
-  }, [owner?.studentId, owner?.anonName, source])
+  }, [owner?.studentId, owner?.anonName, source, subjects])
 
   const seat = queue && idx < queue.length ? queue[idx] : null
 
@@ -461,6 +475,21 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
         </>
       ) : (
         <>
+          {/* Предметный рисунок на лицевой стороне: слово вспоминается от
+              предмета, а не от русского перевода — перевод и есть ответ,
+              который сейчас закрыт. После переворота картинка ужимается,
+              чтобы освободить место переводу и заметке. */}
+          {seat.card.image && (
+            <img
+              src={seat.card.image}
+              alt=""
+              style={{
+                display: 'block', width: revealed ? 56 : 104, height: 'auto',
+                borderRadius: 12, background: '#fff', marginBottom: 10,
+                transition: 'width 0.18s ease',
+              }}
+            />
+          )}
           {/* Кегль по длине: слово должно читаться через всю комнату, а условие
               задания на 300 знаков тем же кеглем просто не влезет в карточку. */}
           <div style={{

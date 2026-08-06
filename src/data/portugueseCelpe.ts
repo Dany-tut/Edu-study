@@ -41,10 +41,10 @@
 import {
   buildLanguageCourse, courseSummary, allVocab, unitByShortId, moduleOfUnit,
   one, many, fill, wb, order, pairsOf, grid, write, say, readAloud,
-  dictation, dictationBank, minPair, describeImage,
+  dictation, dictationBank, minPair, describeImage, drill,
 } from './languageCourse'
 import { streetMapImage } from './seedImages'
-import { PORTUGUESE_THEORY } from './portugueseCelpeTheory'
+import { PORTUGUESE_THEORY, PORTUGUESE_VIDEO } from './portugueseCelpeTheory'
 import { formTable, contrastPair, clockRow } from './lessonFigures'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
@@ -187,6 +187,18 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
     grammarWhy: 'В русском связка отсутствует («я студент»), поэтому выбирать между двумя её вариантами непривычно и делается наугад. Правило простое — «какой я вообще» против «какой я сейчас», — и его надо усвоить в первом же диалоге.',
     vocabTheme: 'Знакомство и состояния',
     artifact: 'Устное представление на 30 секунд',
+    pattern: drill(
+      'ser / estar',
+      'постоянное свойство против состояния',
+      [
+        ['я — врач (профессия)', 'Eu sou médico', 'Я врач.'],
+        ['я — бразилец', 'Eu sou brasileiro', 'Я бразилец.'],
+        ['я устал (сейчас)', 'Eu estou cansado', 'Я устал.'],
+        ['я дома (сейчас)', 'Eu estou em casa', 'Я дома.'],
+        ['она красивая (свойство)', 'Ela é bonita', 'Она красивая.'],
+      ],
+      'ser — то, что определяет предмет, estar — то, что с ним сейчас. Ela é bonita и Ela está bonita — разные утверждения.',
+    ),
     vocab: [
       { term: 'oi / olá', reading: 'ой / олá', ru: 'привет' },
       { term: 'tudo bem?', reading: 'ту́ду бэ̃й', ru: 'как дела?' },
@@ -280,6 +292,18 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
     grammarWhy: 'Артикль в португальском обязателен там, где в русском ничего нет, а род слова часто не совпадает с русским (a cidade — женский, о городе). Ошибка в артикле слышна в каждой фразе, поэтому род учится сразу вместе со словом.',
     vocabTheme: 'Предметы и места',
     artifact: 'Список 20 слов с правильными артиклями',
+    pattern: drill(
+      'артикль + существительное',
+      'род и число',
+      [
+        ['livro (м., ед.)', 'o livro', 'книга'],
+        ['casa (ж., ед.)', 'a casa', 'дом'],
+        ['livro (м., мн.)', 'os livros', 'книги'],
+        ['casa (ж., мн.)', 'as casas', 'дома'],
+        ['coração (мн.)', 'os corações', 'сердца'],
+      ],
+      'Последняя строка — ловушка: слова на -ão дают во множественном -ões, а не -ãos.',
+    ),
     vocab: [
       { term: 'o livro', reading: 'у ли́вру', ru: 'книга' },
       { term: 'a mesa', reading: 'а ме́за', ru: 'стол' },
@@ -316,6 +340,18 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
     grammarWhy: 'Три регулярных спряжения покрывают большинство глаголов языка. Личные окончания в португальском информативны, поэтому местоимение часто опускается, — но на A1 его лучше сохранять, пока формы не автоматизировались.',
     vocabTheme: 'Повседневные глаголы',
     artifact: 'Таблица трёх спряжений, заполненная по памяти',
+    pattern: drill(
+      'три спряжения в presente',
+      'falar / comer / partir',
+      [
+        ['falar — eu', 'eu falo', 'я говорю'],
+        ['falar — você', 'você fala', 'вы говорите'],
+        ['comer — eu', 'eu como', 'я ем'],
+        ['comer — nós', 'nós comemos', 'мы едим'],
+        ['partir — eles', 'eles partem', 'они уезжают'],
+      ],
+      'Окончание задаёт группа глагола: -ar, -er, -ir. Разница между comemos и partimos видна только в этой гласной.',
+    ),
     vocab: [
       { term: 'falar', reading: 'фалáр', ru: 'говорить' },
       { term: 'morar', reading: 'морáр', ru: 'жить, проживать' },
@@ -355,6 +391,18 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
     grammarWhy: 'Эти три глагола входят в самые частые в языке и все три неправильные. Их формы надо знать наизусть — правило здесь не поможет. Заодно ter que даёт первый способ сказать «мне надо».',
     vocabTheme: 'Обладание и перемещение',
     artifact: '10 предложений с ter, ir, fazer',
+    pattern: drill(
+      'ter / ir / fazer',
+      'три главных неправильных',
+      [
+        ['ter — eu', 'eu tenho', 'у меня есть'],
+        ['ter — eles', 'eles têm', 'у них есть'],
+        ['ir — eu', 'eu vou', 'я иду'],
+        ['fazer — eu', 'eu faço', 'я делаю'],
+        ['надо работать', 'eu tenho que trabalhar', 'мне надо работать'],
+      ],
+      'tem и têm различаются только знаком, но это единственное и множественное число. На письме это ошибка уровня «его» и «их».',
+    ),
     vocab: [
       { term: 'ter', reading: 'тер', ru: 'иметь' },
       { term: 'ir', reading: 'ир', ru: 'идти, ехать' },
@@ -387,6 +435,18 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
     grammarWhy: 'Разница por que / porque — письменная ловушка, на которой спотыкаются даже носители. Для нас важнее другое: португальский вопрос не требует инверсии, значит спрашивать можно сразу и много.',
     vocabTheme: 'Вопросительные слова',
     artifact: '7 вопросов к одному ответу',
+    pattern: drill(
+      'вопросительные слова',
+      'вопрос без инверсии',
+      [
+        ['что вы делаете?', 'O que você faz', 'Чем вы занимаетесь?'],
+        ['где вы живёте?', 'Onde você mora', 'Где вы живёте?'],
+        ['сколько это стоит?', 'Quanto custa', 'Сколько стоит?'],
+        ['почему? (вопрос)', 'Por que', 'Почему?'],
+        ['потому что (ответ)', 'Porque', 'Потому что.'],
+      ],
+      'Порядок слов в вопросе не меняется — подлежащее остаётся перед глаголом. Por que и porque различаются на письме, а не на слух.',
+    ),
     vocab: [
       { term: 'quem', reading: 'кэ̃й', ru: 'кто' },
       { term: 'o que', reading: 'у ки', ru: 'что' },
@@ -428,6 +488,18 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
     grammarWhy: 'Время и числа нужны в первый же день в стране: цена, адрес, час встречи. В португальском часы читаются через são (мн.) и é (для одного) — мелочь, на которой сразу слышно уровень.',
     vocabTheme: 'Числа и расписание',
     artifact: 'Диалог о назначении встречи',
+    pattern: drill(
+      'который час и когда',
+      'время',
+      [
+        ['2:00', 'São duas horas', 'Два часа.'],
+        ['1:00', 'É uma hora', 'Час.'],
+        ['3:15', 'São três e quinze', 'Три пятнадцать.'],
+        ['без десяти пять', 'São dez para as cinco', 'Без десяти пять.'],
+        ['в восемь', 'às oito', 'в восемь'],
+      ],
+      'Час — единственное число (É uma hora), всё остальное — множественное (São). Это первое, на чём слышно новичка.',
+    ),
     vocab: [
       { term: 'um, dois, três', reading: 'у̃, дойс, трэйс', ru: 'один, два, три' },
       { term: 'dez', reading: 'дэйс', ru: 'десять' },
@@ -466,6 +538,18 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
     grammarWhy: 'Притяжательное согласуется не с владельцем, а с обладаемым: minha casa у мужчины тоже minha. Русскоязычный автоматически согласует с собой — устойчивая ошибка, которую надо ломать сразу.',
     vocabTheme: 'Семья и внешность',
     artifact: 'Описание своей семьи из 8 предложений',
+    pattern: drill(
+      'притяжательные и согласование',
+      'мой / ваш',
+      [
+        ['мой дом (casa — ж.)', 'minha casa', 'мой дом'],
+        ['моя книга (livro — м.)', 'meu livro', 'моя книга'],
+        ['ваши друзья', 'seus amigos', 'ваши друзья'],
+        ['красивый дом', 'casa bonita', 'красивый дом'],
+        ['красивые дома', 'casas bonitas', 'красивые дома'],
+      ],
+      'Притяжательное согласуется с ПРЕДМЕТОМ, а не с владельцем: minha casa говорит и мужчина тоже.',
+    ),
     vocab: [
       { term: 'pai', reading: 'пай', ru: 'отец' },
       { term: 'mãe', reading: 'мãй', ru: 'мать' },
@@ -509,6 +593,18 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
     grammarWhy: 'queria — вежливая форма желания, и без неё просьба звучит как требование (quero = «хочу»). Это самая экономная вежливость в языке: одна форма вместо целой конструкции.',
     vocabTheme: 'Покупки',
     artifact: 'Разыгранный диалог покупки на 8 реплик',
+    pattern: drill(
+      'queria / este, esse, aquele',
+      'вежливая покупка',
+      [
+        ['я хотел бы кофе', 'Eu queria um café', 'Я хотел бы кофе.'],
+        ['сколько стоит?', 'Quanto custa', 'Сколько стоит?'],
+        ['вот это (у меня)', 'este aqui', 'вот это'],
+        ['то (у вас)', 'esse aí', 'вот то'],
+        ['вон то (вдалеке)', 'aquele ali', 'вон то'],
+      ],
+      'queria — это imperfeito в роли вежливости: буквально «я хотел», а звучит как «я бы хотел». Quero в магазине звучит резко.',
+    ),
     vocab: [
       { term: 'quanto custa?', reading: 'куáнту ку́ста', ru: 'сколько стоит?' },
       { term: 'queria', reading: 'кери́а', ru: 'я бы хотел(а)' },
@@ -552,6 +648,18 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
     grammarWhy: 'gostar требует предлога de, который русскоязычный опускает: «Eu gosto café» вместо «Eu gosto de café». Ошибка мелкая и абсолютно устойчивая, поэтому отрабатывается отдельно и много.',
     vocabTheme: 'Еда',
     artifact: 'Заказ на трёх человек, произнесённый вслух',
+    pattern: drill(
+      'gostar de / vou querer',
+      'вкусы и заказ',
+      [
+        ['я люблю кофе', 'Eu gosto de café', 'Я люблю кофе.'],
+        ['я люблю путешествовать', 'Eu gosto de viajar', 'Я люблю путешествовать.'],
+        ['я возьму пиццу', 'Eu vou querer uma pizza', 'Я возьму пиццу.'],
+        ['мне, пожалуйста, сок', 'Para mim um suco', 'Мне сок, пожалуйста.'],
+        ['я не люблю лук', 'Eu não gosto de cebola', 'Я не люблю лук.'],
+      ],
+      'gostar ВСЕГДА тянет за собой de — и перед существительным, и перед инфинитивом. Забыть его — самая заметная ошибка русскоязычных.',
+    ),
     vocab: [
       { term: 'café', reading: 'кафе́', ru: 'кофе' },
       { term: 'pão de queijo', reading: 'пãу джи ке́йжу', ru: 'пан-ди-кейжу' },
@@ -593,6 +701,18 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
     grammarWhy: 'Слияние предлога с артиклем (em + o = no, em + a = na) обязательно и не имеет русского аналога. Оно даётся здесь, потому что именно в описании города встречается в каждой фразе.',
     vocabTheme: 'Город',
     artifact: 'Объяснение дороги от дома до работы',
+    pattern: drill(
+      'предлоги места и способа',
+      'где и на чём',
+      [
+        ['в банке', 'no banco', 'в банке'],
+        ['в школе', 'na escola', 'в школе'],
+        ['рядом с домом', 'perto de casa', 'рядом с домом'],
+        ['на автобусе', 'de ônibus', 'на автобусе'],
+        ['пешком', 'a pé', 'пешком'],
+      ],
+      'em сливается с артиклем: em + o = no, em + a = na. Раздельно это не пишут никогда. Транспорт берёт de, а пешком — a pé.',
+    ),
     vocab: [
       { term: 'ônibus', reading: 'о́нибус', ru: 'автобус' },
       { term: 'metrô', reading: 'метро́', ru: 'метро' },
@@ -649,6 +769,18 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
     grammarWhy: 'Это самая заметная граница между вариантами: в Бразилии estou trabalhando, в Португалии estou a trabalhar. Курс бразильский, поэтому норма задаётся прямо, а европейский вариант упоминается только чтобы ученик его узнавал.',
     vocabTheme: 'Текущие действия',
     artifact: 'Рассказ о том, чем занят прямо сейчас',
+    pattern: drill(
+      'estar + герундий',
+      'происходит прямо сейчас',
+      [
+        ['falar — сейчас', 'estou falando', 'я говорю (сейчас)'],
+        ['comer — сейчас', 'estou comendo', 'я ем (сейчас)'],
+        ['partir — сейчас', 'estou partindo', 'я уезжаю (сейчас)'],
+        ['ele — работает', 'ele está trabalhando', 'он работает (сейчас)'],
+        ['chover — идёт дождь', 'está chovendo', 'идёт дождь'],
+      ],
+      'Герундий берёт окончание по группе глагола: -ando, -endo, -indo. Это бразильская норма; в Португалии сказали бы estou a falar.',
+    ),
     vocab: [
       { term: 'estou fazendo', reading: 'эсто́у фазе́нду', ru: 'я делаю (сейчас)' },
       { term: 'agora', reading: 'аго́ра', ru: 'сейчас' },
@@ -746,6 +878,18 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
     grammarWhy: 'Perfeito — время события: «сделал, случилось, закончилось». Оно даётся раньше imperfeito, потому что рассказ о прошлом почти всегда начинается с событий, а фон добавляется потом.',
     vocabTheme: 'События прошлого',
     artifact: 'Рассказ о прошлых выходных из 8 предложений',
+    pattern: drill(
+      'pretérito perfeito',
+      'законченное прошедшее',
+      [
+        ['falar — eu', 'eu falei', 'я поговорил'],
+        ['comer — eu', 'eu comi', 'я поел'],
+        ['ir — eu', 'eu fui', 'я сходил'],
+        ['ter — eu', 'eu tive', 'у меня было'],
+        ['fazer — eu', 'eu fiz', 'я сделал'],
+      ],
+      'Неправильные формы fui, tive, fiz не выводятся ниоткуда — их учат списком, как и в любом романском языке.',
+    ),
     vocab: [
       { term: 'ontem', reading: 'о́нтэ̃й', ru: 'вчера' },
       { term: 'semana passada', reading: 'семáна пасáда', ru: 'на прошлой неделе' },
@@ -786,6 +930,18 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
     grammarWhy: 'Выбор между двумя прошедшими — то, по чему иностранца слышно на любом уровне. Правило работающее: событие → perfeito, фон, привычка, описание → imperfeito. Тренируется только на контрасте, поэтому оба времени стоят рядом.',
     vocabTheme: 'Детство и привычки',
     artifact: 'Рассказ о детстве из 8 предложений',
+    pattern: drill(
+      'imperfeito против perfeito',
+      'фон и событие',
+      [
+        ['falar — фон', 'eu falava', 'я говорил (бывало)'],
+        ['comer — фон', 'eu comia', 'я ел (обычно)'],
+        ['ser — фон', 'era', 'был'],
+        ['ter — фон', 'tinha', 'имел'],
+        ['ir — фон', 'ia', 'ходил'],
+      ],
+      'Imperfeito — то, что длилось или повторялось; perfeito — то, что случилось один раз. По-русски оба переводятся одинаково, и различие приходится держать в голове самому.',
+    ),
     vocab: [
       { term: 'quando eu era criança', reading: 'куáнду эу э́ра криáнса', ru: 'когда я был ребёнком' },
       { term: 'era', reading: 'э́ра', ru: 'был (ser)' },
@@ -828,6 +984,18 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
     grammarWhy: 'В живой речи будущее почти всегда vou fazer, а не farei. Учебники дают наоборот, и ученик получает форму, которую в разговоре не услышит. Здесь приоритет отдан разговорной.',
     vocabTheme: 'Планы',
     artifact: 'План на неделю на португальском',
+    pattern: drill(
+      'ir + инфинитив как будущее',
+      'ближайшее будущее',
+      [
+        ['falar — я буду', 'eu vou falar', 'я поговорю'],
+        ['viajar — я буду', 'eu vou viajar', 'я поеду'],
+        ['nós — мы будем', 'nós vamos estudar', 'мы будем учиться'],
+        ['книжное будущее', 'eu falarei', 'я скажу (книжно)'],
+        ['я намерен', 'eu pretendo viajar', 'я собираюсь поехать'],
+      ],
+      'В живой речи будущее почти всегда строится через vou + инфинитив. Форма falarei звучит книжно и в разговоре встречается редко.',
+    ),
     vocab: [
       { term: 'amanhã', reading: 'аманьã', ru: 'завтра' },
       { term: 'depois de amanhã', reading: 'депо́йс джи аманьã', ru: 'послезавтра' },
@@ -869,6 +1037,18 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
     grammarWhy: 'Возвратные глаголы в португальском и русском не совпадают по составу, а место местоимения в Бразилии другое, чем в учебниках европейской нормы. Без этого юнита ученик не может сказать даже «меня зовут» в живой форме.',
     vocabTheme: 'Возвратные глаголы',
     artifact: 'Описание своего утра с возвратными глаголами',
+    pattern: drill(
+      'возвратные местоимения',
+      'зовут, встаю, чувствую',
+      [
+        ['меня зовут Ана', 'Eu me chamo Ana', 'Меня зовут Ана.'],
+        ['как вас зовут?', 'Como você se chama', 'Как вас зовут?'],
+        ['я встаю рано', 'Eu me levanto cedo', 'Я встаю рано.'],
+        ['я хорошо себя чувствую', 'Eu me sinto bem', 'Я хорошо себя чувствую.'],
+        ['он ложится поздно', 'Ele se deita tarde', 'Он ложится поздно.'],
+      ],
+      'В бразильской норме местоимение стоит ПЕРЕД глаголом (проклиза): eu me chamo, а не chamo-me, как в Португалии.',
+    ),
     vocab: [
       { term: 'chamar-se', reading: 'шамáр-си', ru: 'называться, зваться' },
       { term: 'levantar-se', reading: 'левантáр-си', ru: 'вставать' },
@@ -912,6 +1092,18 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
     grammarWhy: 'Subjuntivo — граница между A2 и B1, и на A2 достаточно узнавать его в трёх частотных конструкциях (espero que, quero que, é importante que), а не спрягать всё. Связки же дают то, за что на CELPE-Bras прямо начисляют: связность текста.',
     vocabTheme: 'Связки и мнение',
     artifact: 'Связный абзац из 8 предложений',
+    pattern: drill(
+      'связки и presente do subjuntivo',
+      'причина, следствие, желание',
+      [
+        ['потому что', 'porque', 'потому что'],
+        ['поэтому', 'por isso', 'поэтому'],
+        ['но', 'mas', 'но'],
+        ['надеюсь, что ты придёшь', 'Espero que você venha', 'Надеюсь, ты придёшь.'],
+        ['важно, чтобы ты учился', 'É importante que você estude', 'Важно, чтобы ты учился.'],
+      ],
+      'После espero que и é importante que глагол обязан встать в subjuntivo. Это не стилистика: вариант с indicativo здесь просто неграмматичен.',
+    ),
     vocab: [
       { term: 'porque', reading: 'пурки́', ru: 'потому что' },
       { term: 'por isso', reading: 'пур и́су', ru: 'поэтому' },
@@ -1089,7 +1281,11 @@ export const PORTUGUESE_CELPE: LanguageCourseSpec = {
   modules: PORTUGUESE_MODULES,
   // Конспекты живут отдельным файлом: здесь — структура и задания, там —
   // то, что ученик читает.
-  units: PORTUGUESE_UNITS.map(u => ({ ...u, theory: PORTUGUESE_THEORY[u.shortId] ?? u.theory })),
+  units: PORTUGUESE_UNITS.map(u => ({
+    ...u,
+    theory: PORTUGUESE_THEORY[u.shortId] ?? u.theory,
+    videoUrl: PORTUGUESE_VIDEO[u.shortId] ?? u.videoUrl,
+  })),
   figures: PORTUGUESE_FIGURES,
 }
 

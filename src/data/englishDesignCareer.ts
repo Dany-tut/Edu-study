@@ -24,9 +24,10 @@
 import {
   buildLanguageCourse, courseSummary, allVocab,
   unitByShortId as findUnit, moduleOfUnit,
-  one, many, fill, wb, pairsOf, write, say,
+  one, many, fill, wb, pairsOf, write, say, drill,
 } from './languageCourse'
 import { ENDC_THEORY, ENDC_VIDEO } from './englishDesignCareerTheory'
+import { ENDC_LISTENING } from './englishDesignCareerListening'
 import { formTable, formulaStrip, contrastPair, timelineFigure } from './lessonFigures'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
@@ -61,6 +62,18 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
     grammarWhy: 'Первое, что произносят на любом созвоне. Артикль перед профессией — ошибка №1 русскоязычных: «I am designer» вместо «I am a designer».',
     vocabTheme: 'Специализации и роли в дизайне',
     artifact: 'Устное представление на 30 секунд',
+    pattern: drill(
+      'Present Simple: роль и обязанности',
+      'кто я и что делаю',
+      [
+        ['я — дизайнер', 'I am a designer', 'Я дизайнер.'],
+        ['я работаю в стартапе', 'I work at a startup', 'Я работаю в стартапе.'],
+        ['я отвечаю за исследования', 'I am responsible for research', 'Я отвечаю за исследования.'],
+        ['она ведёт проект', 'She leads the project', 'Она ведёт проект.'],
+        ['мы делаем прототипы', 'We build prototypes', 'Мы делаем прототипы.'],
+      ],
+      'Артикль перед профессией обязателен: I am a designer, а не I am designer. В русском артикля нет, и эта ошибка держится дольше всех.',
+    ),
     vocab: [
       { term: 'product designer', ru: 'продуктовый дизайнер', example: "I'm a product designer with four years of experience." },
       { term: 'UX/UI designer', ru: 'UX/UI-дизайнер' },
@@ -96,6 +109,18 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
     grammarWhy: 'Опыт описывается прошедшим временем. Разделяем с Present Perfect (юнит 3) сразу — иначе смешаются на всю жизнь.',
     vocabTheme: 'Места работы, проекты, обязанности',
     artifact: 'Три строки опыта для резюме',
+    pattern: drill(
+      'Past Simple: путь',
+      'что я делал раньше',
+      [
+        ['work → прошедшее', 'I worked', 'я работал'],
+        ['lead → прошедшее', 'I led', 'я вёл'],
+        ['build → прошедшее', 'I built', 'я построил'],
+        ['два года', 'for two years', 'в течение двух лет'],
+        ['с 2020 по 2023', 'from 2020 to 2023', 'с 2020 по 2023'],
+      ],
+      'for отвечает на «сколько», from…to — на «когда». Смешение этих двух даёт самое частое «I work here from two years».',
+    ),
     vocab: [
       { term: 'to work on', ru: 'работать над', example: 'I worked on a banking app for two years.' },
       { term: 'to join', ru: 'прийти в компанию', example: 'I joined the team in 2022.' },
@@ -125,6 +150,18 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
     grammarWhy: 'Разница «I was responsible for» (обязанность) и «I have increased» (результат) — то, что отличает слабое резюме от сильного.',
     vocabTheme: 'Метрики и результат',
     artifact: 'Три достижения с цифрами',
+    pattern: drill(
+      'Present Perfect: достижения',
+      'что уже сделано',
+      [
+        ['я запустил три продукта', 'I have launched three products', 'Я запустил три продукта.'],
+        ['я увеличил конверсию', 'I have increased conversion', 'Я увеличил конверсию.'],
+        ['я сократил время на 30%', 'I have reduced time by 30%', 'Я сократил время на 30%.'],
+        ['я работал с командой', 'I have worked with the team', 'Я работал с командой.'],
+        ['я ещё не закончил', 'I have not finished yet', 'Я ещё не закончил.'],
+      ],
+      'В резюме и на собеседовании достижения идут в Present Perfect: важен результат, который есть сейчас, а не когда именно это было.',
+    ),
     vocab: [
       { term: 'to increase', ru: 'увеличить', example: 'I have increased conversion by 18%.' },
       { term: 'to reduce', ru: 'сократить', example: 'We reduced support tickets by a third.' },
@@ -194,6 +231,18 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
     grammarWhy: 'В описании проекта важен не исполнитель, а что происходило: «the research was conducted», «the prototype was tested».',
     vocabTheme: 'Этапы проекта',
     artifact: 'Описание одного проекта на 150 слов',
+    pattern: drill(
+      'пассив для процесса',
+      'как устроена работа',
+      [
+        ['we test the mockup', 'the mockup is tested', 'макет тестируется'],
+        ['we collected the data', 'the data was collected', 'данные были собраны'],
+        ['we made the decision', 'the decision was made', 'решение было принято'],
+        ['we review the design', 'the design is reviewed', 'дизайн проверяется'],
+        ['we interviewed users', 'users were interviewed', 'пользователей опросили'],
+      ],
+      'Описывая процесс, деятеля обычно не называют — важно, что происходит, а не кто именно это делает.',
+    ),
     vocab: [
       { term: 'case study', ru: 'разбор проекта, кейс' },
       { term: 'brief', ru: 'бриф, постановка задачи' },
@@ -232,6 +281,18 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
     grammarWhy: 'Кейс без связок читается как список. Связки — то, что превращает перечисление в историю.',
     vocabTheme: 'Структура кейса',
     artifact: 'Полный кейс со связками',
+    pattern: drill(
+      'связки последовательности и причины',
+      'структура рассказа',
+      [
+        ['сначала', 'first', 'сначала'],
+        ['затем', 'then', 'затем'],
+        ['из-за этого', 'because of this', 'из-за этого'],
+        ['в результате', 'as a result', 'в результате'],
+        ['однако', 'however', 'однако'],
+      ],
+      'because of берёт существительное, because — целое предложение. Их путают чаще всего.',
+    ),
     vocab: [
       { term: 'problem statement', ru: 'формулировка проблемы' },
       { term: 'hypothesis', ru: 'гипотеза' },
@@ -262,6 +323,18 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
     grammarWhy: 'Прямой перевод с русского звучит как приказ: «Send me the details» вместо «Could you send me the details?». Это самая заметная ошибка регистра.',
     vocabTheme: 'Деловое письмо',
     artifact: 'Холодное письмо на 120 слов',
+    pattern: drill(
+      'модальные вежливости',
+      'просьба без нажима',
+      [
+        ['send it → вежливо', 'could you send it', 'не могли бы вы прислать'],
+        ['I want to ask → вежливо', 'I would like to ask', 'я хотел бы спросить'],
+        ['can I → вежливее', 'may I', 'могу ли я'],
+        ['is it possible → мягче', 'would that be possible', 'было бы это возможно'],
+        ['I need → мягче', 'it would be helpful to have', 'было бы полезно получить'],
+      ],
+      'Прямая форма (send me the file) в английской переписке звучит как приказ. Смягчение через could и would — не подобострастие, а норма регистра.',
+    ),
     vocab: [
       { term: 'to reach out', ru: 'написать, выйти на связь', example: "I'm reaching out about the Product Designer role." },
       { term: 'opening', ru: 'вакансия, открытая позиция' },
@@ -300,6 +373,18 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
     grammarWhy: 'Сопроводительное — это ответ на «почему». Без конструкций цели письмо превращается в пересказ резюме.',
     vocabTheme: 'Мотивация и соответствие',
     artifact: 'Сопроводительное письмо',
+    pattern: drill(
+      'причина и цель',
+      'почему и зачем',
+      [
+        ['потому что + предложение', 'because', 'потому что'],
+        ['так как (в начале фразы)', 'since', 'так как'],
+        ['чтобы + инфинитив', 'in order to', 'чтобы'],
+        ['чтобы + придаточное', 'so that', 'чтобы'],
+        ['из-за + существительное', 'due to', 'из-за'],
+      ],
+      'in order to тянет инфинитив, so that — целое придаточное с подлежащим. Выбор диктуется тем, что идёт дальше.',
+    ),
     vocab: [
       { term: 'cover letter', ru: 'сопроводительное письмо' },
       { term: 'to apply for', ru: 'подавать заявку на', example: "I'm applying for the Senior Designer position." },
@@ -369,6 +454,18 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
     grammarWhy: '«What are you looking for?» — вопрос про сейчас, отвечать надо продолженным временем. И надо уметь переспросить, не теряя лица.',
     vocabTheme: 'Первичный звонок',
     artifact: 'Ответы на пять типовых вопросов рекрутёра',
+    pattern: drill(
+      'Present Continuous: сейчас',
+      'текущая ситуация',
+      [
+        ['я сейчас над этим работаю', 'I am working on it', 'Я сейчас над этим работаю.'],
+        ['мы сейчас тестируем', 'we are testing', 'мы сейчас тестируем'],
+        ['она в отпуске', 'she is on leave', 'она в отпуске'],
+        ['вежливый отказ', 'I am afraid I cannot', 'боюсь, я не смогу'],
+        ['уточнение', 'just to clarify', 'просто уточню'],
+      ],
+      'Continuous описывает то, что идёт прямо сейчас или в этот период. Про обязанности говорят простым настоящим — это разные вещи.',
+    ),
     vocab: [
       { term: 'screening call', ru: 'первичный звонок' },
       { term: "I'm currently looking for", ru: 'сейчас я ищу' },
@@ -479,6 +576,18 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
     grammarWhy: 'История требует двух прошедших времён: что происходило фоном и что ты сделал. Без этого рассказ плоский.',
     vocabTheme: 'Поведенческие вопросы',
     artifact: 'Три готовые истории по STAR',
+    pattern: drill(
+      'Past Continuous как фон',
+      'что происходило, когда',
+      [
+        ['я работал, когда пришёл запрос', 'I was working when the request came', 'Я работал, когда пришёл запрос.'],
+        ['мы обсуждали макет', 'we were discussing the mockup', 'мы обсуждали макет'],
+        ['пока я тестировал', 'while I was testing', 'пока я тестировал'],
+        ['команда ждала', 'the team was waiting', 'команда ждала'],
+        ['мы это починили', 'we have fixed it', 'мы это починили'],
+      ],
+      'Фон идёт в Continuous, короткое событие — в Past Simple, а результат, важный сейчас, — в Present Perfect. Три времени в одной истории.',
+    ),
     vocab: [
       { term: 'Tell me about a time when', ru: 'расскажите о случае, когда' },
       { term: 'situation', ru: 'ситуация' },
@@ -547,6 +656,18 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
     grammarWhy: 'Прямое «No, you are wrong» в англоязычной команде читается как агрессия. Нужен слой смягчения, которого в русском нет.',
     vocabTheme: 'Обратная связь по работе',
     artifact: 'Ответы на пять типов критики',
+    pattern: drill(
+      'уступка',
+      'согласиться, не уступив',
+      [
+        ['это справедливо', 'that is fair', 'это справедливо'],
+        ['понимаю вашу мысль', 'I see your point', 'понимаю вашу мысль'],
+        ['хотя', 'although', 'хотя'],
+        ['при этом', 'that said', 'при этом'],
+        ['отчасти согласен', 'I partly agree', 'отчасти согласен'],
+      ],
+      'Уступка перед возражением снимает половину сопротивления. Возражение без неё в английской переписке читается как конфликт.',
+    ),
     vocab: [
       { term: "That's fair", ru: 'справедливо' },
       { term: 'I see your point', ru: 'понимаю вашу мысль' },
@@ -585,6 +706,18 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
     grammarWhy: 'Критика в форме вопроса воспринимается как участие, а в форме утверждения — как приговор. Это чисто грамматический приём.',
     vocabTheme: 'Формулировки замечаний',
     artifact: 'Разбор чужой работы на 100 слов',
+    pattern: drill(
+      'смягчение критики',
+      'вопрос вместо утверждения',
+      [
+        ['we must → мягче', 'we might want to', 'возможно, нам стоит'],
+        ['this is wrong → мягче', 'I wonder if this is the best option', 'не уверен, что это лучший вариант'],
+        ['do it this way → мягче', 'have you considered', 'вы рассматривали'],
+        ['this will not work → мягче', 'I am not sure this would work', 'не уверен, что это сработает'],
+        ['redo it → мягче', 'could we revisit this', 'может, вернёмся к этому'],
+      ],
+      'Критика, поданная вопросом, оставляет собеседнику выход. Это не смягчение ради приличия, а способ, которым в англоязычной команде вообще ведут спор.',
+    ),
     vocab: [
       { term: 'Have you considered', ru: 'вы не думали о' },
       { term: 'I wonder if', ru: 'интересно, не стоит ли' },
@@ -618,6 +751,18 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
     grammarWhy: '«Do you have design system?» и «How does the design system get maintained?» — разница между кандидатом-новичком и специалистом.',
     vocabTheme: 'Процессы в компании',
     artifact: 'Список из семи вопросов',
+    pattern: drill(
+      'косвенные вопросы',
+      'вежливый запрос информации',
+      [
+        ['Where is the file?', 'could you tell me where the file is', 'не подскажете, где файл'],
+        ['What did they decide?', 'do you know what they decided', 'вы не знаете, что они решили'],
+        ['How does it work?', 'I was wondering how it works', 'мне интересно, как это работает'],
+        ['Why was it changed?', 'could you explain why it was changed', 'не объясните, почему это изменили'],
+        ['Is it ready?', 'do you know if it is ready', 'вы не знаете, готово ли это'],
+      ],
+      'В косвенном вопросе порядок слов ПРЯМОЙ: where the file is, а не where is the file. Это главная механическая ошибка в этой конструкции.',
+    ),
     vocab: [
       { term: 'design process', ru: 'дизайн-процесс' },
       { term: 'handoff', ru: 'передача в разработку' },
@@ -656,6 +801,18 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
     grammarWhy: 'Напоминание — тонкий жанр: надо не давить, но и не исчезнуть. Держится на модальных и на Perfect.',
     vocabTheme: 'Follow-up',
     artifact: 'Два письма: благодарность и напоминание',
+    pattern: drill(
+      'Present Perfect: напоминание',
+      'связь с настоящим',
+      [
+        ['я отправил письмо', 'I have sent the email', 'Я отправил письмо.'],
+        ['успели посмотреть?', 'have you had a chance to look', 'успели посмотреть?'],
+        ['ответа пока нет', 'I have not heard back yet', 'я пока не получил ответа'],
+        ['мы это уже обсуждали', 'we have already discussed this', 'мы это уже обсуждали'],
+        ['напоминаю об этом', 'just following up on this', 'напоминаю об этом'],
+      ],
+      'following up — стандартная формула напоминания. Она вежливее прямого reminder и не звучит как упрёк.',
+    ),
     vocab: [
       { term: 'thank-you note', ru: 'письмо с благодарностью' },
       { term: 'I enjoyed our conversation', ru: 'мне понравился наш разговор' },
@@ -693,6 +850,18 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
     grammarWhy: 'Половина проваленных тестовых — это непонятый бриф. Уточняющий вопрос дешевле переделки.',
     vocabTheme: 'Тестовое задание',
     artifact: 'Письмо с уточнениями по брифу',
+    pattern: drill(
+      'условные первого типа',
+      'реальная договорённость',
+      [
+        ['если пришлёте сегодня', 'if you send it today', 'если пришлёте сегодня'],
+        ['мы успеем', 'we will make it', 'мы успеем'],
+        ['если не успеем', 'if we do not make it', 'если не успеем'],
+        ['просто уточняю', 'just to confirm', 'просто уточняю'],
+        ['что если', 'what if', 'что если'],
+      ],
+      'После if будущее время НЕ ставится: if you send, а не if you will send. Will уходит во вторую половину фразы.',
+    ),
     vocab: [
       { term: 'test task', ru: 'тестовое задание' },
       { term: 'scope', ru: 'объём работ' },
@@ -726,6 +895,18 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
     grammarWhy: 'Переговоры ведутся в сослагательном: «I would be looking for» мягче, чем «I want». Прямая форма закрывает разговор.',
     vocabTheme: 'Компенсация',
     artifact: 'Скрипт переговоров о зарплате',
+    pattern: drill(
+      'условные второго типа и смягчение',
+      'переговоры',
+      [
+        ['если бы было больше времени', 'if we had more time', 'если бы у нас было больше времени'],
+        ['мы бы сделали иначе', 'we would do it differently', 'мы бы сделали иначе'],
+        ['я надеялся', 'I was hoping', 'я надеялся'],
+        ['смогли бы вы', 'would you be able to', 'смогли бы вы'],
+        ['было бы здорово', 'it would be great', 'было бы здорово'],
+      ],
+      'I was hoping в прошедшем — приём вежливости, а не рассказ о прошлом: он подаёт просьбу как уже необязательную.',
+    ),
     vocab: [
       { term: 'salary range', ru: 'зарплатная вилка' },
       { term: 'compensation package', ru: 'весь пакет вознаграждения' },
@@ -830,6 +1011,18 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
     grammarWhy: '«I have been working on» показывает продолжающийся процесс — то, что нужно на встрече о прогрессе.',
     vocabTheme: 'Встреча один на один',
     artifact: 'План встречи на 30 минут',
+    pattern: drill(
+      'Present Perfect Continuous',
+      'длится до сих пор',
+      [
+        ['я работаю над этим неделю', 'I have been working on it for a week', 'Я работаю над этим неделю.'],
+        ['мы ждём ответа', 'we have been waiting for a reply', 'мы ждём ответа'],
+        ['она тестирует с утра', 'she has been testing since morning', 'она тестирует с утра'],
+        ['не поможете мне с этим', 'could you help me with this', 'не поможете мне с этим'],
+        ['я застрял на этом', 'I am stuck on this', 'я застрял на этом'],
+      ],
+      'for отмеряет длительность, since — точку начала. По-русски и то и другое звучит одинаково, поэтому выбор приходится делать сознательно.',
+    ),
     vocab: [
       { term: 'to check in', ru: 'свериться, отметиться' },
       { term: 'I have been working on', ru: 'я работаю над (уже какое-то время)' },
@@ -1120,6 +1313,9 @@ export const ENGLISH_DESIGN_CAREER_SPEC: LanguageCourseSpec = {
     ...u,
     theory: ENDC_THEORY[u.shortId] ?? u.theory,
     videoUrl: ENDC_VIDEO[u.shortId] ?? u.videoUrl,
+    // Аудирование добавлено отдельной картой: курс писался до появления
+    // языковых типов заданий и остался без единого задания на слух (см. аудит).
+    tasks: [...u.tasks, ...(ENDC_LISTENING[u.shortId] ?? [])],
   })),
   figures: ENDC_FIGURES,
 }

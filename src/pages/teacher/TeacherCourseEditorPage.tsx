@@ -396,11 +396,14 @@ function AccessModeSelect({
 // Assign list with a search box on top and a 5-item preview (rest collapsed) so a
 // long roster never dumps the whole list into the editor. Selected items always
 // show regardless of the preview cap so they can be toggled off.
+// Students carry a subject subtitle: one человек with several направления has a
+// separate 1:1 card (= separate student row) per subject, so the bare name alone
+// is ambiguous — the teacher must see which карточка gets the course.
 const ASSIGN_PREVIEW = 5
 function AssignPicker({
   items, selectedIds, onToggle, kind,
 }: {
-  items: Array<{ id: string; name: string }>
+  items: Array<{ id: string; name: string; subject?: string }>
   selectedIds: string[]
   onToggle: (id: string) => void
   kind: 'group' | 'student'
@@ -409,7 +412,9 @@ function AssignPicker({
   const [q, setQ] = useState('')
   const [expanded, setExpanded] = useState(false)
   const query = q.trim().toLowerCase()
-  const filtered = query ? items.filter(i => i.name.toLowerCase().includes(query)) : items
+  const filtered = query
+    ? items.filter(i => `${i.name} ${i.subject ?? ''}`.toLowerCase().includes(query))
+    : items
   const selectedSet = new Set(selectedIds)
   // Always surface selected items; fill the rest up to the preview cap.
   const shown = (query || expanded)
@@ -453,8 +458,15 @@ function AssignPicker({
               }}>
                 {kind === 'group' ? <Users size={13} style={{ color: on ? '#fff' : 'var(--color-muted)' }} /> : item.name.slice(0, 1).toUpperCase()}
               </div>
-              <span style={{ fontSize: 13, fontWeight: 600, color: on ? 'var(--color-green-text)' : 'var(--color-text)', flex: 1, textAlign: 'left' }}>
-                {item.name}
+              <span style={{ display: 'flex', flexDirection: 'column', gap: 1, flex: 1, minWidth: 0, textAlign: 'left' }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: on ? 'var(--color-green-text)' : 'var(--color-text)' }}>
+                  {item.name}
+                </span>
+                {item.subject && (
+                  <span style={{ fontSize: 11, fontWeight: 600, color: on ? 'var(--color-green-text)' : 'var(--color-muted)', opacity: on ? 0.75 : 1 }}>
+                    {item.subject}
+                  </span>
+                )}
               </span>
               {on && <X size={11} style={{ color: 'var(--color-green-text)' }} />}
             </button>
@@ -495,7 +507,7 @@ function CenterCourseAccess({
   course: CourseEdData
   setCourse: React.Dispatch<React.SetStateAction<CourseEdData>>
   groups: Array<{ id: string; name: string }>
-  allStudents: Array<{ id: string; name: string; groupId?: string }>
+  allStudents: Array<{ id: string; name: string; groupId?: string; subject?: string }>
   accessModes: Record<string, AccessMode>
   setAccessModes: React.Dispatch<React.SetStateAction<Record<string, AccessMode>>>
 }) {
@@ -612,7 +624,12 @@ function CenterCourseAccess({
                     display: 'flex', alignItems: 'center', gap: 8,
                     padding: '7px 12px', borderRadius: 12, background: 'var(--color-bg-3)',
                   }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', flex: 1 }}>{s.name}</span>
+                    <span style={{ display: 'flex', flexDirection: 'column', gap: 1, flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{s.name}</span>
+                      {s.subject && (
+                        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)' }}>{s.subject}</span>
+                      )}
+                    </span>
                     <AccessModeSelect value={modeOf(s.id)} onChange={v => setStudentMode(s.id, v)} />
                   </div>
                 ))}

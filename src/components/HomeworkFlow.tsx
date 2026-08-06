@@ -21,7 +21,7 @@ import { optimizePhoto } from '../lib/imageOptim'
 import HardConversation, { type HardTabVM } from './teacher/HardConversation'
 import { playUnlock, playPop, vibrate } from '../lib/sound'
 import { useDashboard } from '../store/dashboardStore'
-import { useStudentData, ownerStudentIdFor } from '../store/studentDataStore'
+import { useStudentData, ownerStudentIdFor, subjectSlugFor } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useT, t as tStatic } from '../lib/i18n'
@@ -1100,28 +1100,7 @@ export default function HomeworkFlow({
   const [showTheory, setShowTheory] = useState(false)
   const photoInputRef = useRef<HTMLInputElement>(null)
   const [showBoard, setShowBoard] = useState(false)
-  // Определения сложных заданий (per-task), назначенных на этот урок группе ученика.
-  // Пусто → нет назначенного ДЗ или старый формат → используем legacy teacherTask.
-  const [hardDefs, setHardDefs] = useState<HardTaskDef[]>([])
   const [openBoards, setOpenBoards] = useState<Set<string>>(new Set())
-  useEffect(() => {
-    let cancelled = false
-    const session = getStudentSession()
-    supabase
-      .from('homework')
-      .select('hard_tasks, group_id, created_at')
-      .eq('lesson_id', lessonId)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        if (cancelled || !data) return
-        const rows = data as { hard_tasks?: HardTaskDef[]; group_id?: string }[]
-        const withDefs = rows.filter(r => Array.isArray(r.hard_tasks) && r.hard_tasks.length > 0)
-        const mine = withDefs.find(r => r.group_id === session?.groupId) ?? withDefs[0]
-        setHardDefs(mine?.hard_tasks ?? [])
-      })
-    return () => { cancelled = true }
-  }, [lessonId])
 
   // Серверная переписка по сложным заданиям: решения ученика (attachments.tasks)
   // + комментарии преподавателя (review_attachments.tasks). Тянем строку
@@ -1423,7 +1402,11 @@ export default function HomeworkFlow({
         })
         .map(q => q.id),
     )
-    const cards = cardsFromHomework({ questions: basicQuestions, wrongIds, subject })
+    // В колоду пишем слаг предмета, а не short_id курса: тренажёр фильтрует
+    // карточки по предмету, и курсовой id для него — чужое слово (подробности
+    // в subjectSlugFor). Курс без предмета из реестра остаётся как есть — так
+    // карточка хотя бы не теряет привязку совсем.
+    const cards = cardsFromHomework({ questions: basicQuestions, wrongIds, subject: subjectSlugFor(subject) ?? subject })
     if (cards.length === 0) return
     try {
       await addCards(deckOwner(), cards)
@@ -1432,17 +1415,15 @@ export default function HomeworkFlow({
     }
   }
 
-  // Все хард-задания — единый per-task/раунд-формат. Если учитель назначил
-  // banked hard_tasks — берём их; иначе синтезируем ОДНУ вкладку из задания урока
-  // (hardLevel.teacherTask), чтобы тред (решение → комментарий → …) был везде.
-  const effectiveDefs: HardTaskDef[] = hardDefs.length > 0
-    ? hardDefs
-    // Course-editor «Домашки» homework has no `homework` table row, so fall back
-    // to its per-task authored defs (one «Задание N» tab each); only when there
-    // are none do we synthesize a single legacy tab from teacherTask.
-    : (hardLevel.authoredHardDefs?.length
-        ? hardLevel.authoredHardDefs.map(d => ({ key: d.key, source: 'custom' as const, statement: d.statement }))
-        : [{ key: LEGACY_HARD_KEY, source: 'custom', statement: hardLevel.teacherTask?.prompt ?? hardLevel.teacherTask?.topic ?? '' }])
+  // Все хард-задания — единый per-task/раунд-формат. Источник один: задания ДЗ
+  // урока с isHard. Туда же на загрузке вливается хард из банка, назначенный на
+  // урок через «Создать домашку» (fetchLessonHardTasks в db.ts) — поэтому
+  // отдельного запроса к `homework` здесь нет. Нет ни одного определения →
+  // синтезируем ОДНУ вкладку из задания урока (teacherTask), чтобы тред
+  // (решение → комментарий → …) существовал и у legacy-ДЗ.
+  const effectiveDefs: HardTaskDef[] = hardLevel.authoredHardDefs?.length
+    ? hardLevel.authoredHardDefs.map(d => ({ key: d.key, source: 'custom' as const, statement: d.statement, image: d.image }))
+    : [{ key: LEGACY_HARD_KEY, source: 'custom', statement: hardLevel.teacherTask?.prompt ?? hardLevel.teacherTask?.topic ?? '' }]
   // Хард всегда идёт через тред-вид (effectiveDefs не пуст), legacy-ветки мертвы.
   const isMultiHard = effectiveDefs.length > 0
 

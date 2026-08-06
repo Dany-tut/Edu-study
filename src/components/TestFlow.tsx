@@ -136,6 +136,21 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                   <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', paddingTop: 3, ...proseWrap }}>{bindShortWords(task.question || task.label)}</div>
                 </div>
 
+                {/* Картинка условия. В тесте она рисуется по тем же правилам,
+                    что и в домашке: без неё задание «что изображено» решить
+                    нельзя, а тест собирается из тех же заданий. */}
+                {task.image && (
+                  <img
+                    src={task.image}
+                    alt=""
+                    style={{
+                      display: 'block', marginLeft: 36, marginBottom: 12, borderRadius: 12,
+                      width: `${task.imageSize ?? 100}%`, maxWidth: 'calc(100% - 36px)',
+                      border: '1px solid var(--color-border)', background: '#fff',
+                    }}
+                  />
+                )}
+
                 {/* single — radio */}
                 {tp === 'single' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 36 }}>

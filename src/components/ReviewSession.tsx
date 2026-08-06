@@ -69,6 +69,15 @@ export default function ReviewSession({ owner, onDone }: {
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}
           style={{ background: 'rgba(var(--glass-rgb),0.9)', border: '1px solid var(--color-border-glass)', borderRadius: 18, padding: 22, minHeight: 150, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
         >
+          {/* Рисунок предмета — та же картинка, что на карточке в колоде:
+              слово вспоминается от предмета, а перевод сейчас закрыт. */}
+          {card.image && (
+            <img
+              src={card.image}
+              alt=""
+              style={{ display: 'block', width: 84, height: 84, objectFit: 'contain', borderRadius: 12, background: '#fff', margin: '0 auto 12px' }}
+            />
+          )}
           {/* Лицо карточки центрировано: рваные по длине строки видно сразу,
               поэтому balance, а не pretty. */}
           <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', textAlign: 'center', lineHeight: 1.5, ...balancedWrap }}>{bindShortWords(card.prompt)}</div>

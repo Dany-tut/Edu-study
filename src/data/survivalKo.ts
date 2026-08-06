@@ -817,6 +817,7 @@ const PHRASES: SurvivalBook['phrases'] = {
     p('이거 뭐예요?', 'что это такое?', 'igeo mwoyeyo'),
     p('매워요?', 'это острое?', 'maewoyo'),
     p('안 맵게 해 주세요', 'сделайте неострым', 'an maepge hae juseyo'),
+    p('덜 맵게 해 주세요', 'сделайте не очень остро', 'deol maepge hae juseyo', 'Просьба убавить остроту, а не убрать её совсем: на кухне это понимают лучше, чем 안 맵게.'),
     p('조금 맵게 해 주세요', 'сделайте чуть острым', 'jogeum maepge hae juseyo'),
     p('이거 포장돼요?', 'это можно взять с собой?', 'igeo pojangdwaeyo'),
     p('남은 거 포장해 주세요', 'упакуйте то, что осталось', 'nameun geo pojanghae juseyo'),

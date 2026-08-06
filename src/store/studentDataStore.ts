@@ -14,6 +14,7 @@ import {
 } from '../lib/db'
 import { fetchStandaloneSubject, HW_SUBJECT_ID } from '../lib/standaloneHomework'
 import { getStudentSession } from '../lib/studentSession'
+import { getSubject } from '../lib/subjects'
 import { useDashboard } from './dashboardStore'
 import {
   type Subject,
@@ -188,4 +189,43 @@ export function ownerStudentIdFor(subjectId: string | undefined): string {
   const fallback = getStudentSession()?.id ?? ''
   if (!subjectId) return fallback
   return useStudentData.getState().subjects.find(s => s.id === subjectId)?.ownerStudentId ?? fallback
+}
+
+/**
+ * Слаг предмета из реестра по short_id курса: 'seed-kotp-84fe210b' → 'korean'.
+ *
+ * Урок знает только свой курс (`Lesson.subject` — это short_id, см. lib/db.ts),
+ * а всё, что пишется «про предмет» — карточки повторения, например — должно
+ * говорить на языке реестра, иначе одна и та же корейская домашка окажется в
+ * колоде под id курса, а тренажёр будет искать её под 'korean'.
+ *
+ * Возвращает undefined, если курс не найден или его предмет не из реестра, —
+ * вызывающий сам решает, писать ли исходное значение как есть.
+ */
+export function subjectSlugFor(courseId: string | undefined): string | undefined {
+  if (!courseId) return undefined
+  const course = useStudentData.getState().subjects.find(s => s.id === courseId)
+  return getSubject(course?.subject)?.id
+}
+
+/**
+ * Все написания предмета, которые могут стоять в `review_cards.subject`.
+ *
+ * Колонка исторически заполнялась тремя разными словарями: слаг реестра
+ * ('korean') из тренажёра, русское имя ('Корейский') с курсов и short_id курса
+ * ('seed-kotp-84fe210b') из домашки — последнее чинится на записи
+ * (subjectSlugFor), но уже накопленные карточки никуда не делись. Поэтому
+ * фильтр читает по списку синонимов, а не по одному значению: иначе у ученика,
+ * который сдал десять слов до этой правки, колода стала бы пустой.
+ *
+ * Курсы берутся из тех, куда ученик записан, — чужие short_id в список не
+ * попадают, и подмешать соседний язык этим нельзя.
+ */
+export function subjectAliases(idOrName: string | undefined): string[] {
+  const def = getSubject(idOrName)
+  if (!def) return idOrName ? [idOrName] : []
+  const courseIds = useStudentData.getState().subjects
+    .filter(s => getSubject(s.subject)?.id === def.id)
+    .map(s => s.id)
+  return [...new Set([def.id, def.name, ...courseIds])]
 }

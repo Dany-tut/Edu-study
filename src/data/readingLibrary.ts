@@ -280,7 +280,7 @@ Sara`,
 const KO: ReadingText[] = [
   {
     id: 'ko-notice-gym',
-    lang: 'ko', title: '헬스장 안내 (объявление в спортзале)', level: 'TOPIK 1', minutes: 2,
+    lang: 'ko', title: '헬스장 안내 (объявление в спортзале)', level: 'TOPIK 1급', minutes: 2,
     topic: 'Объявления', skill: 'Чтение',
     origin: 'original',
     body: `헬스장 이용 안내
@@ -330,7 +330,7 @@ const KO: ReadingText[] = [
   },
   {
     id: 'ko-message-plan',
-    lang: 'ko', title: '문자 메시지 (переписка)', level: 'TOPIK 1', minutes: 2,
+    lang: 'ko', title: '문자 메시지 (переписка)', level: 'TOPIK 1급', minutes: 2,
     topic: 'Переписка', skill: 'Чтение',
     origin: 'original',
     body: `지수: 내일 저녁에 시간 있어요?
@@ -569,7 +569,280 @@ Carla: adorei! a gente se encontra às 19h na frente do metrô então`,
   },
 ]
 
-export const READING_LIBRARY: ReadingText[] = [...EN, ...KO, ...JA, ...PT]
+
+// ─── Добавочные тексты: по одному более сложному на язык ─────────────────────
+//
+// Библиотека растёт «вверх»: у каждого языка появляется текст на ступень выше
+// стартового. Без этого ученик, прошедший первые тексты, упирается в потолок и
+// режим становится бесполезным ровно тогда, когда он начал работать.
+
+const MORE: ReadingText[] = [
+  {
+    id: 'en-offer-letter',
+    lang: 'en', title: 'An offer letter', level: 'B1', minutes: 3,
+    topic: 'Поиск работы', skill: 'Чтение',
+    origin: 'original',
+    body: `Dear Daniil,
+
+We are pleased to offer you the position of Product Designer at Nordic Labs, starting on 15 September.
+
+Your gross monthly salary will be 4,900 EUR, reviewed annually. You will be entitled to 28 days of paid holiday per year, in addition to public holidays in your country of residence.
+
+The role is fully remote. We ask that you overlap with CET working hours for at least four hours a day.
+
+The first three months are a probation period, during which either side may end the contract with two weeks' notice. After that, the notice period is one month.
+
+Please confirm by 30 August. If you have questions about any of the terms, I am happy to discuss them before you sign.
+
+Best regards,
+Anna Kowalski`,
+    glossary: [
+      { term: 'gross salary', ru: 'зарплата до вычета налогов' },
+      { term: 'to be entitled to', ru: 'иметь право на' },
+      { term: 'to overlap with', ru: 'пересекаться по времени с' },
+      { term: 'probation period', ru: 'испытательный срок' },
+      { term: "notice period", ru: 'срок предупреждения об увольнении' },
+    ],
+    questions: [
+      {
+        q: 'Is 4,900 EUR the amount you will receive on your account?',
+        options: [
+          'Yes, that is the final amount',
+          'No, it is before tax',
+          'No, it is after tax',
+          'The letter does not say',
+        ],
+        correct: 1,
+        why: '«Gross» означает до вычета налогов. Разница с чистой суммой может быть в треть — это первое, что стоит уточнять в оффере.',
+      },
+      {
+        q: 'How much notice must you give during probation?',
+        options: ['One week', 'Two weeks', 'One month', 'No notice needed'],
+        correct: 1,
+        why: 'Во время испытательного срока — две недели, после него уже месяц. Условия разные, и это типично.',
+      },
+      {
+        q: 'What does the company ask about working hours?',
+        options: [
+          'You must work 9 to 18 CET',
+          'You must overlap with CET for at least four hours',
+          'There are no requirements',
+          'You must move to Europe',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What should you do if a term is unclear?',
+        options: [
+          'Sign first, ask later',
+          'Ask before signing — she offers to discuss',
+          'Refuse the offer',
+          'Nothing, terms are fixed',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'ko-notice-class',
+    lang: 'ko', title: '문화 교실 안내 (объявление о занятиях)', level: 'TOPIK 2급', minutes: 3,
+    topic: 'Учёба', skill: 'Чтение',
+    origin: 'original',
+    body: `한국 문화 교실 안내
+
+한국어를 배우는 외국인을 위한 문화 수업입니다.
+
+날짜: 매주 토요일 오후 2시 ~ 4시
+장소: 시민 문화 센터 3층
+내용: 한국 요리, 서예, 전통 놀이
+
+참가비는 무료지만, 재료비 오천 원을 내야 합니다.
+인원이 스무 명으로 제한되어 있으니 미리 신청하세요.
+신청은 홈페이지에서만 받습니다.`,
+    translation: `Занятия по корейской культуре
+
+Занятия для иностранцев, изучающих корейский.
+
+Дата: каждую субботу, 14:00–16:00
+Место: Городской культурный центр, 3 этаж
+Содержание: корейская кухня, каллиграфия, традиционные игры
+
+Участие бесплатное, но нужно оплатить материалы — 5000 вон.
+Количество мест ограничено двадцатью, записывайтесь заранее.
+Запись только через сайт.`,
+    glossary: [
+      { term: '외국인', ru: 'иностранец' },
+      { term: '참가비', ru: 'плата за участие' },
+      { term: '무료', ru: 'бесплатно' },
+      { term: '재료비', ru: 'плата за материалы' },
+      { term: '제한되다', ru: 'быть ограниченным' },
+      { term: '신청하다', ru: 'подавать заявку, записываться' },
+    ],
+    questions: [
+      {
+        q: '수업은 정말 무료예요?',
+        options: [
+          '네, 완전히 무료예요',
+          '아니요, 재료비 오천 원을 내야 해요',
+          '아니요, 오만 원이에요',
+          '안내에 없어요',
+        ],
+        correct: 1,
+        why: 'Ловушка: 참가비 무료, но 재료비 платить надо. Такие оговорки в объявлениях почти всегда идут после «но».',
+      },
+      {
+        q: '몇 명까지 신청할 수 있어요?',
+        options: ['열 명', '스무 명', '서른 명', '제한이 없어요'],
+        correct: 1,
+      },
+      {
+        q: '어떻게 신청해요?',
+        options: ['전화로', '홈페이지에서만', '직접 가서', '이메일로'],
+        correct: 1,
+        why: 'Слово 만 («только») здесь ключевое: другие способы не подойдут.',
+      },
+    ],
+  },
+  {
+    id: 'ja-notice-class',
+    lang: 'ja', title: 'にほんご きょうしつの おしらせ', level: 'JLPT N4', minutes: 3,
+    topic: 'Учёба', skill: 'Чтение',
+    origin: 'original',
+    body: `にほんご きょうしつの おしらせ
+
+がいこくじんの ための にほんご きょうしつを ひらきます。
+
+ひにち：まいしゅう どようび ごご 2じ〜4じ
+ばしょ：しみん センター 3かい
+ないよう：かいわ、かんじ、にほんの ぶんか
+
+じゅぎょうりょうは むりょうですが、きょうかしょだいは じぶんで はらって ください。
+にんずうは 20にんまでです。はやめに もうしこんで ください。
+もうしこみは ホームページからだけ うけつけます。`,
+    translation: `Объявление о занятиях японским
+
+Открываем занятия японским языком для иностранцев.
+
+Дата: каждую субботу, 14:00–16:00
+Место: Городской центр, 3 этаж
+Содержание: разговор, иероглифы, японская культура
+
+Занятия бесплатные, но учебник оплачивается самостоятельно.
+Количество мест — до 20. Записывайтесь заранее.
+Запись принимается только через сайт.`,
+    glossary: [
+      { term: 'がいこくじん', ru: 'иностранец' },
+      { term: 'むりょう', ru: 'бесплатно' },
+      { term: 'きょうかしょ', ru: 'учебник' },
+      { term: 'にんずう', ru: 'количество человек' },
+      { term: 'もうしこむ', ru: 'подавать заявку' },
+      { term: '〜だけ', ru: 'только' },
+    ],
+    questions: [
+      {
+        q: 'ぜんぶ むりょうですか。',
+        options: [
+          'はい、ぜんぶ むりょうです',
+          'いいえ、きょうかしょは じぶんで はらいます',
+          'いいえ、ぜんぶ ゆうりょうです',
+          'おしらせに ありません',
+        ],
+        correct: 1,
+        why: 'Конструкция 〜ですが вводит оговорку. Именно после неё обычно и лежит подвох.',
+      },
+      {
+        q: 'なんにんまで もうしこめますか。',
+        options: ['10にん', '20にん', '30にん', 'せいげんは ありません'],
+        correct: 1,
+      },
+      {
+        q: 'どうやって もうしこみますか。',
+        options: ['でんわで', 'ホームページからだけ', 'ちょくせつ いって', 'メールで'],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'pt-job-ad',
+    lang: 'pt-BR', title: 'Vaga de emprego', level: 'B1', minutes: 3,
+    topic: 'Поиск работы', skill: 'Чтение',
+    origin: 'original',
+    body: `VAGA: Designer de Produto (Pleno)
+Remoto — Brasil · CLT
+
+Estamos procurando um designer de produto para integrar nosso time de seis pessoas. Você vai trabalhar principalmente no aplicativo, com foco em onboarding e pagamentos.
+
+O que esperamos:
+• 2 anos ou mais de experiência
+• Portfólio com pelo menos um estudo de caso
+• Inglês para leitura (nosso time é distribuído)
+• Experiência com design system é um diferencial, não um requisito
+
+O que oferecemos:
+• Trabalho 100% remoto e horário flexível
+• Vale-refeição e plano de saúde
+• 30 dias de férias
+
+Para se candidatar, envie currículo e link do portfólio. Respondemos todas as candidaturas em até duas semanas.`,
+    translation: `Вакансия: продуктовый дизайнер (средний уровень)
+Удалённо — Бразилия · оформление по трудовой
+
+Ищем продуктового дизайнера в команду из шести человек. Работа в основном над приложением, фокус — онбординг и платежи.
+
+Что ждём:
+• от 2 лет опыта
+• портфолио минимум с одним кейсом
+• английский для чтения (команда распределённая)
+• опыт с дизайн-системой будет плюсом, но не обязателен
+
+Что предлагаем:
+• полностью удалённая работа и гибкий график
+• талоны на питание и медстраховка
+• 30 дней отпуска
+
+Чтобы откликнуться, пришлите резюме и ссылку на портфолио. Отвечаем на все отклики в течение двух недель.`,
+    glossary: [
+      { term: 'vaga', ru: 'вакансия' },
+      { term: 'pleno', ru: 'средний уровень (между júnior и sênior)' },
+      { term: 'CLT', ru: 'оформление по трудовому кодексу Бразилии' },
+      { term: 'diferencial', ru: 'преимущество, плюс' },
+      { term: 'requisito', ru: 'обязательное требование' },
+      { term: 'vale-refeição', ru: 'талоны на питание' },
+      { term: 'se candidatar', ru: 'откликнуться на вакансию' },
+    ],
+    questions: [
+      {
+        q: 'Experiência com design system é obrigatória?',
+        options: [
+          'Sim, é um requisito',
+          'Não, é apenas um diferencial',
+          'Só para vagas sênior',
+          'O anúncio não diz',
+        ],
+        correct: 1,
+        why: '«É um diferencial, não um requisito» — прямое противопоставление.',
+      },
+      {
+        q: 'Que nível de inglês é necessário?',
+        options: ['Fluente', 'Para leitura', 'Não é necessário', 'Nativo'],
+        correct: 1,
+      },
+      {
+        q: 'O que significa "CLT" aqui?',
+        options: [
+          'Trabalho como freelancer',
+          'Contratação formal pela legislação trabalhista',
+          'Estágio',
+          'Trabalho temporário',
+        ],
+        correct: 1,
+        why: 'CLT — оформление в штат с полным соцпакетом, в отличие от PJ (работа как ИП). Разница принципиальная для бразильского рынка труда.',
+      },
+    ],
+  },
+]
+
+export const READING_LIBRARY: ReadingText[] = [...EN, ...KO, ...JA, ...PT, ...MORE]
 
 /** Тексты нужного языка, по возрастанию уровня. */
 export function textsForLang(lang: string): ReadingText[] {

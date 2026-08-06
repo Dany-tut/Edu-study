@@ -48,9 +48,9 @@ export default function Coachmarks({ steps, open, onClose, accent }: {
   const t = useT()
   const [i, setI] = useState(0)
   // Замер цели: координаты И скругление одним объектом. Скругление берётся у
-  // самого элемента, а не задаётся числом: рамка отстоит от блока на PAD,
-  // поэтому её радиус = радиус блока + PAD — только тогда дуга угла идёт
-  // параллельно углу карточки, а не срезает его.
+  // самого элемента, а не задаётся числом: у рамки ровно тот же радиус, что у
+  // блока под ней, — один в один, иначе она читается как чужая деталь поверх
+  // вёрстки.
   const [box, setBox] = useState<Box | null>(null)
   const timers = useRef<number[]>([])
   // Высота карточки нужна ДО того, как её ставить: на телефоне подсвеченный
@@ -81,7 +81,7 @@ export default function Coachmarks({ steps, open, onClose, accent }: {
     const rad = own || kid
     const next: Box = {
       top: r.top, left: r.left, width: r.width, height: r.height,
-      radius: rad > 0 ? rad + PAD : DEFAULT_R,
+      radius: rad > 0 ? rad : DEFAULT_R,
     }
     // Возвращаем прежний объект, если ничего не сдвинулось: React пропустит
     // рендер, и замеры по скроллу перестанут дёргать дерево вхолостую.

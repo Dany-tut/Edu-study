@@ -5,7 +5,7 @@
 import { supabase } from './supabase'
 import { trackEvent } from './analytics'
 import { t } from './i18n'
-import type { HardTaskStudentBlock, HardTaskReviewBlock } from './useHomework'
+import type { HardTaskStudentBlock, HardTaskReviewBlock, HardTaskDef } from './useHomework'
 
 /**
  * Report a real Supabase error (RLS denial, 5xx, timeout) to console + analytics
@@ -263,6 +263,53 @@ interface DbCourse {
   }>
 }
 
+/**
+ * Сложные задания, назначенные группам ученика на КОНКРЕТНЫЕ уроки курса
+ * («Создать домашку» → выбран урок → блок «Сложные задания»). Хранятся в
+ * `homework.hard_tasks`, а `homework.lesson_id` — это uuid строки `lessons`
+ * (НЕ short_id, которым урок зовётся на клиенте), поэтому связываем по uuid.
+ *
+ * Возвращает map lessonUuid → defs; дальше они вливаются в авторское ДЗ урока
+ * как задания с isHard, чтобы у харда был ОДИН источник правды: и трек
+ * (спутник-звезда), и HomeworkFlow смотрят на одни и те же hwTasks.
+ */
+async function fetchLessonHardTasks(groupIds: string[]): Promise<Map<string, HardTaskDef[]>> {
+  const byLesson = new Map<string, HardTaskDef[]>()
+  if (groupIds.length === 0) return byLesson
+  const { data, error } = await supabase
+    .from('homework')
+    .select('lesson_id, hard_tasks, created_at')
+    .in('group_id', groupIds)
+    .not('lesson_id', 'is', null)
+    .eq('status', 'active')
+    .order('created_at', { ascending: true })
+  if (error) reportDbError('fetchLessonHardTasks', error)
+  if (error || !data) return byLesson
+  for (const row of data as Array<{ lesson_id: string; hard_tasks?: HardTaskDef[] | null }>) {
+    const defs = Array.isArray(row.hard_tasks) ? row.hard_tasks.filter(d => d?.key) : []
+    if (defs.length === 0) continue
+    // Несколько назначений на один урок (разные группы человека) → объединяем,
+    // дедуп по key, порядок — по времени назначения.
+    const acc = byLesson.get(row.lesson_id) ?? []
+    for (const def of defs) if (!acc.some(d => d.key === def.key)) acc.push(def)
+    byLesson.set(row.lesson_id, acc)
+  }
+  return byLesson
+}
+
+/** Определения из банка → задания авторского ДЗ (isHard), в том же виде, в каком
+ *  их кладёт standalone-ДЗ (см. standaloneHomework.buildAuthored). */
+function hardDefsToTasks(defs: HardTaskDef[]): import('../data/lessonContent').AuthoredHomeworkTask[] {
+  return defs.map((d, i) => ({
+    id: d.key || `h${i}`,
+    type: 'extended' as const,
+    isHard: true,
+    question: d.statement,
+    answer: d.answer,
+    image: d.image ?? undefined,
+  }))
+}
+
 export async function fetchCourseStructure(rows: Array<{ id: string; groupId: string }>): Promise<Subject[]> {
   // Guard: битые id (undefined / "undefined") в orParts дают 400 invalid uuid.
   const studentIds = [...new Set(rows.map(r => r.id))].filter(isUuid)
@@ -289,6 +336,9 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
 
   if (error) reportDbError('fetchCourseStructure', error)
   if (error || !data || data.length === 0) return []
+
+  // Сложные задания, назначенные на уроки этих курсов через «Создать домашку».
+  const hardByLessonId = await fetchLessonHardTasks(groupIds)
 
   // Per-student access mode (full / custom / by_date). Absent row → 'custom'
   // (only teacher-unlocked lessons open), preserving legacy behaviour.
@@ -333,6 +383,22 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
         lessons: [...mod.lessons]
           .sort((a, b) => a.lesson_number - b.lesson_number)
           .flatMap(l => {
+            // Хард из банка, назначенный на этот урок, дописываем к авторским
+            // заданиям ДЗ (дедуп по id) — так у урока появляется настоящий
+            // сложный уровень даже если в Конструкторе его не размечали.
+            const bankHard = hardByLessonId.get(l.id)
+            const authoredHw = l.homework && (l.homework.hwTasks?.length || l.homework.recHwTasks?.length)
+              ? l.homework
+              : undefined
+            const homework = bankHard?.length
+              ? {
+                  ...(authoredHw ?? {}),
+                  hwTasks: [
+                    ...(authoredHw?.hwTasks ?? []),
+                    ...hardDefsToTasks(bankHard).filter(ht => !(authoredHw?.hwTasks ?? []).some(t => t.id === ht.id)),
+                  ],
+                }
+              : authoredHw
             const base = {
               title: l.title,
               number: l.lesson_number,
@@ -343,9 +409,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
               content: l.content && (l.content as { paragraphs?: unknown[] }).paragraphs?.length
                 ? (l.content as import('../data/lessonContent').LessonContentData)
                 : undefined,
-              homework: l.homework && (l.homework.hwTasks?.length || l.homework.recHwTasks?.length)
-                ? l.homework
-                : undefined,
+              homework,
               description: l.description ?? undefined,
               videoUrl: l.youtube_url ?? undefined,
               timecodes: Array.isArray(l.timecodes) && l.timecodes.length ? l.timecodes : undefined,

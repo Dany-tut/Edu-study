@@ -8,11 +8,15 @@ import { subjectTheme } from '../lib/theme'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
 import CardDeck from './CardDeck'
-import { addCards, deckOwner } from '../data/reviewDeck'
+import PhraseDecks from './PhraseDecks'
+import { addCards, deckOwner, dueCount } from '../data/reviewDeck'
+import { hasSurvivalBook } from '../data/survivalBooks'
 import VoiceRecorder from './VoiceRecorder'
 import GlossedText from './GlossedText'
 import Coachmarks, { type CoachStep } from './Coachmarks'
 import { hasLexicon } from '../lib/lexicon'
+import { submitTrainerVoice, countTrainerVoice } from '../lib/trainerSpeaking'
+import { ownerStudentIdFor, subjectAliases, useStudentData } from '../store/studentDataStore'
 
 // Тренажёр для языковых предметов.
 //
@@ -101,9 +105,40 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
   // курс, тренажёр — предмет, и по разным ключам получались бы разные колоды
   // (подробности в data/reviewDeck.ts).
   const owner = useMemo(() => deckOwner(), [])
+  // Предмет колоды: тем же списком синонимов, что фильтрует CardDeck, — иначе
+  // счётчик долга и сама колода считали бы разные множества, и вкладка
+  // «Повторение» открывалась бы по чужим карточкам пустой.
+  const deckCourses = useStudentData(s => s.subjects)
+  const deckSubjects = useMemo(() => subjectAliases(subjectId), [subjectId, deckCourses])
   const [deckKey, setDeckKey] = useState(0)
   const [seeding, setSeeding] = useState(false)
   const [seedNote, setSeedNote] = useState('')
+
+  // ── Две половины вкладки «Карточки» ────────────────────────────────────────
+  //
+  // «Повторение» — колода по расписанию, то, что было здесь всегда. «Наборы
+  // фраз» — готовый разговорник по ситуациям (см. PhraseDecks).
+  //
+  // Что открыть по умолчанию, решает наличие долга: если карточки на сегодня
+  // есть, ученик пришёл именно за ними, и подсовывать ему вместо этого витрину
+  // значит каждый раз заставлять переключаться. Если долга нет — показываем
+  // наборы: пустая стопка с надписью «карточки появятся сами» была ровно тем
+  // тупиком, из-за которого тысяча готовых фраз лежала невидимой.
+  //
+  // Пока счётчик не пришёл, вкладка НЕ рисуется вовсе (см. ниже): мигание
+  // «Повторение → Наборы» через полсекунды после открытия выглядит как сбой.
+  const hasBook = useMemo(() => hasSurvivalBook(lang), [lang])
+  const [vocabView, setVocabView] = useState<'due' | 'sets' | null>(null)
+  const [due, setDue] = useState(0)
+
+  useEffect(() => {
+    if (!hasBook) { setVocabView('due'); return }
+    let alive = true
+    dueCount(owner, deckSubjects)
+      .then(n => { if (alive) { setDue(n); setVocabView(n > 0 ? 'due' : 'sets') } })
+      .catch(() => { if (alive) setVocabView('sets') })
+    return () => { alive = false }
+  }, [hasBook, owner, deckSubjects])
   const glossaryCards = useMemo(() => allTexts.flatMap(txt => txt.glossary.map(g => ({
     subject: subjectId,
     source: 'manual' as const,
@@ -200,7 +235,45 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
         )
       )}
 
-      {mode === 'vocab' && (
+      {mode === 'vocab' && hasBook && vocabView !== null && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 16 }}>
+          {([
+            { id: 'due' as const, label: 'Повторение' },
+            { id: 'sets' as const, label: 'Наборы фраз' },
+          ]).map(v => {
+            const on = v.id === vocabView
+            return (
+              <button
+                key={v.id}
+                onClick={() => setVocabView(v.id)}
+                style={{
+                  padding: '7px 15px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+                  fontSize: 13, fontWeight: 700,
+                  border: `1px solid ${on ? palette.accent : 'var(--color-border-soft)'}`,
+                  background: on ? 'var(--color-bg-3)' : 'transparent',
+                  color: on ? palette.accent : 'var(--color-text-2)',
+                }}
+              >
+                {t(v.label)}
+                {v.id === 'due' && due > 0 && (
+                  <span style={{
+                    marginLeft: 6, padding: '1px 7px', borderRadius: 999, fontSize: 11, fontWeight: 800,
+                    background: palette.soft, color: palette.accent,
+                  }}>
+                    {due}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {mode === 'vocab' && vocabView === 'sets' && hasBook && (
+        <PhraseDecks lang={lang} subjectId={subjectId} accent={palette.accent} owner={owner} />
+      )}
+
+      {mode === 'vocab' && vocabView === 'due' && (
         <div>
           <p style={{ fontSize: 13, color: 'var(--color-muted)', marginBottom: 14, lineHeight: 1.6 }}>
             {t('Слова из уроков и ошибок повторяются по расписанию: каждое возвращается ровно тогда, когда его вот-вот забудешь.')}
@@ -266,12 +339,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
       )}
 
       {mode === 'speaking' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <p style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.6 }}>
-            {t('Запиши короткий рассказ о себе или ответ на вопрос урока. Запись уйдёт преподавателю — он послушает и разберёт.')}
-          </p>
-          <VoiceRecorder value={null} onChange={() => {}} maxSeconds={120} />
-        </div>
+        <Speaking subjectId={subjectId} subject={subject} accent={palette.accent} />
       )}
     </div>
   )
@@ -732,6 +800,107 @@ function Listener({ item, accent, lang, onBack }: {
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Говорение ───────────────────────────────────────────────────────────────
+
+// Набор заданий намеренно маленький и постоянный: смысл режима в том, чтобы
+// записывать ОДНО И ТО ЖЕ раз в месяц и слышать собственный прогресс. Изнутри
+// он не слышен вообще, а на двух записях подряд очевиден за десять секунд.
+const SPEAKING_PROMPTS = [
+  'Расскажи о себе: имя, чем занимаешься, зачем учишь язык. Минута.',
+  'Опиши свой обычный день с утра до вечера.',
+  'Расскажи о месте, где ты вырос. Что там было хорошего?',
+  'Что ты делал на прошлых выходных? Используй прошедшее время.',
+  'Какие у тебя планы на ближайший год?',
+]
+
+function Speaking({ subjectId, subject, accent }: {
+  subjectId: string; subject: string; accent: string
+}) {
+  const t = useT()
+  const [promptIdx, setPromptIdx] = useState(0)
+  const [sent, setSent] = useState(0)
+  const [status, setStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle')
+
+  const owner = useMemo(() => ownerStudentIdFor(subjectId), [subjectId])
+
+  useEffect(() => {
+    let alive = true
+    countTrainerVoice(owner, subjectId)
+      .then(n => { if (alive) setSent(n) })
+      .catch(() => {})
+    return () => { alive = false }
+  }, [owner, subjectId])
+
+  async function handleRecorded(path: string | null) {
+    if (!path) return
+    setStatus('sending')
+    try {
+      await submitTrainerVoice(owner, subjectId, subject, path, SPEAKING_PROMPTS[promptIdx])
+      setSent(n => n + 1)
+      setStatus('done')
+    } catch (e) {
+      console.error('submitTrainerVoice:', e)
+      setStatus('error')
+    }
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{
+        padding: '16px 18px', borderRadius: 18,
+        background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
+      }}>
+        <p style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.3, color: 'var(--color-text-3)', marginBottom: 8 }}>
+          {t('Задание')}
+        </p>
+        <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-text)' }}>
+          {t(SPEAKING_PROMPTS[promptIdx])}
+        </p>
+      </div>
+
+      <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+        {SPEAKING_PROMPTS.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => { setPromptIdx(i); setStatus('idle') }}
+            style={{
+              width: 30, height: 30, borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+              fontSize: 13, fontWeight: 700,
+              border: `1px solid ${i === promptIdx ? accent : 'var(--color-border-soft)'}`,
+              background: i === promptIdx ? 'var(--color-bg-3)' : 'var(--color-bg-2)',
+              color: i === promptIdx ? accent : 'var(--color-text-3)',
+            }}
+          >
+            {i + 1}
+          </button>
+        ))}
+      </div>
+
+      <VoiceRecorder value={null} onChange={handleRecorded} maxSeconds={120} />
+
+      {status === 'sending' && (
+        <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Отправляем преподавателю…')}</p>
+      )}
+      {status === 'done' && (
+        <p style={{ fontSize: 13, color: 'var(--color-green-text)', fontWeight: 600 }}>
+          {t('Записано и отправлено. Преподаватель послушает и разберёт.')}
+        </p>
+      )}
+      {status === 'error' && (
+        <p style={{ fontSize: 13, color: 'var(--color-red-text)', fontWeight: 600 }}>
+          {t('Не получилось отправить. Проверь связь и попробуй ещё раз.')}
+        </p>
+      )}
+
+      <p style={{ fontSize: 12.5, color: 'var(--color-muted)', lineHeight: 1.6 }}>
+        {sent > 0
+          ? `${t('Отправлено записей:')} ${sent}. ${t('Запиши то же задание через месяц и послушай обе подряд — прогресс изнутри не слышен, а на записи заметен сразу.')}`
+          : t('Записи не стираются: можно вернуться к тому же заданию через месяц и сравнить себя с собой.')}
+      </p>
     </div>
   )
 }

@@ -42,7 +42,7 @@
 import {
   buildLanguageCourse, courseSummary, allVocab, unitByShortId, moduleOfUnit,
   one, many, fill, wb, order, pairsOf, grid, write, say, readAloud,
-  dictation,
+  dictation, drill,
 } from './languageCourse'
 import { formTable, formulaStrip, contrastPair } from './lessonFigures'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
@@ -65,6 +65,18 @@ export const PORTUGUESE2_UNITS: LangUnit[] = [
     grammarWhy: 'На A2 ученик уже различает событие и фон. Третье прошедшее добавляет глубину: «когда я пришёл, он уже ушёл». Без него рассказ о прошлом остаётся плоским и часто двусмысленным.',
     vocabTheme: 'Рассказ о прошлом',
     artifact: 'Рассказ на 12 предложений с тремя прошедшими',
+    pattern: drill(
+      'mais-que-perfeito composto',
+      'что случилось ДО того момента',
+      [
+        ['fazer — до того', 'tinha feito', 'уже сделал (к тому моменту)'],
+        ['sair — до того', 'tinha saído', 'уже ушёл'],
+        ['ver — до того', 'tinha visto', 'уже видел'],
+        ['chegar — до того', 'tinha chegado', 'уже пришёл'],
+        ['dizer — до того', 'tinha dito', 'уже сказал'],
+      ],
+      'Конструкция ставит событие раньше другого прошедшего: «когда я пришёл, он уже ушёл». Причастия feito, visto, dito неправильные.',
+    ),
     vocab: [
       { term: 'tinha feito', reading: 'чи́нья фе́йту', ru: 'уже сделал (к тому моменту)' },
       { term: 'já', reading: 'жá', ru: 'уже' },
@@ -118,6 +130,18 @@ export const PORTUGUESE2_UNITS: LangUnit[] = [
     grammarWhy: 'Кондиционал в бразильской речи чаще всего не про гипотезу, а про вежливость: gostaria вместо quero, poderia вместо pode. Он же — вторая половина условных конструкций второго типа.',
     vocabTheme: 'Вежливость и гипотезы',
     artifact: 'Пять просьб и пять гипотез',
+    pattern: drill(
+      'futuro do pretérito',
+      'было бы / хотел бы',
+      [
+        ['fazer — я бы', 'eu faria', 'я бы сделал'],
+        ['gostar — я бы', 'eu gostaria', 'я хотел бы'],
+        ['poder — вы бы', 'você poderia', 'вы могли бы'],
+        ['ser — было бы', 'seria', 'было бы'],
+        ['dizer — я бы', 'eu diria', 'я бы сказал'],
+      ],
+      'Эта же форма работает как вежливость: poderia вместо pode звучит как «не могли бы вы».',
+    ),
     vocab: [
       { term: 'gostaria', reading: 'гостари́а', ru: 'я хотел бы' },
       { term: 'poderia', reading: 'подери́а', ru: 'не могли бы вы' },
@@ -172,6 +196,18 @@ export const PORTUGUESE2_UNITS: LangUnit[] = [
     grammarWhy: 'Сослагательное в португальском не стилистика — оно обязательно после определённых слов. Ошибка «espero que você vem» слышна мгновенно. Ключ к форме — первое лицо настоящего, а не инфинитив, и это надо получить сразу.',
     vocabTheme: 'Желание и сомнение',
     artifact: 'Десять предложений с триггерами сослагательного',
+    pattern: drill(
+      'presente do subjuntivo',
+      'после espero que, duvido que, talvez',
+      [
+        ['falar (falo →)', 'que eu fale', 'чтобы я говорил'],
+        ['comer (como →)', 'que eu coma', 'чтобы я ел'],
+        ['fazer (faço →)', 'que eu faça', 'чтобы я делал'],
+        ['ter (tenho →)', 'que eu tenha', 'чтобы у меня было'],
+        ['ir', 'que eu vá', 'чтобы я шёл'],
+      ],
+      'Форма строится от 1 лица presente, поэтому все неправильности оттуда переносятся сюда: faço → faça. ir выбивается и запоминается отдельно.',
+    ),
     vocab: [
       { term: 'espero que', reading: 'эспэ́ру ки', ru: 'надеюсь, что' },
       { term: 'duvido que', reading: 'дуви́ду ки', ru: 'сомневаюсь, что' },
@@ -222,6 +258,18 @@ export const PORTUGUESE2_UNITS: LangUnit[] = [
     grammarWhy: 'Связка «se eu tivesse…, eu faria…» жёсткая: обе части обязаны стоять в своих формах. Русскоязычный ставит в обе «бы»-форму одинаково и получает конструкцию, которой в португальском нет.',
     vocabTheme: 'Нереальное и мечты',
     artifact: 'Восемь условных предложений второго типа',
+    pattern: drill(
+      'imperfeito do subjuntivo + условие',
+      'если бы …, то …',
+      [
+        ['falar (falaram →)', 'se eu falasse', 'если бы я говорил'],
+        ['fazer (fizeram →)', 'se eu fizesse', 'если бы я делал'],
+        ['ter (tiveram →)', 'se eu tivesse', 'если бы у меня было'],
+        ['ser (foram →)', 'se eu fosse', 'если бы я был'],
+        ['если бы было время, поехал бы', 'Se eu tivesse tempo eu viajaria', 'Если бы было время, я бы поехал.'],
+      ],
+      'Форма выводится из 3 лица множественного perfeito. Условие строится жёсткой парой: se + imperfeito do subjuntivo, а следствие — futuro do pretérito.',
+    ),
     vocab: [
       { term: 'se eu tivesse', reading: 'си эу чиве́си', ru: 'если бы у меня было' },
       { term: 'se eu fosse', reading: 'си эу фо́си', ru: 'если бы я был' },
@@ -271,6 +319,18 @@ export const PORTUGUESE2_UNITS: LangUnit[] = [
     grammarWhy: 'В испанском эта форма практически умерла, в португальском она живая и обязательная. «Quando eu tiver tempo» — единственно верно; «quando eu terei» и «quando eu tenho» о будущем — ошибки, которые русскоязычные делают в каждой второй фразе.',
     vocabTheme: 'Будущие условия',
     artifact: 'Десять фраз о будущем с quando и se',
+    pattern: drill(
+      'futuro do subjuntivo',
+      'после quando и se о будущем',
+      [
+        ['falar (falaram →)', 'quando eu falar', 'когда я скажу'],
+        ['fazer (fizeram →)', 'quando eu fizer', 'когда я сделаю'],
+        ['ter (tiveram →)', 'quando eu tiver', 'когда у меня будет'],
+        ['ser (foram →)', 'se for', 'если будет'],
+        ['chegar', 'assim que eu chegar', 'как только я приеду'],
+      ],
+      'Это форма, которой нет в русском: после quando и se о будущем ставится именно она, а не presente. Quando eu chegar, а не quando eu chego.',
+    ),
     vocab: [
       { term: 'quando eu tiver', reading: 'куáнду эу чиве́р', ru: 'когда у меня будет' },
       { term: 'se eu puder', reading: 'си эу пуде́р', ru: 'если смогу' },
@@ -383,6 +443,18 @@ export const PORTUGUESE2_UNITS: LangUnit[] = [
     grammarWhy: 'Уникальная черта португальского: инфинитив имеет лицо. Она позволяет сказать «antes de sairmos» вместо «antes de que nós saiamos» — короче и естественнее. Русскоязычный без неё строит тяжёлые фразы с лишним que.',
     vocabTheme: 'Конструкции с предлогами',
     artifact: 'Десять фраз с личным инфинитивом',
+    pattern: drill(
+      'infinitivo pessoal',
+      'инфинитив с лицом',
+      [
+        ['falar — nós', 'para falarmos', 'чтобы мы поговорили'],
+        ['falar — eles', 'para falarem', 'чтобы они поговорили'],
+        ['falar — você', 'para você falar', 'чтобы вы поговорили'],
+        ['sair — nós', 'antes de sairmos', 'прежде чем мы уйдём'],
+        ['chegar — eles', 'depois de chegarem', 'после того как они приедут'],
+      ],
+      'Личный инфинитив — особенность португальского: он берёт окончание лица и потому позволяет обойтись без придаточного, когда субъекты разные.',
+    ),
     vocab: [
       { term: 'antes de', reading: 'áнчис джи', ru: 'прежде чем' },
       { term: 'depois de', reading: 'депо́йс джи', ru: 'после того как' },
@@ -432,6 +504,18 @@ export const PORTUGUESE2_UNITS: LangUnit[] = [
     grammarWhy: 'Бразильский текст постоянно уходит от деятеля: «fala-se português», «foi decidido». Русскоязычный переводит буквально с активным подлежащим и получает разговорный регистр там, где нужен официальный.',
     vocabTheme: 'Официальный регистр',
     artifact: 'Пять объявлений в безличной форме',
+    pattern: drill(
+      'пассив и безличность',
+      'кем сделано и «делают»',
+      [
+        ['дом был построен', 'A casa foi construída', 'Дом был построен.'],
+        ['книга была написана им', 'O livro foi escrito por ele', 'Книга была написана им.'],
+        ['продаётся дом', 'Vende-se casa', 'Продаётся дом.'],
+        ['продаются дома', 'Vendem-se casas', 'Продаются дома.'],
+        ['мы идём (разговорно)', 'a gente vai', 'мы идём'],
+      ],
+      'Строки 3 и 4 — типичная ошибка носителей тоже: при se apassivador глагол согласуется с предметом, поэтому vendem-se casas во множественном.',
+    ),
     vocab: [
       { term: 'foi construído', reading: 'фой конструи́ду', ru: 'был построен' },
       { term: 'ser realizado', reading: 'сер хеализáду', ru: 'быть проведённым' },
@@ -482,6 +566,18 @@ export const PORTUGUESE2_UNITS: LangUnit[] = [
     grammarWhy: 'Относительные придаточные — главный инструмент связности письменного текста. Без них абзац рассыпается на короткие фразы, а именно связность оценивается в CELPE-Bras прямо.',
     vocabTheme: 'Связность текста',
     artifact: 'Абзац, переписанный без повторов',
+    pattern: drill(
+      'относительные местоимения',
+      'который, чей, где',
+      [
+        ['человек, который пришёл', 'a pessoa que chegou', 'человек, который пришёл'],
+        ['человек, с которым я говорил', 'a pessoa com quem falei', 'человек, с которым я говорил'],
+        ['город, где я живу', 'a cidade onde moro', 'город, где я живу'],
+        ['автор, чья книга', 'o autor cujo livro', 'автор, чья книга'],
+        ['то, что я сказал', 'o que eu disse', 'то, что я сказал'],
+      ],
+      'После предлога о людях берут quem, а не que. cujo согласуется с тем, что за ним, а не с владельцем.',
+    ),
     vocab: [
       { term: 'que', reading: 'ки', ru: 'который' },
       { term: 'quem', reading: 'кэ̃й', ru: 'кто, кого (о людях)' },
@@ -535,6 +631,18 @@ export const PORTUGUESE2_UNITS: LangUnit[] = [
     grammarWhy: 'В CELPE-Bras задание почти всегда строится на источнике: услышал — перескажи. Без сдвига времён пересказ звучит как цитата, а без perguntou se — как прямой вопрос.',
     vocabTheme: 'Передача информации',
     artifact: 'Пересказ интервью на 10 предложений',
+    pattern: drill(
+      'косвенная речь и сдвиг времён',
+      'он сказал, что …',
+      [
+        ['«Estou cansado» →', 'Disse que estava cansado', 'Сказал, что устал.'],
+        ['«Cheguei» →', 'Disse que tinha chegado', 'Сказал, что приехал.'],
+        ['«Vou viajar» →', 'Disse que ia viajar', 'Сказал, что поедет.'],
+        ['«Farei isso» →', 'Disse que faria isso', 'Сказал, что сделает это.'],
+        ['просьба: «Venha» →', 'Pediu que eu viesse', 'Попросил меня прийти.'],
+      ],
+      'Каждое время сдвигается на шаг назад. Просьба уходит не в indicativo, а в subjuntivo: pediu que eu viesse.',
+    ),
     vocab: [
       { term: 'disse que', reading: 'джи́си ки', ru: 'сказал, что' },
       { term: 'perguntou se', reading: 'пергунто́у си', ru: 'спросил, ли' },
@@ -588,6 +696,18 @@ export const PORTUGUESE2_UNITS: LangUnit[] = [
     grammarWhy: 'Связность прямо влияет на оценку в CELPE-Bras. Ошибка не в незнании слов, а в том, что все связки сводятся к «e», «mas» и «porque»; текст читается как школьный.',
     vocabTheme: 'Логические связки',
     artifact: 'Аргументированный абзац с пятью типами связок',
+    pattern: drill(
+      'связки текста',
+      'причина, уступка, вывод',
+      [
+        ['поскольку', 'uma vez que', 'поскольку'],
+        ['следовательно', 'portanto', 'следовательно'],
+        ['несмотря на', 'apesar de', 'несмотря на'],
+        ['однако', 'no entanto', 'однако'],
+        ['кроме того', 'além disso', 'кроме того'],
+      ],
+      'Это каркас письменной части экзамена. Заученные связки экономят время и сразу поднимают регистр текста.',
+    ),
     vocab: [
       { term: 'portanto', reading: 'портáнту', ru: 'следовательно' },
       { term: 'no entanto', reading: 'ну энтáнту', ru: 'однако' },
@@ -640,6 +760,18 @@ export const PORTUGUESE2_UNITS: LangUnit[] = [
     grammarWhy: 'Категоричное «está errado» в письме воспринимается резко. Экзаменационные задания часто требуют возразить или пожаловаться — и оценивается именно то, удержан ли уместный тон.',
     vocabTheme: 'Смягчение',
     artifact: 'Пять возражений в вежливой форме',
+    pattern: drill(
+      'смягчение и осторожное несогласие',
+      'не «нет», а «не совсем»',
+      [
+        ['возможно, что', 'é possível que seja', 'возможно, это так'],
+        ['может быть', 'talvez seja', 'может быть, это так'],
+        ['кажется, что', 'parece que', 'кажется, что'],
+        ['в некотором смысле', 'de certa forma', 'в некотором смысле'],
+        ['я не совсем согласен', 'não concordo totalmente', 'я не совсем согласен'],
+      ],
+      'talvez и é possível que тянут за собой subjuntivo — отсюда seja, а не é. Прямое «não concordo» в бразильской беседе звучит резче, чем задумано.',
+    ),
     vocab: [
       { term: 'talvez', reading: 'тауве́с', ru: 'возможно' },
       { term: 'é possível que', reading: 'э поси́вел ки', ru: 'возможно, что' },

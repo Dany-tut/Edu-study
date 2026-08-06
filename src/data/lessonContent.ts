@@ -130,10 +130,11 @@ export interface HomeworkLevel {
   peerAverageScore?: number
   questions?: HomeworkQuizQuestion[]
   teacherTask?: HomeworkTeacherTask
-  /** Per-task hard definitions (course-editor «Домашки»): each authored hard
-   *  task becomes its own «Задание N» tab in HomeworkFlow's HardConversation,
-   *  instead of being merged into one teacherTask prompt. */
-  authoredHardDefs?: { key: string; statement: string }[]
+  /** Per-task hard definitions (course-editor «Домашки» + назначенный хард из
+   *  банка): each authored hard task becomes its own «Задание N» tab in
+   *  HomeworkFlow's HardConversation, instead of being merged into one
+   *  teacherTask prompt. */
+  authoredHardDefs?: { key: string; statement: string; image?: string | null }[]
 }
 export interface LessonHomework {
   title: string
@@ -354,6 +355,7 @@ function buildAuthoredHomework(lesson: Lesson, fallbackDate: string): LessonHome
   const authoredHardDefs = hardTasks.map((t, i) => ({
     key: t.id,
     statement: t.question?.trim() || t.label || `Сложное задание ${i + 1}`,
+    image: t.image ?? null,
   }))
 
   const hardTeacherTask: HomeworkTeacherTask = hardTasks.length > 0

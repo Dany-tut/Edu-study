@@ -274,7 +274,186 @@ Cliente: É, pra viagem.`,
   },
 ]
 
-export const LISTENING_LIBRARY: ListeningItem[] = [...EN, ...KO, ...JA, ...PT]
+
+// ─── Добавочные материалы: ступень выше стартовых ────────────────────────────
+
+const MORE: ListeningItem[] = [
+  {
+    id: 'en-l-interview',
+    lang: 'en', title: 'The first minute of an interview', level: 'B1',
+    topic: 'Собеседование и резюме', skill: 'Аудирование', minutes: 2,
+    script: `Thanks for joining, Daniil. Before we start, let me tell you how this will go. I'll take about ten minutes to walk you through the role and the team, then I'd like to hear about your background — maybe fifteen minutes. After that we'll leave time for your questions, so please save them up. The whole thing should take around forty minutes. Does that work for you? Great. So, a bit about us first.`,
+    translation: `Спасибо, что подключились, Даниил. Прежде чем начнём, расскажу, как всё пройдёт. Минут десять я расскажу про роль и команду, потом хотел бы услышать про ваш опыт — минут пятнадцать. После этого оставим время на ваши вопросы, так что придержите их. Всё займёт около сорока минут. Вам подходит? Отлично. Итак, сначала немного о нас.`,
+    glossary: [
+      { term: 'to walk you through', ru: 'провести вас по, рассказать по порядку' },
+      { term: 'background', ru: 'опыт, предыстория' },
+      { term: 'to save up questions', ru: 'придержать вопросы' },
+      { term: 'Does that work for you?', ru: 'вам так подходит?' },
+    ],
+    questions: [
+      {
+        q: 'What should you do with your questions?',
+        options: ['Ask them right away', 'Save them for the end', 'Send them by email', 'Do not ask any'],
+        correct: 1,
+      },
+      {
+        q: 'How long will the whole interview take?',
+        options: ['Ten minutes', 'Fifteen minutes', 'About forty minutes', 'He does not say'],
+        correct: 2,
+      },
+      {
+        q: 'What happens first?',
+        options: [
+          'You talk about your background',
+          'He talks about the role and the team',
+          'You ask questions',
+          'A technical test',
+        ],
+        correct: 1,
+        why: 'Порядок проговаривается в начале — это стандартная практика, и по ней можно готовиться слушать.',
+      },
+    ],
+  },
+  {
+    id: 'ko-l-directions',
+    lang: 'ko', title: '길 묻기 (спрашиваем дорогу)', level: 'TOPIK 2급',
+    topic: 'Транспорт и дорога', skill: 'Аудирование', minutes: 1,
+    script: `손님: 실례합니다. 시청역이 어디예요?
+행인: 여기에서 조금 멀어요. 걸어서 십오 분쯤 걸려요.
+손님: 버스도 있어요?
+행인: 네, 저기 정류장에서 오백이 번 버스를 타세요. 세 정거장이에요.
+손님: 감사합니다!`,
+    translation: `Прохожий: Извините. Где станция Сичхон?
+Местный: Отсюда далековато. Пешком минут пятнадцать.
+Прохожий: А автобус есть?
+Местный: Да, вон на той остановке садитесь на 502-й. Три остановки.
+Прохожий: Спасибо!`,
+    glossary: [
+      { term: '실례합니다', ru: 'извините (при обращении)' },
+      { term: '멀다', ru: 'быть далеко' },
+      { term: '걸어서', ru: 'пешком' },
+      { term: '정류장', ru: 'остановка' },
+      { term: '정거장', ru: 'остановка (как счётная единица пути)' },
+    ],
+    questions: [
+      {
+        q: '걸어서 얼마나 걸려요?',
+        options: ['오 분', '십 분', '십오 분', '삼십 분'],
+        correct: 2,
+      },
+      {
+        q: '몇 번 버스를 타요?',
+        options: ['오십이 번', '오백이 번', '이백오 번', '말 안 했어요'],
+        correct: 1,
+        why: '오백이 — 502. Числа в адресах и номерах читаются китайскими числительными.',
+      },
+      {
+        q: '버스로 몇 정거장이에요?',
+        options: ['두 정거장', '세 정거장', '네 정거장', '다섯 정거장'],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'ja-l-shop',
+    lang: 'ja', title: 'コンビニで (в магазине)', level: 'JLPT N5',
+    topic: 'Покупки и деньги', skill: 'Аудирование', minutes: 1,
+    script: `てんいん：いらっしゃいませ。
+きゃく：これ、ください。
+てんいん：はい。おべんとうは あたためますか。
+きゃく：はい、おねがいします。
+てんいん：ぜんぶで はっぴゃくえんです。
+きゃく：カードで おねがいします。
+てんいん：ありがとうございました。`,
+    translation: `Продавец: Добро пожаловать.
+Покупатель: Вот это, пожалуйста.
+Продавец: Хорошо. Бэнто разогреть?
+Покупатель: Да, пожалуйста.
+Продавец: Всего восемьсот иен.
+Покупатель: Картой, пожалуйста.
+Продавец: Спасибо.`,
+    glossary: [
+      { term: 'いらっしゃいませ', ru: 'добро пожаловать (говорят каждому входящему)' },
+      { term: 'あたためる', ru: 'разогреть' },
+      { term: 'ぜんぶで', ru: 'всего, итого' },
+      { term: 'カードで', ru: 'картой' },
+    ],
+    questions: [
+      {
+        q: 'てんいんは なにを ききましたか。',
+        options: [
+          'おかねの はらいかた',
+          'おべんとうを あたためるか',
+          'ふくろが いるか',
+          'なにも きいて いません',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'いくらですか。',
+        options: ['はっぴゃくえん', 'はっせんえん', 'ろっぴゃくえん', 'いいませんでした'],
+        correct: 0,
+      },
+      {
+        q: 'どうやって はらいますか。',
+        options: ['げんきんで', 'カードで', 'スマホで', 'いいませんでした'],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'pt-l-directions',
+    lang: 'pt-BR', title: 'Pedindo informação na rua', level: 'A2',
+    topic: 'Транспорт и дорога', skill: 'Аудирование', minutes: 1,
+    script: `Turista: Com licença, você sabe onde fica a estação de metrô?
+Moradora: Fica ali, ó. Você segue reto por dois quarteirões e vira à direita.
+Turista: É longe?
+Moradora: Não, uns cinco minutinhos a pé.
+Turista: E tem ônibus também?
+Moradora: Tem, mas o metrô é bem mais rápido a essa hora.
+Turista: Valeu, obrigado!`,
+    translation: `Турист: Извините, вы не знаете, где станция метро?
+Местная: Вон там. Идёте прямо два квартала и поворачиваете направо.
+Турист: Далеко?
+Местная: Нет, минут пять пешком.
+Турист: А автобус тоже есть?
+Местная: Есть, но метро в это время намного быстрее.
+Турист: Спасибо!`,
+    glossary: [
+      { term: 'com licença', ru: 'извините (когда обращаетесь или проходите)' },
+      { term: 'seguir reto', ru: 'идти прямо' },
+      { term: 'quarteirão', ru: 'квартал' },
+      { term: 'minutinhos', ru: 'минуточки — уменьшительное, очень бразильская черта' },
+      { term: 'valeu', ru: 'спасибо (разговорное)' },
+    ],
+    questions: [
+      {
+        q: 'Quanto tempo leva a pé?',
+        options: ['Dois minutos', 'Cinco minutos', 'Quinze minutos', 'Ela não diz'],
+        correct: 1,
+      },
+      {
+        q: 'O que ela recomenda?',
+        options: ['O ônibus', 'O metrô', 'Táxi', 'Ir a pé'],
+        correct: 1,
+        why: '«O metrô é bem mais rápido a essa hora» — она прямо сравнивает и советует.',
+      },
+      {
+        q: 'O que significa "minutinhos"?',
+        options: [
+          'Muitos minutos',
+          'Uns poucos minutos — o diminutivo suaviza',
+          'Minutos exatos',
+          'Horas',
+        ],
+        correct: 1,
+        why: 'Уменьшительные суффиксы в бразильском смягчают и приуменьшают. Это стилистическая черта, а не размер.',
+      },
+    ],
+  },
+]
+
+export const LISTENING_LIBRARY: ListeningItem[] = [...EN, ...KO, ...JA, ...PT, ...MORE]
 
 /** Материалы нужного языка. */
 export function listeningForLang(lang: string): ListeningItem[] {

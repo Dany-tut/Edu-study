@@ -31,7 +31,13 @@ export default defineConfig({
         // cached shell is only used offline — avoids the classic stale-SPA trap.
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api/, /supabase\.co/],
-        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024, // main bundle is ~4MB
+        // Потолок precache. Бандл растёт вместе с контентом курсов (сиды,
+        // библиотеки текстов, разговорники) и уже дважды упирался в эту цифру:
+        // сборка при этом не предупреждает, а ПАДАЕТ, то есть деплой встаёт от
+        // добавления обычных данных. Настоящее лечение — вынести контент из
+        // главного чанка (survivalKo уже так и грузится, ленивым импортом);
+        // до тех пор держим запас, а не догоняем размер вплотную.
+        maximumFileSizeToCacheInBytes: 12 * 1024 * 1024, // главный чанк ~6.3 МБ
 
         runtimeCaching: [{
           urlPattern: ({ request }) => request.mode === 'navigate',

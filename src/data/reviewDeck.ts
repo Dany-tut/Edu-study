@@ -10,6 +10,7 @@
 import { supabase } from '../lib/supabase'
 import { review, INITIAL_SRS, type ReviewGrade } from '../lib/srs'
 import { getStudentSession } from '../lib/studentSession'
+import { vocabImage } from './vocabImages'
 
 /**
  * Откуда карточка пришла.
@@ -68,6 +69,14 @@ export interface ReviewCard {
   reading?: string
   /** Когда так говорить нельзя, что ответят, чем отличается от соседней фразы. */
   note?: string
+  /**
+   * Предметный рисунок на лицевой стороне (см. data/vocabImages.ts).
+   *
+   * Подбирается по ответу — то есть по русскому значению слова, — поэтому его
+   * получают и карточки, давно лежащие в review_cards: колонки в БД для этого
+   * не нужно, картинка вычисляется на чтении.
+   */
+  image?: string
 }
 
 function rowToCard(r: Record<string, unknown>): ReviewCard {
@@ -86,6 +95,7 @@ function rowToCard(r: Record<string, unknown>): ReviewCard {
     lapses: r.lapses as number,
     dueAt: r.due_at as string,
     createdAt: r.created_at as string,
+    image: vocabImage(r.answer as string),
   }
 }
 
@@ -182,32 +192,51 @@ export async function addCards(
   return rows.length
 }
 
-/** Cards currently due for an owner (studentId or anonName), oldest-due first. */
-export async function dueCards(owner: { studentId?: string; anonName?: string }, limit = 20): Promise<ReviewCard[]> {
+/**
+ * Cards currently due for an owner (studentId or anonName), oldest-due first.
+ *
+ * `subjects` — список написаний предмета (см. subjectAliases в studentDataStore).
+ * Колода одна на человека, а экран почти всегда предметный: в корейском
+ * тренажёре карточки по химии не только лишние — они съедают лимит сессии и
+ * читаются вслух корейским голосом. Пустой список = без фильтра: так работают
+ * общие экраны повторения, где смешение как раз уместно.
+ */
+export async function dueCards(
+  owner: { studentId?: string; anonName?: string },
+  limit = 20,
+  subjects?: string[],
+): Promise<ReviewCard[]> {
   const col = owner.studentId ? 'student_id' : 'anon_name'
   const val = owner.studentId ?? owner.anonName ?? ''
   if (!val) return []
-  const { data, error } = await supabase
+  let q = supabase
     .from('review_cards')
     .select('*')
     .eq(col, val)
     .lte('due_at', new Date().toISOString())
+  if (subjects?.length) q = q.in('subject', subjects)
+  const { data, error } = await q
     .order('due_at', { ascending: true })
     .limit(limit)
   if (error) { console.error('dueCards:', error); return [] }
   return (data ?? []).map(rowToCard)
 }
 
-/** Count of due cards — for badges ("3 на повторение"). */
-export async function dueCount(owner: { studentId?: string; anonName?: string }): Promise<number> {
+/** Count of due cards — for badges ("3 на повторение"). `subjects` как в dueCards. */
+export async function dueCount(
+  owner: { studentId?: string; anonName?: string },
+  subjects?: string[],
+): Promise<number> {
   const col = owner.studentId ? 'student_id' : 'anon_name'
   const val = owner.studentId ?? owner.anonName ?? ''
   if (!val) return 0
-  const { count } = await supabase
+  let q = supabase
     .from('review_cards')
     .select('id', { count: 'exact', head: true })
     .eq(col, val)
     .lte('due_at', new Date().toISOString())
+  if (subjects?.length) q = q.in('subject', subjects)
+  const { count } = await q
   return count ?? 0
 }
 

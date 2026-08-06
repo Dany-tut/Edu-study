@@ -42,6 +42,7 @@ export default function GlossedText({ text, lang, extra = [], accent, style }: {
   const segments = useMemo(() => lex.segment(text), [lex, text])
 
   const wrapRef = useRef<HTMLDivElement | null>(null)
+  const popRef = useRef<HTMLDivElement | null>(null)
   const timer = useRef<number | null>(null)
   // Слово, к которому привязана открытая карточка: по нему её переставляют,
   // когда размеры уже известны (см. эффект ниже).
@@ -61,10 +62,19 @@ export default function GlossedText({ text, lang, extra = [], accent, style }: {
 
   // Закрытие: клик мимо или Esc. Скролл карточку не трогает — она лежит внутри
   // абзаца и едет вместе со словом, к которому привязана.
+  //
+  // «Мимо» — это всё, кроме самой карточки и слова, которое её открыло: тыкать
+  // повторно в то же слово, чтобы убрать подсказку, — лишний прицел, гасить
+  // должно любое место страницы. Слово-хозяин исключено, иначе mousedown закрыл
+  // бы карточку раньше, чем сработал его же click, и она бы тут же открылась
+  // заново (переключение «клик по слову = закрыть» перестало бы работать).
   useEffect(() => {
     if (!active) return
     const onDocClick = (e: MouseEvent) => {
-      if (!wrapRef.current?.contains(e.target as Node)) close()
+      const target = e.target as Node
+      if (popRef.current?.contains(target)) return
+      if (activeEl.current?.contains(target)) return
+      close()
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
     document.addEventListener('mousedown', onDocClick)
@@ -181,11 +191,20 @@ export default function GlossedText({ text, lang, extra = [], accent, style }: {
 
       {active && pos && (
         <div
+          ref={popRef}
           style={{
             position: 'absolute', left: pos.x, top: pos.y, width: pos.w, zIndex: 40,
             transform: pos.above ? 'translateY(-100%) translateY(-8px)' : 'translateY(8px)',
-            padding: '11px 13px 10px', borderRadius: 14,
-            background: 'var(--color-bg-4)', border: '1px solid var(--color-border-strong)',
+            // Тот же радиус, что у карточек текста и вопросов: подсказка —
+            // такой же блок интерфейса, а не всплывашка из другой системы.
+            padding: '11px 13px 10px', borderRadius: 18,
+            // Матовое стекло, как у остальных всплывающих слоёв: сквозь него
+            // видно, над каким местом текста карточка стоит, но читаемость
+            // держит размытие, а не глухая заливка.
+            background: 'rgba(var(--glass-rgb), 0.82)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            border: '1px solid var(--color-border-strong)',
             boxShadow: 'var(--shadow-lg)', whiteSpace: 'normal',
             pointerEvents: pinned ? 'auto' : 'none',
           }}

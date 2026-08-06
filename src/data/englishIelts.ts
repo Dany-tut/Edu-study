@@ -39,7 +39,7 @@
 import {
   buildLanguageCourse, courseSummary, allVocab, unitByShortId, moduleOfUnit,
   one, many, fill, wb, order, pairsOf, grid, write, say,
-  dictation, describeImage, compareImages,
+  dictation, describeImage, compareImages, drill,
 } from './languageCourse'
 import { lineChartImage, barChartImage, processFlowImage, townMapImage } from './seedImages'
 import { formTable, formulaStrip, ladderFigure } from './lessonFigures'
@@ -160,6 +160,18 @@ export const IELTS_UNITS: LangUnit[] = [
     grammarWhy: 'Перефразирование работает во всех четырёх секциях: в Listening и Reading вопрос почти никогда не повторяет слова записи или текста, а в Writing переписанный вопрос во введении не даёт баллов вообще. Это единственный навык, который стоит тренировать каждый день.',
     vocabTheme: 'Синонимы и смена части речи',
     artifact: '15 предложений, перефразированных тремя способами',
+    pattern: drill(
+      'разговорное → академическое',
+      'перефразирование',
+      [
+        ['many people think', 'it is widely believed', 'широко распространено мнение'],
+        ['important', 'of great importance', 'имеющий большое значение'],
+        ['a lot of', 'a considerable number of', 'значительное число'],
+        ['pollution increased', 'there was an increase in pollution', 'произошёл рост загрязнения'],
+        ['because of this', 'consequently', 'следовательно'],
+      ],
+      'Перефразирование на IELTS — это не поиск синонима слова, а смена части речи и структуры. Именно за это даёт баллы Lexical Resource.',
+    ),
     vocab: [
       { term: 'to increase / a rise in', ru: 'расти / рост чего-либо' },
       { term: 'significant / substantial', ru: 'значительный' },
@@ -208,6 +220,18 @@ export const IELTS_UNITS: LangUnit[] = [
     grammarWhy: 'Критерий требует «a wide range of structures» И «error-free sentences» одновременно. Типичная ошибка на 6.0 — пытаться усложнить и потерять правильность. Отсюда правило курса: одна сложная структура на предложение, не три.',
     vocabTheme: 'Связки и структуры',
     artifact: '10 сложных предложений без ошибок, проверенных учителем',
+    pattern: drill(
+      'усложнение структуры',
+      'придаточные и обороты',
+      [
+        ['о людях — который', 'the students who applied', 'студенты, которые подали заявку'],
+        ['свёрнутое придаточное', 'the report published last year', 'отчёт, опубликованный в прошлом году'],
+        ['причастный оборот', 'having been built', 'будучи построенным'],
+        ['условие второго типа', 'if governments invested', 'если бы правительства вкладывали'],
+        ['сжатая уступка', 'although expensive', 'хотя и дорого'],
+      ],
+      'Grammatical Range оценивает разнообразие структур, а не длину. Свёрнутое придаточное короче полного и стоит дороже.',
+    ),
     vocab: [
       { term: 'which / that', ru: 'который (определительные придаточные)' },
       { term: 'whereas / while', ru: 'тогда как' },
@@ -256,6 +280,18 @@ export const IELTS_UNITS: LangUnit[] = [
     grammarWhy: 'Экзаменатор снижает балл за неточное употребление «умного» слова быстрее, чем за простое, но точное. Отдельно наказывается заученная безличная вставка вроде «It is a controversial issue nowadays» — она не несёт содержания. Регистр — это коллокации и осторожность формулировок, а не редкие слова.',
     vocabTheme: 'Коллокации и осторожные формулировки',
     artifact: 'Личный список 30 коллокаций по четырём частым темам',
+    pattern: drill(
+      'категоричное → осторожное',
+      'hedging',
+      [
+        ['people always', 'people tend to', 'люди склонны'],
+        ['this will happen', 'this is likely to happen', 'это, вероятно, произойдёт'],
+        ['everyone', 'the majority of people', 'большинство людей'],
+        ['this proves', 'this suggests that', 'это позволяет предположить'],
+        ['a lot of', 'a significant proportion of', 'значительная доля'],
+      ],
+      'Абсолютные утверждения на IELTS сбивают балл: экзаменатор ищет взвешенность. Hedging — не слабость позиции, а признак академического регистра.',
+    ),
     vocab: [
       { term: 'to pose a threat', ru: 'представлять угрозу' },
       { term: 'to play a key role', ru: 'играть ключевую роль' },
@@ -721,6 +757,18 @@ export const IELTS_UNITS: LangUnit[] = [
     grammarWhy: 'В Task 1 нельзя объяснять причины и высказывать мнение — только описывать. Балл падает по двум причинам: нет обзорного предложения и пересказаны все цифры вместо отбора значимых. Обе чинятся структурой, а не языком.',
     vocabTheme: 'Динамика и сравнение',
     artifact: 'Два описания графиков по 160–180 слов',
+    pattern: drill(
+      'язык динамики',
+      'описание графика',
+      [
+        ['резко вырос', 'rose sharply', 'резко вырос'],
+        ['постепенно снизился', 'declined gradually', 'постепенно снизился'],
+        ['вышел на плато', 'plateaued', 'вышел на плато'],
+        ['колебался', 'fluctuated', 'колебался'],
+        ['чуть менее 40%', 'just under 40%', 'чуть менее 40%'],
+      ],
+      'Task 1 — это набор готовых оборотов динамики. Выученные наизусть, они освобождают время на структуру и точность цифр.',
+    ),
     vocab: [
       { term: 'to rise sharply', ru: 'резко вырасти' },
       { term: 'to decline gradually', ru: 'постепенно снижаться' },
@@ -832,6 +880,18 @@ export const IELTS_UNITS: LangUnit[] = [
     grammarWhy: 'Процессы и карты появляются на экзамене реже графиков, поэтому к ним обычно не готовятся вообще — и теряют весь балл за Task 1, если попадётся именно они. Языковая база другая: пассив и последовательность вместо языка динамики.',
     vocabTheme: 'Процессы и изменения на карте',
     artifact: 'Описание процесса и описание карты по 160 слов',
+    pattern: drill(
+      'пассив для процесса',
+      'как это устроено',
+      [
+        ['they filter the water', 'the water is filtered', 'вода фильтруется'],
+        ['they heat the material', 'the material is heated', 'материал нагревается'],
+        ['затем', 'subsequently', 'затем'],
+        ['после того как собрано', 'once it has been collected', 'после того как это собрано'],
+        ['превратили в парк', 'was converted into a park', 'был превращён в парк'],
+      ],
+      'В описании процесса деятель неважен и не называется — поэтому весь текст идёт пассивом. Активные обороты сразу выдают неподготовленного кандидата.',
+    ),
     vocab: [
       { term: 'is filtered / is heated', ru: 'фильтруется / нагревается' },
       { term: 'subsequently', ru: 'затем, впоследствии' },
@@ -1009,6 +1069,18 @@ export const IELTS_UNITS: LangUnit[] = [
     grammarWhy: 'Coherence оценивает не количество связок, а то, видно ли развитие мысли. Перегруженный «Firstly, moreover, in addition, furthermore» текст получает балл ниже, чем текст с ясной структурой и референцией. Это ровно тот случай, когда «больше приёмов» вредит.',
     vocabTheme: 'Связки и референция',
     artifact: 'Два эссе Task 2 по 280 слов с разбором связности',
+    pattern: drill(
+      'связность абзаца',
+      'референция вместо повтора',
+      [
+        ['это позволяет предположить', 'this suggests that', 'это позволяет предположить'],
+        ['первый из названных', 'the former', 'первый из них'],
+        ['второй из названных', 'the latter', 'второй из них'],
+        ['такие меры', 'such measures', 'такие меры'],
+        ['по этой причине', 'for this reason', 'по этой причине'],
+      ],
+      'Coherence растёт не от количества linking words, а от ссылок на уже сказанное. Абзац с пятью however читается хуже, чем с двумя точными this и such.',
+    ),
     vocab: [
       { term: 'furthermore / moreover', ru: 'более того' },
       { term: 'consequently', ru: 'следовательно' },
@@ -1240,6 +1312,18 @@ export const IELTS_UNITS: LangUnit[] = [
     grammarWhy: 'Part 3 — самая дорогая часть: здесь проверяется абстрактное мышление на языке, а не рассказ о себе. Балл вырастает не от сложных слов, а от структуры ответа: позиция → обоснование → уступка → вывод.',
     vocabTheme: 'Обобщение и аргументация',
     artifact: 'Записанное обсуждение на 6 вопросов Part 3',
+    pattern: drill(
+      'обобщение и гипотеза',
+      'Speaking Part 3',
+      [
+        ['люди склонны', 'people tend to', 'люди склонны'],
+        ['часто бывает так, что', 'it is often the case that', 'часто бывает так, что'],
+        ['если бы правительства действовали', 'if governments acted', 'если бы правительства действовали'],
+        ['они бы сократили', 'they would reduce', 'они бы сократили'],
+        ['по сравнению с прошлым', 'compared with the past', 'по сравнению с прошлым'],
+      ],
+      'В третьей части Speaking спрашивают не о вас, а об обществе. Ответ в первом лице («I think people…») режет балл — нужен обобщающий регистр.',
+    ),
     vocab: [
       { term: 'people tend to', ru: 'люди склонны' },
       { term: 'it’s often the case that', ru: 'часто бывает так, что' },
