@@ -100,23 +100,29 @@ export default function HoloSticker({
   const pointerRef = useRef<{ x: number; y: number } | null>(null)
   const settings = useRef<StickerSettings>(stickerSettings(score))
   settings.current = { ...stickerSettings(score), ...tweak }
-  /**
-   * Личность стикера строкой. Меняется — значит показываем ДРУГОЙ стикер:
-   * нужен свежий <canvas> (dispose() у рендера делает forceContextLoss, и
-   * второй WebGL-контекст этот элемент уже не отдаст).
-   */
+  /** Личность стикера строкой — сменилась, значит показываем ДРУГОЙ стикер. */
   const spec = `${score}|${label}|${sublabel}|${stickerId}|${emblem}`
-  const firstRef = useRef(true)
+  // Пропсы, которые читает цикл отрисовки. Цикл живёт с монтирования до
+  // размонтирования и в замыкании держал бы значения первого рендера.
+  const propsRef = useRef({ interactive, sweep, reveal })
+  propsRef.current = { interactive, sweep, reveal }
+  /** Битмап следующего стикера — цикл подхватит его на ближайшем кадре. */
+  const pendingRef = useRef<ImageBitmap | null>(null)
 
   useEffect(() => {
-    // Задержка бейджа — только для самого первого появления. При смене стикера
-    // место уже занято, и пустота на время загрузки заметнее плоского бейджа.
-    if (!reveal || !firstRef.current) { setFallbackReady(true); return }
+    if (!reveal) { setFallbackReady(true); return }
     setFallbackReady(false)
     const t = setTimeout(() => setFallbackReady(true), FALLBACK_DELAY)
     return () => clearTimeout(t)
-  }, [reveal, spec])
+  }, [reveal])
 
+  // ── Рендер: ОДИН на всю жизнь компонента ───────────────────────────────────
+  // Пересоздавать его на каждый стикер нельзя: dispose() делает
+  // forceContextLoss, поэтому нужен был бы и новый <canvas>, а свежий элемент
+  // канваса до первого композита успевает мигнуть белым прямоугольником — это и
+  // был «белый квадрат» при переключении. Теперь канвас и контекст одни, а смена
+  // стикера — это просто setImage() на живом рендере: старый кадр висит на
+  // экране, пока не отрисуется новый.
   useEffect(() => {
     let dead = false
     let raf = 0
@@ -127,15 +133,9 @@ export default function HoloSticker({
     let io: IntersectionObserver | undefined
     const t0 = performance.now()
     const still = reducedMotion()
-    firstRef.current = false
 
-    // Новый стикер — старый кадр больше не годится, ждём первый кадр заново.
-    liveRef.current = false
-    setLive(false)
-
-    // Размер буфера задаём сразу, а не в первом кадре: пока рендер грузится,
-    // <canvas> без width/height остаётся 300×150 и растягивается в квадратную
-    // коробку — это и есть тот самый «квадрат» на месте стикера.
+    // Размер буфера задаём сразу, а не в первом кадре: <canvas> без width/height
+    // остаётся 300×150 и растягивается в квадратную коробку.
     const canvas0 = canvasRef.current
     if (canvas0) {
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
@@ -145,23 +145,26 @@ export default function HoloSticker({
     if (!webglOk()) return
 
     ;(async () => {
-      const [{ HoloRenderer: R }, bitmap] = await Promise.all([
-        import('../lib/holo/three-renderer'),
-        stickerBitmap({ score, label, sublabel, stickerId, emblem }),
-      ])
+      const { HoloRenderer: R } = await import('../lib/holo/three-renderer')
       const canvas = canvasRef.current
       if (dead || !canvas) return
       const renderer = new R(canvas)
       rendRef.current = renderer
-      renderer.setImage(bitmap)
 
-      // отсчёт «приклеивания» — от ПЕРВОГО кадра, а не от монтирования:
-      // иначе загрузка чанка+битмапа съедает половину анимации.
+      // отсчёт «приклеивания» — от ПЕРВОГО кадра со стикером, а не от
+      // монтирования: иначе загрузка чанка+битмапа съедает половину анимации.
       let peel0 = 0
 
       const draw = () => {
         frames++
         if (!visible) return
+        // приехал новый стикер — подменяем печать и заново запускаем приклеивание
+        if (pendingRef.current) {
+          renderer.setImage(pendingRef.current)
+          pendingRef.current = null
+          peel0 = 0
+        }
+        if (!renderer.hasImage()) return
         if (!peel0) peel0 = performance.now()
         const dpr = Math.min(window.devicePixelRatio || 1, 2)
         const w = Math.round(canvas.clientWidth * dpr)
@@ -172,9 +175,10 @@ export default function HoloSticker({
         }
         const el = performance.now() - t0
         const p = pointerRef.current
-        if (p && interactive) {
+        const { interactive: itv, sweep: swp, reveal: rvl } = propsRef.current
+        if (p && itv) {
           renderer.setTilt(p.x, p.y)
-        } else if (sweep && !still) {
+        } else if (swp && !still) {
           renderer.setTilt(Math.sin(el / 1600) * 0.75, Math.cos(el / 2300) * 0.45)
         }
         const s = settings.current
@@ -182,7 +186,7 @@ export default function HoloSticker({
         // вместе с ним разгибается и радиус скрутки — так плёнка «прилипает», а не падает.
         let peel = 0
         let curl = REVEAL_CURL_END
-        if (reveal && !still) {
+        if (rvl && !still) {
           const t = Math.min(1, Math.max(0, (performance.now() - peel0 - REVEAL_HOLD) / REVEAL_MS))
           const k = 1 - t * t * (3 - 2 * t)          // 1 → 0, плавно на обоих концах
           peel = REVEAL_PEEL * k
@@ -215,7 +219,17 @@ export default function HoloSticker({
       rendRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spec, reveal, size])
+  }, [])
+
+  // Печать стикера — отдельно от рендера: меняется чаще и на живом контексте.
+  useEffect(() => {
+    let stale = false
+    stickerBitmap({ score, label, sublabel, stickerId, emblem }).then(bmp => {
+      if (!stale) pendingRef.current = bmp
+    })
+    return () => { stale = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spec])
 
   const tier = tierOf(score)
 
@@ -234,11 +248,9 @@ export default function HoloSticker({
       }}
       onPointerLeave={() => { pointerRef.current = null }}
     >
-      {/* key по spec: при смене стикера нужен ИМЕННО новый элемент — dispose()
-          рендера вызывает forceContextLoss, и повторный контекст этот canvas
-          уже не отдаст. Компонент при этом живёт дальше, поэтому бейдж успевает
-          закрыть паузу вместо пустого места. */}
-      <canvas key={spec} ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
+      {/* Без key: элемент канваса живёт от монтирования до размонтирования.
+          Свежий <canvas> под WebGL успевает мигнуть белым до первого композита. */}
+      <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
       {/* бейдж не размонтируем резко, а гасим — подмена статики на WebGL не мигает */}
       <div
         style={{
