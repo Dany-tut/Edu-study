@@ -56,7 +56,11 @@ export default function AudioPlayer({
   // Stop any TTS still speaking when the player unmounts.
   useEffect(() => () => { if (usesTts && typeof speechSynthesis !== 'undefined') speechSynthesis.cancel() }, [usesTts])
 
+  /** Счётчик запусков синтеза — см. speak(). */
+  const runRef = useRef(0)
+
   function stopTts() {
+    runRef.current++
     if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel()
     setPlaying(false)
   }
@@ -72,8 +76,13 @@ export default function AudioPlayer({
       const v = speechSynthesis.getVoices().find(x => x.name === ttsVoice)
       if (v) u.voice = v
     }
-    u.onend = () => setPlaying(false)
-    u.onerror = () => setPlaying(false)
+    // Номер запуска: cancel() выше добивает предыдущую озвучку, и её onend
+    // приходит уже после старта новой. Без сверки номера этот запоздалый onend
+    // сбрасывал бы «играет» у звука, который только что начался.
+    const run = ++runRef.current
+    const done = () => { if (runRef.current === run) setPlaying(false) }
+    u.onend = done
+    u.onerror = done
     setPlaying(true)
     speechSynthesis.speak(u)
   }

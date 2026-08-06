@@ -23,7 +23,7 @@ import { RotateCcw, Volume2, Undo2, Layers } from 'lucide-react'
 import { dueCards, gradeCard, type ReviewCard } from '../data/reviewDeck'
 import { intervalLabel, review, type ReviewGrade } from '../lib/srs'
 import { haptic } from '../lib/feedback'
-import { speechLocale, speechText } from '../lib/speech'
+import { speechLocale, speechMs, speechText } from '../lib/speech'
 import { useT } from '../lib/i18n'
 import Skeleton from './Skeleton'
 
@@ -374,6 +374,16 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
   const laterOpacity = useTransform(y, [26, 110], [0, 1])
   const dragged = useRef(false)
 
+  /** Идёт ли озвучка: под карточкой на это время заполняется линия. */
+  const [speaking, setSpeaking] = useState<{ run: number; ms: number } | null>(null)
+  const runRef = useRef(0)
+
+  // Карточку смахнули, пока она говорила — звук обрываем: слово уже улетело с
+  // экрана. Следующая карточка зазвучать раньше не может, ей нужен клик.
+  useEffect(() => () => {
+    if (runRef.current > 0 && typeof window !== 'undefined') window.speechSynthesis?.cancel()
+  }, [])
+
   const judge = seat.kind === 'judge'
   const len = seat.card.prompt.length
   const promptSize = len <= 24 ? 30 : len <= 60 ? 22 : len <= 160 ? 16 : 14
@@ -402,8 +412,17 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
     if (!lang || typeof window === 'undefined' || !window.speechSynthesis) return
     // Романизация из «아이 (ai)» в озвучку не идёт: иначе слышно слово и следом
     // его латинскую запись — как будто оно произнеслось дважды.
-    const u = new SpeechSynthesisUtterance(speechText(seat.card.prompt))
+    const text = speechText(seat.card.prompt)
+    const u = new SpeechSynthesisUtterance(text)
     u.lang = speechLocale(lang) ?? lang
+    // Номер запуска: cancel() ниже добьёт предыдущую озвучку, и её onend придёт
+    // уже после старта новой. Без сверки номера этот запоздалый onend погасил бы
+    // индикатор слова, которое только что зазвучало.
+    const run = ++runRef.current
+    const done = () => setSpeaking(cur => (cur?.run === run ? null : cur))
+    u.onend = done
+    u.onerror = done
+    setSpeaking({ run, ms: speechMs(text) })
     window.speechSynthesis.cancel()
     window.speechSynthesis.speak(u)
   }
@@ -485,6 +504,27 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
         >
           <Volume2 size={15} />
         </button>
+      )}
+
+      {/* Индикатор озвучки — тот же, что у слов урока: линия по нижнему краю
+          заполняется, пока слово произносится. Ключ по номеру запуска, иначе
+          повторный клик по уже звучащей карточке не перезапустил бы анимацию.
+          Анимация чисто CSS: rAF в превью не срабатывает. */}
+      {speaking && (
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute', left: 0, right: 0, bottom: 0, height: 3,
+            background: `${accent}33`, overflow: 'hidden',
+            borderBottomLeftRadius: 20, borderBottomRightRadius: 20,
+          }}
+        >
+          <span
+            key={speaking.run}
+            className="vocab-speak-fill"
+            style={{ background: accent, animationDuration: `${speaking.ms}ms` }}
+          />
+        </span>
       )}
     </motion.div>
   )
