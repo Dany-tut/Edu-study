@@ -9,6 +9,7 @@ const onPhotoTooLarge = (e: unknown) => {
 }
 import { getContrastColor } from '../../lib/utils'
 import { useT } from '../../lib/i18n'
+import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
 
 // ─── Shared table editor (Notion-style) ──────────────────────────────────────
 // Extracted from the trainer creator so the course constructor uses the exact
@@ -209,7 +210,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
           const key = pendingCellKey.current
           optimizePhoto(file).then(url => {
             setCellImage(key, url)
-            if (!cellImageSizes[key]) setCellImageSize(key, 50)
+            if (!cellImageSizes[key]) setCellImageSize(key, DEFAULT_IMAGE_SIZE)
           }).catch(onPhotoTooLarge)
           e.target.value = ''
         }}
@@ -246,7 +247,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                       <div style={{ padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: 5 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                           {CELL_IMG_SIZES.map(s => {
-                            const active = (cellImageSizes[key] ?? 50) === s.value
+                            const active = (cellImageSizes[key] ?? DEFAULT_IMAGE_SIZE) === s.value
                             return (
                               <button key={s.value} onMouseDown={e => { e.stopPropagation(); setCellImageSize(key, s.value) }}
                                 style={{ padding: '1px 6px', borderRadius: 5, border: `1px solid ${active ? accent : 'var(--color-border-strong)'}`, background: active ? accentBg : 'var(--color-bg-3)', color: active ? accent : 'var(--color-text-2)', cursor: 'pointer', fontSize: 10, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1.4 }}>
@@ -259,7 +260,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                             <X size={9} />
                           </button>
                         </div>
-                        <img src={cellImg} alt="" style={{ display: 'block', width: `${cellImageSizes[key] ?? 50}%`, borderRadius: 6 }} />
+                        <img src={cellImg} alt="" style={{ display: 'block', width: `${cellImageSizes[key] ?? DEFAULT_IMAGE_SIZE}%`, borderRadius: 6 }} />
                       </div>
                     ) : isExplicitlyEmpty ? (
                       // Student will type here — show "вписать" badge + X to remove
@@ -284,7 +285,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                           if (!imgItem) return
                           e.preventDefault()
                           const file = imgItem.getAsFile(); if (!file) return
-                          optimizePhoto(file).then(url => { setCellImage(key, url); if (!cellImageSizes[key]) setCellImageSize(key, 50) }).catch(onPhotoTooLarge)
+                          optimizePhoto(file).then(url => { setCellImage(key, url); if (!cellImageSizes[key]) setCellImageSize(key, DEFAULT_IMAGE_SIZE) }).catch(onPhotoTooLarge)
                         } : undefined}
                       >
                         <button

@@ -135,9 +135,10 @@ export default function TheorySheet({ open, onClose, lessonTitle, paragraphs, ac
                     src={p.image}
                     alt=""
                     style={{
-                      // Ширина натуральная: схема нарисована под свой размер, и
-                      // растянутая на всю шторку она раздувает знаки.
-                      display: 'block', width: 'auto', maxWidth: '100%', margin: '0 auto',
+                      // Все схемы одной ширины — во всю шторку. Натуральная
+                      // ширина давала соседние листы разного размера: рядом это
+                      // читается как сломанная вёрстка, а не как разные схемы.
+                      display: 'block', width: '100%', margin: '0 auto',
                       borderRadius: 14,
                       border: '1px solid var(--color-border)', background: '#fff',
                     }}

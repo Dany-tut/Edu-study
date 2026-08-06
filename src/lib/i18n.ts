@@ -1273,6 +1273,8 @@ const EN: Record<string, string> = {
   "Видео урока:": "Lesson video:",
   "Смотреть": "Watch",
   "Описание": "Description",
+  "Крупный текст": "Large text",
+  "Обычный текст": "Normal text",
   "Заголовок": "Header",
   "вписать": "fill in",
   "Убрать поле ответа": "Remove answer field",

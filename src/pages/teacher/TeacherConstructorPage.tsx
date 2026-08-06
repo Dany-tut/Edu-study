@@ -77,6 +77,7 @@ import {
   DEFAULT_SCREENING_CONFIG, activeDomains,
   type ScreeningConfig, type DomainKey, type MatrixRuleKey, type SeriesType, type AnalogyItem, type MatchTask,
 } from '../../data/screeningConfig'
+import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
 
 type NewBankTask = Omit<BankTask, 'id'>
 const LETTERS = 'АБВГДЕЖЗИКЛМНОП'
@@ -2186,7 +2187,7 @@ function CreatorView({
   // Условие — question text + optional content blocks (image / table)
   const [tkQuestion, setTkQuestion] = usePersistentState(tkDraft + 'question', editingTask?.question ?? '')
   const [tkImage, setTkImage] = useState(editingTask?.questionImage ?? '')
-  const [tkImageSize, setTkImageSize] = usePersistentState<number>(tkDraft + 'imageSize', () => { const v = editingTask?.questionImageSize; return typeof v === 'number' ? v : 100 })
+  const [tkImageSize, setTkImageSize] = usePersistentState<number>(tkDraft + 'imageSize', () => { const v = editingTask?.questionImageSize; return typeof v === 'number' ? v : DEFAULT_IMAGE_SIZE })
   const [tkHasTable, setTkHasTable] = usePersistentState(tkDraft + 'hasTable', !!(editingTask?.questionTable))
   const [tkTableHeaders, setTkTableHeaders] = usePersistentState<string[]>(tkDraft + 'tableHeaders', editingTask?.questionTable?.headers ?? ['', ''])
   const [tkTableRows, setTkTableRows] = usePersistentState<string[][]>(tkDraft + 'tableRows', editingTask?.questionTable?.rows ?? [['', ''], ['', '']])

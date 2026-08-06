@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
@@ -387,7 +387,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
             <RailSegment
               options={[
                 { value: 'sets', label: 'Наборы' },
-                { value: 'due', label: 'Повторение', badge: due },
+                // Иконкой, а не подписью: «Повторение» рядом с «Наборами» не
+                // влезало в рейл и обрезалось в «Повторе…».
+                { value: 'due', label: 'Повторение', badge: due, icon: <RotateCcw size={15} /> },
               ]}
               value={vocabView}
               onChange={v => v && setVocabView(v as 'due' | 'sets')}

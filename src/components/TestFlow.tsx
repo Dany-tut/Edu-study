@@ -15,6 +15,7 @@ import QuestionTable from './QuestionTable'
 import GrowTextarea, { growMinHeight } from './GrowTextarea'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
+import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
 
 /**
  * Поля ответа в тесте живут по тем же правилам, что и в домашке: обнимают
@@ -145,7 +146,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                     alt=""
                     style={{
                       display: 'block', marginLeft: 36, marginBottom: 12, borderRadius: 12,
-                      width: `${task.imageSize ?? 100}%`, maxWidth: 'calc(100% - 36px)',
+                      width: `${task.imageSize ?? DEFAULT_IMAGE_SIZE}%`, maxWidth: 'calc(100% - 36px)',
                       border: '1px solid var(--color-border)', background: '#fff',
                     }}
                   />

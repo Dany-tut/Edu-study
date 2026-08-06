@@ -37,6 +37,7 @@ import {
   theoryToParagraphs, appendTheoryImage, removeTheoryImage, captionOf,
   type TheoryImage,
 } from '../../lib/theoryImages'
+import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1598,7 +1599,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 onChange={e => {
                   const file = e.target.files?.[0]; if (!file) return
                   optimizePhoto(file)
-                    .then(url => onUpdate({ ...task, image: url, imageSize: task.imageSize ?? 100 }))
+                    .then(url => onUpdate({ ...task, image: url, imageSize: task.imageSize ?? DEFAULT_IMAGE_SIZE }))
                     .catch(err => { if (err instanceof ImageTooLargeError) window.alert(err.message); else throw err })
                   e.target.value = ''
                 }}
@@ -1608,11 +1609,11 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     {IMG_SIZES.map(s => (
                       <button key={s.value} onClick={() => onUpdate({ ...task, imageSize: s.value })}
-                        style={{ padding: '3px 9px', borderRadius: 7, border: `1.5px solid ${(task.imageSize ?? 100) === s.value ? cfg.color : 'var(--color-border-medium)'}`, background: (task.imageSize ?? 100) === s.value ? cfg.bg : 'var(--color-bg-2)', color: (task.imageSize ?? 100) === s.value ? cfg.color : 'var(--color-text-3)', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit' }}>
+                        style={{ padding: '3px 9px', borderRadius: 7, border: `1.5px solid ${(task.imageSize ?? DEFAULT_IMAGE_SIZE) === s.value ? cfg.color : 'var(--color-border-medium)'}`, background: (task.imageSize ?? DEFAULT_IMAGE_SIZE) === s.value ? cfg.bg : 'var(--color-bg-2)', color: (task.imageSize ?? DEFAULT_IMAGE_SIZE) === s.value ? cfg.color : 'var(--color-text-3)', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit' }}>
                         {s.label}
                       </button>
                     ))}
-                    <span style={{ fontSize: 11, color: 'var(--color-text-3)', marginLeft: 2 }}>{task.imageSize ?? 100}%</span>
+                    <span style={{ fontSize: 11, color: 'var(--color-text-3)', marginLeft: 2 }}>{task.imageSize ?? DEFAULT_IMAGE_SIZE}%</span>
                     <button onClick={() => imgInputRef.current?.click()} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 11, color: 'var(--color-text-3)', fontFamily: 'inherit' }}>
                       <Camera size={12} /> {t('Заменить')}
                     </button>
@@ -1620,7 +1621,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                       <X size={12} />
                     </button>
                   </div>
-                  <div style={{ alignSelf: 'flex-start', width: `${task.imageSize ?? 100}%` }}>
+                  <div style={{ alignSelf: 'flex-start', width: `${task.imageSize ?? DEFAULT_IMAGE_SIZE}%` }}>
                     <img src={task.image} alt="" style={{ display: 'block', width: '100%', borderRadius: 10, border: '1px solid var(--color-border-medium)' }} />
                   </div>
                 </div>
@@ -3655,6 +3656,18 @@ export default function TeacherCourseEditorPage() {
   }, [course])
   const [seedSyncOpen, setSeedSyncOpen] = useState(false)
 
+  // Отпечаток серверной версии снимается ОДИН раз, при открытии курса: это та
+  // версия, от которой пляшут правки в этой вкладке. Дальше он двигается только
+  // после нашей же записи — иначе сторож принимал бы чужую правку за свою.
+  useEffect(() => {
+    const shortId = course.dbCourseId ?? course.id
+    if (!shortId) return
+    let alive = true
+    readCourseStamp(shortId).then(s => { if (alive && baselineStamp.current === null) baselineStamp.current = s })
+    return () => { alive = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Remember which lesson + tab the teacher was on, so a page refresh lands them
   // back where they were (per-tab, keyed by course).
   const posKey = `ce-pos:${course.dbCourseId ?? course.id}`
@@ -3758,6 +3771,10 @@ export default function TeacherCourseEditorPage() {
   const [savedFlash, setSavedFlash] = useState(false)
   const [saving, setSaving] = useState(false)
   const [publishErr, setPublishErr] = useState<string | null>(null)
+  // Отпечаток серверной версии, с которой открыли курс. Сравнивается перед
+  // каждой записью — см. syncAccessToSupabase.
+  const baselineStamp = useRef<string | null>(null)
+  const [staleConflict, setStaleConflict] = useState(false)
 
   // ── Autosave ──────────────────────────────────────────────────────────────
   // Persist edits ~900ms after the teacher stops changing things, so they never
@@ -3880,8 +3897,51 @@ export default function TeacherCourseEditorPage() {
 
   // Returns true when the course row (title/description/status/access) made it
   // to the DB — the signal that the sessionStorage draft can be dropped.
+  /**
+   * Отпечаток серверной версии курса — когда его в последний раз меняли.
+   *
+   * Берётся максимум из `courses.updated_at` и времени последнего изменения его
+   * уроков: сохранение переписывает и то и другое, а правка, пришедшая мимо
+   * редактора, может тронуть только уроки.
+   */
+  async function readCourseStamp(shortId: string): Promise<string | null> {
+    const { data: row } = await supabase
+      .from('courses').select('id, updated_at').eq('short_id', shortId).maybeSingle()
+    if (!row) return null
+    const { data: last } = await supabase
+      .from('lessons').select('updated_at')
+      .eq('course_id', (row as { id: string }).id)
+      .order('updated_at', { ascending: false }).limit(1)
+    const lessonStamp = (last as Array<{ updated_at: string }> | null)?.[0]?.updated_at ?? ''
+    const courseStamp = (row as { updated_at: string }).updated_at ?? ''
+    return lessonStamp > courseStamp ? lessonStamp : courseStamp
+  }
+
   async function syncAccessToSupabase(c: CourseEdData): Promise<boolean> {
     const shortId = c.dbCourseId ?? c.id
+
+    // ── Защита от перезаписи устаревшей вкладкой ──────────────────────────────
+    //
+    // Сохранение пишет курс ЦЕЛИКОМ и удаляет уроки, которых нет в его копии в
+    // памяти. Вкладка, открытая до чужой правки, держит старый снимок — и
+    // «Сохранить» в ней молча стирает всё, что появилось с тех пор. Так уже
+    // потерялись два урока и два десятка заданий: вкладка провисела открытой,
+    // курс за это время обновили, и сохранение откатило его назад.
+    //
+    // Поэтому перед записью сверяем отпечаток. Свежее нашего — не пишем ничего
+    // и говорим человеку перезагрузить: слить две версии автоматически нельзя,
+    // а выбрать, чью работу потерять, может только он.
+    //
+    // Отпечатка нет (новый курс, первая запись, недоступная сеть) — пишем как
+    // раньше: сторож, который блокирует сохранение при своей же поломке, хуже
+    // отсутствующего.
+    if (baselineStamp.current) {
+      const current = await readCourseStamp(shortId)
+      if (current && current > baselineStamp.current) {
+        setStaleConflict(true)
+        return false
+      }
+    }
 
     // created_by is REQUIRED: courses RLS `write_own_courses` gates every write
     // with `with_check (created_by = auth.uid())`. A new-course INSERT that omits
@@ -4168,6 +4228,10 @@ export default function TeacherCourseEditorPage() {
         .insert(rows)
       if (insErr) console.error('schedule_lessons insert failed:', insErr)
     }
+    // Записали мы — значит теперь свежая версия наша. Без этого следующее же
+    // сохранение упёрлось бы в собственный след и решило, что курс изменили со
+    // стороны.
+    baselineStamp.current = await readCourseStamp(shortId)
     return true
   }
 
@@ -4511,6 +4575,45 @@ export default function TeacherCourseEditorPage() {
 
       {/* ── Publish-blocked banner ── */}
       <AnimatePresence>
+        {/* Курс изменили, пока вкладка была открыта. Не ошибка сети, а
+            развилка: сохранить отсюда — значит откатить чужую работу. Поэтому
+            не «попробуйте ещё раз», а «перезагрузите» — и предупреждение, что
+            несохранённое в этой вкладке при этом пропадёт. */}
+        {staleConflict && (
+          <motion.div
+            key="stale-conflict"
+            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              flexShrink: 0,
+              margin: '0 24px 8px', padding: '12px 14px', borderRadius: 12,
+              border: '1px solid var(--color-yellow-text)', background: 'var(--color-yellow-soft)',
+              color: 'var(--color-text)', fontSize: 13,
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}
+          >
+            <span style={{ flex: 1, lineHeight: 1.5 }}>
+              <b>{t('Курс изменили в другом месте.')}</b>{' '}
+              {t('Сохранение отсюда откатило бы те правки, поэтому запись отменена. Перезагрузите страницу — правки, сделанные в этой вкладке и не сохранённые, при этом пропадут.')}
+            </span>
+            <button
+              onClick={() => { clearDrafts(draftNs); window.location.reload() }}
+              className="cursor-pointer flex-shrink-0"
+              style={{ padding: '8px 14px', borderRadius: 999, border: 'none', background: 'var(--color-control-accent)', color: '#fff', fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit' }}
+            >
+              {t('Перезагрузить')}
+            </button>
+            <button
+              onClick={() => setStaleConflict(false)}
+              aria-label={t('Закрыть')}
+              className="cursor-pointer flex-shrink-0 flex items-center justify-center"
+              style={{ width: 28, height: 28, borderRadius: 9, border: '1px solid var(--color-border-soft)', background: 'transparent', color: 'var(--color-muted)' }}
+            >
+              <X size={14} />
+            </button>
+          </motion.div>
+        )}
+
         {publishErr && (
           <motion.div
             key="publish-err"

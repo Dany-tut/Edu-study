@@ -44,6 +44,7 @@ import {
   shortPrompt,
   type BasicAnswerRow, type BasicAnswerVerdict, type BasicAnswersPayload,
 } from '../lib/basicAnswers'
+import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
 
 /**
  * Поле ответа в домашке обнимает текст: высота = содержимому, внутреннего
@@ -2296,7 +2297,7 @@ export default function HomeworkFlow({
                             alt=""
                             style={{
                               display: 'block', marginTop: 10, borderRadius: 14,
-                              width: `${question.imageSize ?? 100}%`, maxWidth: '100%',
+                              width: `${question.imageSize ?? DEFAULT_IMAGE_SIZE}%`, maxWidth: '100%',
                               border: '1px solid var(--color-border)', background: '#fff',
                             }}
                           />

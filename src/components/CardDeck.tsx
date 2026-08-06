@@ -293,7 +293,10 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
         <span>{t('осталось')} {queue.length - idx}</span>
       </div>
 
-      <div style={{ position: 'relative', height: 262, touchAction: 'none' }}>
+      {/* Высота стопки фиксирована (карточки не должны прыгать при перевороте),
+          но считается по самой полной обороте: перевод + заметка + пример
+          употребления. На 262 пикселях пример уходил под нижний край. */}
+      <div style={{ position: 'relative', height: 300, touchAction: 'none' }}>
         {/* Задние карточки — статичные, только намёк на глубину стопки. */}
         {queue.slice(idx + 1, idx + 3).map((s, k) => (
           <div
@@ -450,7 +453,12 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
       style={{
         x, y, rotate, position: 'absolute', inset: 0, zIndex: 2,
         borderRadius: 20, background: 'var(--color-bg-2)', border: '1px solid var(--color-border)',
-        padding: 22, display: 'flex', flexDirection: 'column', alignItems: 'center',
+        padding: 22,
+        // Кнопка озвучки висит абсолютом по нижнему краю: на перевёрнутой
+        // стороне под ней резервируется место, иначе пример под переводом
+        // уезжает ей под ноги.
+        paddingBottom: revealed && lang ? 46 : 22,
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
         justifyContent: 'center', textAlign: 'center', cursor: 'grab', userSelect: 'none',
       }}
       whileTap={{ cursor: 'grabbing' }}
@@ -496,7 +504,7 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
             fontSize: promptSize, fontWeight: promptSize > 20 ? 700 : 550,
             color: 'var(--color-text)', lineHeight: promptSize > 20 ? 1.3 : 1.45,
             textAlign: promptSize > 20 ? 'center' : 'left',
-            maxHeight: revealed ? 118 : 200, overflowY: 'auto', width: '100%',
+            maxHeight: revealed ? 118 : 200, overflowY: 'auto', width: '100%', flexShrink: 0,
             // Крупное слово по центру — строки поровну; длинное условие слева
             // читается абзацем, там pretty.
             ...(promptSize > 20 ? balancedWrap : proseWrap),
@@ -504,7 +512,15 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
             {bindShortWords(seat.card.prompt)}
           </div>
           {revealed ? (
-            <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--color-border-soft)', width: '100%' }}>
+            // Оборот прокручивается целиком, а не по кускам: перевод, заметка и
+            // пример вместе бывают выше карточки, а высота стопки фиксирована —
+            // без общего скролла верхняя строка уезжала бы под край. Отдельные
+            // maxHeight внутри для этого не годятся: они режут каждый блок по
+            // своей мерке.
+            <div style={{
+              marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--color-border-soft)', width: '100%',
+              flex: '1 1 auto', minHeight: 0, overflowY: 'auto',
+            }}>
               {/* Чтение стоит ВЫШЕ перевода и мельче: оно относится к тому, что
                   написано на лицевой стороне, а не к ответу. Показывается
                   только после переворота — иначе фразу читают латиницей и
@@ -522,7 +538,7 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
                   карточку: высота стопки фиксирована. */}
               {seat.card.note && (
                 <div style={{
-                  marginTop: 8, maxHeight: 54, overflowY: 'auto',
+                  marginTop: 8,
                   fontSize: 12.5, lineHeight: 1.5, color: 'var(--color-muted)', ...proseWrap,
                 }}>
                   {seat.card.note}
@@ -534,7 +550,7 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
               {seat.card.ex && (
                 <div style={{
                   marginTop: 10, paddingTop: 8, borderTop: '1px dashed var(--color-border-soft)',
-                  textAlign: 'left', maxHeight: 88, overflowY: 'auto',
+                  textAlign: 'left',
                 }}>
                   <div style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.4 }}>
                     {seat.card.ex.term}

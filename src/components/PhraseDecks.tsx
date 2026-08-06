@@ -249,33 +249,37 @@ function PhraseList({ phrases, accent, view, lang }: {
               )}
               {/* Пример — та же фраза внутри предложения. Оригинал крупнее
                   перевода: смотреть надо на него, перевод только подтверждает
-                  догадку. Кнопка озвучки своя — слушают обычно именно пример. */}
+                  догадку. Пример слушают отдельно от заглавной фразы, поэтому
+                  кнопка у него своя — но стоит она вплотную к тексту, а не по
+                  правому краю: отогнанная к краю, она вставала посреди карточки
+                  вторым динамиком рядом с динамиком строки и читалась как сбой
+                  вёрстки. */}
               {on && p.ex && (
                 <div style={{
                   marginTop: 10, paddingLeft: 10, borderLeft: `2px solid ${accent}55`,
-                  display: 'flex', alignItems: 'flex-start', gap: 8,
                 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.35 }}>
-                      {p.ex.term}
-                    </div>
-                    {view.reading && p.ex.reading && (
-                      <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{p.ex.reading}</div>
-                    )}
-                    <div style={{ fontSize: 13, color: 'var(--color-text-2)', marginTop: 3, lineHeight: 1.45 }}>
-                      {p.ex.ru}
-                    </div>
+                  <div style={{
+                    fontSize: 17, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.35,
+                    display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+                  }}>
+                    {p.ex.term}
+                    <button
+                      onClick={e => { e.stopPropagation(); say(p.ex!.term) }}
+                      aria-label={t('Послушать пример')}
+                      style={{
+                        flexShrink: 0, display: 'flex', border: 'none', background: 'none',
+                        cursor: 'pointer', color: accent, padding: 0,
+                      }}
+                    >
+                      <Volume2 size={14} />
+                    </button>
                   </div>
-                  <button
-                    onClick={e => { e.stopPropagation(); say(p.ex!.term) }}
-                    aria-label={t('Послушать пример')}
-                    style={{
-                      flexShrink: 0, display: 'flex', border: 'none', background: 'none',
-                      cursor: 'pointer', color: accent, padding: 0, marginTop: 2,
-                    }}
-                  >
-                    <Volume2 size={14} />
-                  </button>
+                  {view.reading && p.ex.reading && (
+                    <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{p.ex.reading}</div>
+                  )}
+                  <div style={{ fontSize: 13, color: 'var(--color-text-2)', marginTop: 3, lineHeight: 1.45 }}>
+                    {p.ex.ru}
+                  </div>
                 </div>
               )}
             </div>

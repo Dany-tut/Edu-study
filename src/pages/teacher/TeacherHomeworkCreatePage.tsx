@@ -37,7 +37,7 @@ import GrowTextarea, { growMinHeight } from '../../components/GrowTextarea'
 import { useOverlayScroll, ScrollOverlays, fadeMask } from '../../components/teacher/OverlayScroll'
 import GoogleFormImportModal from '../../components/teacher/GoogleFormImportModal'
 import type { ImportedQuestion } from '../../lib/googleFormsImport'
-import { taskTypesFor, makeTask as makeRegistryTask, type TaskTypeId } from '../../data/taskTypes'
+import { taskTypesFor, makeTask as makeRegistryTask, DEFAULT_IMAGE_SIZE, type TaskTypeId } from '../../data/taskTypes'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -864,7 +864,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
       {/* Image / table in teacher-configured order */}
       {(task.blockOrder ?? ['image', 'table']).map(blockKey => {
         if (blockKey === 'image' && task.questionImage) return (
-          <img key="image" src={task.questionImage} alt="" style={{ maxWidth: `${task.questionImageSize ?? 100}%`, borderRadius: 14, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', display: 'block' }} />
+          <img key="image" src={task.questionImage} alt="" style={{ maxWidth: `${task.questionImageSize ?? DEFAULT_IMAGE_SIZE}%`, borderRadius: 14, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', display: 'block' }} />
         )
         if (blockKey === 'table' && task.questionTable) return (
           <div key="table" style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', maxWidth: '100%' }}>

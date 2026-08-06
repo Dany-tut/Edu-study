@@ -177,6 +177,37 @@ export const p = (
 export const e = (term: string, reading: string, ru: string): PhraseExample =>
   ({ term, reading, ru })
 
+/** Примеры одного языка: тема → фраза → пример. */
+export type ThemeExamples = Record<string, Record<string, PhraseExample>>
+
+/**
+ * Приклеить примеры к фразам книги.
+ *
+ * ПОЧЕМУ ОТДЕЛЬНЫМ ФАЙЛОМ, А НЕ ПЯТЫМ АРГУМЕНТОМ p(). Пример есть у каждой
+ * фразы, то есть их полторы тысячи на язык. Написанные прямо в списке, они
+ * растят файл втрое и хоронят под собой сам список: чтобы увидеть, какие фразы
+ * есть в теме, пришлось бы пролистывать примеры. Поэтому фразы остаются
+ * плотным списком, а примеры лежат рядом в survival<Lang>Examples.ts и
+ * привязываются по тексту фразы.
+ *
+ * Ключ — сам term, а не индекс: список фраз правят (вставляют, меняют местами),
+ * и привязка по номеру разъехалась бы молча, приписав примеру чужую фразу.
+ * Пример, написанный прямо в p(), сильнее: его не перебьёт файл примеров.
+ */
+export function withExamples(
+  phrases: Record<string, Phrase[]>,
+  examples: ThemeExamples,
+): Record<string, Phrase[]> {
+  const out: Record<string, Phrase[]> = {}
+  for (const [themeId, list] of Object.entries(phrases)) {
+    const byTerm = examples[themeId]
+    out[themeId] = byTerm
+      ? list.map(ph => (ph.ex || !byTerm[ph.term] ? ph : { ...ph, ex: byTerm[ph.term] }))
+      : list
+  }
+  return out
+}
+
 // ─── Сетка ситуаций ──────────────────────────────────────────────────────────
 //
 // ПОРЯДОК. Не по частотности слов и не по грамматической сложности, а по тому,

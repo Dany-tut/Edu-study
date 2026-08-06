@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Minimize2, Maximize2 } from 'lucide-react'
 import { useT } from '../lib/i18n'
+import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // QuestionTable — ONE table renderer for every surface (trainer, homework,
@@ -127,7 +128,7 @@ export default function QuestionTable({
     const isEmpty = !!table.emptyCells?.[key]
     const isBlank = !!table.blankCells?.[key]
     const img = table.cellImages?.[key]
-    const imgSize = table.cellImageSizes?.[key] ?? 50
+    const imgSize = table.cellImageSizes?.[key] ?? DEFAULT_IMAGE_SIZE
     const fillable = interactive && (isEmpty || (blankAsInput && isBlank))
     if (fillable) {
       return (

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, Play, ListVideo, NotebookPen, FileText,
   FolderOpen, GraduationCap, Download, ChevronDown, Calendar,
-  ChevronRight, Clock, Lock, CheckCircle2, RotateCcw, Star,
+  ChevronRight, Clock, Lock, CheckCircle2, RotateCcw, Star, ALargeSmall,
 } from 'lucide-react'
 import ScrollFade from '../components/ScrollFade'
 import { useDashboard } from '../store/dashboardStore'
@@ -89,6 +89,18 @@ function renderHighlightedParagraph(text: string, reactionId?: string, activeRea
 }
 
 /**
+ * Ширина листа со схемой — одна на все иллюстрации урока.
+ *
+ * Схемы рисуются под своё содержимое: таблица из трёх колонок выходит на 320
+ * px, из семи — на 680, и в конспекте они шли каждая своего размера. Рядом это
+ * читается не как «разные схемы», а как «вёрстка поехала»: соседние листы
+ * бумаги разной ширины, у одного буквы вдвое крупнее, чем у другого. Поэтому
+ * лист всегда одной ширины, а рисунок растягивается до неё — SVG масштабируется
+ * без потерь, и мелкая таблица заодно становится читаемой.
+ */
+const FIGURE_W = 680
+
+/**
  * Иллюстрация конспекта — абзац, у которого задан `image`.
  *
  * Картинка нарисована как «лист бумаги» со светлым фоном (см. svgSheet.ts), в
@@ -98,7 +110,7 @@ function renderHighlightedParagraph(text: string, reactionId?: string, activeRea
  * По клику открывается на весь экран: схемы письма и таблицы форм в ширину
  * колонки конспекта читаемы на мониторе, но не на телефоне.
  */
-function TheoryFigure({ src, caption }: { src: string; caption?: string }) {
+function TheoryFigure({ src, caption, scale = 1 }: { src: string; caption?: string; scale?: number }) {
   const [zoom, setZoom] = useState(false)
   return (
     <>
@@ -109,19 +121,15 @@ function TheoryFigure({ src, caption }: { src: string; caption?: string }) {
             padding: 10, borderRadius: 16, cursor: 'zoom-in',
             border: '1px solid var(--color-border-soft)',
             background: 'rgba(255,255,255,0.9)',
-            // Подложка по размеру схемы, а не во всю колонку: иначе в тёмной
-            // теме вокруг маленькой таблицы висит пустое светлое поле.
-            display: 'block', width: 'fit-content', maxWidth: '100%', margin: '0 auto',
+            // Лист одной ширины у всех схем урока (см. FIGURE_W), по центру
+            // колонки. На узком экране его держит maxWidth: 100%.
+            display: 'block', width: '100%', maxWidth: FIGURE_W, margin: '0 auto',
           }}
         >
-          {/* Схема рисуется под свою ширину (таблица из трёх колонок — 320px,
-              из семи — 640). Растянутая на всю колонку конспекта, она
-              раздувает буквы во весь экран, поэтому ширина натуральная, а
-              maxWidth держит её в границах на узком экране. */}
-          <img src={src} alt={caption ?? ''} style={{ display: 'block', width: 'auto', maxWidth: '100%', height: 'auto', margin: '0 auto', borderRadius: 8 }} />
+          <img src={src} alt={caption ?? ''} style={{ display: 'block', width: '100%', height: 'auto', borderRadius: 8 }} />
         </button>
         {caption && (
-          <figcaption style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)', textAlign: 'center', ...balancedWrap }}>
+          <figcaption style={{ fontSize: 13 * scale, lineHeight: 1.5, color: 'var(--color-muted)', textAlign: 'center', ...balancedWrap }}>
             {bindShortWords(caption)}
           </figcaption>
         )}
@@ -150,6 +158,33 @@ function TheoryFigure({ src, caption }: { src: string; caption?: string }) {
       </AnimatePresence>
     </>
   )
+}
+
+/**
+ * Крупный кегль конспекта.
+ *
+ * ЗАЧЕМ. Урок читают и с ноутбука в метро, и с телевизора на занятии, и вдвоём
+ * с экрана — 15 px хватает не всем и не всегда. Системный зум браузера тут не
+ * помощник: он растягивает вместе с текстом всю сетку кабинета, и колонка
+ * конспекта уезжает за край.
+ *
+ * ПОЧЕМУ ТУМБЛЕР, А НЕ ПОЛЗУНОК. Промежуточные ступени никто не выбирает: либо
+ * «мне мелко», либо «нормально». Два состояния — одна кнопка без меню.
+ *
+ * Выбор живёт в localStorage: кому нужен крупный текст, нужен он в каждом
+ * уроке, а не до первой перезагрузки.
+ */
+const BIG_TEXT_KEY = 'lesson_big_text'
+
+function useBigText() {
+  const [big, setBig] = useState(() => {
+    try { return localStorage.getItem(BIG_TEXT_KEY) === '1' } catch { return false }
+  })
+  const toggle = () => setBig(v => {
+    try { localStorage.setItem(BIG_TEXT_KEY, v ? '0' : '1') } catch { /* приватный режим — переживём */ }
+    return !v
+  })
+  return { big, scale: big ? 2 : 1, toggle }
 }
 
 // Mock "download": there's no backend yet, so we hand the browser a small
@@ -595,6 +630,8 @@ export default function LessonPage() {
   // under it.
   const topBarBox = useDashboard(s => s.topBarBox)
 
+  const { big, scale, toggle: toggleBig } = useBigText()
+
   const [playing, setPlaying] = useState(false)
   const [activeChapter, setActiveChapter] = useState(0)
   // Start offset (seconds) baked into the iframe src when the player first
@@ -1010,9 +1047,27 @@ export default function LessonPage() {
           <div className="flex items-center" style={{ gap: 8 }}>
             <FileText size={17} style={{ color: 'var(--color-accent)' }} />
             <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Описание')}</span>
+            {/* Кегль конспекта. Кнопка стоит у самого текста, а не в шапке
+                страницы: включают её, уже начав читать и споткнувшись о размер. */}
+            <button
+              onClick={toggleBig}
+              title={t(big ? 'Обычный текст' : 'Крупный текст')}
+              aria-pressed={big}
+              className="flex items-center cursor-pointer"
+              style={{
+                marginLeft: 'auto', gap: 6, padding: '5px 11px', borderRadius: 999,
+                fontFamily: 'inherit', fontSize: 12, fontWeight: 650,
+                border: `1px solid ${big ? 'transparent' : 'var(--color-border-soft)'}`,
+                background: big ? 'var(--color-accent)' : 'transparent',
+                color: big ? '#fff' : 'var(--color-muted)',
+              }}
+            >
+              <ALargeSmall size={15} />
+              {t('Крупный текст')}
+            </button>
           </div>
           {detail.paragraphs.map(p => p.image ? (
-            <TheoryFigure key={p.id} src={p.image} caption={p.text} />
+            <TheoryFigure key={p.id} src={p.image} caption={p.text} scale={scale} />
           ) : (
             <div
               key={p.id}
@@ -1024,7 +1079,7 @@ export default function LessonPage() {
                   which is the actual emphasis cue. */}
               <p
                 style={{
-                  fontSize: 15,
+                  fontSize: 15 * scale,
                   lineHeight: 1.6,
                   color: 'var(--color-text)',
                   fontWeight: 450,
