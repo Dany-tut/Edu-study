@@ -25,7 +25,7 @@ import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../stor
 import { useDashboard } from '../store/dashboardStore'
 import { useTrainerProgress } from '../store/trainerProgressStore'
 import { subjectTheme, PURPLE } from '../lib/theme'
-import { getSubject } from '../lib/subjects'
+import { getSubject, BANK_SUBJECT_IDS, subjectIcon } from '../lib/subjects'
 import LanguageTrainer from '../components/LanguageTrainer'
 import { getContrastColor } from '../lib/utils'
 import { useTheme } from '../store/themeStore'
@@ -1456,6 +1456,16 @@ export default function TaskBankPage() {
   // и видел задачи по генетике: список жёстко падал на биологию.
   const langSubject = getSubject(activeSubjectId)
   const isLangTrainer = !!langSubject?.isLanguage
+
+  // Предметы переключателя — производные от данных, а не фиксированная пара
+  // «Химия | Биология». Показываем только те, по которым в банке реально есть
+  // задания: ученику с одной химией второй переключатель не нужен, а ученику с
+  // другим предметом пара из чужих названий просто врала.
+  const bankSubjects = useMemo(() => {
+    const present = new Set(tasks.map(x => x.subject))
+    const list = BANK_SUBJECT_IDS.filter(id => present.has(id))
+    return list.length ? list : BANK_SUBJECT_IDS
+  }, [tasks])
   // Dual-layout (desktop+mobile оба в DOM) монтирует страницу дважды → дедуп по
   // короткому окну, чтобы одно открытие тренажёра давало одно событие.
   useEffect(() => {
@@ -2138,7 +2148,7 @@ export default function TaskBankPage() {
               <span style={{ fontSize: 12, fontWeight: 700 }}>{t('Тренажёр ЕГЭ')}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-              {(['biology', 'chemistry'] as Subject[]).map(s => (
+              {(bankSubjects as Subject[]).map(s => (
                 <button key={s} onClick={e => { e.stopPropagation(); setSubjectPersist(s); resetOnSubject() }}
                   style={{
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
