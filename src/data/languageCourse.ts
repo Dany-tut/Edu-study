@@ -316,6 +316,44 @@ function vocabCard(word: VocabItem, id: string, lang: string) {
 }
 
 /**
+ * Задание «что на картинке» из словаря юнита.
+ *
+ * Единственный тип задания, который проверяет знание слова без русского
+ * посредника: ученик видит предмет и выбирает слово на изучаемом языке.
+ * Собирается автоматически там, где в юните набирается хотя бы четыре
+ * нарисованных слова (см. vocabImages.ts) — в юнитах с абстрактной лексикой
+ * задания просто не будет.
+ *
+ * Всё детерминировано: и слово-ответ, и позиция верного варианта выводятся из
+ * номера юнита. Случайность сломала бы стабильность сида — при каждой сборке
+ * курс получался бы другим.
+ */
+function pictureTask(unit: LangUnit, id: string, lang: string) {
+  const drawn = unit.vocab.filter(w => vocabImage(w.ru))
+  if (drawn.length < 4) return null
+
+  const target = drawn[unit.n % drawn.length]
+  const others = unit.vocab.filter(w => w.term !== target.term).slice(0, 3)
+  if (others.length < 3) return null
+
+  const choices = [...others.map(w => w.term)]
+  const correct = unit.n % 4
+  choices.splice(correct, 0, target.term)
+
+  return editorTask(
+    {
+      type: 'single',
+      question: 'Что на картинке? Выберите слово.',
+      image: vocabImage(target.ru),
+      imageSize: 40,
+      choices,
+      correctChoices: [correct],
+    },
+    id, lang,
+  )
+}
+
+/**
  * Запасной конспект для юнитов, где текст ещё не написан руками.
  *
  * Собирается из уже заданных полей, чтобы урок не был пустым. Это заглушка:
@@ -441,6 +479,9 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
     hwTarget: unit.artifact,
     hwTasks: [
       ...unit.tasks.map((task, i) => editorTask(task, `${unit.shortId}-t${i + 1}`, spec.lang)),
+      // Задание по картинке идёт перед карточками: сначала узнать предмет,
+      // потом отрабатывать слово.
+      ...[pictureTask(unit, `${unit.shortId}-pic`, spec.lang)].filter(t => t !== null),
       ...unit.vocab.map((word, i) => vocabCard(word, `${unit.shortId}-v${i + 1}`, spec.lang)),
     ],
   }))
