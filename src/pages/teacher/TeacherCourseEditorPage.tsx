@@ -27,7 +27,7 @@ import { getOwnerId } from '../../lib/owner'
 import TableEditor from '../../components/teacher/TableEditor'
 import GrowTextarea, { growMinHeight, TASK_TEXT_LH } from '../../components/GrowTextarea'
 import { typeVisual } from '../../data/taskTypeVisuals'
-import { taskTypesFor, makeTask, TASK_TYPES as TASK_TYPES_BY_ID, type TaskTypeId, type TaskPayload } from '../../data/taskTypes'
+import { taskTypesFor, makeTask, TASK_TYPES as TASK_TYPES_BY_ID, type TaskTypeId, type TaskPayload, type PatternItem } from '../../data/taskTypes'
 import { supabase } from '../../lib/supabase'
 import { readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 import {
@@ -1777,6 +1777,70 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                     placeholder={t('Лишние слова-обманки через запятую (необязательно)')}
                     style={taskTextSt}
                   />
+                </div>
+              )}
+
+              {/* pattern — подстановочный дрилл: шаблон конструкции и строки
+                  замен. Строк ровно столько, сколько задал учитель: пустая
+                  строка в конце добавляется кнопкой, а не висит всегда — иначе
+                  дрилл на четыре подстановки всегда выглядел бы недоделанным. */}
+              {task.type === 'pattern' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <AutoTextarea
+                    value={task.pattern ?? ''}
+                    onChange={v => onUpdate({ ...task, pattern: v })}
+                    placeholder={t('Шаблон конструкции, место подстановки — многоточие: «저는 …이에요»')}
+                    style={taskTextSt}
+                  />
+                  <AutoTextarea
+                    value={task.patternGloss ?? ''}
+                    onChange={v => onUpdate({ ...task, patternGloss: v })}
+                    placeholder={t('Перевод шаблона — «Я …»')}
+                    style={taskTextSt}
+                  />
+                  {(task.patternItems ?? []).map((item, ii) => {
+                    const patch = (next: Partial<PatternItem>) => onUpdate({
+                      ...task,
+                      patternItems: (task.patternItems ?? []).map((x, k) => k === ii ? { ...x, ...next } : x),
+                    })
+                    return (
+                      <div key={ii} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                        <AutoTextarea
+                          value={item.cue}
+                          onChange={v => patch({ cue: v })}
+                          placeholder={t('Подставляем')}
+                          style={{ ...taskTextSt, flex: '0 0 30%' }}
+                        />
+                        <AutoTextarea
+                          value={item.answer}
+                          onChange={v => patch({ answer: v })}
+                          placeholder={t('Что должно получиться целиком')}
+                          style={{ ...taskTextSt, flex: 1 }}
+                        />
+                        <button
+                          onClick={() => onUpdate({ ...task, patternItems: (task.patternItems ?? []).filter((_, k) => k !== ii) })}
+                          aria-label={t('Удалить строку')}
+                          style={{
+                            flexShrink: 0, width: 34, height: 34, borderRadius: 10, cursor: 'pointer',
+                            border: '1px solid var(--color-border-soft)', background: 'transparent',
+                            color: 'var(--color-muted)', fontFamily: 'inherit',
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )
+                  })}
+                  <button
+                    onClick={() => onUpdate({ ...task, patternItems: [...(task.patternItems ?? []), { cue: '', answer: '' }] })}
+                    style={{
+                      alignSelf: 'flex-start', padding: '7px 14px', borderRadius: 999, cursor: 'pointer',
+                      border: '1px dashed var(--color-border)', background: 'transparent',
+                      color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
+                    }}
+                  >
+                    + {t('Строка подстановки')}
+                  </button>
                 </div>
               )}
 
