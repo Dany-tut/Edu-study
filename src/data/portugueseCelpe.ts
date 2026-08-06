@@ -49,6 +49,7 @@ import { PORTUGUESE_EXTRA } from './portugueseCelpeExtra'
 import { formTable, contrastPair, clockRow } from './lessonFigures'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
+import { PORTUGUESE_FIGURES_EXTRA } from './portugueseCelpeFigures'
 
 export const PORTUGUESE_MODULES: LangModule[] = [
   { title: 'Звучание и первые фразы', subtitle: 'Носовые, открытые гласные, ser/estar', units: [1, 2, 3, 4, 5] },
@@ -1289,7 +1290,8 @@ export const PORTUGUESE_CELPE: LanguageCourseSpec = {
     // Добор письма, говорения и аудирования в юниты, где их не было (см. аудит).
     tasks: [...u.tasks, ...(PORTUGUESE_EXTRA[u.shortId] ?? [])],
   })),
-  figures: PORTUGUESE_FIGURES,
+  // Схемы-доборы по итогам аудита живут отдельным файлом.
+  figures: { ...PORTUGUESE_FIGURES, ...PORTUGUESE_FIGURES_EXTRA },
 }
 
 export const COURSE_SUMMARY = courseSummary(PORTUGUESE_CELPE)

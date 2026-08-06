@@ -28,9 +28,11 @@ import {
 } from './languageCourse'
 import { ENDC_THEORY, ENDC_VIDEO } from './englishDesignCareerTheory'
 import { ENDC_LISTENING } from './englishDesignCareerListening'
+import { ENDC_EXTRA } from './englishDesignCareerExtra'
 import { formTable, formulaStrip, contrastPair, timelineFigure } from './lessonFigures'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
+import { ENDC_FIGURES_EXTRA } from './englishDesignCareerFigures'
 
 // ─── Модель ──────────────────────────────────────────────────────────────────
 //
@@ -1315,9 +1317,12 @@ export const ENGLISH_DESIGN_CAREER_SPEC: LanguageCourseSpec = {
     videoUrl: ENDC_VIDEO[u.shortId] ?? u.videoUrl,
     // Аудирование добавлено отдельной картой: курс писался до появления
     // языковых типов заданий и остался без единого задания на слух (см. аудит).
-    tasks: [...u.tasks, ...(ENDC_LISTENING[u.shortId] ?? [])],
+    // Говорение и письмо — тем же приёмом: курс про собеседования не может
+    // оставаться курсом про выбор варианта ответа (см. аудит).
+    tasks: [...u.tasks, ...(ENDC_LISTENING[u.shortId] ?? []), ...(ENDC_EXTRA[u.shortId] ?? [])],
   })),
-  figures: ENDC_FIGURES,
+  // Схемы-доборы по итогам аудита живут отдельным файлом.
+  figures: { ...ENDC_FIGURES, ...ENDC_FIGURES_EXTRA },
 }
 
 /** Все слова курса — основа словарной колоды и интервальных повторений. */

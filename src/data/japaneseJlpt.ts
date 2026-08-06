@@ -51,6 +51,7 @@ import { JAPANESE_EXTRA } from './japaneseJlptExtra'
 import { charGrid, formTable, formulaStrip, contrastPair, clockRow } from './lessonFigures'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
+import { JAPANESE_FIGURES_EXTRA } from './japaneseJlptFigures'
 
 export const JAPANESE_MODULES: LangModule[] = [
   { title: 'Кана и первые фразы', subtitle: 'Хирагана, катакана, долгота, です', units: [1, 2, 3, 4, 5, 6] },
@@ -1537,7 +1538,8 @@ export const JAPANESE_JLPT: LanguageCourseSpec = {
     // Добор письма, говорения и аудирования в юниты, где их не было (см. аудит).
     tasks: [...u.tasks, ...(JAPANESE_EXTRA[u.shortId] ?? [])],
   })),
-  figures: JAPANESE_FIGURES,
+  // Схемы-доборы по итогам аудита живут отдельным файлом.
+  figures: { ...JAPANESE_FIGURES, ...JAPANESE_FIGURES_EXTRA },
 }
 
 export const COURSE_SUMMARY = courseSummary(JAPANESE_JLPT)

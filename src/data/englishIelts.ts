@@ -45,8 +45,10 @@ import { lineChartImage, barChartImage, processFlowImage, townMapImage } from '.
 import { formTable, formulaStrip, ladderFigure } from './lessonFigures'
 import { IELTS_THEORY } from './englishIeltsTheory'
 import { IELTS_LISTENING } from './englishIeltsListening'
+import { IELTS_EXTRA } from './englishIeltsExtra'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
+import { IELTS_FIGURES_EXTRA } from './englishIeltsFigures'
 
 // ─── Материал для Writing Task 1 ─────────────────────────────────────────────
 //
@@ -1518,9 +1520,12 @@ export const ENGLISH_IELTS: LanguageCourseSpec = {
     // Аудирование — четверть балла на экзамене, а стояло только в трёх
     // юнитах из двадцати (см. аудит). Диктант бьёт в то, на чём реально
     // теряют: орфографию, число и лимит слов.
-    tasks: [...u.tasks, ...(IELTS_LISTENING[u.shortId] ?? [])],
+    // Говорение — ещё четверть балла, и его в юнитах почти не было. Добор
+    // привязан к теме юнита, а не свален в три Speaking-урока в конце.
+    tasks: [...u.tasks, ...(IELTS_LISTENING[u.shortId] ?? []), ...(IELTS_EXTRA[u.shortId] ?? [])],
   })),
-  figures: IELTS_FIGURES,
+  // Схемы-доборы по итогам аудита живут отдельным файлом.
+  figures: { ...IELTS_FIGURES, ...IELTS_FIGURES_EXTRA },
 }
 
 export const COURSE_SUMMARY = courseSummary(ENGLISH_IELTS)
