@@ -26,7 +26,7 @@ import VoiceRecorder from './VoiceRecorder'
 import GlossedText from './GlossedText'
 import Coachmarks, { type CoachStep } from './Coachmarks'
 import Skeleton from './Skeleton'
-import { hasLexicon } from '../lib/lexicon'
+import { hasLexicon, wordReading } from '../lib/lexicon'
 import { submitTrainerVoice, listTrainerVoice, type VoiceEntry } from '../lib/trainerSpeaking'
 import { ownerStudentIdFor, subjectAliases, useStudentData } from '../store/studentDataStore'
 
@@ -365,15 +365,15 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
         >
           {levelOpts.length > 1 && (
             <MultiSelectField label={t('Уровень')} options={levelOpts} values={fLevel} onChange={setFLevel}
-              accent={palette.accent} accentBg={palette.soft} small />
+              accent={palette.accent} accentBg={palette.soft} />
           )}
           {topicOpts.length > 1 && (
             <MultiSelectField label={t('Тема')} options={topicOpts} values={fTopic} onChange={setFTopic}
-              accent={palette.accent} accentBg={palette.soft} small />
+              accent={palette.accent} accentBg={palette.soft} />
           )}
           {mode === 'reading' && skillOpts.length > 1 && (
             <MultiSelectField label={t('Навык')} options={skillOpts} values={fSkill} onChange={setFSkill}
-              accent={palette.accent} accentBg={palette.soft} small />
+              accent={palette.accent} accentBg={palette.soft} />
           )}
           <RailSegment options={LENGTHS.map(l => ({ value: l.value, label: l.label }))}
             value={fLen} onChange={setFLen} accent={palette.accent} soft={palette.soft} />
@@ -871,7 +871,7 @@ function Reader({ text, accent, palette, lang, owner, subjectId, onBack }: {
 
       <RailCard title="Послушать" accent={accent} icon={<Volume2 size={15} />}>
         <div ref={audioRef}>
-          <AudioPlayer ttsText={text.body} lang={lang} allowSlow />
+          <AudioPlayer ttsText={text.body} lang={lang} allowSlow accent={palette.accent} soft={palette.soft} />
         </div>
       </RailCard>
 
@@ -885,6 +885,7 @@ function Reader({ text, accent, palette, lang, owner, subjectId, onBack }: {
               items={text.glossary.map(g => ({
                 id: g.term,
                 label: g.term,
+                sub: wordReading(g.term, lang),
                 hint: glossMap.get(g.term.toLowerCase()) ?? '',
               }))}
               value={gloss ?? ''}
@@ -1103,7 +1104,7 @@ function Listener({ item, accent, palette, lang, onBack }: {
       <RailHero plain title={item.title} subtitle={`${item.level} · ${item.topic} · ${item.minutes} ${t('мин')}`} palette={palette} />
 
       <RailCard title="Запись" accent={accent} icon={<Volume2 size={15} />}>
-        <AudioPlayer ttsText={item.script} lang={lang} allowSlow />
+        <AudioPlayer ttsText={item.script} lang={lang} allowSlow accent={palette.accent} soft={palette.soft} />
         <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
           {t('Слушай столько раз, сколько нужно. Расшифровка откроется после ответов.')}
         </div>
@@ -1183,14 +1184,19 @@ function Listener({ item, accent, palette, lang, onBack }: {
           )}
           {item.glossary.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 12 }}>
-              {item.glossary.map(g => (
-                <span key={g.term} style={{
-                  padding: '5px 10px', borderRadius: 999, fontSize: 12.5,
-                  background: 'var(--color-bg-3)', color: 'var(--color-text-2)',
-                }}>
-                  {g.term} — {g.ru}
-                </span>
-              ))}
+              {item.glossary.map(g => {
+                const reading = wordReading(g.term, lang)
+                return (
+                  <span key={g.term} style={{
+                    padding: '5px 10px', borderRadius: 999, fontSize: 12.5,
+                    background: 'var(--color-bg-3)', color: 'var(--color-text-2)',
+                  }}>
+                    {g.term}
+                    {reading && <span style={{ color: 'var(--color-text-3)' }}> [{reading}]</span>}
+                    {' '}— {g.ru}
+                  </span>
+                )
+              })}
             </div>
           )}
         </div>

@@ -19,6 +19,8 @@ export default function AudioPlayer({
   lang,
   compact = false,
   onPlayingChange,
+  accent,
+  soft,
 }: {
   /** Путь в бакете task-media (резолвится в signed URL). */
   audioUrl?: string
@@ -31,6 +33,15 @@ export default function AudioPlayer({
   compact?: boolean
   /** Сообщает наружу, идёт ли сейчас звук — по этому родитель рисует индикатор. */
   onPlayingChange?: (playing: boolean) => void
+  /**
+   * Цвет предмета. Плеер живёт и в домашке (там акцент приложения), и в
+   * языковом тренажёре, где у каждого предмета своя палитра: круглая кнопка
+   * фиолетовым посреди корейской лавандовой карточки выбивалась из ряда.
+   * Не задан — берётся общий акцент приложения, как было.
+   */
+  accent?: string
+  /** Мягкая заливка того же цвета — фон включённого «медленно». */
+  soft?: string
 }) {
   const t = useT()
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -110,6 +121,10 @@ export default function AudioPlayer({
 
   const hasSource = usesTts || !!audioUrl
   const size = compact ? 38 : 44
+  // Цвет предмета, если он передан; иначе общий акцент — так плеер выглядит
+  // одинаково в домашке и в тренажёре, но в тренажёре попадает в палитру языка.
+  const tone = accent ?? 'var(--color-accent)'
+  const toneSoft = soft ?? (accent ? `color-mix(in srgb, ${accent} 18%, transparent)` : 'var(--color-purple-soft)')
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -130,9 +145,9 @@ export default function AudioPlayer({
         style={{
           width: size, height: size, borderRadius: '50%', flexShrink: 0, border: 'none',
           cursor: hasSource ? 'pointer' : 'default', opacity: hasSource ? 1 : 0.4,
-          background: 'var(--color-accent)', color: '#fff',
+          background: tone, color: '#fff',
           display: 'grid', placeItems: 'center',
-          boxShadow: '0 4px 12px -3px color-mix(in srgb, var(--color-accent) 55%, transparent)',
+          boxShadow: `0 4px 12px -3px color-mix(in srgb, ${tone} 55%, transparent)`,
         }}
       >
         {playing ? <Pause size={compact ? 16 : 18} /> : <Play size={compact ? 16 : 18} style={{ marginLeft: 2 }} />}
@@ -146,9 +161,9 @@ export default function AudioPlayer({
           style={{
             height: 32, padding: '0 12px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
             display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 600,
-            border: `1.5px solid ${slow ? 'var(--color-accent)' : 'var(--color-border-soft)'}`,
-            background: slow ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
-            color: slow ? 'var(--color-accent)' : 'var(--color-text-2)',
+            border: `1.5px solid ${slow ? tone : 'var(--color-border-soft)'}`,
+            background: slow ? toneSoft : 'var(--color-bg-2)',
+            color: slow ? tone : 'var(--color-text-2)',
           }}
         >
           <Turtle size={14} /> {t('Медленно')}
