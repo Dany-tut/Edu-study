@@ -809,7 +809,7 @@ function Reader({ text, accent, palette, lang, owner, subjectId, onBack }: {
   // он уже не нужен, а плеер уезжал вверх на первом же движении.
   const rail = (
     <>
-      <RailHero title={text.title} subtitle={`${text.level} · ${text.topic} · ${text.minutes} ${t('мин')}`} palette={palette} />
+      <RailHero plain title={text.title} subtitle={`${text.level} · ${text.topic} · ${text.minutes} ${t('мин')}`} palette={palette} />
 
       <RailCard title="Послушать" accent={accent} icon={<Volume2 size={15} />}>
         <div ref={audioRef}>
@@ -1042,7 +1042,7 @@ function Listener({ item, accent, palette, lang, onBack }: {
   // туда-обратно на каждый вопрос.
   const rail = (
     <>
-      <RailHero title={item.title} subtitle={`${item.level} · ${item.topic} · ${item.minutes} ${t('мин')}`} palette={palette} />
+      <RailHero plain title={item.title} subtitle={`${item.level} · ${item.topic} · ${item.minutes} ${t('мин')}`} palette={palette} />
 
       <RailCard title="Запись" accent={accent} icon={<Volume2 size={15} />}>
         <AudioPlayer ttsText={item.script} lang={lang} allowSlow />

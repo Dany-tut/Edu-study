@@ -49,6 +49,7 @@ import { IELTS_EXTRA } from './englishIeltsExtra'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { IELTS_FIGURES_EXTRA } from './englishIeltsFigures'
+import { IELTS_VIDEO_EXTRA } from './languageVideos'
 
 // ─── Материал для Writing Task 1 ─────────────────────────────────────────────
 //
@@ -1517,6 +1518,7 @@ export const ENGLISH_IELTS: LanguageCourseSpec = {
   units: IELTS_UNITS.map(u => ({
     ...u,
     theory: IELTS_THEORY[u.shortId] ?? u.theory,
+    videoUrl: IELTS_VIDEO_EXTRA[u.shortId] ?? u.videoUrl,
     // Аудирование — четверть балла на экзамене, а стояло только в трёх
     // юнитах из двадцати (см. аудит). Диктант бьёт в то, на чём реально
     // теряют: орфографию, число и лимит слов.

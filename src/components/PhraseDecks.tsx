@@ -230,7 +230,6 @@ function PhraseList({ phrases, accent, view, lang }: {
             </div>
             <div style={{ fontSize: 13.5, color: 'var(--color-text-2)', flexShrink: 0, maxWidth: '42%', textAlign: 'right', lineHeight: 1.4 }}>
               {p.ru}
-              {p.note && !on && <span style={{ color: 'var(--color-text-3)' }}> ·</span>}
             </div>
             <button
               onClick={e => { e.stopPropagation(); say(p.term) }}

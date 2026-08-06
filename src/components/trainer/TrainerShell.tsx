@@ -90,12 +90,20 @@ export default function TrainerShell({ rail, toolbar, children }: {
 // ─── Карточки рейла ──────────────────────────────────────────────────────────
 
 /** Градиентная шапка рейла — предмет, переключатель языков, строчка контекста. */
-export function RailHero({ title, subtitle, chips, palette }: {
+export function RailHero({ title, subtitle, chips, palette, plain }: {
   title: string
   subtitle?: string
   /** Переключатель — языки ученика. Один язык не рисуется: выбирать не из чего. */
   chips?: { id: string; label: string; on: boolean; onPick: () => void }[]
   palette: { accent: string; text: string; ring: string }
+  /**
+   * Заголовок — название материала, а не предмета.
+   *
+   * Капслок с разрядкой хорош для короткого «КОРЕЙСКИЙ», но название текста
+   * («헬스장 안내 (объявление в спортзале)») в нём превращается в три строки
+   * заглавных букв вперемешку с хангылем и не читается вовсе.
+   */
+  plain?: boolean
 }) {
   return (
     <div style={{
@@ -103,7 +111,9 @@ export function RailHero({ title, subtitle, chips, palette }: {
       background: `linear-gradient(135deg, ${palette.accent}cc, ${palette.text}cc)`,
       boxShadow: `0 18px 44px ${palette.ring}`,
     }}>
-      <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 10, opacity: 0.95 }}>
+      <div style={plain
+        ? { fontSize: 15, fontWeight: 750, lineHeight: 1.3, marginBottom: 8 }
+        : { fontSize: 11.5, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 10, opacity: 0.95 }}>
         {title}
       </div>
       {chips && chips.length > 1 && (

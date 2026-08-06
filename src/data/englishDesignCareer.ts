@@ -33,6 +33,7 @@ import { formTable, formulaStrip, contrastPair, timelineFigure } from './lessonF
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { ENDC_FIGURES_EXTRA } from './englishDesignCareerFigures'
+import { ENDC_VIDEO_EXTRA } from './languageVideos'
 
 // ─── Модель ──────────────────────────────────────────────────────────────────
 //
@@ -1314,7 +1315,7 @@ export const ENGLISH_DESIGN_CAREER_SPEC: LanguageCourseSpec = {
   units: ENGLISH_DESIGN_CAREER.map(u => ({
     ...u,
     theory: ENDC_THEORY[u.shortId] ?? u.theory,
-    videoUrl: ENDC_VIDEO[u.shortId] ?? u.videoUrl,
+    videoUrl: ENDC_VIDEO[u.shortId] ?? ENDC_VIDEO_EXTRA[u.shortId] ?? u.videoUrl,
     // Аудирование добавлено отдельной картой: курс писался до появления
     // языковых типов заданий и остался без единого задания на слух (см. аудит).
     // Говорение и письмо — тем же приёмом: курс про собеседования не может

@@ -55,6 +55,7 @@ import { KOREAN_EXTRA } from './koreanTopikExtra'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { KOREAN_FIGURES_EXTRA } from './koreanTopikFigures'
+import { KOREAN_VIDEO_EXTRA } from './languageVideos'
 
 // Порядок юнитов выстроен по принципу, который вытащен из разбора TTMIK:
 // сначала всё, что цепляется к голой основе глагола (не требует выбора 아/어),
@@ -1896,7 +1897,7 @@ export const KOREAN_TOPIK: LanguageCourseSpec = {
   units: KOREAN_UNITS.map(u => ({
     ...u,
     theory: KOREAN_THEORY[u.shortId] ?? u.theory,
-    videoUrl: KOREAN_VIDEO[u.shortId] ?? u.videoUrl,
+    videoUrl: KOREAN_VIDEO[u.shortId] ?? KOREAN_VIDEO_EXTRA[u.shortId] ?? u.videoUrl,
     // Добор письма, говорения и аудирования в юниты, где их не было (см. аудит).
     tasks: [...u.tasks, ...(KOREAN_EXTRA[u.shortId] ?? [])],
   })),
