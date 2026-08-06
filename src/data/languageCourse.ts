@@ -32,6 +32,7 @@ import { TASK_TYPES } from './taskTypes'
 import type { TaskPayload, TaskTypeId } from './taskTypes'
 import { getSubject } from '../lib/subjects'
 import { figureMarker, packTheoryImages, type TheoryImage } from '../lib/theoryImages'
+import { vocabImage } from './vocabImages'
 import type { CELesson, CEModule, CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 /** Стандартное занятие — столько же по умолчанию подставляет редактор урока. */
@@ -304,8 +305,12 @@ function editorTask(seed: SeedTask, id: string, lang: string) {
  */
 function vocabCard(word: VocabItem, id: string, lang: string) {
   const front = word.reading ? `${word.term} (${word.reading})` : word.term
+  // Картинка ищется по русскому значению, поэтому один рисунок обслуживает все
+  // языки курса-сида (см. vocabImages.ts). У абстрактных слов её нет — и это
+  // норма, карточка остаётся текстовой.
+  const image = vocabImage(word.ru)
   return editorTask(
-    { type: 'flashcard', question: front, front, back: word.ru },
+    { type: 'flashcard', question: front, front, back: word.ru, image },
     id, lang,
   )
 }

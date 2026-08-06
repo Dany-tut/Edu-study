@@ -890,7 +890,10 @@ function AudiencePicker({
                 </div>
               </div>
 
-              <div style={{ maxHeight: 260, overflowY: 'auto', padding: 6, paddingRight: 10 }}>
+              {/* Паддинг 8px по вертикали — ровно на вылет фейда (top/bottom: -8),
+                  иначе градиент лёг бы на разделители шапки и футера. */}
+              <div style={{ padding: '8px 10px 8px 6px' }}>
+              <ScrollFade maxHeight={244} bg="var(--color-bg-input)" overlayScrollbar>
                 {/* Groups */}
                 {groupMatches.length > 0 && (
                   <>
@@ -950,6 +953,7 @@ function AudiencePicker({
                     {t('Ничего не найдено')}
                   </div>
                 )}
+              </ScrollFade>
               </div>
 
               <div style={{ padding: 8, borderTop: '1px solid rgba(0,0,0,0.05)' }}>

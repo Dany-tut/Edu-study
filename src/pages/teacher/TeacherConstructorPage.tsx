@@ -1847,10 +1847,13 @@ function LessonNameInput({ value, onChange, onAdd }: {
 // ─── Creator view (split layout: left settings + center content) ──────────────
 // Creator chrome is unified on the purple accent to match the lesson editor
 // and homework-create pages; per-type colors stay only in the list view.
+// `fill` — заливка под белой галочкой/текстом: color подобран как ЦВЕТ ТЕКСТА
+// и в залитом кружке давал 1.7–2.2:1. Совпадает по смыслу с typeVisual().fill,
+// который подмешивается поверх в режиме тренажёра.
 const CREATOR_CFG = {
-  course:  { label: t('Курс'),     Icon: BookOpen, color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)',  accent: 'var(--color-accent)' },
-  trainer: { label: t('Тренажёр'), Icon: Zap,      color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)', accent: 'var(--color-accent)' },
-  widget:  { label: t('Виджет'),   Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)', accent: 'var(--color-blue-pill-text)' },
+  course:  { label: t('Курс'),     Icon: BookOpen, color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)',  accent: 'var(--color-accent)',         fill: 'var(--color-control-accent)' },
+  trainer: { label: t('Тренажёр'), Icon: Zap,      color: 'var(--color-accent)',         bg: 'var(--color-purple-soft)', accent: 'var(--color-accent)',         fill: 'var(--color-control-accent)' },
+  widget:  { label: t('Виджет'),   Icon: Layers,   color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)', accent: 'var(--color-blue-pill-text)', fill: 'var(--color-blue-fill)' },
 }
 
 // ─── Lesson content editor (konspekt + homework, persisted to Supabase) ───────

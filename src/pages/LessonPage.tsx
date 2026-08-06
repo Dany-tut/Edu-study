@@ -5,6 +5,7 @@ import {
   FolderOpen, GraduationCap, Download, ChevronDown, Calendar,
   ChevronRight, Clock, Lock, CheckCircle2, RotateCcw, Star,
 } from 'lucide-react'
+import ScrollFade from '../components/ScrollFade'
 import { useDashboard } from '../store/dashboardStore'
 import { findLessonById, getLessonDetail, type LessonMaterial, type LessonHomework } from '../data/lessonContent'
 import { useStudentData } from '../store/studentDataStore'
@@ -330,6 +331,7 @@ function MaterialsTile({ materials }: { materials: LessonMaterial[] }) {
               boxShadow: '0 12px 40px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.06)',
             }}
           >
+            <ScrollFade maxHeight={300} bg="rgba(var(--glass-rgb), 0.92)" overlayScrollbar>
             {materials.map(m => (
               <button
                 key={m.id}
@@ -353,6 +355,7 @@ function MaterialsTile({ materials }: { materials: LessonMaterial[] }) {
                 <Download size={15} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
               </button>
             ))}
+            </ScrollFade>
           </motion.div>
         )}
       </AnimatePresence>

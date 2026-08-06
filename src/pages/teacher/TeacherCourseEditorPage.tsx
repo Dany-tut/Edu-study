@@ -3073,11 +3073,12 @@ function RightPanelLessons({
                       transition={{ duration: 0.13 }}
                       style={{
                         position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 20,
-                        minWidth: 160, maxHeight: 240, overflowY: 'auto', padding: 4, paddingRight: 10,
+                        minWidth: 160, padding: 4,
                         borderRadius: 10, background: 'var(--color-bg-card, var(--color-bg))',
                         border: '1px solid var(--color-border)', boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
                       }}
                     >
+                      <ScrollFade maxHeight={232} bg="var(--color-bg-card, var(--color-bg))" overlayScrollbar>
                       {course.modules.length === 0 ? (
                         <div style={{ fontSize: 11, color: 'var(--color-muted)', padding: '8px 10px' }}>{t('Нет модулей')}</div>
                       ) : course.modules.map(m => (
@@ -3095,6 +3096,7 @@ function RightPanelLessons({
                           {m.label}
                         </button>
                       ))}
+                      </ScrollFade>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -4409,8 +4411,16 @@ export default function TeacherCourseEditorPage() {
                 />
               </motion.div>
             ) : (
-              /* ── Lesson editor view ── */
-              <motion.div key={`lesson-${selectedLesson.id}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}
+              /* ── Lesson editor view ──
+                 Ключ НЕ содержит id урока: с `mode="wait"` смена ключа гоняет
+                 exit→enter на каждый клик по уроку, а если сигнал «выход
+                 завершён» теряется (AnimatePresence молча его роняет, когда
+                 ключ ещё не попал в его exitComplete), центр навсегда остаётся
+                 с уже растворённым старым уроком — пустой экран до F5.
+                 Панели полностью управляются пропсами, так что переключение
+                 урока — это просто новые пропсы; локальное состояние сбрасываем
+                 обычным React-ключом на самих панелях (без анимации выхода). */
+              <motion.div key="lesson" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}
                 style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
                 {selectedLesson.kind === 'test' ? (
@@ -4499,20 +4509,25 @@ export default function TeacherCourseEditorPage() {
                     transition={{ duration: 0.16 }}
                     style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
                   >
+                    {/* key={id} — обычный React-ремоунт: сбрасывает локальное
+                        UI-состояние панели (drag/«взведён на удаление») при
+                        смене урока, но не запускает анимацию выхода. */}
                     {lessonMode === 'recording' && (
                       <CenterRecording
+                        key={selectedLesson.id}
                         lesson={selectedLesson}
                         onSaveVideo={url => updateLesson({ ...selectedLesson, videoUrl: url })}
                       />
                     )}
                     {lessonMode === 'lesson' && (
-                      <CenterLesson lesson={selectedLesson} onUpdate={updateLesson} />
+                      <CenterLesson key={selectedLesson.id} lesson={selectedLesson} onUpdate={updateLesson} />
                     )}
                     {lessonMode === 'homework' && (
-                      <CenterHomework lesson={selectedLesson} onUpdate={updateLesson} hwTab={hwTab} />
+                      <CenterHomework key={selectedLesson.id} lesson={selectedLesson} onUpdate={updateLesson} hwTab={hwTab} />
                     )}
                     {lessonMode === 'students' && (
                       <CenterLessonStudents
+                        key={selectedLesson.id}
                         lesson={selectedLesson} onUpdate={updateLesson}
                         course={course} groups={groups} allStudents={allStudents}
                         accessModes={accessModes} setAccessModes={setAccessModes}

@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronDown, Check } from 'lucide-react'
+import ScrollFade from '../ScrollFade'
 
 // Adaptive subject selector — the single control behind every "pick a subject"
 // surface. It changes SHAPE by option count so screens/grids never break as more
@@ -131,10 +132,11 @@ function SubjectDropdown({
       {open && rect && createPortal(
         <div ref={popRef} role="listbox" style={{
           position: 'fixed', top: rect.top, left: rect.left, width: rect.width, zIndex: 3000,
-          maxHeight: 280, overflowY: 'auto', background: 'var(--color-bg)', border: '1px solid var(--color-border)',
+          background: 'var(--color-bg)', border: '1px solid var(--color-border)',
           borderRadius: 12, boxShadow: '0 12px 32px -8px rgba(0,0,0,0.28)', padding: 4,
-          display: 'flex', flexDirection: 'column', gap: 2,
         }}>
+          <ScrollFade maxHeight={272} bg="var(--color-bg)" overlayScrollbar
+            scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {options.map(o => {
             const on = o.value === value
             return (
@@ -151,6 +153,7 @@ function SubjectDropdown({
               </button>
             )
           })}
+          </ScrollFade>
         </div>,
         document.body,
       )}

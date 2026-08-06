@@ -14,7 +14,7 @@ import {
 import { useTaskBank } from '../../store/taskBankStore'
 import { useTeacher } from '../../store/teacherStore'
 import { useTeacherAccess } from '../../lib/teacherAccess'
-import { bankSubjectOptionsFor, bankSubjectIdsFor, subjectIcon, allowedSubjectDefs, SUBJECTS } from '../../lib/subjects'
+import { bankSubjectIdsFor, subjectIcon, allowedSubjectDefs } from '../../lib/subjects'
 import { languageTaxonomy, type TaskLanguageTags } from '../../data/languageTaxonomy'
 import { subjectTheme } from '../../lib/theme'
 import { useTheme } from '../../store/themeStore'
@@ -786,18 +786,13 @@ export function TrainerBankFilterPanel({
   }, [tasks, filters.subject, filters.sections, filters.parts])
   const hasFilters = !!(filters.sections.length || filters.topics.length || filters.parts.length || filters.lines.length || filters.source || filters.levels?.length || filters.skills?.length)
 
-  // Предметы фильтра: банковые (химия/биология) + любой другой предмет реестра,
-  // у которого в банке уже есть задания. Иначе созданное языковое задание
-  // отобрать по предмету нечем — оно видно только в «Все».
-  const subjectOptions = useMemo(() => {
-    const base = bankSubjectOptionsFor(allowedSubjects)
-    const known = new Set(base.map(o => o.value))
-    const allowedIds = new Set(allowedSubjectDefs(allowedSubjects).map(s => s.id))
-    const extra = SUBJECTS
-      .filter(s => !known.has(s.id) && allowedIds.has(s.id) && tasks.some(task => task.subject === s.id))
-      .map(s => ({ value: s.id, label: s.name }))
-    return [...base, ...extra]
-  }, [allowedSubjects, tasks])
+  // Предметы фильтра — весь реестр в рамках доступа учителя, а не два банковых.
+  // Задание в банке заводится под любой предмет, значит и отбирать надо по
+  // любому. Список из 4+ пунктов SubjectPicker сам рисует выпадашкой.
+  const subjectOptions = useMemo(() => [
+    { value: '', label: 'Все' },
+    ...allowedSubjectDefs(allowedSubjects).map(s => ({ value: s.id, label: s.name })),
+  ], [allowedSubjects])
 
   // Разметка ЕГЭ (раздел → тема → часть → линия) у языка отсутствует: у его
   // заданий эти поля пустые, поэтому вместо них показываем уровень и навык.

@@ -8,6 +8,7 @@ import {
   ChevronLeft, ChevronRight, Calendar, Users,
   PenLine, ArrowUpDown, ArrowUp, ArrowDown, Table as TableIcon, Link2,
 } from 'lucide-react'
+import ScrollFade from '../../components/ScrollFade'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useT } from '../../lib/i18n'
@@ -1694,6 +1695,7 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
               padding: 6,
             }}
           >
+            <ScrollFade maxHeight={260} bg="rgba(var(--glass-rgb), 0.96)" overlayScrollbar>
             {groups.map(g => (
               <button
                 key={g.id}
@@ -1720,6 +1722,7 @@ function GroupPicker({ value, onChange }: { value: string; onChange: (id: string
                 {g.id === value && <Check size={13} style={{ marginLeft: 'auto', color: 'var(--color-accent)', flexShrink: 0 }} />}
               </button>
             ))}
+            </ScrollFade>
           </motion.div>
         )}
       </AnimatePresence>

@@ -96,8 +96,9 @@ export default function SubjectSwitcher({ compact = false, style }: { compact?: 
           position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: compact ? 'auto' : 0, minWidth: compact ? 200 : undefined,
           zIndex: 50, background: 'var(--color-bg-input)', borderRadius: 14, padding: 6,
           border: '1px solid var(--color-border)', boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
-          display: 'flex', flexDirection: 'column', gap: 2,
         }}>
+          <ScrollFade maxHeight={264} bg="var(--color-bg-input)" overlayScrollbar
+            scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {cards.map(c => {
             const active = c.groupId === session.groupId
             return (
@@ -119,6 +120,7 @@ export default function SubjectSwitcher({ compact = false, style }: { compact?: 
               </button>
             )
           })}
+          </ScrollFade>
         </div>
       )}
     </div>
