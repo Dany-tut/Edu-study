@@ -18,6 +18,9 @@ import { buildKoreanTopik2Course, COURSE_SUMMARY as KOREAN2 } from './koreanTopi
 import { buildKoreanSurvivalCourse, COURSE_SUMMARY as KOREANSURV } from './survivalKo'
 import { buildJapaneseJlptN3Course, COURSE_SUMMARY as JAPANESE3 } from './japaneseJlptN3'
 import { buildPortugueseIntermediateCourse, COURSE_SUMMARY as PORTUGUESE2 } from './portugueseIntermediate'
+import { buildJapaneseSurvivalCourse, COURSE_SUMMARY as JAPANESESURV } from './survivalJa'
+import { buildPortugueseSurvivalCourse, COURSE_SUMMARY as PORTUGUESESURV } from './survivalPt'
+import { buildEnglishSurvivalCourse, COURSE_SUMMARY as ENGLISHSURV } from './survivalEn'
 import type { CourseSummary } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -42,6 +45,12 @@ export const COURSE_SEEDS: CourseSeed[] = [
     subject: 'Английский',
     summary: IELTS,
     build: buildEnglishIeltsCourse,
+  },
+  {
+    key: 'ensv',
+    subject: 'Английский',
+    summary: ENGLISHSURV,
+    build: buildEnglishSurvivalCourse,
   },
   {
     key: 'kotp',
@@ -77,6 +86,12 @@ export const COURSE_SEEDS: CourseSeed[] = [
     build: buildJapaneseJlptN3Course,
   },
   {
+    key: 'jasv',
+    subject: 'Японский',
+    summary: JAPANESESURV,
+    build: buildJapaneseSurvivalCourse,
+  },
+  {
     key: 'ptbr',
     subject: 'Португальский',
     summary: PORTUGUESE,
@@ -87,6 +102,12 @@ export const COURSE_SEEDS: CourseSeed[] = [
     subject: 'Португальский',
     summary: PORTUGUESE2,
     build: buildPortugueseIntermediateCourse,
+  },
+  {
+    key: 'ptsv',
+    subject: 'Португальский',
+    summary: PORTUGUESESURV,
+    build: buildPortugueseSurvivalCourse,
   },
 ]
 

@@ -1018,7 +1018,7 @@ function QuestionCard({ q, index, value, checked, accent, glossLang, glossExtra,
 
 // ─── Прослушивание ───────────────────────────────────────────────────────────
 
-function Listener({ item, accent, lang, onBack }: {
+function Listener({ item, accent, palette, lang, onBack }: {
   item: ListeningItem
   accent: string
   palette: { accent: string; text: string; soft: string; ring: string }
@@ -1032,32 +1032,47 @@ function Listener({ item, accent, lang, onBack }: {
   const correctCount = item.questions.filter((q, i) => answers[i] === q.correct).length
   const allAnswered = item.questions.every((_, i) => answers[i] !== undefined)
 
-  return (
-    <div style={column}>
-      <button
-        onClick={onBack}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 5, padding: '7px 13px', borderRadius: 999,
-          border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer',
-          fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit', marginBottom: 16,
-        }}
-      >
-        <ChevronLeft size={15} /> {t('К списку')}
-      </button>
+  function check() {
+    setChecked(true)
+    saveResult('listening', item.id, correctCount, item.questions.length)
+  }
 
-      <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', marginBottom: 4 }}>{item.title}</h1>
-      <p style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 18 }}>
-        {item.level} · {item.topic} · {item.minutes} {t('мин')}{item.credit && ` · ${item.credit}`}
-      </p>
+  // Плеер в рейле — тот же приём, что в читалке: слушают запись не один раз, а
+  // между вопросами, и уехавшая наверх кнопка «ещё раз» превращает это в скролл
+  // туда-обратно на каждый вопрос.
+  const rail = (
+    <>
+      <RailHero title={item.title} subtitle={`${item.level} · ${item.topic} · ${item.minutes} ${t('мин')}`} palette={palette} />
 
-      <div style={{ marginBottom: 18 }}>
+      <RailCard title="Запись" accent={accent} icon={<Volume2 size={15} />}>
         <AudioPlayer ttsText={item.script} lang={lang} allowSlow />
-      </div>
+        <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+          {t('Слушай столько раз, сколько нужно. Расшифровка откроется после ответов.')}
+        </div>
+      </RailCard>
 
-      <p style={{ fontSize: 12.5, color: 'var(--color-muted)', marginBottom: 16, lineHeight: 1.6 }}>
-        {t('Слушай столько раз, сколько нужно. Расшифровка откроется после ответов — если прочитать её сразу, это перестанет быть аудированием.')}
-      </p>
+      <RailCard title="Вопросы" accent={accent} icon={<CheckCircle2 size={15} />}>
+        <RailStat
+          label="Отвечено"
+          value={`${Object.keys(answers).length} / ${item.questions.length}`}
+          tone={allAnswered ? 'good' : undefined}
+        />
+        {checked && <RailStat label="Верно" value={`${correctCount} / ${item.questions.length}`} tone="good" />}
+      </RailCard>
+    </>
+  )
 
+  const toolbar = (
+    <Toolbar>
+      <ToolButton onClick={onBack}>
+        <ChevronLeft size={14} /> {t('К списку')}
+      </ToolButton>
+      {item.credit && <ToolCount>{item.credit}</ToolCount>}
+    </Toolbar>
+  )
+
+  return (
+    <TrainerShell rail={rail} toolbar={toolbar}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {item.questions.map((q, qi) => (
           <QuestionCard
@@ -1069,10 +1084,10 @@ function Listener({ item, accent, lang, onBack }: {
 
       {!checked ? (
         <button
-          onClick={() => setChecked(true)}
+          onClick={check}
           disabled={!allAnswered}
           style={{
-            marginTop: 22, width: '100%', padding: '13px', borderRadius: 16, border: 'none',
+            width: '100%', padding: '13px', borderRadius: 16, border: 'none',
             cursor: allAnswered ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
             fontSize: 15, fontWeight: 700, color: '#fff',
             background: allAnswered ? accent : 'var(--color-border-medium)',
@@ -1082,7 +1097,7 @@ function Listener({ item, accent, lang, onBack }: {
         </button>
       ) : (
         <div style={{
-          marginTop: 22, padding: '16px 18px', borderRadius: 18,
+          padding: '16px 18px', borderRadius: 18,
           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
         }}>
           <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', marginBottom: 4, textAlign: 'center' }}>
@@ -1122,7 +1137,7 @@ function Listener({ item, accent, lang, onBack }: {
           )}
         </div>
       )}
-    </div>
+    </TrainerShell>
   )
 }
 

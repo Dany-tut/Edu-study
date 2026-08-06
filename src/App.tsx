@@ -7,6 +7,7 @@ import JoinTeacherPage from './pages/JoinTeacherPage'
 import StudentLoginPage from './pages/StudentLoginPage'
 import LandingPage from './pages/LandingPage'
 import DiagnosticTestPage from './pages/DiagnosticTestPage'
+import LanguageTrainer from './components/LanguageTrainer'
 import ReviewSession from './components/ReviewSession'
 import { supabase } from './lib/supabase'
 import { getStudentSession } from './lib/studentSession'
@@ -87,6 +88,7 @@ export default function App() {
   if (hash.startsWith('#/join-teacher')) return <JoinTeacherPage />
   if (hash.startsWith('#/join')) return <JoinPage />
   if (hash.startsWith('#/diagnostic')) return <DiagnosticTestPage />
+  if (import.meta.env.DEV && hash.startsWith('#/dev-lang')) return <LanguageTrainer lang="ko" subject="Корейский" subjectId="korean" dark />
   if (hash.startsWith('#/review')) {
     const q = new URLSearchParams(hash.split('?')[1] ?? '')
     const sid = getStudentSession()?.id

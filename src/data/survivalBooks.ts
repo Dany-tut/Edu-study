@@ -21,6 +21,9 @@ type Loader = () => Promise<SurvivalBook>
 
 const LOADERS: Record<string, Loader> = {
   ko: () => import('./survivalKo').then(m => m.KOREAN_SURVIVAL),
+  ja: () => import('./survivalJa').then(m => m.JAPANESE_SURVIVAL),
+  pt: () => import('./survivalPt').then(m => m.PORTUGUESE_SURVIVAL),
+  en: () => import('./survivalEn').then(m => m.ENGLISH_SURVIVAL),
 }
 
 /** Базовый код языка: pt-BR → pt, en-US → en. */
