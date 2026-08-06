@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion } from '../data/readingLibrary'
+import { languageTaxonomy } from '../data/languageTaxonomy'
 import { subjectTheme } from '../lib/theme'
 import { useT } from '../lib/i18n'
 import ReviewSession from './ReviewSession'
@@ -42,7 +43,31 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
   const [mode, setMode] = useState<Mode>('reading')
   const [openText, setOpenText] = useState<ReadingText | null>(null)
 
-  const texts = useMemo(() => textsForLang(lang), [lang])
+  const allTexts = useMemo(() => textsForLang(lang), [lang])
+
+  // Фильтры по той же разметке, что у заданий: уровень / навык / тема.
+  // Показываем только те значения, которые реально встречаются в текстах —
+  // иначе ученик выбирает «B2» и получает пустой экран.
+  const [fLevel, setFLevel] = useState('')
+  const [fSkill, setFSkill] = useState('')
+  const [fTopic, setFTopic] = useState('')
+  const tax = useMemo(() => languageTaxonomy(subject), [subject])
+  const present = <K extends keyof ReadingText>(key: K, order: string[]) => {
+    const found = new Set(allTexts.map(x => String(x[key])))
+    const ordered = order.filter(v => found.has(v))
+    // Значения, которых нет в таксономии, всё равно показываем — иначе текст
+    // с нестандартной пометкой стал бы недоступен через фильтр.
+    const rest = [...found].filter(v => !order.includes(v))
+    return [...ordered, ...rest]
+  }
+  const levelOpts = present('level', tax?.levels ?? [])
+  const skillOpts = present('skill', tax?.skills ?? [])
+  const topicOpts = present('topic', tax?.topics ?? [])
+
+  const texts = useMemo(() => allTexts.filter(x =>
+    (!fLevel || x.level === fLevel) &&
+    (!fSkill || x.skill === fSkill) &&
+    (!fTopic || x.topic === fTopic)), [allTexts, fLevel, fSkill, fTopic])
 
   if (openText) {
     return <Reader text={openText} accent={palette.accent} onBack={() => setOpenText(null)} />
@@ -73,8 +98,18 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
       </div>
 
       {mode === 'reading' && (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+          <Chips label={t('Уровень')} value={fLevel} options={levelOpts} onChange={setFLevel} accent={palette.accent} />
+          <Chips label={t('Навык')}   value={fSkill} options={skillOpts} onChange={setFSkill} accent={palette.accent} />
+          <Chips label={t('Тема')}    value={fTopic} options={topicOpts} onChange={setFTopic} accent={palette.accent} />
+        </div>
+      )}
+
+      {mode === 'reading' && (
         texts.length === 0 ? (
-          <Empty text={t('Для этого языка текстов пока нет. Учитель может добавить свои.')} />
+          <Empty text={allTexts.length === 0
+            ? t('Для этого языка текстов пока нет. Учитель может добавить свои.')
+            : t('Под выбранные фильтры ничего не подошло. Сбрось один из них.')} />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {texts.map(txt => (
@@ -123,6 +158,36 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
           <VoiceRecorder value={null} onChange={() => {}} maxSeconds={120} />
         </div>
       )}
+    </div>
+  )
+}
+
+/** Одна ось фильтра: подпись + значения. Пустое значение = «все». */
+function Chips({ label, value, options, onChange, accent }: {
+  label: string; value: string; options: string[]
+  onChange: (v: string) => void; accent: string
+}) {
+  if (options.length < 2) return null
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+      <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.3, color: 'var(--color-text-3)' }}>
+        {label}
+      </span>
+      {options.map(o => {
+        const on = value === o
+        return (
+          <button key={o} onClick={() => onChange(on ? '' : o)}
+            style={{
+              padding: '5px 11px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+              fontSize: 12.5, fontWeight: 650,
+              border: `1px solid ${on ? accent : 'var(--color-border-soft)'}`,
+              background: on ? 'var(--color-bg-3)' : 'var(--color-bg-2)',
+              color: on ? accent : 'var(--color-text-2)',
+            }}>
+            {o}
+          </button>
+        )
+      })}
     </div>
   )
 }

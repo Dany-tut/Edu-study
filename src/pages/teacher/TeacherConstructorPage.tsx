@@ -39,7 +39,7 @@ import {
   DEFAULT_QUESTIONS,
 } from '../../data/diagnosticData'
 import { useAllStudents, useGroups, fetchSharedCourseIds } from '../../lib/useGroups'
-import { getContrastColor, getCircleShadow } from '../../lib/utils'
+import { getContrastColor, getCircleShadow, fillUnderWhite } from '../../lib/utils'
 import { copyToClipboard } from '../../lib/clipboard'
 import { supabase } from '../../lib/supabase'
 import { getOwnerId } from '../../lib/owner'
@@ -251,6 +251,9 @@ export interface TrainerQ {
 
 export interface Trainer {
   id: string; title: string; topic: string; difficulty: Difficulty
+  /** ISO-время создания — порядок карточек считается по нему, а не по позиции
+   *  в массиве состояния (сохранение переставляет элемент внутри массива). */
+  createdAt?: string
   timePerQuestion: number; questions: TrainerQ[]
   // Shared-bank task numbers (useTaskBank ids) this trainer is built from. The
   // `questions` array above is kept as a denormalised snapshot for cards/widgets.
@@ -277,6 +280,9 @@ export interface Widget {
   id: string; title: string; type: WidgetType
   linkedTrainerId: string | null; items: WidgetItem[]
   color: string; bg: string; lastEdited: string
+  /** ISO-время создания — по нему строится порядок карточек «Новые»/«Старые».
+   *  Статуса «Опубликован» у виджета нет, поднимать его нечему. */
+  createdAt?: string
 }
 
 // ─── Task bank ────────────────────────────────────────────────────────────────
@@ -416,6 +422,7 @@ function dbTrainerToLocal(t: any): Trainer {
     timePerQuestion: t.time_per_question ?? 30, questions: t.questions ?? [],
     subject: t.subject, color: t.color ?? 'var(--color-purple)', bg: t.bg ?? 'var(--color-purple-soft)',
     lastEdited: fmtDate(t.updated_at ?? t.created_at),
+    createdAt: t.created_at ?? undefined,
   }
 }
 function dbWidgetToLocal(w: any): Widget {
@@ -424,6 +431,7 @@ function dbWidgetToLocal(w: any): Widget {
     linkedTrainerId: w.linked_trainer_id ?? null, items: w.items ?? [],
     color: w.color ?? 'var(--color-purple)', bg: w.bg ?? 'var(--color-purple-soft)',
     lastEdited: fmtDate(w.updated_at ?? w.created_at),
+    createdAt: w.created_at ?? undefined,
   }
 }
 
@@ -1317,6 +1325,12 @@ function withSortTimes(c: Course, prev?: Course | null): Course {
       ? (prev?.status === 'published' ? prev.publishedAt ?? now : now)
       : undefined,
   }
+}
+
+/** То же для тренажёров и виджетов: статуса публикации у них нет, поэтому
+ *  порядок держится на одном времени создания и правка его не трогает. */
+function withCreatedAt<T extends { createdAt?: string }>(item: T, prev?: T | null): T {
+  return { ...item, createdAt: prev?.createdAt ?? item.createdAt ?? new Date().toISOString() }
 }
 
 function seedToCourse(seed: CourseSeed, id: string): Course {
@@ -5196,6 +5210,9 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
   const isCustomTest = CUSTOM_META.has(subject)
   const [accentState, setAccentState] = useState(initialMeta.accent)
   const accent = accentState
+  // Заливка кружка «верный вариант»: акцент подобран как цвет текста и рамок,
+  // под белой галочкой давал 2.3:1 — берём затемнённый вариант.
+  const accentFill = fillUnderWhite(accent)
   const soft = CREATOR_ACCENTS.find(a => a.hex === accent)?.soft ?? accent + '22'
   const [labelState, setLabelState] = useState(() =>
     initialLabel ?? (isCustomTest ? initialMeta.label : (loadBuiltinLabel(subject) || initialMeta.label))
@@ -5665,8 +5682,8 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                         {editOpts.map((opt, oi) => (
                           <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                             <button onClick={() => { setEditCorrect(oi); setDirty(true) }}
-                              style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'transparent', transition: 'all 0.14s', position: 'relative', boxShadow: editCorrect === oi ? accentCircleShadow(accent) : 'none' }}>
-                              {editCorrect === oi && <Check size={13} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: getContrastColor(accent), strokeWidth: 3 }} />}
+                              style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accentFill : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accentFill : 'transparent', transition: 'all 0.14s', position: 'relative', boxShadow: editCorrect === oi ? accentCircleShadow(accentFill) : 'none' }}>
+                              {editCorrect === oi && <Check size={13} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff', strokeWidth: 3 }} />}
                             </button>
                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `1.5px solid ${editCorrect === oi ? accent + '66' : 'var(--color-border-medium)'}`, background: editCorrect === oi ? soft : 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
                               <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: editCorrect === oi ? accent : 'var(--color-muted)', flexShrink: 0 }}>{String.fromCharCode(65 + oi)}</div>
@@ -5733,8 +5750,8 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                             const isCorrect = q.correct === oi
                             return (
                               <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 10, borderRadius: 11, border: 'none', background: isCorrect ? soft : 'var(--color-bg-input)', padding: '9px 12px' }}>
-                                <div style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, border: `2px solid ${isCorrect ? accent : 'var(--color-border-medium)'}`, background: isCorrect ? accent : 'transparent', position: 'relative', boxShadow: isCorrect ? accentCircleShadow(accent) : 'none' }}>
-                                  {isCorrect && <Check size={12} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: getContrastColor(accent), strokeWidth: 3 }} />}
+                                <div style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, border: `2px solid ${isCorrect ? accentFill : 'var(--color-border-medium)'}`, background: isCorrect ? accentFill : 'transparent', position: 'relative', boxShadow: isCorrect ? accentCircleShadow(accentFill) : 'none' }}>
+                                  {isCorrect && <Check size={12} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff', strokeWidth: 3 }} />}
                                 </div>
                                 <div style={{ fontSize: 12, fontWeight: 700, color: isCorrect ? accent : 'var(--color-muted)', flexShrink: 0 }}>{String.fromCharCode(65 + oi)}</div>
                                 <div style={{ flex: 1, fontSize: 13.5, color: 'var(--color-text)' }}>{opt || <span style={{ color: 'var(--color-text-4)' }}>—</span>}</div>
@@ -6468,6 +6485,9 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
   const canAssignNow = !!assignGroupId || !!assignStudentId
 
   const soft = CREATOR_ACCENTS.find(a => a.hex === accent)?.soft ?? accent + '22'
+  // Заливка кружка «верный вариант» — затемнённый акцент: сам акцент подобран
+  // как цвет текста и под белой галочкой давал 2.3:1.
+  const accentFill = fillUnderWhite(accent)
   const canSave = title.trim().length > 0
 
   function startEdit(idx: number, q?: DiagQuestion) {
@@ -6765,8 +6785,8 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                             {editOpts.map((opt, oi) => (
                               <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                 <button onClick={() => setEditCorrect(oi)}
-                                  style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accent : 'transparent', transition: 'all 0.14s', position: 'relative', boxShadow: editCorrect === oi ? accentCircleShadow(accent) : 'none' }}>
-                                  {editCorrect === oi && <Check size={13} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: getContrastColor(accent), strokeWidth: 3 }} />}
+                                  style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', border: `2px solid ${editCorrect === oi ? accentFill : 'var(--color-border-medium)'}`, background: editCorrect === oi ? accentFill : 'transparent', transition: 'all 0.14s', position: 'relative', boxShadow: editCorrect === oi ? accentCircleShadow(accentFill) : 'none' }}>
+                                  {editCorrect === oi && <Check size={13} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff', strokeWidth: 3 }} />}
                                 </button>
                                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `2px solid ${editCorrect === oi ? accent : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
                                   <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: editCorrect === oi ? accent : 'var(--color-text-2)', flexShrink: 0 }}>{String.fromCharCode(65 + oi)}</div>
@@ -7456,10 +7476,12 @@ export default function TeacherConstructorPage() {
     if (widgetFilters.linked === 'linked') ws = ws.filter(w => !!w.linkedTrainerId)
     if (widgetFilters.linked === 'unlinked') ws = ws.filter(w => !w.linkedTrainerId)
     const sorted = [...ws]
-    if (widgetFilters.sort === 'newest') return [...sorted].reverse()
-    if (widgetFilters.sort === 'az') return [...sorted].sort((a, b) => a.title.localeCompare(b.title, 'ru'))
-    if (widgetFilters.sort === 'items') return [...sorted].sort((a, b) => b.items.length - a.items.length)
-    return sorted
+    if (widgetFilters.sort === 'az') return sorted.sort((a, b) => a.title.localeCompare(b.title, 'ru'))
+    if (widgetFilters.sort === 'items') return sorted.sort((a, b) => b.items.length - a.items.length)
+    // По времени создания, а не по позиции в массиве: сохранение виджета
+    // переставляет его внутри состояния, и карточка от этого прыгала.
+    const dir = widgetFilters.sort === 'newest' ? -1 : 1
+    return sorted.sort((a, b) => dir * (a.createdAt ?? '').localeCompare(b.createdAt ?? ''))
   }, [widgets, widgetFilters])
   const [courseSort, setCourseSort] = useState<CourseSortMode>('newest')
   const [courseStatus, setCourseStatus] = useState<'' | CourseStatus>('')
@@ -7849,7 +7871,11 @@ export default function TeacherConstructorPage() {
   }
 
   function handleSaveTrainer(t: Trainer) {
-    setTrainers(prev => prev.some(x => x.id === t.id) ? prev.map(x => x.id === t.id ? t : x) : [t, ...prev])
+    setTrainers(prev => {
+      const old = prev.find(x => x.id === t.id)
+      const next = withCreatedAt(t, old)
+      return old ? prev.map(x => x.id === t.id ? next : x) : [next, ...prev]
+    })
     setCreatorMode(null)
     setEditTrainer(null)
     setActiveTab('trainer')
@@ -7866,10 +7892,13 @@ export default function TeacherConstructorPage() {
       questions: t.questions, color: t.color, bg: t.bg,
     }
     if (isUUID(t.id)) row.id = t.id
-    const { data, error } = await supabase.from('trainers').upsert(row, { onConflict: 'id' }).select('id').single()
+    const { data, error } = await supabase.from('trainers').upsert(row, { onConflict: 'id' }).select('id, created_at').single()
     if (error) { console.error('[syncTrainerToDb]', error); return }
-    if (data && data.id !== t.id) {
-      setTrainers(prev => prev.map(x => x.id === t.id ? { ...x, id: data.id } : x))
+    if (data) {
+      // Время создания берём из БД — оно и задаёт порядок карточек.
+      setTrainers(prev => prev.map(x => x.id === t.id
+        ? { ...x, id: data.id, createdAt: (data as any).created_at ?? x.createdAt }
+        : x))
     }
   }
 
@@ -7880,10 +7909,13 @@ export default function TeacherConstructorPage() {
       items: w.items, color: w.color, bg: w.bg,
     }
     if (isUUID(w.id)) row.id = w.id
-    const { data, error } = await supabase.from('widgets').upsert(row, { onConflict: 'id' }).select('id').single()
+    const { data, error } = await supabase.from('widgets').upsert(row, { onConflict: 'id' }).select('id, created_at').single()
     if (error) { console.error('[syncWidgetToDb]', error); return }
-    if (data && data.id !== w.id) {
-      setWidgets(prev => prev.map(x => x.id === w.id ? { ...x, id: data.id } : x))
+    if (data) {
+      // Время создания берём из БД — оно и задаёт порядок карточек.
+      setWidgets(prev => prev.map(x => x.id === w.id
+        ? { ...x, id: data.id, createdAt: (data as any).created_at ?? x.createdAt }
+        : x))
     }
   }
 
@@ -7955,7 +7987,11 @@ export default function TeacherConstructorPage() {
   }
 
   function handleSaveWidget(w: Widget) {
-    setWidgets(prev => prev.some(x => x.id === w.id) ? prev.map(x => x.id === w.id ? w : x) : [w, ...prev])
+    setWidgets(prev => {
+      const old = prev.find(x => x.id === w.id)
+      const next = withCreatedAt(w, old)
+      return old ? prev.map(x => x.id === w.id ? next : x) : [next, ...prev]
+    })
     setCreatorMode(null)
     setEditWidget(null)
     setActiveTab('widget')
@@ -7984,7 +8020,12 @@ export default function TeacherConstructorPage() {
     if (shortId) await supabase.from('courses').delete().eq('short_id', shortId)
   }
   function duplicateWidget(w: Widget) {
-    const copy: Widget = { ...w, id: uid(), title: (w.title) + t(' (копия)'), items: w.items.map(it => ({ ...it, id: uid() })), lastEdited: stamp() }
+    const copy: Widget = {
+      ...w, id: uid(), title: (w.title) + t(' (копия)'),
+      items: w.items.map(it => ({ ...it, id: uid() })), lastEdited: stamp(),
+      // Копия — новый виджет, со своим временем создания.
+      createdAt: new Date().toISOString(),
+    }
     setWidgets(prev => [copy, ...prev])
   }
   async function deleteWidget(w: Widget) {

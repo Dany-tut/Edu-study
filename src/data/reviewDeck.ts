@@ -85,6 +85,62 @@ export async function captureMistake(input: {
   })
 }
 
+/**
+ * Положить в колоду сразу пачку карточек — словарь текста, слова урока.
+ *
+ * ПОЧЕМУ НЕ ЦИКЛ ИЗ captureMistake. Тот делает select + insert на КАЖДУЮ
+ * карточку: на глоссарии из 20 слов это 40 запросов и заметная пауза перед
+ * первой карточкой. Здесь один select существующих prompt'ов и один insert
+ * недостающих. Дедуп тот же — по паре (владелец, prompt).
+ *
+ * Возвращает число реально добавленных карточек: ноль означает «всё это уже
+ * в колоде», и экрану есть что сказать вместо молчания.
+ */
+export async function addCards(
+  owner: { studentId?: string; anonName?: string },
+  inputs: Array<{ subject?: string; source: ReviewSource; prompt: string; answer: string; options?: string[] }>,
+): Promise<number> {
+  const ownerCol = owner.studentId ? 'student_id' : 'anon_name'
+  const ownerVal = owner.studentId ?? owner.anonName ?? ''
+  if (!ownerVal || inputs.length === 0) return 0
+
+  // Дубли внутри самой пачки (одно слово в двух текстах) убираем до запроса.
+  const byPrompt = new Map(inputs.map(i => [i.prompt, i]))
+  const prompts = [...byPrompt.keys()]
+
+  const { data: existing } = await supabase
+    .from('review_cards')
+    .select('prompt')
+    .eq(ownerCol, ownerVal)
+    .in('prompt', prompts)
+  const known = new Set((existing ?? []).map(r => r.prompt as string))
+
+  const rows = prompts
+    .filter(p => !known.has(p))
+    .map(p => {
+      const i = byPrompt.get(p)!
+      return {
+        student_id: owner.studentId ?? null,
+        anon_name: owner.anonName ?? null,
+        subject: i.subject ?? null,
+        source: i.source,
+        prompt: i.prompt,
+        answer: i.answer,
+        options: i.options ?? null,
+        ease: INITIAL_SRS.ease,
+        interval_days: INITIAL_SRS.intervalDays,
+        reps: INITIAL_SRS.reps,
+        lapses: INITIAL_SRS.lapses,
+        due_at: new Date().toISOString(),
+      }
+    })
+  if (rows.length === 0) return 0
+
+  const { error } = await supabase.from('review_cards').insert(rows)
+  if (error) { console.error('addCards:', error); return 0 }
+  return rows.length
+}
+
 /** Cards currently due for an owner (studentId or anonName), oldest-due first. */
 export async function dueCards(owner: { studentId?: string; anonName?: string }, limit = 20): Promise<ReviewCard[]> {
   const col = owner.studentId ? 'student_id' : 'anon_name'

@@ -1500,9 +1500,14 @@ export default function HomeworkFlow({
                         <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', marginBottom: 6 }}>
                           {t('Вопрос')} {index + 1}
                         </p>
-                        <h4 style={{ fontSize: 18, lineHeight: 1.35, fontWeight: 720, color: 'var(--color-text)' }}>
-                          {question.prompt}
-                        </h4>
+                        {/* У словарной карточки формулировка вопроса — это само
+                            слово (оно же подпись задания в редакторе), а слово
+                            печатается ещё раз на карточке. Второй раз не нужен. */}
+                        {!(qType(question) === 'flashcard' && question.prompt === question.front) && (
+                          <h4 style={{ fontSize: 18, lineHeight: 1.35, fontWeight: 720, color: 'var(--color-text)' }}>
+                            {question.prompt}
+                          </h4>
+                        )}
                         {/* Картинка условия. У словарной карточки она рисуется
                             на самой карточке (ниже), поэтому здесь пропускается —
                             иначе одно и то же изображение показывалось дважды. */}

@@ -97,7 +97,9 @@ function SubjectDropdown({
   const [rect, setRect] = useState<{ top: number; left: number; width: number } | null>(null)
 
   const current = options.find(o => o.value === value) ?? options[0]
-  const fs = size === 'sm' ? 11 : 12
+  // Кегль тот же, что у соседних MultiSelectField, иначе строки в колонке
+  // фильтров разной величины.
+  const fs = size === 'sm' ? 11 : 13
 
   useLayoutEffect(() => {
     if (!open || !btnRef.current) return
@@ -119,11 +121,16 @@ function SubjectDropdown({
 
   return (
     <>
+      {/* Скин один в один с MultiSelectField: пикер стоит с ним в одной колонке
+          фильтров, и своя заливка (--color-bg) с постоянной рамкой читалась как
+          поле другого рода — темнее соседей и в рамке, когда те безрамочные.
+          Рамка прозрачная, а не отсутствует: иначе на открытии коробка прыгает. */}
       <button ref={btnRef} onClick={() => setOpen(o => !o)} aria-haspopup="listbox" aria-expanded={open} aria-label={ariaLabel}
         style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: size === 'sm' ? '7px 11px' : '8px 12px',
-          borderRadius: 10, border: `1px solid ${open ? accent : 'var(--color-border)'}`, cursor: 'pointer',
-          background: 'var(--color-bg)', color: 'var(--color-text)', fontSize: fs, fontWeight: 700, fontFamily: 'inherit',
+          width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 8,
+          padding: size === 'sm' ? '6px 9px' : '7px 11px', minHeight: size === 'sm' ? 32 : 38,
+          borderRadius: 11, border: `1px solid ${open ? accent : 'transparent'}`, cursor: 'pointer',
+          background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: fs, fontWeight: 700, fontFamily: 'inherit',
         }}>
         {current.icon && <span aria-hidden>{current.icon}</span>}
         <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{current.label}</span>

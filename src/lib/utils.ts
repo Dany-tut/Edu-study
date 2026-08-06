@@ -15,6 +15,35 @@ export function getContrastColor(hex: string): string {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.58 ? '#1a1a2e' : '#ffffff'
 }
 
+/**
+ * Приглушённый вариант акцента — заливка под БЕЛЫМ текстом или галочкой.
+ * Акценты предметов подобраны как цвет текста/рамок (биология #22C55E даёт с
+ * белым 2.3:1), поэтому залитый ими кружок читается плохо. Затемняем цвет
+ * шагами, пока контраст с белым не дойдёт до 4.5:1 — тот же смысл, что у
+ * готовых --color-*-fill в index.css, но для произвольного пользовательского
+ * цвета. Не hex (CSS-переменная, rgba) возвращается как есть.
+ */
+export function fillUnderWhite(hex: string): string {
+  if (!hex || !hex.startsWith('#') || hex.length < 7) return hex
+  let [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16))
+  if ([r, g, b].some(Number.isNaN)) return hex
+  // 24 шагов по 8% хватает, чтобы дожать до чёрного даже чистый белый.
+  for (let i = 0; i < 24 && contrastWithWhite(r, g, b) < 4.5; i++) {
+    r = Math.round(r * 0.92); g = Math.round(g * 0.92); b = Math.round(b * 0.92)
+  }
+  return '#' + [r, g, b].map(c => c.toString(16).padStart(2, '0')).join('')
+}
+
+/** WCAG-контраст цвета с белым. */
+function contrastWithWhite(r: number, g: number, b: number): number {
+  const lin = (c: number) => {
+    const s = c / 255
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4)
+  }
+  const L = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+  return 1.05 / (L + 0.05)
+}
+
 /** Returns a box-shadow that makes a filled circle visible on any theme background. */
 export function getCircleShadow(hex: string): string {
   if (!hex || !hex.startsWith('#') || hex.length < 7) return 'none'
