@@ -11,14 +11,17 @@
 // Здесь тот же скелет, вынесенный в переиспользуемый вид. Меняется только
 // НАПОЛНЕНИЕ рейла: режим сам решает, какие карточки в него положить.
 //
-// ЧТО ЭТО НЕ ДЕЛАЕТ. Банк заданий на этот компонент пока НЕ переведён: его
-// страница — под три тысячи строк с собственными StatusTabs/ViewTabs/
-// SortDropdown, и переезд туда — отдельная работа со своим риском. Здесь
-// повторена его визуальная логика, а не импортированы его куски. Когда банк
-// поедет сюда, свои копии он потеряет — сверять придётся именно с этим файлом.
+// КТО НА НЁМ. Языковой тренажёр целиком и ДЕСКТОПНАЯ ветка банка заданий.
+// Своя раскладка у банка осталась только там, где скелет ничего не обещает:
+// шапка страницы и док-таблетки с анимацией — это его собственное, и выкидывать
+// их ради единообразия значило бы менять работающее на одинаковое.
+//
+// Мобильная ветка банка (useIsDesktop < 1024) живёт отдельно и по своим
+// правилам: нижняя навигация, плавающие круглые кнопки, шторки. Это другая
+// раскладка, а не узкий вариант этой, и тянуть её сюда не нужно.
 //
 // ШИРИНА РЕЙЛА. 300 px, как в банке. Сжимать его нельзя: карточка фильтров на
-// 180 px нечитаема. Поэтому на узком экране (< 1000) рейл целиком уходит в
+// 180 px нечитаема. Поэтому на узком экране (< 1024) рейл целиком уходит в
 // нижнюю шторку — тем же приёмом, что фильтры банка на телефоне, и открывается
 // одной кнопкой над строкой управления. Ставить его НАД содержимым (как было
 // сначала) не годится: три карточки подряд занимают весь первый экран, и до
@@ -36,11 +39,12 @@
 // родитель; свой остаётся только на узком экране, где обёртки кабинета нет.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Search, Check, SlidersHorizontal } from 'lucide-react'
 import { useT } from '../../lib/i18n'
+import { useFloatingPill } from '../../lib/useFloatingPill'
 import MobileSheet from '../MobileSheet'
 
 const RAIL_W = 300
@@ -331,7 +335,7 @@ export function RailModes<T extends string>({ items, value, onChange, accent, so
  * сегмент — это фильтр, который можно снять повторным нажатием.
  */
 export function RailSegment({ options, value, onChange, accent, soft, clearable = true }: {
-  options: { value: string; label: string; badge?: number }[]
+  options: { value: string; label: string; badge?: number; icon?: ReactNode }[]
   value: string
   onChange: (v: string) => void
   accent: string
@@ -347,6 +351,8 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
           <button
             key={o.value}
             onClick={() => onChange(on && clearable ? '' : o.value)}
+            title={t(o.label)}
+            aria-label={t(o.label)}
             style={{
               // Один в один кнопки «Часть 1 / Часть 2» из рейла банка: рамки у
               // них нет вовсе — состояние читается заливкой и цветом текста.
@@ -355,7 +361,10 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
               // Боковой отступ меньше банковских 12 px: там в ряду две кнопки с
               // коротким «Часть 1», здесь — три с «до 3 мин», и на 12 px подпись
               // обрезалась в «до 3 …». Высота (9 px сверху и снизу) та же.
-              flex: 1, minWidth: 0, padding: '9px 6px', borderRadius: 13, cursor: 'pointer',
+              // Иконочный вариант не растягивается: подпись ему не нужна, а
+              // равная доля ряда только резала бы соседний текст многоточием.
+              flex: o.icon ? '0 0 auto' : 1, minWidth: 0,
+              padding: o.icon ? '9px 11px' : '9px 6px', borderRadius: 13, cursor: 'pointer',
               fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
               border: 'none',
@@ -364,7 +373,9 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
               transition: 'all 0.15s ease',
             }}
           >
-            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(o.label)}</span>
+            {o.icon
+              ? <span style={{ display: 'flex', alignItems: 'center' }}>{o.icon}</span>
+              : <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(o.label)}</span>}
             {o.badge !== undefined && o.badge > 0 && (
               <span style={{
                 padding: '1px 6px', borderRadius: 999, fontSize: 10.5, fontWeight: 800,
@@ -543,35 +554,86 @@ export function SearchPill({ value, onChange, placeholder }: {
 }
 
 /** Статусы выборки: Все / … . Общий словарь на все режимы. */
-export function StatusTabs({ options, value, onChange }: {
-  options: { value: string; label: string }[]
+/**
+ * Сегменты выборки — статус, вид, способ прогона.
+ *
+ * Одна реализация на скелет и на банк заданий. Раньше их было две: у банка с
+ * плавающей таблеткой-подложкой, у скелета простая заливка активного сегмента.
+ * Разошлись бы дальше при первой же правке, поэтому здесь оставлена лучшая —
+ * банковская: подложка переезжает между сегментами анимацией, а не мигает.
+ *
+ * ПОЧЕМУ ШИРИНА НЕ ПРЫГАЕТ. Активный сегмент жирнее неактивного, и на смене
+ * выбора строка бы дёргалась. Под текстом лежит его же невидимая копия, всегда
+ * жирная: она и держит ширину, а видимая надпись просто перекрашивается.
+ *
+ * МОБИЛЬНОГО ВАРИАНТА ЗДЕСЬ НЕТ намеренно. На телефоне банк рисует те же
+ * статусы тремя равными серыми сегментами под соседние поля фильтров — это
+ * другой дизайн для другой раскладки, а не вариация этого. Он остался в
+ * TaskBankPage, рядом со своей вёрсткой.
+ */
+export function StatusTabs({ options, value, onChange, accent }: {
+  options: { value: string; label: string; Icon?: React.ComponentType<{ size?: number }> }[]
   value: string
   onChange: (v: string) => void
+  /** Задан — активный сегмент красится предметом, а не нейтральным текстом. */
+  accent?: string
 }) {
   const t = useT()
+  const pill = useFloatingPill(value)
   return (
-    <div style={{
-      display: 'flex', padding: 3, borderRadius: 999,
-      background: 'rgba(var(--glass-rgb), 0.9)', border: '1px solid var(--color-border-medium)',
-    }}>
+    <div
+      ref={pill.containerRef}
+      style={{
+        position: 'relative', display: 'inline-flex', alignItems: 'center',
+        padding: 3, borderRadius: 999,
+        background: 'rgba(var(--glass-rgb), 0.88)',
+        border: '1px solid var(--color-border)',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+        backdropFilter: 'blur(8px)',
+      }}
+    >
+      {pill.pillRect && (
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            left: pill.pillRect.left, top: pill.pillRect.top,
+            width: pill.pillRect.width, height: pill.pillRect.height,
+            borderRadius: 999,
+            background: 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.82)',
+            backdropFilter: 'blur(16px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+            boxShadow: 'var(--shadow-tab-pill)',
+            border: '1px solid var(--color-border-glass)',
+            pointerEvents: 'none', zIndex: 0,
+          }}
+        />
+      )}
       {options.map(o => {
         const on = o.value === value
         return (
           <button
             key={o.value}
+            ref={pill.registerItem(o.value)}
             onClick={() => onChange(o.value)}
+            title={t(o.label)}
             style={{
-              // Размеры банковских вкладок «Список / Карточки»: 7×12 и кегль 12.
-              // Свои 6×13 и 12.5 давали строку на пиксель ниже соседнего поиска —
-              // разнобой, который видно именно в ряду, где элементы стоят рядом.
-              padding: '7px 12px', borderRadius: 999, border: 'none', cursor: 'pointer',
-              fontFamily: 'inherit', fontSize: 12, fontWeight: on ? 700 : 500,
-              background: on ? 'var(--color-bg-3)' : 'transparent',
-              color: on ? 'var(--color-text)' : 'var(--color-text-3)',
-              whiteSpace: 'nowrap',
+              position: 'relative', zIndex: 1,
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '7px 14px', borderRadius: 999, border: 'none',
+              background: 'transparent', cursor: 'pointer', fontFamily: 'inherit',
+              color: on ? (accent ?? 'var(--color-text)') : 'var(--color-text-3)',
+              fontSize: 12, fontWeight: on ? 700 : 500,
+              whiteSpace: 'nowrap', transition: 'color 0.16s ease',
             }}
           >
-            {t(o.label)}
+            {o.Icon && <o.Icon size={14} />}
+            <span style={{ display: 'grid', justifyItems: 'center' }}>
+              <span aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden', fontWeight: 700 }}>
+                {t(o.label)}
+              </span>
+              <span style={{ gridArea: '1 / 1' }}>{t(o.label)}</span>
+            </span>
           </button>
         )
       })}

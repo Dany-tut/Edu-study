@@ -38,7 +38,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
 import MobileScreen from '../components/MobileScreen'
-import TrainerShell from '../components/trainer/TrainerShell'
+import TrainerShell, { StatusTabs as ShellStatusTabs, SortMenu } from '../components/trainer/TrainerShell'
 import MobileBottomNav from '../components/MobileBottomNav'
 import MobileSheet from '../components/MobileSheet'
 import { GlassPill, GlassIconButton } from '../components/mobileChrome'
@@ -46,6 +46,7 @@ import MobileBell from '../components/MobileBell'
 import { glassCircle } from '../lib/mobileTokens'
 import { tactile } from '../lib/feedback'
 import { useT } from '../lib/i18n'
+import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
 
 type StatusFilter = 'all' | 'done' | 'undone'
 type SortMode = 'newest' | 'oldest' | 'easy' | 'hard' | 'subject' | 'line'
@@ -409,7 +410,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       {/* Image / table blocks in teacher-configured order */}
       {(task.blockOrder ?? ['image', 'table']).map(blockKey => {
         if (blockKey === 'image' && task.questionImage) return (
-          <img key="image" src={task.questionImage} alt="" style={{ maxWidth: `${task.questionImageSize ?? 100}%`, borderRadius: 14, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', display: 'block' }} />
+          <img key="image" src={task.questionImage} alt="" style={{ maxWidth: `${task.questionImageSize ?? DEFAULT_IMAGE_SIZE}%`, borderRadius: 14, border: '1px solid var(--color-border-medium)', alignSelf: 'flex-start', display: 'block' }} />
         )
         if (blockKey === 'table' && task.questionTable) return (
           <QuestionTable key="table" table={task.questionTable} mobile={!!mobile} />
@@ -759,197 +760,55 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
 }
 
 // ── Sort dropdown ─────────────────────────────────────────────────────────────
-function SortDropdown({ value, onChange }: { value: SortMode; onChange: (v: SortMode) => void }) {
-  const t = useT()
-  const [open, setOpen] = useState(false)
-  const wrapRef = useRef<HTMLDivElement>(null)
-  const label = t(SORT_OPTIONS.find(([v]) => v === value)?.[1] ?? 'Новые')
-  // While the menu is open: swallow wheel events over the dropdown so the page
-  // behind it doesn't scroll (native listener — React's wheel handler is passive
-  // and can't preventDefault); but if the wheel happens anywhere else on the
-  // page, gently close the menu.
-  useEffect(() => {
-    const el = wrapRef.current
-    if (!open || !el) return
-    const block = (e: WheelEvent) => e.preventDefault()
-    const closeOnOutsideWheel = (e: WheelEvent) => {
-      if (!el.contains(e.target as Node)) setOpen(false)
-    }
-    el.addEventListener('wheel', block, { passive: false })
-    window.addEventListener('wheel', closeOnOutsideWheel, { capture: true, passive: true })
-    return () => {
-      el.removeEventListener('wheel', block)
-      window.removeEventListener('wheel', closeOnOutsideWheel, { capture: true })
-    }
-  }, [open])
-  return (
-    <div ref={wrapRef} style={{ position: 'relative' }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        onBlur={() => setTimeout(() => setOpen(false), 120)}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 6,
-          padding: '9px 13px', borderRadius: 999,
-          background: 'rgba(var(--glass-rgb), 0.92)',
-          border: `1px solid ${open ? 'var(--color-border)' : 'var(--color-border-soft)'}`,
-          boxShadow: open ? '0 0 0 3px rgba(0,0,0,0.06), var(--shadow-modal-sm)' : 'none',
-          fontSize: 12, fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer',
-          transition: 'all 0.15s ease',
-        }}
-      >
-        <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
-        <span style={{ display: 'grid', justifyItems: 'start' }}>
-          {SORT_OPTIONS.map(([, lbl]) => (
-            <span key={lbl} aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden' }}>{t(lbl)}</span>
-          ))}
-          <span style={{ gridArea: '1 / 1' }}>{label}</span>
-        </span>
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>
-          <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </button>
-      <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-          style={{
-            position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 150,
-            background: 'rgba(var(--glass-rgb), 0.96)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            border: '1px solid var(--color-border)', borderRadius: 14,
-            boxShadow: 'var(--shadow-dropdown)', overflow: 'hidden', padding: 5,
-          }}
-        >
-          {SORT_OPTIONS.map(([val, label]) => (
-            <button
-              key={val}
-              onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-                width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
-                background: value === val ? 'var(--color-bg-5)' : 'transparent',
-                fontSize: 13, fontWeight: value === val ? 700 : 400, color: 'var(--color-text)',
-                cursor: 'pointer', textAlign: 'left',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-bg-5)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = value === val ? 'var(--color-bg-5)' : 'transparent' }}
-            >
-              {t(label)}
-              {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-            </button>
-          ))}
-        </motion.div>
-      )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
-// ── Status tabs with floating glass pill ─────────────────────────────────────
 const STATUS_OPTIONS: [StatusFilter, string][] = [
   ['all', 'Все'],
   ['undone', 'Не решённые'],
   ['done', 'Решённые'],
 ]
 
-function StatusTabs({ value, onChange, mobile, accent }: { value: StatusFilter; onChange: (v: StatusFilter) => void; mobile?: boolean; accent?: string }) {
+/**
+ * Статусы выборки НА ТЕЛЕФОНЕ — три равных серых сегмента под соседние поля
+ * фильтров, а не плавающая таблетка десктопа. Это другой дизайн для другой
+ * раскладки; десктопный вариант живёт в скелете (trainer/TrainerShell).
+ */
+function MobileStatusTabs({ value, onChange, accent }: {
+  value: StatusFilter; onChange: (v: StatusFilter) => void; accent?: string
+}) {
   const t = useT()
-  const pill = useFloatingPill(value)
-  // Mobile: match the surrounding filter fields (like «Часть 1/2») — three
-  // equal grey segments that tint to the subject accent when selected, instead
-  // of the desktop floating-pill look.
-  if (mobile) {
-    const acc = accent ?? 'var(--color-accent)'
-    return (
-      <div style={{ display: 'flex', gap: 8 }}>
-        {STATUS_OPTIONS.map(([val, label]) => {
-          const active = value === val
-          // «Все» sizes to its short label; the two long options share the rest.
-          const isAll = val === 'all'
-          return (
-            <button
-              key={val}
-              onClick={() => { tactile(); onChange(val) }}
-              style={{
-                flex: isAll ? '0 0 auto' : '1 1 0', padding: isAll ? '11px 18px' : '11px 6px', borderRadius: 13, border: 'none', cursor: 'pointer',
-                fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
-                background: active ? `${acc}22` : 'var(--color-bg-input)',
-                color: active ? acc : 'var(--color-muted)',
-                transition: 'background 0.15s, color 0.15s',
-              }}
-            >
-              {t(label)}
-            </button>
-          )
-        })}
-      </div>
-    )
-  }
+  const acc = accent ?? 'var(--color-accent)'
   return (
-    <div
-      ref={pill.containerRef}
-      className="inline-flex items-center"
-      style={{
-        position: 'relative',
-        gap: 0,
-        padding: 3,
-        borderRadius: 999,
-        background: 'rgba(var(--glass-rgb), 0.88)',
-        border: '1px solid var(--color-border)',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-        backdropFilter: 'blur(8px)',
-      }}
-    >
-      {pill.pillRect && (
-        <span
-          style={{
-            position: 'absolute',
-            left: pill.pillRect.left,
-            top: pill.pillRect.top,
-            width: pill.pillRect.width,
-            height: pill.pillRect.height,
-            borderRadius: 999,
-            background: 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.82)',
-            backdropFilter: 'blur(16px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-            boxShadow: 'var(--shadow-tab-pill)',
-            border: '1px solid var(--color-border-glass)',
-            pointerEvents: 'none',
-            zIndex: 0,
-          }}
-        />
-      )}
-      {STATUS_OPTIONS.map(([val, label]) => (
-        <button
-          key={val}
-          ref={pill.registerItem(val)}
-          onClick={() => onChange(val)}
-          style={{
-            position: 'relative', zIndex: 1,
-            padding: '7px 14px', borderRadius: 999, border: 'none',
-            background: 'transparent',
-            color: value === val ? 'var(--color-text)' : 'var(--color-text-3)',
-            fontSize: 12, fontWeight: value === val ? 700 : 500,
-            cursor: 'pointer', whiteSpace: 'nowrap',
-            transition: 'color 0.16s ease',
-          }}
-        >
-          <span style={{ display: 'grid', justifyItems: 'center' }}>
-            <span aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden', fontWeight: 700 }}>{t(label)}</span>
-            <span style={{ gridArea: '1 / 1' }}>{t(label)}</span>
-          </span>
-        </button>
-      ))}
+    <div style={{ display: 'flex', gap: 8 }}>
+      {STATUS_OPTIONS.map(([val, label]) => {
+        const active = value === val
+        // «Все» по своей короткой подписи; два длинных делят остаток.
+        const isAll = val === 'all'
+        return (
+          <button
+            key={val}
+            onClick={() => { tactile(); onChange(val) }}
+            style={{
+              flex: isAll ? '0 0 auto' : '1 1 0', padding: isAll ? '11px 18px' : '11px 6px',
+              borderRadius: 13, border: 'none', cursor: 'pointer',
+              fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
+              background: active ? `${acc}22` : 'var(--color-bg-input)',
+              color: active ? acc : 'var(--color-muted)',
+              transition: 'background 0.15s, color 0.15s',
+            }}
+          >
+            {t(label)}
+          </button>
+        )
+      })}
     </div>
   )
 }
 
-// ── Список / Карточки ────────────────────────────────────────────────────────
+// ── Список / Карточки, телефон ───────────────────────────────────────────────
 // Вид одной и той же выборки, а не отдельный раздел: фильтры, поиск и предмет
-// продолжают работать, меняется только подача. Поэтому переключатель стоит в
-// том же ряду, что статус и сортировка, и подписан иконками — два слова в
-// плотной панели ЕГЭ уже не помещаются.
-function ViewTabs({ value, onChange, mobile, accent }: {
-  value: 'list' | 'cards'; onChange: (v: 'list' | 'cards') => void; mobile?: boolean; accent?: string
+// продолжают работать, меняется только подача. Десктопный переключатель — общий
+// StatusTabs скелета с иконками; здесь остался мобильный, в ряд с фильтрами.
+function MobileViewTabs({ value, onChange, accent }: {
+  value: 'list' | 'cards'; onChange: (v: 'list' | 'cards') => void; accent?: string
 }) {
   const t = useT()
   const acc = accent ?? 'var(--color-accent)'
@@ -958,25 +817,19 @@ function ViewTabs({ value, onChange, mobile, accent }: {
     ['cards', 'Карточки', Layers],
   ]
   return (
-    <div style={{
-      display: 'flex', gap: mobile ? 8 : 2, padding: mobile ? 0 : 3, borderRadius: mobile ? 0 : 999,
-      background: mobile ? 'transparent' : 'rgba(var(--glass-rgb), 0.88)',
-      border: mobile ? 'none' : '1px solid var(--color-border)',
-      flex: mobile ? '1 1 0' : undefined,
-    }}>
+    <div style={{ display: 'flex', gap: 8, flex: '1 1 0' }}>
       {options.map(([val, label, Icon]) => {
         const active = value === val
         return (
           <button
             key={val}
-            onClick={() => { if (mobile) tactile(); onChange(val) }}
+            onClick={() => { tactile(); onChange(val) }}
             title={t(label)}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              flex: mobile ? '1 1 0' : undefined,
-              padding: mobile ? '11px 6px' : '7px 12px', borderRadius: mobile ? 13 : 999,
+              flex: '1 1 0', padding: '11px 6px', borderRadius: 13,
               border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-              fontSize: mobile ? 13 : 12, fontWeight: active ? 700 : 500, whiteSpace: 'nowrap',
+              fontSize: 13, fontWeight: active ? 700 : 500, whiteSpace: 'nowrap',
               background: active ? `${acc}22` : 'transparent',
               color: active ? acc : 'var(--color-text-3)',
               transition: 'background 0.15s, color 0.15s',
@@ -989,6 +842,7 @@ function ViewTabs({ value, onChange, mobile, accent }: {
     </div>
   )
 }
+
 
 /**
  * Сколько заданий выборки в стопку не попало и почему. Молчание здесь читалось
@@ -1939,7 +1793,7 @@ export default function TaskBankPage() {
           {/* Переключатель вида — в потоке контента, а не в доке: док собран из
               трёх кружков с рассчитанной анимацией, четвёртый её ломает. */}
           <div style={{ display: 'flex', marginBottom: 14 }}>
-            <ViewTabs value={view} onChange={setView} mobile accent={palette.accent} />
+            <MobileViewTabs value={view} onChange={setView} accent={palette.accent} />
           </div>
 
           {view === 'cards' ? (
@@ -2112,7 +1966,7 @@ export default function TaskBankPage() {
             </div>
             <MultiSelectField label={t('Линия')} options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} />
             <FilterField label={t('Источник')} options={allSources} value={source} onChange={setSource} accent={palette.accent} />
-            <StatusTabs value={statusFilter} onChange={setStatusFilter} mobile accent={palette.accent} />
+            <MobileStatusTabs value={statusFilter} onChange={setStatusFilter} accent={palette.accent} />
             {/* Always reserve the button's slot so toggling filters doesn't
                 change the sheet height (grabber would otherwise jump). */}
             <button onClick={() => { if (!hasFilters) return; tactile(); clearFilters() }}
@@ -2398,12 +2252,29 @@ export default function TaskBankPage() {
             />
             {search && <button onClick={e => { e.stopPropagation(); setSearch(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1, flexShrink: 0 }}>×</button>}
           </div>
-          <StatusTabs value={statusFilter} onChange={setStatusFilter} />
+          {/* Статус, вид и сортировка — общие со скелетом (components/trainer).
+              Своих копий у банка больше нет: расходились бы при первой правке. */}
+          <ShellStatusTabs
+            options={STATUS_OPTIONS.map(([value, label]) => ({ value, label }))}
+            value={statusFilter}
+            onChange={v => setStatusFilter(v as StatusFilter)}
+          />
 
-          <ViewTabs value={view} onChange={setView} accent={palette.accent} />
+          <ShellStatusTabs
+            options={[
+              { value: 'list', label: 'Список', Icon: List },
+              { value: 'cards', label: 'Карточки', Icon: Layers },
+            ]}
+            value={view}
+            onChange={v => setView(v as 'list' | 'cards')}
+            accent={palette.accent}
+          />
 
-          {/* Sort dropdown */}
-          <SortDropdown value={sortMode} onChange={setSortMode} />
+          <SortMenu
+            options={SORT_OPTIONS.map(([value, label]) => ({ value, label }))}
+            value={sortMode}
+            onChange={v => setSortMode(v as SortMode)}
+          />
 
           <button onClick={() => setShowFavOnly(f => !f)}
             style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 14px', borderRadius: 999, background: showFavOnly ? (dark ? 'rgba(248,239,140,0.18)' : 'rgba(248,239,140,0.28)') : 'rgba(var(--glass-rgb), 0.88)', border: `1px solid ${showFavOnly ? (dark ? 'rgba(248,239,140,0.45)' : 'rgba(248,239,140,0.55)') : 'var(--color-border-medium)'}`, fontSize: 12, cursor: 'pointer', color: showFavOnly ? (dark ? '#F4E97A' : '#8A7800') : 'var(--color-text-3)', fontWeight: showFavOnly ? 700 : 400 }}>
