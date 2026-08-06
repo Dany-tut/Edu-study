@@ -16,6 +16,7 @@ import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { usePersistentState } from '../../lib/useDraft'
 import { getContrastColor } from '../../lib/utils'
 import { useT } from '../../lib/i18n'
+import { bindShortWords, bindShortWordsHtml, proseWrap } from '../../lib/typography'
 import {
   type HardTaskStudentBlock, type HardTaskReviewBlock, type HardEvent, type HardSolution,
   mergeTaskEvents, taskStatus, hardTaskScore, lastSolutionOf, type HardTaskStatus,
@@ -422,8 +423,8 @@ export default function HardConversation({
         </div>
         {tab.statement && (
           /<\/?[a-z][\s\S]*>/i.test(tab.statement)
-            ? <div className="rich-answer" style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--color-text)', wordBreak: 'break-word' }} dangerouslySetInnerHTML={{ __html: tab.statement }} />
-            : <p style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--color-text)', margin: 0, whiteSpace: 'pre-wrap' }}>{tab.statement}</p>
+            ? <div className="rich-answer" style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--color-text)', ...proseWrap }} dangerouslySetInnerHTML={{ __html: bindShortWordsHtml(tab.statement) }} />
+            : <p style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--color-text)', margin: 0, whiteSpace: 'pre-wrap', ...proseWrap }}>{bindShortWords(tab.statement)}</p>
         )}
         {tab.image && <img src={tab.image} alt="" onClick={() => onZoomPhoto?.(tab.image!)} style={{ marginTop: 12, maxWidth: '100%', borderRadius: 14, border: '1px solid var(--color-border-medium)', cursor: onZoomPhoto ? 'zoom-in' : 'default', display: 'block' }} />}
       </div>

@@ -2760,10 +2760,10 @@ export default function HomeworkFlow({
                         >
                           {isCorrect ? t('Справился с заданием') : t('Разберём ошибку')}
                         </p>
-                        <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--color-text-2)' }}>
-                          {isCorrect
+                        <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--color-text-2)', ...proseWrap }}>
+                          {bindShortWords(isCorrect
                             ? `${t('Пояснение:')} ${question.explanation}`
-                            : question.explanation}
+                            : question.explanation)}
                         </p>
                       </div>
                     )}

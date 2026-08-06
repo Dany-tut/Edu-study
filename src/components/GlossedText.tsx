@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Volume2 } from 'lucide-react'
 import { buildLexicon, type Segment } from '../lib/lexicon'
+import { transcribe } from '../lib/translit'
 import type { WordGloss } from '../data/wordGloss'
 import { useT } from '../lib/i18n'
+import { bindShortWords, proseWrap } from '../lib/typography'
 
 // Текст, в котором переводится каждое слово.
 //
@@ -110,11 +112,13 @@ export default function GlossedText({ text, lang, extra = [], accent, style }: {
     const r = el.getBoundingClientRect()
     // Над словом, если под ним меньше 190px до низа окна.
     const above = window.innerHeight - r.bottom < 190
-    // На узком экране карточка не может быть шире колонки текста.
-    const width = Math.min(POP_W, Math.max(160, w.width - 8))
-    const centre = r.left - w.left + r.width / 2
-    const x = Math.max(4, Math.min(centre - width / 2, Math.max(4, w.width - width - 4)))
-    setPos({ x, y: above ? r.top - w.top : r.bottom - w.top, w: width, above })
+    const width = Math.min(POP_W, window.innerWidth - 16)
+    // Карточка стоит ПО ЦЕНТРУ слова, а упирается в края ЭКРАНА, а не колонки
+    // текста. Ограничение по колонке выглядело сдвигом: у слова в начале строки
+    // карточку прижимало к левому краю абзаца, хотя рядом было пусто.
+    const centreVp = r.left + r.width / 2
+    const xVp = Math.max(8, Math.min(centreVp - width / 2, window.innerWidth - width - 8))
+    setPos({ x: xVp - w.left, y: above ? r.top - w.top : r.bottom - w.top, w: width, above })
   }
 
   function open(i: number, seg: Segment, el: HTMLElement, pin: boolean) {
@@ -135,7 +139,7 @@ export default function GlossedText({ text, lang, extra = [], accent, style }: {
   }
 
   return (
-    <div ref={wrapRef} style={{ position: 'relative', whiteSpace: 'pre-wrap', ...style }}>
+    <div ref={wrapRef} style={{ position: 'relative', whiteSpace: 'pre-wrap', ...proseWrap, ...style }}>
       {segments.map((seg, i) => {
         if (!seg.word) return <span key={i}>{seg.text}</span>
         const on = active?.i === i
@@ -191,9 +195,11 @@ export default function GlossedText({ text, lang, extra = [], accent, style }: {
               <div style={{ fontSize: 15, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.3 }}>
                 {active.seg.text}
               </div>
-              {active.seg.gloss?.reading && (
-                <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>
-                  {active.seg.gloss.reading}
+              {/* Как это звучит. Написанное в словаре чтение важнее
+                  посчитанного: там оно выверено человеком. */}
+              {(active.seg.gloss?.reading || transcribe(active.seg.text, lang)) && (
+                <div style={{ fontSize: 12.5, color: accent, marginTop: 2, opacity: 0.9 }}>
+                  {active.seg.gloss?.reading || transcribe(active.seg.text, lang)}
                 </div>
               )}
             </div>
@@ -210,14 +216,14 @@ export default function GlossedText({ text, lang, extra = [], accent, style }: {
               <Volume2 size={14} />
             </button>
           </div>
-          <div style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--color-text-2)', marginTop: 6 }}>
+          <div style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--color-text-2)', marginTop: 6, ...proseWrap }}>
             {active.seg.gloss
-              ? active.seg.gloss.ru
+              ? bindShortWords(active.seg.gloss.ru)
               : <span style={{ color: 'var(--color-text-3)' }}>{t('Этого слова нет в словаре — но послушать можно.')}</span>}
           </div>
           {active.seg.gloss?.note && (
-            <div style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-text-3)', marginTop: 5 }}>
-              {active.seg.gloss.note}
+            <div style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-text-3)', marginTop: 5, ...proseWrap }}>
+              {bindShortWords(active.seg.gloss.note)}
             </div>
           )}
         </div>

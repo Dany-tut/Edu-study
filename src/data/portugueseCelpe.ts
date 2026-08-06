@@ -44,6 +44,7 @@ import {
   dictation, dictationBank, minPair, describeImage,
 } from './languageCourse'
 import { streetMapImage } from './seedImages'
+import { PORTUGUESE_THEORY } from './portugueseCelpeTheory'
 import { formTable, contrastPair, clockRow } from './lessonFigures'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
@@ -1086,7 +1087,9 @@ export const PORTUGUESE_CELPE: LanguageCourseSpec = {
   guidedHours: '180–220',
   scopeNote: 'Охват — A1→A2. CELPE-Bras начинается с уровня Intermediário, поэтому курс к нему готовит логикой заданий, но сдавать экзамен рано.',
   modules: PORTUGUESE_MODULES,
-  units: PORTUGUESE_UNITS,
+  // Конспекты живут отдельным файлом: здесь — структура и задания, там —
+  // то, что ученик читает.
+  units: PORTUGUESE_UNITS.map(u => ({ ...u, theory: PORTUGUESE_THEORY[u.shortId] ?? u.theory })),
   figures: PORTUGUESE_FIGURES,
 }
 

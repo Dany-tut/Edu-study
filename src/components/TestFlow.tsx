@@ -14,6 +14,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import QuestionTable from './QuestionTable'
 import GrowTextarea, { growMinHeight } from './GrowTextarea'
 import { useT } from '../lib/i18n'
+import { bindShortWords, proseWrap } from '../lib/typography'
 
 /**
  * Поля ответа в тесте живут по тем же правилам, что и в домашке: обнимают
@@ -132,7 +133,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
               <div key={task.id} style={{ background: 'rgba(var(--glass-rgb), 0.7)', border: '1px solid var(--color-border-glass)', borderRadius: 16, padding: '18px 20px' }}>
                 <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
                   <div style={{ width: 26, height: 26, borderRadius: 8, background: 'var(--color-purple-soft)', color: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', paddingTop: 3 }}>{task.question || task.label}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', paddingTop: 3, ...proseWrap }}>{bindShortWords(task.question || task.label)}</div>
                 </div>
 
                 {/* single — radio */}
@@ -149,7 +150,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                           fontSize: 14, color: 'var(--color-text)', fontWeight: selected ? 600 : 400,
                         }}>
                           <div style={{ width: 18, height: 18, borderRadius: '50%', flexShrink: 0, border: selected ? '5px solid var(--color-accent)' : '2px solid var(--color-border-medium)', transition: 'all 0.12s' }} />
-                          {ch}
+                          <span style={proseWrap}>{bindShortWords(ch)}</span>
                         </button>
                       )
                     })}
@@ -177,7 +178,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                           }}>
                             {selected && <span style={{ color: '#fff', fontSize: 10, fontWeight: 900 }}>✓</span>}
                           </div>
-                          {ch}
+                          <span style={proseWrap}>{bindShortWords(ch)}</span>
                         </button>
                       )
                     })}

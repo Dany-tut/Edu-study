@@ -32,6 +32,13 @@ const DEFAULT_R = 16
 const GAP = 14
 const CARD_W = 320
 
+/** Замер цели: где она и с каким скруглением её обводить. */
+interface Box { top: number; left: number; width: number; height: number; radius: number }
+
+const same = (a: Box, b: Box) =>
+  a.top === b.top && a.left === b.left && a.width === b.width
+  && a.height === b.height && a.radius === b.radius
+
 export default function Coachmarks({ steps, open, onClose, accent }: {
   steps: CoachStep[]
   open: boolean
@@ -40,11 +47,11 @@ export default function Coachmarks({ steps, open, onClose, accent }: {
 }) {
   const t = useT()
   const [i, setI] = useState(0)
-  const [rect, setRect] = useState<DOMRect | null>(null)
-  // Скругление берётся у самого элемента, а не задаётся числом: рамка отстоит
-  // от блока на PAD, поэтому её радиус = радиус блока + PAD — только тогда дуга
-  // угла идёт параллельно углу карточки, а не срезает его.
-  const [radius, setRadius] = useState(DEFAULT_R)
+  // Замер цели: координаты И скругление одним объектом. Скругление берётся у
+  // самого элемента, а не задаётся числом: рамка отстоит от блока на PAD,
+  // поэтому её радиус = радиус блока + PAD — только тогда дуга угла идёт
+  // параллельно углу карточки, а не срезает его.
+  const [box, setBox] = useState<Box | null>(null)
   const timers = useRef<number[]>([])
   // Высота карточки нужна ДО того, как её ставить: на телефоне подсвеченный
   // блок занимает почти весь экран, и без реальной высоты карточка ложится
@@ -53,22 +60,33 @@ export default function Coachmarks({ steps, open, onClose, accent }: {
   const [cardH, setCardH] = useState(0)
 
   const step = steps[i]
+  // Шаги пересобираются на каждый рендер владельца, поэтому берём их через ref:
+  // иначе measure менял бы идентичность, эффект перезапускался бы на каждый
+  // рендер и сам себя кормил новым замером — бесконечный цикл.
+  const stepsRef = useRef(steps)
+  stepsRef.current = steps
 
   const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current = [] }
 
   const measure = useCallback(() => {
-    const el = step?.ref?.current
-    setRect(el ? el.getBoundingClientRect() : null)
-    if (!el) return
+    const el = stepsRef.current[i]?.ref?.current
+    if (!el) { setBox(b => (b === null ? b : null)); return }
+    const r = el.getBoundingClientRect()
     // У контейнера (сетка плашек, колонка вопросов) своего скругления нет —
     // берём его у первой карточки внутри: край контейнера совпадает с её краем,
     // так что рамка всё равно получается параллельной тому, что видно.
     const own = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0
     const kid = own > 0 ? 0
       : parseFloat(getComputedStyle(el.firstElementChild ?? el).borderTopLeftRadius) || 0
-    const r = own || kid
-    setRadius(r > 0 ? r + PAD : DEFAULT_R)
-  }, [step])
+    const rad = own || kid
+    const next: Box = {
+      top: r.top, left: r.left, width: r.width, height: r.height,
+      radius: rad > 0 ? rad + PAD : DEFAULT_R,
+    }
+    // Возвращаем прежний объект, если ничего не сдвинулось: React пропустит
+    // рендер, и замеры по скроллу перестанут дёргать дерево вхолостую.
+    setBox(b => (b && same(b, next) ? b : next))
+  }, [i])
 
   useEffect(() => { if (open) setI(0) }, [open])
 
@@ -77,14 +95,14 @@ export default function Coachmarks({ steps, open, onClose, accent }: {
   useLayoutEffect(() => {
     if (!open) return
     clearTimers()
-    const el = step?.ref?.current
-    if (!el) { setRect(null); return }
+    const el = stepsRef.current[i]?.ref?.current
+    if (!el) { setBox(null); return }
     el.scrollIntoView({ block: 'center', behavior: 'smooth' })
     measure()
     timers.current.push(window.setTimeout(measure, 220))
     timers.current.push(window.setTimeout(measure, 520))
     return clearTimers
-  }, [open, i, step, measure])
+  }, [open, i, measure])
 
   useEffect(() => {
     if (!open) return
@@ -138,12 +156,13 @@ export default function Coachmarks({ steps, open, onClose, accent }: {
   // экрана: перекрыть часть подсветки лучше, чем уехать за край.
   const h = cardH || 200
   let cardStyle: React.CSSProperties
-  if (rect) {
-    const left = Math.max(12, Math.min(rect.left + rect.width / 2 - cardW / 2, vw - cardW - 12))
-    const below = rect.bottom + PAD + GAP + h + 12 <= vh
-    const above = rect.top - PAD - GAP - h - 12 >= 0
-    const top = below ? rect.bottom + PAD + GAP
-      : above ? rect.top - PAD - GAP - h
+  if (box) {
+    const bottom = box.top + box.height
+    const left = Math.max(12, Math.min(box.left + box.width / 2 - cardW / 2, vw - cardW - 12))
+    const below = bottom + PAD + GAP + h + 12 <= vh
+    const above = box.top - PAD - GAP - h - 12 >= 0
+    const top = below ? bottom + PAD + GAP
+      : above ? box.top - PAD - GAP - h
       : vh - h - 12
     cardStyle = { left, top: Math.max(12, Math.min(top, vh - h - 12)) }
   } else {
@@ -158,16 +177,16 @@ export default function Coachmarks({ steps, open, onClose, accent }: {
         onClick={next}
         style={{
           position: 'absolute', inset: 0, cursor: 'pointer',
-          background: rect ? 'transparent' : 'rgba(8,8,12,0.62)',
+          background: box ? 'transparent' : 'rgba(8,8,12,0.62)',
         }}
       />
-      {rect && (
+      {box && (
         <div
           style={{
             position: 'absolute', pointerEvents: 'none',
-            left: rect.left - PAD, top: rect.top - PAD,
-            width: rect.width + PAD * 2, height: rect.height + PAD * 2,
-            borderRadius: radius, border: `2px solid ${accent}`,
+            left: box.left - PAD, top: box.top - PAD,
+            width: box.width + PAD * 2, height: box.height + PAD * 2,
+            borderRadius: box.radius, border: `2px solid ${accent}`,
             boxShadow: `0 0 0 9999px rgba(8,8,12,0.62), 0 0 0 6px ${accent}33`,
             transition: 'left .2s ease, top .2s ease, width .2s ease, height .2s ease',
           }}

@@ -6,6 +6,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
 import SpoilerText from './SpoilerText'
 import { useT } from '../lib/i18n'
+import { bindShortWords, balancedWrap } from '../lib/typography'
 
 function shuffleAnswers(id: string, answers: QuizAnswer[]): QuizAnswer[] {
   let seed = 0x811c9dc5
@@ -224,9 +225,10 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
                 WebkitLineClamp: 3,
                 maxHeight: '3.6em',
                 overflow: 'hidden',
+                ...balancedWrap,
               }}
             >
-              {question.title}
+              {bindShortWords(question.title)}
             </h3>
           )}
         </div>
@@ -256,9 +258,9 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
           <SpoilerText
             fill
             revealed={spoilerRevealed}
-            style={{ fontSize: 20 * scale, fontWeight: 700, lineHeight: 1.25, color: 'var(--color-text)', textAlign: 'center' }}
+            style={{ fontSize: 20 * scale, fontWeight: 700, lineHeight: 1.25, color: 'var(--color-text)', textAlign: 'center', ...balancedWrap }}
           >
-            {question.title}
+            {bindShortWords(question.title)}
           </SpoilerText>
         </div>
       )}
@@ -303,8 +305,8 @@ export default function QuizWidget({ active = true, columns = 1 }: Props) {
                   minHeight: 0, lineHeight: 1.2, display: 'flex', alignItems: 'center', overflow: 'hidden',
                 }}
               >
-                <span style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical' as const, WebkitLineClamp: 2, maxHeight: '2.4em', overflow: 'hidden' }}>
-                  {ans.text}
+                <span style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical' as const, WebkitLineClamp: 2, maxHeight: '2.4em', overflow: 'hidden', ...balancedWrap }}>
+                  {bindShortWords(ans.text)}
                 </span>
               </motion.button>
             ))}

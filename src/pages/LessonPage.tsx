@@ -14,23 +14,26 @@ import { videoEmbedSrc } from '../lib/videoSource'
 import type { CourseReaction } from '../data/mockData'
 import { EMOJI_STEPS } from '../components/HomeworkFlow'
 import { useT } from '../lib/i18n'
+import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
 
 type Tint = 'bw' | 'color'
 
 function renderHighlightedParagraph(text: string, reactionId?: string, activeReactionId?: string | null, reactions: CourseReaction[] = []) {
   // No reaction tag — render plain text, no wrapper. Other paragraphs in the
   // conspect never need the inline-flex pill, so they stay unchanged.
-  if (!reactionId) return text
+  if (!reactionId) return bindShortWords(text)
 
   const reaction = reactions.find(item => item.id === reactionId)
-  if (!reaction) return text
+  if (!reaction) return bindShortWords(text)
 
   const highlightText = reaction.equation
+  // Склейку коротких слов делаем ПОСЛЕ поиска уравнения: неразрывный пробел
+  // внутри текста сбил бы indexOf по исходной строке.
   const matchIndex = text.indexOf(highlightText)
-  if (matchIndex === -1) return text
+  if (matchIndex === -1) return bindShortWords(text)
 
-  const before = text.slice(0, matchIndex)
-  const after = text.slice(matchIndex + highlightText.length)
+  const before = bindShortWords(text.slice(0, matchIndex))
+  const after = bindShortWords(text.slice(matchIndex + highlightText.length))
   const isActive = reactionId === activeReactionId
 
   // The wrapper span is ALWAYS rendered (with the same inline-flex + padding)
@@ -118,8 +121,8 @@ function TheoryFigure({ src, caption }: { src: string; caption?: string }) {
           <img src={src} alt={caption ?? ''} style={{ display: 'block', width: 'auto', maxWidth: '100%', height: 'auto', margin: '0 auto', borderRadius: 8 }} />
         </button>
         {caption && (
-          <figcaption style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)', textAlign: 'center' }}>
-            {caption}
+          <figcaption style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)', textAlign: 'center', ...balancedWrap }}>
+            {bindShortWords(caption)}
           </figcaption>
         )}
       </figure>
@@ -1025,6 +1028,7 @@ export default function LessonPage() {
                   lineHeight: 1.6,
                   color: 'var(--color-text)',
                   fontWeight: 450,
+                  ...proseWrap,
                 }}
               >
                 {renderHighlightedParagraph(p.text, p.reactionId, pendingHighlight, courseReactions)}

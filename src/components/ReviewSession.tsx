@@ -9,6 +9,7 @@ import { Check, RotateCcw } from 'lucide-react'
 import { dueCards, gradeCard, type ReviewCard } from '../data/reviewDeck'
 import { GRADE_BUTTONS, intervalLabel, review } from '../lib/srs'
 import { useT } from '../lib/i18n'
+import { bindShortWords, balancedWrap } from '../lib/typography'
 
 const ACC = '#f59e0b'
 const TONE: Record<string, string> = {
@@ -68,13 +69,15 @@ export default function ReviewSession({ owner, onDone }: {
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}
           style={{ background: 'rgba(var(--glass-rgb),0.9)', border: '1px solid var(--color-border-glass)', borderRadius: 18, padding: 22, minHeight: 150, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
         >
-          <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', textAlign: 'center', lineHeight: 1.5 }}>{card.prompt}</div>
+          {/* Лицо карточки центрировано: рваные по длине строки видно сразу,
+              поэтому balance, а не pretty. */}
+          <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', textAlign: 'center', lineHeight: 1.5, ...balancedWrap }}>{bindShortWords(card.prompt)}</div>
           <AnimatePresence>
             {revealed && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
                 style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--color-border-soft)', textAlign: 'center' }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: ACC, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{t('Ответ')}</div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-green-text)', lineHeight: 1.5 }}>{card.answer}</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-green-text)', lineHeight: 1.5, ...balancedWrap }}>{bindShortWords(card.answer)}</div>
               </motion.div>
             )}
           </AnimatePresence>

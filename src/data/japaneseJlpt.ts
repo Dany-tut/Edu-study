@@ -46,6 +46,7 @@ import {
   dictation, dictationBank, minPair, describeImage,
 } from './languageCourse'
 import { roomSceneImage } from './seedImages'
+import { JAPANESE_THEORY } from './japaneseJlptTheory'
 import { charGrid, formTable, formulaStrip, contrastPair, clockRow } from './lessonFigures'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
@@ -1284,7 +1285,9 @@ export const JAPANESE_JLPT: LanguageCourseSpec = {
   guidedHours: '250–300',
   scopeNote: 'Охват — с нуля: кана, ~60 кандзи, грамматика N5 с выходом на N4. Полный N4 и далее — следующий курс.',
   modules: JAPANESE_MODULES,
-  units: JAPANESE_UNITS,
+  // Конспекты живут отдельным файлом: здесь — структура и задания, там —
+  // то, что ученик читает.
+  units: JAPANESE_UNITS.map(u => ({ ...u, theory: JAPANESE_THEORY[u.shortId] ?? u.theory })),
   figures: JAPANESE_FIGURES,
 }
 

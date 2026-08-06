@@ -23,6 +23,7 @@ import { BookOpen, X } from 'lucide-react'
 import type { LessonParagraph } from '../data/lessonContent'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useT } from '../lib/i18n'
+import { bindShortWords, proseWrap } from '../lib/typography'
 
 export default function TheorySheet({ open, onClose, lessonTitle, paragraphs, accent, soft }: {
   open: boolean
@@ -142,14 +143,14 @@ export default function TheorySheet({ open, onClose, lessonTitle, paragraphs, ac
                     }}
                   />
                   {p.text && (
-                    <figcaption style={{ marginTop: 6, fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.45 }}>
-                      {p.text}
+                    <figcaption style={{ marginTop: 6, fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.45, ...proseWrap }}>
+                      {bindShortWords(p.text)}
                     </figcaption>
                   )}
                 </figure>
               ) : (
-                <p key={p.id} style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 450, whiteSpace: 'pre-wrap' }}>
-                  {p.text}
+                <p key={p.id} style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 450, whiteSpace: 'pre-wrap', ...proseWrap }}>
+                  {bindShortWords(p.text)}
                 </p>
               ))}
             </div>

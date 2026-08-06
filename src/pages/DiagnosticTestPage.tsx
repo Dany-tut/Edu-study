@@ -13,6 +13,7 @@ import { captureMistake } from '../data/reviewDeck'
 import { logConfidence } from '../data/confidence'
 import { getContrastColor, getCircleShadow } from '../lib/utils'
 import { t, useT } from '../lib/i18n'
+import { bindShortWords, proseWrap } from '../lib/typography'
 
 // ── Confetti + sound (self-contained, no external deps) ────────────────────────
 function playVictorySound() {
@@ -435,8 +436,9 @@ export default function DiagnosticTestPage() {
             <div style={{
               fontSize: 16, fontWeight: 700, lineHeight: 1.5,
               color: 'var(--color-text)', marginBottom: 20,
+              ...proseWrap,
             }}>
-              {q.text}
+              {bindShortWords(q.text)}
             </div>
 
             {/* Confidence gate — shown when teacher enabled it; must pick before answering */}
@@ -509,8 +511,8 @@ export default function DiagnosticTestPage() {
                     }}>
                       {'АБВГ'[idx]}
                     </div>
-                    <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-text)', lineHeight: 1.4 }}>
-                      {opt}
+                    <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-text)', lineHeight: 1.4, ...proseWrap }}>
+                      {bindShortWords(opt)}
                     </span>
                   </motion.button>
                 )

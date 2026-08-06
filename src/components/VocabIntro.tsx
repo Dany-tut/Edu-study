@@ -23,6 +23,7 @@ import { ChevronDown, Eye, EyeOff, Layers } from 'lucide-react'
 import type { HomeworkQuizQuestion } from '../data/lessonContent'
 import { useReadingVisible } from '../store/readingStore'
 import { useT } from '../lib/i18n'
+import { bindShortWords, proseWrap } from '../lib/typography'
 import { speechMs, speechText } from '../lib/speech'
 import AudioPlayer from './AudioPlayer'
 
@@ -145,7 +146,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                       />
                     )}
                     <div className="flex items-center" style={{ gap: 8 }}>
-                      <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.25 }}>
+                      <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.25, ...proseWrap }}>
                         {face}
                       </span>
                       <span style={{ marginLeft: 'auto', flexShrink: 0 }}>
@@ -160,7 +161,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                     {readingVisible && w.reading && (
                       <span style={{ fontSize: 12, color: 'var(--color-muted)', fontWeight: 600 }}>{w.reading}</span>
                     )}
-                    <span style={{ fontSize: 14, color: 'var(--color-text-2)' }}>{w.back}</span>
+                    <span style={{ fontSize: 14, color: 'var(--color-text-2)', ...proseWrap }}>{bindShortWords(w.back ?? '')}</span>
 
                     {/* Индикатор озвучки: линия по низу карточки заполняется, пока
                         слово произносится. Анимация чисто CSS — rAF в превью не

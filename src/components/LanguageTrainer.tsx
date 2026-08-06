@@ -6,6 +6,7 @@ import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
 import AudioPlayer from './AudioPlayer'
 import { subjectTheme } from '../lib/theme'
 import { useT } from '../lib/i18n'
+import { bindShortWords, proseWrap } from '../lib/typography'
 import CardDeck from './CardDeck'
 import { addCards, deckOwner } from '../data/reviewDeck'
 import VoiceRecorder from './VoiceRecorder'
@@ -456,7 +457,7 @@ function Reader({ text, accent, lang, onBack }: {
             style={{ fontSize: 16, lineHeight: 1.85, color: 'var(--color-text)' }}
           />
         ) : (
-          <div style={{ fontSize: 16, lineHeight: 1.85, color: 'var(--color-text)', whiteSpace: 'pre-wrap' }}>
+          <div style={{ fontSize: 16, lineHeight: 1.85, color: 'var(--color-text)', whiteSpace: 'pre-wrap', ...proseWrap }}>
             {text.body}
           </div>
         )}
@@ -592,7 +593,7 @@ function QuestionCard({ q, index, value, checked, accent, glossLang, glossExtra,
         <span style={{ flexShrink: 0 }}>{index + 1}.</span>
         {glossLang
           ? <GlossedText text={q.q} lang={glossLang} extra={glossExtra} accent={accent} style={{ flex: 1, minWidth: 0 }} />
-          : <span>{q.q}</span>}
+          : <span style={proseWrap}>{bindShortWords(q.q)}</span>}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
         {q.options.map((opt, oi) => {
@@ -615,14 +616,14 @@ function QuestionCard({ q, index, value, checked, accent, glossLang, glossExtra,
             >
               {checked && (showRight ? <CheckCircle2 size={15} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                 : showWrong ? <XCircle size={15} style={{ color: 'var(--color-red-text)', flexShrink: 0 }} /> : null)}
-              {opt}
+              <span style={proseWrap}>{bindShortWords(opt)}</span>
             </button>
           )
         })}
       </div>
       {checked && q.why && (
-        <div style={{ marginTop: 10, fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-2)' }}>
-          {q.why}
+        <div style={{ marginTop: 10, fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-2)', ...proseWrap }}>
+          {bindShortWords(q.why)}
         </div>
       )}
     </div>

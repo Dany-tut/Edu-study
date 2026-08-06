@@ -25,6 +25,7 @@ import { intervalLabel, review, type ReviewGrade } from '../lib/srs'
 import { haptic } from '../lib/feedback'
 import { speechLocale, speechMs, speechText } from '../lib/speech'
 import { useT } from '../lib/i18n'
+import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
 import Skeleton from './Skeleton'
 
 type Kind = 'recall' | 'judge'
@@ -453,8 +454,8 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
 
       {judge ? (
         <>
-          <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.35 }}>
-            {seat.card.prompt} <span style={{ color: 'var(--color-text-3)' }}>=</span> {seat.shown}
+          <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.35, ...balancedWrap }}>
+            {bindShortWords(seat.card.prompt)} <span style={{ color: 'var(--color-text-3)' }}>=</span> {bindShortWords(seat.shown ?? '')}
           </div>
           <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 10 }}>{t('верно или нет?')}</div>
         </>
@@ -467,14 +468,37 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
             color: 'var(--color-text)', lineHeight: promptSize > 20 ? 1.3 : 1.45,
             textAlign: promptSize > 20 ? 'center' : 'left',
             maxHeight: revealed ? 118 : 200, overflowY: 'auto', width: '100%',
+            // Крупное слово по центру — строки поровну; длинное условие слева
+            // читается абзацем, там pretty.
+            ...(promptSize > 20 ? balancedWrap : proseWrap),
           }}>
-            {seat.card.prompt}
+            {bindShortWords(seat.card.prompt)}
           </div>
           {revealed ? (
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--color-border-soft)', width: '100%' }}>
-              <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--color-green-text)', lineHeight: 1.4 }}>
-                {seat.card.answer}
+              {/* Чтение стоит ВЫШЕ перевода и мельче: оно относится к тому, что
+                  написано на лицевой стороне, а не к ответу. Показывается
+                  только после переворота — иначе фразу читают латиницей и
+                  оригинал перестаёт запоминаться. */}
+              {seat.card.reading && (
+                <div style={{ fontSize: 13, color: 'var(--color-text-3)', marginBottom: 6, letterSpacing: 0.2 }}>
+                  {seat.card.reading}
+                </div>
+              )}
+              <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--color-green-text)', lineHeight: 1.4, ...balancedWrap }}>
+                {bindShortWords(seat.card.answer)}
               </div>
+              {/* Заметка — то, ради чего фразу и стоило учить: когда так
+                  говорить нельзя и что ответят. Прокручивается, а не растит
+                  карточку: высота стопки фиксирована. */}
+              {seat.card.note && (
+                <div style={{
+                  marginTop: 8, maxHeight: 54, overflowY: 'auto',
+                  fontSize: 12.5, lineHeight: 1.5, color: 'var(--color-muted)', ...proseWrap,
+                }}>
+                  {seat.card.note}
+                </div>
+              )}
             </div>
           ) : (
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 12 }}>{t('нажми, чтобы перевернуть')}</div>

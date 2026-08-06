@@ -12,6 +12,7 @@ import { CheckCircle2, CircleAlert, Eye, MicOff, Minus, Send } from 'lucide-reac
 import type { BasicAnswerRow, BasicAnswersPayload, BasicAnswerVerdict } from '../../lib/basicAnswers'
 import { verdictLabel } from '../../lib/basicAnswers'
 import { useT } from '../../lib/i18n'
+import { bindShortWords, proseWrap } from '../../lib/typography'
 import AudioPlayer from '../AudioPlayer'
 
 /** Цвета вердикта — те же три состояния, что и у ученика в разборе. */
@@ -52,8 +53,8 @@ function AnswerCard({ row }: { row: BasicAnswerRow }) {
         }}>
           {row.n}
         </span>
-        <p style={{ flex: 1, minWidth: 0, fontSize: 13.5, lineHeight: 1.5, color: 'var(--color-text-2)' }}>
-          {row.prompt}
+        <p style={{ flex: 1, minWidth: 0, fontSize: 13.5, lineHeight: 1.5, color: 'var(--color-text-2)', ...proseWrap }}>
+          {bindShortWords(row.prompt)}
         </p>
         <span className="flex items-center" style={{
           flexShrink: 0, gap: 6, padding: '5px 10px', borderRadius: 999,
@@ -69,7 +70,7 @@ function AnswerCard({ row }: { row: BasicAnswerRow }) {
       ) : row.answer ? (
         <p style={{
           fontSize: 14.5, lineHeight: 1.5, fontWeight: 650, color: 'var(--color-text)',
-          whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+          whiteSpace: 'pre-wrap', ...proseWrap,
         }}>
           {row.answer}
         </p>
