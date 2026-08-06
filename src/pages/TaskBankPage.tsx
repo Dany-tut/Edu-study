@@ -1554,7 +1554,7 @@ export default function TaskBankPage() {
   // языковая ветка не включалась ни разу и корейский открывался банком ЕГЭ.
   // activeSubjectId остаётся запасным путём для демо-данных, где id и есть слаг.
   const activeCourse = useStudentData(s => s.subjects.find(x => x.id === activeSubjectId))
-  const langSubject = getSubject('korean') ?? getSubject(activeCourse?.subject) ?? getSubject(activeSubjectId)
+  const langSubject = getSubject(activeCourse?.subject) ?? getSubject(activeSubjectId)
   const isLangTrainer = !!langSubject?.isLanguage
 
   // Пока курсы не приехали, развилка «язык или банк» не решена: subjects пуст, а
