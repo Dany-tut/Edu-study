@@ -94,7 +94,7 @@ function renderHighlightedParagraph(text: string, reactionId?: string, activeRea
  * По клику открывается на весь экран: схемы письма и таблицы форм в ширину
  * колонки конспекта читаемы на мониторе, но не на телефоне.
  */
-export function TheoryFigure({ src, caption }: { src: string; caption?: string }) {
+function TheoryFigure({ src, caption }: { src: string; caption?: string }) {
   const [zoom, setZoom] = useState(false)
   return (
     <>
