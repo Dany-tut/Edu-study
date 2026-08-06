@@ -21,7 +21,7 @@ import * as LucideIcons from 'lucide-react'
 import RichConditionEditor, { parseSmartPaste } from '../../components/teacher/RichConditionEditor'
 import TableEditor from '../../components/teacher/TableEditor'
 import GrowTextarea, { growMinHeight } from '../../components/teacher/GrowTextarea'
-import Radio from '../../components/Radio'
+import Checkbox from '../../components/Checkbox'
 import ScrollFade from '../../components/ScrollFade'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { bankSubjectOptions, subjectIcon, getSubject, isLanguageSubject, SUBJECTS } from '../../lib/subjects'
@@ -218,6 +218,10 @@ export interface Course {
   groupIds?: string[]; studentIds?: string[]
   /** Course owned by another teacher, shared to this one — read-only here. */
   shared?: boolean
+  /** ISO-время создания и последней публикации. По ним и строится порядок карточек
+   *  («Новые»/«Старые»), чтобы правка курса не переставляла его в списке. */
+  createdAt?: string
+  publishedAt?: string
 }
 
 interface BankQuestion {
@@ -403,6 +407,7 @@ function dbCourseToLocal(c: any, uid?: string | null): Course {
     dbCourseId: c.short_id, lessons,
     groupIds: c.group_ids ?? [], studentIds: c.student_ids ?? [],
     shared: uid != null && c.created_by != null && c.created_by !== uid,
+    createdAt: c.created_at ?? undefined, publishedAt: c.published_at ?? undefined,
   }
 }
 function dbTrainerToLocal(t: any): Trainer {
@@ -1290,6 +1295,30 @@ function CourseCard({ course, isSelected, onClick, actions, students, access }: 
 // Готовый курс как обычная карточка списка. Своего вида у него нет: в списке он
 // такая же плитка, как «Физика» или «Биология», просто пока не в БД — уроки тут
 // заглушки под счётчик, настоящие соберёт seed.build() при открытии.
+// Готовые курсы в БД не лежат, времени создания у них нет — держим их первыми
+// под «Новые» (и последними под «Старые»), как было до сортировки по времени.
+const SEED_SORT_AT = '9999-12-31T00:00:00.000Z'
+
+/** Ключ порядка карточки курса: момент публикации, иначе момент создания. */
+function courseSortAt(c: Course) {
+  return c.publishedAt ?? c.createdAt ?? ''
+}
+
+/** Те же правила, что и у триггера courses_stamp_published_at в БД: создание
+ *  штампуем один раз, публикацию — только на переходе в «Опубликован». Нужно,
+ *  чтобы порядок встал сразу после «Сохранить», без перезагрузки списка. */
+function withSortTimes(c: Course, prev?: Course | null): Course {
+  const now = new Date().toISOString()
+  const own = c.createdAt && c.createdAt !== SEED_SORT_AT ? c.createdAt : undefined
+  return {
+    ...c,
+    createdAt: prev?.createdAt ?? own ?? now,
+    publishedAt: c.status === 'published'
+      ? (prev?.status === 'published' ? prev.publishedAt ?? now : now)
+      : undefined,
+  }
+}
+
 function seedToCourse(seed: CourseSeed, id: string): Course {
   const s = seed.summary
   return {
@@ -1299,6 +1328,7 @@ function seedToCourse(seed: CourseSeed, id: string): Course {
       id: `${id}-l${i + 1}`, title: '', trainerId: null, widgetId: null, minutes: s.lessonMinutes,
     })),
     color: COURSE_COLOR, bg: COURSE_BG, status: 'draft', lastEdited: '',
+    createdAt: SEED_SORT_AT,
   }
 }
 
@@ -2001,13 +2031,36 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
                         }
                       }}
                     />
-                    {q.options.map(o => (
-                      <div key={o.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Radio name={`correct-${q.id}`} checked={q.correctOptionId === o.id}
-                          onChange={() => setQ(qi, { correctOptionId: o.id })} title={t("Верный ответ")} />
-                        <input value={o.text} onChange={e => setOpt(qi, o.id, e.target.value)} placeholder={t("Вариант ответа")} style={{ ...inputSt, flex: 1 }} />
-                      </div>
-                    ))}
+                    {/* Верный вариант — галочка внутри самого поля: отдельного
+                        контрола сбоку нет, отмеченное поле обведено акцентом.
+                        Снять галочку нельзя, её можно только перенести. */}
+                    {q.options.map(o => {
+                      const isCorrect = q.correctOptionId === o.id
+                      return (
+                        <div key={o.id} style={{
+                          display: 'flex', alignItems: 'center', gap: 8,
+                          padding: '0 9px 0 0', borderRadius: 11,
+                          // Обводка тенью, а не border: поля вокруг здесь без рамки,
+                          // и 1.5px по краю сделали бы строку варианта на 3px выше.
+                          boxShadow: isCorrect ? 'inset 0 0 0 1.5px var(--color-control-accent)' : 'none',
+                          background: 'var(--color-bg-input)', transition: 'box-shadow 0.14s',
+                        }}>
+                          <input
+                            value={o.text}
+                            onChange={e => setOpt(qi, o.id, e.target.value)}
+                            placeholder={t("Вариант ответа")}
+                            style={{ ...inputSt, flex: 1, minWidth: 0, padding: '9px 0 9px 12px', borderRadius: 0, background: 'transparent' }}
+                          />
+                          <span title={t("Верный ответ")} style={{ display: 'flex', flexShrink: 0 }}>
+                            <Checkbox
+                              checked={isCorrect}
+                              onChange={() => setQ(qi, { correctOptionId: o.id })}
+                              size={20}
+                            />
+                          </span>
+                        </div>
+                      )
+                    })}
                     <input value={q.explanation} onChange={e => setQ(qi, { explanation: e.target.value })} placeholder={t("Пояснение (после ответа)")} style={{ ...inputSt, fontSize: 12 }} />
                   </div>
                 ))}
@@ -7461,9 +7514,12 @@ export default function TeacherConstructorPage() {
     if (courseSubject) cs = cs.filter(c => c.subject.trim() === courseSubject)
     if (courseLevel) cs = cs.filter(c => matchesLevel(c, courseLevel))
     const sorted = [...cs]
-    if (courseSort === 'newest') return sorted.reverse()
     if (courseSort === 'az') return sorted.sort((a, b) => a.title.localeCompare(b.title, 'ru'))
-    return sorted
+    // По времени, а не по позиции в массиве: сохранение курса переставляет его
+    // внутри списка состояния, и раньше карточка от этого прыгала. Публикация
+    // (publishedAt) поднимает курс наверх, обычная правка не двигает вообще.
+    const dir = courseSort === 'newest' ? -1 : 1
+    return sorted.sort((a, b) => dir * courseSortAt(a).localeCompare(courseSortAt(b)))
   }, [allCourses, courseSort, courseStatus, courseSubject, courseLevel])
   const removeTask = useTaskBank(s => s.removeTask)
   const addBankTask = useTaskBank(s => s.addTask)
@@ -7575,7 +7631,11 @@ export default function TeacherConstructorPage() {
         })),
         groupIds: ed.groupIds ?? [], studentIds: ed.studentIds ?? [],
       }
-      setCourses(prev => prev.some(c => c.id === updated.id) ? prev.map(c => c.id === updated.id ? updated : c) : [updated, ...prev])
+      setCourses(prev => {
+        const old = prev.find(c => c.id === updated.id)
+        const next = withSortTimes(updated, old)
+        return old ? prev.map(c => c.id === updated.id ? next : c) : [next, ...prev]
+      })
     } catch {}
     setCourseEdited(null)
   }, [courseEditedJson])
@@ -7840,7 +7900,7 @@ export default function TeacherConstructorPage() {
           { short_id: shortId, title: c.title, subject: c.subject, level: c.level, description: c.description, status: c.status, color: c.color, bg: c.bg, created_by: uid },
           { onConflict: 'short_id' }
         )
-        .select('id, short_id')
+        .select('id, short_id, created_at, published_at')
         .single()
       if (error || !dbCourse) { console.error('[syncCourseToDb] course upsert failed', error); return }
 
@@ -7858,8 +7918,14 @@ export default function TeacherConstructorPage() {
         if (lessErr) console.error('[syncCourseToDb] lessons upsert failed', lessErr)
       }
 
-      // Stamp dbCourseId on the local course so enrollment + lesson editor unlock
-      setCourses(prev => prev.map(x => x.id === c.id ? { ...x, dbCourseId: shortId } : x))
+      // Stamp dbCourseId on the local course so enrollment + lesson editor unlock.
+      // Заодно забираем отметки времени из БД — там их ставит триггер, и порядок
+      // карточек не разъедется после перезагрузки списка.
+      setCourses(prev => prev.map(x => x.id === c.id ? {
+        ...x, dbCourseId: shortId,
+        createdAt: (dbCourse as any).created_at ?? x.createdAt,
+        publishedAt: (dbCourse as any).published_at ?? undefined,
+      } : x))
       // If the editor is still open for this course, unlock it in-place
       setEditCourse(prev => prev?.id === c.id ? { ...prev, dbCourseId: shortId } : prev)
     } catch (e) {
@@ -7869,7 +7935,12 @@ export default function TeacherConstructorPage() {
 
   function handleSaveCourse(c: Course) {
     // Upsert: update in place when editing an existing course, else prepend.
-    setCourses(prev => prev.some(x => x.id === c.id) ? prev.map(x => x.id === c.id ? c : x) : [c, ...prev])
+    // Позиция в массиве на порядок карточек больше не влияет — он по времени.
+    setCourses(prev => {
+      const old = prev.find(x => x.id === c.id)
+      const next = withSortTimes(c, old)
+      return old ? prev.map(x => x.id === c.id ? next : x) : [next, ...prev]
+    })
     setCreatorMode(null)
     setEditCourse(null)
     setActiveTab('course')
@@ -7897,7 +7968,12 @@ export default function TeacherConstructorPage() {
   // Per-card actions: duplicate clones with fresh ids + "(копия)" as a draft;
   // delete confirms first (irreversible).
   function duplicateCourse(c: Course) {
-    const copy: Course = { ...c, id: uid(), title: (c.title) + t(' (копия)'), status: 'draft', lessons: c.lessons.map(l => ({ ...l, id: uid() })), lastEdited: stamp() }
+    const copy: Course = {
+      ...c, id: uid(), title: (c.title) + t(' (копия)'), status: 'draft',
+      lessons: c.lessons.map(l => ({ ...l, id: uid() })), lastEdited: stamp(),
+      // Копия — новый курс: своё время создания, чужую публикацию не наследует.
+      createdAt: new Date().toISOString(), publishedAt: undefined,
+    }
     setCourses(prev => [copy, ...prev])
   }
   async function deleteCourse(c: Course) {
