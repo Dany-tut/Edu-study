@@ -894,7 +894,7 @@ const FILE_CARDS: Array<{ field: FileField; Icon: React.ElementType; label: stri
  * ровно после правила, которое она объясняет. Здесь — только загрузка,
  * превью и удаление; подпись учитель правит прямо в маркере.
  */
-export function TheoryImages({
+function TheoryImages({
   lesson, onUpdate,
 }: {
   lesson: CELesson
@@ -935,11 +935,14 @@ export function TheoryImages({
                 <code style={{ fontSize: 10, color: 'var(--color-muted)' }}>img:{img.key}</code>
                 {' · '}{captionOf(lesson.theory ?? '', img.key) || t('нет в тексте конспекта')}
               </div>
+              {/* zIndex обязателен: без него превью перекрывает крестик и
+                  удалить картинку нельзя — клик уходит в картинку. */}
               <button onClick={() => remove(img.key)}
                 style={{
-                  position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%',
+                  position: 'absolute', top: 4, right: 4, zIndex: 2, width: 22, height: 22, borderRadius: '50%',
                   border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
                 }}
               >
                 <X size={11} />
