@@ -318,6 +318,17 @@ function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): HomeworkQui
   }
 }
 
+/** Есть ли у урока реальный сложный уровень. Урок с авторскими заданиями
+ *  (Конструктор → «Домашки») даёт хард ТОЛЬКО если среди них есть isHard —
+ *  иначе внутри хард-уровня пусто, и показывать вход в него (спутник-звезду на
+ *  треке, кнопку «Хард-уровень», строку в карточке ДЗ) не нужно. У старых
+ *  сгенерированных ДЗ (химия/биология/AP) хард есть всегда. */
+export function lessonHasHardLevel(lesson: Lesson): boolean {
+  const authored = lesson.homework?.hwTasks
+  if (authored?.length) return authored.some(task => task.isHard)
+  return true
+}
+
 /** Build the student's LessonHomework from teacher-authored tasks. The basic
  *  level holds the non-hard tasks; hard tasks (isHard) feed the teacher-review
  *  level. HomeworkFlow requires both a basic and a hard level, so the hard

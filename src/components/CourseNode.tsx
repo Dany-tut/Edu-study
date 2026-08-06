@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import type { ElementType, ReactElement } from 'react'
 import { IconMissedLesson, IconReturned, IconLessonRecording, IconTest } from './icons'
 import type { Lesson, LessonStatus, LessonShape } from '../data/mockData'
+import { lessonHasHardLevel } from '../data/lessonContent'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
 import { cn } from '../lib/utils'
 import { playClick } from '../lib/sound'
@@ -102,7 +103,10 @@ export default function CourseNode({ lesson, index, isSelected = false, isHighli
   // submitted below the threshold, the hard level shows as LOCKED (замочек,
   // «недоступно») — visible but unavailable — overriding any stale hard status.
   const hardLocked = basicSubmitted && !hardAvailable
-  const showHardSatellite = hardAvailable || hardLocked || (!!hardStatus && !basicSubmitted)
+  // У урока нет ни одного сложного задания → внутри хард-уровня пусто, спутник
+  // не показываем вовсе (ни звезду, ни замок).
+  const hasHardLevel = lessonHasHardLevel(lesson)
+  const showHardSatellite = hasHardLevel && (hardAvailable || hardLocked || (!!hardStatus && !basicSubmitted))
   const effectiveHardStatus: HardStatus | 'available' | 'locked' =
     hardLocked ? 'locked' : (hardStatus ?? 'available')
   const hardStyle = HARD_STYLE[effectiveHardStatus]

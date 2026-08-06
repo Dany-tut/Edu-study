@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { scienceMemeInterval } from '../data/mockData'
 import { useStudentData } from '../store/studentDataStore'
@@ -63,12 +63,15 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
           padding: 8,
         }}
       >
-        <AnimatePresence mode="wait">
+        {/* Ремоунт по key, без AnimatePresence: `mode="wait"` умеет навсегда
+            залипнуть (сигнал «выход завершён» теряется — см. onExit в
+            AnimatePresence/index.mjs), и лента мемов встала бы пустой до F5.
+            Здесь ключи не повторяются, само не вылечится. Анимация только
+            входа — ждать выхода незачем. */}
           <motion.div
             key={meme.id}
             initial={{ opacity: 0, scale: 1.04 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             className="absolute flex items-center justify-center"
             style={{ inset: 8, background: meme.gradient, borderRadius: 18, overflow: 'hidden' }}
@@ -85,7 +88,6 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
               {meme.emoji}
             </motion.span>
           </motion.div>
-        </AnimatePresence>
       </div>
 
       {/* Content */}
@@ -103,12 +105,11 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
         </div>
 
         <div className="flex flex-1 flex-col justify-center" style={{ gap: 8 }}>
-          <AnimatePresence mode="wait">
+          {/* Ремоунт по key — причина та же, что у картинки выше. */}
             <motion.div
               key={meme.id}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             >
               <p style={{
@@ -124,7 +125,6 @@ export default function MemesWidget({ active, columns = 1 }: Props) {
                 {meme.punchline}
               </p>
             </motion.div>
-          </AnimatePresence>
         </div>
 
         {/* Meme dots */}

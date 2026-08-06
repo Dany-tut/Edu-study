@@ -23,6 +23,7 @@ import { RotateCcw, Volume2, Undo2, Layers } from 'lucide-react'
 import { dueCards, gradeCard, type ReviewCard } from '../data/reviewDeck'
 import { intervalLabel, review, type ReviewGrade } from '../lib/srs'
 import { haptic } from '../lib/feedback'
+import { speechLocale, speechText } from '../lib/speech'
 import { useT } from '../lib/i18n'
 import Skeleton from './Skeleton'
 
@@ -72,10 +73,10 @@ const isDemo = (card: ReviewCard) => card.id.startsWith('demo-')
  * условии, что есть у кого занять чужой перевод: без дистрактора утверждение
  * всегда истинно, и ученик через минуту свайпает вправо не читая.
  */
-function buildQueue(cards: ReviewCard[]): Seat[] {
+function buildQueue(cards: ReviewCard[], judge: boolean): Seat[] {
   return cards.map((card, i) => {
     const others = cards.filter(c => c.id !== card.id && c.answer !== card.answer)
-    if (i % 3 === 2 && others.length > 0) {
+    if (judge && i % 3 === 2 && others.length > 0) {
       const lie = Math.random() < 0.5
       const shown = lie ? others[Math.floor(Math.random() * others.length)].answer : card.answer
       return { key: `${card.id}-${i}`, card, kind: 'judge' as const, shown, truth: !lie }
@@ -84,14 +85,45 @@ function buildQueue(cards: ReviewCard[]): Seat[] {
   })
 }
 
-export default function CardDeck({ owner, accent, lang, subject, emptyExtra }: {
-  owner: { studentId?: string; anonName?: string }
+/**
+ * Откуда колода берёт карточки и что делает с ответом.
+ *
+ * Без source стопка работает как раньше: колода повторений ученика и SM-2.
+ * С source тем же движком можно прогнать что угодно — банк заданий, слова
+ * урока, подборку учителя, — не заводя вторую копию стопки со свайпом.
+ *
+ * ВАЖНО: объект должен быть стабильным (useMemo). Он лежит в зависимостях
+ * загрузки, и новый объект на каждый рендер перезапускал бы сессию.
+ */
+export interface DeckSource {
+  load: () => Promise<ReviewCard[]>
+  /**
+   * 'srs' — четыре кнопки самооценки, ответ двигает расписание повторений.
+   * 'binary' — «знаю / не знаю» без расписания: прогон материала, у которого
+   * своего интервала нет (задания банка живут в собственной статистике).
+   */
+  grading?: 'srs' | 'binary'
+  /** Вердикт в режиме binary — например, положить незнакомое в колоду повторений. */
+  onVerdict?: (card: ReviewCard, known: boolean) => void
+  /** Подмешивать ли judge-карточки. У заданий банка они бессмысленны. */
+  judge?: boolean
+  /** Подпись над карточкой вместо автоматической («повторение», «ошибка…»). */
+  label?: string
+  emptyTitle?: string
+  emptyText?: string
+  doneTitle?: string
+}
+
+export default function CardDeck({ owner, accent, lang, subject, emptyExtra, source }: {
+  owner?: { studentId?: string; anonName?: string }
   accent: string
   /** Код языка для озвучки (en, ko, ja). Без него кнопка «послушать» не рисуется. */
   lang?: string
   subject?: string
   /** Что показать под пустой колодой — например «загрузить слова из текстов». */
   emptyExtra?: React.ReactNode
+  /** Своя стопка вместо колоды повторений. */
+  source?: DeckSource
 }) {
   const t = useT()
   const [queue, setQueue] = useState<Seat[] | null>(null)
@@ -101,14 +133,20 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra }: {
   // Снимки для «вернуть»: очередь целиком, потому что ошибка меняет её хвост.
   const undoStack = useRef<{ queue: Seat[]; idx: number; stats: { right: number; wrong: number } }[]>([])
 
+  const binary = source?.grading === 'binary'
+
   useEffect(() => {
     let alive = true
-    dueCards(owner, 20).then(cards => {
+    const load = source ? source.load() : dueCards(owner ?? {}, 20)
+    load.then(cards => {
       if (!alive) return
-      setQueue(buildQueue(cards.length === 0 && import.meta.env.DEV ? DEMO_CARDS : cards))
+      // Демо-подмена только у колоды повторений: своя стопка пустая значит
+      // пустая, и подсовывать в неё корейские слова было бы враньём.
+      const use = cards.length === 0 && import.meta.env.DEV && !source ? DEMO_CARDS : cards
+      setQueue(buildQueue(use, source ? source.judge ?? false : true))
     })
     return () => { alive = false }
-  }, [owner.studentId, owner.anonName])
+  }, [owner?.studentId, owner?.anonName, source])
 
   const seat = queue && idx < queue.length ? queue[idx] : null
 
@@ -135,7 +173,8 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra }: {
     }
 
     if (!seat.again) {
-      if (!isDemo(seat.card)) gradeCard(seat.card, grade).catch(e => console.error('gradeCard:', e))
+      if (binary) source?.onVerdict?.(seat.card, grade >= 3)
+      else if (!isDemo(seat.card)) gradeCard(seat.card, grade).catch(e => console.error('gradeCard:', e))
       setStats(s => grade < 3 ? { ...s, wrong: s.wrong + 1 } : { ...s, right: s.right + 1 })
     }
 
@@ -149,7 +188,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra }: {
     setQueue(next)
     setIdx(i => i + 1)
     setRevealed(false)
-  }, [queue, seat, idx, stats])
+  }, [queue, seat, idx, stats, binary, source])
 
   const undo = useCallback(() => {
     const prev = undoStack.current.pop()
@@ -191,8 +230,10 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra }: {
     <Shell>
       <Empty
         icon={<Layers size={26} style={{ color: 'var(--color-text-3)' }} />}
-        title={t('Колода пуста')}
-        text={t('Карточки набираются сами: слова из текстов и уроков, ошибки из тренажёра. Как только что-то появится — вернётся сюда.')}
+        title={source?.emptyTitle ? t(source.emptyTitle) : t('Колода пуста')}
+        text={source?.emptyText
+          ? t(source.emptyText)
+          : t('Карточки набираются сами: слова из текстов и уроков, ошибки из тренажёра. Как только что-то появится — вернётся сюда.')}
         extra={emptyExtra}
       />
     </Shell>
@@ -202,8 +243,10 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra }: {
     <Shell>
       <Empty
         icon={<div style={{ fontSize: 34 }}>✅</div>}
-        title={t('На сегодня всё повторено')}
-        text={`${t('Верно с первого раза:')} ${stats.right} · ${t('ошибок:')} ${stats.wrong}`}
+        title={source?.doneTitle ? t(source.doneTitle) : t('На сегодня всё повторено')}
+        text={binary
+          ? `${t('Знаю:')} ${stats.right} · ${t('в повторение:')} ${stats.wrong}`
+          : `${t('Верно с первого раза:')} ${stats.right} · ${t('ошибок:')} ${stats.wrong}`}
         // Промах на ПОСЛЕДНЕЙ карточке иначе не отменить: сессия уже закрыта,
         // а кнопка «вернуть» живёт только под стопкой.
         extra={<>
@@ -230,7 +273,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra }: {
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-          <RotateCcw size={12} /> {sourceLabel(seat, t)}
+          <RotateCcw size={12} /> {seat.again ? t('возврат после ошибки') : source?.label ? t(source.label) : sourceLabel(seat, t)}
         </span>
         <span>{t('осталось')} {queue.length - idx}</span>
       </div>
@@ -254,6 +297,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra }: {
           accent={accent}
           lang={lang}
           revealed={revealed}
+          binary={binary}
           onFlip={() => setRevealed(r => !r)}
           onSwipe={swipe}
         />
@@ -275,6 +319,13 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra }: {
           >
             {t('Показать ответ')}
           </button>
+        ) : binary ? (
+          // Прогон банка: интервалов у задания нет, поэтому и четырёх градаций
+          // не нужно — «не знаю» отправляет задание в колоду повторений.
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <ActionButton tone="bad" label={t('Не знаю')} onClick={() => answer(1)} />
+            <ActionButton tone="good" label={t('Знаю')} onClick={() => answer(4)} />
+          </div>
         ) : (
           // Два столбца, а не четыре: «Не помню» в четверть ширины телефона
           // переносится на две строки и рвёт ряд, да и палец в узкую колонку
@@ -310,8 +361,8 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra }: {
 
 // ─── Карточка ────────────────────────────────────────────────────────────────
 
-function Card({ seat, accent, lang, revealed, onFlip, onSwipe }: {
-  seat: Seat; accent: string; lang?: string; revealed: boolean
+function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
+  seat: Seat; accent: string; lang?: string; revealed: boolean; binary: boolean
   onFlip: () => void; onSwipe: (d: Dir) => void
 }) {
   const t = useT()
@@ -324,6 +375,8 @@ function Card({ seat, accent, lang, revealed, onFlip, onSwipe }: {
   const dragged = useRef(false)
 
   const judge = seat.kind === 'judge'
+  const len = seat.card.prompt.length
+  const promptSize = len <= 24 ? 30 : len <= 60 ? 22 : len <= 160 ? 16 : 14
 
   function onDragEnd(_: unknown, info: { offset: { x: number; y: number }; velocity: { x: number; y: number } }) {
     const { offset, velocity } = info
@@ -347,8 +400,11 @@ function Card({ seat, accent, lang, revealed, onFlip, onSwipe }: {
   function say(e: React.MouseEvent) {
     e.stopPropagation()
     if (!lang || typeof window === 'undefined' || !window.speechSynthesis) return
-    const u = new SpeechSynthesisUtterance(seat.card.prompt)
-    u.lang = lang === 'en' ? 'en-US' : lang === 'ko' ? 'ko-KR' : lang === 'ja' ? 'ja-JP' : lang
+    // Романизация из «아이 (ai)» в озвучку не идёт: иначе слышно слово и следом
+    // его латинскую запись — как будто оно произнеслось дважды.
+    const u = new SpeechSynthesisUtterance(speechText(seat.card.prompt))
+    u.lang = speechLocale(lang) ?? lang
+    window.speechSynthesis.cancel()
     window.speechSynthesis.speak(u)
   }
 
@@ -372,7 +428,7 @@ function Card({ seat, accent, lang, revealed, onFlip, onSwipe }: {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.16 }}
     >
-      <Overlay side="left" opacity={noOpacity} label={judge ? t('неверно') : t('не помню')} tone="bad" />
+      <Overlay side="left" opacity={noOpacity} label={judge ? t('неверно') : binary ? t('не знаю') : t('не помню')} tone="bad" />
       <Overlay side="right" opacity={yesOpacity} label={judge ? t('верно') : t('знаю')} tone="good" />
       <Overlay side="bottom" opacity={laterOpacity} label={t('отложить')} tone="mute" />
 
@@ -385,7 +441,14 @@ function Card({ seat, accent, lang, revealed, onFlip, onSwipe }: {
         </>
       ) : (
         <>
-          <div style={{ fontSize: 30, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3 }}>
+          {/* Кегль по длине: слово должно читаться через всю комнату, а условие
+              задания на 300 знаков тем же кеглем просто не влезет в карточку. */}
+          <div style={{
+            fontSize: promptSize, fontWeight: promptSize > 20 ? 700 : 550,
+            color: 'var(--color-text)', lineHeight: promptSize > 20 ? 1.3 : 1.45,
+            textAlign: promptSize > 20 ? 'center' : 'left',
+            maxHeight: revealed ? 118 : 200, overflowY: 'auto', width: '100%',
+          }}>
             {seat.card.prompt}
           </div>
           {revealed ? (

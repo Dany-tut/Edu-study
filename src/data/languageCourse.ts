@@ -346,7 +346,12 @@ function pictureTasks(unit: LangUnit, idBase: string, lang: string) {
   const tasks = []
   for (let k = 0; k < count; k++) {
     const target = drawn[(unit.n + k) % drawn.length]
-    const others = unit.vocab.filter(w => w.term !== target.term).slice(k, k + 3)
+    // Обманка не должна иметь ту же картинку, что и ответ: «кот» и «кошка»
+    // рисуются одинаково, и такое задание нерешаемо.
+    const targetImage = vocabImage(target.ru)
+    const others = unit.vocab
+      .filter(w => w.term !== target.term && vocabImage(w.ru) !== targetImage)
+      .slice(k, k + 3)
     if (others.length < 3) break
     const choices = others.map(w => w.term)
     const correct = (unit.n + k) % 4

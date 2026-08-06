@@ -111,7 +111,7 @@ export default function StudentLoginPage() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <input
+          <input className="auth-input"
             type="email"
             inputMode="email"
             autoCapitalize="none"
@@ -126,7 +126,7 @@ export default function StudentLoginPage() {
             autoFocus
           />
           <div style={{ position: 'relative' }}>
-            <input
+            <input className="auth-input"
               type={showPassword ? 'text' : 'password'}
               autoCapitalize="none"
               autoCorrect="off"
@@ -158,7 +158,7 @@ export default function StudentLoginPage() {
         </div>
 
         {error && (
-          <div style={{ marginTop: 12, fontSize: 13, color: '#A8282D', background: 'var(--color-red-soft)', borderRadius: 10, padding: '8px 12px' }}>
+          <div style={{ marginTop: 12, fontSize: 13, color: 'var(--color-red-text)', background: 'var(--color-red-soft)', borderRadius: 10, padding: '8px 12px' }}>
             {error}
           </div>
         )}

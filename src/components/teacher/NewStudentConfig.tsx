@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { WIDGET_META } from '../../data/widgets'
 import { fetchTeacherCourses, configureNewStudent, type TeacherCourseOption } from '../../lib/useGroups'
@@ -22,8 +22,25 @@ export default function NewStudentConfig({
   const [courseId, setCourseId] = useState<string>('')
   const [courses, setCourses] = useState<TeacherCourseOption[]>([])
   const [saving, setSaving] = useState(false)
+  // Fades hint that the list continues past the fixed footer / above the header.
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [fadeTop, setFadeTop] = useState(false)
+  const [fadeBottom, setFadeBottom] = useState(false)
 
   useEffect(() => { fetchTeacherCourses().then(setCourses) }, [])
+
+  function syncFades() {
+    const el = scrollRef.current
+    if (!el) return
+    setFadeTop(el.scrollTop > 4)
+    setFadeBottom(el.scrollTop + el.clientHeight < el.scrollHeight - 4)
+  }
+  // Courses arrive async and grow the content — re-measure after every render pass.
+  useEffect(syncFades)
+
+  const allHidden = hidden.size === WIDGET_META.length
+  const toggleAll = () =>
+    setHidden(allHidden ? new Set() : new Set(WIDGET_META.map(w => w.id)))
 
   const toggle = (id: number) => setHidden(prev => {
     const next = new Set(prev)
@@ -48,14 +65,37 @@ export default function NewStudentConfig({
   ]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+      {/* Scroll area — runs under the fixed footer, edges faded while scrollable */}
+      <div style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex' }}>
+        <div
+          ref={scrollRef}
+          onScroll={syncFades}
+          style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 18 }}
+        >
       <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: 0 }}>
         {t('Настройте, что увидит ученик. Можно оставить по умолчанию.')}
       </p>
 
       {/* Widgets */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)' }}>{t('ВИДЖЕТЫ')}</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)' }}>{t('ВИДЖЕТЫ')}</span>
+          <button
+            type="button"
+            onClick={toggleAll}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '4px 10px', borderRadius: 999, cursor: 'pointer',
+              border: '1.5px solid var(--color-border-medium)',
+              background: 'transparent', color: 'var(--color-muted)',
+              fontSize: 12, fontWeight: 700,
+            }}
+          >
+            {allHidden ? <Eye size={13} /> : <EyeOff size={13} />}
+            {allHidden ? t('Показать все') : t('Скрыть все')}
+          </button>
+        </div>
         {WIDGET_META.map(w => {
           const isHidden = hidden.has(w.id)
           return (
@@ -97,11 +137,24 @@ export default function NewStudentConfig({
           options={courseOptions}
         />
       </div>
+        </div>
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 28, pointerEvents: 'none',
+          background: 'linear-gradient(to bottom, var(--color-bg-input), transparent)',
+          opacity: fadeTop ? 1 : 0, transition: 'opacity 0.18s',
+        }} />
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0, height: 32, pointerEvents: 'none',
+          background: 'linear-gradient(to top, var(--color-bg-input), transparent)',
+          opacity: fadeBottom ? 1 : 0, transition: 'opacity 0.18s',
+        }} />
+      </div>
 
       <button
         onClick={apply}
         disabled={saving}
         style={{
+          flexShrink: 0, marginTop: 16,
           width: '100%', padding: '12px 0',
           background: 'var(--color-purple)', color: '#fff', fontWeight: 700, fontSize: 15,
           border: 'none', borderRadius: 14, cursor: saving ? 'not-allowed' : 'pointer',

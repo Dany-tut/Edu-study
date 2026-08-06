@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, Search, BookOpen, CheckCircle2, XCircle,
   Star, Share2, AlertTriangle, Eye, EyeOff, Sparkles, Target, Filter,
-  LayoutGrid, List, ArrowUpDown, ArrowUp, X, TrendingUp, FlaskConical, Bell, Database, ZoomIn, ZoomOut,
+  LayoutGrid, List, ArrowUpDown, ArrowUp, X, TrendingUp, FlaskConical, Bell, Database, ZoomIn, ZoomOut, Layers,
 } from 'lucide-react'
 import {
   Task, Subject,
@@ -28,7 +28,10 @@ import { useTrainerProgress } from '../store/trainerProgressStore'
 import { subjectTheme, PURPLE } from '../lib/theme'
 import { getSubject, BANK_SUBJECT_IDS, subjectIcon } from '../lib/subjects'
 import LanguageTrainer from '../components/LanguageTrainer'
+import CardDeck, { type DeckSource } from '../components/CardDeck'
+import { captureMistake, deckOwner, type ReviewCard } from '../data/reviewDeck'
 import { getContrastColor } from '../lib/utils'
+import { bindShortWordsHtml } from '../lib/typography'
 import { useTheme } from '../store/themeStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useNavCollapse } from '../lib/useNavCollapse'
@@ -51,13 +54,36 @@ type ViewMode = 'list' | 'grid'
 // feel like one coordinated motion (snappy, tiny settle, no overshoot wobble).
 const FIELD_MORPH = { type: 'spring', stiffness: 520, damping: 38, mass: 0.7 } as const
 
-// Russian typography: never leave a 1–2 letter word (prepositions/conjunctions
-// like «в», «с», «и», «по», and a capitalised «В»/«С» starting a sentence) dangling
-// at the end of a line — glue it to the next word with a non-breaking space. Runs
-// on the question HTML; the leading boundary keeps it from touching word endings
-// or tag internals.
-function bindShortWords(html: string): string {
-  return html.replace(/(^|[\s(«„"'>])([А-яЁё]{1,2}) /g, (_m, pre, word) => `${pre}${word}\u00A0`)
+// ── Задание банка → карточка ─────────────────────────────────────────────────
+//
+// Карточка — это текст и ничего больше: условие с картинкой, таблицей или
+// развёрнутым ответом части 2 на ней просто не помещается, а показать условие,
+// на которое нечем ответить, хуже, чем не показать его вовсе. Поэтому в стопку
+// идёт только то, что читается и проверяется одной строкой; сколько заданий
+// осталось за бортом, страница говорит вслух — молча урезанная выборка
+// читается как «прогнал весь банк», хотя это не так.
+const CARD_SESSION_LIMIT = 30
+
+function fitsCard(t: Task): boolean {
+  const a = t.answer.trim()
+  return t.part === 1 && !t.questionImage && !t.questionTable && a.length > 0 && a.length <= 60
+}
+
+/** Условие хранится как HTML — на карточке нужен чистый текст. */
+function plainText(html: string): string {
+  return html.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim()
+}
+
+function taskToCard(task: Task): ReviewCard {
+  const now = new Date().toISOString()
+  return {
+    id: `bank-${task.id}`,
+    subject: task.subject,
+    source: 'manual',
+    prompt: plainText(task.question),
+    answer: task.answer.trim(),
+    ease: 2.5, intervalDays: 0, reps: 0, lapses: 0, dueAt: now, createdAt: now,
+  }
 }
 
 const SORT_OPTIONS: [SortMode, string][] = [
@@ -376,7 +402,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           badge (Верно/Неверно) never squeezes it into a narrower column — its
           appearance must not reflow / "push" the wrapped lines. */}
       <div lang="ru" style={{ fontSize: mobile ? 14 : 16, lineHeight: mobile ? 1.45 : 1.5, fontWeight: mobile ? 450 : 550, color: 'var(--color-text)', textAlign: mobile ? 'justify' : undefined, overflowWrap: 'break-word', marginTop: mobile ? -6 : -4 }}
-        dangerouslySetInnerHTML={{ __html: bindShortWords(task.question) }} />
+        dangerouslySetInnerHTML={{ __html: bindShortWordsHtml(task.question) }} />
 
       {/* Image / table blocks in teacher-configured order */}
       {(task.blockOrder ?? ['image', 'table']).map(blockKey => {
@@ -911,6 +937,72 @@ function StatusTabs({ value, onChange, mobile, accent }: { value: StatusFilter; 
           </span>
         </button>
       ))}
+    </div>
+  )
+}
+
+// ── Список / Карточки ────────────────────────────────────────────────────────
+// Вид одной и той же выборки, а не отдельный раздел: фильтры, поиск и предмет
+// продолжают работать, меняется только подача. Поэтому переключатель стоит в
+// том же ряду, что статус и сортировка, и подписан иконками — два слова в
+// плотной панели ЕГЭ уже не помещаются.
+function ViewTabs({ value, onChange, mobile, accent }: {
+  value: 'list' | 'cards'; onChange: (v: 'list' | 'cards') => void; mobile?: boolean; accent?: string
+}) {
+  const t = useT()
+  const acc = accent ?? 'var(--color-accent)'
+  const options: ['list' | 'cards', string, typeof List][] = [
+    ['list', 'Список', List],
+    ['cards', 'Карточки', Layers],
+  ]
+  return (
+    <div style={{
+      display: 'flex', gap: mobile ? 8 : 2, padding: mobile ? 0 : 3, borderRadius: mobile ? 0 : 999,
+      background: mobile ? 'transparent' : 'rgba(var(--glass-rgb), 0.88)',
+      border: mobile ? 'none' : '1px solid var(--color-border)',
+      flex: mobile ? '1 1 0' : undefined,
+    }}>
+      {options.map(([val, label, Icon]) => {
+        const active = value === val
+        return (
+          <button
+            key={val}
+            onClick={() => { if (mobile) tactile(); onChange(val) }}
+            title={t(label)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              flex: mobile ? '1 1 0' : undefined,
+              padding: mobile ? '11px 6px' : '7px 12px', borderRadius: mobile ? 13 : 999,
+              border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+              fontSize: mobile ? 13 : 12, fontWeight: active ? 700 : 500, whiteSpace: 'nowrap',
+              background: active ? `${acc}22` : 'transparent',
+              color: active ? acc : 'var(--color-text-3)',
+              transition: 'background 0.15s, color 0.15s',
+            }}
+          >
+            <Icon size={14} /> {t(label)}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+/**
+ * Сколько заданий выборки в стопку не попало и почему. Молчание здесь читалось
+ * бы как «прогнал весь банк»: ученик листает тридцать карточек из ста сорока и
+ * уверен, что закрыл тему.
+ */
+function DeckNote({ shown, skipped, total }: { shown: number; skipped: number; total: number }) {
+  const t = useT()
+  if (shown === 0) return null
+  const parts: string[] = [`${t('в стопке')} ${shown} ${t('из')} ${total}`]
+  if (skipped > 0) parts.push(`${skipped} ${t('с картинкой, таблицей или из части 2')}`)
+  const capped = total - skipped - shown
+  if (capped > 0) parts.push(`${capped} ${t('осталось на следующий заход')}`)
+  return (
+    <div style={{ marginTop: 14, textAlign: 'center', fontSize: 12, lineHeight: 1.6, color: 'var(--color-text-3)' }}>
+      {parts.join(' · ')}
     </div>
   )
 }
@@ -1658,6 +1750,33 @@ export default function TaskBankPage() {
     })
   }, [tasks, subject, sections, topics, parts, lines, source, search, statusFilter, showFavOnly, showWrongOnly, wrongSimilarLines, answered, favorites, sortMode])
 
+  // ── Карточки ────────────────────────────────────────────────────────────────
+  //
+  // Тот же отфильтрованный список, но не лентой, а стопкой: условие → ответ →
+  // «знаю / не знаю». Расписания у задания банка нет (его статистика — решено
+  // или нет), поэтому вердикт бинарный, а незнакомое уезжает в колоду
+  // повторений и возвращается уже по SM-2 вместе со словами и ошибками.
+  const [view, setView] = useState<'list' | 'cards'>('list')
+  const cardTasks = useMemo(() => filtered.filter(fitsCard).slice(0, CARD_SESSION_LIMIT), [filtered])
+  const cardSkipped = filtered.length - filtered.filter(fitsCard).length
+
+  const deckSource = useMemo<DeckSource>(() => ({
+    load: async () => cardTasks.map(taskToCard),
+    grading: 'binary',
+    judge: false,
+    label: 'задание банка',
+    emptyTitle: 'Карточек из этой выборки не собрать',
+    emptyText: 'В стопку идут задания части 1 с коротким ответом — без картинок и таблиц. Смени фильтры или вернись к списку.',
+    doneTitle: 'Стопка пройдена',
+    onVerdict: (card, known) => {
+      if (known) return
+      captureMistake({
+        ...deckOwner(), subject, source: 'trainer',
+        prompt: card.prompt, answer: card.answer,
+      }).catch(e => console.error('captureMistake:', e))
+    },
+  }), [cardTasks, subject])
+
   // Auto-switch subject tab when search results all belong to one subject
   useEffect(() => {
     if (!search || filtered.length === 0) return
@@ -1780,7 +1899,18 @@ export default function TaskBankPage() {
             </div>
           }
         >
-          {filtered.length === 0 ? (
+          {/* Переключатель вида — в потоке контента, а не в доке: док собран из
+              трёх кружков с рассчитанной анимацией, четвёртый её ломает. */}
+          <div style={{ display: 'flex', marginBottom: 14 }}>
+            <ViewTabs value={view} onChange={setView} mobile accent={palette.accent} />
+          </div>
+
+          {view === 'cards' ? (
+            <div>
+              <CardDeck key={`deck-${subject}-${cardTasks.length}`} accent={palette.accent} source={deckSource} />
+              <DeckNote shown={cardTasks.length} skipped={cardSkipped} total={filtered.length} />
+            </div>
+          ) : filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '56px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
               <span>{t('Заданий не найдено — измените фильтры')}</span>
               <button onClick={() => { tactile(); clearFilters() }}
@@ -2246,6 +2376,8 @@ export default function TaskBankPage() {
             </div>
             <StatusTabs value={statusFilter} onChange={setStatusFilter} />
 
+            <ViewTabs value={view} onChange={setView} accent={palette.accent} />
+
             {/* Sort dropdown */}
             <SortDropdown value={sortMode} onChange={setSortMode} />
 
@@ -2263,7 +2395,12 @@ export default function TaskBankPage() {
           </div>
 
           {/* Tasks */}
-          {filtered.length === 0 ? (
+          {view === 'cards' ? (
+            <div style={{ paddingTop: 8 }}>
+              <CardDeck key={`deck-${subject}-${cardTasks.length}`} accent={palette.accent} source={deckSource} />
+              <DeckNote shown={cardTasks.length} skipped={cardSkipped} total={filtered.length} />
+            </div>
+          ) : filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
               <span>{t('Заданий не найдено — измените фильтры')}</span>
               <button onClick={clearFilters}

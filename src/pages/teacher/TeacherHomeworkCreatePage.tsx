@@ -33,7 +33,7 @@ import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import WhiteboardCanvas from '../../components/teacher/WhiteboardCanvas'
 import RichConditionEditor from '../../components/teacher/RichConditionEditor'
 import TableEditor from '../../components/teacher/TableEditor'
-import GrowTextarea, { growMinHeight } from '../../components/teacher/GrowTextarea'
+import GrowTextarea, { growMinHeight } from '../../components/GrowTextarea'
 import { useOverlayScroll, ScrollOverlays, fadeMask } from '../../components/teacher/OverlayScroll'
 import GoogleFormImportModal from '../../components/teacher/GoogleFormImportModal'
 import type { ImportedQuestion } from '../../lib/googleFormsImport'
@@ -2035,12 +2035,12 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
         />
 
         {/* Description */}
-        <textarea
+        <GrowTextarea
           value={meta.description}
-          onChange={e => onChange({ description: e.target.value })}
+          onChange={v => onChange({ description: v })}
           placeholder={t('Описание, ссылки, требования...')}
-          rows={3}
-          style={{ ...inputStyle, resize: 'vertical', minHeight: 68 }}
+          minHeight={growMinHeight(4, 13, 9, 0)}
+          style={inputStyle}
         />
 
         {/* Due date */}

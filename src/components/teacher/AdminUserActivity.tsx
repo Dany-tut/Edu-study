@@ -6,6 +6,7 @@ import {
 } from '../../lib/plan'
 import { t, useT } from '../../lib/i18n'
 import AssignPlanButton from './AssignPlanButton'
+import AdminStudentsManager from './AdminStudentsManager'
 
 // Админский экран «По пользователям»: активное время, last seen, сессии по
 // каждому пользователю + per-teacher usage (активные ученики = будущий счётчик
@@ -46,7 +47,7 @@ const DAYS = [7, 30, 90] as const
 export default function AdminUserActivity() {
   const t = useT()
   const [days, setDays] = useState<(typeof DAYS)[number]>(30)
-  const [view, setView] = useState<'people' | 'teachers'>('people')
+  const [view, setView] = useState<'people' | 'teachers' | 'students'>('people')
   const [people, setPeople] = useState<UserActivityRow[]>([])
   const [teachers, setTeachers] = useState<TeacherUsageRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -73,7 +74,7 @@ export default function AdminUserActivity() {
       {/* Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', gap: 4, background: 'var(--color-bg-3)', borderRadius: 10, padding: 3 }}>
-          {(['people', 'teachers'] as const).map(v => (
+          {(['people', 'teachers', 'students'] as const).map(v => (
             <button
               key={v}
               onClick={() => setView(v)}

@@ -10,6 +10,7 @@ import {
 } from '../../data/teacherMockData'
 import { useTeacher } from '../../store/teacherStore'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
+import GrowTextarea, { growMinHeight } from '../../components/GrowTextarea'
 import GroupStrip from '../../components/teacher/GroupStrip'
 import { expandToPerson } from '../../lib/personGroups'
 import { useGroups, useStudents } from '../../lib/useGroups'
@@ -210,12 +211,12 @@ function AssignForm({ onClose }: { onClose: () => void }) {
           {/* Description */}
           <div>
             <Label>{t('Описание (необязательно)')}</Label>
-            <textarea
+            <GrowTextarea
               value={description}
-              onChange={e => setDescription(e.target.value)}
+              onChange={setDescription}
               placeholder={t('Задание, ссылки, требования...')}
-              rows={3}
-              style={{ ...inputStyle, resize: 'vertical', minHeight: 72 }}
+              minHeight={growMinHeight(4, 13, 10, 1.5)}
+              style={inputStyle}
             />
           </div>
 

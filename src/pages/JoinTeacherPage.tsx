@@ -23,6 +23,11 @@ const inputStyle: React.CSSProperties = {
   width: '100%', padding: '11px 14px', borderRadius: 12,
   border: '1.5px solid var(--color-border)', fontSize: 14, outline: 'none',
   boxSizing: 'border-box', marginTop: 0,
+  // Explicit color + background: без них input берёт tailwind-preflight
+  // `color: inherit` (светлый текст тёмной темы) на дефолтном белом фоне —
+  // набранный текст становится невидимым. Как в StudentLoginPage.
+  color: 'var(--color-text)', background: 'var(--color-surface)',
+  WebkitTextFillColor: 'var(--color-text)',
 }
 
 const card: React.CSSProperties = {
@@ -128,20 +133,20 @@ export default function JoinTeacherPage() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ display: 'flex', gap: 10 }}>
-                <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={t('Имя')} style={inputStyle} autoFocus />
-                <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder={t('Фамилия')} style={inputStyle} />
+                <input className="auth-input" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={t('Имя')} style={inputStyle} autoFocus />
+                <input className="auth-input" value={lastName} onChange={e => setLastName(e.target.value)} placeholder={t('Фамилия')} style={inputStyle} />
               </div>
-              <input value={subject} onChange={e => setSubject(e.target.value)} placeholder={t('Предмет (напр. Химия)')} style={inputStyle} />
+              <input className="auth-input" value={subject} onChange={e => setSubject(e.target.value)} placeholder={t('Предмет (напр. Химия)')} style={inputStyle} />
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <input
+                <input className="auth-input"
                   type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t('Email (логин)')}
                   style={{ ...inputStyle, borderColor: emailTouched && !emailValid ? '#F48B91' : 'var(--color-border)' }}
                 />
-                {emailTouched && !emailValid && <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>{t('Укажите почту со знаком @')}</span>}
+                {emailTouched && !emailValid && <span style={{ fontSize: 12, color: 'var(--color-red-text)', marginTop: 5 }}>{t('Укажите почту со знаком @')}</span>}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <div style={{ position: 'relative' }}>
-                  <input
+                  <input className="auth-input"
                     type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder={t('Пароль')}
                     style={{ ...inputStyle, paddingRight: 44, borderColor: passwordTouched && !passwordValid ? '#F48B91' : 'var(--color-border)' }}
                     onKeyDown={e => e.key === 'Enter' && handleRegister()}
@@ -151,7 +156,7 @@ export default function JoinTeacherPage() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                {passwordTouched && !passwordValid && <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>{t('Пароль должен быть не менее 6 символов')}</span>}
+                {passwordTouched && !passwordValid && <span style={{ fontSize: 12, color: 'var(--color-red-text)', marginTop: 5 }}>{t('Пароль должен быть не менее 6 символов')}</span>}
               </div>
             </div>
 
@@ -165,7 +170,7 @@ export default function JoinTeacherPage() {
             </div>
 
             {errorMsg && (
-              <div style={{ marginTop: 12, fontSize: 13, color: '#A8282D', background: 'var(--color-red-soft)', borderRadius: 10, padding: '8px 12px' }}>{errorMsg}</div>
+              <div style={{ marginTop: 12, fontSize: 13, color: 'var(--color-red-text)', background: 'var(--color-red-soft)', borderRadius: 10, padding: '8px 12px' }}>{errorMsg}</div>
             )}
 
             <button

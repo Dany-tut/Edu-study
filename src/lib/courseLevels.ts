@@ -24,6 +24,8 @@
 // «в физике нет уровней языковых курсов»: у физики просто нет курсов с CEFR,
 // значит и ступеней A1–C2 в её списке не появится.
 
+import { getSubject } from './subjects'
+
 /** Ступени CEFR в порядке возрастания — они же порядок в дропдауне. */
 const CEFR = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
 
@@ -105,6 +107,58 @@ export function levelOptions(courses: { level: string }[]): string[] {
   const seen = new Set<string>()
   for (const c of courses) for (const b of levelBuckets(c.level)) seen.add(b)
   return sortLevels([...seen])
+}
+
+// ── Что предлагать в дропдауне «Уровень» ─────────────────────────────────────
+// Фильтры собираются из реальных курсов (levelOptions), а вот при СОЗДАНИИ
+// группы/карточки/курса выбирать ещё не из чего — там нужен справочник. Один
+// общий список не годится: у корейского нет ЕГЭ, у химии нет A2. Поэтому набор
+// зависит от предмета.
+
+/** Школьный набор — предметы без языковой шкалы. */
+const SCHOOL_LEVELS = ['ЕГЭ', 'ОГЭ', 'Олимпиада', 'Школа', 'Интенсив']
+
+/**
+ * Родная шкала языка (ключи совпадают с корзинами LANG_SCALES, иначе выбранный
+ * уровень не совпал бы сам с собой в фильтре).
+ */
+const NATIVE_SCALE: Record<string, string[]> = {
+  korean: ['TOPIK I', 'TOPIK II'],
+  japanese: ['JLPT N5', 'JLPT N4', 'JLPT N3', 'JLPT N2', 'JLPT N1'],
+  chinese: ['HSK 1', 'HSK 2', 'HSK 3', 'HSK 4', 'HSK 5', 'HSK 6'],
+}
+
+/** Профильные экзамены языка — сверх CEFR. */
+const LANG_EXAMS: Record<string, string[]> = {
+  english: ['ЕГЭ', 'ОГЭ', 'IELTS', 'TOEFL'],
+  portuguese: ['CELPE-Bras'],
+}
+
+/**
+ * Русский и литература помечены isLanguage (у них языковая палитра заданий), но
+ * учатся по школьной программе: CEFR им не нужен, нужен ЕГЭ/ОГЭ.
+ */
+const SCHOOL_LANGUAGES = new Set(['russian', 'literature'])
+
+/** Меряется ли предмет языковыми ступенями (CEFR и родная шкала), а не ЕГЭ/ОГЭ. */
+export function usesLanguageLevels(subject: string | undefined | null): boolean {
+  const def = getSubject(subject)
+  return !!def?.isLanguage && !SCHOOL_LANGUAGES.has(def.id)
+}
+
+/**
+ * Уровни для выбора при создании группы / карточки 1:1 / курса.
+ * Неизвестный предмет (или пустой) → школьный набор, как было раньше.
+ */
+export function levelOptionsForSubject(subject: string | undefined | null): string[] {
+  const def = getSubject(subject)
+  if (!def || !usesLanguageLevels(subject)) return SCHOOL_LEVELS
+  return [
+    ...CEFR,
+    ...(NATIVE_SCALE[def.id] ?? []),
+    ...(LANG_EXAMS[def.id] ?? []),
+    'Интенсив',
+  ]
 }
 
 /** Подходит ли курс под выбранный уровень. Пустой фильтр пропускает всё. */

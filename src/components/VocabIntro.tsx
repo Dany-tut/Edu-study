@@ -23,6 +23,7 @@ import { ChevronDown, Eye, EyeOff, Layers } from 'lucide-react'
 import type { HomeworkQuizQuestion } from '../data/lessonContent'
 import { useReadingVisible } from '../store/readingStore'
 import { useT } from '../lib/i18n'
+import { speechMs, speechText } from '../lib/speech'
 import AudioPlayer from './AudioPlayer'
 
 export default function VocabIntro({ words, accent, soft, defaultOpen }: {
@@ -35,6 +36,8 @@ export default function VocabIntro({ words, accent, soft, defaultOpen }: {
 }) {
   const t = useT()
   const [open, setOpen] = useState(defaultOpen)
+  /** Карточка, которая звучит прямо сейчас (одновременно звучит только одна). */
+  const [speakingId, setSpeakingId] = useState<string | null>(null)
   const { visible: readingVisible, toggle: toggleReading } = useReadingVisible()
 
   if (words.length === 0) return null
@@ -110,13 +113,20 @@ export default function VocabIntro({ words, accent, soft, defaultOpen }: {
                 display: 'grid', gap: 10,
                 gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))',
               }}>
-                {words.map(w => (
+                {words.map(w => {
+                  const face = w.front || w.prompt
+                  const tts = speechText(face)
+                  const speaking = speakingId === w.id
+                  return (
                   <div
                     key={w.id}
                     style={{
+                      position: 'relative', overflow: 'hidden',
                       display: 'flex', flexDirection: 'column', gap: 4,
                       padding: '12px 14px', borderRadius: 16,
-                      border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-input)',
+                      border: `1px solid ${speaking ? accent : 'var(--color-border-soft)'}`,
+                      background: 'var(--color-bg-input)',
+                      transition: 'border-color .18s ease',
                     }}
                   >
                     {w.image && (
@@ -128,18 +138,42 @@ export default function VocabIntro({ words, accent, soft, defaultOpen }: {
                     )}
                     <div className="flex items-center" style={{ gap: 8 }}>
                       <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.25 }}>
-                        {w.front || w.prompt}
+                        {face}
                       </span>
                       <span style={{ marginLeft: 'auto', flexShrink: 0 }}>
-                        <AudioPlayer ttsText={w.front || w.prompt} lang={w.lang} compact />
+                        <AudioPlayer
+                          ttsText={tts}
+                          lang={w.lang}
+                          compact
+                          onPlayingChange={p => setSpeakingId(cur => (p ? w.id : cur === w.id ? null : cur))}
+                        />
                       </span>
                     </div>
                     {readingVisible && w.reading && (
                       <span style={{ fontSize: 12, color: 'var(--color-muted)', fontWeight: 600 }}>{w.reading}</span>
                     )}
                     <span style={{ fontSize: 14, color: 'var(--color-text-2)' }}>{w.back}</span>
+
+                    {/* Индикатор озвучки: линия по низу карточки заполняется, пока
+                        слово произносится. Анимация чисто CSS — rAF в превью не
+                        срабатывает, а этот индикатор должен работать везде. */}
+                    {speaking && (
+                      <span
+                        aria-hidden
+                        style={{
+                          position: 'absolute', left: 0, right: 0, bottom: 0, height: 3,
+                          background: soft, overflow: 'hidden',
+                        }}
+                      >
+                        <span
+                          className="vocab-speak-fill"
+                          style={{ background: accent, animationDuration: `${speechMs(tts)}ms` }}
+                        />
+                      </span>
+                    )}
                   </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </motion.div>

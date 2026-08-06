@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { SUBJECT_ICON_MAP } from '../../lib/subjects'
+import { levelOptionsForSubject } from '../../lib/courseLevels'
 import NewStudentConfig from '../../components/teacher/NewStudentConfig'
 import GroupStrip, { type TabConfig } from '../../components/teacher/GroupStrip'
 import {
@@ -114,7 +115,13 @@ function AddGroupModal({ onClose, onSave }: {
 
           <TeacherSelect
             value={subject}
-            onChange={v => { setSubject(v); setIcon(subjectIcons[v] ?? '📚') }}
+            onChange={v => {
+              setSubject(v)
+              setIcon(subjectIcons[v] ?? '📚')
+              // Шкала уровней у нового предмета своя: «ЕГЭ» на корейском или «B1»
+              // на химии остались бы висеть мусором — чистим несовместимое.
+              if (level && !levelOptionsForSubject(v).includes(level)) setLevel('')
+            }}
             placeholder={t('Предмет')}
             options={Object.keys(subjectIcons).map(o => ({ value: o, label: t(o) }))}
             triggerStyle={selectTriggerStyle}
@@ -124,7 +131,7 @@ function AddGroupModal({ onClose, onSave }: {
             value={level}
             onChange={setLevel}
             placeholder={t('Уровень')}
-            options={['ЕГЭ', 'ОГЭ', 'Олимпиада', 'Школа', 'Интенсив'].map(o => ({ value: o, label: t(o) }))}
+            options={levelOptionsForSubject(subject).map(o => ({ value: o, label: t(o) }))}
             triggerStyle={selectTriggerStyle}
           />
 
@@ -361,8 +368,15 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
           display: 'flex', flexDirection: 'column',
         }}
       >
-        <div style={{ overflowY: 'auto', padding: 28 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        {/* On the config step the footer button stays put and only the list scrolls,
+            so the shell must clip instead of scrolling as a whole. */}
+        <div style={{
+          padding: 28, minHeight: 0,
+          ...(step === 'config'
+            ? { overflow: 'hidden', display: 'flex', flexDirection: 'column' }
+            : { overflowY: 'auto' }),
+        }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexShrink: 0 }}>
           <span style={{ fontSize: 16, fontWeight: 700 }}>{step === 'config' ? t('Настройка ученика') : step === 'link' ? t('Ученик добавлен') : t('Новый ученик')}</span>
           <button onClick={onClose} aria-label={t('Закрыть')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
         </div>
@@ -481,8 +495,6 @@ const selectTriggerStyle: React.CSSProperties = {
 }
 const SUBJECT_ICONS = SUBJECT_ICON_MAP
 
-const LEVEL_OPTIONS = ['ЕГЭ', 'ОГЭ', 'Олимпиада', 'Школа', 'Интенсив']
-
 const INDIV_COLORS = [
   { color: 'var(--color-purple)', soft: '#EFE0FF' },
   { color: '#6DBB9A', soft: '#DAF2E8' },
@@ -512,10 +524,20 @@ function TrackFields({
       {/* Основное направление */}
       <div style={{ display: 'flex', gap: 8 }}>
         <div style={{ flex: 1 }}>
-          <TeacherSelect value={subject} onChange={onSubject} placeholder={t('Предмет')} options={Object.keys(SUBJECT_ICONS).map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
+          <TeacherSelect
+            value={subject}
+            onChange={v => {
+              onSubject(v)
+              // Шкала уровней у нового предмета своя — несовместимый выбор чистим.
+              if (level && !levelOptionsForSubject(v).includes(level)) onLevel('')
+            }}
+            placeholder={t('Предмет')}
+            options={Object.keys(SUBJECT_ICONS).map(o => ({ value: o, label: t(o) }))}
+            triggerStyle={selectTriggerStyle}
+          />
         </div>
         <div style={{ flex: 1 }}>
-          <TeacherSelect value={level} onChange={onLevel} placeholder={t('Уровень')} options={LEVEL_OPTIONS.map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
+          <TeacherSelect value={level} onChange={onLevel} placeholder={t('Уровень')} options={levelOptionsForSubject(subject).map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
         </div>
       </div>
 
@@ -523,10 +545,19 @@ function TrackFields({
       {tracks.map((tr, i) => (
         <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <div style={{ flex: 1 }}>
-            <TeacherSelect value={tr.subject} onChange={v => setTrack(i, { subject: v })} placeholder={t('Предмет')} options={Object.keys(SUBJECT_ICONS).map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
+            <TeacherSelect
+              value={tr.subject}
+              onChange={v => setTrack(i, {
+                subject: v,
+                ...(tr.level && !levelOptionsForSubject(v).includes(tr.level) ? { level: '' } : {}),
+              })}
+              placeholder={t('Предмет')}
+              options={Object.keys(SUBJECT_ICONS).map(o => ({ value: o, label: t(o) }))}
+              triggerStyle={selectTriggerStyle}
+            />
           </div>
           <div style={{ flex: 1 }}>
-            <TeacherSelect value={tr.level} onChange={v => setTrack(i, { level: v })} placeholder={t('Уровень')} options={LEVEL_OPTIONS.map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
+            <TeacherSelect value={tr.level} onChange={v => setTrack(i, { level: v })} placeholder={t('Уровень')} options={levelOptionsForSubject(tr.subject).map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
           </div>
           <button
             type="button" onClick={() => removeTrack(i)} title={t('Убрать направление')}
@@ -640,8 +671,15 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
           display: 'flex', flexDirection: 'column',
         }}
       >
-        <div style={{ overflowY: 'auto', padding: 28 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        {/* On the config step the footer button stays put and only the list scrolls,
+            so the shell must clip instead of scrolling as a whole. */}
+        <div style={{
+          padding: 28, minHeight: 0,
+          ...(step === 'config'
+            ? { overflow: 'hidden', display: 'flex', flexDirection: 'column' }
+            : { overflowY: 'auto' }),
+        }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexShrink: 0 }}>
           <span style={{ fontSize: 16, fontWeight: 700 }}>{step === 'config' ? t('Настройка ученика') : step === 'link' ? t('Ученик добавлен') : t('Новый ученик 1:1')}</span>
           <button onClick={onClose} aria-label={t('Закрыть')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}><X size={18} /></button>
         </div>
@@ -1492,10 +1530,19 @@ function TracksSection({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <div style={{ flex: 1 }}>
-                <TeacherSelect value={subject} onChange={setSubject} placeholder={t('Предмет')} options={Object.keys(SUBJECT_ICONS).map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
+                <TeacherSelect
+                  value={subject}
+                  onChange={v => {
+                    setSubject(v)
+                    if (level && !levelOptionsForSubject(v).includes(level)) setLevel('')
+                  }}
+                  placeholder={t('Предмет')}
+                  options={Object.keys(SUBJECT_ICONS).map(o => ({ value: o, label: t(o) }))}
+                  triggerStyle={selectTriggerStyle}
+                />
               </div>
               <div style={{ flex: 1 }}>
-                <TeacherSelect value={level} onChange={setLevel} placeholder={t('Уровень')} options={LEVEL_OPTIONS.map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
+                <TeacherSelect value={level} onChange={setLevel} placeholder={t('Уровень')} options={levelOptionsForSubject(subject).map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
               </div>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
@@ -1915,7 +1962,7 @@ export default function TeacherGroupsPage() {
   // the teacher must never lose an in-progress form to a tab switch/reload.
   const [showAddGroup, setShowAddGroup] = usePersistentState('groups.show.addGroup', false)
   const [showAddStudentPicker, setShowAddStudentPicker] = usePersistentState('groups.show.addStudentPicker', false)
-  const [showAddStudent, setShowAddStudent] = usePersistentState('groups.show.addStudent', false)
+  const [showAddStudent, setShowAddStudent] = usePersistentState('groups.show.addStudent', true)
   const [showAddIndividual, setShowAddIndividual] = usePersistentState('groups.show.addIndividual', false)
   const [showExistingIndiv, setShowExistingIndiv] = useState(false)  // existing person → new 1:1 card
   const [activeStripTab, setActiveStripTab] = useState<'groups' | 'students'>('groups')
@@ -2494,7 +2541,6 @@ export default function TeacherGroupsPage() {
           <AddExistingIndividualModal
             people={people}
             subjectOptions={Object.keys(SUBJECT_ICONS)}
-            levelOptions={LEVEL_OPTIONS}
             onCreate={createIndivForExisting}
             onClose={() => setShowExistingIndiv(false)}
           />

@@ -1,9 +1,9 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
 import {
-  CheckCircle2, ChevronLeft, CircleAlert, Clock, GraduationCap,
+  BookOpen, CheckCircle2, ChevronLeft, CircleAlert, Clock, GraduationCap,
   Lock, Send, Sparkles, Trophy, Image as ImageIcon, PenLine, X,
-  ChevronUp, ChevronDown,
+  ChevronUp, ChevronDown, Eye, MicOff, Home, RotateCcw, ArrowRight,
 } from 'lucide-react'
 import type { LessonHomework, HomeworkQuizQuestion } from '../data/lessonContent'
 import { normalizeTaskType } from '../data/taskTypeVisuals'
@@ -24,6 +24,8 @@ import { useStudentData, ownerStudentIdFor } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useT, t as tStatic } from '../lib/i18n'
+import { bindShortWords, proseWrap, balancedWrap, splitLeadIn } from '../lib/typography'
+import GrowTextarea, { growMinHeight } from './GrowTextarea'
 import QuestionTable from './QuestionTable'
 import WordBankSolver from './WordBankSolver'
 import AudioPlayer from './AudioPlayer'
@@ -32,9 +34,20 @@ import { sentenceTokens } from '../data/taskTypes'
 import { addCards, deckOwner } from '../data/reviewDeck'
 import { cardsFromHomework } from '../lib/reviewCapture'
 import VocabIntro from './VocabIntro'
+import TheorySheet from './TheorySheet'
 import { useReadingVisible } from '../store/readingStore'
+import { findLessonById, getLessonDetail } from '../data/lessonContent'
 import HardStarLottie from './HardStarLottie'
 import PartyPopperLottie from './PartyPopperLottie'
+
+/**
+ * Поле ответа в домашке обнимает текст: высота = содержимому, внутреннего
+ * скролла нет. Соответствия и развёрнутые ответы уезжали под нижний край
+ * поля — чтобы перечитать свой же ответ, приходилось скроллить внутри него.
+ * Дно — четыре строки: пустое поле должно выглядеть как место под ответ, а не
+ * как строчка. Уголок ручного ресайза убран (resize внутри GrowTextarea).
+ */
+const HW_ANSWER_MIN_H = growMinHeight(4, 14, 12, 1)
 
 // ─── Emoji self-assessment ────────────────────────────────────────────────
 
@@ -540,7 +553,28 @@ interface PersistedHomeworkState {
   hardTaskDrafts: Record<string, HardTaskDraft>
   basicSubmitted: boolean
   selfAssessmentValue: number | null
+  /**
+   * Задания, проверенные по кнопке «Проверить» — до сдачи всей домашки.
+   *
+   * Одиночный выбор проверялся мгновенно с самого начала, а всё, что печатается
+   * (карточка, диктант, сборка предложения), молчало до конца домашки: ученик
+   * узнавал про ошибку через двадцать заданий, когда вспомнить своё рассуждение
+   * уже нельзя. Здесь лежат id заданий, по которым разбор открыт досрочно.
+   */
+  basicChecked: Record<string, true>
+  /**
+   * Задания, где ученик открыл ответ подсказкой. Считаются как незнание: балл
+   * не начисляется, слово уезжает в колоду повторения.
+   */
+  basicHints: Record<string, true>
 }
+
+/**
+ * Ответ на устное задание, когда записать голос негде (нет микрофона, ночь,
+ * общий кабинет). Не пустая строка — иначе задание висит неотвеченным и не
+ * даёт сдать домашку; отдельный маркер — чтобы отличать от настоящей записи.
+ */
+const NO_VOICE = '__novoice__'
 
 const emptyDraft = (): HardTaskDraft => ({ answer: '', photos: [], board: null })
 
@@ -561,6 +595,59 @@ const formatEstimatedTime = (minutes: number) => `~${minutes} ${tStatic('мин'
 
 function getStorageKey(lessonId: string) {
   return `student-dashboard:homework:${lessonId}`
+}
+
+// ─── Части домашки ───────────────────────────────────────────────────────────
+//
+// Домашка языкового юнита — это семь заданий плюс десять словарных карточек, и
+// сплошной простынёй она читается как сорок минут работы, которых у ученика
+// между парами нет. Части — это не новая механика, а видимые точки остановки:
+// ответы и так сохраняются на каждом клике, но пока список был неразмеченным,
+// понять «докуда я дошёл и где можно закончить» было нельзя.
+const SECTION_SIZE = 5
+
+/** Заголовок части: номер, объём и сколько в ней уже сделано. */
+function SectionHeader({ part, count, done, accent }: {
+  part: number
+  count: number
+  done: number
+  accent: string
+}) {
+  const t = useT()
+  const complete = done === count
+  return (
+    <div className="flex items-center" style={{ gap: 10, padding: '2px 6px' }}>
+      <span style={{ fontSize: 13, fontWeight: 800, color: accent, letterSpacing: 0.2 }}>
+        {t('Часть')} {part}
+      </span>
+      <span style={{ flex: 1, height: 1, background: 'var(--color-border-soft)' }} />
+      <span style={{
+        fontSize: 12, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+        color: complete ? 'var(--color-green-text)' : 'var(--color-muted)',
+      }}>
+        {done} / {count}
+      </span>
+    </div>
+  )
+}
+
+/** Полоса-чекпоинт после пройденной части — явное разрешение остановиться. */
+function SectionCheckpoint({ part }: { part: number }) {
+  const t = useT()
+  return (
+    <div
+      className="flex items-center"
+      style={{
+        gap: 10, padding: '12px 16px', borderRadius: 18,
+        background: 'var(--color-green-soft)', border: '1px solid rgba(110,231,160,0.42)',
+      }}
+    >
+      <CheckCircle2 size={16} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
+      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', lineHeight: 1.45 }}>
+        {t('Часть')} {part} {t('пройдена. Ответы сохранены — можно закрыть и вернуться позже.')}
+      </span>
+    </div>
+  )
 }
 
 // ─── Generalized basic-level grading ─────────────────────────────────────────
@@ -654,6 +741,31 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
   return false
 }
 
+// ─── Формулировка вопроса ────────────────────────────────────────────────────
+//
+// «Прочитайте вслух: 아이, 우유, 나무» — инструкция и материал набраны одним
+// кеглем и весом, и глаз не отличает, что делать, от того, с чем это делать.
+// Инструкция уходит наверх мелкой строкой, материал остаётся крупным: читать
+// его, а не задание. Если двоеточия нет — обычный заголовок, без выдумок.
+function QuestionPrompt({ prompt }: { prompt: string }) {
+  const parts = useMemo(() => splitLeadIn(prompt), [prompt])
+  const bodyStyle: React.CSSProperties = {
+    fontSize: 18, lineHeight: 1.35, fontWeight: 720, color: 'var(--color-text)', ...proseWrap,
+  }
+  if (!parts) return <h4 style={bodyStyle}>{bindShortWords(prompt)}</h4>
+  return (
+    <h4 style={bodyStyle}>
+      <span style={{
+        display: 'block', fontSize: 13, fontWeight: 650, lineHeight: 1.4,
+        color: 'var(--color-text-2)', marginBottom: 3, ...balancedWrap,
+      }}>
+        {bindShortWords(parts.lead)}
+      </span>
+      {bindShortWords(parts.body)}
+    </h4>
+  )
+}
+
 // ─── Sequence solver ─────────────────────────────────────────────────────────
 // Items are presented shuffled (deterministic alphabetical order) and the student
 // reorders them. The answer is the current arrangement as a list of authored
@@ -714,6 +826,74 @@ function SequenceSolver({ items, value, disabled, showVerdict, onChange }: {
   )
 }
 
+// ─── Устный ответ ────────────────────────────────────────────────────────────
+//
+// Запись голоса плюс честный выход из неё. Микрофона может не быть вовсе (чужой
+// компьютер, запрет в браузере), а домашка при этом не сдавалась: устное задание
+// оставалось неотвеченным и держало кнопку «Сдать». Отказ пишется в ответ
+// отдельным маркером — задание уходит преподавателю с пометкой «без записи», а
+// не притворяется выполненным.
+function VoiceAnswer({ value, maxSeconds, disabled, onChange }: {
+  value: string | undefined
+  maxSeconds: number
+  disabled: boolean
+  onChange: (v: string) => void
+}) {
+  const t = useT()
+  const skipped = value === NO_VOICE
+
+  if (skipped) {
+    return (
+      <div className="flex items-center flex-wrap" style={{
+        gap: 10, padding: '12px 14px', borderRadius: 16,
+        background: 'var(--color-yellow-soft)', border: '1px solid rgba(248,201,145,0.42)',
+      }}>
+        <MicOff size={16} style={{ color: 'var(--color-yellow-text)', flexShrink: 0 }} />
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', lineHeight: 1.45 }}>
+          {t('Записи не будет — преподаватель увидит пометку и спросит это на уроке.')}
+        </span>
+        {!disabled && (
+          <button
+            onClick={() => onChange('')}
+            className="cursor-pointer"
+            style={{
+              marginLeft: 'auto', border: 'none', background: 'var(--color-bg-3)', borderRadius: 999,
+              height: 30, padding: '0 14px', fontFamily: 'inherit', fontSize: 12.5,
+              fontWeight: 700, color: 'var(--color-muted)',
+            }}
+          >
+            {t('Всё-таки записать')}
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col" style={{ gap: 10 }}>
+      <VoiceRecorder
+        value={value || null}
+        maxSeconds={maxSeconds}
+        onChange={path => onChange(path ?? '')}
+      />
+      {!value && !disabled && (
+        <button
+          onClick={() => onChange(NO_VOICE)}
+          className="flex items-center cursor-pointer"
+          style={{
+            alignSelf: 'flex-start', gap: 7, padding: '7px 14px', borderRadius: 999,
+            border: '1px solid var(--color-border)', background: 'transparent',
+            color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700,
+          }}
+        >
+          <MicOff size={14} />
+          {t('Не могу записать сейчас')}
+        </button>
+      )}
+    </div>
+  )
+}
+
 // ─── Table solver ────────────────────────────────────────────────────────────
 // Renders the reference table; cells marked «пусто» become inputs the student
 // fills. Answers are stored as a JSON map "r,c" → value (teacher-reviewed).
@@ -741,6 +921,8 @@ function getInitialState(): PersistedHomeworkState {
     hardTaskDrafts: {},
     basicSubmitted: false,
     selfAssessmentValue: null,
+    basicChecked: {},
+    basicHints: {},
   }
 }
 
@@ -783,6 +965,7 @@ export default function HomeworkFlow({
     }
   })
   const [showResultModal, setShowResultModal] = useState<'basic' | 'hard' | null>(null)
+  const [showTheory, setShowTheory] = useState(false)
   const photoInputRef = useRef<HTMLInputElement>(null)
   const [showBoard, setShowBoard] = useState(false)
   // Определения сложных заданий (per-task), назначенных на этот урок группе ученика.
@@ -888,12 +1071,46 @@ export default function HomeworkFlow({
     () => basicQuestions.filter(q => qType(q) === 'flashcard' && !!q.back?.trim()),
     [basicQuestions],
   )
+  /**
+   * Индексы, с которых начинается новая часть домашки.
+   *
+   * Шаг ровный (SECTION_SIZE), но граница сдвигается вперёд, если попала внутрь
+   * группы вопросов к одному отрывку: текст показывается один раз на группу, и
+   * разрез оставил бы отрывок в предыдущей части, а вопросы к нему — в
+   * следующей. Короткая домашка на части не режется вовсе.
+   */
+  const sectionStarts = useMemo(() => {
+    if (basicQuestions.length <= SECTION_SIZE) return []
+    const starts = [0]
+    for (let i = SECTION_SIZE; i < basicQuestions.length; i += SECTION_SIZE) {
+      let at = i
+      while (
+        at < basicQuestions.length
+        && !!basicQuestions[at].passage
+        && basicQuestions[at].passage === basicQuestions[at - 1]?.passage
+      ) at++
+      if (at < basicQuestions.length && at !== starts[starts.length - 1]) starts.push(at)
+    }
+    return starts
+  }, [basicQuestions])
+
+  // Конспект урока для шторки «Правило». Берётся из того же источника, что и
+  // страница урока, поэтому второй копии текста не появляется. Урока может не
+  // быть в каталоге (назначенное ДЗ вне курса) — тогда кнопки просто нет.
+  const theoryParagraphs = useMemo(() => {
+    const lesson = findLessonById(lessonId)
+    return lesson ? getLessonDetail(lesson).paragraphs : []
+  }, [lessonId])
   const answeredCount = basicQuestions.filter(question => questionAnswered(question, state.basicAnswers[question.id])).length
   const basicCompleted = basicQuestions.length > 0 && answeredCount === basicQuestions.length
 
+  // Подсмотренное подсказкой не идёт в балл: ученик увидел ответ до того, как
+  // вспомнил его сам, и засчитывать это как знание — врать в первую очередь ему.
   const basicCorrectCount = useMemo(() => {
-    return basicQuestions.filter(question => questionCorrect(question, state.basicAnswers[question.id])).length
-  }, [basicQuestions, state.basicAnswers])
+    return basicQuestions.filter(question =>
+      !state.basicHints[question.id] && questionCorrect(question, state.basicAnswers[question.id])
+    ).length
+  }, [basicQuestions, state.basicAnswers, state.basicHints])
   // Score over the auto-gradable subset (choice + text/fill with an эталон),
   // mirroring TestFlow. When nothing is auto-gradable (all teacher-reviewed),
   // submitting the answers counts as a full pass so the hard level can open.
@@ -961,6 +1178,9 @@ export default function HomeworkFlow({
       basicQuestions
         .filter(q => {
           const ans = state.basicAnswers[q.id]
+          // Подсмотренное подсказкой — тоже «не знал», и в колоду идёт наравне
+          // с ошибкой: именно эти слова и нужно повторить.
+          if (state.basicHints[q.id]) return true
           return questionAnswered(q, ans) && questionAutoGradable(q) && !questionCorrect(q, ans)
         })
         .map(q => q.id),
@@ -1099,6 +1319,58 @@ export default function HomeworkFlow({
     }))
   }
 
+  /**
+   * Досрочная проверка одного задания.
+   *
+   * Разбор открывается там же, где ученик только что печатал ответ, — вместе с
+   * эталоном и пояснением. Ответ после этого фиксируется: иначе «Проверить»
+   * превращается в подбор до зелёной рамки.
+   */
+  const checkQuestion = (questionId: string) => {
+    const question = basicQuestions.find(item => item.id === questionId)
+    if (!question || state.basicSubmitted || state.basicChecked[questionId]) return
+    const correct = questionCorrect(question, state.basicAnswers[questionId])
+    playPop()
+    vibrate(correct ? [10, 30, 10] : 22)
+    setState(current => ({
+      ...current,
+      basicChecked: { ...current.basicChecked, [questionId]: true },
+    }))
+  }
+
+  /**
+   * Подсказка по заданию — ответ открывается прямо здесь, а не в словаре наверху.
+   *
+   * До этого единственным способом вспомнить слово было пролистать домашку к
+   * блоку «Слова урока», где лежат все переводы разом: подглядывание ничего не
+   * стоило и не оставляло следа. Здесь оно стоит балла (см. basicCorrectCount) и
+   * отправляет слово в колоду повторения.
+   */
+  const revealHint = (questionId: string) => {
+    if (state.basicSubmitted || state.basicHints[questionId]) return
+    vibrate(14)
+    setState(current => ({
+      ...current,
+      basicHints: { ...current.basicHints, [questionId]: true },
+    }))
+  }
+
+  /** Текст подсказки/эталона — то же, с чем сверяется автопроверка. */
+  const hintFor = (question: HomeworkQuizQuestion): string => {
+    const tp = qType(question)
+    if (tp === 'flashcard') return question.back?.trim() ?? ''
+    if (tp === 'listenType') return question.referenceAnswer?.trim() ?? ''
+    if (tp === 'wordBank' || tp === 'listenBank') return question.sentence?.trim() ?? ''
+    if (tp === 'minimalPair') return (question.correctPair === 'B' ? question.pairB : question.pairA) ?? ''
+    if (tp === 'fill' || tp === 'extended') return question.referenceAnswer?.trim() ?? ''
+    return ''
+  }
+
+  /** Прокрутка к заданию — из итогов и из чипсов с номерами ошибок. */
+  const jumpToQuestion = (questionId: string) => {
+    questionSectionRefs.current[questionId]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+
   const levelLabel = selectedLevel === 'basic' ? basicLevel.title : hardLevel.title
 
   // Glass recipe for the docked top-line pills — matched to the lesson page so
@@ -1110,6 +1382,31 @@ export default function HomeworkFlow({
     WebkitBackdropFilter: 'blur(14px) saturate(180%)',
     boxShadow: 'var(--shadow-lg)',
   } as const
+
+  /**
+   * Кнопка «Правило» — вход в конспект, не выходя из заданий.
+   *
+   * Рисуется и в обычной строке шапки, и в приклеенной: ученик спотыкается на
+   * середине списка, когда обычная строка уже уехала вверх, и именно там кнопка
+   * нужнее всего. Нет конспекта — нет и кнопки, пустая шторка бесполезна.
+   */
+  const theoryButton = (docked: boolean) => theoryParagraphs.length > 0 && (
+    <motion.button
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.96 }}
+      onClick={() => setShowTheory(true)}
+      className="flex items-center justify-center cursor-pointer flex-shrink-0"
+      style={{
+        gap: 6, padding: isMobile ? 9 : '9px 16px 9px 12px', borderRadius: 999,
+        ...(docked ? dockGlass : { border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb), 0.96)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }),
+        color: palette.text, fontSize: 14, fontWeight: 600,
+        ...(docked ? { pointerEvents: 'auto' as const } : {}),
+      }}
+    >
+      <BookOpen size={17} />
+      {!isMobile && t('Правило')}
+    </motion.button>
+  )
 
   const levelPill = (compact: boolean) => (
     <span
@@ -1154,6 +1451,14 @@ export default function HomeworkFlow({
         />
       )}
     </AnimatePresence>
+    <TheorySheet
+      open={showTheory}
+      onClose={() => setShowTheory(false)}
+      lessonTitle={lessonTitle}
+      paragraphs={theoryParagraphs}
+      accent={palette.accent}
+      soft={palette.soft}
+    />
     <div className="flex flex-col" style={{ gap: 18 }}>
       {/* Rest-state Back / title / level row — in the scroll flow; fades out as
           the page docks onto the topbar line. */}
@@ -1187,7 +1492,7 @@ export default function HomeworkFlow({
           {!isMobile && levelPill(false)}
         </h1>
 
-        {!isMobile && <div className="flex-shrink-0" style={{ width: 92 }} />}
+        {theoryButton(false)}
       </motion.div>
 
       {/* Docked twin — fixed at the topbar line so the Back/title pills sit ON
@@ -1253,6 +1558,8 @@ export default function HomeworkFlow({
               </span>
               {!isMobile && levelPill(true)}
             </div>
+
+            {theoryButton(true)}
 
             <div style={{ flexGrow: 1, flexBasis: 0 }} />
           </motion.div>
@@ -1488,20 +1795,85 @@ export default function HomeworkFlow({
                 defaultOpen={!state.basicSubmitted}
               />
 
+              {/* Возврат на место. Ответы переживают закрытие вкладки, но ученик
+                  всё равно приземлялся в начало списка и искал, докуда дошёл. */}
+              {!state.basicSubmitted && answeredCount > 0 && !basicCompleted && (
+                <button
+                  onClick={() => {
+                    const next = basicQuestions.find(q => !questionAnswered(q, state.basicAnswers[q.id]))
+                    questionSectionRefs.current[next?.id ?? '']?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                  }}
+                  className="flex items-center cursor-pointer"
+                  style={{
+                    gap: 10, padding: '13px 18px', borderRadius: 18, textAlign: 'left',
+                    border: `1px solid ${palette.accent}`, background: palette.soft,
+                    color: palette.text, fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
+                  }}
+                >
+                  <Clock size={16} style={{ flexShrink: 0 }} />
+                  {t('Продолжить с задания')} {basicQuestions.findIndex(q => !questionAnswered(q, state.basicAnswers[q.id])) + 1}
+                  <span style={{ fontWeight: 500, opacity: 0.75 }}>
+                    · {answeredCount} {t('из')} {basicQuestions.length} {t('сделано')}
+                  </span>
+                </button>
+              )}
+
               {basicQuestions.map((question, index) => {
                 const selectedAnswer = state.basicAnswers[question.id]
                 const isChoice = questionIsChoice(question)
                 const answered = questionAnswered(question, selectedAnswer)
                 const autoGradable = questionAutoGradable(question)
-                // Choice locks + grades on click; free-text reveals its verdict
-                // only after the whole homework is submitted.
-                const graded = answered && (isChoice || state.basicSubmitted)
-                const isCorrect = questionCorrect(question, selectedAnswer)
-                const showVerdict = graded && autoGradable
+                // Одиночный выбор проверяется самим нажатием (ответ фиксируется
+                // сразу), всё остальное — кнопкой «Проверить» или сдачей домашки.
+                const singleChoice = isChoice && !questionIsMulti(question)
+                const hinted = !!state.basicHints[question.id]
+                const checked = !!state.basicChecked[question.id]
+                  || (singleChoice && answered)
+                  || state.basicSubmitted
+                // Пока задание не проверено — поле остаётся редактируемым.
+                const locked = checked
+                const graded = answered && checked
+                const isCorrect = !hinted && questionCorrect(question, selectedAnswer)
+                const showVerdict = graded && autoGradable && !hinted
                 const showReview = graded && !autoGradable
+                // «Проверить» появляется, когда есть что проверять: ответ введён,
+                // машина умеет его сверить, разбор ещё не открыт.
+                const canCheck = autoGradable && answered && !checked && !state.basicSubmitted
+                const hintText = hintFor(question)
+                const canHint = !!hintText && autoGradable && !hinted && !checked && !state.basicSubmitted
+
+                // Разметка частей. `partAt` — порядковый номер части, если этот
+                // вопрос её открывает; `partEnd` — индекс последнего вопроса
+                // части, по нему решается, ставить ли чекпоинт.
+                const partIdx = sectionStarts.length
+                  ? sectionStarts.filter(s => s <= index).length - 1
+                  : -1
+                const partStart = partIdx >= 0 ? sectionStarts[partIdx] : 0
+                const partEnd = partIdx >= 0
+                  ? (sectionStarts[partIdx + 1] ?? basicQuestions.length) - 1
+                  : basicQuestions.length - 1
+                const partQuestions = basicQuestions.slice(partStart, partEnd + 1)
+                const partDone = partQuestions.filter(q => questionAnswered(q, state.basicAnswers[q.id])).length
+                const opensPart = partIdx >= 0 && index === partStart
+                const closesPart = partIdx >= 0 && index === partEnd
+                // Чекпоинт только между частями и только до сдачи: после сдачи
+                // ученик читает разбор, и «можно вернуться позже» ему уже врёт.
+                const showCheckpoint = closesPart
+                  && partDone === partQuestions.length
+                  && partIdx < sectionStarts.length - 1
+                  && !state.basicSubmitted
+
                 return (
+                  <React.Fragment key={question.id}>
+                  {opensPart && (
+                    <SectionHeader
+                      part={partIdx + 1}
+                      count={partQuestions.length}
+                      done={partDone}
+                      accent={palette.accent}
+                    />
+                  )}
                   <section
-                    key={question.id}
                     ref={el => { questionSectionRefs.current[question.id] = el }}
                     className="flex flex-col"
                     style={{
@@ -1530,8 +1902,8 @@ export default function HomeworkFlow({
                             {question.passageTitle}
                           </p>
                         )}
-                        <div style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--color-text)', whiteSpace: 'pre-wrap' }}>
-                          {question.passage}
+                        <div style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--color-text)', whiteSpace: 'pre-wrap', ...proseWrap }}>
+                          {bindShortWords(question.passage)}
                         </div>
                         {/* Перевод — только после ответа, иначе читать оригинал незачем. */}
                         {question.passageTranslation && state.basicSubmitted && (
@@ -1548,7 +1920,11 @@ export default function HomeworkFlow({
                     )}
 
                     <div className="flex flex-wrap items-start justify-between" style={{ gap: 12 }}>
-                      <div>
+                      {/* Колонка вопроса тянется и сжимается, плашка справа —
+                          нет: без этого длинная формулировка выталкивала плашку
+                          на свою строку, а короткая оставляла посреди карточки
+                          дыру. */}
+                      <div style={{ flex: '1 1 260px', minWidth: 0 }}>
                         <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', marginBottom: 6 }}>
                           {t('Вопрос')} {index + 1}
                         </p>
@@ -1559,9 +1935,7 @@ export default function HomeworkFlow({
                             подписи задания к слову приписано чтение — «우유
                             (uyu)», — и точное сравнение с ним не сходится. */}
                         {!(qType(question) === 'flashcard' && !!question.front && question.prompt.startsWith(question.front)) && (
-                          <h4 style={{ fontSize: 18, lineHeight: 1.35, fontWeight: 720, color: 'var(--color-text)' }}>
-                            {question.prompt}
-                          </h4>
+                          <QuestionPrompt prompt={question.prompt} />
                         )}
                         {/* Картинка условия. У словарной карточки она рисуется
                             на самой карточке (ниже), поэтому здесь пропускается —
@@ -1579,6 +1953,20 @@ export default function HomeworkFlow({
                         )}
                       </div>
 
+                      {hinted && (
+                        <div
+                          className="flex items-start"
+                          style={{
+                            gap: 8, padding: '9px 12px', borderRadius: 14,
+                            background: 'var(--color-yellow-soft)', color: 'var(--color-yellow-text)',
+                            fontSize: 13, fontWeight: 700, maxWidth: 220, lineHeight: 1.4,
+                            flexShrink: 0,
+                          }}
+                        >
+                          <Eye size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+                          <span style={balancedWrap}>{t('Подсказка')}</span>
+                        </div>
+                      )}
                       {showVerdict && (
                         <div
                           className="flex items-start"
@@ -1592,10 +1980,11 @@ export default function HomeworkFlow({
                             fontWeight: 700,
                             maxWidth: 220,
                             lineHeight: 1.4,
+                            flexShrink: 0,
                           }}
                         >
                           <CheckCircle2 size={16} style={{ flexShrink: 0, marginTop: 1 }} />
-                          <span>
+                          <span style={balancedWrap}>
                             {isCorrect ? t('Верно') : t('Неверно')}
                           </span>
                         </div>
@@ -1607,10 +1996,14 @@ export default function HomeworkFlow({
                             gap: 8, padding: '9px 12px', borderRadius: 14,
                             background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
                             fontSize: 13, fontWeight: 700, maxWidth: 220, lineHeight: 1.4,
+                            flexShrink: 0,
                           }}
                         >
                           <Send size={15} style={{ flexShrink: 0, marginTop: 1 }} />
-                          <span>{t('На проверке у преподавателя')}</span>
+                          {/* «На проверке у / преподавателя» с одиноким словом
+                              во второй строке — приклеиваем предлог и делим
+                              строки поровну. */}
+                          <span style={balancedWrap}>{bindShortWords(t('На проверке у преподавателя'))}</span>
                         </div>
                       )}
                     </div>
@@ -1625,15 +2018,16 @@ export default function HomeworkFlow({
                         const correct = multi
                           ? (question.correctOptionIds ?? []).includes(option.id)
                           : option.id === question.correctOptionId
-                        // Разбор верных/неверных показываем только после отправки —
-                        // иначе множественный выбор подсвечивал бы ответ на лету.
-                        const reveal = multi ? state.basicSubmitted : answered
+                        // Разбор верных/неверных у множественного выбора — только
+                        // по «Проверить» или после сдачи: иначе он подсвечивал бы
+                        // ответ на лету, пока набирается комбинация.
+                        const reveal = multi ? checked : answered
                         const wrongSelected = reveal && active && !correct
                         const correctSelected = reveal && correct
                         return (
                           <button
                             key={option.id}
-                            disabled={multi ? state.basicSubmitted : answered}
+                            disabled={multi ? locked : answered}
                             onClick={() => answerQuestion(index, question.id, option.id)}
                             className="cursor-pointer text-left"
                             style={{
@@ -1655,9 +2049,10 @@ export default function HomeworkFlow({
                               fontWeight: 600,
                               transition: 'all 0.18s ease',
                               opacity: answered && !correctSelected && !wrongSelected && !active ? 0.84 : 1,
+                              ...proseWrap,
                             }}
                           >
-                            {option.text}
+                            {bindShortWords(option.text)}
                           </button>
                         )
                       })}
@@ -1666,7 +2061,7 @@ export default function HomeworkFlow({
                     <SequenceSolver
                       items={question.sequenceItems!}
                       value={selectedAnswer}
-                      disabled={state.basicSubmitted}
+                      disabled={locked}
                       showVerdict={showVerdict}
                       onChange={v => setFreeAnswer(question.id, v)}
                     />
@@ -1674,7 +2069,7 @@ export default function HomeworkFlow({
                     <TableSolver
                       table={question.table}
                       value={selectedAnswer}
-                      disabled={state.basicSubmitted}
+                      disabled={locked}
                       onChange={v => setFreeAnswer(question.id, v)}
                     />
 
@@ -1698,7 +2093,7 @@ export default function HomeworkFlow({
                         tokens={sentenceTokens(question.sentence!)}
                         distractors={question.distractors ?? []}
                         value={parseWords(selectedAnswer)}
-                        disabled={state.basicSubmitted}
+                        disabled={locked}
                         onChange={words => setFreeAnswer(question.id, joinWords(words))}
                       />
                     </div>
@@ -1713,17 +2108,18 @@ export default function HomeworkFlow({
                         allowSlow={question.allowSlow}
                         lang={question.lang}
                       />
-                      <input
+                      <GrowTextarea
                         value={selectedAnswer ?? ''}
-                        onChange={e => setFreeAnswer(question.id, e.target.value)}
-                        disabled={state.basicSubmitted}
+                        onChange={v => setFreeAnswer(question.id, v)}
+                        disabled={locked}
+                        minHeight={HW_ANSWER_MIN_H}
                         placeholder={t('Запиши, что услышал…')}
                         style={{
                           width: '100%', boxSizing: 'border-box', padding: '12px 14px',
                           borderRadius: 16, fontFamily: 'inherit', fontSize: 14,
                           color: 'var(--color-text)', background: 'var(--color-bg-input)', outline: 'none',
                           border: `1px solid ${showVerdict ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'var(--color-border)'}`,
-                          opacity: state.basicSubmitted ? 0.85 : 1,
+                          opacity: locked ? 0.85 : 1,
                         }}
                       />
                     </div>
@@ -1746,7 +2142,7 @@ export default function HomeworkFlow({
                           return (
                             <button
                               key={side}
-                              disabled={state.basicSubmitted}
+                              disabled={locked}
                               onClick={() => setFreeAnswer(question.id, side)}
                               className="cursor-pointer"
                               style={{
@@ -1790,7 +2186,7 @@ export default function HomeworkFlow({
                             style={{ display: 'block', width: 148, maxWidth: '70%', borderRadius: 12, background: '#fff' }}
                           />
                         )}
-                        <span>{question.front || question.prompt}</span>
+                        <span style={proseWrap}>{question.front || bindShortWords(question.prompt)}</span>
                         {/* Чтение — по тумблеру из блока «Слова урока»: пока
                             ученик не читает письмо, оно опора, дальше помеха. */}
                         {readingVisible && question.reading && (
@@ -1802,14 +2198,14 @@ export default function HomeworkFlow({
                       <input
                         value={selectedAnswer ?? ''}
                         onChange={e => setFreeAnswer(question.id, e.target.value)}
-                        disabled={state.basicSubmitted}
+                        disabled={locked}
                         placeholder={t('Перевод…')}
                         style={{
                           width: '100%', boxSizing: 'border-box', padding: '12px 14px',
                           borderRadius: 16, fontFamily: 'inherit', fontSize: 14,
                           color: 'var(--color-text)', background: 'var(--color-bg-input)', outline: 'none',
                           border: `1px solid ${showVerdict ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'var(--color-border)'}`,
-                          opacity: state.basicSubmitted ? 0.85 : 1,
+                          opacity: locked ? 0.85 : 1,
                         }}
                       />
                       {showVerdict && !isCorrect && question.back && (
@@ -1821,10 +2217,11 @@ export default function HomeworkFlow({
 
                     /* Устный ответ: запись голоса. Проверяет учитель. */
                     ) : qType(question) === 'speaking' ? (
-                    <VoiceRecorder
-                      value={selectedAnswer || null}
+                    <VoiceAnswer
+                      value={selectedAnswer}
                       maxSeconds={question.responseSeconds ?? 120}
-                      onChange={path => setFreeAnswer(question.id, path ?? '')}
+                      disabled={state.basicSubmitted}
+                      onChange={v => setFreeAnswer(question.id, v)}
                     />
 
                     /* Описать картинку — письменно или голосом. */
@@ -1842,25 +2239,26 @@ export default function HomeworkFlow({
                         ))}
                       </div>
                       {question.responseMode === 'speak' ? (
-                        <VoiceRecorder
-                          value={selectedAnswer || null}
+                        <VoiceAnswer
+                          value={selectedAnswer}
                           maxSeconds={question.responseSeconds ?? 90}
-                          onChange={path => setFreeAnswer(question.id, path ?? '')}
+                          disabled={state.basicSubmitted}
+                          onChange={v => setFreeAnswer(question.id, v)}
                         />
                       ) : (
-                        <textarea
+                        <GrowTextarea
                           value={selectedAnswer ?? ''}
-                          onChange={e => setFreeAnswer(question.id, e.target.value)}
-                          disabled={state.basicSubmitted}
-                          rows={5}
+                          onChange={v => setFreeAnswer(question.id, v)}
+                          disabled={locked}
+                          minHeight={HW_ANSWER_MIN_H}
                           placeholder={t('Опиши, что видишь…')}
                           style={{
                             width: '100%', boxSizing: 'border-box', padding: '12px 14px',
-                            borderRadius: 16, resize: 'vertical', fontFamily: 'inherit',
-                            fontSize: 14, lineHeight: 1.5, color: 'var(--color-text)',
+                            borderRadius: 16, fontFamily: 'inherit',
+                            fontSize: 14, color: 'var(--color-text)',
                             background: 'var(--color-bg-input)', outline: 'none',
                             border: '1px solid var(--color-border)',
-                            opacity: state.basicSubmitted ? 0.85 : 1,
+                            opacity: locked ? 0.85 : 1,
                           }}
                         />
                       )}
@@ -1878,11 +2276,11 @@ export default function HomeworkFlow({
                           ))}
                         </div>
                       )}
-                      <textarea
+                      <GrowTextarea
                         value={selectedAnswer ?? ''}
-                        onChange={e => setFreeAnswer(question.id, e.target.value)}
-                        disabled={state.basicSubmitted}
-                        rows={qType(question) === 'fill' ? 2 : 4}
+                        onChange={v => setFreeAnswer(question.id, v)}
+                        disabled={locked}
+                        minHeight={HW_ANSWER_MIN_H}
                         placeholder={
                           qType(question) === 'fill' ? t('Впиши слово или фразу…')
                             : qType(question) === 'whiteboard' ? t('Опиши решение (рисунок на доске приложишь учителю)…')
@@ -1891,14 +2289,65 @@ export default function HomeworkFlow({
                         }
                         style={{
                           width: '100%', boxSizing: 'border-box', padding: '12px 14px',
-                          borderRadius: 16, resize: 'vertical', fontFamily: 'inherit',
-                          fontSize: 14, lineHeight: 1.5, color: 'var(--color-text)',
+                          borderRadius: 16, fontFamily: 'inherit',
+                          fontSize: 14, color: 'var(--color-text)',
                           background: 'var(--color-bg-input)', outline: 'none',
                           border: `1px solid ${showVerdict ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'var(--color-border)'}`,
-                          opacity: state.basicSubmitted ? 0.85 : 1,
+                          opacity: locked ? 0.85 : 1,
                         }}
                       />
                     </div>
+                    )}
+
+                    {/* Подсказка — ответ здесь же, не в словаре наверху. */}
+                    {hinted && !!hintText && (
+                      <div className="flex items-center" style={{
+                        gap: 10, padding: '11px 14px', borderRadius: 16,
+                        background: 'var(--color-yellow-soft)', border: '1px solid rgba(248,201,145,0.42)',
+                      }}>
+                        <Eye size={15} style={{ color: 'var(--color-yellow-text)', flexShrink: 0 }} />
+                        <span style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)' }}>
+                          {t('Ответ')}: <b style={{ color: 'var(--color-text)' }}>{hintText}</b>
+                          <span style={{ color: 'var(--color-muted)' }}> · {t('балл за это задание не начисляется, слово уйдёт на повторение')}</span>
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Проверка на месте: разбор сразу после ответа, а не через
+                        двадцать заданий, когда своё рассуждение уже не вспомнить. */}
+                    {(canCheck || canHint) && (
+                      <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
+                        {canCheck && (
+                          <motion.button
+                            whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
+                            onClick={() => checkQuestion(question.id)}
+                            className="flex items-center cursor-pointer"
+                            style={{
+                              gap: 8, padding: '10px 18px', borderRadius: 999, border: 'none',
+                              background: palette.accent, color: '#fff',
+                              fontFamily: 'inherit', fontSize: 13.5, fontWeight: 750,
+                            }}
+                          >
+                            <CheckCircle2 size={15} />
+                            {t('Проверить')}
+                          </motion.button>
+                        )}
+                        {canHint && (
+                          <button
+                            onClick={() => revealHint(question.id)}
+                            className="flex items-center cursor-pointer"
+                            style={{
+                              gap: 7, padding: '9px 15px', borderRadius: 999,
+                              border: '1px solid var(--color-border)', background: 'transparent',
+                              color: 'var(--color-muted)', fontFamily: 'inherit',
+                              fontSize: 12.5, fontWeight: 700,
+                            }}
+                          >
+                            <Eye size={14} />
+                            {t('Подсказка')}
+                          </button>
+                        )}
+                      </div>
                     )}
 
                     {showVerdict && !isChoice && !isCorrect && question.referenceAnswer && (
@@ -1935,6 +2384,8 @@ export default function HomeworkFlow({
                       </div>
                     )}
                   </section>
+                  {showCheckpoint && <SectionCheckpoint part={partIdx + 1} />}
+                  </React.Fragment>
                 )
               })}
               <motion.div

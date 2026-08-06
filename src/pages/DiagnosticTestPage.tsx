@@ -408,12 +408,16 @@ export default function DiagnosticTestPage() {
         </div>
 
         {/* Question */}
-        <AnimatePresence mode="wait">
+        {/* Ремоунт по key, без AnimatePresence: `mode="wait"` умеет навсегда
+            залипнуть (сигнал «выход завершён» теряется — см. onExit в
+            AnimatePresence/index.mjs), и вопрос встал бы пустым посреди теста —
+            до F5, с потерей ответов. Вопросы идут вперёд и не повторяются,
+            само не вылечится. Вложенные AnimatePresence оставлены: там
+            показ/скрытие, оно самовосстанавливается. */}
           <motion.div
             key={q.id}
             initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -24 }}
             transition={{ duration: 0.22 }}
           >
             {/* Section badge */}
@@ -572,7 +576,6 @@ export default function DiagnosticTestPage() {
               )}
             </AnimatePresence>
           </motion.div>
-        </AnimatePresence>
       </div>
     </div>
   )

@@ -729,12 +729,16 @@ function StroopSection({ cfg, step, labels, onComplete }: SectionProps<StroopCon
       </div>
 
       <Card style={{ marginBottom: 16 }}>
-        <AnimatePresence mode="wait">
+        {/* Ремоунт по key, без AnimatePresence: `mode="wait"` умеет навсегда
+            залипнуть (сигнал «выход завершён» теряется — см. onExit в
+            AnimatePresence/index.mjs), и проба встала бы пустой посреди
+            скрининга — до F5. Индекс только растёт, само не вылечится.
+            Тут это ещё и про данные: замер времени реакции на пустом экране
+            дал бы мусорный результат. */}
           <motion.div
             key={idx}
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.1 }}
             transition={{ duration: 0.18 }}
             style={{ textAlign: 'center', padding: '28px 0' }}
           >
@@ -742,7 +746,6 @@ function StroopSection({ cfg, step, labels, onComplete }: SectionProps<StroopCon
               {cfg.colors[trial.wordIdx]?.name}
             </span>
           </motion.div>
-        </AnimatePresence>
 
         <div style={{ minHeight: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {flash !== null && (

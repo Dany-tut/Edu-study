@@ -374,7 +374,202 @@ const KO: ReadingText[] = [
   },
 ]
 
-export const READING_LIBRARY: ReadingText[] = [...EN, ...KO]
+
+// ─── Японский: формат JLPT N5 ────────────────────────────────────────────────
+
+const JA: ReadingText[] = [
+  {
+    id: 'ja-notice-library',
+    lang: 'ja', title: 'としょかんの おしらせ (объявление в библиотеке)', level: 'JLPT N5', minutes: 2,
+    topic: 'Объявления', skill: 'Чтение',
+    origin: 'original',
+    body: `としょかんの おしらせ
+
+げつようび〜きんようび：あさ 9じ〜ゆうがた 6じ
+どようび：あさ 10じ〜ごご 4じ
+にちようび：やすみです
+
+ほんは 2しゅうかん かりることが できます。
+たべものは もって はいらないで ください。`,
+    translation: `Библиотека
+
+Понедельник — пятница: 9:00 — 18:00
+Суббота: 10:00 — 16:00
+Воскресенье: выходной
+
+Книги можно брать на 2 недели.
+С едой входить нельзя.`,
+    glossary: [
+      { term: 'としょかん', ru: 'библиотека' },
+      { term: 'おしらせ', ru: 'объявление' },
+      { term: 'やすみ', ru: 'выходной' },
+      { term: 'かりる', ru: 'брать напрокат' },
+      { term: '〜ことが できます', ru: 'можно (делать что-то)' },
+      { term: '〜ないで ください', ru: 'пожалуйста, не делайте' },
+    ],
+    questions: [
+      {
+        q: 'にちようびに としょかんへ いけますか。',
+        options: ['はい、いけます', 'いいえ、やすみです', 'ごぜんだけ いけます', 'おしらせに ありません'],
+        correct: 1,
+        why: '「にちようび：やすみです」 — прямо сказано, что воскресенье выходной.',
+      },
+      {
+        q: 'ほんは どのくらい かりることが できますか。',
+        options: ['1しゅうかん', '2しゅうかん', '1かげつ', '3にち'],
+        correct: 1,
+      },
+      {
+        q: 'どようびは なんじに おわりますか。',
+        options: ['ごご 4じ', 'ゆうがた 6じ', 'あさ 10じ', 'おわりません'],
+        correct: 0,
+      },
+    ],
+  },
+  {
+    id: 'ja-message-meet',
+    lang: 'ja', title: 'メッセージ (переписка)', level: 'JLPT N5', minutes: 2,
+    topic: 'Переписка', skill: 'Чтение',
+    origin: 'original',
+    body: `たなか：あした じかんが ありますか。
+リナ：すみません、あしたは しごとが おそいです。あさっては だいじょうぶです。
+たなか：じゃあ、あさって あいましょう。なにが たべたいですか。
+リナ：からいものは たべられません。ほかは だいじょうぶです。
+たなか：じゃあ、すしは どうですか。えきの まえに あたらしい みせが できました。
+リナ：いいですね。6じに えきの まえで あいましょう。`,
+    translation: `Танака: Завтра есть время?
+Рина: Извините, завтра работа поздно. Послезавтра нормально.
+Танака: Тогда встретимся послезавтра. Что хотите поесть?
+Рина: Острое не могу. Остальное нормально.
+Танака: Тогда как насчёт суши? Перед станцией новое место открылось.
+Рина: Отлично. Встретимся в 6 перед станцией.`,
+    glossary: [
+      { term: 'おそい', ru: 'поздний' },
+      { term: 'あさって', ru: 'послезавтра' },
+      { term: 'からい', ru: 'острый' },
+      { term: '〜られません', ru: 'не могу (делать)' },
+      { term: 'できました', ru: 'появилось, открылось' },
+    ],
+    questions: [
+      {
+        q: 'ふたりは いつ あいますか。',
+        options: ['きょう', 'あした', 'あさって', 'らいしゅう'],
+        correct: 2,
+        why: 'Рина не может завтра — договорились на послезавтра.',
+      },
+      {
+        q: 'リナさんは どうして あしたが だめですか。',
+        options: ['びょうきです', 'しごとが おそいです', 'りょこうです', 'やくそくが あります'],
+        correct: 1,
+      },
+      {
+        q: 'なにを たべますか。',
+        options: ['からいもの', 'すし', 'ラーメン', 'まだ わかりません'],
+        correct: 1,
+      },
+    ],
+  },
+]
+
+// ─── Бразильский португальский ───────────────────────────────────────────────
+
+const PT: ReadingText[] = [
+  {
+    id: 'pt-notice-gym',
+    lang: 'pt-BR', title: 'Aviso da academia (объявление в спортзале)', level: 'A1', minutes: 2,
+    topic: 'Объявления', skill: 'Чтение',
+    origin: 'original',
+    body: `AVISO — HORÁRIO DA ACADEMIA
+
+Segunda a sexta: 6h às 23h
+Sábado: 9h às 18h
+Domingo: fechado
+
+É obrigatório usar tênis.
+Só é permitido trazer água.
+O armário custa R$ 5 por dia.`,
+    translation: `Объявление — часы работы зала
+
+Понедельник — пятница: 6:00 — 23:00
+Суббота: 9:00 — 18:00
+Воскресенье: закрыто
+
+Обязательно в кроссовках.
+Проносить можно только воду.
+Шкафчик — 5 реалов в день.`,
+    glossary: [
+      { term: 'aviso', ru: 'объявление' },
+      { term: 'fechado', ru: 'закрыто' },
+      { term: 'é obrigatório', ru: 'обязательно' },
+      { term: 'tênis', ru: 'кроссовки' },
+      { term: 'só é permitido', ru: 'разрешено только' },
+      { term: 'armário', ru: 'шкафчик' },
+    ],
+    questions: [
+      {
+        q: 'A academia abre no domingo?',
+        options: ['Sim, o dia todo', 'Não, fica fechada', 'Só de manhã', 'O aviso não diz'],
+        correct: 1,
+      },
+      {
+        q: 'Posso levar café para a academia?',
+        options: ['Sim, pode', 'Não, só água', 'Só de manhã', 'O aviso não diz'],
+        correct: 1,
+      },
+      {
+        q: 'Quanto custa o armário?',
+        options: ['É de graça', 'R$ 5 por dia', 'R$ 5 por mês', 'O aviso não diz'],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'pt-message-plan',
+    lang: 'pt-BR', title: 'Mensagens (переписка)', level: 'A2', minutes: 2,
+    topic: 'Переписка', skill: 'Чтение',
+    origin: 'original',
+    body: `Bruno: oi! cê tá livre amanhã à noite?
+Carla: amanhã não dá, saio tarde do trabalho. depois de amanhã tá tranquilo
+Bruno: então fica pra depois de amanhã. o que cê quer comer?
+Carla: comida muito apimentada eu não consigo. o resto tá ótimo
+Bruno: que tal japonês? abriu um lugar novo perto do metrô
+Carla: adorei! a gente se encontra às 19h na frente do metrô então`,
+    translation: `Бруну: привет! завтра вечером свободна?
+Карла: завтра не выйдет, поздно ухожу с работы. послезавтра спокойно
+Бруну: тогда послезавтра. что хочешь поесть?
+Карла: очень острое не могу. остальное отлично
+Бруну: как насчёт японской? рядом с метро новое место открылось
+Карла: супер! тогда встречаемся в 19:00 перед метро`,
+    glossary: [
+      { term: 'cê (você)', ru: 'ты — разговорное сокращение' },
+      { term: 'não dá', ru: 'не выйдет, не получится' },
+      { term: 'tá (está)', ru: 'разговорное сокращение от está' },
+      { term: 'a gente', ru: 'мы — самое частое в разговорной речи' },
+      { term: 'que tal…?', ru: 'как насчёт?' },
+      { term: 'adorei', ru: 'здорово, мне нравится' },
+    ],
+    questions: [
+      {
+        q: 'Quando eles vão se encontrar?',
+        options: ['Hoje', 'Amanhã', 'Depois de amanhã', 'Na semana que vem'],
+        correct: 2,
+      },
+      {
+        q: 'Por que a Carla não pode amanhã?',
+        options: ['Está doente', 'Sai tarde do trabalho', 'Vai viajar', 'Já tem compromisso'],
+        correct: 1,
+      },
+      {
+        q: 'O que significa "a gente se encontra" aqui?',
+        options: ['As pessoas se encontram', 'Nós nos encontramos', 'Eles se encontram', 'Alguém se encontra'],
+        correct: 1,
+        why: 'В разговорном бразильском «a gente» — это «мы», и глагол при этом стоит в третьем лице единственного числа.',
+      },
+    ],
+  },
+]
+
+export const READING_LIBRARY: ReadingText[] = [...EN, ...KO, ...JA, ...PT]
 
 /** Тексты нужного языка, по возрастанию уровня. */
 export function textsForLang(lang: string): ReadingText[] {

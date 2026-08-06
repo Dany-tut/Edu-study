@@ -15,6 +15,7 @@ import { useTaskBank } from '../../store/taskBankStore'
 import { useT, t } from '../../lib/i18n'
 import type { Task as BankTask } from '../../data/taskBankData'
 import { courseSubjectOptions, isLanguageSubject } from '../../lib/subjects'
+import { levelOptionsForSubject } from '../../lib/courseLevels'
 import AudioStimulusEditor from '../../components/teacher/AudioStimulusEditor'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
 import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
@@ -24,7 +25,7 @@ import Checkbox from '../../components/Checkbox'
 import { useOverlayScroll, ScrollOverlays, OverlayScrollArea, fadeMask } from '../../components/teacher/OverlayScroll'
 import { getOwnerId } from '../../lib/owner'
 import TableEditor from '../../components/teacher/TableEditor'
-import GrowTextarea, { growMinHeight, TASK_TEXT_LH } from '../../components/teacher/GrowTextarea'
+import GrowTextarea, { growMinHeight, TASK_TEXT_LH } from '../../components/GrowTextarea'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { taskTypesFor, makeTask, TASK_TYPES as TASK_TYPES_BY_ID, type TaskTypeId, type TaskPayload } from '../../data/taskTypes'
 import { supabase } from '../../lib/supabase'
@@ -318,7 +319,14 @@ function LeftCourseMeta({
         <div>
           <Label>{t('Уровень')}</Label>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {['ОГЭ', 'ЕГЭ', 'Олимпиада', 'Школа'].map(l => {
+            {/* Набор ступеней зависит от предмета: языкам — CEFR + родная шкала
+                (TOPIK/JLPT/HSK), школьным — ЕГЭ/ОГЭ/… Уже проставленный вручную
+                уровень («A2 → B1 (JLPT N5)» у сидов) дописываем чипом, иначе он
+                пропал бы из виду. */}
+            {[
+              ...levelOptionsForSubject(course.subject),
+              ...(course.level && !levelOptionsForSubject(course.subject).includes(course.level) ? [course.level] : []),
+            ].map(l => {
               const active = course.level === l
               return (
                 <button

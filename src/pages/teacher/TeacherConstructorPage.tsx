@@ -20,14 +20,14 @@ import {
 import * as LucideIcons from 'lucide-react'
 import RichConditionEditor, { parseSmartPaste } from '../../components/teacher/RichConditionEditor'
 import TableEditor from '../../components/teacher/TableEditor'
-import GrowTextarea, { growMinHeight } from '../../components/teacher/GrowTextarea'
+import GrowTextarea, { growMinHeight } from '../../components/GrowTextarea'
 import Checkbox from '../../components/Checkbox'
 import ScrollFade from '../../components/ScrollFade'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { bankSubjectOptions, subjectIcon, getSubject, isLanguageSubject, SUBJECTS } from '../../lib/subjects'
 import { taskTypesFor } from '../../data/taskTypes'
 import { languageTaxonomy } from '../../data/languageTaxonomy'
-import { levelOptions, matchesLevel } from '../../lib/courseLevels'
+import { levelOptions, matchesLevel, levelOptionsForSubject, usesLanguageLevels } from '../../lib/courseLevels'
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagQuestions,
   loadAnonResults, linkAnonResult, unlinkAnonResult, deleteAnonResult,
@@ -641,14 +641,14 @@ function CourseEditor({
                   <div>
                     <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 2 }}>{t('ТРЕНАЖЁР')}</div>
                     <TeacherSelect small value={lesson.trainerId ?? ''} onChange={v => setLessonLink(lesson.id, 'trainerId', v || null)}
-                      triggerStyle={{ padding: '5px 8px', fontSize: 11 }}
+                      triggerStyle={{ padding: '4px 7px', fontSize: 11 }}
                       placeholder={t("Тренажёр")}
                       options={trainers.map(t => ({ value: t.id, label: t.title.slice(0, 22) }))} />
                   </div>
                   <div>
                     <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 2 }}>{t('ВИДЖЕТ')}</div>
                     <TeacherSelect small value={lesson.widgetId ?? ''} onChange={v => setLessonLink(lesson.id, 'widgetId', v || null)}
-                      triggerStyle={{ padding: '5px 8px', fontSize: 11 }}
+                      triggerStyle={{ padding: '4px 7px', fontSize: 11 }}
                       placeholder={t("Виджет")}
                       options={widgets.map(w => ({ value: w.id, label: w.title.slice(0, 22) }))} />
                   </div>
@@ -2850,7 +2850,11 @@ function CreatorView({
               <input value={cSubject} onChange={e => setCSubject(e.target.value)} style={inputSt} placeholder={t("Например, Химия")} />
             </div>
             <div>
-              <TeacherSelect value={cLevel} onChange={setCLevel} placeholder={t("Уровень")} options={['ЕГЭ', 'ОГЭ', 'AP', 'Углублённый', 'Интенсив']} />
+              {/* Предмет здесь вводится текстом: если он опознан как язык —
+                  предлагаем языковые ступени (CEFR + TOPIK/JLPT/HSK), иначе
+                  привычный школьный набор. */}
+              <TeacherSelect value={cLevel} onChange={setCLevel} placeholder={t("Уровень")}
+                options={usesLanguageLevels(cSubject) ? levelOptionsForSubject(cSubject) : ['ЕГЭ', 'ОГЭ', 'AP', 'Углублённый', 'Интенсив']} />
             </div>
             <div><Label>{t('Описание')}</Label>
               <textarea ref={el => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }} value={cDesc} onChange={e => { setCDesc(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
@@ -5643,13 +5647,18 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
 
           {/* Question editor */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <AnimatePresence mode="wait">
+            {/* Ремоунт по key, без AnimatePresence: `mode="wait"` умеет навсегда
+                залипнуть (сигнал «выход завершён» теряется — см. onExit в
+                AnimatePresence/index.mjs), и редактор вопроса встал бы пустым
+                до F5. Анимация только входа — ждать выхода незачем. */}
+            <motion.div
+              key={editIdx !== null ? `edit-${editIdx}` : 'preview'}
+              initial={{ opacity: 0, y: editIdx !== null ? 8 : 0 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.18 }}
+              style={editIdx !== null ? undefined : { display: 'flex', flexDirection: 'column', gap: 14 }}
+            >
               {editIdx !== null ? (
-                <motion.div
-                  key={`edit-${editIdx}`}
-                  initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.18 }}
-                >
+                <>
                   <GlassCard style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{ width: 36, height: 36, borderRadius: 10, background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, flexShrink: 0 }}>{editIdx + 1}</div>
@@ -5714,13 +5723,9 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                       </motion.button>
                     </div>
                   </GlassCard>
-                </motion.div>
+                </>
               ) : (
-                <motion.div
-                  key="preview"
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
-                >
+                <>
                   {/* Preview header — full read-only run-through before sending / assigning */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '2px 2px 2px' }}>
                     <div style={{ width: 40, height: 40, borderRadius: 12, background: soft, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -5762,9 +5767,9 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                       </GlassCard>
                     ))
                   )}
-                </motion.div>
+                </>
               )}
-            </AnimatePresence>
+            </motion.div>
           </div>
 
           {/* Question list — sticky on the right */}
@@ -6731,11 +6736,15 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
 
           {/* CENTER: question editor */}
           <div style={{ flex: 1, minWidth: 0, padding: '0 16px 0 16px' }}>
-            <AnimatePresence mode="wait">
+            {/* Ремоунт по key, без AnimatePresence — причина та же, что у
+                редактора вопросов теста выше: `mode="wait"` умеет залипнуть и
+                оставить центр пустым до F5. */}
+            <motion.div
+              key={editIdx !== null ? `edit-${editIdx}` : 'welcome'}
+              initial={{ opacity: 0, y: editIdx !== null ? 8 : 0 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.18 }}
+            >
               {editIdx !== null ? (
-                <motion.div key={`edit-${editIdx}`}
-                  initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}
-                >
                   <GlassCard style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{ width: 36, height: 36, borderRadius: 10, background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, flexShrink: 0 }}>{editIdx + 1}</div>
@@ -6819,9 +6828,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                       </motion.button>
                     </div>
                   </GlassCard>
-                </motion.div>
               ) : (
-                <motion.div key="welcome" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <GlassCard style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, textAlign: 'center' }}>
                     <div style={{ width: 64, height: 64, borderRadius: 20, background: soft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <FileText size={30} style={{ color: accent }} />
@@ -6849,9 +6856,8 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                       </button>
                     </div>
                   </GlassCard>
-                </motion.div>
               )}
-            </AnimatePresence>
+            </motion.div>
           </div>
 
           {/* RIGHT: questions list + type selector */}
@@ -8446,13 +8452,15 @@ export default function TeacherConstructorPage() {
               )}
 
               {/* Inline results table — appears below cards on first click */}
-              <AnimatePresence mode="wait">
+              {/* Ремоунт по key, без AnimatePresence: `mode="wait"` умеет
+                  навсегда залипнуть (сигнал «выход завершён» теряется — см.
+                  onExit в AnimatePresence/index.mjs), и таблица результатов
+                  встала бы пустой до F5 при переключении предмета. */}
                 {activeTab === 'testing' && selectedId && (
                   <motion.div
                     key={`table-${selectedId}`}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1, marginRight: selectedResultId ? 368 : 0 }}
-                    exit={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
                   >
                     <DiagResultsTable
@@ -8465,7 +8473,6 @@ export default function TeacherConstructorPage() {
                     />
                   </motion.div>
                 )}
-              </AnimatePresence>
             </div>
 
             <AnimatePresence>

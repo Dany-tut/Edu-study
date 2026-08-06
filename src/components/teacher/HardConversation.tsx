@@ -8,6 +8,7 @@ import WhiteboardCanvas from './WhiteboardCanvas'
 import AnnotationLayer, { type Annotation } from './AnnotationLayer'
 import AnswerBody from './AnswerBody'
 import AudioPlayer from '../AudioPlayer'
+import GrowTextarea, { growMinHeight } from '../GrowTextarea'
 import VoiceRecorder from '../VoiceRecorder'
 import HoloSticker from '../HoloSticker'
 import { tierOf } from '../../lib/holo/presets'
@@ -312,9 +313,12 @@ function TeacherComposer({ draftKey, solution, busy, onReview }: {
 
       <div>
         <Label>{t('Комментарий')}</Label>
-        <textarea value={comment} onChange={e => { setComment(e.target.value); if (returnError) setReturnError(false) }}
-          placeholder={t('Что верно, что исправить? Обязательно при отправке на доработку…')} rows={4}
-          style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical', padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg-2)', border: `1px solid ${returnError ? 'var(--color-peach-text)' : 'var(--color-border-soft)'}`, fontSize: 13, lineHeight: 1.5, color: 'var(--color-text)', fontFamily: 'inherit', outline: 'none' }} />
+        {/* Обнимает текст: длинный разбор не должен уезжать во внутренний
+            скролл, дно — четыре строки (как поля ответа в домашке). */}
+        <GrowTextarea value={comment} onChange={v => { setComment(v); if (returnError) setReturnError(false) }}
+          placeholder={t('Что верно, что исправить? Обязательно при отправке на доработку…')}
+          minHeight={growMinHeight(4, 13, 12, 1)}
+          style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg-2)', border: `1px solid ${returnError ? 'var(--color-peach-text)' : 'var(--color-border-soft)'}`, fontSize: 13, color: 'var(--color-text)', fontFamily: 'inherit', outline: 'none' }} />
         {returnError && <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-peach-text)', marginTop: 6 }}>{t('Добавьте комментарий, чтобы вернуть на доработку.')}</div>}
       </div>
 

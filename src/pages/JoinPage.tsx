@@ -16,8 +16,13 @@ type Step = 'loading' | 'form' | 'error'
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '11px 14px', borderRadius: 12,
-  border: '1.5px solid #E8E8EA', fontSize: 14, outline: 'none',
+  border: '1.5px solid var(--color-border)', fontSize: 14, outline: 'none',
   boxSizing: 'border-box', marginTop: 6,
+  // Explicit color + background: без них input берёт tailwind-preflight
+  // `color: inherit` (светлый текст тёмной темы) на дефолтном белом фоне —
+  // набранный текст становится невидимым. Как в StudentLoginPage.
+  color: 'var(--color-text)', background: 'var(--color-surface)',
+  WebkitTextFillColor: 'var(--color-text)',
 }
 
 const card: React.CSSProperties = {
@@ -143,7 +148,7 @@ export default function JoinPage() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <input
+                <input className="auth-input"
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
@@ -152,12 +157,12 @@ export default function JoinPage() {
                   autoFocus
                 />
                 {emailTouched && !emailValid && (
-                  <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>{t('Укажите почту со знаком @')}</span>
+                  <span style={{ fontSize: 12, color: 'var(--color-red-text)', marginTop: 5 }}>{t('Укажите почту со знаком @')}</span>
                 )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <div style={{ position: 'relative' }}>
-                  <input
+                  <input className="auth-input"
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
@@ -180,13 +185,13 @@ export default function JoinPage() {
                   </button>
                 </div>
                 {passwordTouched && !passwordValid && (
-                  <span style={{ fontSize: 12, color: '#A8282D', marginTop: 5 }}>{t('Пароль должен быть не менее 6 символов')}</span>
+                  <span style={{ fontSize: 12, color: 'var(--color-red-text)', marginTop: 5 }}>{t('Пароль должен быть не менее 6 символов')}</span>
                 )}
               </div>
             </div>
 
             {errorMsg && (
-              <div style={{ marginTop: 12, fontSize: 13, color: '#A8282D', background: 'var(--color-red-soft)', borderRadius: 10, padding: '8px 12px' }}>
+              <div style={{ marginTop: 12, fontSize: 13, color: 'var(--color-red-text)', background: 'var(--color-red-soft)', borderRadius: 10, padding: '8px 12px' }}>
                 {errorMsg}
               </div>
             )}

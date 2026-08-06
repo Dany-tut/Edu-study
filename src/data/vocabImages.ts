@@ -563,6 +563,161 @@ const office = icon(`
   ${f(WATER, '<rect x="36" y="30" width="14" height="14"/><rect x="58" y="30" width="14" height="14"/><rect x="36" y="52" width="14" height="14"/><rect x="58" y="52" width="14" height="14"/>')}
   ${f(WOOD, '<rect x="50" y="76" width="20" height="22" rx="2"/>')}`)
 
+// ─── Действия ────────────────────────────────────────────────────────────────
+//
+// Глаголы рисуются позой или предметом в руке: спящий человек, рука с
+// карандашом, глаз у экрана. Это ровно те слова, которых в начальных юнитах
+// больше всего, а картинкой они опознаются не хуже предметов.
+
+const sleeping = icon(`
+  ${f('#F2F4F9', '<path d="M16 74 h88 v14 h-88 z"/>')}
+  ${f(WATER, '<path d="M30 74 a22 16 0 0 1 44 0 z"/>')}
+  ${f(SKIN, '<circle cx="82" cy="62" r="12"/>')}
+  <path d="M92 40 q10 -6 0 -12 M104 32 q8 -5 0 -10" stroke="${GREY}"/>`)
+
+const writing = icon(`
+  ${f('#FFFFFF', '<rect x="16" y="58" width="88" height="34" rx="4"/>')}
+  <path d="M26 74 h32 M26 84 h20"/>
+  ${f(YELLOW, '<path d="M56 62 l30 -34 l14 12 l-30 34 z"/>')}
+  ${f(INK, '<path d="M56 62 l-4 18 l18 -6 z"/>')}`)
+
+const reading = icon(`
+  ${f('#F2F4F9', '<path d="M18 40 q22 -10 42 0 v42 q-20 -10 -42 0 z"/><path d="M102 40 q-22 -10 -42 0 v42 q20 -10 42 0 z"/>')}
+  <path d="M60 40 v42"/>
+  ${f(SKIN, '<circle cx="60" cy="22" r="12"/>')}`)
+
+const watching = icon(`
+  ${f('#F2F4F9', '<rect x="18" y="26" width="84" height="52" rx="6"/>')}
+  ${f(SKIN, '<circle cx="60" cy="52" r="14"/>')}
+  ${f('#FFFFFF', '<path d="M40 52 q20 -16 40 0 q-20 16 -40 0 z"/>')}
+  ${f(INK, '<circle cx="60" cy="52" r="6"/>')}
+  <path d="M46 92 h28 M60 78 v14"/>`)
+
+const listening = icon(`
+  ${f(SKIN, '<path d="M50 24 a26 26 0 0 1 32 42 q-12 12 -10 22 a11 11 0 0 1 -21 6 q-9 -18 -9 -42 z"/>')}
+  <path d="M92 34 q14 26 0 52 M104 22 q22 38 0 76" stroke="${WATER}"/>`)
+
+const eating = icon(`
+  ${f('#FFFFFF', '<circle cx="60" cy="62" r="28"/>')}
+  ${f(LEAF, '<circle cx="60" cy="62" r="14"/>')}
+  <path d="M22 34 v26 M16 34 v20 M28 34 v20 M22 60 v34"/>
+  <path d="M98 34 q10 12 0 22 v38"/>`)
+
+const drinking = icon(`
+  ${f(WATER, '<path d="M40 34 h40 l-6 56 a8 8 0 0 1 -8 6 h-12 a8 8 0 0 1 -8 -6 z"/>')}
+  ${f('#FFFFFF', '<path d="M42 50 h36 l-2 16 h-32 z"/>')}
+  <path d="M58 34 v-14 h20"/>`)
+
+const walking = icon(`
+  ${f(SKIN, '<circle cx="66" cy="22" r="13"/>')}
+  ${f(WATER, '<path d="M54 38 h22 l4 28 h-30 z"/>')}
+  <path d="M56 66 l-18 28 M74 66 l10 28" stroke-width="7"/>
+  <path d="M38 94 h-8 M84 94 h8" stroke-width="7"/>
+  <path d="M58 46 l-18 14 M74 46 l14 8" stroke-width="6"/>`)
+
+const running = icon(`
+  ${f(SKIN, '<circle cx="70" cy="24" r="12"/>')}
+  ${f(RED, '<path d="M56 40 h20 l10 22 h-38 z"/>')}
+  <path d="M48 62 l-18 12 l6 22 M78 62 l14 16 M60 40 l-24 4 M76 44 l18 -8"/>`)
+
+const playing = icon(`
+  ${f(LEAF, '<circle cx="60" cy="60" r="34"/>')}
+  ${f('#FFFFFF', '<circle cx="60" cy="60" r="14"/>')}
+  <path d="M60 26 v14 M60 80 v14 M26 60 h14 M80 60 h14"/>`)
+
+const buying = icon(`
+  ${f(YELLOW, '<path d="M26 44 h68 l-8 46 a8 8 0 0 1 -8 6 h-36 a8 8 0 0 1 -8 -6 z"/>')}
+  <path d="M44 44 a16 16 0 0 1 32 0"/>
+  ${f('#FFFFFF', '<circle cx="60" cy="70" r="12"/>')}
+  <path d="M60 62 v16 M54 68 h12"/>`)
+
+const waiting = icon(`
+  ${f('#F2F4F9', '<path d="M34 18 h52 v14 l-22 28 l22 28 v14 h-52 v-14 l22 -28 l-22 -28 z"/>')}
+  ${f(YELLOW, '<path d="M42 78 h36 v14 h-36 z"/>')}`)
+
+const working = icon(`
+  ${f('#F2F4F9', '<rect x="20" y="34" width="80" height="48" rx="5"/>')}
+  ${f(WATER, '<rect x="28" y="42" width="64" height="32" rx="3"/>')}
+  <path d="M14 94 h92 l-8 -12 h-76 z"/>
+  ${f(SKIN, '<circle cx="98" cy="26" r="10"/>')}`)
+
+const resting = icon(`
+  ${f(WOOD, '<path d="M20 62 h72 v10 h-72 z"/>')}
+  ${f(WOOD, '<path d="M20 34 h12 v28 h-12 z"/>')}
+  <path d="M28 72 v22 M84 72 v22"/>
+  ${f(SKIN, '<circle cx="48" cy="46" r="11"/>')}
+  ${f(RED, '<path d="M40 62 h40 v-8 a12 12 0 0 0 -24 0 z"/>')}`)
+
+const studying = icon(`
+  ${f('#F2F4F9', '<path d="M24 48 q18 -10 36 0 v36 q-16 -10 -36 0 z"/><path d="M96 48 q-18 -10 -36 0 v36 q16 -10 36 0 z"/>')}
+  ${f(INK, '<path d="M28 30 l32 -14 l32 14 l-32 12 z"/>')}
+  <path d="M60 48 v36"/>`)
+
+// ─── Родня ───────────────────────────────────────────────────────────────────
+
+const grandmother = icon(`
+  ${f('#E6E6EA', '<path d="M34 44 a26 26 0 0 1 52 0 q-26 -12 -52 0 z"/>')}
+  ${f(SKIN, '<circle cx="60" cy="48" r="24"/>')}
+  <circle cx="51" cy="46" r="3" fill="${INK}"/>
+  <circle cx="69" cy="46" r="3" fill="${INK}"/>
+  <path d="M52 58 q8 6 16 0"/>
+  ${f('#8E6FA8', '<path d="M32 98 v-20 a28 20 0 0 1 56 0 v20 z"/>')}`)
+
+const elderBrother = icon(`
+  ${f(SKIN, '<circle cx="42" cy="46" r="16"/><circle cx="84" cy="58" r="11"/>')}
+  ${f(WATER, '<path d="M18 98 v-24 a24 20 0 0 1 48 0 v24 z"/>')}
+  ${f(LEAF, '<path d="M66 98 v-16 a18 14 0 0 1 36 0 v16 z"/>')}`)
+
+const elderSister = icon(`
+  ${f('#8A5A34', '<path d="M28 46 a18 20 0 0 1 36 0 v22 h-36 z"/>')}
+  ${f(SKIN, '<circle cx="46" cy="44" r="15"/><circle cx="86" cy="58" r="11"/>')}
+  ${f(RED, '<path d="M22 98 v-24 a24 20 0 0 1 48 0 v24 z"/>')}
+  ${f(YELLOW, '<path d="M68 98 v-16 a18 14 0 0 1 36 0 v16 z"/>')}`)
+
+// ─── Признаки ────────────────────────────────────────────────────────────────
+//
+// Прилагательные рисуются только там, где их показывает контраст: большой
+// рядом с маленьким, дорогой рядом с дешёвым. Всё остальное («интересный»,
+// «известный») картинкой не передать, и мы не пытаемся.
+
+const big = icon(`
+  ${f(WATER, '<circle cx="46" cy="60" r="34"/>')}
+  ${f(GREY, '<circle cx="92" cy="82" r="12"/>')}
+  <path d="M12 26 h68" stroke-dasharray="4 4"/>`)
+
+const small = icon(`
+  ${f(GREY, '<circle cx="40" cy="70" r="26"/>')}
+  ${f(WATER, '<circle cx="88" cy="80" r="14"/>')}
+  <path d="M74 66 h28" stroke-dasharray="4 4"/>`)
+
+const expensive = icon(`
+  ${f('#FFFFFF', '<path d="M52 18 h34 a6 6 0 0 1 6 6 v34 l-40 40 l-40 -40 z"/>')}
+  <circle cx="76" cy="34" r="6"/>
+  ${f(YELLOW, '<circle cx="30" cy="46" r="10"/><circle cx="44" cy="60" r="10"/>')}
+  <path d="M96 92 v-26 M88 74 l8 -10 l8 10" stroke="${RED}" stroke-width="5"/>`)
+
+const cheap = icon(`
+  ${f('#FFFFFF', '<path d="M52 18 h34 a6 6 0 0 1 6 6 v34 l-40 40 l-40 -40 z"/>')}
+  <circle cx="76" cy="34" r="6"/>
+  ${f(YELLOW, '<circle cx="34" cy="52" r="10"/>')}
+  <path d="M96 66 v26 M88 84 l8 10 l8 -10" stroke="${LEAF}" stroke-width="5"/>`)
+
+const tasty = icon(`
+  ${f('#FFFFFF', '<circle cx="56" cy="62" r="28"/>')}
+  ${f(MEAT, '<circle cx="56" cy="62" r="15"/>')}
+  ${f(YELLOW, '<path d="M88 22 l5 12 l13 1 l-10 9 l3 13 l-11 -7 l-11 7 l3 -13 l-10 -9 l13 -1 z"/>')}
+  <path d="M20 96 h72"/>`)
+
+// ─── Погода ──────────────────────────────────────────────────────────────────
+
+const cloud = icon(`
+  ${f('#D7DBE3', '<path d="M32 74 a20 20 0 0 1 38 -10 a16 16 0 0 1 14 26 h-48 a16 16 0 0 1 -4 -16 z"/>')}`)
+
+const wind = icon(`
+  <path d="M14 44 h52 a12 12 0 1 0 -12 -12" stroke="${WATER}"/>
+  <path d="M14 62 h68 a12 12 0 1 1 -12 12" stroke="${WATER}"/>
+  <path d="M14 80 h40 a10 10 0 1 0 -10 -10" stroke="${GREY}"/>`)
+
 // ─── Карта: русское значение → картинка ──────────────────────────────────────
 //
 // Ключ нормализуется как в vocabImage(): нижний регистр, до первой запятой,
@@ -612,6 +767,22 @@ const IMAGES: Record<string, string> = {
   // синонимы к уже нарисованному
   'наличные': money, 'пакет': bag, 'сумка-пакет': bag, 'квартира': house,
   'сотовый': phone, 'мобильный': phone, 'пёс': dog, 'кошечка': cat,
+  // действия
+  'спать': sleeping, 'писать': writing, 'читать': reading,
+  'смотреть': watching, 'слушать': listening, 'есть': eating, 'кушать': eating,
+  'пить': drinking, 'идти': walking, 'ходить': walking, 'гулять': walking,
+  'бежать': running, 'бегать': running, 'играть': playing,
+  'покупать': buying, 'покупки': buying, 'ждать': waiting,
+  'работать': working, 'работа': working, 'отдыхать': resting,
+  'учиться': studying, 'учить': studying, 'заниматься': studying,
+  // родня
+  'бабушка': grandmother, 'старший брат': elderBrother,
+  'старшая сестра': elderSister, 'старший': elderBrother,
+  // признаки
+  'большой': big, 'маленький': small, 'дорогой': expensive,
+  'дешёвый': cheap, 'вкусный': tasty,
+  // погода
+  'облако': cloud, 'ветер': wind,
 }
 
 /** Значение слова → ключ карты: «кот, кошка» и «нога; мост» дают «кот», «нога». */

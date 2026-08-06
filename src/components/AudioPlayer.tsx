@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Play, Pause, Turtle } from 'lucide-react'
 import { getMediaUrl } from '../lib/mediaStorage'
 import { useT } from '../lib/i18n'
+import { speechLocale } from '../lib/speech'
 
 // Аудио-стимул для языковых заданий (listenType/listenBank/minimalPair). Источник —
 // либо загруженный файл в Storage (audioUrl = путь, 5A), либо текст для браузерного
@@ -17,6 +18,7 @@ export default function AudioPlayer({
   allowSlow = false,
   lang,
   compact = false,
+  onPlayingChange,
 }: {
   /** Путь в бакете task-media (резолвится в signed URL). */
   audioUrl?: string
@@ -27,6 +29,8 @@ export default function AudioPlayer({
   /** Код языка для синтеза (en, ru…). */
   lang?: string
   compact?: boolean
+  /** Сообщает наружу, идёт ли сейчас звук — по этому родитель рисует индикатор. */
+  onPlayingChange?: (playing: boolean) => void
 }) {
   const t = useT()
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -43,6 +47,12 @@ export default function AudioPlayer({
     return () => { alive = false }
   }, [audioUrl])
 
+  // Родитель получает состояние через ref-колбэк: инлайновая стрелка в пропсах
+  // менялась бы каждый рендер и гоняла бы эффект вхолостую.
+  const notifyRef = useRef(onPlayingChange)
+  notifyRef.current = onPlayingChange
+  useEffect(() => { notifyRef.current?.(playing) }, [playing])
+
   // Stop any TTS still speaking when the player unmounts.
   useEffect(() => () => { if (usesTts && typeof speechSynthesis !== 'undefined') speechSynthesis.cancel() }, [usesTts])
 
@@ -56,7 +66,8 @@ export default function AudioPlayer({
     speechSynthesis.cancel()
     const u = new SpeechSynthesisUtterance(ttsText)
     u.rate = rate
-    if (lang) u.lang = lang
+    const locale = speechLocale(lang)
+    if (locale) u.lang = locale
     if (ttsVoice) {
       const v = speechSynthesis.getVoices().find(x => x.name === ttsVoice)
       if (v) u.voice = v

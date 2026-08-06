@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle2, RotateCcw, Upload, Lock, Play, Star, Clock } from 'lucide-react'
 import { IconLessonRecording } from './icons'
 import { type Subject, type Lesson, type LessonStatus } from '../data/mockData'
+import { lessonHasHardLevel } from '../data/lessonContent'
 import { useStudentData } from '../store/studentDataStore'
 import { HARD_STYLE } from './CourseNode'
 import { getDisplayLessonStatus } from '../lib/lessonStatus'
@@ -124,7 +125,9 @@ function TrackForSubject({ subject }: { subject: Subject }) {
   const span = Math.max(0, containerW - padCenter * 2)         // distance between first & last node centers
   const nodeCenter = (i: number) => nodeCount <= 1 ? padCenter : padCenter + (span * i) / (nodeCount - 1)
 
-  const selectedHardLesson = allLessons.find(lesson => lesson.id === selectedHardLessonId) ?? null
+  // Хард открываем только у уроков, где реально есть сложные задания — иначе
+  // внутри уровня пусто (см. lessonHasHardLevel).
+  const selectedHardLesson = allLessons.find(lesson => lesson.id === selectedHardLessonId && lessonHasHardLevel(lesson)) ?? null
 
   const selectedIndex = selectedLesson ? allLessons.findIndex(lesson => lesson.id === selectedLesson.id) : -1
   const selectedCenter = selectedIndex >= 0 ? nodeCenter(selectedIndex) : 0
@@ -480,6 +483,8 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                         const a = lessonAssessments[selectedLesson.id]
                         const hardAvailable = a?.hardAvailable || (a?.score != null && a.score >= 80)
                         if (!hardAvailable || a?.hardCompleted || a?.hardStatus) return null
+                        // Нет сложных заданий у урока → кнопка вела бы в пустой уровень.
+                        if (!lessonHasHardLevel(selectedLesson)) return null
                         return (
                           <motion.button
                             whileHover={{ scale: 1.03, y: -1 }}

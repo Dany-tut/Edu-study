@@ -600,13 +600,17 @@ export default function TeacherHomeworkReviewPage() {
 
       {/* ── Content ── */}
       <div style={{ padding: '8px 32px 0' }}>
-          <AnimatePresence mode="wait" custom={dir}>
+          {/* Ремоунт по key, без AnimatePresence: `mode="wait"` умеет навсегда
+              залипнуть (сигнал «выход завершён» теряется — см. onExit в
+              AnimatePresence/index.mjs), и работа ученика встала бы пустой
+              посреди проверки — до F5. Ученики перелистываются вперёд, само
+              не вылечится.
+              Направление выезда сохранено: `dir` подставляется прямо в
+              initial, а не через варианты, поэтому `custom` был не нужен. */}
             <motion.div
               key={student.id}
-              custom={dir}
               initial={{ opacity: 0, x: dir * 40 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: dir * -40 }}
               transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
               className="grid"
               style={{ gridTemplateColumns: 'minmax(260px, 320px) minmax(0, 1fr)', gap: 18, alignItems: 'start' }}
@@ -807,7 +811,6 @@ export default function TeacherHomeworkReviewPage() {
                 )}
               </div>
             </motion.div>
-          </AnimatePresence>
         </div>
 
       {/* ── Floating bottom bar (fixed so it stays on screen while content scrolls) ── */}

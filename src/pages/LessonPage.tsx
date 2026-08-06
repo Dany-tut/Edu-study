@@ -402,14 +402,17 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
   // Hovering an openable row promotes it to the white card, except hovering a
   // locked hard row leaves the homework highlight untouched.
   const basicSubmitted = !!assessment
-  const hardUnlocked = unlocked || (assessment?.score != null && assessment.score >= 80) || !!assessment?.hardAvailable
+  // hasHardLevel === false → у ДЗ нет сложных заданий, строку «Сложный уровень»
+  // не показываем вообще (иначе она ведёт в пустой уровень).
+  const hasHardLevel = homework.hasHardLevel !== false
+  const hardUnlocked = hasHardLevel && (unlocked || (assessment?.score != null && assessment.score >= 80) || !!assessment?.hardAvailable)
 
   const defaultActive: 'base' | 'hard' | null = basicSubmitted
     ? (hardUnlocked ? 'hard' : null)
     : 'base'
   const active: 'base' | 'hard' | null =
     hovered && !(hovered === 'hard' && !hardUnlocked) ? hovered : defaultActive
-  const hardStatus = assessment?.hardStatus
+  const hardStatus = hasHardLevel ? assessment?.hardStatus : undefined
 
   const hardIcon = hardStatus === 'completed' ? CheckCircle2
     : hardStatus ? GraduationCap

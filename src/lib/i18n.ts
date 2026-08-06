@@ -857,6 +857,7 @@ const EN: Record<string, string> = {
   "Email (логин)": "Email (login)",
   "Укажите почту со знаком @": "Enter an email with an @ sign",
   "Пароль": "Password",
+  "Скрыть все": "Hide all",
   "Скрыть пароль": "Hide password",
   "Показать пароль": "Show password",
   "Пароль должен быть не менее 6 символов": "Password must be at least 6 characters",
@@ -933,6 +934,13 @@ const EN: Record<string, string> = {
   "мем": "meme",
   "Ответ:": "Answer:",
   "Показать ответ": "Show answer",
+
+  // — Правило под рукой и части домашки —
+  "Правило": "Grammar",
+  "Правило урока": "Lesson rule",
+  "пройдена. Ответы сохранены — можно закрыть и вернуться позже.": "done. Answers are saved — you can close and come back later.",
+  "Продолжить с задания": "Resume at task",
+  "сделано": "done",
 
   // — Слова урока (знакомство перед заданиями) —
   "Слова урока": "Lesson words",

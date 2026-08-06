@@ -4,6 +4,7 @@ import { X, Search, Users, Check, User, ChevronLeft } from 'lucide-react'
 import type { Group, Student } from '../../data/teacherMockData'
 import TeacherSelect from './TeacherSelect'
 import { useT } from '../../lib/i18n'
+import { levelOptionsForSubject } from '../../lib/courseLevels'
 
 // Identity a group-enrollment reuses. Any object carrying these fields works.
 export type PersonLike = Pick<
@@ -208,11 +209,10 @@ const selectTrigger = {
   borderRadius: 12, padding: '10px 12px', fontSize: 13,
 }
 export function AddExistingIndividualModal({
-  people, subjectOptions, levelOptions, onCreate, onClose,
+  people, subjectOptions, onCreate, onClose,
 }: {
   people: { key: string; person: PersonLike; subjects: string[]; registered: boolean }[]
   subjectOptions: string[]
-  levelOptions: string[]
   onCreate: (person: PersonLike, subject: string, level: string) => Promise<{ inviteToken: string | null; registered: boolean }>
   onClose: () => void
 }) {
@@ -317,8 +317,19 @@ export function AddExistingIndividualModal({
               </div>
             </div>
             <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>{t('Направление 1:1')}</div>
-            <TeacherSelect value={subject} onChange={setSubject} placeholder={t('Предмет')} options={subjectOptions} triggerStyle={selectTrigger} />
-            <TeacherSelect value={level} onChange={setLevel} placeholder={t('Уровень')} options={levelOptions} triggerStyle={selectTrigger} />
+            {/* Уровни зависят от предмета: языкам — CEFR и их родная шкала,
+                школьным предметам — ЕГЭ/ОГЭ/… */}
+            <TeacherSelect
+              value={subject}
+              onChange={v => {
+                setSubject(v)
+                if (level && !levelOptionsForSubject(v).includes(level)) setLevel('')
+              }}
+              placeholder={t('Предмет')}
+              options={subjectOptions}
+              triggerStyle={selectTrigger}
+            />
+            <TeacherSelect value={level} onChange={setLevel} placeholder={t('Уровень')} options={levelOptionsForSubject(subject)} triggerStyle={selectTrigger} />
             <button onClick={create} disabled={!subject.trim() || busy}
               style={{ marginTop: 4, width: '100%', padding: '12px 0', background: subject.trim() ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: subject.trim() && !busy ? 'pointer' : 'not-allowed' }}>
               {busy ? t('Создаём…') : t('Создать карточку 1:1')}

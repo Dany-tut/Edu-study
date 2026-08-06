@@ -58,9 +58,14 @@ export default function ReviewSession({ owner, onDone }: {
         <span style={{ fontSize: 12, color: 'var(--color-muted)', fontWeight: 600 }}>{idx + 1} / {cards.length}</span>
       </div>
 
-      <AnimatePresence mode="wait">
+      {/* Ремоунт по key, без AnimatePresence: `mode="wait"` умеет навсегда
+          залипнуть (сигнал «выход завершён» теряется — см. onExit в
+          AnimatePresence/index.mjs), и карточка встала бы пустой посреди
+          повторения — до F5. Ключи карточек не повторяются, само не вылечится.
+          Внутренний AnimatePresence на ответе оставлен: там показ/скрытие
+          одного элемента, оно самовосстанавливается следующим переключением. */}
         <motion.div key={card.id}
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.18 }}
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}
           style={{ background: 'rgba(var(--glass-rgb),0.9)', border: '1px solid var(--color-border-glass)', borderRadius: 18, padding: 22, minHeight: 150, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
         >
           <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', textAlign: 'center', lineHeight: 1.5 }}>{card.prompt}</div>
@@ -74,7 +79,6 @@ export default function ReviewSession({ owner, onDone }: {
             )}
           </AnimatePresence>
         </motion.div>
-      </AnimatePresence>
 
       <div style={{ marginTop: 16 }}>
         {!revealed ? (

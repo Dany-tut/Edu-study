@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion } from '../data/readingLibrary'
 import { languageTaxonomy } from '../data/languageTaxonomy'
+import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
+import AudioPlayer from './AudioPlayer'
 import { subjectTheme } from '../lib/theme'
 import { useT } from '../lib/i18n'
 import CardDeck from './CardDeck'
@@ -42,6 +44,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
   const palette = subjectTheme(subject, dark)
   const [mode, setMode] = useState<Mode>('reading')
   const [openText, setOpenText] = useState<ReadingText | null>(null)
+  const [openAudio, setOpenAudio] = useState<ListeningItem | null>(null)
 
   const allTexts = useMemo(() => textsForLang(lang), [lang])
 
@@ -60,6 +63,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
     const rest = [...found].filter(v => !order.includes(v))
     return [...ordered, ...rest]
   }
+  const audio = useMemo(() => listeningForLang(lang), [lang])
   const levelOpts = present('level', tax?.levels ?? [])
   const skillOpts = present('skill', tax?.skills ?? [])
   const topicOpts = present('topic', tax?.topics ?? [])
@@ -110,9 +114,17 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
   if (openText) {
     return <Reader text={openText} accent={palette.accent} onBack={() => setOpenText(null)} />
   }
+  if (openAudio) {
+    return <Listener item={openAudio} accent={palette.accent} lang={lang} onBack={() => setOpenAudio(null)} />
+  }
 
   return (
-    <div style={{ maxWidth: 860, margin: '0 auto', padding: '8px 20px 80px' }}>
+    // width: '100%' обязателен. Родитель (.dashboard-main) — flex-колонка, а у
+    // флекс-элемента с auto-полем по поперечной оси растяжение отключается: без
+    // явной ширины блок ужимается до max-content своего содержимого. Ширина
+    // тогда разная у каждой вкладки, а из-за центрирования вся вёрстка —
+    // включая ряд вкладок — прыгает вбок при переключении.
+    <div style={{ width: '100%', maxWidth: 860, margin: '0 auto', padding: '8px 20px 80px' }}>
       {/* Переключатель режимов */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 22 }}>
         {MODES.map(m => {
@@ -212,7 +224,32 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
       )}
 
       {mode === 'listening' && (
-        <Empty text={t('Аудирование пока идёт внутри уроков курса — там к каждому есть разбор и видео. Отдельная библиотека лекций в работе.')} />
+        audio.length === 0 ? (
+          <Empty text={t('Для этого языка материалов пока нет.')} />
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {audio.map(a => (
+              <button
+                key={a.id}
+                onClick={() => setOpenAudio(a)}
+                style={{
+                  textAlign: 'left', padding: '16px 18px', borderRadius: 18, cursor: 'pointer',
+                  border: '1px solid var(--color-border)', background: 'var(--color-bg-2)', fontFamily: 'inherit',
+                }}
+              >
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+                  <span style={{ fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999, background: palette.soft, color: palette.accent }}>
+                    {a.level}
+                  </span>
+                  <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>
+                    {a.topic} · {a.minutes} {t('мин')} · {a.questions.length} {t('вопроса')}
+                  </span>
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>{a.title}</div>
+              </button>
+            ))}
+          </div>
+        )
       )}
 
       {mode === 'speaking' && (
@@ -289,7 +326,7 @@ function Reader({ text, accent, onBack }: { text: ReadingText; accent: string; o
   )
 
   return (
-    <div style={{ maxWidth: 760, margin: '0 auto', padding: '8px 20px 80px' }}>
+    <div style={{ width: '100%', maxWidth: 760, margin: '0 auto', padding: '8px 20px 80px' }}>
       <button
         onClick={onBack}
         style={{
@@ -315,24 +352,53 @@ function Reader({ text, accent, onBack }: { text: ReadingText; accent: string; o
         {text.body}
       </div>
 
-      {/* Словарик: тап по слову раскрывает перевод */}
+      {/* Словарик: тап по слову раскрывает перевод.
+          Плашки лежат в сетке фиксированной ширины, а место под перевод (две
+          строки) зарезервировано всегда — просто прозрачно, пока слово не
+          выбрано. Иначе выбор растягивал бы плашку, ряд переносился заново и
+          вопросы уезжали вниз прямо под пальцем. Две строки, а не одна: самые
+          длинные пояснения в библиотеке под 40 знаков, в одну строку они
+          обрезались бы многоточием. */}
       {text.glossary.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 22 }}>
-          {text.glossary.map(g => (
-            <button
-              key={g.term}
-              onClick={() => setGloss(gloss === g.term ? null : g.term)}
-              style={{
-                padding: '6px 11px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
-                fontSize: 13, fontWeight: 600,
-                border: `1px solid ${gloss === g.term ? accent : 'var(--color-border-soft)'}`,
-                background: gloss === g.term ? 'var(--color-bg-3)' : 'var(--color-bg-2)',
-                color: gloss === g.term ? accent : 'var(--color-text-2)',
-              }}
-            >
-              {g.term}{gloss === g.term && ` — ${glossMap.get(g.term.toLowerCase())}`}
-            </button>
-          ))}
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
+          gap: 8, marginBottom: 22,
+        }}>
+          {text.glossary.map(g => {
+            const on = gloss === g.term
+            const ru = glossMap.get(g.term.toLowerCase()) ?? ''
+            return (
+              <button
+                key={g.term}
+                onClick={() => setGloss(on ? null : g.term)}
+                title={ru}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2,
+                  minWidth: 0, padding: '8px 12px', borderRadius: 14, cursor: 'pointer',
+                  fontFamily: 'inherit', textAlign: 'left',
+                  border: `1px solid ${on ? accent : 'var(--color-border-soft)'}`,
+                  background: on ? 'var(--color-bg-3)' : 'var(--color-bg-2)',
+                  transition: 'border-color .15s, background .15s',
+                }}
+              >
+                <span style={{
+                  maxWidth: '100%', fontSize: 13, fontWeight: 600, lineHeight: '18px',
+                  color: on ? accent : 'var(--color-text-2)',
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>
+                  {g.term}
+                </span>
+                <span style={{
+                  display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2,
+                  maxWidth: '100%', height: 32, overflow: 'hidden',
+                  fontSize: 12, fontWeight: 500, lineHeight: '16px',
+                  color: 'var(--color-muted)', opacity: on ? 1 : 0, transition: 'opacity .15s',
+                }}>
+                  {ru}
+                </span>
+              </button>
+            )
+          })}
         </div>
       )}
 
@@ -430,6 +496,112 @@ function QuestionCard({ q, index, value, checked, accent, onPick }: {
       {checked && q.why && (
         <div style={{ marginTop: 10, fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-2)' }}>
           {q.why}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Прослушивание ───────────────────────────────────────────────────────────
+
+function Listener({ item, accent, lang, onBack }: {
+  item: ListeningItem; accent: string; lang: string; onBack: () => void
+}) {
+  const t = useT()
+  const [answers, setAnswers] = useState<Record<number, number>>({})
+  const [checked, setChecked] = useState(false)
+
+  const correctCount = item.questions.filter((q, i) => answers[i] === q.correct).length
+  const allAnswered = item.questions.every((_, i) => answers[i] !== undefined)
+
+  return (
+    <div style={{ width: '100%', maxWidth: 760, margin: '0 auto', padding: '8px 20px 80px' }}>
+      <button
+        onClick={onBack}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 5, padding: '7px 13px', borderRadius: 999,
+          border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer',
+          fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit', marginBottom: 16,
+        }}
+      >
+        <ChevronLeft size={15} /> {t('К списку')}
+      </button>
+
+      <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', marginBottom: 4 }}>{item.title}</h1>
+      <p style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 18 }}>
+        {item.level} · {item.topic} · {item.minutes} {t('мин')}{item.credit && ` · ${item.credit}`}
+      </p>
+
+      <div style={{ marginBottom: 18 }}>
+        <AudioPlayer ttsText={item.script} lang={lang} allowSlow />
+      </div>
+
+      <p style={{ fontSize: 12.5, color: 'var(--color-muted)', marginBottom: 16, lineHeight: 1.6 }}>
+        {t('Слушай столько раз, сколько нужно. Расшифровка откроется после ответов — если прочитать её сразу, это перестанет быть аудированием.')}
+      </p>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {item.questions.map((q, qi) => (
+          <QuestionCard
+            key={qi} q={q} index={qi} value={answers[qi]} checked={checked} accent={accent}
+            onPick={v => !checked && setAnswers(a => ({ ...a, [qi]: v }))}
+          />
+        ))}
+      </div>
+
+      {!checked ? (
+        <button
+          onClick={() => setChecked(true)}
+          disabled={!allAnswered}
+          style={{
+            marginTop: 22, width: '100%', padding: '13px', borderRadius: 16, border: 'none',
+            cursor: allAnswered ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
+            fontSize: 15, fontWeight: 700, color: '#fff',
+            background: allAnswered ? accent : 'var(--color-border-medium)',
+          }}
+        >
+          {allAnswered ? t('Проверить') : t('Ответь на все вопросы')}
+        </button>
+      ) : (
+        <div style={{
+          marginTop: 22, padding: '16px 18px', borderRadius: 18,
+          background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
+        }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', marginBottom: 4, textAlign: 'center' }}>
+            {correctCount} / {item.questions.length}
+          </div>
+          {item.script && (
+            <details style={{ marginTop: 10 }} open>
+              <summary style={{ cursor: 'pointer', fontSize: 13, fontWeight: 700, color: accent }}>
+                {t('Расшифровка')}
+              </summary>
+              <div style={{ fontSize: 14, lineHeight: 1.75, color: 'var(--color-text)', marginTop: 8, whiteSpace: 'pre-wrap' }}>
+                {item.script}
+              </div>
+            </details>
+          )}
+          {item.translation && (
+            <details style={{ marginTop: 10 }}>
+              <summary style={{ cursor: 'pointer', fontSize: 13, fontWeight: 700, color: accent }}>
+                {t('Перевод')}
+              </summary>
+              <div style={{ fontSize: 13.5, lineHeight: 1.7, color: 'var(--color-text-2)', marginTop: 8, whiteSpace: 'pre-wrap' }}>
+                {item.translation}
+              </div>
+            </details>
+          )}
+          {item.glossary.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 12 }}>
+              {item.glossary.map(g => (
+                <span key={g.term} style={{
+                  padding: '5px 10px', borderRadius: 999, fontSize: 12.5,
+                  background: 'var(--color-bg-3)', color: 'var(--color-text-2)',
+                }}>
+                  {g.term} — {g.ru}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
