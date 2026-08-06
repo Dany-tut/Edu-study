@@ -27,6 +27,33 @@ import { toDataUri, esc, sheet, PAPER, INK, MUTED, GRID, TILE, ACCENT, ACCENT_SO
 const W = 640
 
 /**
+ * Ширина строки в пикселях.
+ *
+ * Считать длину в символах нельзя: хангыль, кана и иероглифы рисуются почти
+ * квадратными (ширина ≈ кегль), а латиница с кириллицей — вдвое уже. Колонка,
+ * посчитанная «по числу знаков», в корейской таблице переполнялась, а в
+ * русской пустовала.
+ */
+const WIDE_CHAR = /[\u1100-\u11FF\u2E80-\uA4CF\uA960-\uA97F\uAC00-\uD7FF\uF900-\uFAFF\uFE30-\uFE4F\uFF00-\uFF60]/
+/**
+ * Кегль, при котором строка помещается в отведённую ширину.
+ *
+ * Ужать текст лучше, чем выпустить его за рамку: в таблице форм длинная
+ * английская фраза и короткая корейская стоят в одной колонке.
+ */
+function fitFs(text: string, maxW: number, base: number, min = 9): number {
+  const need = textW(text, base)
+  if (need <= maxW || !text) return base
+  return Math.max(min, Math.round((base * maxW / need) * 10) / 10)
+}
+
+function textW(text: string, fs: number): number {
+  let w = 0
+  for (const ch of text) w += WIDE_CHAR.test(ch) ? fs : fs * 0.55
+  return w
+}
+
+/**
  * Сноска под схемой — то, что в таблицу не влезает.
  *
  * Переносится по словам: длинная сноска в одну строку просто уезжала за край
@@ -37,12 +64,13 @@ const NOTE_FS = 11.5
 const NOTE_LH = 16
 
 function noteLines(note: string, w: number): string[] {
-  const max = Math.max(Math.floor((w - 36) / (NOTE_FS * 0.53)), 20)
+  const max = w - 36
   const lines: string[] = []
   let line = ''
   for (const word of note.split(' ')) {
-    if (line && (line + ' ' + word).length > max) { lines.push(line); line = word }
-    else line = line ? `${line} ${word}` : word
+    const next = line ? `${line} ${word}` : word
+    if (line && textW(next, NOTE_FS) > max) { lines.push(line); line = word }
+    else line = next
   }
   if (line) lines.push(line)
   return lines
@@ -144,10 +172,9 @@ export function formTable(
   opts: { note?: string; highlight?: number[] } = {},
 ): string {
   const cols = headers.length
-  const charW = 7.4
   const colW = headers.map((head, c) => {
-    const longest = Math.max(head.length, ...rows.map(r => (r[c] ?? '').length))
-    return Math.min(Math.max(longest * charW + 24, 78), 240)
+    const longest = Math.max(textW(head, 12), ...rows.map(r => textW(r[c] ?? '', 12.5)))
+    return Math.min(Math.max(longest + 26, 78), 260)
   })
   const total = colW.reduce((a, b) => a + b, 0)
   const w = Math.max(Math.min(total + 40, W + 40), 320)
@@ -180,7 +207,7 @@ export function formTable(
       const tx = centred ? colX(c) + cw[c] / 2 : colX(c) + 12
       // Первая колонка — подпись строки, её читают слева направо; остальные
       // держим по центру, чтобы формы стояли столбиком.
-      parts.push(`<text x="${tx}" y="${y + 22}" text-anchor="${centred ? 'middle' : 'start'}" font-size="12.5" font-weight="${c === 0 ? 700 : 500}" fill="${c === 0 ? INK : (on ? ACCENT : INK)}">${esc(cell)}</text>`)
+      parts.push(`<text x="${tx}" y="${y + 22}" text-anchor="${centred ? 'middle' : 'start'}" font-size="${fitFs(cell, cw[c] - 18, 12.5)}" font-weight="${c === 0 ? 700 : 500}" fill="${c === 0 ? INK : (on ? ACCENT : INK)}">${esc(cell)}</text>`)
     })
   })
   parts.push(`<rect x="${x0}" y="${y0}" width="${cw.reduce((a, b) => a + b, 0)}" height="${tableH}" rx="8" fill="none" stroke="${INK}" stroke-width="1.3"/>`)
@@ -210,8 +237,11 @@ export function formulaStrip(
   chunks: FormulaChunk[],
   opts: { note?: string; example?: string } = {},
 ): string {
-  const charW = 8.6
-  const boxW = chunks.map(c => Math.max(c.text.length * charW + 26, Math.min((c.note?.length ?? 0) * 6.2 + 16, 150), 64))
+  const boxW = chunks.map(c => Math.max(
+    textW(c.text, 15) + 26,
+    Math.min(textW(c.note ?? '', 11) + 16, 160),
+    64,
+  ))
   const gap = 16
   const total = boxW.reduce((a, b) => a + b, 0) + gap * (chunks.length - 1)
   const w = Math.max(Math.min(total + 48, W + 40), 320)
@@ -279,7 +309,7 @@ export function contrastPair(
     ]
     if (side.sub) parts.push(`<text x="${x + colW / 2}" y="${y0 + 47}" text-anchor="middle" font-size="11.5" fill="${MUTED}">${esc(side.sub)}</text>`)
     side.items.forEach((item, i) => {
-      parts.push(`<text x="${x + 16}" y="${y0 + 68 + i * 22}" font-size="12.5" fill="${INK}">• ${esc(item)}</text>`)
+      parts.push(`<text x="${x + 16}" y="${y0 + 68 + i * 22}" font-size="${fitFs(`• ${item}`, colW - 30, 12.5)}" fill="${INK}">• ${esc(item)}</text>`)
     })
     return parts.join('')
   }
@@ -326,10 +356,16 @@ export function timelineFigure(
 
   points.forEach((p, i) => {
     const x = points.length === 1 ? (x0 + x1) / 2 : x0 + i * step
+    // Подпись крайней точки, выровненная по центру, наполовину уезжает за лист:
+    // первую прижимаем к левому краю, последнюю — к правому.
+    const first = i === 0 && points.length > 1
+    const last = i === points.length - 1 && points.length > 1
+    const anchor = first ? 'start' : last ? 'end' : 'middle'
+    const tx = first ? x - 12 : last ? x + 12 : x
     parts.push(
       `<circle cx="${x}" cy="${y}" r="${p.key ? 9 : 7}" fill="${p.key ? ACCENT : PAPER}" stroke="${p.key ? ACCENT : INK}" stroke-width="1.6"/>` +
-      `<text x="${x}" y="${y - 20}" text-anchor="middle" font-size="14" font-weight="700" fill="${p.key ? ACCENT : INK}">${esc(p.label)}</text>` +
-      (p.sub ? `<text x="${x}" y="${y + 28}" text-anchor="middle" font-size="12" fill="${MUTED}">${esc(p.sub)}</text>` : ''),
+      `<text x="${tx}" y="${y - 20}" text-anchor="${anchor}" font-size="14" font-weight="700" fill="${p.key ? ACCENT : INK}">${esc(p.label)}</text>` +
+      (p.sub ? `<text x="${tx}" y="${y + 28}" text-anchor="${anchor}" font-size="12" fill="${MUTED}">${esc(p.sub)}</text>` : ''),
     )
   })
   parts.push(noteAt(w, h, opts.note))

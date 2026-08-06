@@ -10,7 +10,6 @@ import {
   ClipboardCheck, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Copy,
 } from 'lucide-react'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
-import { getContrastColor } from '../../lib/utils'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useT, t } from '../../lib/i18n'
@@ -24,7 +23,7 @@ import ScrollFade from '../../components/ScrollFade'
 import { useOverlayScroll, ScrollOverlays, OverlayScrollArea, fadeMask } from '../../components/teacher/OverlayScroll'
 import { getOwnerId } from '../../lib/owner'
 import TableEditor from '../../components/teacher/TableEditor'
-import Radio from '../../components/Radio'
+import GrowTextarea, { growMinHeight, TASK_TEXT_LH } from '../../components/teacher/GrowTextarea'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { taskTypesFor, makeTask, TASK_TYPES as TASK_TYPES_BY_ID, type TaskTypeId, type TaskPayload } from '../../data/taskTypes'
 import { supabase } from '../../lib/supabase'
@@ -202,53 +201,16 @@ const inputSt: React.CSSProperties = {
   outline: 'none', fontFamily: 'inherit',
 }
 
+/** Три строки под смысловые поля задания — правило описано в GrowTextarea. */
+const TASK_TEXT_MIN_H = growMinHeight(3, 13, 9)
+const taskTextSt: React.CSSProperties = { ...inputSt, lineHeight: TASK_TEXT_LH }
+
 /**
- * Textarea, которая обнимает текст: высота = содержимому, внутреннего скролла нет.
- * Пересчитываем на каждое изменение значения и на смену ширины (панель тянется) —
- * ResizeObserver сравнивает именно ширину, иначе собственный set height зациклит.
+ * Общее авто-растущее поле под старым именем — вызовов много. Обёртка нужна
+ * ради базового inputSt: без него поля урока потеряли бы рамку и фон.
  */
-function AutoTextarea({
-  value, onChange, minHeight = 0, style, ...rest
-}: Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'value' | 'onChange'> & {
-  value: string
-  onChange: (v: string) => void
-  minHeight?: number
-}) {
-  const ref = useRef<HTMLTextAreaElement>(null)
-
-  const fit = () => {
-    const el = ref.current
-    if (!el) return
-    el.style.height = 'auto'
-    el.style.height = `${Math.max(minHeight, el.scrollHeight)}px`
-  }
-
-  useLayoutEffect(fit, [value, minHeight])
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el || typeof ResizeObserver === 'undefined') return
-    let w = el.clientWidth
-    const ro = new ResizeObserver(() => {
-      if (el.clientWidth === w) return
-      w = el.clientWidth
-      fit()
-    })
-    ro.observe(el)
-    return () => ro.disconnect()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  return (
-    <textarea
-      ref={ref}
-      rows={1}
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      style={{ ...inputSt, resize: 'none', overflow: 'hidden', ...style }}
-      {...rest}
-    />
-  )
+function AutoTextarea({ style, ...rest }: React.ComponentProps<typeof GrowTextarea>) {
+  return <GrowTextarea {...rest} style={{ ...inputSt, ...style }} />
 }
 
 function Label({ children }: { children: React.ReactNode }) {
@@ -281,7 +243,7 @@ function GlassCard({ children, style }: { children: React.ReactNode; style?: Rea
 // Чтобы добавить новый тип задания, правится только реестр — здесь ничего.
 // All types (incl. language) — panels filter to what the current course should
 // show. `languageOnly` gates the language types behind a language subject.
-const TASK_TYPES: { type: HWTaskType; label: string; hint: string; Icon: React.ElementType; color: string; bg: string; languageOnly: boolean }[] =
+const TASK_TYPES: { type: HWTaskType; label: string; hint: string; Icon: React.ElementType; color: string; bg: string; fill: string; languageOnly: boolean }[] =
   taskTypesFor({ language: true }).map(d => ({
     type: d.id, label: d.label, hint: d.hint, Icon: d.Icon, ...d.visual, languageOnly: d.languageOnly,
   }))
@@ -1544,11 +1506,12 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
           >
             <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
               {/* Question */}
-              <textarea
+              <AutoTextarea
                 value={task.question ?? ''}
-                onChange={e => onUpdate({ ...task, question: e.target.value })}
+                onChange={v => onUpdate({ ...task, question: v })}
                 placeholder={t('Условие задания...')}
-                style={{ ...inputSt, resize: 'none', minHeight: 72, fontSize: 13, lineHeight: 1.55 }}
+                minHeight={TASK_TEXT_MIN_H}
+                style={taskTextSt}
               />
 
               {/* Условие-картинка */}
@@ -1610,21 +1573,23 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                           style={{
                             width: 24, height: 24,
                             borderRadius: task.type === 'single' ? '50%' : 7,
-                            border: `2px solid ${isCorrect ? cfg.color : 'var(--color-border-medium)'}`,
-                            background: isCorrect ? cfg.color : 'transparent',
+                            // Заливка — приглушённый cfg.fill, а не cfg.color: тот подобран
+                            // как цвет текста и рамок, под белой галочкой давал 1.7:1.
+                            border: `2px solid ${isCorrect ? cfg.fill : 'var(--color-border-medium)'}`,
+                            background: isCorrect ? cfg.fill : 'transparent',
                             cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
                             position: 'relative', transition: 'all 0.14s',
                           }}
                         >
-                          {isCorrect && <Check size={13} strokeWidth={3} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: getContrastColor(cfg.color) }} />}
+                          {isCorrect && <Check size={13} strokeWidth={3} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff' }} />}
                         </button>
                         <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `2px solid ${isCorrect ? cfg.color : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
                           <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: isCorrect ? cfg.color : 'var(--color-text-2)', flexShrink: 0 }}>{letter}</div>
-                          <input
+                          <AutoTextarea
                             value={ch}
-                            onChange={e => { const next = [...choices]; next[ci] = e.target.value; onUpdate({ ...task, choices: next }) }}
+                            onChange={v => { const next = [...choices]; next[ci] = v; onUpdate({ ...task, choices: next }) }}
                             placeholder={`${t('Вариант')} ${letter}…`}
-                            style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }}
+                            style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', borderRadius: 0, background: 'transparent', color: 'var(--color-text)', fontSize: 14, lineHeight: 1.4, fontFamily: 'inherit', outline: 'none' }}
                           />
                         </div>
                         {choices.length > 2 && (
@@ -1659,18 +1624,18 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {pairs.map((pair, pi) => (
                       <div key={pi} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <input
+                        <AutoTextarea
                           value={pair.left}
-                          onChange={e => { const next = [...pairs]; next[pi] = { ...pair, left: e.target.value }; onUpdate({ ...task, pairs: next }) }}
+                          onChange={v => { const next = [...pairs]; next[pi] = { ...pair, left: v }; onUpdate({ ...task, pairs: next }) }}
                           placeholder={`${t('Левая')} ${pi + 1}`}
-                          style={{ ...inputSt, flex: 1 }}
+                          style={{ ...taskTextSt, flex: 1 }}
                         />
                         <div style={{ color: 'var(--color-text-4)', fontSize: 16, flexShrink: 0 }}>↔</div>
-                        <input
+                        <AutoTextarea
                           value={pair.right}
-                          onChange={e => { const next = [...pairs]; next[pi] = { ...pair, right: e.target.value }; onUpdate({ ...task, pairs: next }) }}
+                          onChange={v => { const next = [...pairs]; next[pi] = { ...pair, right: v }; onUpdate({ ...task, pairs: next }) }}
                           placeholder={`${t('Правая')} ${pi + 1}`}
-                          style={{ ...inputSt, flex: 1 }}
+                          style={{ ...taskTextSt, flex: 1 }}
                         />
                         {pairs.length > 2 && (
                           <button
@@ -1708,7 +1673,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                       {items.map((it, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{i + 1}</span>
-                          <input value={it} onChange={e => { const n = [...items]; n[i] = e.target.value; setItems(n) }} placeholder={`${t('Шаг')} ${i + 1}`} style={{ ...inputSt, flex: 1 }} />
+                          <AutoTextarea value={it} onChange={v => { const n = [...items]; n[i] = v; setItems(n) }} placeholder={`${t('Шаг')} ${i + 1}`} style={{ ...taskTextSt, flex: 1 }} />
                           <button onClick={() => { if (i > 0) { const n = [...items];[n[i - 1], n[i]] = [n[i], n[i - 1]]; setItems(n) } }} disabled={i === 0} style={reorderBtn(i === 0)} title={t('Выше')}><ArrowUp size={12} /></button>
                           <button onClick={() => { if (i < items.length - 1) { const n = [...items];[n[i + 1], n[i]] = [n[i], n[i + 1]]; setItems(n) } }} disabled={i === items.length - 1} style={reorderBtn(i === items.length - 1)} title={t('Ниже')}><ArrowDown size={12} /></button>
                           {items.length > 2 && (
@@ -1755,11 +1720,12 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
 
               {/* Answer for extended / fill */}
               {(task.type === 'extended' || task.type === 'fill') && (
-                <input
+                <AutoTextarea
                   value={task.answer ?? ''}
-                  onChange={e => onUpdate({ ...task, answer: e.target.value })}
+                  onChange={v => onUpdate({ ...task, answer: v })}
                   placeholder={t('Эталонный ответ...')}
-                  style={inputSt}
+                  minHeight={TASK_TEXT_MIN_H}
+                  style={taskTextSt}
                 />
               )}
 
@@ -1773,17 +1739,18 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                       inputStyle={inputSt}
                     />
                   )}
-                  <input
+                  <AutoTextarea
                     value={task.sentence ?? ''}
-                    onChange={e => onUpdate({ ...task, sentence: e.target.value })}
+                    onChange={v => onUpdate({ ...task, sentence: v })}
                     placeholder={t('Эталонное предложение — разобьётся на плитки по словам')}
-                    style={inputSt}
+                    minHeight={TASK_TEXT_MIN_H}
+                    style={taskTextSt}
                   />
-                  <input
+                  <AutoTextarea
                     value={(task.distractors ?? []).join(', ')}
-                    onChange={e => onUpdate({ ...task, distractors: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                    onChange={v => onUpdate({ ...task, distractors: v.split(',').map(s => s.trim()).filter(Boolean) })}
                     placeholder={t('Лишние слова-обманки через запятую (необязательно)')}
-                    style={inputSt}
+                    style={taskTextSt}
                   />
                 </div>
               )}
@@ -1793,17 +1760,17 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                   нет ни вариантов, ни эталона в обычном поле, только front/back. */}
               {task.type === 'flashcard' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <input
+                  <AutoTextarea
                     value={task.front ?? ''}
-                    onChange={e => onUpdate({ ...task, front: e.target.value, question: e.target.value })}
+                    onChange={v => onUpdate({ ...task, front: v, question: v })}
                     placeholder={t('Лицевая сторона — слово на изучаемом языке')}
-                    style={inputSt}
+                    style={taskTextSt}
                   />
-                  <input
+                  <AutoTextarea
                     value={task.back ?? ''}
-                    onChange={e => onUpdate({ ...task, back: e.target.value })}
+                    onChange={v => onUpdate({ ...task, back: v })}
                     placeholder={t('Оборот — перевод. Несколько вариантов через запятую')}
-                    style={inputSt}
+                    style={taskTextSt}
                   />
                 </div>
               )}
@@ -1816,26 +1783,45 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                     onChange={patch => onUpdate({ ...task, ...patch })}
                     inputStyle={inputSt}
                   />
+                  {/* Верный вариант отмечается галочкой внутри самого поля —
+                      отдельной подписи «верный» под полем нет. Выбор один:
+                      клик по галочке переносит её со второго варианта. */}
                   <div style={{ display: 'flex', gap: 8 }}>
-                    {(['A', 'B'] as const).map(side => (
-                      <div key={side} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        <input
-                          value={(side === 'A' ? task.pairA : task.pairB) ?? ''}
-                          onChange={e => onUpdate({ ...task, [side === 'A' ? 'pairA' : 'pairB']: e.target.value })}
-                          placeholder={side === 'A' ? t('Вариант A') : t('Вариант B')}
-                          style={inputSt}
-                        />
-                        <Radio
-                          name={`mp-${task.id}`}
-                          checked={(task.correctPair ?? 'A') === side}
-                          onChange={() => onUpdate({ ...task, correctPair: side })}
-                          size={16}
-                          labelStyle={{ gap: 6, fontSize: 12, color: 'var(--color-text-2)' }}
-                        >
-                          {t('верный')}
-                        </Radio>
-                      </div>
-                    ))}
+                    {(['A', 'B'] as const).map(side => {
+                      const isCorrect = (task.correctPair ?? 'A') === side
+                      return (
+                        <div key={side} style={{
+                          flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8,
+                          padding: '0 9px 0 0', borderRadius: 11,
+                          border: `1.5px solid ${isCorrect ? cfg.color : 'var(--color-border-medium)'}`,
+                          background: 'var(--color-bg-input)', transition: 'border-color 0.14s',
+                        }}>
+                          <AutoTextarea
+                            value={(side === 'A' ? task.pairA : task.pairB) ?? ''}
+                            onChange={v => onUpdate({ ...task, [side === 'A' ? 'pairA' : 'pairB']: v })}
+                            placeholder={side === 'A' ? t('Вариант A') : t('Вариант B')}
+                            style={{
+                              flex: 1, minWidth: 0, padding: '9px 0 9px 12px', border: 'none', borderRadius: 0,
+                              background: 'transparent', fontSize: 13, lineHeight: TASK_TEXT_LH, color: 'var(--color-text)',
+                              fontFamily: 'inherit', outline: 'none',
+                            }}
+                          />
+                          <button
+                            onClick={() => onUpdate({ ...task, correctPair: side })}
+                            title={t('Верный ответ')}
+                            style={{
+                              width: 20, height: 20, borderRadius: 6, flexShrink: 0, padding: 0,
+                              border: `2px solid ${isCorrect ? cfg.fill : 'var(--color-border-medium)'}`,
+                              background: isCorrect ? cfg.fill : 'transparent',
+                              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              transition: 'all 0.14s',
+                            }}
+                          >
+                            {isCorrect && <Check size={12} strokeWidth={3} style={{ color: '#fff' }} />}
+                          </button>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
@@ -1848,11 +1834,12 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                     onChange={patch => onUpdate({ ...task, ...patch })}
                     inputStyle={inputSt}
                   />
-                  <input
+                  <AutoTextarea
                     value={task.answer ?? ''}
-                    onChange={e => onUpdate({ ...task, answer: e.target.value })}
+                    onChange={v => onUpdate({ ...task, answer: v })}
                     placeholder={t('Что ученик должен напечатать (эталон)')}
-                    style={inputSt}
+                    minHeight={TASK_TEXT_MIN_H}
+                    style={taskTextSt}
                   />
                 </div>
               )}
@@ -1860,11 +1847,12 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
               {/* speaking — read-aloud target + response window (teacher-reviewed) */}
               {task.type === 'speaking' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <input
+                  <AutoTextarea
                     value={task.targetText ?? ''}
-                    onChange={e => onUpdate({ ...task, targetText: e.target.value })}
+                    onChange={v => onUpdate({ ...task, targetText: v })}
                     placeholder={t('Текст для чтения вслух (необязательно — иначе свободный ответ)')}
-                    style={inputSt}
+                    minHeight={TASK_TEXT_MIN_H}
+                    style={taskTextSt}
                   />
                   <div style={{ display: 'flex', gap: 8 }}>
                     <input type="number" min={0} value={task.prepSeconds ?? 20}

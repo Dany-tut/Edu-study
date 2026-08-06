@@ -10,42 +10,53 @@
 // Legacy aliases normalised by normalizeTaskType() below — use it when reading
 // data that was written before the rename (DB rows, JSONB homework payloads).
 
-export interface TypeVisual { color: string; bg: string }
+export interface TypeVisual {
+  /** Цвет ТЕКСТА и рамок — яркий, рассчитан на тёмный фон. */
+  color: string
+  /** Мягкая подложка под чипсы. */
+  bg: string
+  /**
+   * Заливка под белой галочкой (кружок «верный ответ», залитый чекбокс).
+   * Отдельно от `color`: тот подобран как цвет текста и потому яркий —
+   * --color-green-text под белым даёт 1.7:1, жёлтый и бирюзовый ещё хуже.
+   */
+  fill: string
+}
 
 export const TYPE_VISUALS: Record<string, TypeVisual> = {
   // choice family → green
-  single:     { color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)' },
-  multi:      { color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)' },
+  single:     { color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)',     fill: 'var(--color-green-fill)' },
+  multi:      { color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)',     fill: 'var(--color-green-fill)' },
   // fill-in → peach
-  fill:       { color: 'var(--color-peach-text)',     bg: 'var(--color-peach-soft)' },
+  fill:       { color: 'var(--color-peach-text)',     bg: 'var(--color-peach-soft)',     fill: 'var(--color-peach-fill)' },
   // matching → rose
-  matching:   { color: 'var(--color-rose-text)',      bg: 'var(--color-rose-soft)' },
+  matching:   { color: 'var(--color-rose-text)',      bg: 'var(--color-rose-soft)',      fill: 'var(--color-rose-fill)' },
   // sequence → yellow
-  sequence:   { color: 'var(--color-yellow-text)',    bg: 'var(--color-yellow-soft)' },
+  sequence:   { color: 'var(--color-yellow-text)',    bg: 'var(--color-yellow-soft)',    fill: 'var(--color-yellow-fill)' },
   // table with blanks → teal
-  tableFill:  { color: 'var(--color-teal-pill-text)', bg: 'var(--color-teal-pill-bg)' },
+  tableFill:  { color: 'var(--color-teal-pill-text)', bg: 'var(--color-teal-pill-bg)',   fill: 'var(--color-teal-fill)' },
   // extended free-text → purple
-  extended:   { color: 'var(--color-purple)',         bg: 'var(--color-purple-soft)' },
+  extended:   { color: 'var(--color-purple)',         bg: 'var(--color-purple-soft)',    fill: 'var(--color-control-accent)' },
   // whiteboard drawing → blue
-  whiteboard: { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
+  whiteboard: { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)',   fill: 'var(--color-blue-fill)' },
 
   // ─── language-course types ───
   // assembling a sentence is an ordering task → yellow, like sequence
-  wordBank:      { color: 'var(--color-yellow-text)',    bg: 'var(--color-yellow-soft)' },
+  wordBank:      { color: 'var(--color-yellow-text)',    bg: 'var(--color-yellow-soft)',    fill: 'var(--color-yellow-fill)' },
   // everything driven by audio → blue
-  listenType:    { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
-  listenBank:    { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
-  minimalPair:   { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)' },
+  listenType:    { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)',   fill: 'var(--color-blue-fill)' },
+  listenBank:    { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)',   fill: 'var(--color-blue-fill)' },
+  minimalPair:   { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)',   fill: 'var(--color-blue-fill)' },
   // free production the teacher reviews → purple, like extended
-  speaking:      { color: 'var(--color-purple)',         bg: 'var(--color-purple-soft)' },
-  imageDescribe: { color: 'var(--color-purple)',         bg: 'var(--color-purple-soft)' },
-  imageCompare:  { color: 'var(--color-purple)',         bg: 'var(--color-purple-soft)' },
+  speaking:      { color: 'var(--color-purple)',         bg: 'var(--color-purple-soft)',    fill: 'var(--color-control-accent)' },
+  imageDescribe: { color: 'var(--color-purple)',         bg: 'var(--color-purple-soft)',    fill: 'var(--color-control-accent)' },
+  imageCompare:  { color: 'var(--color-purple)',         bg: 'var(--color-purple-soft)',    fill: 'var(--color-control-accent)' },
   // vocabulary → teal
-  flashcard:     { color: 'var(--color-teal-pill-text)', bg: 'var(--color-teal-pill-bg)' },
+  flashcard:     { color: 'var(--color-teal-pill-text)', bg: 'var(--color-teal-pill-bg)',   fill: 'var(--color-teal-fill)' },
 }
 
 export function typeVisual(t: string): TypeVisual {
-  return TYPE_VISUALS[normalizeTaskType(t)] ?? { color: 'var(--color-accent)', bg: 'var(--color-purple-soft)' }
+  return TYPE_VISUALS[normalizeTaskType(t)] ?? { color: 'var(--color-accent)', bg: 'var(--color-purple-soft)', fill: 'var(--color-control-accent)' }
 }
 
 /** Normalise legacy type strings to canonical IDs. */

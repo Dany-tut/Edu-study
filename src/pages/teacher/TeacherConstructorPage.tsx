@@ -20,9 +20,11 @@ import {
 import * as LucideIcons from 'lucide-react'
 import RichConditionEditor, { parseSmartPaste } from '../../components/teacher/RichConditionEditor'
 import TableEditor from '../../components/teacher/TableEditor'
+import GrowTextarea, { growMinHeight } from '../../components/teacher/GrowTextarea'
 import Radio from '../../components/Radio'
 import { typeVisual } from '../../data/taskTypeVisuals'
-import { bankSubjectOptions, subjectIcon } from '../../lib/subjects'
+import { bankSubjectOptions, subjectIcon, getSubject, isLanguageSubject, SUBJECTS } from '../../lib/subjects'
+import { taskTypesFor } from '../../data/taskTypes'
 import { levelOptions, matchesLevel } from '../../lib/courseLevels'
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagQuestions,
@@ -77,16 +79,21 @@ import {
 type NewBankTask = Omit<BankTask, 'id'>
 const LETTERS = 'АБВГДЕЖЗИКЛМНОП'
 
-// The answer-block palette shown on the right of the task constructor.
-const ANSWER_TYPES: { type: AnswerType; label: string; hint: string; Icon: React.ElementType }[] = [
-  { type: 'single',    label: t('Один ответ'),          hint: t('Выбор одного варианта'),  Icon: CircleDot },
-  { type: 'multi',     label: t('Несколько верных'),    hint: t('Выбор нескольких'),       Icon: ListChecks },
-  { type: 'fill',      label: t('Вписать ответ'),        hint: t('Слово / число / формула'), Icon: TypeIcon },
-  { type: 'matching',  label: t('Сопоставление'),       hint: t('Таблица А1 Б2 В3'),        Icon: Shuffle },
-  { type: 'sequence',  label: t('Последовательность'),  hint: t('Расставить порядок'),      Icon: ArrowUpDown },
-  { type: 'tableFill', label: t('Заполнить таблицу'),   hint: t('Ячейка «?» в таблице'),    Icon: TableIcon },
-  { type: 'extended',  label: t('Развёрнутый ответ'),   hint: t('Текст + фото, критерии'),  Icon: AlignLeft },
-]
+// Палитра типов ответа справа от конструктора задания.
+//
+// Берётся из единого реестра (src/data/taskTypes.ts). Здесь был шестой по счёту
+// рукописный список тех же типов, и он отставал сильнее всех: ни одного
+// языкового типа, поэтому в банк заданий нельзя было добавить ни диктант, ни
+// сборку предложения, ни запись голоса — только «химические» семь.
+//
+// Языковые типы показываются, когда выбран языковой предмет: химику они в
+// палитре не нужны, а языковику без них банк бесполезен.
+function answerTypesFor(subjectIsLanguage: boolean): { type: AnswerType; label: string; hint: string; Icon: React.ElementType }[] {
+  return taskTypesFor({ language: subjectIsLanguage })
+    // Доска рисуется на холсте и в банк заданий не кладётся.
+    .filter(d => d.id !== 'whiteboard')
+    .map(d => ({ type: d.id as AnswerType, label: t(d.label), hint: t(d.hint), Icon: d.Icon }))
+}
 
 // ─── Google Forms bulk import — categorize before writing to the bank ─────────
 // The bank requires subject/section/topic/part/line on every task, none of
@@ -2081,7 +2088,12 @@ function CreatorView({
   // task id; a saved draft wins over the DB values inside usePersistentState.
   const tkDraft = `taskctor.${editingTask?.id ?? 'new'}.`
   // Meta → where the task lives in the bank / how the student finds it.
-  const [tkSubject, setTkSubject] = usePersistentState<'Химия' | 'Биология'>(tkDraft + 'subject', editingTask?.subject === 'biology' ? 'Биология' : 'Химия')
+  // Предмет задания — русское название из реестра, а не пара «Химия|Биология».
+  // Ограничение двумя предметами и держало банк закрытым для языков.
+  const [tkSubject, setTkSubject] = usePersistentState<string>(tkDraft + 'subject', getSubject(editingTask?.subject)?.name ?? 'Химия')
+  // Палитра типов ответа зависит от предмета: языковые типы показываем только
+  // языковикам, иначе химик получает в списке диктант и запись голоса.
+  const ANSWER_TYPES = useMemo(() => answerTypesFor(isLanguageSubject(tkSubject)), [tkSubject])
   const [tkSection, setTkSection] = usePersistentState(tkDraft + 'section', editingTask?.section ?? '')
   const [tkTopic, setTkTopic] = usePersistentState(tkDraft + 'topic', editingTask?.topic ?? '')
   const [tkPart, setTkPart] = usePersistentState<1 | 2>(tkDraft + 'part', editingTask?.part ?? 1)
@@ -2154,17 +2166,27 @@ function CreatorView({
   const [criteriaVisible, setCriteriaVisible] = usePersistentState(tkDraft + 'criteriaVisible', editingTask?.criteriaVisibleOnCheck ?? false)
 
   const isChoiceType = tkAnswerType === 'single' || tkAnswerType === 'multi'
-  const tkTopicMap = tkSubject === 'Химия' ? CHEMISTRY_TOPICS : BIOLOGY_TOPICS
+  // Таксономия (разделы/темы/линии) есть только у экзаменационных предметов.
+  // Для остальных — включая языки — она пустая: раньше любой предмет кроме
+  // химии сваливался на биологию, и языковик получал разделы про клетку.
+  const tkSubjDef = getSubject(tkSubject)
+  const tkTopicMap = tkSubjDef?.id === 'chemistry' ? CHEMISTRY_TOPICS
+    : tkSubjDef?.id === 'biology' ? BIOLOGY_TOPICS
+    : {} as typeof CHEMISTRY_TOPICS
   // Teacher-editable option scopes (built-ins layered with added/removed edits).
   const metaAddOption = useTaskMeta(s => s.addOption)
   const metaRemoveOption = useTaskMeta(s => s.removeOption)
   const metaAdded = useTaskMeta(s => s.added)
   const metaRemoved = useTaskMeta(s => s.removed)
   const metaState = { added: metaAdded, removed: metaRemoved }
-  const tkSubjKey = tkSubject === 'Химия' ? 'chemistry' : 'biology'
+  const tkSubjKey = tkSubjDef?.id ?? 'chemistry'
   const sectionScopeKey = sectionScope(tkSubjKey)
   const topicScopeKey = topicScope(tkSubjKey, tkSection)
-  const tkSectionList = mergeOptions(tkSubject === 'Химия' ? CHEMISTRY_SECTIONS : BIOLOGY_SECTIONS, sectionScopeKey, metaState)
+  const tkSectionList = mergeOptions(
+    tkSubjDef?.id === 'chemistry' ? CHEMISTRY_SECTIONS
+      : tkSubjDef?.id === 'biology' ? BIOLOGY_SECTIONS
+      : [],
+    sectionScopeKey, metaState)
   const baseTopicList = tkSection ? (tkTopicMap[tkSection] ?? []) : Object.values(tkTopicMap).flat()
   const tkTopicList = mergeOptions(baseTopicList, topicScopeKey, metaState)
   const tkSourceList = mergeOptions(SOURCES, SOURCE_SCOPE, metaState)
@@ -2377,7 +2399,9 @@ function CreatorView({
       ? { headers: tkTableHeaders, rows: tkTableRows, emptyCells: Object.keys(tkEmptyCells).length ? tkEmptyCells : undefined, blankCells: Object.keys(tkBlankCells).length ? tkBlankCells : undefined, cellImages: Object.keys(tkTableCellImages).length ? tkTableCellImages : undefined, cellImageSizes: Object.keys(tkTableCellImageSizes).length ? tkTableCellImageSizes : undefined }
       : undefined
     const base = {
-      subject: (tkSubject === 'Химия' ? 'chemistry' : 'biology') as Subject,
+      // Слаг предмета из реестра: языковое задание должно сохраниться как
+      // 'korean'/'english', а не свалиться в биологию, как было раньше.
+      subject: tkSubjKey as Subject,
       section: tkSection || tkSectionList[0],
       topic: tkTopic || tkTopicList[0] || '—',
       part: tkPart, line: tkLine, source: tkSource,
@@ -2469,7 +2493,7 @@ function CreatorView({
           part: tkPart,
         }],
         questionIds: [newId],
-        subject: (tkSubject === 'Химия' ? 'chemistry' : 'biology'),
+        subject: tkSubjKey,
         color: trainerColor,
         bg: trainerBg,
         lastEdited: dateStr,
@@ -2634,12 +2658,16 @@ function CreatorView({
 
           {/* ─ Task meta left ─ */}
           {mode === 'trainer' && <>
+            {/* Предмет — выпадающий список по всему реестру. Двух кнопок
+                «Химия | Биология» не хватало: языковые предметы в банк заданий
+                попасть просто не могли, а вместе с ними и языковые типы. */}
             <div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {(['Химия', 'Биология'] as const).map(s => (
-                  <SegBtn key={s} label={t(s)} active={tkSubject === s} color="var(--color-purple-text)" bg="var(--color-purple-soft)" onClick={() => { setTkSubject(s); setTkSection(''); setTkTopic('') }} />
-                ))}
-              </div>
+              <TeacherSelect
+                value={tkSubject}
+                onChange={v => { setTkSubject(v); setTkSection(''); setTkTopic('') }}
+                placeholder={t('Предмет')}
+                options={SUBJECTS.map(s => ({ value: s.name, label: `${s.icon} ${s.name}` }))}
+              />
             </div>
             <div>
               <TeacherSelect value={tkSection} onChange={v => { setTkSection(v); setTkTopic('') }} placeholder={t("Раздел")}
@@ -2829,6 +2857,10 @@ function CreatorView({
                 value={tkQuestion}
                 onChange={setTkQuestion}
                 inputSt={{ ...inputSt, borderRadius: 16 }}
+                // Растёт по тексту вместо внутреннего скролла; minHeight — три
+                // строки плюс место, зарезервированное под панель инструментов.
+                autoGrow
+                minHeight={growMinHeight(3, 16, 6) + 54}
                 onSmartPaste={(_q, opts) => {
                   if (!isChoiceType) return
                   setTkChoices(opts.length >= 2 ? opts : [...opts, ...Array(2 - opts.length).fill('')])
@@ -2952,8 +2984,8 @@ function CreatorView({
                         </button>
                         <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `2px solid ${isCorrect ? cfg.color : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
                           <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: isCorrect ? cfg.color : 'var(--color-text-2)', flexShrink: 0 }}>{LETTERS[i]}</div>
-                          <input value={ans} onChange={e => setChoice(i, e.target.value)} placeholder={t('Вариант ') + (LETTERS[i]) + '…'}
-                            style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', background: 'transparent', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} />
+                          <GrowTextarea value={ans} onChange={v => setChoice(i, v)} placeholder={t('Вариант ') + (LETTERS[i]) + '…'}
+                            style={{ flex: 1, padding: '10px 12px 10px 0', border: 'none', borderRadius: 0, background: 'transparent', color: 'var(--color-text)', fontSize: 14, lineHeight: 1.4, fontFamily: 'inherit', outline: 'none' }} />
                         </div>
                         {scoreMode === 'perOption' && (
                           <input type="number" min={0} max={20} value={tkChoicePts[i] ?? 0}
@@ -2977,8 +3009,9 @@ function CreatorView({
               {/* fill */}
               {tkAnswerType === 'fill' && (
                 <div>
-                  <input value={tkShortAnswer} onChange={e => setTkShortAnswer(e.target.value)}
-                    placeholder={t("Правильный ответ — слово, число или формула")} style={inputSt} />
+                  <GrowTextarea value={tkShortAnswer} onChange={setTkShortAnswer}
+                    placeholder={t("Правильный ответ — слово, число или формула")}
+                    minHeight={growMinHeight(3, 13, 9, 0)} style={inputSt} />
                   <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>{t('Ответ ученика сверяется без учёта регистра.')}</div>
                 </div>
               )}
@@ -2988,7 +3021,8 @@ function CreatorView({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t('Таблица условия — выше. Впишите «?» в проверяемую ячейку, а сюда — правильный термин.')}</div>
                   <Label>{t('Правильный термин для ячейки «?»')}</Label>
-                  <input value={tkShortAnswer} onChange={e => setTkShortAnswer(e.target.value)} placeholder={t("Напр. Палеонтология")} style={inputSt} />
+                  <GrowTextarea value={tkShortAnswer} onChange={setTkShortAnswer} placeholder={t("Напр. Палеонтология")}
+                    minHeight={growMinHeight(3, 13, 9, 0)} style={inputSt} />
                 </div>
               )}
 
@@ -2999,9 +3033,9 @@ function CreatorView({
                   {tkMatchLeft.map((l, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{LETTERS[i]}</span>
-                      <input value={l} onChange={e => setTkMatchLeft(prev => prev.map((x, j) => j === i ? e.target.value : x))} placeholder={t("Левый элемент…")} style={{ ...inputSt, flex: 1 }} />
+                      <GrowTextarea value={l} onChange={v => setTkMatchLeft(prev => prev.map((x, j) => j === i ? v : x))} placeholder={t("Левый элемент…")} style={{ ...inputSt, flex: 1 }} />
                       <span style={{ flexShrink: 0, color: 'var(--color-text-3)', fontWeight: 700 }}>→</span>
-                      <input value={tkMatchRight[i]} onChange={e => setTkMatchRight(prev => prev.map((x, j) => j === i ? e.target.value : x))} placeholder={(i + 1) + t('. Правый элемент…')} style={{ ...inputSt, flex: 1 }} />
+                      <GrowTextarea value={tkMatchRight[i]} onChange={v => setTkMatchRight(prev => prev.map((x, j) => j === i ? v : x))} placeholder={(i + 1) + t('. Правый элемент…')} style={{ ...inputSt, flex: 1 }} />
                       <div style={{ width: 64, flexShrink: 0 }}>
                         <TeacherSelect small value={String(tkMatchMap[i] + 1)} onChange={v => setTkMatchMap(prev => prev.map((x, j) => j === i ? Number(v) - 1 : x))}
                           options={tkMatchRight.map((_, j) => ({ value: String(j + 1), label: `= ${j + 1}` }))} />
@@ -3022,7 +3056,7 @@ function CreatorView({
                   {tkSeq.map((s, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{i + 1}</span>
-                      <input value={s} onChange={e => setTkSeq(prev => prev.map((x, j) => j === i ? e.target.value : x))} placeholder={t('Шаг ') + (i + 1) + '…'} style={{ ...inputSt, flex: 1 }} />
+                      <GrowTextarea value={s} onChange={v => setTkSeq(prev => prev.map((x, j) => j === i ? v : x))} placeholder={t('Шаг ') + (i + 1) + '…'} style={{ ...inputSt, flex: 1 }} />
                       <button onClick={() => moveSeq(i, -1)} disabled={i === 0} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: i === 0 ? 'default' : 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: i === 0 ? 0.3 : 1, flexShrink: 0 }}><ArrowUp size={13} /></button>
                       <button onClick={() => moveSeq(i, 1)} disabled={i === tkSeq.length - 1} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', cursor: i === tkSeq.length - 1 ? 'default' : 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', opacity: i === tkSeq.length - 1 ? 0.3 : 1, flexShrink: 0 }}><ArrowDown size={13} /></button>
                       {tkSeq.length > 2 && (
@@ -3039,8 +3073,9 @@ function CreatorView({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <div>
                     <Label>{t('Эталонный ответ (для проверяющего)')}</Label>
-                    <textarea value={tkShortAnswer} onChange={e => setTkShortAnswer(e.target.value)} rows={3}
-                      placeholder={t("Развёрнутый эталон ответа…")} style={{ ...inputSt, resize: 'vertical' }} />
+                    <GrowTextarea value={tkShortAnswer} onChange={setTkShortAnswer}
+                      minHeight={growMinHeight(3, 13, 9, 0)}
+                      placeholder={t("Развёрнутый эталон ответа…")} style={inputSt} />
                   </div>
                   <button onClick={() => setTkAllowPhoto(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${tkAllowPhoto ? cfg.color + '55' : 'var(--color-border-medium)'}`, background: tkAllowPhoto ? `${cfg.bg}88` : 'var(--color-bg-2)', textAlign: 'left', width: '100%' }}>
                     <span style={{ width: 34, height: 20, borderRadius: 10, flexShrink: 0, position: 'relative', background: tkAllowPhoto ? cfg.color : 'var(--color-text-4)', transition: 'background 0.15s' }}>

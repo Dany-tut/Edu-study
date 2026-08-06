@@ -44,7 +44,8 @@ import {
   dictation, dictationBank, minPair, describeImage,
 } from './languageCourse'
 import { streetMapImage } from './seedImages'
-import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem } from './languageCourse'
+import { formTable, contrastPair, clockRow } from './lessonFigures'
+import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 export const PORTUGUESE_MODULES: LangModule[] = [
@@ -1014,6 +1015,68 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
   },
 ]
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Иллюстрации конспектов
+//
+// Чтение диграфов, ser/estar, три спряжения и пара perfeito/imperfeito — те
+// места курса, где текст вынужден пересказывать таблицу.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const PORTUGUESE_FIGURES: CourseFigures = {
+  'ptbr-01': [{
+    caption: 'Буквосочетания читаются не по буквам',
+    src: formTable('Как читаются диграфы', ['Написано', 'Звучит', 'Пример'], [
+      ['ch', 'ш', 'chave — «шави» (ключ)'],
+      ['lh', 'ль', 'filho — «фильу» (сын)'],
+      ['nh', 'нь', 'banho — «баньу» (ванна)'],
+      ['ss', 'с', 'passar — «пасар»'],
+      ['ç', 'с', 'começar — «комесар»'],
+      ['qu / gu', 'к / г перед e, i', 'quero — «керу»'],
+    ], { note: 'Безударное o на конце звучит как «у», а безударное e — как «и»: isso — «ису»' }),
+  }],
+
+  'ptbr-04': [{
+    caption: 'Два глагола «быть» — постоянное и временное',
+    src: contrastPair('ser и estar', {
+      head: 'ser', sub: 'то, что не меняется',
+      items: ['Eu sou russo — я русский', 'Ela é médica — она врач', 'É segunda-feira — сегодня понедельник'],
+    }, {
+      head: 'estar', sub: 'состояние и место сейчас',
+      items: ['Estou cansado — я устал', 'Ela está em casa — она дома', 'A comida está fria — еда остыла'],
+    }, { note: 'Ela é bonita — она красивая вообще; Ela está bonita — она красиво выглядит сегодня' }),
+  }],
+
+  'ptbr-07': [{
+    caption: 'Три спряжения — три набора окончаний',
+    src: formTable('Presente: -ar, -er, -ir', ['Лицо', 'falar', 'comer', 'partir'], [
+      ['eu', 'falo', 'como', 'parto'],
+      ['você / ele / ela', 'fala', 'come', 'parte'],
+      ['nós', 'falamos', 'comemos', 'partimos'],
+      ['vocês / eles', 'falam', 'comem', 'partem'],
+    ], { note: 'В бразильской речи форм всего четыре: tu и vós почти не используются' }),
+  }],
+
+  'ptbr-10': [{
+    caption: 'Время говорят через e (после) и para (до)',
+    src: clockRow('Que horas são?', [
+      { h: 3, m: 0, label: 'três horas' },
+      { h: 7, m: 30, label: 'sete e meia' },
+      { h: 10, m: 45, label: 'quinze para as onze' },
+    ], { note: 'É uma hora — только про час; со всеми остальными São: São duas horas' }),
+  }],
+
+  'ptbr-17': [{
+    caption: 'Два прошедших времени делят работу между собой',
+    src: contrastPair('perfeito и imperfeito', {
+      head: 'pretérito perfeito', sub: 'случилось один раз и закончилось',
+      items: ['Ontem eu falei com ele', 'Fui ao Brasil em 2020', 'Ele fez o trabalho'],
+    }, {
+      head: 'pretérito imperfeito', sub: 'фон, привычка, «раньше обычно»',
+      items: ['Eu falava com ele todo dia', 'Quando eu era criança…', 'Ele fazia isso sempre'],
+    }, { note: 'Русский вид тут не помощник: «делал» может быть и falei, и falava — решает, был ли это один законченный случай' }),
+  }],
+}
+
 export const PORTUGUESE_CELPE: LanguageCourseSpec = {
   key: 'ptbr',
   title: 'Бразильский португальский с нуля',
@@ -1024,6 +1087,7 @@ export const PORTUGUESE_CELPE: LanguageCourseSpec = {
   scopeNote: 'Охват — A1→A2. CELPE-Bras начинается с уровня Intermediário, поэтому курс к нему готовит логикой заданий, но сдавать экзамен рано.',
   modules: PORTUGUESE_MODULES,
   units: PORTUGUESE_UNITS,
+  figures: PORTUGUESE_FIGURES,
 }
 
 export const COURSE_SUMMARY = courseSummary(PORTUGUESE_CELPE)

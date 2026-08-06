@@ -27,7 +27,8 @@ import {
   one, many, fill, wb, pairsOf, write, say,
 } from './languageCourse'
 import { ENDC_THEORY, ENDC_VIDEO } from './englishDesignCareerTheory'
-import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem } from './languageCourse'
+import { formTable, formulaStrip, contrastPair, timelineFigure } from './lessonFigures'
+import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 // ─── Модель ──────────────────────────────────────────────────────────────────
@@ -1039,6 +1040,71 @@ export const ENGLISH_DESIGN_CAREER: EnglishUnit[] = [
 
 // ─── Производные ─────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Иллюстрации конспектов
+//
+// Курс про рабочие ситуации, поэтому схемы здесь — каркасы ответов (STAR,
+// «три времени») и разбор пар времён, на которых держится разница между
+// «отвечал за» и «сделал». `after` — номер абзаца конспекта из
+// englishDesignCareerTheory.ts.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const ENDC_FIGURES: CourseFigures = {
+  'endc-01': [{
+    after: 2,
+    caption: 'Каркас тридцатисекундного рассказа о себе',
+    src: formulaStrip('Кто я → на чём специализируюсь → сколько лет', [
+      { text: "I'm a product designer", note: 'роль, артикль a' },
+      { text: 'I specialise in mobile', note: 'специализация', key: true },
+      { text: "I've been doing it for 5 years", note: 'опыт' },
+    ], { note: 'Артикль обязателен: «I am designer» — ошибка номер один русскоязычных' }),
+  }],
+
+  'endc-03': [{
+    after: 6,
+    caption: 'Обязанность и результат — разные времена',
+    src: contrastPair('Past Simple и Present Perfect', {
+      head: 'Present Perfect', sub: 'результат, который важен сейчас',
+      items: ["I've redesigned the checkout page", 'даты нет — важен результат', 'increased, reduced, launched'],
+    }, {
+      head: 'Past Simple', sub: 'закрытый эпизод с датой',
+      items: ['I redesigned it in 2023', 'есть дата или период', 'I was responsible for… — слабая формулировка'],
+    }, { note: 'Проверка строки резюме: это обязанность или результат? Обязанность переписываем' }),
+  }],
+
+  'endc-12': [{
+    after: 3,
+    caption: 'Ответ на «Tell me about yourself» проходит через три времени',
+    src: timelineFigure('Три времени за 90 секунд', [
+      { label: 'Before that…', sub: 'путь — Past Simple' },
+      { label: 'Currently I…', sub: 'кто я сейчас — Present', key: true },
+      { label: "What I'm looking for…", sub: 'чего хочу — future / would like' },
+    ], { axis: 'рассказ', note: 'Интервьюер слушает не биографию, а логику: почему вы здесь и сейчас' }),
+  }],
+
+  'endc-13': [{
+    after: 3,
+    caption: 'STAR: пропорция важнее полноты',
+    src: formTable('Схема поведенческого ответа', ['Блок', 'Сколько', 'Время'], [
+      ['Situation', '1 предложение', 'Past Simple / Continuous'],
+      ['Task', '1 предложение', 'Past Simple'],
+      ['Action', 'основная часть', 'Past Simple, «я», не «мы»'],
+      ['Result', '1–2 предложения', 'Present Perfect, если результат жив'],
+    ], { highlight: [2], note: 'Past Continuous даёт фон: While we were preparing the release…' }),
+  }],
+
+  'endc-20': [{
+    after: 4,
+    caption: 'Сослагательное наклонение оставляет разговор открытым',
+    src: formTable('Как смягчить фразу о деньгах', ['Прямо — разговор закрыт', 'Мягко — разговор открыт'], [
+      ['I want 5000', 'I was hoping for something around 5000'],
+      ['Give me more', 'Is there any room to move on the base?'],
+      ['No, I refuse', "If the base stayed as is, I'd need to look at the bonus"],
+      ['I need an answer now', 'Could I get back to you by Friday?'],
+    ], { note: 'Was hoping + around + вопрос вместо требования — три приёма в одной фразе' }),
+  }],
+}
+
 export const ENGLISH_DESIGN_CAREER_SPEC: LanguageCourseSpec = {
   key: 'endc',
   title: 'Английский для дизайнера — от письма до оффера',
@@ -1055,6 +1121,7 @@ export const ENGLISH_DESIGN_CAREER_SPEC: LanguageCourseSpec = {
     theory: ENDC_THEORY[u.shortId] ?? u.theory,
     videoUrl: ENDC_VIDEO[u.shortId] ?? u.videoUrl,
   })),
+  figures: ENDC_FIGURES,
 }
 
 /** Все слова курса — основа словарной колоды и интервальных повторений. */

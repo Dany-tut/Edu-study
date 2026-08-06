@@ -44,7 +44,8 @@ import {
   one, many, fill, wb, order, pairsOf, grid, write, say, readAloud,
   dictation,
 } from './languageCourse'
-import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem } from './languageCourse'
+import { formTable, formulaStrip, contrastPair } from './lessonFigures'
+import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 export const PORTUGUESE2_MODULES: LangModule[] = [
@@ -989,6 +990,69 @@ export const PORTUGUESE2_UNITS: LangUnit[] = [
   },
 ]
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Иллюстрации конспектов
+//
+// Весь средний уровень португальского держится на subjuntivo: его формы
+// выводятся по правилу, и правило это — таблица, а не абзац.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const PORTUGUESE2_FIGURES: CourseFigures = {
+  'ptb2-03': [{
+    caption: 'Presente do subjuntivo строится от формы eu',
+    src: formTable('Как получить subjuntivo', ['Инфинитив', 'Форма eu', 'Subjuntivo', 'Правило'], [
+      ['falar', 'falo', 'que eu fale', '-o → -e'],
+      ['comer', 'como', 'que eu coma', '-o → -a'],
+      ['fazer', 'faço', 'que eu faça', 'неправильность сохраняется'],
+      ['ter', 'tenho', 'que eu tenha', 'неправильность сохраняется'],
+      ['ir', 'vou', 'que eu vá', 'исключение'],
+    ], { note: 'Триггеры: espero que, duvido que, é importante que, talvez — после них индикатив невозможен' }),
+  }],
+
+  'ptb2-04': [{
+    caption: 'Нереальное условие: se + imperfeito do subjuntivo',
+    src: formulaStrip('Se eu tivesse…, eu faria…', [
+      { text: 'Se', note: 'если бы' },
+      { text: 'tivesse tempo', note: 'imperfeito do subjuntivo', key: true },
+      { text: 'eu viajaria', note: 'futuro do pretérito' },
+    ], {
+      example: 'Se eu tivesse tempo, eu viajaria mais — «Если бы у меня было время, я бы больше путешествовал»',
+      note: 'Форма берётся от 3 лица мн. ч. perfeito: fizeram → fizesse, tiveram → tivesse',
+    }),
+  }],
+
+  'ptb2-06': [{
+    caption: 'Время главного предложения задаёт время придаточного',
+    src: formTable('Согласование времён', ['Главное', 'Придаточное', 'Пример'], [
+      ['presente', 'subjuntivo presente', 'Espero que ele venha'],
+      ['perfeito / imperfeito', 'subjuntivo imperfeito', 'Esperava que ele viesse'],
+      ['futuro do pretérito', 'subjuntivo imperfeito', 'Seria bom que ele viesse'],
+      ['futuro', 'futuro do subjuntivo', 'Quando ele vier, avise'],
+    ], { note: 'Ошибка уровня: «Esperava que ele venha» — время главного тянет за собой imperfeito' }),
+  }],
+
+  'ptb2-08': [{
+    caption: 'Три способа убрать деятеля из фразы',
+    src: contrastPair('Пассив и безличность', {
+      head: 'voz passiva', sub: 'формально, часто в тексте',
+      items: ['A casa foi construída em 1990', 'ser + причастие (+ por)', 'деятель можно назвать'],
+    }, {
+      head: 'se apassivador / a gente', sub: 'разговорно и нейтрально',
+      items: ['Vende-se casas — продаются дома', 'Aqui se fala português', 'A gente faz isso sempre'],
+    }, { note: 'В речи бразильцы почти всегда выбирают вторую колонку — пассив звучит как документ' }),
+  }],
+
+  'ptb2-10': [{
+    caption: 'Косвенная речь сдвигает время на шаг назад',
+    src: formTable('Сдвиг времён', ['Прямая речь', 'Косвенная', 'Что изменилось'], [
+      ['«Eu trabalho aqui»', 'Disse que trabalhava ali', 'presente → imperfeito'],
+      ['«Eu fiz isso»', 'Disse que tinha feito aquilo', 'perfeito → mais-que-perfeito'],
+      ['«Eu vou sair»', 'Disse que ia sair', 'futuro → futuro do pretérito'],
+      ['«Faça isso»', 'Pediu que fizesse aquilo', 'приказ → subjuntivo'],
+    ], { note: 'Вместе со временем сдвигаются указатели: aqui → ali, hoje → naquele dia, este → aquele' }),
+  }],
+}
+
 export const PORTUGUESE_INTERMEDIATE: LanguageCourseSpec = {
   key: 'ptb2',
   title: 'Португальский — Intermediário и CELPE-Bras',
@@ -999,6 +1063,7 @@ export const PORTUGUESE_INTERMEDIATE: LanguageCourseSpec = {
   scopeNote: 'Продолжение курса «Бразильский португальский с нуля». Целевой уровень экзамена — Intermediário; Avançado остаётся за рамками.',
   modules: PORTUGUESE2_MODULES,
   units: PORTUGUESE2_UNITS,
+  figures: PORTUGUESE2_FIGURES,
 }
 
 export const COURSE_SUMMARY = courseSummary(PORTUGUESE_INTERMEDIATE)

@@ -32,6 +32,7 @@ import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
 import WhiteboardCanvas from '../../components/teacher/WhiteboardCanvas'
 import RichConditionEditor from '../../components/teacher/RichConditionEditor'
 import TableEditor from '../../components/teacher/TableEditor'
+import GrowTextarea, { growMinHeight } from '../../components/teacher/GrowTextarea'
 import { useOverlayScroll, ScrollOverlays, fadeMask } from '../../components/teacher/OverlayScroll'
 import GoogleFormImportModal from '../../components/teacher/GoogleFormImportModal'
 import type { ImportedQuestion } from '../../lib/googleFormsImport'
@@ -334,6 +335,11 @@ function TaskCard({
                     value={task.question}
                     onChange={updateQuestion}
                     placeholder={t('Условие задания...')}
+                    // Растёт по тексту вместо внутреннего скролла; minHeight —
+                    // три строки плюс место, которое autoGrow резервирует под
+                    // панель инструментов (иначе она наезжает на текст).
+                    autoGrow
+                    minHeight={growMinHeight(3, 16, 6) + 54}
                   />
                 </div>
 
@@ -359,17 +365,19 @@ function TaskCard({
                               borderRadius: task.type === 'single' ? '50%' : 6,
                               border: '2px solid',
                               borderColor: (task.correctChoices ?? []).includes(ci) ? 'var(--color-accent)' : 'var(--color-border)',
-                              background: (task.correctChoices ?? []).includes(ci) ? 'var(--color-accent)' : 'transparent',
+                              // Заливка под белой галочкой — приглушённый вариант: --color-accent
+                              // подобран как цвет текста и в тёмной теме давал 2.2:1.
+                              background: (task.correctChoices ?? []).includes(ci) ? 'var(--color-control-accent)' : 'transparent',
                               cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
                             }}
                           >
                             {(task.correctChoices ?? []).includes(ci) && <Check size={12} style={{ color: '#fff' }} />}
                           </button>
-                          <input
+                          <GrowTextarea
                             value={ch}
-                            onChange={e => {
+                            onChange={v => {
                               const choices = [...(task.choices ?? [])]
-                              choices[ci] = e.target.value
+                              choices[ci] = v
                               onUpdate({ choices })
                             }}
                             placeholder={`${t('Вариант')} ${ci + 1}`}
@@ -406,22 +414,22 @@ function TaskCard({
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {task.pairs.map((pair, pi) => (
                         <div key={pi} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <input
+                          <GrowTextarea
                             value={pair.left}
-                            onChange={e => {
+                            onChange={v => {
                               const pairs = [...(task.pairs ?? [])]
-                              pairs[pi] = { ...pairs[pi], left: e.target.value }
+                              pairs[pi] = { ...pairs[pi], left: v }
                               onUpdate({ pairs })
                             }}
                             placeholder={`${t('Левая')} ${pi + 1}`}
                             style={{ ...inputStyle, flex: 1 }}
                           />
                           <div style={{ color: 'var(--color-text-4)', fontSize: 16 }}>↔</div>
-                          <input
+                          <GrowTextarea
                             value={pair.right}
-                            onChange={e => {
+                            onChange={v => {
                               const pairs = [...(task.pairs ?? [])]
-                              pairs[pi] = { ...pairs[pi], right: e.target.value }
+                              pairs[pi] = { ...pairs[pi], right: v }
                               onUpdate({ pairs })
                             }}
                             placeholder={`${t('Правая')} ${pi + 1}`}
@@ -463,7 +471,7 @@ function TaskCard({
                         {items.map((it, i) => (
                           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             <span style={{ width: 24, height: 24, borderRadius: 8, flexShrink: 0, background: cfg.bg, color: cfg.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{i + 1}</span>
-                            <input value={it} onChange={e => { const n = [...items]; n[i] = e.target.value; setItems(n) }} placeholder={`${t('Шаг')} ${i + 1}`} style={{ ...inputStyle, flex: 1 }} />
+                            <GrowTextarea value={it} onChange={v => { const n = [...items]; n[i] = v; setItems(n) }} placeholder={`${t('Шаг')} ${i + 1}`} style={{ ...inputStyle, flex: 1 }} />
                             <button onClick={() => { if (i > 0) { const n = [...items];[n[i - 1], n[i]] = [n[i], n[i - 1]]; setItems(n) } }} disabled={i === 0} style={reorderBtn(i === 0)}><ArrowUp size={12} /></button>
                             <button onClick={() => { if (i < items.length - 1) { const n = [...items];[n[i + 1], n[i]] = [n[i], n[i + 1]]; setItems(n) } }} disabled={i === items.length - 1} style={reorderBtn(i === items.length - 1)}><ArrowDown size={12} /></button>
                             {items.length > 2 && (
@@ -505,10 +513,11 @@ function TaskCard({
                 {/* Answer (for extended/fill) */}
                 {(task.type === 'extended' || task.type === 'fill') && (
                   <div>
-                    <input
+                    <GrowTextarea
                       value={task.answer}
-                      onChange={e => updateAnswer(e.target.value)}
+                      onChange={updateAnswer}
                       placeholder={t('Эталонный ответ...')}
+                      minHeight={growMinHeight(3, 13, 9, 0)}
                       style={inputStyle}
                     />
                   </div>
@@ -762,6 +771,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
             value={editedQuestion}
             onChange={setEditedQuestion}
             placeholder={t('Текст задания…')}
+            minHeight={growMinHeight(3, 15, 2, 1)}
             style={{ fontSize: 15, lineHeight: 1.45, fontWeight: 650, color: 'var(--color-text)' }}
           />
         </div>
@@ -879,9 +889,10 @@ function BankTaskCard({ task, index, added, onAdd }: {
       {/* Solution block — answer + solution editable */}
       <div style={{ padding: '14px 18px', background: palette.soft, borderRadius: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <p style={{ fontSize: 12, fontWeight: 700, color: palette.text, margin: 0 }}>{t('Правильный ответ')}</p>
-        <input
+        <GrowTextarea
           value={editedAnswer}
-          onChange={e => setEditedAnswer(e.target.value)}
+          onChange={setEditedAnswer}
+          minHeight={growMinHeight(3, 14, 9)}
           style={{
             ...inputStyle,
             fontWeight: 700, fontSize: 14,
@@ -895,6 +906,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
           value={editedSolution}
           onChange={setEditedSolution}
           placeholder={t('Пояснение к решению…')}
+          minHeight={growMinHeight(3, 12, 8, 1)}
           style={{
             fontSize: 12, lineHeight: 1.6, color: 'var(--color-text-2)',
             background: 'rgba(var(--glass-rgb), 0.6)', borderRadius: 10,
@@ -916,16 +928,16 @@ function BankTaskCard({ task, index, added, onAdd }: {
 
 // Auto-growing textarea that reads like plain text until focused — used for the
 // inline-editable question and solution in the trainer picker.
-function AutoTextarea({ value, onChange, placeholder, style }: {
-  value: string; onChange: (v: string) => void; placeholder?: string; style?: React.CSSProperties
+function AutoTextarea({ value, onChange, placeholder, minHeight = 0, style }: {
+  value: string; onChange: (v: string) => void; placeholder?: string; minHeight?: number; style?: React.CSSProperties
 }) {
   const ref = useRef<HTMLTextAreaElement>(null)
   useEffect(() => {
     const el = ref.current
     if (!el) return
     el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight}px`
-  }, [value])
+    el.style.height = `${Math.max(minHeight, el.scrollHeight)}px`
+  }, [value, minHeight])
   // Resting values — focus/blur restore to these instead of hardcoded defaults,
   // so a field with its own background/border keeps it after editing.
   const restBg = (style?.background as string) ?? 'transparent'
@@ -2535,8 +2547,14 @@ export default function TeacherHomeworkCreatePage() {
           </div>
         </div>
 
-        {/* Right column */}
-        <div style={{ flexShrink: 0, position: 'sticky', top: 20, alignSelf: 'flex-start', overflow: 'hidden' }}>
+        {/* Right column — overflow прячет въезжающую панель, но заодно резал её
+            тень сверху и слева: даём запас и возвращаем колонку отрицательными
+            полями. Слева 16px — ровно в паддинг центра, чтобы полоса не легла
+            поверх карточек заданий и не перехватывала клики. */}
+        <div style={{
+          flexShrink: 0, position: 'sticky', top: 20 - 12, alignSelf: 'flex-start', overflow: 'hidden',
+          margin: '-12px 0 0 -16px', padding: '12px 0 0 16px',
+        }}>
           <AnimatePresence mode="wait">
             {activeTab === 'compose' && (
               <ComposeTypePanel

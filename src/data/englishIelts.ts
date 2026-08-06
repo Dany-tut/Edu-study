@@ -42,7 +42,8 @@ import {
   dictation, describeImage, compareImages,
 } from './languageCourse'
 import { lineChartImage, barChartImage, processFlowImage, townMapImage } from './seedImages'
-import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem } from './languageCourse'
+import { formTable, formulaStrip, ladderFigure } from './lessonFigures'
+import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 // ─── Материал для Writing Task 1 ─────────────────────────────────────────────
@@ -1354,6 +1355,66 @@ export const IELTS_UNITS: LangUnit[] = [
   },
 ]
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Иллюстрации конспектов
+//
+// Экзаменационный курс иллюстрируется не грамматикой, а устройством самого
+// экзамена: из чего складывается балл, как устроен абзац, какими словами
+// описывают график. Это то, что ученик должен держать перед глазами.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const IELTS_FIGURES: CourseFigures = {
+  'ielt-01': [{
+    caption: 'Балл складывается из четырёх равных частей',
+    src: formTable('Writing: критерии', ['Критерий', 'Доля', 'Что проверяет'], [
+      ['Task Response', '25%', 'ответили ли вы на вопрос целиком'],
+      ['Coherence & Cohesion', '25%', 'структура абзацев и связки'],
+      ['Lexical Resource', '25%', 'точность и разнообразие лексики'],
+      ['Grammatical Range', '25%', 'сложные структуры без ошибок'],
+    ], { note: 'Идеальный английский с ответом не на тот вопрос теряет четверть балла сразу' }),
+  }],
+
+  'ielt-12': [{
+    caption: 'Динамика описывается парой «глагол + наречие»',
+    src: formTable('Task 1: язык изменения', ['Что произошло', 'Глагол', 'Как', 'Существительное'], [
+      ['резкий рост', 'rose / increased', 'sharply, dramatically', 'a sharp rise'],
+      ['плавный рост', 'grew / climbed', 'gradually, steadily', 'a steady growth'],
+      ['падение', 'fell / declined', 'slightly, significantly', 'a slight decline'],
+      ['стабильность', 'remained stable', '—', 'a plateau'],
+      ['колебания', 'fluctuated', 'wildly', 'fluctuations'],
+    ], { note: 'Проверяющий ищет разнообразие: один и тот же increased во всех абзацах снижает Lexical Resource' }),
+  }],
+
+  'ielt-14': [{
+    caption: 'Структура эссе на 250 слов — четыре блока',
+    src: formulaStrip('Task 2: каркас', [
+      { text: 'Introduction', note: 'перефраз + позиция' },
+      { text: 'Body 1', note: 'аргумент + пример', key: true },
+      { text: 'Body 2', note: 'аргумент + пример' },
+      { text: 'Conclusion', note: 'повтор позиции' },
+    ], { note: 'Планирование — 5 минут из 40. Эссе без плана почти всегда теряет Coherence' }),
+  }],
+
+  'ielt-15': [{
+    caption: 'Абзац строится по одной и той же схеме',
+    src: formulaStrip('Каркас абзаца', [
+      { text: 'Topic sentence', note: 'о чём абзац' },
+      { text: 'Explanation', note: 'почему это так', key: true },
+      { text: 'Example', note: 'конкретика' },
+      { text: 'Link', note: 'связь с вопросом' },
+    ], { example: 'Одна мысль — один абзац; вторая мысль в том же абзаце снимает балл', note: 'Referencing (this, such, the former) заменяет повтор существительного' }),
+  }],
+
+  'ielt-17': [{
+    caption: 'Три части Speaking проверяют разные умения',
+    src: ladderFigure('Speaking: устройство', [
+      { label: 'Part 3 — обсуждение, 4–5 мин', sub: 'абстрактные темы, аргументация и обобщение' },
+      { label: 'Part 2 — монолог, 2 мин', sub: 'карточка, 1 минута на подготовку', key: true },
+      { label: 'Part 1 — о себе, 4–5 мин', sub: 'простые вопросы, ответ в 2–3 предложения' },
+    ], { note: 'Часть 1 — не разминка: односложные ответы там уже снижают Fluency' }),
+  }],
+}
+
 export const ENGLISH_IELTS: LanguageCourseSpec = {
   key: 'ielt',
   title: 'IELTS Academic — с 6.0 на 7.0',
@@ -1364,6 +1425,7 @@ export const ENGLISH_IELTS: LanguageCourseSpec = {
   scopeNote: 'Курс для тех, у кого английский уже на B1: работа по критериям, а не общий английский. Все четыре секции.',
   modules: IELTS_MODULES,
   units: IELTS_UNITS,
+  figures: IELTS_FIGURES,
 }
 
 export const COURSE_SUMMARY = courseSummary(ENGLISH_IELTS)

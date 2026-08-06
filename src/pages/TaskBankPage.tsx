@@ -25,6 +25,8 @@ import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../stor
 import { useDashboard } from '../store/dashboardStore'
 import { useTrainerProgress } from '../store/trainerProgressStore'
 import { subjectTheme, PURPLE } from '../lib/theme'
+import { getSubject } from '../lib/subjects'
+import LanguageTrainer from '../components/LanguageTrainer'
 import { getContrastColor } from '../lib/utils'
 import { useTheme } from '../store/themeStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
@@ -1448,6 +1450,12 @@ export default function TaskBankPage() {
   const tasks         = useTaskBank(s => s.tasks)
   const loadTasks     = useTaskBank(s => s.load)
   useEffect(() => { loadTasks(true) }, [])
+
+  // У языковых предметов банка заданий нет (SUBJECTS[...].hasBank === false), и
+  // главное — язык так не тренируется. Раньше ученик-языковик открывал тренажёр
+  // и видел задачи по генетике: список жёстко падал на биологию.
+  const langSubject = getSubject(activeSubjectId)
+  const isLangTrainer = !!langSubject?.isLanguage
   // Dual-layout (desktop+mobile оба в DOM) монтирует страницу дважды → дедуп по
   // короткому окну, чтобы одно открытие тренажёра давало одно событие.
   useEffect(() => {
@@ -1671,6 +1679,24 @@ export default function TaskBankPage() {
     WebkitBackdropFilter: 'blur(14px) saturate(180%)',
     boxShadow: 'var(--shadow-lg)',
   } as const
+
+  // ── Языковой тренажёр ───────────────────────────────────────────────────────
+  // Ставится ПОСЛЕ всех хуков (иначе нарушится порядок вызова) и ДО обеих вёрсток:
+  // у языка своя, общая для телефона и десктопа. Банк ЕГЭ здесь не показывается
+  // вовсе — его для языков просто не существует.
+  if (isLangTrainer) {
+    return (
+      <>
+        <LanguageTrainer
+          lang={langSubject!.langCode ?? 'en'}
+          subject={langSubject!.name}
+          subjectId={langSubject!.id}
+          dark={dark}
+        />
+        {!isDesktop && <MobileBottomNav />}
+      </>
+    )
+  }
 
   // ── Mobile layout (MOBILE ONLY; desktop return below is untouched) ──────────
   // Tasks are primary (full-width list); filters/sort/search live in glass

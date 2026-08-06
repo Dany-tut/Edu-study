@@ -24,6 +24,12 @@ export interface SubjectDef {
   hasBank: boolean
   /** True for language subjects — unlocks the language task-type palette (audio, word-bank, essay…). */
   isLanguage?: boolean
+  /**
+   * BCP-47 изучаемого языка. Нужен там, где предмет надо сопоставить с
+   * контентом на этом языке: библиотека текстов, синтез речи, словари.
+   * У неязыковых предметов не заполняется.
+   */
+  langCode?: string
   light: SubjectPalette
   dark: SubjectPalette
 }
@@ -59,13 +65,13 @@ export const SUBJECTS: SubjectDef[] = [
   { id: 'biology', name: 'Биология', icon: '🧬', hasBank: true, light: BIOLOGY_LIGHT, dark: BIOLOGY_DARK },
   { id: 'physics', name: 'Физика', icon: '⚡', hasBank: false, ...palettePair('#0E9B9B', '#37C2C2', '#0B7A7A', '#5FD6D6') },
   { id: 'math', name: 'Математика', icon: '📐', hasBank: false, ...palettePair('#2B7FFF', '#5C9CFF', '#1E5FD6', '#8FBCFF') },
-  { id: 'russian', name: 'Русский', icon: '📝', hasBank: false, isLanguage: true, ...palettePair('#E0567F', '#EC7EA0', '#B23A60', '#F0A0BB') },
+  { id: 'russian', name: 'Русский', icon: '📝', hasBank: false, isLanguage: true, langCode: 'ru', ...palettePair('#E0567F', '#EC7EA0', '#B23A60', '#F0A0BB') },
   { id: 'literature', name: 'Литература', icon: '📖', hasBank: false, isLanguage: true, ...palettePair('#A25AD4', '#BE86E6', '#7E3DAE', '#CFA3EE') },
   { id: 'history', name: 'История', icon: '🏛️', hasBank: false, ...palettePair('#C08A3E', '#D6A860', '#93661F', '#E0BE86') },
-  { id: 'english', name: 'Английский', icon: '🇬🇧', hasBank: false, isLanguage: true, ...palettePair('#E4572E', '#F0805E', '#B23E1C', '#F5A186') },
-  { id: 'korean', name: 'Корейский', icon: '🇰🇷', hasBank: false, isLanguage: true, ...palettePair('#3F51B5', '#7A88DC', '#2F3C8C', '#A3ADEA') },
-  { id: 'japanese', name: 'Японский', icon: '🇯🇵', hasBank: false, isLanguage: true, ...palettePair('#B3122B', '#DE5468', '#8C0E21', '#EF8C9A') },
-  { id: 'portuguese', name: 'Португальский', icon: '🇧🇷', hasBank: false, isLanguage: true, ...palettePair('#2E8B37', '#5CB565', '#1F6B27', '#8FD196') },
+  { id: 'english', name: 'Английский', icon: '🇬🇧', hasBank: false, isLanguage: true, langCode: 'en', ...palettePair('#E4572E', '#F0805E', '#B23E1C', '#F5A186') },
+  { id: 'korean', name: 'Корейский', icon: '🇰🇷', hasBank: false, isLanguage: true, langCode: 'ko', ...palettePair('#3F51B5', '#7A88DC', '#2F3C8C', '#A3ADEA') },
+  { id: 'japanese', name: 'Японский', icon: '🇯🇵', hasBank: false, isLanguage: true, langCode: 'ja', ...palettePair('#B3122B', '#DE5468', '#8C0E21', '#EF8C9A') },
+  { id: 'portuguese', name: 'Португальский', icon: '🇧🇷', hasBank: false, isLanguage: true, langCode: 'pt-BR', ...palettePair('#2E8B37', '#5CB565', '#1F6B27', '#8FD196') },
 ]
 
 // Lookup by either the English id or the Russian name, case-insensitive.
