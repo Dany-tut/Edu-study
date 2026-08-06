@@ -15,11 +15,18 @@ export default function VoiceRecorder({
   value,
   onChange,
   maxSeconds = 120,
+  accent,
 }: {
   /** Путь уже записанного ответа (task-media), если есть. */
   value?: string | null
   onChange: (path: string | null) => void
   maxSeconds?: number
+  /**
+   * Цвет предмета. В домашке запись живёт на общем акценте приложения, а в
+   * языковом тренажёре — внутри карточки предмета со своей палитрой, и общий
+   * фиолетовый там выбивался. Не задан — цвет прежний.
+   */
+  accent?: string
 }) {
   const t = useT()
   const [phase, setPhase] = useState<Phase>('idle')
@@ -93,7 +100,7 @@ export default function VoiceRecorder({
   if (value && phase === 'idle') {
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <AudioPlayer audioUrl={value} compact />
+        <AudioPlayer audioUrl={value} compact accent={accent} />
         <span style={{ fontSize: 12.5, color: 'var(--color-green-text)', fontWeight: 600 }}>{t('Ответ записан')}</span>
         <button onClick={() => onChange(null)} title={t('Перезаписать')}
           style={{ marginLeft: 'auto', border: 'none', background: 'var(--color-bg-3)', borderRadius: 8, height: 30, padding: '0 12px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit' }}>
@@ -114,7 +121,7 @@ export default function VoiceRecorder({
           <Loader2 size={16} className="spin" /> {t('Загрузка…')}
         </button>
       ) : (
-        <button onClick={start} style={recBtn('var(--color-accent)')}>
+        <button onClick={start} style={recBtn(accent ?? 'var(--color-accent)')}>
           <Mic size={16} /> {t('Записать')}
         </button>
       )}

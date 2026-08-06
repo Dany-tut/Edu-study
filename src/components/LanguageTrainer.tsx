@@ -1369,7 +1369,7 @@ function Speaking({ subjectId, subject, accent, palette, themes, query, kindFilt
           <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-text)' }}>{t(open.prompt)}</p>
         </div>
 
-        <VoiceRecorder value={null} onChange={handleRecorded} maxSeconds={open.seconds + 30} />
+        <VoiceRecorder value={null} onChange={handleRecorded} maxSeconds={open.seconds + 30} accent={palette.accent} />
 
         {sendState === 'sending' && (
           <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Отправляем преподавателю…')}</p>
