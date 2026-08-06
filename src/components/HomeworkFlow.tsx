@@ -6,6 +6,7 @@ import {
   ChevronUp, ChevronDown, Eye, MicOff, Home, RotateCcw, ArrowRight,
 } from 'lucide-react'
 import type { LessonHomework, HomeworkQuizQuestion } from '../data/lessonContent'
+import type { PatternItem } from '../data/taskTypes'
 import { normalizeTaskType } from '../data/taskTypeVisuals'
 import { PURPLE, subjectTheme } from '../lib/theme'
 import { useTheme } from '../store/themeStore'
@@ -678,8 +679,39 @@ function toggleId(current: string | undefined, id: string) {
   const set = parseIds(current)
   return joinIds(set.includes(id) ? set.filter(x => x !== id) : [...set, id])
 }
+/** Строки подстановочного дрилла, у которых есть эталон, — только они и спрашиваются. */
+function drillItems(q: HomeworkQuizQuestion) {
+  return (q.patternItems ?? []).filter(i => !!i.answer?.trim())
+}
+
+/** Ответы дрилла хранятся одной строкой-JSON «номер строки → что вписали». */
+export function parseDrillAnswer(ans: string | undefined): Record<string, string> {
+  if (!ans) return {}
+  try {
+    const parsed = JSON.parse(ans)
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Record<string, string> : {}
+  } catch { return {} }
+}
+
+/** Верна ли одна строка дрилла. Вынесено: нужно и проверке, и подсветке строк. */
+export function drillRowCorrect(item: PatternItem, given: string | undefined) {
+  const got = normAnswer(given ?? '')
+  if (!got) return false
+  return normAnswer(item.answer) === got || (item.alt ?? []).some(x => normAnswer(x) === got)
+}
+
 function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
-  return questionIsChoice(q) ? !!ans : !!(ans && ans.trim())
+  if (questionIsChoice(q)) return !!ans
+  // Дрилл считается отвеченным, только когда заполнены ВСЕ строки: наполовину
+  // заполненный дрилл — это не ответ, а брошенная на середине отработка, и
+  // засчитывать его как сделанное задание значит врать счётчику прогресса.
+  if (qType(q) === 'pattern') {
+    const items = drillItems(q)
+    if (items.length === 0) return !!(ans && ans.trim())
+    const given = parseDrillAnswer(ans)
+    return items.every((_, i) => !!given[String(i)]?.trim())
+  }
+  return !!(ans && ans.trim())
 }
 function questionAutoGradable(q: HomeworkQuizQuestion) {
   if (questionIsMulti(q)) return q.options.length > 0 && (q.correctOptionIds?.length ?? 0) > 0
@@ -690,6 +722,7 @@ function questionAutoGradable(q: HomeworkQuizQuestion) {
   if (langTp === 'listenType') return !!q.referenceAnswer?.trim()
   if (langTp === 'minimalPair') return !!q.pairA && !!q.pairB && !!q.correctPair
   if (langTp === 'flashcard') return !!q.back?.trim()
+  if (langTp === 'pattern') return drillItems(q).length > 0
   // speaking / imageDescribe / imageCompare — только учителем.
   const tp = qType(q)
   if (tp === 'fill' || tp === 'extended') return !!q.referenceAnswer?.trim()
@@ -724,6 +757,13 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
       const target = normAnswer(ans)
       const variants = q.back.split(/[,;]/).map(s => normAnswer(s.replace(/\([^)]*\)/g, '')))
       return normAnswer(q.back) === target || variants.some(v => v && v === target)
+    }
+    if (langTp === 'pattern') {
+      const items = drillItems(q)
+      if (items.length === 0) return false
+      const given = parseDrillAnswer(ans)
+      // Дрилл верен целиком: одна незакрытая форма — и конструкция не отработана.
+      return items.every((item, i) => drillRowCorrect(item, given[String(i)]))
     }
   }
   const tp = qType(q)
@@ -907,6 +947,91 @@ function TableSolver({ table, value, disabled, onChange }: {
   // as the trainer / tests; on the phone it gets the fit ↔ zoom toggle for free.
   const isDesktop = useIsDesktop()
   return <QuestionTable table={table} mobile={!isDesktop} interactive value={value} onChange={onChange} disabled={disabled} />
+}
+
+/**
+ * Подстановочный дрилл: одна конструкция, несколько подстановок.
+ *
+ * Шаблон висит шапкой и не уезжает — в этом весь смысл упражнения: ученик
+ * видит, что меняется ровно одно место, и к пятой строке форма ставится уже
+ * рукой, а не рассуждением. Строки идут вместе, одним заданием, потому что
+ * порознь этот эффект пропадает.
+ *
+ * Ответы уходят наружу одной строкой-JSON — так же, как у таблицы: хранилище
+ * домашки держит на вопрос ровно одну строку.
+ */
+function DrillSolver({ pattern, gloss, items, value, disabled, showVerdict, accent, soft, onChange }: {
+  pattern?: string
+  gloss?: string
+  items: PatternItem[]
+  value: string | undefined
+  disabled: boolean
+  showVerdict: boolean
+  accent: string
+  soft: string
+  onChange: (v: string) => void
+}) {
+  const t = useT()
+  const given = parseDrillAnswer(value)
+  const put = (i: number, v: string) => onChange(JSON.stringify({ ...given, [String(i)]: v }))
+
+  return (
+    <div className="flex flex-col" style={{ gap: 12 }}>
+      {pattern && (
+        <div style={{
+          padding: '14px 16px', borderRadius: 16,
+          background: soft, border: `1px solid ${accent}`,
+        }}>
+          <div style={{ fontSize: 19, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.35 }}>
+            {pattern}
+          </div>
+          {gloss && (
+            <div style={{ fontSize: 13, color: 'var(--color-text-2)', marginTop: 4 }}>{gloss}</div>
+          )}
+        </div>
+      )}
+
+      <div className="flex flex-col" style={{ gap: 8 }}>
+        {items.map((item, i) => {
+          const mine = given[String(i)] ?? ''
+          const ok = drillRowCorrect(item, mine)
+          return (
+            <div key={i} className="flex flex-col" style={{ gap: 4 }}>
+              <div className="flex items-center" style={{ gap: 10 }}>
+                <span style={{
+                  flexShrink: 0, minWidth: 78, padding: '7px 12px', borderRadius: 12,
+                  background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
+                  fontSize: 14, fontWeight: 700, color: 'var(--color-text)', textAlign: 'center',
+                }}>
+                  {item.cue}
+                </span>
+                <span style={{ color: 'var(--color-muted)', flexShrink: 0 }}>→</span>
+                <input
+                  value={mine}
+                  onChange={e => put(i, e.target.value)}
+                  disabled={disabled}
+                  placeholder={t('Всё предложение целиком…')}
+                  style={{
+                    flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px 14px',
+                    borderRadius: 14, fontFamily: 'inherit', fontSize: 15,
+                    color: 'var(--color-text)', background: 'var(--color-bg-input)', outline: 'none',
+                    border: `1px solid ${showVerdict ? (ok ? '#6EE7A0' : '#F48B91') : 'var(--color-border)'}`,
+                    opacity: disabled ? 0.85 : 1,
+                  }}
+                />
+              </div>
+              {/* Эталон и перевод — только после проверки: до неё они и есть ответ. */}
+              {showVerdict && !ok && (
+                <div style={{ fontSize: 13, color: 'var(--color-green-text)', fontWeight: 600, paddingLeft: 88 }}>
+                  {item.answer}{item.gloss ? ` — ${item.gloss}` : ''}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 function getInitialState(): PersistedHomeworkState {
@@ -1990,7 +2115,9 @@ export default function HomeworkFlow({
                 const showReview = graded && !autoGradable
                 // «Проверить» появляется, когда есть что проверять: ответ введён,
                 // машина умеет его сверить, разбор ещё не открыт.
-                const canCheck = autoGradable && answered && !checked && !state.basicSubmitted
+                // После подсказки проверять нечего — ответ уже открыт; поле при
+                // этом остаётся живым, чтобы слово можно было вписать рукой.
+                const canCheck = autoGradable && answered && !checked && !hinted && !state.basicSubmitted
                 const hintText = hintFor(question)
                 const canHint = !!hintText && autoGradable && !hinted && !checked && !state.basicSubmitted
 
@@ -2217,6 +2344,20 @@ export default function HomeworkFlow({
                       showVerdict={showVerdict}
                       onChange={v => setFreeAnswer(question.id, v)}
                     />
+                    /* Подстановочный дрилл — шаблон сверху, строки замен ниже. */
+                    ) : qType(question) === 'pattern' && drillItems(question).length > 0 ? (
+                    <DrillSolver
+                      pattern={question.pattern}
+                      gloss={question.patternGloss}
+                      items={drillItems(question)}
+                      value={selectedAnswer}
+                      disabled={locked}
+                      showVerdict={showVerdict}
+                      accent={palette.accent}
+                      soft={palette.soft}
+                      onChange={v => setFreeAnswer(question.id, v)}
+                    />
+
                     ) : qType(question) === 'tableFill' && question.table ? (
                     <TableSolver
                       table={question.table}
@@ -2347,10 +2488,11 @@ export default function HomeworkFlow({
                           </span>
                         )}
                       </div>
-                      <input
+                      <GrowTextarea
                         value={selectedAnswer ?? ''}
-                        onChange={e => setFreeAnswer(question.id, e.target.value)}
+                        onChange={v => setFreeAnswer(question.id, v)}
                         disabled={locked}
+                        minHeight={HW_ANSWER_MIN_H}
                         placeholder={t('Перевод…')}
                         style={{
                           width: '100%', boxSizing: 'border-box', padding: '12px 14px',

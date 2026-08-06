@@ -1777,6 +1777,8 @@ const EN: Record<string, string> = {
   "Как устроено чтение": "How reading works here",
   "Три вещи, дальше сам: любое слово переводится касанием, текст можно слушать, ответы проверяются кнопкой внизу.":
     "Three things, then you're on your own: any word translates on tap, the text can be played aloud, answers are checked with the button below.",
+  "Две вещи, дальше сам: текст можно слушать, ответы проверяются кнопкой внизу.":
+    "Two things, then you're on your own: the text can be played aloud, answers are checked with the button below.",
   "Перевод любого слова": "Any word, translated",
   "Наведи курсор или нажми на слово — рядом появится перевод и грамматическая пометка. Пунктир снизу значит, что слово есть в словаре; у остальных работает озвучка.":
     "Hover or tap a word — its translation and grammar note appear right next to it. A dotted underline means the word is in the dictionary; the rest can still be played aloud.",

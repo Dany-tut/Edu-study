@@ -11,6 +11,7 @@ import { addCards, deckOwner } from '../data/reviewDeck'
 import VoiceRecorder from './VoiceRecorder'
 import GlossedText from './GlossedText'
 import Coachmarks, { type CoachStep } from './Coachmarks'
+import { hasLexicon } from '../lib/lexicon'
 
 // Тренажёр для языковых предметов.
 //
@@ -32,6 +33,17 @@ const MODES: { id: Mode; label: string; hint: string; Icon: typeof BookOpen }[] 
   { id: 'listening', label: 'Аудирование', hint: 'Лекции и разговоры',      Icon: Headphones },
   { id: 'speaking',  label: 'Говорение',  hint: 'Записать и отправить',     Icon: Mic },
 ]
+
+// Общая колонка для всех экранов тренажёра — список режимов, читалка,
+// аудирование. Ширина одна на всех намеренно: экраны переключаются на месте, и
+// разная колонка сдвигала бы содержимое вбок на каждом переходе.
+//
+// width: '100%' здесь обязателен. Родитель (.dashboard-main) — flex-колонка, а у
+// флекс-элемента с auto-полем по поперечной оси растяжение отключается: без явной
+// ширины блок ужимается до max-content своего содержимого. Ширина тогда разная у
+// каждой вкладки, а из-за центрирования вся вёрстка — включая ряд вкладок —
+// прыгает вбок при переключении.
+const column = { width: '100%', maxWidth: 860, margin: '0 auto', padding: '8px 20px 80px' } as const
 
 export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
   /** Код изучаемого языка: en, ko, ja, pt-BR. */
@@ -121,14 +133,12 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
   }
 
   return (
-    // width: '100%' обязателен. Родитель (.dashboard-main) — flex-колонка, а у
-    // флекс-элемента с auto-полем по поперечной оси растяжение отключается: без
-    // явной ширины блок ужимается до max-content своего содержимого. Ширина
-    // тогда разная у каждой вкладки, а из-за центрирования вся вёрстка —
-    // включая ряд вкладок — прыгает вбок при переключении.
-    <div style={{ width: '100%', maxWidth: 860, margin: '0 auto', padding: '8px 20px 80px' }}>
-      {/* Переключатель режимов */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 22 }}>
+    <div style={column}>
+      {/* Переключатель режимов.
+          Ряд центрируется по колонке: карточки текстов занимают её целиком и
+          читаются как центрированный блок, а четыре узкие вкладки, прижатые
+          влево, выглядели рядом с ними съехавшими. */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 22 }}>
         {MODES.map(m => {
           const active = m.id === mode
           return (
@@ -150,7 +160,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
       </div>
 
       {mode === 'reading' && (
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
           <Chips label={t('Уровень')} value={fLevel} options={levelOpts} onChange={setFLevel} accent={palette.accent} />
           <Chips label={t('Навык')}   value={fSkill} options={skillOpts} onChange={setFSkill} accent={palette.accent} />
           <Chips label={t('Тема')}    value={fTopic} options={topicOpts} onChange={setFTopic} accent={palette.accent} />
@@ -356,16 +366,23 @@ function Reader({ text, accent, lang, onBack }: {
     try { localStorage.setItem(TOUR_KEY, '1') } catch { /* не критично */ }
   }
 
+  // Пословный перевод есть не у всех языков (см. data/wordGloss.ts). Где
+  // словаря нет, текст остаётся обычным: кликать по каждому слову ради ответа
+  // «нет в словаре» — хуже, чем не кликать вовсе.
+  const glossed = hasLexicon(lang)
+
   const steps: CoachStep[] = [
     {
       title: t('Как устроено чтение'),
-      text: t('Три вещи, дальше сам: любое слово переводится касанием, текст можно слушать, ответы проверяются кнопкой внизу.'),
+      text: glossed
+        ? t('Три вещи, дальше сам: любое слово переводится касанием, текст можно слушать, ответы проверяются кнопкой внизу.')
+        : t('Две вещи, дальше сам: текст можно слушать, ответы проверяются кнопкой внизу.'),
     },
-    {
+    ...(glossed ? [{
       ref: bodyRef,
       title: t('Перевод любого слова'),
       text: t('Наведи курсор или нажми на слово — рядом появится перевод и грамматическая пометка. Пунктир снизу значит, что слово есть в словаре; у остальных работает озвучка.'),
-    },
+    }] : []),
     {
       ref: audioRef,
       title: t('Послушать текст'),
@@ -389,7 +406,7 @@ function Reader({ text, accent, lang, onBack }: {
   ]
 
   return (
-    <div style={{ width: '100%', maxWidth: 760, margin: '0 auto', padding: '8px 20px 80px' }}>
+    <div style={column}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
         <button
           onClick={onBack}
@@ -430,13 +447,19 @@ function Reader({ text, accent, lang, onBack }: {
         padding: '18px 20px', borderRadius: 18, background: 'var(--color-bg-2)',
         border: '1px solid var(--color-border-soft)', marginBottom: 12,
       }}>
-        <GlossedText
-          text={text.body}
-          lang={lang}
-          extra={text.glossary}
-          accent={accent}
-          style={{ fontSize: 16, lineHeight: 1.85, color: 'var(--color-text)' }}
-        />
+        {glossed ? (
+          <GlossedText
+            text={text.body}
+            lang={lang}
+            extra={text.glossary}
+            accent={accent}
+            style={{ fontSize: 16, lineHeight: 1.85, color: 'var(--color-text)' }}
+          />
+        ) : (
+          <div style={{ fontSize: 16, lineHeight: 1.85, color: 'var(--color-text)', whiteSpace: 'pre-wrap' }}>
+            {text.body}
+          </div>
+        )}
       </div>
 
       {/* Словарик: тап по слову раскрывает перевод.
@@ -448,7 +471,7 @@ function Reader({ text, accent, lang, onBack }: {
           обрезались бы многоточием. */}
       {text.glossary.length > 0 && (
         <div ref={chipsRef} style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
           gap: 8, marginBottom: 22,
         }}>
           {text.glossary.map(g => {
@@ -460,16 +483,16 @@ function Reader({ text, accent, lang, onBack }: {
                 onClick={() => setGloss(on ? null : g.term)}
                 title={ru}
                 style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2,
-                  minWidth: 0, padding: '8px 12px', borderRadius: 14, cursor: 'pointer',
-                  fontFamily: 'inherit', textAlign: 'left',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
+                  minWidth: 0, padding: '12px 14px', borderRadius: 16, cursor: 'pointer',
+                  fontFamily: 'inherit', textAlign: 'center',
                   border: `1px solid ${on ? accent : 'var(--color-border-soft)'}`,
                   background: on ? 'var(--color-bg-3)' : 'var(--color-bg-2)',
                   transition: 'border-color .15s, background .15s',
                 }}
               >
                 <span style={{
-                  maxWidth: '100%', fontSize: 13, fontWeight: 600, lineHeight: '18px',
+                  maxWidth: '100%', fontSize: 17, fontWeight: 650, lineHeight: '24px',
                   color: on ? accent : 'var(--color-text-2)',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
@@ -477,8 +500,8 @@ function Reader({ text, accent, lang, onBack }: {
                 </span>
                 <span style={{
                   display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2,
-                  maxWidth: '100%', height: 32, overflow: 'hidden',
-                  fontSize: 12, fontWeight: 500, lineHeight: '16px',
+                  maxWidth: '100%', height: 40, overflow: 'hidden',
+                  fontSize: 14, fontWeight: 500, lineHeight: '20px',
                   color: 'var(--color-muted)', opacity: on ? 1 : 0, transition: 'opacity .15s',
                 }}>
                   {ru}
@@ -505,7 +528,7 @@ function Reader({ text, accent, lang, onBack }: {
             // Вопрос задан на изучаемом языке, и слова в нём переводятся так же,
             // как в тексте. Варианты ответа оставлены обычными: это кнопки
             // выбора, и подсказка внутри них конфликтует с нажатием.
-            glossLang={lang}
+            glossLang={glossed ? lang : undefined}
             glossExtra={text.glossary}
             onPick={v => !checked && setAnswers(a => ({ ...a, [qi]: v }))}
           />
@@ -619,7 +642,7 @@ function Listener({ item, accent, lang, onBack }: {
   const allAnswered = item.questions.every((_, i) => answers[i] !== undefined)
 
   return (
-    <div style={{ width: '100%', maxWidth: 760, margin: '0 auto', padding: '8px 20px 80px' }}>
+    <div style={column}>
       <button
         onClick={onBack}
         style={{

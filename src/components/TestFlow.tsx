@@ -12,7 +12,16 @@ import { getStudentSession } from '../lib/studentSession'
 import { useStudentData } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import QuestionTable from './QuestionTable'
+import GrowTextarea, { growMinHeight } from './GrowTextarea'
 import { useT } from '../lib/i18n'
+
+/**
+ * Поля ответа в тесте живут по тем же правилам, что и в домашке: обнимают
+ * текст (внутреннего скролла нет), дно — четыре строки, уголка ручного
+ * ресайза нет. Разные высоты у одинаковых по смыслу полей в двух режимах
+ * сбивали с толку — тест и домашка для ученика одно и то же поле ответа.
+ */
+const TEST_ANSWER_MIN_H = growMinHeight(4, 14, 11, 1.5)
 
 function taskType(t: TestTask) { return normalizeTaskType(t.type) }
 
@@ -178,21 +187,13 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                 {/* fill / extended — text input */}
                 {(tp === 'fill' || tp === 'extended') && (
                   <div style={{ paddingLeft: 36 }}>
-                    {tp === 'fill'
-                      ? <input
-                          value={(answers[task.id] as string) ?? ''}
-                          onChange={e => setAnswer(task.id, e.target.value)}
-                          placeholder={t('Твой ответ…')}
-                          style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
-                        />
-                      : <textarea
-                          value={(answers[task.id] as string) ?? ''}
-                          onChange={e => setAnswer(task.id, e.target.value)}
-                          placeholder={t('Развёрнутый ответ…')}
-                          rows={4}
-                          style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }}
-                        />
-                    }
+                    <GrowTextarea
+                      value={(answers[task.id] as string) ?? ''}
+                      onChange={v => setAnswer(task.id, v)}
+                      placeholder={tp === 'fill' ? t('Твой ответ…') : t('Развёрнутый ответ…')}
+                      minHeight={TEST_ANSWER_MIN_H}
+                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
+                    />
                   </div>
                 )}
 
@@ -210,12 +211,12 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                         ))}
                       </div>
                     )}
-                    <textarea
+                    <GrowTextarea
                       value={(answers[task.id] as string) ?? ''}
-                      onChange={e => setAnswer(task.id, e.target.value)}
+                      onChange={v => setAnswer(task.id, v)}
                       placeholder={t('Запиши соответствия…')}
-                      rows={3}
-                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }}
+                      minHeight={TEST_ANSWER_MIN_H}
+                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
                     />
                   </div>
                 )}
@@ -263,12 +264,12 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                 {/* whiteboard — textarea fallback */}
                 {tp === 'whiteboard' && (
                   <div style={{ paddingLeft: 36 }}>
-                    <textarea
+                    <GrowTextarea
                       value={(answers[task.id] as string) ?? ''}
-                      onChange={e => setAnswer(task.id, e.target.value)}
+                      onChange={v => setAnswer(task.id, v)}
                       placeholder={t('Опиши решение (рисунок на доске приложишь учителю)…')}
-                      rows={3}
-                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit', resize: 'vertical' }}
+                      minHeight={TEST_ANSWER_MIN_H}
+                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
                     />
                   </div>
                 )}
@@ -292,10 +293,11 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                 {tp === 'listenType' && (
                   <div style={{ paddingLeft: 36, display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <AudioPlayer audioUrl={task.audioUrl} ttsText={task.ttsText} ttsVoice={task.ttsVoice} allowSlow={task.allowSlow} lang={task.lang} />
-                    <input
+                    <GrowTextarea
                       value={(answers[task.id] as string) ?? ''}
-                      onChange={e => setAnswer(task.id, e.target.value)}
+                      onChange={v => setAnswer(task.id, v)}
                       placeholder={t('Напечатай, что услышал…')}
+                      minHeight={TEST_ANSWER_MIN_H}
                       style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
                     />
                   </div>

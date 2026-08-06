@@ -53,6 +53,8 @@ export const TYPE_VISUALS: Record<string, TypeVisual> = {
   imageCompare:  { color: 'var(--color-purple)',         bg: 'var(--color-purple-soft)',    fill: 'var(--color-control-accent)' },
   // vocabulary → teal
   flashcard:     { color: 'var(--color-teal-pill-text)', bg: 'var(--color-teal-pill-bg)',   fill: 'var(--color-teal-fill)' },
+  // подстановочный дрилл — ученик вписывает форму → peach, как fill
+  pattern:       { color: 'var(--color-peach-text)',     bg: 'var(--color-peach-soft)',     fill: 'var(--color-peach-fill)' },
 }
 
 export function typeVisual(t: string): TypeVisual {

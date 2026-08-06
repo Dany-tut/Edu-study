@@ -44,7 +44,7 @@ export default function GlossedText({ text, lang, extra = [], accent, style }: {
   // active — что показываем, pinned — показываем ли после ухода курсора.
   const [active, setActive] = useState<{ i: number; seg: Segment } | null>(null)
   const [pinned, setPinned] = useState(false)
-  const [pos, setPos] = useState<{ x: number; y: number; above: boolean } | null>(null)
+  const [pos, setPos] = useState<{ x: number; y: number; w: number; above: boolean } | null>(null)
 
   // На тач-устройстве наведение эмулируется и «залипает» — там только тап.
   const canHover = useMemo(
@@ -85,9 +85,11 @@ export default function GlossedText({ text, lang, extra = [], accent, style }: {
     const r = el.getBoundingClientRect()
     // Над словом, если под ним меньше 190px до низа окна.
     const above = window.innerHeight - r.bottom < 190
+    // На узком экране карточка не может быть шире колонки текста.
+    const width = Math.min(POP_W, Math.max(160, w.width - 8))
     const centre = r.left - w.left + r.width / 2
-    const x = Math.max(4, Math.min(centre - POP_W / 2, Math.max(4, w.width - POP_W - 4)))
-    setPos({ x, y: above ? r.top - w.top : r.bottom - w.top, above })
+    const x = Math.max(4, Math.min(centre - width / 2, Math.max(4, w.width - width - 4)))
+    setPos({ x, y: above ? r.top - w.top : r.bottom - w.top, w: width, above })
   }
 
   function open(i: number, seg: Segment, el: HTMLElement, pin: boolean) {
@@ -150,7 +152,7 @@ export default function GlossedText({ text, lang, extra = [], accent, style }: {
       {active && pos && (
         <div
           style={{
-            position: 'absolute', left: pos.x, top: pos.y, width: POP_W, zIndex: 40,
+            position: 'absolute', left: pos.x, top: pos.y, width: pos.w, zIndex: 40,
             transform: pos.above ? 'translateY(-100%) translateY(-8px)' : 'translateY(8px)',
             padding: '11px 13px 10px', borderRadius: 14,
             background: 'var(--color-bg-4)', border: '1px solid var(--color-border-strong)',

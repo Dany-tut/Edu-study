@@ -1,5 +1,5 @@
 import { type Lesson } from './mockData'
-import { normalizeTaskType, type StoredTaskType, type TaskPayload } from './taskTypes'
+import { normalizeTaskType, type PatternItem, type StoredTaskType, type TaskPayload } from './taskTypes'
 import { useStudentData } from '../store/studentDataStore'
 import { AP_LESSON_CONTENT, type ApLessonContent } from './apChemistryLessons'
 import { parseVideoSource, type VideoSource } from '../lib/videoSource'
@@ -70,6 +70,11 @@ export interface HomeworkQuizQuestion {
   passage?: string
   passageTitle?: string
   passageTranslation?: string
+  /** pattern — шаблон конструкции, его перевод и строки подстановки. */
+  pattern?: string
+  patternGloss?: string
+  patternItems?: PatternItem[]
+
   /** flashcard — лицевая и оборотная сторона карточки. */
   front?: string
   back?: string
@@ -315,6 +320,9 @@ function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): HomeworkQui
     front: t.front,
     back: t.back,
     reading: t.reading,
+    pattern: t.pattern,
+    patternGloss: t.patternGloss,
+    patternItems: t.patternItems,
   }
 }
 

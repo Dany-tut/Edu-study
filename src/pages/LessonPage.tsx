@@ -106,10 +106,16 @@ function TheoryFigure({ src, caption }: { src: string; caption?: string }) {
             padding: 10, borderRadius: 16, cursor: 'zoom-in',
             border: '1px solid var(--color-border-soft)',
             background: 'rgba(255,255,255,0.9)',
-            display: 'block', width: '100%',
+            // Подложка по размеру схемы, а не во всю колонку: иначе в тёмной
+            // теме вокруг маленькой таблицы висит пустое светлое поле.
+            display: 'block', width: 'fit-content', maxWidth: '100%', margin: '0 auto',
           }}
         >
-          <img src={src} alt={caption ?? ''} style={{ display: 'block', width: '100%', height: 'auto', borderRadius: 8 }} />
+          {/* Схема рисуется под свою ширину (таблица из трёх колонок — 320px,
+              из семи — 640). Растянутая на всю колонку конспекта, она
+              раздувает буквы во весь экран, поэтому ширина натуральная, а
+              maxWidth держит её в границах на узком экране. */}
+          <img src={src} alt={caption ?? ''} style={{ display: 'block', width: 'auto', maxWidth: '100%', height: 'auto', margin: '0 auto', borderRadius: 8 }} />
         </button>
         {caption && (
           <figcaption style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-muted)', textAlign: 'center' }}>

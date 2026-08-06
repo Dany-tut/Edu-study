@@ -539,13 +539,20 @@ const toVocab = (x: Phrase): VocabItem =>
  * Костяк — шесть фраз прямо в тексте урока. Они дублируют карточки намеренно:
  * конспект читают до домашки, и человек должен увидеть, из чего тема состоит,
  * не открывая колоду.
+ *
+ * В первый урок добавляется вводная книги — объяснение, как в этом языке
+ * устроена вежливость к незнакомому. Она стоит именно здесь, а не в описании
+ * курса: описание читают один раз при выборе курса, а конспект первого урока —
+ * перед первой же домашкой, и без этого абзаца непонятно, почему все фразы
+ * выглядят одинаково «вежливо».
  */
-function themeTheory(theme: SurvivalTheme, list: Phrase[], book: SurvivalBook): string {
+function themeTheory(theme: SurvivalTheme, list: Phrase[], book: SurvivalBook, first = false): string {
   const note = book.notes[theme.id]
   const core = slice(list, 0, 6)
     .map(x => `• ${x.reading ? `${x.term} (${x.reading})` : x.term} — ${x.ru}`)
     .join('\n')
   return [
+    first ? book.intro : '',
     theme.situation,
     note ? `Правило: ${note.formula}` : '',
     note?.note ?? '',
@@ -564,7 +571,7 @@ function themeTheory(theme: SurvivalTheme, list: Phrase[], book: SurvivalBook): 
 export function survivalSpec(book: SurvivalBook): LanguageCourseSpec {
   const themes = SURVIVAL_THEMES.filter(t => (book.phrases[t.id]?.length ?? 0) > 0)
 
-  const units: LangUnit[] = themes.map(theme => {
+  const units: LangUnit[] = themes.map((theme, i) => {
     const list = book.phrases[theme.id]
     const note = book.notes[theme.id]
     return {
@@ -576,7 +583,7 @@ export function survivalSpec(book: SurvivalBook): LanguageCourseSpec {
       grammarWhy: theme.why,
       vocabTheme: theme.vocabTheme,
       artifact: theme.artifact,
-      theory: themeTheory(theme, list, book),
+      theory: themeTheory(theme, list, book, i === 0),
       vocab: list.map(toVocab),
       tasks: unitTasks(theme, list, book),
     }

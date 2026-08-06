@@ -134,7 +134,10 @@ export default function TheorySheet({ open, onClose, lessonTitle, paragraphs, ac
                     src={p.image}
                     alt=""
                     style={{
-                      display: 'block', width: '100%', borderRadius: 14,
+                      // Ширина натуральная: схема нарисована под свой размер, и
+                      // растянутая на всю шторку она раздувает знаки.
+                      display: 'block', width: 'auto', maxWidth: '100%', margin: '0 auto',
+                      borderRadius: 14,
                       border: '1px solid var(--color-border)', background: '#fff',
                     }}
                   />

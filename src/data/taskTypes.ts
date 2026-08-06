@@ -20,7 +20,7 @@
 import type { ElementType } from 'react'
 import {
   AlignLeft, ArrowUpDown, CheckSquare, Image as ImageIcon, Images, Layers,
-  Mic, PenLine, Shuffle, SpellCheck, Table as TableIcon, Type, Volume2,
+  Mic, PenLine, Repeat, Shuffle, SpellCheck, Table as TableIcon, Type, Volume2,
 } from 'lucide-react'
 import { typeVisual, normalizeTaskType as normalizeRaw, type TypeVisual } from './taskTypeVisuals'
 
@@ -46,6 +46,7 @@ export type TaskTypeId =
   | 'imageDescribe' // описать картинку (письменно или устно)
   | 'imageCompare'  // сравнить две-три картинки
   | 'flashcard'     // словарная карточка
+  | 'pattern'       // подстановочный дрилл: один шаблон, несколько замен
 
 /**
  * Написания, встречающиеся в данных, записанных до переименования типов:
@@ -61,6 +62,26 @@ export type StoredTaskType = TaskTypeId | LegacyTaskType
 export type TaskFamily = 'choice' | 'input' | 'order' | 'audio' | 'production' | 'vocab'
 
 // ─── Данные задания ──────────────────────────────────────────────────────────
+
+/**
+ * Одна строка подстановочного дрилла.
+ *
+ * ЗАЧЕМ ОТДЕЛЬНЫЙ ТИП, А НЕ ПЯТЬ ОБЫЧНЫХ «ВПИСАТЬ ОТВЕТ». Дрилл работает
+ * только пачкой: смысл в том, что шаблон один, а меняется ровно одно место, и
+ * ученик видит это своими глазами — на пятой строке рука уже сама ставит
+ * нужную форму. Пять разрозненных заданий этого не дают: между ними теряется
+ * то самое «одно и то же, кроме одного».
+ */
+export interface PatternItem {
+  /** Что подставляем: слово или форма. Показывается ученику. */
+  cue: string
+  /** Что должно получиться целиком — эталон строки. */
+  answer: string
+  /** Другие принимаемые записи (пробелы, синонимичные формы). */
+  alt?: string[]
+  /** Перевод получившегося предложения — открывается после проверки. */
+  gloss?: string
+}
 
 export interface TaskTable {
   headers: string[]
@@ -161,6 +182,18 @@ export interface TaskPayload {
   passageTitle?: string
   /** Перевод отрывка — открывается по кнопке ПОСЛЕ ответа, не до. */
   passageTranslation?: string
+
+  /**
+   * pattern — шаблон предложения, место подстановки отмечено многоточием «…».
+   *
+   * Например «저는 …이에요» или «Eu … todos os dias». Показывается ученику
+   * шапкой задания: дрилл тренирует не отдельное предложение, а конструкцию.
+   */
+  pattern?: string
+  /** pattern — перевод шаблона: без него конструкция остаётся набором знаков. */
+  patternGloss?: string
+  /** pattern — строки дрилла: что подставляем и что должно получиться. */
+  patternItems?: PatternItem[]
 
   /** flashcard — лицевая и оборотная сторона. */
   front?: string
@@ -491,6 +524,29 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
     isGradable: () => false,
     grade: () => NOT_AUTO,
     needsTeacherReview: true, needsAudio: false, allowedAsHard: true, languageOnly: true,
+  }),
+
+  pattern: def({
+    id: 'pattern', family: 'input',
+    label: 'Дрилл по шаблону', hint: 'Одна конструкция, несколько подстановок',
+    Icon: Repeat,
+    makeDefault: () => ({ pattern: '', patternGloss: '', patternItems: [{ cue: '', answer: '' }] }),
+    isGradable: t => (t.patternItems ?? []).some(i => !!i.answer?.trim()),
+    grade: (t, a) => {
+      const items = (t.patternItems ?? []).filter(i => !!i.answer?.trim())
+      if (items.length === 0) return NOT_AUTO
+      if (!a || typeof a !== 'object' || Array.isArray(a)) return { auto: true, correct: false }
+      const given = a as Record<string, string>
+      // Дрилл засчитывается целиком: пропущенная строка — это незакрытая форма,
+      // а половина конструкции автоматизма не даёт.
+      const correct = items.every((item, i) => {
+        const got = normAnswer(given[String(i)] ?? '')
+        if (!got) return false
+        return normAnswer(item.answer) === got || (item.alt ?? []).some(x => normAnswer(x) === got)
+      })
+      return { auto: true, correct }
+    },
+    needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: true,
   }),
 
   flashcard: def({

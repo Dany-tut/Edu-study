@@ -40,6 +40,11 @@ export default function Coachmarks({ steps, open, onClose, accent }: {
   const [i, setI] = useState(0)
   const [rect, setRect] = useState<DOMRect | null>(null)
   const timers = useRef<number[]>([])
+  // Высота карточки нужна ДО того, как её ставить: на телефоне подсвеченный
+  // блок занимает почти весь экран, и без реальной высоты карточка ложится
+  // поверх того, на что показывает.
+  const cardRef = useRef<HTMLDivElement | null>(null)
+  const [cardH, setCardH] = useState(0)
 
   const step = steps[i]
 
@@ -80,6 +85,16 @@ export default function Coachmarks({ steps, open, onClose, accent }: {
     }
   }, [open, measure])
 
+  useLayoutEffect(() => {
+    const el = cardRef.current
+    if (!el) return
+    const upd = () => setCardH(el.offsetHeight)
+    upd()
+    const ro = new ResizeObserver(upd)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [open, i])
+
   const next = useCallback(() => {
     if (i + 1 >= steps.length) onClose()
     else setI(i + 1)
@@ -103,17 +118,21 @@ export default function Coachmarks({ steps, open, onClose, accent }: {
   const vh = window.innerHeight
   const cardW = Math.min(CARD_W, vw - 24)
 
-  // Карточка: под элементом, если снизу есть место; иначе над ним. Без цели —
-  // по центру экрана.
+  // Карточка: под элементом, если снизу есть место, иначе над ним. Если не
+  // помещается ни там, ни там (высокий блок на телефоне) — прижимаем к низу
+  // экрана: перекрыть часть подсветки лучше, чем уехать за край.
+  const h = cardH || 200
   let cardStyle: React.CSSProperties
   if (rect) {
-    const below = vh - rect.bottom > 210
     const left = Math.max(12, Math.min(rect.left + rect.width / 2 - cardW / 2, vw - cardW - 12))
-    cardStyle = below
-      ? { left, top: rect.bottom + PAD + GAP }
-      : { left, top: Math.max(12, rect.top - PAD - GAP), transform: 'translateY(-100%)' }
+    const below = rect.bottom + PAD + GAP + h + 12 <= vh
+    const above = rect.top - PAD - GAP - h - 12 >= 0
+    const top = below ? rect.bottom + PAD + GAP
+      : above ? rect.top - PAD - GAP - h
+      : vh - h - 12
+    cardStyle = { left, top: Math.max(12, Math.min(top, vh - h - 12)) }
   } else {
-    cardStyle = { left: (vw - cardW) / 2, top: vh / 2, transform: 'translateY(-50%)' }
+    cardStyle = { left: (vw - cardW) / 2, top: Math.max(12, (vh - h) / 2) }
   }
 
   return createPortal(
@@ -141,6 +160,7 @@ export default function Coachmarks({ steps, open, onClose, accent }: {
       )}
 
       <div
+        ref={cardRef}
         style={{
           position: 'absolute', width: cardW, padding: '15px 17px 13px', borderRadius: 18,
           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-strong)',
