@@ -1118,7 +1118,6 @@ const EN: Record<string, string> = {
   "Загрузка...": "Loading...",
   "← Назад ко входу": "← Back to sign in",
   "Аккаунт создаётся по ссылке-приглашению от администратора.": "An account is created via an invite link from the administrator.",
-  "Ошибка при сохранении. Попробуйте ещё раз.": "Error while saving. Please try again.",
   "Попросите учителя отправить новую ссылку.": "Ask your teacher to send a new link.",
   "Добро пожаловать!": "Welcome!",
   "Придумайте логин и пароль для": "Create a login and password for",
