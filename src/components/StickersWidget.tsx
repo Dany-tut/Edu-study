@@ -104,8 +104,9 @@ export function StickerCollectionModal({ stickers, onClose }: { stickers: Earned
             <div style={{ display: 'grid', placeItems: 'center', gap: 8, position: 'sticky', top: 0 }}>
               {sel && (
                 <>
+                  {/* без key: смену стикера HoloSticker разруливает сам —
+                      компонент не размонтируется, и пауза загрузки закрыта бейджем */}
                   <HoloSticker
-                    key={sel.id}
                     score={sel.score}
                     label={`${t('задание')} ${sel.taskIndex}`}
                     sublabel={sel.lessonTitle.slice(0, 22)}

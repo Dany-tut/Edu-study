@@ -50,8 +50,9 @@ export default function StickerRevealModal({ items, emblems, onClose }: { items:
           </div>
 
           <div style={{ display: 'grid', placeItems: 'center', margin: '10px 0 6px' }}>
+            {/* без key: перелистывание стикеров идёт внутри HoloSticker,
+                иначе между ними мелькает пустой квадрат канваса */}
             <HoloSticker
-              key={cur.id}
               score={cur.score}
               label={`${t('задание')} ${cur.taskIndex}`}
               sublabel={cur.lessonTitle.slice(0, 22)}

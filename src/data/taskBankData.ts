@@ -43,6 +43,12 @@ export interface Task {
   sequenceItems?: string[]
   allowPhoto?: boolean
   blockOrder?: Array<'image' | 'table'>
+  /**
+   * Данные типа задания и языковая разметка (уровень/навык/тема/формат).
+   * Одна JSONB-колонка вместо колонки на каждый тип: новый тип упражнения
+   * больше не требует миграции схемы (см. 0051_task_bank_payload).
+   */
+  payload?: Record<string, unknown>
 }
 
 // ── Chemistry (ЕГЭ 2026) ─────────────────────────────────────────────────────

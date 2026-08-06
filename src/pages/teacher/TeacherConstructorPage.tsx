@@ -22,9 +22,11 @@ import RichConditionEditor, { parseSmartPaste } from '../../components/teacher/R
 import TableEditor from '../../components/teacher/TableEditor'
 import GrowTextarea, { growMinHeight } from '../../components/teacher/GrowTextarea'
 import Radio from '../../components/Radio'
+import ScrollFade from '../../components/ScrollFade'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { bankSubjectOptions, subjectIcon, getSubject, isLanguageSubject, SUBJECTS } from '../../lib/subjects'
 import { taskTypesFor } from '../../data/taskTypes'
+import { languageTaxonomy } from '../../data/languageTaxonomy'
 import { levelOptions, matchesLevel } from '../../lib/courseLevels'
 import {
   loadDiagQuestions, fetchDiagQuestions, saveDiagQuestions,
@@ -1223,16 +1225,18 @@ function StudentsBadge({ access, enrolled }: { access: { id: string; name: strin
             transition={{ duration: 0.14 }}
             style={{
               position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
-              zIndex: 20, minWidth: 170, maxWidth: 240, maxHeight: 240, overflowY: 'auto',
+              zIndex: 20, minWidth: 170, maxWidth: 240,
               background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
               border: '1px solid var(--color-border-glass)', borderRadius: 12, padding: '8px 10px',
               boxShadow: '0 8px 28px rgba(0,0,0,0.16)', cursor: 'default',
             }}
           >
-            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 6 }}>
+            {/* Зазоры 8px — ровно на вылет фейда ScrollFade (top/bottom: -8), иначе градиент лёг бы на подписи. */}
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 8 }}>
               {t('Доступ ·')} {count}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <ScrollFade maxHeight={186} bg="rgba(var(--glass-rgb), 0.97)" fadeHeight={18} overlayScrollbar
+              scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {access.map(s => (
                 <div key={s.id} style={{ fontSize: 12, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {enrolledIds.has(s.id)
@@ -1241,8 +1245,8 @@ function StudentsBadge({ access, enrolled }: { access: { id: string; name: strin
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</span>
                 </div>
               ))}
-            </div>
-            <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+            </ScrollFade>
+            <div style={{ fontSize: 10, color: 'var(--color-text-3)', marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
               <CheckCircle size={9} strokeWidth={2.5} style={{ color: 'var(--color-green-text)' }} /> {t('уроки открыты')}
             </div>
           </motion.div>
@@ -1495,22 +1499,24 @@ function CourseFacetDropdown({ value, options, allLabel, icon, minWidth = 92, ic
       <AnimatePresence>
         {open && (
           <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.12 }}
-            style={{ position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 170, maxHeight: 320, overflowY: 'auto',
+            style={{ position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 50, minWidth: 170,
               background: 'rgba(var(--glass-rgb), 0.97)', backdropFilter: 'blur(20px) saturate(180%)', WebkitBackdropFilter: 'blur(20px) saturate(180%)',
               border: '1px solid var(--color-border-glass)', borderRadius: 14, boxShadow: '0 12px 32px rgba(0,0,0,0.12)', padding: 5 }}>
-            {rows.map(val => (
-              <button key={val || '__all'} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-                  width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
-                  background: value === val ? accentSoft : 'transparent',
-                  fontSize: 13, fontWeight: value === val ? 700 : 400, color: 'var(--color-text)',
-                  cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
-                onMouseEnter={e => { e.currentTarget.style.background = accentSoft }}
-                onMouseLeave={e => { e.currentTarget.style.background = value === val ? accentSoft : 'transparent' }}>
-                {val || allLabel}
-                {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-              </button>
-            ))}
+            <ScrollFade maxHeight={310} bg="rgba(var(--glass-rgb), 0.97)" overlayScrollbar>
+              {rows.map(val => (
+                <button key={val || '__all'} onMouseDown={e => { e.preventDefault(); onChange(val); setOpen(false) }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                    width: '100%', padding: '9px 10px', borderRadius: 9, border: 'none',
+                    background: value === val ? accentSoft : 'transparent',
+                    fontSize: 13, fontWeight: value === val ? 700 : 400, color: 'var(--color-text)',
+                    cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = accentSoft }}
+                  onMouseLeave={e => { e.currentTarget.style.background = value === val ? accentSoft : 'transparent' }}>
+                  {val || allLabel}
+                  {value === val && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke={accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                </button>
+              ))}
+            </ScrollFade>
           </motion.div>
         )}
       </AnimatePresence>
@@ -2094,6 +2100,12 @@ function CreatorView({
   // Палитра типов ответа зависит от предмета: языковые типы показываем только
   // языковикам, иначе химик получает в списке диктант и запись голоса.
   const ANSWER_TYPES = useMemo(() => answerTypesFor(isLanguageSubject(tkSubject)), [tkSubject])
+  // Разметка языкового задания: уровень / навык / тема / формат экзамена.
+  // Уровень ОДИН — минимальный, с которого задание имеет смысл давать.
+  const langTax = useMemo(() => languageTaxonomy(tkSubject), [tkSubject])
+  const [tkLevel, setTkLevel] = usePersistentState(tkDraft + 'level', '')
+  const [tkSkill, setTkSkill] = usePersistentState(tkDraft + 'skill', '')
+  const [tkExamTask, setTkExamTask] = usePersistentState(tkDraft + 'examTask', '')
   const [tkSection, setTkSection] = usePersistentState(tkDraft + 'section', editingTask?.section ?? '')
   const [tkTopic, setTkTopic] = usePersistentState(tkDraft + 'topic', editingTask?.topic ?? '')
   const [tkPart, setTkPart] = usePersistentState<1 | 2>(tkDraft + 'part', editingTask?.part ?? 1)
@@ -2402,9 +2414,21 @@ function CreatorView({
       // Слаг предмета из реестра: языковое задание должно сохраниться как
       // 'korean'/'english', а не свалиться в биологию, как было раньше.
       subject: tkSubjKey as Subject,
-      section: tkSection || tkSectionList[0],
-      topic: tkTopic || tkTopicList[0] || '—',
+      // У языкового задания разметки ЕГЭ нет — в базе эти поля с миграции 0050
+      // необязательны, и подставлять туда чужие значения незачем.
+      section: langTax ? '' : (tkSection || tkSectionList[0]),
+      topic: langTax ? tkTopic : (tkTopic || tkTopicList[0] || '—'),
       part: tkPart, line: tkLine, source: tkSource,
+      // Языковая разметка: уровень / навык / тема / формат экзамена.
+      // Едет в payload, поэтому новый тип разметки не требует миграции.
+      ...(langTax ? {
+        payload: {
+          level: tkLevel || undefined,
+          skill: tkSkill || undefined,
+          topic: tkTopic || undefined,
+          examTask: tkExamTask || undefined,
+        },
+      } : {}),
       question: tkQuestion, solution: tkSolution.trim(),  // preserve HTML formatting
       difficulty: tkDifficulty,
       answerType: tkAnswerType,
@@ -2669,27 +2693,56 @@ function CreatorView({
                 options={SUBJECTS.map(s => ({ value: s.name, label: `${s.icon} ${s.name}` }))}
               />
             </div>
-            <div>
-              <TeacherSelect value={tkSection} onChange={v => { setTkSection(v); setTkTopic('') }} placeholder={t("Раздел")}
-                options={tkSectionList}
-                onAddOption={l => metaAddOption(sectionScopeKey, l)}
-                onDeleteOption={v => metaRemoveOption(sectionScopeKey, v)} />
-            </div>
-            <div>
-              <TeacherSelect value={tkTopic} onChange={setTkTopic} placeholder={t("Тема")}
-                options={tkTopicList}
-                onAddOption={l => metaAddOption(topicScopeKey, l)}
-                onDeleteOption={v => metaRemoveOption(topicScopeKey, v)} />
-            </div>
-            <div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                {([1, 2] as const).map(p => (
-                  <SegBtn key={p} label={t('Часть ') + (p)} active={tkPart === p}
-                    color="var(--color-purple-text)" bg="var(--color-purple-soft)"
-                    onClick={() => setTkPart(p)} />
-                ))}
-              </div>
-            </div>
+            {/* Разметка. У языкового предмета своя: уровень / навык / тема —
+                оси независимые, потому что тема «еда» бывает и в чтении, и в
+                говорении. Разметка ЕГЭ (раздел → тема → часть) для языка
+                бессмысленна и в базе теперь необязательна (миграция 0050). */}
+            {langTax ? (
+              <>
+                <div>
+                  <TeacherSelect value={tkLevel} onChange={setTkLevel} placeholder={t('Уровень')}
+                    options={langTax.levels} />
+                </div>
+                <div>
+                  <TeacherSelect value={tkSkill} onChange={setTkSkill} placeholder={t('Навык')}
+                    options={langTax.skills} />
+                </div>
+                <div>
+                  <TeacherSelect value={tkTopic} onChange={setTkTopic} placeholder={t('Тема')}
+                    options={langTax.topics} />
+                </div>
+                {langTax.examTasks.length > 0 && (
+                  <div>
+                    <TeacherSelect value={tkExamTask} onChange={setTkExamTask} placeholder={t('Формат экзамена — необязательно')}
+                      options={langTax.examTasks} />
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div>
+                  <TeacherSelect value={tkSection} onChange={v => { setTkSection(v); setTkTopic('') }} placeholder={t("Раздел")}
+                    options={tkSectionList}
+                    onAddOption={l => metaAddOption(sectionScopeKey, l)}
+                    onDeleteOption={v => metaRemoveOption(sectionScopeKey, v)} />
+                </div>
+                <div>
+                  <TeacherSelect value={tkTopic} onChange={setTkTopic} placeholder={t("Тема")}
+                    options={tkTopicList}
+                    onAddOption={l => metaAddOption(topicScopeKey, l)}
+                    onDeleteOption={v => metaRemoveOption(topicScopeKey, v)} />
+                </div>
+                <div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {([1, 2] as const).map(p => (
+                      <SegBtn key={p} label={t('Часть ') + (p)} active={tkPart === p}
+                        color="var(--color-purple-text)" bg="var(--color-purple-soft)"
+                        onClick={() => setTkPart(p)} />
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
             <div>
               {/* Difficulty — drives the «Простые/Сложные» sort in the trainer. */}
               <div style={{ display: 'flex', gap: 8 }}>

@@ -56,6 +56,11 @@ const REVEAL_MS = 1700
  * подмена на отогнутый WebGL читалась как «стикер приклеился → отклеился до
  * половины → приклеился снова». Пока грузится чанк, место просто пустое, а
  * бейдж всплывает только если WebGL за это время так и не ожил.
+ *
+ * ВАЖНО: пустое место допустимо только при ПЕРВОМ появлении стикера. При
+ * переключении в коллекции там уже что-то было, и дырка на время загрузки
+ * читается как мигающий пустой квадрат — при смене стикера бейдж показываем
+ * сразу (см. firstRef ниже).
  */
 const FALLBACK_DELAY = 900
 /**
@@ -86,19 +91,31 @@ export default function HoloSticker({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rendRef = useRef<HoloRenderer | null>(null)
   const [live, setLive] = useState(false)     // рендер запустился — можно прятать бейдж
+  // Тот же флаг рефом: эффект пересоздания рендера больше не размонтирует
+  // компонент, поэтому в замыкании draw() лежало бы устаревшее значение live.
+  const liveRef = useRef(false)
   // Вне reveal бейдж нужен сразу (иначе список стикеров мигает пустотой),
   // в reveal — только как аварийная замена, если WebGL не запустился.
   const [fallbackReady, setFallbackReady] = useState(!reveal)
   const pointerRef = useRef<{ x: number; y: number } | null>(null)
   const settings = useRef<StickerSettings>(stickerSettings(score))
   settings.current = { ...stickerSettings(score), ...tweak }
+  /**
+   * Личность стикера строкой. Меняется — значит показываем ДРУГОЙ стикер:
+   * нужен свежий <canvas> (dispose() у рендера делает forceContextLoss, и
+   * второй WebGL-контекст этот элемент уже не отдаст).
+   */
+  const spec = `${score}|${label}|${sublabel}|${stickerId}|${emblem}`
+  const firstRef = useRef(true)
 
   useEffect(() => {
-    if (!reveal) { setFallbackReady(true); return }
+    // Задержка бейджа — только для самого первого появления. При смене стикера
+    // место уже занято, и пустота на время загрузки заметнее плоского бейджа.
+    if (!reveal || !firstRef.current) { setFallbackReady(true); return }
     setFallbackReady(false)
     const t = setTimeout(() => setFallbackReady(true), FALLBACK_DELAY)
     return () => clearTimeout(t)
-  }, [reveal, score, label, sublabel])
+  }, [reveal, spec])
 
   useEffect(() => {
     let dead = false
@@ -110,6 +127,20 @@ export default function HoloSticker({
     let io: IntersectionObserver | undefined
     const t0 = performance.now()
     const still = reducedMotion()
+    firstRef.current = false
+
+    // Новый стикер — старый кадр больше не годится, ждём первый кадр заново.
+    liveRef.current = false
+    setLive(false)
+
+    // Размер буфера задаём сразу, а не в первом кадре: пока рендер грузится,
+    // <canvas> без width/height остаётся 300×150 и растягивается в квадратную
+    // коробку — это и есть тот самый «квадрат» на месте стикера.
+    const canvas0 = canvasRef.current
+    if (canvas0) {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      canvas0.width = canvas0.height = Math.max(1, Math.round(size * dpr))
+    }
 
     if (!webglOk()) return
 
@@ -158,7 +189,7 @@ export default function HoloSticker({
           curl = REVEAL_CURL_END + (REVEAL_CURL_START - REVEAL_CURL_END) * k
         }
         renderer.render({ settings: { ...s, peelAmount: peel, curl }, imgAspect: 1 })
-        if (!live) setLive(true)
+        if (!liveRef.current) { liveRef.current = true; setLive(true) }
       }
 
       // rAF в некоторых окружениях (Claude Preview) не срабатывает —
@@ -184,7 +215,7 @@ export default function HoloSticker({
       rendRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [score, label, sublabel, reveal, stickerId, emblem])
+  }, [spec, reveal, size])
 
   const tier = tierOf(score)
 
@@ -203,7 +234,11 @@ export default function HoloSticker({
       }}
       onPointerLeave={() => { pointerRef.current = null }}
     >
-      <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
+      {/* key по spec: при смене стикера нужен ИМЕННО новый элемент — dispose()
+          рендера вызывает forceContextLoss, и повторный контекст этот canvas
+          уже не отдаст. Компонент при этом живёт дальше, поэтому бейдж успевает
+          закрыть паузу вместо пустого места. */}
+      <canvas key={spec} ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
       {/* бейдж не размонтируем резко, а гасим — подмена статики на WebGL не мигает */}
       <div
         style={{

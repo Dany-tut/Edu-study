@@ -1185,7 +1185,9 @@ function StickerShelf() {
         <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-text-3)' }}>{got} из {COLLECTION.length}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-        <HoloSticker key={sel} score={cur.score} sublabel={cur.label} stickerId={cur.label}
+        {/* без key: HoloSticker сам меняет <canvas> под новый стикер, а сам
+            компонент живёт — иначе на время загрузки рендера место пустует */}
+        <HoloSticker score={cur.score} sublabel={cur.label} stickerId={cur.label}
           emblem={SHELF_EMBLEMS[cur.label]} size={76} reveal />
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 12.5, fontWeight: 800, color: tier.ink }}>{tier.name}</div>

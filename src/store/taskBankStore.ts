@@ -47,6 +47,10 @@ function dbToTask(row: Record<string, unknown>): Task {
     sequenceItems: row.sequence_items as string[] | undefined,
     allowPhoto: Boolean(row.allow_photo),
     blockOrder: row.block_order as Array<'image' | 'table'> | undefined,
+    // Данные, специфичные для типа задания, и языковая разметка
+    // (уровень/навык/тема). Одна колонка вместо колонки на каждый тип —
+    // см. миграцию 0051.
+    payload: (row.payload as Task['payload']) ?? undefined,
   }
 }
 
@@ -78,6 +82,7 @@ function taskToDb(t: Partial<Task>) {
     sequence_items: t.sequenceItems ?? null,
     allow_photo: t.allowPhoto ?? false,
     block_order: t.blockOrder ?? null,
+    payload: t.payload ?? {},
   }
 }
 

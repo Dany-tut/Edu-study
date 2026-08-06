@@ -14,7 +14,10 @@ import {
 import { useTaskBank } from '../../store/taskBankStore'
 import { useTeacher } from '../../store/teacherStore'
 import { useTeacherAccess } from '../../lib/teacherAccess'
-import { bankSubjectOptionsFor, bankSubjectIdsFor, subjectIcon } from '../../lib/subjects'
+import { bankSubjectOptionsFor, bankSubjectIdsFor, subjectIcon, allowedSubjectDefs, SUBJECTS } from '../../lib/subjects'
+import { languageTaxonomy, type TaskLanguageTags } from '../../data/languageTaxonomy'
+import { subjectTheme } from '../../lib/theme'
+import { useTheme } from '../../store/themeStore'
 import SubjectPicker from './SubjectPicker'
 import { useCurriculum } from '../../store/curriculumStore'
 import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
@@ -128,9 +131,13 @@ function CopyableLineBadge({ line, accent, accentBg }: { line: number; accent: s
 // ─── Shared filter shape ───────────────────────────────────────────────────────
 export type TrainerFilters = {
   search: string; subject: string; sections: string[]; topics: string[]; parts: string[]; lines: string[]; source: string
+  // Языковая разметка (task_bank.payload): у языкового предмета нет ни раздела
+  // ЕГЭ, ни части, ни линии — отбор идёт по уровню и навыку. Поля
+  // необязательные, чтобы не ломать вторую копию типа в создании ДЗ.
+  levels?: string[]; skills?: string[]
 }
 export const emptyTrainerFilters: TrainerFilters = {
-  search: '', subject: '', sections: [], topics: [], parts: [], lines: [], source: '',
+  search: '', subject: '', sections: [], topics: [], parts: [], lines: [], source: '', levels: [], skills: [],
 }
 
 type SortMode = 'newest' | 'oldest' | 'subject' | 'line'
@@ -469,9 +476,9 @@ function BankGridCard({
 }) {
   const t = useT()
   const openEdit = useTeacher(s => s.openConstructorEditTask)
-  const subjectLabel = task.subject === 'biology' ? t('Биол.') : t('Хим.')
-  const subjectBg = task.subject === 'biology' ? 'var(--color-green-soft)' : 'var(--color-purple-soft)'
-  const subjectColor = task.subject === 'biology' ? 'var(--color-green-text)' : 'var(--color-purple-text)'
+  const dark = useTheme(s => s.dark)
+  // Subject tint comes from the registry, so a third bank subject colours itself.
+  const subjectColor = subjectTheme(task.subject, dark).text
 
   return (
     <motion.div
@@ -664,6 +671,12 @@ export function TrainerBankBrowser({
       if (filters.topics.length && !filters.topics.includes(t.topic)) return false
       if (filters.parts.length && !filters.parts.includes(String(t.part))) return false
       if (filters.lines.length && !filters.lines.includes(String(t.line))) return false
+      // Языковая разметка живёт в payload — фильтры уровня/навыка читают её.
+      if (filters.levels?.length || filters.skills?.length) {
+        const tags = (t.payload ?? {}) as TaskLanguageTags
+        if (filters.levels?.length && !filters.levels.includes(tags.level ?? '')) return false
+        if (filters.skills?.length && !filters.skills.includes(tags.skill ?? '')) return false
+      }
       if (filters.source && t.source !== filters.source) return false
       if (filters.search) {
         const q = filters.search.toLowerCase().replace(/^№/, '')
@@ -771,7 +784,24 @@ export function TrainerBankFilterPanel({
     }
     return nums.map(String)
   }, [tasks, filters.subject, filters.sections, filters.parts])
-  const hasFilters = !!(filters.sections.length || filters.topics.length || filters.parts.length || filters.lines.length || filters.source)
+  const hasFilters = !!(filters.sections.length || filters.topics.length || filters.parts.length || filters.lines.length || filters.source || filters.levels?.length || filters.skills?.length)
+
+  // Предметы фильтра: банковые (химия/биология) + любой другой предмет реестра,
+  // у которого в банке уже есть задания. Иначе созданное языковое задание
+  // отобрать по предмету нечем — оно видно только в «Все».
+  const subjectOptions = useMemo(() => {
+    const base = bankSubjectOptionsFor(allowedSubjects)
+    const known = new Set(base.map(o => o.value))
+    const allowedIds = new Set(allowedSubjectDefs(allowedSubjects).map(s => s.id))
+    const extra = SUBJECTS
+      .filter(s => !known.has(s.id) && allowedIds.has(s.id) && tasks.some(task => task.subject === s.id))
+      .map(s => ({ value: s.id, label: s.name }))
+    return [...base, ...extra]
+  }, [allowedSubjects, tasks])
+
+  // Разметка ЕГЭ (раздел → тема → часть → линия) у языка отсутствует: у его
+  // заданий эти поля пустые, поэтому вместо них показываем уровень и навык.
+  const langTax = languageTaxonomy(filters.subject)
 
   return (
     <motion.div
@@ -801,33 +831,43 @@ export function TrainerBankFilterPanel({
 
       {/* Subject picker — adaptive (segments ≤3, dropdown 4+), scoped to teacher's bank subjects */}
       <SubjectPicker
-        options={bankSubjectOptionsFor(allowedSubjects).map(o => ({ value: o.value, label: t(o.label), icon: o.value ? subjectIcon(o.value) : undefined }))}
+        options={subjectOptions.map(o => ({ value: o.value, label: t(o.label), icon: o.value ? subjectIcon(o.value) : undefined }))}
         value={filters.subject}
-        onChange={v => onChange({ subject: v, sections: [], topics: [], lines: [] })}
+        onChange={v => onChange({ subject: v, sections: [], topics: [], lines: [], parts: [], levels: [], skills: [] })}
         accent={accent} accentBg={accentBg ?? 'var(--color-purple-soft)'}
         ariaLabel={t('Предмет')}
       />
 
-      <MultiSelectField label={t('Раздел')} values={filters.sections} options={sectionOptions} onChange={v => onChange({ sections: v })} accent={accent} accentBg={accentBg} />
-      <MultiSelectField label={t('Тема')} values={filters.topics} options={topicOptions} onChange={v => onChange({ topics: v })} accent={accent} accentBg={accentBg} />
-      <div style={{ display: 'flex', gap: 6 }}>
-        {(['1', '2'] as string[]).map(p => {
-          const active = filters.parts.includes(p)
-          return (
-            <button key={p} onClick={() => onChange({ parts: active ? filters.parts.filter(x => x !== p) : [...filters.parts, p] })}
-              style={{ flex: 1, padding: '7px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
-                background: active ? (accentBg ?? 'rgba(139,92,246,0.15)') : 'var(--color-bg-3)',
-                color: active ? 'var(--color-purple-text)' : 'var(--color-muted)' }}>
-              {p === '1' ? t('I часть') : t('II часть')}
-            </button>
-          )
-        })}
-      </div>
-      <MultiSelectField label={t('Линия')} values={filters.lines} options={allLines} onChange={v => onChange({ lines: v })} accent={accent} accentBg={accentBg} />
+      {langTax ? (
+        <>
+          <MultiSelectField label={t('Уровень')} values={filters.levels ?? []} options={langTax.levels} onChange={v => onChange({ levels: v })} accent={accent} accentBg={accentBg} />
+          <MultiSelectField label={t('Навык')} values={filters.skills ?? []} options={langTax.skills} onChange={v => onChange({ skills: v })} accent={accent} accentBg={accentBg} />
+          <MultiSelectField label={t('Тема')} values={filters.topics} options={langTax.topics} onChange={v => onChange({ topics: v })} accent={accent} accentBg={accentBg} />
+        </>
+      ) : (
+        <>
+          <MultiSelectField label={t('Раздел')} values={filters.sections} options={sectionOptions} onChange={v => onChange({ sections: v })} accent={accent} accentBg={accentBg} />
+          <MultiSelectField label={t('Тема')} values={filters.topics} options={topicOptions} onChange={v => onChange({ topics: v })} accent={accent} accentBg={accentBg} />
+          <div style={{ display: 'flex', gap: 6 }}>
+            {(['1', '2'] as string[]).map(p => {
+              const active = filters.parts.includes(p)
+              return (
+                <button key={p} onClick={() => onChange({ parts: active ? filters.parts.filter(x => x !== p) : [...filters.parts, p] })}
+                  style={{ flex: 1, padding: '7px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+                    background: active ? (accentBg ?? 'rgba(139,92,246,0.15)') : 'var(--color-bg-3)',
+                    color: active ? 'var(--color-purple-text)' : 'var(--color-muted)' }}>
+                  {p === '1' ? t('I часть') : t('II часть')}
+                </button>
+              )
+            })}
+          </div>
+          <MultiSelectField label={t('Линия')} values={filters.lines} options={allLines} onChange={v => onChange({ lines: v })} accent={accent} accentBg={accentBg} />
+        </>
+      )}
       <FilterField label={t('Источник')} value={filters.source} options={merge(SOURCES, SOURCE_SCOPE)} onChange={v => onChange({ source: v })} />
 
       {hasFilters && (
-        <button onClick={() => onChange({ sections: [], topics: [], parts: [], lines: [], source: '' })}
+        <button onClick={() => onChange({ sections: [], topics: [], parts: [], lines: [], source: '', levels: [], skills: [] })}
           style={{ padding: '8px 0', borderRadius: 10, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           <Trash2 size={12} /> {t('Сбросить фильтры')}
         </button>
