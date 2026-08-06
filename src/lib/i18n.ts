@@ -957,6 +957,17 @@ const EN: Record<string, string> = {
   "Ответ:": "Answer:",
   "Показать ответ": "Show answer",
 
+  // — Подстановочный дрилл —
+  "Дрилл по шаблону": "Pattern drill",
+  "Одна конструкция, несколько подстановок": "One structure, several substitutions",
+  "Всё предложение целиком…": "The whole sentence…",
+  "Шаблон конструкции, место подстановки — многоточие: «저는 …이에요»": "Structure template, slot marked with an ellipsis: “저는 …이에요”",
+  "Перевод шаблона — «Я …»": "Template translation — “I am …”",
+  "Подставляем": "Substitute",
+  "Что должно получиться целиком": "Resulting sentence in full",
+  "Строка подстановки": "Substitution row",
+  "Удалить строку": "Delete row",
+
   // — Правило под рукой и части домашки —
   "Правило": "Grammar",
   "Правило урока": "Lesson rule",

@@ -184,7 +184,8 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                   </div>
                 )}
 
-                {/* fill / extended — text input */}
+                {/* fill / extended — растущее поле ответа (разница только в
+                    подсказке: короткий ответ или развёрнутый) */}
                 {(tp === 'fill' || tp === 'extended') && (
                   <div style={{ paddingLeft: 36 }}>
                     <GrowTextarea

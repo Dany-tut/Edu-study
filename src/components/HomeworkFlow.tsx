@@ -40,6 +40,10 @@ import { useReadingVisible } from '../store/readingStore'
 import { findLessonById, getLessonDetail } from '../data/lessonContent'
 import HardStarLottie from './HardStarLottie'
 import PartyPopperLottie from './PartyPopperLottie'
+import {
+  shortPrompt,
+  type BasicAnswerRow, type BasicAnswerVerdict, type BasicAnswersPayload,
+} from '../lib/basicAnswers'
 
 /**
  * Поле ответа в домашке обнимает текст: высота = содержимому, внутреннего
@@ -1281,17 +1285,103 @@ export default function HomeworkFlow({
     selectedLevel === 'basic' ? basicLevel.estimatedMinutes : hardLevel.estimatedMinutes
   )
 
+  /**
+   * Снимок работы для преподавателя: что спрашивали, что ответил ученик, как
+   * это оценила машина. Собирается на клиенте, потому что только здесь известны
+   * и определения заданий, и подписи вариантов, и подсказки, которыми ученик
+   * пользовался. Уходит в lesson_progress.attachments базовой строки.
+   */
+  function buildBasicSnapshot(): BasicAnswersPayload {
+    const rows: BasicAnswerRow[] = basicQuestions.map((question, index) => {
+      const raw = state.basicAnswers[question.id]
+      const tp = qType(question)
+      const autoGradable = questionAutoGradable(question)
+      const hinted = !!state.basicHints[question.id]
+      const answered = questionAnswered(question, raw)
+      const voice = (tp === 'speaking' || question.responseMode === 'speak')
+        && !!raw && raw !== NO_VOICE
+
+      // Ответ в читаемом виде. Выбор хранится id-шниками, сборка предложения —
+      // словами через пробел, порядок — индексами: преподавателю нужно то, что
+      // видел ученик, а не внутреннее представление.
+      let answer = raw ?? ''
+      if (questionIsMulti(question)) {
+        answer = parseIds(raw)
+          .map(id => question.options.find(o => o.id === id)?.text ?? id)
+          .join(', ')
+      } else if (questionIsChoice(question)) {
+        answer = question.options.find(o => o.id === raw)?.text ?? (raw ?? '')
+      } else if (tp === 'sequence') {
+        const items = question.sequenceItems ?? []
+        answer = (raw ?? '').split(',')
+          .map(n => items[Number(n)])
+          .filter(Boolean)
+          .join(' → ')
+      } else if (tp === 'minimalPair') {
+        answer = (raw === 'B' ? question.pairB : raw === 'A' ? question.pairA : '') ?? ''
+      } else if (raw === NO_VOICE) {
+        answer = ''
+      }
+
+      // Эталон — тем же способом, что и подсказка ученику, плюс варианты выбора.
+      let correct = hintFor(question)
+      if (questionIsMulti(question)) {
+        correct = (question.correctOptionIds ?? [])
+          .map(id => question.options.find(o => o.id === id)?.text ?? id)
+          .join(', ')
+      } else if (questionIsChoice(question)) {
+        correct = question.options.find(o => o.id === question.correctOptionId)?.text ?? ''
+      } else if (tp === 'sequence') {
+        correct = (question.sequenceItems ?? []).join(' → ')
+      }
+
+      const verdict: BasicAnswerVerdict =
+        raw === NO_VOICE ? 'skip'
+          : !answered ? 'empty'
+          : hinted ? 'hint'
+          : !autoGradable ? 'review'
+          : questionCorrect(question, raw) ? 'correct'
+          : 'wrong'
+
+      return {
+        n: index + 1,
+        prompt: shortPrompt(question.front ? `${question.front} — ${question.prompt}` : question.prompt),
+        type: tp,
+        answer,
+        ...(correct ? { correct } : {}),
+        verdict,
+        ...(voice ? { voice: true } : {}),
+      }
+    })
+    return {
+      v: 'basic-1',
+      gradable: basicGradableCount,
+      correct: basicCorrectCount,
+      rows,
+    }
+  }
+
   async function submitToSupabase(
     level: 'basic' | 'hard',
     score: number,
     comment: string,
-    attachments?: { photos: string[]; board: string | null } | { v: 2; tasks: HardTaskStudentBlock[] },
+    attachments?:
+      | { photos: string[]; board: string | null }
+      | { v: 2; tasks: HardTaskStudentBlock[] }
+      | BasicAnswersPayload,
   ) {
     const session = getStudentSession()
     if (!session?.id) return
     // Basic level is auto-graded — mark completed immediately if score meets threshold.
     // Hard level (essay) always goes to submitted and awaits teacher review.
-    const status = level === 'basic' && score >= homework.recommendationScore
+    //
+    // Исключение: если в базе есть задания без автопроверки (устное, описание
+    // картинки, доска), закрывать её баллом нельзя. Балл считается только по
+    // автопроверяемым, и ученик мог набрать 100, пока его запись никто не
+    // слушал: домашка вставала «выполнена», а у преподавателя в очереди
+    // числилась проверенной. Такая сдача ждёт преподавателя.
+    const needsTeacher = level === 'basic' && basicReviewCount > 0
+    const status = level === 'basic' && score >= homework.recommendationScore && !needsTeacher
       ? 'completed'
       : 'submitted'
     const ref = level === 'hard' ? `${lessonId}-hard` : lessonId
@@ -1947,7 +2037,7 @@ export default function HomeworkFlow({
                   <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
                     <motion.button
                       whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
-                      onClick={() => { submitToSupabase('basic', basicScore, ''); setShowResultModal('basic') }}
+                      onClick={() => { submitToSupabase('basic', basicScore, '', buildBasicSnapshot()); setShowResultModal('basic') }}
                       className="cursor-pointer"
                       style={{
                         padding: '13px 22px', borderRadius: 16, border: 'none',
@@ -2733,7 +2823,7 @@ export default function HomeworkFlow({
                   hints={state.basicHints}
                   score={basicScore}
                   recommendationScore={homework.recommendationScore}
-                  onSubmit={() => { submitToSupabase('basic', basicScore, ''); setShowResultModal('basic') }}
+                  onSubmit={() => { submitToSupabase('basic', basicScore, '', buildBasicSnapshot()); setShowResultModal('basic') }}
                   onShowSummary={() => summaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                 />
               </motion.div>

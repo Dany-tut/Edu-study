@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
 import type { HomeworkItem } from '../data/teacherMockData'
+import { parseBasicAnswers, type BasicAnswersPayload } from './basicAnswers'
 
 export type HardSub = {
   id: string
@@ -275,6 +276,9 @@ export type HwSubmission = {
   reviewComment: string
   reviewPhotos: string[]
   reviewBoard: string | null
+  // Работа ученика по базовому уровню: что спрашивали, что ответил, как оценила
+  // машина. null у сдач, сделанных до появления снимка (см. lib/basicAnswers.ts).
+  answers: BasicAnswersPayload | null
 }
 
 // status строки lesson_progress → вердикт витрины проверки.
@@ -542,7 +546,7 @@ export function useHardSubmissions() {
 // `hw-<id>` — том же, куда пишет HomeworkFlow, когда ученик решает ноду ДЗ.
 // Ревью учителя (вердикт/оценка/комментарий/фото/доска) пишется туда же
 // (reviewHomework), поэтому homework_submissions больше не нужна.
-export function useHomeworkSubmissions(hwId: string | null): {
+export function useHomeworkSubmissions(hwId: string | null, lessonId?: string | null): {
   submissions: HwSubmission[]
   reload: () => Promise<void>
 } {
@@ -551,10 +555,14 @@ export function useHomeworkSubmissions(hwId: string | null): {
   const load = useCallback(async () => {
     if (!hwId) { setSubmissions([]); return }
     const uid = await getOwnerId()
+    // ДЗ вне курса ученик решает на ноде `hw-<id>`, а ДЗ, привязанное к уроку, —
+    // на самом уроке, и пишет туда же (lesson_ref = id урока). Читаем оба ключа:
+    // иначе у курсовой домашки витрина проверки оставалась пустой.
+    const refs = lessonId ? [`hw-${hwId}`, lessonId] : [`hw-${hwId}`]
     const { data } = await supabase
       .from('lesson_progress')
-      .select('id, student_id, status, score, comment, review_comment, review_attachments, updated_at, students!inner(name, groups!inner(created_by))')
-      .eq('lesson_ref', `hw-${hwId}`)
+      .select('id, student_id, status, score, comment, attachments, review_comment, review_attachments, updated_at, students!inner(name, groups!inner(created_by))')
+      .in('lesson_ref', refs)
       .eq('students.groups.created_by', uid)
       .in('status', ['submitted', 'returned', 'completed'])
       .order('updated_at', { ascending: false })
@@ -570,8 +578,9 @@ export function useHomeworkSubmissions(hwId: string | null): {
       reviewComment: s.review_comment ?? '',
       reviewPhotos: Array.isArray(s.review_attachments?.photos) ? s.review_attachments.photos : [],
       reviewBoard: s.review_attachments?.board ?? null,
+      answers: parseBasicAnswers(s.attachments),
     })))
-  }, [hwId])
+  }, [hwId, lessonId])
 
   useEffect(() => { load() }, [load])
 

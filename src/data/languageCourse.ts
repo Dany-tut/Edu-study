@@ -29,7 +29,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { TASK_TYPES } from './taskTypes'
-import type { TaskPayload, TaskTypeId } from './taskTypes'
+import type { PatternItem, TaskPayload, TaskTypeId } from './taskTypes'
 import { getSubject } from '../lib/subjects'
 import { figureMarker, packTheoryImages, type TheoryImage } from '../lib/theoryImages'
 import { vocabImage } from './vocabImages'
@@ -93,10 +93,36 @@ export interface LangUnit {
    * доклады и разборы.
    */
   videoUrl?: string
+  /**
+   * Шаблон конструкции юнита — то, что отрабатывается подстановкой.
+   *
+   * ЗАЧЕМ ОТДЕЛЬНОЕ ПОЛЕ, А НЕ ЕЩЁ ОДНО ЗАДАНИЕ В `tasks`. Грамматика юнита у
+   * нас была описана человеческим текстом (`grammar`) — для конспекта это
+   * правильно, но отработать по нему нечего. Дрилл требует машинно-пригодной
+   * формы: шаблон, его перевод и ряд подстановок. Отдельным полем он ещё и
+   * попадает в домашку первым, до россыпи упражнений, — конструкция сначала
+   * ставится в руку, а потом уже проверяется вразбивку.
+   *
+   * Не задан — дрилла в юните просто нет. Так и должно быть в юнитах, где
+   * отрабатывать нечего: письмо, чтение правил, экзаменационные стратегии.
+   */
+  pattern?: UnitPattern
   /** Словарь юнита. */
   vocab: VocabItem[]
   /** Задания домашней работы. */
   tasks: SeedTask[]
+}
+
+/** Конструкция юнита и подстановки к ней. */
+export interface UnitPattern {
+  /** Шаблон, место подстановки — многоточие: «저는 …이에요». */
+  template: string
+  /** Перевод шаблона: без него конструкция остаётся набором знаков. */
+  gloss: string
+  /** Формулировка задания. Не задана — берётся общая. */
+  question?: string
+  /** Строки подстановки: что подставляем и что должно получиться. */
+  items: PatternItem[]
 }
 
 /** Иллюстрация конспекта: картинка (data-URI из lessonFigures.ts) и подпись. */
@@ -206,6 +232,26 @@ export const grid = (
 
 /** Свободный письменный ответ — идёт учителю. */
 export const write = (question: string): SeedTask => ({ type: 'extended', question })
+
+/**
+ * Подстановочный дрилл: одна конструкция, ряд замен.
+ *
+ * Пишется парами «что подставляем → что получилось». Именно целое предложение,
+ * а не одну форму: у корейского и японского выбор формы зависит от того, чем
+ * кончается подставляемое слово (이에요/예요, 을/를, 은/는), и ученик обязан
+ * собрать всю строку, иначе алломорф остаётся невыученным.
+ */
+export const drill = (
+  template: string,
+  gloss: string,
+  items: Array<[cue: string, answer: string] | [cue: string, answer: string, gloss: string]>,
+  question?: string,
+): UnitPattern => ({
+  template,
+  gloss,
+  question,
+  items: items.map(([cue, answer, itemGloss]) => ({ cue, answer, gloss: itemGloss })),
+})
 
 /**
  * Чтение в экзаменационном формате: один отрывок — несколько вопросов к нему.
@@ -318,6 +364,28 @@ function vocabCard(word: VocabItem, id: string, lang: string) {
     { type: 'flashcard', question: label, front: word.term, reading: word.reading, back: word.ru, image },
     id, lang,
   )
+}
+
+/**
+ * Дрилл юнита как задание домашки — ноль или одно.
+ *
+ * Возвращает массив, а не «задание либо undefined», чтобы в списке заданий он
+ * раскрывался спредом наравне с остальными группами и в юнитах без конструкции
+ * не оставлял дырки.
+ */
+function patternTask(unit: LangUnit, id: string, lang: string) {
+  const p = unit.pattern
+  if (!p || p.items.length === 0) return []
+  return [editorTask(
+    {
+      type: 'pattern',
+      question: p.question ?? 'Отработайте конструкцию: подставьте слово и запишите предложение целиком.',
+      pattern: p.template,
+      patternGloss: p.gloss,
+      patternItems: p.items,
+    },
+    id, lang,
+  )]
 }
 
 /**
@@ -496,6 +564,10 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
     hwTitle: `Юнит ${unit.n}. ${unit.title}`,
     hwTarget: unit.artifact,
     hwTasks: [
+      // Дрилл идёт первым: конструкция сначала ставится в руку подстановкой, и
+      // только потом проверяется вразбивку остальными заданиями. В обратном
+      // порядке первые упражнения проверяли бы то, что ещё не отработано.
+      ...patternTask(unit, `${unit.shortId}-p`, spec.lang),
       ...unit.tasks.map((task, i) => editorTask(task, `${unit.shortId}-t${i + 1}`, spec.lang)),
       // Задание по картинке идёт перед карточками: сначала узнать предмет,
       // потом отрабатывать слово.

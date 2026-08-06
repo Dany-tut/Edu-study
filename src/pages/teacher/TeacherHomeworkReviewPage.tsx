@@ -2,7 +2,7 @@ import { useState, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, ChevronRight, Check, RotateCcw, Send,
-  ClipboardCheck, TrendingUp, Clock, Award, FileText, Paperclip,
+  ClipboardCheck, TrendingUp, Clock, Award, FileText,
   CheckCircle2, Star, Image as ImageIcon, PenLine, X,
 } from 'lucide-react'
 import type { Student, Group, HomeworkItem, HwTask } from '../../data/teacherMockData'
@@ -14,6 +14,7 @@ import WhiteboardCanvas from '../../components/teacher/WhiteboardCanvas'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { readDraft, writeDraft, clearDraft } from '../../lib/useDraft'
 import { useT, t } from '../../lib/i18n'
+import BasicAnswersList from '../../components/teacher/BasicAnswersList'
 
 // Фото/доска учителя — base64, живут только в черновике до отправки (в review_attachments).
 type ReviewDraft = { score: string; taskScores: Record<string, string>; comment: string; photos: string[]; board: string | null }
@@ -368,7 +369,9 @@ export default function TeacherHomeworkReviewPage() {
   const hw = (allHomework.find(h => h.id === reviewingHwId) ?? null) as (HomeworkItem & { tasks?: HwTask[] }) | null
   const group = hw ? groups.find(g => g.id === hw.groupId) ?? null : null
 
-  const { submissions: rawSubmissions, reload: reloadSubmissions } = useHomeworkSubmissions(reviewingHwId)
+  // lessonId — чтобы витрина видела и сдачи домашки, привязанной к уроку курса:
+  // такую ученик решает на ноде урока и пишет под его lesson_ref.
+  const { submissions: rawSubmissions, reload: reloadSubmissions } = useHomeworkSubmissions(reviewingHwId, hw?.lessonId ?? null)
   const { students: groupStudents } = useStudents(hw?.groupId ?? null)
   const submitters: Student[] = useMemo(() => {
     if (!hw) return []
@@ -639,20 +642,25 @@ export default function TeacherHomeworkReviewPage() {
                       </span>
                     )}
                   </div>
-                  <p style={{ fontSize: 14.5, lineHeight: 1.65, color: 'var(--color-text)', whiteSpace: 'pre-line' }}>
-                    {currentSubmission?.comment || t('Ученик не оставил комментарий к сдаче.')}
-                  </p>
-                  <div className="flex items-center flex-wrap" style={{ gap: 8, marginTop: 16 }}>
-                    {['solution.pdf', 'photo-1.jpg'].map(f => (
-                      <span key={f} className="flex items-center" style={{
-                        gap: 6, padding: '8px 12px', borderRadius: 12,
-                        background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 12, fontWeight: 650,
-                      }}>
-                        <Paperclip size={13} />
-                        {f}
-                      </span>
-                    ))}
-                  </div>
+                  {currentSubmission?.comment && (
+                    <p style={{
+                      fontSize: 14.5, lineHeight: 1.65, color: 'var(--color-text)',
+                      whiteSpace: 'pre-line', marginBottom: 16,
+                    }}>
+                      {currentSubmission.comment}
+                    </p>
+                  )}
+                  {/* Ответы базового уровня. У сдач, сделанных до появления
+                      снимка, их нет — там честно говорим, что показать нечего,
+                      вместо прежних выдуманных «solution.pdf». */}
+                  {currentSubmission?.answers
+                    ? <BasicAnswersList payload={currentSubmission.answers} />
+                    : !currentSubmission?.comment && (
+                      <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-muted)' }}>
+                        {t('Ответы этой сдачи не сохранились — она сделана до того, как работа начала доезжать до преподавателя.')}
+                      </p>
+                    )
+                  }
                 </div>
 
                 {/* Grading */}

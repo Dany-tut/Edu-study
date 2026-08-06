@@ -41,6 +41,9 @@ export default function GlossedText({ text, lang, extra = [], accent, style }: {
 
   const wrapRef = useRef<HTMLDivElement | null>(null)
   const timer = useRef<number | null>(null)
+  // Слово, к которому привязана открытая карточка: по нему её переставляют,
+  // когда размеры уже известны (см. эффект ниже).
+  const activeEl = useRef<HTMLElement | null>(null)
   // active — что показываем, pinned — показываем ли после ухода курсора.
   const [active, setActive] = useState<{ i: number; seg: Segment } | null>(null)
   const [pinned, setPinned] = useState(false)
@@ -70,8 +73,30 @@ export default function GlossedText({ text, lang, extra = [], accent, style }: {
     }
   }, [active])
 
+  // Пересчёт после открытия. Первый замер делается в обработчике клика, и если
+  // абзац в этот момент ещё не разложен по строкам (не догрузился шрифт для
+  // корейского или японского), координаты получаются от промежуточной вёрстки —
+  // карточка уезжает на сотни пикселей. Поэтому меряем ещё раз, когда размеры
+  // уже настоящие, и при каждом изменении ширины.
+  useEffect(() => {
+    if (!active) return
+    const again = () => { if (activeEl.current) place(activeEl.current) }
+    const t1 = window.setTimeout(again, 0)
+    const t2 = window.setTimeout(again, 160)
+    window.addEventListener('resize', again)
+    const ro = new ResizeObserver(again)
+    if (wrapRef.current) ro.observe(wrapRef.current)
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+      window.removeEventListener('resize', again)
+      ro.disconnect()
+    }
+  }, [active])
+
   function close() {
     if (timer.current) { clearTimeout(timer.current); timer.current = null }
+    activeEl.current = null
     setActive(null)
     setPinned(false)
     setPos(null)
@@ -94,6 +119,7 @@ export default function GlossedText({ text, lang, extra = [], accent, style }: {
 
   function open(i: number, seg: Segment, el: HTMLElement, pin: boolean) {
     if (timer.current) { clearTimeout(timer.current); timer.current = null }
+    activeEl.current = el
     setActive({ i, seg })
     setPinned(pin)
     place(el)

@@ -27,6 +27,8 @@ export interface CoachStep {
 
 /** Отступ подсветки от элемента и зазор до карточки. */
 const PAD = 8
+/** Скругление рамки, когда у самого элемента его нет. */
+const DEFAULT_R = 16
 const GAP = 14
 const CARD_W = 320
 
@@ -39,6 +41,10 @@ export default function Coachmarks({ steps, open, onClose, accent }: {
   const t = useT()
   const [i, setI] = useState(0)
   const [rect, setRect] = useState<DOMRect | null>(null)
+  // Скругление берётся у самого элемента, а не задаётся числом: рамка отстоит
+  // от блока на PAD, поэтому её радиус = радиус блока + PAD — только тогда дуга
+  // угла идёт параллельно углу карточки, а не срезает его.
+  const [radius, setRadius] = useState(DEFAULT_R)
   const timers = useRef<number[]>([])
   // Высота карточки нужна ДО того, как её ставить: на телефоне подсвеченный
   // блок занимает почти весь экран, и без реальной высоты карточка ложится
@@ -53,6 +59,15 @@ export default function Coachmarks({ steps, open, onClose, accent }: {
   const measure = useCallback(() => {
     const el = step?.ref?.current
     setRect(el ? el.getBoundingClientRect() : null)
+    if (!el) return
+    // У контейнера (сетка плашек, колонка вопросов) своего скругления нет —
+    // берём его у первой карточки внутри: край контейнера совпадает с её краем,
+    // так что рамка всё равно получается параллельной тому, что видно.
+    const own = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0
+    const kid = own > 0 ? 0
+      : parseFloat(getComputedStyle(el.firstElementChild ?? el).borderTopLeftRadius) || 0
+    const r = own || kid
+    setRadius(r > 0 ? r + PAD : DEFAULT_R)
   }, [step])
 
   useEffect(() => { if (open) setI(0) }, [open])
@@ -152,7 +167,7 @@ export default function Coachmarks({ steps, open, onClose, accent }: {
             position: 'absolute', pointerEvents: 'none',
             left: rect.left - PAD, top: rect.top - PAD,
             width: rect.width + PAD * 2, height: rect.height + PAD * 2,
-            borderRadius: 16, border: `2px solid ${accent}`,
+            borderRadius: radius, border: `2px solid ${accent}`,
             boxShadow: `0 0 0 9999px rgba(8,8,12,0.62), 0 0 0 6px ${accent}33`,
             transition: 'left .2s ease, top .2s ease, width .2s ease, height .2s ease',
           }}
