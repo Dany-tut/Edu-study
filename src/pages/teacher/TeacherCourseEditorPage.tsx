@@ -894,7 +894,7 @@ const FILE_CARDS: Array<{ field: FileField; Icon: React.ElementType; label: stri
  * ровно после правила, которое она объясняет. Здесь — только загрузка,
  * превью и удаление; подпись учитель правит прямо в маркере.
  */
-function TheoryImages({
+export function TheoryImages({
   lesson, onUpdate,
 }: {
   lesson: CELesson

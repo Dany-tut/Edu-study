@@ -94,7 +94,7 @@ function renderHighlightedParagraph(text: string, reactionId?: string, activeRea
  * По клику открывается на весь экран: схемы письма и таблицы форм в ширину
  * колонки конспекта читаемы на мониторе, но не на телефоне.
  */
-function TheoryFigure({ src, caption }: { src: string; caption?: string }) {
+export function TheoryFigure({ src, caption }: { src: string; caption?: string }) {
   const [zoom, setZoom] = useState(false)
   return (
     <>
@@ -127,10 +127,13 @@ function TheoryFigure({ src, caption }: { src: string; caption?: string }) {
               padding: 20, background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)',
             }}
           >
+            {/* Схема нарисована в 400–680 px и на весь экран сама не растянется:
+                без явной ширины «увеличение» показывало картинку мельче, чем в
+                колонке конспекта. */}
             <img
               src={src}
               alt={caption ?? ''}
-              style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 12, background: '#fff' }}
+              style={{ width: 'min(100%, 1000px)', maxHeight: '100%', objectFit: 'contain', borderRadius: 12, background: '#fff' }}
             />
           </motion.div>
         )}
