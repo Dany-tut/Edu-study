@@ -44,6 +44,7 @@ import {
 import { lineChartImage, barChartImage, processFlowImage, townMapImage } from './seedImages'
 import { formTable, formulaStrip, ladderFigure } from './lessonFigures'
 import { IELTS_THEORY } from './englishIeltsTheory'
+import { IELTS_LISTENING } from './englishIeltsListening'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -1511,7 +1512,14 @@ export const ENGLISH_IELTS: LanguageCourseSpec = {
   modules: IELTS_MODULES,
   // Конспекты живут отдельным файлом: здесь — структура и задания, там —
   // то, что ученик читает.
-  units: IELTS_UNITS.map(u => ({ ...u, theory: IELTS_THEORY[u.shortId] ?? u.theory })),
+  units: IELTS_UNITS.map(u => ({
+    ...u,
+    theory: IELTS_THEORY[u.shortId] ?? u.theory,
+    // Аудирование — четверть балла на экзамене, а стояло только в трёх
+    // юнитах из двадцати (см. аудит). Диктант бьёт в то, на чём реально
+    // теряют: орфографию, число и лимит слов.
+    tasks: [...u.tasks, ...(IELTS_LISTENING[u.shortId] ?? [])],
+  })),
   figures: IELTS_FIGURES,
 }
 
