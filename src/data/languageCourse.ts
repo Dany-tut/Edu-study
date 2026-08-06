@@ -316,7 +316,7 @@ function vocabCard(word: VocabItem, id: string, lang: string) {
 }
 
 /**
- * Задание «что на картинке» из словаря юнита.
+ * Задания «что на картинке» из словаря юнита.
  *
  * Единственный тип задания, который проверяет знание слова без русского
  * посредника: ученик видит предмет и выбирает слово на изучаемом языке.
@@ -328,29 +328,37 @@ function vocabCard(word: VocabItem, id: string, lang: string) {
  * номера юнита. Случайность сломала бы стабильность сида — при каждой сборке
  * курс получался бы другим.
  */
-function pictureTask(unit: LangUnit, id: string, lang: string) {
+function pictureTasks(unit: LangUnit, idBase: string, lang: string) {
   const drawn = unit.vocab.filter(w => vocabImage(w.ru))
-  if (drawn.length < 4) return null
+  // Обманки берутся из того же юнита: выбирать между словами одного урока —
+  // это проверка слова, а между словами разных уроков — проверка памяти о том,
+  // какой урок вообще шёл.
+  if (!drawn.length || unit.vocab.length < 4) return []
 
-  const target = drawn[unit.n % drawn.length]
-  const others = unit.vocab.filter(w => w.term !== target.term).slice(0, 3)
-  if (others.length < 3) return null
-
-  const choices = [...others.map(w => w.term)]
-  const correct = unit.n % 4
-  choices.splice(correct, 0, target.term)
-
-  return editorTask(
-    {
-      type: 'single',
-      question: 'Что на картинке? Выберите слово.',
-      image: vocabImage(target.ru),
-      imageSize: 40,
-      choices,
-      correctChoices: [correct],
-    },
-    id, lang,
-  )
+  // Два задания там, где нарисованного хватает; иначе одно. Больше двух —
+  // это уже не отработка, а перебор картинок.
+  const count = drawn.length >= 5 ? 2 : 1
+  const tasks = []
+  for (let k = 0; k < count; k++) {
+    const target = drawn[(unit.n + k) % drawn.length]
+    const others = unit.vocab.filter(w => w.term !== target.term).slice(k, k + 3)
+    if (others.length < 3) break
+    const choices = others.map(w => w.term)
+    const correct = (unit.n + k) % 4
+    choices.splice(correct, 0, target.term)
+    tasks.push(editorTask(
+      {
+        type: 'single',
+        question: 'Что на картинке? Выберите слово.',
+        image: vocabImage(target.ru),
+        imageSize: 40,
+        choices,
+        correctChoices: [correct],
+      },
+      `${idBase}${k + 1}`, lang,
+    ))
+  }
+  return tasks
 }
 
 /**
@@ -481,7 +489,7 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
       ...unit.tasks.map((task, i) => editorTask(task, `${unit.shortId}-t${i + 1}`, spec.lang)),
       // Задание по картинке идёт перед карточками: сначала узнать предмет,
       // потом отрабатывать слово.
-      ...[pictureTask(unit, `${unit.shortId}-pic`, spec.lang)].filter(t => t !== null),
+      ...pictureTasks(unit, `${unit.shortId}-pic`, spec.lang),
       ...unit.vocab.map((word, i) => vocabCard(word, `${unit.shortId}-v${i + 1}`, spec.lang)),
     ],
   }))

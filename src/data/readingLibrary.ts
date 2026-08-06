@@ -46,8 +46,14 @@ export interface ReadingText {
   level: string
   /** Примерное время на чтение, минуты. */
   minutes: number
-  /** Тема — для фильтра и для подбора под курс. */
+  /** Тема — из общего списка тем языка (см. languageTaxonomy). */
   topic: string
+  /**
+   * Навык, который текст тренирует. У текстов это почти всегда «Чтение», но
+   * переписка и объявления заодно дают лексику, а разбор — грамматику. Поле
+   * из той же таксономии, что и разметка заданий, чтобы фильтры совпадали.
+   */
+  skill: string
   body: string
   /** Перевод целиком — открывается только после ответов. */
   translation?: string
@@ -67,7 +73,7 @@ const EN: ReadingText[] = [
   {
     id: 'en-job-posting',
     lang: 'en', title: 'A job posting', level: 'A2', minutes: 3,
-    topic: 'Поиск работы',
+    topic: 'Поиск работы', skill: 'Чтение',
     origin: 'original',
     body: `Product Designer (Mid-level)
 Remote — Europe · Full-time
@@ -122,7 +128,7 @@ To apply, send your CV and portfolio link. We answer every application within tw
   {
     id: 'en-recruiter-email',
     lang: 'en', title: 'An email from a recruiter', level: 'A2', minutes: 2,
-    topic: 'Переписка',
+    topic: 'Переписка', skill: 'Чтение',
     origin: 'original',
     body: `Hi Daniil,
 
@@ -169,7 +175,7 @@ Anna`,
   {
     id: 'en-standup-notes',
     lang: 'en', title: 'Stand-up notes in Slack', level: 'B1', minutes: 2,
-    topic: 'Работа в команде',
+    topic: 'Работа в команде', skill: 'Лексика',
     origin: 'original',
     body: `Maria: morning! yesterday I finished the empty states for search, today I'm picking up the filters. no blockers
 
@@ -215,7 +221,7 @@ Daniil: yesterday I ran two usability sessions, today I'm writing them up. no bl
   {
     id: 'en-design-critique',
     lang: 'en', title: 'Feedback on a prototype', level: 'B1', minutes: 3,
-    topic: 'Обратная связь',
+    topic: 'Обратная связь', skill: 'Чтение',
     origin: 'original',
     body: `Hi Daniil,
 
@@ -275,7 +281,7 @@ const KO: ReadingText[] = [
   {
     id: 'ko-notice-gym',
     lang: 'ko', title: '헬스장 안내 (объявление в спортзале)', level: 'TOPIK 1', minutes: 2,
-    topic: 'Объявления',
+    topic: 'Объявления', skill: 'Чтение',
     origin: 'original',
     body: `헬스장 이용 안내
 
@@ -325,7 +331,7 @@ const KO: ReadingText[] = [
   {
     id: 'ko-message-plan',
     lang: 'ko', title: '문자 메시지 (переписка)', level: 'TOPIK 1', minutes: 2,
-    topic: 'Переписка',
+    topic: 'Переписка', skill: 'Чтение',
     origin: 'original',
     body: `지수: 내일 저녁에 시간 있어요?
 유리: 미안해요. 내일은 일이 늦게 끝나요. 모레는 괜찮아요.
