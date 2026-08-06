@@ -1962,7 +1962,7 @@ export default function TeacherGroupsPage() {
   // the teacher must never lose an in-progress form to a tab switch/reload.
   const [showAddGroup, setShowAddGroup] = usePersistentState('groups.show.addGroup', false)
   const [showAddStudentPicker, setShowAddStudentPicker] = usePersistentState('groups.show.addStudentPicker', false)
-  const [showAddStudent, setShowAddStudent] = usePersistentState('groups.show.addStudent', true)
+  const [showAddStudent, setShowAddStudent] = usePersistentState('groups.show.addStudent', false)
   const [showAddIndividual, setShowAddIndividual] = usePersistentState('groups.show.addIndividual', false)
   const [showExistingIndiv, setShowExistingIndiv] = useState(false)  // existing person → new 1:1 card
   const [activeStripTab, setActiveStripTab] = useState<'groups' | 'students'>('groups')

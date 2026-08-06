@@ -85,10 +85,11 @@ export default function AdminUserActivity() {
                 color: view === v ? 'var(--color-purple)' : 'var(--color-text-3)',
               }}
             >
-              {v === 'people' ? t('Все пользователи') : t('По учителям')}
+              {v === 'people' ? t('Все пользователи') : v === 'teachers' ? t('По учителям') : t('Ученики')}
             </button>
           ))}
         </div>
+        {view !== 'students' && (
         <div style={{ display: 'flex', gap: 4, marginLeft: 'auto', background: 'var(--color-bg-3)', borderRadius: 10, padding: 3 }}>
           {DAYS.map(d => (
             <button
@@ -105,26 +106,33 @@ export default function AdminUserActivity() {
             </button>
           ))}
         </div>
-        {loading && <RefreshCw size={14} style={{ color: 'var(--color-text-3)', animation: 'spin 1s linear infinite' }} />}
+        )}
+        {loading && view !== 'students' && <RefreshCw size={14} style={{ color: 'var(--color-text-3)', animation: 'spin 1s linear infinite' }} />}
       </div>
 
-      {/* KPI row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 18 }}>
-        <Kpi icon={Users} label={t('Пользователей')} value={String(totals.people)} />
-        <Kpi icon={GraduationCap} label={t('Учеников активно')} value={String(totals.students)} />
-        <Kpi icon={Users} label={t('Учителей')} value={String(totals.teachers)} />
-        <Kpi icon={Clock} label={t('Активное время')} value={fmtMin(totals.activeMin)} />
-      </div>
-
-      {view === 'people' ? (
-        <PeopleTable rows={people} />
+      {view === 'students' ? (
+        <AdminStudentsManager />
       ) : (
-        <TeachersTable rows={teachers} />
-      )}
+        <>
+          {/* KPI row */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 18 }}>
+            <Kpi icon={Users} label={t('Пользователей')} value={String(totals.people)} />
+            <Kpi icon={GraduationCap} label={t('Учеников активно')} value={String(totals.students)} />
+            <Kpi icon={Users} label={t('Учителей')} value={String(totals.teachers)} />
+            <Kpi icon={Clock} label={t('Активное время')} value={fmtMin(totals.activeMin)} />
+          </div>
 
-      <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 12, lineHeight: 1.5 }}>
-        {t('«Активное время» ≈ минуты с открытой вкладкой (heartbeat раз в минуту), а не строго активные действия. «Активные ученики» — те, кто заходил за период; это будущий счётчик тарифного лимита.')}
-      </div>
+          {view === 'people' ? (
+            <PeopleTable rows={people} />
+          ) : (
+            <TeachersTable rows={teachers} />
+          )}
+
+          <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 12, lineHeight: 1.5 }}>
+            {t('«Активное время» ≈ минуты с открытой вкладкой (heartbeat раз в минуту), а не строго активные действия. «Активные ученики» — те, кто заходил за период; это будущий счётчик тарифного лимита.')}
+          </div>
+        </>
+      )}
     </div>
   )
 }

@@ -6,6 +6,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { trackNow } from '../lib/analytics'
 import { useT } from '../lib/i18n'
+import { authErrorRu } from '../lib/authErrors'
 
 // Teacher self-registration from an admin invite link (#/join-teacher?token=…).
 // Mirrors JoinPage: create an auth account (role: teacher), then apply the baked
@@ -87,7 +88,7 @@ export default function JoinTeacherPage() {
       },
     })
     if (authErr || !authData.user) {
-      setErrorMsg(authErr?.message || t('Ошибка при регистрации. Попробуйте ещё раз.'))
+      setErrorMsg(t(authErrorRu(authErr, 'Ошибка при регистрации. Попробуйте ещё раз.')))
       setSaving(false)
       return
     }
@@ -97,7 +98,7 @@ export default function JoinTeacherPage() {
     // dropping them.
     const { error: applyErr } = await supabase.rpc('apply_teacher_invite', { p_token: token })
     if (applyErr) {
-      setErrorMsg(t('Аккаунт создан, но не удалось применить настройки доступа: ') + applyErr.message)
+      setErrorMsg(t('Аккаунт создан, но не удалось применить настройки доступа: ') + t(authErrorRu(applyErr)))
       setSaving(false)
       return
     }

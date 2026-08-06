@@ -8,6 +8,7 @@ import { supabase } from '../../lib/supabase'
 import { useTeacher } from '../../store/teacherStore'
 import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'
 import { useT } from '../../lib/i18n'
+import { authErrorRu } from '../../lib/authErrors'
 
 // `scale` = optical-size correction so every glyph reads the same visual weight
 // inside the circle (lucide icons have different natural fill — a Star looks
@@ -64,7 +65,7 @@ export default function TeacherProfileSettingsPage() {
       data: { name: name.trim(), avatarId },
     })
     setSaving(false)
-    if (err) { setError(err.message); return }
+    if (err) { setError(t(authErrorRu(err, 'Не удалось сохранить профиль. Попробуйте ещё раз.'))); return }
     clearDrafts('profile.')
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)

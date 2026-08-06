@@ -43,6 +43,7 @@ import {
 } from './languageCourse'
 import { lineChartImage, barChartImage, processFlowImage, townMapImage } from './seedImages'
 import { formTable, formulaStrip, ladderFigure } from './lessonFigures'
+import { IELTS_THEORY } from './englishIeltsTheory'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -1424,7 +1425,9 @@ export const ENGLISH_IELTS: LanguageCourseSpec = {
   guidedHours: '120–160',
   scopeNote: 'Курс для тех, у кого английский уже на B1: работа по критериям, а не общий английский. Все четыре секции.',
   modules: IELTS_MODULES,
-  units: IELTS_UNITS,
+  // Конспекты живут отдельным файлом: здесь — структура и задания, там —
+  // то, что ученик читает.
+  units: IELTS_UNITS.map(u => ({ ...u, theory: IELTS_THEORY[u.shortId] ?? u.theory })),
   figures: IELTS_FIGURES,
 }
 

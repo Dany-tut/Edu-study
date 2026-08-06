@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle } from 'lucide-react'
-import { textsForLang, type ReadingText, type ReadingQuestion } from '../data/readingLibrary'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, HelpCircle } from 'lucide-react'
+import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
 import AudioPlayer from './AudioPlayer'
@@ -9,6 +9,8 @@ import { useT } from '../lib/i18n'
 import CardDeck from './CardDeck'
 import { addCards, deckOwner } from '../data/reviewDeck'
 import VoiceRecorder from './VoiceRecorder'
+import GlossedText from './GlossedText'
+import Coachmarks, { type CoachStep } from './Coachmarks'
 
 // Тренажёр для языковых предметов.
 //
@@ -112,7 +114,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
   }
 
   if (openText) {
-    return <Reader text={openText} accent={palette.accent} onBack={() => setOpenText(null)} />
+    return <Reader text={openText} accent={palette.accent} lang={lang} onBack={() => setOpenText(null)} />
   }
   if (openAudio) {
     return <Listener item={openAudio} accent={palette.accent} lang={lang} onBack={() => setOpenAudio(null)} />
@@ -308,7 +310,12 @@ function Empty({ text }: { text: string }) {
 
 // ─── Читалка ─────────────────────────────────────────────────────────────────
 
-function Reader({ text, accent, onBack }: { text: ReadingText; accent: string; onBack: () => void }) {
+/** Онбординг проходится один раз на браузер, потом только по кнопке «Подсказки». */
+const TOUR_KEY = 'lang-reader-tour-v1'
+
+function Reader({ text, accent, lang, onBack }: {
+  text: ReadingText; accent: string; lang: string; onBack: () => void
+}) {
   const t = useT()
   const [answers, setAnswers] = useState<Record<number, number>>({})
   const [checked, setChecked] = useState(false)
@@ -325,31 +332,111 @@ function Reader({ text, accent, onBack }: { text: ReadingText; accent: string; o
     [text.glossary],
   )
 
+  // ── Онбординг ──────────────────────────────────────────────────────────────
+  //
+  // Экран читалки внешне похож на тест, и без объяснения ученик проходит мимо
+  // двух главных вещей: что любое слово переводится касанием и что текст можно
+  // слушать. Поэтому при первом открытии текста проводим по экрану подсказками;
+  // вернуть их можно кнопкой рядом с «К списку».
+  const audioRef = useRef<HTMLDivElement | null>(null)
+  const bodyRef = useRef<HTMLDivElement | null>(null)
+  const chipsRef = useRef<HTMLDivElement | null>(null)
+  const questionsRef = useRef<HTMLDivElement | null>(null)
+  const checkRef = useRef<HTMLButtonElement | null>(null)
+  const [tour, setTour] = useState(false)
+
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem(TOUR_KEY)) setTour(true)
+    } catch { /* приватный режим — просто без онбординга */ }
+  }, [])
+
+  function closeTour() {
+    setTour(false)
+    try { localStorage.setItem(TOUR_KEY, '1') } catch { /* не критично */ }
+  }
+
+  const steps: CoachStep[] = [
+    {
+      title: t('Как устроено чтение'),
+      text: t('Три вещи, дальше сам: любое слово переводится касанием, текст можно слушать, ответы проверяются кнопкой внизу.'),
+    },
+    {
+      ref: bodyRef,
+      title: t('Перевод любого слова'),
+      text: t('Наведи курсор или нажми на слово — рядом появится перевод и грамматическая пометка. Пунктир снизу значит, что слово есть в словаре; у остальных работает озвучка.'),
+    },
+    {
+      ref: audioRef,
+      title: t('Послушать текст'),
+      text: t('Кнопка читает текст вслух целиком. «Медленно» — тот же голос вдвое медленнее, для первого прохода.'),
+    },
+    ...(text.glossary.length > 0 ? [{
+      ref: chipsRef,
+      title: t('Ключевые слова'),
+      text: t('Слова, ради которых текст и написан. Нажми, чтобы раскрыть перевод, — их же можно забрать в колоду на вкладке «Карточки».'),
+    }] : []),
+    {
+      ref: questionsRef,
+      title: t('Вопросы к тексту'),
+      text: t('Отвечать можно в любом порядке, пока не нажал «Проверить». После проверки ответы фиксируются и появляется разбор.'),
+    },
+    {
+      ref: checkRef,
+      title: t('Проверка и перевод'),
+      text: t('Кнопка загорится, когда ответишь на все вопросы. После неё откроется полный перевод текста — до этого он закрыт, иначе читать оригинал незачем.'),
+    },
+  ]
+
   return (
     <div style={{ width: '100%', maxWidth: 760, margin: '0 auto', padding: '8px 20px 80px' }}>
-      <button
-        onClick={onBack}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 5, padding: '7px 13px', borderRadius: 999,
-          border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer',
-          fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit', marginBottom: 16,
-        }}
-      >
-        <ChevronLeft size={15} /> {t('К списку')}
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+        <button
+          onClick={onBack}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 5, padding: '7px 13px', borderRadius: 999,
+            border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer',
+            fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', fontFamily: 'inherit',
+          }}
+        >
+          <ChevronLeft size={15} /> {t('К списку')}
+        </button>
+        <button
+          onClick={() => setTour(true)}
+          title={t('Показать подсказки')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 999,
+            border: `1px solid ${accent}55`, background: 'transparent', cursor: 'pointer',
+            fontSize: 13, fontWeight: 650, color: accent, fontFamily: 'inherit',
+          }}
+        >
+          <HelpCircle size={15} /> {t('Подсказки')}
+        </button>
+      </div>
 
       <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', marginBottom: 4 }}>{text.title}</h1>
-      <p style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 18 }}>
+      <p style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>
         {text.level} · {text.topic} · {text.minutes} {t('мин')}
         {text.credit && ` · ${text.credit}`}
       </p>
 
-      <div style={{
+      {/* Озвучка текста. Синтез, а не запись диктора: файла к каждому тексту у
+          нас нет, а слышать ритм фразы и границы слов нужно с первого дня. */}
+      <div ref={audioRef} style={{ marginBottom: 14 }}>
+        <AudioPlayer ttsText={text.body} lang={lang} allowSlow />
+      </div>
+
+      <div ref={bodyRef} style={{
         padding: '18px 20px', borderRadius: 18, background: 'var(--color-bg-2)',
-        border: '1px solid var(--color-border-soft)', fontSize: 16, lineHeight: 1.85,
-        color: 'var(--color-text)', whiteSpace: 'pre-wrap', marginBottom: 12,
+        border: '1px solid var(--color-border-soft)', marginBottom: 12,
       }}>
-        {text.body}
+        <GlossedText
+          text={text.body}
+          lang={lang}
+          extra={text.glossary}
+          accent={accent}
+          style={{ fontSize: 16, lineHeight: 1.85, color: 'var(--color-text)' }}
+        />
       </div>
 
       {/* Словарик: тап по слову раскрывает перевод.
@@ -360,7 +447,7 @@ function Reader({ text, accent, onBack }: { text: ReadingText; accent: string; o
           длинные пояснения в библиотеке под 40 знаков, в одну строку они
           обрезались бы многоточием. */}
       {text.glossary.length > 0 && (
-        <div style={{
+        <div ref={chipsRef} style={{
           display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
           gap: 8, marginBottom: 22,
         }}>
@@ -406,7 +493,7 @@ function Reader({ text, accent, onBack }: { text: ReadingText; accent: string; o
         {t('Вопросы к тексту')}
       </h2>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div ref={questionsRef} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {text.questions.map((q, qi) => (
           <QuestionCard
             key={qi}
@@ -415,6 +502,11 @@ function Reader({ text, accent, onBack }: { text: ReadingText; accent: string; o
             value={answers[qi]}
             checked={checked}
             accent={accent}
+            // Вопрос задан на изучаемом языке, и слова в нём переводятся так же,
+            // как в тексте. Варианты ответа оставлены обычными: это кнопки
+            // выбора, и подсказка внутри них конфликтует с нажатием.
+            glossLang={lang}
+            glossExtra={text.glossary}
             onPick={v => !checked && setAnswers(a => ({ ...a, [qi]: v }))}
           />
         ))}
@@ -422,6 +514,7 @@ function Reader({ text, accent, onBack }: { text: ReadingText; accent: string; o
 
       {!checked ? (
         <button
+          ref={checkRef}
           onClick={() => setChecked(true)}
           disabled={!allAnswered}
           style={{
@@ -454,18 +547,29 @@ function Reader({ text, accent, onBack }: { text: ReadingText; accent: string; o
           )}
         </div>
       )}
+
+      <Coachmarks steps={steps} open={tour} onClose={closeTour} accent={accent} />
     </div>
   )
 }
 
-function QuestionCard({ q, index, value, checked, accent, onPick }: {
+function QuestionCard({ q, index, value, checked, accent, glossLang, glossExtra, onPick }: {
   q: ReadingQuestion; index: number; value?: number; checked: boolean
   accent: string; onPick: (v: number) => void
+  /** Задан — формулировка вопроса тоже переводится по словам. */
+  glossLang?: string
+  glossExtra?: Gloss[]
 }) {
   return (
     <div style={{ padding: '15px 17px', borderRadius: 18, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)' }}>
-      <div style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)', marginBottom: 11 }}>
-        {index + 1}. {q.q}
+      <div style={{
+        display: 'flex', gap: 6, fontSize: 15, fontWeight: 650,
+        color: 'var(--color-text)', marginBottom: 11,
+      }}>
+        <span style={{ flexShrink: 0 }}>{index + 1}.</span>
+        {glossLang
+          ? <GlossedText text={q.q} lang={glossLang} extra={glossExtra} accent={accent} style={{ flex: 1, minWidth: 0 }} />
+          : <span>{q.q}</span>}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
         {q.options.map((opt, oi) => {

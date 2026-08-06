@@ -941,7 +941,10 @@ export default function HomeworkFlow({
   const setHomeworkWidgetFeedback = useDashboard(s => s.setHomeworkWidgetFeedback)
   const clearHomeworkWidgetFeedback = useDashboard(s => s.clearHomeworkWidgetFeedback)
   const setAnswerFlight = useDashboard(s => s.setAnswerFlight)
+  const setActivePage = useDashboard(s => s.setActivePage)
   const questionSectionRefs = useRef<Record<string, HTMLElement | null>>({})
+  // Итоги сдачи — цель прокрутки из нижней полосы («Сдано ✓»).
+  const summaryRef = useRef<HTMLElement | null>(null)
   // Same scroll-dock logic as the lesson page: when the pane scrolls, the
   // Back/title row docks onto the topbar line (a fixed twin), the topbar
   // auto-compacts, and the rest-state row fades out.
@@ -1121,6 +1124,26 @@ export default function HomeworkFlow({
   const basicScore = basicGradableCount > 0
     ? Math.round((basicCorrectCount / basicGradableCount) * 100)
     : (basicCompleted ? 100 : 0)
+  const basicPassed = basicScore >= homework.recommendationScore
+  /**
+   * Разбор итогов: задания, которые после сдачи нужно пересмотреть.
+   *
+   * Сюда попадает и неотвеченное: домашку можно сдать, не дойдя до конца, и
+   * «просто пропустил» в итогах должно быть видно наравне с ошибкой.
+   */
+  const basicWrong = useMemo(
+    () => basicQuestions
+      .map((q, i) => ({ q, number: i + 1 }))
+      .filter(({ q }) => questionAutoGradable(q)
+        && (!!state.basicHints[q.id] || !questionCorrect(q, state.basicAnswers[q.id]))),
+    [basicQuestions, state.basicAnswers, state.basicHints],
+  )
+  // Задания без автопроверки (устные, описание картинки, доска) — их смотрит
+  // преподаватель, и в «ошибки» они не идут.
+  const basicReviewCount = useMemo(
+    () => basicQuestions.filter(q => !questionAutoGradable(q)).length,
+    [basicQuestions],
+  )
   // Хард открыт, если база сдана на нужный балл ЛИБО на сервере уже есть статус
   // хард-работы (submitted/returned/completed) — иначе после возврата на другом
   // устройстве (нет локальных ответов) хард показался бы «закрытым».
@@ -1371,6 +1394,72 @@ export default function HomeworkFlow({
     questionSectionRefs.current[questionId]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
+  /**
+   * «Что дальше» — один и тот же набор действий в итогах наверху и в карточке
+   * под последним заданием. Ученик, дочитавший разбор до конца, оказывается
+   * именно там, и подниматься за кнопкой обратно наверх ему незачем.
+   */
+  const nextStepButtons = () => (
+    <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
+      {basicWrong.length > 0 && (
+        <motion.button
+          whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
+          onClick={() => jumpToQuestion(basicWrong[0].q.id)}
+          className="flex items-center cursor-pointer"
+          style={{
+            gap: 8, padding: '12px 18px', borderRadius: 16,
+            border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-input)',
+            color: 'var(--color-text)', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
+          }}
+        >
+          <RotateCcw size={15} />
+          {t('Разобрать ошибки')}
+        </motion.button>
+      )}
+      {showHard && hardUnlocked && (
+        <motion.button
+          whileHover={{ y: -1 }} whileTap={{ scale: 0.99 }}
+          onClick={() => { setState(current => ({ ...current, selectedLevel: 'hard' })); clearHomeworkWidgetFeedback() }}
+          className="flex items-center cursor-pointer"
+          style={{
+            gap: 8, padding: '12px 18px', borderRadius: 16, border: 'none',
+            background: PURPLE.gradient, color: '#fff', fontFamily: 'inherit',
+            fontSize: 14, fontWeight: 700, boxShadow: '0 12px 28px rgba(99,84,207,0.2)',
+          }}
+        >
+          {t('Открыть хард')}
+          <ArrowRight size={15} />
+        </motion.button>
+      )}
+      <motion.button
+        whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
+        onClick={onBack}
+        className="flex items-center cursor-pointer"
+        style={{
+          gap: 8, padding: '12px 18px', borderRadius: 16,
+          border: '1px solid var(--color-border-medium)', background: 'transparent',
+          color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
+        }}
+      >
+        <ChevronLeft size={15} />
+        {t('Вернуться к уроку')}
+      </motion.button>
+      <motion.button
+        whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
+        onClick={() => { onBack(); setActivePage('home') }}
+        className="flex items-center cursor-pointer"
+        style={{
+          gap: 8, padding: '12px 18px', borderRadius: 16,
+          border: '1px solid var(--color-border-medium)', background: 'transparent',
+          color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
+        }}
+      >
+        <Home size={15} />
+        {t('На главную')}
+      </motion.button>
+    </div>
+  )
+
   const levelLabel = selectedLevel === 'basic' ? basicLevel.title : hardLevel.title
 
   // Glass recipe for the docked top-line pills — matched to the lesson page so
@@ -1447,6 +1536,13 @@ export default function HomeworkFlow({
             if (goToHard) clearHomeworkWidgetFeedback()
             setLessonAssessment(lessonId, basicScore, emojiIndex, hardAvailable)
             setShowResultModal(null)
+            // Из модалки — сразу в итоги: разбор ошибок и «что дальше» там.
+            if (!goToHard) {
+              window.setTimeout(
+                () => summaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+                80,
+              )
+            }
           }}
         />
       )}
@@ -1695,104 +1791,160 @@ export default function HomeworkFlow({
           {selectedLevel === 'basic' ? (
             <div className="flex flex-col" style={{ gap: 18 }}>
 
-              {basicCompleted && (
+              {basicCompleted && !state.basicSubmitted && (
                 <div
                   className="flex flex-wrap items-center justify-between"
                   style={{
                     gap: 14, padding: 18, borderRadius: 24,
-                    background: state.basicSubmitted
-                      ? (basicScore >= homework.recommendationScore ? 'var(--color-purple-soft)' : 'var(--color-yellow-soft)')
-                      : 'var(--color-bg-input)',
-                    border: state.basicSubmitted
-                      ? `1px solid ${basicScore >= homework.recommendationScore ? 'rgba(99,84,207,0.18)' : 'rgba(248,201,145,0.42)'}`
-                      : '1px solid var(--color-border-medium)',
-                    boxShadow: state.basicSubmitted ? 'none' : '0 8px 24px rgba(0,0,0,0.05)',
+                    background: 'var(--color-bg-input)',
+                    border: '1px solid var(--color-border-medium)',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
                   }}
                 >
                   <div className="flex items-start" style={{ gap: 12 }}>
                     <div style={{
                       width: 44, height: 44, borderRadius: 14,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: state.basicSubmitted
-                        ? (basicScore >= homework.recommendationScore ? 'rgba(99,84,207,0.12)' : 'rgba(248,201,145,0.26)')
-                        : 'rgba(0,0,0,0.05)',
-                      color: state.basicSubmitted
-                        ? (basicScore >= homework.recommendationScore ? 'var(--color-accent)' : 'var(--color-yellow-text)')
-                        : 'var(--color-muted)',
+                      background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)',
                     }}>
-                      {state.basicSubmitted
-                        ? (basicScore >= homework.recommendationScore ? <Trophy size={20} /> : <CircleAlert size={20} />)
-                        : <CheckCircle2 size={20} />
-                      }
+                      <CheckCircle2 size={20} />
                     </div>
                     <div>
                       <p style={{ fontSize: 17, fontWeight: 760, color: 'var(--color-text)', marginBottom: 4 }}>
-                        {state.basicSubmitted
-                          ? (basicScore >= homework.recommendationScore ? `${t('Тест сдан на')} ${basicScore} ${t('баллов')}` : `${t('Результат:')} ${basicScore} ${t('из 100')}`)
-                          : t('Все вопросы отвечены!')
-                        }
+                        {t('Все вопросы отвечены!')}
                       </p>
                       <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-muted)' }}>
-                        {state.basicSubmitted
-                          ? (basicScore >= homework.recommendationScore
-                            ? t('База закрыта уверенно. Доступен необязательный хард-уровень с разбором от преподавателя.')
-                            : `${t('До открытия харда нужен результат')} ${homework.recommendationScore}+. ${t('Можно вернуться к конспекту и попробовать снова.')}`)
-                          : t('Проверь ответы и сдай домашку, чтобы зафиксировать результат.')
-                        }
+                        {t('Проверь ответы и сдай домашку, чтобы зафиксировать результат.')}
                       </p>
-                      {state.basicSubmitted && state.selfAssessmentValue !== null && (
-                        <div className="flex items-center" style={{ gap: 8, marginTop: 8 }}>
-                          <span style={{ fontSize: 20 }}>{EMOJI_STEPS[state.selfAssessmentValue].emoji}</span>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-muted)' }}>
-                            {t('Самооценка:')} {t(EMOJI_STEPS[state.selfAssessmentValue].label)}
-                          </span>
-                        </div>
-                      )}
                     </div>
                   </div>
 
                   <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
-                    {showHard && state.basicSubmitted && basicScore >= homework.recommendationScore && (
-                      <motion.button
-                        whileHover={{ y: -1 }} whileTap={{ scale: 0.99 }}
-                        onClick={() => { setState(current => ({ ...current, selectedLevel: 'hard' })); clearHomeworkWidgetFeedback() }}
-                        className="cursor-pointer"
-                        style={{
-                          padding: '12px 18px', borderRadius: 16, border: 'none',
-                          background: PURPLE.gradient, color: '#fff', fontSize: 14, fontWeight: 700,
-                          boxShadow: '0 12px 28px rgba(99,84,207,0.2)',
-                        }}
-                      >
-                        {t('Открыть хард')}
-                      </motion.button>
-                    )}
-                    {!state.basicSubmitted && (
-                      <motion.button
-                        whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
-                        onClick={() => { submitToSupabase('basic', basicScore, ''); setShowResultModal('basic') }}
-                        className="cursor-pointer"
-                        style={{
-                          padding: '13px 22px', borderRadius: 16, border: 'none',
-                          background: PURPLE.gradient, color: '#fff', fontSize: 14, fontWeight: 750,
-                          boxShadow: '0 12px 28px rgba(99,84,207,0.28)',
-                          display: 'flex', alignItems: 'center', gap: 8,
-                        }}
-                      >
-                        <Send size={16} />
-                        {t('Сдать домашку')}
-                      </motion.button>
-                    )}
+                    <motion.button
+                      whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
+                      onClick={() => { submitToSupabase('basic', basicScore, ''); setShowResultModal('basic') }}
+                      className="cursor-pointer"
+                      style={{
+                        padding: '13px 22px', borderRadius: 16, border: 'none',
+                        background: PURPLE.gradient, color: '#fff', fontSize: 14, fontWeight: 750,
+                        boxShadow: '0 12px 28px rgba(99,84,207,0.28)',
+                        display: 'flex', alignItems: 'center', gap: 8,
+                      }}
+                    >
+                      <Send size={16} />
+                      {t('Сдать домашку')}
+                    </motion.button>
                   </div>
                 </div>
               )}
 
+              {/* Итоги сдачи. До этого сданная домашка оставляла ученика в том же
+                  списке заданий: балл был, а «сколько ошибок, каких именно и что
+                  делать дальше» — нет, и он просто закрывал вкладку. */}
+              {state.basicSubmitted && (
+                <section
+                  ref={summaryRef}
+                  className="flex flex-col"
+                  style={{
+                    gap: 16, padding: 20, borderRadius: 26,
+                    background: basicPassed ? 'var(--color-purple-soft)' : 'var(--color-yellow-soft)',
+                    border: `1px solid ${basicPassed ? 'rgba(99,84,207,0.18)' : 'rgba(248,201,145,0.42)'}`,
+                  }}
+                >
+                  <div className="flex flex-wrap items-start justify-between" style={{ gap: 14 }}>
+                    <div className="flex items-start" style={{ gap: 12, flex: '1 1 260px', minWidth: 0 }}>
+                      <div style={{
+                        width: 44, height: 44, borderRadius: 14, flexShrink: 0,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: basicPassed ? 'rgba(99,84,207,0.12)' : 'rgba(248,201,145,0.26)',
+                        color: basicPassed ? 'var(--color-accent)' : 'var(--color-yellow-text)',
+                      }}>
+                        {basicPassed ? <Trophy size={20} /> : <CircleAlert size={20} />}
+                      </div>
+                      <div className="min-w-0">
+                        <p style={{ fontSize: 17, fontWeight: 760, color: 'var(--color-text)', marginBottom: 4 }}>
+                          {t('Домашка сдана')}
+                        </p>
+                        <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-muted)' }}>
+                          {basicPassed
+                            ? (showHard
+                              ? t('База закрыта уверенно. Доступен необязательный хард-уровень с разбором от преподавателя.')
+                              : t('База закрыта уверенно.'))
+                            : `${t('До открытия харда нужен результат')} ${homework.recommendationScore}+. ${t('Можно вернуться к конспекту и попробовать снова.')}`
+                          }
+                        </p>
+                        {state.selfAssessmentValue !== null && (
+                          <div className="flex items-center" style={{ gap: 8, marginTop: 8 }}>
+                            <span style={{ fontSize: 20 }}>{EMOJI_STEPS[state.selfAssessmentValue].emoji}</span>
+                            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-muted)' }}>
+                              {t('Самооценка:')} {t(EMOJI_STEPS[state.selfAssessmentValue].label)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                      <span style={{
+                        fontSize: 38, fontWeight: 760, lineHeight: 1,
+                        color: basicPassed ? 'var(--color-accent)' : 'var(--color-yellow-text)',
+                      }}>{basicScore}</span>
+                      <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', marginTop: 2 }}>
+                        {t('из 100')}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap" style={{ gap: 10 }}>
+                    <MetricPill label={t('Верно')} value={`${basicCorrectCount}`} accent />
+                    <MetricPill label={t('Ошибок')} value={`${basicWrong.length}`} />
+                    {basicReviewCount > 0 && (
+                      <MetricPill label={t('У преподавателя')} value={`${basicReviewCount}`} />
+                    )}
+                  </div>
+
+                  {/* Номера заданий с ошибками — сразу и список, и навигация. */}
+                  {basicWrong.length > 0 && (
+                    <div className="flex flex-wrap items-center" style={{ gap: 8 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>
+                        {t('Разобрать')}:
+                      </span>
+                      {basicWrong.map(({ q, number }) => (
+                        <button
+                          key={q.id}
+                          onClick={() => jumpToQuestion(q.id)}
+                          className="cursor-pointer"
+                          style={{
+                            minWidth: 34, height: 30, padding: '0 10px', borderRadius: 999,
+                            border: '1px solid rgba(244,139,145,0.5)', background: 'var(--color-red-soft)',
+                            color: 'var(--color-red-text)', fontFamily: 'inherit',
+                            fontSize: 13, fontWeight: 750,
+                          }}
+                        >
+                          {number}
+                        </button>
+                      ))}
+                      <span style={{ fontSize: 12.5, color: 'var(--color-muted)', lineHeight: 1.45 }}>
+                        · {t('слова из ошибок уже в колоде повторения')}
+                      </span>
+                    </div>
+                  )}
+
+                  {nextStepButtons()}
+                </section>
+              )}
+
               {/* Знакомство со словами — до заданий, а не после них. Карточки
                   внизу домашки остаются проверкой; здесь слово вводится. */}
+              {/* Открыт, пока идёт знакомство, и свёрнут, как только начаты
+                  задания: открытый список со всеми переводами превращал домашку
+                  в переписывание — ученик листал наверх за каждым словом. Теперь
+                  подсказка живёт в самом задании и стоит балла. */}
               <VocabIntro
                 words={vocabWords}
                 accent={palette.accent}
                 soft={palette.soft}
-                defaultOpen={!state.basicSubmitted}
+                defaultOpen={!state.basicSubmitted && answeredCount === 0}
+                started={answeredCount > 0}
               />
 
               {/* Возврат на место. Ответы переживают закрытие вкладки, но ученик
@@ -2388,6 +2540,32 @@ export default function HomeworkFlow({
                   </React.Fragment>
                 )
               })}
+
+              {/* Конец разбора — тупик, если не сказать, куда идти дальше. */}
+              {state.basicSubmitted && (
+                <section
+                  className="flex flex-col"
+                  style={{
+                    gap: 14, padding: 20, borderRadius: 26,
+                    background: 'rgba(var(--glass-rgb), 0.96)',
+                    border: '1px solid var(--color-border-soft)',
+                  }}
+                >
+                  <div>
+                    <p style={{ fontSize: 16, fontWeight: 760, color: 'var(--color-text)', marginBottom: 4 }}>
+                      {t('Что дальше')}
+                    </p>
+                    <p style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--color-muted)' }}>
+                      {basicWrong.length > 0
+                        ? `${t('Ошибок:')} ${basicWrong.length}. ${t('Их слова уже в колоде повторения — вернуться к ним можно в тренажёре.')}`
+                        : t('Ошибок нет. Домашка закрыта — результат уже у преподавателя.')
+                      }
+                    </p>
+                  </div>
+                  {nextStepButtons()}
+                </section>
+              )}
+
               <motion.div
                 initial={false}
                 animate={isMobile
@@ -2409,9 +2587,12 @@ export default function HomeworkFlow({
                   questions={basicQuestions}
                   activeIndex={basicQuestions.findIndex(q => !questionAnswered(q, state.basicAnswers[q.id]))}
                   submitted={state.basicSubmitted}
+                  checked={state.basicChecked}
+                  hints={state.basicHints}
                   score={basicScore}
                   recommendationScore={homework.recommendationScore}
                   onSubmit={() => { submitToSupabase('basic', basicScore, ''); setShowResultModal('basic') }}
+                  onShowSummary={() => summaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                 />
               </motion.div>
             </div>
@@ -2671,18 +2852,25 @@ function BottomProgressBar({
   questions,
   activeIndex,
   submitted,
+  checked,
+  hints,
   score,
   recommendationScore,
   onSubmit,
+  onShowSummary,
 }: {
   total: number
   answers: Record<string, string>
   questions: HomeworkQuizQuestion[]
   activeIndex: number
   submitted: boolean
+  /** Задания, проверенные досрочно, — только их полоса красит в зелёный/красный. */
+  checked: Record<string, true>
+  hints: Record<string, true>
   score: number
   recommendationScore: number
   onSubmit: () => void
+  onShowSummary: () => void
 }) {
   const t = useT()
   const active = activeIndex === -1 ? total - 1 : activeIndex
@@ -2718,8 +2906,18 @@ function BottomProgressBar({
             const question = questions[index]
             const answer = question ? answers[question.id] : undefined
             const gradable = !!question && questionAutoGradable(question)
-            const isCorrect = !!question && gradable && questionCorrect(question, answer)
-            const isWrong = !!question && gradable && questionAnswered(question, answer) && !questionCorrect(question, answer)
+            // Полоса красится только по проверенному. Раньше она подсвечивала
+            // печатный ответ красным сразу после ввода — вердикт без разбора:
+            // ученик видел, что ошибся, и не мог узнать, в чём.
+            const revealed = !!question && (
+              submitted
+              || !!checked[question.id]
+              || (questionIsChoice(question) && !questionIsMulti(question) && questionAnswered(question, answer))
+            )
+            const hinted = !!question && !!hints[question.id]
+            const isCorrect = revealed && gradable && !hinted && questionCorrect(question, answer)
+            const isWrong = revealed && gradable && questionAnswered(question, answer)
+              && (hinted || !questionCorrect(question, answer))
             const isActive = index === active
 
             if (isActive) {
@@ -2756,13 +2954,17 @@ function BottomProgressBar({
       {/* right side */}
       {(() => {
         const isSubmitButton = basicCompleted && !submitted
+        // После сдачи полоса ведёт к итогам: сама по себе надпись «Сдано ✓»
+        // ученику ничего не отвечала на вопрос «и что теперь».
+        const isSummaryButton = submitted
+        const clickable = isSubmitButton || isSummaryButton
         return (
           <motion.div
-            whileHover={isSubmitButton ? { y: -1 } : undefined}
-            whileTap={isSubmitButton ? { scale: 0.97 } : undefined}
-            onClick={isSubmitButton ? onSubmit : undefined}
-            role={isSubmitButton ? 'button' : undefined}
-            className={isSubmitButton ? 'cursor-pointer' : undefined}
+            whileHover={clickable ? { y: -1 } : undefined}
+            whileTap={clickable ? { scale: 0.97 } : undefined}
+            onClick={isSubmitButton ? onSubmit : isSummaryButton ? onShowSummary : undefined}
+            role={clickable ? 'button' : undefined}
+            className={clickable ? 'cursor-pointer' : undefined}
             style={{
               flexShrink: 0,
               minHeight: 44,
@@ -2778,12 +2980,16 @@ function BottomProgressBar({
               boxShadow: 'var(--shadow-sm)',
             }}
           >
-            {basicCompleted && submitted ? (
-              <span style={{
-                fontSize: 12, fontWeight: 800,
-                color: score >= recommendationScore ? 'var(--color-accent)' : '#9A6000',
-              }}>
+            {submitted ? (
+              <span
+                className="flex items-center"
+                style={{
+                  gap: 7, fontSize: 12, fontWeight: 800,
+                  color: score >= recommendationScore ? 'var(--color-accent)' : '#9A6000',
+                }}
+              >
                 {score >= recommendationScore ? t('Сдано ✓') : `${score} / 100`}
+                <span style={{ fontWeight: 700, opacity: 0.75 }}>· {t('итоги')}</span>
               </span>
             ) : basicCompleted ? (
               <span

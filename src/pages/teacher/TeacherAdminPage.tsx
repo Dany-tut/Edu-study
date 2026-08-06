@@ -15,6 +15,7 @@ import AccessConfigurator, { hiddenTabsFrom, hiddenWidgetsFrom, selectedTabsFrom
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { PLAN_OPTIONS, adminSetTeacherPlan, type TeacherPlanRow } from '../../lib/plan'
 import { useT, t as tGlobal } from '../../lib/i18n'
+import { authErrorRu } from '../../lib/authErrors'
 
 // Маркер «без тарифа» для дропдауна (в БД это NULL).
 const NO_PLAN = '__no_plan__'
@@ -127,7 +128,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
       p_subjects: selectedSubjects,
     })
     setCreating(false)
-    if (err || !data) { setError(err?.message || t('Не удалось создать приглашение')); return }
+    if (err || !data) { setError(t(authErrorRu(err, 'Не удалось создать приглашение'))); return }
     setLink(`${window.location.origin}${window.location.pathname}#/join-teacher?token=${data}`)
   }
 
@@ -303,7 +304,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
     })
     setPwLoading(false)
     if (err || !data?.password) {
-      const msg = (data as { error?: string } | null)?.error || err?.message || t('Не удалось сбросить пароль')
+      const msg = (data as { error?: string } | null)?.error || t(authErrorRu(err, 'Не удалось сбросить пароль'))
       setPwError(msg); return
     }
     setPwValue(data.password as string)
@@ -320,14 +321,14 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
       p_hidden_tabs: hiddenTabs,
       p_hidden_widgets: hiddenWidgets,
     })
-    if (err) { setSaving(false); setError(err.message); return }
+    if (err) { setSaving(false); setError(t(authErrorRu(err))); return }
 
     // 1b. Subject scope (empty = all).
     const { error: sErr } = await supabase.rpc('admin_set_teacher_subjects', {
       p_teacher: teacher.id,
       p_subjects: selectedSubjects,
     })
-    if (sErr) { setSaving(false); setError(sErr.message); return }
+    if (sErr) { setSaving(false); setError(t(authErrorRu(sErr))); return }
 
     // 2. Provision selected content to this teacher (incremental — cleared after).
     try {
@@ -345,7 +346,7 @@ function AccessEditor({ teacher, onSaved }: { teacher: TeacherRow; onSaved: (hid
         if (e) throw e
       }
     } catch (e: any) {
-      setSaving(false); setError(t('Доступы сохранены, но контент выдать не удалось:') + ' ' + (e?.message ?? e)); return
+      setSaving(false); setError(t('Доступы сохранены, но контент выдать не удалось:') + ' ' + t(authErrorRu(e))); return
     }
 
     setSaving(false)

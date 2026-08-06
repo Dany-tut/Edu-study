@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase'
 import { setStudentSession } from '../lib/studentSession'
 import { trackNow } from '../lib/analytics'
 import { useT } from '../lib/i18n'
+import { authErrorRu } from '../lib/authErrors'
 
 function getToken() {
   const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '')
@@ -80,7 +81,7 @@ export default function JoinPage() {
       options: { data: { role: 'student', name: studentName } },
     })
     if (authErr || !authData.user) {
-      setErrorMsg(authErr?.message || t('Ошибка при регистрации. Попробуйте ещё раз.'))
+      setErrorMsg(t(authErrorRu(authErr, 'Ошибка при регистрации. Попробуйте ещё раз.')))
       setSaving(false)
       return
     }
@@ -98,7 +99,7 @@ export default function JoinPage() {
       p_password: password,
     })
     if (error) {
-      setErrorMsg(t('Ошибка при сохранении. Попробуйте ещё раз.'))
+      setErrorMsg(t(authErrorRu(error, 'Ошибка при сохранении. Попробуйте ещё раз.')))
       setSaving(false)
       return
     }

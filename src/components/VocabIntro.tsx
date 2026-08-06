@@ -26,13 +26,19 @@ import { useT } from '../lib/i18n'
 import { speechMs, speechText } from '../lib/speech'
 import AudioPlayer from './AudioPlayer'
 
-export default function VocabIntro({ words, accent, soft, defaultOpen }: {
+export default function VocabIntro({ words, accent, soft, defaultOpen, started = false }: {
   /** flashcard-задания домашки — по ним и строится словарь урока. */
   words: HomeworkQuizQuestion[]
   accent: string
   soft: string
-  /** Открыт ли блок сразу: до сдачи — да, после — нет (слова уже пройдены). */
+  /** Открыт ли блок сразу: на знакомстве — да, после первого ответа — нет. */
   defaultOpen: boolean
+  /**
+   * Задания уже начаты. Блок остаётся доступным (закрывать словарь на замок
+   * бессмысленно — рядом лежит учебник), но перестаёт быть открытым по
+   * умолчанию и честно говорит, что подсказка есть в самом задании.
+   */
+  started?: boolean
 }) {
   const t = useT()
   const [open, setOpen] = useState(defaultOpen)
@@ -65,7 +71,9 @@ export default function VocabIntro({ words, accent, soft, defaultOpen }: {
               {t('Слова урока')} · {words.length}
             </span>
             <span style={{ display: 'block', fontSize: 12, color: 'var(--color-muted)' }}>
-              {t('Посмотри перед заданиями — дальше они спросятся')}
+              {started
+                ? t('Задания уже начаты — забытое слово быстрее открыть подсказкой в самом задании')
+                : t('Посмотри перед заданиями — дальше они спросятся')}
             </span>
           </span>
           <motion.span

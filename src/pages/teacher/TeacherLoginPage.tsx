@@ -3,6 +3,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { trackNow } from '../../lib/analytics'
 import { useT } from '../../lib/i18n'
+import { authErrorRu } from '../../lib/authErrors'
 
 export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogin: () => void; recovery?: boolean }) {
   const t = useT()
@@ -46,7 +47,7 @@ export default function TeacherLoginPage({ onLogin, recovery = false }: { onLogi
         onLogin()
       }
     } catch (err: any) {
-      setError(err.message)
+      setError(t(authErrorRu(err)))
     } finally {
       setLoading(false)
     }
