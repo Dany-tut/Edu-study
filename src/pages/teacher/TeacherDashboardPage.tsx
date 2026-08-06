@@ -180,45 +180,49 @@ export default function TeacherDashboardPage() {
         </div>
       </div>
 
-      {/* Page content */}
-      <AnimatePresence mode="sync">
-        <motion.div
-          key={activePage}
-          initial={false}
-          className="teacher-scroll-root"
-          // Pages whose scroll pane lifts up under the topbar (marginTop:-100 +
-          // paddingTop:100 — the progressive-blur recipe) must not be clipped
-          // by this wrapper, so their overflow stays visible.
-          style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['home', 'lesson-editor', 'constructor', 'course-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups', 'admin'].includes(activePage) ? 'visible' : 'hidden' }}
-        >
-          {activePage === 'home' && (
-            <div onWheel={handleDeskWheel} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-              <DeskCanvas
-                desk={activeDesk}
-                onUpdateItems={items => updateDeskItems(activeDesk.id, items)}
-                onAddWidget={() => setShowWidgetLibrary(true)}
-                onRemoveWidget={id => removeWidget(activeDesk.id, id)}
-                hiddenWidgets={hiddenWidgets}
-              />
-            </div>
-          )}
-          {activePage === 'groups'          && <TeacherGroupsPage />}
-          {activePage === 'homework'        && <TeacherHomeworkPage />}
-          {activePage === 'homework-create' && <TeacherHomeworkCreatePage />}
-          {activePage === 'homework-review' && <TeacherHomeworkReviewPage />}
-          {activePage === 'hard-review'     && <TeacherHardReviewPage />}
-          {activePage === 'lesson-editor'   && <TeacherLessonEditorPage />}
-          {activePage === 'gradebook'       && <TeacherGradebookPage />}
-          {activePage === 'constructor'     && <TeacherConstructorPage />}
-          {activePage === 'course-editor'   && <TeacherCourseEditorPage />}
-          {activePage === 'student'         && <TeacherStudentDashboardPage />}
-          {activePage === 'storage'          && <TeacherStoragePage />}
-          {activePage === 'admin'            && <TeacherAdminPage />}
-          {activePage === 'profile-settings' && <TeacherProfileSettingsPage />}
-          {activePage === 'payment'          && <TeacherPaymentPage />}
-          {activePage === 'finances'         && <TeacherFinancesPage />}
-        </motion.div>
-      </AnimatePresence>
+      {/* Page content.
+          NO AnimatePresence here: the wrapper has no exit animation, so presence
+          bought nothing — but it kept the leaving page mounted until every
+          motion child in its subtree signalled "exit done". When one of those
+          signals got lost (framer-motion 11.18 + React 19), the old page never
+          unmounted and stacked in normal flow above the new one — «Назад» из
+          курса показывал редактор и список одновременно до F5. Plain keyed div
+          → the old page is gone the moment activePage changes. */}
+      <div
+        key={activePage}
+        className="teacher-scroll-root"
+        // Pages whose scroll pane lifts up under the topbar (marginTop:-100 +
+        // paddingTop:100 — the progressive-blur recipe) must not be clipped
+        // by this wrapper, so their overflow stays visible.
+        style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: ['home', 'lesson-editor', 'constructor', 'course-editor', 'gradebook', 'homework', 'homework-create', 'homework-review', 'hard-review', 'student', 'groups', 'admin'].includes(activePage) ? 'visible' : 'hidden' }}
+      >
+        {activePage === 'home' && (
+          <div onWheel={handleDeskWheel} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+            <DeskCanvas
+              desk={activeDesk}
+              onUpdateItems={items => updateDeskItems(activeDesk.id, items)}
+              onAddWidget={() => setShowWidgetLibrary(true)}
+              onRemoveWidget={id => removeWidget(activeDesk.id, id)}
+              hiddenWidgets={hiddenWidgets}
+            />
+          </div>
+        )}
+        {activePage === 'groups'          && <TeacherGroupsPage />}
+        {activePage === 'homework'        && <TeacherHomeworkPage />}
+        {activePage === 'homework-create' && <TeacherHomeworkCreatePage />}
+        {activePage === 'homework-review' && <TeacherHomeworkReviewPage />}
+        {activePage === 'hard-review'     && <TeacherHardReviewPage />}
+        {activePage === 'lesson-editor'   && <TeacherLessonEditorPage />}
+        {activePage === 'gradebook'       && <TeacherGradebookPage />}
+        {activePage === 'constructor'     && <TeacherConstructorPage />}
+        {activePage === 'course-editor'   && <TeacherCourseEditorPage />}
+        {activePage === 'student'         && <TeacherStudentDashboardPage />}
+        {activePage === 'storage'          && <TeacherStoragePage />}
+        {activePage === 'admin'            && <TeacherAdminPage />}
+        {activePage === 'profile-settings' && <TeacherProfileSettingsPage />}
+        {activePage === 'payment'          && <TeacherPaymentPage />}
+        {activePage === 'finances'         && <TeacherFinancesPage />}
+      </div>
 
     </div>
 
