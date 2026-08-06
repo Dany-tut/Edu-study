@@ -146,11 +146,17 @@ const coffee = icon(`
   <path d="M28 96 h64"/>`, volume('cf', '#F4F6FA'))
 
 const tea = icon(`
-  ${f('#FFFFFF', '<path d="M34 46 h44 v22 a22 22 0 0 1 -44 0 z"/>')}
+  ${drop(60, 98, 32, 4)}
+  ${f('url(#te)', '<path d="M34 46 h44 v22 a22 22 0 0 1 -44 0 z"/>')}
+  ${f('#B4763A', '<path d="M37 49 h38 v5 a19 5 0 0 1 -38 0 z"/>')}
+  ${gloss('<rect x="40" y="58" width="6" height="16" rx="3"/>', 0.8)}
+  ${shade('<path d="M68 49 h10 v19 a22 22 0 0 1 -14 21 a22 22 0 0 0 4 -21 z"/>', 0.1)}
+  <path d="M34 46 h44 v22 a22 22 0 0 1 -44 0 z"/>
   <path d="M78 52 h8 a9 9 0 0 1 0 18 h-8"/>
-  ${f('#8A6A4B', '<rect x="52" y="24" width="16" height="14" rx="2"/>')}
-  <path d="M60 38 v8"/>
-  <path d="M30 96 h60"/>`)
+  ${f('#8A6A4B', '<rect x="52" y="22" width="16" height="14" rx="2"/>')}
+  <rect x="52" y="22" width="16" height="14" rx="2" stroke-width="2.2"/>
+  <path d="M60 36 v10" stroke-width="2"/>
+  <path d="M28 98 h64"/>`, volume('te', '#F4F6FA'))
 
 const bread = icon(`
   ${drop(60, 92, 34, 6)}
@@ -198,8 +204,15 @@ const apple = icon(`
   volume('ap', RED) + volume('lf', LEAF))
 
 const juice = icon(`
-  ${f('#F5A623', '<path d="M40 40 h40 l-6 52 a8 8 0 0 1 -8 6 h-12 a8 8 0 0 1 -8 -6 z"/>')}
-  <path d="M56 40 v-14 h22"/>`)
+  ${drop(60, 102, 22, 4)}
+  ${f('url(#jc)', '<path d="M40 40 h40 l-6 52 a8 8 0 0 1 -8 6 h-12 a8 8 0 0 1 -8 -6 z"/>')}
+  ${gloss('<path d="M46 46 h7 l-4 44 h-5 z"/>', 0.5)}
+  ${shade('<path d="M70 40 h10 l-6 52 a8 8 0 0 1 -8 6 h-6 a8 8 0 0 0 8 -6 z"/>', 0.12)}
+  <path d="M40 40 h40 l-6 52 a8 8 0 0 1 -8 6 h-12 a8 8 0 0 1 -8 -6 z"/>
+  ${f(RED, '<path d="M54 40 v-16 h24 v6 h-18 v10 z"/>')}
+  <path d="M54 40 v-16 h24" stroke-width="2.6"/>
+  <path d="M42 56 h36" stroke-width="2" stroke="rgba(160,90,10,0.35)"/>`,
+  volume('jc', '#F5A623'))
 
 const beer = icon(`
   ${f('#F2C14E', '<path d="M34 42 h38 v50 a6 6 0 0 1 -6 6 h-26 a6 6 0 0 1 -6 -6 z"/>')}
@@ -207,9 +220,15 @@ const beer = icon(`
   <path d="M72 52 h12 a8 8 0 0 1 0 20 h-12"/>`)
 
 const iceCream = icon(`
-  ${f('#F6D7E0', '<path d="M60 22 a22 22 0 0 1 22 22 h-44 a22 22 0 0 1 22 -22 z"/>')}
-  ${f(WOOD, '<path d="M38 46 h44 l-22 52 z"/>')}
-  <path d="M48 62 l24 0 M52 74 l16 0"/>`)
+  ${drop(60, 102, 14, 3)}
+  ${f('url(#icC)', '<path d="M38 46 h44 l-22 52 z"/>')}
+  <path d="M44 54 l26 10 M42 66 l22 8 M50 78 l14 6" stroke="rgba(120,80,40,0.4)" stroke-width="2"/>
+  <path d="M38 46 h44 l-22 52 z"/>
+  ${f('url(#ic)', '<path d="M60 18 a24 24 0 0 1 24 26 h-48 a24 24 0 0 1 24 -26 z"/>')}
+  ${gloss('<path d="M48 34 a18 18 0 0 1 12 -10 a20 20 0 0 0 -8 12 z"/>', 0.6)}
+  ${f('#F2C14E', '<circle cx="46" cy="38" r="3"/><circle cx="72" cy="36" r="3"/><circle cx="60" cy="30" r="3"/>')}
+  <path d="M60 18 a24 24 0 0 1 24 26 h-48 a24 24 0 0 1 24 -26 z"/>`,
+  volume('ic', '#F6C2D2') + volume('icC', WOOD))
 
 // ─── Животные ────────────────────────────────────────────────────────────────
 
@@ -343,9 +362,15 @@ const window_ = icon(`
   <path d="M60 24 v72 M26 60 h68"/>`)
 
 const key = icon(`
-  ${f(YELLOW, '<circle cx="40" cy="46" r="22"/>')}
-  ${f('#FFFFFF', '<circle cx="40" cy="46" r="9"/>')}
-  ${f(YELLOW, '<path d="M52 60 l38 38 h-14 v-10 h-10 v-10 h-10 z"/>')}`)
+  ${drop(60, 104, 26, 4)}
+  ${f('url(#ky)', '<circle cx="40" cy="44" r="23"/>')}
+  ${f('#FFFFFF', '<circle cx="40" cy="44" r="9"/>')}
+  ${f('url(#ky)', '<path d="M53 58 l40 40 h-15 v-11 h-11 v-11 h-10 z"/>')}
+  ${gloss('<path d="M28 34 a16 16 0 0 1 14 -8 a20 20 0 0 0 -10 12 z"/>', 0.6)}
+  ${shade('<path d="M56 44 a16 16 0 0 1 -12 22 a23 23 0 0 0 12 -22 z"/>', 0.14)}
+  <circle cx="40" cy="44" r="23"/>
+  <circle cx="40" cy="44" r="9"/>
+  <path d="M53 58 l40 40 h-15 v-11 h-11 v-11 h-10 z"/>`, volume('ky', YELLOW))
 
 const phone = icon(`
   ${drop(60, 106, 22, 4)}
@@ -359,16 +384,26 @@ const phone = icon(`
   volume('ph', '#3E4A5E') + volume('phS', WATER))
 
 const tv = icon(`
-  ${f('#F2F4F9', '<rect x="18" y="30" width="84" height="54" rx="6"/>')}
-  <path d="M46 96 h28 M60 84 v12"/>`)
+  ${drop(60, 100, 26, 4)}
+  ${f('url(#tvB)', '<rect x="16" y="26" width="88" height="58" rx="8"/>')}
+  ${f('url(#tvS)', '<rect x="23" y="33" width="74" height="44" rx="4"/>')}
+  ${gloss('<path d="M27 35 h14 l-12 40 h-6 z"/>', 0.35)}
+  <rect x="23" y="33" width="74" height="44" rx="4" stroke-width="2"/>
+  <rect x="16" y="26" width="88" height="58" rx="8"/>
+  <path d="M46 98 h28 M60 84 v14" stroke-width="3.4"/>`,
+  volume('tvB', '#3E4A5E') + volume('tvS', WATER))
 
 const computer = icon(`
   ${f('#F2F4F9', '<rect x="20" y="28" width="80" height="52" rx="5"/>')}
   <path d="M14 92 h92 l-8 -12 h-76 z"/>`)
 
 const umbrella = icon(`
-  ${f(RED, '<path d="M16 60 a44 34 0 0 1 88 0 z"/>')}
-  <path d="M60 60 v32 a10 10 0 0 0 20 0"/>`)
+  ${f('url(#um)', '<path d="M16 60 a44 34 0 0 1 88 0 z"/>')}
+  ${shade('<path d="M60 26 a44 34 0 0 1 44 34 h-16 a30 30 0 0 0 -28 -34 z"/>', 0.12)}
+  ${gloss('<path d="M32 58 a30 24 0 0 1 16 -26 a40 32 0 0 0 -8 26 z"/>', 0.4)}
+  <path d="M16 60 a44 34 0 0 1 88 0 z"/>
+  <path d="M16 60 q11 -12 22 0 q11 -12 22 0 q11 -12 22 0 q11 -12 22 0" stroke-width="2.4"/>
+  <path d="M60 60 v32 a10 10 0 0 0 20 0" stroke-width="4"/>`, volume('um', RED))
 
 const ball = icon(`
   ${f('#FFFFFF', '<circle cx="60" cy="60" r="36"/>')}
@@ -412,10 +447,22 @@ const flower = icon(`
 // ─── Места ───────────────────────────────────────────────────────────────────
 
 const school = icon(`
-  ${f('#F2F4F9', '<rect x="20" y="46" width="80" height="50" rx="4"/>')}
-  ${f(RED, '<path d="M14 48 l46 -26 l46 26 z"/>')}
-  ${f(WATER, '<rect x="34" y="62" width="16" height="16" rx="2"/><rect x="70" y="62" width="16" height="16" rx="2"/>')}
-  <path d="M52 96 v-18 h16 v18"/>`)
+  ${drop(60, 100, 42, 4)}
+  ${f('url(#sc)', '<rect x="20" y="46" width="80" height="52" rx="4"/>')}
+  ${shade('<rect x="82" y="46" width="18" height="52"/>', 0.1)}
+  ${f('url(#scR)', '<path d="M14 48 l46 -26 l46 26 z"/>')}
+  ${shade('<path d="M60 22 l46 26 h-46 z"/>', 0.14)}
+  <path d="M14 48 l46 -26 l46 26 z"/>
+  ${f(WATER, '<rect x="32" y="60" width="17" height="17" rx="2"/><rect x="71" y="60" width="17" height="17" rx="2"/>')}
+  <rect x="32" y="60" width="17" height="17" rx="2"/><rect x="71" y="60" width="17" height="17" rx="2"/>
+  <path d="M40.5 60 v17 M32 68.5 h17 M79.5 60 v17 M71 68.5 h17" stroke-width="1.6"/>
+  ${f(WOOD, '<path d="M52 98 v-20 h16 v20 z"/>')}
+  <path d="M52 98 v-20 h16 v20"/>
+  ${f('#FFFFFF', '<circle cx="60" cy="36" r="7"/>')}
+  <circle cx="60" cy="36" r="7" stroke-width="2"/>
+  <path d="M60 32 v4 l3 2" stroke-width="1.8"/>
+  <rect x="20" y="46" width="80" height="52" rx="4"/>`,
+  volume('sc', '#F2F4F9') + volume('scR', RED))
 
 const shop = icon(`
   ${f('#F2F4F9', '<rect x="20" y="48" width="80" height="48" rx="4"/>')}
@@ -850,9 +897,19 @@ const running = icon(`
   <path d="M48 62 l-18 12 l6 22 M78 62 l14 16 M60 40 l-24 4 M76 44 l18 -8"/>`)
 
 const playing = icon(`
-  ${f(LEAF, '<circle cx="60" cy="60" r="34"/>')}
-  ${f('#FFFFFF', '<circle cx="60" cy="60" r="14"/>')}
-  <path d="M60 26 v14 M60 80 v14 M26 60 h14 M80 60 h14"/>`)
+  ${drop(62, 100, 34, 4)}
+  ${f('url(#plB)', '<circle cx="42" cy="62" r="24"/>')}
+  ${f(INK, '<path d="M42 46 l11 8 l-4 13 h-14 l-4 -13 z"/>')}
+  <path d="M42 38 v8 M22 54 l13 9 M62 54 l-13 9 M30 82 l7 -13 M54 82 l-7 -13" stroke-width="2.4"/>
+  <circle cx="42" cy="62" r="24"/>
+  ${f('url(#plC)', '<rect x="66" y="56" width="30" height="30" rx="5"/>')}
+  ${shade('<rect x="82" y="56" width="14" height="30" rx="5"/>', 0.12)}
+  <rect x="66" y="56" width="30" height="30" rx="5"/>
+  ${f(INK, '<circle cx="75" cy="65" r="3"/><circle cx="87" cy="77" r="3"/><circle cx="81" cy="71" r="3"/>')}
+  ${f('url(#plD)', '<rect x="70" y="26" width="26" height="26" rx="5"/>')}
+  <rect x="70" y="26" width="26" height="26" rx="5"/>
+  ${f('#FFFFFF', '<circle cx="78" cy="34" r="2.8"/><circle cx="88" cy="44" r="2.8"/>')}`,
+  volume('plB', '#FFFFFF') + volume('plC', YELLOW) + volume('plD', RED))
 
 const buying = icon(`
   ${f(YELLOW, '<path d="M26 44 h68 l-8 46 a8 8 0 0 1 -8 6 h-36 a8 8 0 0 1 -8 -6 z"/>')}
@@ -947,6 +1004,149 @@ const wind = icon(`
   <path d="M14 62 h68 a12 12 0 1 1 -12 12" stroke="${WATER}"/>
   <path d="M14 80 h40 a10 10 0 1 0 -10 -10" stroke="${GREY}"/>`)
 
+// ─── Работа, учёба, быт ──────────────────────────────────────────────────────
+
+const news = icon(`
+  ${drop(60, 96, 34, 4)}
+  ${f('url(#nw)', '<rect x="18" y="26" width="84" height="62" rx="5"/>')}
+  ${f('url(#nwH)', '<rect x="26" y="34" width="68" height="14" rx="2"/>')}
+  <rect x="26" y="34" width="68" height="14" rx="2" stroke-width="1.8"/>
+  ${f(WATER, '<rect x="26" y="54" width="26" height="24" rx="2"/>')}
+  <rect x="26" y="54" width="26" height="24" rx="2" stroke-width="1.8"/>
+  <path d="M58 56 h36 M58 64 h36 M58 72 h26" stroke-width="1.8" stroke="rgba(60,72,96,0.5)"/>
+  <rect x="18" y="26" width="84" height="62" rx="5"/>`,
+  volume('nw', '#F7F8FC') + volume('nwH', '#D7DBE3'))
+
+const certificate = icon(`
+  ${drop(60, 100, 32, 4)}
+  ${f('url(#cr2)', '<rect x="20" y="20" width="80" height="60" rx="5"/>')}
+  <rect x="26" y="26" width="68" height="48" rx="3" stroke-width="1.8" stroke="rgba(150,110,20,0.5)"/>
+  <path d="M38 40 h44 M38 50 h44 M38 60 h26" stroke-width="2" stroke="rgba(60,72,96,0.45)"/>
+  <rect x="20" y="20" width="80" height="60" rx="5"/>
+  ${f('url(#cr2S)', '<circle cx="78" cy="76" r="13"/>')}
+  <circle cx="78" cy="76" r="13" stroke-width="2.2"/>
+  ${f(RED, '<path d="M71 86 l-4 16 l11 -7 l11 7 l-4 -16 z"/>')}
+  <path d="M71 86 l-4 16 l11 -7 l11 7 l-4 -16" stroke-width="2.2"/>`,
+  volume('cr2', '#FFFFFF') + volume('cr2S', YELLOW))
+
+const client = icon(`
+  ${drop(60, 104, 28, 4)}
+  ${f('url(#clS)', '<circle cx="60" cy="34" r="16"/>')}
+  <circle cx="60" cy="34" r="16"/>
+  ${f('url(#clB)', '<path d="M32 102 v-22 a28 20 0 0 1 56 0 v22 z"/>')}
+  ${shade('<path d="M74 62 a28 20 0 0 1 14 18 v22 h-14 z"/>', 0.1)}
+  <path d="M32 102 v-22 a28 20 0 0 1 56 0 v22 z"/>
+  ${f(YELLOW, '<path d="M76 74 h22 l3 24 h-28 z"/>')}
+  <path d="M76 74 h22 l3 24 h-28 z M82 74 a6 6 0 0 1 12 0" stroke-width="2.2"/>`,
+  volume('clS', SKIN) + volume('clB', WATER))
+
+const boss = icon(`
+  ${drop(60, 104, 28, 4)}
+  ${f('url(#bsS)', '<circle cx="60" cy="32" r="15"/>')}
+  ${f('#3E4A5E', '<path d="M45 28 a15 15 0 0 1 30 0 q-15 -9 -30 0 z"/>')}
+  <circle cx="60" cy="32" r="15"/>
+  ${f('url(#bsB)', '<path d="M34 102 v-22 a26 20 0 0 1 52 0 v22 z"/>')}
+  ${f('#FFFFFF', '<path d="M50 62 l10 10 l10 -10 l6 4 l-16 14 l-16 -14 z"/>')}
+  ${f(RED, '<path d="M60 72 l5 6 l-5 20 l-5 -20 z"/>')}
+  <path d="M34 102 v-22 a26 20 0 0 1 52 0 v22 z"/>`,
+  volume('bsS', SKIN) + volume('bsB', '#3E4A5E'))
+
+const notice = icon(`
+  ${drop(60, 104, 34, 4)}
+  ${f(WOOD, '<rect x="24" y="94" width="8" height="10"/><rect x="88" y="94" width="8" height="10"/>')}
+  ${f('url(#nt)', '<rect x="16" y="22" width="88" height="72" rx="5"/>')}
+  ${f('#FFFFFF', '<rect x="26" y="32" width="34" height="26" rx="2"/><rect x="66" y="32" width="28" height="26" rx="2"/><rect x="26" y="64" width="28" height="22" rx="2"/><rect x="60" y="64" width="34" height="22" rx="2"/>')}
+  <rect x="26" y="32" width="34" height="26" rx="2" stroke-width="1.8"/><rect x="66" y="32" width="28" height="26" rx="2" stroke-width="1.8"/>
+  <rect x="26" y="64" width="28" height="22" rx="2" stroke-width="1.8"/><rect x="60" y="64" width="34" height="22" rx="2" stroke-width="1.8"/>
+  ${f(RED, '<circle cx="43" cy="36" r="3"/><circle cx="80" cy="36" r="3"/>')}
+  <rect x="16" y="22" width="88" height="72" rx="5"/>`, volume('nt', '#E7EAF1'))
+
+const classroom = icon(`
+  ${drop(60, 100, 36, 4)}
+  ${f('url(#cls)', '<rect x="16" y="20" width="88" height="52" rx="5"/>')}
+  <path d="M28 34 h30 M28 44 h22 M70 34 h22 M70 44 h16" stroke="rgba(255,255,255,0.7)" stroke-width="2.4"/>
+  <rect x="16" y="20" width="88" height="52" rx="5"/>
+  ${f(WOOD, '<rect x="26" y="80" width="68" height="7" rx="2"/>')}
+  <rect x="26" y="80" width="68" height="7" rx="2"/>
+  <path d="M34 87 v14 M86 87 v14" stroke-width="3.4"/>
+  ${f('url(#clsS)', '<circle cx="46" cy="70" r="8"/><circle cx="74" cy="70" r="8"/>')}
+  <circle cx="46" cy="70" r="8"/><circle cx="74" cy="70" r="8"/>`,
+  volume('cls', '#2F6D52') + volume('clsS', SKIN))
+
+const change = icon(`
+  ${drop(60, 96, 32, 4)}
+  ${f('url(#chg)', '<circle cx="40" cy="70" r="20"/>')}
+  ${f(tone(YELLOW, -0.18), '<circle cx="40" cy="70" r="13"/>')}
+  <circle cx="40" cy="70" r="20"/><circle cx="40" cy="70" r="13" stroke-width="1.8"/>
+  ${f('url(#chg)', '<circle cx="74" cy="58" r="22"/>')}
+  ${f(tone(YELLOW, -0.18), '<circle cx="74" cy="58" r="14"/>')}
+  ${gloss('<path d="M60 46 a22 22 0 0 1 16 -8 a26 26 0 0 0 -12 12 z"/>', 0.6)}
+  <circle cx="74" cy="58" r="22"/><circle cx="74" cy="58" r="14" stroke-width="1.8"/>
+  <path d="M74 48 v20 M68 54 h12 M68 62 h12" stroke-width="2.2"/>`, volume('chg', YELLOW))
+
+const cup = icon(`
+  ${drop(60, 98, 26, 4)}
+  ${f('url(#cp)', '<path d="M36 40 h44 v26 a22 22 0 0 1 -44 0 z"/>')}
+  ${f(WATER, '<path d="M39 43 h38 v6 a19 5 0 0 1 -38 0 z"/>')}
+  ${gloss('<rect x="42" y="52" width="6" height="16" rx="3"/>', 0.75)}
+  <path d="M36 40 h44 v26 a22 22 0 0 1 -44 0 z"/>
+  <path d="M80 46 h8 a10 10 0 0 1 0 20 h-8"/>
+  ${f('#E7EAF1', '<ellipse cx="60" cy="94" rx="30" ry="6"/>')}
+  <ellipse cx="60" cy="94" rx="30" ry="6"/>`, volume('cp', '#F4F6FA'))
+
+const sky = icon(`
+  ${f('url(#sk)', '<rect x="8" y="16" width="104" height="88" rx="14"/>')}
+  ${f('#FFFFFF', '<path d="M28 62 a14 14 0 0 1 26 -7 a11 11 0 0 1 10 18 h-32 a11 11 0 0 1 -4 -11 z"/>')}
+  ${f('#FFFFFF', '<path d="M62 44 a11 11 0 0 1 20 -5 a9 9 0 0 1 8 14 h-26 a9 9 0 0 1 -2 -9 z"/>')}
+  ${f('url(#skS)', '<circle cx="90" cy="76" r="12"/>')}`,
+  volume('sk', '#9CCBE8') + volume('skS', YELLOW))
+
+const market = icon(`
+  ${drop(60, 100, 42, 4)}
+  ${f('url(#mkt)', '<path d="M18 44 h84 v52 a4 4 0 0 1 -4 4 h-76 a4 4 0 0 1 -4 -4 z"/>')}
+  ${f(RED, '<path d="M14 44 h92 l-6 -16 h-80 z"/>')}
+  ${f('#FFFFFF', '<path d="M26 44 l4 -16 h12 l-4 16 z M50 44 l4 -16 h12 l-4 16 z M74 44 l4 -16 h12 l-4 16 z"/>')}
+  <path d="M14 44 h92 l-6 -16 h-80 z"/>
+  ${f(LEAF, '<circle cx="38" cy="66" r="8"/><circle cx="54" cy="66" r="8"/>')}
+  ${f(RED, '<circle cx="76" cy="66" r="8"/><circle cx="92" cy="66" r="8"/>')}
+  <circle cx="38" cy="66" r="8"/><circle cx="54" cy="66" r="8"/><circle cx="76" cy="66" r="8"/><circle cx="92" cy="66" r="8"/>
+  <path d="M18 80 h84" stroke-width="2.4"/>
+  <path d="M18 44 h84 v52 a4 4 0 0 1 -4 4 h-76 a4 4 0 0 1 -4 -4 z"/>`, volume('mkt', '#F2F4F9'))
+
+const gift = icon(`
+  ${drop(60, 102, 30, 4)}
+  ${f('url(#gf)', '<rect x="22" y="46" width="76" height="52" rx="5"/>')}
+  ${f('url(#gfL)', '<rect x="22" y="34" width="76" height="16" rx="4"/>')}
+  ${f(YELLOW, '<rect x="52" y="34" width="16" height="64"/>')}
+  <path d="M60 34 q-18 -22 -26 -4 q10 8 26 4 z M60 34 q18 -22 26 -4 q-10 8 -26 4 z"/>
+  ${f(YELLOW, '<path d="M60 34 q-16 -18 -22 -4 q8 6 22 4 z M60 34 q16 -18 22 -4 q-8 6 -22 4 z"/>')}
+  <rect x="22" y="46" width="76" height="52" rx="5"/>
+  <rect x="22" y="34" width="76" height="16" rx="4"/>
+  <path d="M52 50 v48 M68 50 v48" stroke-width="2.2"/>`,
+  volume('gf', RED) + volume('gfL', tone(RED, -0.12)))
+
+const vacation = icon(`
+  ${f('url(#vcS)', '<rect x="8" y="16" width="104" height="52" rx="12"/>')}
+  ${f(YELLOW, '<path d="M8 62 h104 v42 h-104 z"/>')}
+  ${f('url(#vc)', '<circle cx="88" cy="34" r="13"/>')}
+  ${f(LEAF, '<path d="M40 44 q18 -14 30 -2 q-16 -2 -30 2 z M40 44 q-18 -14 -30 -2 q16 -2 30 2 z M40 44 q10 -18 24 -14 q-14 4 -24 14 z"/>')}
+  <path d="M40 44 v40" stroke="${WOOD}" stroke-width="5"/>
+  ${f('#FFFFFF', '<path d="M62 82 h34 l-6 14 h-22 z"/>')}
+  <path d="M62 82 h34 l-6 14 h-22 z" stroke-width="2.2"/>
+  <path d="M8 78 q13 -6 26 0 t26 0" stroke="rgba(200,150,60,0.5)" stroke-width="2"/>`,
+  volume('vcS', '#9CCBE8') + volume('vc', YELLOW))
+
+const homework = icon(`
+  ${drop(60, 102, 30, 4)}
+  ${f('url(#hw)', '<rect x="26" y="16" width="68" height="84" rx="5"/>')}
+  ${f('#E7EAF1', '<rect x="26" y="16" width="12" height="84" rx="5"/>')}
+  <path d="M48 34 h34 M48 46 h34 M48 58 h34 M48 70 h22" stroke-width="2" stroke="rgba(60,72,96,0.45)"/>
+  ${f(LEAF, '<path d="M52 78 l7 9 l16 -18"/>')}
+  <path d="M52 78 l7 9 l16 -18" stroke="${LEAF}" stroke-width="4"/>
+  <rect x="26" y="16" width="68" height="84" rx="5"/>
+  ${f(YELLOW, '<path d="M84 60 l14 -16 l10 9 l-14 16 z"/>')}
+  <path d="M84 60 l14 -16 l10 9 l-14 16 l-12 4 z" stroke-width="2.2"/>`, volume('hw', '#FFFFFF'))
+
 // ─── Карта: русское значение → картинка ──────────────────────────────────────
 //
 // Ключ нормализуется как в vocabImage(): нижний регистр, до первой запятой,
@@ -1011,7 +1211,14 @@ const IMAGES: Record<string, string> = {
   'большой': big, 'маленький': small, 'дорогой': expensive,
   'дешёвый': cheap, 'вкусный': tasty,
   // погода
-  'облако': cloud, 'ветер': wind,
+  'облако': cloud, 'ветер': wind, 'небо': sky,
+  // работа, учёба, быт
+  'новости': news, 'сертификат': certificate, 'диплом': certificate,
+  'клиент': client, 'покупатель': client, 'начальник отдела': boss,
+  'начальник': boss, 'директор': boss, 'объявление': notice,
+  'занятие': classroom, 'урок': classroom, 'монета': change, 'мелочь': change,
+  'чашка': cup, 'рынок': market, 'подарок': gift, 'отпуск': vacation,
+  'каникулы': vacation, 'домашнее задание': homework, 'домашка': homework,
 }
 
 /** Значение слова → ключ карты: «кот, кошка» и «нога; мост» дают «кот», «нога». */
