@@ -3407,9 +3407,6 @@ const RAIL_BLEED = 24
 // а широкая полоса легла бы поверх кнопок шапки и перехватывала их клики.
 const RAIL_BLEED_TOP = 12
 const RAIL_BOX = RAIL_W + RAIL_BLEED * 2
-// Свёрнутое состояние = 2×BLEED, а не 0: с учётом отрицательных полей вклад в
-// поток тогда ровно 0, иначе на выходе анимации колонка «уезжала» бы влево.
-const RAIL_COLLAPSED = RAIL_BLEED * 2
 const railWrapSt: React.CSSProperties = {
   flexShrink: 0, alignSelf: 'stretch', minHeight: 0, overflow: 'hidden',
   margin: `-${RAIL_BLEED_TOP}px -${RAIL_BLEED}px -${RAIL_BLEED}px`,
@@ -3662,13 +3659,23 @@ export default function TeacherCourseEditorPage() {
     ? course.lessons.find(l => l.id === selectedLessonId) ?? null
     : null
 
+  // Какую из трёх карточек показывает левая рельса. Отдельным значением — чтобы
+  // служить React-ключом: рельса пересобирается только на смене состояния, а не
+  // на каждый выбранный урок.
+  const railVariant: 'meta' | 'lesson' | 'test' =
+    !selectedLesson ? 'meta' : selectedLesson.kind === 'test' ? 'test' : 'lesson'
+
   function updateLesson(updated: CELesson) {
     setCourse(c => ({ ...c, lessons: c.lessons.map(l => l.id === updated.id ? updated : l) }))
   }
 
+  // Вкладка (Урок / Запись / Домашки / Ученики) — «липкая»: переключаясь между
+  // уроками, учитель остаётся в том же режиме, в котором работал. Сидел в
+  // «Домашках» — следующий урок откроется сразу в домашках, сидел в «Уроке» —
+  // в уроке. Сбрасываем только при выходе из урока (id === '').
   function handleSelectLesson(id: string) {
     setSelectedLessonId(id)
-    setLessonMode('lesson')
+    if (!id) setLessonMode('lesson')
   }
 
   function handleBack() {
@@ -4307,122 +4314,115 @@ export default function TeacherCourseEditorPage() {
              колонки не могли вытянуть страницу и остались независимыми ── */}
       <div style={{ display: 'flex', gap: 14, padding: '4px 20px 24px', flex: 1, minHeight: 0 }}>
 
-        {/* LEFT rail — single column whose WIDTH animates between the course
-            card (320), the lesson rail (248) and collapsed (0, for a test).
-            One element with mode="wait" → course↔lesson glides instead of
-            snapping; within a lesson the inner card cross-fades per tab. */}
-        <AnimatePresence mode="wait" initial={false}>
-          {!selectedLesson ? (
-            <motion.div
-              key="meta-rail"
-              initial={{ opacity: 0, width: RAIL_COLLAPSED }}
-              animate={{ opacity: 1, width: RAIL_BOX }}
-              exit={{ opacity: 0, width: RAIL_COLLAPSED }}
-              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              style={railWrapSt}
-            >
-              {/* Hugs its content, same 248 width as the lesson rail. */}
-              <div style={{ ...railInnerSt, display: 'flex', flexDirection: 'column' }}>
-                <GlassCard style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', maxHeight: '100%' }}>
-                  <LeftCourseMeta course={course} setCourse={setCourse} />
-                </GlassCard>
-              </div>
-            </motion.div>
-          ) : selectedLesson.kind !== 'test' ? (
-            <motion.div
-              key="lesson-rail"
-              initial={{ opacity: 0, width: RAIL_COLLAPSED }}
-              animate={{ opacity: 1, width: RAIL_BOX }}
-              exit={{ opacity: 0, width: RAIL_COLLAPSED }}
-              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              style={railWrapSt}
-            >
-              {/* Inner fixed-width so the rail content never reflows while the
-                  outer width animates. Per-tab card cross-fades.
-                  Скроллер здесь же: карточки расписания и «Кому дать доступ»
-                  своего скролла не имеют, а в невысоком окне не помещаются. */}
-              <div className="no-scrollbar" style={{ ...railInnerSt, overflowY: 'auto', overscrollBehavior: 'contain' }}>
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={lessonMode === 'homework' ? 'rail-hw' : lessonMode === 'students' ? 'rail-students' : 'rail-sched'}
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    transition={{ duration: 0.13 }}
-                    style={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}
-                  >
-                    {(lessonMode === 'recording' || lessonMode === 'lesson') && (
-                      <ScheduleCard
-                        scope={lessonMode === 'recording' ? 'rec' : 'lesson'}
-                        lesson={selectedLesson}
-                        onUpdate={updateLesson}
-                      />
-                    )}
-                    {lessonMode === 'homework' && (
-                      <HomeworkLeftPanel
-                        lesson={selectedLesson}
-                        onUpdate={updateLesson}
-                        hwTab={hwTab}
-                        setHwTab={setHwTab}
-                        isLanguage={isLanguageSubject(course.subject)}
-                      />
-                    )}
-                    {lessonMode === 'students' && (
-                      <StudentsLeftPanel
-                        lesson={selectedLesson}
-                        onUpdate={updateLesson}
-                        course={course}
-                        groups={groups}
-                        allStudents={allStudents}
-                      />
-                    )}
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="test-rail"
-              initial={{ opacity: 0, width: RAIL_COLLAPSED }}
-              animate={{ opacity: 1, width: RAIL_BOX }}
-              exit={{ opacity: 0, width: RAIL_COLLAPSED }}
-              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              style={railWrapSt}
-            >
-              <div style={{ ...railInnerSt, display: 'flex', flexDirection: 'column' }}>
-                <TestLeftPanel lesson={selectedLesson} onUpdate={updateLesson} isLanguage={isLanguageSubject(course.subject)} />
-              </div>
-            </motion.div>
+        {/* LEFT rail — одна колонка постоянной ширины RAIL_BOX, внутри которой
+            меняется карточка: мета курса, панели урока или панель теста.
+            Никакого AnimatePresence: рельса присутствует ВСЕГДА и во всех трёх
+            состояниях одинаково широка — схлопывать её на стыке и разворачивать
+            обратно было нужно только ради «глайда». Ценой этого глайда шёл цикл
+            exit→enter под mode="wait", а он умеет залипать (разбор — в центре
+            ниже) и оставлять колонку пустой до F5.
+            Теперь смена состояния — обычный ремоунт по key: старая карточка
+            исчезает сразу, новая проявляется через initial→animate. Анимация
+            входа не требует от AnimatePresence никакого учёта выходов, поэтому
+            зависнуть тут больше нечему. */}
+        <motion.div
+          key={railVariant}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          style={{ ...railWrapSt, width: RAIL_BOX }}
+        >
+          {railVariant === 'meta' && (
+            /* Hugs its content, same 248 width as the lesson rail. */
+            <div style={{ ...railInnerSt, display: 'flex', flexDirection: 'column' }}>
+              <GlassCard style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', maxHeight: '100%' }}>
+                <LeftCourseMeta course={course} setCourse={setCourse} />
+              </GlassCard>
+            </div>
           )}
-        </AnimatePresence>
 
-        {/* CENTER — no `layout`: flexbox already reflows it smoothly as the
-            left rail width animates; an extra layout anim would fight that. */}
+          {railVariant === 'lesson' && selectedLesson && (
+            /* Inner fixed-width so the rail content never reflows.
+               Скроллер здесь же: карточки расписания и «Кому дать доступ»
+               своего скролла не имеют, а в невысоком окне не помещаются. */
+            <div className="no-scrollbar" style={{ ...railInnerSt, overflowY: 'auto', overscrollBehavior: 'contain' }}>
+              {/* Тот же приём, что и снаружи: ключ по вкладке даёт ремоунт с
+                  проявлением, без цикла выхода. */}
+              <motion.div
+                key={lessonMode === 'homework' ? 'rail-hw' : lessonMode === 'students' ? 'rail-students' : 'rail-sched'}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.13 }}
+                style={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}
+              >
+                {(lessonMode === 'recording' || lessonMode === 'lesson') && (
+                  <ScheduleCard
+                    scope={lessonMode === 'recording' ? 'rec' : 'lesson'}
+                    lesson={selectedLesson}
+                    onUpdate={updateLesson}
+                  />
+                )}
+                {lessonMode === 'homework' && (
+                  <HomeworkLeftPanel
+                    lesson={selectedLesson}
+                    onUpdate={updateLesson}
+                    hwTab={hwTab}
+                    setHwTab={setHwTab}
+                    isLanguage={isLanguageSubject(course.subject)}
+                  />
+                )}
+                {lessonMode === 'students' && (
+                  <StudentsLeftPanel
+                    lesson={selectedLesson}
+                    onUpdate={updateLesson}
+                    course={course}
+                    groups={groups}
+                    allStudents={allStudents}
+                  />
+                )}
+              </motion.div>
+            </div>
+          )}
+
+          {railVariant === 'test' && selectedLesson && (
+            <div style={{ ...railInnerSt, display: 'flex', flexDirection: 'column' }}>
+              <TestLeftPanel lesson={selectedLesson} onUpdate={updateLesson} isLanguage={isLanguageSubject(course.subject)} />
+            </div>
+          )}
+        </motion.div>
+
+        {/* CENTER — без `layout`-анимации: ширину колонке даёт flex, лишняя
+            layout-анимация только дралась бы с ним. */}
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <AnimatePresence mode="wait" initial={false}>
+          {/* Ключ — только «карточка курса» или «урок», без id урока, и без
+              AnimatePresence.
+              Причина: под `mode="wait"` каждая смена ключа запускает цикл
+              exit→enter, а AnimatePresence умеет молча потерять сигнал «выход
+              завершён» — он отбрасывается, если ключ ещё не попал в его
+              exitComplete (index.mjs, `else { return }`). В режиме wait
+              рендерится ТОЛЬКО уходящий ребёнок, поэтому центр навсегда
+              оставался с уже растворённым до opacity:0 уроком — пустой экран
+              до F5. Теперь это обычный ремоунт по ключу: новое содержимое
+              монтируется сразу и проявляется через initial→animate, ждать
+              нечего и залипать негде.
+              Панели полностью управляются пропсами, так что переключение урока
+              — это просто новые пропсы; локальное состояние сбрасываем обычным
+              React-ключом на самих панелях ниже. */}
+          <motion.div
+            key={selectedLesson ? 'lesson' : 'course-meta'}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.16 }}
+            style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+          >
             {!selectedLesson ? (
               /* ── Course meta view ── */
-              <motion.div key="course-meta" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}
-                style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <CenterCourseAccess
                   course={course} setCourse={setCourse}
                   groups={groups} allStudents={allStudents}
                   accessModes={accessModes} setAccessModes={setAccessModes}
                 />
-              </motion.div>
             ) : (
-              /* ── Lesson editor view ──
-                 Ключ НЕ содержит id урока: с `mode="wait"` смена ключа гоняет
-                 exit→enter на каждый клик по уроку, а если сигнал «выход
-                 завершён» теряется (AnimatePresence молча его роняет, когда
-                 ключ ещё не попал в его exitComplete), центр навсегда остаётся
-                 с уже растворённым старым уроком — пустой экран до F5.
-                 Панели полностью управляются пропсами, так что переключение
-                 урока — это просто новые пропсы; локальное состояние сбрасываем
-                 обычным React-ключом на самих панелях (без анимации выхода). */
-              <motion.div key="lesson" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.16 }}
-                style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-
+              /* ── Lesson editor view ── */
+              <>
                 {selectedLesson.kind === 'test' ? (
                   <CenterTestView
                     lesson={selectedLesson}
@@ -4499,13 +4499,13 @@ export default function TeacherCourseEditorPage() {
                   </div>
                 </div>
 
-                {/* Tab content */}
-                <AnimatePresence mode="wait">
-                  <motion.div
+                {/* Tab content — ремоунт по ключу вкладки, без AnimatePresence:
+                    вкладки жмут чаще всего, и залипший цикл выхода тут выел бы
+                    весь центр. */}
+                <motion.div
                     key={lessonMode}
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
                     transition={{ duration: 0.16 }}
                     style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
                   >
@@ -4534,12 +4534,11 @@ export default function TeacherCourseEditorPage() {
                       />
                     )}
                   </motion.div>
-                </AnimatePresence>
                 </>
                 )}
-              </motion.div>
+              </>
             )}
-          </AnimatePresence>
+          </motion.div>
         </div>
 
         {/* RIGHT: always lesson list */}
