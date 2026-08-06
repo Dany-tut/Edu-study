@@ -45,6 +45,7 @@ import {
   dictation, drill,
 } from './languageCourse'
 import { formTable, formulaStrip, contrastPair } from './lessonFigures'
+import { PORTUGUESE2_THEORY } from './portugueseIntermediateTheory'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -1131,6 +1132,7 @@ export const PORTUGUESE2_UNITS: LangUnit[] = [
 
 export const PORTUGUESE2_FIGURES: CourseFigures = {
   'ptb2-03': [{
+    after: 3,
     caption: 'Presente do subjuntivo строится от формы eu',
     src: formTable('Как получить subjuntivo', ['Инфинитив', 'Форма eu', 'Subjuntivo', 'Правило'], [
       ['falar', 'falo', 'que eu fale', '-o → -e'],
@@ -1142,6 +1144,7 @@ export const PORTUGUESE2_FIGURES: CourseFigures = {
   }],
 
   'ptb2-04': [{
+    after: 3,
     caption: 'Нереальное условие: se + imperfeito do subjuntivo',
     src: formulaStrip('Se eu tivesse…, eu faria…', [
       { text: 'Se', note: 'если бы' },
@@ -1154,6 +1157,7 @@ export const PORTUGUESE2_FIGURES: CourseFigures = {
   }],
 
   'ptb2-06': [{
+    after: 4,
     caption: 'Время главного предложения задаёт время придаточного',
     src: formTable('Согласование времён', ['Главное', 'Придаточное', 'Пример'], [
       ['presente', 'subjuntivo presente', 'Espero que ele venha'],
@@ -1164,6 +1168,7 @@ export const PORTUGUESE2_FIGURES: CourseFigures = {
   }],
 
   'ptb2-08': [{
+    after: 4,
     caption: 'Три способа убрать деятеля из фразы',
     src: contrastPair('Пассив и безличность', {
       head: 'voz passiva', sub: 'формально, часто в тексте',
@@ -1175,6 +1180,7 @@ export const PORTUGUESE2_FIGURES: CourseFigures = {
   }],
 
   'ptb2-10': [{
+    after: 2,
     caption: 'Косвенная речь сдвигает время на шаг назад',
     src: formTable('Сдвиг времён', ['Прямая речь', 'Косвенная', 'Что изменилось'], [
       ['«Eu trabalho aqui»', 'Disse que trabalhava ali', 'presente → imperfeito'],
@@ -1194,7 +1200,9 @@ export const PORTUGUESE_INTERMEDIATE: LanguageCourseSpec = {
   guidedHours: '200–250',
   scopeNote: 'Продолжение курса «Бразильский португальский с нуля». Целевой уровень экзамена — Intermediário; Avançado остаётся за рамками.',
   modules: PORTUGUESE2_MODULES,
-  units: PORTUGUESE2_UNITS,
+  // Конспекты живут отдельным файлом: здесь — последовательность и задания,
+  // там — то, что ученик читает.
+  units: PORTUGUESE2_UNITS.map(u => ({ ...u, theory: PORTUGUESE2_THEORY[u.shortId] ?? u.theory })),
   figures: PORTUGUESE2_FIGURES,
 }
 

@@ -63,8 +63,14 @@ const RAIL_BOTTOM = 24
 /** Высота рейла на первом кадре, до замера: экран минус шапка кабинета. */
 const RAIL_MAX_FALLBACK = `calc(100vh - ${100 + RAIL_TOP + RAIL_BOTTOM}px)`
 
-/** Ширина, ниже которой рейл встаёт над содержимым. */
-const BREAK = 1000
+/**
+ * Ширина, ниже которой рейл уходит в шторку.
+ *
+ * Ровно та же, что у общего useIsDesktop (>= 1024): своя цифра завела бы в
+ * приложении третью ширину, и в полосе между ними страница оказывалась бы
+ * «десктопной» по одному правилу и «узкой» по другому.
+ */
+const BREAK = 1024
 
 function useNarrow(): boolean {
   const [narrow, setNarrow] = useState(
@@ -143,8 +149,8 @@ export default function TrainerShell({ rail, toolbar, children }: {
           ref={railRef}
           className="no-scrollbar"
           style={{
-            display: 'flex', flexDirection: 'column', gap: 14,
-            padding: 14, borderRadius: 24,
+            display: 'flex', flexDirection: 'column', gap: 16,
+            padding: 16, borderRadius: 24,
             background: 'rgba(var(--glass-rgb), 0.97)',
             border: '1px solid var(--color-border-glass)',
             boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
@@ -251,7 +257,7 @@ export function RailCard({ icon, title, accent, children, action }: {
 }) {
   return (
     <div style={{
-      display: 'flex', flexDirection: 'column', gap: 10, padding: 14, borderRadius: 16,
+      display: 'flex', flexDirection: 'column', gap: 12, padding: 16, borderRadius: 16,
       background: 'rgba(var(--glass-rgb), 0.94)',
       border: '1px solid var(--color-border-soft)',
       boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
@@ -342,12 +348,20 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
             key={o.value}
             onClick={() => onChange(on && clearable ? '' : o.value)}
             style={{
-              flex: 1, minWidth: 0, padding: '8px 6px', borderRadius: 12, cursor: 'pointer',
-              fontFamily: 'inherit', fontSize: 12.5, fontWeight: on ? 700 : 600,
+              // Один в один кнопки «Часть 1 / Часть 2» из рейла банка: рамки у
+              // них нет вовсе — состояние читается заливкой и цветом текста.
+              // Своя рамка делала ряд тяжелее соседних полей-дропдаунов, у
+              // которых кольцо появляется только по фокусу.
+              // Боковой отступ меньше банковских 12 px: там в ряду две кнопки с
+              // коротким «Часть 1», здесь — три с «до 3 мин», и на 12 px подпись
+              // обрезалась в «до 3 …». Высота (9 px сверху и снизу) та же.
+              flex: 1, minWidth: 0, padding: '9px 6px', borderRadius: 13, cursor: 'pointer',
+              fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-              border: `1px solid ${on ? 'transparent' : 'var(--color-border-soft)'}`,
+              border: 'none',
               background: on ? soft : 'var(--color-bg-input)',
               color: on ? accent : 'var(--color-muted)',
+              transition: 'all 0.15s ease',
             }}
           >
             <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t(o.label)}</span>
@@ -368,7 +382,8 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
 
 /** Список-выбор внутри карточки рейла: полки разговорника, словарик текста. */
 export function RailList({ items, value, onChange, accent, soft }: {
-  items: { id: string; label: string; hint?: string }[]
+  /** `sub` — вторая строка под названием: транскрипция слова, счётчик полки. */
+  items: { id: string; label: string; sub?: string; hint?: string }[]
   value: string
   onChange: (v: string) => void
   accent: string
@@ -402,8 +417,21 @@ export function RailList({ items, value, onChange, accent, soft }: {
               fontSize: 12.5, fontWeight: on ? 700 : 550,
             }}
           >
-            <span style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {i.label}
+            <span style={{ flex: 1, minWidth: 0, display: 'grid', gap: 1 }}>
+              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {i.label}
+              </span>
+              {/* Транскрипция — под словом и тише его: она нужна, чтобы слово
+                  можно было проговорить, но читают всё-таки оригинал. */}
+              {i.sub && (
+                <span style={{
+                  fontSize: 11, fontWeight: 500, letterSpacing: 0.1,
+                  color: on ? accent : 'var(--color-text-3)', opacity: on ? 0.8 : 1,
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                }}>
+                  {i.sub}
+                </span>
+              )}
             </span>
             {i.hint && (
               <span style={{ fontSize: 11, color: on ? accent : 'var(--color-text-3)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
@@ -486,7 +514,7 @@ export function SearchPill({ value, onChange, placeholder }: {
         display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', borderRadius: 999,
         background: 'rgba(var(--glass-rgb), 0.96)',
         border: `1px solid ${wide ? 'var(--color-accent, #7c3aed)' : 'var(--color-border-medium)'}`,
-        width: wide ? 250 : 112, transition: 'width .22s cubic-bezier(.4,0,.2,1), border-color .15s',
+        width: wide ? 260 : 112, transition: 'width .22s cubic-bezier(.4,0,.2,1), border-color .15s',
         overflow: 'hidden', cursor: wide ? 'text' : 'pointer', flexShrink: 0,
       }}
     >
@@ -533,8 +561,11 @@ export function StatusTabs({ options, value, onChange }: {
             key={o.value}
             onClick={() => onChange(o.value)}
             style={{
-              padding: '6px 13px', borderRadius: 999, border: 'none', cursor: 'pointer',
-              fontFamily: 'inherit', fontSize: 12.5, fontWeight: on ? 700 : 550,
+              // Размеры банковских вкладок «Список / Карточки»: 7×12 и кегль 12.
+              // Свои 6×13 и 12.5 давали строку на пиксель ниже соседнего поиска —
+              // разнобой, который видно именно в ряду, где элементы стоят рядом.
+              padding: '7px 12px', borderRadius: 999, border: 'none', cursor: 'pointer',
+              fontFamily: 'inherit', fontSize: 12, fontWeight: on ? 700 : 500,
               background: on ? 'var(--color-bg-3)' : 'transparent',
               color: on ? 'var(--color-text)' : 'var(--color-text-3)',
               whiteSpace: 'nowrap',
@@ -556,8 +587,10 @@ export function ToolButton({ children, on, onClick, accent }: {
     <button
       onClick={onClick}
       style={{
-        display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 999,
-        cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: on ? 700 : 550,
+        // Как «Избранное» в банке: 10×14, кегль 12 — тогда таблетка встаёт вровень
+        // с поиском и группой статусов, а не оказывается на два пикселя ниже.
+        display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: 999,
+        cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: on ? 700 : 500,
         border: `1px solid ${on ? (accent ?? 'var(--color-accent, #7c3aed)') : 'var(--color-border-medium)'}`,
         background: 'rgba(var(--glass-rgb), 0.88)',
         color: on ? (accent ?? 'var(--color-accent, #7c3aed)') : 'var(--color-text-2)',
@@ -611,8 +644,9 @@ export function SortMenu({ options, value, onChange }: {
           setOpen(o => !o)
         }}
         style={{
-          display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 999,
-          cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 550,
+          // Та же таблетка, что ToolButton и «Сортировка» банка: 10×14, кегль 12.
+          display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: 999,
+          cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 500,
           border: '1px solid var(--color-border-medium)', background: 'rgba(var(--glass-rgb), 0.88)',
           color: 'var(--color-text-2)', whiteSpace: 'nowrap',
         }}

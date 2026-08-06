@@ -25,6 +25,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { WORD_GLOSS, type WordGloss } from '../data/wordGloss'
+import { transcribe } from './translit'
 
 /** Кусок разобранного текста. `gloss` есть только у того, что нашлось в словаре. */
 export interface Segment {
@@ -158,3 +159,24 @@ export function buildLexicon(lang: string, extra: WordGloss[] = []): Lexicon {
 
 /** Есть ли для языка пословный словарь вообще. */
 export const hasLexicon = (lang: string) => (WORD_GLOSS[lang]?.length ?? 0) > 0
+
+/** Язык → чтения, записанные руками. Считается один раз на язык (см. wordReading). */
+const readings = new Map<string, Map<string, string>>()
+
+/**
+ * Как звучит слово: записанное в словаре чтение, иначе посчитанное по буквам.
+ *
+ * Порядок именно такой — выверенное человеком чтение бьёт послоговый счёт,
+ * который не знает ассимиляций на стыках (감사합니다 — «камсамнида», а не
+ * «камсахапнида»). Пустая строка значит «транскрибировать нечего»: латиница
+ * читается сама.
+ */
+export function wordReading(term: string, lang: string): string {
+  let m = readings.get(lang)
+  if (!m) {
+    m = new Map()
+    for (const g of WORD_GLOSS[lang] ?? []) if (g.reading) m.set(key(g.term.trim()), g.reading)
+    readings.set(lang, m)
+  }
+  return m.get(key(term.trim())) || transcribe(term, lang)
+}

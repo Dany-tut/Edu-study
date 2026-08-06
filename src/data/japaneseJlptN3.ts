@@ -39,6 +39,7 @@ import {
   dictation, dictationBank, drill,
 } from './languageCourse'
 import { formTable, contrastPair, ladderFigure } from './lessonFigures'
+import { JAPANESE3_THEORY } from './japaneseJlptN3Theory'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -1282,6 +1283,7 @@ export const JAPANESE3_UNITS: LangUnit[] = [
 
 export const JAPANESE3_FIGURES: CourseFigures = {
   'jan3-05': [{
+    after: 4,
     caption: 'Направление подарка выбирает глагол — ошибиться нельзя',
     src: formTable('あげる / くれる / もらう', ['Глагол', 'Кто кому', 'Пример'], [
       ['あげる', 'я или мой круг → другому', '友だちに 本を あげました'],
@@ -1291,6 +1293,7 @@ export const JAPANESE3_FIGURES: CourseFigures = {
   }],
 
   'jan3-07': [{
+    after: 4,
     caption: 'Страдательный залог: образование по группам',
     src: formTable('受身形', ['Группа', 'Словарная', 'Пассив', 'Правило'], [
       ['годан', '書く', '書かれる', 'a-ряд + れる'],
@@ -1302,6 +1305,7 @@ export const JAPANESE3_FIGURES: CourseFigures = {
   }],
 
   'jan3-09': [{
+    after: 3,
     caption: 'Одно слово そうだ — два разных значения',
     src: contrastPair('そうだ: вид и слух', {
       head: '様態: по виду', sub: 'сам смотрю и предполагаю',
@@ -1313,6 +1317,7 @@ export const JAPANESE3_FIGURES: CourseFigures = {
   }],
 
   'jan3-12': [{
+    after: 4,
     caption: 'Шкала уверенности — от «может быть» до «наверняка»',
     src: ladderFigure('Насколько вы уверены', [
       { label: 'にちがいない', sub: 'наверняка так — почти уверенность' },
@@ -1323,6 +1328,7 @@ export const JAPANESE3_FIGURES: CourseFigures = {
   }],
 
   'jan3-13': [{
+    after: 5,
     caption: 'Четыре «если» делят между собой разные ситуации',
     src: formTable('と / ば / たら / なら', ['Форма', 'Когда', 'Пример'], [
       ['と', 'всегда так — закономерность', '春に なると 桜が 咲く'],
@@ -1342,7 +1348,9 @@ export const JAPANESE_JLPT_N3: LanguageCourseSpec = {
   guidedHours: '300–360',
   scopeNote: 'Продолжение курса «Японский с нуля». Вход — кана, ~60 кандзи, ます-форма и て-форма. Цель — уверенный N4 и выход на N3.',
   modules: JAPANESE3_MODULES,
-  units: JAPANESE3_UNITS,
+  // Конспекты живут отдельным файлом: здесь — последовательность и задания,
+  // там — то, что ученик читает.
+  units: JAPANESE3_UNITS.map(u => ({ ...u, theory: JAPANESE3_THEORY[u.shortId] ?? u.theory })),
   figures: JAPANESE3_FIGURES,
 }
 

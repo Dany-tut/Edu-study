@@ -4359,8 +4359,12 @@ export default function TeacherCourseEditorPage() {
             )}
           </AnimatePresence>
         </div>
-        <div style={{ position: 'absolute', left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' }}>
-          <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</span>
+        {/* Заголовок стоит между группами кнопок, а не поверх строки абсолютом.
+            Абсолют центрировал его по странице и потому не знал, сколько места
+            заняли кнопки: правая группа растёт (у курса из сида добавляется
+            «Из сида · N»), и длинное название уезжало под неё. */}
+        <div className="flex-1 min-w-0" style={{ textAlign: 'center', pointerEvents: 'none', padding: '0 12px' }}>
+          <span className="truncate" style={{ display: 'block', fontSize: 17, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* Сверка с готовым курсом. Кнопка есть только у курса, собранного из
@@ -4370,7 +4374,7 @@ export default function TeacherCourseEditorPage() {
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={() => setSeedSyncOpen(true)}
               title={t('Показать, что изменилось в готовом курсе с момента добавления')}
               style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, padding: '9px 15px', borderRadius: 999, border: '1px solid var(--color-accent)', background: 'var(--color-purple-soft)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-              <RefreshCw size={14} strokeWidth={2} /> {t('Подтянуть из сида')} · {seedDiff.changes.length}
+              <RefreshCw size={14} strokeWidth={2} /> {t('Из сида')} · {seedDiff.changes.length}
             </motion.button>
           )}
           {course.dbCourseId && (

@@ -138,6 +138,7 @@ export function ThemeSession({ book, item, lang, subjectId, accent, owner, view,
       answer: view.reverse ? ph.term : ph.ru,
       reading: view.reading ? ph.reading : undefined,
       note: ph.note,
+      ex: ph.ex,
       image: vocabImage(ph.ru),
       ease: INITIAL_SRS.ease,
       intervalDays: INITIAL_SRS.intervalDays,
@@ -185,6 +186,13 @@ export function ThemeSession({ book, item, lang, subjectId, accent, owner, view,
  * памяти ещё не имеет: карточка «봉투 필요하세요?» человеку, который видит фразу
  * впервые, — это сорок нажатий «не знаю» подряд. Список даёт прочитать тему
  * целиком за минуту и только потом идти в колоду.
+ *
+ * КЛИК РАСКРЫВАЕТ ФРАЗУ ЦЕЛИКОМ. Строка списка набрана мелко — сорок фраз
+ * должны помещаться на экран, — но чужое письмо мелким кеглем не читается:
+ * в 받침 не видно, 을 там или 슬. Поэтому клик по строке плавно раздувает
+ * оригинал вдвое прямо на его месте (кегль анимируется, а не transform: строка
+ * должна раздвинуть соседние, а не наехать на них) и открывает под ним заметку
+ * и пример употребления.
  */
 function PhraseList({ phrases, accent, view, lang }: {
   phrases: Phrase[]; accent: string; view: PhraseView; lang: string
@@ -212,19 +220,62 @@ function PhraseList({ phrases, accent, view, lang }: {
               display: 'flex', alignItems: 'flex-start', gap: 12, padding: '11px 14px', borderRadius: 14,
               background: 'var(--color-bg-2)',
               border: `1px solid ${on ? `${accent}55` : 'var(--color-border-soft)'}`,
-              cursor: p.note ? 'pointer' : 'default',
+              cursor: 'pointer',
+              transition: 'border-color 0.2s ease',
             }}
           >
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 650, color: 'var(--color-text)' }}>{p.term}</div>
+              <div style={{
+                fontSize: on ? 30 : 15, fontWeight: 650, color: 'var(--color-text)',
+                lineHeight: 1.3, letterSpacing: on ? 0.2 : 0,
+                transition: 'font-size 0.24s cubic-bezier(0.2, 0.7, 0.3, 1), letter-spacing 0.24s ease',
+              }}>
+                {p.term}
+              </div>
               {view.reading && p.reading && (
-                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 2 }}>{p.reading}</div>
+                <div style={{
+                  fontSize: on ? 14 : 11.5, color: 'var(--color-text-3)', marginTop: on ? 4 : 2,
+                  transition: 'font-size 0.24s cubic-bezier(0.2, 0.7, 0.3, 1), margin-top 0.24s ease',
+                }}>
+                  {p.reading}
+                </div>
               )}
               {/* Заметка раскрывается по клику, а не висит всегда: у половины
                   фраз она в три строки, и лист темы стал бы простынёй. */}
               {on && p.note && (
-                <div style={{ fontSize: 12.5, color: 'var(--color-muted)', marginTop: 6, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 12.5, color: 'var(--color-muted)', marginTop: 8, lineHeight: 1.5 }}>
                   {p.note}
+                </div>
+              )}
+              {/* Пример — та же фраза внутри предложения. Оригинал крупнее
+                  перевода: смотреть надо на него, перевод только подтверждает
+                  догадку. Кнопка озвучки своя — слушают обычно именно пример. */}
+              {on && p.ex && (
+                <div style={{
+                  marginTop: 10, paddingLeft: 10, borderLeft: `2px solid ${accent}55`,
+                  display: 'flex', alignItems: 'flex-start', gap: 8,
+                }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.35 }}>
+                      {p.ex.term}
+                    </div>
+                    {view.reading && p.ex.reading && (
+                      <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>{p.ex.reading}</div>
+                    )}
+                    <div style={{ fontSize: 13, color: 'var(--color-text-2)', marginTop: 3, lineHeight: 1.45 }}>
+                      {p.ex.ru}
+                    </div>
+                  </div>
+                  <button
+                    onClick={e => { e.stopPropagation(); say(p.ex!.term) }}
+                    aria-label={t('Послушать пример')}
+                    style={{
+                      flexShrink: 0, display: 'flex', border: 'none', background: 'none',
+                      cursor: 'pointer', color: accent, padding: 0, marginTop: 2,
+                    }}
+                  >
+                    <Volume2 size={14} />
+                  </button>
                 </div>
               )}
             </div>

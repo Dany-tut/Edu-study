@@ -528,6 +528,27 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
                   {seat.card.note}
                 </div>
               )}
+              {/* Пример — фраза внутри живого предложения. Стоит последним и
+                  прижат к левому краю: это не ответ, а иллюстрация к нему, и
+                  читается он строкой, а не заголовком. */}
+              {seat.card.ex && (
+                <div style={{
+                  marginTop: 10, paddingTop: 8, borderTop: '1px dashed var(--color-border-soft)',
+                  textAlign: 'left', maxHeight: 88, overflowY: 'auto',
+                }}>
+                  <div style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.4 }}>
+                    {seat.card.ex.term}
+                  </div>
+                  {seat.card.ex.reading && (
+                    <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 2, letterSpacing: 0.2 }}>
+                      {seat.card.ex.reading}
+                    </div>
+                  )}
+                  <div style={{ fontSize: 12.5, color: 'var(--color-text-2)', marginTop: 3, lineHeight: 1.45 }}>
+                    {seat.card.ex.ru}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 12 }}>{t('нажми, чтобы перевернуть')}</div>

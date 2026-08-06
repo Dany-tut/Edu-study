@@ -80,6 +80,26 @@ function tasksOf(l: CELesson): Task[] {
   return (l.hwTasks ?? []) as Task[]
 }
 
+/**
+ * Ключ задания внутри урока — id без префикса юнита.
+ *
+ * СРАВНИВАТЬ ПО СЫРОМУ id НЕЛЬЗЯ. Он собирается как `<ключ сида>-<номер
+ * юнита>-<место в юните>`, и номер юнита в сиде НЕ вечен: когда в середину
+ * программы добавляют юнит, всё, что ниже, сдвигается. В сохранённом корейском
+ * курсе «Китайские числительные» несут `kotp-14-*`, а в нынешнем сиде тот же
+ * юнит уже `kotp-17-*`. По сырому id совпадений не нашлось бы вовсе, и сверка
+ * предложила бы «добавить» все задания заново — то есть удвоить их.
+ *
+ * Уроки к этому моменту уже сопоставлены по названию, поэтому хватает хвоста:
+ * `t3`, `v10`, `p`, `pic1` — он и означает место задания внутри юнита.
+ * Задание, добавленное учителем вручную, под шаблон не подходит и остаётся со
+ * своим id: с сидом оно не сопоставится, и трогать его никто не станет.
+ */
+function taskKey(id: string | undefined): string {
+  if (!id) return ''
+  return id.match(/^[a-z0-9]+-\d+-(.+)$/)?.[1] ?? id
+}
+
 /** Отличаются ли значения поля. Сравниваем по JSON: значения простые либо массивы. */
 function differs(a: unknown, b: unknown): boolean {
   if (a === b) return false
@@ -95,8 +115,8 @@ function differs(a: unknown, b: unknown): boolean {
  *
  * Уроки сопоставляются по названию, а не по id: id урока выдаётся при создании
  * и с юнитом сида не связан, а номер в названии съезжает, когда в сид добавляют
- * юнит в середину. Задания внутри урока — по id: он приходит из сида
- * (`kotp-14-t3`) и переживает и перестановку, и переименование.
+ * юнит в середину. Задания внутри урока — по хвосту id (см. taskKey): номер
+ * юнита в id тоже съезжает, и сырой id сравнивать нельзя.
  */
 export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
   const seedKey = seedKeyOf(course)
@@ -123,8 +143,8 @@ export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
     }
 
     // ── задания, которых в уроке нет ──
-    const mineById = new Map(tasksOf(mine).filter(t => t.id).map(t => [t.id as string, t]))
-    const added = (unit.hwTasks ?? []).filter(t => t.id && !mineById.has(t.id))
+    const mineByKey = new Map(tasksOf(mine).filter(t => t.id).map(t => [taskKey(t.id), t]))
+    const added = (unit.hwTasks ?? []).filter(t => t.id && !mineByKey.has(taskKey(t.id)))
     if (added.length) {
       changes.push({
         key: `tasks:${title}`,
@@ -139,7 +159,7 @@ export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
     // ── задания, у которых разошлись содержательные поля ──
     const drifted: string[] = []
     ;(unit.hwTasks ?? []).forEach(t => {
-      const my = t.id ? mineById.get(t.id) : undefined
+      const my = t.id ? mineByKey.get(taskKey(t.id)) : undefined
       if (!my) return
       const fields = OWNED_FIELDS.filter(f => differs(my[f], (t as Task)[f]))
       if (fields.length) drifted.push(`${t.label ?? t.type}: ${fields.join(', ')}`)
@@ -193,24 +213,24 @@ export async function applySeedChanges(course: CourseEdData, keys: Set<string>):
     let next = lesson
 
     if (keys.has(`tasks:${title}`)) {
-      const mineIds = new Set(tasksOf(next).map(t => t.id))
-      const add = (unit.hwTasks ?? []).filter(t => t.id && !mineIds.has(t.id))
+      const mineKeys = new Set(tasksOf(next).map(t => taskKey(t.id)))
+      const add = (unit.hwTasks ?? []).filter(t => t.id && !mineKeys.has(taskKey(t.id)))
       // Порядок берём из сида: дрилл обязан оказаться перед отработкой, а не
       // приклеиться в хвост за словарными карточками.
-      const order = new Map((unit.hwTasks ?? []).map((t, i) => [t.id ?? '', i]))
+      const order = new Map((unit.hwTasks ?? []).map((t, i) => [taskKey(t.id), i]))
       // Задание, которого в сиде нет (учитель добавил своё), порядка не имеет и
       // уходит в конец — трогать его место мы не вправе.
-      const at = (t: Task) => order.get(t.id ?? '') ?? Number.MAX_SAFE_INTEGER
+      const at = (t: Task) => order.get(taskKey(t.id)) ?? Number.MAX_SAFE_INTEGER
       const merged = [...tasksOf(next), ...(add as Task[])].sort((a, b) => at(a) - at(b))
       next = { ...next, hwTasks: merged as CELesson['hwTasks'] }
     }
 
     if (keys.has(`fields:${title}`)) {
-      const fromSeed = new Map((unit.hwTasks ?? []).map(t => [t.id, t as Task]))
+      const fromSeed = new Map((unit.hwTasks ?? []).map(t => [taskKey(t.id), t as Task]))
       next = {
         ...next,
         hwTasks: tasksOf(next).map(t => {
-          const src = t.id ? fromSeed.get(t.id) : undefined
+          const src = t.id ? fromSeed.get(taskKey(t.id)) : undefined
           if (!src) return t
           const patch: Record<string, unknown> = {}
           OWNED_FIELDS.forEach(f => { if (differs(t[f], src[f])) patch[f] = src[f] })

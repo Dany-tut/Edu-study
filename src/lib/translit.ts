@@ -95,13 +95,55 @@ function koParts(code: number) {
 const linksTo = (a: ReturnType<typeof koParts> | null, b: ReturnType<typeof koParts> | null) =>
   !!a && !!b && b.initial === KO_SILENT && a.final !== 0 && a.final !== 21
 
+/** Индексы начальных ㄴ, ㄹ, ㅁ — согласных, из-за которых стык меняет звук. */
+const KO_N = 2
+const KO_R = 5
+const KO_M = 6
+
+/** Смычный патчхим перед носовым: 습니다 звучит «сымнида», не «сыпнида». */
+const KO_NASALIZED: Record<string, string> = { к: 'н', т: 'н', п: 'м' }
+
+/**
+ * Стык двух слогов: что на нём слышно вместо написанного.
+ *
+ * Два правила, без которых транскрипция расходится со слухом на самых частых
+ * словах, — и оба живут ровно на границе, поэтому считаются парой, а не внутри
+ * слога:
+ *
+ *  • носовое уподобление: смычный патчхим перед ㄴ/ㅁ сам становится носовым —
+ *    합니다 «хамнида», 먹는 «монын». Под это попадает окончание ‑ㅂ니다, то есть
+ *    каждая вежливая форма языка;
+ *  • ㄹ на стыке: после ㅁ/ㅇ он звучит как ㄴ (음료수 «ымнёсу»), а рядом с ㄴ или
+ *    ㄹ даёт долгое «лл» (신라 «силла», 설립 «соллип»). После смычного сначала
+ *    работает первое правило, потом второе: 독립 «тонним».
+ *
+ * Возвращает замену патчхима предыдущего слога и начального согласного
+ * текущего; null — «оставить как есть».
+ */
+function koJoin(prevFinal: number, initial: number): { coda: string | null; onset: string | null } {
+  let coda = KO_FINAL[prevFinal]
+  if (!coda) return { coda: null, onset: null }
+  let changed: string | null = null
+  if (initial === KO_N || initial === KO_M || initial === KO_R) {
+    const nasal = KO_NASALIZED[coda]
+    if (nasal) { coda = nasal; changed = nasal }
+  }
+  if (initial !== KO_R) return { coda: changed, onset: null }
+  // ㄴ (патчхим 4) и ㄹ (патчхим 8) дают долгое «лл» — без мягкого знака внутри
+  // пары, иначе выходит «сильла» вместо «силла».
+  if (prevFinal === 4 || coda === 'ль') return { coda: 'л', onset: 'л' }
+  if (coda === 'м' || coda === 'н') return { coda: changed, onset: 'н' }
+  return { coda: changed, onset: null }
+}
+
 /** Одно слово хангыля: слоги разбираются с оглядкой на соседей. */
 function koWord(codes: number[]): string {
+  const parts = codes.map(koParts)
   let out = ''
-  for (let i = 0; i < codes.length; i++) {
-    const cur = koParts(codes[i])
-    const prev = i > 0 ? koParts(codes[i - 1]) : null
-    const next = i + 1 < codes.length ? koParts(codes[i + 1]) : null
+  for (let i = 0; i < parts.length; i++) {
+    const cur = parts[i]
+    const prev = i > 0 ? parts[i - 1] : null
+    const next = i + 1 < parts.length ? parts[i + 1] : null
 
     let onset: string
     if (linksTo(prev, cur)) {
@@ -111,9 +153,14 @@ function koWord(codes: number[]): string {
       // патчхима: 학교 остаётся «хаккё», а 아기 становится «аги».
       const open = prev !== null && KO_SONORANT.has(prev.final)
       onset = (open && KO_VOICED[cur.initial]) || KO_INITIAL[cur.initial]
+      if (prev) onset = koJoin(prev.final, cur.initial).onset ?? onset
     }
     // Патчхим не пишем дважды: если он уехал в следующий слог, здесь его нет.
-    const coda = linksTo(cur, next) ? '' : KO_FINAL[cur.final]
+    let coda = ''
+    if (!linksTo(cur, next)) {
+      coda = KO_FINAL[cur.final]
+      if (next) coda = koJoin(cur.final, next.initial).coda ?? coda
+    }
     out += onset + KO_VOWEL[cur.vowel] + coda
   }
   return out

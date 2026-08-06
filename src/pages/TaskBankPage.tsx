@@ -38,6 +38,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
 import MobileScreen from '../components/MobileScreen'
+import TrainerShell from '../components/trainer/TrainerShell'
 import MobileBottomNav from '../components/MobileBottomNav'
 import MobileSheet from '../components/MobileSheet'
 import { GlassPill, GlassIconButton } from '../components/mobileChrome'
@@ -2294,170 +2295,157 @@ export default function TaskBankPage() {
       </div>
 
       {/* ── Separated layout: sticky left card + independent scrolling center ── */}
-      <div className="flex flex-col lg:flex-row lg:items-start" style={{ gap: 20 }}>
+      {/* ── Скелет тренажёра: рейл, строка управления, сетка ────────────── */}
+      {/* Общий компонент вместо собственной раскладки: sticky-рейл, его высота,
+          поведение на узком экране и отступы теперь описаны в одном месте
+          (components/trainer/TrainerShell.tsx) и одинаковы у банка и языкового
+          тренажёра. Шапка страницы и док-таблетки выше остались своими —
+          скелет их не моделирует и не должен. */}
+      <TrainerShell
+        rail={<>
 
-        {/* Left sidebar — standalone sticky card.
-            top must equal the card's natural flow offset inside the scroll pane
-            (paddingTop 100 + the row's start ≈ 157px from the pane top → 57).
-            If it's larger, sticky pins the card 3px BELOW its rest position, so
-            it visibly twitches whenever the result list shrinks below the fold
-            and the pane stops scrolling (sticky disengages back to flow). */}
-        <div className="lg:sticky" style={{ top: 57, flexShrink: 0 }}>
-        <aside className="flex flex-col" style={{
-          width: 300, padding: 16, gap: 16,
-          borderRadius: 24,
-          background: 'rgba(var(--glass-rgb), 0.97)',
-          border: '1px solid var(--color-border-glass)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
-        }}>
-
-          {/* Subject gradient card — clicking it toggles between biology and chemistry */}
-          <div
-            onClick={() => { setSubjectPersist(subject === 'biology' ? 'chemistry' : 'biology'); resetOnSubject() }}
-            style={{ padding: 16, borderRadius: 16, background: `linear-gradient(135deg, ${palette.accent}cc, ${palette.text}cc)`, color: '#fff', boxShadow: `0 18px 44px ${palette.ring}`, cursor: 'pointer', userSelect: 'none' }}
-          >
-            <div className="flex items-center" style={{ gap: 8, marginBottom: 10 }}>
-              <BookOpen size={16} />
-              <span style={{ fontSize: 12, fontWeight: 700 }}>{t('Тренажёр ЕГЭ')}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-              {(bankSubjects as Subject[]).map(s => (
-                <button key={s} onClick={e => { e.stopPropagation(); setSubjectPersist(s); resetOnSubject() }}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    height: 28, padding: '0 12px', borderRadius: 999, border: '1.5px solid',
-                    borderColor: subject === s ? 'var(--color-border-glass)' : 'var(--color-border-medium)',
-                    background: subject === s ? 'rgba(255,255,255,0.22)' : 'transparent',
-                    color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                    whiteSpace: 'nowrap', lineHeight: 1, boxSizing: 'border-box',
-                  }}>
-                  {s === 'biology' ? t('Биология') : t('Химия')}
-                </button>
-              ))}
-            </div>
-            <p style={{ fontSize: 13, lineHeight: 1.45, color: 'rgba(255,255,255,0.88)' }}>
-              {t('Отработай все линии заданий')}<br />{t('и подготовься к экзамену.')}
-            </p>
+        {/* Subject gradient card — clicking it toggles between biology and chemistry */}
+        <div
+          onClick={() => { setSubjectPersist(subject === 'biology' ? 'chemistry' : 'biology'); resetOnSubject() }}
+          style={{ padding: 16, borderRadius: 16, background: `linear-gradient(135deg, ${palette.accent}cc, ${palette.text}cc)`, color: '#fff', boxShadow: `0 18px 44px ${palette.ring}`, cursor: 'pointer', userSelect: 'none' }}
+        >
+          <div className="flex items-center" style={{ gap: 8, marginBottom: 10 }}>
+            <BookOpen size={16} />
+            <span style={{ fontSize: 12, fontWeight: 700 }}>{t('Тренажёр ЕГЭ')}</span>
           </div>
-
-          {/* Filters card */}
-          <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
-            <div className="flex items-center" style={{ gap: 7 }}>
-              <Filter size={15} style={{ color: palette.text }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Фильтры')}</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <MultiSelectField label={t('Раздел')} options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} />
-              <AnimatePresence>
-                {sections.length > 0 && subject === 'biology' && (
-                  <SuggestBox
-                    section={sections[sections.length - 1]}
-                    lineNames={lineNames}
-                    onPickLine={v => { setLines(prev => prev.includes(v) ? prev : [...prev, v]) }}
-                    accent={palette.accent}
-                  />
-                )}
-              </AnimatePresence>
-              <MultiSelectField label={t('Тема')} options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} />
-              <div style={{ display: 'flex', gap: 6 }}>
-                {['1', '2'].map(p => {
-                  const active = parts.includes(p)
-                  const avail = availableParts.includes(p as '1' | '2')
-                  return (
-                  <button key={p} disabled={!avail} onClick={() => setParts(active ? parts.filter(x => x !== p) : [...parts, p])} style={{
-                    flex: 1, padding: '9px 12px', borderRadius: 13, fontSize: 13, fontWeight: 600, cursor: avail ? 'pointer' : 'not-allowed',
-                    background: active ? `${palette.accent}22` : 'var(--color-bg-input)',
-                    border: 'none',
-                    color: active ? palette.accent : 'var(--color-muted)',
-                    opacity: avail ? 1 : 0.4,
-                    transition: 'all 0.15s ease',
-                  }}>
-                    {t('Часть')} {p}
-                  </button>
-                )})}
-              </div>
-              <MultiSelectField label={t('Линия')} options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} />
-              <FilterField label={t('Источник')} options={allSources}  value={source}  onChange={setSource} accent={palette.accent} />
-            </div>
-            {hasFilters && (
-              <button onClick={clearFilters}
-                style={{ padding: '8px 0', borderRadius: 12, background: 'rgba(176,48,64,0.10)', border: '1px solid rgba(176,48,64,0.18)', fontSize: 12, color: 'rgba(176,48,64,0.75)', cursor: 'pointer', fontWeight: 600 }}>
-                {t('Сбросить фильтры')}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+            {(bankSubjects as Subject[]).map(s => (
+              <button key={s} onClick={e => { e.stopPropagation(); setSubjectPersist(s); resetOnSubject() }}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  height: 28, padding: '0 12px', borderRadius: 999, border: '1.5px solid',
+                  borderColor: subject === s ? 'var(--color-border-glass)' : 'var(--color-border-medium)',
+                  background: subject === s ? 'rgba(255,255,255,0.22)' : 'transparent',
+                  color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                  whiteSpace: 'nowrap', lineHeight: 1, boxSizing: 'border-box',
+                }}>
+                {s === 'biology' ? t('Биология') : t('Химия')}
               </button>
-            )}
+            ))}
           </div>
-
-        </aside>
+          <p style={{ fontSize: 13, lineHeight: 1.45, color: 'rgba(255,255,255,0.88)' }}>
+            {t('Отработай все линии заданий')}<br />{t('и подготовься к экзамену.')}
+          </p>
         </div>
 
-        {/* Center: search + tasks */}
-        <main className="flex flex-col" style={{ flex: 1, minWidth: 0, gap: 18 }}>
-
-          {/* Controls row */}
-          <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
-            <div
-              onClick={() => { setSearchOpen(true); searchInputRef.current?.focus(); }}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', background: 'rgba(var(--glass-rgb), 0.96)', border: `1px solid ${searchOpen || search ? 'var(--color-accent, #7c3aed)' : 'var(--color-border-medium)'}`, borderRadius: 999, width: searchOpen || search ? 260 : 112, transition: 'width 0.22s cubic-bezier(.4,0,.2,1), border-color 0.15s', overflow: 'hidden', cursor: searchOpen || search ? 'text' : 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', flexShrink: 0 }}>
-              <Search size={14} style={{ color: searchOpen || search ? 'var(--color-text)' : 'var(--color-text-3)', flexShrink: 0 }} />
-              <input
-                ref={searchInputRef}
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                onFocus={() => setSearchOpen(true)}
-                onBlur={() => { if (!search) setSearchOpen(false); }}
-                placeholder={searchOpen || search ? t('Поиск по тексту или №...') : t('Поиск')}
-                style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, background: 'transparent', color: 'var(--color-text)', minWidth: 0, width: searchOpen || search ? 'auto' : 0, pointerEvents: searchOpen || search ? 'auto' : 'none' }}
-              />
-              {search && <button onClick={e => { e.stopPropagation(); setSearch(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1, flexShrink: 0 }}>×</button>}
-            </div>
-            <StatusTabs value={statusFilter} onChange={setStatusFilter} />
-
-            <ViewTabs value={view} onChange={setView} accent={palette.accent} />
-
-            {/* Sort dropdown */}
-            <SortDropdown value={sortMode} onChange={setSortMode} />
-
-            <button onClick={() => setShowFavOnly(f => !f)}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 14px', borderRadius: 999, background: showFavOnly ? (dark ? 'rgba(248,239,140,0.18)' : 'rgba(248,239,140,0.28)') : 'rgba(var(--glass-rgb), 0.88)', border: `1px solid ${showFavOnly ? (dark ? 'rgba(248,239,140,0.45)' : 'rgba(248,239,140,0.55)') : 'var(--color-border-medium)'}`, fontSize: 12, cursor: 'pointer', color: showFavOnly ? (dark ? '#F4E97A' : '#8A7800') : 'var(--color-text-3)', fontWeight: showFavOnly ? 700 : 400 }}>
-              <Star size={13} fill={showFavOnly ? 'currentColor' : 'none'} />
-              {showFavOnly ? `${t('Избранное')} (${favorites.size})` : t('Избранное')}
-            </button>
-
-
-            <span style={{ marginLeft: 'auto', fontSize: 12, color: dark ? 'var(--color-text-3)' : 'var(--color-text-2)' }}>
-              {t('Всего:')} {filtered.length}
-            </span>
-
+        {/* Filters card */}
+        <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
+          <div className="flex items-center" style={{ gap: 7 }}>
+            <Filter size={15} style={{ color: palette.text }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Фильтры')}</span>
           </div>
-
-          {/* Tasks */}
-          {view === 'cards' ? (
-            <div style={{ paddingTop: 8 }}>
-              <CardDeck key={`deck-${subject}-${cardTasks.length}`} accent={palette.accent} source={deckSource} />
-              <DeckNote shown={cardTasks.length} skipped={cardSkipped} total={filtered.length} />
-            </div>
-          ) : filtered.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-              <span>{t('Заданий не найдено — измените фильтры')}</span>
-              <button onClick={clearFilters}
-                style={{ padding: '8px 18px', borderRadius: 999, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                {t('Сбросить фильтры')}
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {filtered.map((task, i) => (
-                <TaskCard key={task.id} task={task} index={i} palette={palette}
-                  favorites={favorites} onFavorite={toggleFav}
-                  answered={answered} onAnswer={setAnswer}
-                  onCopyId={handleCopyId} lineNames={lineNames}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <MultiSelectField label={t('Раздел')} options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} />
+            <AnimatePresence>
+              {sections.length > 0 && subject === 'biology' && (
+                <SuggestBox
+                  section={sections[sections.length - 1]}
+                  lineNames={lineNames}
+                  onPickLine={v => { setLines(prev => prev.includes(v) ? prev : [...prev, v]) }}
+                  accent={palette.accent}
                 />
-              ))}
+              )}
+            </AnimatePresence>
+            <MultiSelectField label={t('Тема')} options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} />
+            <div style={{ display: 'flex', gap: 6 }}>
+              {['1', '2'].map(p => {
+                const active = parts.includes(p)
+                const avail = availableParts.includes(p as '1' | '2')
+                return (
+                <button key={p} disabled={!avail} onClick={() => setParts(active ? parts.filter(x => x !== p) : [...parts, p])} style={{
+                  flex: 1, padding: '9px 12px', borderRadius: 13, fontSize: 13, fontWeight: 600, cursor: avail ? 'pointer' : 'not-allowed',
+                  background: active ? `${palette.accent}22` : 'var(--color-bg-input)',
+                  border: 'none',
+                  color: active ? palette.accent : 'var(--color-muted)',
+                  opacity: avail ? 1 : 0.4,
+                  transition: 'all 0.15s ease',
+                }}>
+                  {t('Часть')} {p}
+                </button>
+              )})}
             </div>
+            <MultiSelectField label={t('Линия')} options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} />
+            <FilterField label={t('Источник')} options={allSources}  value={source}  onChange={setSource} accent={palette.accent} />
+          </div>
+          {hasFilters && (
+            <button onClick={clearFilters}
+              style={{ padding: '8px 0', borderRadius: 12, background: 'rgba(176,48,64,0.10)', border: '1px solid rgba(176,48,64,0.18)', fontSize: 12, color: 'rgba(176,48,64,0.75)', cursor: 'pointer', fontWeight: 600 }}>
+              {t('Сбросить фильтры')}
+            </button>
           )}
-        </main>
-      </div>
+        </div>
 
+        </>}
+        toolbar={<>
+        <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
+          <div
+            onClick={() => { setSearchOpen(true); searchInputRef.current?.focus(); }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', background: 'rgba(var(--glass-rgb), 0.96)', border: `1px solid ${searchOpen || search ? 'var(--color-accent, #7c3aed)' : 'var(--color-border-medium)'}`, borderRadius: 999, width: searchOpen || search ? 260 : 112, transition: 'width 0.22s cubic-bezier(.4,0,.2,1), border-color 0.15s', overflow: 'hidden', cursor: searchOpen || search ? 'text' : 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', flexShrink: 0 }}>
+            <Search size={14} style={{ color: searchOpen || search ? 'var(--color-text)' : 'var(--color-text-3)', flexShrink: 0 }} />
+            <input
+              ref={searchInputRef}
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              onFocus={() => setSearchOpen(true)}
+              onBlur={() => { if (!search) setSearchOpen(false); }}
+              placeholder={searchOpen || search ? t('Поиск по тексту или №...') : t('Поиск')}
+              style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, background: 'transparent', color: 'var(--color-text)', minWidth: 0, width: searchOpen || search ? 'auto' : 0, pointerEvents: searchOpen || search ? 'auto' : 'none' }}
+            />
+            {search && <button onClick={e => { e.stopPropagation(); setSearch(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1, flexShrink: 0 }}>×</button>}
+          </div>
+          <StatusTabs value={statusFilter} onChange={setStatusFilter} />
+
+          <ViewTabs value={view} onChange={setView} accent={palette.accent} />
+
+          {/* Sort dropdown */}
+          <SortDropdown value={sortMode} onChange={setSortMode} />
+
+          <button onClick={() => setShowFavOnly(f => !f)}
+            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 14px', borderRadius: 999, background: showFavOnly ? (dark ? 'rgba(248,239,140,0.18)' : 'rgba(248,239,140,0.28)') : 'rgba(var(--glass-rgb), 0.88)', border: `1px solid ${showFavOnly ? (dark ? 'rgba(248,239,140,0.45)' : 'rgba(248,239,140,0.55)') : 'var(--color-border-medium)'}`, fontSize: 12, cursor: 'pointer', color: showFavOnly ? (dark ? '#F4E97A' : '#8A7800') : 'var(--color-text-3)', fontWeight: showFavOnly ? 700 : 400 }}>
+            <Star size={13} fill={showFavOnly ? 'currentColor' : 'none'} />
+            {showFavOnly ? `${t('Избранное')} (${favorites.size})` : t('Избранное')}
+          </button>
+
+
+          <span style={{ marginLeft: 'auto', fontSize: 12, color: dark ? 'var(--color-text-3)' : 'var(--color-text-2)' }}>
+            {t('Всего:')} {filtered.length}
+          </span>
+
+        </div>
+        </>}
+      >
+
+      {/* Tasks */}
+      {view === 'cards' ? (
+        <div style={{ paddingTop: 8 }}>
+          <CardDeck key={`deck-${subject}-${cardTasks.length}`} accent={palette.accent} source={deckSource} />
+          <DeckNote shown={cardTasks.length} skipped={cardSkipped} total={filtered.length} />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+          <span>{t('Заданий не найдено — измените фильтры')}</span>
+          <button onClick={clearFilters}
+            style={{ padding: '8px 18px', borderRadius: 999, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            {t('Сбросить фильтры')}
+          </button>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {filtered.map((task, i) => (
+            <TaskCard key={task.id} task={task} index={i} palette={palette}
+              favorites={favorites} onFavorite={toggleFav}
+              answered={answered} onAnswer={setAnswer}
+              onCopyId={handleCopyId} lineNames={lineNames}
+            />
+          ))}
+        </div>
+      )}
+      </TrainerShell>
     </div>
   )
 }

@@ -959,6 +959,7 @@ const EN: Record<string, string> = {
 
   // — Сверка курса с готовым (сидом) —
   "Подтянуть из сида": "Pull from template",
+  "Из сида": "From template",
   "Показать, что изменилось в готовом курсе с момента добавления": "Show what changed in the template since you added it",
   "Что изменилось в готовом курсе": "What changed in the template",
   "Применится к курсу в редакторе — в базу уйдёт после «Сохранить»": "Applies to the course in the editor — saved to the database on “Save”",
