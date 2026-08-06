@@ -34,6 +34,7 @@ import { vocabImage } from '../data/vocabImages'
 import { INITIAL_SRS } from '../lib/srs'
 import { useT } from '../lib/i18n'
 import CardDeck, { type DeckSource } from './CardDeck'
+import { Chips } from './LanguageTrainer'
 import Skeleton from './Skeleton'
 
 type Owner = { studentId?: string; anonName?: string }
@@ -89,13 +90,13 @@ function Hub({ shelves, accent, onOpen, t }: {
   onOpen: (themeId: string) => void
   t: (s: string) => string
 }) {
-  // Полка по умолчанию — первая, а не «все»: тридцать восемь стопок сразу это
+  // Полка по умолчанию — первая, а не «все»: тридцать восемь наборов сразу это
   // стена, из которой ученик не выбирает, а закрывает вкладку.
   const [shelf, setShelf] = useState(0)
   const [query, setQuery] = useState('')
 
   const q = query.trim().toLowerCase()
-  // Поиск идёт по ВСЕМ полкам и молча отменяет выбор слева: человек, который
+  // Поиск идёт по ВСЕМ полкам и молча отменяет выбор раздела: человек, который
   // ищет «аптеку», не должен ещё и угадывать, в каком она разделе.
   const visible = useMemo(() => {
     const pool = q ? shelves.flatMap(s => s.themes) : (shelves[shelf]?.themes ?? [])
@@ -107,17 +108,31 @@ function Hub({ shelves, accent, onOpen, t }: {
   }, [shelves, shelf, q])
 
   const total = shelves.reduce((s, x) => s + x.count, 0)
+  const shelfTitles = shelves.map(s => t(s.title))
 
   return (
-    <div style={{ display: 'flex', gap: 22, alignItems: 'flex-start' }}>
-      {/* Левая колонка: поиск и полки.
-          sticky, потому что сетка стопок длиннее экрана, и выбор раздела не
-          должен уезжать вверх вместе с ней. */}
-      <aside style={{
-        width: 232, flexShrink: 0, position: 'sticky', top: 8,
-        display: 'flex', flexDirection: 'column', gap: 14,
-      }}>
-        <div style={{ position: 'relative' }}>
+    <div>
+      {/* Разделы — тем же фильтром-чипсами, что «Уровень» и «Тема» в чтении.
+          Раньше здесь была своя боковая колонка, и наборы фраз выглядели чужим
+          экраном внутри тренажёра, хотя это такой же список материала. */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+        <Chips
+          label={t('Раздел')}
+          value={q ? '' : shelfTitles[shelf] ?? ''}
+          options={shelfTitles}
+          onChange={v => {
+            setQuery('')
+            const i = shelfTitles.indexOf(v)
+            // Повторный клик по выбранному разделу гасит его (Chips отдаёт ''),
+            // но состояния «ничего не выбрано» здесь нет — возвращаем первый.
+            setShelf(i >= 0 ? i : 0)
+          }}
+          accent={accent}
+        />
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+        <div style={{ position: 'relative', width: '100%', maxWidth: 340 }}>
           <Search
             size={14}
             style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)' }}
@@ -133,75 +148,45 @@ function Hub({ shelves, accent, onOpen, t }: {
             }}
           />
         </div>
+      </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {shelves.map((s, i) => {
-            const on = !q && i === shelf
-            return (
-              <button
-                key={s.title}
-                onClick={() => { setQuery(''); setShelf(i) }}
-                style={{
-                  textAlign: 'left', padding: '9px 12px', borderRadius: 12, cursor: 'pointer',
-                  border: '1px solid transparent', fontFamily: 'inherit',
-                  background: on ? 'var(--color-bg-3)' : 'transparent',
-                  borderColor: on ? `${accent}55` : 'transparent',
-                }}
-              >
-                <div style={{
-                  fontSize: 13.5, fontWeight: 700, marginBottom: 2,
-                  color: on ? accent : 'var(--color-text)',
-                }}>
-                  {t(s.title)}
-                </div>
-                <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>
-                  {s.themes.length} {t('тем')} · {s.count} {t('фраз')}
-                </div>
-              </button>
-            )
-          })}
+      {!q && shelves[shelf] && (
+        <p style={{ fontSize: 12.5, color: 'var(--color-muted)', textAlign: 'center', marginBottom: 12 }}>
+          {t(shelves[shelf].subtitle)}
+        </p>
+      )}
+
+      {visible.length === 0 ? (
+        <div style={{
+          padding: '30px 20px', borderRadius: 16, textAlign: 'center',
+          border: '1px dashed var(--color-border-medium)', background: 'var(--color-bg-2)',
+          fontSize: 13, color: 'var(--color-muted)',
+        }}>
+          {t('Ничего не нашлось. Попробуй другое слово или выбери другой раздел.')}
         </div>
-
-        <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.5, padding: '0 12px' }}>
-          {t('Всего в разговорнике')}: {total} {t('фраз')}
+      ) : (
+        // Один столбец — как тексты в чтении и записи в аудировании. Плитками
+        // наборы читались как отдельный раздел приложения, хотя это ровно
+        // такой же список материала.
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {visible.map(x => <Stack key={x.theme.id} item={x} accent={accent} onOpen={onOpen} t={t} />)}
         </div>
-      </aside>
+      )}
 
-      {/* Правая часть: стопки. */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        {!q && shelves[shelf] && (
-          <div style={{ marginBottom: 14 }}>
-            <h3 style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)', marginBottom: 3 }}>
-              {t(shelves[shelf].title)}
-            </h3>
-            <p style={{ fontSize: 12.5, color: 'var(--color-muted)' }}>{t(shelves[shelf].subtitle)}</p>
-          </div>
-        )}
-
-        {visible.length === 0 ? (
-          <div style={{
-            padding: '30px 20px', borderRadius: 16, textAlign: 'center',
-            border: '1px dashed var(--color-border-medium)', background: 'var(--color-bg-2)',
-            fontSize: 13, color: 'var(--color-muted)',
-          }}>
-            {t('Ничего не нашлось. Попробуй другое слово или выбери раздел слева.')}
-          </div>
-        ) : (
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(186px, 1fr))', gap: 14,
-          }}>
-            {visible.map(x => <Stack key={x.theme.id} item={x} accent={accent} onOpen={onOpen} t={t} />)}
-          </div>
-        )}
+      <div style={{ marginTop: 16, textAlign: 'center', fontSize: 11.5, color: 'var(--color-text-3)' }}>
+        {t('Всего в разговорнике')}: {total} {t('фраз')}
       </div>
     </div>
   )
 }
 
 /**
- * Одна стопка. Две подложки сзади — не украшение: они сообщают, что за плашкой
- * лежит пачка карточек, а не ещё одна кнопка перехода. Подложки статичные и
- * pointer-events: none, иначе они ловили бы клик мимо цели у края.
+ * Один набор — строка списка: чипс с числом фраз, цель, название и примеры.
+ *
+ * Раньше набор рисовался «стопкой» с двумя подложками сзади. Идея была
+ * показать, что за плашкой пачка карточек, но рядом с плоскими списками
+ * чтения и аудирования это выглядело другим приложением. Число фраз в чипсе
+ * говорит то же самое и не ломает строй.
  */
 function Stack({ item, accent, onOpen, t }: {
   item: SurvivalThemeCards
@@ -209,57 +194,40 @@ function Stack({ item, accent, onOpen, t }: {
   onOpen: (id: string) => void
   t: (s: string) => string
 }) {
-  const [hover, setHover] = useState(false)
   const { theme, phrases } = item
   const preview = phrases.slice(0, 3).map(p => p.term).join(' · ')
 
   return (
-    <div style={{ position: 'relative', paddingTop: 8, paddingRight: 8 }}>
-      {[2, 1].map(k => (
-        <div
-          key={k}
-          aria-hidden
-          style={{
-            position: 'absolute', inset: 0, left: k * 4, top: 8 - k * 4, right: 8 - k * 4, bottom: k * 4,
-            borderRadius: 16, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
-            opacity: k === 1 ? 0.85 : 0.5, pointerEvents: 'none',
-            transform: hover ? `translate(${k * 2}px, ${-k * 2}px)` : 'none',
-            transition: 'transform .16s',
-          }}
-        />
-      ))}
-      <button
-        onClick={() => onOpen(theme.id)}
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
-        style={{
-          position: 'relative', width: '100%', minHeight: 128, textAlign: 'left',
-          padding: '13px 15px', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit',
-          display: 'flex', flexDirection: 'column', gap: 6,
-          background: 'var(--color-bg-2)',
-          border: `1px solid ${hover ? accent : 'var(--color-border)'}`,
-          transition: 'border-color .16s',
-        }}
-      >
+    <button
+      onClick={() => onOpen(theme.id)}
+      style={{
+        textAlign: 'left', padding: '16px 18px', borderRadius: 18, cursor: 'pointer',
+        border: '1px solid var(--color-border)', background: 'var(--color-bg-2)',
+        fontFamily: 'inherit', width: '100%',
+      }}
+    >
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' }}>
         <span style={{
-          alignSelf: 'flex-start', fontSize: 10.5, fontWeight: 800, padding: '2px 8px', borderRadius: 999,
-          background: 'var(--color-bg-3)', color: 'var(--color-muted)', letterSpacing: 0.2,
+          display: 'inline-flex', alignItems: 'center', gap: 5,
+          fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999,
+          background: `${accent}22`, color: accent,
         }}>
-          {phrases.length} {t('фраз')}
+          <Layers size={11} /> {phrases.length} {t('фраз')}
         </span>
-        <span style={{ fontSize: 14.5, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.3 }}>
-          {t(theme.title)}
-        </span>
-        {/* Превью — на изучаемом языке, а не перевод названия темы: по трём
-            настоящим фразам сразу видно, что внутри и на каком уровне. */}
-        <span style={{
-          fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.45,
-          overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2,
-        }}>
-          {preview}
-        </span>
-      </button>
-    </div>
+        <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>{t(theme.goal)}</span>
+      </div>
+      <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>
+        {t(theme.title)}
+      </div>
+      {/* Примеры на изучаемом языке: по ним набор узнаётся быстрее, чем по
+          названию — сразу видно, что именно придётся говорить. */}
+      <div style={{
+        fontSize: 12.5, color: 'var(--color-text-3)', lineHeight: 1.5,
+        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+      }}>
+        {preview}
+      </div>
+    </button>
   )
 }
 

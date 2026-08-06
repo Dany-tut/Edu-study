@@ -47,6 +47,7 @@ import {
 } from './languageCourse'
 import { roomSceneImage } from './seedImages'
 import { JAPANESE_THEORY, JAPANESE_VIDEO } from './japaneseJlptTheory'
+import { JAPANESE_EXTRA } from './japaneseJlptExtra'
 import { charGrid, formTable, formulaStrip, contrastPair, clockRow } from './lessonFigures'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
@@ -1533,6 +1534,8 @@ export const JAPANESE_JLPT: LanguageCourseSpec = {
     ...u,
     theory: JAPANESE_THEORY[u.shortId] ?? u.theory,
     videoUrl: JAPANESE_VIDEO[u.shortId] ?? u.videoUrl,
+    // Добор письма, говорения и аудирования в юниты, где их не было (см. аудит).
+    tasks: [...u.tasks, ...(JAPANESE_EXTRA[u.shortId] ?? [])],
   })),
   figures: JAPANESE_FIGURES,
 }

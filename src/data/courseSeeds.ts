@@ -15,6 +15,7 @@ import { buildKoreanTopikCourse, COURSE_SUMMARY as KOREAN } from './koreanTopik'
 import { buildJapaneseJlptCourse, COURSE_SUMMARY as JAPANESE } from './japaneseJlpt'
 import { buildPortugueseCelpeCourse, COURSE_SUMMARY as PORTUGUESE } from './portugueseCelpe'
 import { buildKoreanTopik2Course, COURSE_SUMMARY as KOREAN2 } from './koreanTopik2'
+import { buildKoreanSurvivalCourse, COURSE_SUMMARY as KOREANSURV } from './survivalKo'
 import { buildJapaneseJlptN3Course, COURSE_SUMMARY as JAPANESE3 } from './japaneseJlptN3'
 import { buildPortugueseIntermediateCourse, COURSE_SUMMARY as PORTUGUESE2 } from './portugueseIntermediate'
 import type { CourseSummary } from './languageCourse'
@@ -53,6 +54,15 @@ export const COURSE_SEEDS: CourseSeed[] = [
     subject: 'Корейский',
     summary: KOREAN2,
     build: buildKoreanTopik2Course,
+  },
+  {
+    // Разговорник, а не экзаменационный курс: темы — ситуации, а не грамматика.
+    // Стоит после TOPIK-курсов, потому что он для другой задачи — не «сдать», а
+    // «завтра выйти из аэропорта».
+    key: 'kosv',
+    subject: 'Корейский',
+    summary: KOREANSURV,
+    build: buildKoreanSurvivalCourse,
   },
   {
     key: 'jajl',

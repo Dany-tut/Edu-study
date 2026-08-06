@@ -51,6 +51,7 @@ import {
   hangulSyllableFigure,
 } from './lessonFigures'
 import { KOREAN_THEORY, KOREAN_VIDEO } from './koreanTopikTheory'
+import { KOREAN_EXTRA } from './koreanTopikExtra'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -1864,6 +1865,8 @@ export const KOREAN_TOPIK: LanguageCourseSpec = {
     ...u,
     theory: KOREAN_THEORY[u.shortId] ?? u.theory,
     videoUrl: KOREAN_VIDEO[u.shortId] ?? u.videoUrl,
+    // Добор письма, говорения и аудирования в юниты, где их не было (см. аудит).
+    tasks: [...u.tasks, ...(KOREAN_EXTRA[u.shortId] ?? [])],
   })),
   figures: KOREAN_FIGURES,
 }

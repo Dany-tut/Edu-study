@@ -45,6 +45,7 @@ import {
 } from './languageCourse'
 import { streetMapImage } from './seedImages'
 import { PORTUGUESE_THEORY, PORTUGUESE_VIDEO } from './portugueseCelpeTheory'
+import { PORTUGUESE_EXTRA } from './portugueseCelpeExtra'
 import { formTable, contrastPair, clockRow } from './lessonFigures'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
@@ -1285,6 +1286,8 @@ export const PORTUGUESE_CELPE: LanguageCourseSpec = {
     ...u,
     theory: PORTUGUESE_THEORY[u.shortId] ?? u.theory,
     videoUrl: PORTUGUESE_VIDEO[u.shortId] ?? u.videoUrl,
+    // Добор письма, говорения и аудирования в юниты, где их не было (см. аудит).
+    tasks: [...u.tasks, ...(PORTUGUESE_EXTRA[u.shortId] ?? [])],
   })),
   figures: PORTUGUESE_FIGURES,
 }
