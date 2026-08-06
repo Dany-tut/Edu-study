@@ -5,8 +5,7 @@ import { languageTaxonomy } from '../data/languageTaxonomy'
 import { subjectTheme } from '../lib/theme'
 import { useT } from '../lib/i18n'
 import CardDeck from './CardDeck'
-import { addCards } from '../data/reviewDeck'
-import { ownerStudentIdFor } from '../store/studentDataStore'
+import { addCards, deckOwner } from '../data/reviewDeck'
 import VoiceRecorder from './VoiceRecorder'
 
 // Тренажёр для языковых предметов.
@@ -73,11 +72,16 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
   // ── Колода карточек ────────────────────────────────────────────────────────
   //
   // Пустая колода у новичка — нормальное состояние: карточки набираются из
-  // ошибок, а ошибиться он ещё не успел. Поэтому даём взять словари прочитанных
-  // текстов — двадцать слов, с которыми режим сразу имеет смысл. Явной кнопкой,
-  // а не молча: колода ученика — его вещь, и наполнять её за него без спроса
-  // значит однажды выдать ему сотню чужих слов.
-  const deckOwner = useMemo(() => ({ studentId: ownerStudentIdFor(subjectId) }), [subjectId])
+  // домашки (слова юнита и ошибки, см. lib/reviewCapture.ts), а первую он ещё не
+  // сдал. Поэтому даём взять словари прочитанных текстов — двадцать слов, с
+  // которыми режим сразу имеет смысл. Явной кнопкой, а не молча: колода ученика
+  // — его вещь, и наполнять её за него без спроса значит однажды выдать ему
+  // сотню чужих слов.
+  //
+  // Владелец берётся общим хелпером, а не выводится из предмета: домашка знает
+  // курс, тренажёр — предмет, и по разным ключам получались бы разные колоды
+  // (подробности в data/reviewDeck.ts).
+  const owner = useMemo(() => deckOwner(), [])
   const [deckKey, setDeckKey] = useState(0)
   const [seeding, setSeeding] = useState(false)
   const [seedNote, setSeedNote] = useState('')
@@ -92,7 +96,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
     setSeeding(true)
     setSeedNote('')
     try {
-      const added = await addCards(deckOwner, glossaryCards)
+      const added = await addCards(owner, glossaryCards)
       setSeedNote(added > 0 ? `${t('Добавлено карточек:')} ${added}` : t('Все эти слова уже в колоде.'))
       if (added > 0) setDeckKey(k => k + 1)
     } catch (e) {
@@ -181,7 +185,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
             // один раз на монтировании, иначе новые карточки появятся только
             // после ухода со вкладки и обратно.
             key={deckKey}
-            owner={deckOwner}
+            owner={owner}
             accent={palette.accent}
             lang={lang}
             subject={subjectId}

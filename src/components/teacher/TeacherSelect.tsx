@@ -4,14 +4,17 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Check, Plus, Trash2 } from 'lucide-react'
 import ScrollFade from '../ScrollFade'
 import { useT } from '../../lib/i18n'
+import { DROPDOWN_GLASS, dropdownRing, dropdownRow, dropdownRowHover, dropdownSurface } from '../../lib/dropdownStyle'
 
 export type TeacherSelectOption = string | { value: string; label: string }
 
 const norm = (o: TeacherSelectOption) => (typeof o === 'string' ? { value: o, label: o } : o)
 
+// Рамка прозрачная, а не отсутствует (и на 1px меньше отступ) — на открытии она
+// красится в акцент, и коробка не должна дрогнуть. См. lib/dropdownStyle.ts.
 const baseTrigger: React.CSSProperties = {
-  width: '100%', boxSizing: 'border-box', padding: '9px 12px',
-  borderRadius: 11, border: 'none',
+  width: '100%', boxSizing: 'border-box', padding: '8px 11px',
+  borderRadius: 11, ...dropdownRing(false, ''),
   fontSize: 13, color: 'var(--color-text)', background: 'var(--color-bg-input)',
   outline: 'none', fontFamily: 'inherit', cursor: 'pointer',
   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -125,7 +128,9 @@ export default function TeacherSelect({
           ...baseTrigger,
           ...triggerStyle,
           cursor: 'text',
-          ...(open ? {} : {}),
+          // Только цвет: место под рамку уже занято, а собственную рамку
+          // call-site'а (triggerStyle) перекрашиваем, а не заменяем.
+          ...(open ? { borderColor: accent } : {}),
         }}
       >
         {open && searchable ? (
@@ -184,13 +189,7 @@ export default function TeacherSelect({
                 left: pos.left, width: pos.width,
                 ...(pos.up ? { bottom: pos.bottom } : { top: pos.top }),
                 transformOrigin: pos.up ? 'bottom left' : 'top left',
-                background: 'rgba(var(--glass-rgb), 0.96)',
-                backdropFilter: 'blur(16px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-                border: '1px solid var(--color-border-glass)',
-                borderRadius: 14,
-                boxShadow: 'var(--shadow-dropdown)',
-                padding: 6, overflow: 'hidden',
+                ...dropdownSurface,
               }}
             >
               {editable && (
@@ -242,7 +241,7 @@ export default function TeacherSelect({
                   </button>
                 )
               )}
-              <ScrollFade maxHeight={220} bg="rgba(var(--glass-rgb), 0.96)" overlayScrollbar>
+              <ScrollFade maxHeight={220} bg={DROPDOWN_GLASS} overlayScrollbar>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {filtered.length === 0 ? (
                     <div style={{ padding: '8px 11px', fontSize: 12, color: 'var(--color-text-3)' }}>{t('Ничего не найдено')}</div>
@@ -254,19 +253,11 @@ export default function TeacherSelect({
                         key={o.value || '∅'}
                         onClick={() => { onChange(o.value); closeDropdown() }}
                         style={{
-                          position: 'relative',
-                          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-                          padding: small ? '6px 9px' : '8px 11px', borderRadius: 9,
-                          cursor: 'pointer', textAlign: 'left',
-                          fontSize: small ? 11 : 13, fontWeight: selected ? 650 : 500,
-                          fontFamily: 'inherit',
-                          background: selected ? accentBg : 'transparent',
-                          color: selected ? accent : 'var(--color-text)',
-                          transition: 'background 0.12s',
-                          flexShrink: 0,
+                          ...dropdownRow(selected, { small, accent, accentBg }),
+                          position: 'relative', justifyContent: 'space-between', flexShrink: 0,
                         }}
-                        onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLDivElement).style.background = 'var(--color-bg-5)' }}
-                        onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLDivElement).style.background = 'transparent'; setHoverDel(p => p === o.value ? null : p) }}
+                        onMouseEnter={dropdownRowHover(selected).onMouseEnter}
+                        onMouseLeave={e => { dropdownRowHover(selected).onMouseLeave(e); setHoverDel(p => p === o.value ? null : p) }}
                       >
                         <span style={{ flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>
                           {o.label}

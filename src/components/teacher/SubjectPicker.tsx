@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronDown, Check } from 'lucide-react'
 import ScrollFade from '../ScrollFade'
+import { DROPDOWN_GLASS, dropdownRing, dropdownRow, dropdownRowHover, dropdownSurface } from '../../lib/dropdownStyle'
 
 // Adaptive subject selector — the single control behind every "pick a subject"
 // surface. It changes SHAPE by option count so screens/grids never break as more
@@ -104,7 +105,7 @@ function SubjectDropdown({
   useLayoutEffect(() => {
     if (!open || !btnRef.current) return
     const r = btnRef.current.getBoundingClientRect()
-    setRect({ top: r.bottom + 6, left: r.left, width: r.width })
+    setRect({ top: r.bottom + 5, left: r.left, width: r.width })
   }, [open])
 
   useEffect(() => {
@@ -129,7 +130,7 @@ function SubjectDropdown({
         style={{
           width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 8,
           padding: size === 'sm' ? '6px 9px' : '7px 11px', minHeight: size === 'sm' ? 32 : 38,
-          borderRadius: 11, border: `1px solid ${open ? accent : 'transparent'}`, cursor: 'pointer',
+          borderRadius: 11, ...dropdownRing(open, accent), cursor: 'pointer',
           background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: fs, fontWeight: 700, fontFamily: 'inherit',
         }}>
         {current.icon && <span aria-hidden>{current.icon}</span>}
@@ -139,24 +140,23 @@ function SubjectDropdown({
       {open && rect && createPortal(
         <div ref={popRef} role="listbox" style={{
           position: 'fixed', top: rect.top, left: rect.left, width: rect.width, zIndex: 3000,
-          background: 'var(--color-bg)', border: '1px solid var(--color-border)',
-          borderRadius: 12, boxShadow: '0 12px 32px -8px rgba(0,0,0,0.28)', padding: 4,
+          ...dropdownSurface,
         }}>
-          <ScrollFade maxHeight={272} bg="var(--color-bg)" overlayScrollbar
+          <ScrollFade maxHeight={272} bg={DROPDOWN_GLASS} overlayScrollbar
             scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {options.map(o => {
             const on = o.value === value
             return (
               <button key={o.value} role="option" aria-selected={on}
                 onClick={() => { onChange(o.value); setOpen(false) }}
+                {...dropdownRowHover(on)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, border: 'none',
-                  cursor: 'pointer', textAlign: 'left', fontSize: fs, fontWeight: on ? 700 : 600, fontFamily: 'inherit',
-                  background: on ? accentBg : 'transparent', color: on ? activeColor : 'var(--color-text)',
+                  ...dropdownRow(on, { small: size === 'sm', accent: activeColor, accentBg }),
+                  fontSize: fs,
                 }}>
                 {o.icon && <span aria-hidden>{o.icon}</span>}
                 <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.label}</span>
-                {on && <Check size={13} strokeWidth={3} style={{ color: accent, flexShrink: 0 }} />}
+                {on && <Check size={13} strokeWidth={2.5} style={{ color: activeColor, flexShrink: 0 }} />}
               </button>
             )
           })}

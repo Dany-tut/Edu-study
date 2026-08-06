@@ -73,6 +73,15 @@ export interface HomeworkQuizQuestion {
   /** flashcard — лицевая и оборотная сторона карточки. */
   front?: string
   back?: string
+  /**
+   * flashcard — чтение слова (романизация, кана, транскрипция), отдельным полем.
+   *
+   * Раньше чтение вклеивалось прямо в лицо карточки строкой «우유 (uyu)», и
+   * отключить его было нельзя ничем. Отдельное поле даёт ученику тумблер: пока
+   * он не читает хангыль — романизация на месте, дальше она выключается, а
+   * несъёмная подсказка рядом со словом ровно это и откладывает.
+   */
+  reading?: string
 }
 
 /** One task as persisted by the course editor's «Домашки» tab
@@ -305,6 +314,7 @@ function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): HomeworkQui
     passageTranslation: t.passageTranslation,
     front: t.front,
     back: t.back,
+    reading: t.reading,
   }
 }
 

@@ -320,6 +320,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
   return (data as unknown as DbCourse[]).map(course => ({
     id: course.short_id,
     name: course.title,
+    subject: course.subject,
     progress: 0,
     activeModuleId: 1,
     accessMode: modeByCourse[course.id] ?? 'custom',

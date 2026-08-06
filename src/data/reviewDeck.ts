@@ -9,8 +9,33 @@
 
 import { supabase } from '../lib/supabase'
 import { review, INITIAL_SRS, type ReviewGrade } from '../lib/srs'
+import { getStudentSession } from '../lib/studentSession'
 
-export type ReviewSource = 'diagnostic' | 'trainer' | 'manual'
+/**
+ * Откуда карточка пришла.
+ *
+ * `homework` — ошибка в сданной домашке, `vocab` — слово урока, поставленное на
+ * повторение самим фактом изучения (ошибка для этого не нужна: слово, которое
+ * ученик угадал сегодня, он забудет через неделю ровно так же).
+ */
+export type ReviewSource = 'diagnostic' | 'trainer' | 'manual' | 'homework' | 'vocab'
+
+/**
+ * Владелец колоды — человек, а не курс.
+ *
+ * Раньше владелец выводился из предмета (`ownerStudentIdFor`), и это работало,
+ * пока колоду наполнял и читал один и тот же экран. Как только карточки начали
+ * приходить из домашки, разница вылезла: домашка знает short_id курса, тренажёр
+ * — слаг предмета из реестра, и по разным ключам получались бы разные владельцы,
+ * то есть записанное в домашке не показалось бы в тренажёре.
+ *
+ * Интервальное повторение и по смыслу личное: слово, выученное на курсе, ученик
+ * забывает не «в рамках курса». Поэтому ключ один — id сессии ученика, а
+ * принадлежность предмету остаётся полем `subject` для фильтров.
+ */
+export function deckOwner(): { studentId?: string } {
+  return { studentId: getStudentSession()?.id }
+}
 
 export interface ReviewCard {
   id: string

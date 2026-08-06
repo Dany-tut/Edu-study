@@ -56,6 +56,16 @@ export interface Module {
 export interface Subject {
   id: string
   name: string
+  /**
+   * Предмет курса — русское название из реестра (lib/subjects.ts): «Корейский»,
+   * «Химия». Это НЕ `name`: там заголовок курса («ВРЕМЕННЫЙ ТЕСТ — Корейский»),
+   * и `id` тоже не годится — это short_id курса.
+   *
+   * Нужен, чтобы экран знал, какой предмет открыт, а не только какой курс. Без
+   * него тренажёр резолвил предмет по short_id курса, никогда не попадал в
+   * реестр и ученику-языковику показывал банк заданий ЕГЭ.
+   */
+  subject?: string
   progress: number
   modules: Module[]
   activeModuleId: number

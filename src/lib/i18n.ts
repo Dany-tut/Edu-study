@@ -933,6 +933,12 @@ const EN: Record<string, string> = {
   "мем": "meme",
   "Ответ:": "Answer:",
   "Показать ответ": "Show answer",
+
+  // — Слова урока (знакомство перед заданиями) —
+  "Слова урока": "Lesson words",
+  "Посмотри перед заданиями — дальше они спросятся": "Look through them first — the tasks ask about them",
+  "Чтение": "Reading",
+  "Чтение — романизация, кана, транскрипция (можно пусто)": "Reading — romanization, kana, transcription (optional)",
   "Открой виджет, чтобы посмотреть ответ.": "Open the widget to see the answer.",
   "Тренажёр · прогресс": "Trainer · progress",
   "Верно из": "Correct of",

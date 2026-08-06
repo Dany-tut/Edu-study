@@ -29,6 +29,10 @@ import WordBankSolver from './WordBankSolver'
 import AudioPlayer from './AudioPlayer'
 import VoiceRecorder from './VoiceRecorder'
 import { sentenceTokens } from '../data/taskTypes'
+import { addCards, deckOwner } from '../data/reviewDeck'
+import { cardsFromHomework } from '../lib/reviewCapture'
+import VocabIntro from './VocabIntro'
+import { useReadingVisible } from '../store/readingStore'
 import HardStarLottie from './HardStarLottie'
 import PartyPopperLottie from './PartyPopperLottie'
 
@@ -751,6 +755,7 @@ export default function HomeworkFlow({
   const isMobile = !useIsDesktop()
   const { dark } = useTheme()
   const palette = subjectTheme(subject, dark)
+  const readingVisible = useReadingVisible(s => s.visible)
   const setHomeworkWidgetFeedback = useDashboard(s => s.setHomeworkWidgetFeedback)
   const clearHomeworkWidgetFeedback = useDashboard(s => s.clearHomeworkWidgetFeedback)
   const setAnswerFlight = useDashboard(s => s.setAnswerFlight)
@@ -876,6 +881,13 @@ export default function HomeworkFlow({
   }, [docked, topBarBox, state.selectedLevel])
 
   const basicQuestions = basicLevel?.questions ?? []
+  // Словарь урока — это сами flashcard-задания домашки, показанные лицом и
+  // оборотом до начала решения (см. VocabIntro). Отдельного списка слов у урока
+  // нет, и заводить его значило бы держать одно слово в двух местах.
+  const vocabWords = useMemo(
+    () => basicQuestions.filter(q => qType(q) === 'flashcard' && !!q.back?.trim()),
+    [basicQuestions],
+  )
   const answeredCount = basicQuestions.filter(question => questionAnswered(question, state.basicAnswers[question.id])).length
   const basicCompleted = basicQuestions.length > 0 && answeredCount === basicQuestions.length
 
@@ -928,7 +940,38 @@ export default function HomeworkFlow({
       attachments: attachments ?? {},
     }, { onConflict: 'student_id,lesson_ref' })
     trackEvent('homework_submit', { lesson_ref: ref, kind: level })
+    if (level === 'basic') void captureBasicToDeck()
     useStudentData.getState().load()
+  }
+
+  /**
+   * Сданная домашка → колода интервального повторения.
+   *
+   * Слова урока идут в колоду всегда, ошибки — только там, где ученик ответил и
+   * ответил неверно. Пропущенное задание сознательно не считается ошибкой:
+   * брошенная на середине домашка иначе высыпала бы в колоду десяток карточек
+   * разом, и повторение из помощи превратилось бы в наказание за то, что ученик
+   * не доделал. Что именно из ошибок доходит до колоды — в lib/reviewCapture.ts.
+   *
+   * Не блокирует сдачу: домашка уже сохранена, и упавшая колода не повод
+   * показать ученику ошибку отправки.
+   */
+  async function captureBasicToDeck() {
+    const wrongIds = new Set(
+      basicQuestions
+        .filter(q => {
+          const ans = state.basicAnswers[q.id]
+          return questionAnswered(q, ans) && questionAutoGradable(q) && !questionCorrect(q, ans)
+        })
+        .map(q => q.id),
+    )
+    const cards = cardsFromHomework({ questions: basicQuestions, wrongIds, subject })
+    if (cards.length === 0) return
+    try {
+      await addCards(deckOwner(), cards)
+    } catch (e) {
+      console.error('captureBasicToDeck:', e)
+    }
   }
 
   // Все хард-задания — единый per-task/раунд-формат. Если учитель назначил
@@ -1436,6 +1479,15 @@ export default function HomeworkFlow({
                 </div>
               )}
 
+              {/* Знакомство со словами — до заданий, а не после них. Карточки
+                  внизу домашки остаются проверкой; здесь слово вводится. */}
+              <VocabIntro
+                words={vocabWords}
+                accent={palette.accent}
+                soft={palette.soft}
+                defaultOpen={!state.basicSubmitted}
+              />
+
               {basicQuestions.map((question, index) => {
                 const selectedAnswer = state.basicAnswers[question.id]
                 const isChoice = questionIsChoice(question)
@@ -1502,8 +1554,11 @@ export default function HomeworkFlow({
                         </p>
                         {/* У словарной карточки формулировка вопроса — это само
                             слово (оно же подпись задания в редакторе), а слово
-                            печатается ещё раз на карточке. Второй раз не нужен. */}
-                        {!(qType(question) === 'flashcard' && question.prompt === question.front) && (
+                            печатается ещё раз на карточке. Второй раз не нужен.
+                            Сверяем по началу строки, а не по равенству: в
+                            подписи задания к слову приписано чтение — «우유
+                            (uyu)», — и точное сравнение с ним не сходится. */}
+                        {!(qType(question) === 'flashcard' && !!question.front && question.prompt.startsWith(question.front)) && (
                           <h4 style={{ fontSize: 18, lineHeight: 1.35, fontWeight: 720, color: 'var(--color-text)' }}>
                             {question.prompt}
                           </h4>
@@ -1736,6 +1791,13 @@ export default function HomeworkFlow({
                           />
                         )}
                         <span>{question.front || question.prompt}</span>
+                        {/* Чтение — по тумблеру из блока «Слова урока»: пока
+                            ученик не читает письмо, оно опора, дальше помеха. */}
+                        {readingVisible && question.reading && (
+                          <span style={{ fontSize: 14, fontWeight: 600, opacity: 0.75, marginTop: -6 }}>
+                            {question.reading}
+                          </span>
+                        )}
                       </div>
                       <input
                         value={selectedAnswer ?? ''}

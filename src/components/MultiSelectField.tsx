@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Check, X } from 'lucide-react'
 import ScrollFade from './ScrollFade'
 import { useT } from '../lib/i18n'
+import { DROPDOWN_GLASS, dropdownRing, dropdownRow, dropdownRowHover, dropdownSurface } from '../lib/dropdownStyle'
 
 // ── Multi-select combobox ────────────────────────────────────────────────────
 // Telegram-style trigger: selected chips live INSIDE the field, and the search
@@ -108,10 +109,9 @@ export default function MultiSelectField({
         onClick={() => { if (!open) openDropdown(); else if (!query && isEmpty) close(); else inputRef.current?.focus() }}
         style={{
           width: '100%', boxSizing: 'border-box', padding: small ? '6px 9px' : '7px 11px',
-          borderRadius: 11, border: 'none',
+          borderRadius: 11, ...dropdownRing(open, accent),
           background: 'var(--color-bg-input)', cursor: 'text',
           display: 'flex', alignItems: 'center', gap: 6, minHeight: small ? 32 : 38,
-          transition: 'border-color 0.15s, box-shadow 0.15s',
         }}
       >
         {open ? (
@@ -163,13 +163,10 @@ export default function MultiSelectField({
                 position: 'fixed', zIndex: 2000, left: pos.left, width: pos.width,
                 ...(pos.up ? { bottom: pos.bottom } : { top: pos.top }),
                 transformOrigin: pos.up ? 'bottom left' : 'top left',
-                background: 'rgba(var(--glass-rgb), 0.96)',
-                backdropFilter: 'blur(16px) saturate(180%)', WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-                border: '1px solid var(--color-border-glass)', borderRadius: 14,
-                boxShadow: 'var(--shadow-dropdown)', padding: 6, overflow: 'hidden',
+                ...dropdownSurface,
               }}
             >
-              <ScrollFade maxHeight={224} bg="rgba(var(--glass-rgb), 0.96)" overlayScrollbar>
+              <ScrollFade maxHeight={224} bg={DROPDOWN_GLASS} overlayScrollbar>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {shown.length === 0 ? (
                     <div style={{ padding: '8px 11px', fontSize: 12, color: 'var(--color-text-3)' }}>{t('Ничего не найдено')}</div>
@@ -177,17 +174,11 @@ export default function MultiSelectField({
                     const selected = values.includes(o)
                     return (
                       <div key={o} onClick={() => toggle(o)}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 9, padding: small ? '6px 10px' : '8px 12px', borderRadius: 9,
-                          cursor: 'pointer', fontSize, fontWeight: selected ? 650 : 500, fontFamily: 'inherit',
-                          background: selected ? accentBg : 'transparent', color: selected ? accent : 'var(--color-text)',
-                          transition: 'background 0.12s',
-                        }}
-                        onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLDivElement).style.background = 'var(--color-bg-5)' }}
-                        onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLDivElement).style.background = 'transparent' }}
+                        style={{ ...dropdownRow(selected, { small, accent, accentBg }), fontSize }}
+                        {...dropdownRowHover(selected)}
                       >
                         <span style={{ flex: 1, minWidth: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>{o}</span>
-                        {selected && <Check size={small ? 13 : 15} strokeWidth={2.6} style={{ flexShrink: 0, color: accent }} />}
+                        {selected && <Check size={13} strokeWidth={2.5} style={{ flexShrink: 0, color: accent }} />}
                       </div>
                     )
                   })}

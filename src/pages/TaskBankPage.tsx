@@ -23,6 +23,7 @@ import { useCurriculum } from '../store/curriculumStore'
 import { useTaskBank } from '../store/taskBankStore'
 import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../store/taskMetaStore'
 import { useDashboard } from '../store/dashboardStore'
+import { useStudentData } from '../store/studentDataStore'
 import { useTrainerProgress } from '../store/trainerProgressStore'
 import { subjectTheme, PURPLE } from '../lib/theme'
 import { getSubject, BANK_SUBJECT_IDS, subjectIcon } from '../lib/subjects'
@@ -1454,7 +1455,13 @@ export default function TaskBankPage() {
   // У языковых предметов банка заданий нет (SUBJECTS[...].hasBank === false), и
   // главное — язык так не тренируется. Раньше ученик-языковик открывал тренажёр
   // и видел задачи по генетике: список жёстко падал на биологию.
-  const langSubject = getSubject(activeSubjectId)
+  //
+  // Предмет берётся из поля курса, а не из activeSubjectId: последний — это
+  // short_id курса («tmpko1»), в реестре предметов его нет никогда, поэтому
+  // языковая ветка не включалась ни разу и корейский открывался банком ЕГЭ.
+  // activeSubjectId остаётся запасным путём для демо-данных, где id и есть слаг.
+  const activeCourse = useStudentData(s => s.subjects.find(x => x.id === activeSubjectId))
+  const langSubject = getSubject(activeCourse?.subject) ?? getSubject(activeSubjectId)
   const isLangTrainer = !!langSubject?.isLanguage
 
   // Предметы переключателя — производные от данных, а не фиксированная пара

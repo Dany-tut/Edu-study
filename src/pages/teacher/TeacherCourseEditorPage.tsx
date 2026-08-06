@@ -1448,6 +1448,19 @@ const IMG_SIZES: { label: string; value: number }[] = [
   { label: '↔', value: 100 },
 ]
 
+/**
+ * Подпись словарной карточки в списке заданий: слово и чтение в скобках.
+ *
+ * Ученику слово и чтение показываются раздельно (чтение выключается тумблером),
+ * а в редакторе нужна одна читаемая строка: список из тридцати карточек на
+ * хангыле без романизации учитель глазами не разберёт.
+ */
+function cardLabel(front: string | undefined, reading: string | undefined): string {
+  const word = (front ?? '').trim()
+  const r = (reading ?? '').trim()
+  return r ? `${word} (${r})` : word
+}
+
 function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
   task: HWTask; index: number
   onUpdate: (t: HWTask) => void
@@ -1766,8 +1779,18 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <AutoTextarea
                     value={task.front ?? ''}
-                    onChange={v => onUpdate({ ...task, front: v, question: v })}
+                    onChange={v => onUpdate({ ...task, front: v, question: cardLabel(v, task.reading) })}
                     placeholder={t('Лицевая сторона — слово на изучаемом языке')}
+                    style={taskTextSt}
+                  />
+                  {/* Чтение отдельным полем, а не в скобках внутри слова: ученик
+                      может его выключить, когда начнёт читать письмо сам. В
+                      подписи задания оно остаётся — иначе список словарных
+                      карточек в редакторе не читается для чужого письма. */}
+                  <AutoTextarea
+                    value={task.reading ?? ''}
+                    onChange={v => onUpdate({ ...task, reading: v, question: cardLabel(task.front, v) })}
+                    placeholder={t('Чтение — романизация, кана, транскрипция (можно пусто)')}
                     style={taskTextSt}
                   />
                   <AutoTextarea
@@ -3473,7 +3496,7 @@ export default function TeacherCourseEditorPage() {
   const savedPos = (() => {
     try {
       const raw = sessionStorage.getItem(posKey)
-      return raw ? (JSON.parse(raw) as { lessonId?: string; mode?: LessonMode }) : null
+      return raw ? (JSON.parse(raw) as { lessonId?: string; mode?: LessonMode; hwTab?: 'lesson' | 'rec' }) : null
     } catch { return null }
   })()
 
@@ -3481,25 +3504,27 @@ export default function TeacherCourseEditorPage() {
     savedPos?.lessonId && course.lessons.some(l => l.id === savedPos.lessonId) ? savedPos.lessonId : null
   )
   const [lessonMode, setLessonMode] = useState<LessonMode>(savedPos?.mode ?? 'lesson')
+  // Homework target toggle (ДЗ урока vs ДЗ записи) — lifted here so the left
+  // meta rail and the center task list stay in sync. Живёт на уровне страницы,
+  // поэтому переключение урока его не сбрасывает; в sessionStorage — чтобы
+  // пережить и перезагрузку, как выбранный урок с вкладкой режима.
+  const [hwTab, setHwTab] = useState<'lesson' | 'rec'>(savedPos?.hwTab ?? 'lesson')
 
   useEffect(() => {
     try {
       if (selectedLessonId) {
-        sessionStorage.setItem(posKey, JSON.stringify({ lessonId: selectedLessonId, mode: lessonMode }))
+        sessionStorage.setItem(posKey, JSON.stringify({ lessonId: selectedLessonId, mode: lessonMode, hwTab }))
       } else {
         sessionStorage.removeItem(posKey)
       }
     } catch { /* sessionStorage unavailable — non-fatal */ }
-  }, [selectedLessonId, lessonMode, posKey])
+  }, [selectedLessonId, lessonMode, hwTab, posKey])
 
   // Keep the editor session JSON in sync with live edits, so a refresh restores
   // the latest course state (not just the snapshot from when the editor opened).
   useEffect(() => {
     try { sessionStorage.setItem('ce-session', JSON.stringify(course)) } catch { /* non-fatal */ }
   }, [course])
-  // Homework target toggle (ДЗ урока vs ДЗ записи) — lifted here so the left
-  // meta rail and the center task list stay in sync.
-  const [hwTab, setHwTab] = useState<'lesson' | 'rec'>('lesson')
   const [openingLesson, setOpeningLesson] = useState(false)
   // Lessons open to students, keyed by persisted short_id (not by `number` —
   // CELesson.number is 1-based append order, while the persisted lesson short_id
