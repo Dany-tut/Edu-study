@@ -52,6 +52,17 @@ export interface HomeworkQuizQuestion {
   responseSeconds?: number
   /** imageDescribe / imageCompare — картинки и режим ответа. */
   images?: string[]
+  /**
+   * Картинка условия («Добавить фото к условию» в редакторе) — для любого типа
+   * задания, включая словарную карточку, где она рисуется на лицевой стороне.
+   *
+   * Раньше поле не переносилось в вопрос вовсе: учитель прикладывал фото к
+   * заданию курса, сохранял, а ученик видел задание без картинки — и решить
+   * «что изображено» было нельзя.
+   */
+  image?: string
+  /** Ширина картинки условия в процентах колонки (по умолчанию 100). */
+  imageSize?: number
   responseMode?: 'write' | 'speak'
   /** Дополнительные принимаемые формулировки для свободного ввода. */
   altAnswers?: string[]
@@ -253,6 +264,8 @@ function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): HomeworkQui
       // Для multi нужны все верные варианты, а не только первый.
       correctOptionIds: tp === 'multi' ? correctIdx.map(String) : undefined,
       explanation: '', type: tp,
+      image: t.image,
+      imageSize: t.imageSize,
       // Экзаменационное чтение — это почти всегда выбор ответа к отрывку,
       // поэтому passage обязан переноситься и в этой ветке тоже.
       passage: t.passage,
@@ -284,6 +297,8 @@ function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): HomeworkQui
     prepSeconds: t.prepSeconds,
     responseSeconds: t.responseSeconds,
     images: t.images,
+    image: t.image,
+    imageSize: t.imageSize,
     responseMode: t.responseMode,
     passage: t.passage,
     passageTitle: t.passageTitle,

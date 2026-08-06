@@ -1503,6 +1503,20 @@ export default function HomeworkFlow({
                         <h4 style={{ fontSize: 18, lineHeight: 1.35, fontWeight: 720, color: 'var(--color-text)' }}>
                           {question.prompt}
                         </h4>
+                        {/* Картинка условия. У словарной карточки она рисуется
+                            на самой карточке (ниже), поэтому здесь пропускается —
+                            иначе одно и то же изображение показывалось дважды. */}
+                        {question.image && qType(question) !== 'flashcard' && (
+                          <img
+                            src={question.image}
+                            alt=""
+                            style={{
+                              display: 'block', marginTop: 10, borderRadius: 14,
+                              width: `${question.imageSize ?? 100}%`, maxWidth: '100%',
+                              border: '1px solid var(--color-border)', background: '#fff',
+                            }}
+                          />
+                        )}
                       </div>
 
                       {showVerdict && (
@@ -1704,8 +1718,19 @@ export default function HomeworkFlow({
                         padding: '18px 16px', borderRadius: 16, textAlign: 'center',
                         background: 'var(--color-teal-pill-bg)', color: 'var(--color-teal-pill-text)',
                         fontSize: 22, fontWeight: 700, lineHeight: 1.3,
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
                       }}>
-                        {question.front || question.prompt}
+                        {/* Картинка на лицевой стороне: слово вспоминается от
+                            предмета, а не от русского перевода — перевод ученик
+                            как раз и вписывает. */}
+                        {question.image && (
+                          <img
+                            src={question.image}
+                            alt=""
+                            style={{ display: 'block', width: 148, maxWidth: '70%', borderRadius: 12, background: '#fff' }}
+                          />
+                        )}
+                        <span>{question.front || question.prompt}</span>
                       </div>
                       <input
                         value={selectedAnswer ?? ''}

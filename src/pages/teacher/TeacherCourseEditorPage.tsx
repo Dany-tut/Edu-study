@@ -20,6 +20,7 @@ import { useGroups, useAllStudents } from '../../lib/useGroups'
 import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import ScrollFade from '../../components/ScrollFade'
+import Checkbox from '../../components/Checkbox'
 import { useOverlayScroll, ScrollOverlays, OverlayScrollArea, fadeMask } from '../../components/teacher/OverlayScroll'
 import { getOwnerId } from '../../lib/owner'
 import TableEditor from '../../components/teacher/TableEditor'
@@ -1796,7 +1797,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                         <div key={side} style={{
                           flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8,
                           padding: '0 9px 0 0', borderRadius: 11,
-                          border: `1.5px solid ${isCorrect ? cfg.color : 'var(--color-border-medium)'}`,
+                          border: `1.5px solid ${isCorrect ? 'var(--color-control-accent)' : 'var(--color-border-medium)'}`,
                           background: 'var(--color-bg-input)', transition: 'border-color 0.14s',
                         }}>
                           <AutoTextarea
@@ -1809,19 +1810,15 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                               fontFamily: 'inherit', outline: 'none',
                             }}
                           />
-                          <button
-                            onClick={() => onUpdate({ ...task, correctPair: side })}
-                            title={t('Верный ответ')}
-                            style={{
-                              width: 20, height: 20, borderRadius: 6, flexShrink: 0, padding: 0,
-                              border: `2px solid ${isCorrect ? cfg.fill : 'var(--color-border-medium)'}`,
-                              background: isCorrect ? cfg.fill : 'transparent',
-                              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              transition: 'all 0.14s',
-                            }}
-                          >
-                            {isCorrect && <Check size={12} strokeWidth={3} style={{ color: '#fff' }} />}
-                          </button>
+                          <span title={t('Верный ответ')} style={{ display: 'flex', flexShrink: 0 }}>
+                            <Checkbox
+                              checked={isCorrect}
+                              // Снять галочку нельзя: верный из двух всегда один,
+                              // её можно только перенести на соседнее поле.
+                              onChange={() => onUpdate({ ...task, correctPair: side })}
+                              size={20}
+                            />
+                          </span>
                         </div>
                       )
                     })}

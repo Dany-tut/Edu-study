@@ -3028,12 +3028,16 @@ function CreatorView({
                       <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <button onClick={() => toggleCorrect(i)} style={{
                           width: 24, height: 24, borderRadius: tkAnswerType === 'single' ? '50%' : 7, flexShrink: 0,
-                          border: `2px solid ${isCorrect ? cfg.color : 'var(--color-border-medium)'}`,
-                          background: isCorrect ? cfg.color : 'transparent',
+                          // Заливка — приглушённый cfg.fill, а не cfg.color: тот подобран как
+                          // цвет текста и рамок, под белой галочкой давал 1.7:1. Галочка белая
+                          // жёстко: getContrastColor не разбирает var(), то есть всё равно
+                          // возвращал бы белую — но уже поверх светлой заливки.
+                          border: `2px solid ${isCorrect ? cfg.fill : 'var(--color-border-medium)'}`,
+                          background: isCorrect ? cfg.fill : 'transparent',
                           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          position: 'relative', boxShadow: isCorrect ? accentCircleShadow(cfg.color) : 'none', transition: 'all 0.14s',
+                          position: 'relative', transition: 'all 0.14s',
                         }}>
-                          {isCorrect && <Check size={13} strokeWidth={3} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: getContrastColor(cfg.color) }} />}
+                          {isCorrect && <Check size={13} strokeWidth={3} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff' }} />}
                         </button>
                         <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `2px solid ${isCorrect ? cfg.color : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', overflow: 'hidden', transition: 'all 0.14s' }}>
                           <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: isCorrect ? cfg.color : 'var(--color-text-2)', flexShrink: 0 }}>{LETTERS[i]}</div>
