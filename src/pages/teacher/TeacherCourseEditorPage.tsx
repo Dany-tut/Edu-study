@@ -370,6 +370,31 @@ const ACCESS_MODE_OPTIONS: Array<{ value: AccessMode; label: string }> = [
   { value: 'by_date', label: 'По датам' },
 ]
 
+/**
+ * Ширина дропдауна доступа — фиксированная, не резиновая.
+ *
+ * Раньше стоял minWidth, а ширину задавал сам TeacherSelect (width: 100%).
+ * Во флекс-строке это значит «занять всё»: дропдаун раздувался на всю
+ * карточку, а имени оставался огрызок, и «Анна Петровна» ломалась на две
+ * строки. Причём ломалось только длинное имя — на коротких строка выглядела
+ * нормально, поэтому баг и жил.
+ *
+ * Фиксированная ширина решает и вторую задачу: дропдауны выстраиваются в
+ * одну вертикаль по всему списку, а не пляшут по длине имени.
+ */
+const ACCESS_SELECT_W = 168
+
+/**
+ * Имя — всегда одна строка.
+ *
+ * Перенос здесь ничего не спасает: он не показывает больше текста, а делает
+ * строку списка вдвое выше, из-за чего соседние строки перестают читаться как
+ * ряд. Длинное имя обрезается многоточием, целиком его показывает title.
+ */
+const oneLine: React.CSSProperties = {
+  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+}
+
 function AccessModeSelect({
   value, onChange, placeholder,
 }: {
@@ -379,17 +404,19 @@ function AccessModeSelect({
 }) {
   const t = useT()
   return (
-    <TeacherSelect
-      value={value}
-      options={ACCESS_MODE_OPTIONS.map(o => ({ ...o, label: t(o.label) }))}
-      onChange={v => onChange(v as AccessMode)}
-      placeholder={placeholder ?? t('Доступ')}
-      clearable={false}
-      small
-      accent="var(--color-green-text)"
-      accentBg="var(--color-green-soft)"
-      triggerStyle={{ minWidth: 150, background: 'var(--color-bg-5)', border: '1px solid var(--color-border-medium)' }}
-    />
+    <div style={{ flex: `0 0 ${ACCESS_SELECT_W}px`, width: ACCESS_SELECT_W }}>
+      <TeacherSelect
+        value={value}
+        options={ACCESS_MODE_OPTIONS.map(o => ({ ...o, label: t(o.label) }))}
+        onChange={v => onChange(v as AccessMode)}
+        placeholder={placeholder ?? t('Доступ')}
+        clearable={false}
+        small
+        accent="var(--color-green-text)"
+        accentBg="var(--color-green-soft)"
+        triggerStyle={{ background: 'var(--color-bg-5)', border: '1px solid var(--color-border-medium)' }}
+      />
+    </div>
   )
 }
 
@@ -609,8 +636,11 @@ function CenterCourseAccess({
                       display: 'flex', alignItems: 'center', gap: 8,
                       padding: '7px 12px', borderRadius: 12, background: 'var(--color-green-soft)',
                     }}>
-                      <Users size={13} style={{ color: 'var(--color-green-text)' }} />
-                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)', flex: 1 }}>{g.name}</span>
+                      <Users size={13} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
+                      <span style={{
+                        fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)',
+                        flex: 1, minWidth: 0, ...oneLine,
+                      }} title={g.name}>{g.name}</span>
                       <AccessModeSelect
                         value={gm === 'mixed' ? '' : gm}
                         onChange={v => setGroupMode(g.id, v)}
@@ -625,9 +655,13 @@ function CenterCourseAccess({
                     padding: '7px 12px', borderRadius: 12, background: 'var(--color-bg-3)',
                   }}>
                     <span style={{ display: 'flex', flexDirection: 'column', gap: 1, flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{s.name}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', ...oneLine }} title={s.name}>
+                        {s.name}
+                      </span>
                       {s.subject && (
-                        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)' }}>{s.subject}</span>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-muted)', ...oneLine }}>
+                          {s.subject}
+                        </span>
                       )}
                     </span>
                     <AccessModeSelect value={modeOf(s.id)} onChange={v => setStudentMode(s.id, v)} />

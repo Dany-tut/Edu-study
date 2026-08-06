@@ -119,24 +119,31 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
   // «Повторение» — колода по расписанию, то, что было здесь всегда. «Наборы
   // фраз» — готовый разговорник по ситуациям (см. PhraseDecks).
   //
-  // Что открыть по умолчанию, решает наличие долга: если карточки на сегодня
-  // есть, ученик пришёл именно за ними, и подсовывать ему вместо этого витрину
-  // значит каждый раз заставлять переключаться. Если долга нет — показываем
-  // наборы: пустая стопка с надписью «карточки появятся сами» была ровно тем
-  // тупиком, из-за которого тысяча готовых фраз лежала невидимой.
+  // ПО УМОЛЧАНИЮ ОТКРЫВАЮТСЯ НАБОРЫ. Сначала было умнее: есть долг по
+  // расписанию — открыть «Повторение», нет — витрину. Логика верная, результат
+  // плохой. Долг есть почти у всех, кто уже учится, поэтому «Карточки»
+  // открывались ровно тем же экраном, что и раньше, а весь разговорник прятался
+  // за неприметной второй таблеткой — то есть новая половина вкладки не
+  // существовала для тех, кому она и адресована.
   //
-  // Пока счётчик не пришёл, вкладка НЕ рисуется вовсе (см. ниже): мигание
-  // «Повторение → Наборы» через полсекунды после открытия выглядит как сбой.
+  // Долг при этом никуда не делся: счётчик висит цифрой на «Повторении» и
+  // тянет туда сам. Показать материал и позвать к расписанию честнее, чем
+  // открыть расписание и промолчать про материал.
+  //
+  // Вид выбирается СИНХРОННО, до всякой загрузки: счётчик нужен только для
+  // цифры на таблетке, и ждать его, чтобы решить, что рисовать, значило бы
+  // моргать вкладкой на каждом открытии.
   const hasBook = useMemo(() => hasSurvivalBook(lang), [lang])
-  const [vocabView, setVocabView] = useState<'due' | 'sets' | null>(null)
+  const [vocabView, setVocabView] = useState<'due' | 'sets'>(() => hasBook ? 'sets' : 'due')
   const [due, setDue] = useState(0)
 
   useEffect(() => {
-    if (!hasBook) { setVocabView('due'); return }
+    setVocabView(hasBook ? 'sets' : 'due')
+    if (!hasBook) return
     let alive = true
     dueCount(owner, deckSubjects)
-      .then(n => { if (alive) { setDue(n); setVocabView(n > 0 ? 'due' : 'sets') } })
-      .catch(() => { if (alive) setVocabView('sets') })
+      .then(n => { if (alive) setDue(n) })
+      .catch(() => { /* цифра на таблетке — не повод ронять вкладку */ })
     return () => { alive = false }
   }, [hasBook, owner, deckSubjects])
   const glossaryCards = useMemo(() => allTexts.flatMap(txt => txt.glossary.map(g => ({
@@ -235,11 +242,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
         )
       )}
 
-      {mode === 'vocab' && hasBook && vocabView !== null && (
+      {mode === 'vocab' && hasBook && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 16 }}>
           {([
-            { id: 'due' as const, label: 'Повторение' },
+            // Наборы идут первыми: с них начинают, а повторение наполняется из
+            // них же и до первого «не знаю» пустое.
             { id: 'sets' as const, label: 'Наборы фраз' },
+            { id: 'due' as const, label: 'Повторение' },
           ]).map(v => {
             const on = v.id === vocabView
             return (
@@ -346,7 +355,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
 }
 
 /** Одна ось фильтра: подпись + значения. Пустое значение = «все». */
-function Chips({ label, value, options, onChange, accent }: {
+export function Chips({ label, value, options, onChange, accent }: {
   label: string; value: string; options: string[]
   onChange: (v: string) => void; accent: string
 }) {
