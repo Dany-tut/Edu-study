@@ -707,6 +707,31 @@ const slice = (list: Phrase[], from: number, count: number): Phrase[] =>
   Array.from({ length: Math.min(count, list.length) }, (_, k) => list[(from + k) % list.length])
 
 /**
+ * Обманки, ни одна из которых не повторяет верный ответ.
+ *
+ * ЗАЧЕМ. Обманки берутся из той же темы, и в теме легко встречаются две фразы с
+ * одним переводом: «obrigado» и «obrigada» обе значат «спасибо», «Valeu» — тоже.
+ * Срез из четырёх подряд давал варианты «спасибо / пожалуйста / спасибо / …»,
+ * где верных внешне два, а засчитывается один. Аудит поймал такое в
+ * португальском разговорнике; генератор общий, значит могло вылезти в любом.
+ *
+ * Добираем по кругу дальше по списку, пока не наберём нужное число непохожих.
+ * Если в теме столько разных значений вообще нет, отдаём сколько нашлось —
+ * лучше вопрос с тремя вариантами, чем с двумя одинаковыми.
+ */
+function distractors(list: Phrase[], from: number, count: number, answer: string, of: (p: Phrase) => string): string[] {
+  const out: string[] = []
+  const taken = new Set([answer.trim()])
+  for (let k = 0; k < list.length && out.length < count; k++) {
+    const text = of(list[(from + k) % list.length])
+    if (taken.has(text.trim())) continue
+    taken.add(text.trim())
+    out.push(text)
+  }
+  return out
+}
+
+/**
  * Задания юнита из его же фраз.
  *
  * Позиции срезов сдвинуты на номер темы, поэтому в каждой теме отрабатываются
@@ -728,10 +753,10 @@ function unitTasks(theme: SurvivalTheme, list: Phrase[], book: SurvivalBook): Se
   // выбирать между фразами одной ситуации сложнее и полезнее, чем между
   // фразами из разных уроков.
   for (let k = 0; k < 3; k++) {
-    const pool = slice(list, n * 3 + k * 5, 4)
-    const target = pool[0]
-    const choices = pool.slice(1).map(x => x.term)
-    const correct = (n + k) % 4
+    const from = n * 3 + k * 5
+    const target = slice(list, from, 1)[0]
+    const choices = distractors(list, from + 1, 3, target.term, x => x.term)
+    const correct = Math.min((n + k) % 4, choices.length)
     choices.splice(correct, 0, target.term)
     tasks.push(one(`Как сказать: «${target.ru}»?`, choices, correct))
   }
@@ -739,10 +764,10 @@ function unitTasks(theme: SurvivalTheme, list: Phrase[], book: SurvivalBook): Se
   // Обратное направление: фраза → смысл. Проверяет понимание услышанного, а
   // не умение вспомнить нужное — в жизни это разные навыки.
   for (let k = 0; k < 2; k++) {
-    const pool = slice(list, n * 5 + k * 4, 4)
-    const target = pool[0]
-    const choices = pool.slice(1).map(x => x.ru)
-    const correct = (n + k + 2) % 4
+    const from = n * 5 + k * 4
+    const target = slice(list, from, 1)[0]
+    const choices = distractors(list, from + 1, 3, target.ru, x => x.ru)
+    const correct = Math.min((n + k + 2) % 4, choices.length)
     choices.splice(correct, 0, target.ru)
     tasks.push(one(`Что означает «${target.term}»?`, choices, correct))
   }

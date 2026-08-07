@@ -184,7 +184,9 @@ function useBigText() {
     try { localStorage.setItem(BIG_TEXT_KEY, v ? '0' : '1') } catch { /* приватный режим — переживём */ }
     return !v
   })
-  return { big, scale: big ? 2 : 1, toggle }
+  // 1.6 (15px → 24px), а не 2: двойной кегль ломает абзац на короткие обрывки
+  // и читать становится хуже, чем было. Крупно, но строка ещё держится.
+  return { big, scale: big ? 1.6 : 1, toggle }
 }
 
 // Mock "download": there's no backend yet, so we hand the browser a small
@@ -693,6 +695,10 @@ export default function LessonPage() {
     setDockTitleMax(Math.max(0, topBarBox.left - GAP - left))
   }, [docked, topBarBox, topBarCompact, currentLessonId])
 
+  // Досюда доходят только с найденным уроком: пока курсы едут из Supabase,
+  // страницу вообще не монтируют (см. LessonLoading в DashboardPage). Так и
+  // должно быть — ниже по файлу есть хуки, и «уже нашёлся» посреди жизни
+  // компонента сломало бы их порядок.
   if (!lesson) {
     return (
       <div className="flex flex-col items-center justify-center" style={{ minHeight: 300, color: 'var(--color-muted)' }}>
@@ -1057,9 +1063,12 @@ export default function LessonPage() {
               style={{
                 marginLeft: 'auto', gap: 6, padding: '5px 11px', borderRadius: 999,
                 fontFamily: 'inherit', fontSize: 12, fontWeight: 650,
-                border: `1px solid ${big ? 'transparent' : 'var(--color-border-soft)'}`,
-                background: big ? 'var(--color-accent)' : 'transparent',
-                color: big ? '#fff' : 'var(--color-muted)',
+                /* Нейтральный графит, а не акцентный фиолет: акцент в тёмной
+                   теме светлый (#B3A6F7), и белая надпись на нём давала 1.6:1.
+                   Включённое состояние читается заливкой и цветом текста. */
+                border: `1px solid ${big ? 'var(--color-border)' : 'var(--color-border-soft)'}`,
+                background: big ? 'var(--color-bg-5)' : 'transparent',
+                color: big ? 'var(--color-text)' : 'var(--color-muted)',
               }}
             >
               <ALargeSmall size={15} />

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { usePersistentState, clearDraft } from '../lib/useDraft'
 import { motion } from 'framer-motion'
 import { ChevronLeft, ClipboardCheck, CheckCircle2, ArrowUp, ArrowDown } from 'lucide-react'
 import { type Lesson, type TestTask } from '../data/mockData'
@@ -32,7 +33,11 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
   const tasks = lesson.testTasks ?? []
   const isDesktop = useIsDesktop()
   const reload = useStudentData(s => s.load)
-  const [answers, setAnswers] = useState<Record<string, TaskAnswer>>({})
+  // Ответы переживают перезагрузку: тест из пятнадцати заданий заполняют не в
+  // один присест, и F5 (или автоперезагрузка после деплоя) не должен стирать
+  // работу. Черновик привязан к уроку и снимается только после отправки.
+  const ANSWERS_KEY = `test.${lesson.id}.answers`
+  const [answers, setAnswers] = usePersistentState<Record<string, TaskAnswer>>(ANSWERS_KEY, {})
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState<{ score: number; correct: number; gradable: number } | null>(null)
 
@@ -75,6 +80,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
       score,
     })
     await reload()
+    clearDraft(ANSWERS_KEY)
     setResult({ score, correct, gradable: gradable.length })
     setSubmitting(false)
   }

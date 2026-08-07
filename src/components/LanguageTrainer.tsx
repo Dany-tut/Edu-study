@@ -27,6 +27,7 @@ import GlossedText from './GlossedText'
 import Coachmarks, { type CoachStep } from './Coachmarks'
 import Skeleton from './Skeleton'
 import { hasLexicon, wordReading } from '../lib/lexicon'
+import { usePersistentState } from '../lib/useDraft'
 import { submitTrainerVoice, listTrainerVoice, type VoiceEntry } from '../lib/trainerSpeaking'
 import { ownerStudentIdFor, subjectAliases, useStudentData } from '../store/studentDataStore'
 
@@ -78,13 +79,28 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
 }) {
   const t = useT()
   const palette = subjectTheme(subject, dark)
-  const [mode, setMode] = useState<Mode>('reading')
-  const [openText, setOpenText] = useState<ReadingText | null>(null)
-  const [openAudio, setOpenAudio] = useState<ListeningItem | null>(null)
+  // Где ученик стоял, туда F5 его и возвращает: режим и открытый материал живут
+  // в sessionStorage вкладки, а не только в памяти компонента. Иначе любая
+  // перезагрузка посреди текста — это возврат к списку и поиск заново.
+  // Открытое храним идентификатором, а не объектом: материал приезжает из
+  // библиотеки языка, и сохранённая копия рано или поздно разойдётся с ней.
+  const [mode, setMode] = usePersistentState<Mode>(`trainer.${lang}.mode`, 'reading')
+  const [openTextId, setOpenTextId] = usePersistentState<string | null>(`trainer.${lang}.text`, null)
+  const [openAudioId, setOpenAudioId] = usePersistentState<string | null>(`trainer.${lang}.audio`, null)
 
   const allTexts = useMemo(() => textsForLang(lang), [lang])
 
   const audio = useMemo(() => listeningForLang(lang), [lang])
+
+  // Материал мог исчезнуть из библиотеки — тогда просто открывается список.
+  const openText = useMemo(
+    () => (openTextId ? allTexts.find(x => x.id === openTextId) ?? null : null),
+    [allTexts, openTextId],
+  )
+  const openAudio = useMemo(
+    () => (openAudioId ? audio.find(x => x.id === openAudioId) ?? null : null),
+    [audio, openAudioId],
+  )
 
   // ── Фильтры библиотек ──────────────────────────────────────────────────────
   //
@@ -222,7 +238,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
   const [known, setKnown] = useState<Set<string>>(() => new Set())
   const [knownKey, setKnownKey] = useState(0)
   const [shelf, setShelf] = useState('')
-  const [openTheme, setOpenTheme] = useState<string | null>(null)
+  // Открытая тема разговорника переживает F5 по той же причине, что и текст.
+  const [openTheme, setOpenTheme] = usePersistentState<string | null>(`trainer.${lang}.theme`, null)
   const [run, setRun] = useState<RunMode>('swipe')
   const [phraseView, setPhraseView] = useState<PhraseView>({ reading: true, reverse: false })
 
@@ -302,7 +319,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
         lang={lang}
         owner={owner}
         subjectId={subjectId}
-        onBack={() => { setOpenText(null); setResultsKey(k => k + 1) }}
+        onBack={() => { setOpenTextId(null); setResultsKey(k => k + 1) }}
       />
     )
   }
@@ -313,7 +330,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
         accent={palette.accent}
         palette={palette}
         lang={lang}
-        onBack={() => { setOpenAudio(null); setResultsKey(k => k + 1) }}
+        onBack={() => { setOpenAudioId(null); setResultsKey(k => k + 1) }}
       />
     )
   }
@@ -512,6 +529,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
           ]}
           value={status}
           onChange={setStatus}
+          accent={palette.accent}
         />
         <SortMenu options={SORTS_LIB} value={sort} onChange={setSort} />
         <ToolCount>{t('Всего:')} {library.length}</ToolCount>
@@ -530,6 +548,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
           ]}
           value={status}
           onChange={setStatus}
+          accent={palette.accent}
         />
         <SortMenu options={SORTS_SETS} value={sort} onChange={setSort} />
         <ToolCount>
@@ -549,6 +568,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
           ]}
           value={status}
           onChange={setStatus}
+          accent={palette.accent}
         />
         <ToolCount>{t('Всего:')} {speakCounts.shown}</ToolCount>
       </Toolbar>
@@ -561,6 +581,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
           options={[{ value: 'swipe', label: 'Свайп' }, { value: 'list', label: 'Списком' }]}
           value={run}
           onChange={v => setRun(v as RunMode)}
+          accent={palette.accent}
         />
         <ToolCount>{t(openItem.theme.title)}</ToolCount>
       </Toolbar>
@@ -584,7 +605,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
             <Tile
               key={x.id}
               accent={palette.accent}
-              onClick={() => (mode === 'listening' ? setOpenAudio(x as ListeningItem) : setOpenText(x as ReadingText))}
+              onClick={() => (mode === 'listening' ? setOpenAudioId((x as ListeningItem).id) : setOpenTextId((x as ReadingText).id))}
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                 <TileChip tone="accent" accent={palette.accent} soft={palette.soft}>{x.level}</TileChip>

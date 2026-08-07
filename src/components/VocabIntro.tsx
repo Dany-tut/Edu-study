@@ -19,7 +19,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Eye, EyeOff, Layers } from 'lucide-react'
+import { ChevronDown, Eye, EyeOff, ImageOff, Layers } from 'lucide-react'
 import type { HomeworkQuizQuestion } from '../data/lessonContent'
 import { useReadingVisible } from '../store/readingStore'
 import { useT } from '../lib/i18n'
@@ -138,13 +138,22 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                       transition: 'border-color .18s ease',
                     }}
                   >
-                    {w.image && (
-                      <img
-                        src={w.image}
-                        alt=""
-                        style={{ display: 'block', width: 64, height: 64, objectFit: 'contain', borderRadius: 10, background: '#fff', marginBottom: 4 }}
-                      />
-                    )}
+                    {/* Плитка предмета есть у каждой карточки, даже когда
+                        картинки нет: рисунок отрисован примерно у каждого
+                        пятнадцатого слова (см. vocabImages), и без заглушки
+                        такая карточка поднимала текст вверх — ряд разъезжался.
+                        Заглушка нейтральная и серая: ещё один цветной квадрат
+                        в сетке из десяти карточек только шумел бы. */}
+                    <span style={{
+                      width: 52, height: 52, borderRadius: 13, marginBottom: 6, flexShrink: 0,
+                      display: 'grid', placeItems: 'center', overflow: 'hidden',
+                      background: w.image ? '#fff' : 'var(--color-bg-2)',
+                      border: '1px solid var(--color-border-soft)',
+                    }}>
+                      {w.image
+                        ? <img src={w.image} alt="" style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : <ImageOff size={17} style={{ color: 'var(--color-muted)', opacity: 0.55 }} />}
+                    </span>
                     <div className="flex items-center" style={{ gap: 8 }}>
                       <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.25, ...proseWrap }}>
                         {face}
@@ -154,6 +163,9 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                           ttsText={tts}
                           lang={w.lang}
                           compact
+                          variant="ghost"
+                          accent={accent}
+                          soft={soft}
                           onPlayingChange={p => setSpeakingId(cur => (p ? w.id : cur === w.id ? null : cur))}
                         />
                       </span>

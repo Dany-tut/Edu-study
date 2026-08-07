@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Check, Plus, Trash2 } from 'lucide-react'
@@ -53,6 +53,14 @@ export default function TeacherSelect({
   const inputRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
+  // Цвет рамки в покое: свой у call-site'а (borderColor или третий токен
+  // шорткатa border), иначе прозрачный из baseTrigger.
+  const restBorderColor =
+    (triggerStyle?.borderColor as string | undefined)
+    ?? (typeof triggerStyle?.border === 'string'
+      ? triggerStyle.border.trim().split(/\s+/).slice(2).join(' ') || 'transparent'
+      : 'transparent')
+
   const opts = options.map(norm).filter(o => o.value !== '')
   const current = opts.find(o => o.value === value)
   const isEmpty = !current
@@ -74,6 +82,21 @@ export default function TeacherSelect({
     setQuery('')
     setTimeout(() => inputRef.current?.focus(), 30)
   }
+
+  // Замер до открытия делается по закрытому триггеру — а открытый рисуется уже
+  // с полем поиска. Пересчитываем коробку после отрисовки, чтобы список сел по
+  // триггеру ровно, а не по его прежним размерам.
+  useLayoutEffect(() => {
+    if (!open) return
+    const r = btnRef.current?.getBoundingClientRect()
+    if (!r) return
+    const left = Math.min(r.left, window.innerWidth - r.width - 8)
+    setPos(p => {
+      if (!p) return p
+      const next = { ...p, top: r.bottom + 5, bottom: window.innerHeight - r.top + 5, left, width: r.width }
+      return (p.top === next.top && p.bottom === next.bottom && p.left === next.left && p.width === next.width) ? p : next
+    })
+  })
 
   const closeDropdown = () => { setOpen(false); setQuery(''); setAdding(false); setDraft('') }
 
@@ -129,8 +152,11 @@ export default function TeacherSelect({
           ...triggerStyle,
           cursor: 'text',
           // Только цвет: место под рамку уже занято, а собственную рамку
-          // call-site'а (triggerStyle) перекрашиваем, а не заменяем.
-          ...(open ? { borderColor: accent } : {}),
+          // call-site'а (triggerStyle) перекрашиваем, а не заменяем. Цвет покоя
+          // пишем ЯВНО: если убрать borderColor из объекта на закрытии, React
+          // гасит свойство в '' — и рамка уезжает в currentColor (белая рамка
+          // на тёмной теме, чёрная на светлой), а не обратно в свою.
+          borderColor: open ? accent : restBorderColor,
         }}
       >
         {open && searchable ? (
@@ -141,8 +167,12 @@ export default function TeacherSelect({
             placeholder={placeholder ?? ''}
             onClick={e => { if (!query) { e.stopPropagation(); closeDropdown() } }}
             style={{
-              flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
+              // width:0 — у input есть своя ширина по атрибуту size, и на открытии
+              // она раздувала триггер (соседнее поле уезжало за край панели, а
+              // список оставался по старому замеру). Растёт он только через flex.
+              flex: 1, width: 0, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
               fontSize: small ? 11 : 13, color: 'var(--color-text)', fontFamily: 'inherit',
+              lineHeight: 'inherit', padding: 0, margin: 0,
               cursor: 'text',
             }}
           />

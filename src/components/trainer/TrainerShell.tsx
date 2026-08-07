@@ -281,7 +281,13 @@ export function RailCard({ icon, title, accent, children, action }: {
           </button>
         )}
       </div>
-      {children}
+      {/* Содержимое — своей колонкой с шагом 8, а не общим шагом карточки.
+          В банке ровно так: 12 отделяют заголовок от блока управления, а сами
+          поля стоят через 8. Одним общим шагом 12 фильтры расползались, и ряд
+          дропдаунов читался как список отдельных карточек, а не как один блок. */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {children}
+      </div>
     </div>
   )
 }
@@ -503,8 +509,11 @@ export function RailStat({ label, value, tone }: {
 // ─── Строка управления ───────────────────────────────────────────────────────
 
 export function Toolbar({ children }: { children: React.ReactNode }) {
+  // Шаг 10 — как в собственной строке банка: она пока своя (у неё поиск с
+  // подсказкой и «Избранное» со счётчиком), и на 9 против 10 два соседних
+  // экрана расходились ровно на пиксель в каждом промежутке.
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
       {children}
     </div>
   )
@@ -575,7 +584,11 @@ export function StatusTabs({ options, value, onChange, accent }: {
   options: { value: string; label: string; Icon?: React.ComponentType<{ size?: number }> }[]
   value: string
   onChange: (v: string) => void
-  /** Задан — активный сегмент красится предметом, а не нейтральным текстом. */
+  /**
+   * Задан — активный сегмент целиком красится предметом: и подпись, и заливка
+   * таблетки. Без него таблетка берёт общий фиолетовый `--tab-pill-active`,
+   * который посреди зелёного или оранжевого предмета читается как чужой.
+   */
   accent?: string
 }) {
   const t = useT()
@@ -600,11 +613,13 @@ export function StatusTabs({ options, value, onChange, accent }: {
             left: pill.pillRect.left, top: pill.pillRect.top,
             width: pill.pillRect.width, height: pill.pillRect.height,
             borderRadius: 999,
-            background: 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.82)',
+            background: accent
+              ? `linear-gradient(${accent}26, ${accent}26), rgba(var(--glass-rgb), 0.82)`
+              : 'linear-gradient(var(--tab-pill-active), var(--tab-pill-active)), rgba(var(--glass-rgb), 0.82)',
             backdropFilter: 'blur(16px) saturate(180%)',
             WebkitBackdropFilter: 'blur(16px) saturate(180%)',
             boxShadow: 'var(--shadow-tab-pill)',
-            border: '1px solid var(--color-border-glass)',
+            border: `1px solid ${accent ? `${accent}59` : 'var(--color-border-glass)'}`,
             pointerEvents: 'none', zIndex: 0,
           }}
         />

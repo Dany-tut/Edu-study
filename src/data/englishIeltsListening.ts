@@ -75,7 +75,10 @@ export const IELTS_LISTENING: Record<string, SeedTask[]> = {
   ],
   'ielt-17': [
     dictation('Вопрос из первой части устного экзамена.', 'Do you prefer working in the morning or in the evening?'),
-    dictationBank('Собери услышанное.', 'It depends on how much sleep I have had.', ['depend', 'much']),
+    // «much» есть в самом предложении — как обманка она давала вторую такую же
+    // плитку, и одна из двух одинаковых считалась лишней. Обманки не должны
+    // совпадать ни с одним словом эталона.
+    dictationBank('Собери услышанное.', 'It depends on how much sleep I have had.', ['depend', 'little']),
   ],
   'ielt-18': [
     dictation('Запиши задание с карточки.', 'Describe a journey that you remember well.'),

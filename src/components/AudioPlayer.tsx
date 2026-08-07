@@ -21,6 +21,7 @@ export default function AudioPlayer({
   onPlayingChange,
   accent,
   soft,
+  variant = 'solid',
 }: {
   /** Путь в бакете task-media (резолвится в signed URL). */
   audioUrl?: string
@@ -42,6 +43,13 @@ export default function AudioPlayer({
   accent?: string
   /** Мягкая заливка того же цвета — фон включённого «медленно». */
   soft?: string
+  /**
+   * `solid` — залитая цветом кнопка с подсветкой (единственный звук на экране).
+   * `ghost` — мягкая заливка и цветная иконка: там, где плееров сразу десяток
+   * (словарь урока), десять залитых кружков превращаются в цветной шум и
+   * перетягивают внимание с самих слов. Заливается только тот, что звучит.
+   */
+  variant?: 'solid' | 'ghost'
 }) {
   const t = useT()
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -143,11 +151,18 @@ export default function AudioPlayer({
         disabled={!hasSource}
         aria-label={playing ? t('Пауза') : t('Играть')}
         style={{
-          width: size, height: size, borderRadius: '50%', flexShrink: 0, border: 'none',
+          width: size, height: size, borderRadius: '50%', flexShrink: 0,
           cursor: hasSource ? 'pointer' : 'default', opacity: hasSource ? 1 : 0.4,
-          background: tone, color: '#fff',
           display: 'grid', placeItems: 'center',
-          boxShadow: `0 4px 12px -3px color-mix(in srgb, ${tone} 55%, transparent)`,
+          ...(variant === 'ghost' && !playing
+            ? {
+                border: `1px solid color-mix(in srgb, ${tone} 32%, transparent)`,
+                background: toneSoft, color: tone, boxShadow: 'none',
+              }
+            : {
+                border: 'none', background: tone, color: '#fff',
+                boxShadow: `0 4px 12px -3px color-mix(in srgb, ${tone} 55%, transparent)`,
+              }),
         }}
       >
         {playing ? <Pause size={compact ? 16 : 18} /> : <Play size={compact ? 16 : 18} style={{ marginLeft: 2 }} />}

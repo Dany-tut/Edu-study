@@ -186,7 +186,7 @@ function AddGroupModal({ onClose, onSave }: {
           disabled={!name.trim() || saving}
           style={{
             marginTop: 22, width: '100%', padding: '12px 0',
-            background: name.trim() ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)',
+            background: 'var(--grad-purple)', opacity: name.trim() ? 1 : 0.45,
             color: '#fff', fontWeight: 700, fontSize: 15,
             border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
           }}
@@ -463,7 +463,7 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
           disabled={!name.trim() || saving}
           style={{
             marginTop: 22, width: '100%', padding: '12px 0',
-            background: (name.trim() && selectedGroup) ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)',
+            background: 'var(--grad-purple)', opacity: (name.trim() && selectedGroup) ? 1 : 0.45,
             color: '#fff', fontWeight: 700, fontSize: 15,
             border: 'none', borderRadius: 14, cursor: (name.trim() && selectedGroup) ? 'pointer' : 'not-allowed',
           }}
@@ -763,7 +763,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
               disabled={!name.trim() || saving}
               style={{
                 marginTop: 22, width: '100%', padding: '12px 0',
-                background: name.trim() ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)',
+                background: 'var(--grad-purple)', opacity: name.trim() ? 1 : 0.45,
                 color: '#fff', fontWeight: 700, fontSize: 15,
                 border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
               }}
@@ -1548,7 +1548,10 @@ function TracksSection({
             <div style={{ display: 'flex', gap: 6 }}>
               <button
                 type="button" onClick={confirmAdd} disabled={!subject.trim() || busy}
-                style={{ flex: 1, padding: '8px 0', borderRadius: 9, cursor: (!subject.trim() || busy) ? 'default' : 'pointer', border: 'none', background: subject.trim() ? 'var(--color-purple)' : 'rgba(155,109,255,0.35)', color: '#fff', fontSize: 12, fontWeight: 700 }}
+                // Заливка — канонический --grad-purple (как у всех «Сохранить»):
+                // --color-purple/--color-accent светлые, они для ТЕКСТА, и белые
+                // буквы на них тонут. Неактивность — прозрачностью, не бледнотой.
+                style={{ flex: 1, padding: '8px 0', borderRadius: 9, cursor: (!subject.trim() || busy) ? 'default' : 'pointer', border: 'none', background: 'var(--grad-purple)', opacity: (!subject.trim() || busy) ? 0.45 : 1, color: '#fff', fontSize: 12, fontWeight: 700 }}
               >
                 {busy ? t('Создаём…') : t('Создать карточку')}
               </button>
@@ -1824,7 +1827,7 @@ function StudentPanel({
           style={{
             width: '100%', padding: '11px 0',
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-            background: 'var(--color-accent)', border: 'none',
+            background: 'var(--grad-purple)', border: 'none',
             borderRadius: 12, cursor: 'pointer',
             fontSize: 13, fontWeight: 700, color: '#fff',
             transition: 'filter 0.15s',
@@ -2289,7 +2292,7 @@ export default function TeacherGroupsPage() {
                             style={{
                               display: 'inline-flex', alignItems: 'center', gap: 6,
                               padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
-                              background: 'var(--color-accent)', border: 'none',
+                              background: 'var(--grad-purple)', border: 'none',
                               color: '#fff', fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap',
                             }}
                           >

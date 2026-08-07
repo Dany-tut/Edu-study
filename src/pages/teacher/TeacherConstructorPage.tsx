@@ -7490,10 +7490,14 @@ export default function TeacherConstructorPage() {
     const dir = widgetFilters.sort === 'newest' ? -1 : 1
     return sorted.sort((a, b) => dir * (a.createdAt ?? '').localeCompare(b.createdAt ?? ''))
   }, [widgets, widgetFilters])
-  const [courseSort, setCourseSort] = useState<CourseSortMode>('newest')
-  const [courseStatus, setCourseStatus] = useState<'' | CourseStatus>('')
-  const [courseSubject, setCourseSubject] = useState('')
-  const [courseLevel, setCourseLevel] = useState('')
+  // Фильтры витрины курсов переживают уход в редактор: открытие курса — это смена
+  // страницы (activePage: 'course-editor'), конструктор при этом размонтируется.
+  // На обычном useState отбор «Английский» слетал на «все предметы» каждый раз,
+  // когда учитель заглянул в курс и вернулся.
+  const [courseSort, setCourseSort] = usePersistentState<CourseSortMode>('ctor.courseSort', 'newest')
+  const [courseStatus, setCourseStatus] = usePersistentState<'' | CourseStatus>('ctor.courseStatus', '')
+  const [courseSubject, setCourseSubject] = usePersistentState('ctor.courseSubject', '')
+  const [courseLevel, setCourseLevel] = usePersistentState('ctor.courseLevel', '')
   // Готовые курсы стоят в общем списке обычными плитками — отдельной секции нет.
   // Отличие только внутреннее: курса ещё нет в БД, он соберётся из сида при
   // открытии и станет настоящим после «Сохранить». Поэтому их нет в режиме
@@ -7534,9 +7538,11 @@ export default function TeacherConstructorPage() {
   )
   // Сменили предмет — выбранный уровень мог исчезнуть из его списка. Без сброса
   // список курсов молча опустел бы под фильтром, которого уже не видно.
+  // Пустой список опций = курсы ещё грузятся; сбрасывать по нему нельзя, иначе
+  // восстановленный из сессии уровень стирается на первом кадре после возврата.
   useEffect(() => {
-    if (courseLevel && !levelOpts.includes(courseLevel)) setCourseLevel('')
-  }, [levelOpts, courseLevel])
+    if (courseLevel && levelOpts.length && !levelOpts.includes(courseLevel)) setCourseLevel('')
+  }, [levelOpts, courseLevel, setCourseLevel])
   const filteredCourses = useMemo(() => {
     let cs = allCourses
     if (courseStatus) cs = cs.filter(c => c.status === courseStatus)

@@ -19,6 +19,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { LayoutGroup, motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { findLessonById, getLessonDetail } from '../data/lessonContent'
+import { useStudentData } from '../store/studentDataStore'
 import { useStudentPrefsSync } from '../lib/useStudentPrefsSync'
 import { getStudentSession } from '../lib/studentSession'
 import { fetchStudentAssignments, checkAssignmentSubmitted, type TestAssignment } from '../data/diagnosticData'
@@ -69,31 +70,55 @@ export default function DashboardPage() {
   const closeLesson = useDashboard(s => s.closeLesson)
   const lesson = currentLessonId ? findLessonById(currentLessonId) : null
   const homework = lesson ? getLessonDetail(lesson).homework : null
+  // Курсы приходят из Supabase; до этого искать в них урок бессмысленно.
+  const dataLoaded = useStudentData(s => s.loaded)
 
   // Restore the exact view from the hash on mount — including lesson/homework
   // (with the lesson id) so a hard refresh never dumps the student back on Home.
+  //
+  // Адрес читаем ОДИН раз, при монтировании, и держим в ref: пока курс едет из
+  // Supabase, эффект синхронизации ниже не должен успеть его переписать.
+  //
+  // ВАЖНО: урок открывается СРАЗУ, не дожидаясь курсов. Раньше здесь стояла
+  // проверка «а существует ли такой урок», и она проваливалась всегда: уроки
+  // живут в загруженных курсах, а на монтировании их ещё нет — findLessonById
+  // не находит НИ ОДИН урок и честный адрес улетал на главную. Это и есть тот
+  // самый «нажал F5 в уроке — выбросило». Проверка переехала в эффект ниже, где
+  // ей есть на чём работать; до загрузки урок показывает «Загрузка…».
+  const bootHash = useRef(window.location.hash)
+  const [restored, setRestored] = useState(false)
   useEffect(() => {
-    const h = window.location.hash
-    const m = h.match(LESSON_HASH_RE)
+    const m = bootHash.current.match(LESSON_HASH_RE)
     if (m) {
       const id = decodeURIComponent(m[2])
-      // Only restore if the lesson actually exists; otherwise fall back to Home
-      // so a stale/garbage hash can't strand the student on a blank view.
-      if (findLessonById(id)) {
-        if (m[1] === 'homework') openHomeworkForLesson(id)
-        else openLesson(id)
-        return
-      }
-      setActivePage('home')
-      return
+      if (m[1] === 'homework') openHomeworkForLesson(id)
+      else openLesson(id)
+    } else {
+      const page = HASH_TO_PAGE[bootHash.current]
+      if (page && page !== activePage) setActivePage(page)
     }
-    const page = HASH_TO_PAGE[h]
-    if (page && page !== activePage) setActivePage(page)
+    setRestored(true)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Урок из адреса мог и правда исчезнуть: курс сняли, ссылку прислали чужую.
+  // Проверяем это ПОСЛЕ загрузки курсов — до неё пусто вообще всё, и любая
+  // проверка врёт.
+  useEffect(() => {
+    if (!dataLoaded) return
+    if (currentLessonId && !findLessonById(currentLessonId)) { setActivePage('home'); return }
+    // Домашки у урока может не быть вовсе. Тогда «#/homework/…» вёл в пустоту:
+    // на экране каталог курсов, а адрес продолжает утверждать, что мы в
+    // домашке. Открываем сам урок — это ближайшее, что имелось в виду.
+    if (activePage === 'homework' && currentLessonId && !homework) closeHomework()
+  }, [dataLoaded, currentLessonId, activePage, homework, setActivePage, closeHomework])
+
   // Sync the hash whenever the view changes so it's always refresh-restorable.
   useEffect(() => {
+    // На первом кадре в адресе лежит ещё не применённый урок: восстановление
+    // уже позвало openLesson, но этот эффект видит старую activePage='home' и
+    // успел бы записать «#/» поверх. Ждём следующий кадр.
+    if (!restored) return
     let hash: string | null = null
     if (activePage === 'lesson' && currentLessonId) hash = `#/lesson/${encodeURIComponent(currentLessonId)}`
     else if (activePage === 'homework' && currentLessonId) hash = `#/homework/${encodeURIComponent(currentLessonId)}`
@@ -101,7 +126,7 @@ export default function DashboardPage() {
     if (hash && window.location.hash !== hash) {
       window.history.replaceState(null, '', hash)
     }
-  }, [activePage, currentLessonId])
+  }, [activePage, currentLessonId, restored])
 
   // Sidebar is centered in the topbar via flex; the mini widget pill is
   // overlaid absolutely beside it so its presence never shifts the sidebar.
@@ -235,9 +260,15 @@ export default function DashboardPage() {
               paddingTop: 100,
             }}
           >
-            {lesson?.kind === 'test'
-              ? <TestFlow lesson={lesson} onBack={closeLesson} />
-              : <LessonPage />}
+            {!lesson && !dataLoaded
+              ? <LessonLoading />
+              : lesson?.kind === 'test'
+                ? <TestFlow lesson={lesson} onBack={closeLesson} />
+                : <LessonPage />}
+          </main>
+        ) : activePage === 'homework' && !lesson && !dataLoaded ? (
+          <main className="dashboard-main" style={{ overflowY: 'auto', minHeight: 0, marginTop: -100, paddingTop: 100 }}>
+            <LessonLoading />
           </main>
         ) : activePage === 'homework' && lesson && homework ? (
           /* Homework — mirrors the lesson pane: the page scrolls up under the
@@ -299,9 +330,13 @@ export default function DashboardPage() {
             overflowX: 'clip', overscrollBehavior: 'contain',
           }}>
             {activePage === 'lesson' ? (
-              lesson?.kind === 'test'
-                ? <TestFlow lesson={lesson} onBack={closeLesson} />
-                : <LessonPage />
+              !lesson && !dataLoaded
+                ? <LessonLoading />
+                : lesson?.kind === 'test'
+                  ? <TestFlow lesson={lesson} onBack={closeLesson} />
+                  : <LessonPage />
+            ) : activePage === 'homework' && !lesson && !dataLoaded ? (
+              <LessonLoading />
             ) : activePage === 'homework' && lesson && homework ? (
               <HomeworkFlow
                 lessonId={lesson.id}
@@ -318,6 +353,24 @@ export default function DashboardPage() {
         )}
       </div>
     </>
+  )
+}
+
+/**
+ * Заглушка на время, пока курсы едут из Supabase.
+ *
+ * После F5 адрес урока уже известен, а самого урока ещё нет ни у кого: уроки
+ * лежат в загруженных курсах. Страницу урока в этот момент НЕ монтируем — у неё
+ * есть хуки ниже раннего возврата «урок не найден», и появление урока посреди
+ * жизни компонента ломает порядок хуков (React падает в ErrorBoundary). Проще и
+ * честнее подождать здесь.
+ */
+function LessonLoading() {
+  const t = useT()
+  return (
+    <div className="flex items-center justify-center" style={{ minHeight: 300 }}>
+      <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-muted)' }}>{t('Загрузка…')}</p>
+    </div>
   )
 }
 

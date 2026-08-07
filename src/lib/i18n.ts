@@ -957,6 +957,11 @@ const EN: Record<string, string> = {
   "Ответ:": "Answer:",
   "Показать ответ": "Show answer",
 
+  // — Защита от перезаписи устаревшей вкладкой —
+  "Курс изменили в другом месте.": "The course was changed elsewhere.",
+  "Сохранение отсюда откатило бы те правки, поэтому запись отменена. Перезагрузите страницу — правки, сделанные в этой вкладке и не сохранённые, при этом пропадут.": "Saving from here would revert those edits, so the write was cancelled. Reload the page — unsaved edits made in this tab will be lost.",
+  "Перезагрузить": "Reload",
+
   // — Сверка курса с готовым (сидом) —
   "Подтянуть из сида": "Pull from template",
   "Из сида": "From template",

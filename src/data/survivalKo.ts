@@ -25,7 +25,8 @@
 // не объект авторского права.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { p, e, survivalSummary, buildSurvivalCourse } from './survivalPhrases'
+import { p, e, withExamples, survivalSummary, buildSurvivalCourse } from './survivalPhrases'
+import { KO_EXAMPLES } from './survivalKoExamples'
 import type { SurvivalBook } from './survivalPhrases'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -2026,7 +2027,7 @@ export const KOREAN_SURVIVAL: SurvivalBook = {
     'Панмаля — обращения на «ты» — в курсе нет: незнакомому человеку так говорить нельзя, и это ' +
     'не мелочь, а грубость.',
   notes: NOTES,
-  phrases: PHRASES,
+  phrases: withExamples(PHRASES, KO_EXAMPLES),
 }
 
 /** Сводка курса — для карточки готового курса в Конструкторе. */
