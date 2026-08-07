@@ -86,7 +86,12 @@ export function useTrainerSubject(): TrainerSubjectState {
     // 1. Предметы курсов ученика — в порядке реестра, а не в порядке курсов:
     // порядок курсов зависит от того, когда их назначили, и меню от этого
     // перетасовывалось бы после каждой новой записи.
-    const mine = new Set(courses.map(c => getSubject(c.subject)?.id).filter(Boolean) as string[])
+    // `c.subject` — русское название из реестра. Запасной путь по `c.id` нужен
+    // демо-данным и старым курсам, где предмет не проставлен, а id и есть слаг:
+    // без него ученик-языковик из демо снова открывал бы банк ЕГЭ.
+    const mine = new Set(
+      courses.map(c => (getSubject(c.subject) ?? getSubject(c.id))?.id).filter(Boolean) as string[],
+    )
     for (const def of SUBJECTS) {
       if (!mine.has(def.id)) continue
       add(def, def.isLanguage ? 'lang' : 'bank', def.isLanguage
@@ -111,8 +116,8 @@ export function useTrainerSubject(): TrainerSubjectState {
 
   // Предмет курса, открытого на главной.
   const courseSubject = useMemo(
-    () => getSubject(courses.find(c => c.id === activeSubjectId)?.subject)?.id
-      ?? getSubject(activeSubjectId)?.id,
+    () => (getSubject(courses.find(c => c.id === activeSubjectId)?.subject)
+      ?? getSubject(activeSubjectId))?.id,
     [courses, activeSubjectId],
   )
 

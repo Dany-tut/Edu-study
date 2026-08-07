@@ -71,9 +71,9 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
   kot2: {
     title: 'Корейский — от разговора к TOPIK II',
     level: 'TOPIK I → TOPIK II (3급–4급)',
-    units: 20,
-    vocabCount: 200,
-    taskCount: 157,
+    units: 21,
+    vocabCount: 220,
+    taskCount: 169,
     guidedHours: '280–340',
     lessonMinutes: 90,
     scopeNote:
@@ -82,9 +82,9 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
   kosv: {
     title: 'Корейский: язык выживания',
     level: 'С нуля → TOPIK I (бытовой минимум)',
-    units: 39,
-    vocabCount: 1529,
-    taskCount: 618,
+    units: 40,
+    vocabCount: 1567,
+    taskCount: 633,
     guidedHours: '78',
     lessonMinutes: 60,
     scopeNote:

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, Search, BookOpen, CheckCircle2, XCircle,
   Star, Share2, AlertTriangle, Eye, EyeOff, Sparkles, Target, Filter,
-  LayoutGrid, List, ArrowUpDown, ArrowUp, X, TrendingUp, FlaskConical, Bell, Database, ZoomIn, ZoomOut, Layers,
+  LayoutGrid, List, ArrowUpDown, ArrowUp, X, TrendingUp, Bell, Database, ZoomIn, ZoomOut, Layers,
 } from 'lucide-react'
 import {
   Task, Subject,
@@ -39,6 +39,8 @@ import { useNavCollapse } from '../lib/useNavCollapse'
 import { useKeyboardInset } from '../lib/useKeyboardInset'
 import MobileScreen from '../components/MobileScreen'
 import TrainerShell, { StatusTabs as ShellStatusTabs, SortMenu } from '../components/trainer/TrainerShell'
+import { SubjectHero, SubjectPill } from '../components/trainer/SubjectSwitch'
+import { useTrainerSubject } from '../lib/trainerSubject'
 import MobileBottomNav from '../components/MobileBottomNav'
 import MobileSheet from '../components/MobileSheet'
 import { GlassPill, GlassIconButton } from '../components/mobileChrome'
@@ -1408,8 +1410,14 @@ export default function TaskBankPage() {
   // short_id курса («tmpko1»), в реестре предметов его нет никогда, поэтому
   // языковая ветка не включалась ни разу и корейский открывался банком ЕГЭ.
   // activeSubjectId остаётся запасным путём для демо-данных, где id и есть слаг.
-  const activeCourse = useStudentData(s => s.subjects.find(x => x.id === activeSubjectId))
-  const langSubject = getSubject(activeCourse?.subject) ?? getSubject(activeSubjectId)
+  //
+  // ПРЕДМЕТ ТЕПЕРЬ ВЫБИРАЕТСЯ, а не только выводится: трек главной остаётся
+  // значением по умолчанию, но у тренажёра своя память и своё меню (шапка рейла
+  // — см. trainer/SubjectSwitch.tsx и lib/trainerSubject.ts). Без этого ученик,
+  // не выбравший курс на главной, попадал в банк ЕГЭ независимо от того, что он
+  // учит, и вернуться к своему языку было нечем.
+  const subjectState = useTrainerSubject()
+  const langSubject = subjectState.current?.def
   const isLangTrainer = !!langSubject?.isLanguage
 
   // Пока курсы не приехали, развилка «язык или банк» не решена: subjects пуст, а
@@ -1427,15 +1435,6 @@ export default function TaskBankPage() {
     return () => clearTimeout(id)
   }, [dataLoaded])
 
-  // Предметы переключателя — производные от данных, а не фиксированная пара
-  // «Химия | Биология». Показываем только те, по которым в банке реально есть
-  // задания: ученику с одной химией второй переключатель не нужен, а ученику с
-  // другим предметом пара из чужих названий просто врала.
-  const bankSubjects = useMemo(() => {
-    const present = new Set(tasks.map(x => x.subject))
-    const list = BANK_SUBJECT_IDS.filter(id => present.has(id))
-    return list.length ? list : BANK_SUBJECT_IDS
-  }, [tasks])
   // Dual-layout (desktop+mobile оба в DOM) монтирует страницу дважды → дедуп по
   // короткому окну, чтобы одно открытие тренажёра давало одно событие.
   useEffect(() => {
@@ -1445,13 +1444,11 @@ export default function TaskBankPage() {
     }
   }, [])
 
-  const defaultSubject: Subject = (() => {
-    const saved = localStorage.getItem('taskbank_subject')
-    if (saved === 'biology' || saved === 'chemistry') return saved
-    return activeSubjectId === 'chemistry' ? 'chemistry' : 'biology'
-  })()
-  const [subject, setSubject]   = useState<Subject>(defaultSubject)
-  const setSubjectPersist = (s: Subject) => { localStorage.setItem('taskbank_subject', s); setSubject(s) }
+  // Предмет банка — тот же выбор, что и в меню тренажёра, только суженный до
+  // предметов с заданиями: языковая ветка сюда не доходит (возвращается выше),
+  // поэтому запасное значение нужно лишь как заглушка для расчётов до развилки.
+  const subject: Subject = langSubject?.hasBank ? langSubject.id : (BANK_SUBJECT_IDS[0] ?? 'biology')
+  const setSubjectPersist = (s: Subject) => subjectState.pick(s)
   const [sections, setSections] = useState<string[]>([])
   const [topics, setTopics]     = useState<string[]>([])
   const [parts, setParts]       = useState<string[]>([])
@@ -1679,6 +1676,18 @@ export default function TaskBankPage() {
   const clearFilters = () => { setSections([]); setTopics([]); setParts([]); setLines([]); setSource('') }
   const resetOnSubject = () => { setSections([]); setTopics([]); setLines([]) }
 
+  // Сменился предмет — фильтры прежнего к новому не подходят: разделы, темы и
+  // линии у каждого свои, и «Генетика» в химии просто не существует. Раньше
+  // сброс висел на самой кнопке-переключателе; теперь переключатель общий на
+  // оба тренажёра и про фильтры банка ничего не знает, поэтому реагируем на
+  // факт смены, а не на клик.
+  const prevSubject = useRef(subject)
+  useEffect(() => {
+    if (prevSubject.current === subject) return
+    prevSubject.current = subject
+    resetOnSubject()
+  }, [subject])
+
   const dockGlass = {
     border: '1px solid var(--color-border-glass)',
     background: 'rgba(var(--glass-rgb), 0.86)',
@@ -1719,6 +1728,7 @@ export default function TaskBankPage() {
           subject={langSubject!.name}
           subjectId={langSubject!.id}
           dark={dark}
+          subjectState={subjectState}
         />
         {!isDesktop && <MobileBottomNav />}
       </>
@@ -1776,10 +1786,10 @@ export default function TaskBankPage() {
           scrollKey={subject}
           topZone={
             <div className="flex items-center justify-between" style={{ gap: 8 }}>
-              <GlassPill onClick={() => { setSubjectPersist(subject === 'biology' ? 'chemistry' : 'biology'); resetOnSubject() }}>
-                <FlaskConical size={15} style={{ color: 'var(--color-accent)' }} />
-                {subject === 'biology' ? t('Биология') : t('Химия')}
-              </GlassPill>
+              {/* Тот же переключатель, что в рейле десктопа: пилюля со списком
+                  предметов. Была кнопка-тумблер на жёсткую пару предметов —
+                  третий в неё не влезал, а языки не показывались вовсе. */}
+              <SubjectPill state={subjectState} palette={palette} />
               <div className="flex items-center" style={{ gap: 8 }}>
                 <GlassPill>
                   <BookOpen size={14} style={{ color: 'var(--color-accent)' }} />
@@ -2139,7 +2149,7 @@ export default function TaskBankPage() {
               className="min-w-0 flex items-center"
               style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', flexShrink: 1, padding: '9px 16px', borderRadius: 999, ...dockGlass, pointerEvents: 'auto' }}
             >
-              <span className="truncate">{t('Банк заданий')} · {subject === 'biology' ? t('Биология') : t('Химия')}</span>
+              <span className="truncate">{t('Банк заданий')} · {t(getSubject(subject)?.name ?? subject)}</span>
             </div>
 
             <div style={{ flexGrow: 1, flexBasis: 0 }} />
@@ -2158,34 +2168,15 @@ export default function TaskBankPage() {
       <TrainerShell
         rail={<>
 
-        {/* Subject gradient card — clicking it toggles between biology and chemistry */}
-        <div
-          onClick={() => { setSubjectPersist(subject === 'biology' ? 'chemistry' : 'biology'); resetOnSubject() }}
-          style={{ padding: 16, borderRadius: 16, background: `linear-gradient(135deg, ${palette.accent}cc, ${palette.text}cc)`, color: '#fff', boxShadow: `0 18px 44px ${palette.ring}`, cursor: 'pointer', userSelect: 'none' }}
-        >
-          <div className="flex items-center" style={{ gap: 8, marginBottom: 10 }}>
-            <BookOpen size={16} />
-            <span style={{ fontSize: 12, fontWeight: 700 }}>{t('Тренажёр ЕГЭ')}</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-            {(bankSubjects as Subject[]).map(s => (
-              <button key={s} onClick={e => { e.stopPropagation(); setSubjectPersist(s); resetOnSubject() }}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  height: 28, padding: '0 12px', borderRadius: 999, border: '1.5px solid',
-                  borderColor: subject === s ? 'var(--color-border-glass)' : 'var(--color-border-medium)',
-                  background: subject === s ? 'rgba(255,255,255,0.22)' : 'transparent',
-                  color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                  whiteSpace: 'nowrap', lineHeight: 1, boxSizing: 'border-box',
-                }}>
-                {s === 'biology' ? t('Биология') : t('Химия')}
-              </button>
-            ))}
-          </div>
-          <p style={{ fontSize: 13, lineHeight: 1.45, color: 'rgba(255,255,255,0.88)' }}>
-            {t('Отработай все линии заданий')}<br />{t('и подготовься к экзамену.')}
-          </p>
-        </div>
+        {/* Шапка предмета — та же, что у языкового тренажёра. Раньше здесь была
+            своя градиентная карточка с парой чипсов «Биология | Химия»: третий
+            предмет в неё не помещался, а языки не попадали вовсе. Строка
+            контекста тоже стала полезной — вместо лозунга счёт по предмету. */}
+        <SubjectHero
+          state={subjectState}
+          palette={palette}
+          subtitle={`${totalCount} ${t('заданий')} · ${doneCount} ${t('решено')}`}
+        />
 
         {/* Filters card */}
         <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', gap: 12 }}>
