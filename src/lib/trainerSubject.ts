@@ -94,6 +94,10 @@ export function useTrainerSubject(): TrainerSubjectState {
     )
     for (const def of SUBJECTS) {
       if (!mine.has(def.id)) continue
+      // Предмет попадает в меню, только если тренажёру есть что по нему
+      // открыть: язык (своя библиотека) или предмет с банком заданий. У физики
+      // с историей нет ни того, ни другого — пункт вёл бы на чужой экран.
+      if (!def.isLanguage && !def.hasBank) continue
       add(def, def.isLanguage ? 'lang' : 'bank', def.isLanguage
         ? textsForLang(def.langCode ?? '').length
         : tasks.filter(t => t.subject === def.id).length)

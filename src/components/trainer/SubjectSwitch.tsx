@@ -62,9 +62,9 @@ export function SubjectList({ state, onPicked, accent }: {
 
       {options.map((o, i) => {
         const active = o.def.id === current?.def.id
-        // Курсы ученика идут первыми — черта отделяет их от предметов банка,
-        // которые он не проходит, но которые тренажёр всё равно даёт открыть.
-        const divider = i > 0 && options[i - 1].kind === 'lang' && o.kind === 'bank'
+        // Черта на стыке типов: язык и банк ЕГЭ — это два разных тренажёра, и
+        // из списка должно быть видно, что ниже начинается другой.
+        const divider = i > 0 && options[i - 1].kind !== o.kind
         const n = due[o.def.id] ?? 0
         // Палитра предмета — своя у каждой строки: список цветной, и брать
         // светлые значения в тёмной теме нельзя (см. lib/subjects.ts).
@@ -92,7 +92,12 @@ export function SubjectList({ state, onPicked, accent }: {
                 }}>
                   {t(o.def.name)}
                 </span>
-                <span style={{ display: 'block', fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
+                {/* Подпись в одну строку: рядом стоит бейдж долга, и на узком
+                    рейле «Банк ЕГЭ · 5 заданий» иначе ломается пополам. */}
+                <span style={{
+                  display: 'block', fontSize: 11, color: 'var(--color-text-3)', marginTop: 1,
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                }}>
                   {meta(o)}
                 </span>
               </span>
