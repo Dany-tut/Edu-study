@@ -59,6 +59,13 @@
   --color-red-border: rgba(185,28,28,0.35);
   --color-peach: #F8C991;
   --color-peach-soft: #FFE4BD;
+  /* ── Янтарь статуса «почти дотянул» ────────────────────────
+     Отдельно от --color-yellow-*: тот подобран как ЦВЕТ ТЕКСТА (#7A6500 /
+     #F6E47A), и заливкой на графите даёт оливковую грязь. Этот тон, наоборот,
+     держит сразу три роли — подложку иконки, цифру и полосу порога. */
+  --color-amber: #B8770E;
+  --color-amber-soft: rgba(184,119,14,0.10);
+  --color-amber-border: rgba(184,119,14,0.24);
   --reminder-card-medium: rgba(255,160,20,0.14);
   --reminder-card-high: rgba(230,80,90,0.12);
   --reminder-card-medium-border: rgba(255,170,30,0.35);
@@ -192,6 +199,9 @@
   --color-red-soft: rgba(248,99,107,0.30);
   --color-red-border: rgba(248,99,107,0.50);
   --color-peach-soft: rgba(248,180,100,0.18);
+  --color-amber: #E0A342;
+  --color-amber-soft: rgba(224,163,66,0.14);
+  --color-amber-border: rgba(224,163,66,0.24);
   --color-purple-soft: rgba(124,108,224,0.46);
   --color-rose-soft: rgba(204,75,123,0.22);
   /* Reminder card backgrounds — higher opacity for readability */

@@ -17,6 +17,8 @@ import TrainerShell, {
   Toolbar, SearchPill, StatusTabs, ToolButton, SortMenu, ToolCount,
   Tile, TileGrid, TileMeter, TileChip, Empty as ShellEmpty,
 } from './trainer/TrainerShell'
+import { SubjectHero, SubjectPill } from './trainer/SubjectSwitch'
+import type { TrainerSubjectState } from '../lib/trainerSubject'
 import MultiSelectField from './MultiSelectField'
 import { addCards, deckOwner, dueCount, knownPrompts } from '../data/reviewDeck'
 import { hasSurvivalBook, loadSurvivalBook } from '../data/survivalBooks'
@@ -68,7 +70,7 @@ const LENGTHS: { value: string; label: string; fit: (m: number) => boolean }[] =
 /** Пересечение выбранного списка со значением. Пустой список = «все». */
 const anyOf = (picked: string[], value: string) => picked.length === 0 || picked.includes(value)
 
-export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
+export default function LanguageTrainer({ lang, subject, subjectId, dark, subjectState }: {
   /** Код изучаемого языка: en, ko, ja, pt-BR. */
   lang: string
   /** Русское название предмета — для палитры. */
@@ -76,6 +78,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
   /** Слаг предмета — по нему берётся владелец колоды повторений. */
   subjectId: string
   dark: boolean
+  /**
+   * Выбор предмета — общий с банком заданий, поэтому приходит сверху, а не
+   * заводится здесь: два вызова useTrainerSubject() держали бы два независимых
+   * «текущих предмета», и переключение в языковом тренажёре не долетало бы до
+   * банка (и наоборот).
+   */
+  subjectState: TrainerSubjectState
 }) {
   const t = useT()
   const palette = subjectTheme(subject, dark)
@@ -361,7 +370,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
 
   const rail = (
     <>
-      <RailHero title={subject} subtitle={heroSubtitle} palette={palette} />
+      <SubjectHero state={subjectState} subtitle={heroSubtitle} palette={palette} />
 
       <RailCard title="Режим" accent={palette.accent} icon={<Layers size={15} />}>
         <RailModes
@@ -709,7 +718,15 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark }: {
     )
   }
 
-  return <TrainerShell rail={rail} toolbar={toolbar}>{content}</TrainerShell>
+  return (
+    <TrainerShell
+      rail={rail}
+      toolbar={toolbar}
+      narrowLead={<SubjectPill state={subjectState} palette={palette} />}
+    >
+      {content}
+    </TrainerShell>
+  )
 }
 
 /** Одна ось фильтра: подпись + значения. Пустое значение = «все». */

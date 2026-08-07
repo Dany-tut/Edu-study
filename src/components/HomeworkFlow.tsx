@@ -1234,6 +1234,9 @@ export default function HomeworkFlow({
     ? Math.round((basicCorrectCount / basicGradableCount) * 100)
     : (basicCompleted ? 100 : 0)
   const basicPassed = basicScore >= homework.recommendationScore
+  // Сколько баллов не хватает до харда. Раньше это было только текстом
+  // «нужен результат 80+», и ученик считал разницу сам.
+  const basicGapToHard = Math.max(0, homework.recommendationScore - basicScore)
   /**
    * Разбор итогов: задания, которые после сдачи нужно пересмотреть.
    *
@@ -2044,8 +2047,8 @@ export default function HomeworkFlow({
                   className="flex flex-col"
                   style={{
                     gap: 16, padding: 20, borderRadius: 26,
-                    background: basicPassed ? 'var(--color-purple-soft)' : 'var(--color-yellow-soft)',
-                    border: `1px solid ${basicPassed ? 'rgba(99,84,207,0.18)' : 'rgba(248,201,145,0.42)'}`,
+                    background: 'rgba(var(--glass-rgb), 0.96)',
+                    border: '1px solid var(--color-border-medium)',
                   }}
                 >
                   <div className="flex flex-wrap items-start justify-between" style={{ gap: 14 }}>
@@ -2053,21 +2056,33 @@ export default function HomeworkFlow({
                       <div style={{
                         width: 44, height: 44, borderRadius: 14, flexShrink: 0,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        background: basicPassed ? 'rgba(99,84,207,0.12)' : 'rgba(248,201,145,0.26)',
-                        color: basicPassed ? 'var(--color-accent)' : 'var(--color-yellow-text)',
+                        background: basicPassed ? 'var(--color-green-soft)' : 'var(--color-amber-soft)',
+                        color: basicPassed ? 'var(--color-green-text)' : 'var(--color-amber)',
                       }}>
                         {basicPassed ? <Trophy size={20} /> : <CircleAlert size={20} />}
                       </div>
                       <div className="min-w-0">
-                        <p style={{ fontSize: 17, fontWeight: 760, color: 'var(--color-text)', marginBottom: 4 }}>
-                          {t('Домашка сдана')}
-                        </p>
+                        <div className="flex items-center flex-wrap" style={{ gap: 8, marginBottom: 4 }}>
+                          <p style={{ fontSize: 17, fontWeight: 760, color: 'var(--color-text)' }}>
+                            {t('Домашка сдана')}
+                          </p>
+                          {!basicPassed && showHard && (
+                            <span style={{
+                              padding: '2px 9px', borderRadius: 999, fontSize: 11.5, fontWeight: 700,
+                              background: 'var(--color-amber-soft)', color: 'var(--color-amber)',
+                            }}>
+                              {t('до порога')} {basicGapToHard}
+                            </span>
+                          )}
+                        </div>
                         <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-muted)' }}>
                           {basicPassed
                             ? (showHard
                               ? t('База закрыта уверенно. Доступен необязательный хард-уровень с разбором от преподавателя.')
                               : t('База закрыта уверенно.'))
-                            : `${t('До открытия харда нужен результат')} ${homework.recommendationScore}+. ${t('Можно вернуться к конспекту и попробовать снова.')}`
+                            /* «нужен результат 80+» ушло в полосу порога ниже: цифра
+                               там нагляднее, а в тексте она только дублировалась. */
+                            : t('Можно вернуться к конспекту и попробовать снова.')
                           }
                         </p>
                         {state.selfAssessmentValue !== null && (
@@ -2081,9 +2096,11 @@ export default function HomeworkFlow({
                       </div>
                     </div>
                     <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                      {/* Балл нейтральный: он факт, а не тревога. Статус несут
+                          иконка, чип «до порога» и полоса — точечно, а не
+                          заливкой всей карточки. */}
                       <span style={{
-                        fontSize: 38, fontWeight: 760, lineHeight: 1,
-                        color: basicPassed ? 'var(--color-accent)' : 'var(--color-yellow-text)',
+                        fontSize: 38, fontWeight: 760, lineHeight: 1, color: 'var(--color-text)',
                       }}>{basicScore}</span>
                       <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', marginTop: 2 }}>
                         {t('из 100')}
@@ -2091,9 +2108,44 @@ export default function HomeworkFlow({
                     </div>
                   </div>
 
+                  {/* Полоса порога: «сколько до харда» вместо абстрактной оценки. */}
+                  {showHard && (
+                    <div className="flex flex-col" style={{ gap: 7 }}>
+                      <div style={{
+                        position: 'relative', height: 8, borderRadius: 999,
+                        background: 'var(--color-bg-3)',
+                      }}>
+                        <div style={{
+                          position: 'absolute', left: 0, top: 0, bottom: 0,
+                          width: `${Math.min(100, basicScore)}%`, borderRadius: 999,
+                          background: basicPassed ? 'var(--color-green-accent)' : 'var(--color-amber)',
+                        }} />
+                        <div style={{
+                          position: 'absolute', left: `${Math.min(100, homework.recommendationScore)}%`,
+                          top: -4, bottom: -4, width: 2, borderRadius: 2,
+                          background: 'var(--color-text)',
+                        }} />
+                      </div>
+                      <div className="flex items-center justify-between" style={{ gap: 12, fontSize: 12 }}>
+                        <span style={{ color: 'var(--color-muted)' }}>
+                          {basicPassed
+                            ? t('порог пройден')
+                            : `${basicGapToHard} ${t('до открытия харда')}`}
+                        </span>
+                        <span style={{ color: 'var(--color-text-2)', fontWeight: 700 }}>
+                          {t('порог')} {homework.recommendationScore}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex flex-wrap" style={{ gap: 10 }}>
-                    <MetricPill label={t('Верно')} value={`${basicCorrectCount}`} accent />
-                    <MetricPill label={t('Ошибок')} value={`${basicWrong.length}`} />
+                    <MetricPill label={t('Верно')} value={`${basicCorrectCount}`} />
+                    <MetricPill
+                      label={t('Ошибок')}
+                      value={`${basicWrong.length}`}
+                      tone={basicWrong.length > 0 ? 'amber' : undefined}
+                    />
                     {basicReviewCount > 0 && (
                       <MetricPill label={t('У преподавателя')} value={`${basicReviewCount}`} />
                     )}
@@ -2110,10 +2162,12 @@ export default function HomeworkFlow({
                           key={q.id}
                           onClick={() => jumpToQuestion(q.id)}
                           className="cursor-pointer"
+                          /* Не красный: это «разобрать», а не ошибка системы —
+                             красный в продукте остаётся за деструктивным. */
                           style={{
-                            minWidth: 34, height: 30, padding: '0 10px', borderRadius: 999,
-                            border: '1px solid rgba(244,139,145,0.5)', background: 'var(--color-red-soft)',
-                            color: 'var(--color-red-text)', fontFamily: 'inherit',
+                            minWidth: 34, height: 30, padding: '0 10px', borderRadius: 10,
+                            border: '1px solid var(--color-border-strong)', background: 'var(--color-bg-3)',
+                            color: 'var(--color-text)', fontFamily: 'inherit',
                             fontSize: 13, fontWeight: 750,
                           }}
                         >
@@ -2925,21 +2979,28 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-function MetricPill({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
+/**
+ * Плитка метрики итогов. Все три одинаковой плотности: залитая «Верно» на
+ * --color-purple-soft читалась как «выбрано», а не как «хорошо», и была самым
+ * тяжёлым элементом карточки под наименее важным числом. Цвет остался только
+ * у числа и только там, где он что-то значит (tone).
+ */
+function MetricPill({ label, value, tone }: { label: string; value: string; tone?: 'amber' }) {
   return (
     <div
       style={{
+        flex: '1 1 120px',
         padding: '10px 12px',
         borderRadius: 16,
-        background: accent ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
-        border: accent ? '1px solid rgba(99,84,207,0.18)' : '1px solid var(--color-border-soft)',
+        background: 'var(--color-bg-3)',
+        border: '1px solid var(--color-border-soft)',
         minWidth: 92,
       }}
     >
-      <p style={{ fontSize: 11, fontWeight: 700, color: accent ? 'var(--color-accent)' : 'var(--color-muted)', marginBottom: 4 }}>
+      <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', marginBottom: 4 }}>
         {label}
       </p>
-      <p style={{ fontSize: 18, fontWeight: 760, color: 'var(--color-text)' }}>
+      <p style={{ fontSize: 18, fontWeight: 760, color: tone === 'amber' ? 'var(--color-amber)' : 'var(--color-text)' }}>
         {value}
       </p>
     </div>

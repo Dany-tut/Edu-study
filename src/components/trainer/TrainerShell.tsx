@@ -90,11 +90,20 @@ function useNarrow(): boolean {
 
 // ─── Каркас ──────────────────────────────────────────────────────────────────
 
-export default function TrainerShell({ rail, toolbar, children }: {
-  /** Карточки рейла — обычно RailHero + RailCard'ы. */
+export default function TrainerShell({ rail, toolbar, narrowLead, children }: {
+  /** Карточки рейла — обычно SubjectHero + RailCard'ы. */
   rail: React.ReactNode
   /** Строка управления над содержимым. */
   toolbar?: React.ReactNode
+  /**
+   * Что встаёт слева от кнопки шторки на узком экране — переключатель предмета.
+   *
+   * Своим местом, а не внутри рейла: на телефоне рейл целиком уезжает в шторку,
+   * и предмет — единственное, что оттуда обязано остаться на виду. Ученику,
+   * который учит два языка, нельзя прятать смену предмета за кнопкой «Режим и
+   * фильтры»: он туда не полезет, потому что менять фильтры не собирался.
+   */
+  narrowLead?: React.ReactNode
   children: React.ReactNode
 }) {
   const t = useT()
@@ -176,17 +185,21 @@ export default function TrainerShell({ rail, toolbar, children }: {
             неё: строку собирает вызывающий, и вставлять туда чужой элемент
             значило бы, что каждый режим обязан помнить про телефон. */}
         {narrow && (
-          <button
-            onClick={() => setSheet(true)}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-              padding: '11px 16px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
-              fontSize: 13.5, fontWeight: 700, color: 'var(--color-text)',
-              background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-medium)',
-            }}
-          >
-            <SlidersHorizontal size={15} /> {t('Режим и фильтры')}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {narrowLead}
+            <button
+              onClick={() => setSheet(true)}
+              style={{
+                flex: 1, minWidth: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                padding: '11px 16px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+                fontSize: 13.5, fontWeight: 700, color: 'var(--color-text)',
+                background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-medium)',
+              }}
+            >
+              <SlidersHorizontal size={15} /> {t('Режим и фильтры')}
+            </button>
+          </div>
         )}
         {toolbar}
         {children}
@@ -197,12 +210,16 @@ export default function TrainerShell({ rail, toolbar, children }: {
 
 // ─── Карточки рейла ──────────────────────────────────────────────────────────
 
-/** Градиентная шапка рейла — предмет, переключатель языков, строчка контекста. */
-export function RailHero({ title, subtitle, chips, palette, plain }: {
+/**
+ * Градиентная шапка рейла — заголовок и строчка контекста.
+ *
+ * ПРЕДМЕТ ЗДЕСЬ БОЛЬШЕ НЕ ЖИВЁТ: шапку предмета рисует SubjectHero
+ * (trainer/SubjectSwitch.tsx) — она кликабельна и открывает список предметов.
+ * Здесь остались названия материалов: открытый текст, запись аудирования.
+ */
+export function RailHero({ title, subtitle, palette, plain }: {
   title: string
   subtitle?: string
-  /** Переключатель — языки ученика. Один язык не рисуется: выбирать не из чего. */
-  chips?: { id: string; label: string; on: boolean; onPick: () => void }[]
   palette: { accent: string; text: string; ring: string }
   /**
    * Заголовок — название материала, а не предмета.
@@ -224,25 +241,6 @@ export function RailHero({ title, subtitle, chips, palette, plain }: {
         : { fontSize: 11.5, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 10, opacity: 0.95 }}>
         {title}
       </div>
-      {chips && chips.length > 1 && (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-          {chips.map(c => (
-            <button
-              key={c.id}
-              onClick={c.onPick}
-              style={{
-                height: 28, padding: '0 12px', borderRadius: 999, cursor: 'pointer',
-                border: `1.5px solid ${c.on ? 'var(--color-border-glass)' : 'var(--color-border-medium)'}`,
-                background: c.on ? 'rgba(255,255,255,0.22)' : 'transparent',
-                color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
-                whiteSpace: 'nowrap', lineHeight: 1,
-              }}
-            >
-              {c.label}
-            </button>
-          ))}
-        </div>
-      )}
       {subtitle && (
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.45, color: 'rgba(255,255,255,0.88)' }}>{subtitle}</p>
       )}
