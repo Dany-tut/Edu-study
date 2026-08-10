@@ -45,8 +45,10 @@ export function useScrollLock(active: boolean, inside?: RefObject<HTMLElement | 
     const onWheel = (e: WheelEvent) => { if (!allowed(e.target)) e.preventDefault() }
     // Два пальца — это зум, а не прокрутка: щипок оставляем.
     const onTouch = (e: TouchEvent) => { if (e.touches.length < 2 && !allowed(e.target)) e.preventDefault() }
+    // Внутри меню клавиши свои: пробел нажимает строку списка, стрелки бегают
+    // по ней. Глушим только то, что ушло бы в фон.
     const onKey = (e: KeyboardEvent) => {
-      if (SCROLL_KEYS.has(e.key) && !isTyping(e.target)) e.preventDefault()
+      if (SCROLL_KEYS.has(e.key) && !allowed(e.target) && !isTyping(e.target)) e.preventDefault()
     }
 
     // capture: слушаем раньше содержимого страницы; passive: false — иначе

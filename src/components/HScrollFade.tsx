@@ -43,6 +43,12 @@ export default function HScrollFade({
   const [edges, setEdges] = useState({ left: false, right: false })
 
   const update = (el: HTMLElement) => {
+    // Скрытую строку не меряем. Десктопная и мобильная вёрстки живут в DOM
+    // одновременно, и невидимая ветка стоит под display:none: там clientWidth и
+    // scrollWidth равны нулю, «справа ничего не спрятано» — и замер, случившийся
+    // в этот момент, гасил фейд насовсем, потому что после появления строки
+    // ширина её собственной коробки уже не менялась.
+    if (el.clientWidth === 0) return
     const left = el.scrollLeft > 2
     const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 2
     setEdges(prev => (prev.left === left && prev.right === right ? prev : { left, right }))

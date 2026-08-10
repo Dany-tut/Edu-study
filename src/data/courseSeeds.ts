@@ -81,6 +81,14 @@ export const COURSE_SEEDS: CourseSeed[] = [
     build: lazy('ensv', () => import('./survivalEn'), m => m.buildEnglishSurvivalCourse),
   },
   {
+    // Стоит перед TOPIK-курсами: он для человека, который ещё не читает, а те
+    // оба начинаются с того, что читать он уже умеет.
+    key: 'kohg',
+    subject: 'Корейский',
+    summary: SEED_CARDS.kohg,
+    build: lazy('kohg', () => import('./koreanHangul'), m => m.buildKoreanHangulCourse),
+  },
+  {
     key: 'kotp',
     subject: 'Корейский',
     summary: SEED_CARDS.kotp,

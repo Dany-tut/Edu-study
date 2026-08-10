@@ -10,7 +10,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { activeTimecodeIndex, findLessonById, getLessonDetail, type LessonMaterial, type LessonHomework } from '../data/lessonContent'
 import { useStudentData } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
-import LessonVideoPlayer, { type LessonVideoHandle } from '../components/LessonVideoPlayer'
+import LessonVideoPlayer, { PLAYER_MAX_H, PLAYER_MAX_W, type LessonVideoHandle } from '../components/LessonVideoPlayer'
 import { getSubject } from '../lib/subjects'
 import {
   emptyWatch, loadVideoWatch, saveVideoWatch, watchRatio, type VideoWatch,
@@ -961,8 +961,16 @@ export default function LessonPage() {
           className={timecodes.length ? 'grid lg:grid-cols-[minmax(0,1fr)_320px] items-stretch' : 'grid'}
           style={{ gap: 16 }}
         >
-          {/* Плеер: свой корпус поверх YouTube/RuTube/файла + учёт просмотра */}
-          <div className="flex flex-col min-w-0" style={{ gap: 10 }}>
+          {/* Плеер: свой корпус поверх YouTube/RuTube/файла + учёт просмотра.
+              Ширину колонки ограничиваем ровно там, где 16:9 упирается в
+              потолок высоты (PLAYER_MAX_W) — иначе на широком мониторе видео
+              растянулось бы в полосу. Без панели справа колонка встаёт по
+              центру; с панелью она прижата к ней, чтобы зазор между видео и
+              списком глав оставался тем же, что и всюду в сетке. */}
+          <div
+            className="flex flex-col min-w-0"
+            style={{ gap: 10, width: '100%', maxWidth: PLAYER_MAX_W, marginInline: timecodes.length ? 'auto 0' : 'auto' }}
+          >
             <LessonVideoPlayer
               key={lesson.id}
               ref={playerRef}
@@ -1012,7 +1020,13 @@ export default function LessonPage() {
               boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
               padding: 16,
               gap: 6,
-              maxHeight: '54vh',
+              // Высоту ряда задаёт плеер (у него 16:9), панель тянется под него.
+              // minHeight: 0 нужно именно для этого: без него длинный список глав
+              // вырос бы сам и растянул ряд, а вместе с ним и коробку видео —
+              // соотношение сторон поехало бы. maxHeight работает ниже lg, где
+              // панель стоит отдельной строкой под видео.
+              minHeight: 0,
+              maxHeight: PLAYER_MAX_H,
             }}
           >
             <div className="flex items-center" style={{ gap: 8, marginBottom: 6 }}>
@@ -1032,7 +1046,7 @@ export default function LessonPage() {
                 </span>
               )}
             </div>
-            <div ref={chapterListRef} className="flex flex-col flex-1" style={{ gap: 2, overflowY: 'auto', paddingRight: 10 }}>
+            <div ref={chapterListRef} className="flex flex-col flex-1" style={{ gap: 2, overflowY: 'auto', minHeight: 0, paddingRight: 10 }}>
               {timecodes.map((tc, i) => {
                 const active = i === activeChapter
                 // Глава кончается там, где начинается следующая; последняя — на

@@ -2677,20 +2677,23 @@ export default function HomeworkFlow({
                         </div>
                       )}
                       {showReview && (
+                        // Строкой, а не плашкой в две строки: это не действие и
+                        // не вердикт, а состояние ожидания. Прежняя заливка во
+                        // всю колонку с переносом «На проверке у / преподавателя»
+                        // читалась кнопкой и перевешивала соседние «Верно».
+                        // «У преподавателя» ушло в подсказку — в остальном
+                        // продукте этот статус тоже зовётся просто «На проверке».
                         <div
-                          className="flex items-start"
+                          className="flex items-center"
+                          title={t('На проверке у преподавателя')}
                           style={{
-                            gap: 8, padding: '9px 12px', borderRadius: 14,
-                            background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
-                            fontSize: 13, fontWeight: 700, maxWidth: 220, lineHeight: 1.4,
-                            flexShrink: 0,
+                            gap: 6, color: 'var(--color-accent)',
+                            fontSize: 12.5, fontWeight: 650, lineHeight: 1.3,
+                            whiteSpace: 'nowrap', flexShrink: 0,
                           }}
                         >
-                          <Send size={15} style={{ flexShrink: 0, marginTop: 1 }} />
-                          {/* «На проверке у / преподавателя» с одиноким словом
-                              во второй строке — приклеиваем предлог и делим
-                              строки поровну. */}
-                          <span style={balancedWrap}>{bindShortWords(t('На проверке у преподавателя'))}</span>
+                          <Send size={13} style={{ flexShrink: 0 }} />
+                          {t('На проверке')}
                         </div>
                       )}
                     </div>

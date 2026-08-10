@@ -724,9 +724,12 @@ export default function CourseTrack() {
           уезжают за экран под фейд, а не сваливаются в две-три строки. */}
       <div ref={subjectRowRef} style={{ flexShrink: 0 }}>
       <HScrollFade padX={32} gap={0} fadeWidth={44} scrollStyle={{ alignItems: 'center' }}>
+      {/* items-stretch, а не items-center: как только одно название переносится
+          на вторую строку, все кнопки ряда обязаны стать одной высоты — иначе
+          соседние короткие пилюли висят коротышками посреди строки. */}
       <div
         ref={subjectPill.containerRef}
-        className="inline-flex items-center gap-2"
+        className="inline-flex items-stretch gap-2"
         style={{ justifyContent: 'flex-start', position: 'relative', flexShrink: 0 }}
       >
         {showPill && subjectPill.pillRect && (
@@ -776,13 +779,36 @@ export default function CourseTrack() {
                 border: '1px solid transparent',
                 cursor: 'pointer',
                 transition: 'color 0.16s ease, font-weight 0.16s ease',
-                whiteSpace: 'nowrap',
                 flexShrink: 0,
               }}
             >
-              <span style={{ position: 'relative', zIndex: 1 }}>{s.name}</span>
-              <span style={{ position: 'relative', zIndex: 1, fontSize: 12, fontWeight: 500, color: 'var(--color-purple)' }}>
-                {subjectPct}%
+              {/* Название в две строки. Названия языковых курсов длинные
+                  («Английский для дизайнера — от письма до оффера»), и в одну
+                  строку три-четыре таких курса съедают всю ширину: остальные
+                  уезжают за фейд, и переключаться приходится вслепую. Перенос
+                  режет ширину пилюли вдвое — на экран влезает вдвое больше
+                  курсов. text-wrap: balance, чтобы строки были одной длины, а не
+                  «длинная плюс одно слово».
+
+                  Процент — внутри той же строки текста, а не соседним флекс-
+                  элементом: отдельный элемент прижимался бы к правому краю
+                  двухсотпиксельной коробки, и у короткого названия между ним и
+                  словом зияла бы дыра в полпилюли. */}
+              <span
+                style={{
+                  position: 'relative', zIndex: 1,
+                  maxWidth: 200,
+                  textAlign: 'left',
+                  lineHeight: 1.25,
+                  textWrap: 'balance',
+                  display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2,
+                  overflow: 'hidden',
+                }}
+              >
+                {s.name}{' '}
+                <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-purple)', whiteSpace: 'nowrap' }}>
+                  {subjectPct}%
+                </span>
               </span>
             </motion.button>
           )

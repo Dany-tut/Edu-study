@@ -25,6 +25,8 @@ const questions: HomeworkQuizQuestion[] = [
     referenceAnswer: 'тофу',
     explanation: '두부 — тофу, соевый творог.',
   }),
+  q({ id: 'tr', type: 'trace', prompt: 'Обведите букву ㄱ — ведите от точки, черта за чертой', chamo: 'ㄱ' }),
+  q({ id: 'bs', type: 'buildSyllable', prompt: 'Соберите слог 김 из букв', syllable: '김' }),
   q({
     id: 'q3', type: 'wordBank', prompt: 'Соберите предложение: «Это кимчи»',
     sentence: '김치 예요', distractors: ['두부', '물'],
