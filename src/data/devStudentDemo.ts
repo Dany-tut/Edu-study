@@ -131,18 +131,6 @@ export const DEMO_SUBJECTS: Subject[] = [
       },
     ],
   },
-  {
-    id: 'demo-ko', name: 'Корейский с нуля', subject: 'Корейский', progress: 20, activeModuleId: 1, accessMode: 'full',
-    modules: [
-      {
-        id: 1, label: 'Хангыль',
-        lessons: [
-          L('demo-k1', 'demo-ko', 1, 'Гласные', 'completed', { points: 80 }),
-          L('demo-k2', 'demo-ko', 2, 'Согласные', 'current'),
-        ],
-      },
-    ],
-  },
 ]
 
 export const DEMO_SCHEDULE: ScheduleDay[] = [

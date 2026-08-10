@@ -261,7 +261,7 @@ export function SubjectPill({ state, palette, onOpenList }: {
 
       {open && (
         <div style={{
-          position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 60, minWidth: 240,
+          position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 60, minWidth: 280,
           background: 'var(--color-bg-input)', borderRadius: 14, padding: 6,
           border: '1px solid var(--color-border)', boxShadow: '0 12px 40px rgba(0,0,0,0.22)',
         }}>
