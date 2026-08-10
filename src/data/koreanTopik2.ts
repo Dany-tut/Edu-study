@@ -41,6 +41,7 @@ import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { KOT2_VIDEO } from './languageVideosExtra'
 import { KOREAN2_FIGURES_EXTRA } from './koreanTopik2Figures'
+import { KOREAN2_EXTRA } from './koreanTopik2Extra'
 
 export const KOREAN2_MODULES: LangModule[] = [
   { title: 'Оттенки и связность', subtitle: 'Субстантивация, причины, модальные концовки', units: [1, 2, 3, 4] },
@@ -1379,6 +1380,8 @@ export const KOREAN_TOPIK2: LanguageCourseSpec = {
     theory: KOREAN2_THEORY[u.shortId] ?? u.theory,
     // Видео добрано по итогам аудита: курс шёл без единого ролика.
     videoUrl: KOT2_VIDEO[u.shortId] ?? u.videoUrl,
+    // Добор аудирования, говорения и письма в юниты, где их не было (см. аудит).
+    tasks: [...u.tasks, ...(KOREAN2_EXTRA[u.shortId] ?? [])],
   })),
   // Схемы-доборы по итогам аудита живут отдельным файлом.
   figures: { ...KOREAN2_FIGURES, ...KOREAN2_FIGURES_EXTRA },

@@ -1009,10 +1009,16 @@ export default function LessonPage() {
             )}
           </div>
 
-          {/* Timecodes panel */}
+          {/* Timecodes panel.
+              Высоту ряда задаёт только видео — у него честные 16:9, и подстроить
+              его под список глав нельзя. Поэтому рядом с видео (от lg) панель
+              вынута из потока в absolute: сорок глав больше не растягивают ряд,
+              а просто прокручиваются внутри. Ниже lg панель встаёт отдельной
+              строкой под видео и живёт своей высотой, ограниченной сверху. */}
           {timecodes.length > 0 && (
+          <div className="relative min-w-0">
           <div
-            className="flex flex-col h-full"
+            className="flex flex-col lg:absolute lg:inset-0"
             style={{
               borderRadius: 24,
               background: 'rgba(var(--glass-rgb), 0.96)',
@@ -1020,11 +1026,6 @@ export default function LessonPage() {
               boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
               padding: 16,
               gap: 6,
-              // Высоту ряда задаёт плеер (у него 16:9), панель тянется под него.
-              // minHeight: 0 нужно именно для этого: без него длинный список глав
-              // вырос бы сам и растянул ряд, а вместе с ним и коробку видео —
-              // соотношение сторон поехало бы. maxHeight работает ниже lg, где
-              // панель стоит отдельной строкой под видео.
               minHeight: 0,
               maxHeight: PLAYER_MAX_H,
             }}
@@ -1097,6 +1098,7 @@ export default function LessonPage() {
                 )
               })}
             </div>
+          </div>
           </div>
           )}
         </div>

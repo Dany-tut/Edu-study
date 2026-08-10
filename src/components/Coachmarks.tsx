@@ -38,6 +38,8 @@ const PAD = 8
 const DEFAULT_R = 16
 const GAP = 14
 const CARD_W = 320
+/** Поле карточки-подсказки. Одно число на все стороны — см. вёрстку карточки. */
+const PADDING = 16
 
 /** Замер цели: где она и с каким скруглением её обводить. */
 interface Box { top: number; left: number; width: number; height: number; radius: number }
@@ -211,10 +213,15 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
         />
       )}
 
+      {/* Поля со всех сторон одинаковые: кнопка «Дальше» — самый крупный якорь
+          в карточке, и разные отступы до правого и до нижнего края видно
+          невооружённым глазом. Скругление держим равным полю + половине
+          крестика (16 + 6): тогда угол карточки идёт вровень с кружком
+          закрытия, а не режет его. */}
       <div
         ref={cardRef}
         style={{
-          position: 'absolute', width: cardW, padding: '15px 17px 13px', borderRadius: 18,
+          position: 'absolute', width: cardW, padding: PADDING, borderRadius: 22,
           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-strong)',
           boxShadow: 'var(--shadow-lg)', ...cardStyle,
         }}
@@ -223,7 +230,8 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
           onClick={onClose}
           aria-label={t('Закрыть подсказки')}
           style={{
-            position: 'absolute', top: 10, right: 10, width: 26, height: 26, borderRadius: '50%',
+            position: 'absolute', top: PADDING - 4, right: PADDING - 4, width: 28, height: 28,
+            borderRadius: '50%',
             border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-3)',
             cursor: 'pointer', display: 'grid', placeItems: 'center',
           }}
@@ -234,7 +242,7 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
         <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.4, color: accent, marginBottom: 5 }}>
           {i + 1} / {steps.length}
         </div>
-        <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)', marginBottom: 6, paddingRight: 22 }}>
+        <div style={{ fontSize: 16, fontWeight: 750, color: 'var(--color-text)', marginBottom: 6, paddingRight: 28 }}>
           {step.title}
         </div>
         <div style={{ fontSize: 13.5, lineHeight: 1.6, color: 'var(--color-text-2)' }}>
@@ -242,10 +250,15 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14 }}>
-          <div style={{ display: 'flex', gap: 5, flex: 1 }}>
+          {/* Точки ужимаются, кнопки — нет. Иначе на длинном туре ряд точек
+              вместе с «Пропустить» не влезал в ширину карточки и выталкивал
+              «Дальше» за поле: справа оставалось 16 пикселей вместо 17, и на
+              последнем шаге (где «Пропустить» нет) кнопка вставала иначе, чем
+              на всех предыдущих. */}
+          <div style={{ display: 'flex', gap: 5, flex: '1 1 0', minWidth: 0, overflow: 'hidden' }}>
             {steps.map((_, k) => (
               <span key={k} style={{
-                width: k === i ? 16 : 6, height: 6, borderRadius: 999,
+                width: k === i ? 16 : 6, height: 6, borderRadius: 999, flexShrink: 0,
                 background: k === i ? accent : 'var(--color-border-strong)',
                 transition: 'width .2s ease',
               }} />
@@ -255,6 +268,7 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
             <button
               onClick={onClose}
               style={{
+                flexShrink: 0,
                 padding: '8px 12px', borderRadius: 999, border: 'none', background: 'transparent',
                 color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit',
                 fontSize: 13, fontWeight: 650,
@@ -266,6 +280,7 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
           <button
             onClick={next}
             style={{
+              flexShrink: 0,
               padding: '9px 16px', borderRadius: 999, border: 'none', background: accent,
               color: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13.5, fontWeight: 700,
             }}

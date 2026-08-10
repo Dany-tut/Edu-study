@@ -62,13 +62,26 @@ export function TierChip({ term, lang, accent, style }: {
 /** Ширина карточки перевода. Уже — начинает переносить корейские пометки. */
 const POP_W = 264
 
-export default function GlossedText({ text, lang, extra = [], accent, style }: {
+export default function GlossedText({ text, lang, extra = [], accent, overlay = false, style }: {
   text: string
   /** Код языка: en, ko, ja, pt-BR — им же озвучиваем. */
   lang: string
   /** Глоссарий текста: его значения важнее словарных. */
   extra?: WordGloss[]
   accent: string
+  /**
+   * Выносить подсказку из потока — в портал поверх страницы.
+   *
+   * ЗАЧЕМ. Обычно карточка лежит абсолютом внутри абзаца и едет вместе с ним
+   * при скролле — это правильно для текста, который читают целиком. Но текст
+   * бывает и внутри коробки со своими границами: карточка стопки поворачивается
+   * (transform), её оборот прокручивается (overflow), и любой из этих предков
+   * обрезает подсказку — слово подсвечивалось, а перевода не было видно вовсе.
+   * С overlay подсказка рисуется в body по координатам окна, поэтому её не
+   * режет ничей overflow; расплата — она не едет со скроллом, поэтому на скролл
+   * закрывается.
+   */
+  overlay?: boolean
   style?: React.CSSProperties
 }) {
   const t = useT()
@@ -148,11 +161,14 @@ export default function GlossedText({ text, lang, extra = [], accent, style }: {
     setPos(null)
   }
 
-  /** Координаты карточки относительно обёртки — она position: relative. */
+  /**
+   * Координаты карточки: относительно обёртки (она position: relative) или
+   * относительно окна, если подсказка вынесена в портал.
+   */
   function place(el: HTMLElement) {
     const wrap = wrapRef.current
     if (!wrap) return
-    const w = wrap.getBoundingClientRect()
+    const w = overlay ? { left: 0, top: 0 } : wrap.getBoundingClientRect()
     const r = el.getBoundingClientRect()
     // Над словом, если под ним меньше 190px до низа окна.
     const above = window.innerHeight - r.bottom < 190

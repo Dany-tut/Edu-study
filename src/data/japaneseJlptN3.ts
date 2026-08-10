@@ -44,6 +44,7 @@ import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { JAN3_VIDEO } from './languageVideosExtra'
 import { JAPANESE3_FIGURES_EXTRA } from './japaneseJlptN3Figures'
+import { JAPANESE3_EXTRA } from './japaneseJlptN3Extra'
 
 export const JAPANESE3_MODULES: LangModule[] = [
   { title: 'Сила て-формы', subtitle: 'てしまう, ておく, てある, てみる', units: [1, 2, 3, 4] },
@@ -1357,6 +1358,8 @@ export const JAPANESE_JLPT_N3: LanguageCourseSpec = {
     theory: JAPANESE3_THEORY[u.shortId] ?? u.theory,
     // Видео добрано по итогам аудита: курс шёл без единого ролика.
     videoUrl: JAN3_VIDEO[u.shortId] ?? u.videoUrl,
+    // Добор аудирования, говорения и письма в юниты, где их не было (см. аудит).
+    tasks: [...u.tasks, ...(JAPANESE3_EXTRA[u.shortId] ?? [])],
   })),
   // Схемы-доборы по итогам аудита живут отдельным файлом.
   figures: { ...JAPANESE3_FIGURES, ...JAPANESE3_FIGURES_EXTRA },

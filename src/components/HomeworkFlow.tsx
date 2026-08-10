@@ -2246,10 +2246,10 @@ export default function HomeworkFlow({
         </aside>
         )}
 
+        {/* Полоса режима одного экрана выше точек прогресса (в ней вердикт и
+            кнопка во всю ширину), поэтому и запас под ней больше. */}
         <main
           className="flex flex-col"
-          // Полоса режима одного экрана выше точек прогресса (в ней вердикт и
-          // кнопка во всю ширину), поэтому и запас под ней больше.
           style={{ gap: 16, paddingBottom: flowMode && !flowFinished ? 210 : 100 }}
         >
           {selectedLevel === 'basic' ? (
@@ -2539,8 +2539,13 @@ export default function HomeworkFlow({
                   : basicQuestions.length - 1
                 const partQuestions = basicQuestions.slice(partStart, partEnd + 1)
                 const partDone = partQuestions.filter(q => questionAnswered(q, state.basicAnswers[q.id])).length
-                const opensPart = partIdx >= 0 && index === partStart
-                const closesPart = partIdx >= 0 && index === partEnd
+                // Шапка части и чекпоинт между частями — навигация по списку:
+                // они говорят «ты в начале второй части из трёх» тому, кто этот
+                // список видит. В режиме одного экрана списка нет, а прогресс
+                // показывает нижняя полоса, и вторая шкала рядом с ней только
+                // спорит с первой.
+                const opensPart = !flowMode && partIdx >= 0 && index === partStart
+                const closesPart = !flowMode && partIdx >= 0 && index === partEnd
                 // Чекпоинт только между частями и только до сдачи: после сдачи
                 // ученик читает разбор, и «можно вернуться позже» ему уже врёт.
                 const showCheckpoint = closesPart
@@ -2677,22 +2682,14 @@ export default function HomeworkFlow({
                         </div>
                       )}
                       {showReview && (
-                        // Строкой, а не плашкой в две строки: это не действие и
-                        // не вердикт, а состояние ожидания. Прежняя заливка во
-                        // всю колонку с переносом «На проверке у / преподавателя»
+                        // Просто подпись: это не действие и не вердикт, а
+                        // состояние ожидания. Плашка в две строки с иконкой
                         // читалась кнопкой и перевешивала соседние «Верно».
-                        // «У преподавателя» ушло в подсказку — в остальном
-                        // продукте этот статус тоже зовётся просто «На проверке».
-                        <div
-                          className="flex items-center"
-                          title={t('На проверке у преподавателя')}
-                          style={{
-                            gap: 6, color: 'var(--color-accent)',
-                            fontSize: 12.5, fontWeight: 650, lineHeight: 1.3,
-                            whiteSpace: 'nowrap', flexShrink: 0,
-                          }}
-                        >
-                          <Send size={13} style={{ flexShrink: 0 }} />
+                        <div style={{
+                          color: 'var(--color-accent)',
+                          fontSize: 12.5, fontWeight: 650, lineHeight: 1.3,
+                          whiteSpace: 'nowrap', flexShrink: 0,
+                        }}>
                           {t('На проверке')}
                         </div>
                       )}

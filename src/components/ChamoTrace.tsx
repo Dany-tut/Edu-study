@@ -63,11 +63,17 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
   const t = useT()
   const letter = CHAMO[chamo]
   const svgRef = useRef<SVGSVGElement | null>(null)
-  /** Сколько черт уже пройдено целиком. */
+  /** Сколько черт уже пройдено целиком. Единственное, что влияет на картинку. */
   const [strokeIndex, setStrokeIndex] = useState(0)
-  /** Сколько опорных точек текущей черты взято подряд. */
-  const [taken, setTaken] = useState(0)
-  const [drawing, setDrawing] = useState(false)
+  /**
+   * Ход текущей черты живёт в ref, а не в state, и это принципиально: события
+   * pointermove приходят пачкой, а состояние обновляется только между
+   * перерисовками. Через state каждое следующее движение читало бы значение,
+   * устаревшее на всю пачку, — палец идёт по линии, а счётчик стоит на первой
+   * точке, и черта не засчитывается никогда.
+   */
+  const taken = useRef(0)
+  const drawing = useRef(false)
   const done = value === 'done'
 
   const strokes = letter?.strokes ?? []
@@ -87,7 +93,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
     return [((e.clientX - box.left) / box.width) * 100, ((e.clientY - box.top) / box.height) * 100]
   }
 
-  const reset = () => { setStrokeIndex(0); setTaken(0); setDrawing(false); onChange('') }
+  const reset = () => { setStrokeIndex(0); taken.current = 0; drawing.current = false; onChange('') }
 
   const onDown = (e: React.PointerEvent) => {
     if (disabled || done || !current) return
@@ -95,49 +101,47 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
     if (!p) return
     // Начинать надо от начала черты — с той точки, где стоит кружок со стрелкой.
     if (Math.hypot(p[0] - current.pts[0][0], p[1] - current.pts[0][1]) > TOLERANCE * 1.6) return
-    e.currentTarget.setPointerCapture(e.pointerId)
-    setDrawing(true)
-    setTaken(1)
+    try { e.currentTarget.setPointerCapture(e.pointerId) } catch { /* мышь без захвата — не беда */ }
+    drawing.current = true
+    taken.current = 1
   }
 
   const onMove = (e: React.PointerEvent) => {
-    if (!drawing || !current) return
+    if (!drawing.current || !current) return
     const p = toLocal(e)
     if (!p) return
     const pts = current.pts
     // Следующая опорная точка засчитывается, когда палец до неё дошёл; при этом
     // он не должен уходить от самой линии дальше допуска.
-    let next = taken
+    let next = taken.current
     while (next < pts.length && Math.hypot(p[0] - pts[next][0], p[1] - pts[next][1]) < TOLERANCE) next++
-    if (next !== taken) {
-      setTaken(next)
+    if (next !== taken.current) {
+      taken.current = next
       vibrate(6)
     } else {
-      const a = pts[Math.max(0, taken - 1)]
-      const b = pts[Math.min(pts.length - 1, taken)]
+      const a = pts[Math.max(0, taken.current - 1)]
+      const b = pts[Math.min(pts.length - 1, taken.current)]
       if (distToSegment(p, a, b) > TOLERANCE * 1.4) {
         // Ушёл с линии — черту начинают заново. Иначе «обвёл» превращается в
         // «поводил пальцем по экрану».
-        setDrawing(false)
-        setTaken(0)
+        drawing.current = false
+        taken.current = 0
       }
     }
   }
 
   const onUp = () => {
-    if (!drawing || !current) return
-    setDrawing(false)
-    if (progressOf(current, taken) >= 1) {
-      const next = strokeIndex + 1
-      setStrokeIndex(next)
-      setTaken(0)
-      playPop()
-      if (next >= strokes.length) {
-        vibrate([10, 30, 10])
-        onChange('done')
-      }
-    } else {
-      setTaken(0)
+    if (!drawing.current || !current) return
+    drawing.current = false
+    const complete = progressOf(current, taken.current) >= 1
+    taken.current = 0
+    if (!complete) return
+    const next = strokeIndex + 1
+    setStrokeIndex(next)
+    playPop()
+    if (next >= strokes.length) {
+      vibrate([10, 30, 10])
+      onChange('done')
     }
   }
 
@@ -158,7 +162,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
           </div>
         </div>
         <div style={{ flex: 1 }} />
-        {!disabled && strokeIndex > 0 && !done && (
+        {!disabled && strokeIndex > 0 && strokeIndex < strokes.length && (
           <button
             onClick={reset}
             className="flex items-center cursor-pointer"

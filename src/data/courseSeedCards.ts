@@ -84,7 +84,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'TOPIK I → TOPIK II (3급–4급)',
     units: 21,
     vocabCount: 220,
-    taskCount: 169,
+    taskCount: 203,
     guidedHours: '280–340',
     lessonMinutes: 90,
     scopeNote:
@@ -117,7 +117,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'JLPT N4 → N3',
     units: 20,
     vocabCount: 200,
-    taskCount: 158,
+    taskCount: 197,
     guidedHours: '300–360',
     lessonMinutes: 90,
     scopeNote:
@@ -150,7 +150,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'A2 → B1 (Intermediário, CELPE-Bras)',
     units: 18,
     vocabCount: 180,
-    taskCount: 137,
+    taskCount: 173,
     guidedHours: '200–250',
     lessonMinutes: 90,
     scopeNote:

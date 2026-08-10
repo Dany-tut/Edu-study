@@ -675,8 +675,24 @@ export const CONFUSABLE: Record<string, string[]> = {
 export function confusableWith(ch: string, count = 2): string[] {
   const kind = CHAMO[ch]?.kind
   const near = (CONFUSABLE[ch] ?? []).filter(c => CHAMO[c]?.kind === kind)
-  if (near.length >= count) return near.slice(0, count)
   // Добор из букв того же рода, чтобы задание не осталось без вариантов.
   const rest = CHAMO_ORDER.filter(c => c !== ch && !near.includes(c) && CHAMO[c]?.kind === kind)
-  return [...near, ...rest].slice(0, count)
+
+  // Отсеиваем буквы, чья транскрипция совпадает с нашей или с уже выбранной.
+  //
+  // ЗАЧЕМ. Похожие буквы часто записываются одной и той же русской строкой: у
+  // ㅓ и ㅗ это «о», у ㅚ и ㅞ — «ве». Задание «какой это звук» показывало из-за
+  // этого два одинаковых варианта, один из которых считался неверным, — то есть
+  // требовало угадать, а не узнать. Пары остаются похожими по начертанию,
+  // но различимыми по ответу.
+  const taken = new Set([CHAMO[ch]?.sound].filter(Boolean) as string[])
+  const out: string[] = []
+  for (const c of [...near, ...rest]) {
+    const sound = CHAMO[c]?.sound
+    if (!sound || taken.has(sound)) continue
+    taken.add(sound)
+    out.push(c)
+    if (out.length === count) break
+  }
+  return out
 }

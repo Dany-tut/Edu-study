@@ -1,4 +1,10 @@
-// ВРЕМЕННЫЙ стенд режима «одно задание — один экран». Удаляется после съёмки.
+// Стенд режима «одно задание — один экран» (dev-flow.html).
+//
+// ЗАЧЕМ. Языковую домашку иначе не открыть: нужен ученик, группа, курс и урок в
+// Supabase. Здесь она собирается из пяти строк и открывается по адресу, поэтому
+// правку flow-режима видно через секунду, а не через пять шагов кликанья.
+//
+// Живёт, пока дорабатывается сам режим (docs/LANGUAGE_DRILL_SPEC.md, этапы 2–3).
 import { createRoot } from 'react-dom/client'
 import HomeworkFlow from './components/HomeworkFlow'
 import type { LessonHomework, HomeworkQuizQuestion } from './data/lessonContent'
