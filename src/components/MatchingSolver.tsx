@@ -1,5 +1,4 @@
 import { useMemo, useRef, useState } from 'react'
-import { useT } from '../lib/i18n'
 
 /**
  * «Сопоставление» (matching) — соединить левое с правым.
@@ -7,9 +6,12 @@ import { useT } from '../lib/i18n'
  * ЗАЧЕМ КОМПОНЕНТ. Раньше задание рисовалось справкой «левое → правое» и полем
  * «запиши соответствия»: все ответы были напечатаны рядом с вопросами, ученику
  * оставалось переписать их в поле, а машина проверить это не могла — задание
- * уходило учителю. Тип превратился в списывание. Теперь правая колонка
- * перемешана и лежит отдельным банком: ученик действительно соединяет пары, а
- * ответ проверяется автоматически.
+ * уходило учителю. Тип превратился в списывание.
+ *
+ * ВИД — как в Duolingo: две колонки плиток, слева слова, справа перемешанные
+ * переводы (все видны сразу, пустых слотов нет). Тап по плитке слева, тап по
+ * плитке справа — пара связана и обе помечаются одним номером; тап по любой из
+ * связанных — развязать. Порядок тапов любой.
  *
  * ОТВЕТ. Массив длиной с число пар: `assign[i]` — индекс ПРАВОЙ части (в
  * авторском порядке), выбранной для левой части `i`, или -1, если пусто. Индексы
@@ -96,8 +98,7 @@ export default function MatchingSolver({
   /** Домашка сдана — подсветить строки и показать эталон там, где не сошлось. */
   showVerdict?: boolean
 }) {
-  const t = useT()
-  const [selected, setSelected] = useState<number | null>(null)
+  const [selected, setSelected] = useState<{ side: 'left' | 'right'; idx: number } | null>(null)
 
   const fromProps = value.length === pairs.length ? value : emptyMatching(pairs.length)
 
@@ -123,106 +124,121 @@ export default function MatchingSolver({
     () => pairs.map((_, i) => i).sort((a, b) => hash(pairs[a].right + a) - hash(pairs[b].right + b)),
     [pairs],
   )
-  const used = new Set(assign.filter(v => v >= 0))
+  // Обратная карта: какая левая строка забрала данную правую плитку.
+  const owner = Array<number>(pairs.length).fill(-1)
+  assign.forEach((v, i) => { if (v >= 0) owner[v] = i })
 
   // В обработчиках расклад берётся из ref, а не из замыкания рендера: между двумя
   // быстрыми тапами рендера может не случиться, и второй тап обязан видеть первый.
-  const put = (rightIdx: number) => {
-    if (disabled) return
-    const base = own.current ?? assign
-    // Строка — выбранная; если ученик не выбрал, кладём в первую пустую.
-    const row = selected !== null && base[selected] < 0 ? selected : base.findIndex(v => v < 0)
-    if (row < 0) return
+  const link = (base: number[], row: number, rightIdx: number) => {
     const next = [...base]
+    // Правая плитка занята другой строкой — забираем её (перепривязка без «дырок»).
+    const prev = next.findIndex(v => v === rightIdx)
+    if (prev >= 0) next[prev] = -1
     next[row] = rightIdx
     emit(next)
     setSelected(null)
   }
-  const clear = (row: number) => {
+  const tapLeft = (row: number) => {
     if (disabled) return
     const base = own.current ?? assign
-    if (base[row] < 0) { setSelected(selected === row ? null : row); return }
-    const next = [...base]
-    next[row] = -1
-    emit(next)
-    setSelected(row)
+    if (base[row] >= 0) { const next = [...base]; next[row] = -1; emit(next); setSelected(null); return }
+    if (selected?.side === 'right') { link(base, row, selected.idx); return }
+    setSelected(selected?.side === 'left' && selected.idx === row ? null : { side: 'left', idx: row })
+  }
+  const tapRight = (rightIdx: number) => {
+    if (disabled) return
+    const base = own.current ?? assign
+    const row = base.findIndex(v => v === rightIdx)
+    if (row >= 0) { const next = [...base]; next[row] = -1; emit(next); setSelected(null); return }
+    if (selected?.side === 'left') { link(base, selected.idx, rightIdx); return }
+    setSelected(selected?.side === 'right' && selected.idx === rightIdx ? null : { side: 'right', idx: rightIdx })
   }
 
-  const slotBase: React.CSSProperties = {
-    flex: 1, minWidth: 0, padding: '10px 13px', borderRadius: 12, fontFamily: 'inherit',
-    fontSize: 15, lineHeight: 1.4, textAlign: 'left', cursor: disabled ? 'default' : 'pointer',
+  const tileBase: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', gap: 8, width: '100%', minHeight: 46,
+    padding: '10px 13px', borderRadius: 12, fontFamily: 'inherit', fontSize: 15,
+    lineHeight: 1.35, textAlign: 'left', color: 'var(--color-text)',
+    cursor: disabled ? 'default' : 'pointer', transition: 'background .12s, border-color .12s',
   }
+
+  /** Плитка: обычная / выбранная / связанная (с номером пары) / с вердиктом. */
+  const skin = (state: { active: boolean; num: number; ok: boolean | null }): React.CSSProperties => {
+    if (state.ok !== null) return {
+      border: `1.5px solid ${state.ok ? '#6EE7A0' : '#F48B91'}`,
+      background: state.ok ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
+      fontWeight: 600,
+    }
+    if (state.num > 0) return {
+      border: '1.5px solid var(--color-accent)',
+      background: 'var(--color-purple-soft)', fontWeight: 600,
+    }
+    if (state.active) return {
+      border: '1.5px solid var(--color-accent)',
+      background: 'var(--color-purple-soft)', fontWeight: 600,
+    }
+    return {
+      border: '1.5px solid var(--color-border-soft)',
+      background: 'var(--color-bg-2)', fontWeight: 500,
+    }
+  }
+
+  /** Номер пары — единственная нить, которая связывает две колонки визуально. */
+  const Badge = ({ num, ok }: { num: number; ok: boolean | null }) => (
+    <span style={{
+      flexShrink: 0, width: 20, height: 20, borderRadius: '50%',
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: 11, fontWeight: 700, color: '#fff',
+      background: ok === null ? 'var(--grad-purple)' : ok ? '#3FAE6E' : '#E2646B',
+    }}>{num}</span>
+  )
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {/* Строки: левая часть и слот под ответ */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'start' }}>
+      {/* Левая колонка — слова в авторском порядке */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
         {pairs.map((pair, i) => {
           const picked = assign[i]
-          const right = picked >= 0 ? pairs[picked].right : ''
-          const ok = picked === i
-          const active = selected === i && picked < 0
+          const ok = showVerdict ? picked === i : null
+          const num = picked >= 0 ? i + 1 : 0
           return (
-            <div key={i} style={{ display: 'flex', alignItems: 'stretch', gap: 8 }}>
-              <div style={{
-                flex: 1, minWidth: 0, padding: '10px 13px', borderRadius: 12,
-                background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
-                fontSize: 15, lineHeight: 1.4, fontWeight: 600, color: 'var(--color-text)',
-              }}>
+            <button
+              key={i}
+              onClick={() => tapLeft(i)}
+              style={{ ...tileBase, ...skin({ active: selected?.side === 'left' && selected.idx === i, num, ok }) }}
+            >
+              {num > 0 && <Badge num={num} ok={ok} />}
+              <span style={{ minWidth: 0, wordBreak: 'break-word' }}>
                 {pair.left}
-              </div>
-              <span style={{ alignSelf: 'center', color: 'var(--color-muted)', fontSize: 15, flexShrink: 0 }}>→</span>
-              <button
-                onClick={() => clear(i)}
-                style={{
-                  ...slotBase,
-                  border: showVerdict
-                    ? `1.5px solid ${ok ? '#6EE7A0' : '#F48B91'}`
-                    : picked >= 0 ? '1.5px solid var(--color-accent)'
-                    : active ? '1.5px solid var(--color-accent)'
-                    : '1.5px dashed var(--color-border-medium)',
-                  background: showVerdict
-                    ? (ok ? 'var(--color-green-soft)' : 'var(--color-red-soft)')
-                    : picked >= 0 || active ? 'var(--color-purple-soft)' : 'var(--color-bg-input)',
-                  color: picked >= 0 ? 'var(--color-text)' : 'var(--color-muted)',
-                  fontWeight: picked >= 0 ? 600 : 400,
-                }}
-              >
-                {right || (active ? t('Выбери вариант ниже ↓') : t('Нажми, потом выбери ниже'))}
                 {showVerdict && !ok && (
                   <span style={{ display: 'block', marginTop: 3, fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)' }}>
                     {pair.right}
                   </span>
                 )}
-              </button>
-            </div>
+              </span>
+            </button>
           )
         })}
       </div>
 
-      {/* Банк правых частей — перемешан */}
-      {!showVerdict && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {bankOrder.map(idx => {
-            const taken = used.has(idx)
-            if (taken) return null
-            return (
-              <button
-                key={idx}
-                onClick={() => put(idx)}
-                style={{
-                  padding: '9px 14px', borderRadius: 10, fontFamily: 'inherit',
-                  fontSize: 15, fontWeight: 500, lineHeight: 1.25,
-                  border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-2)',
-                  color: 'var(--color-text)', cursor: disabled ? 'default' : 'pointer',
-                }}
-              >
-                {pairs[idx].right}
-              </button>
-            )
-          })}
-        </div>
-      )}
+      {/* Правая колонка — переводы, перемешаны */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
+        {bankOrder.map(idx => {
+          const row = owner[idx]
+          const ok = showVerdict && row >= 0 ? row === idx : null
+          const num = row >= 0 ? row + 1 : 0
+          return (
+            <button
+              key={idx}
+              onClick={() => tapRight(idx)}
+              style={{ ...tileBase, ...skin({ active: selected?.side === 'right' && selected.idx === idx, num, ok }) }}
+            >
+              {num > 0 && <Badge num={num} ok={ok} />}
+              <span style={{ minWidth: 0, wordBreak: 'break-word' }}>{pairs[idx].right}</span>
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }

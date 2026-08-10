@@ -4,6 +4,7 @@
  */
 import { supabase } from './supabase'
 import { trackEvent } from './analytics'
+import { isVideoWatchRef } from './videoProgress'
 import { t } from './i18n'
 import type { HardTaskStudentBlock, HardTaskReviewBlock, HardTaskDef } from './useHomework'
 
@@ -516,7 +517,12 @@ export interface StudentStats {
 }
 
 export function computeStats(progress: ProgressMap): StudentStats {
-  const entries = Object.values(progress)
+  // Просмотр записи урока живёт в собственной строке `video-<урок>` (см.
+  // lib/videoProgress.ts). Это не работа ученика: попав в знаменатель, такие
+  // строки роняли бы «Успеваемость» тем сильнее, чем больше уроков он смотрит.
+  const entries = Object.entries(progress)
+    .filter(([ref]) => !isVideoWatchRef(ref))
+    .map(([, p]) => p)
   const completed = entries.filter(p => p.status === 'completed')
   // Include submitted lessons in score stats — the student earned the score
   // even before the teacher finalises the review.

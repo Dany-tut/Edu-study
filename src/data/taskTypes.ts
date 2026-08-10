@@ -25,6 +25,7 @@ import {
 import { typeVisual, normalizeTaskType as normalizeRaw, type TypeVisual } from './taskTypeVisuals'
 import { matchTranslation } from '../lib/answerMatch'
 import { matchesAnyAnswer, sameAnswer } from '../lib/answerForms'
+import { chamoOf } from './hangul'
 
 // ─── Идентификаторы ──────────────────────────────────────────────────────────
 
@@ -49,6 +50,9 @@ export type TaskTypeId =
   | 'imageCompare'  // сравнить две-три картинки
   | 'flashcard'     // словарная карточка
   | 'pattern'       // подстановочный дрилл: один шаблон, несколько замен
+  // — письменность (алфавитные уроки) —
+  | 'trace'         // обвести букву по чертам, в правильном порядке
+  | 'buildSyllable' // собрать слог из букв: ㄱ + ㅣ + ㅁ → 김
 
 /**
  * Написания, встречающиеся в данных, записанных до переименования типов:
@@ -208,6 +212,16 @@ export interface TaskPayload {
    * тумблер «показывать чтение», а из строки «우유 (uyu)» его уже не вынуть.
    */
   reading?: string
+
+  /**
+   * trace — буква, которую обводят (ㄱ, ㅏ). Черты берутся из data/hangul.ts по
+   * самой букве, а не хранятся в задании: начертание — свойство алфавита, и
+   * копия в каждом задании разошлась бы с оригиналом на первой же правке.
+   */
+  chamo?: string
+
+  /** buildSyllable — эталонный слог (김). Из чего он состоит, считается по нему. */
+  syllable?: string
 
   /** Для языковых заданий: код изучаемого языка (ko, ja, pt-BR, en). */
   lang?: string
@@ -558,6 +572,42 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
       return { auto: true, correct }
     },
     needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: true,
+  }),
+
+  // ── письменность ──
+  //
+  // Два задания алфавитного урока, которых не заменяет ни один существующий тип.
+  // Обводка — единственное место, где работает рука: узнавание буквы глазами и
+  // умение её написать держатся в памяти порознь, и второе без письма не
+  // появляется вовсе. Сборка слога — единственное, где видно, что слог не
+  // картинка, а конструкция из букв; выбором из вариантов это не показать.
+
+  trace: def({
+    id: 'trace', family: 'input',
+    label: 'Обвести букву', hint: 'По чертам, в правильном порядке',
+    Icon: PenLine,
+    makeDefault: () => ({ chamo: '' }),
+    isGradable: t => !!t.chamo,
+    // Проверяет сам холст: он ведёт палец по чертам и отдаёт 'done', когда
+    // пройдены все. Сверять тут нечего — ответом является сам факт обводки.
+    grade: (t, a) => (t.chamo ? { auto: true, correct: a === 'done' } : NOT_AUTO),
+    needsTeacherReview: false, needsAudio: true, allowedAsHard: false, languageOnly: true,
+  }),
+
+  buildSyllable: def({
+    id: 'buildSyllable', family: 'order',
+    label: 'Собрать слог', hint: 'Из букв: ㄱ + ㅣ + ㅁ → 김',
+    Icon: Shuffle,
+    makeDefault: () => ({ syllable: '' }),
+    isGradable: t => chamoOf(t.syllable ?? '').length >= 2,
+    grade: (t, a) => {
+      if (!TASK_TYPES.buildSyllable.isGradable(t)) return NOT_AUTO
+      const want = chamoOf(t.syllable ?? '')
+      const got = toWords(a)
+      if (!got) return { auto: true, correct: false }
+      return { auto: true, correct: got.length === want.length && got.every((c, i) => c === want[i]) }
+    },
+    needsTeacherReview: false, needsAudio: true, allowedAsHard: false, languageOnly: true,
   }),
 
   flashcard: def({

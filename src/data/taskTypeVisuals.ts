@@ -55,6 +55,10 @@ export const TYPE_VISUALS: Record<string, TypeVisual> = {
   flashcard:     { color: 'var(--color-teal-pill-text)', bg: 'var(--color-teal-pill-bg)',   fill: 'var(--color-teal-fill)' },
   // подстановочный дрилл — ученик вписывает форму → peach, как fill
   pattern:       { color: 'var(--color-peach-text)',     bg: 'var(--color-peach-soft)',     fill: 'var(--color-peach-fill)' },
+
+  // Письменность — своя пара к «звуку»: обводка и сборка слога про форму буквы.
+  trace:         { color: 'var(--color-teal-pill-text)', bg: 'var(--color-teal-pill-bg)',   fill: 'var(--color-teal-fill)' },
+  buildSyllable: { color: 'var(--color-yellow-text)',    bg: 'var(--color-yellow-soft)',    fill: 'var(--color-yellow-fill)' },
 }
 
 export function typeVisual(t: string): TypeVisual {

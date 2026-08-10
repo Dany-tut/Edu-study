@@ -212,7 +212,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
     const dirs: Dir[] = binary ? ['left', 'right', 'down'] : ['left', 'right', 'up', 'down']
     let k = 0
     setDemoDir(dirs[0])
-    const id = window.setInterval(() => { k = (k + 1) % dirs.length; setDemoDir(dirs[k]) }, 1750)
+    const id = window.setInterval(() => { k = (k + 1) % dirs.length; setDemoDir(dirs[k]) }, 2100)
     return () => { window.clearInterval(id); setDemoDir(null) }
   }, [tourStep, binary])
 
@@ -600,23 +600,33 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
   // места, где загорается плашка: смысл в том, чтобы ученик увидел ответ
   // подписанным, а не в том, чтобы карточку смахнуть. Обратно — сами, ответ при
   // этом не засчитывается: onSwipe отсюда не зовётся вовсе.
+  // Поза ДЕРЖИТСЯ, пока подсказка показывает этот жест, и меняется только вместе
+  // с ней. Сначала было иначе — карточка отъезжала и сама возвращалась по
+  // таймеру, — и стоило анимации чуть отстать, как на карточке горело «знаю», а
+  // в легенде подсвечивалась уже другая строка. Один источник времени: смена
+  // `demo`.
   useEffect(() => {
-    if (!demo) return
-    const to = demo === 'left' ? { mx: -170, my: 0 }
-      : demo === 'right' ? { mx: 170, my: 0 }
-      : demo === 'up' ? { mx: 0, my: -145 }
-      : { mx: 0, my: 145 }
-    animate(x, to.mx, { duration: 0.5 })
-    animate(y, to.my, { duration: 0.5 })
-    const back = window.setTimeout(() => {
-      animate(x, 0, { duration: 0.4 })
-      animate(y, 0, { duration: 0.4 })
-    }, 950)
-    return () => {
-      window.clearTimeout(back)
-      animate(x, 0, { duration: 0.25 })
-      animate(y, 0, { duration: 0.25 })
+    if (!demo) {
+      animate(x, 0, { duration: 0.3 })
+      animate(y, 0, { duration: 0.3 })
+      return
     }
+    // Вниз — короче остальных: карточка подсказки стоит под стопкой, и на
+    // большом смещении и сама карточка, и плашка «отложить» уезжают ей за
+    // спину — жест показан, а увидеть его нельзя.
+    const to = demo === 'left' ? { mx: -165, my: 0 }
+      : demo === 'right' ? { mx: 165, my: 0 }
+      : demo === 'up' ? { mx: 0, my: -118 }
+      : { mx: 0, my: 88 }
+    // Через центр: из «вправо» сразу в «вниз» карточка ехала бы по диагонали,
+    // то есть показывала бы жест, которого нет.
+    animate(x, 0, { duration: 0.18 })
+    animate(y, 0, { duration: 0.18 })
+    const go = window.setTimeout(() => {
+      animate(x, to.mx, { duration: 0.42 })
+      animate(y, to.my, { duration: 0.42 })
+    }, 190)
+    return () => window.clearTimeout(go)
   }, [demo, x, y])
 
   // ── Переворот ───────────────────────────────────────────────────────────────

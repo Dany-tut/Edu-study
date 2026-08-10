@@ -264,7 +264,12 @@ export function formulaStrip(
   const x0 = (w - (bw.reduce((a, b) => a + b, 0) + gap * (chunks.length - 1))) / 2
   const y0 = 54, boxH = 46
   const exampleY = y0 + boxH + 44
-  const h = exampleY + (opts.example ? 12 : -14) + noteH(opts.note, w) + 10
+  // Пример переносится по ширине листа, поэтому и в высоту он занимает столько
+  // строк, сколько получилось: одна строка была фиксированной и уезжала за край.
+  const EX_FS = 13.5, EX_LH = 19
+  const exLines = opts.example ? wrapLines(opts.example, w, EX_FS) : []
+  const h = exampleY + (exLines.length ? 12 + (exLines.length - 1) * EX_LH : -14)
+    + noteH(opts.note, w) + 10
 
   const parts: string[] = []
   let x = x0
@@ -281,9 +286,9 @@ export function formulaStrip(
     x += cw + gap
   })
 
-  if (opts.example) {
-    parts.push(`<text x="${w / 2}" y="${exampleY}" text-anchor="middle" font-size="13.5" font-weight="600" fill="${INK}">${esc(opts.example)}</text>`)
-  }
+  exLines.forEach((line, i) => {
+    parts.push(`<text x="${w / 2}" y="${exampleY + i * EX_LH}" text-anchor="middle" font-size="${EX_FS}" font-weight="600" fill="${INK}">${esc(line)}</text>`)
+  })
   parts.push(noteAt(w, h, opts.note))
   return toDataUri(sheet(w, h, title, parts.join('')))
 }

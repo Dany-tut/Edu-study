@@ -23,7 +23,8 @@
 // ЮРИДИЧЕСКОЕ. Все фразы написаны с нуля, чужие учебники не копировались.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { p, survivalSummary, buildSurvivalCourse } from './survivalPhrases'
+import { p, withExamples, survivalSummary, buildSurvivalCourse } from './survivalPhrases'
+import { PT_EXAMPLES } from './survivalPtExamples'
 import type { SurvivalBook } from './survivalPhrases'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -572,7 +573,7 @@ export const PORTUGUESE_SURVIVAL: SurvivalBook = {
     'Европейский португальский вас поймёт, но повседневная речь в Бразилии устроена иначе, и учить ' +
     'сразу нужно ту, которую вы услышите.',
   notes: NOTES,
-  phrases: PHRASES,
+  phrases: withExamples(PHRASES, PT_EXAMPLES),
 }
 
 /** Сводка курса — для карточки готового курса в Конструкторе. */
