@@ -608,6 +608,37 @@ a {
   border-radius: 999px;
   animation: vocabSpeakFill linear forwards;
 }
+/* Слово смолкло раньше расчётного времени: линию доводим до конца, иначе
+   бегунок замирает на середине и выглядит недобежавшим. */
+.vocab-speak-fill--done {
+  animation: none;
+  transform: scaleX(1);
+}
+
+/* Переворот карточки в стопке тренажёра (CardDeck).
+   Ровно на середине карточка стоит ребром и не видна — там и происходит скачок
+   с -90° на +90°, поэтому изнанка с зеркальным текстом зрителю не достаётся.
+   Именно анимация, а не переход: она сама возвращает элемент в покой, и сбой
+   таймера не может оставить карточку стоящей ребром (то есть невидимой).
+   Два одинаковых имени нужны, чтобы каждый следующий переворот перезапускал
+   анимацию: одно и то же имя подряд браузер не проигрывает заново. */
+@keyframes deckFlipA {
+  0%      { transform: perspective(1100px) rotateY(0deg); }
+  49.99%  { transform: perspective(1100px) rotateY(-90deg); }
+  50%     { transform: perspective(1100px) rotateY(90deg); }
+  100%    { transform: perspective(1100px) rotateY(0deg); }
+}
+@keyframes deckFlipB {
+  0%      { transform: perspective(1100px) rotateY(0deg); }
+  49.99%  { transform: perspective(1100px) rotateY(-90deg); }
+  50%     { transform: perspective(1100px) rotateY(90deg); }
+  100%    { transform: perspective(1100px) rotateY(0deg); }
+}
+.deck-flip-a { animation: deckFlipA 320ms ease-in-out; }
+.deck-flip-b { animation: deckFlipB 320ms ease-in-out; }
+@media (prefers-reduced-motion: reduce) {
+  .deck-flip-a, .deck-flip-b { animation: none; }
+}
 
 @keyframes shimmer-bar {
   0%   { transform: translateX(-120%); }

@@ -14,23 +14,41 @@
 // перерисовывается из другого места. Поэтому сюда приходят уже отфильтрованные
 // темы, а фильтрация остаётся снаружи.
 //
-// ПРОГРЕСС ТЕМЫ — доля фраз, уже попавших в колоду повторений. Считается по
-// одному запросу на весь экран (knownPrompts), а не по запросу на тему: тем 38.
+// ПРОГОН ДВИГАЕТ РАСПИСАНИЕ, И ДВИГАЕТ ЕГО ЛЮБОЙ ОТВЕТ. Сначала сохранялось
+// только «не знаю»: фраза падала в колоду, а «знаю» не значило ничего. Отсюда
+// росли сразу три странности, и все три ученик видел своими глазами.
+//   — Пройденная стопка после F5 начиналась заново: она собиралась из всех фраз
+//     темы, а память о том, что их уже разобрали, нигде не хранилась.
+//   — Плитка показывала процентом ДОЛЮ НЕЗНАНИЯ: «33%» означало «пять фраз я
+//     завалил», а тема, пройденная целиком на «знаю», оставалась «не начатой».
+//   — Число повторений подряд не копилось, то есть интервального повторения по
+//     сути не было: были «фразы, которые я однажды не знал».
+// Теперь каждый ответ уходит в SM-2 (gradePrompt): «знаю» = grade 4, «не знаю» =
+// grade 1. Интервал растёт 1 → 6 → ~15 → ~37 дней и обнуляется на ошибке, а
+// счётчики reps/lapses и есть «сколько раз подряд вспомнил» и «сколько раз
+// забыл».
 //
-// ПРОГОН СТОПКИ НЕ ДВИГАЕТ ИНТЕРВАЛЫ. Интервал имеет смысл для того, что ученик
-// уже видел; фраза из разговорника попадает в расписание в момент, когда он
-// честно нажал «не знаю» (см. onVerdict), и дальше живёт как всё остальное.
+// СТОПКА — ЭТО ДОЛГ НА СЕГОДНЯ, А НЕ ВСЯ ТЕМА. В прогон попадают фразы, которых
+// ученик ещё не видел, и те, чей срок подошёл. Поэтому «Стопка пройдена»
+// переживает перезагрузку: разобранные фразы стоят в расписании на завтра и
+// позже. Прогнать тему вне расписания можно кнопкой «Пройти заново».
+//
+// ПРОГРЕСС ТЕМЫ — насколько крепко она сидит: доля от «выучено» по каждой фразе,
+// где выученной считается фраза с интервалом от трёх недель. Считается по одному
+// запросу на весь экран (deckStates), а не по запросу на тему: тем 38.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useMemo, useState } from 'react'
-import { ChevronLeft, Layers, Sparkles, Check, Volume2 } from 'lucide-react'
+import { useMemo, useRef, useState } from 'react'
+import { ChevronLeft, Layers, Sparkles, Check, Volume2, RotateCcw } from 'lucide-react'
 import type { SurvivalThemeCards, SurvivalBook, Phrase } from '../data/survivalPhrases'
-import { addCards, captureMistake, type ReviewCard } from '../data/reviewDeck'
+import { addCards, gradePrompt, isDue, type CardState, type ReviewCard } from '../data/reviewDeck'
 import { vocabImage } from '../data/vocabImages'
 import { INITIAL_SRS } from '../lib/srs'
 import { speechLocale, speechText } from '../lib/speech'
 import { useT } from '../lib/i18n'
 import CardDeck, { type DeckSource } from './CardDeck'
+import { type CoachStep } from './Coachmarks'
+import Skeleton from './Skeleton'
 import { Tile, TileGrid, TileMeter, TileChip, Empty } from './trainer/TrainerShell'
 
 type Owner = { studentId?: string; anonName?: string }
@@ -46,24 +64,82 @@ export interface PhraseView {
 /** Как проходят стопку: свайп-колодой или чтением списком. */
 export type RunMode = 'swipe' | 'list'
 
-/** Сколько фраз темы уже лежит в колоде повторений. */
-export function inDeckCount(item: SurvivalThemeCards, known: Set<string>): number {
-  return item.phrases.reduce((n, p) => n + (known.has(p.term) ? 1 : 0), 0)
+/**
+ * С какого интервала фраза считается выученной.
+ *
+ * Три недели — граница, на которой карточка в SM-2 перестаёт быть «свежей»:
+ * до неё она возвращается почти каждый заход, после — раз в месяц и реже. Взято
+ * из практики Anki (mature card), а не выведено из нашей формулы: смысл границы
+ * в том, что фразу пронесли через забывание, а не в конкретном числе шагов.
+ */
+const LEARNED_DAYS = 21
+
+export interface ThemeStats {
+  total: number
+  /** Ни разу не отвечали. */
+  fresh: number
+  /** Отвечали, но срок ещё не подошёл и до «выучено» не дотянуло. */
+  learning: number
+  /** Интервал от трёх недель. */
+  learned: number
+  /** Срок подошёл — ждёт в стопке сегодня. */
+  due: number
+  /** Сколько раз по теме отвечали «не знаю» за всё время. */
+  lapses: number
+  /** Крепость темы, 0…100. */
+  pct: number
 }
 
-/** Доля фраз темы, уже лежащих в колоде, 0…100. */
-export function themeProgress(item: SurvivalThemeCards, known: Set<string>): number {
-  if (item.phrases.length === 0) return 0
-  return Math.round((inDeckCount(item, known) / item.phrases.length) * 100)
+/**
+ * Насколько тема выучена.
+ *
+ * Процент считается не по числу задетых фраз, а по КРЕПОСТИ каждой: вклад фразы
+ * — это её интервал, поделённый на «выучено» (три недели). Так шкала растёт от
+ * каждого удачного повторения и проседает после ошибки — то есть показывает
+ * состояние памяти, а не пройденные экраны. Раньше та же полоска показывала
+ * долю фраз, попавших в колоду, — и честно пройденная на «знаю» тема висела с
+ * нулём.
+ */
+export function themeStats(
+  item: SurvivalThemeCards,
+  states: Map<string, CardState>,
+  nowMs = Date.now(),
+): ThemeStats {
+  const out: ThemeStats = { total: item.phrases.length, fresh: 0, learning: 0, learned: 0, due: 0, lapses: 0, pct: 0 }
+  let strength = 0
+  for (const p of item.phrases) {
+    const s = states.get(p.term)
+    if (!s) { out.fresh++; out.due++; continue }
+    out.lapses += s.lapses
+    if (s.intervalDays >= LEARNED_DAYS) out.learned++
+    else out.learning++
+    if (isDue(s, nowMs)) out.due++
+    strength += Math.min(1, s.intervalDays / LEARNED_DAYS)
+  }
+  out.pct = out.total === 0 ? 0 : Math.round((strength / out.total) * 100)
+  return out
+}
+
+/** Фразы, которые попадут в сегодняшнюю стопку: новые и те, чей срок подошёл. */
+export function duePhrases(phrases: Phrase[], states: Map<string, CardState>, nowMs = Date.now()): Phrase[] {
+  return phrases.filter(p => isDue(states.get(p.term), nowMs))
 }
 
 // ─── Витрина ─────────────────────────────────────────────────────────────────
 
-export default function PhraseDecks({ themes, known, accent, onOpen }: {
+export default function PhraseDecks({ themes, states, accent, soft, levelLabel, onOpen }: {
   /** Уже отфильтрованные темы — фильтрация живёт в рейле. */
   themes: SurvivalThemeCards[]
-  known: Set<string>
+  /** Что колода помнит про каждую фразу; ключ — оригинал фразы. */
+  states: Map<string, CardState>
   accent: string
+  soft: string
+  /**
+   * Ступень темы в шкале языка. Приходит функцией, а не лежит в теме готовой
+   * строкой: сетка ситуаций одна на все языки, а подписывается по-разному —
+   * «B1» у английского и «TOPIK 3급» у корейского.
+   */
+  levelLabel: (item: SurvivalThemeCards) => string
   onOpen: (themeId: string) => void
 }) {
   const t = useT()
@@ -73,17 +149,27 @@ export default function PhraseDecks({ themes, known, accent, onOpen }: {
   return (
     <TileGrid min={218}>
       {themes.map(x => {
-        const pct = themeProgress(x, known)
-        const inDeck = inDeckCount(x, known)
+        const st = themeStats(x, states)
+        const pct = st.pct
+        const started = st.total - st.fresh > 0
         return (
           <Tile key={x.theme.id} accent={accent} stack onClick={() => onOpen(x.theme.id)}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              {/* Ступень первой и цветом: по ней тему выбирают или пропускают,
+                  а число фраз — уже подробность внутри выбранного. */}
+              <TileChip tone="accent" accent={accent} soft={soft}>{levelLabel(x)}</TileChip>
               <TileChip>{x.phrases.length} {t('фраз')}</TileChip>
-              {pct >= 100 && (
+              {st.learned === st.total && st.total > 0 ? (
                 <TileChip tone="accent" accent="var(--color-green-text)" soft="var(--color-green-soft)">
                   {t('выучено')}
                 </TileChip>
-              )}
+              ) : started && st.due > 0 && st.due < st.total ? (
+                // Долг по расписанию — единственная причина открыть тему именно
+                // сейчас, поэтому он и стоит чипсом, а не строкой внизу.
+                <TileChip tone="accent" accent="#f59e0b" soft="#f59e0b22">
+                  {t('к повторению')} {st.due}
+                </TileChip>
+              ) : null}
             </span>
             <span style={{ fontSize: 14.5, fontWeight: 750, color: 'var(--color-text)', lineHeight: 1.3 }}>
               {t(x.theme.title)}
@@ -97,8 +183,14 @@ export default function PhraseDecks({ themes, known, accent, onOpen }: {
               {x.phrases.slice(0, 3).map(p => p.term).join(' · ')}
             </span>
             <TileMeter value={pct} />
+            {/* Внизу — состояние памяти по теме, а не «сколько раз я ошибся»:
+                выучено из скольки, и сколько ждёт сегодня. */}
             <span style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--color-text-3)' }}>
-              <span>{inDeck > 0 ? `${inDeck} ${t('в колоде')}` : t('не начата')}</span>
+              <span>
+                {!started
+                  ? t('не начата')
+                  : `${st.learned} ${t('из')} ${st.total} ${t('выучено')}${st.learning > 0 ? ` · ${st.learning} ${t('на повторе')}` : ''}`}
+              </span>
               <span style={{ color: pct > 0 ? 'var(--color-green-text)' : undefined, fontWeight: pct > 0 ? 700 : 400 }}>
                 {pct > 0 ? `${pct}%` : '—'}
               </span>
@@ -112,7 +204,7 @@ export default function PhraseDecks({ themes, known, accent, onOpen }: {
 
 // ─── Прогон одной стопки ─────────────────────────────────────────────────────
 
-export function ThemeSession({ book, item, lang, subjectId, accent, owner, view, run }: {
+export function ThemeSession({ book, item, lang, subjectId, accent, owner, view, run, states, statesReady, onGraded, tourExtra }: {
   book: SurvivalBook
   item: SurvivalThemeCards
   lang: string
@@ -121,61 +213,116 @@ export function ThemeSession({ book, item, lang, subjectId, accent, owner, view,
   owner: Owner
   view: PhraseView
   run: RunMode
+  /** Память колоды по фразам темы — из неё собирается сегодняшняя стопка. */
+  states: Map<string, CardState>
+  /** Память уже прочитана из базы. До этого стопку собирать нельзя. */
+  statesReady: boolean
+  /** Ответ сохранён: экран обновляет свою копию памяти, не перечитывая базу. */
+  onGraded: (prompt: string, state: CardState) => void
+  /**
+   * Шаг онбординга про переключатель «Свайп / Списком»: сам переключатель живёт
+   * в строке управления тренажёра, а подсказки — в стопке, поэтому шаг приходит
+   * сюда снаружи и просто пробрасывается дальше.
+   */
+  tourExtra?: CoachStep
 }) {
   const { theme, phrases } = item
+
+  // «Пройти заново» — прогон вне расписания. Счётчик, а не флаг: каждое нажатие
+  // должно пересобирать стопку, в том числе когда её уже прогнали разок.
+  const [drill, setDrill] = useState(0)
+
+  // Стопка фиксируется на момент открытия темы: пересчитывать её на каждый
+  // ответ значило бы, что карточка исчезает из-под пальца ровно в тот момент,
+  // когда её оценили. Поэтому память читается из ref-подобного снимка —
+  // useState с ленивой инициализацией внутри useMemo не годится, а зависимость
+  // от `states` перезапускала бы сессию после каждого ответа.
+  const statesRef = useRef(states)
+  statesRef.current = states
 
   // Стабильный объект: он лежит в зависимостях загрузки стопки, и новый объект
   // на каждый рендер перезапускал бы сессию (см. DeckSource).
   const source: DeckSource = useMemo(() => ({
-    load: async () => phrases.map((ph, i): ReviewCard => ({
-      id: `sv-${book.key}-${theme.id}-${i}`,
-      subject: subjectId,
-      source: 'manual',
-      // Обратное направление — это другой навык: вспомнить фразу по смыслу
-      // труднее, чем узнать её глазами. Меняем местами обе стороны целиком, а
-      // не только показ, иначе озвучка читала бы русский текст чужим голосом.
-      prompt: view.reverse ? ph.ru : ph.term,
-      answer: view.reverse ? ph.term : ph.ru,
-      reading: view.reading ? ph.reading : undefined,
-      note: ph.note,
-      ex: ph.ex,
-      image: vocabImage(ph.ru),
-      ease: INITIAL_SRS.ease,
-      intervalDays: INITIAL_SRS.intervalDays,
-      reps: INITIAL_SRS.reps,
-      lapses: INITIAL_SRS.lapses,
-      dueAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-    })),
+    load: async () => {
+      const pick = drill > 0 ? phrases : duePhrases(phrases, statesRef.current)
+      return pick.map((ph, i): ReviewCard => ({
+        id: `sv-${book.key}-${theme.id}-${i}`,
+        subject: subjectId,
+        source: 'manual',
+        // Обратное направление — это другой навык: вспомнить фразу по смыслу
+        // труднее, чем узнать её глазами. Меняем местами обе стороны целиком, а
+        // не только показ, иначе озвучка читала бы русский текст чужим голосом.
+        prompt: view.reverse ? ph.ru : ph.term,
+        answer: view.reverse ? ph.term : ph.ru,
+        reading: view.reading ? ph.reading : undefined,
+        note: ph.note,
+        ex: ph.ex,
+        image: vocabImage(ph.ru),
+        ease: INITIAL_SRS.ease,
+        intervalDays: INITIAL_SRS.intervalDays,
+        reps: INITIAL_SRS.reps,
+        lapses: INITIAL_SRS.lapses,
+        dueAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+      }))
+    },
     grading: 'binary',
     onVerdict: (card, known) => {
-      if (known) return
-      // Незнакомое уходит в колоду само — в этом весь смысл прогона: ученик не
-      // выписывает слова руками, а честно жмёт «не знаю».
-      captureMistake({
-        ...owner, subject: subjectId, source: 'manual',
-        // В колоду фраза всегда ложится оригиналом вперёд, как её положила бы
-        // домашка: направление показа — настройка сессии, а не свойство слова.
-        prompt: view.reverse ? card.answer : card.prompt,
-        answer: view.reverse ? card.prompt : card.answer,
-      }).catch(e => console.error('PhraseDecks capture:', e))
+      // Сохраняется ЛЮБОЙ ответ, а не только провал: «знаю» — это следующая
+      // ступень интервала, и без него никакого интервального повторения нет.
+      // В колоду фраза всегда ложится оригиналом вперёд: направление показа —
+      // настройка сессии, а не свойство слова.
+      const prompt = view.reverse ? card.answer : card.prompt
+      const answer = view.reverse ? card.prompt : card.answer
+      gradePrompt(owner, { subject: subjectId, source: 'manual', prompt, answer }, known ? 4 : 1)
+        .then(st => { if (st) onGraded(prompt, st) })
+        .catch(e => console.error('PhraseDecks grade:', e))
     },
     judge: true,
     label: theme.title,
     doneTitle: 'Стопка пройдена',
-  }), [phrases, book.key, theme.id, theme.title, subjectId, owner, view.reverse, view.reading])
+    // Пустая стопка здесь — не «нечего учить», а «всё стоит в расписании»:
+    // формулировка по умолчанию («карточки набираются сами») в этом месте
+    // читалась бы как поломка.
+    emptyTitle: 'На сегодня тема закрыта',
+    emptyText: 'Все фразы этой темы уже разобраны и ждут своего дня. Можно прогнать её заново — расписание при этом продолжит считаться.',
+  }), [phrases, drill, book.key, theme.id, theme.title, subjectId, owner, view.reverse, view.reading, onGraded])
 
   if (run === 'list') return <PhraseList phrases={phrases} accent={accent} view={view} lang={lang} />
 
+  // Список читается и без памяти колоды, а стопка — нет: пустая память сложила
+  // бы её из всей темы.
+  if (!statesReady) return <Skeleton.Text lines={3} style={{ maxWidth: 420 }} />
+
   return (
     <CardDeck
-      key={`${theme.id}-${view.reverse ? 'r' : 'f'}`}
+      // Смена направления показа и «пройти заново» пересобирают сессию с нуля.
+      key={`${theme.id}-${view.reverse ? 'r' : 'f'}-${drill}`}
       owner={owner}
       accent={accent}
       lang={view.reverse ? undefined : lang}
       subject={subjectId}
       source={source}
+      emptyExtra={<DrillButton accent={accent} onClick={() => setDrill(d => d + 1)} />}
+      tourExtra={tourExtra}
     />
+  )
+}
+
+/** «Пройти заново» — стопка вне расписания, под пустой и под пройденной колодой. */
+function DrillButton({ accent, onClick }: { accent: string; onClick: () => void }) {
+  const t = useT()
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 999,
+        border: `1px solid ${accent}66`, background: 'transparent', color: accent,
+        fontFamily: 'inherit', fontSize: 12.5, fontWeight: 650, cursor: 'pointer',
+      }}
+    >
+      <RotateCcw size={14} /> {t('Пройти заново')}
+    </button>
   )
 }
 
@@ -370,7 +517,7 @@ export function TakeWholeTheme({ phrases, owner, subjectId, accent, onAdded }: {
   )
 }
 
-/** Подпись под колодой — что делает «не знаю». */
+/** Подпись под колодой — что делает ответ. */
 export function DeckHint() {
   const t = useT()
   return (
@@ -379,7 +526,7 @@ export function DeckHint() {
       fontSize: 11.5, color: 'var(--color-text-3)',
     }}>
       <Layers size={12} />
-      {t('«Не знаю» кладёт фразу в колоду повторений — вернётся по расписанию.')}
+      {t('Каждый ответ двигает расписание: «знаю» отодвигает фразу дальше, «не знаю» возвращает её завтра.')}
     </div>
   )
 }

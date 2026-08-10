@@ -47,7 +47,7 @@ const OWNED_FIELDS = [
   'image', 'images', 'table', 'sequenceItems', 'pairs',
 ] as const
 
-export type SeedChangeKind = 'lesson' | 'task' | 'task-fields' | 'theory'
+export type SeedChangeKind = 'lesson' | 'task' | 'task-fields' | 'theory' | 'video'
 
 export interface SeedChange {
   /** Стабильный ключ — по нему UI помнит, что отмечено. */
@@ -175,6 +175,24 @@ export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
       })
     }
 
+    // ── видео ──
+    //
+    // Отдельным видом расхождения, а не полем внутри урока: у сохранённых
+    // курсов ссылки на видео не было вовсе (их добрали позже), и без этой
+    // ветки триста роликов остались бы только в коде. Пустую ссылку добираем
+    // как обычное добавление, чужую — только по галке: учитель мог поставить
+    // свою запись занятия, и затирать её молча нельзя.
+    if (differs((mine.videoUrl ?? '').trim(), (unit.videoUrl ?? '').trim()) && unit.videoUrl) {
+      changes.push({
+        key: `video:${title}`,
+        kind: 'video',
+        lessonTitle: mine.title,
+        summary: mine.videoUrl?.trim() ? 'Ссылка на видео отличается от сида' : 'Видео нет — есть в сиде',
+        overwrites: !!mine.videoUrl?.trim(),
+        details: [unit.videoUrl],
+      })
+    }
+
     // ── конспект ──
     if (differs((mine.theory ?? '').trim(), (unit.theory ?? '').trim())) {
       changes.push({
@@ -241,6 +259,10 @@ export async function applySeedChanges(course: CourseEdData, keys: Set<string>):
 
     if (keys.has(`theory:${title}`)) {
       next = { ...next, theory: unit.theory, theoryImages: unit.theoryImages ?? [] }
+    }
+
+    if (keys.has(`video:${title}`)) {
+      next = { ...next, videoUrl: unit.videoUrl }
     }
 
     return next

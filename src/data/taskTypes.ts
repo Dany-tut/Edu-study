@@ -23,6 +23,8 @@ import {
   Mic, PenLine, Repeat, Shuffle, SpellCheck, Table as TableIcon, Type, Volume2,
 } from 'lucide-react'
 import { typeVisual, normalizeTaskType as normalizeRaw, type TypeVisual } from './taskTypeVisuals'
+import { matchTranslation } from '../lib/answerMatch'
+import { matchesAnyAnswer, sameAnswer } from '../lib/answerForms'
 
 // ─── Идентификаторы ──────────────────────────────────────────────────────────
 
@@ -248,20 +250,17 @@ export const DEFAULT_IMAGE_SIZE = 25
 
 // ─── Нормализация ответов ────────────────────────────────────────────────────
 
-/** Сравнение свободного ответа: регистр, лишние пробелы и хвостовая пунктуация не важны. */
-export function normAnswer(s: string): string {
-  return s
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, ' ')
-    .replace(/[.!?。！？]+$/u, '')
-}
+/**
+ * Правила «тот же ответ, другая форма» (регистр, пунктуация, сокращения,
+ * числительные словами) вынесены в `lib/answerForms.ts` — там же они и описаны.
+ * Здесь остаётся только применение: сравнивать строки напрямую больше нельзя,
+ * у одного ответа бывает несколько канонических форм.
+ */
+export { normAnswer } from '../lib/answerForms'
 
 /** Совпал ли ответ с эталоном или с одним из альтернативных вариантов. */
 function matchesText(given: string, t: TaskPayload): boolean {
-  const target = normAnswer(given)
-  if (t.answer && normAnswer(t.answer) === target) return true
-  return (t.altAnswers ?? []).some(a => normAnswer(a) === target)
+  return matchesAnyAnswer(given, [t.answer, ...(t.altAnswers ?? [])])
 }
 
 /**
@@ -388,7 +387,7 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
       const pairs = t.pairs ?? []
       return {
         auto: true,
-        correct: pairs.every(p => normAnswer(map[p.left] ?? '') === normAnswer(p.right)),
+        correct: pairs.every(p => sameAnswer(map[p.left], p.right)),
       }
     },
     needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: false,
@@ -430,7 +429,7 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
       const correct = keys.every(key => {
         const [r, c] = key.split(',').map(Number)
         const want = rows[r]?.[c] ?? ''
-        return normAnswer(given[key] ?? '') === normAnswer(want)
+        return sameAnswer(given[key], want)
       })
       return { auto: true, correct }
     },
@@ -462,7 +461,7 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
       if (!got) return { auto: true, correct: false }
       return {
         auto: true,
-        correct: got.length === want.length && got.every((w, i) => normAnswer(w) === normAnswer(want[i])),
+        correct: got.length === want.length && got.every((w, i) => sameAnswer(w, want[i])),
       }
     },
     needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: true,
@@ -554,11 +553,8 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
       const given = a as Record<string, string>
       // Дрилл засчитывается целиком: пропущенная строка — это незакрытая форма,
       // а половина конструкции автоматизма не даёт.
-      const correct = items.every((item, i) => {
-        const got = normAnswer(given[String(i)] ?? '')
-        if (!got) return false
-        return normAnswer(item.answer) === got || (item.alt ?? []).some(x => normAnswer(x) === got)
-      })
+      const correct = items.every((item, i) =>
+        matchesAnyAnswer(given[String(i)], [item.answer, ...(item.alt ?? [])]))
       return { auto: true, correct }
     },
     needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: true,
@@ -570,9 +566,12 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
     Icon: Layers,
     makeDefault: () => ({ front: '', back: '' }),
     isGradable: t => !!t.front?.trim() && !!t.back?.trim(),
+    // Карточка — единственный тип, где проверяется ЗНАЧЕНИЕ, а не форма:
+    // сверка идёт терпимым сопоставителем (падеж, вид, предлог, дефис не
+    // считаются ошибкой), см. lib/answerMatch.ts.
     grade: (t, a) => {
       if (!TASK_TYPES.flashcard.isGradable(t)) return NOT_AUTO
-      return { auto: true, correct: typeof a === 'string' && normAnswer(a) === normAnswer(t.back ?? '') }
+      return { auto: true, correct: typeof a === 'string' && matchTranslation(a, t.back, t.altAnswers) }
     },
     needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: true,
   }),

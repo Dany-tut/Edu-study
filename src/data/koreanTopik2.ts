@@ -39,6 +39,7 @@ import { formTable, contrastPair, ladderFigure } from './lessonFigures'
 import { KOREAN2_THEORY } from './koreanTopik2Theory'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
+import { KOT2_VIDEO } from './languageVideosExtra'
 
 export const KOREAN2_MODULES: LangModule[] = [
   { title: 'Оттенки и связность', subtitle: 'Субстантивация, причины, модальные концовки', units: [1, 2, 3, 4] },
@@ -1372,7 +1373,12 @@ export const KOREAN_TOPIK2: LanguageCourseSpec = {
   modules: KOREAN2_MODULES,
   // Конспекты живут отдельным файлом: здесь — последовательность и задания,
   // там — то, что ученик читает.
-  units: KOREAN2_UNITS.map(u => ({ ...u, theory: KOREAN2_THEORY[u.shortId] ?? u.theory })),
+  units: KOREAN2_UNITS.map(u => ({
+    ...u,
+    theory: KOREAN2_THEORY[u.shortId] ?? u.theory,
+    // Видео добрано по итогам аудита: курс шёл без единого ролика.
+    videoUrl: KOT2_VIDEO[u.shortId] ?? u.videoUrl,
+  })),
   figures: KOREAN2_FIGURES,
 }
 

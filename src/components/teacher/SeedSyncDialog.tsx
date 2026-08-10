@@ -25,6 +25,7 @@ const KIND_LABEL: Record<SeedChange['kind'], string> = {
   task: 'Новые задания',
   'task-fields': 'Правки в заданиях',
   theory: 'Конспект',
+  video: 'Видео урока',
 }
 
 export default function SeedSyncDialog({ diff, onClose, onApply }: {

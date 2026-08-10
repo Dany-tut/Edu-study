@@ -26,7 +26,16 @@ export function speechLocale(lang?: string): string | undefined {
 }
 
 /** Оценка длительности озвучки в мс — для индикатора прогресса. Точной
- *  длительности Web Speech не даёт, индикатор всё равно снимается по onend. */
+ *  длительности Web Speech не даёт, индикатор всё равно снимается по onend.
+ *
+ *  Считаем по знакам без пробелов и с оглядкой на письменность: один хангыль
+ *  или кана — целый слог, латиница с кириллицей проговариваются втрое быстрее
+ *  посимвольно. Прежние общие 220 мс на знак давали для коротких слов вдвое
+ *  больше реального звучания, и бегунок не добегал до конца слова. */
 export function speechMs(text: string): number {
-  return Math.min(6000, Math.max(900, text.trim().length * 220))
+  const t = (text ?? '').trim()
+  if (!t) return 700
+  const syllabic = /[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]/.test(t)
+  const chars = t.replace(/\s+/g, '').length
+  return Math.min(7000, Math.max(700, 300 + chars * (syllabic ? 185 : 78)))
 }

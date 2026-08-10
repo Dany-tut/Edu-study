@@ -8,6 +8,8 @@ import {
 import type { LessonHomework, HomeworkQuizQuestion } from '../data/lessonContent'
 import type { PatternItem } from '../data/taskTypes'
 import { normalizeTaskType } from '../data/taskTypeVisuals'
+import { matchTranslation } from '../lib/answerMatch'
+import { matchesAnyAnswer, sameAnswer } from '../lib/answerForms'
 import { PURPLE, subjectTheme } from '../lib/theme'
 import { useTheme } from '../store/themeStore'
 import { supabase } from '../lib/supabase'
@@ -29,6 +31,9 @@ import { bindShortWords, proseWrap, balancedWrap, splitLeadIn } from '../lib/typ
 import GrowTextarea, { growMinHeight } from './GrowTextarea'
 import QuestionTable from './QuestionTable'
 import WordBankSolver from './WordBankSolver'
+import MatchingSolver, {
+  parseMatchingCsv, matchingCsv, matchingIsComplete, matchingIsCorrect, formatMatching,
+} from './MatchingSolver'
 import AudioPlayer from './AudioPlayer'
 import VoiceRecorder from './VoiceRecorder'
 import { sentenceTokens } from '../data/taskTypes'
@@ -382,14 +387,13 @@ function ResultModal({
           display: 'flex', flexDirection: 'column',
         }}
       >
-        {/* Colored top banner */}
+        {/* Шапка итогов. Заливка семантическим цветом на всю ширину модалки
+            давала то же, что и в плашке итогов: жёлтый на графите — оливковая
+            грязь, purple-soft 0.46 — тяжёлая плита под самым крупным текстом.
+            Поверхность нейтральная, статус несут иконка, полоса и хлопушка. */}
         <div ref={bannerRef} style={{
           padding: '28px 28px 24px',
-          background: context === 'hard'
-            ? 'var(--color-green-soft)'
-            : passed
-              ? 'var(--color-purple-soft)'
-              : 'var(--color-yellow-soft)',
+          background: 'var(--color-bg-3)',
           display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: 16,
         }}>
           {passed ? (
@@ -401,9 +405,9 @@ function ResultModal({
               width: 54, height: 54, borderRadius: 18, flexShrink: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: context === 'hard'
-                ? 'rgba(42,125,79,0.14)'
-                : 'rgba(248,160,0,0.14)',
-              color: context === 'hard' ? 'var(--color-green-text)' : 'var(--color-yellow-text)',
+                ? 'var(--color-green-soft)'
+                : 'var(--color-amber-soft)',
+              color: context === 'hard' ? 'var(--color-green-text)' : 'var(--color-amber)',
             }}>
               {context === 'hard' ? <Send size={24} /> : <CircleAlert size={24} />}
             </div>
@@ -411,7 +415,7 @@ function ResultModal({
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{
               fontSize: 12, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase',
-              color: context === 'hard' ? 'var(--color-green-text)' : passed ? 'var(--color-accent)' : 'var(--color-yellow-text)',
+              color: context === 'hard' ? 'var(--color-green-text)' : passed ? 'var(--color-accent)' : 'var(--color-amber)',
               marginBottom: 6,
             }}>
               {context === 'hard' ? t('Работа отправлена') : t('Тест сдан')}
@@ -428,7 +432,9 @@ function ResultModal({
               <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)' }}>
                 {context === 'hard'
                   ? t('Преподаватель посмотрит твою работу и даст обратную связь. Обычно это занимает до 24 часов.')
-                  : `${t('До открытия сложного уровня нужно')} ${recommendationScore}+. ${t('Можно вернуться к конспекту и попробовать снова.')}`
+                  /* «нужно 80+» ушло в полосу порога ниже — та же логика, что в
+                     плашке итогов на странице: цифра нагляднее повтора в тексте. */
+                  : t('Можно вернуться к конспекту и попробовать снова.')
                 }
               </p>
             )}
@@ -436,8 +442,7 @@ function ResultModal({
           {context === 'basic' && score !== undefined && (
             <div style={{ flexShrink: 0, textAlign: 'right' }}>
               <span style={{
-                fontSize: 42, fontWeight: 760, lineHeight: 1,
-                color: passed ? 'var(--color-accent)' : 'var(--color-yellow-text)',
+                fontSize: 42, fontWeight: 760, lineHeight: 1, color: 'var(--color-text)',
               }}>{score}</span>
               <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', marginTop: 2 }}>{t('баллов')}</p>
             </div>
@@ -446,6 +451,37 @@ function ResultModal({
             <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)', width: '100%', marginTop: -8 }}>
               {t('База закрыта уверенно. Открылся необязательный хард-уровень с разбором от преподавателя.')}
             </p>
+          )}
+          {/* Та же полоса порога, что и в плашке итогов: ученик видит одну и ту
+              же картину и в модалке сразу после сдачи, и на странице под ней. */}
+          {context === 'basic' && score !== undefined && recommendationScore !== undefined && (
+            <div className="flex flex-col" style={{ gap: 7, width: '100%' }}>
+              <div style={{
+                position: 'relative', height: 8, borderRadius: 999,
+                background: 'rgba(var(--spoiler-dot-rgb), 0.12)',
+              }}>
+                <div style={{
+                  position: 'absolute', left: 0, top: 0, bottom: 0,
+                  width: `${Math.min(100, score)}%`, borderRadius: 999,
+                  background: passed ? 'var(--color-green-accent)' : 'var(--color-amber)',
+                }} />
+                <div style={{
+                  position: 'absolute', left: `${Math.min(100, recommendationScore)}%`,
+                  top: -4, bottom: -4, width: 2, borderRadius: 2,
+                  background: 'var(--color-text)',
+                }} />
+              </div>
+              <div className="flex items-center justify-between" style={{ gap: 12, fontSize: 12 }}>
+                <span style={{ color: 'var(--color-muted)' }}>
+                  {passed
+                    ? t('порог пройден')
+                    : `${Math.max(0, recommendationScore - score)} ${t('до открытия харда')}`}
+                </span>
+                <span style={{ color: 'var(--color-text-2)', fontWeight: 700 }}>
+                  {t('порог')} {recommendationScore}
+                </span>
+              </div>
+            </div>
           )}
         </div>
 
@@ -661,7 +697,11 @@ function SectionCheckpoint({ part }: { part: number }) {
 // authored homework (course editor «Домашки» tab) can also carry text / fill /
 // match / whiteboard tasks, so grading mirrors TestFlow: choice and text/fill
 // auto-check, the rest are recorded for teacher review.
-const normAnswer = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ')
+// Сверка со строгим эталоном (диктант, подстановка, дрилл, сборка предложения)
+// идёт по общим правилам форм ответа — lib/answerForms.ts. Своей нормализации
+// здесь быть не должно: у экрана домашки она была беднее, чем в банке заданий,
+// и один и тот же ответ получал разный вердикт в зависимости от того, где его
+// проверяли.
 function qType(q: HomeworkQuizQuestion) { return normalizeTaskType(q.type ?? 'single') }
 function questionIsChoice(q: HomeworkQuizQuestion) {
   const tp = qType(q)
@@ -700,9 +740,7 @@ export function parseDrillAnswer(ans: string | undefined): Record<string, string
 
 /** Верна ли одна строка дрилла. Вынесено: нужно и проверке, и подсветке строк. */
 export function drillRowCorrect(item: PatternItem, given: string | undefined) {
-  const got = normAnswer(given ?? '')
-  if (!got) return false
-  return normAnswer(item.answer) === got || (item.alt ?? []).some(x => normAnswer(x) === got)
+  return matchesAnyAnswer(given, [item.answer, ...(item.alt ?? [])])
 }
 
 function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
@@ -715,6 +753,10 @@ function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
     if (items.length === 0) return !!(ans && ans.trim())
     const given = parseDrillAnswer(ans)
     return items.every((_, i) => !!given[String(i)]?.trim())
+  }
+  // Сопоставление — то же правило: пара строк без пары не ответ.
+  if (qType(q) === 'matching' && (q.pairs?.length ?? 0) >= 2) {
+    return matchingIsComplete(parseMatchingCsv(ans, q.pairs!.length))
   }
   return !!(ans && ans.trim())
 }
@@ -732,7 +774,9 @@ function questionAutoGradable(q: HomeworkQuizQuestion) {
   const tp = qType(q)
   if (tp === 'fill' || tp === 'extended') return !!q.referenceAnswer?.trim()
   if (tp === 'sequence') return (q.sequenceItems?.length ?? 0) >= 2
-  // tableFill/matching/whiteboard — teacher review only, not auto-graded.
+  // Сопоставление проверяется машиной: ответ — выбор пар, а не свободный текст.
+  if (tp === 'matching') return (q.pairs?.length ?? 0) >= 2
+  // tableFill/whiteboard — teacher review only, not auto-graded.
   return false
 }
 function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
@@ -746,22 +790,19 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
       const want = sentenceTokens(q.sentence ?? '')
       const got = parseWords(ans)
       return got.length === want.length
-        && got.every((w, i) => normAnswer(w) === normAnswer(want[i]))
+        && got.every((w, i) => sameAnswer(w, want[i]))
     }
     if (langTp === 'listenType') {
       if (!questionAutoGradable(q)) return false
-      const target = normAnswer(ans)
-      return normAnswer(q.referenceAnswer!) === target
-        || (q.altAnswers ?? []).some(a => normAnswer(a) === target)
+      return matchesAnyAnswer(ans, [q.referenceAnswer, ...(q.altAnswers ?? [])])
     }
     if (langTp === 'minimalPair') return ans === q.correctPair
     if (langTp === 'flashcard') {
       if (!q.back?.trim()) return false
-      // Перевод часто даётся с уточнением в скобках («идти, ехать») — принимаем
-      // и полный вариант, и любую из перечисленных через запятую частей.
-      const target = normAnswer(ans)
-      const variants = q.back.split(/[,;]/).map(s => normAnswer(s.replace(/\([^)]*\)/g, '')))
-      return normAnswer(q.back) === target || variants.some(v => v && v === target)
+      // Карточка проверяет значение, а не форму: падеж, вид глагола, предлог и
+      // дефис ошибкой не считаются («в агентстве» = «агентство»). Разбор
+      // формулировки — в lib/answerMatch.ts, синонимы приходят в altAnswers.
+      return matchTranslation(ans, q.back, q.altAnswers)
     }
     if (langTp === 'pattern') {
       const items = drillItems(q)
@@ -773,7 +814,9 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
   }
   const tp = qType(q)
   if (tp === 'fill' || tp === 'extended') {
-    return questionAutoGradable(q) && normAnswer(ans) === normAnswer(q.referenceAnswer!)
+    // altAnswers учитываются и здесь: раньше их читал только диктант, и заданное
+    // учителем «принимается ещё и так» молча пропадало во «Вписать ответ».
+    return questionAutoGradable(q) && matchesAnyAnswer(ans, [q.referenceAnswer, ...(q.altAnswers ?? [])])
   }
   if (tp === 'sequence') {
     const items = q.sequenceItems ?? []
@@ -782,6 +825,13 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
     // The authored order is [0,1,2,…]; the answer holds the student's arrangement
     // as a list of authored indices, so it's correct when already in that order.
     return order.every((v, i) => v === i)
+  }
+  if (tp === 'matching') {
+    const pairs = q.pairs ?? []
+    if (pairs.length < 2) return false
+    // Ответ хранит авторский индекс правой части на каждую строку — верно, когда
+    // каждая строка соединена со «своей».
+    return matchingIsCorrect(parseMatchingCsv(ans, pairs.length))
   }
   return false
 }
@@ -891,9 +941,9 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange }: {
     return (
       <div className="flex items-center flex-wrap" style={{
         gap: 10, padding: '12px 14px', borderRadius: 16,
-        background: 'var(--color-yellow-soft)', border: '1px solid rgba(248,201,145,0.42)',
+        background: 'var(--color-amber-soft)', border: '1px solid var(--color-amber-border)',
       }}>
-        <MicOff size={16} style={{ color: 'var(--color-yellow-text)', flexShrink: 0 }} />
+        <MicOff size={16} style={{ color: 'var(--color-amber)', flexShrink: 0 }} />
         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', lineHeight: 1.45 }}>
           {t('Записи не будет — преподаватель увидит пометку и спросит это на уроке.')}
         </span>
@@ -964,17 +1014,26 @@ function TableSolver({ table, value, disabled, onChange }: {
  *
  * Ответы уходят наружу одной строкой-JSON — так же, как у таблицы: хранилище
  * домашки держит на вопрос ровно одну строку.
+ *
+ * Подсказка здесь построчная, а не на всё задание: застревают на одном слове из
+ * пяти, и общая подсказка в такой ситуации либо не открывается вовсе (пока не
+ * заполнены все строки, «Проверить» не появляется), либо вываливает разом все
+ * пять эталонов — отработке это конец. Открытая строка стоит балла за задание,
+ * как и любая другая подсказка.
  */
-function DrillSolver({ pattern, gloss, items, value, disabled, showVerdict, accent, soft, onChange }: {
+function DrillSolver({ pattern, gloss, items, value, disabled, showVerdict, revealed, accent, soft, onChange, onReveal }: {
   pattern?: string
   gloss?: string
   items: PatternItem[]
   value: string | undefined
   disabled: boolean
   showVerdict: boolean
+  /** Номера строк (строкой), эталон которых ученик уже открыл. */
+  revealed: Record<string, true>
   accent: string
   soft: string
   onChange: (v: string) => void
+  onReveal: (index: number) => void
 }) {
   const t = useT()
   const given = parseDrillAnswer(value)
@@ -1000,6 +1059,7 @@ function DrillSolver({ pattern, gloss, items, value, disabled, showVerdict, acce
         {items.map((item, i) => {
           const mine = given[String(i)] ?? ''
           const ok = drillRowCorrect(item, mine)
+          const shown = !!revealed[String(i)]
           return (
             <div key={i} className="flex flex-col" style={{ gap: 4 }}>
               <div className="flex items-center" style={{ gap: 10 }}>
@@ -1020,11 +1080,49 @@ function DrillSolver({ pattern, gloss, items, value, disabled, showVerdict, acce
                     flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px 14px',
                     borderRadius: 14, fontFamily: 'inherit', fontSize: 15,
                     color: 'var(--color-text)', background: 'var(--color-bg-input)', outline: 'none',
-                    border: `1px solid ${showVerdict ? (ok ? '#6EE7A0' : '#F48B91') : 'var(--color-border)'}`,
+                    border: `1px solid ${
+                      showVerdict ? (ok ? '#6EE7A0' : '#F48B91')
+                        : shown ? 'rgba(248,201,145,0.55)'
+                        : 'var(--color-border)'
+                    }`,
                     opacity: disabled ? 0.85 : 1,
                   }}
                 />
+                {/* Глазок строки. Место под него держится, пока дрилл живой:
+                    иначе открытая строка становится шире соседних и колонка
+                    полей едет. После проверки эталоны открыты и так — колонка
+                    смыкается целиком, ровно. */}
+                {!disabled && !showVerdict && (
+                  <span style={{ flexShrink: 0, width: 34, height: 34 }}>
+                    {!shown && (
+                      <button
+                        onClick={() => onReveal(i)}
+                        title={t('Показать ответ')}
+                        aria-label={t('Показать ответ')}
+                        className="flex items-center justify-center cursor-pointer"
+                        style={{
+                          width: '100%', height: '100%', borderRadius: 12,
+                          border: '1px solid var(--color-border)', background: 'transparent',
+                          color: 'var(--color-muted)', padding: 0,
+                        }}
+                      >
+                        <Eye size={15} />
+                      </button>
+                    )}
+                  </span>
+                )}
               </div>
+              {/* Открытая строка: эталон с переводом и цена подсказки. */}
+              {shown && !showVerdict && (
+                <div className="flex items-start" style={{ gap: 7, paddingLeft: 88, paddingRight: 44 }}>
+                  <Eye size={14} style={{ color: 'var(--color-yellow-text)', flexShrink: 0, marginTop: 2 }} />
+                  <span style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-text-2)' }}>
+                    <b style={{ color: 'var(--color-text)' }}>{item.answer}</b>
+                    {item.gloss ? ` — ${item.gloss}` : ''}
+                    <span style={{ color: 'var(--color-muted)' }}> · {t('балл за это задание не начисляется')}</span>
+                  </span>
+                </div>
+              )}
               {/* Эталон и перевод — только после проверки: до неё они и есть ответ. */}
               {showVerdict && !ok && (
                 <div style={{ fontSize: 13, color: 'var(--color-green-text)', fontWeight: 600, paddingLeft: 88 }}>
@@ -1098,6 +1196,9 @@ export default function HomeworkFlow({
     }
   })
   const [showResultModal, setShowResultModal] = useState<'basic' | 'hard' | null>(null)
+  // Сдача недоделанной домашки спрашивает подтверждение прямо в кнопке:
+  // пропущенные пойдут в ошибки, и отменить это ученик уже не сможет.
+  const [confirmSubmitAsIs, setConfirmSubmitAsIs] = useState(false)
   const [showTheory, setShowTheory] = useState(false)
   const photoInputRef = useRef<HTMLInputElement>(null)
   const [showBoard, setShowBoard] = useState(false)
@@ -1250,6 +1351,20 @@ export default function HomeworkFlow({
         && (!!state.basicHints[q.id] || !questionCorrect(q, state.basicAnswers[q.id]))),
     [basicQuestions, state.basicAnswers, state.basicHints],
   )
+  /**
+   * Задания без ответа — с их номерами. Нужны и для напоминания в конце
+   * списка, и для чипсов-навигации: «осталось 1» без указания, какое именно,
+   * заставляло ученика листать всю домашку заново.
+   */
+  const basicUnanswered = useMemo(
+    () => basicQuestions
+      .map((q, i) => ({ q, number: i + 1 }))
+      .filter(({ q }) => !questionAnswered(q, state.basicAnswers[q.id])),
+    [basicQuestions, state.basicAnswers],
+  )
+  // Ответил ещё на одно — подтверждение сдачи снимается: речь уже про другое
+  // число пропусков, и «да» из прошлого состояния к нему не относится.
+  useEffect(() => { setConfirmSubmitAsIs(false) }, [answeredCount])
   // Задания без автопроверки (устные, описание картинки, доска) — их смотрит
   // преподаватель, и в «ошибки» они не идут.
   const basicReviewCount = useMemo(
@@ -1300,8 +1415,17 @@ export default function HomeworkFlow({
           .map(n => items[Number(n)])
           .filter(Boolean)
           .join(' → ')
+      } else if (tp === 'matching' && (question.pairs?.length ?? 0) >= 2) {
+        answer = formatMatching(question.pairs!, parseMatchingCsv(raw, question.pairs!.length))
       } else if (tp === 'minimalPair') {
         answer = (raw === 'B' ? question.pairB : raw === 'A' ? question.pairA : '') ?? ''
+      } else if (tp === 'pattern') {
+        // Дрилл хранится JSON-картой «строка → что вписали»: преподавателю она
+        // нечитаема, разворачиваем в те же строки, что видел ученик.
+        const given = parseDrillAnswer(raw)
+        answer = drillItems(question)
+          .map((item, i) => `${item.cue} → ${given[String(i)]?.trim() || '—'}`)
+          .join('; ')
       } else if (raw === NO_VOICE) {
         answer = ''
       }
@@ -1316,6 +1440,10 @@ export default function HomeworkFlow({
         correct = question.options.find(o => o.id === question.correctOptionId)?.text ?? ''
       } else if (tp === 'sequence') {
         correct = (question.sequenceItems ?? []).join(' → ')
+      } else if (tp === 'matching') {
+        correct = (question.pairs ?? []).map(p => `${p.left} → ${p.right}`).join('; ')
+      } else if (tp === 'pattern') {
+        correct = drillItems(question).map(item => item.answer).join('; ')
       }
 
       const verdict: BasicAnswerVerdict =
@@ -1576,6 +1704,36 @@ export default function HomeworkFlow({
       ...current,
       basicHints: { ...current.basicHints, [questionId]: true },
     }))
+  }
+
+  /**
+   * Подсказка по одной строке дрилла.
+   *
+   * Ключ строки — `id#номер`: подсказки лежат в той же карте, что и обычные,
+   * и открытая строка сразу помечает всё задание подсказанным (балла за него
+   * уже нет). Одним значением тут не обойтись: нужно и «за это задание
+   * подглядывали», и «какие именно строки открыты».
+   */
+  const drillHintKey = (questionId: string, index: number) => `${questionId}#${index}`
+  const revealDrillRow = (questionId: string, index: number) => {
+    if (state.basicSubmitted || state.basicHints[drillHintKey(questionId, index)]) return
+    vibrate(14)
+    setState(current => ({
+      ...current,
+      basicHints: {
+        ...current.basicHints,
+        [questionId]: true,
+        [drillHintKey(questionId, index)]: true,
+      },
+    }))
+  }
+  /** Открытые строки конкретного дрилла — в виде, который ждёт DrillSolver. */
+  const drillRevealed = (question: HomeworkQuizQuestion): Record<string, true> => {
+    const out: Record<string, true> = {}
+    drillItems(question).forEach((_, i) => {
+      if (state.basicHints[drillHintKey(question.id, i)]) out[String(i)] = true
+    })
+    return out
   }
 
   /** Текст подсказки/эталона — то же, с чем сверяется автопроверка. */
@@ -2239,11 +2397,17 @@ export default function HomeworkFlow({
                 const isCorrect = !hinted && questionCorrect(question, selectedAnswer)
                 const showVerdict = graded && autoGradable && !hinted
                 const showReview = graded && !autoGradable
+                // Дрилл — задание из пяти строк, и подсказка по одной из них не
+                // должна закрывать разбор остальных четырёх. Балл за задание уже
+                // потерян, так что подбирать «до зелёной рамки» тут нечего.
+                const isDrill = qType(question) === 'pattern'
+                const drillVerdict = graded && autoGradable && isDrill
                 // «Проверить» появляется, когда есть что проверять: ответ введён,
                 // машина умеет его сверить, разбор ещё не открыт.
                 // После подсказки проверять нечего — ответ уже открыт; поле при
                 // этом остаётся живым, чтобы слово можно было вписать рукой.
-                const canCheck = autoGradable && answered && !checked && !hinted && !state.basicSubmitted
+                const canCheck = autoGradable && answered && !checked
+                  && (!hinted || isDrill) && !state.basicSubmitted
                 const hintText = hintFor(question)
                 const canHint = !!hintText && autoGradable && !hinted && !checked && !state.basicSubmitted
 
@@ -2363,7 +2527,7 @@ export default function HomeworkFlow({
                           className="flex items-start"
                           style={{
                             gap: 8, padding: '9px 12px', borderRadius: 14,
-                            background: 'var(--color-yellow-soft)', color: 'var(--color-yellow-text)',
+                            background: 'var(--color-amber-soft)', color: 'var(--color-amber)',
                             fontSize: 13, fontWeight: 700, maxWidth: 220, lineHeight: 1.4,
                             flexShrink: 0,
                           }}
@@ -2478,10 +2642,12 @@ export default function HomeworkFlow({
                       items={drillItems(question)}
                       value={selectedAnswer}
                       disabled={locked}
-                      showVerdict={showVerdict}
+                      showVerdict={drillVerdict}
+                      revealed={drillRevealed(question)}
                       accent={palette.accent}
                       soft={palette.soft}
                       onChange={v => setFreeAnswer(question.id, v)}
+                      onReveal={i => revealDrillRow(question.id, i)}
                     />
 
                     ) : qType(question) === 'tableFill' && question.table ? (
@@ -2490,6 +2656,17 @@ export default function HomeworkFlow({
                       value={selectedAnswer}
                       disabled={locked}
                       onChange={v => setFreeAnswer(question.id, v)}
+                    />
+
+                    /* Сопоставление: правые части перемешаны в банке — ученик
+                       соединяет пары сам, а не переписывает готовый ответ. */
+                    ) : qType(question) === 'matching' && (question.pairs?.length ?? 0) >= 2 ? (
+                    <MatchingSolver
+                      pairs={question.pairs!}
+                      value={parseMatchingCsv(selectedAnswer, question.pairs!.length)}
+                      disabled={locked}
+                      showVerdict={showVerdict}
+                      onChange={next => setFreeAnswer(question.id, matchingCsv(next))}
                     />
 
                     /* ── языковые задания ── */
@@ -2685,17 +2862,6 @@ export default function HomeworkFlow({
                     </div>
                     ) : (
                     <div className="flex flex-col" style={{ gap: 10 }}>
-                      {qType(question) === 'matching' && (question.pairs?.length ?? 0) > 0 && (
-                        <div className="flex flex-col" style={{ gap: 6 }}>
-                          {question.pairs!.map((pair, pi) => (
-                            <div key={pi} className="flex items-center" style={{ gap: 8, fontSize: 13, color: 'var(--color-text-2)' }}>
-                              <span style={{ fontWeight: 600 }}>{pair.left}</span>
-                              <span style={{ color: 'var(--color-muted)' }}>→</span>
-                              <span>{pair.right}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
                       <GrowTextarea
                         value={selectedAnswer ?? ''}
                         onChange={v => setFreeAnswer(question.id, v)}
@@ -2704,7 +2870,6 @@ export default function HomeworkFlow({
                         placeholder={
                           qType(question) === 'fill' ? t('Впиши слово или фразу…')
                             : qType(question) === 'whiteboard' ? t('Опиши решение (рисунок на доске приложишь учителю)…')
-                            : qType(question) === 'matching' ? t('Запиши соответствия…')
                             : t('Развёрнутый ответ…')
                         }
                         style={{
@@ -2723,9 +2888,9 @@ export default function HomeworkFlow({
                     {hinted && !!hintText && (
                       <div className="flex items-center" style={{
                         gap: 10, padding: '11px 14px', borderRadius: 16,
-                        background: 'var(--color-yellow-soft)', border: '1px solid rgba(248,201,145,0.42)',
+                        background: 'var(--color-amber-soft)', border: '1px solid var(--color-amber-border)',
                       }}>
-                        <Eye size={15} style={{ color: 'var(--color-yellow-text)', flexShrink: 0 }} />
+                        <Eye size={15} style={{ color: 'var(--color-amber)', flexShrink: 0 }} />
                         <span style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)' }}>
                           {t('Ответ')}: <b style={{ color: 'var(--color-text)' }}>{hintText}</b>
                           <span style={{ color: 'var(--color-muted)' }}> · {t('балл за это задание не начисляется, слово уйдёт на повторение')}</span>
@@ -2809,6 +2974,99 @@ export default function HomeworkFlow({
                 )
               })}
 
+              {/* Конец списка, а домашка не доделана — раньше здесь был тупик:
+                  нижняя полоса показывала «18 / 19» и молчала, кнопки сдачи не
+                  было (она приходит только на полном списке), и ученик не знал
+                  ни что осталось, ни как закончить. Теперь и то, и другое. */}
+              {!state.basicSubmitted && !basicCompleted && basicUnanswered.length > 0 && (
+                <section
+                  className="flex flex-col"
+                  style={{
+                    gap: 14, padding: 20, borderRadius: 26,
+                    background: 'rgba(var(--glass-rgb), 0.96)',
+                    border: '1px solid var(--color-amber-border)',
+                  }}
+                >
+                  <div className="flex items-start" style={{ gap: 12 }}>
+                    <div style={{
+                      width: 44, height: 44, borderRadius: 14, flexShrink: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'var(--color-amber-soft)', color: 'var(--color-amber)',
+                    }}>
+                      <CircleAlert size={20} />
+                    </div>
+                    <div>
+                      <p style={{ fontSize: 17, fontWeight: 760, color: 'var(--color-text)', marginBottom: 4 }}>
+                        {t('Список закончился, домашка — нет')}
+                      </p>
+                      <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-muted)' }}>
+                        {t('Без ответа')}: {basicUnanswered.length} {t('из')} {basicQuestions.length}.{' '}
+                        {t('Можно вернуться к ним — или сдать как есть: пропущенные пойдут в ошибки.')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Номера пропущенных — сразу и список, и навигация. */}
+                  <div className="flex flex-wrap items-center" style={{ gap: 8 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>
+                      {t('Дописать')}:
+                    </span>
+                    {basicUnanswered.map(({ q, number }) => (
+                      <button
+                        key={q.id}
+                        onClick={() => jumpToQuestion(q.id)}
+                        className="cursor-pointer"
+                        style={{
+                          minWidth: 34, height: 30, padding: '0 10px', borderRadius: 10,
+                          border: '1px solid var(--color-border-strong)', background: 'var(--color-bg-3)',
+                          color: 'var(--color-text)', fontFamily: 'inherit',
+                          fontSize: 13, fontWeight: 750,
+                        }}
+                      >
+                        {number}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
+                    <motion.button
+                      whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
+                      onClick={() => jumpToQuestion(basicUnanswered[0].q.id)}
+                      className="flex items-center cursor-pointer"
+                      style={{
+                        gap: 8, padding: '13px 22px', borderRadius: 16, border: 'none',
+                        background: PURPLE.gradient, color: '#fff', fontFamily: 'inherit',
+                        fontSize: 14, fontWeight: 750, boxShadow: '0 12px 28px rgba(99,84,207,0.28)',
+                      }}
+                    >
+                      {t('К заданию')} {basicUnanswered[0].number}
+                      <ArrowRight size={15} />
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        if (!confirmSubmitAsIs) { setConfirmSubmitAsIs(true); return }
+                        submitToSupabase('basic', basicScore, '', buildBasicSnapshot())
+                        setShowResultModal('basic')
+                      }}
+                      className="flex items-center cursor-pointer"
+                      style={{
+                        gap: 8, padding: '13px 20px', borderRadius: 16,
+                        border: `1px solid ${confirmSubmitAsIs ? 'var(--color-amber)' : 'var(--color-border-medium)'}`,
+                        background: confirmSubmitAsIs ? 'var(--color-amber-soft)' : 'var(--color-bg-input)',
+                        color: confirmSubmitAsIs ? 'var(--color-amber)' : 'var(--color-text)',
+                        fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
+                      }}
+                    >
+                      <Send size={15} />
+                      {confirmSubmitAsIs
+                        ? `${t('Точно сдать?')} ${basicUnanswered.length} ${t('без ответа')}`
+                        : t('Сдать как есть')}
+                    </motion.button>
+                  </div>
+                </section>
+              )}
+
               {/* Конец разбора — тупик, если не сказать, куда идти дальше. */}
               {state.basicSubmitted && (
                 <section
@@ -2861,6 +3119,7 @@ export default function HomeworkFlow({
                   recommendationScore={homework.recommendationScore}
                   onSubmit={() => { submitToSupabase('basic', basicScore, '', buildBasicSnapshot()); setShowResultModal('basic') }}
                   onShowSummary={() => summaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  onJump={jumpToQuestion}
                 />
               </motion.div>
             </div>
@@ -3133,6 +3392,7 @@ function BottomProgressBar({
   recommendationScore,
   onSubmit,
   onShowSummary,
+  onJump,
 }: {
   total: number
   answers: Record<string, string>
@@ -3146,11 +3406,16 @@ function BottomProgressBar({
   recommendationScore: number
   onSubmit: () => void
   onShowSummary: () => void
+  /** Прокрутка к заданию по клику в полосу — полоса и есть карта домашки. */
+  onJump: (questionId: string) => void
 }) {
   const t = useT()
+  const [hovered, setHovered] = useState<number | null>(null)
   const active = activeIndex === -1 ? total - 1 : activeIndex
   const answeredCount = questions.filter(q => questionAnswered(q, answers[q.id])).length
   const basicCompleted = answeredCount === total && total > 0
+  // Первое задание без ответа — цель клика по счётчику «18 / 19».
+  const firstUnanswered = questions.find(q => !questionAnswered(q, answers[q.id]))
 
   return (
     <div
@@ -3195,32 +3460,62 @@ function BottomProgressBar({
               && (hinted || !questionCorrect(question, answer))
             const isActive = index === active
 
+            // Полоса — карта домашки, а не индикатор: по клику она везёт к
+            // заданию. Кликабельная зона на всю высоту строки, чтобы попадать
+            // пальцем в 4-пиксельный штрих не приходилось.
+            const jump = question ? () => onJump(question.id) : undefined
+            const label = `${t('Задание')} ${index + 1}`
+
             if (isActive) {
               return (
-                <div key={index} style={{
-                  width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: isCorrect ? '#6EE7A0' : isWrong ? '#F48B91' : PURPLE.gradient,
-                  color: isCorrect ? '#0B4020' : isWrong ? '#6B0007' : '#fff',
-                  fontSize: 9, fontWeight: 800,
-                  boxShadow: isCorrect
-                    ? '0 2px 8px rgba(110,231,160,0.4)'
-                    : isWrong
-                      ? '0 2px 8px rgba(244,139,145,0.4)'
-                      : '0 2px 10px rgba(99,84,207,0.35)',
-                }}>
+                <button
+                  key={index}
+                  onClick={jump}
+                  title={label}
+                  aria-label={label}
+                  className={jump ? 'cursor-pointer' : undefined}
+                  style={{
+                    width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+                    padding: 0, border: 'none', fontFamily: 'inherit',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: isCorrect ? '#6EE7A0' : isWrong ? '#F48B91' : PURPLE.gradient,
+                    color: isCorrect ? '#0B4020' : isWrong ? '#6B0007' : '#fff',
+                    fontSize: 9, fontWeight: 800,
+                    boxShadow: isCorrect
+                      ? '0 2px 8px rgba(110,231,160,0.4)'
+                      : isWrong
+                        ? '0 2px 8px rgba(244,139,145,0.4)'
+                        : '0 2px 10px rgba(99,84,207,0.35)',
+                  }}
+                >
                   {index + 1}
-                </div>
+                </button>
               )
             }
 
             const bg = isCorrect ? '#6EE7A0' : isWrong ? '#F48B91' : 'var(--color-border-strong)'
+            const isHovered = hovered === index
             return (
-              <div key={index} style={{
-                flex: 1, height: index < active ? 6 : 4,
-                borderRadius: 3, background: bg, minWidth: 2,
-                transition: 'height 0.2s ease',
-              }} />
+              <button
+                key={index}
+                onClick={jump}
+                onMouseEnter={() => setHovered(index)}
+                onMouseLeave={() => setHovered(current => (current === index ? null : current))}
+                title={label}
+                aria-label={label}
+                className={jump ? 'cursor-pointer' : undefined}
+                style={{
+                  flex: 1, minWidth: 2, height: 20, padding: 0,
+                  border: 'none', background: 'transparent',
+                  display: 'flex', alignItems: 'center',
+                }}
+              >
+                <span style={{
+                  width: '100%', height: isHovered ? 10 : index < active ? 6 : 4,
+                  borderRadius: 3, background: bg,
+                  transition: 'height 0.2s ease',
+                }} />
+              </button>
             )
           })}
         </div>
@@ -3232,12 +3527,16 @@ function BottomProgressBar({
         // После сдачи полоса ведёт к итогам: сама по себе надпись «Сдано ✓»
         // ученику ничего не отвечала на вопрос «и что теперь».
         const isSummaryButton = submitted
-        const clickable = isSubmitButton || isSummaryButton
+        // Счётчик «18 / 19» сам по себе только констатировал недоделанное.
+        // Теперь он ведёт к ближайшему заданию без ответа.
+        const isJumpButton = !submitted && !basicCompleted && !!firstUnanswered
+        const clickable = isSubmitButton || isSummaryButton || isJumpButton
         return (
           <motion.div
             whileHover={clickable ? { y: -1 } : undefined}
             whileTap={clickable ? { scale: 0.97 } : undefined}
-            onClick={isSubmitButton ? onSubmit : isSummaryButton ? onShowSummary : undefined}
+            title={isJumpButton ? t('Перейти к заданию без ответа') : undefined}
+            onClick={isSubmitButton ? onSubmit : isSummaryButton ? onShowSummary : isJumpButton ? () => onJump(firstUnanswered.id) : undefined}
             role={clickable ? 'button' : undefined}
             className={clickable ? 'cursor-pointer' : undefined}
             style={{

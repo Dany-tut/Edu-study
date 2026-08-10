@@ -7,6 +7,25 @@ import { parseVideoSource, type VideoSource } from '../lib/videoSource'
 // ── Lesson page (screen 2) content ──────────────────────────────────────────
 
 export interface LessonTimecode { time: string; label: string; seconds: number }
+
+/**
+ * Какая глава идёт на секунде `seconds` — последняя, чьё начало уже позади.
+ * −1, если глав нет.
+ *
+ * ЗАЧЕМ ОБЩАЯ ФУНКЦИЯ. Место в ролике показывают два разных элемента: подпись
+ * главы в панели управления плеера и подсветка строки в «Таймкодах» справа.
+ * Каждый считал её сам, и допуски разошлись (0.5 против 0.25 секунды) — на
+ * границе главы подпись и подсветка успевали разъехаться. Считаем один раз.
+ */
+export function activeTimecodeIndex(codes: LessonTimecode[], seconds: number): number {
+  let best = -1
+  for (let i = 0; i < codes.length; i++) {
+    if (codes[i].seconds <= seconds + 0.5) best = i
+  }
+  // До первой главы (её начало может быть не на нуле) считаем активной первую:
+  // «никакая» глава в списке выглядит как потерянная подсветка.
+  return best === -1 && codes.length ? 0 : best
+}
 export interface LessonMaterial { id: string; name: string; emoji: string; gradient: string }
 export interface HomeworkQuizOption { id: string; text: string }
 export interface HomeworkQuizQuestion {
@@ -164,8 +183,11 @@ export interface LessonContentData {
 export interface LessonDetail {
   /** formatted lesson date, e.g. "06.05" */
   date: string
-  /** total runtime, e.g. "24:18" */
-  duration: string
+  /** Длительность записи, «24:18». Пусто, когда её никто не измерял: раньше
+   *  здесь стояло зашитое «25:12» и оно врало поверх любого чужого ролика.
+   *  Реальную длину знает только сам плеер — он и подписывает её, когда
+   *  запущен (см. LessonVideoPlayer). */
+  duration?: string
   /** Parsed recording source (RuTube / YouTube / own link) — undefined when
    *  no recording has been attached yet. */
   videoSource?: VideoSource
@@ -190,22 +212,6 @@ const materialsBySubject: Record<string, LessonMaterial[]> = {
   ],
 }
 
-// Real RuTube video powering the player — «Биосинтез белка | Полный урок»
-// (25:12). The embed supports ?t=<seconds> for the start offset and the
-// player:setCurrentTime postMessage API for seeking, so the timecodes below
-// jump to real positions in this clip.
-const LESSON_VIDEO_ID = 'af3785d57099685bc3be290075998d40'
-
-// Chapter timecodes mapped to real positions in the video above (time string +
-// matching offset in seconds) so the player's "Таймкоды" panel actually seeks.
-const baseTimecodes: LessonTimecode[] = [
-  { time: '00:00', label: 'Введение', seconds: 0 },
-  { time: '03:40', label: 'Основные понятия', seconds: 220 },
-  { time: '09:15', label: 'Разбор примеров', seconds: 555 },
-  { time: '16:30', label: 'Частые ошибки', seconds: 990 },
-  { time: '21:05', label: 'Итоги и домашнее задание', seconds: 1265 },
-]
-
 const pad2 = (n: number) => String(n).padStart(2, '0')
 
 /** Deterministic mock detail for a catalogue lesson — date, duration, timecodes
@@ -216,9 +222,16 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
   const month = ((lesson.number * 3) % 12) + 1
   const dateStr = `${pad2(day)}.${pad2(month)}`
 
-  // Use DB video/timecodes only — no mock fallback.
+  // Только видео и таймкоды из БД, без подставного набора.
+  //
+  // Раньше урок без своих таймкодов получал общий список («Введение», «Основные
+  // понятия», «Разбор примеров»…), сверстанный под 25-минутный ролик о
+  // биосинтезе белка. В языковых курсах он вставал поверх часовой лекции: главы
+  // заканчивались на 21:05 при длительности 1:03:43, а подписи не имели к
+  // содержанию никакого отношения. Список глав, который не отвечает видео, хуже
+  // отсутствующего — панель просто не показывается, пока глав нет.
   const videoSource = parseVideoSource(lesson.videoUrl)
-  const timecodes = lesson.timecodes?.length ? lesson.timecodes : baseTimecodes
+  const timecodes = lesson.timecodes?.length ? lesson.timecodes : []
 
   // Homework priority: teacher-authored homework from the course editor's
   // «Домашки» tab (lessons.homework JSONB) → AP/generic fallback. Authored
@@ -233,7 +246,6 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
   if (ap) {
     return {
       date: dateStr,
-      duration: '25:12',
       videoSource,
       timecodes,
       materials: materialsBySubject.chemistry,
@@ -249,7 +261,6 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
 
   return {
     date: dateStr,
-    duration: '25:12',
     videoSource,
     timecodes,
     materials: materialsBySubject[lesson.subject] ?? materialsBySubject.chemistry,

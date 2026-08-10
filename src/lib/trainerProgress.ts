@@ -21,7 +21,7 @@
 
 const KEY = 'lang-trainer-progress-v1'
 
-export type MaterialKind = 'reading' | 'listening'
+export type MaterialKind = 'reading' | 'listening' | 'nest'
 
 export interface MaterialResult {
   /** Сколько вопросов взято. */

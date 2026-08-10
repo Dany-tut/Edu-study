@@ -24,7 +24,7 @@ import { useTaskBank } from '../store/taskBankStore'
 import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../store/taskMetaStore'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
-import { useTrainerProgress } from '../store/trainerProgressStore'
+import { useTrainerProgress, useTrainerClock } from '../store/trainerProgressStore'
 import { subjectTheme, PURPLE } from '../lib/theme'
 import { getSubject, BANK_SUBJECT_IDS, subjectIcon } from '../lib/subjects'
 import LanguageTrainer from '../components/LanguageTrainer'
@@ -320,6 +320,21 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
     tap()
     onAnswer(task.id, inputVal, inputVal.trim().toLowerCase() === task.answer.toLowerCase())
   }
+  /**
+   * Подсмотреть решение, не отвечая.
+   *
+   * Раньше «Решение» появлялось только после проверки, а «Проверить» — только
+   * когда в поле что-то есть: не знаешь ответ — впиши наугад, получи красную
+   * рамку, и только тогда тебе покажут разбор. Задание при подсказке уходит в
+   * нейтральные (correct: null): не решено, но и не ошибка — в тренажёре
+   * подглядывание это способ научиться, а не провал.
+   */
+  const peeked = state?.correct === null
+  function peek() {
+    tap()
+    if (state === undefined) onAnswer(task.id, inputVal, null)
+    setShowSolution(s => !s)
+  }
   function share() {
     void copyToClipboard(`№${task.id} · ${task.question.replace(/<[^>]*>/g, '').slice(0, 80)}…`)
     setCopied(true); setTimeout(() => setCopied(false), 1400)
@@ -369,7 +384,14 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-          {state !== undefined && (
+          {/* Подсказка — свой значок, а не «Неверно»: ответа не было, ошибки
+              тоже. Плашка держит тот же размер, что вердикт. */}
+          {peeked ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: 'var(--color-yellow-soft)', color: 'var(--color-yellow-text)', fontSize: 13, fontWeight: 700 }}>
+              <Eye size={15} />
+              {t('Подсказка')}
+            </div>
+          ) : state !== undefined && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)', color: isCorrect ? 'var(--color-green-text)' : 'var(--color-red-text)', fontSize: 13, fontWeight: 700 }}>
               {isCorrect ? <CheckCircle2 size={15} /> : <XCircle size={15} />}
               {isCorrect ? t('Верно') : t('Неверно')}
@@ -500,15 +522,15 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             style={{
               width: '100%', boxSizing: 'border-box', height: answerH,
               padding: '0 16px', borderRadius: 16, fontSize: mobile ? 16 : 14, outline: 'none',
-              border: `1px solid ${state ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'var(--color-border-medium)'}`,
-              background: state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : 'var(--color-bg-input)',
+              border: `1px solid ${isCorrect ? '#6EE7A0' : isWrong ? '#F48B91' : 'var(--color-border-medium)'}`,
+              background: isCorrect ? 'var(--color-green-soft)' : isWrong ? 'var(--color-red-soft)' : 'var(--color-bg-input)',
               cursor: alreadyChecked ? 'default' : 'text',
             }}
           />
           <div style={{
             position: 'absolute', left: 1, top: 1, bottom: 1, width: 32,
             borderRadius: '15px 0 0 15px', pointerEvents: 'none',
-            background: `linear-gradient(to right, ${state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : 'var(--color-bg-input)'}, transparent)`,
+            background: `linear-gradient(to right, ${isCorrect ? 'var(--color-green-soft)' : isWrong ? 'var(--color-red-soft)' : 'var(--color-bg-input)'}, transparent)`,
             opacity: inputOverflow ? 1 : 0,
             transition: 'opacity 0.2s ease',
           }} />
@@ -526,18 +548,11 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             element caused framer to occasionally mis-measure and collapse the
             whole row down to just the last child. The field's own `layout` above
             already makes room as this block enters/exits; Решение animates itself. */}
-        <AnimatePresence mode="popLayout">
-          {inputVal.trim() && (
-            <motion.div
-              key="task-actions"
-              // Springs in from the field's edge — scales up + slides while the
-              // field morphs open beside it, then reverses on exit.
-              initial={{ opacity: 0, scale: 0.8, x: -10 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.8, x: -10 }}
-              transition={FIELD_MORPH}
-              style={{ display: 'flex', gap: 8, alignItems: 'center', transformOrigin: 'left center' }}
-            >
+        {/* Строка действий стоит всегда: «Решение» — единственный выход, когда
+            ответа не знаешь, и прятать его за непустым полем значит требовать
+            вписать наугад, чтобы получить право посмотреть. Появляются и
+            исчезают теперь сами кнопки внутри, а не строка целиком. */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               {/* Hidden once the current text has been checked — only the field
                   + Решение remain. Editing the answer afterwards brings it back.
                   `layout` (not an animated `width`) drives the resize: framer's
@@ -554,7 +569,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                   instant it starts exiting, so both changes land together and
                   the field morphs straight to its final width in one motion. */}
               <AnimatePresence mode="popLayout" initial={false}>
-                {!alreadyChecked && (
+                {!alreadyChecked && !!inputVal.trim() && (
                   <motion.button
                     layout
                     key="check-btn"
@@ -576,11 +591,10 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                 )}
               </AnimatePresence>
               <AnimatePresence mode="popLayout" initial={false}>
-                {state !== undefined && (
                   <motion.button
                     layout
                     key="solution-btn"
-                    onClick={() => { tap(); setShowSolution(s => !s) }}
+                    onClick={peek}
                     initial={{ opacity: 0, scale: 0.85 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.85 }}
@@ -637,11 +651,8 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                     </span>
                     {t('Решение')}
                   </motion.button>
-                )}
               </AnimatePresence>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        </div>
       </div>
 
       {/* Solution block */}
@@ -693,6 +704,10 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
   function check() {
     onAnswer(task.id, inputVal, inputVal.trim().toLowerCase() === task.answer.toLowerCase())
   }
+  function peek() {
+    if (state === undefined) onAnswer(task.id, inputVal, null)
+    setShowSolution(s => !s)
+  }
 
   return (
     <div style={{
@@ -726,8 +741,8 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
           placeholder={t('Ответ')}
           style={{
             flex: 1, minWidth: 0, padding: '7px 10px', borderRadius: 10, fontSize: 12, outline: 'none',
-            border: `1px solid ${state ? (isCorrect ? '#6EE7A0' : '#F48B91') : 'var(--color-border-medium)'}`,
-            background: state ? (isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : 'var(--color-bg-input)',
+            border: `1px solid ${isCorrect ? '#6EE7A0' : isWrong ? '#F48B91' : 'var(--color-border-medium)'}`,
+            background: isCorrect ? 'var(--color-green-soft)' : isWrong ? 'var(--color-red-soft)' : 'var(--color-bg-input)',
           }}
         />
         <button onClick={check} disabled={!inputVal.trim()} style={{
@@ -736,10 +751,11 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
           color: inputVal.trim() ? palette.onAccent : 'var(--color-text-3)',
           cursor: inputVal.trim() ? 'pointer' : 'default', flexShrink: 0,
         }}>✓</button>
-        <button onClick={() => state !== undefined && setShowSolution(s => !s)} style={{
+        {/* Тот же глазок, что и в большой карточке: работает и до ответа,
+            подсмотренное задание уходит в нейтральные. */}
+        <button onClick={peek} aria-label={t('Показать ответ')} style={{
           padding: '7px 8px', borderRadius: 10, border: `1px solid ${showSolution ? palette.accent : 'var(--color-border-medium)'}`,
-          background: showSolution ? palette.soft : 'transparent', cursor: state !== undefined ? 'pointer' : 'default', flexShrink: 0,
-          opacity: state !== undefined ? 1 : 0.35,
+          background: showSolution ? palette.soft : 'transparent', cursor: 'pointer', flexShrink: 0,
         }}><Eye size={12} color={showSolution ? palette.text : 'var(--color-text-3)'} /></button>
         <button onClick={() => onFavorite(task.id)} style={{
           padding: '7px 8px', borderRadius: 10, border: `1px solid ${isFav ? '#F8EF8C' : 'var(--color-border-medium)'}`,
@@ -1420,6 +1436,10 @@ export default function TaskBankPage() {
   const langSubject = subjectState.current?.def
   const isLangTrainer = !!langSubject?.isLanguage
 
+  // Часы захода — общие на оба тренажёра, поэтому стоят ДО развилки: время в
+  // корейских карточках считается ровно так же, как время в банке ЕГЭ.
+  useTrainerClock(langSubject?.id ?? '', isLangTrainer ? 'lang' : 'bank')
+
   // Пока курсы не приехали, развилка «язык или банк» не решена: subjects пуст, а
   // activeSubjectId ещё стоит на стартовом 'chemistry' — то есть ЛЮБОЙ ученик на
   // первом кадре после F5 попадает в банк ЕГЭ и видит его секунду, даже если у
@@ -1666,8 +1686,9 @@ export default function TaskBankPage() {
   const openModal = useTrainerProgress(s => s.openModal)
   const setOpenModal = useTrainerProgress(s => s.setOpenModal)
   useEffect(() => {
-    updateProgress({ doneCount, wrongCount, totalCount, favCount: favorites.size, todayCorrect, todayWrong, subject })
-  }, [doneCount, wrongCount, totalCount, favorites.size, todayCorrect, todayWrong, subject])
+    if (isLangTrainer) return  // языковые числа шлёт LanguageTrainer, у него свой материал
+    updateProgress({ doneCount, wrongCount, totalCount, favCount: favorites.size, todayCorrect, todayWrong, subject, subjectId: subject, kind: 'bank' })
+  }, [doneCount, wrongCount, totalCount, favorites.size, todayCorrect, todayWrong, subject, isLangTrainer])
   useEffect(() => {
     if (openModal) { setShowProgressModal(true); setOpenModal(false) }
   }, [openModal])

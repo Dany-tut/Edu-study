@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useLayoutEffect } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, Play, ListVideo, NotebookPen, FileText,
@@ -7,16 +7,32 @@ import {
 } from 'lucide-react'
 import ScrollFade from '../components/ScrollFade'
 import { useDashboard } from '../store/dashboardStore'
-import { findLessonById, getLessonDetail, type LessonMaterial, type LessonHomework } from '../data/lessonContent'
+import { activeTimecodeIndex, findLessonById, getLessonDetail, type LessonMaterial, type LessonHomework } from '../data/lessonContent'
 import { useStudentData } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
-import { videoEmbedSrc } from '../lib/videoSource'
+import LessonVideoPlayer, { type LessonVideoHandle } from '../components/LessonVideoPlayer'
+import { getSubject } from '../lib/subjects'
+import {
+  emptyWatch, loadVideoWatch, saveVideoWatch, watchRatio, type VideoWatch,
+} from '../lib/videoProgress'
+import { ownerStudentIdFor } from '../store/studentDataStore'
 import type { CourseReaction } from '../data/mockData'
 import { EMOJI_STEPS } from '../components/HomeworkFlow'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
 
 type Tint = 'bw' | 'color'
+
+/** Секунды → «17:05» или «1:03:43». Часы появляются только у длинных записей,
+ *  чтобы короткий ролик не выглядел как «0:04:12». */
+function formatClock(totalSeconds: number) {
+  const s = Math.max(0, Math.floor(totalSeconds))
+  const h = Math.floor(s / 3600)
+  const m = Math.floor((s % 3600) / 60)
+  const sec = s % 60
+  const mm = h > 0 ? String(m).padStart(2, '0') : String(m)
+  return `${h > 0 ? `${h}:` : ''}${mm}:${String(sec).padStart(2, '0')}`
+}
 
 function renderHighlightedParagraph(text: string, reactionId?: string, activeReactionId?: string | null, reactions: CourseReaction[] = []) {
   // No reaction tag — render plain text, no wrapper. Other paragraphs in the
@@ -616,6 +632,9 @@ export default function LessonPage() {
   const t = useT()
   const isDesktop = useIsDesktop()
   const courseReactions = useStudentData(s => s.courseReactions)
+  // Курсы ученика — по ним урок узнаёт свой предмет (lesson.subject хранит
+  // short_id курса, а не название предмета).
+  const courses = useStudentData(s => s.subjects)
   const currentLessonId = useDashboard(s => s.currentLessonId)
   const closeLesson = useDashboard(s => s.closeLesson)
   const openHomework = useDashboard(s => s.openHomework)
@@ -634,13 +653,16 @@ export default function LessonPage() {
 
   const { big, scale, toggle: toggleBig } = useBigText()
 
-  const [playing, setPlaying] = useState(false)
   const [activeChapter, setActiveChapter] = useState(0)
-  // Start offset (seconds) baked into the iframe src when the player first
-  // mounts. Once mounted we seek via the postMessage API instead of remounting.
-  const [startSeconds, setStartSeconds] = useState(0)
-  const iframeRef = useRef<HTMLIFrameElement>(null)
-  const nativeVideoRef = useRef<HTMLVideoElement>(null)
+  // Позиция и длина ролика приходят из плеера раз в секунду: по ним живут часы
+  // в шапке таймкодов и полоска проигранного внутри активной главы.
+  const [videoTime, setVideoTime] = useState(0)
+  const [videoDuration, setVideoDuration] = useState(0)
+  const playerRef = useRef<LessonVideoHandle>(null)
+  // Скролл-контейнер списка таймкодов и его строки — чтобы подсветка, уехавшая
+  // вниз вместе с воспроизведением, сама подтягивалась в видимую часть.
+  const chapterListRef = useRef<HTMLDivElement>(null)
+  const chapterRowRefs = useRef<Record<number, HTMLButtonElement | null>>({})
   // Queue a one-shot reaction highlight locally so it survives clearing the
   // global navigation flag in the store.
   const [queuedHighlight, setQueuedHighlight] = useState<string | null>(null)
@@ -652,6 +674,26 @@ export default function LessonPage() {
   const [dockTitleMax, setDockTitleMax] = useState<number | undefined>(undefined)
 
   const lesson = currentLessonId ? findLessonById(currentLessonId) : null
+
+  // ── Прогресс просмотра записи ─────────────────────────────────────────────
+  // Приезжает из lesson_progress (строка `video-<урок>`) и уходит обратно
+  // порциями: плеер зовёт onPersist раз в десять секунд, на паузе и на выходе.
+  const [watch, setWatch] = useState<VideoWatch>(emptyWatch)
+  const lessonKey = lesson?.id
+  const lessonSubject = lesson?.subject
+  useEffect(() => {
+    if (!lessonKey) return
+    let alive = true
+    setWatch(emptyWatch())
+    loadVideoWatch(ownerStudentIdFor(lessonSubject), lessonKey).then(w => { if (alive) setWatch(w) })
+    return () => { alive = false }
+  }, [lessonKey, lessonSubject])
+
+  const persistWatch = useCallback((next: VideoWatch) => {
+    setWatch(next)
+    if (!lessonKey || !lessonSubject) return
+    void saveVideoWatch(ownerStudentIdFor(lessonSubject), lessonKey, lessonSubject, next)
+  }, [lessonKey, lessonSubject])
 
   useEffect(() => {
     if (!highlightReactionId) return
@@ -716,43 +758,46 @@ export default function LessonPage() {
   const detail = getLessonDetail(lesson)
   const videoSource = detail.videoSource
 
-  // RuTube player API: send a command to the embed iframe over postMessage.
-  const sendPlayerCommand = (type: string, data: Record<string, unknown> = {}) => {
-    iframeRef.current?.contentWindow?.postMessage(JSON.stringify({ type, data }), '*')
+  const timecodes = detail.timecodes
+  // Плеер открыт и уже знает длину ролика — с этого момента показываем часы и
+  // полоску проигранного.
+  const playing = videoDuration > 0
+
+  // ── Подсветка главы идёт за плеером ───────────────────────────────────────
+  // Активна та глава, чьё начало последним осталось позади. Ученик может
+  // перематывать нашей шкалой — панель обязана показывать то же место, а не
+  // главу, по которой когда-то кликнули. Плеер зовёт это раз в секунду.
+  const onPlayerTime = (sec: number, dur: number) => {
+    setVideoTime(sec)
+    setVideoDuration(prev => (Math.abs(prev - dur) < 0.5 ? prev : dur))
+    if (!timecodes.length) return
+    const next = activeTimecodeIndex(timecodes, sec)
+    setActiveChapter(prev => (prev === next ? prev : next))
   }
 
-  // Open the player at `seconds`, or — if it's already open — seek there. Own
-  // uploaded files seek natively via the <video> element; RuTube seeks via its
-  // postMessage API without remounting; everything else (YouTube, other own
-  // links) just reopens the iframe at the new start offset.
-  const playFrom = (seconds: number) => {
-    if (playing && videoSource?.kind === 'rutube') {
-      sendPlayerCommand('player:setCurrentTime', { time: seconds })
-      sendPlayerCommand('player:play')
-      return
-    }
-    if (playing && videoSource?.kind === 'file' && nativeVideoRef.current) {
-      nativeVideoRef.current.currentTime = seconds
-      nativeVideoRef.current.play()
-      return
-    }
-    setStartSeconds(seconds)
-    setPlaying(true)
-  }
+  // Предмет урока для плашки на заставке. `lesson.subject` — это short_id курса,
+  // а не предмет (см. Subject.subject в mockData): раньше здесь стояло
+  // «biology ? Биология : Химия», и корейский урок подписывался химией.
+  const courseSubject = courses.find(c => c.id === lesson.subject)?.subject
+  const subjectDef = getSubject(courseSubject)
+  const videoBadge = subjectDef ? `${subjectDef.icon} ${t(subjectDef.name)}` : undefined
 
-  // The embed doesn't always honour autoplay from the ?t= URL alone, so once the
-  // RuTube player reports it's ready we nudge it to start.
+  const watchedPct = Math.round(watchRatio({ ...watch, duration: videoDuration || watch.duration }) * 100)
+
+  // Подтянуть активную строку в видимую часть списка. Скроллим сам контейнер, а
+  // не через scrollIntoView: тот тянет за собой и страницу целиком.
   useEffect(() => {
-    if (!playing || videoSource?.kind !== 'rutube') return
-    const onMessage = (e: MessageEvent) => {
-      if (typeof e.data !== 'string') return
-      let msg: { type?: string }
-      try { msg = JSON.parse(e.data) } catch { return }
-      if (msg.type === 'player:ready') sendPlayerCommand('player:play')
+    if (!playing) return
+    const list = chapterListRef.current
+    const row = chapterRowRefs.current[activeChapter]
+    if (!list || !row) return
+    const top = row.offsetTop
+    const bottom = top + row.offsetHeight
+    if (top < list.scrollTop) list.scrollTo({ top, behavior: 'smooth' })
+    else if (bottom > list.scrollTop + list.clientHeight) {
+      list.scrollTo({ top: bottom - list.clientHeight, behavior: 'smooth' })
     }
-    window.addEventListener('message', onMessage)
-    return () => window.removeEventListener('message', onMessage)
-  }, [playing, videoSource?.kind])
+  }, [activeChapter, playing])
 
   // Easing for the date chip's icon/month collapse — matches the top bar's own
   // expand/collapse curve so the two move in sync.
@@ -899,92 +944,56 @@ export default function LessonPage() {
       </AnimatePresence>
       </div>
 
-      {/* ── Row 1: video + timecodes — only when recording exists ── */}
+      {/* ── Row 1: video + timecodes — only when recording exists ──
+          Колонка справа появляется только у урока со своими таймкодами: пустой
+          рамке с чужими главами там делать нечего, видео занимает всю ширину. */}
       {videoSource && (
         <div
-          className="grid lg:grid-cols-[minmax(0,1fr)_320px] items-stretch"
+          className={timecodes.length ? 'grid lg:grid-cols-[minmax(0,1fr)_320px] items-stretch' : 'grid'}
           style={{ gap: 16 }}
         >
-          {/* Video player */}
-          <div
-            className="relative min-w-0"
-            style={{
-              width: '100%',
-              height: '54vh',
-              borderRadius: 24,
-              overflow: 'hidden',
-              background: 'linear-gradient(135deg, #2A2A2C, #111113)',
-              boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
-            }}
-          >
-            {playing && videoSource.kind === 'file' ? (
-              <video
-                ref={nativeVideoRef}
-                src={videoSource.url}
-                controls
-                autoPlay
-                disablePictureInPicture
-                controlsList="nodownload noplaybackrate"
-                onLoadedMetadata={e => { e.currentTarget.currentTime = startSeconds }}
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', background: '#000' }}
-              />
-            ) : playing ? (
-              <iframe
-                key={startSeconds}
-                ref={iframeRef}
-                src={videoEmbedSrc(videoSource, startSeconds)}
-                title={`${t('Видео урока:')} ${lesson.title}`}
-                allow="clipboard-write; autoplay; fullscreen; encrypted-media; picture-in-picture"
-                allowFullScreen
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }}
-              />
-            ) : (
-              <>
-                <span
-                  style={{
-                    position: 'absolute', top: 16, left: 16, zIndex: 2,
-                    fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
-                    color: 'rgba(255,255,255,0.9)', background: 'rgba(255,255,255,0.14)',
-                    padding: '5px 12px', borderRadius: 999, backdropFilter: 'blur(8px)',
-                  }}
-                >
-                  {lesson.subject === 'biology' ? t('Биология') : t('Химия')}
-                </span>
+          {/* Плеер: свой корпус поверх YouTube/RuTube/файла + учёт просмотра */}
+          <div className="flex flex-col min-w-0" style={{ gap: 10 }}>
+            <LessonVideoPlayer
+              key={lesson.id}
+              ref={playerRef}
+              source={videoSource}
+              title={lesson.title}
+              badge={videoBadge}
+              durationLabel={detail.duration}
+              timecodes={timecodes}
+              initialWatch={watch}
+              onPersist={persistWatch}
+              onTime={onPlayerTime}
+            />
 
-                <button
-                  onClick={() => playFrom(detail.timecodes[activeChapter]?.seconds ?? 0)}
-                  aria-label={t('Смотреть')}
-                  className="absolute inset-0 flex items-center justify-center cursor-pointer"
-                  style={{ border: 'none', background: 'transparent' }}
-                >
-                  <motion.div
-                    whileHover={{ scale: 1.08 }}
-                    whileTap={{ scale: 0.94 }}
+            {/* Сколько записи реально отсмотрено. Перемотка в конец сюда не
+                попадает — считаются только отрезки, пройденные воспроизведением. */}
+            {(watchedPct > 0 || watch.completed) && (
+              <div className="flex items-center" style={{ gap: 10 }}>
+                <div style={{ flex: 1, height: 5, borderRadius: 999, background: 'var(--color-bg)', overflow: 'hidden' }}>
+                  <div
                     style={{
-                      width: 76, height: 76, borderRadius: '50%',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: 'rgba(var(--glass-rgb), 0.95)', color: 'var(--color-purple)',
-                      boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
+                      height: '100%', width: `${Math.max(2, watchedPct)}%`, borderRadius: 999,
+                      background: watch.completed ? 'var(--color-success, #1DB97D)' : 'var(--grad-purple)',
+                      transition: 'width 0.6s ease',
                     }}
-                  >
-                    <Play size={30} fill="var(--color-purple)" style={{ marginLeft: 4 }} />
-                  </motion.div>
-                </button>
-
+                  />
+                </div>
                 <span
-                  style={{
-                    position: 'absolute', bottom: 16, right: 16, zIndex: 2,
-                    fontSize: 12, fontWeight: 600, color: '#fff',
-                    background: 'rgba(0,0,0,0.5)', padding: '4px 10px', borderRadius: 8,
-                  }}
+                  className="flex items-center flex-shrink-0"
+                  style={{ gap: 5, fontSize: 12.5, fontWeight: 650, color: watch.completed ? 'var(--color-success, #1DB97D)' : 'var(--color-text-3)' }}
                 >
-                  {detail.duration}
+                  {watch.completed
+                    ? <><CheckCircle2 size={14} /> {t('Запись просмотрена')}</>
+                    : <>{t('Просмотрено')} {watchedPct}%</>}
                 </span>
-              </>
+              </div>
             )}
           </div>
 
           {/* Timecodes panel */}
+          {timecodes.length > 0 && (
           <div
             className="flex flex-col h-full"
             style={{
@@ -1000,19 +1009,40 @@ export default function LessonPage() {
             <div className="flex items-center" style={{ gap: 8, marginBottom: 6 }}>
               <ListVideo size={17} style={{ color: 'var(--color-accent)' }} />
               <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Таймкоды')}</span>
+              <span style={{ flex: 1 }} />
+              {/* Позиция ролика прямо в шапке — видно, что список и плеер об
+                  одном и том же, даже когда глава длинная. */}
+              {playing && (
+                <span
+                  style={{
+                    fontSize: 11.5, fontWeight: 650, fontVariantNumeric: 'tabular-nums',
+                    color: 'var(--color-text-3)', flexShrink: 0,
+                  }}
+                >
+                  {formatClock(videoTime)} / {formatClock(videoDuration)}
+                </span>
+              )}
             </div>
-            <div className="flex flex-col flex-1" style={{ gap: 2, overflowY: 'auto', paddingRight: 10 }}>
-              {detail.timecodes.map((tc, i) => {
+            <div ref={chapterListRef} className="flex flex-col flex-1" style={{ gap: 2, overflowY: 'auto', paddingRight: 10 }}>
+              {timecodes.map((tc, i) => {
                 const active = i === activeChapter
+                // Глава кончается там, где начинается следующая; последняя — на
+                // конце ролика, длину которого знает плеер.
+                const end = timecodes[i + 1]?.seconds ?? videoDuration
+                const span = end - tc.seconds
+                const played = active && playing && span > 0
+                  ? Math.min(1, Math.max(0, (videoTime - tc.seconds) / span))
+                  : 0
                 return (
                   <button
-                    key={tc.time}
-                    onClick={() => { setActiveChapter(i); playFrom(tc.seconds) }}
-                    className="flex items-center cursor-pointer text-left"
+                    key={`${tc.time}-${i}`}
+                    ref={el => { chapterRowRefs.current[i] = el }}
+                    onClick={() => { setActiveChapter(i); playerRef.current?.playFrom(tc.seconds) }}
+                    className="relative flex items-center cursor-pointer text-left"
                     style={{
                       gap: 10, padding: '9px 10px', borderRadius: 12, border: 'none',
                       background: active ? 'var(--color-purple-soft)' : 'transparent',
-                      transition: 'background 0.15s ease',
+                      transition: 'background 0.15s ease', overflow: 'hidden',
                     }}
                     onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg)' }}
                     onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
@@ -1025,14 +1055,27 @@ export default function LessonPage() {
                     >
                       {tc.time}
                     </span>
-                    <span style={{ fontSize: 13.5, fontWeight: active ? 600 : 500, color: active ? 'var(--color-text)' : '#4A4A52' }}>
+                    <span style={{ fontSize: 13.5, fontWeight: active ? 600 : 500, color: active ? 'var(--color-text)' : 'var(--color-text-2)' }}>
                       {tc.label}
                     </span>
+                    {/* Сколько этой главы уже проиграно — та же полоса, что
+                        ползёт по шкале плеера, только в масштабе строки. */}
+                    {played > 0 && (
+                      <span
+                        aria-hidden
+                        style={{
+                          position: 'absolute', left: 0, bottom: 0, height: 2,
+                          width: `${played * 100}%`, background: 'var(--grad-purple)',
+                          borderRadius: 999, transition: 'width 0.45s linear',
+                        }}
+                      />
+                    )}
                   </button>
                 )
               })}
             </div>
           </div>
+          )}
         </div>
       )}
 

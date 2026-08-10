@@ -38,12 +38,27 @@ export function parseVideoSource(raw?: string | null): VideoSource | undefined {
 }
 
 /** Embed src for iframe-based sources, with a start offset in seconds. Only
- *  RuTube and YouTube honour the offset; own pages open at their own start. */
+ *  RuTube and YouTube honour the offset; own pages open at their own start.
+ *
+ *  У YouTube обязателен enablejsapi=1: без него IFrame API не пускают к плееру,
+ *  а на нём держится весь наш корпус — свои кнопки, шкала с главами и текущая
+ *  секунда, по которой подсвечивается таймкод (см. LessonVideoPlayer). */
 export function videoEmbedSrc(src: VideoSource, startSeconds = 0): string {
   const t = Math.max(0, Math.floor(startSeconds))
   switch (src.kind) {
     case 'rutube': return `https://rutube.ru/play/embed/${src.id}?t=${t}`
-    case 'youtube': return `https://www.youtube.com/embed/${src.id}?autoplay=1&start=${t}`
+    case 'youtube': {
+      const params = new URLSearchParams({
+        autoplay: '1',
+        start: String(t),
+        enablejsapi: '1',
+        playsinline: '1',
+      })
+      // origin — требование самого API: без него часть браузеров режет
+      // postMessage между страницей и плеером.
+      if (typeof window !== 'undefined') params.set('origin', window.location.origin)
+      return `https://www.youtube.com/embed/${src.id}?${params.toString()}`
+    }
     default: return src.url
   }
 }

@@ -19,14 +19,17 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
-import { RotateCcw, Volume2, Undo2, Layers } from 'lucide-react'
+import { RotateCcw, Volume2, Undo2, Layers, HelpCircle } from 'lucide-react'
 import { dueCards, gradeCard, type ReviewCard } from '../data/reviewDeck'
 import { subjectAliases, useStudentData } from '../store/studentDataStore'
+import { useTrainerProgress } from '../store/trainerProgressStore'
 import { intervalLabel, review, type ReviewGrade } from '../lib/srs'
 import { haptic } from '../lib/feedback'
 import { speechLocale, speechMs, speechText } from '../lib/speech'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
+import Coachmarks, { type CoachStep } from './Coachmarks'
+import DeckDoneMark from './DeckDoneMark'
 import Skeleton from './Skeleton'
 
 type Kind = 'recall' | 'judge'
@@ -54,6 +57,21 @@ const SWIPE_PX = 96      // порог срыва по смещению
 const SWIPE_V = 460      // ...или по скорости броска
 
 /**
+ * Высота ряда кнопок под стопкой резервируется заранее и НЕ зависит от того,
+ * перевёрнута карточка или нет: «Показать ответ» — одна кнопка, оценка — две
+ * или четыре, и без резерва строка «вернуть · тяни карточку» подпрыгивала на
+ * каждый переворот. Числа согласованы с minHeight у ActionButton.
+ */
+const ACT_H = 52         // кнопка без подсказки об интервале
+const ACT_H_HINT = 56    // ...и с подсказкой
+
+/**
+ * Половина переворота: до ребра, где стороны и меняются местами. Полный поворот
+ * вдвое дольше — держать в согласии с `deckFlipA/B` в index.css.
+ */
+const FLIP_MS = 160
+
+/**
  * Демо-колода для DEV: без неё режим нечем проверить локально — карточки
  * приходят из review_cards, а там пусто, пока ученик не поучился на живой базе.
  * Тем же приёмом банк заданий держит DEV_SEED_TASKS. Такие карточки не пишутся
@@ -69,6 +87,18 @@ const DEMO_CARDS: ReviewCard[] = [
 }))
 
 const isDemo = (card: ReviewCard) => card.id.startsWith('demo-')
+
+/**
+ * Онбординг стопки проходится один раз на браузер, дальше только по кнопке
+ * «подсказки» под колодой.
+ *
+ * ЗАЧЕМ ОН ЗДЕСЬ. Стопка — единственный экран тренажёра, где главная механика
+ * не нарисована: то, что карточку тянут в четыре стороны и что тап её
+ * переворачивает, ниоткуда не видно. Ученик вместо жестов жмёт кнопки внизу,
+ * а «отложить» не находит вовсе. Одна строка-подпись под колодой это не
+ * лечила: её читают уже после того, как способ работы выбран.
+ */
+const TOUR_KEY = 'card-deck-tour-v1'
 
 /**
  * Собирает очередь сессии. Каждая третья карточка становится judge — при
@@ -116,7 +146,7 @@ export interface DeckSource {
   doneTitle?: string
 }
 
-export default function CardDeck({ owner, accent, lang, subject, emptyExtra, source }: {
+export default function CardDeck({ owner, accent, lang, subject, emptyExtra, source, tourExtra }: {
   owner?: { studentId?: string; anonName?: string }
   accent: string
   /** Код языка для озвучки (en, ko, ja). Без него кнопка «послушать» не рисуется. */
@@ -130,6 +160,13 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
   subject?: string
   /** Что показать под пустой колодой — например «загрузить слова из текстов». */
   emptyExtra?: React.ReactNode
+  /**
+   * Шаг онбординга от экрана-владельца. Нужен для того, что к стопке относится,
+   * но живёт снаружи неё, — например переключатель «Свайп / Списком» в строке
+   * управления. Встаёт вторым, сразу после вводного: это выбор способа работы,
+   * и узнать о нём надо до жестов, а не после.
+   */
+  tourExtra?: CoachStep
   /** Своя стопка вместо колоды повторений. */
   source?: DeckSource
 }) {
@@ -142,6 +179,16 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
   const undoStack = useRef<{ queue: Seat[]; idx: number; stats: { right: number; wrong: number } }[]>([])
 
   const binary = source?.grading === 'binary'
+
+  // ── Онбординг ──────────────────────────────────────────────────────────────
+  const headRef = useRef<HTMLDivElement | null>(null)
+  const stackRef = useRef<HTMLDivElement | null>(null)
+  const actionsRef = useRef<HTMLDivElement | null>(null)
+  const undoRef = useRef<HTMLDivElement | null>(null)
+  const [tour, setTour] = useState(false)
+  // Открыть можно только один раз за монтирование: эффект висит на готовности
+  // колоды, а та меняется и дальше по ходу сессии.
+  const tourShown = useRef(false)
 
   // Синонимы предмета зависят от курсов ученика, а те приезжают асинхронно:
   // считать список один раз на монтировании значит на холодной загрузке
@@ -164,6 +211,21 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
   }, [owner?.studentId, owner?.anonName, source, subjects])
 
   const seat = queue && idx < queue.length ? queue[idx] : null
+
+  // Ждём первую карточку на экране: без неё подсвечивать нечего, а на пустой
+  // колоде онбординг про жесты не нужен вовсе.
+  useEffect(() => {
+    if (!seat || tourShown.current) return
+    tourShown.current = true
+    try {
+      if (!localStorage.getItem(TOUR_KEY)) setTour(true)
+    } catch { /* приватный режим — просто без онбординга */ }
+  }, [seat])
+
+  const closeTour = useCallback(() => {
+    setTour(false)
+    try { localStorage.setItem(TOUR_KEY, '1') } catch { /* не критично */ }
+  }, [])
 
   /**
    * Ответ по карточке. Грейд уходит в SM-2 сразу, а ошибочная карточка
@@ -191,6 +253,10 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
       if (binary) source?.onVerdict?.(seat.card, grade >= 3)
       else if (!isDemo(seat.card)) gradeCard(seat.card, grade).catch(e => console.error('gradeCard:', e))
       setStats(s => grade < 3 ? { ...s, wrong: s.wrong + 1 } : { ...s, right: s.right + 1 })
+      // Виджет прогресса в верхней строке. Считаем здесь, а не в каждом
+      // экране-владельце колоды: карточка — единственная единица работы,
+      // общая и разговорнику, и повторению, и прогону банка.
+      useTrainerProgress.getState().noteAnswer(grade >= 3)
     }
 
     let next = queue
@@ -212,6 +278,19 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
     setQueue(prev.queue); setIdx(prev.idx); setStats(prev.stats); setRevealed(false)
   }, [])
 
+  /**
+   * Заберёт ли жест карточку из стопки. Нужно самой карточке: свайп, который
+   * её НЕ забирает (вправо по неперевёрнутой — это «покажи ответ»), не имеет
+   * права улетать за край. Улетевшую никто не размонтирует — ключ места не
+   * поменялся, — и она застревает за экраном, а на её месте остаётся пустая
+   * карточка из-под низа стопки. Снаружи это и выглядит как «свайп подвис».
+   */
+  const consumes = useCallback((dir: Dir) => {
+    if (!seat) return false
+    if (dir === 'down' || seat.kind === 'judge') return true
+    return revealed || dir === 'left'
+  }, [seat, revealed])
+
   /** Свайп → грейд. У judge направление и ЕСТЬ ответ, у recall — самооценка. */
   const swipe = useCallback((dir: Dir) => {
     if (!seat) return
@@ -221,13 +300,15 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
       const said = dir !== 'left'          // вправо и вверх = «верно»
       return answer(said === seat.truth ? 4 : 1)
     }
-    if (!revealed && dir !== 'left') { setRevealed(true); return }  // сначала покажи ответ
+    if (!consumes(dir)) { setRevealed(true); return }  // сначала покажи ответ
     answer(dir === 'left' ? 1 : dir === 'up' ? 5 : 4)
-  }, [seat, revealed, answer])
+  }, [seat, consumes, answer])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (!seat) return
+      // Пока идёт онбординг, стрелки листают подсказки: иначе один нажатый
+      // «вправо» и шаг пролистнёт, и карточку смахнёт.
+      if (!seat || tour) return
       if (e.key === 'ArrowLeft') swipe('left')
       else if (e.key === 'ArrowRight') swipe('right')
       else if (e.key === 'ArrowUp') swipe('up')
@@ -237,7 +318,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [seat, swipe])
+  }, [seat, swipe, tour])
 
   if (queue === null) return <Shell><Skeleton.Text lines={3} style={{ maxWidth: 320 }} /></Shell>
 
@@ -257,7 +338,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
   if (!seat) return (
     <Shell>
       <Empty
-        icon={<div style={{ fontSize: 34 }}>✅</div>}
+        icon={<DeckDoneMark accent={accent} />}
         title={source?.doneTitle ? t(source.doneTitle) : t('На сегодня всё повторено')}
         text={binary
           ? `${t('Знаю:')} ${stats.right} · ${t('в повторение:')} ${stats.wrong}`
@@ -275,28 +356,81 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
   const done = queue.filter((_, i) => i < idx).length
   const progress = Math.round((done / queue.length) * 100)
 
+  // Шаги онбординга. Собираются по фактическому составу стопки: рассказывать
+  // про утверждения «слово = перевод» там, где judge-карточек нет, значит
+  // обещать механику, которой ученик не увидит.
+  const hasJudge = queue.some(s => s.kind === 'judge')
+  const steps: CoachStep[] = [
+    {
+      title: t('Стопка на жестах'),
+      text: t('Карточка проходится одним движением: посмотрел, вспомнил, смахнул. Полминуты на подсказки — дальше сам.'),
+    },
+    ...(tourExtra ? [tourExtra] : []),
+    {
+      ref: stackRef,
+      title: t('Тап переворачивает'),
+      text: lang
+        ? t('Нажми на карточку — на обороте перевод, чтение и пример. Динамик внизу читает вслух, его можно жать сколько угодно.')
+        : t('Нажми на карточку — на обороте перевод и разбор. Сначала вспомни сам, потом переворачивай: в этом весь смысл.'),
+    },
+    {
+      ref: stackRef,
+      title: t('Четыре стороны'),
+      text: binary
+        ? t('Тяни карточку: влево — не знаю, вправо — знаю, вниз — отложить до конца сессии. Удалить жестом нельзя, отложенная вернётся в этом же прогоне.')
+        : t('Тяни карточку: влево — не помню, вправо — помню, вверх — легко, вниз — отложить до конца сессии. Удалить жестом нельзя.'),
+    },
+    ...(hasJudge ? [{
+      ref: stackRef,
+      title: t('Иногда — утверждение'),
+      text: t('Часть карточек приходит в виде «слово = перевод». Переворачивать нечего: свайп влево или вправо и есть ответ — верно там написано или нет.'),
+    }] : []),
+    {
+      ref: actionsRef,
+      title: t('То же самое кнопками'),
+      text: binary
+        ? t('Если тянуть неудобно — те же ответы кнопками. «Не знаю» кладёт карточку в колоду повторений, и она вернётся по расписанию.')
+        : t('Если тянуть неудобно — те же ответы кнопками. Под каждой написано, через сколько карточка вернётся: ответ двигает расписание.'),
+    },
+    {
+      ref: headRef,
+      title: t('Сколько осталось'),
+      text: t('Полоса — прогресс стопки, справа — сколько карточек в очереди. Ошибка не пропадает: карточка вернётся через несколько мест в этой же сессии с пометкой «ещё раз».'),
+    },
+    {
+      ref: undoRef,
+      title: t('Смахнул не туда'),
+      text: t('«Вернуть» отменяет последний ответ вместе с оценкой. Работает и на последней карточке, когда стопка уже закрылась.'),
+    },
+  ]
+
   return (
     <Shell>
-      {/* Полоса вместо счётчика «3 / 20»: точное число оставшегося ученик
-          начинает считать и обрывает сессию на «ещё пять». */}
-      <div style={{ height: 4, borderRadius: 999, background: 'var(--color-bg-3)', overflow: 'hidden', marginBottom: 7 }}>
-        <motion.div
-          animate={{ width: `${Math.max(progress, 3)}%` }}
-          transition={{ duration: 0.25 }}
-          style={{ height: '100%', borderRadius: 999, background: accent }}
-        />
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-          <RotateCcw size={12} /> {seat.again ? t('возврат после ошибки') : source?.label ? t(source.label) : sourceLabel(seat, t)}
-        </span>
-        <span>{t('осталось')} {queue.length - idx}</span>
+      <div ref={headRef}>
+        {/* Полоса вместо счётчика «3 / 20»: точное число оставшегося ученик
+            начинает считать и обрывает сессию на «ещё пять». */}
+        <div style={{ height: 4, borderRadius: 999, background: 'var(--color-bg-3)', overflow: 'hidden', marginBottom: 7 }}>
+          <motion.div
+            animate={{ width: `${Math.max(progress, 3)}%` }}
+            transition={{ duration: 0.25 }}
+            style={{ height: '100%', borderRadius: 999, background: accent }}
+          />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <RotateCcw size={12} /> {seat.again ? t('возврат после ошибки') : source?.label ? t(source.label) : sourceLabel(seat, t)}
+          </span>
+          <span>{t('осталось')} {queue.length - idx}</span>
+        </div>
       </div>
 
       {/* Высота стопки фиксирована (карточки не должны прыгать при перевороте),
           но считается по самой полной обороте: перевод + заметка + пример
-          употребления. На 262 пикселях пример уходил под нижний край. */}
-      <div style={{ position: 'relative', height: 300, touchAction: 'none' }}>
+          употребления. На 262 пикселях пример уходил под нижний край, на 300 —
+          не влезала полная оборота карточки с рисунком: место под перевод
+          резервируется и на лицевой стороне, и картинка с фразой съедали его
+          вдвоём. */}
+      <div ref={stackRef} style={{ position: 'relative', height: 364, touchAction: 'none' }}>
         {/* Задние карточки — статичные, только намёк на глубину стопки. */}
         {queue.slice(idx + 1, idx + 3).map((s, k) => (
           <div
@@ -318,10 +452,22 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
           binary={binary}
           onFlip={() => setRevealed(r => !r)}
           onSwipe={swipe}
+          consumes={consumes}
         />
       </div>
 
-      <div style={{ marginTop: 16 }}>
+      {/* Место под кнопки зарезервировано по САМОМУ высокому набору для этого
+          режима: «Показать ответ» — одна кнопка, оценка — две или четыре с
+          подсказкой об интервале, и без резерва строка «вернуть · тяни
+          карточку» прыгала на каждый переворот. Одинокая кнопка растягивается
+          в слот, а не висит в нём с провалом снизу. */}
+      <div
+        ref={actionsRef}
+        style={{
+          marginTop: 16, display: 'flex', flexDirection: 'column', justifyContent: 'center',
+          minHeight: seat.kind === 'judge' || binary ? ACT_H : ACT_H_HINT * 2 + 8,
+        }}
+      >
         {seat.kind === 'judge' ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <ActionButton tone="bad" label={t('Неверно')} onClick={() => swipe('left')} />
@@ -333,6 +479,8 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
             style={{
               width: '100%', padding: 14, borderRadius: 14, border: 'none', background: accent,
               color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              // Тянется по слоту, но не превращается в плашку во всю его высоту.
+              flex: '1 1 auto', minHeight: ACT_H, maxHeight: 72,
             }}
           >
             {t('Показать ответ')}
@@ -368,20 +516,40 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 13 }}>
-        <UndoButton onClick={undo} label={t('вернуть')} disabled={undoStack.current.length === 0} />
+        <div ref={undoRef} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <UndoButton onClick={undo} label={t('вернуть')} disabled={undoStack.current.length === 0} />
+          {/* Онбординг проходят один раз, а забывают, какой свайп что значит, на
+              третий день. Поэтому подсказки должны вызываться, и вызываться
+              отсюда: строка про жесты уже здесь. */}
+          <button
+            onClick={() => setTour(true)}
+            aria-label={t('Показать подсказки')}
+            style={{
+              display: 'flex', alignItems: 'center', padding: 6, borderRadius: 999,
+              border: '1px solid var(--color-border-soft)', background: 'transparent',
+              color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            <HelpCircle size={13} />
+          </button>
+        </div>
         <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>
           {t('тяни карточку · вниз — отложить')}
         </span>
       </div>
+
+      <Coachmarks steps={steps} open={tour} onClose={closeTour} accent={accent} />
     </Shell>
   )
 }
 
 // ─── Карточка ────────────────────────────────────────────────────────────────
 
-function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
+function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes }: {
   seat: Seat; accent: string; lang?: string; revealed: boolean; binary: boolean
   onFlip: () => void; onSwipe: (d: Dir) => void
+  /** Заберёт ли жест карточку из стопки — от этого зависит, улетать ей или нет. */
+  consumes: (d: Dir) => boolean
 }) {
   const t = useT()
   const x = useMotionValue(0)
@@ -392,14 +560,49 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
   const laterOpacity = useTransform(y, [26, 110], [0, 1])
   const dragged = useRef(false)
 
-  /** Идёт ли озвучка: под карточкой на это время заполняется линия. */
-  const [speaking, setSpeaking] = useState<{ run: number; ms: number } | null>(null)
+  // ── Переворот ───────────────────────────────────────────────────────────────
+  // Карточка именно поворачивается, а не меняет содержимое на месте: уходит
+  // ребром к зрителю, на этом кадре стороны меняются местами, и она
+  // доворачивается обратно. Через ±90° не проходим — иначе видна изнанка с
+  // зеркальным текстом.
+  //
+  // На положение фразы поворот не влияет: место под оборот зарезервировано на
+  // обеих сторонах (см. ниже), и после поворота слово стоит на том же пикселе.
+  // `face` — сторона, которая СЕЙЧАС нарисована; она отстаёт от `revealed` на
+  // первую половину анимации, в этом весь смысл.
+  //
+  // ПОЧЕМУ CSS-АНИМАЦИЯ, А НЕ animate() ИЗ FRAMER. Смена стороны привязана к
+  // середине поворота, а framer крутит анимации на requestAnimationFrame: там,
+  // где rAF не идёт, onComplete не приходит вовсе — и карточка не просто теряет
+  // анимацию, а перестаёт открывать ответ. У @keyframes покой — это отсутствие
+  // анимации, поэтому любой сбой отдаёт карточку зрителю ровной, а не ребром.
+  //
+  // `flips` — счётчик поворотов; по его чётности берётся одно из двух одинаковых
+  // имён анимации. Без чередования второй переворот подряд не проигрывается.
+  const [flips, setFlips] = useState(0)
+  const [face, setFace] = useState(revealed)
+  const faceRef = useRef(revealed)
+
+  useEffect(() => {
+    if (faceRef.current === revealed) return
+    faceRef.current = revealed
+    setFlips(n => n + 1)
+    const t = setTimeout(() => setFace(revealed), FLIP_MS)
+    return () => clearTimeout(t)
+  }, [revealed])
+
+  /** Идёт ли озвучка: по низу карточки на это время заполняется линия.
+   *  `done` — слово уже смолкло: длительность синтеза известна лишь прикидкой,
+   *  и линию по факту окончания дотягиваем до конца, а не бросаем на середине. */
+  const [speaking, setSpeaking] = useState<{ run: number; ms: number; done?: boolean } | null>(null)
   const runRef = useRef(0)
+  const hideRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Карточку смахнули, пока она говорила — звук обрываем: слово уже улетело с
   // экрана. Следующая карточка зазвучать раньше не может, ей нужен клик.
   useEffect(() => () => {
     if (runRef.current > 0 && typeof window !== 'undefined') window.speechSynthesis?.cancel()
+    if (hideRef.current) clearTimeout(hideRef.current)
   }, [])
 
   const judge = seat.kind === 'judge'
@@ -415,7 +618,25 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
       : (offset.y > SWIPE_PX || velocity.y > SWIPE_V ? 'down'
         : offset.y < -SWIPE_PX || velocity.y < -SWIPE_V ? 'up' : null)
 
+    // Палец отпущен — жест кончился. Флаг снимаем всегда, а не только в клике:
+    // клика после броска может не быть вовсе (палец ушёл мимо карточки), и
+    // застрявший флаг съедал следующий тап — переворот срабатывал со второго раза.
+    setTimeout(() => { dragged.current = false }, 60)
+
     if (!dir) { animate(x, 0, { duration: 0.18 }); animate(y, 0, { duration: 0.18 }); return }
+
+    // Жест, который карточку не забирает (вправо или вверх по неперевёрнутой —
+    // это «покажи ответ»), обязан вернуть её на место. Улетевшую никто не
+    // размонтирует — место в очереди то же, ключ тот же, — и она застревает за
+    // краем экрана, а в стопке остаётся пустая карточка из-под низа. Снаружи
+    // это выглядело как «свайп подвис, приходится помогать».
+    if (!consumes(dir)) {
+      animate(x, 0, { duration: 0.18 })
+      animate(y, 0, { duration: 0.18 })
+      onSwipe(dir)
+      return
+    }
+
     // Карточка улетает, и только потом очередь сдвигается — иначе следующая
     // карточка появляется под пальцем раньше, чем предыдущая ушла с экрана.
     const fly = dir === 'left' ? { mx: -620, my: 0 } : dir === 'right' ? { mx: 620, my: 0 }
@@ -437,27 +658,49 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
     // уже после старта новой. Без сверки номера этот запоздалый onend погасил бы
     // индикатор слова, которое только что зазвучало.
     const run = ++runRef.current
-    const done = () => setSpeaking(cur => (cur?.run === run ? null : cur))
+    // Слово смолкло — линию не гасим на полпути, а докатываем до края и уже
+    // потом снимаем: прикидка длительности всегда мимо, и обрыв в середине
+    // читается как «бегунок не успел».
+    const done = () => {
+      setSpeaking(cur => (cur?.run === run ? { ...cur, done: true } : cur))
+      if (hideRef.current) clearTimeout(hideRef.current)
+      hideRef.current = setTimeout(() => {
+        setSpeaking(cur => (cur?.run === run ? null : cur))
+      }, 260)
+    }
     u.onend = done
     u.onerror = done
+    if (hideRef.current) clearTimeout(hideRef.current)
     setSpeaking({ run, ms: speechMs(text) })
     window.speechSynthesis.cancel()
     window.speechSynthesis.speak(u)
   }
 
   return (
+    // Поворот живёт на отдельной обёртке, а не на самой карточке: transform
+    // карточки занят перетаскиванием (framer пишет туда x/y/поворот в плоскости
+    // и переписал бы rotateY на первом же кадре драга). Перспектива обязательна,
+    // без неё rotateY — это просто сжатие по горизонтали, а не разворот листа.
+    <div
+      className={flips === 0 ? undefined : flips % 2 ? 'deck-flip-a' : 'deck-flip-b'}
+      style={{ position: 'absolute', inset: 0, zIndex: 2 }}
+    >
     <motion.div
       drag
       dragElastic={0.55}
       dragMomentum={false}
       style={{
-        x, y, rotate, position: 'absolute', inset: 0, zIndex: 2,
+        x, y, rotate, position: 'absolute', inset: 0,
         borderRadius: 20, background: 'var(--color-bg-2)', border: '1px solid var(--color-border)',
+        // Обрезка по скруглению: линия озвучки идёт по самому низу карточки, и
+        // без неё её прямые концы вылезают за дугу нижних углов — полоса читается
+        // как отдельный элемент под карточкой, а не как её край.
+        overflow: 'hidden',
         padding: 22,
-        // Кнопка озвучки висит абсолютом по нижнему краю: на перевёрнутой
-        // стороне под ней резервируется место, иначе пример под переводом
-        // уезжает ей под ноги.
-        paddingBottom: revealed && lang ? 46 : 22,
+        // Кнопка озвучки висит абсолютом по нижнему краю, и место под неё
+        // резервируется НА ОБЕИХ сторонах: разные отступы у лица и оборота —
+        // это разная высота содержимого, то есть скачок при перевороте.
+        paddingBottom: lang ? 46 : 22,
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         justifyContent: 'center', textAlign: 'center', cursor: 'grab', userSelect: 'none',
       }}
@@ -485,16 +728,16 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
         <>
           {/* Предметный рисунок на лицевой стороне: слово вспоминается от
               предмета, а не от русского перевода — перевод и есть ответ,
-              который сейчас закрыт. После переворота картинка ужимается,
-              чтобы освободить место переводу и заметке. */}
+              который сейчас закрыт. Размер один на обе стороны: раньше
+              картинка ужималась под переворот, и вместе с ней ползло вверх
+              само слово. */}
           {seat.card.image && (
             <img
               src={seat.card.image}
               alt=""
               style={{
-                display: 'block', width: revealed ? 56 : 104, height: 'auto',
-                borderRadius: 12, background: '#fff', marginBottom: 10,
-                transition: 'width 0.18s ease',
+                display: 'block', width: 92, height: 'auto',
+                borderRadius: 12, background: '#fff', marginBottom: 10, flexShrink: 0,
               }}
             />
           )}
@@ -504,25 +747,49 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
             fontSize: promptSize, fontWeight: promptSize > 20 ? 700 : 550,
             color: 'var(--color-text)', lineHeight: promptSize > 20 ? 1.3 : 1.45,
             textAlign: promptSize > 20 ? 'center' : 'left',
-            maxHeight: revealed ? 118 : 200, overflowY: 'auto', width: '100%', flexShrink: 0,
+            maxHeight: 200, overflowY: 'auto', width: '100%', flexShrink: 0,
             // Крупное слово по центру — строки поровну; длинное условие слева
             // читается абзацем, там pretty.
             ...(promptSize > 20 ? balancedWrap : proseWrap),
           }}>
             {bindShortWords(seat.card.prompt)}
           </div>
-          {revealed ? (
-            // Оборот прокручивается целиком, а не по кускам: перевод, заметка и
-            // пример вместе бывают выше карточки, а высота стопки фиксирована —
-            // без общего скролла верхняя строка уезжала бы под край. Отдельные
-            // maxHeight внутри для этого не годятся: они режут каждый блок по
-            // своей мерке. Но растягиваться на всю высоту оборот не должен
-            // (`1 1 auto` прижимал бы перевод к верху, а низ карточки оставлял
-            // пустым): берём по содержимому и ужимаемся только когда не влезло.
-            <div style={{
-              marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--color-border-soft)', width: '100%',
-              flex: '0 1 auto', minHeight: 0, overflowY: 'auto',
-            }}>
+          {/* Оборот занимает своё место ВСЕГДА — и на лицевой стороне тоже,
+              просто прозрачный. Переворот тогда не меняет высоту содержимого,
+              а карточка центрируется по колонке: слово стоит на одном и том же
+              пикселе на обеих сторонах, а под ним проявляются черта и перевод.
+              Раньше блок появлялся из ничего, колонка становилась выше и слово
+              подскакивало вверх — плавно это выглядело только у карточек с
+              картинкой, где высоту меняла её анимация ширины, и скачок успевал
+              размазаться по этим 180 мс.
+
+              Прокручивается оборот целиком, а не по кускам: перевод, заметка и
+              пример вместе бывают выше карточки, а высота стопки фиксирована —
+              без общего скролла верхняя строка уезжала бы под край. Отдельные
+              maxHeight внутри для этого не годятся: они режут каждый блок по
+              своей мерке. Но растягиваться на всю высоту оборот не должен
+              (`1 1 auto` прижимал бы перевод к верху, а низ карточки оставлял
+              пустым): берём по содержимому и ужимаемся только когда не влезло. */}
+          <div style={{
+            position: 'relative', width: '100%',
+            marginTop: 12, paddingTop: 12,
+            // Черта нарисована на обеих сторонах, но на лицевой прозрачная:
+            // убрать её вовсе значит отдать пиксель высоты и сдвинуть слово.
+            borderTop: `1px solid ${face ? 'var(--color-border-soft)' : 'transparent'}`,
+            // Минимум — чтобы подсказке «нажми, чтобы перевернуть» было где
+            // стоять у карточек с односложным переводом.
+            flex: '0 1 auto', minHeight: 46, overflowY: face ? 'auto' : 'hidden',
+          }}>
+            <div
+              aria-hidden={!face}
+              style={{
+                // Без плавности: стороны меняются на кадре, где карточка стоит
+                // ребром и не видна вовсе. Проявляться поверх поворота значит
+                // показать перевод сквозь ещё не довёрнутое лицо.
+                opacity: face ? 1 : 0,
+                pointerEvents: face ? undefined : 'none',
+              }}
+            >
               {/* Чтение стоит ВЫШЕ перевода и мельче: оно относится к тому, что
                   написано на лицевой стороне, а не к ответу. Показывается
                   только после переворота — иначе фразу читают латиницей и
@@ -568,9 +835,19 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
                 </div>
               )}
             </div>
-          ) : (
-            <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 12 }}>{t('нажми, чтобы перевернуть')}</div>
-          )}
+            {/* Подсказка лежит поверх зарезервированного места, а не в потоке:
+                в потоке она добавляла бы свою высоту к высоте оборота. */}
+            <div
+              aria-hidden={face}
+              style={{
+                position: 'absolute', left: 0, right: 0, top: 12,
+                fontSize: 12, color: 'var(--color-text-3)', pointerEvents: 'none',
+                opacity: face ? 0 : 1,
+              }}
+            >
+              {t('нажми, чтобы перевернуть')}
+            </div>
+          </div>
         </>
       )}
 
@@ -608,17 +885,18 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe }: {
           style={{
             position: 'absolute', left: 0, right: 0, bottom: 0, height: 3,
             background: `${accent}33`, overflow: 'hidden',
-            borderBottomLeftRadius: 20, borderBottomRightRadius: 20,
+            opacity: speaking.done ? 0 : 1, transition: 'opacity 240ms linear',
           }}
         >
           <span
             key={speaking.run}
-            className="vocab-speak-fill"
+            className={`vocab-speak-fill${speaking.done ? ' vocab-speak-fill--done' : ''}`}
             style={{ background: accent, animationDuration: `${speaking.ms}ms` }}
           />
         </span>
       )}
     </motion.div>
+    </div>
   )
 }
 
@@ -673,7 +951,10 @@ function ActionButton({ tone, label, hint, onClick }: {
       style={{
         padding: '12px 8px', borderRadius: 12, border: `1.5px solid ${color}`, background: 'transparent',
         color, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-        display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center',
+        display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', justifyContent: 'center',
+        // Высота задана, а не набрана содержимым: слот под рядом кнопок считается
+        // по этим числам, и «на глаз» они разъезжаются на первом же переводе.
+        minHeight: hint ? ACT_H_HINT : ACT_H,
       }}
     >
       {label}

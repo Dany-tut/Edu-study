@@ -543,6 +543,42 @@ export function computeStats(progress: ProgressMap): StudentStats {
   }
 }
 
+/**
+ * Та же статистика, но по ОДНОМУ курсу.
+ *
+ * `computeStats` складывает все строки `lesson_progress` человека сразу, а у
+ * ученика их несколько курсов: успеваемость считалась от чужого знаменателя,
+ * «общий балл» суммировал корейский с английским, а средний балл усреднял
+ * предметы между собой. Для витрины на главной это враньё — там всегда выбран
+ * конкретный курс.
+ *
+ * Считается по урокам курса (после `mergeSubjectsWithProgress` каждый уже несёт
+ * свой статус и балл), поэтому «Успеваемость» здесь — ровно тот же процент, что
+ * на вкладке курса в треке. Звёзды берутся из карты прогресса по ключам
+ * `${lessonId}-hard`: у самого урока такого поля нет.
+ */
+export function computeSubjectStats(subject: Subject, progress: ProgressMap): StudentStats {
+  const lessons = subject.modules.flatMap(m => m.lessons)
+  const completed = lessons.filter(l => l.status === 'completed')
+  // Сданное на проверку считаем наравне со зачтённым — балл ученик уже получил.
+  const scored = lessons.filter(l => (l.status === 'completed' || l.status === 'submitted') && (l.points ?? 0) > 0)
+  const totalPoints = scored.reduce((s, l) => s + (l.points ?? 0), 0)
+  const avgScore = scored.length > 0 ? Math.round(totalPoints / scored.length) : 0
+  const totalTasks = lessons.length
+  const performance = totalTasks > 0 ? Math.round((completed.length / totalTasks) * 100) : 0
+  const stars = lessons.filter(l => progress[`${l.id}-hard`]?.status === 'completed').length
+
+  return {
+    performance,
+    completedTasks: completed.length,
+    totalTasks,
+    avgScore,
+    streak: 0,
+    totalPoints,
+    stars,
+  }
+}
+
 // ─── Content tables (quiz, facts, memes, reactions) ──────────────────────────
 
 export async function fetchQuizQuestions(): Promise<QuizQuestion[]> {

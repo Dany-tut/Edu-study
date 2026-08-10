@@ -11,6 +11,7 @@ import { getDisplayLessonStatus } from '../lib/lessonStatus'
 import { useNow } from '../lib/useNow'
 import { useDashboard } from '../store/dashboardStore'
 import CourseNode from './CourseNode'
+import HScrollFade from './HScrollFade'
 import { useFloatingPill } from '../lib/useFloatingPill'
 import { playTransitionDrop } from '../lib/sound'
 import { EMOJI_STEPS } from './HomeworkFlow'
@@ -53,6 +54,26 @@ const detailStyles: Record<LessonStatus, { bg: string; badgeBg: string; badgeTex
   locked: { bg: 'var(--color-bg-4)', badgeBg: 'var(--color-bg-5)', badgeText: 'var(--color-muted)', badgeLabel: 'недоступно', textColor: 'var(--color-text)', icon: Lock },
 }
 
+/**
+ * Держит активную вкладку в поле зрения: ряды курсов и модулей теперь одна
+ * строка со скроллом, и выбранная пилюля запросто может оказаться за фейдом —
+ * при переключении подматываем ряд к ней.
+ */
+function useScrollTabIntoView(
+  rowRef: React.RefObject<HTMLDivElement | null>,
+  attr: string,
+  activeId: string,
+) {
+  useEffect(() => {
+    if (!activeId) return
+    const nodes = rowRef.current?.querySelectorAll<HTMLElement>(`[${attr}]`)
+    const el = nodes && Array.from(nodes).find(n => n.getAttribute(attr) === activeId)
+    // Мгновенно, без behavior: 'smooth' — плавный скролл едет на rAF, а в
+    // превью-песочнице кадры не идут, и ряд просто остаётся на месте.
+    el?.scrollIntoView({ inline: 'center', block: 'nearest' })
+  }, [rowRef, attr, activeId])
+}
+
 function TrackForSubject({ subject }: { subject: Subject }) {
   const t = useT()
   const { activeModuleId, setActiveModule, setTrackPopoverOpen, openLesson, openHomeworkForLesson, highlightLessonId, lessonAssessments } = useDashboard()
@@ -64,6 +85,8 @@ function TrackForSubject({ subject }: { subject: Subject }) {
   const effectiveModuleId =
     subject.modules.find(m => m.id === activeModuleId)?.id ?? subject.modules[0]?.id
   const modulePill = useFloatingPill(effectiveModuleId ?? '')
+  const moduleRowRef = useRef<HTMLDivElement>(null)
+  useScrollTabIntoView(moduleRowRef, 'data-module-tab', String(effectiveModuleId ?? ''))
 
   // Mirror popover open state to the store so the layout can lift the track
   // above the quiz overlay (otherwise the quiz card's shadow covers the popover).
@@ -154,12 +177,14 @@ function TrackForSubject({ subject }: { subject: Subject }) {
 
   return (
     <div className="flex-1 min-h-0 flex flex-col" style={{ padding: '8px 0 0' }}>
-      {/* ── Top row: Module tabs (left) + Subject label (right) ── */}
-      <div className="flex items-center justify-between gap-6 flex-shrink-0 flex-wrap" style={{ padding: '0 32px' }}>
+      {/* ── Top row: Module tabs — one line, extra modules scroll under the
+           edge fade instead of wrapping onto a second row. ── */}
+      <div ref={moduleRowRef} style={{ flexShrink: 0 }}>
+      <HScrollFade padX={32} gap={0} fadeWidth={44} scrollStyle={{ alignItems: 'center' }}>
         <div
           ref={modulePill.containerRef}
-          className="flex items-center gap-2 flex-wrap"
-          style={{ position: 'relative' }}
+          className="flex items-center gap-2"
+          style={{ position: 'relative', flexShrink: 0 }}
         >
           {modulePill.pillRect && (
             <motion.span
@@ -200,6 +225,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
               <motion.button
                 key={mod.id}
                 ref={isLocked ? undefined : modulePill.registerItem(mod.id)}
+                data-module-tab={mod.id}
                 whileHover={isLocked ? {} : { scale: 1.04 }}
                 whileTap={isLocked ? {} : { scale: 0.96 }}
                 onClick={() => {
@@ -221,6 +247,8 @@ function TrackForSubject({ subject }: { subject: Subject }) {
                   cursor: isLocked ? 'default' : 'pointer',
                   opacity: isLocked ? 0.7 : 1,
                   transition: 'color 0.16s ease, opacity 0.16s ease',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
                 }}
               >
                 {isLocked && <Lock size={11} style={{ position: 'relative', zIndex: 1 }} />}
@@ -244,7 +272,7 @@ function TrackForSubject({ subject }: { subject: Subject }) {
             )
           })}
         </div>
-
+      </HScrollFade>
       </div>
 
       {/* ── Track body: auto height, centered content ── */}
@@ -670,6 +698,8 @@ export default function CourseTrack() {
   const effectiveActiveId =
     subjects.find(s => s.id === activeSubjectId)?.id ?? subjects[0]?.id ?? ''
   const subjectPill = useFloatingPill(effectiveActiveId)
+  const subjectRowRef = useRef<HTMLDivElement>(null)
+  useScrollTabIntoView(subjectRowRef, 'data-subject-tab', effectiveActiveId)
   // Only show the switcher pill when there's more than one course to switch between.
   const showPill = subjects.length > 1
 
@@ -690,11 +720,14 @@ export default function CourseTrack() {
 
   return (
     <div className="flex flex-col gap-4 h-full">
-      {/* Subject switcher tabs */}
+      {/* Subject switcher tabs — one line always: с ростом числа курсов лишние
+          уезжают за экран под фейд, а не сваливаются в две-три строки. */}
+      <div ref={subjectRowRef} style={{ flexShrink: 0 }}>
+      <HScrollFade padX={32} gap={0} fadeWidth={44} scrollStyle={{ alignItems: 'center' }}>
       <div
         ref={subjectPill.containerRef}
-        className="inline-flex items-center gap-2 flex-shrink-0"
-        style={{ maxWidth: '100%', justifyContent: 'flex-start', paddingLeft: 32, paddingRight: 32, position: 'relative' }}
+        className="inline-flex items-center gap-2"
+        style={{ justifyContent: 'flex-start', position: 'relative', flexShrink: 0 }}
       >
         {showPill && subjectPill.pillRect && (
           <motion.span
@@ -722,6 +755,7 @@ export default function CourseTrack() {
             <motion.button
               key={s.id}
               ref={subjectPill.registerItem(s.id)}
+              data-subject-tab={s.id}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => {
@@ -742,6 +776,8 @@ export default function CourseTrack() {
                 border: '1px solid transparent',
                 cursor: 'pointer',
                 transition: 'color 0.16s ease, font-weight 0.16s ease',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}
             >
               <span style={{ position: 'relative', zIndex: 1 }}>{s.name}</span>
@@ -751,6 +787,8 @@ export default function CourseTrack() {
             </motion.button>
           )
         })}
+      </div>
+      </HScrollFade>
       </div>
 
       <TrackForSubject

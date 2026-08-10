@@ -6,6 +6,7 @@ import { type Lesson, type TestTask } from '../data/mockData'
 import { normalizeTaskType } from '../data/taskTypeVisuals'
 import { gradeTask, isAutoGradable, sentenceTokens, type TaskAnswer } from '../data/taskTypes'
 import WordBankSolver from './WordBankSolver'
+import MatchingSolver, { matchingFromMap, matchingToMap } from './MatchingSolver'
 import AudioPlayer from './AudioPlayer'
 import { upsertLessonProgress } from '../lib/db'
 import { ownerStudentIdFor } from '../store/studentDataStore'
@@ -221,26 +222,14 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                   </div>
                 )}
 
-                {/* matching — pairs reference + textarea */}
-                {tp === 'matching' && (
+                {/* matching — соединить пары: правые части перемешаны в банке.
+                    Ответ пишется картой left→right — ровно её ждёт gradeTask(). */}
+                {tp === 'matching' && (task.pairs?.length ?? 0) >= 2 && (
                   <div style={{ paddingLeft: 36 }}>
-                    {(task.pairs?.length ?? 0) > 0 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 10 }}>
-                        {task.pairs!.map((pair, pi) => (
-                          <div key={pi} style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--color-text-2)' }}>
-                            <span style={{ fontWeight: 600 }}>{pair.left}</span>
-                            <span style={{ color: 'var(--color-muted)' }}>→</span>
-                            <span>?</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <GrowTextarea
-                      value={(answers[task.id] as string) ?? ''}
-                      onChange={v => setAnswer(task.id, v)}
-                      placeholder={t('Запиши соответствия…')}
-                      minHeight={TEST_ANSWER_MIN_H}
-                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 14, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
+                    <MatchingSolver
+                      pairs={task.pairs!}
+                      value={matchingFromMap(task.pairs!, answers[task.id])}
+                      onChange={next => setAnswer(task.id, matchingToMap(task.pairs!, next))}
                     />
                   </div>
                 )}

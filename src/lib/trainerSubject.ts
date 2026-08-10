@@ -23,6 +23,12 @@
 // меняется движок: у языков свой тренажёр (чтение/карточки/аудирование), у
 // биологии с химией — банк заданий ЕГЭ. Тип предмета не прячем, а пишем
 // подписью в пункте меню.
+//
+// В СПИСКЕ ТОЛЬКО ПРЕДМЕТЫ УЧЕНИКА. Он строится по курсам ученика; банк
+// заданий сам по себе предмет в меню не добавляет — банк общий на учителя, и
+// без этого ограничения человек с корейским видел в «своих предметах»
+// биологию. Единственное исключение — ученик вообще без подходящего курса:
+// ему банк подставляется, иначе тренажёр был бы пустым.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -35,9 +41,21 @@ import { hasSurvivalBook } from '../data/survivalBooks'
 import { deckOwner, dueCount } from '../data/reviewDeck'
 
 const KEY = 'trainer_subject'
+/**
+ * Предмет курса главной, с которым тренажёр синхронизировался в прошлый раз.
+ *
+ * Нужен, чтобы отличить «ученик сменил курс на главной» от «страницу
+ * перезагрузили». Без этой памяти любой F5 выглядел как смена курса и затирал
+ * явный выбор в тренажёре (см. эффект ниже).
+ */
+const COURSE_KEY = 'trainer_subject_course'
 
-function readPick(): string {
-  try { return localStorage.getItem(KEY) ?? '' } catch { return '' }
+function read(key: string): string {
+  try { return localStorage.getItem(key) ?? '' } catch { return '' }
+}
+
+function write(key: string, value: string) {
+  try { localStorage.setItem(key, value) } catch { /* приватный режим */ }
 }
 
 export interface TrainerSubjectOption {
@@ -72,6 +90,7 @@ export function useTrainerSubject(): TrainerSubjectState {
   const courses = useStudentData(s => s.subjects)
   const tasks = useTaskBank(s => s.tasks)
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
+  const coursesLoaded = useStudentData(s => s.loaded)
 
   const options = useMemo<TrainerSubjectOption[]>(() => {
     const seen = new Set<string>()
@@ -103,39 +122,70 @@ export function useTrainerSubject(): TrainerSubjectState {
         : tasks.filter(t => t.subject === def.id).length)
     }
 
-    // 2. Предметы с банком заданий. Только те, по которым задания реально
-    // загрузились: ученику с одной химией второй пункт не нужен. Пока банк не
-    // приехал — показываем весь список, иначе меню на первом кадре пустое.
-    const present = new Set(tasks.map(t => t.subject))
-    const bank = BANK_SUBJECT_IDS.filter(id => present.has(id))
-    for (const id of (bank.length ? bank : BANK_SUBJECT_IDS)) {
-      const def = getSubject(id)
-      if (def) add(def, 'bank', tasks.filter(t => t.subject === id).length)
+    // 2. Предметы с банком заданий — ТОЛЬКО как запасной вариант, когда по
+    // курсам ученика тренажёру открыть нечего.
+    //
+    // Раньше банк добавлялся всегда, и ученик, который учит корейский,
+    // видел в своих предметах биологию: банк заданий общий на учителя, а не
+    // выданный конкретному ученику. «Мои предметы» должны быть его — если
+    // курса по биологии нет, то и пункта быть не должно.
+    //
+    // Запасной путь остаётся для ученика, которого готовят к ЕГЭ без курса
+    // (задания приходят из банка) — иначе тренажёр у него был бы пустым.
+    // Ждём загрузки курсов: до неё список пуст у всех, и без ожидания банк
+    // подставлялся бы каждому на первом кадре.
+    if (out.length === 0 && coursesLoaded) {
+      // Только предметы, по которым задания реально загрузились: ученику с
+      // одной химией второй пункт не нужен. Пока банк не приехал — показываем
+      // весь список, иначе меню на первом кадре пустое.
+      const present = new Set(tasks.map(t => t.subject))
+      const bank = BANK_SUBJECT_IDS.filter(id => present.has(id))
+      for (const id of (bank.length ? bank : BANK_SUBJECT_IDS)) {
+        const def = getSubject(id)
+        if (def) add(def, 'bank', tasks.filter(t => t.subject === id).length)
+      }
     }
 
     return out
-  }, [courses, tasks])
+  }, [courses, tasks, coursesLoaded])
 
-  const [picked, setPicked] = useState(readPick)
+  const [picked, setPicked] = useState(() => read(KEY))
 
-  // Предмет курса, открытого на главной.
-  const courseSubject = useMemo(
-    () => (getSubject(courses.find(c => c.id === activeSubjectId)?.subject)
-      ?? getSubject(activeSubjectId))?.id,
-    [courses, activeSubjectId],
-  )
+  /**
+   * Предмет курса, открытого на главной.
+   *
+   * Считается ТОЛЬКО по курсам самого ученика и только когда они уже приехали.
+   * Прежний запасной путь `getSubject(activeSubjectId)` срабатывал на стартовом
+   * значении стора (`activeSubjectId: 'chemistry'`) — то есть на каждом первом
+   * кадре после F5 главная «говорила», что открыта химия, хотя курсов ещё нет
+   * вовсе. Дальше приезжали настоящие курсы, значение менялось, и эффект ниже
+   * честно принимал это за смену курса учеником.
+   */
+  const courseSubject = useMemo(() => {
+    if (!coursesLoaded) return undefined
+    const c = courses.find(x => x.id === activeSubjectId)
+    if (!c) return undefined
+    // `c.subject` — русское название из реестра; запасной путь по `c.id` нужен
+    // демо-данным и старым курсам, где предмет не проставлен, а id и есть слаг.
+    return (getSubject(c.subject) ?? getSubject(c.id))?.id
+  }, [coursesLoaded, courses, activeSubjectId])
 
   // Сменился курс на ГЛАВНОЙ — тренажёр едет следом и забывает прежний выбор.
-  // Первое значение (курсы доехали) сменой не считается: это не действие
-  // ученика, а загрузка данных, и затирать ей его выбор нельзя.
-  const lastCourse = useRef<string | undefined>(undefined)
+  //
+  // ПЕРЕЗАГРУЗКА СМЕНОЙ НЕ СЧИТАЕТСЯ. Сравниваем не с памятью компонента (после
+  // F5 она пустая, и первое же значение выглядело бы как «пришли из другого
+  // курса»), а с тем, что синхронизировали в прошлый раз. Пока курс главной не
+  // изменился, явный выбор в тренажёре остаётся выбором ученика — иначе
+  // «АНГЛИЙСКИЙ», выбранный в меню, слетал на предмет курса при каждом F5.
+  const lastCourse = useRef<string>(read(COURSE_KEY))
   useEffect(() => {
     if (!courseSubject) return
     if (lastCourse.current && lastCourse.current !== courseSubject) {
-      try { localStorage.setItem(KEY, courseSubject) } catch { /* приватный режим */ }
+      write(KEY, courseSubject)
       setPicked(courseSubject)
     }
     lastCourse.current = courseSubject
+    write(COURSE_KEY, courseSubject)
   }, [courseSubject])
 
   const current = useMemo(
@@ -146,7 +196,7 @@ export function useTrainerSubject(): TrainerSubjectState {
   )
 
   const pick = useCallback((id: string) => {
-    try { localStorage.setItem(KEY, id) } catch { /* приватный режим */ }
+    write(KEY, id)
     setPicked(id)
   }, [])
 

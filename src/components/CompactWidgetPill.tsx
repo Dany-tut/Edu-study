@@ -16,6 +16,9 @@ import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
 import { useTrainerProgress } from '../store/trainerProgressStore'
 import { useTeacher } from '../store/teacherStore'
+import { useTheme } from '../store/themeStore'
+import { getSubject, resolveSubjectPalette } from '../lib/subjects'
+import { formatShort, GOAL_MS } from '../lib/trainerDay'
 import { tactile } from '../lib/feedback'
 import { t, useT } from '../lib/i18n'
 
@@ -621,119 +624,139 @@ function QuestionOfDayPreview({ expanded }: { expanded: boolean }) {
   )
 }
 
+/**
+ * Прогресс тренажёра в верхней строке.
+ *
+ * КРУЖОК ПОКАЗЫВАЕТ ВРЕМЯ, А НЕ ДОЛЮ МАТЕРИАЛА. Раньше в нём стоял процент
+ * решённых заданий банка, и на языковом предмете он был вечным нулём: карточки
+ * банка не пополняют, разговорник в 1567 фраз за вечер не сдвинуть на процент.
+ * Человек, который сорок минут гонял карточки, видел «0%» и «начни решать
+ * задания» — виджет буквально отрицал только что сделанную работу. Время же
+ * растёт с первой минуты и меряет ровно то, чем ученик управляет: сегодня
+ * позанимался столько-то. Доля материала никуда не делась — она в раскрытом
+ * виде, полосой и подписью «в колоде N из M».
+ *
+ * ЦВЕТ — ПРЕДМЕТНЫЙ. Виджет был жёстко зелёным и на корейском (индиго) читался
+ * как чужая наклейка. Палитра берётся из реестра предметов, как и весь
+ * остальной тренажёр; красным остаётся только ошибка — это смысл, а не тема.
+ */
 function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
   const t = useT()
-  const { doneCount, wrongCount, totalCount, todayCorrect, setOpenModal } = useTrainerProgress()
-  const pct = totalCount ? Math.round((doneCount / totalCount) * 100) : 0
+  const { dark } = useTheme()
+  const {
+    doneCount, wrongCount, totalCount, todayCorrect, todayWrong,
+    subject, subjectId, kind, todayMs, streak, setOpenModal,
+  } = useTrainerProgress()
 
-  const R = 11
-  const circ = 2 * Math.PI * R
-  const dash = circ * (pct / 100)
+  const palette = resolveSubjectPalette(subjectId || subject, dark)
+  const accent = palette.accent
+  const def = getSubject(subjectId || subject)
+
+  const pct = totalCount ? Math.round((doneCount / totalCount) * 100) : 0
+  const goalPct = Math.min(100, Math.round((todayMs / GOAL_MS) * 100))
+  // Пока не набралась минута — не рисуем ни колечка, ни «0м»: это не прогресс,
+  // а факт, что экран открыт.
+  const started = todayMs >= 60_000 || todayCorrect > 0 || todayWrong > 0
 
   const PILL_T = { type: 'spring' as const, stiffness: 220, damping: 28, mass: 1.1 }
 
   const avatarR = 16
   const avatarCirc = 2 * Math.PI * avatarR
-  const avatarDash = avatarCirc * (pct / 100)
+  const avatarDash = avatarCirc * (goalPct / 100)
+
+  const pill = (key: string, value: string, label: string, fg: string, bg: string) => (
+    <motion.div
+      key={key}
+      initial={false}
+      animate={{ padding: expanded ? '8px 6px' : '3px 8px', borderRadius: expanded ? 26 : 999, flexGrow: expanded ? 1 : 0 }}
+      transition={PILL_T}
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, background: bg, color: fg, fontWeight: 700, lineHeight: 1 }}
+    >
+      <motion.span initial={false} animate={{ fontSize: expanded ? 18 : 12 }} transition={PILL_T} style={{ whiteSpace: 'nowrap' }}>{value}</motion.span>
+      <motion.span initial={false} animate={{ opacity: expanded ? 0.85 : 0, maxHeight: expanded ? 16 : 0 }} transition={PILL_T} style={{ fontSize: 9.5, overflow: 'hidden', whiteSpace: 'nowrap' }}>
+        {label}
+      </motion.span>
+    </motion.div>
+  )
 
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 14px 14px 9px', width: '100%', boxSizing: 'border-box' }}>
-      {/* Avatar — donut progress ring */}
+      {/* Кружок — сегодняшнее время против дневной цели */}
       <div style={{
         width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-        background: 'rgba(52,200,119,0.10)',
+        background: `${accent}1A`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         position: 'relative',
       }}>
         <svg width="40" height="40" viewBox="0 0 40 40" style={{ position: 'absolute', inset: 0, transform: 'rotate(-90deg)' }}>
-          <circle cx="20" cy="20" r={avatarR} fill="none" stroke="rgba(52,200,119,0.2)" strokeWidth="3.5" />
-          <circle cx="20" cy="20" r={avatarR} fill="none" stroke="#34C877" strokeWidth="3.5"
-            strokeDasharray={`${avatarDash} ${avatarCirc}`} strokeLinecap="round" />
+          <circle cx="20" cy="20" r={avatarR} fill="none" stroke={`${accent}33`} strokeWidth="3.5" />
+          <circle cx="20" cy="20" r={avatarR} fill="none" stroke={accent} strokeWidth="3.5"
+            strokeDasharray={`${avatarDash} ${avatarCirc}`} strokeLinecap="round"
+            style={{ transition: 'stroke-dasharray 0.6s cubic-bezier(0.22,1,0.36,1)' }} />
         </svg>
-        <span style={{ fontSize: 9.5, fontWeight: 750, color: '#34C877', position: 'relative', lineHeight: 1 }}>
-          {pct}%
+        <span style={{ fontSize: started ? 10.5 : 15, fontWeight: 750, color: palette.text, position: 'relative', lineHeight: 1 }}>
+          {started ? formatShort(todayMs) : (def?.icon ?? '·')}
         </span>
       </div>
 
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3, paddingTop: 2 }}>
-        {/* Kicker */}
+        {/* Кикер — предмет, а не общее слово «прогресс»: тренажёр у ученика не один */}
         <span style={{
           fontSize: 10.5, fontWeight: 600, letterSpacing: 0.3,
           textTransform: 'uppercase', color: 'var(--color-text-3)',
         }}>
-          {t('Тренажёр · прогресс')}
+          {t('Тренажёр')} · <span style={{ color: palette.text }}>{t(def?.name ?? subject ?? 'прогресс')}</span>
         </span>
 
-        {/* Pills — smoothly morph between collapsed capsule and expanded tile */}
-        {doneCount > 0 ? (
+        {/* Пилюли — плавно перетекают из капсулы в плитку */}
+        {started ? (
           <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, marginTop: 2 }}>
-
-            {/* Green: correct */}
-            <motion.div
-              initial={false}
-              animate={{ padding: expanded ? '8px 6px' : '3px 8px', borderRadius: expanded ? 26 : 999, flexGrow: expanded ? 1 : 0 }}
-              transition={PILL_T}
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, background: 'rgba(110,231,160,0.22)', color: '#27A85A', fontWeight: 700, lineHeight: 1 }}
-            >
-              <motion.span initial={false} animate={{ fontSize: expanded ? 18 : 12 }} transition={PILL_T} style={{ whiteSpace: 'nowrap' }}>✓ {doneCount}</motion.span>
-              <motion.span initial={false} animate={{ opacity: expanded ? 0.75 : 0, maxHeight: expanded ? 16 : 0 }} transition={PILL_T} style={{ fontSize: 9.5, overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                {totalCount > 0 ? `${t('Верно из')} ${totalCount}` : t('Верно')}
-              </motion.span>
-            </motion.div>
-
-            {/* Purple: today */}
-            {todayCorrect > 0 && (
-              <motion.div
-                initial={false}
-                animate={{ padding: expanded ? '8px 6px' : '3px 8px', borderRadius: expanded ? 26 : 999, flexGrow: expanded ? 1 : 0 }}
-                transition={PILL_T}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, background: 'rgba(139,92,246,0.18)', color: 'var(--color-accent)', fontWeight: 700, lineHeight: 1 }}
-              >
-                <motion.span initial={false} animate={{ fontSize: expanded ? 18 : 12 }} transition={PILL_T} style={{ whiteSpace: 'nowrap' }}>+{todayCorrect}</motion.span>
-                <motion.span initial={false} animate={{ opacity: expanded ? 0.85 : 0, maxHeight: expanded ? 16 : 0 }} transition={PILL_T} style={{ fontSize: 9.5, overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                  {t('Сегодня')}
-                </motion.span>
-              </motion.div>
+            {pill('time', formatShort(todayMs), t('Сегодня'), palette.text, `${accent}26`)}
+            {todayCorrect > 0 && pill(
+              'right', `✓ ${todayCorrect}`,
+              kind === 'lang' ? t('Знаю') : t('Верно'),
+              palette.text, `${accent}1F`,
             )}
-
-            {/* Red: wrong */}
-            {wrongCount > 0 && (
-              <motion.div
-                initial={false}
-                animate={{ padding: expanded ? '8px 6px' : '3px 8px', borderRadius: expanded ? 26 : 999, flexGrow: expanded ? 1 : 0 }}
-                transition={PILL_T}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, background: 'rgba(220,50,60,0.26)', color: '#F04858', fontWeight: 700, lineHeight: 1 }}
-              >
-                <motion.span initial={false} animate={{ fontSize: expanded ? 18 : 12 }} transition={PILL_T} style={{ whiteSpace: 'nowrap' }}>✗ {wrongCount}</motion.span>
-                <motion.span initial={false} animate={{ opacity: expanded ? 0.85 : 0, maxHeight: expanded ? 16 : 0 }} transition={PILL_T} style={{ fontSize: 9.5, overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                  {t('Ошибок')}
-                </motion.span>
-              </motion.div>
+            {todayWrong > 0 && pill(
+              'wrong', `✗ ${todayWrong}`,
+              kind === 'lang' ? t('Учу') : t('Ошибок'),
+              '#F04858', 'rgba(220,50,60,0.22)',
             )}
+            {streak > 1 && pill('streak', `🔥 ${streak}`, t('Дней подряд'), palette.text, `${accent}1F`)}
           </div>
         ) : (
           <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-text-3)' }}>
-            {t('Начни решать задания')}
+            {kind === 'lang' ? t('Открой набор фраз — счётчик пойдёт') : t('Начни решать задания')}
           </span>
         )}
 
-        {/* Expanded extras: progress bar + link */}
+        {/* Раскрытый вид: доля материала + ссылка в разбор */}
         <motion.div
           animate={{ opacity: expanded ? 1 : 0 }}
           transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
           style={{ overflow: 'hidden', willChange: 'opacity' }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+          {totalCount > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9.5, color: 'var(--color-text-3)', marginTop: 8 }}>
+              <span>{kind === 'lang' ? t('В колоде') : t('Решено')} {doneCount} {t('из')} {totalCount}</span>
+              <span style={{ color: palette.text, fontWeight: 700 }}>{pct}%</span>
+            </div>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
             {totalCount > 0 && (
-              <div style={{ flex: 1, height: 4, borderRadius: 999, background: 'rgba(255,255,255,0.08)', overflow: 'hidden', display: 'flex' }}>
-                <div style={{ height: '100%', width: `${pct}%`, background: 'rgba(110,231,160,0.55)', flexShrink: 0, transition: 'width 0.6s cubic-bezier(0.22,1,0.36,1)' }} />
+              <div style={{ flex: 1, height: 4, borderRadius: 999, background: `${accent}22`, overflow: 'hidden', display: 'flex' }}>
+                <div style={{ height: '100%', width: `${pct}%`, background: accent, flexShrink: 0, transition: 'width 0.6s cubic-bezier(0.22,1,0.36,1)' }} />
                 <div style={{ height: '100%', width: `${totalCount ? Math.round((wrongCount / totalCount) * 100) : 0}%`, background: 'rgba(240,96,112,0.45)', flexShrink: 0 }} />
               </div>
             )}
-            <button onClick={e => { e.stopPropagation(); setOpenModal(true) }}
-              style={{ flexShrink: 0, padding: '3px 8px', borderRadius: 999, border: 'none', background: 'rgba(52,200,119,0.15)', color: '#27A85A', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
-              {t('Подробнее →')}
-            </button>
+            {/* Разбор есть только у банка: у языка модалки нет, и мёртвая
+                кнопка хуже отсутствующей. */}
+            {kind === 'bank' && (
+              <button onClick={e => { e.stopPropagation(); setOpenModal(true) }}
+                style={{ flexShrink: 0, padding: '3px 8px', borderRadius: 999, border: 'none', background: `${accent}26`, color: palette.text, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
+                {t('Подробнее →')}
+              </button>
+            )}
           </div>
         </motion.div>
       </div>
@@ -1008,7 +1031,11 @@ export default function CompactWidgetPill() {
   const pomoRunning = useDashboard(s => s.pomoRunning)
   const pomoStart = useDashboard(s => s.pomoStart)
   const pomoPause = useDashboard(s => s.pomoPause)
-  const { lastAnswerAt } = useTrainerProgress()
+  const { lastAnswerAt, subject: trainerSubject, subjectId: trainerSubjectId } = useTrainerProgress()
+  // Волна под виджетом тренажёра красится предметом, а не вечным зелёным:
+  // полоска шире самого виджета и на корейском была главным чужим пятном.
+  const { dark: darkTheme } = useTheme()
+  const trainerPalette = resolveSubjectPalette(trainerSubjectId || trainerSubject, darkTheme)
   const saveStudentTrainerStats = useTeacher(s => s.saveStudentTrainerStats)
   const [trainerWaveActive, setTrainerWaveActive] = useState(false)
   const [[idx, dir], setIdx] = useState<[number, number]>([0, 0])
@@ -1395,7 +1422,7 @@ export default function CompactWidgetPill() {
               pointerEvents: 'none',
             }}
           >
-            {/* Green wave */}
+            {/* Первая волна — акцент предмета */}
             <motion.svg viewBox="0 0 320 10" preserveAspectRatio="none"
               style={{ position: 'absolute', bottom: 0, width: '100%', height: '100%' }}>
               <motion.path
@@ -1409,10 +1436,10 @@ export default function CompactWidgetPill() {
                   opacity: [0.85, 0.45, 0.9, 0.85],
                 }}
                 transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                fill="#34C877"
+                fill={trainerPalette.accent}
               />
             </motion.svg>
-            {/* Orange wave */}
+            {/* Вторая — та же краска светлее (текстовый тон палитры) */}
             <motion.svg viewBox="0 0 320 10" preserveAspectRatio="none"
               style={{ position: 'absolute', bottom: 0, width: '100%', height: '100%' }}>
               <motion.path
@@ -1426,10 +1453,10 @@ export default function CompactWidgetPill() {
                   opacity: [0.5, 0.85, 0.35, 0.5],
                 }}
                 transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 1.2 }}
-                fill="#F0A030"
+                fill={trainerPalette.text}
               />
             </motion.svg>
-            {/* Red wave */}
+            {/* Третья — акцент вполсилы, чтобы полоса читалась объёмной */}
             <motion.svg viewBox="0 0 320 10" preserveAspectRatio="none"
               style={{ position: 'absolute', bottom: 0, width: '100%', height: '100%' }}>
               <motion.path
@@ -1443,7 +1470,7 @@ export default function CompactWidgetPill() {
                   opacity: [0.6, 0.25, 0.75, 0.6],
                 }}
                 transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 2.5 }}
-                fill="#F04858"
+                fill={`${trainerPalette.accent}8C`}
               />
             </motion.svg>
           </motion.div>

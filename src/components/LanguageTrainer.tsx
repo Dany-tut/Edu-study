@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
@@ -9,7 +9,7 @@ import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
 import CardDeck from './CardDeck'
 import PhraseDecks, {
-  ThemeSession, BackToSets, TakeWholeTheme, DeckHint, themeProgress, inDeckCount,
+  ThemeSession, BackToSets, TakeWholeTheme, DeckHint, themeStats,
   type PhraseView, type RunMode,
 } from './PhraseDecks'
 import TrainerShell, {
@@ -20,10 +20,21 @@ import TrainerShell, {
 import { SubjectHero, SubjectPill } from './trainer/SubjectSwitch'
 import type { TrainerSubjectState } from '../lib/trainerSubject'
 import MultiSelectField from './MultiSelectField'
-import { addCards, deckOwner, dueCount, knownPrompts } from '../data/reviewDeck'
+import { addCards, deckOwner, dueCount, deckStates, type CardState } from '../data/reviewDeck'
 import { hasSurvivalBook, loadSurvivalBook } from '../data/survivalBooks'
-import { survivalShelves, type SurvivalBook, type SurvivalThemeCards } from '../data/survivalPhrases'
+import {
+  hasScenes, loadScenes, shelvesForLang, worksForLang, workById,
+  type Scene, type Work,
+} from '../data/scenes'
+import { WorkGrid, WorkPage } from './trainer/SceneShelf'
+import {
+  survivalShelves, survivalLevelLabel, SURVIVAL_LEVELS,
+  type SurvivalBook, type SurvivalThemeCards,
+} from '../data/survivalPhrases'
+import { hasNests, nestById, nestsForLang, nestsUpTo } from '../data/soundNests'
+import { NestGrid, NestPage } from './trainer/SoundNestDrill'
 import { allResults, resultFrom, saveResult, type MaterialKind } from '../lib/trainerProgress'
+import { courseReach, reachNote } from '../lib/courseReach'
 import VoiceRecorder from './VoiceRecorder'
 import GlossedText from './GlossedText'
 import Coachmarks, { type CoachStep } from './Coachmarks'
@@ -32,6 +43,7 @@ import { hasLexicon, wordReading } from '../lib/lexicon'
 import { usePersistentState } from '../lib/useDraft'
 import { submitTrainerVoice, listTrainerVoice, type VoiceEntry } from '../lib/trainerSpeaking'
 import { ownerStudentIdFor, subjectAliases, useStudentData } from '../store/studentDataStore'
+import { useTrainerProgress } from '../store/trainerProgressStore'
 
 // Тренажёр для языковых предметов.
 //
@@ -70,6 +82,16 @@ const LENGTHS: { value: string; label: string; fit: (m: number) => boolean }[] =
 /** Пересечение выбранного списка со значением. Пустой список = «все». */
 const anyOf = (picked: string[], value: string) => picked.length === 0 || picked.includes(value)
 
+/**
+ * Три половины вкладки «Карточки».
+ *
+ * `sets` — готовый разговорник по ситуациям, `due` — личная колода повторений,
+ * `nests` — гнёзда созвучий. Последнее стоит именно здесь, а не отдельным
+ * режимом рядом с «Чтением»: гнездо тоже работает через колоду (ошибки уходят
+ * в SM-2), и пятая таблетка в рейле ради одного экрана — перебор.
+ */
+type VocabView = 'due' | 'sets' | 'nests'
+
 export default function LanguageTrainer({ lang, subject, subjectId, dark, subjectState }: {
   /** Код изучаемого языка: en, ko, ja, pt-BR. */
   lang: string
@@ -100,6 +122,53 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const allTexts = useMemo(() => textsForLang(lang), [lang])
 
   const audio = useMemo(() => listeningForLang(lang), [lang])
+
+  // ── Сцены: библиотека отрывков внутри «Чтения» ─────────────────────────────
+  //
+  // Вторая половина вкладки, а не пятый режим. Сцена — это ReadingText с
+  // добавленными полями: она идёт через ту же читалку, тот же словарь по клику
+  // и ту же запись результата. Отдельный режим означал бы вторую копию фильтров
+  // и вторую читалку, которая разойдётся с первой на первой же правке.
+  const [readingView, setReadingView] = usePersistentState<'texts' | 'scenes'>(`trainer.${lang}.readingView`, 'texts')
+  const [openWorkId, setOpenWorkId] = usePersistentState<string | null>(`trainer.${lang}.work`, null)
+  const [openSceneId, setOpenSceneId] = usePersistentState<string | null>(`trainer.${lang}.scene`, null)
+  const [hideSpoilers, setHideSpoilers] = usePersistentState<boolean>(`trainer.${lang}.spoilers`, true)
+  const [sceneShelf, setSceneShelf] = useState('')
+
+  const sceneLib = hasScenes(lang)
+  const sceneWorks = useMemo(() => worksForLang(lang), [lang])
+  const sceneShelves = useMemo(() => shelvesForLang(lang), [lang])
+
+  // Тексты сцен приезжают отдельным чанком и только когда вкладку открыли:
+  // у того, кто читает учебные тексты, нет причин возить с собой Достоевского,
+  // Акутагаву и Машаду разом. Язык хранится рядом со списком — при смене
+  // предмета старый список сам перестаёт считаться загруженным.
+  const [sceneData, setSceneData] = useState<{ lang: string; list: Scene[] } | null>(null)
+  const scenes = sceneData?.lang === lang ? sceneData.list : undefined
+
+  useEffect(() => {
+    if (!sceneLib || mode !== 'reading' || readingView !== 'scenes' || scenes !== undefined) return
+    let alive = true
+    loadScenes(lang).then(list => { if (alive) setSceneData({ lang, list }) })
+    return () => { alive = false }
+  }, [sceneLib, mode, readingView, scenes, lang])
+
+  const scenesOf = useMemo(() => {
+    const byWork = new Map<string, Scene[]>()
+    for (const s of scenes ?? []) {
+      const list = byWork.get(s.workId)
+      if (list) list.push(s)
+      else byWork.set(s.workId, [s])
+    }
+    for (const list of byWork.values()) list.sort((a, b) => a.order - b.order)
+    return (workId: string) => byWork.get(workId) ?? []
+  }, [scenes])
+
+  const openWork: Work | null = openWorkId ? workById(openWorkId) ?? null : null
+  const openScene: Scene | null = useMemo(
+    () => (openSceneId ? (scenes ?? []).find(s => s.id === openSceneId) ?? null : null),
+    [scenes, openSceneId],
+  )
 
   // Материал мог исчезнуть из библиотеки — тогда просто открывается список.
   const openText = useMemo(
@@ -150,6 +219,15 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     setMode(m)
     setFLevel([]); setFSkill([]); setFTopic([]); setFLen('')
     setQuery(''); setStatus(''); setSort('order'); setKindFilter('')
+    setSceneShelf('')
+  }
+
+  /** Переключение половин «Чтения». Открытое произведение при этом закрывается. */
+  function switchReadingView(v: 'texts' | 'scenes') {
+    setReadingView(v)
+    setOpenWorkId(null); setOpenSceneId(null)
+    setQuery(''); setStatus(''); setSceneShelf('')
+    setFLevel([]); setFSkill([]); setFTopic([]); setFLen('')
   }
 
   // Результаты по материалам — из localStorage, см. lib/trainerProgress.ts.
@@ -157,7 +235,10 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const [resultsKey, setResultsKey] = useState(0)
   const results = useMemo(() => allResults(), [resultsKey])
 
-  const isLang = mode === 'reading' || mode === 'listening'
+  /** Открыта ли вторая половина «Чтения» — витрина сцен. */
+  const scenesOn = mode === 'reading' && readingView === 'scenes' && sceneLib
+
+  const isLang = (mode === 'reading' && !scenesOn) || mode === 'listening'
   const pool = mode === 'listening' ? audio : allTexts
   const kind: MaterialKind = mode === 'listening' ? 'listening' : 'reading'
 
@@ -182,6 +263,31 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     if (sort === 'short') out.sort((a, b) => a.minutes - b.minutes)
     return out
   }, [pool, fLevel, fTopic, fSkill, fLen, status, query, sort, kind, results, levelOpts, mode])
+
+  // ── Витрина сцен ───────────────────────────────────────────────────────────
+  //
+  // Произведения фильтруются полкой и поиском, а уровнем и длительностью — нет:
+  // книгу выбирают по автору и по тому, читал ли её раньше, а уровень стоит уже
+  // у сцены. Фильтр «покажи мне B1-книги» отсеял бы «Идиота» целиком из-за
+  // одного трудного отрывка.
+  const visibleWorks = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return sceneWorks.filter(w => {
+      if (sceneShelf && w.shelf !== sceneShelf) return false
+      if (q && !`${w.title} ${w.origTitle} ${w.author}`.toLowerCase().includes(q)) return false
+      return true
+    })
+  }, [sceneWorks, sceneShelf, query])
+
+  const sceneGroups = useMemo(
+    () => sceneShelves
+      .map(s => ({ title: s.title, hint: s.hint, works: visibleWorks.filter(w => w.shelf === s.id) }))
+      .filter(g => g.works.length > 0),
+    [sceneShelves, visibleWorks],
+  )
+
+  /** Пройдена ли сцена — та же запись результата, что у обычных текстов. */
+  const sceneDone = (id: string) => !!resultFrom('reading', id, results)
 
   // ── Колода карточек ────────────────────────────────────────────────────────
   //
@@ -225,8 +331,31 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // цифры на таблетке, и ждать его, чтобы решить, что рисовать, значило бы
   // моргать вкладкой на каждом открытии.
   const hasBook = useMemo(() => hasSurvivalBook(lang), [lang])
-  const [vocabView, setVocabView] = useState<'due' | 'sets'>(() => hasBook ? 'sets' : 'due')
+  const [vocabView, setVocabView] = useState<VocabView>(() => hasBook ? 'sets' : 'due')
   const [due, setDue] = useState(0)
+
+  // ── Глубина по курсу ───────────────────────────────────────────────────────
+  //
+  // Докуда открыт курс — по нему тренажёр дозирует материал: гнёзда созвучий
+  // появляются с того юнита, где введён их признак, а темы разговорника выше
+  // глубины помечаются «рано», но не прячутся (см. lib/courseReach.ts).
+  const reach = useMemo(() => courseReach(deckCourses, deckSubjects), [deckCourses, deckSubjects])
+
+  // ── Гнёзда созвучий ────────────────────────────────────────────────────────
+  const nestsOn = useMemo(() => hasNests(lang), [lang])
+  const nests = useMemo(() => nestsUpTo(lang, reach), [lang, reach])
+  /** Сколько гнёзд ещё закрыто глубиной — цифра честнее, чем молчание. */
+  const nestsLocked = useMemo(() => nestsForLang(lang).length - nests.length, [lang, nests])
+  const [openNestId, setOpenNestId] = usePersistentState<string | null>(`trainer.${lang}.nest`, null)
+  const openNest = useMemo(() => (openNestId ? nestById(openNestId) ?? null : null), [openNestId])
+  /** Поиск идёт и по самим словам: ученик ищет «불», а не «начальная согласная». */
+  const visibleNests = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return nests
+    return nests.filter(n =>
+      `${n.title} ${n.why} ${n.words.map(w => `${w.term} ${w.reading} ${w.ru}`).join(' ')}`
+        .toLowerCase().includes(q))
+  }, [nests, query])
 
   useEffect(() => {
     setVocabView(hasBook ? 'sets' : 'due')
@@ -244,13 +373,32 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // со счётчиками и должен знать их до того, как отрисуется содержимое справа.
   // Книга ленивая (≈100 КБ на язык) — см. data/survivalBooks.ts.
   const [book, setBook] = useState<SurvivalBook | null | undefined>(undefined)
-  const [known, setKnown] = useState<Set<string>>(() => new Set())
+  // Память колоды по фразам: сколько раз подряд вспомнил, сколько раз забыл,
+  // когда вернётся. Раньше здесь лежало множество «что уже в колоде» — оно
+  // отвечало только на вопрос «какие фразы я однажды не знал».
+  const [states, setStates] = useState<Map<string, CardState>>(() => new Map())
+  // Пока память не приехала, «пустая память» неотличима от «ничего не учил», и
+  // стопка собралась бы из всей темы — ровно то, от чего уходим. Особенно на
+  // F5: открытая тема восстанавливается из sessionStorage мгновенно, а колода
+  // читается по сети.
+  const [statesReady, setStatesReady] = useState(false)
   const [knownKey, setKnownKey] = useState(0)
   const [shelf, setShelf] = useState('')
   // Открытая тема разговорника переживает F5 по той же причине, что и текст.
   const [openTheme, setOpenTheme] = usePersistentState<string | null>(`trainer.${lang}.theme`, null)
   const [run, setRun] = useState<RunMode>('swipe')
   const [phraseView, setPhraseView] = useState<PhraseView>({ reading: true, reverse: false })
+
+  // Онбординг стопки живёт в CardDeck, но один его шаг — про переключатель
+  // «Свайп / Списком» из строки управления. Тема, открытая впервые, — это сорок
+  // незнакомых фраз, и свайп по ним превращается в сорок нажатий «не знаю»;
+  // про список надо узнать до того, как это случится, а не после.
+  const runTabsRef = useRef<HTMLDivElement | null>(null)
+  const runTourStep: CoachStep = {
+    ref: runTabsRef,
+    title: t('Сначала — «Списком»'),
+    text: t('Свайп проверяет память, а по новой теме её ещё нет. «Списком» даёт прочитать все фразы темы за минуту — с заметками и озвучкой — и только потом идти в стопку.'),
+  }
 
   useEffect(() => {
     if (!hasBook) { setBook(null); return }
@@ -260,23 +408,84 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     return () => { alive = false }
   }, [hasBook, lang])
 
-  // Что из разговорника уже в колоде — по одному запросу на экран, а не на тему.
+  // Что колода помнит про фразы — по одному запросу на экран, а не на тему.
   useEffect(() => {
     let alive = true
-    knownPrompts(owner, deckSubjects)
-      .then(s => { if (alive) setKnown(s) })
-      .catch(() => { /* прогресс — не повод ронять вкладку */ })
+    deckStates(owner, deckSubjects)
+      .then(s => { if (alive) { setStates(s); setStatesReady(true) } })
+      // Не доехало — работаем по тому, что есть: лучше стопка целиком, чем
+      // вечный скелетон вместо темы.
+      .catch(() => { if (alive) setStatesReady(true) })
     return () => { alive = false }
   }, [owner, deckSubjects, knownKey])
 
+  // Ответ по карточке уже сохранён в базе и вернулся новым состоянием — правим
+  // свою копию точечно. Перечитывать всю колоду на каждый свайп значило бы
+  // запрос в секунду и мигание счётчиков посреди стопки.
+  const onGraded = useCallback((prompt: string, st: CardState) => {
+    setStates(prev => {
+      const next = new Map(prev)
+      next.set(prompt, st)
+      return next
+    })
+  }, [])
+
   const shelves = useMemo(() => survivalShelves(book ?? undefined), [book])
   const allThemes = useMemo(() => shelves.flatMap(s => s.themes), [shelves])
+
+  // ── Виджет прогресса в верхней строке ──────────────────────────────────────
+  //
+  // Виджет умел считать только банк ЕГЭ и на языке честно показывал «0 из 0».
+  // Материал языка — это разговорник: сколько его фраз уже выучено, то есть
+  // вынесено на интервал от трёх недель. «Взято в колоду» на этом месте врало:
+  // в колоду попадало как раз незнание.
+  // Отвеченные карточки и время виджет считает сам (store/trainerProgressStore).
+  const updateProgress = useTrainerProgress(s => s.update)
+  const bookStats = useMemo(
+    () => allThemes.reduce((acc, x) => {
+      const st = themeStats(x, states)
+      acc.total += st.total; acc.learned += st.learned; acc.lapses += st.lapses
+      return acc
+    }, { total: 0, learned: 0, lapses: 0 }),
+    [allThemes, states],
+  )
+  useEffect(() => {
+    updateProgress({
+      kind: 'lang', subject, subjectId,
+      doneCount: bookStats.learned, totalCount: bookStats.total, wrongCount: bookStats.lapses, favCount: 0,
+    })
+  }, [subject, subjectId, bookStats, updateProgress])
   const openItem = useMemo(
     () => allThemes.find(x => x.theme.id === openTheme) ?? null,
     [allThemes, openTheme],
   )
+  /** Состояние памяти по открытой теме — для чисел в рейле. */
+  const openStats = useMemo(
+    () => (openItem ? themeStats(openItem, states) : { total: 0, fresh: 0, learning: 0, learned: 0, due: 0, lapses: 0, pct: 0 }),
+    [openItem, states],
+  )
 
-  /** Темы под текущей полкой, поиском, статусом и сортировкой. */
+  // ── Ступень темы ───────────────────────────────────────────────────────────
+  //
+  // Полки разговорника отвечают на вопрос «что за ситуация», а не «потяну ли
+  // я». Человеку, который уже говорит, витрина открывалась с «Здравствуйте» и
+  // «Чисел» — то есть с того, что он проходил три уровня назад, — и «Виза» с
+  // «Больницей», ради которых он сюда и пришёл, лежали шестым экраном вниз.
+  //
+  // Ступень подписывается в шкале самого предмета (у корейского TOPIK, у
+  // японского JLPT), поэтому фильтр работает по подписи, а не по букве CEFR:
+  // иначе в списке стояло бы «B1», а на карточке «TOPIK 3급», и это читалось бы
+  // как два разных фильтра.
+  const themeLevel = useMemo(
+    () => (x: SurvivalThemeCards) => survivalLevelLabel(x.theme.level, subject),
+    [subject],
+  )
+  const setLevelOpts = useMemo(() => {
+    const found = new Set(allThemes.map(x => x.theme.level))
+    return SURVIVAL_LEVELS.filter(l => found.has(l)).map(l => survivalLevelLabel(l, subject))
+  }, [allThemes, subject])
+
+  /** Темы под текущей полкой, ступенью, поиском, статусом и сортировкой. */
   const visibleThemes = useMemo(() => {
     const q = query.trim().toLowerCase()
     // Поиск идёт по всем полкам и молча снимает выбор слева: человек, который
@@ -286,17 +495,27 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       : (shelf ? (shelves.find(s => s.title === shelf)?.themes ?? []) : allThemes)
 
     const out = base.filter(x => {
+      if (!anyOf(fLevel, themeLevel(x))) return false
       if (q && !`${x.theme.title} ${x.theme.vocabTheme} ${x.theme.goal}`.toLowerCase().includes(q)) return false
-      const pct = themeProgress(x, known)
-      if (status === 'new' && pct > 0) return false
-      if (status === 'wip' && (pct === 0 || pct >= 100)) return false
-      if (status === 'done' && pct < 100) return false
+      // Статус темы — по состоянию памяти: «не начатая» = ни одной фразы не
+      // отвечали, «выучено» = все фразы вынесены на длинный интервал.
+      const st = themeStats(x, states)
+      const started = st.total - st.fresh > 0
+      const done = st.total > 0 && st.learned === st.total
+      if (status === 'new' && started) return false
+      if (status === 'wip' && (!started || done)) return false
+      if (status === 'done' && !done) return false
       return true
     })
     if (sort === 'size') out.sort((a, b) => b.phrases.length - a.phrases.length)
-    if (sort === 'progress') out.sort((a, b) => themeProgress(b, known) - themeProgress(a, known))
+    if (sort === 'progress') out.sort((a, b) => themeStats(b, states).pct - themeStats(a, states).pct)
+    // Сортировка стабильная, поэтому внутри ступени темы остаются в порядке
+    // сетки — «Кофейня» раньше «Еды», как и на витрине без сортировки.
+    if (sort === 'level') {
+      out.sort((a, b) => SURVIVAL_LEVELS.indexOf(a.theme.level) - SURVIVAL_LEVELS.indexOf(b.theme.level))
+    }
     return out
-  }, [allThemes, shelves, shelf, query, status, sort, known])
+  }, [allThemes, shelves, shelf, query, status, sort, states, fLevel, themeLevel])
   const glossaryCards = useMemo(() => allTexts.flatMap(txt => txt.glossary.map(g => ({
     subject: subjectId,
     source: 'manual' as const,
@@ -319,6 +538,23 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     }
   }
 
+  // Сцена открывается ТОЙ ЖЕ читалкой, что и учебный текст: отличается она
+  // только рамкой вокруг — «что вокруг» до чтения и «чем кончилось» после.
+  if (openScene) {
+    return (
+      <Reader
+        text={openScene}
+        scene={openScene}
+        work={workById(openScene.workId)}
+        accent={palette.accent}
+        palette={palette}
+        lang={lang}
+        owner={owner}
+        subjectId={subjectId}
+        onBack={() => { setOpenSceneId(null); setResultsKey(k => k + 1) }}
+      />
+    )
+  }
   if (openText) {
     return (
       <Reader
@@ -361,6 +597,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
   const heroSubtitle =
     mode === 'vocab' && hasBook ? `${allThemes.reduce((n, x) => n + x.phrases.length, 0)} ${t('фраз')} · ${allThemes.length} ${t('ситуаций')}`
+    : scenesOn ? `${sceneWorks.length} ${t('произведений')} · ${scenes?.length ?? 0} ${t('сцен')}`
     : mode === 'reading' ? `${allTexts.length} ${t('текстов')}`
     : mode === 'listening' ? `${audio.length} ${t('записей')}`
     : `${speakTotal} ${t('заданий')} · ${speakCounts.sent} ${t('записей')}`
@@ -381,6 +618,64 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           soft={palette.soft}
         />
       </RailCard>
+
+      {/* Две половины «Чтения». Показываем переключатель только там, где сцены
+          для языка вообще написаны: пустая вкладка хуже отсутствующей. */}
+      {mode === 'reading' && sceneLib && (
+        <RailCard title="Что читаем" accent={palette.accent} icon={<Library size={15} />}>
+          <RailSegment
+            options={[
+              { value: 'texts', label: 'Учебные тексты' },
+              { value: 'scenes', label: 'Сцены' },
+            ]}
+            value={readingView}
+            onChange={v => v && switchReadingView(v as 'texts' | 'scenes')}
+            accent={palette.accent}
+            soft={palette.soft}
+            clearable={false}
+          />
+          <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+            {readingView === 'scenes'
+              ? t('Отрывки из книг и сериалов. У каждого — что было до сцены и чем всё кончилось.')
+              : t('Тексты, написанные под уровень: объявления, письма, инструкции.')}
+          </div>
+        </RailCard>
+      )}
+
+      {scenesOn && !openWork && (
+        <RailCard
+          title="Полки"
+          accent={palette.accent}
+          icon={<SlidersHorizontal size={15} />}
+          action={sceneShelf ? { label: t('Все полки'), onClick: () => setSceneShelf('') } : undefined}
+        >
+          <RailList
+            items={sceneShelves.map(s => ({
+              id: s.id,
+              label: t(s.title),
+              hint: String(sceneWorks.filter(w => w.shelf === s.id).length),
+            }))}
+            value={sceneShelf}
+            onChange={v => setSceneShelf(v === sceneShelf ? '' : v)}
+            accent={palette.accent}
+            soft={palette.soft}
+          />
+        </RailCard>
+      )}
+
+      {scenesOn && (
+        <RailCard title="Показ" accent={palette.accent} icon={<Eye size={15} />}>
+          <RailToggle
+            label="Прятать спойлеры"
+            on={hideSpoilers}
+            onChange={setHideSpoilers}
+            accent={palette.accent}
+          />
+          <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+            {t('Скрывает сцены, которые раскрывают середину или финал. Первые сцены книги видно всегда.')}
+          </div>
+        </RailCard>
+      )}
 
       {isLang && (
         <RailCard
@@ -406,23 +701,32 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         </RailCard>
       )}
 
-      {mode === 'vocab' && hasBook && !openItem && (
+      {mode === 'vocab' && (hasBook || nestsOn) && !openItem && !openNest && (
         <>
           <RailCard title="Фильтры" accent={palette.accent} icon={<SlidersHorizontal size={15} />}
-            action={shelf ? { label: t('Все полки'), onClick: () => setShelf('') } : undefined}>
+            action={shelf || fLevel.length > 0
+              ? { label: t('Сбросить'), onClick: () => { setShelf(''); setFLevel([]) } }
+              : undefined}>
             <RailSegment
               options={[
-                { value: 'sets', label: 'Наборы' },
+                ...(hasBook ? [{ value: 'sets', label: 'Наборы' }] : []),
                 // Иконкой, а не подписью: «Повторение» рядом с «Наборами» не
                 // влезало в рейл и обрезалось в «Повторе…».
                 { value: 'due', label: 'Повторение', badge: due, icon: <RotateCcw size={15} /> },
+                // Третья таблетка только там, где гнёзда для языка написаны:
+                // пустая вкладка хуже отсутствующей.
+                ...(nestsOn ? [{ value: 'nests', label: 'Созвучия', icon: <Ear size={15} /> }] : []),
               ]}
               value={vocabView}
-              onChange={v => v && setVocabView(v as 'due' | 'sets')}
+              onChange={v => v && setVocabView(v as VocabView)}
               accent={palette.accent}
               soft={palette.soft}
               clearable={false}
             />
+            {vocabView === 'sets' && setLevelOpts.length > 1 && (
+              <MultiSelectField label={t('Уровень')} options={setLevelOpts} values={fLevel} onChange={setFLevel}
+                accent={palette.accent} accentBg={palette.soft} />
+            )}
             {vocabView === 'sets' && shelves.length > 0 && (
               <RailList
                 items={shelves.map(s => ({ id: s.title, label: t(s.title), hint: String(s.count) }))}
@@ -433,12 +737,25 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               />
             )}
           </RailCard>
-          <RailCard title="Показ" accent={palette.accent} icon={<Eye size={15} />}>
-            <RailToggle label="Романизация" on={phraseView.reading}
-              onChange={v => setPhraseView(s => ({ ...s, reading: v }))} accent={palette.accent} />
-            <RailToggle label="Сначала перевод" on={phraseView.reverse}
-              onChange={v => setPhraseView(s => ({ ...s, reverse: v }))} accent={palette.accent} />
-          </RailCard>
+          {/* Глубина по курсу. Стоит рядом с материалом, а не в шапке: цифра
+              объясняет ровно то, почему список именно такой длины. */}
+          {vocabView === 'nests' && (
+            <RailCard title="Глубина" accent={palette.accent} icon={<Layers size={15} />}>
+              <RailStat label="Гнёзд открыто" value={nests.length} />
+              {nestsLocked > 0 && <RailStat label="Ждут курса" value={nestsLocked} />}
+              <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
+                {t(reachNote(reach))}
+              </div>
+            </RailCard>
+          )}
+          {hasBook && vocabView !== 'nests' && (
+            <RailCard title="Показ" accent={palette.accent} icon={<Eye size={15} />}>
+              <RailToggle label="Романизация" on={phraseView.reading}
+                onChange={v => setPhraseView(s => ({ ...s, reading: v }))} accent={palette.accent} />
+              <RailToggle label="Сначала перевод" on={phraseView.reverse}
+                onChange={v => setPhraseView(s => ({ ...s, reverse: v }))} accent={palette.accent} />
+            </RailCard>
+          )}
         </>
       )}
 
@@ -459,8 +776,13 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
             )}
           </RailCard>
           <RailCard title="Тема" accent={palette.accent} icon={<Layers size={15} />}>
+            <RailStat label="Уровень" value={themeLevel(openItem)} />
             <RailStat label="Фраз в теме" value={openItem.phrases.length} />
-            <RailStat label="Уже в колоде" value={inDeckCount(openItem, known)} tone="good" />
+            {/* Три числа вместо одного «уже в колоде»: что уже держится в
+                памяти, что вернётся сегодня и сколько раз тема забывалась. */}
+            <RailStat label="Выучено" value={openStats.learned} tone={openStats.learned > 0 ? 'good' : undefined} />
+            <RailStat label="Сегодня в стопке" value={openStats.due} tone={openStats.due > 0 ? 'warn' : undefined} />
+            {openStats.lapses > 0 && <RailStat label="Ошибок за всё время" value={openStats.lapses} />}
             <TakeWholeTheme
               phrases={openItem.phrases}
               owner={owner}
@@ -501,7 +823,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         </RailCard>
       )}
 
-      {mode === 'vocab' && !hasBook && (
+      {mode === 'vocab' && !hasBook && vocabView !== 'nests' && (
         <RailCard title="Колода" accent={palette.accent} icon={<Layers size={15} />}>
           <RailStat label="На сегодня" value={due} tone={due > 0 ? 'warn' : undefined} />
           <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5 }}>
@@ -521,12 +843,28 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   ]
   const SORTS_SETS = [
     { value: 'order', label: 'По порядку' },
+    { value: 'level', label: 'По уровню' },
     { value: 'size', label: 'По размеру' },
     { value: 'progress', label: 'По прогрессу' },
   ]
 
   let toolbar: React.ReactNode = null
-  if (isLang) {
+  if (scenesOn) {
+    toolbar = (
+      <Toolbar>
+        {openWork ? (
+          <ToolButton onClick={() => setOpenWorkId(null)}>
+            <ChevronLeft size={14} /> {t('К полкам')}
+          </ToolButton>
+        ) : (
+          <SearchPill value={query} onChange={setQuery} placeholder={t('Автор или название…')} />
+        )}
+        <ToolCount>
+          {openWork ? `${scenesOf(openWork.id).length} ${t('сцен')}` : `${t('Всего:')} ${visibleWorks.length}`}
+        </ToolCount>
+      </Toolbar>
+    )
+  } else if (isLang) {
     toolbar = (
       <Toolbar>
         <SearchPill value={query} onChange={setQuery} placeholder={t('Название или тема…')} />
@@ -542,6 +880,16 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         />
         <SortMenu options={SORTS_LIB} value={sort} onChange={setSort} />
         <ToolCount>{t('Всего:')} {library.length}</ToolCount>
+      </Toolbar>
+    )
+  } else if (mode === 'vocab' && vocabView === 'nests' && !openNest) {
+    toolbar = (
+      <Toolbar>
+        <SearchPill value={query} onChange={setQuery} placeholder={t('Найти слово или гнездо…')} />
+        <ToolCount>
+          {visibleNests.length} {t('гнёзд')}
+          {nestsLocked > 0 && ` · ${nestsLocked} ${t('ждут курса')}`}
+        </ToolCount>
       </Toolbar>
     )
   } else if (mode === 'vocab' && hasBook && vocabView === 'sets' && !openItem) {
@@ -586,12 +934,17 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     toolbar = (
       <Toolbar>
         <BackToSets onBack={() => setOpenTheme(null)} />
-        <StatusTabs
-          options={[{ value: 'swipe', label: 'Свайп' }, { value: 'list', label: 'Списком' }]}
-          value={run}
-          onChange={v => setRun(v as RunMode)}
-          accent={palette.accent}
-        />
+        {/* Обёртка ради ref: про этот переключатель рассказывает онбординг
+            стопки, а он живёт внутри CardDeck и своей строки управления не
+            видит. Шаг уезжает туда через ThemeSession (см. runTourStep). */}
+        <div ref={runTabsRef} style={{ display: 'flex' }}>
+          <StatusTabs
+            options={[{ value: 'swipe', label: 'Свайп' }, { value: 'list', label: 'Списком' }]}
+            value={run}
+            onChange={v => setRun(v as RunMode)}
+            accent={palette.accent}
+          />
+        </div>
         <ToolCount>{t(openItem.theme.title)}</ToolCount>
       </Toolbar>
     )
@@ -601,7 +954,30 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
   let content: React.ReactNode = null
 
-  if (isLang) {
+  if (scenesOn) {
+    content = scenes === undefined ? (
+      <Skeleton.Text lines={5} style={{ maxWidth: 520 }} />
+    ) : openWork ? (
+      <WorkPage
+        work={openWork}
+        scenes={scenesOf(openWork.id)}
+        done={sceneDone}
+        accent={palette.accent}
+        soft={palette.soft}
+        hideSpoilers={hideSpoilers}
+        onOpenScene={setOpenSceneId}
+      />
+    ) : (
+      <WorkGrid
+        groups={sceneGroups}
+        scenesOf={scenesOf}
+        done={sceneDone}
+        accent={palette.accent}
+        soft={palette.soft}
+        onOpen={setOpenWorkId}
+      />
+    )
+  } else if (isLang) {
     content = library.length === 0 ? (
       <ShellEmpty text={pool.length === 0
         ? 'Для этого языка материалов пока нет. Учитель может добавить свои.'
@@ -639,6 +1015,43 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         })}
       </TileGrid>
     )
+  } else if (mode === 'vocab' && vocabView === 'nests') {
+    // Гнёзда созвучий: витрина и разбор. Прогон пишет результат туда же, куда
+    // текст и запись, — в общий журнал материалов (lib/trainerProgress.ts),
+    // поэтому плитка гнезда показывает счёт ровно как плитка текста.
+    content = openNest ? (
+      <NestPage
+        nest={openNest}
+        lang={lang}
+        accent={palette.accent}
+        soft={palette.soft}
+        owner={owner}
+        subjectId={subjectId}
+        onFinished={(score, total) => {
+          saveResult('nest', openNest.id, score, total)
+          setResultsKey(k => k + 1)
+          setKnownKey(k => k + 1)
+        }}
+        onBack={() => setOpenNestId(null)}
+      />
+    ) : visibleNests.length === 0 ? (
+      <ShellEmpty text={nests.length === 0
+        ? 'Гнёзда открываются по мере прохождения курса — пока ни одного юнита не пройдено.'
+        : 'Под поиск ничего не подошло.'} />
+    ) : (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <p style={{ fontSize: 13, color: 'var(--color-muted)', margin: 0, lineHeight: 1.6, ...proseWrap }}>
+          {t('Слова, которые слипаются на слух. Разбор показывает, чем они отличаются, прогон проверяет, слышно ли это, а промахи уходят в колоду повторений и возвращаются сами.')}
+        </p>
+        <NestGrid
+          nests={visibleNests}
+          results={id => resultFrom('nest', id, results)}
+          accent={palette.accent}
+          soft={palette.soft}
+          onOpen={id => { setOpenNestId(id); setQuery('') }}
+        />
+      </div>
+    )
   } else if (mode === 'vocab' && openItem && book) {
     content = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -651,6 +1064,10 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           owner={owner}
           view={phraseView}
           run={run}
+          states={states}
+          statesReady={statesReady}
+          onGraded={onGraded}
+          tourExtra={runTourStep}
         />
         {run === 'swipe' && <DeckHint />}
       </div>
@@ -661,8 +1078,10 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       : (
         <PhraseDecks
           themes={visibleThemes}
-          known={known}
+          states={states}
           accent={palette.accent}
+          soft={palette.soft}
+          levelLabel={themeLevel}
           onOpen={id => { setOpenTheme(id); setQuery(''); setStatus(''); setRun('swipe') }}
         />
       )
@@ -785,8 +1204,15 @@ const column = { width: '100%', maxWidth: 860, margin: '0 auto', padding: '8px 2
 /** Онбординг проходится один раз на браузер, потом только по кнопке «Подсказки». */
 const TOUR_KEY = 'lang-reader-tour-v1'
 
-function Reader({ text, accent, palette, lang, owner, subjectId, onBack }: {
+function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, onBack }: {
   text: ReadingText
+  /**
+   * Задано, если открыт отрывок из книги или сериала. Читалка от этого не
+   * раздваивается: добавляются рамка «что вокруг» перед текстом и «чем
+   * кончилось» после проверки — всё остальное работает ровно так же.
+   */
+  scene?: Scene
+  work?: Work
   accent: string
   palette: { accent: string; text: string; soft: string; ring: string }
   lang: string
@@ -907,7 +1333,14 @@ function Reader({ text, accent, palette, lang, owner, subjectId, onBack }: {
   // он уже не нужен, а плеер уезжал вверх на первом же движении.
   const rail = (
     <>
-      <RailHero plain title={text.title} subtitle={`${text.level} · ${text.topic} · ${text.minutes} ${t('мин')}`} palette={palette} />
+      <RailHero
+        plain
+        title={text.title}
+        subtitle={scene && work
+          ? `${work.title} · ${scene.where} · ${text.level}`
+          : `${text.level} · ${text.topic} · ${text.minutes} ${t('мин')}`}
+        palette={palette}
+      />
 
       <RailCard title="Послушать" accent={accent} icon={<Volume2 size={15} />}>
         <div ref={audioRef}>
@@ -979,6 +1412,45 @@ function Reader({ text, accent, palette, lang, owner, subjectId, onBack }: {
 
   return (
     <TrainerShell rail={rail} toolbar={toolbar}>
+      {/* «Что вокруг» — до текста и всегда. Без этого абзаца отрывок из
+          середины книги остаётся случайным куском: непонятно, кто эти люди и
+          почему сцена вообще чего-то стоит. */}
+      {scene && (
+        <div style={{
+          padding: '15px 18px', borderRadius: 18,
+          background: palette.soft, border: `1px solid ${accent}33`,
+          display: 'flex', flexDirection: 'column', gap: 9,
+        }}>
+          <div style={{ fontSize: 11.5, fontWeight: 750, letterSpacing: 0.3, color: accent, textTransform: 'uppercase' }}>
+            {t('Что вокруг')}
+          </div>
+          <div style={{ fontSize: 14, lineHeight: 1.65, color: 'var(--color-text)', ...proseWrap }}>
+            {bindShortWords(scene.setup)}
+          </div>
+          {work?.quote && (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <Quote size={13} style={{ color: accent, flexShrink: 0, marginTop: 4 }} />
+              <div>
+                <span style={{ fontSize: 13.5, fontStyle: 'italic', color: 'var(--color-text-2)', lineHeight: 1.55 }}>
+                  {work.quote.text}
+                </span>
+                <span style={{ display: 'block', fontSize: 11, color: 'var(--color-text-3)', marginTop: 3 }}>
+                  {work.quote.attribution}
+                </span>
+              </div>
+            </div>
+          )}
+          {/* Ученик должен знать, что именно он читает: подлинник или наш
+              текст на тему книги. Это не юридическая формальность — от этого
+              зависит, стоит ли запоминать оборот как «так пишет Акутагава». */}
+          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)' }}>
+            {scene.textOrigin === 'verbatim'
+              ? `${t('Подлинный текст')}${work?.source?.translator ? ` · ${t('перевод')}: ${work.source.translator}` : ''}`
+              : t('Текст написан нами по теме произведения — это не текст автора')}
+          </div>
+        </div>
+      )}
+
       <div ref={bodyRef} style={{
         padding: '20px 22px', borderRadius: 18, background: 'var(--color-bg-2)',
         border: '1px solid var(--color-border-soft)',
@@ -1043,6 +1515,24 @@ function Reader({ text, accent, palette, lang, owner, subjectId, onBack }: {
           <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', marginBottom: 4 }}>
             {correctCount} / {text.questions.length}
           </div>
+
+          {/* «Чем кончилось» — награда за работу и крючок к следующей сцене.
+              Открывается только здесь: до вопросов это спойлер, после — то,
+              ради чего вообще хочется открыть следующий отрывок. */}
+          {scene?.after && (
+            <div style={{
+              marginTop: 12, padding: '13px 15px', borderRadius: 14, textAlign: 'left',
+              background: palette.soft, border: `1px solid ${accent}33`,
+            }}>
+              <div style={{ fontSize: 11.5, fontWeight: 750, letterSpacing: 0.3, color: accent, textTransform: 'uppercase', marginBottom: 6 }}>
+                {t('Чем кончилось')}
+              </div>
+              <div style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--color-text)', ...proseWrap }}>
+                {bindShortWords(scene.after)}
+              </div>
+            </div>
+          )}
+
           {/* Перевод открывается только после проверки: иначе читать оригинал незачем. */}
           {text.translation && (
             <details style={{ marginTop: 10, textAlign: 'left' }}>

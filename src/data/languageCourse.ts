@@ -31,6 +31,7 @@
 import { TASK_TYPES } from './taskTypes'
 import type { PatternItem, TaskPayload, TaskTypeId } from './taskTypes'
 import { getSubject } from '../lib/subjects'
+import { nestById } from './soundNests'
 import { figureMarker, packTheoryImages, type TheoryImage } from '../lib/theoryImages'
 import { vocabImage } from './vocabImages'
 import type { CELesson, CEModule, CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
@@ -50,6 +51,12 @@ export interface VocabItem {
   reading?: string
   /** Пример употребления — контекст важнее изолированного слова. */
   example?: string
+  /**
+   * Другие верные переводы. Падежи, вид глагола и предлоги машина разбирает
+   * сама (lib/answerMatch.ts) — сюда пишутся только СИНОНИМЫ, которые из
+   * эталона не выводятся: «моушн-дизайнер» ↔ «анимационный дизайнер».
+   */
+  alt?: string[]
 }
 
 /** Задание в сиде — без id и label, они проставляются при сборке. */
@@ -296,6 +303,63 @@ export const minPair = (question: string, a: string, b: string, correct: 'A' | '
   ({ type: 'minimalPair', question, pairA: a, pairB: b, correctPair: correct, ttsText: correct === 'A' ? a : b, allowSlow: true })
 
 /**
+ * Задания по гнезду созвучий — различение на слух плюс сцепка со смыслом.
+ *
+ * ЗАЧЕМ ГЕНЕРАТОР, А НЕ РУКИ. Гнездо из пяти слов даёт четыре пары соседей;
+ * писать их руками — это четыре почти одинаковых блока на гнездо и двенадцать
+ * правок при добавлении одного слова. Здесь же гнездо остаётся единственным
+ * источником: дописали 뿔 в soundNests — задание появилось само.
+ *
+ * ПОЧЕМУ ПАРЫ СОСЕДЕЙ, А НЕ ВСЕ СОЧЕТАНИЯ. Слова в гнезде стоят по нарастанию
+ * различия: 물 → 불 → 뿔 → 풀 отличаются от соседа ровно одним признаком, а от
+ * дальнего — уже двумя. Пара соседей проверяет один признак, и ошибка в ней
+ * называет ученику конкретную причину; пара через одного проверяет «в целом» и
+ * ничему не учит.
+ *
+ * ПОЧЕМУ БЕЗ СЛУЧАЙНОСТИ. Сид обязан собираться одинаково каждый раз, поэтому
+ * сторона верного ответа выводится из номера пары, а не из Math.random.
+ */
+export const nestTasks = (nestId: string, limit = 3): SeedTask[] => {
+  const nest = nestById(nestId)
+  if (!nest || nest.words.length < 2) return []
+
+  // Омонимы различать нечего: на слух они совпадают, и задание «какое
+  // прозвучало» у них не имеет верного ответа. Остаётся сцепка со значением.
+  const audible = nest.axis !== 'homonym'
+
+  const pairs = audible
+    ? nest.words.slice(0, -1).slice(0, limit).map((w, i) => {
+        const next = nest.words[i + 1]
+        const correct = i % 2 === 0 ? 'A' : 'B'
+        return minPair('Какое слово прозвучало?', w.term, next.term, correct as 'A' | 'B')
+      })
+    : []
+
+  const match = pairsOf(
+    audible
+      ? `Соедините слово и перевод: ${nest.title} различаются одним признаком.`
+      : `Соедините слово и перевод: ${nest.title} звучат одинаково — значение вытаскивается из фразы.`,
+    nest.words.slice(0, 4).map(w => [w.term, w.ru] as [string, string]),
+  )
+
+  return [...pairs, match]
+}
+
+/**
+ * Слова гнезда как словарь юнита — с подписью различия в примере.
+ *
+ * Нужно там, где гнездо и есть тема урока: тогда его слова должны попасть в
+ * карточки и в интервальные повторения обычным путём, а не остаться внутри
+ * заданий. В юнитах, где гнездо — только упражнение, словарь трогать не надо:
+ * двадцать слов в одном уроке ученик не унесёт.
+ */
+export const nestVocab = (nestId: string): VocabItem[] => {
+  const nest = nestById(nestId)
+  if (!nest) return []
+  return nest.words.map(w => ({ term: w.term, reading: w.reading, ru: w.ru, example: w.tip }))
+}
+
+/**
  * Опоры для проверки описания картинки. Вердикт всегда за учителем, но эти поля
  * позволяют проверять ответ, не отправляя саму картинку модели: `facts` — что на
  * ней есть, `distractorFacts` — чего нет (ловит шаблонные ответы «по мотивам
@@ -361,7 +425,7 @@ function vocabCard(word: VocabItem, id: string, lang: string) {
   // норма, карточка остаётся текстовой.
   const image = vocabImage(word.ru)
   return editorTask(
-    { type: 'flashcard', question: label, front: word.term, reading: word.reading, back: word.ru, image },
+    { type: 'flashcard', question: label, front: word.term, reading: word.reading, back: word.ru, image, altAnswers: word.alt },
     id, lang,
   )
 }

@@ -13,6 +13,7 @@ import { useNow, lessonTimeState } from '../lib/useNow'
 import MobileStickersRow from './MobileStickersRow'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
+import { computeSubjectStats } from '../lib/db'
 import { tactile } from '../lib/feedback'
 import { PAIR } from '../lib/mobileTokens'
 import { useT, t as tt } from '../lib/i18n'
@@ -41,6 +42,7 @@ export default function MobileHome() {
   const subjects = useStudentData(s => s.subjects)
   const scheduleDays = useStudentData(s => s.scheduleDays)
   const stats = useStudentData(s => s.stats)
+  const progress = useStudentData(s => s.progress)
   const quizQuestions = useStudentData(s => s.quizQuestions)
   const scienceFacts = useStudentData(s => s.scienceFacts)
   const scienceMemes = useStudentData(s => s.scienceMemes)
@@ -80,14 +82,13 @@ export default function MobileHome() {
   // Stats strip — account-wide totals, or the scoped course's own numbers.
   const homeStats = useMemo(() => {
     if (scopedSubject) {
-      const lessons = scopedSubject.modules.flatMap(m => m.lessons)
-      const completed = lessons.filter(l => l.status === 'completed').length
-      const graded = lessons.filter(l => typeof l.points === 'number')
-      const avg = graded.length ? Math.round(graded.reduce((s, l) => s + (l.points ?? 0), 0) / graded.length) : 0
+      // Тот же расчёт, что у десктопного виджета статистики, — чтобы «уроков» и
+      // «ср. балл» на двух платформах не разъезжались.
+      const s = computeSubjectStats(scopedSubject, progress)
       return [
         { icon: Flame, value: stats.streak, label: t('дней'), pair: PAIR.warning },
-        { icon: CheckCircle2, value: completed, label: t('уроков'), pair: PAIR.success },
-        { icon: TrendingUp, value: avg ? `${avg}%` : '—', label: t('ср. балл'), pair: PAIR.info },
+        { icon: CheckCircle2, value: s.completedTasks, label: t('уроков'), pair: PAIR.success },
+        { icon: TrendingUp, value: s.avgScore ? `${s.avgScore}%` : '—', label: t('ср. балл'), pair: PAIR.info },
         { icon: BookOpen, value: `${scopedSubject.progress}%`, label: t('курс'), pair: PAIR.focus },
       ]
     }
@@ -97,7 +98,7 @@ export default function MobileHome() {
       { icon: TrendingUp, value: `${stats.avgScore}%`, label: t('ср. балл'), pair: PAIR.info },
       { icon: Zap, value: stats.totalPoints, label: t('XP'), pair: PAIR.focus },
     ]
-  }, [scopedSubject, stats, t])
+  }, [scopedSubject, progress, stats, t])
 
   const todayLessons = scheduleDays.find(d => d.isToday)?.lessons ?? []
 

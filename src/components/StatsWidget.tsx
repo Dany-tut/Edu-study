@@ -1,4 +1,6 @@
 import { useStudentData } from '../store/studentDataStore'
+import { useDashboard } from '../store/dashboardStore'
+import { computeSubjectStats } from '../lib/db'
 import StarStickerLottie from './StarStickerLottie'
 import { useT } from '../lib/i18n'
 
@@ -22,15 +24,30 @@ function EmptyValue({ icon }: { icon: string }) {
 
 export default function StatsWidget({ columns = 1 }: { columns?: number }) {
   const t = useT()
-  const dbStats = useStudentData(s => s.stats)
+  const accountStats = useStudentData(s => s.stats)
+  const subjects = useStudentData(s => s.subjects)
+  const progress = useStudentData(s => s.progress)
   const loaded = useStudentData(s => s.loaded)
+  const activeSubjectId = useDashboard(s => s.activeSubjectId)
 
-  const hasData = loaded && dbStats.totalTasks > 0
+  // Цифры — по ВЫБРАННОМУ курсу, а не по всем сразу: у ученика их несколько, и
+  // общая сумма баллов по корейскому с английским не значит ничего. Курс берём
+  // тот же, что подсвечен в треке (тот же фолбэк на первый курс, что и там, —
+  // до первой загрузки в сторе лежит id-заглушка). Без курсов вообще (например,
+  // одна внекурсовая домашка) остаёмся на общих числах.
+  const course = subjects.find(s => s.id === activeSubjectId) ?? subjects[0] ?? null
+  const stats = course ? computeSubjectStats(course, progress) : accountStats
 
-  const stats = [
-    { label: 'Успеваемость', value: hasData ? `${dbStats.performance}%` : null },
-    { label: 'Средний балл', value: hasData ? `${dbStats.avgScore}` : null },
-    { label: 'Общий балл',   value: hasData ? dbStats.totalPoints.toLocaleString('ru-RU') : null },
+  // Пустые состояния раздельные: у только что открытого курса уроки уже есть
+  // (значит «Успеваемость 0%» — честный ноль), а оценок ещё нет, и рисовать в
+  // баллах нули там нельзя — это читается как «получил ноль».
+  const hasLessons = loaded && stats.totalTasks > 0
+  const hasScores = loaded && stats.avgScore > 0
+
+  const statCards = [
+    { label: 'Успеваемость', value: hasLessons ? `${stats.performance}%` : null },
+    { label: 'Средний балл', value: hasScores ? `${stats.avgScore}` : null },
+    { label: 'Общий балл',   value: hasScores ? stats.totalPoints.toLocaleString('ru-RU') : null },
   ]
 
   const cardStyle: React.CSSProperties = {
@@ -45,15 +62,36 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
   // ≤2 widgets per row → single row of 4; ≥3 → 2×2
   const gridCols = columns >= 3 ? 2 : 4
 
+  // Подпись «чей это счёт» — только когда курсов больше одного: иначе она
+  // повторяет единственную вкладку трека. Лежит поверх свободного поля первой
+  // карточки (цифра в ней центрирована), чтобы карточки остались той же высоты,
+  // что и соседние виджеты в ряду. В плотной раскладке 2×2 места нет — там
+  // карточка вдвое ниже и подпись налезла бы на цифру.
+  const scopeLabel = course && subjects.length > 1 && columns < 3 ? course.name : null
+
   return (
     <div className="relative h-full w-full">
+      {scopeLabel && (
+        <span
+          className="truncate"
+          style={{
+            position: 'absolute', top: 12, left: 20, zIndex: 1,
+            maxWidth: `calc(${100 / gridCols}% - 40px)`,
+            fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
+            textTransform: 'uppercase', color: 'var(--color-text-4)',
+            pointerEvents: 'none',
+          }}
+        >
+          {scopeLabel}
+        </span>
+      )}
       <div
         className="stats-grid h-full"
         data-testid="stats-grid"
         data-triple={columns >= 3 ? 'true' : undefined}
         style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`, gridTemplateRows: columns >= 3 ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)' }}
       >
-        {stats.map(s => (
+        {statCards.map(s => (
           <div key={s.label} className="stat-card flex flex-col items-center justify-center rounded-[24px]" style={{ ...cardStyle, textAlign: 'center', gap: 8 }}>
             <span className="stat-value" style={{ fontWeight: 650, color: 'var(--color-text)', lineHeight: 1 }}>
               {s.value ?? <EmptyValue icon={STAT_ICONS[s.label]} />}
@@ -67,10 +105,10 @@ export default function StatsWidget({ columns = 1 }: { columns?: number }) {
         {/* Stars card */}
         <div className="stat-card flex flex-col items-center justify-center rounded-[24px]" style={{ ...cardStyle, textAlign: 'center', gap: 8 }}>
           <span className="stat-value" style={{ fontWeight: 650, color: 'var(--color-text)', lineHeight: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
-            {hasData ? (
+            {hasLessons ? (
               <>
                 <span style={{ display: 'flex', transform: 'translateY(-1px)' }}><StarStickerLottie size={36} /></span>
-                <span style={{ display: 'block', lineHeight: 1, transform: 'translateY(-1px)' }}>{dbStats.stars}</span>
+                <span style={{ display: 'block', lineHeight: 1, transform: 'translateY(-1px)' }}>{stats.stars}</span>
               </>
             ) : (
               <EmptyValue icon="⭐" />

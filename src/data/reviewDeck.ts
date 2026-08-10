@@ -249,30 +249,129 @@ export async function dueCount(
 }
 
 /**
- * Все prompt'ы, которые уже лежат в колоде владельца.
+ * Что колода помнит про одну фразу: сколько раз подряд её вспомнили, сколько раз
+ * забыли, на каком интервале она сейчас и когда вернётся.
+ *
+ * Это ровно те четыре числа, которыми SM-2 и живёт (см. lib/srs.ts); отдельной
+ * таблицы «статистики» для них не нужно — они и есть строка карточки.
+ */
+export interface CardState {
+  id: string
+  /** Успехов подряд. Ноль после каждой ошибки. */
+  reps: number
+  /** Сколько раз фразу забывали за всё время. */
+  lapses: number
+  intervalDays: number
+  ease: number
+  dueAt: string
+}
+
+/** Пора ли показывать карточку сегодня. Новой (без состояния) — всегда пора. */
+export function isDue(s: CardState | undefined, nowMs = Date.now()): boolean {
+  return !s || new Date(s.dueAt).getTime() <= nowMs
+}
+
+/**
+ * Состояние всех карточек владельца, ключ — prompt.
  *
  * ЗАЧЕМ ЦЕЛИКОМ, А НЕ ПРОВЕРКОЙ СПИСКА. Витрине наборов нужен прогресс сразу по
- * всем темам: «сколько из сорока фраз кофейни уже в колоде». Проверять
- * вхождение списком (.in('prompt', …)) значит слать полторы тысячи значений в
- * URL — это и не пройдёт по длине, и превратится в запрос на каждую тему.
- * Колода одного ученика — это сотни строк, поэтому дешевле забрать её ключи
- * один раз и считать пересечения в памяти.
+ * всем темам: «сколько из сорока фраз кофейни выучено». Проверять вхождение
+ * списком (.in('prompt', …)) значит слать полторы тысячи значений в URL — это и
+ * не пройдёт по длине, и превратится в запрос на каждую тему. Колода одного
+ * ученика — это сотни строк, поэтому дешевле забрать её один раз и считать
+ * пересечения в памяти.
  *
- * Возвращается Set: витрина обходит 38 тем по 40 фраз, и линейный поиск по
- * массиву превратил бы это в 60 тысяч сравнений на каждый рендер.
+ * Возвращается Map, а не список: витрина обходит 38 тем по 40 фраз, и линейный
+ * поиск по массиву превратил бы это в 60 тысяч сравнений на каждый рендер.
  */
-export async function knownPrompts(
+export async function deckStates(
   owner: { studentId?: string; anonName?: string },
   subjects?: string[],
-): Promise<Set<string>> {
+): Promise<Map<string, CardState>> {
   const col = owner.studentId ? 'student_id' : 'anon_name'
   const val = owner.studentId ?? owner.anonName ?? ''
-  if (!val) return new Set()
-  let q = supabase.from('review_cards').select('prompt').eq(col, val)
+  if (!val) return new Map()
+  let q = supabase
+    .from('review_cards')
+    .select('id, prompt, reps, lapses, interval_days, ease, due_at')
+    .eq(col, val)
   if (subjects?.length) q = q.in('subject', subjects)
   const { data, error } = await q
-  if (error) { console.error('knownPrompts:', error); return new Set() }
-  return new Set((data ?? []).map(r => r.prompt as string))
+  if (error) { console.error('deckStates:', error); return new Map() }
+  return new Map((data ?? []).map(r => [r.prompt as string, {
+    id: r.id as string,
+    reps: r.reps as number,
+    lapses: r.lapses as number,
+    intervalDays: r.interval_days as number,
+    ease: r.ease as number,
+    dueAt: r.due_at as string,
+  }]))
+}
+
+/**
+ * Оценить фразу по prompt'у — и завести карточку, если её ещё не было.
+ *
+ * ЗАЧЕМ ОТДЕЛЬНО ОТ gradeCard. Тот двигает расписание УЖЕ СУЩЕСТВУЮЩЕЙ строки и
+ * получает её id. Прогон готового набора работает с фразами разговорника: строки
+ * в базе у них нет до первого ответа, и id у карточки на экране синтетический
+ * (`sv-…`). Раньше это решалось грубо: «знаю» не сохранялось вообще, а «не знаю»
+ * заводило строку через captureMistake. То есть база помнила только провалы —
+ * поэтому и стопка после F5 начиналась заново, и проценты на плитке считали
+ * незнание.
+ *
+ * Теперь ответ сохраняется любой. «Знаю» — это тоже данные: именно из череды
+ * успехов SM-2 и растит интервал (1 → 6 → ~15 → ~37 дней).
+ */
+export async function gradePrompt(
+  owner: { studentId?: string; anonName?: string },
+  input: { subject?: string; source: ReviewSource; prompt: string; answer: string },
+  grade: ReviewGrade,
+): Promise<CardState | null> {
+  const col = owner.studentId ? 'student_id' : 'anon_name'
+  const val = owner.studentId ?? owner.anonName ?? ''
+  if (!val) return null
+
+  const { data: existing } = await supabase
+    .from('review_cards')
+    .select('id, ease, interval_days, reps, lapses')
+    .eq(col, val)
+    .eq('prompt', input.prompt)
+    .maybeSingle()
+
+  const before = existing
+    ? {
+      ease: existing.ease as number,
+      intervalDays: existing.interval_days as number,
+      reps: existing.reps as number,
+      lapses: existing.lapses as number,
+    }
+    : INITIAL_SRS
+  const next = review(before, grade, Date.now())
+
+  if (existing) {
+    const { error } = await supabase.from('review_cards').update({
+      ease: next.ease, interval_days: next.intervalDays,
+      reps: next.reps, lapses: next.lapses, due_at: next.dueAt,
+    }).eq('id', existing.id as string)
+    if (error) { console.error('gradePrompt update:', error); return null }
+    return { id: existing.id as string, ...next }
+  }
+
+  const { data, error } = await supabase.from('review_cards').insert({
+    student_id: owner.studentId ?? null,
+    anon_name: owner.anonName ?? null,
+    subject: input.subject ?? null,
+    source: input.source,
+    prompt: input.prompt,
+    answer: input.answer,
+    ease: next.ease,
+    interval_days: next.intervalDays,
+    reps: next.reps,
+    lapses: next.lapses,
+    due_at: next.dueAt,
+  }).select('id').single()
+  if (error) { console.error('gradePrompt insert:', error); return null }
+  return { id: data.id as string, ...next }
 }
 
 /** Grade a card and persist the new SM-2 schedule. */

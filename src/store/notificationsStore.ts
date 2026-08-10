@@ -61,6 +61,15 @@ function persistLocalRead(ids: string[]) {
   } catch {}
 }
 
+/**
+ * Отправить запрос в Supabase. PostgREST-билдер ЛЕНИВЫЙ: сеть дёргается только
+ * внутри `.then()`, поэтому `void supabase.from(...).update(...)` не отправляет
+ * ничего вообще (прочитанное не сохранялось и возвращалось после F5).
+ */
+function runUpdate(ctx: string, q: PromiseLike<{ error: unknown }>) {
+  q.then(({ error }) => { if (error) console.error(`[notifications:${ctx}]`, error) })
+}
+
 function rowToNotif(row: NotifRow, live: boolean): Notification {
   // Only teacher rows get a navigable action (student routes are not deep-linkable yet).
   const action =
@@ -150,11 +159,14 @@ export const useNotificationsStore = create<State>()((set, get) => ({
     if (id.startsWith('journal-')) {
       persistLocalRead([id])
     } else {
-      void supabase.from('notifications').update({ read: true }).eq('id', id)
+      runUpdate('markRead', supabase.from('notifications').update({ read: true }).eq('id', id))
     }
   },
 
   markAllRead: () => {
+    const dbIds = get().notifications
+      .filter(n => !n.read && !n.id.startsWith('journal-'))
+      .map(n => n.id)
     set(state => {
       const updated = state.notifications.map(n => ({ ...n, read: true }))
       const localIds = updated.filter(n => n.id.startsWith('journal-')).map(n => n.id)
@@ -162,7 +174,13 @@ export const useNotificationsStore = create<State>()((set, get) => ({
       return { notifications: updated }
     })
     const rid = get().recipientId
-    if (rid) void supabase.from('notifications').update({ read: true }).eq('recipient_id', rid).eq('read', false)
+    // По recipient_id — если он известен; иначе по списку id (кабинет мог
+    // отрисовать уведомления до того, как initNotifications выставил получателя).
+    if (rid) {
+      runUpdate('markAllRead', supabase.from('notifications').update({ read: true }).eq('recipient_id', rid).eq('read', false))
+    } else if (dbIds.length) {
+      runUpdate('markAllRead', supabase.from('notifications').update({ read: true }).in('id', dbIds))
+    }
   },
 
   dismissLive: (id) => set(state => ({

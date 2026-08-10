@@ -11,6 +11,7 @@ import {
   fetchScienceMemes,
   fetchCourseReactions,
   type StudentStats,
+  type ProgressMap,
 } from '../lib/db'
 import { fetchStandaloneSubject, HW_SUBJECT_ID } from '../lib/standaloneHomework'
 import { getStudentSession } from '../lib/studentSession'
@@ -31,6 +32,12 @@ interface StudentDataState {
   scheduleDays: ScheduleDay[]
   scheduleTodayIndex: number
   stats: StudentStats
+  /**
+   * Сырая карта прогресса по всем строкам ученика — нужна для статистики по
+   * одному курсу (`computeSubjectStats`): звёзды живут в отдельных строках
+   * `${lessonId}-hard`, до уроков курса они не доезжают.
+   */
+  progress: ProgressMap
   quizQuestions: QuizQuestion[]
   scienceFacts: ScienceFact[]
   scienceMemes: ScienceMeme[]
@@ -54,6 +61,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
   scheduleDays: [],
   scheduleTodayIndex: 3,
   stats: defaultStats,
+  progress: {},
   quizQuestions: [],
   scienceFacts: [],
   scienceMemes: [],
@@ -162,6 +170,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       scheduleDays,
       scheduleTodayIndex: todayIdx >= 0 ? todayIdx : 3,
       stats,
+      progress,
       quizQuestions: quizQ,
       scienceFacts: facts,
       scienceMemes: memes,

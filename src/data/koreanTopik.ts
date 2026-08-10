@@ -43,7 +43,7 @@
 import {
   buildLanguageCourse, courseSummary, allVocab, unitByShortId, moduleOfUnit,
   one, many, fill, wb, order, pairsOf, grid, write, say, readAloud, drill,
-  dictation, dictationBank, minPair, describeImage, reading,
+  dictation, dictationBank, minPair, describeImage, reading, nestTasks,
 } from './languageCourse'
 import { roomSceneImage } from './seedImages'
 import {
@@ -158,6 +158,11 @@ export const KOREAN_UNITS: LangUnit[] = [
         ['공', 'мяч'],
         ['콩', 'фасоль'],
       ]),
+      // Гнездо 물·불·뿔·풀·볼 — то же различие, но на пяти словах сразу: пары
+      // выше проверяют признак, гнездо проверяет, не сливается ли весь ряд.
+      // Разбор каждого слова и возврат к нему по расписанию — в тренажёре,
+      // здесь только первая встреча (см. soundNests.ts).
+      ...nestTasks('ko-mul', 2),
       dictation('Напечатайте услышанное слово.', '빵'),
       readAloud('Прочитайте вслух парами: 방–빵, 공–콩, 사다–싸다, 불–풀, 자다–차다.', '방 빵 공 콩 사다 싸다 불 풀 자다 차다', 45),
     ],
@@ -203,6 +208,12 @@ export const KOREAN_UNITS: LangUnit[] = [
         ['이름', 'имя'],
         ['집', 'дом'],
       ]),
+      // 받침 проверяется на гнезде 밥·밤·방·빵: конечная согласная не
+      // взрывается, и на слух все четыре слова для русского уха одно.
+      ...nestTasks('ko-bap', 2),
+      // Омонимы — обратная задача: различать нечего, значение достаётся из
+      // фразы. Ставится здесь же, чтобы ученик не искал разницу в 눈 и 눈.
+      ...nestTasks('ko-homonym'),
       dictation('Напечатайте услышанное слово.', '학교'),
       readAloud('Прочитайте вслух: 산, 물, 밥, 집, 책, 학교, 사람, 이름, 눈, 손.', '산 물 밥 집 책 학교 사람 이름 눈 손', 40),
     ],
