@@ -143,12 +143,19 @@ export default function GlossedText({ text, lang, extra = [], accent, overlay = 
     const t1 = window.setTimeout(again, 0)
     const t2 = window.setTimeout(again, 160)
     window.addEventListener('resize', again)
+    // Вынесенная в портал подсказка стоит по координатам окна и со скроллом не
+    // едет, поэтому на скролл её закрываем: висящая на пустом месте карточка
+    // хуже, чем её отсутствие. В обычном режиме подсказка внутри абзаца и
+    // скролл ей не мешает — там слушателя нет.
+    const onScroll = () => close()
+    if (overlay) window.addEventListener('scroll', onScroll, true)
     const ro = new ResizeObserver(again)
     if (wrapRef.current) ro.observe(wrapRef.current)
     return () => {
       clearTimeout(t1)
       clearTimeout(t2)
       window.removeEventListener('resize', again)
+      if (overlay) window.removeEventListener('scroll', onScroll, true)
       ro.disconnect()
     }
   }, [active])
