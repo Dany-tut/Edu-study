@@ -171,15 +171,28 @@ export function WorkPage({ work, scenes, done, accent, soft, onOpenScene, hideSp
 
         {/* Откуда текст. Для общественного достояния это обязательная строка:
             без переводчика и ссылки право на публикацию не проверить. */}
+        {/* Flex, а не строка текста: ссылка со значком — единый блок, иначе
+            стрелка отрывается от слова и уезжает на следующую строку. */}
         {work.source && (
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.55 }}>
-            {t('Источник')}: {work.source.corpus}
-            {work.source.translator && <> · {t('перевод')}: {work.source.translator}
-              {work.source.translatedIn ? `, ${work.source.translatedIn}` : ''}</>}
-            {' '}
-            <a href={work.source.url} target="_blank" rel="noreferrer"
-              style={{ color: accent, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-              {t('оригинал')} <ExternalLink size={10} style={{ verticalAlign: -1 }} />
+          <div style={{
+            display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '2px 8px',
+            fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.55,
+          }}>
+            <span>
+              {t('Источник')}: {work.source.corpus}
+              {work.source.translator && <> · {t('перевод')}: {work.source.translator}
+                {work.source.translatedIn ? `, ${work.source.translatedIn}` : ''}</>}
+            </span>
+            <a
+              href={work.source.url}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+                color: accent, textDecoration: 'none', whiteSpace: 'nowrap',
+              }}
+            >
+              {t('оригинал')} <ExternalLink size={10} />
             </a>
           </div>
         )}

@@ -25,7 +25,8 @@
 // ЮРИДИЧЕСКОЕ. Все фразы написаны с нуля, чужие учебники не копировались.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { p, survivalSummary, buildSurvivalCourse } from './survivalPhrases'
+import { p, withExamples, survivalSummary, buildSurvivalCourse } from './survivalPhrases'
+import { JA_EXAMPLES } from './survivalJaExamples'
 import type { SurvivalBook } from './survivalPhrases'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -576,7 +577,7 @@ export const JAPANESE_SURVIVAL: SurvivalBook = {
     '(いらっしゃいませ, かしこまりました) дано только на узнавание — так говорят ВАМ в магазине и кафе, ' +
     'отвечать этим не нужно.',
   notes: NOTES,
-  phrases: PHRASES,
+  phrases: withExamples(PHRASES, JA_EXAMPLES),
 }
 
 /** Сводка курса — для карточки готового курса в Конструкторе. */

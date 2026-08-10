@@ -782,8 +782,11 @@ export default function LessonPage() {
   // Предмет урока для плашки на заставке. `lesson.subject` — это short_id курса,
   // а не предмет (см. Subject.subject в mockData): раньше здесь стояло
   // «biology ? Биология : Химия», и корейский урок подписывался химией.
+  // Запасной путь по `lesson.subject` — для демо-данных и старых курсов, где
+  // предмет не проставлен, а short_id и есть слаг ('chemistry'): тот же приём,
+  // что в trainerSubject.ts. Не опознали предмет — плашки просто нет.
   const courseSubject = courses.find(c => c.id === lesson.subject)?.subject
-  const subjectDef = getSubject(courseSubject)
+  const subjectDef = getSubject(courseSubject) ?? getSubject(lesson.subject)
   const videoBadge = subjectDef ? `${subjectDef.icon} ${t(subjectDef.name)}` : undefined
 
   const watchedPct = Math.round(watchRatio({ ...watch, duration: videoDuration || watch.duration }) * 100)

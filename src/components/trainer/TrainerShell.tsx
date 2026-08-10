@@ -449,7 +449,17 @@ export function RailList({ items, value, onChange, accent, soft }: {
               )}
             </span>
             {i.hint && (
-              <span style={{ fontSize: 11, color: on ? accent : 'var(--color-text-3)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
+              // Подпись не съедает строку целиком. Счётчик полки короткий, а
+              // перевод слова — нет: «освоиться, чувствовать себя как дома»
+              // занимал всю ширину, и от самого слова не оставалось ни буквы.
+              // Отсюда потолок в 58% и многоточие: слово важнее перевода,
+              // потому что искать глазами будут именно его.
+              <span style={{
+                fontSize: 11, color: on ? accent : 'var(--color-text-3)',
+                fontVariantNumeric: 'tabular-nums',
+                maxWidth: '58%', textAlign: 'right',
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              }}>
                 {i.hint}
               </span>
             )}

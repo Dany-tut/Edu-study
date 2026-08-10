@@ -48,6 +48,7 @@ import type {
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { SURVIVAL_VIDEO } from './languageVideosExtra'
 import { languageTaxonomy } from './languageTaxonomy'
+import { survivalFigures } from './survivalFigures'
 
 // ─── Модель ──────────────────────────────────────────────────────────────────
 
@@ -975,6 +976,9 @@ export function survivalSpec(book: SurvivalBook): LanguageCourseSpec {
       'переставить под себя.',
     modules,
     units,
+    // Схемы строятся из формул тем — одна точка на все четыре разговорника
+    // (см. survivalFigures.ts).
+    figures: survivalFigures(book, themes, t => `${book.key}-${String(t.n).padStart(2, '0')}`),
   }
 }
 

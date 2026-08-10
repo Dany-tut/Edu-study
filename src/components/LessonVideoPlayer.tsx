@@ -154,6 +154,8 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
   const ruPlaying = useRef(false)
   /** Предыдущий тик: по разнице решаем, просмотр это или перемотка. */
   const lastTick = useRef<number | null>(null)
+  /** Начало непрерывно отсматриваемого куска — от него растёт текущий отрезок. */
+  const segStart = useRef<number | null>(null)
   /** Последняя секунда, отданная наружу. */
   const lastReported = useRef(-1)
   /** Дорожка субтитров, которую включает кнопка CC (первая доступная). */
@@ -230,6 +232,7 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
     const s = Math.max(0, duration ? Math.min(sec, duration - 0.3) : sec)
     // Разрываем накопление: перемотанный кусок отсмотренным не считается.
     lastTick.current = null
+    segStart.current = null
     setCurrent(s)
     setWatch(w => ({ ...w, position: s }))
     if (source.kind === 'youtube') ytRef.current?.seekTo(s, true)
@@ -409,16 +412,22 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
         }
       }
 
-      // Копим только когда время идёт само и небольшими шагами.
+      // Копим не разницу двух тиков, а отрезок от начала непрерывного куска до
+      // текущей секунды. Шаг тика (0.25 с) короче MIN_SEGMENT, и по-тиковые
+      // кусочки отбрасывались бы все до единого — просмотр не набирался вовсе.
+      // Отрезки склеиваются при добавлении, так что растёт один и тот же.
       const prev = lastTick.current
       lastTick.current = playing ? time : null
-      if (!playing || prev === null) return
-      const step = time - prev
-      if (step <= 0 || step > MAX_STEP) return
+      if (!playing) { segStart.current = null; return }
+      const step = prev === null ? Infinity : time - prev
+      // Пауза, начало куска или перемотка — начинаем отрезок заново, пропуск
+      // между ними отсмотренным не считается.
+      if (step <= 0 || step > MAX_STEP) { segStart.current = time; return }
+      const from = segStart.current ?? prev!
 
       setWatch(base => withCompletion({
         ...base,
-        ranges: addWatched(base.ranges, prev, time),
+        ranges: addWatched(base.ranges, from, time),
         position: time,
         duration: dur || base.duration || duration,
       }))

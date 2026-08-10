@@ -181,7 +181,17 @@ export default function PhraseDecks({ themes, states, accent, soft, levelLabel, 
                 // Долг по расписанию — единственная причина открыть тему именно
                 // сейчас, поэтому он и стоит чипсом, а не строкой внизу.
                 <TileChip tone="accent" accent="#f59e0b" soft="#f59e0b22">
-                  {t('к повторению')} {st.due}
+                  {/* Круговые стрелки вместо слов «к повторению»: чипс стоял
+                      втрое шире соседних и перетягивал на себя всю плитку,
+                      хотя читается в нём только число. Подпись остаётся в
+                      title/aria — из одной иконки смысл не восстановить. */}
+                  <span
+                    title={`${t('к повторению')} ${st.due}`}
+                    aria-label={`${t('к повторению')} ${st.due}`}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                  >
+                    <RotateCcw size={11} aria-hidden /> {st.due}
+                  </span>
                 </TileChip>
               ) : null}
             </span>

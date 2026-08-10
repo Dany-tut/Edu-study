@@ -63,18 +63,27 @@ function textW(text: string, fs: number): number {
 const NOTE_FS = 11.5
 const NOTE_LH = 16
 
-function noteLines(note: string, w: number): string[] {
+/**
+ * Разбивка строки по ширине листа.
+ *
+ * Кегль передаётся снаружи: тем же переносом живут и сноска (11.5), и строка
+ * примера под схемой (13.5). Пример раньше рисовался одной строкой без
+ * переноса — предложение с переводом уезжало за край листа и обрезалось.
+ */
+function wrapLines(text: string, w: number, fs = NOTE_FS): string[] {
   const max = w - 36
   const lines: string[] = []
   let line = ''
-  for (const word of note.split(' ')) {
+  for (const word of text.split(' ')) {
     const next = line ? `${line} ${word}` : word
-    if (line && textW(next, NOTE_FS) > max) { lines.push(line); line = word }
+    if (line && textW(next, fs) > max) { lines.push(line); line = word }
     else line = next
   }
   if (line) lines.push(line)
   return lines
 }
+
+const noteLines = (note: string, w: number): string[] => wrapLines(note, w)
 
 const noteH = (note?: string, w = W) => (note ? 10 + noteLines(note, w).length * NOTE_LH : 8)
 

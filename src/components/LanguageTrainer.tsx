@@ -331,7 +331,12 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // цифры на таблетке, и ждать его, чтобы решить, что рисовать, значило бы
   // моргать вкладкой на каждом открытии.
   const hasBook = useMemo(() => hasSurvivalBook(lang), [lang])
-  const [vocabView, setVocabView] = useState<VocabView>(() => hasBook ? 'sets' : 'due')
+  // Выбранная половина переживает F5, как и остальное во вкладке: ученик,
+  // разбиравший гнездо, после перезагрузки должен вернуться в гнездо, а не в
+  // наборы фраз. Ключ по языку — у каждого предмета свой набор половин.
+  const [vocabView, setVocabView] = usePersistentState<VocabView>(
+    `trainer.${lang}.vocabView`, hasBook ? 'sets' : 'due',
+  )
   const [due, setDue] = useState(0)
 
   // ── Глубина по курсу ───────────────────────────────────────────────────────
@@ -357,8 +362,15 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         .toLowerCase().includes(q))
   }, [nests, query])
 
+  // Восстановленная половина может оказаться несуществующей: разговорник для
+  // языка ещё не написан, гнёзда не заведены. Тогда молча съезжаем на ту, что
+  // есть, — иначе таблетки в рейле нет, а содержимое от неё показано.
   useEffect(() => {
-    setVocabView(hasBook ? 'sets' : 'due')
+    if (vocabView === 'sets' && !hasBook) setVocabView('due')
+    else if (vocabView === 'nests' && !nestsOn) setVocabView(hasBook ? 'sets' : 'due')
+  }, [vocabView, hasBook, nestsOn, setVocabView])
+
+  useEffect(() => {
     if (!hasBook) return
     let alive = true
     dueCount(owner, deckSubjects)

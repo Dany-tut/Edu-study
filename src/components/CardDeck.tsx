@@ -191,6 +191,31 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
   // колоды, а та меняется и дальше по ходу сессии.
   const tourShown = useRef(false)
 
+  /**
+   * Показ жестов вместо их описания.
+   *
+   * Фраза «тяни влево — не помню, вправо — помню» на бумаге понятна, а руками
+   * не запоминается: ученик дочитывает её и всё равно жмёт кнопки. Поэтому на
+   * шаге про жесты карточка ездит сама — по очереди в каждую сторону, с той же
+   * плашкой, которая появляется при настоящем свайпе. Легенда в подсказке при
+   * этом подсвечивает ту строку, которую карточка показывает сейчас.
+   */
+  const [demoDir, setDemoDir] = useState<Dir | null>(null)
+  const [tourStep, setTourStep] = useState<string | null>(null)
+  const onTourStep = useCallback((id: string | null) => setTourStep(id), [])
+
+  useEffect(() => {
+    if (tourStep !== 'gestures') { setDemoDir(null); return }
+    // Вверх («легко») бывает только у самооценки: в режиме «знаю / не знаю»
+    // верх и право — один и тот же ответ, и показывать их отдельно значило бы
+    // выдумать жест, которого нет.
+    const dirs: Dir[] = binary ? ['left', 'right', 'down'] : ['left', 'right', 'up', 'down']
+    let k = 0
+    setDemoDir(dirs[0])
+    const id = window.setInterval(() => { k = (k + 1) % dirs.length; setDemoDir(dirs[k]) }, 1750)
+    return () => { window.clearInterval(id); setDemoDir(null) }
+  }, [tourStep, binary])
+
   // Синонимы предмета зависят от курсов ученика, а те приезжают асинхронно:
   // считать список один раз на монтировании значит на холодной загрузке
   // потерять карточки, записанные под short_id курса. Поэтому подписываемся на
@@ -376,10 +401,16 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
     },
     {
       ref: stackRef,
-      title: t('Четыре стороны'),
-      text: binary
-        ? t('Тяни карточку: влево — не знаю, вправо — знаю, вниз — отложить до конца сессии. Удалить жестом нельзя, отложенная вернётся в этом же прогоне.')
-        : t('Тяни карточку: влево — не помню, вправо — помню, вверх — легко, вниз — отложить до конца сессии. Удалить жестом нельзя.'),
+      id: 'gestures',
+      title: t('Смотри, что делает карточка'),
+      text: (
+        <>
+          <div style={{ marginBottom: 9 }}>
+            {t('Она сейчас показывает каждый жест сама. Плашка на карточке — это ответ, который уйдёт в расписание.')}
+          </div>
+          <SwipeLegend rows={swipeRows(binary, t)} active={demoDir} accent={accent} />
+        </>
+      ),
     },
     ...(hasJudge ? [{
       ref: stackRef,
@@ -454,6 +485,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
           onFlip={() => setRevealed(r => !r)}
           onSwipe={swipe}
           consumes={consumes}
+          demo={demoDir}
         />
       </div>
 
@@ -539,18 +571,20 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
         </span>
       </div>
 
-      <Coachmarks steps={steps} open={tour} onClose={closeTour} accent={accent} />
+      <Coachmarks steps={steps} open={tour} onClose={closeTour} accent={accent} onStepChange={onTourStep} />
     </Shell>
   )
 }
 
 // ─── Карточка ────────────────────────────────────────────────────────────────
 
-function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes }: {
+function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes, demo }: {
   seat: Seat; accent: string; lang?: string; revealed: boolean; binary: boolean
   onFlip: () => void; onSwipe: (d: Dir) => void
   /** Заберёт ли жест карточку из стопки — от этого зависит, улетать ей или нет. */
   consumes: (d: Dir) => boolean
+  /** Онбординг просит показать жест: карточка отъезжает в эту сторону и назад. */
+  demo?: Dir | null
 }) {
   const t = useT()
   const x = useMotionValue(0)
@@ -559,7 +593,31 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes 
   const yesOpacity = useTransform(x, [26, 110], [0, 1])
   const noOpacity = useTransform(x, [-110, -26], [1, 0])
   const laterOpacity = useTransform(y, [26, 110], [0, 1])
+  const easyOpacity = useTransform(y, [-110, -26], [1, 0])
   const dragged = useRef(false)
+
+  // Показ жеста для онбординга. Уезжаем НЕ до порога срыва, а чуть дальше того
+  // места, где загорается плашка: смысл в том, чтобы ученик увидел ответ
+  // подписанным, а не в том, чтобы карточку смахнуть. Обратно — сами, ответ при
+  // этом не засчитывается: onSwipe отсюда не зовётся вовсе.
+  useEffect(() => {
+    if (!demo) return
+    const to = demo === 'left' ? { mx: -170, my: 0 }
+      : demo === 'right' ? { mx: 170, my: 0 }
+      : demo === 'up' ? { mx: 0, my: -145 }
+      : { mx: 0, my: 145 }
+    animate(x, to.mx, { duration: 0.5 })
+    animate(y, to.my, { duration: 0.5 })
+    const back = window.setTimeout(() => {
+      animate(x, 0, { duration: 0.4 })
+      animate(y, 0, { duration: 0.4 })
+    }, 950)
+    return () => {
+      window.clearTimeout(back)
+      animate(x, 0, { duration: 0.25 })
+      animate(y, 0, { duration: 0.25 })
+    }
+  }, [demo, x, y])
 
   // ── Переворот ───────────────────────────────────────────────────────────────
   // Карточка именно поворачивается, а не меняет содержимое на месте: уходит
@@ -717,6 +775,12 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes 
       <Overlay side="left" opacity={noOpacity} label={judge ? t('неверно') : binary ? t('не знаю') : t('не помню')} tone="bad" />
       <Overlay side="right" opacity={yesOpacity} label={judge ? t('верно') : t('знаю')} tone="good" />
       <Overlay side="bottom" opacity={laterOpacity} label={t('отложить')} tone="mute" />
+      {/* «Легко» — только у самооценки: в режимах «знаю / не знаю» и «верно или
+          нет» верх это тот же ответ, что и вправо, и подписывать его отдельно
+          значило бы обещать оценку, которой нет. */}
+      {!judge && !binary && (
+        <Overlay side="top" opacity={easyOpacity} label={t('легко')} tone="good" />
+      )}
 
       {judge ? (
         <>
@@ -727,59 +791,68 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes 
         </>
       ) : (
         <>
-          {/* Предметный рисунок на лицевой стороне: слово вспоминается от
-              предмета, а не от русского перевода — перевод и есть ответ,
-              который сейчас закрыт. Размер один на обе стороны: раньше
-              картинка ужималась под переворот, и вместе с ней ползло вверх
-              само слово. */}
-          {seat.card.image && (
-            <img
-              src={seat.card.image}
-              alt=""
-              style={{
-                display: 'block', width: 92, height: 'auto',
-                borderRadius: 12, background: '#fff', marginBottom: 10, flexShrink: 0,
-              }}
-            />
-          )}
-          {/* Кегль по длине: слово должно читаться через всю комнату, а условие
-              задания на 300 знаков тем же кеглем просто не влезет в карточку. */}
+          {/* Карточка поделена на две доли ФИКСИРОВАННОГО размера, и фраза
+              прижата к их границе снизу. Так она стоит примерно по центру
+              карточки независимо от того, что на обороте: раньше место под
+              оборот резервировалось по её содержимому, и карточка с чтением,
+              заметкой и примером задирала слово к самому верху.
+              Доли неравные (56/44): верхней нужно вместить рисунок с фразой,
+              а однострочная фраза при таком делении садится ровно в центр. */}
           <div style={{
-            fontSize: promptSize, fontWeight: promptSize > 20 ? 700 : 550,
-            color: 'var(--color-text)', lineHeight: promptSize > 20 ? 1.3 : 1.45,
-            textAlign: promptSize > 20 ? 'center' : 'left',
-            maxHeight: 200, overflowY: 'auto', width: '100%', flexShrink: 0,
-            // Крупное слово по центру — строки поровну; длинное условие слева
-            // читается абзацем, там pretty.
-            ...(promptSize > 20 ? balancedWrap : proseWrap),
+            flex: '56 1 0', minHeight: 0, width: '100%',
+            display: 'flex', flexDirection: 'column', overflowY: 'auto',
           }}>
-            {bindShortWords(seat.card.prompt)}
+            {/* marginTop: auto вместо justifyContent: flex-end — прижатое
+                флексом содержимое, когда оно не влезло, обрезается сверху и до
+                него не доскроллить. */}
+            <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+              {/* Предметный рисунок на лицевой стороне: слово вспоминается от
+                  предмета, а не от русского перевода — перевод и есть ответ,
+                  который сейчас закрыт. Размер один на обе стороны: раньше
+                  картинка ужималась под переворот, и вместе с ней ползло вверх
+                  само слово. */}
+              {seat.card.image && (
+                <img
+                  src={seat.card.image}
+                  alt=""
+                  style={{
+                    display: 'block', width: 92, height: 'auto',
+                    borderRadius: 12, background: '#fff', marginBottom: 10, flexShrink: 0,
+                  }}
+                />
+              )}
+              {/* Кегль по длине: слово должно читаться через всю комнату, а
+                  условие задания на 300 знаков тем же кеглем не влезет. */}
+              <div style={{
+                fontSize: promptSize, fontWeight: promptSize > 20 ? 700 : 550,
+                color: 'var(--color-text)', lineHeight: promptSize > 20 ? 1.3 : 1.45,
+                textAlign: promptSize > 20 ? 'center' : 'left', width: '100%',
+                // Крупное слово по центру — строки поровну; длинное условие
+                // слева читается абзацем, там pretty.
+                ...(promptSize > 20 ? balancedWrap : proseWrap),
+              }}>
+                {bindShortWords(seat.card.prompt)}
+              </div>
+            </div>
           </div>
-          {/* Оборот занимает своё место ВСЕГДА — и на лицевой стороне тоже,
-              просто прозрачный. Переворот тогда не меняет высоту содержимого,
-              а карточка центрируется по колонке: слово стоит на одном и том же
-              пикселе на обеих сторонах, а под ним проявляются черта и перевод.
-              Раньше блок появлялся из ничего, колонка становилась выше и слово
-              подскакивало вверх — плавно это выглядело только у карточек с
-              картинкой, где высоту меняла её анимация ширины, и скачок успевал
-              размазаться по этим 180 мс.
+          {/* Нижняя доля — оборот. Она своя ВСЕГДА, и на лицевой стороне тоже,
+              просто прозрачная: переворот не меняет ни одной высоты, поэтому
+              фраза стоит на том же пикселе, а под ней проявляются черта и
+              перевод. Раньше блока на лицевой не было вовсе, колонка на
+              перевороте становилась выше и слово подскакивало; плавно это
+              выглядело только у карточек с картинкой, где высоту меняла её
+              анимация ширины и скачок размазывался по этим 180 мс.
 
               Прокручивается оборот целиком, а не по кускам: перевод, заметка и
-              пример вместе бывают выше карточки, а высота стопки фиксирована —
-              без общего скролла верхняя строка уезжала бы под край. Отдельные
-              maxHeight внутри для этого не годятся: они режут каждый блок по
-              своей мерке. Но растягиваться на всю высоту оборот не должен
-              (`1 1 auto` прижимал бы перевод к верху, а низ карточки оставлял
-              пустым): берём по содержимому и ужимаемся только когда не влезло. */}
+              пример вместе бывают выше своей доли. Отдельные maxHeight внутри
+              для этого не годятся — они режут каждый блок по своей мерке. */}
           <div style={{
             position: 'relative', width: '100%',
             marginTop: 12, paddingTop: 12,
             // Черта нарисована на обеих сторонах, но на лицевой прозрачная:
             // убрать её вовсе значит отдать пиксель высоты и сдвинуть слово.
             borderTop: `1px solid ${face ? 'var(--color-border-soft)' : 'transparent'}`,
-            // Минимум — чтобы подсказке «нажми, чтобы перевернуть» было где
-            // стоять у карточек с односложным переводом.
-            flex: '0 1 auto', minHeight: 46, overflowY: face ? 'auto' : 'hidden',
+            flex: '44 1 0', minHeight: 0, overflowY: face ? 'auto' : 'hidden',
           }}>
             <div
               aria-hidden={!face}
@@ -910,8 +983,69 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes 
   )
 }
 
+// ─── Легенда жестов в онбординге ─────────────────────────────────────────────
+
+interface SwipeRow { dir: Dir; arrow: string; label: string; note: string; tone: 'bad' | 'good' | 'mute' }
+
+/**
+ * Что означает каждая сторона. Порядок тот же, в котором карточка показывает
+ * жесты, — легенда читается сверху вниз вместе с показом.
+ */
+function swipeRows(binary: boolean, t: (s: string) => string): SwipeRow[] {
+  return [
+    binary
+      ? { dir: 'left', arrow: '←', label: t('не знаю'), note: t('уйдёт в колоду повторений'), tone: 'bad' }
+      : { dir: 'left', arrow: '←', label: t('не помню'), note: t('вернётся сегодня же'), tone: 'bad' },
+    binary
+      ? { dir: 'right', arrow: '→', label: t('знаю'), note: t('вернётся через день и позже'), tone: 'good' }
+      : { dir: 'right', arrow: '→', label: t('помню'), note: t('интервал вырастет'), tone: 'good' },
+    ...(binary ? [] : [{ dir: 'up' as Dir, arrow: '↑', label: t('легко'), note: t('интервал прыгнет дальше'), tone: 'good' as const }]),
+    { dir: 'down', arrow: '↓', label: t('отложить'), note: t('уедет в конец стопки'), tone: 'mute' },
+  ]
+}
+
+function SwipeLegend({ rows, active, accent }: {
+  rows: SwipeRow[]
+  /** Жест, который карточка показывает прямо сейчас. */
+  active: Dir | null
+  accent: string
+}) {
+  return (
+    <div style={{ display: 'grid', gap: 4 }}>
+      {rows.map(r => {
+        const on = r.dir === active
+        const color = r.tone === 'bad' ? 'var(--color-red-text)'
+          : r.tone === 'good' ? 'var(--color-green-text)'
+          : 'var(--color-muted)'
+        return (
+          <div
+            key={r.dir}
+            style={{
+              display: 'flex', alignItems: 'baseline', gap: 7,
+              padding: '5px 8px', borderRadius: 10,
+              // Подсветка строки, а не смена её цвета: цвет здесь уже занят
+              // смыслом ответа (красный — забыл, зелёный — вспомнил).
+              background: on ? `${accent}22` : 'transparent',
+              transition: 'background 0.25s ease',
+            }}
+          >
+            <span style={{
+              width: 13, flexShrink: 0, textAlign: 'center', fontSize: 13, fontWeight: 800,
+              color: on ? accent : 'var(--color-text-3)', transition: 'color 0.25s ease',
+            }}>
+              {r.arrow}
+            </span>
+            <span style={{ fontSize: 13, fontWeight: 750, color, flexShrink: 0 }}>{r.label}</span>
+            <span style={{ fontSize: 12, lineHeight: 1.4, color: 'var(--color-text-3)' }}>— {r.note}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function Overlay({ side, opacity, label, tone }: {
-  side: 'left' | 'right' | 'bottom'
+  side: 'left' | 'right' | 'top' | 'bottom'
   opacity: ReturnType<typeof useTransform<number, number>>
   label: string
   tone: 'bad' | 'good' | 'mute'
@@ -922,8 +1056,11 @@ function Overlay({ side, opacity, label, tone }: {
     <motion.span
       style={{
         opacity, position: 'absolute',
-        ...(side === 'bottom'
-          ? { bottom: 54, left: '50%', transform: 'translateX(-50%)' }
+        // Верхняя и нижняя плашки стоят по центру и с отступом от края: сверху
+        // на самом краю уже живёт метка «ещё раз», и две подписи налезали бы
+        // друг на друга ровно на возвращённой карточке.
+        ...(side === 'bottom' ? { bottom: 54, left: '50%', transform: 'translateX(-50%)' }
+          : side === 'top' ? { top: 54, left: '50%', transform: 'translateX(-50%)' }
           : { top: 16, [side]: 16 }),
         padding: '6px 14px', borderRadius: 999, background: bg, color,
         border: `1px solid ${color}`, fontSize: 12, fontWeight: 800, pointerEvents: 'none',

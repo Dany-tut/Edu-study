@@ -1,0 +1,75 @@
+// ВРЕМЕННЫЙ стенд режима «одно задание — один экран». Удаляется после съёмки.
+import { createRoot } from 'react-dom/client'
+import HomeworkFlow from './components/HomeworkFlow'
+import type { LessonHomework, HomeworkQuizQuestion } from './data/lessonContent'
+import './index.css'
+
+const q = (x: Partial<HomeworkQuizQuestion> & { id: string; prompt: string }): HomeworkQuizQuestion => ({
+  options: [], correctOptionId: '', explanation: '', ...x,
+})
+
+const questions: HomeworkQuizQuestion[] = [
+  q({ id: 'v1', type: 'flashcard', prompt: 'Слово урока', front: '김치', reading: 'кимчхи', back: 'кимчи' }),
+  q({ id: 'v2', type: 'flashcard', prompt: 'Слово урока', front: '두부', reading: 'тубу', back: 'тофу' }),
+  q({
+    id: 'q1', type: 'single', prompt: 'Что значит 김치?',
+    options: [
+      { id: 'a', text: 'кимчи' }, { id: 'b', text: 'тофу' },
+      { id: 'c', text: 'рис' }, { id: 'd', text: 'вода' },
+    ],
+    correctOptionId: 'a',
+    explanation: '김치 — квашеная капуста, самое известное корейское блюдо.',
+  }),
+  q({
+    id: 'q2', type: 'fill', prompt: 'Впишите перевод: 두부',
+    referenceAnswer: 'тофу',
+    explanation: '두부 — тофу, соевый творог.',
+  }),
+  q({
+    id: 'q3', type: 'wordBank', prompt: 'Соберите предложение: «Это кимчи»',
+    sentence: '김치 예요', distractors: ['두부', '물'],
+    explanation: 'После гласной связка принимает форму 예요.',
+  }),
+]
+
+const homework: LessonHomework = {
+  title: 'Домашка урока',
+  subtitle: 'Еда и связка 이에요/예요',
+  recommendationScore: 4,
+  hasHardLevel: false,
+  levels: [
+    {
+      id: 'basic', title: 'Базовый', shortLabel: 'Базовый', kind: 'quiz',
+      motivation: 'Пять заданий на слова урока.',
+      dueDate: '2026-08-20', estimatedMinutes: 6,
+      peerCompletionRate: 0.8, peerAverageScore: 4.2,
+      questions,
+    },
+    // Хард-уровень пустой, но существовать обязан: без него HomeworkFlow не
+    // рисуется вовсе (см. ранний return в компоненте).
+    {
+      id: 'hard', title: 'Сложный', shortLabel: 'Сложный', kind: 'teacher-review',
+      optional: true, unlockScore: 4,
+      motivation: 'Развёрнутый ответ.',
+      dueDate: '2026-08-20', estimatedMinutes: 10,
+      peerCompletionRate: 0.3,
+      teacherTask: {
+        topic: 'Еда', prompt: 'Расскажите о любимом блюде.',
+        teacherNote: 'Три предложения.', placeholder: 'Напишите ответ…',
+        acceptedFormats: ['текст'],
+      },
+    },
+  ],
+}
+
+createRoot(document.getElementById('root')!).render(
+  <div style={{ padding: 24, maxWidth: 1100, margin: '0 auto' }}>
+    <HomeworkFlow
+      lessonId="stand-ko-1"
+      lessonTitle="Еда"
+      subject="Корейский"
+      homework={homework}
+      onBack={() => {}}
+    />
+  </div>,
+)

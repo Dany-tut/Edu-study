@@ -21,8 +21,15 @@ import { useT } from '../lib/i18n'
 export interface CoachStep {
   /** Элемент, на который показываем. null — шаг без цели, карточка по центру. */
   ref?: React.RefObject<HTMLElement | null>
+  /**
+   * Имя шага для владельца подсказок. Нужно тем шагам, на которых экран не
+   * только рассказывает, но и показывает: по нему владелец узнаёт, что шаг
+   * открыт, и запускает свою анимацию (см. onStepChange).
+   */
+  id?: string
   title: string
-  text: string
+  /** Не только строка: шаг может показывать живую легенду, меняющуюся на ходу. */
+  text: React.ReactNode
 }
 
 /** Отступ подсветки от элемента и зазор до карточки. */
@@ -39,11 +46,17 @@ const same = (a: Box, b: Box) =>
   a.top === b.top && a.left === b.left && a.width === b.width
   && a.height === b.height && a.radius === b.radius
 
-export default function Coachmarks({ steps, open, onClose, accent }: {
+export default function Coachmarks({ steps, open, onClose, accent, onStepChange }: {
   steps: CoachStep[]
   open: boolean
   onClose: () => void
   accent: string
+  /**
+   * Какой шаг сейчас открыт (его `id`) — null, когда подсказки закрыты. По этому
+   * сигналу владелец включает показ: например, стопка карточек на шаге про жесты
+   * сама уезжает влево-вправо, вместо того чтобы жесты описывать словами.
+   */
+  onStepChange?: (id: string | null) => void
 }) {
   const t = useT()
   const [i, setI] = useState(0)
@@ -89,6 +102,11 @@ export default function Coachmarks({ steps, open, onClose, accent }: {
   }, [i])
 
   useEffect(() => { if (open) setI(0) }, [open])
+
+  // Шаг сообщается наружу по id, а не по номеру: номера съезжают, как только
+  // список шагов собирается по условиям, а id остаётся тем же.
+  const stepId = open ? stepsRef.current[i]?.id ?? null : null
+  useEffect(() => { onStepChange?.(stepId) }, [stepId, onStepChange])
 
   // Шаг сменился: подвести элемент к центру экрана и замерить — сразу (чтобы
   // подсветка не мигала на старом месте) и ещё раз после прокрутки.

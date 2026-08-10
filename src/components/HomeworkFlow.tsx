@@ -2113,6 +2113,13 @@ export default function HomeworkFlow({
         className="grid grid-cols-1 lg:grid-cols-[minmax(260px,300px)_minmax(0,1fr)] items-start"
         style={{ gap: 16 }}
       >
+        {/* На телефоне рейл со структурой домашки стоит НАД заданием и занимает
+            весь первый экран: дедлайн, «~6 мин», «как это работает». В обычной
+            домашке это уместно — её открывают и читают. В режиме одного задания
+            это ровно то, что «сбивает»: между кнопкой «начать» и первым словом
+            оказывается экран текста, который читают один раз в жизни. На
+            мониторе рейл остаётся сбоку и заданию не мешает. */}
+        {(!flowMode || flowFinished || !isMobile) && (
         <aside
           className="flex flex-col"
           style={{
@@ -2225,10 +2232,13 @@ export default function HomeworkFlow({
           )}
 
         </aside>
+        )}
 
         <main
           className="flex flex-col"
-          style={{ gap: 16, paddingBottom: 100 }}
+          // Полоса режима одного экрана выше точек прогресса (в ней вердикт и
+          // кнопка во всю ширину), поэтому и запас под ней больше.
+          style={{ gap: 16, paddingBottom: flowMode && !flowFinished ? 210 : 100 }}
         >
           {selectedLevel === 'basic' ? (
             <div className="flex flex-col" style={{ gap: 18 }}>
@@ -2630,7 +2640,9 @@ export default function HomeworkFlow({
                           <span style={balancedWrap}>{t('Подсказка')}</span>
                         </div>
                       )}
-                      {showVerdict && (
+                      {/* В режиме одного экрана вердикт говорит нижняя полоса —
+                          здесь он был бы вторым «Верно» на том же экране. */}
+                      {showVerdict && !flowMode && (
                         <div
                           className="flex items-start"
                           style={{

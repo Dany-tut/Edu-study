@@ -35,14 +35,14 @@ export const EN_SCENES: Scene[] = [
     body: `It was a wonderful night, such a night as is only possible when we are young, dear reader. The sky was so starry, so bright that, looking at it, one could not help asking oneself whether ill-humoured and capricious people could live under such a sky. That is a youthful question too, dear reader, very youthful, but may the Lord put it more frequently into your heart!... Speaking of capricious and ill-humoured people, I cannot help recalling my moral condition all that day. From early morning I had been oppressed by a strange despondency. It suddenly seemed to me that I was lonely, that every one was forsaking me and going away from me. Of course, any one is entitled to ask who "every one" was. For though I had been living almost eight years in Petersburg I had hardly an acquaintance. But what did I want with acquaintances? I was acquainted with all Petersburg as it was; that was why I felt as though they were all deserting me when all Petersburg packed up and went to its summer villa. I felt afraid of being left alone, and for three whole days I wandered about the town in profound dejection, not knowing what to do with myself. Whether I walked in the Nevsky, went to the Gardens or sauntered on the embankment, there was not one face of those I had been accustomed to meet at the same time and place all the year. They, of course, do not know me, but I know them. I know them intimately, I have almost made a study of their faces, and am delighted when they are gay, and downcast when they are under a cloud.`,
     translation: `Это была чудесная ночь, такая ночь, какая возможна только тогда, когда мы молоды, дорогой читатель. Небо было такое звёздное, такое ясное, что, глядя на него, невольно спрашиваешь себя: неужели под таким небом могут жить сердитые и капризные люди? Это тоже юношеский вопрос, дорогой читатель, очень юношеский, но пусть Господь почаще вкладывает его вам в сердце!.. Кстати о капризных и сердитых людях: я не могу не вспомнить своё душевное состояние в тот день. С самого утра меня давила странная тоска. Мне вдруг показалось, что я одинок, что все меня оставляют и уходят от меня. Конечно, всякий вправе спросить, кто были эти «все». Ведь, прожив в Петербурге почти восемь лет, я едва ли завёл хоть одно знакомство. Но зачем мне были знакомства? Я и без того был знаком со всем Петербургом; вот почему мне и казалось, что все меня покидают, когда весь Петербург собрался и уехал на дачу. Мне стало страшно остаться одному, и целых три дня я бродил по городу в глубоком унынии, не зная, куда себя деть. Шёл ли я по Невскому, отправлялся ли в Сад или брёл по набережной — не было ни одного из тех лиц, которые я привык встречать круглый год в одно и то же время и в одном и том же месте. Они, разумеется, меня не знают, но я знаю их. Я знаю их близко, я почти изучил их лица, и мне радостно, когда они веселы, и грустно, когда на них тень.`,
     glossary: [
-      { term: 'ill-humoured', ru: 'сердитый, не в духе' },
-      { term: 'capricious', ru: 'капризный, взбалмошный' },
-      { term: 'despondency', ru: 'уныние, подавленность' },
-      { term: 'to forsake', ru: 'покидать, оставлять' },
-      { term: 'acquaintance', ru: 'знакомый; знакомство' },
-      { term: 'dejection', ru: 'подавленность, тоска' },
-      { term: 'to saunter', ru: 'брести не спеша, прогуливаться' },
-      { term: 'under a cloud', ru: 'в тяжёлом настроении, не в духе' },
+      { term: 'ill-humoured', ru: 'сердитый' },
+      { term: 'capricious', ru: 'взбалмошный' },
+      { term: 'despondency', ru: 'уныние' },
+      { term: 'to forsake', ru: 'покидать' },
+      { term: 'acquaintance', ru: 'знакомый' },
+      { term: 'dejection', ru: 'подавленность' },
+      { term: 'to saunter', ru: 'брести не спеша' },
+      { term: 'under a cloud', ru: 'не в духе' },
     ],
     questions: [
       {
@@ -93,11 +93,11 @@ export const EN_SCENES: Scene[] = [
     body: `I know the houses too. As I walk along they seem to run forward in the streets to look out at me from every window, and almost to say: "Good-morning! How do you do? I am quite well, thank God, and I am to have a new storey in May," or, "How are you? I am being redecorated to-morrow;" or, "I was almost burnt down and had such a fright," and so on. I have my favourites among them, some are dear friends; one of them intends to be treated by the architect this summer. I shall go every day on purpose to see that the operation is not a failure. God forbid!`,
     translation: `Дома я тоже знаю. Когда я иду, они словно выбегают вперёд по улице, выглядывают на меня из каждого окна и чуть ли не говорят: «Доброе утро! Как поживаете? Я, слава богу, здоров, а в мае мне надстроят этаж» — или: «Как вы? Меня завтра ремонтируют» — или: «Я чуть не сгорел и очень испугался», и так далее. Есть у меня среди них любимцы, некоторые — близкие друзья; один из них собирается этим летом лечиться у архитектора. Я буду ходить каждый день нарочно, чтобы посмотреть, что операция прошла удачно. Не приведи господь!`,
     glossary: [
-      { term: 'storey', ru: 'этаж (британское написание; в США — story)' },
-      { term: 'to redecorate', ru: 'делать ремонт, переклеивать обои' },
+      { term: 'storey', ru: 'этаж; в США story' },
+      { term: 'to redecorate', ru: 'делать ремонт' },
       { term: 'fright', ru: 'испуг' },
       { term: 'on purpose', ru: 'нарочно, специально' },
-      { term: 'God forbid', ru: 'не приведи господь, упаси боже' },
+      { term: 'God forbid', ru: 'упаси боже' },
     ],
     questions: [
       {
@@ -158,12 +158,12 @@ When day dawned, two passengers in one of the third-class carriages found themse
     glossary: [
       { term: 'thaw', ru: 'оттепель' },
       { term: 'damp', ru: 'сырой, влажный' },
-      { term: 'to distinguish', ru: 'различить, разглядеть' },
-      { term: 'carriage', ru: 'вагон (брит.); в США — car' },
-      { term: 'weary', ru: 'усталый, измотанный' },
+      { term: 'to distinguish', ru: 'разглядеть' },
+      { term: 'carriage', ru: 'вагон; в США car' },
+      { term: 'weary', ru: 'измотанный' },
       { term: 'complexion', ru: 'цвет лица' },
       { term: 'to dawn', ru: 'светать' },
-      { term: 'anxious to do something', ru: 'очень хотеть что-то сделать' },
+      { term: 'anxious to do sth', ru: 'не терпится сделать' },
     ],
     questions: [
       {
@@ -233,13 +233,13 @@ He was under forty, but he had a daughter already twelve years old, and two sons
 Ему не было ещё сорока, но у него уже была дочь двенадцати лет и двое сыновей-гимназистов. Его женили рано, когда он был студентом второго курса, и теперь жена казалась в полтора раза старше его. Это была высокая прямая женщина с тёмными бровями, степенная, важная и, как она сама себя называла, мыслящая.`,
     glossary: [
       { term: 'sea-front', ru: 'набережная' },
-      { term: 'a fortnight', ru: 'две недели (брит.)' },
-      { term: 'to be at home somewhere', ru: 'освоиться, чувствовать себя как дома' },
+      { term: 'a fortnight', ru: 'две недели' },
+      { term: 'to be at home somewhere', ru: 'освоиться где-то' },
       { term: 'fair-haired', ru: 'светловолосый' },
-      { term: 'it wouldn’t be amiss', ru: 'было бы не лишним' },
-      { term: 'to reflect', ru: 'размышлять, рассуждать про себя' },
-      { term: 'erect', ru: 'прямой, с прямой осанкой' },
-      { term: 'staid', ru: 'степенный, чинный' },
+      { term: 'it wouldn’t be amiss', ru: 'не лишним было бы' },
+      { term: 'to reflect', ru: 'рассуждать про себя' },
+      { term: 'erect', ru: 'с прямой осанкой' },
+      { term: 'staid', ru: 'степенный' },
     ],
     questions: [
       {
@@ -297,14 +297,14 @@ He was under forty, but he had a daughter already twelve years old, and two sons
     body: `Alexey Fyodorovitch Karamazov was the third son of Fyodor Pavlovitch Karamazov, a land owner well known in our district in his own day, and still remembered among us owing to his gloomy and tragic death, which happened thirteen years ago, and which I shall describe in its proper place. For the present I will only say that this "landowner"—for so we used to call him, although he hardly spent a day of his life on his own estate—was a strange type, yet one pretty frequently to be met with, a type abject and vicious and at the same time senseless. But he was one of those senseless persons who are very well capable of looking after their worldly affairs, and, apparently, after nothing else. Fyodor Pavlovitch, for instance, began with next to nothing; his estate was of the smallest; he ran to dine at other men's tables, and fastened on them as a toady, yet at his death it appeared that he had a hundred thousand roubles in hard cash. At the same time, he was all his life one of the most senseless, fantastical fellows in the whole district. I repeat, it was not stupidity—the majority of these fantastical fellows are shrewd and intelligent enough—but just senselessness, and a peculiar national form of it.`,
     translation: `Алексей Фёдорович Карамазов был третьим сыном помещика нашего уезда Фёдора Павловича Карамазова, столь известного в своё время и до сих пор у нас памятного по мрачной и трагической смерти, случившейся ровно тринадцать лет назад и о которой я расскажу в своём месте. Пока же скажу лишь, что этот «помещик» — так мы его называли, хотя он почти ни дня в жизни не прожил в своём имении — был странным типом, каких, однако, встречается довольно часто: типом дрянным и порочным и в то же время бестолковым. Но он принадлежал к тем бестолковым людям, которые отлично умеют обделывать свои денежные делишки — и, кажется, только их. Фёдор Павлович, например, начинал почти ни с чем; имение у него было самое маленькое; он бегал обедать по чужим столам и напрашивался в приживальщики, — а после смерти его оказалось, что у него сто тысяч рублей чистыми деньгами. И при этом он всю жизнь оставался одним из самых бестолковых сумасбродов во всём уезде. Повторяю: это была не глупость — большинство таких сумасбродов довольно хитры и неглупы, — а именно бестолковость, и притом особого, нашего склада.`,
     glossary: [
-      { term: 'estate', ru: 'имение, поместье' },
-      { term: 'abject', ru: 'жалкий, ничтожный' },
-      { term: 'vicious', ru: 'порочный (не «жестокий»)' },
-      { term: 'senseless', ru: 'бестолковый, безрассудный' },
-      { term: 'worldly affairs', ru: 'мирские, денежные дела' },
+      { term: 'estate', ru: 'имение' },
+      { term: 'abject', ru: 'ничтожный' },
+      { term: 'vicious', ru: 'порочный, не «злой»' },
+      { term: 'senseless', ru: 'бестолковый' },
+      { term: 'worldly affairs', ru: 'денежные дела' },
       { term: 'next to nothing', ru: 'почти ничего' },
-      { term: 'toady', ru: 'подхалим, приживальщик' },
-      { term: 'shrewd', ru: 'хитрый, себе на уме' },
+      { term: 'toady', ru: 'приживальщик' },
+      { term: 'shrewd', ru: 'себе на уме' },
     ],
     questions: [
       {
@@ -381,14 +381,14 @@ Well, in a certain chancellery there was a certain man who, as I cannot deny, wa
 
 Так вот, в некоторой канцелярии служил некоторый человек, наружности, надо признаться, непривлекательной. Он был низенького роста, лицо в оспинах, спереди изрядно лысоват, а лоб и щёки изрезаны глубокими морщинами — не говоря уже о прочих телесных несовершенствах.`,
     glossary: [
-      { term: 'department', ru: 'здесь: ведомство, департамент' },
+      { term: 'department', ru: 'здесь: ведомство' },
       { term: 'sensitive', ru: 'здесь: обидчивый' },
-      { term: 'to be annoyed', ru: 'быть задетым, раздражённым' },
+      { term: 'to be annoyed', ru: 'быть задетым' },
       { term: 'in terms of contempt', ru: 'с презрением' },
-      { term: 'bulky', ru: 'объёмистый, увесистый' },
+      { term: 'bulky', ru: 'увесистый' },
       { term: 'chancellery', ru: 'канцелярия' },
       { term: 'marked with smallpox', ru: 'в оспинах' },
-      { term: 'furrow', ru: 'борозда; здесь — глубокая морщина' },
+      { term: 'furrow', ru: 'глубокая морщина' },
     ],
     questions: [
       {
@@ -447,13 +447,13 @@ He didn't say any more, but we've always been unusually communicative in a reser
 Больше он ничего не прибавил, но мы всегда понимали друг друга с полуслова, и я понял, что он имел в виду гораздо больше. С тех пор я склонен воздерживаться от суждений — привычка, благодаря которой мне открылось множество странных натур и из-за которой я не раз становился жертвой заядлых зануд. Ненормальный ум быстро замечает это качество в нормальном человеке и цепляется за него; вот почему в колледже меня несправедливо обвиняли в том, что я политикан, — просто мне доверяли тайные горести буйные и вовсе не знакомые мне люди.`,
     glossary: [
       { term: 'vulnerable', ru: 'уязвимый, незащищённый' },
-      { term: 'to turn something over in one’s mind', ru: 'обдумывать, прокручивать в голове' },
-      { term: 'to feel like doing something', ru: 'хотеться сделать что-то' },
+      { term: 'to turn over in one’s mind', ru: 'обдумывать' },
+      { term: 'to feel like doing sth', ru: 'хотеться сделать' },
       { term: 'reserved', ru: 'сдержанный' },
       { term: 'to reserve judgement', ru: 'воздерживаться от оценки' },
       { term: 'bore', ru: 'зануда' },
-      { term: 'to be privy to something', ru: 'быть посвящённым во что-то' },
-      { term: 'to be inclined to', ru: 'быть склонным к, иметь склонность' },
+      { term: 'to be privy to sth', ru: 'быть посвящённым' },
+      { term: 'to be inclined to', ru: 'быть склонным к' },
     ],
     questions: [
       {
@@ -522,16 +522,16 @@ The sullen murmur of the bees shouldering their way through the long unmown gras
 
 Угрюмое гудение пчёл, продирающихся сквозь некошеную траву или с однообразным упорством кружащих над пыльными золотистыми рожками разросшейся жимолости, словно делало тишину ещё более гнетущей. Глухой рокот Лондона был как басовая нота далёкого органа.`,
     glossary: [
-      { term: 'odour', ru: 'запах (брит. написание; в США — odor)' },
-      { term: 'to stir', ru: 'шевелить, колыхать' },
-      { term: 'scent', ru: 'аромат, запах' },
+      { term: 'odour', ru: 'запах; в США odor' },
+      { term: 'to stir', ru: 'колыхать' },
+      { term: 'scent', ru: 'аромат' },
       { term: 'innumerable', ru: 'бесчисленный' },
-      { term: 'gleam', ru: 'отблеск, слабый свет' },
-      { term: 'tremulous', ru: 'дрожащий, трепещущий' },
-      { term: 'to flit', ru: 'мелькать, порхать' },
-      { term: 'sullen', ru: 'угрюмый, мрачный' },
+      { term: 'gleam', ru: 'отблеск' },
+      { term: 'tremulous', ru: 'трепещущий' },
+      { term: 'to flit', ru: 'мелькать' },
+      { term: 'sullen', ru: 'угрюмый' },
       { term: 'unmown', ru: 'некошеный' },
-      { term: 'oppressive', ru: 'гнетущий, давящий' },
+      { term: 'oppressive', ru: 'гнетущий' },
     ],
     questions: [
       {
@@ -596,13 +596,13 @@ There was clearly nothing to do but flop down on the shabby little couch and how
 
 Ясно было, что делать нечего — только повалиться на потёртый диванчик и зареветь. Так Делла и сделала. Что наводит на нравственное размышление: жизнь состоит из всхлипов, вздохов и улыбок, причём вздохи преобладают.`,
     glossary: [
-      { term: 'penny (pennies)', ru: 'монета в один цент' },
-      { term: 'to bulldoze somebody', ru: 'выторговывать напором, продавливать' },
+      { term: 'penny / pennies', ru: 'монета в один цент' },
+      { term: 'to bulldoze sb', ru: 'выторговывать напором' },
       { term: 'grocer', ru: 'бакалейщик' },
       { term: 'butcher', ru: 'мясник' },
-      { term: 'parsimony', ru: 'скупость, прижимистость' },
-      { term: 'shabby', ru: 'потёртый, обшарпанный' },
-      { term: 'to howl', ru: 'реветь, выть' },
+      { term: 'parsimony', ru: 'скупость' },
+      { term: 'shabby', ru: 'обшарпанный' },
+      { term: 'to howl', ru: 'реветь' },
       { term: 'to predominate', ru: 'преобладать' },
     ],
     questions: [
@@ -650,12 +650,12 @@ There was clearly nothing to do but flop down on the shabby little couch and how
     glossary: [
       { term: 'seldom', ru: 'редко' },
       { term: 'to eclipse', ru: 'затмевать' },
-      { term: 'akin to', ru: 'сродни, похожий на' },
-      { term: 'abhorrent', ru: 'отвратительный, невыносимый' },
-      { term: 'I take it', ru: 'я полагаю, насколько я понимаю' },
-      { term: 'save', ru: 'кроме, за исключением (книжн.)' },
-      { term: 'gibe', ru: 'насмешка, колкость' },
-      { term: 'sneer', ru: 'усмешка, презрительная гримаса' },
+      { term: 'akin to', ru: 'сродни' },
+      { term: 'abhorrent', ru: 'невыносимый' },
+      { term: 'I take it', ru: 'я полагаю' },
+      { term: 'save', ru: 'кроме (книжн.)' },
+      { term: 'gibe', ru: 'колкость' },
+      { term: 'sneer', ru: 'презрительная усмешка' },
     ],
     questions: [
       {
@@ -722,11 +722,11 @@ Immediately, and according to custom, the ramparts of Fort Saint-Jean were cover
     glossary: [
       { term: 'look-out', ru: 'дозорный, наблюдатель' },
       { term: 'three-master', ru: 'трёхмачтовое судно' },
-      { term: 'pilot', ru: 'лоцман (не «пилот»)' },
-      { term: 'to put off', ru: 'отчалить, отойти от берега' },
+      { term: 'pilot', ru: 'лоцман, не «пилот»' },
+      { term: 'to put off', ru: 'отчалить' },
       { term: 'vessel', ru: 'судно' },
-      { term: 'ramparts', ru: 'крепостные стены, валы' },
-      { term: 'to rig', ru: 'оснащать (судно)' },
+      { term: 'ramparts', ru: 'крепостные стены' },
+      { term: 'to rig', ru: 'оснащать судно' },
       { term: 'laden', ru: 'гружёный' },
     ],
     questions: [
@@ -797,14 +797,14 @@ Comrade, remember: our task is not to change the record. Our task is to correct 
 
 Товарищ, помните: наша задача — не изменить запись. Наша задача — её исправить.`,
     glossary: [
-      { term: 'amendment', ru: 'поправка, исправление' },
-      { term: 'to amend', ru: 'вносить исправление, править' },
-      { term: 'output', ru: 'выпуск, объём производства' },
-      { term: 'accordingly', ru: 'соответственно, в соответствии с этим' },
-      { term: 'ahead of schedule', ru: 'досрочно, раньше срока' },
-      { term: 'disposal', ru: 'утилизация, уничтожение' },
-      { term: 'chute', ru: 'жёлоб, труба для сброса' },
-      { term: 'record', ru: 'запись, документ; архив' },
+      { term: 'amendment', ru: 'исправление' },
+      { term: 'to amend', ru: 'править, исправлять' },
+      { term: 'output', ru: 'объём производства' },
+      { term: 'accordingly', ru: 'соответственно' },
+      { term: 'ahead of schedule', ru: 'досрочно' },
+      { term: 'disposal', ru: 'уничтожение' },
+      { term: 'chute', ru: 'труба для сброса' },
+      { term: 'record', ru: 'запись, архив' },
     ],
     questions: [
       {
@@ -912,11 +912,11 @@ Comrade, remember: our task is not to change the record. Our task is to correct 
     glossary: [
       { term: 'to be weird', ru: 'вести себя странно' },
       { term: 'in front of everyone', ru: 'при всех' },
-      { term: 'honestly', ru: 'честно, правда (как смягчение)' },
-      { term: 'embarrassed about', ru: 'смущён из-за, стесняется чего-то' },
-      { term: 'literally', ru: 'буквально (в разговорной речи — усилитель)' },
-      { term: 'fair enough', ru: 'справедливо, ладно, принимается' },
-      { term: 'registration', ru: 'перекличка в начале учебного дня (брит. школа)' },
+      { term: 'honestly', ru: 'честно, правда' },
+      { term: 'embarrassed about', ru: 'стесняется чего-то' },
+      { term: 'literally', ru: 'буквально; усилитель' },
+      { term: 'fair enough', ru: 'ладно, принимается' },
+      { term: 'registration', ru: 'перекличка в школе' },
     ],
     questions: [
       {
@@ -1002,14 +1002,14 @@ Comrade, remember: our task is not to change the record. Our task is to correct 
 — Ничего. Вы его просто неправильно произносите.
 — Знаете что, мне, кажется, тут понравится.`,
     glossary: [
-      { term: 'pitch', ru: 'футбольное поле (брит.); в США — field' },
-      { term: 'boots', ru: 'бутсы (брит.); в США — cleats' },
-      { term: 'kit', ru: 'форма команды (брит.)' },
+      { term: 'pitch', ru: 'поле; в США field' },
+      { term: 'boots', ru: 'бутсы; в США cleats' },
+      { term: 'kit', ru: 'форма команды' },
       { term: 'fixture list', ru: 'календарь матчей' },
       { term: 'the table', ru: 'турнирная таблица' },
-      { term: 'to die on that hill', ru: 'стоять на своём до конца' },
-      { term: 'Come again?', ru: 'Что-что? Повторите' },
-      { term: 'Noted', ru: 'Принято, учту' },
+      { term: 'to die on that hill', ru: 'стоять на своём' },
+      { term: 'Come again?', ru: 'что-что?' },
+      { term: 'Noted', ru: 'принято, учту' },
     ],
     questions: [
       {
