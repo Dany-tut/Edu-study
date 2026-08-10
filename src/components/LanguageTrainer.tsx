@@ -23,7 +23,7 @@ import MultiSelectField from './MultiSelectField'
 import { addCards, deckOwner, dueCount, deckStates, type CardState } from '../data/reviewDeck'
 import { hasSurvivalBook, loadSurvivalBook } from '../data/survivalBooks'
 import {
-  hasScenes, loadScenes, shelvesForLang, worksForLang, workById,
+  hasScenes, loadScenes, scenesWord, shelvesForLang, worksForLang, workById,
   type Scene, type Work,
 } from '../data/scenes'
 import { WorkGrid, WorkPage } from './trainer/SceneShelf'
@@ -34,7 +34,7 @@ import {
 import { hasNests, nestById, nestsForLang, nestsUpTo } from '../data/soundNests'
 import { NestGrid, NestPage } from './trainer/SoundNestDrill'
 import { allResults, resultFrom, saveResult, type MaterialKind } from '../lib/trainerProgress'
-import { courseReach, reachNote } from '../lib/courseReach'
+import { courseReach, reachLevelIndex, reachNote } from '../lib/courseReach'
 import VoiceRecorder from './VoiceRecorder'
 import GlossedText from './GlossedText'
 import Coachmarks, { type CoachStep } from './Coachmarks'
@@ -485,6 +485,19 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     return SURVIVAL_LEVELS.filter(l => found.has(l)).map(l => survivalLevelLabel(l, subject))
   }, [allThemes, subject])
 
+  /**
+   * Тема выше глубины по курсу.
+   *
+   * Не фильтр: разговорник нужен человеку и на две ступени вперёд («завтра
+   * вылет»), поэтому такие темы остаются открытыми — они только гасятся на
+   * витрине и уезжают в её конец при сортировке по умолчанию.
+   */
+  const reachLevel = useMemo(() => reachLevelIndex(reach), [reach])
+  const themeAhead = useMemo(
+    () => (x: SurvivalThemeCards) => reachLevel >= 0 && SURVIVAL_LEVELS.indexOf(x.theme.level) > reachLevel,
+    [reachLevel],
+  )
+
   /** Темы под текущей полкой, ступенью, поиском, статусом и сортировкой. */
   const visibleThemes = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -514,8 +527,15 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
     if (sort === 'level') {
       out.sort((a, b) => SURVIVAL_LEVELS.indexOf(a.theme.level) - SURVIVAL_LEVELS.indexOf(b.theme.level))
     }
+    // По умолчанию витрина начинается с того, что ученику уже по силам, а темы
+    // на вырост уезжают в конец. Сортировка стабильная, поэтому внутри обеих
+    // половин порядок сетки сохраняется. Явно выбранную сортировку не трогаем:
+    // человек, который просил «по размеру», просил именно её.
+    if (sort === 'order') {
+      out.sort((a, b) => Number(themeAhead(a)) - Number(themeAhead(b)))
+    }
     return out
-  }, [allThemes, shelves, shelf, query, status, sort, states, fLevel, themeLevel])
+  }, [allThemes, shelves, shelf, query, status, sort, states, fLevel, themeLevel, themeAhead])
   const glossaryCards = useMemo(() => allTexts.flatMap(txt => txt.glossary.map(g => ({
     subject: subjectId,
     source: 'manual' as const,
@@ -597,7 +617,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
   const heroSubtitle =
     mode === 'vocab' && hasBook ? `${allThemes.reduce((n, x) => n + x.phrases.length, 0)} ${t('фраз')} · ${allThemes.length} ${t('ситуаций')}`
-    : scenesOn ? `${sceneWorks.length} ${t('произведений')} · ${scenes?.length ?? 0} ${t('сцен')}`
+    : scenesOn ? `${sceneWorks.length} ${t('произведений')} · ${scenes?.length ?? 0} ${t(scenesWord(scenes?.length ?? 0))}`
     : mode === 'reading' ? `${allTexts.length} ${t('текстов')}`
     : mode === 'listening' ? `${audio.length} ${t('записей')}`
     : `${speakTotal} ${t('заданий')} · ${speakCounts.sent} ${t('записей')}`
@@ -625,7 +645,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         <RailCard title="Что читаем" accent={palette.accent} icon={<Library size={15} />}>
           <RailSegment
             options={[
-              { value: 'texts', label: 'Учебные тексты' },
+              // Подписи короткие: в рейле на сегмент приходится половина его
+              // ширины, и «Учебные тексты» обрезались в «Учебные тек…».
+              { value: 'texts', label: 'Тексты' },
               { value: 'scenes', label: 'Сцены' },
             ]}
             value={readingView}
@@ -860,7 +882,9 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           <SearchPill value={query} onChange={setQuery} placeholder={t('Автор или название…')} />
         )}
         <ToolCount>
-          {openWork ? `${scenesOf(openWork.id).length} ${t('сцен')}` : `${t('Всего:')} ${visibleWorks.length}`}
+          {openWork
+            ? `${scenesOf(openWork.id).length} ${t(scenesWord(scenesOf(openWork.id).length))}`
+            : `${t('Всего:')} ${visibleWorks.length}`}
         </ToolCount>
       </Toolbar>
     )
@@ -1082,6 +1106,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
           accent={palette.accent}
           soft={palette.soft}
           levelLabel={themeLevel}
+          early={themeAhead}
           onOpen={id => { setOpenTheme(id); setQuery(''); setStatus(''); setRun('swipe') }}
         />
       )

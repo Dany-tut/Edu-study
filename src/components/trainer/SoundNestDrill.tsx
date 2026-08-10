@@ -6,6 +6,7 @@ import { speechLocale, speechText } from '../../lib/speech'
 import { addCards } from '../../data/reviewDeck'
 import { nestAxisLabel, nestPrompt, type NestWord, type SoundNest } from '../../data/soundNests'
 import { Tile, TileGrid, TileChip, TileMeter } from './TrainerShell'
+import { TierChip } from '../GlossedText'
 import type { MaterialResult } from '../../lib/trainerProgress'
 
 // Гнёзда созвучий: витрина и разбор одного гнезда.
@@ -130,6 +131,10 @@ function WordRow({ word, lang, accent, tone }: {
           </span>
           <span style={{ fontSize: 12.5, color: accent, opacity: 0.9 }}>{word.reading}</span>
           <span style={{ fontSize: 13.5, color: 'var(--color-text-2)' }}>{word.ru}</span>
+          {/* Вес слова прямо в строке разбора: гнездо специально собирает и
+              ходовые слова, и редкие соседи по звучанию — 물 учить сегодня,
+              뿔 просто не путать с ним. */}
+          <TierChip term={word.term} lang={lang} accent={accent} style={{ marginTop: 0 }} />
         </div>
         {word.tip && (
           <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--color-text-3)', marginTop: 5, ...proseWrap }}>

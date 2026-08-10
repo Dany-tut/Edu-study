@@ -173,31 +173,31 @@ export const KOSV_VIDEO: Record<string, string> = {
 
 /** Японский: язык выживания. Japanese Ammo — путешествия и вежливость. */
 export const JASV_VIDEO: Record<string, string> = {
-  'jasv-01': yt('xHMAq9x2cEY'), // Essential Japanese Travel Phrases
-  'jasv-02': yt('xHMAq9x2cEY'),
-  'jasv-03': yt('fFe-Um6McTY'), // что нельзя делать в Японии + фразы
-  'jasv-04': yt('xHMAq9x2cEY'),
-  'jasv-05': yt('fFe-Um6McTY'),
-  'jasv-06': yt('xHMAq9x2cEY'),
+  'jasv-01': yt('xHMAq9x2cEY'), // Essential Japanese Travel Phrases — приветствия и прощания
+  'jasv-02': yt('aAlDzXxE8pI'), // Can Do #9: обиходные выражения
+  'jasv-03': yt('ZKxm8zReoj4'), // Can Do #13: как попросить повторить и объяснить
+  'jasv-04': yt('B_55oW65H4M'), // Can Do #2: откуда вы
+  'jasv-05': yt('dxPfgNA8bqA'), // Can Do #11: согласие, несогласие, своё мнение
+  'jasv-06': yt('tqjxUgO6OXU'), // Can Do #4: числа вслух на примере телефона
   'jasv-07': yt('xHMAq9x2cEY'),
   'jasv-08': yt('eIxrnPyHxGw'), // как объяснять дорогу
   'jasv-09': yt('eIxrnPyHxGw'),
-  'jasv-10': yt('-8ckaRazIzc'), // аэропорт и иммиграция
-  'jasv-11': yt('eIxrnPyHxGw'),
-  'jasv-12': yt('-8ckaRazIzc'),
-  'jasv-13': yt('cuDz0mN87TE'), // кэйго, с которым к вам обращаются
-  'jasv-14': yt('cuDz0mN87TE'),
-  'jasv-15': yt('hbZa8-1ePao'), // как заказывать в ресторане
-  'jasv-16': yt('Fk0W0j3aj6w'), // おいしい vs うまい — про еду
-  'jasv-17': yt('hbZa8-1ePao'),
-  'jasv-18': yt('hbZa8-1ePao'),
-  'jasv-19': yt('xHMAq9x2cEY'),
-  'jasv-20': yt('xHMAq9x2cEY'),
-  'jasv-21': yt('xHMAq9x2cEY'),
+  'jasv-10': yt('xHMAq9x2cEY'),
+  'jasv-11': yt('xHMAq9x2cEY'),
+  'jasv-12': yt('-8ckaRazIzc'), // аэропорт и иммиграция
+  'jasv-13': yt('cuDz0mN87TE'), // кэйго, которым к вам обращаются в сервисе
+  'jasv-14': yt('z9o9bjNir2Y'), // Can Do #18: заказ в заведении
+  'jasv-15': yt('hbZa8-1ePao'), // заказ в ресторане с вежливой речью
+  'jasv-16': yt('Fk0W0j3aj6w'), // おいしい vs うまい — разговор о еде
+  'jasv-17': yt('na6HMyT-EVk'), // Can Do #19: заказать несколько позиций и уточнить
+  'jasv-18': yt('vb_kAfdq8PI'), // Can Do #17: спросить цену
+  'jasv-19': yt('a5U93P0ZzL0'), // Can Do #15: попросить товар в магазине
+  'jasv-20': yt('vb_kAfdq8PI'),
+  'jasv-21': yt('ydowfHzzk0k'), // Can Do #16: есть ли нужный размер
   'jasv-22': yt('aQsqklA46z0'), // здоровье и недомогание
-  'jasv-23': yt('aQsqklA46z0'),
-  'jasv-24': yt('-8ckaRazIzc'),
-  'jasv-25': yt('fFe-Um6McTY'),
+  'jasv-23': yt('ZKxm8zReoj4'),
+  'jasv-24': yt('aQsqklA46z0'),
+  'jasv-25': yt('xrUMQvdPjLw'), // Can Do #12: погода — опора смолтока
   'jasv-39': yt('mJNsOVYjqjQ'), // деловое кэйго — офис и коллеги
 }
 

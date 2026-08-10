@@ -5,6 +5,7 @@ import { transcribe } from '../lib/translit'
 import type { WordGloss } from '../data/wordGloss'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
+import { hasTiers, tierLabel, tierNote, wordTier } from '../data/coreWords'
 
 // Текст, в котором переводится каждое слово.
 //
@@ -24,6 +25,39 @@ import { bindShortWords, proseWrap } from '../lib/typography'
 // («почему тут не работает?»), а услышать произношение полезно и без перевода.
 
 const HOVER_DELAY = 90
+
+/**
+ * Плашка «ядро» / «полезное» под переводом.
+ *
+ * Отдельным компонентом, потому что это же нужно карточкам, разговорнику и
+ * разбору гнёзд: вес слова — свойство слова, а не текста, в котором оно стоит.
+ */
+export function TierChip({ term, lang, accent, style }: {
+  term: string
+  lang: string
+  accent: string
+  style?: React.CSSProperties
+}) {
+  const t = useT()
+  if (!hasTiers(lang)) return null
+  const tier = wordTier(term, lang)
+  if (tier === 3) return null
+  const core = tier === 1
+  return (
+    <div
+      title={t(tierNote(tier))}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 7,
+        padding: '2px 9px', borderRadius: 999, fontSize: 10.5, fontWeight: 800,
+        background: core ? `${accent}22` : 'var(--color-bg-3)',
+        color: core ? accent : 'var(--color-muted)',
+        ...style,
+      }}
+    >
+      {t(tierLabel(tier))}
+    </div>
+  )
+}
 
 /** Ширина карточки перевода. Уже — начинает переносить корейские пометки. */
 const POP_W = 264
@@ -240,6 +274,11 @@ export default function GlossedText({ text, lang, extra = [], accent, style }: {
               ? bindShortWords(active.seg.gloss.ru)
               : <span style={{ color: 'var(--color-text-3)' }}>{t('Этого слова нет в словаре — но послушать можно.')}</span>}
           </div>
+          {/* Вес слова: стоит ли учить его сейчас. Показывается только у ядра и
+              полезного — плашка «редкое» на каждом втором слове превратила бы
+              подсказку в шум, а молчание здесь читается правильно (см.
+              data/coreWords.ts). */}
+          <TierChip term={active.seg.text} lang={lang} accent={accent} />
           {active.seg.gloss?.note && (
             <div style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-text-3)', marginTop: 5, ...proseWrap }}>
               {bindShortWords(active.seg.gloss.note)}

@@ -192,7 +192,15 @@
   --color-border-strong: rgba(255,255,255,0.15);
   --color-border-glass: rgba(255,255,255,0);
 
-  --color-green-soft: rgba(74,222,128,0.22);
+  /* ── Калибровка *-soft в тёмной теме ─────────────────────────
+     Тёмные переопределения были подобраны как самостоятельные заливки, а не
+     как подложки: шаг от фона получался в 3–5 раз больше, чем у тех же токенов
+     в светлой теме (purple 0.18 → 0.87, green 0.08 → 0.64). Из-за этого
+     «выбранный вариант» кричал громче текста на нём, а composited-цвет
+     --color-purple-soft (#474076) читался плитой, а не тинтом.
+     Альфы ниже приведены к шагу ~0.30 — как у --color-amber-soft и
+     --color-rose-soft, единственных двух, что были откалиброваны верно. */
+  --color-green-soft: rgba(74,222,128,0.13);
   --color-green-border: rgba(74,222,128,0.50);
   --color-yellow-soft: rgba(248,230,80,0.16);
   --color-yellow-border: rgba(248,230,80,0.40);
@@ -202,7 +210,7 @@
   --color-amber: #E0A342;
   --color-amber-soft: rgba(224,163,66,0.14);
   --color-amber-border: rgba(224,163,66,0.24);
-  --color-purple-soft: rgba(124,108,224,0.46);
+  --color-purple-soft: rgba(124,108,224,0.22);
   --color-rose-soft: rgba(204,75,123,0.22);
   /* Reminder card backgrounds — higher opacity for readability */
   --reminder-card-medium: rgba(255,160,20,0.14);

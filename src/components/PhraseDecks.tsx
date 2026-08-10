@@ -47,6 +47,7 @@ import { INITIAL_SRS } from '../lib/srs'
 import { speechLocale, speechText } from '../lib/speech'
 import { useT } from '../lib/i18n'
 import CardDeck, { type DeckSource } from './CardDeck'
+import GlossedText from './GlossedText'
 import { type CoachStep } from './Coachmarks'
 import Skeleton from './Skeleton'
 import { Tile, TileGrid, TileMeter, TileChip, Empty } from './trainer/TrainerShell'
@@ -127,7 +128,7 @@ export function duePhrases(phrases: Phrase[], states: Map<string, CardState>, no
 
 // ─── Витрина ─────────────────────────────────────────────────────────────────
 
-export default function PhraseDecks({ themes, states, accent, soft, levelLabel, onOpen }: {
+export default function PhraseDecks({ themes, states, accent, soft, levelLabel, early, onOpen }: {
   /** Уже отфильтрованные темы — фильтрация живёт в рейле. */
   themes: SurvivalThemeCards[]
   /** Что колода помнит про каждую фразу; ключ — оригинал фразы. */
@@ -140,6 +141,17 @@ export default function PhraseDecks({ themes, states, accent, soft, levelLabel, 
    * «B1» у английского и «TOPIK 3급» у корейского.
    */
   levelLabel: (item: SurvivalThemeCards) => string
+  /**
+   * Тема выше глубины ученика по курсу.
+   *
+   * ПОМЕЧАЕМ, А НЕ ПРЯЧЕМ. Разговорник существует ровно для случая «завтра
+   * вылет»: закрыть человеку «Больницу» на том основании, что он на седьмом
+   * юните, значит отнять у него то, ради чего он сюда и пришёл. Но и молчать
+   * нельзя — витрина из тридцати восьми одинаковых плиток не даёт понять, с
+   * чего начинать. Поэтому плитка гасится и подписывается, а открывается как
+   * все.
+   */
+  early?: (item: SurvivalThemeCards) => boolean
   onOpen: (themeId: string) => void
 }) {
   const t = useT()
@@ -152,13 +164,15 @@ export default function PhraseDecks({ themes, states, accent, soft, levelLabel, 
         const st = themeStats(x, states)
         const pct = st.pct
         const started = st.total - st.fresh > 0
+        const ahead = early?.(x) ?? false
         return (
           <Tile key={x.theme.id} accent={accent} stack onClick={() => onOpen(x.theme.id)}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, opacity: ahead ? 0.75 : 1 }}>
               {/* Ступень первой и цветом: по ней тему выбирают или пропускают,
                   а число фраз — уже подробность внутри выбранного. */}
               <TileChip tone="accent" accent={accent} soft={soft}>{levelLabel(x)}</TileChip>
               <TileChip>{x.phrases.length} {t('фраз')}</TileChip>
+              {ahead && !started && <TileChip>{t('на вырост')}</TileChip>}
               {st.learned === st.total && st.total > 0 ? (
                 <TileChip tone="accent" accent="var(--color-green-text)" soft="var(--color-green-soft)">
                   {t('выучено')}
@@ -372,12 +386,24 @@ function PhraseList({ phrases, accent, view, lang }: {
             }}
           >
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                fontSize: on ? 30 : 15, fontWeight: 650, color: 'var(--color-text)',
-                lineHeight: 1.3, letterSpacing: on ? 0.2 : 0,
-                transition: 'font-size 0.24s cubic-bezier(0.2, 0.7, 0.3, 1), letter-spacing 0.24s ease',
-              }}>
-                {p.term}
+              {/* Раскрытая фраза разбирается по клику на слово: 데워 주세요 —
+                  это «разогрейте» плюс вежливая просьба, и без разбора формула
+                  заучивается заклинанием (см. GlossedText и lib/lexicon.ts).
+
+                  Только в раскрытом виде: в свёрнутой строке клик принадлежит
+                  самой строке — им её и открывают. Клик по слову дальше не
+                  идёт, иначе разбор тут же схлопывал бы карточку. */}
+              <div
+                onClick={on ? e => e.stopPropagation() : undefined}
+                style={{
+                  fontSize: on ? 30 : 15, fontWeight: 650, color: 'var(--color-text)',
+                  lineHeight: 1.3, letterSpacing: on ? 0.2 : 0,
+                  transition: 'font-size 0.24s cubic-bezier(0.2, 0.7, 0.3, 1), letter-spacing 0.24s ease',
+                }}
+              >
+                {on
+                  ? <GlossedText text={p.term} lang={lang} accent={accent} />
+                  : p.term}
               </div>
               {view.reading && p.reading && (
                 <div style={{
@@ -405,11 +431,14 @@ function PhraseList({ phrases, accent, view, lang }: {
                 <div style={{
                   marginTop: 10, paddingLeft: 10, borderLeft: `2px solid ${accent}55`,
                 }}>
-                  <div style={{
-                    fontSize: 17, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.35,
-                    display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
-                  }}>
-                    {p.ex.term}
+                  <div
+                    onClick={e => e.stopPropagation()}
+                    style={{
+                      fontSize: 17, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.35,
+                      display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+                    }}
+                  >
+                    <GlossedText text={p.ex.term} lang={lang} accent={accent} />
                     <button
                       onClick={e => { e.stopPropagation(); say(p.ex!.term) }}
                       aria-label={t('Послушать пример')}

@@ -40,6 +40,8 @@ import { sentenceTokens } from '../data/taskTypes'
 import { addCards, deckOwner } from '../data/reviewDeck'
 import { cardsFromHomework } from '../lib/reviewCapture'
 import VocabIntro from './VocabIntro'
+import HomeworkFlowBar from './HomeworkFlowBar'
+import { isLanguageSubject } from '../lib/subjects'
 import TheorySheet from './TheorySheet'
 import { useReadingVisible } from '../store/readingStore'
 import { findLessonById, getLessonDetail } from '../data/lessonContent'
@@ -609,6 +611,15 @@ interface PersistedHomeworkState {
    * не начисляется, слово уезжает в колоду повторения.
    */
   basicHints: Record<string, true>
+  /**
+   * Шаг языковой домашки, где на экране ровно одно задание.
+   *
+   * 0 — знакомство со словами, дальше по одному номеру на задание, последний
+   * шаг — сдача. Лежит в том же черновике, что и ответы: после перезагрузки
+   * ученик обязан вернуться на то же задание, а не в начало (у списка это
+   * решала прокрутка, здесь прокручивать нечего).
+   */
+  flowStep?: number
 }
 
 /**
@@ -1151,6 +1162,7 @@ function getInitialState(): PersistedHomeworkState {
     selfAssessmentValue: null,
     basicChecked: {},
     basicHints: {},
+    flowStep: 0,
   }
 }
 
@@ -1706,6 +1718,71 @@ export default function HomeworkFlow({
     }))
   }
 
+  // ─── Языковая домашка: одно задание — один экран ───────────────────────────
+  //
+  // ПОЧЕМУ ТОЛЬКО ЯЗЫКИ. Длинный список с прокруткой правильно работает там, где
+  // задание само по себе длинное и его перечитывают: разбор текста, задача с
+  // условием. Языковой дрилл устроен наоборот — задание в одну строку, зато их
+  // много, и каждое следующее должно начинаться с чистого экрана. В общем списке
+  // глаз цепляет соседнее задание и его ответ, а прокрутка между ними стоит
+  // дороже самого ответа.
+  //
+  // ПОЧЕМУ РЕЖИМ ГАСНЕТ ПОСЛЕ СДАЧИ. Сданная домашка — это разбор, и вот там
+  // список как раз нужен: пройти глазами по всем ошибкам сразу, не листая.
+  const flowMode = isLanguageSubject(subject) && basicQuestions.length > 0 && !state.basicSubmitted
+  /** Есть ли нулевой шаг — знакомство со словами урока. */
+  const flowIntro = vocabWords.length > 0
+  const flowFirst = flowIntro ? 1 : 0
+  const flowTotal = flowFirst + basicQuestions.length
+  const flowStep = Math.min(Math.max(state.flowStep ?? 0, 0), flowTotal)
+  const flowOnIntro = flowIntro && flowStep === 0
+  /** Задания кончились — дальше сдача, и хвост страницы снова виден целиком. */
+  const flowFinished = flowStep >= flowTotal
+  const flowQuestionIndex = flowStep - flowFirst
+  const flowQuestion = flowMode && !flowOnIntro && !flowFinished
+    ? basicQuestions[flowQuestionIndex]
+    : undefined
+
+  const flowGiven = flowQuestion ? state.basicAnswers[flowQuestion.id] : undefined
+  const flowAnswered = !!flowQuestion && questionAnswered(flowQuestion, flowGiven)
+  const flowAuto = !!flowQuestion && questionAutoGradable(flowQuestion)
+  const flowHinted = !!flowQuestion && !!state.basicHints[flowQuestion.id]
+  // Одиночный выбор проверяется самим нажатием — как и в списке.
+  const flowChecked = !!flowQuestion && (
+    !!state.basicChecked[flowQuestion.id]
+    || (questionIsChoice(flowQuestion) && !questionIsMulti(flowQuestion) && flowAnswered)
+  )
+  const flowCorrect = !!flowQuestion && !flowHinted && questionCorrect(flowQuestion, flowGiven)
+  /** Проверять нечего — ответ уже открыт или машина его не сверяет. */
+  const flowDone = !!flowQuestion && (flowChecked || flowHinted || (!flowAuto && flowAnswered))
+
+  const goToFlowStep = (next: number) => {
+    setState(current => ({ ...current, flowStep: Math.max(0, Math.min(next, flowTotal)) }))
+  }
+
+  /**
+   * Единственная кнопка экрана: «Понятно» → «Проверить» → «Далее».
+   *
+   * Она не переезжает и не раздваивается — за один шаг делается ровно одно
+   * действие, и какое именно, видно по надписи.
+   */
+  const flowPrimary = () => {
+    if (flowOnIntro) { goToFlowStep(flowStep + 1); return }
+    if (flowQuestion && flowAuto && !flowChecked && !flowHinted && flowAnswered) {
+      checkQuestion(flowQuestion.id)
+      return
+    }
+    goToFlowStep(flowStep + 1)
+  }
+
+  const flowLabel = flowOnIntro
+    ? t('Понятно')
+    : flowDone
+      ? (flowStep === flowTotal - 1 ? t('Закончить') : t('Далее'))
+      : flowAuto
+        ? t('Проверить')
+        : t('Далее')
+
   /**
    * Подсказка по одной строке дрилла.
    *
@@ -1749,6 +1826,13 @@ export default function HomeworkFlow({
 
   /** Прокрутка к заданию — из итогов и из чипсов с номерами ошибок. */
   const jumpToQuestion = (questionId: string) => {
+    // В режиме одного экрана прокручивать не к чему: нужного задания в разметке
+    // нет, пока на него не переключишься. Поэтому «вернуться к заданию» здесь —
+    // это шаг ленты, а не прокрутка.
+    if (flowMode) {
+      const at = basicQuestions.findIndex(q => q.id === questionId)
+      if (at >= 0) { goToFlowStep(flowFirst + at); return }
+    }
     questionSectionRefs.current[questionId]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
@@ -2348,17 +2432,22 @@ export default function HomeworkFlow({
                   задания: открытый список со всеми переводами превращал домашку
                   в переписывание — ученик листал наверх за каждым словом. Теперь
                   подсказка живёт в самом задании и стоит балла. */}
-              <VocabIntro
-                words={vocabWords}
-                accent={palette.accent}
-                soft={palette.soft}
-                defaultOpen={!state.basicSubmitted && answeredCount === 0}
-                started={answeredCount > 0}
-              />
+              {/* В режиме одного экрана знакомство — это отдельный нулевой шаг,
+                  а не блок над списком: иначе на первом же экране рядом с
+                  заданием лежали бы все ответы. */}
+              {(!flowMode || flowOnIntro) && (
+                <VocabIntro
+                  words={vocabWords}
+                  accent={palette.accent}
+                  soft={palette.soft}
+                  defaultOpen={flowMode || (!state.basicSubmitted && answeredCount === 0)}
+                  started={!flowMode && answeredCount > 0}
+                />
+              )}
 
               {/* Возврат на место. Ответы переживают закрытие вкладки, но ученик
                   всё равно приземлялся в начало списка и искал, докуда дошёл. */}
-              {!state.basicSubmitted && answeredCount > 0 && !basicCompleted && (
+              {!flowMode && !state.basicSubmitted && answeredCount > 0 && !basicCompleted && (
                 <button
                   onClick={() => {
                     const next = basicQuestions.find(q => !questionAnswered(q, state.basicAnswers[q.id]))
@@ -2380,6 +2469,11 @@ export default function HomeworkFlow({
               )}
 
               {basicQuestions.map((question, index) => {
+                // Режим одного экрана: всё, кроме текущего задания, не рисуется.
+                // Отсечка стоит до вычислений, но после входа в map — так номера
+                // заданий и границы частей считаются от полного списка и не
+                // разъезжаются.
+                if (flowMode && index !== flowQuestionIndex) return null
                 const selectedAnswer = state.basicAnswers[question.id]
                 const isChoice = questionIsChoice(question)
                 const answered = questionAnswered(question, selectedAnswer)
@@ -2900,9 +2994,12 @@ export default function HomeworkFlow({
 
                     {/* Проверка на месте: разбор сразу после ответа, а не через
                         двадцать заданий, когда своё рассуждение уже не вспомнить. */}
-                    {(canCheck || canHint) && (
+                    {/* В режиме одного экрана «Проверить» уезжает в нижнюю
+                        полосу — там она одна на весь экран и не переезжает.
+                        «Подсказка» остаётся здесь, у задания. */}
+                    {((canCheck && !flowMode) || canHint) && (
                       <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
-                        {canCheck && (
+                        {canCheck && !flowMode && (
                           <motion.button
                             whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
                             onClick={() => checkQuestion(question.id)}
@@ -2978,7 +3075,7 @@ export default function HomeworkFlow({
                   нижняя полоса показывала «18 / 19» и молчала, кнопки сдачи не
                   было (она приходит только на полном списке), и ученик не знал
                   ни что осталось, ни как закончить. Теперь и то, и другое. */}
-              {!state.basicSubmitted && !basicCompleted && basicUnanswered.length > 0 && (
+              {(!flowMode || flowFinished) && !state.basicSubmitted && !basicCompleted && basicUnanswered.length > 0 && (
                 <section
                   className="flex flex-col"
                   style={{
@@ -3092,6 +3189,29 @@ export default function HomeworkFlow({
                 </section>
               )}
 
+              {/* Одна полоса на экран. В режиме одного задания это лента с
+                  единственной кнопкой, в списке — точки прогресса с переходами:
+                  вместе они спорили бы за один и тот же низ экрана. */}
+              {flowMode && !flowFinished && (
+                <HomeworkFlowBar
+                  step={flowStep}
+                  total={flowTotal}
+                  label={flowLabel}
+                  disabled={!flowOnIntro && !flowAnswered && !flowDone}
+                  verdict={
+                    !flowQuestion || !flowDone ? 'none'
+                      : !flowAuto ? 'review'
+                        : flowCorrect ? 'correct' : 'wrong'
+                  }
+                  answer={flowQuestion && flowDone && flowAuto && !flowCorrect ? flowQuestion.referenceAnswer : undefined}
+                  accent={palette.accent}
+                  isMobile={isMobile}
+                  navCollapsed={navCollapsed}
+                  onPrimary={flowPrimary}
+                  onSkip={flowQuestion && !flowAnswered ? () => goToFlowStep(flowStep + 1) : undefined}
+                />
+              )}
+
               <motion.div
                 initial={false}
                 animate={isMobile
@@ -3100,6 +3220,7 @@ export default function HomeworkFlow({
                 transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
                 style={{
                   position: 'fixed',
+                  display: flowMode && !flowFinished ? 'none' : undefined,
                   // env() safe-area is folded into the animated `bottom` via marginBottom
                   // so framer can tween the numeric part while the inset stays applied.
                   marginBottom: isMobile ? 'env(safe-area-inset-bottom, 0px)' : 0,

@@ -30,6 +30,7 @@ import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
 import Coachmarks, { type CoachStep } from './Coachmarks'
 import DeckDoneMark from './DeckDoneMark'
+import GlossedText from './GlossedText'
 import Skeleton from './Skeleton'
 
 type Kind = 'recall' | 'judge'
@@ -817,12 +818,21 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes 
                   прижат к левому краю: это не ответ, а иллюстрация к нему, и
                   читается он строкой, а не заголовком. */}
               {seat.card.ex && (
-                <div style={{
-                  marginTop: 10, paddingTop: 8, borderTop: '1px dashed var(--color-border-soft)',
-                  textAlign: 'left',
-                }}>
+                <div
+                  // Клик по слову примера разбирает его, а не переворачивает
+                  // карточку: на обороте переворот уже сделал своё дело, и
+                  // единственное, зачем сюда тычут пальцем, — «что это за кусок
+                  // в середине предложения».
+                  onClick={e => e.stopPropagation()}
+                  style={{
+                    marginTop: 10, paddingTop: 8, borderTop: '1px dashed var(--color-border-soft)',
+                    textAlign: 'left',
+                  }}
+                >
                   <div style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.4 }}>
-                    {seat.card.ex.term}
+                    {lang
+                      ? <GlossedText text={seat.card.ex.term} lang={lang} accent={accent} />
+                      : seat.card.ex.term}
                   </div>
                   {seat.card.ex.reading && (
                     <div style={{ fontSize: 11.5, color: 'var(--color-text-3)', marginTop: 2, letterSpacing: 0.2 }}>

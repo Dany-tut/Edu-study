@@ -283,6 +283,148 @@ He was under forty, but he had a daughter already twelve years old, and two sons
     ],
   },
 
+  // ── Достоевский, «Братья Карамазовы» ───────────────────────────────────────
+  {
+    id: 'sc-karamazov-1',
+    workId: 'dost-karamazov',
+    lang: 'en', title: 'Отец семейства', level: 'B2', minutes: 4,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 1, where: 'Часть 1, книга 1, глава 1', size: 'short', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Dostoevsky, The Brothers Karamazov · пер. Constance Garnett · Project Gutenberg',
+    setup: 'Первые строки романа. Рассказчик — не автор, а безымянный житель городка — начинает не с убийства и не с сыновей, а с характеристики отца. И сразу проговаривается, что тот погибнет: детектив, в котором жертву называют на первой странице.',
+    after: 'Дальше выяснится, что у каждого из трёх сыновей был свой повод желать отцу смерти, и что четвёртый сын, о котором в этой главе ещё не сказано, живёт в том же доме прислугой.',
+    body: `Alexey Fyodorovitch Karamazov was the third son of Fyodor Pavlovitch Karamazov, a land owner well known in our district in his own day, and still remembered among us owing to his gloomy and tragic death, which happened thirteen years ago, and which I shall describe in its proper place. For the present I will only say that this "landowner"—for so we used to call him, although he hardly spent a day of his life on his own estate—was a strange type, yet one pretty frequently to be met with, a type abject and vicious and at the same time senseless. But he was one of those senseless persons who are very well capable of looking after their worldly affairs, and, apparently, after nothing else. Fyodor Pavlovitch, for instance, began with next to nothing; his estate was of the smallest; he ran to dine at other men's tables, and fastened on them as a toady, yet at his death it appeared that he had a hundred thousand roubles in hard cash. At the same time, he was all his life one of the most senseless, fantastical fellows in the whole district. I repeat, it was not stupidity—the majority of these fantastical fellows are shrewd and intelligent enough—but just senselessness, and a peculiar national form of it.`,
+    translation: `Алексей Фёдорович Карамазов был третьим сыном помещика нашего уезда Фёдора Павловича Карамазова, столь известного в своё время и до сих пор у нас памятного по мрачной и трагической смерти, случившейся ровно тринадцать лет назад и о которой я расскажу в своём месте. Пока же скажу лишь, что этот «помещик» — так мы его называли, хотя он почти ни дня в жизни не прожил в своём имении — был странным типом, каких, однако, встречается довольно часто: типом дрянным и порочным и в то же время бестолковым. Но он принадлежал к тем бестолковым людям, которые отлично умеют обделывать свои денежные делишки — и, кажется, только их. Фёдор Павлович, например, начинал почти ни с чем; имение у него было самое маленькое; он бегал обедать по чужим столам и напрашивался в приживальщики, — а после смерти его оказалось, что у него сто тысяч рублей чистыми деньгами. И при этом он всю жизнь оставался одним из самых бестолковых сумасбродов во всём уезде. Повторяю: это была не глупость — большинство таких сумасбродов довольно хитры и неглупы, — а именно бестолковость, и притом особого, нашего склада.`,
+    glossary: [
+      { term: 'estate', ru: 'имение, поместье' },
+      { term: 'abject', ru: 'жалкий, ничтожный' },
+      { term: 'vicious', ru: 'порочный (не «жестокий»)' },
+      { term: 'senseless', ru: 'бестолковый, безрассудный' },
+      { term: 'worldly affairs', ru: 'мирские, денежные дела' },
+      { term: 'next to nothing', ru: 'почти ничего' },
+      { term: 'toady', ru: 'подхалим, приживальщик' },
+      { term: 'shrewd', ru: 'хитрый, себе на уме' },
+    ],
+    questions: [
+      {
+        q: 'How is Fyodor Pavlovitch still remembered in the district?',
+        options: [
+          'For his charity',
+          'For his gloomy and tragic death',
+          'For his estate',
+          'For his three sons',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is the word "landowner" in quotation marks?',
+        options: [
+          'It is a foreign word',
+          'Because he hardly ever lived on his own estate',
+          'Because he was not really rich',
+          'It is the name of his house',
+        ],
+        correct: 1,
+        why: 'Рассказчик тут же объясняет кавычки: «although he hardly spent a day of his life on his own estate». Титул есть, содержания за ним нет.',
+      },
+      {
+        q: 'What is the contradiction the narrator insists on?',
+        options: [
+          'He was senseless, yet very good at making money',
+          'He was poor, yet generous',
+          'He was clever, yet uneducated',
+          'He was quiet, yet feared',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'What does "he ran to dine at other men\'s tables" tell us about him?',
+        options: [
+          'He was a cook',
+          'He lived off other people’s hospitality',
+          'He owned restaurants',
+          'He travelled a lot',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Гоголь, «Шинель» ───────────────────────────────────────────────────────
+  {
+    id: 'sc-mantle-1',
+    workId: 'gogol-mantle',
+    lang: 'en', title: 'В некотором департаменте', level: 'B1', minutes: 3,
+    topic: 'Работа', skill: 'Чтение',
+    order: 1, where: 'Начало повести', size: 'short', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Gogol, The Mantle · пер. Claud Field · Project Gutenberg',
+    setup: 'Повесть начинается с того, что рассказчик отказывается называть ведомство, в котором всё происходит, — и тратит на объяснение этого отказа полстраницы. Так Гоголь с первых строк даёт понять, о какой именно стране идёт речь.',
+    after: 'Дальше выяснится, что у героя есть только одна цель в жизни — накопить на новую шинель. И что, когда он её наконец сошьёт, её отнимут в первый же вечер.',
+    body: `In a certain Russian ministerial department----
+
+But it is perhaps better that I do not mention which department it was. There are in the whole of Russia no persons more sensitive than Government officials. Each of them believes if he is annoyed in any way, that the whole official class is insulted in his person.
+
+Recently an Isprawnik (country magistrate)—I do not know of which town—is said to have drawn up a report with the object of showing that, ignoring Government orders, people were speaking of Isprawniks in terms of contempt. In order to prove his assertions, he forwarded with his report a bulky work of fiction, in which on about every tenth page an Isprawnik appeared generally in a drunken condition.
+
+In order therefore to avoid any unpleasantness, I will not definitely indicate the department in which the scene of my story is laid, and will rather say "in a certain chancellery."
+
+Well, in a certain chancellery there was a certain man who, as I cannot deny, was not of an attractive appearance. He was short, had a face marked with smallpox, was rather bald in front, and his forehead and cheeks were deeply lined with furrows—to say nothing of other physical imperfections.`,
+    translation: `В некотором российском министерском департаменте…
+
+Но, пожалуй, лучше я не буду называть, в каком именно департаменте. Нет во всей России людей обидчивее чиновников. Каждый из них убеждён, что если задели чем-нибудь его, то в его лице оскорблено всё чиновничье сословие.
+
+Недавно один исправник (уездный судья) — не знаю уж какого города — будто бы составил доклад с целью показать, что вопреки распоряжениям правительства об исправниках отзываются с презрением. В доказательство он приложил к докладу увесистое сочинение, где примерно на каждой десятой странице появляется исправник, и обыкновенно в пьяном виде.
+
+Итак, чтобы избежать неприятностей, я не стану точно указывать департамент, в котором происходит моя история, а скажу лучше — «в некоторой канцелярии».
+
+Так вот, в некоторой канцелярии служил некоторый человек, наружности, надо признаться, непривлекательной. Он был низенького роста, лицо в оспинах, спереди изрядно лысоват, а лоб и щёки изрезаны глубокими морщинами — не говоря уже о прочих телесных несовершенствах.`,
+    glossary: [
+      { term: 'department', ru: 'здесь: ведомство, департамент' },
+      { term: 'sensitive', ru: 'здесь: обидчивый' },
+      { term: 'to be annoyed', ru: 'быть задетым, раздражённым' },
+      { term: 'in terms of contempt', ru: 'с презрением' },
+      { term: 'bulky', ru: 'объёмистый, увесистый' },
+      { term: 'chancellery', ru: 'канцелярия' },
+      { term: 'marked with smallpox', ru: 'в оспинах' },
+      { term: 'furrow', ru: 'борозда; здесь — глубокая морщина' },
+    ],
+    questions: [
+      {
+        q: 'Why does the narrator refuse to name the department?',
+        options: [
+          'He has forgotten it',
+          'To avoid offending Government officials',
+          'It is a state secret',
+          'The department no longer exists',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What did the Isprawnik attach to his report?',
+        options: [
+          'A list of names',
+          'A long novel in which an Isprawnik keeps appearing drunk',
+          'A map of the town',
+          'A photograph',
+        ],
+        correct: 1,
+        why: 'Комизм в том, что доказательством неуважения он делает книгу, где его сословие выведено пьяным, — то есть распространяет ровно то, на что жалуется.',
+      },
+      {
+        q: 'How does the narrator describe the man in the chancellery?',
+        options: [
+          'Tall and handsome',
+          'Short, pockmarked and balding',
+          'Young and ambitious',
+          'Old and rich',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
   // ── Фицджеральд ────────────────────────────────────────────────────────────
   {
     id: 'sc-gatsby-1',
@@ -354,6 +496,84 @@ He didn't say any more, but we've always been unusually communicative in a reser
           'He came from a political family',
         ],
         correct: 1,
+      },
+    ],
+  },
+
+  // ── Уайльд ─────────────────────────────────────────────────────────────────
+  {
+    id: 'sc-dorian-1',
+    workId: 'wilde-dorian',
+    lang: 'en', title: 'Мастерская в запахе роз', level: 'C1', minutes: 3,
+    topic: 'Погода и природа', skill: 'Чтение',
+    order: 1, where: 'Глава 1, начало', size: 'short', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Oscar Wilde, The Picture of Dorian Gray · Project Gutenberg',
+    setup: 'Роман открывается не человеком, а запахом. Уайльд тратит целый абзац на сад за дверью мастерской и только потом показывает лорда Генри на диване — и портрет на мольберте. Самый плотный по лексике текст всей полки: здесь стоит идти медленно.',
+    after: 'Через страницу лорд Генри скажет художнику, что портрет нельзя выставлять. А ещё через несколько — впервые заговорит с самим Дорианом, и на этом кончится его прежняя жизнь.',
+    body: `The studio was filled with the rich odour of roses, and when the light summer wind stirred amidst the trees of the garden, there came through the open door the heavy scent of the lilac, or the more delicate perfume of the pink-flowering thorn.
+
+From the corner of the divan of Persian saddle-bags on which he was lying, smoking, as was his custom, innumerable cigarettes, Lord Henry Wotton could just catch the gleam of the honey-sweet and honey-coloured blossoms of a laburnum, whose tremulous branches seemed hardly able to bear the burden of a beauty so flamelike as theirs; and now and then the fantastic shadows of birds in flight flitted across the long tussore-silk curtains that were stretched in front of the huge window, producing a kind of momentary Japanese effect.
+
+The sullen murmur of the bees shouldering their way through the long unmown grass, or circling with monotonous insistence round the dusty gilt horns of the straggling woodbine, seemed to make the stillness more oppressive. The dim roar of London was like the bourdon note of a distant organ.`,
+    translation: `Мастерская была полна густым запахом роз, и когда лёгкий летний ветер шевелил деревья в саду, в открытую дверь вливался тяжёлый аромат сирени или более тонкий запах розовых цветов боярышника.
+
+С угла дивана, покрытого персидскими вьючными коврами, на котором он лежал, куря, по своему обыкновению, бесчисленные папиросы, лорд Генри Уоттон едва улавливал отблеск медово-сладких и медового цвета соцветий ракитника, чьи дрожащие ветви, казалось, едва выдерживали бремя такой пламенной красоты; а время от времени причудливые тени пролетающих птиц скользили по длинным шёлковым занавесям, натянутым перед огромным окном, создавая мгновенное японское впечатление.
+
+Угрюмое гудение пчёл, продирающихся сквозь некошеную траву или с однообразным упорством кружащих над пыльными золотистыми рожками разросшейся жимолости, словно делало тишину ещё более гнетущей. Глухой рокот Лондона был как басовая нота далёкого органа.`,
+    glossary: [
+      { term: 'odour', ru: 'запах (брит. написание; в США — odor)' },
+      { term: 'to stir', ru: 'шевелить, колыхать' },
+      { term: 'scent', ru: 'аромат, запах' },
+      { term: 'innumerable', ru: 'бесчисленный' },
+      { term: 'gleam', ru: 'отблеск, слабый свет' },
+      { term: 'tremulous', ru: 'дрожащий, трепещущий' },
+      { term: 'to flit', ru: 'мелькать, порхать' },
+      { term: 'sullen', ru: 'угрюмый, мрачный' },
+      { term: 'unmown', ru: 'некошеный' },
+      { term: 'oppressive', ru: 'гнетущий, давящий' },
+    ],
+    questions: [
+      {
+        q: 'Where is Lord Henry Wotton and what is he doing?',
+        options: [
+          'Standing at the window, painting',
+          'Lying on a divan, smoking',
+          'Walking in the garden',
+          'Sitting at a desk, writing',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What produces "a kind of momentary Japanese effect"?',
+        options: [
+          'A painting on the wall',
+          'Shadows of flying birds on the silk curtains',
+          'The smell of the flowers',
+          'A screen in the corner',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the overall effect of the bees and the distant roar of London?',
+        options: [
+          'They make the stillness feel heavier',
+          'They wake everyone up',
+          'They make the room cheerful',
+          'They drown out the conversation',
+        ],
+        correct: 0,
+        why: '«Seemed to make the stillness more oppressive» — звук здесь не нарушает тишину, а подчёркивает её. Приём, на котором построена вся первая страница.',
+      },
+      {
+        q: 'The passage is almost entirely description. What has Wilde told us about the plot so far?',
+        options: [
+          'Nothing yet — only the atmosphere',
+          'That someone has died',
+          'That Lord Henry is in love',
+          'That a crime has been committed',
+        ],
+        correct: 0,
       },
     ],
   },

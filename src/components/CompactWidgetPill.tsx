@@ -722,7 +722,9 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
               kind === 'lang' ? t('Учу') : t('Ошибок'),
               '#F04858', 'rgba(220,50,60,0.22)',
             )}
-            {streak > 1 && pill('streak', `🔥 ${streak}`, t('Дней подряд'), palette.text, `${accent}1F`)}
+            {/* Серия — только в раскрытом виде: четвёртая капсула в свёрнутой
+                строке выдавливает ошибки за край пилюли. */}
+            {streak > 1 && expanded && pill('streak', `🔥 ${streak}`, t('Дней подряд'), palette.text, `${accent}1F`)}
           </div>
         ) : (
           <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--color-text-3)' }}>
@@ -738,7 +740,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
         >
           {totalCount > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9.5, color: 'var(--color-text-3)', marginTop: 8 }}>
-              <span>{kind === 'lang' ? t('В колоде') : t('Решено')} {doneCount} {t('из')} {totalCount}</span>
+              <span>{kind === 'lang' ? t('Выучено') : t('Решено')} {doneCount} {t('из')} {totalCount}</span>
               <span style={{ color: palette.text, fontWeight: 700 }}>{pct}%</span>
             </div>
           )}

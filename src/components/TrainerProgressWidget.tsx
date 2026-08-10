@@ -79,7 +79,7 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
         <div style={{ flex: 1, padding: '12px 14px', borderRadius: 14, background: 'var(--color-green-soft)', textAlign: 'center' }}>
           <div style={{ fontSize: wide ? 28 : 22, fontWeight: 750, color: 'var(--color-green-text)', lineHeight: 1 }}>{doneCount}</div>
           <div style={{ fontSize: 10, color: 'var(--color-green-text)', opacity: 0.75, marginTop: 4 }}>
-            {kind === 'lang' ? t('В колоде') : t('Верно')}
+            {kind === 'lang' ? t('Выучено') : t('Верно')}
           </div>
         </div>
         <div style={{ flex: 1, padding: '12px 14px', borderRadius: 14, background: 'var(--color-bg)', textAlign: 'center' }}>
@@ -100,7 +100,7 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
             <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>
-              {kind === 'lang' ? t('Взято в колоду') : t('Решено верно')}
+              {kind === 'lang' ? t('Выучено из разговорника') : t('Решено верно')}
             </span>
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>{Math.round(pct)}%</span>
           </div>

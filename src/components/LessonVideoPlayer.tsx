@@ -80,8 +80,14 @@ type YTPlayer = {
   setVolume(v: number): void; mute(): void; unMute(): void
   setPlaybackRate(r: number): void; getCurrentTime(): number; getDuration(): number
   getVideoLoadedFraction(): number; destroy(): void
-  loadModule(m: string): void; unloadModule(m: string): void
+  // Субтитрами управляем ТОЛЬКО через setOption/getOption. loadModule
+  // ('captions') перезагружает модуль вместе с видео: проверено — ролик
+  // отматывался на нуль и начинался заново.
+  setOption(module: string, option: string, value: unknown): void
+  getOption(module: string, option: string): unknown
 }
+/** Дорожка субтитров в ответе getOption('captions','tracklist'). */
+type CaptionTrack = { languageCode?: string; vss_id?: string }
 declare global {
   interface Window {
     YT?: { Player: new (el: HTMLElement, opts: Record<string, unknown>) => YTPlayer; PlayerState: Record<string, number> }
@@ -112,7 +118,7 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
   // работали. Такой источник показываем как раньше, голым iframe.
   const custom = source.kind !== 'iframe'
   const canRate = source.kind !== 'rutube'   // у RuTube скорость не выставляется извне
-  const canCaptions = source.kind === 'youtube'
+  const canCaptions = source.kind === 'youtube'   // и только если дорожки нашлись, см. ccAvailable
 
   const [watch, setWatch] = useState<VideoWatch>(initialWatch)
   const [started, setStarted] = useState(false)
@@ -125,6 +131,8 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
   const [muted, setMuted] = useState(false)
   const [rate, setRate] = useState(1)
   const [captions, setCaptions] = useState(false)
+  /** У ролика нашлась хотя бы одна дорожка субтитров — только тогда есть CC. */
+  const [ccAvailable, setCcAvailable] = useState(false)
   const [fullscreen, setFullscreen] = useState(false)
   const [barVisible, setBarVisible] = useState(true)
   const [rateOpen, setRateOpen] = useState(false)
@@ -148,6 +156,8 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
   const lastTick = useRef<number | null>(null)
   /** Последняя секунда, отданная наружу. */
   const lastReported = useRef(-1)
+  /** Дорожка субтитров, которую включает кнопка CC (первая доступная). */
+  const ccTrack = useRef<CaptionTrack | null>(null)
   /** Актуальный прогресс без ре-подписок таймера. */
   const watchRef = useRef(watch)
   watchRef.current = watch
@@ -246,11 +256,16 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
     else if (videoRef.current) videoRef.current.playbackRate = r
   }, [source.kind])
 
+  // Модуль субтитров грузится вместе с плеером (cc_load_policy), а кнопка лишь
+  // показывает и прячет дорожку — так переключение не трогает воспроизведение.
   const toggleCaptions = useCallback(() => {
+    const p = ytRef.current
+    if (!p) return
     const next = !captions
     setCaptions(next)
-    if (next) ytRef.current?.loadModule('captions')
-    else ytRef.current?.unloadModule('captions')
+    try {
+      p.setOption('captions', 'track', next ? (ccTrack.current ?? {}) : {})
+    } catch { /* у ролика может не быть субтитров вовсе */ }
   }, [captions])
 
   const playFrom = useCallback((sec: number) => {
@@ -274,6 +289,10 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
         playerVars: {
           controls: 0, disablekb: 1, modestbranding: 1, rel: 0, fs: 0,
           iv_load_policy: 3, playsinline: 1, autoplay: 1,
+          // Модуль субтитров поднимается сразу вместе с роликом — включать его
+          // позже нельзя, loadModule перезапускает видео с нуля. Саму дорожку
+          // гасим на onReady, кнопка CC потом только показывает и прячет её.
+          cc_load_policy: 1,
           start: Math.floor(startAt), origin: window.location.origin,
         },
         events: {
@@ -283,6 +302,23 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
             setDuration(e.target.getDuration() || 0)
             e.target.setPlaybackRate(rate)
             e.target.playVideo()
+            // Гасим дорожку, поднятую через cc_load_policy, и запоминаем, какая
+            // вообще есть. Список появляется не сразу — отсюда пара попыток;
+            // если дорожек нет, кнопка CC не показывается вовсе.
+            try { e.target.setOption('captions', 'track', {}) } catch { /* нет модуля */ }
+            let tries = 0
+            const probe = window.setInterval(() => {
+              tries += 1
+              let list: CaptionTrack[] = []
+              try { list = (e.target.getOption('captions', 'tracklist') as CaptionTrack[]) ?? [] } catch { /* ещё не готов */ }
+              if (list.length) {
+                ccTrack.current = list[0]
+                setCcAvailable(true)
+                window.clearInterval(probe)
+              } else if (tries >= 8 || !alive) {
+                window.clearInterval(probe)
+              }
+            }, 500)
           },
           onStateChange: (e: { data: number }) => {
             if (!alive) return
@@ -686,7 +722,7 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
 
               <span style={{ flex: 1 }} />
 
-              {canCaptions && (
+              {canCaptions && ccAvailable && (
                 <button
                   onClick={toggleCaptions}
                   style={iconBtn(captions ? { background: 'rgba(255,255,255,0.2)' } : undefined)}

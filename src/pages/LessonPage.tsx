@@ -486,6 +486,9 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
     ...(hardUnlocked || hardStatus ? [{ id: 'hard' as const, icon: hardIcon, iconSize: hardIconSize, title: t('Сложный уровень') }] : []),
   ]
   const basicEstimatedTime = homework.levels.find(level => level.id === 'basic')?.estimatedMinutes
+  // Только базовая домашка → в карточке одна строка, и она должна ровно
+  // совпадать по высоте с плитками материалов (56px), иначе ряд едет.
+  const singleRow = rows.length === 1
 
   const hardStatusLabel =
     hardStatus === 'submitted' ? { icon: Clock,     text: t('На проверке'), color: 'var(--color-peach-text)' } :
@@ -498,10 +501,11 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
       className="flex flex-col"
       style={{
         position: 'relative',
-        minHeight: 92,
-        padding: 8,
+        height: singleRow ? 56 : undefined,
+        minHeight: singleRow ? 56 : 92,
+        padding: singleRow ? 5 : 8,
         gap: 6,
-        borderRadius: 20,
+        borderRadius: singleRow ? 16 : 20,
         background: 'var(--grad-purple)',
         boxShadow: '0 12px 28px rgba(123,97,255,0.28)',
       }}
@@ -521,10 +525,10 @@ function HomeworkCard({ lessonId, homework, onOpen }: { lessonId: string; homewo
             onMouseLeave={() => setHovered(null)}
             className="flex items-center w-full"
             style={{
-              height: isActive ? 46 : hasExtra ? 40 : 24,
+              height: singleRow ? '100%' : isActive ? 46 : hasExtra ? 40 : 24,
               flexShrink: 0,
               gap: 12,
-              padding: '0 16px',
+              padding: singleRow ? '0 13px' : '0 16px',
               borderRadius: 12,
               border: 'none',
               textAlign: 'left',
@@ -815,7 +819,9 @@ export default function LessonPage() {
   } as const
 
   return (
-    <div className="flex flex-col" style={{ gap: 18 }}>
+    // paddingBottom — воздух под последним рядом карточек: чтобы страница
+    // домотывалась с запасом и выпадающие списки плиток не упирались в край.
+    <div className="flex flex-col" style={{ gap: 18, paddingBottom: isDesktop ? 72 : 24 }}>
       {/* Rest-state Back / title / date row — in the scroll flow below the
           topbar. Fades out as the page docks; its docked twin is the fixed bar
           below, which sits ON the topbar line so nothing slides under blur. */}

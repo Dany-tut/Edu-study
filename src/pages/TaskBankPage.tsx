@@ -518,7 +518,9 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               setInputOverflow(measuredWidth > innerWidth)
             }}
             onKeyDown={e => e.key === 'Enter' && inputVal.trim() && check()}
-            placeholder={t('Введите ответ')}
+            // После подсказки поле только для чтения — «Введите ответ» в нём
+            // зовёт печатать туда, где печатать уже нельзя.
+            placeholder={peeked ? t('Ответ открыт') : t('Введите ответ')}
             style={{
               width: '100%', boxSizing: 'border-box', height: answerH,
               padding: '0 16px', borderRadius: 16, fontSize: mobile ? 16 : 14, outline: 'none',

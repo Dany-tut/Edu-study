@@ -29,3 +29,26 @@ createRoot(document.getElementById('root')!).render(
     <CardDeck accent="#f0906a" lang="ko" source={source} />
   </div>,
 )
+
+// ?speak — кадр «слово звучит» для съёмки: сама озвучка заглушена (в headless
+// голосов нет, speak() падает мгновенно), линия останавливается на середине.
+if (location.search.includes('speak')) {
+  window.speechSynthesis.speak = () => {}
+  window.speechSynthesis.cancel = () => {}
+  setTimeout(() => {
+    const btn = [...document.querySelectorAll('button')]
+      .find(b => b.getAttribute('aria-label') === 'Послушать') as HTMLButtonElement | undefined
+    btn?.click()
+    setTimeout(() => {
+      const fill = document.querySelector('.vocab-speak-fill')
+      const anim = fill?.getAnimations()[0]
+      if (anim) { anim.pause(); anim.currentTime = 900 }
+      // ?before — как было до правки: карточка не обрезала содержимое, и
+      // прямые концы линии вылезали за дугу нижних углов.
+      if (location.search.includes('before')) {
+        const card = fill?.parentElement?.parentElement as HTMLElement | undefined
+        if (card) card.style.overflow = 'visible'
+      }
+    }, 60)
+  }, 600)
+}

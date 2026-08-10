@@ -465,6 +465,23 @@ export async function loadScenes(lang: string | undefined): Promise<Scene[]> {
 
 // ─── Хелперы витрины ─────────────────────────────────────────────────────────
 
+/**
+ * «1 сцена», «2 сцены», «5 сцен».
+ *
+ * Общего склонятора в проекте нет, а «1 сцен» на карточке видно сразу и читается
+ * как недоделка. Здесь он нужен ровно для одного слова, поэтому и живёт рядом с
+ * ним, а не в отдельном модуле на весь проект.
+ */
+export function scenesWord(n: number): string {
+  const tens = n % 100
+  if (tens > 10 && tens < 20) return 'сцен'
+  switch (n % 10) {
+    case 1: return 'сцена'
+    case 2: case 3: case 4: return 'сцены'
+    default: return 'сцен'
+  }
+}
+
 /** Подпись под названием произведения: «Достоевский · 1869 · книга». */
 export function workLine(w: Work): string {
   const kind = w.medium === 'series' ? (w.platform ?? 'сериал') : String(w.year)

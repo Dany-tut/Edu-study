@@ -2,7 +2,7 @@ import { BookOpen, Tv, Quote, ExternalLink, AlertTriangle, Lock } from 'lucide-r
 import { Tile, TileGrid, TileChip, TileMeter, Empty } from './TrainerShell'
 import { useT } from '../../lib/i18n'
 import { bindShortWords, proseWrap } from '../../lib/typography'
-import { originLabel, workLine, type Scene, type Work } from '../../data/scenes'
+import { originLabel, scenesWord, workLine, type Scene, type Work } from '../../data/scenes'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Витрина сцен: полки → произведение → его сцены
@@ -80,7 +80,7 @@ export function WorkGrid({ groups, scenesOf, done, accent, soft, onOpen }: {
 
                   <TileMeter value={p.percent} />
                   <span style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--color-text-3)' }}>
-                    <span>{p.total} {t('сцен')}</span>
+                    <span>{p.total} {t(scenesWord(p.total))}</span>
                     {p.passed > 0 && (
                       <span style={{ color: 'var(--color-green-text)', fontWeight: 700 }}>
                         {p.passed} / {p.total}

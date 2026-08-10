@@ -957,6 +957,8 @@ const EN: Record<string, string> = {
   "Ответ:": "Answer:",
   "Показать ответ": "Show answer",
   "балл за это задание не начисляется": "no point for this task",
+  "Подсказка": "Hint",
+  "Ответ открыт": "Answer revealed",
 
   // — Защита от перезаписи устаревшей вкладкой —
   "Курс изменили в другом месте.": "The course was changed elsewhere.",
@@ -1011,9 +1013,9 @@ const EN: Record<string, string> = {
   "Открой набор фраз — счётчик пойдёт": "Open a phrase set — the counter starts",
   "Учу": "Learning",
   "Дней подряд": "Day streak",
-  "В колоде": "In deck",
   "Решено": "Solved",
-  "Взято в колоду": "Added to deck",
+  "Выучено": "Learned",
+  "Выучено из разговорника": "Learned from the phrasebook",
   "Мин сегодня": "Min today",
   "Сегодня в тренажёре:": "In the trainer today:",
   "за неделю": "this week",
