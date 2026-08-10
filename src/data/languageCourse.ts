@@ -298,6 +298,14 @@ export const dictation = (question: string, text: string, altAnswers?: string[])
 export const dictationBank = (question: string, sentence: string, distractors: string[] = []): SeedTask =>
   ({ type: 'listenBank', question, sentence, ttsText: sentence, distractors, allowSlow: true })
 
+/** Обводка буквы: черты берутся по самой букве из data/hangul.ts. */
+export const traceChamo = (question: string, chamo: string): SeedTask =>
+  ({ type: 'trace', question, chamo, ttsText: chamo, allowSlow: false })
+
+/** Сборка слога из букв: ㄱ + ㅣ + ㅁ → 김. */
+export const buildSyl = (question: string, syllable: string): SeedTask =>
+  ({ type: 'buildSyllable', question, syllable, ttsText: syllable, allowSlow: true })
+
 /** Минимальные пары: прозвучал один из двух похожих — какой? */
 export const minPair = (question: string, a: string, b: string, correct: 'A' | 'B'): SeedTask =>
   ({ type: 'minimalPair', question, pairA: a, pairB: b, correctPair: correct, ttsText: correct === 'A' ? a : b, allowSlow: true })

@@ -10,7 +10,7 @@
 import { formTable, formulaStrip, contrastPair, ladderFigure } from './lessonFigures'
 import type { CourseFigures } from './languageCourse'
 
-export const JAPANESE3_FIGURES: CourseFigures = {
+export const JAPANESE3_FIGURES_EXTRA: CourseFigures = {
   'jan3-01': [{
     after: 2,
     caption: 'Два смысла одной формы',

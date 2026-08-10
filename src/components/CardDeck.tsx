@@ -783,7 +783,10 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
       transition={{ duration: 0.16 }}
     >
       <Overlay side="left" opacity={noOpacity} label={judge ? t('неверно') : binary ? t('не знаю') : t('не помню')} tone="bad" />
-      <Overlay side="right" opacity={yesOpacity} label={judge ? t('верно') : t('знаю')} tone="good" />
+      {/* Подписи сторон парные: слева «не знаю»/«не помню» — значит справа
+          «знаю»/«помню». Разнобой («не помню» слева и «знаю» справа) читается
+          как два разных вопроса. */}
+      <Overlay side="right" opacity={yesOpacity} label={judge ? t('верно') : binary ? t('знаю') : t('помню')} tone="good" />
       <Overlay side="bottom" opacity={laterOpacity} label={t('отложить')} tone="mute" />
       {/* «Легко» — только у самооценки: в режимах «знаю / не знаю» и «верно или
           нет» верх это тот же ответ, что и вправо, и подписывать его отдельно

@@ -1506,6 +1506,7 @@ export const KO_EXAMPLES: ThemeExamples = {
     '가족': e('가족이 다 러시아에 있어요.', 'gajogi da rosiae isseoyo.', 'Вся семья у меня в России.'),
     '가족이 몇 명이에요?': e('가족이 몇 명이에요? 저희는 네 명이에요.', 'gajogi myeot myeongieyo? jeohuineun ne myeongieyo.', 'Сколько человек у вас в семье? У нас четверо.'),
     '저는 형제가 있어요': e('저는 형제가 있어요. 형이랑 여동생이요.', 'jeoneun hyeongjega isseoyo. hyeongirang yeodongsaengiyo.', 'У меня есть брат и сестра. Старший брат и младшая сестра.'),
+    '형제가 어떻게 되세요?': e('형제가 어떻게 되세요? 저는 형이 한 명 있어요.', 'hyeongjega eotteoke doeseyo? jeoneun hyeongi han myeong isseoyo.', 'Какие у вас братья и сёстры? У меня один старший брат.'),
     '저는 외동이에요': e('저는 외동이에요. 형제가 없어요.', 'jeoneun oedongieyo. hyeongjega eopseoyo.', 'Я единственный ребёнок. Братьев и сестёр нет.'),
     '부모님': e('부모님은 모스크바에 사세요.', 'bumonimeun moseukeubae saseyo.', 'Родители живут в Москве.'),
     '아버지': e('아버지는 선생님이세요.', 'abeojineun seonsaengnimiseyo.', 'Отец у меня учитель.'),

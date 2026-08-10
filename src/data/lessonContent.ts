@@ -51,6 +51,10 @@ export interface HomeworkQuizQuestion {
   table?: { headers: string[]; rows: string[][]; emptyCells?: Record<string, boolean>; blankCells?: Record<string, boolean>; cellImages?: Record<string, string>; cellImageSizes?: Record<string, number> }
 
   // ─── языковые задания ───
+  /** trace — буква, которую обводят. Черты берутся из data/hangul.ts по ней же. */
+  chamo?: string
+  /** buildSyllable — эталонный слог; из чего он состоит, считается по нему. */
+  syllable?: string
   /** wordBank / listenBank — эталонное предложение (режется на плитки по пробелам). */
   sentence?: string
   /** wordBank / listenBank — лишние плитки-обманки. */

@@ -41,7 +41,10 @@ import { addCards, deckOwner } from '../data/reviewDeck'
 import { cardsFromHomework } from '../lib/reviewCapture'
 import VocabIntro from './VocabIntro'
 import HomeworkFlowBar from './HomeworkFlowBar'
+import ChamoTrace from './ChamoTrace'
+import SyllableBuilder from './SyllableBuilder'
 import { isLanguageSubject } from '../lib/subjects'
+import { chamoOf } from '../data/hangul'
 import TheorySheet from './TheorySheet'
 import { useReadingVisible } from '../store/readingStore'
 import { findLessonById, getLessonDetail } from '../data/lessonContent'
@@ -781,6 +784,9 @@ function questionAutoGradable(q: HomeworkQuizQuestion) {
   if (langTp === 'minimalPair') return !!q.pairA && !!q.pairB && !!q.correctPair
   if (langTp === 'flashcard') return !!q.back?.trim()
   if (langTp === 'pattern') return drillItems(q).length > 0
+  // Обводка: проверяет сам холст — он и есть эталон, сверять нечего.
+  if (langTp === 'trace') return !!q.chamo
+  if (langTp === 'buildSyllable') return chamoOf(q.syllable ?? '').length >= 2
   // speaking / imageDescribe / imageCompare — только учителем.
   const tp = qType(q)
   if (tp === 'fill' || tp === 'extended') return !!q.referenceAnswer?.trim()
@@ -808,6 +814,12 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
       return matchesAnyAnswer(ans, [q.referenceAnswer, ...(q.altAnswers ?? [])])
     }
     if (langTp === 'minimalPair') return ans === q.correctPair
+    if (langTp === 'trace') return ans === 'done'
+    if (langTp === 'buildSyllable') {
+      const want = chamoOf(q.syllable ?? '')
+      const got = ans.split(',').filter(Boolean)
+      return want.length >= 2 && got.length === want.length && got.every((c, i) => c === want[i])
+    }
     if (langTp === 'flashcard') {
       if (!q.back?.trim()) return false
       // Карточка проверяет значение, а не форму: падеж, вид глагола, предлог и
@@ -2732,6 +2744,22 @@ export default function HomeworkFlow({
                         )
                       })}
                     </div>
+                    /* Письменность: обводка буквы и сборка слога из букв. */
+                    ) : qType(question) === 'trace' && question.chamo ? (
+                    <ChamoTrace
+                      chamo={question.chamo}
+                      value={selectedAnswer}
+                      disabled={locked}
+                      onChange={v => setFreeAnswer(question.id, v)}
+                    />
+                    ) : qType(question) === 'buildSyllable' && question.syllable ? (
+                    <SyllableBuilder
+                      syllable={question.syllable}
+                      value={selectedAnswer}
+                      disabled={locked}
+                      showVerdict={showVerdict}
+                      onChange={v => setFreeAnswer(question.id, v)}
+                    />
                     ) : qType(question) === 'sequence' && (question.sequenceItems?.length ?? 0) > 0 ? (
                     <SequenceSolver
                       items={question.sequenceItems!}

@@ -49,6 +49,7 @@ import { PORTUGUESE2_THEORY } from './portugueseIntermediateTheory'
 import type { LangModule, LangUnit, LanguageCourseSpec, VocabItem, CourseFigures } from './languageCourse'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 import { PTB2_VIDEO } from './languageVideosExtra'
+import { PORTUGUESE2_FIGURES_EXTRA } from './portugueseIntermediateFigures'
 
 export const PORTUGUESE2_MODULES: LangModule[] = [
   { title: 'Времена и наклонения', subtitle: 'Условное, три сослагательных, согласование', units: [1, 2, 3, 4, 5] },
@@ -1209,7 +1210,8 @@ export const PORTUGUESE_INTERMEDIATE: LanguageCourseSpec = {
     // Видео добрано по итогам аудита: курс шёл без единого ролика.
     videoUrl: PTB2_VIDEO[u.shortId] ?? u.videoUrl,
   })),
-  figures: PORTUGUESE2_FIGURES,
+  // Схемы-доборы по итогам аудита живут отдельным файлом.
+  figures: { ...PORTUGUESE2_FIGURES, ...PORTUGUESE2_FIGURES_EXTRA },
 }
 
 export const COURSE_SUMMARY = courseSummary(PORTUGUESE_INTERMEDIATE)

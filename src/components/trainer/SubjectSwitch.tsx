@@ -25,6 +25,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { useTheme } from '../../store/themeStore'
+import { useScrollLock } from '../../lib/useScrollLock'
 import { useTrainerSubject, type TrainerSubjectOption, type TrainerSubjectState } from '../../lib/trainerSubject'
 
 type Palette = { accent: string; text: string; ring: string; soft?: string }
@@ -140,8 +141,13 @@ export function SubjectHero({ state, subtitle, palette }: {
   const t = useT()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
   const { options, current, loadDue } = state
   const many = options.length > 1
+
+  // Пока список открыт, фон стоит: иначе колесо над меню крутило страницу и
+  // меню уезжало вместе с шапкой рейла.
+  useScrollLock(open, menuRef)
 
   useEffect(() => {
     if (!open) return
@@ -195,10 +201,13 @@ export function SubjectHero({ state, subtitle, palette }: {
       </div>
 
       {open && (
-        <div style={{
+        <div ref={menuRef} className="no-scrollbar" style={{
           position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 50,
           background: 'var(--color-bg-input)', borderRadius: 14, padding: 6,
           border: '1px solid var(--color-border)', boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
+          // Длинный список (у ученика бывает восемь предметов) крутится сам, а
+          // не тянет за собой фон — тот на время выбора заморожен.
+          maxHeight: 'min(60vh, 420px)', overflowY: 'auto', overscrollBehavior: 'contain',
         }}>
           <SubjectList state={state} accent={palette.accent} onPicked={() => setOpen(false)} />
         </div>
@@ -222,8 +231,11 @@ export function SubjectPill({ state, palette, onOpenList }: {
   const t = useT()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
   const { options, current, loadDue } = state
   const many = options.length > 1
+
+  useScrollLock(open, menuRef)
 
   useEffect(() => {
     if (!open) return
@@ -260,10 +272,11 @@ export function SubjectPill({ state, palette, onOpenList }: {
       </button>
 
       {open && (
-        <div style={{
+        <div ref={menuRef} className="no-scrollbar" style={{
           position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 60, minWidth: 280,
           background: 'var(--color-bg-input)', borderRadius: 14, padding: 6,
           border: '1px solid var(--color-border)', boxShadow: '0 12px 40px rgba(0,0,0,0.22)',
+          maxHeight: 'min(60vh, 420px)', overflowY: 'auto', overscrollBehavior: 'contain',
         }}>
           <SubjectList state={state} accent={palette.accent} onPicked={() => setOpen(false)} />
         </div>

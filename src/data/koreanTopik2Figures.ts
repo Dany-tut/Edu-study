@@ -10,7 +10,7 @@
 import { formTable, formulaStrip, contrastPair, ladderFigure } from './lessonFigures'
 import type { CourseFigures } from './languageCourse'
 
-export const KOREAN2_FIGURES: CourseFigures = {
+export const KOREAN2_FIGURES_EXTRA: CourseFigures = {
   'kot2-01': [{
     after: 2,
     caption: 'Три способа превратить глагол в существительное',
