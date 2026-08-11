@@ -645,6 +645,9 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
     lastTap.current = { at: now, zone }
     tapTimer.current = window.setTimeout(() => {
       tapTimer.current = null
+      // Пауза уже сработала — следующий тап начинает счёт заново, иначе он
+      // догонял бы этот и стрелял ещё и перемоткой.
+      lastTap.current = null
       if (pausedRef.current) doPlay(); else doPause()
     }, TAP_MS)
   }, [doPlay, doPause, doSeek, toggleFullscreen, wake])
@@ -862,9 +865,92 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
             </button>
           )}
 
+          {/* Отклик двойного тапа: волна от того края, куда тапнули. */}
+          {skipFlash && (
+            <motion.div
+              key={skipFlash.n}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 1, 0] }}
+              transition={{ duration: 0.52, times: [0, 0.25, 1] }}
+              style={{
+                position: 'absolute', top: 0, bottom: 0, width: '34%',
+                ...(skipFlash.side === 'right' ? { right: 0 } : { left: 0 }),
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                gap: 7, color: '#fff', pointerEvents: 'none',
+                background: `radial-gradient(circle at ${skipFlash.side === 'right' ? '100%' : '0%'} 50%, rgba(255,255,255,0.20), transparent 72%)`,
+              }}
+            >
+              {skipFlash.side === 'right' ? <RotateCw size={22} /> : <RotateCcw size={22} />}
+              <span style={{ fontSize: 15, fontWeight: 800 }}>10</span>
+            </motion.div>
+          )}
+
+          {/* Пилюля скраба: время под пальцем и сдвиг от точки, где взялись. */}
+          {gesture === 'scrub' && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.16 }}
+              style={{
+                position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
+                display: 'flex', alignItems: 'baseline', gap: 10, padding: '10px 18px',
+                borderRadius: 999, background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(10px)',
+                color: '#fff', pointerEvents: 'none', whiteSpace: 'nowrap',
+              }}
+            >
+              <span style={{ fontSize: 21, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
+                {formatClock(current)}
+              </span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.62)', fontVariantNumeric: 'tabular-nums' }}>
+                {current >= scrubFrom ? '+' : '−'}{formatClock(Math.abs(current - scrubFrom))}
+              </span>
+            </motion.div>
+          )}
+
+          {/* Плашка ускорения с замком: кольцо заполняется, пока ведут вверх. */}
+          {(gesture === 'ff' || gesture === 'rw') && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.16 }}
+              style={{
+                position: 'absolute', top: 18, left: '50%', transform: 'translateX(-50%)',
+                display: 'flex', alignItems: 'center', gap: 9, padding: '7px 14px',
+                borderRadius: 999, background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(10px)',
+                color: '#fff', pointerEvents: 'none', whiteSpace: 'nowrap',
+              }}
+            >
+              {gesture === 'ff' ? <ChevronsRight size={18} /> : <ChevronsLeft size={18} />}
+              <span style={{ fontSize: 14.5, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{boost}×</span>
+              <span style={{ position: 'relative', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width={26} height={26} style={{ position: 'absolute', inset: 0, transform: 'rotate(-90deg)' }} aria-hidden>
+                  <circle cx={13} cy={13} r={11} fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth={2} />
+                  <circle
+                    cx={13} cy={13} r={11} fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round"
+                    strokeDasharray={69.1}
+                    strokeDashoffset={69.1 * (1 - (boostLocked ? 1 : lockFill))}
+                    style={{ transition: 'stroke-dashoffset 0.08s linear' }}
+                  />
+                </svg>
+                <motion.span
+                  animate={boostLocked ? { scale: [1, 1.35, 1] } : { scale: 1 }}
+                  transition={{ duration: 0.34 }}
+                  style={{ display: 'flex' }}
+                >
+                  {boostLocked
+                    ? <Lock size={13} />
+                    : <LockOpen size={13} style={{ opacity: 0.35 + lockFill * 0.65 }} />}
+                </motion.span>
+              </span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>
+                {boostLocked ? t('тап — снять') : t('вверх — зафиксировать')}
+              </span>
+            </motion.div>
+          )}
+
           <motion.div
             initial={false}
-            animate={{ opacity: barVisible || paused ? 1 : 0, y: barVisible || paused ? 0 : 12 }}
+            animate={{ opacity: barVisible || paused || !!gesture ? 1 : 0, y: barVisible || paused || !!gesture ? 0 : 12 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
             style={{
               position: 'absolute', left: 0, right: 0, bottom: 0, padding: '28px 14px 12px',
@@ -880,7 +966,9 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
               onPointerLeave={() => setHoverAt(null)}
               style={{ position: 'relative', height: 18, display: 'flex', alignItems: 'center', cursor: 'pointer', touchAction: 'none' }}
             >
-              <div style={{ position: 'relative', width: '100%', height: scrubbing ? 6 : 4, borderRadius: 999, background: 'rgba(255,255,255,0.24)', transition: 'height 0.12s ease' }}>
+              {/* Комета: бегунка нет вовсе, положение держит светлая голова на
+                  конце заливки, а хвост за ней гаснет. */}
+              <div style={{ position: 'relative', width: '100%', height: scrubbing ? 6 : 3, borderRadius: 999, background: 'rgba(255,255,255,0.22)', transition: 'height 0.14s ease' }}>
                 <div style={{ position: 'absolute', inset: 0, width: `${buffered * 100}%`, borderRadius: 999, background: 'rgba(255,255,255,0.28)' }} />
                 {/* Уже отсмотренные куски — видно, что осталось пересмотреть. */}
                 {duration > 0 && watch.ranges.map(([a, b], i) => (
@@ -889,28 +977,35 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
                     style={{
                       position: 'absolute', top: 0, bottom: 0,
                       left: `${(a / duration) * 100}%`, width: `${((b - a) / duration) * 100}%`,
-                      background: 'rgba(255,255,255,0.42)', borderRadius: 999,
+                      background: 'rgba(255,255,255,0.40)', borderRadius: 999,
                     }}
                   />
                 ))}
-                <div style={{ position: 'absolute', inset: 0, width: `${pct}%`, borderRadius: 999, background: 'var(--grad-purple, linear-gradient(90deg,#7C5CFF,#A855F7))' }} />
+                <div
+                  style={{
+                    position: 'absolute', inset: 0, width: `${pct}%`, borderRadius: 999,
+                    background: 'linear-gradient(90deg, rgba(124,92,255,0.45), #7C5CFF 55%, #C7BCFF 86%, #FFFFFF)',
+                  }}
+                />
+                {/* Главы — прорези цветом корпуса, а не точки поверх линии. */}
                 {duration > 0 && timecodes.map(tc => (
                   <span
                     key={tc.seconds}
                     title={tc.label}
                     style={{
-                      position: 'absolute', top: -1, bottom: -1, width: 2, borderRadius: 2,
+                      position: 'absolute', top: -1, bottom: -1, width: 2,
                       left: `${Math.min(99.8, (tc.seconds / duration) * 100)}%`,
-                      background: 'rgba(255,255,255,0.75)',
+                      background: 'rgba(0,0,0,0.55)',
                     }}
                   />
                 ))}
                 <span
                   style={{
-                    position: 'absolute', top: '50%', left: `${pct}%`,
-                    width: scrubbing ? 14 : 11, height: scrubbing ? 14 : 11, borderRadius: '50%',
-                    transform: 'translate(-50%, -50%)', background: '#fff',
-                    boxShadow: '0 1px 6px rgba(0,0,0,0.45)', transition: 'width 0.12s ease, height 0.12s ease',
+                    position: 'absolute', top: '50%', left: `max(0px, calc(${pct}% - 16px))`,
+                    width: 16, height: scrubbing ? 7 : 5, borderRadius: 999,
+                    transform: 'translateY(-50%)', background: '#fff',
+                    boxShadow: '0 0 10px rgba(199,188,255,0.85)',
+                    transition: 'height 0.14s ease',
                   }}
                 />
               </div>
