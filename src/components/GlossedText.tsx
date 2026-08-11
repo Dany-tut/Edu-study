@@ -105,31 +105,40 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
     return segments.map(s => { const start = at; at += s.text.length; return start })
   }, [segments])
 
-  // Разбивка под транскрипцию: слово вместе с прилипшими к нему знаками.
+  // Разбивка под транскрипцию: КОЛОНКА — ЭТО СЛОВО ЦЕЛИКОМ, до пробела.
   //
-  // Зачем отдельный проход. В режиме ruby колонка слова шире самого слова
-  // (кириллица под хангылем длиннее его раза в полтора), и знак препинания,
-  // стоящий отдельным куском, отъезжает от своего слова на эту разницу: «될까요
-  // ?». Поэтому знаки без пробела приклеиваем к соседнему слову и рисуем внутри
-  // его колонки, а пробелы оставляем обычными кусками текста.
+  // Почему не по кускам словаря. Для хангыля и кандзи единица разбора — один
+  // знак (в lib/lexicon.ts так и написано: откусывать больше нечего), поэтому
+  // «죄송한데» разложено на четыре куска. Если писать чтение под каждым, вместо
+  // «чвесонханде» получится «чве сон хан де» — четыре бессмысленных слога, да
+  // ещё и раздвигающих слово вчетверо. Значит, чтение считаем по слову, а
+  // кликабельными кусочками внутри него слово быть не перестаёт.
+  //
+  // Заодно это чинит знаки препинания: колонка шире своего слова (кириллица
+  // длиннее хангыля), и отдельно стоящая точка отъезжала от него на эту
+  // разницу — «될까요 ?».
   const rubyUnits = useMemo(() => {
     if (!ruby) return null
-    type Unit = { kind: 'word'; i: number; pre: string; post: string } | { kind: 'plain'; text: string }
+    type Item = { seg: number } | { text: string }
+    type Unit = { kind: 'col'; items: Item[]; text: string } | { kind: 'space'; text: string }
     const out: Unit[] = []
-    let pre = ''
-    for (let i = 0; i < segments.length; i++) {
-      const seg = segments[i]
-      if (seg.word) { out.push({ kind: 'word', i, pre, post: '' }); pre = ''; continue }
-      let text = seg.text
-      const last = out[out.length - 1]
-      const lead = text.match(/^\S*/)![0]
-      if (lead && last?.kind === 'word') { last.post += lead; text = text.slice(lead.length) }
-      const tail = text.match(/\S*$/)![0]
-      if (tail) text = text.slice(0, text.length - tail.length)
-      if (text) out.push({ kind: 'plain', text })
-      pre = tail
+    let col: { kind: 'col'; items: Item[]; text: string } | null = null
+    const flush = () => { if (col) { out.push(col); col = null } }
+    const add = (item: Item, text: string) => {
+      if (!col) col = { kind: 'col', items: [], text: '' }
+      col.items.push(item)
+      col.text += text
     }
-    if (pre) out.push({ kind: 'plain', text: pre })
+
+    segments.forEach((seg, i) => {
+      if (seg.word) { add({ seg: i }, seg.text); return }
+      // Пробелы рвут колонку, всё остальное липнет к соседнему слову.
+      for (const chunk of seg.text.match(/\s+|\S+/g) ?? []) {
+        if (/^\s/.test(chunk)) { flush(); out.push({ kind: 'space', text: chunk }) }
+        else add({ text: chunk }, chunk)
+      }
+    })
+    flush()
     return out
   }, [segments, ruby])
 
@@ -361,18 +370,20 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
       {rubyUnits
         // Слово и его чтение — одна колонка: перенос строки уносит их вместе, и
         // транскрипция не может оторваться от своего слова.
-        ? rubyUnits.map((u, k) => u.kind === 'plain'
+        ? rubyUnits.map((u, k) => u.kind === 'space'
           ? <span key={k}>{u.text}</span>
           : (
             <span key={k} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', verticalAlign: 'top' }}>
               <span style={{ whiteSpace: 'nowrap' }}>
-                {u.pre}{chipFor(segments[u.i], u.i)}{u.post}
+                {u.items.map((it, j) => ('seg' in it
+                  ? chipFor(segments[it.seg], it.seg)
+                  : <span key={`p${j}`}>{it.text}</span>))}
               </span>
               <span style={{
                 fontSize: '0.6em', lineHeight: 1.4, color: 'var(--color-text-3)',
                 whiteSpace: 'nowrap', letterSpacing: 0.1,
               }}>
-                {wordReading(segments[u.i].text, lang)}
+                {wordReading(u.text.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ''), lang)}
               </span>
             </span>
           ))
