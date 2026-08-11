@@ -742,6 +742,10 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
   // главы на шкале и подсветка в списке обязаны переключаться одновременно.
   const activeChapter = activeTimecodeIndex(timecodes, current)
 
+  // Пока ускорение играет движком (а с защёлкой оно живёт и без пальца), внизу
+  // должна стоять реальная скорость, а не та, что выбрана в меню.
+  const liveRate = gesture === 'ff' && canRate && boost <= ENGINE_MAX_RATE ? boost : rate
+
   const pct = duration ? Math.min(100, (current / duration) * 100) : 0
   const ratio = watchRatio({ ...watch, duration: duration || watch.duration })
   const resumeAt = hasResumePoint(watch) ? watch.position : 0
@@ -907,16 +911,16 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
             </motion.div>
           )}
 
-          {/* Плашка ускорения — прежняя строка, только по центру кадра. Стрелок
-              ровно столько, какая ступень, а замок наливается снизу вверх, туда
-              же, куда ведут палец. */}
+          {/* Плашка ускорения — по центру кадра, но выше круга плей/паузы: на
+              его месте она закрывала саму кнопку. Стрелок ровно столько, какая
+              ступень, а замок наливается снизу вверх, туда же, куда ведут палец. */}
           {(gesture === 'ff' || gesture === 'rw') && (
             <motion.div
               initial={{ opacity: 0, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.16 }}
               style={{
-                position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
+                position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, calc(-50% - 64px))',
                 display: 'flex', alignItems: 'center', gap: 9, padding: '7px 14px',
                 borderRadius: 999, background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(10px)',
                 color: '#fff', pointerEvents: 'none', whiteSpace: 'nowrap',

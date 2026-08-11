@@ -512,7 +512,10 @@ function pictureTasks(unit: LangUnit, idBase: string, lang: string) {
         type: 'single',
         question: 'Что на картинке? Выберите слово.',
         image: vocabImage(target.ru),
-        imageSize: 40,
+        // Размер S (25%): при 40% картинка съедала экран и четыре варианта
+        // уходили под сгиб — задание переставало быть «одним экраном».
+        // Рисунки простые (силуэт предмета), в четверть колонки они читаются.
+        imageSize: 25,
         choices,
         correctChoices: [correct],
       },

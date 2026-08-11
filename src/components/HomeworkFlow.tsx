@@ -2684,6 +2684,11 @@ export default function HomeworkFlow({
                             style={{
                               display: 'block', marginTop: 10, borderRadius: 14,
                               width: `${question.imageSize ?? DEFAULT_IMAGE_SIZE}%`, maxWidth: '100%',
+                              // Потолок по высоте: ширина задана в процентах от
+                              // колонки, и высокая картинка в узком экране всё
+                              // равно выталкивала варианты под сгиб. contain —
+                              // чтобы упереться в потолок, а не сплющиться.
+                              maxHeight: '32vh', objectFit: 'contain', objectPosition: 'left top',
                               border: '1px solid var(--color-border)', background: '#fff',
                             }}
                           />

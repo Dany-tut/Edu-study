@@ -93,6 +93,17 @@ const shown: LessonHomework = useHangul
   }
   : homework
 
+// ?step=N — открыть сразу нужное задание. Без этого до сборки слога в первом
+// уроке двадцать кликов, и проверять её так никто не станет. Пишем прямо в тот
+// же черновик, из которого HomeworkFlow восстанавливает шаг после перезагрузки.
+const step = Number(new URLSearchParams(location.search).get('step'))
+if (Number.isFinite(step) && step >= 0) {
+  const key = 'student-dashboard:homework:stand-ko-1'
+  let draft: Record<string, unknown> = {}
+  try { draft = JSON.parse(localStorage.getItem(key) ?? '{}') } catch { /* пустой черновик */ }
+  localStorage.setItem(key, JSON.stringify({ ...draft, flowStep: step }))
+}
+
 createRoot(document.getElementById('root')!).render(
   <div style={{ padding: 24, maxWidth: 1100, margin: '0 auto' }}>
     <HomeworkFlow

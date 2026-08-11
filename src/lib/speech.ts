@@ -176,6 +176,56 @@ export function hasVoiceFor(lang?: string): boolean {
   return !!locale && voicesFor(locale).length > 0
 }
 
+/**
+ * Голоса языка для выбора учеником: сначала штатные дикторы, потом
+ * премиальные, потом остальные.
+ *
+ * ЗАЧЕМ ДАВАТЬ ВЫБОР. Автоматика угадывает по именам, а имена в системах
+ * меняются: на одной машине «Саманта», на другой «Google US English», на
+ * третьей ни того, ни другого — и ученик слушает урок голосом, который мы для
+ * него выбрали вслепую. Разница между дикторами на слух больше, чем всё
+ * остальное в озвучке вместе взятое, поэтому последнее слово — за ухом ученика.
+ *
+ * ЧЕГО В СПИСКЕ НЕТ. Мультиязычного семейства («Eddy», «Grandma» и прочие
+ * характерные голоса Apple): они есть на каждом языке, забивают список и звучат
+ * как мультфильм.
+ */
+export function listVoices(lang?: string): SpeechSynthesisVoice[] {
+  const locale = speechLocale(lang)
+  if (!locale || typeof speechSynthesis === 'undefined') return []
+  if (!voices.length) refreshVoices()
+  const known = KNOWN_VOICES[langOf(locale)]
+  const rank = (v: SpeechSynthesisVoice) =>
+    known?.test(v.name.trim()) ? 0 : GOOD_VOICE.test(v.name) ? 1 : 2
+  return voicesFor(locale)
+    .filter(v => !characterVoices.has(baseName(v.name)))
+    .sort((a, b) => rank(a) - rank(b))
+}
+
+// ─── Выбор ученика ───────────────────────────────────────────────────────────
+
+// Свой голос на каждый язык: корейский и английский слушает один и тот же
+// человек, а дикторы у них разные. Живёт в localStorage, а не в базе: голос
+// зависит от того, ЧТО УСТАНОВЛЕНО В ЭТОЙ СИСТЕМЕ, и на другом устройстве имя
+// из настроек всё равно ничего не значит.
+const PREF_KEY = 'tts-voice'
+
+function prefKey(lang?: string): string {
+  return `${PREF_KEY}:${langOf(speechLocale(lang) ?? 'x')}`
+}
+
+/** Выбранный учеником голос для языка. Пустая строка — «системный». */
+export function preferredVoice(lang?: string): string {
+  try { return localStorage.getItem(prefKey(lang)) ?? '' } catch { return '' }
+}
+
+export function setPreferredVoice(lang: string | undefined, name: string) {
+  try {
+    if (name) localStorage.setItem(prefKey(lang), name)
+    else localStorage.removeItem(prefKey(lang))
+  } catch { /* приватный режим — просто останемся на автовыборе */ }
+}
+
 // ─── Нарезка ─────────────────────────────────────────────────────────────────
 
 /** Таймкод в начале строки: «20:41  Come now if you can.» Это разметка сцены,
@@ -295,7 +345,11 @@ export function speak(raw: string, opts: SpeakOptions = {}): SpeechHandle {
   activeEnd = opts.onEnd ?? null
 
   const locale = speechLocale(opts.lang)
-  const voice = (opts.voiceName && voices.find(v => v.name === opts.voiceName)) || pickVoice(locale)
+  // Голос задания (его выбрал учитель) → голос ученика для этого языка →
+  // автовыбор. Выбор ученика бьёт автоматику: она угадывает по именам, а он
+  // слышит результат.
+  const chosen = opts.voiceName || preferredVoice(opts.lang)
+  const voice = (chosen && voices.find(v => v.name === chosen)) || pickVoice(locale)
   const rate = opts.rate ?? 1
   const gap = opts.gap ?? 0
 

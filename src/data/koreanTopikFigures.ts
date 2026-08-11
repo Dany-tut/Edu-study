@@ -10,6 +10,17 @@ import { formTable, formulaStrip, contrastPair, timelineFigure, ladderFigure, cl
 import type { CourseFigures } from './languageCourse'
 
 export const KOREAN_FIGURES_EXTRA: CourseFigures = {
+  'kotp-00': [{
+    after: 3,
+    caption: 'Что должно читаться без раздумий',
+    src: formTable('Проверка чтения', ['Слог', 'Разбор', 'Читается'], [
+      ['가', 'ㄱ + ㅏ', 'ка — гласная справа'],
+      ['고', 'ㄱ + ㅗ', 'ко — гласная снизу'],
+      ['각', 'ㄱ + ㅏ + ㄱ', 'как — патчхим без взрыва'],
+      ['방 / 빵', 'ㅂ / ㅃ', 'пан / ппан — простая и напряжённая'],
+    ], { note: 'Если хоть одна строка потребовала разбора по буквам — вернитесь к курсу «Корейский с нуля: хангыль»', highlight: [2] }),
+  }],
+
   'kotp-09': [{
     after: 2,
     caption: 'Желание строится на основе глагола',

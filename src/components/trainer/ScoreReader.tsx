@@ -38,8 +38,18 @@ import type { Gloss } from '../../data/readingLibrary'
 // и озвучка: только так номер звучащей реплики совпадает со строкой на экране.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Строка партитуры. line === null — строку не озвучиваем (ремарка, разделитель). */
-interface Row { text: string; line: number | null }
+/**
+ * Кусок озвучки. line === null — кусок не звучит (ремарка без букв).
+ *
+ * Кусков в строке бывает несколько: длинный абзац озвучка режет по предложениям
+ * и по пробелам (см. speechLines). На экране такой разрыв — не перенос строки, а
+ * просто следующий кусок в той же строке: абзац, разорванный посреди
+ * предложения, читается как ошибка вёрстки.
+ */
+interface Chunk { text: string; line: number | null }
+
+/** Строка исходного текста — единица показа. */
+interface Row { chunks: Chunk[] }
 
 /** Блок «оригинал ↔ перевод»: одна строка диалога или целый абзац прозы. */
 interface Unit { rows: Row[]; ru?: string }
@@ -62,20 +72,18 @@ function build(body: string, translation?: string): { units: Unit[]; loose?: str
 
   for (let bi = 0; bi < blocks.length; bi++) {
     const lines = blocks[bi].split(/\r?\n/).map(s => s.trim()).filter(Boolean)
-    // Длинная строка режется озвучкой на несколько реплик — на экране это тоже
-    // отдельные строки, иначе подсветка не найдёт себе места.
-    const rows: Row[][] = lines.map(l => {
+    const rows: Row[] = lines.map(l => {
       const chunks = speechLines(l)
-      return chunks.length ? chunks.map(text => ({ text, line: line++ })) : [{ text: l, line: null }]
+      return { chunks: chunks.length ? chunks.map(text => ({ text, line: line++ })) : [{ text: l, line: null }] }
     })
 
     const ru = aligned ? ruBlocks[bi] : undefined
     const ruLines = ru ? ru.split(/\r?\n/).map(s => s.trim()).filter(Boolean) : []
 
     if (ru && ruLines.length > 1 && ruLines.length === lines.length) {
-      lines.forEach((_, i) => units.push({ rows: rows[i], ru: ruLines[i] }))
+      lines.forEach((_, i) => units.push({ rows: [rows[i]], ru: ruLines[i] }))
     } else {
-      units.push({ rows: rows.flat(), ru })
+      units.push({ rows, ru })
     }
   }
 
@@ -274,32 +282,43 @@ function FragmentRow({ unit, twoCol, showRu, cell, ruStyle, lang, glossary, acce
       ...cell,
       ...(twoCol ? { borderRight: '1px solid var(--color-border-soft)', paddingRight: 18 } : null),
     }}>
-      {unit.rows.map((r, ri) => {
-        const live = r.line !== null && r.line === line
-        return (
-          <div
-            key={ri}
-            style={{
-              borderRadius: 10, padding: '2px 6px', margin: '0 -6px',
-              background: live ? soft : 'transparent',
-              transition: 'background 200ms ease',
-            }}
-          >
-            <GlossedText
-              text={r.text}
-              lang={lang}
-              extra={glossary}
-              accent={accent}
-              highlight={highlight}
-              ruby={ruby}
-              spokenChar={live ? char : null}
-              // Межстрочный интервал больше обычного: под строкой стоит ещё
-              // строка транскрипции, и на 1.85 они слипаются.
-              style={{ fontSize: 16.5, lineHeight: ruby ? 2.1 : 1.85, color: 'var(--color-text)' }}
-            />
-          </div>
-        )
-      })}
+      {unit.rows.map((r, ri) => (
+        <div
+          key={ri}
+          // Межстрочный интервал больше обычного: под строкой стоит ещё строка
+          // транскрипции, и на 1.85 они слипаются.
+          style={{ fontSize: 16.5, lineHeight: ruby ? 2.1 : 1.85, color: 'var(--color-text)' }}
+        >
+          {r.chunks.map((c, ci) => {
+            const live = c.line !== null && c.line === line
+            return (
+              <span
+                key={ci}
+                style={{
+                  borderRadius: 8,
+                  background: live ? soft : 'transparent',
+                  boxShadow: live ? `0 0 0 4px ${soft}` : 'none',
+                  transition: 'background 200ms ease',
+                }}
+              >
+                {ci > 0 && ' '}
+                <GlossedText
+                  text={c.text}
+                  lang={lang}
+                  extra={glossary}
+                  accent={accent}
+                  highlight={highlight}
+                  ruby={ruby}
+                  spokenChar={live ? char : null}
+                  // Куски одной строки идут в поток, а не блоками: разрыв
+                  // посреди предложения читается как ошибка вёрстки.
+                  style={{ display: 'inline' }}
+                />
+              </span>
+            )
+          })}
+        </div>
+      ))}
     </div>
   )
 

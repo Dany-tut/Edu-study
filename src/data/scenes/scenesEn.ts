@@ -6168,4 +6168,1138 @@ There was a pause, and then a great deal of nodding. Afterwards two people came 
       },
     ],
   },
+
+  // ── Лунный свет: карточка, наш текст ───────────────────────────────────────
+  {
+    id: 'sc-moonlight-1',
+    workId: 'moonlight',
+    lang: 'en', title: 'Урок плавания', level: 'B1', minutes: 3,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'У Дженкинса реплик мало, и почти всё сказано паузами. Ниже наш текст, записанный так, как пишут сценарий: INT./EXT., ремарка, реплика. Жанр стоит освоить отдельно — сценарий читается иначе, чем проза: время всегда настоящее, подлежащее часто выброшено, а ремарка описывает только то, что видно и слышно.',
+    body: `EXT. BEACH — MORNING
+
+Grey water. No wind. A MAN, forties, stands waist-deep, holding a BOY, ten, under the shoulders. The boy is stiff.
+
+MAN
+Let your head go back. All the way.
+
+BOY
+I’ll go under.
+
+MAN
+You will not. I’ve got you.
+
+The boy lets his head go back. His feet leave the sand. The man keeps one hand under his back.
+
+MAN (CONT’D)
+There. You’re doing it.
+
+BOY
+You’re holding me.
+
+MAN
+I’m touching you. That’s not the same thing.
+
+He takes the hand away. Two seconds. Three. The boy floats.
+
+BOY
+(quietly)
+Don’t go anywhere.
+
+MAN
+I’m right here.
+
+They stay like that. Somewhere behind them a car door closes. Neither of them looks.`,
+    translation: `НАТ. ПЛЯЖ — УТРО
+
+Серая вода. Ветра нет. МУЖЧИНА, лет сорока, стоит по пояс в воде, держа МАЛЬЧИКА, десять лет, под плечи. Мальчик напряжён.
+
+МУЖЧИНА
+Откинь голову назад. До конца.
+
+МАЛЬЧИК
+Я уйду под воду.
+
+МУЖЧИНА
+Не уйдёшь. Я держу.
+
+Мальчик откидывает голову. Ноги отрываются от песка. Мужчина держит одну руку у него под спиной.
+
+МУЖЧИНА (ПРОД.)
+Вот. Получается.
+
+МАЛЬЧИК
+Это ты меня держишь.
+
+МУЖЧИНА
+Я тебя касаюсь. Это не одно и то же.
+
+Он убирает руку. Две секунды. Три. Мальчик держится на воде.
+
+МАЛЬЧИК
+(тихо)
+Никуда не уходи.
+
+МУЖЧИНА
+Я здесь.
+
+Они остаются так. Где-то позади хлопает дверца машины. Ни один не оборачивается.`,
+    glossary: [
+      { term: 'EXT. / INT.', ru: 'НАТ. / ИНТ. — снаружи / в помещении; шапка сцены' },
+      { term: 'waist-deep', ru: 'по пояс (в воде)' },
+      { term: 'stiff', ru: 'напряжённый, скованный' },
+      { term: 'all the way', ru: 'до конца, полностью' },
+      { term: 'I’ve got you', ru: 'я держу; я рядом' },
+      { term: 'CONT’D', ru: 'continued — та же реплика продолжается' },
+      { term: 'That’s not the same thing', ru: 'это не одно и то же' },
+      { term: 'Don’t go anywhere', ru: 'никуда не уходи' },
+    ],
+    questions: [
+      {
+        q: 'What is the difference the man makes between holding and touching?',
+        options: [
+          'Holding keeps the boy up; touching only reassures him',
+          'They mean the same',
+          'Touching is stronger than holding',
+          'He is correcting the boy’s English',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'Why is a screenplay written in the present tense?',
+        options: [
+          'It is a grammar rule for all films',
+          'Because it describes what is happening on the screen right now',
+          'Because it is faster to type',
+          'Because the story is set in the present day',
+        ],
+        correct: 1,
+        why: 'Сценарий — инструкция к тому, что зритель увидит, поэтому Present Simple. Прошедшее время в ремарке — верный признак, что писал не сценарист.',
+      },
+      {
+        q: 'What do the last two lines tell us?',
+        options: [
+          'They are waiting for someone',
+          'Something else is happening nearby, and it does not matter to them',
+          'They are about to leave',
+          'The car belongs to the man',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Божья земля: карточка, наш текст ───────────────────────────────────────
+  {
+    id: 'sc-gods-own-country-1',
+    workId: 'gods-own-country',
+    lang: 'en', title: 'Окот в четыре утра', level: 'B2', minutes: 3,
+    topic: 'Работа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Фильм снят в Йоркшире и говорит по-йоркширски: фразы короткие, вежливых оборотов почти нет, а половина смысла — в том, что человек вообще заговорил. Ниже наш текст в том же регистре. Осторожно: nowt, owt и aye — настоящий северный английский, но это диалект. Понимать его полезно, писать так в письме или на экзамене нельзя.',
+    body: `Four in the morning and the third ewe of the night in trouble.
+
+“Hold her.”
+
+“I am holding her.”
+
+“Hold her proper.”
+
+The lamb came out wrong way round and not breathing. He cleared its mouth with a finger, rubbed it hard with straw, swung it once, twice. Nowt. He rubbed it again, harder than looked kind.
+
+It coughed.
+
+“There.”
+
+“Is it alright?”
+
+“It’s alive. That’ll do for now.”
+
+They put it under the lamp. The ewe was already licking at it, deciding.
+
+“You’ve done this before,” he said.
+
+“Aye. Two hundred a season, back home.”
+
+“Two hundred.” He wiped his hands on his trousers. He was going to say something else and did not. Then: “There’s tea in the flask.”
+
+Which was, from him, a considerable speech.`,
+    translation: `Четыре утра, и третья за ночь овца не может разродиться.
+
+— Держи её.
+
+— Я держу.
+
+— Держи как следует.
+
+Ягнёнок вышел задом наперёд и не дышал. Он пальцем прочистил ему рот, растёр его соломой, встряхнул раз, другой. Ничего. Растёр ещё — сильнее, чем выглядело милосердным.
+
+Ягнёнок кашлянул.
+
+— Вот.
+
+— С ним нормально?
+
+— Живой. Пока сойдёт.
+
+Его положили под лампу. Овца уже вылизывала его, решая.
+
+— Ты это уже делал, — сказал он.
+
+— Ага. Двести за сезон, у себя дома.
+
+— Двести. — Он вытер руки о штаны. Он собирался сказать что-то ещё и не сказал. Потом: — В термосе чай.
+
+Что для него было речью изрядной длины.`,
+    glossary: [
+      { term: 'ewe', ru: 'овца (самка)' },
+      { term: 'to be in trouble', ru: 'тут — не может разродиться' },
+      { term: 'proper', ru: 'диал. как следует; в норме properly' },
+      { term: 'wrong way round', ru: 'задом наперёд' },
+      { term: 'nowt', ru: 'диал. ничего; в норме nothing' },
+      { term: 'aye', ru: 'диал. да; север Англии и Шотландия' },
+      { term: 'That’ll do', ru: 'сойдёт, достаточно' },
+      { term: 'flask', ru: 'термос' },
+      { term: 'a considerable speech', ru: 'изрядная речь; иронически о двух словах' },
+    ],
+    questions: [
+      {
+        q: 'What is wrong with the lamb?',
+        options: [
+          'It is too small',
+          'It comes out backwards and is not breathing',
+          'The ewe rejects it',
+          'It is too cold',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Which of these is dialect, not standard English?',
+        options: [
+          'It’s alive',
+          'nowt, aye, hold her proper',
+          'There’s tea in the flask',
+          'Two hundred a season',
+        ],
+        correct: 1,
+        why: 'Понимать йоркширское nowt/owt/aye полезно — их слышно в кино и на улице. Писать так нельзя: в письменной норме это ошибка.',
+      },
+      {
+        q: 'Why does the narrator call "There’s tea in the flask" a considerable speech?',
+        options: [
+          'It is a long sentence',
+          'Because from this man even a small friendly remark is a lot',
+          'Because tea is important in England',
+          'Because he shouted it',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── С любовью, Саймон: карточка, наш текст ─────────────────────────────────
+  {
+    id: 'sc-love-simon-1',
+    workId: 'love-simon-film',
+    lang: 'en', title: 'Столовая, четвёртый урок', level: 'B1', minutes: 3,
+    topic: 'Учёба', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Экранизация «Симона»: та же история, но услышанная, а не прочитанная. Ниже наш текст сценарной записью — американская школьная речь в чистом виде. Полезно сравнить с письмами на карточке книги: одно и то же говорится вслух и на письме совершенно по-разному.',
+    body: `INT. HIGH SCHOOL CAFETERIA — DAY
+
+Noise. Trays. Four friends at the end of a long table.
+
+NICK
+So are you coming Friday or not?
+
+SIMON
+Depends who’s driving.
+
+ABBY
+I’m driving. I’m always driving.
+
+LEAH
+You drive like my grandmother.
+
+ABBY
+Your grandmother is an excellent driver.
+
+Simon’s phone lights up on the table. He turns it over, face down, without looking at it. Nobody notices. Leah notices.
+
+LEAH
+Who was that?
+
+SIMON
+Nobody.
+
+LEAH
+Cool. Tell Nobody I said hi.
+
+She goes back to her food. Simon looks at the back of his phone for a second too long.
+
+NICK
+(mouth full)
+Friday. Yes or no.
+
+SIMON
+Yeah. Yes. Friday.`,
+    translation: `ИНТ. ШКОЛЬНАЯ СТОЛОВАЯ — ДЕНЬ
+
+Шум. Подносы. Четверо друзей в конце длинного стола.
+
+НИК
+Ну так ты в пятницу идёшь или нет?
+
+САЙМОН
+Смотря кто за рулём.
+
+ЭББИ
+Я за рулём. Я всегда за рулём.
+
+ЛИА
+Ты водишь как моя бабушка.
+
+ЭББИ
+Твоя бабушка отлично водит.
+
+Телефон Саймона загорается на столе. Он переворачивает его экраном вниз, не посмотрев. Никто не замечает. Лиа замечает.
+
+ЛИА
+Кто это был?
+
+САЙМОН
+Никто.
+
+ЛИА
+Ясно. Передавай Никому привет.
+
+Она возвращается к еде. Саймон на секунду дольше нужного смотрит на заднюю крышку телефона.
+
+НИК
+(с набитым ртом)
+Пятница. Да или нет.
+
+САЙМОН
+Ага. Да. Пятница.`,
+    glossary: [
+      { term: 'tray', ru: 'поднос' },
+      { term: 'Depends who’s driving', ru: 'смотря кто за рулём' },
+      { term: 'to light up', ru: 'загореться (об экране)' },
+      { term: 'face down', ru: 'экраном вниз, лицом вниз' },
+      { term: 'Tell Nobody I said hi', ru: 'передавай Никому привет; шутка на слове nobody' },
+      { term: '(mouth full)', ru: 'с набитым ртом; ремарка о том, как сказано' },
+      { term: 'a second too long', ru: 'на секунду дольше, чем нужно' },
+      { term: 'Yeah. Yes.', ru: 'ага. да; поправка на более «взрослое» слово' },
+    ],
+    questions: [
+      {
+        q: 'What does Simon do when his phone lights up?',
+        options: [
+          'He answers it',
+          'He turns it face down without looking',
+          'He gives it to Leah',
+          'He switches it off',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does Leah say "Tell Nobody I said hi"?',
+        options: [
+          'She did not hear him',
+          'She is playing with his word "nobody" — she knows he is hiding something',
+          'She wants the phone',
+          'She is angry',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How is this different from the letters on the book’s card?',
+        options: [
+          'It is the same language',
+          'Speech is short and unfinished; the letters are full sentences and thought through',
+          'The letters are more casual',
+          'There is no difference in register',
+        ],
+        correct: 1,
+        why: 'Сравнение того стоит: устная речь живёт обрывками и подхватами, письмо — законченными фразами. Ученики, которые пишут как говорят, звучат по-английски неряшливо, и наоборот.',
+      },
+    ],
+  },
+
+  // ── Это грех: карточка, наш текст ──────────────────────────────────────────
+  {
+    id: 'sc-its-a-sin-1',
+    workId: 'its-a-sin',
+    lang: 'en', title: 'Письмо домой, 1986', level: 'B2', minutes: 4,
+    topic: 'Переписка и созвоны', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Лондон восьмидесятых: телефон — в коридоре и по счётчику, поэтому главное пишут письмами. Ниже наш текст в том же жанре — письмо домой, в котором сказано ровно столько, сколько можно сказать. Для языка это письменный британский регистр среднего уровня: полные фразы, оговорки, вежливые формулы вроде do let me know.',
+    body: `Dear Mum,
+
+Thank you for the parcel. The socks arrived in one piece and the cake did not, but it was very good all the same.
+
+Work is fine. I’m still at the shop three days a week and there is talk of putting me on the till, which sounds small but is actually a promotion, so do tell Dad.
+
+London is enormous and everybody walks very fast. I share the flat with four other people. Ash cooks, Roscoe washes up, and nobody has yet worked out whose job the bathroom is. It is loud and there is always someone on the stairs and I like it more than I can properly explain in a letter.
+
+You asked whether I am eating. I am eating.
+
+You asked the other thing again. I know you did not mean anything by it and I am not cross. I would just rather we talked about it when I am home at Christmas, and not on paper, if that is alright.
+
+Give my love to Nan. Tell her the cardigan fits.
+
+Do let me know about Dad’s hip.
+
+Love,
+Colin`,
+    translation: `Дорогая мама,
+
+Спасибо за посылку. Носки доехали целыми, кекс — нет, но всё равно был очень вкусный.
+
+С работой нормально. Я всё так же в магазине три дня в неделю, и поговаривают, что поставят меня на кассу, — звучит мелко, но это на самом деле повышение, так что папе расскажи.
+
+Лондон огромный, и все ходят очень быстро. Квартиру снимаю ещё с четырьмя. Эш готовит, Роско моет посуду, и никто до сих пор не выяснил, чья обязанность ванная. Шумно, на лестнице вечно кто-то есть, и мне тут нравится больше, чем я могу толком объяснить в письме.
+
+Ты спрашивала, ем ли я. Ем.
+
+Ты опять спросила про то, другое. Я знаю, что ты ничего такого не имела в виду, и я не сержусь. Я просто предпочёл бы поговорить об этом, когда приеду на Рождество, а не на бумаге, если можно.
+
+Передавай привет бабушке. Скажи, что кофта впору.
+
+Обязательно напиши, как папино бедро.
+
+С любовью,
+Колин`,
+    glossary: [
+      { term: 'parcel', ru: 'посылка; брит. вместо package' },
+      { term: 'in one piece', ru: 'целым, невредимым' },
+      { term: 'all the same', ru: 'всё равно, тем не менее' },
+      { term: 'there is talk of', ru: 'поговаривают, что' },
+      { term: 'to put somebody on the till', ru: 'поставить на кассу' },
+      { term: 'to wash up', ru: 'мыть посуду; брит.' },
+      { term: 'I am not cross', ru: 'я не сержусь; брит. вместо angry' },
+      { term: 'I would rather we talked', ru: 'я предпочёл бы, чтобы мы поговорили' },
+      { term: 'if that is alright', ru: 'если можно, если ты не против' },
+      { term: 'do let me know', ru: 'обязательно сообщи; do для нажима' },
+    ],
+    questions: [
+      {
+        q: 'What is "the other thing" the mother asked about?',
+        options: [
+          'The letter says plainly',
+          'It is never named — the writer moves it to Christmas instead',
+          'His job at the shop',
+          'The rent',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "do tell Dad" mean?',
+        options: [
+          'A question',
+          'An emphatic request: please do tell him',
+          'A refusal',
+          'A conditional',
+        ],
+        correct: 1,
+        why: 'do перед глаголом в повелительном наклонении — британский способ нажать вежливо: do come in, do let me know, do tell.',
+      },
+      {
+        q: 'Why does the writer prefer not to discuss it "on paper"?',
+        options: [
+          'He writes badly',
+          'A letter can be read by others and cannot be taken back',
+          'He has no more room',
+          'The post is slow',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Остановка сердца (сериал): карточка, наш текст ─────────────────────────
+  {
+    id: 'sc-heartstopper-series-1',
+    workId: 'heartstopper-series',
+    lang: 'en', title: 'Как читать субтитры', level: 'B1', minutes: 3,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сериал смотрят с английскими субтитрами — и субтитры это отдельный жанр со своими правилами: две строки, реплики разных людей через тире, звуки в скобках, паузы многоточием. Ниже наша дорожка субтитров в том же формате. Смысл упражнения — научиться читать то, что реально стоит внизу экрана, а не расшифровку с бумаги.',
+    body: `00:04:12,300 --> 00:04:14,100
+[school bell ringing]
+
+00:04:15,000 --> 00:04:17,640
+- You're in my seat.
+- Am I?
+
+00:04:17,720 --> 00:04:20,480
+I mean, there's no name on it,
+so technically...
+
+00:04:20,560 --> 00:04:21,900
+Technically.
+
+00:04:22,600 --> 00:04:25,320
+[chairs scraping]
+
+00:04:26,000 --> 00:04:29,160
+- You can stay. If you want.
+- Yeah?
+
+00:04:29,240 --> 00:04:30,880
+Yeah. Whatever.
+
+00:04:31,400 --> 00:04:34,000
+[quietly] It's just a chair.
+
+00:04:35,120 --> 00:04:37,600
+[bell ringing]
+[indistinct chatter]`,
+    translation: `00:04:12,300 --> 00:04:14,100
+[школьный звонок]
+
+00:04:15,000 --> 00:04:17,640
+— Ты на моём месте.
+— Разве?
+
+00:04:17,720 --> 00:04:20,480
+В смысле, тут же не написано,
+так что формально…
+
+00:04:20,560 --> 00:04:21,900
+Формально.
+
+00:04:22,600 --> 00:04:25,320
+[скрип стульев]
+
+00:04:26,000 --> 00:04:29,160
+— Можешь остаться. Если хочешь.
+— Да?
+
+00:04:29,240 --> 00:04:30,880
+Да. Не важно.
+
+00:04:31,400 --> 00:04:34,000
+[тихо] Это просто стул.
+
+00:04:35,120 --> 00:04:37,600
+[звонок]
+[неразборчивый гомон]`,
+    glossary: [
+      { term: '00:04:12,300 --> 00:04:14,100', ru: 'таймкод: с какой по какую секунду висит реплика' },
+      { term: '[school bell ringing]', ru: 'звук в квадратных скобках — для тех, кто не слышит' },
+      { term: '- реплика / - реплика', ru: 'тире в начале строк: говорят двое' },
+      { term: 'Am I?', ru: 'разве?; короткий переспрос вспомогательным глаголом' },
+      { term: 'technically', ru: 'формально, строго говоря' },
+      { term: '…', ru: 'многоточие: фразу не договорили' },
+      { term: 'Whatever', ru: 'не важно, как хочешь; часто прикрывает смущение' },
+      { term: 'indistinct chatter', ru: 'неразборчивый гомон; частая пометка в субтитрах' },
+    ],
+    questions: [
+      {
+        q: 'What do square brackets mark in a subtitle track?',
+        options: [
+          'Words nobody says — sounds and noises',
+          'The translator’s notes',
+          'Song lyrics only',
+          'Mistakes',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'Why do two lines begin with a dash?',
+        options: [
+          'The sentence continues',
+          'Two different people speak inside the same subtitle',
+          'It is a list',
+          'The sound is bad',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"You can stay. If you want." — what is the second sentence doing?',
+        options: [
+          'Setting a condition',
+          'Taking the weight out of the offer so it is easier to accept',
+          'Asking a question',
+          'Correcting the first sentence',
+        ],
+        correct: 1,
+        why: 'Приставленное if you want — типичный английский способ предложить, не надавив. Формально условие, по сути — вежливость.',
+      },
+    ],
+  },
+
+  // ── Шиттс-Крик: карточка, наш текст ────────────────────────────────────────
+  {
+    id: 'sc-schitts-creek-1',
+    workId: 'schitts-creek',
+    lang: 'en', title: 'Вежливо и невыносимо', level: 'B2', minutes: 3,
+    topic: 'Работа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Ситком держится на формулах, которыми по-английски язвят, не повышая голоса: I appreciate that, with respect, if I’m being honest. Ниже наш диалог в том же жанре. Практическая ценность прямая — это ровно те обороты, которыми ведут переговоры и отказывают на работе, только здесь они смешные и потому запоминаются.',
+    body: `“So. The sign.”
+
+“I love the sign.”
+
+“You hate the sign.”
+
+“I did not say that. I said I love the sign. What I feel about the sign is love.”
+
+“You have said the word ‘love’ three times, which is three times more than you have ever said it about anything.”
+
+“With respect, that is not fair.”
+
+“And you keep standing in front of it.”
+
+“…Because it is beautiful and I am protecting it from the sun.”
+
+“Right.”
+
+“Look. If I’m being honest — and I don’t want this to come out wrong —”
+
+“It always comes out wrong.”
+
+“— the font is a choice.”
+
+“It’s a font. Fonts are choices.”
+
+“It’s a bold choice. It is the boldest choice I have ever seen anyone make with a piece of wood.”
+
+A pause.
+
+“You could have just said you didn’t like it.”
+
+“I appreciate that. I could not have.”`,
+    translation: `— Итак. Вывеска.
+
+— Я обожаю вывеску.
+
+— Ты её терпеть не можешь.
+
+— Я такого не говорил. Я сказал, что обожаю вывеску. То, что я чувствую к вывеске, — это любовь.
+
+— Ты произнёс слово «люблю» три раза, что на три раза больше, чем ты произносил его о чём-либо вообще.
+
+— При всём уважении, это несправедливо.
+
+— И ты всё время стоишь перед ней.
+
+— …Потому что она прекрасна и я заслоняю её от солнца.
+
+— Ну да.
+
+— Слушай. Если честно — и я не хочу, чтобы это прозвучало не так —
+
+— Оно всегда звучит не так.
+
+— …шрифт — это решение.
+
+— Это шрифт. Шрифты и есть решения.
+
+— Это смелое решение. Это самое смелое решение, какое я видел, чтобы кто-то принял в отношении куска дерева.
+
+Пауза.
+
+— Мог бы просто сказать, что тебе не нравится.
+
+— Ценю. Не мог бы.`,
+    glossary: [
+      { term: 'With respect, …', ru: 'при всём уважении…; почти всегда предваряет возражение' },
+      { term: 'That is not fair', ru: 'это несправедливо' },
+      { term: 'If I’m being honest', ru: 'если честно; смягчение перед критикой' },
+      { term: 'to come out wrong', ru: 'прозвучать не так' },
+      { term: 'a bold choice', ru: 'смелое решение; в отзыве о работе — почти всегда упрёк' },
+      { term: 'I appreciate that', ru: 'ценю, спасибо; часто вежливое несогласие' },
+      { term: 'I could not have', ru: 'не мог бы (и не стал)' },
+      { term: 'Right.', ru: 'ну да; сухое «понятно», обозначающее недоверие' },
+    ],
+    questions: [
+      {
+        q: 'Does the first speaker like the sign?',
+        options: [
+          'Yes',
+          'No — and everything he says is a way of not saying so',
+          'He has not seen it',
+          'He made it himself',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "a bold choice" usually mean in a review of someone’s work?',
+        options: [
+          'Genuine praise',
+          'Polite criticism',
+          'A technical term',
+          'A question',
+        ],
+        correct: 1,
+        why: 'Ровно тот случай, когда буквальный перевод обманывает: bold/interesting/unusual в отзыве о работе — почти всегда мягкое «мне не нравится».',
+      },
+      {
+        q: '"I appreciate that. I could not have." What does the second sentence mean?',
+        options: [
+          'He was unable to hear it',
+          'It was not possible for him to say it plainly',
+          'He will say it later',
+          'He agrees completely',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Красный, белый и королевский синий: карточка, наш текст ────────────────
+  {
+    id: 'sc-rwrb-1',
+    workId: 'mcquiston-rwrb',
+    lang: 'en', title: 'Официально и на самом деле', level: 'B2', minutes: 4,
+    topic: 'Переписка и созвоны', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'У Маккуистон половина книги — протокольный английский пресс-служб, вторая — смски. Ниже наш текст, где оба регистра стоят рядом: одно и то же событие в заявлении для прессы и в переписке. Лучшее упражнение на разницу между письменным официальным и письменным разговорным, какое можно придумать.',
+    body: `JOINT STATEMENT
+
+Following the events at the reception on Saturday evening, both households wish to confirm that no offence was taken on either side and that the matter has been resolved privately. Reports suggesting otherwise are inaccurate. Both parties look forward to continuing to work together on the summer programme and will not be commenting further.
+
+—
+
+22:41
+so “no offence was taken on either side”
+
+22:41
+that’s what they went with?
+
+22:42
+i was in the room. offence was taken. offence was taken by everyone
+
+22:44
+my press office wrote it. i said three words and one of them was “fine”
+
+22:44
+which three
+
+22:45
+“fine” and then “fine” twice more
+
+22:47
+“the matter has been resolved privately” lol
+
+22:47
+has it
+
+22:49
+i’m told it has
+
+22:50
+right. well. in that case i suppose there’s nothing left to discuss
+
+22:52
+i didn’t say that
+
+22:53
+no. you didn’t.`,
+    translation: `СОВМЕСТНОЕ ЗАЯВЛЕНИЕ
+
+В связи с событиями на приёме в субботу вечером обе стороны считают нужным подтвердить, что ни одна из сторон не сочла себя оскорблённой и что вопрос урегулирован в частном порядке. Сообщения об обратном не соответствуют действительности. Обе стороны рассчитывают продолжить совместную работу над летней программой и от дальнейших комментариев воздержатся.
+
+—
+
+22:41
+значит, «ни одна из сторон не сочла себя оскорблённой»
+
+22:41
+вот на этом и остановились?
+
+22:42
+я был в комнате. оскорблённой сочла себя каждая. вообще все
+
+22:44
+это писала моя пресс-служба. я сказал три слова, и одно из них было «нормально»
+
+22:44
+какие три
+
+22:45
+«нормально», а потом ещё дважды «нормально»
+
+22:47
+«вопрос урегулирован в частном порядке» лол
+
+22:47
+урегулирован?
+
+22:49
+мне сказали, что да
+
+22:50
+ясно. ну. тогда, полагаю, обсуждать больше нечего
+
+22:52
+я этого не говорил
+
+22:53
+нет. не говорил.`,
+    glossary: [
+      { term: 'joint statement', ru: 'совместное заявление' },
+      { term: 'following the events', ru: 'в связи с событиями; канцелярское «после»' },
+      { term: 'no offence was taken', ru: 'никто не счёл себя оскорблённым; пассив без виновных' },
+      { term: 'the matter has been resolved', ru: 'вопрос урегулирован' },
+      { term: 'reports suggesting otherwise are inaccurate', ru: 'сообщения об обратном не соответствуют действительности' },
+      { term: 'will not be commenting further', ru: 'от дальнейших комментариев воздержится' },
+      { term: 'that’s what they went with?', ru: 'и вот на этом остановились?' },
+      { term: 'i’m told it has', ru: 'мне сказали, что да; ответ, снимающий с себя ответственность' },
+      { term: 'in that case', ru: 'в таком случае' },
+    ],
+    questions: [
+      {
+        q: 'What does the statement claim happened at the reception?',
+        options: [
+          'A serious quarrel',
+          'Nothing worth discussing — and it has already been settled',
+          'An accident',
+          'A change of programme',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is the statement written almost entirely in the passive?',
+        options: [
+          'It sounds more elegant',
+          'The passive hides who did what — nobody has to be named or blamed',
+          'It is a rule of English grammar for statements',
+          'To make it shorter',
+        ],
+        correct: 1,
+        why: 'no offence was taken, the matter has been resolved — действующих лиц нет вовсе. Тот же приём в объявлениях об увольнениях и отменах рейсов.',
+      },
+      {
+        q: 'How does the texting register differ from the statement?',
+        options: [
+          'No capital letters, no full stops, short lines, jokes',
+          'It is more formal',
+          'It uses longer words',
+          'There is no difference',
+        ],
+        correct: 0,
+      },
+    ],
+  },
+
+  // ── Семь мужей Эвелин Хьюго: карточка, наш текст ───────────────────────────
+  {
+    id: 'sc-evelyn-hugo-1',
+    workId: 'reid-evelyn-hugo',
+    lang: 'en', title: 'Интервью, первый день', level: 'B2', minutes: 4,
+    topic: 'Обратная связь', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Роман почти целиком построен как интервью: журналистка спрашивает, актриса отвечает так, как ей удобно. Ниже наш текст в том же жанре. Для языка это концентрат вопросов и уходов от ответа — то есть ровно того, что нужно на собеседовании, на экзамене и в любом разговоре, где не хочется отвечать прямо.',
+    body: `“Can I record this?”
+
+“You can record all of it. That is the point of you being here.”
+
+“Then let’s start at the beginning. Why me?”
+
+“Because nobody knows your name.”
+
+“That’s not usually considered a qualification.”
+
+“It is the only one I need. Next question.”
+
+“All right. Of the seven marriages, which one was the real one?”
+
+She looked at me for a while.
+
+“You have been a journalist for how long?”
+
+“Four years.”
+
+“And in four years, how many people have answered that kind of question the first time it was asked?”
+
+“None.”
+
+“There you are. Ask me again on Thursday.”
+
+“Why Thursday?”
+
+“Because by Thursday you will have stopped asking what everybody else asks, and you will ask the thing you actually want to know. And I will answer it, and you will wish I hadn’t.”
+
+I wrote that down. She watched me write it down.
+
+“You’ll want more coffee,” she said. “This is going to take a while.”`,
+    translation: `— Можно я включу запись?
+
+— Можете записывать всё. Ради этого вы здесь и сидите.
+
+— Тогда начнём с начала. Почему я?
+
+— Потому что вашего имени никто не знает.
+
+— Обычно это не считается достоинством.
+
+— Мне другого и не нужно. Следующий вопрос.
+
+— Хорошо. Из семи браков какой был настоящим?
+
+Она смотрела на меня какое-то время.
+
+— Вы сколько лет работаете журналисткой?
+
+— Четыре года.
+
+— И за четыре года сколько человек ответили вам на такой вопрос с первого раза?
+
+— Ни одного.
+
+— Вот именно. Спросите меня ещё раз в четверг.
+
+— Почему в четверг?
+
+— Потому что к четвергу вы перестанете спрашивать то, что спрашивают все, и спросите то, что вам на самом деле хочется знать. И я отвечу, и вы пожалеете, что спросили.
+
+Я это записала. Она смотрела, как я это записываю.
+
+— Вам понадобится ещё кофе, — сказала она. — Это надолго.`,
+    glossary: [
+      { term: 'Can I record this?', ru: 'можно я включу запись?' },
+      { term: 'That is the point of…', ru: 'ради этого и…; в этом весь смысл' },
+      { term: 'let’s start at the beginning', ru: 'начнём с начала' },
+      { term: 'a qualification', ru: 'достоинство, основание; не только «квалификация»' },
+      { term: 'Next question.', ru: 'следующий вопрос; способ закрыть тему' },
+      { term: 'There you are.', ru: 'вот именно; вот вам и ответ' },
+      { term: 'you will wish I hadn’t', ru: 'вы пожалеете, что я ответила' },
+      { term: 'This is going to take a while', ru: 'это надолго' },
+    ],
+    questions: [
+      {
+        q: 'Why did she choose this journalist?',
+        options: [
+          'Because she is famous',
+          'Because nobody knows her name',
+          'Because she works for a big paper',
+          'Because they are old friends',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does she avoid the question about the marriages?',
+        options: [
+          'She refuses to speak',
+          'She answers with questions of her own and moves it to Thursday',
+          'She changes the subject to coffee',
+          'She lies',
+        ],
+        correct: 1,
+        why: 'Ответить вопросом на вопрос — самый частый способ уйти от ответа по-английски, и он не считается грубостью, если вопрос по делу.',
+      },
+      {
+        q: '"You will wish I hadn’t." What is left out at the end?',
+        options: [
+          'answered it',
+          'asked you',
+          'written it down',
+          'come here',
+        ],
+        correct: 0,
+        why: 'Эллипсис после вспомогательного: hadn’t [answered it]. Английский выбрасывает всё, что уже прозвучало, — русский так почти никогда не делает.',
+      },
+    ],
+  },
+
+  // ── Молодой Мунго: карточка, наш текст ─────────────────────────────────────
+  {
+    id: 'sc-young-mungo-1',
+    workId: 'stuart-young-mungo',
+    lang: 'en', title: 'Голубятня на крыше', level: 'C1', minutes: 4,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Стюарт пишет Глазго так, как он звучит: ye вместо you, wee вместо little, cannae вместо can’t, ken вместо know. Ниже наш текст в том же регистре. Важно понимать, зачем это читать: шотландский нужен, чтобы понимать кино и людей, но писать так нельзя нигде — ни в письме, ни на экзамене. Диалект в тексте помечен, стандартный вариант есть в словаре.',
+    body: `The doos were up on the roof of the back building, in a loft his brother had built out of pallets and hope.
+
+“Ye’ll no touch anythin,” said the boy who owned them. “Ye can look.”
+
+“I ken.”
+
+“Ah’m serious. Ma da’ll kill me.”
+
+“Ah said Ah ken.”
+
+He opened the wire door and put his hand in slow, the way ye would into water ye werenae sure about. A grey hen came onto his wrist and settled there, and he stood that way for a long while, not moving, breathing shallow, as if the bird had asked him a question and he was minding his answer.
+
+“She likes ye,” said the other boy, and then, too quickly, “She likes anybody.”
+
+Below them somebody was shouting in a close, and somebody else was laughing, and a bus went past on the main road with its windows lit, and up here there was only the sound of the doos moving about.
+
+“Ye can come up again,” the boy said, looking at the wire and not at him. “If ye want. Thursdays are quiet.”`,
+    translation: `Голуби были на крыше дворового флигеля, в голубятне, которую его брат сколотил из поддонов и надежды.
+
+— Ничего не трогай, — сказал мальчик, чьи это были птицы. — Смотреть можно.
+
+— Знаю.
+
+— Я серьёзно. Отец меня убьёт.
+
+— Я сказал, что знаю.
+
+Он открыл сетчатую дверцу и медленно просунул руку — так, как суют в воду, в которой не уверены. Серая голубка села ему на запястье и там устроилась, и он долго стоял так, не двигаясь, дыша неглубоко, будто птица задала ему вопрос, а он обдумывал ответ.
+
+— Ты ей нравишься, — сказал второй мальчик и тут же, слишком быстро: — Ей все нравятся.
+
+Внизу кто-то кричал в подъезде, кто-то смеялся, по главной улице прошёл автобус с освещёнными окнами, а здесь наверху был только звук возящихся голубей.
+
+— Можешь ещё приходить, — сказал мальчик, глядя на сетку, а не на него. — Если хочешь. По четвергам тихо.`,
+    glossary: [
+      { term: 'doo', ru: 'шотл. голубь; норма — pigeon' },
+      { term: 'ye', ru: 'шотл. ты, вы; норма — you' },
+      { term: 'ye’ll no touch', ru: 'шотл. не трогай; норма — you won’t touch' },
+      { term: 'Ah ken', ru: 'шотл. я знаю; норма — I know' },
+      { term: 'ma da', ru: 'шотл. мой отец; норма — my dad' },
+      { term: 'werenae', ru: 'шотл. не был; норма — weren’t' },
+      { term: 'close', ru: 'шотл. подъезд многоквартирного дома' },
+      { term: 'to mind one’s answer', ru: 'обдумывать ответ' },
+      { term: 'wee', ru: 'шотл. маленький; норма — little' },
+    ],
+    questions: [
+      {
+        q: 'What is a "doo" in this text?',
+        options: [
+          'A door',
+          'A pigeon',
+          'A friend',
+          'A roof',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"Ye’ll no touch anythin" — what is the standard English?',
+        options: [
+          'You will know nothing',
+          'You won’t touch anything',
+          'You have not touched anything',
+          'You must not go anywhere',
+        ],
+        correct: 1,
+        why: 'Шотландское no на месте not — самая частая помеха при чтении Стюарта. Стоит запомнить пару ye’ll no / you won’t и дальше текст читается.',
+      },
+      {
+        q: 'What is the boy really saying with "Thursdays are quiet"?',
+        options: [
+          'He is describing his week',
+          'It is an invitation, said in a way that can be taken back',
+          'He is asking for help',
+          'He wants to be left alone',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Парни с кладбища: карточка, наш текст ──────────────────────────────────
+  {
+    id: 'sc-cemetery-boys-1',
+    workId: 'thomas-cemetery-boys',
+    lang: 'en', title: 'Два языка на одной кухне', level: 'B1', minutes: 3,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'У Эйдена Томаса герои говорят на смеси английского и испанского — так и говорят в латиноамериканских кварталах Калифорнии: английский с бабушкой не работает, испанский с одноклассниками не нужен. Ниже наш текст в том же регистре. Испанские вставки переводить не нужно: важно увидеть, КАК язык переключается — по собеседнику, а не по теме.',
+    body: `My grandmother has two voices. One is for the phone and one is for me.
+
+“Mijo,” she said, which is the second voice. “Come here. Taste this.”
+
+She held out the spoon. I tasted. It was too much salt and we both knew it.
+
+“It’s good.”
+
+“It is not good. Say it properly.”
+
+“It’s got a lot of salt in it.”
+
+“There. Was that so hard?” She took the spoon back. “In this house we say the true thing. Outside, you can be polite.”
+
+My cousin came in without knocking, the way she does, already talking. “Tía, is he coming tonight or not, because I told everybody he was coming and now I look —”
+
+“He is coming,” my grandmother said, in English, so that I would hear it.
+
+I had not said I was coming. I looked at the floor, which in our family counts as a signature.
+
+“Bueno,” said my cousin, satisfied, and took a tortilla off the stack, and left.
+
+My grandmother went back to the pot. Then, not turning round: “You will stand at the front. With everybody. Where you belong.”`,
+    translation: `У моей бабушки два голоса. Один для телефона, другой для меня.
+
+— Михо, — сказала она, и это был второй голос. — Иди сюда. Попробуй.
+
+Она протянула ложку. Я попробовал. Соли было много, и мы оба это знали.
+
+— Вкусно.
+
+— Невкусно. Скажи как следует.
+
+— Тут много соли.
+
+— Вот. Что, так сложно было? — Она забрала ложку. — В этом доме мы говорим правду. На улице можешь быть вежливым.
+
+Вошла двоюродная сестра, без стука, как она умеет, уже на ходу говоря: — Тётя, он идёт сегодня или нет, я же всем сказала, что идёт, и теперь я выгляжу…
+
+— Идёт, — сказала бабушка по-английски, чтобы услышал я.
+
+Я не говорил, что иду. Я посмотрел в пол, что в нашей семье считается подписью.
+
+— Буэно, — сказала сестра удовлетворённо, взяла лепёшку из стопки и ушла.
+
+Бабушка вернулась к кастрюле. Потом, не оборачиваясь: — Стоять будешь впереди. Со всеми. Там, где твоё место.`,
+    glossary: [
+      { term: 'mijo', ru: 'исп. сынок, родной; обращение к младшему' },
+      { term: 'to hold out', ru: 'протянуть (руку, предмет)' },
+      { term: 'Say it properly', ru: 'скажи как следует' },
+      { term: 'Was that so hard?', ru: 'что, так сложно было?' },
+      { term: 'tía', ru: 'исп. тётя' },
+      { term: 'without knocking', ru: 'без стука' },
+      { term: 'bueno', ru: 'исп. ладно, хорошо' },
+      { term: 'where you belong', ru: 'там, где твоё место' },
+    ],
+    questions: [
+      {
+        q: 'Why does the grandmother switch to English for one line?',
+        options: [
+          'The cousin does not speak Spanish',
+          'So that the narrator hears it — it is aimed at him',
+          'It is a formal sentence',
+          'She is on the phone',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the rule she states about telling the truth?',
+        options: [
+          'Always be polite',
+          'At home you say the true thing; outside you may be polite',
+          'Never say what you think',
+          'Only adults may say it',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"I looked at the floor, which in our family counts as a signature." What does this mean?',
+        options: [
+          'He was embarrassed',
+          'Not objecting is treated as agreeing',
+          'He was reading something',
+          'He signed a paper',
+        ],
+        correct: 1,
+        why: 'Приём стоит заметить: молчание как согласие есть и в английском, и в русском, но здесь оно ещё и названо — метафорой из юридического языка.',
+      },
+    ],
+  },
 ]
