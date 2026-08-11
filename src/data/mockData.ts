@@ -43,6 +43,9 @@ export interface Lesson {
   videoUrl?: string
   /** "Запись" tab — video chapter timecodes. */
   timecodes?: import('./lessonContent').LessonTimecode[]
+  /** Прикреплённые файлы урока (lessons.materials): рабочая тетрадь, конспект-PDF,
+   *  справочные материалы. Пусто, пока учитель ничего не загрузил. */
+  files?: import('../lib/lessonFiles').LessonFiles
   /** Scheduled calendar date (ISO "YYYY-MM-DD") — shown on the track to match the schedule. */
   scheduledDate?: string
 }

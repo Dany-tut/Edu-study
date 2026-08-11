@@ -5,6 +5,7 @@
 import { supabase } from './supabase'
 import { trackEvent } from './analytics'
 import { isVideoWatchRef } from './videoProgress'
+import { parseLessonFiles } from './lessonFiles'
 import { t } from './i18n'
 import type { HardTaskStudentBlock, HardTaskReviewBlock, HardTaskDef } from './useHomework'
 
@@ -260,6 +261,8 @@ interface DbCourse {
       rec_time?: string | null
       lesson_sched_manual?: boolean | null
       description?: string | null
+      /** Прикреплённые файлы урока — см. lib/lessonFiles. */
+      materials?: unknown
     }>
   }>
 }
@@ -328,7 +331,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
       id, short_id, title, subject, student_ids, group_ids,
       course_modules (
         id, label, position,
-        lessons ( id, short_id, title, lesson_number, shape, content, youtube_url, timecodes, kind, test_tasks, homework, scheduled_date, scheduled_time, rec_date, rec_time, lesson_sched_manual, description )
+        lessons ( id, short_id, title, lesson_number, shape, content, youtube_url, timecodes, kind, test_tasks, homework, scheduled_date, scheduled_time, rec_date, rec_time, lesson_sched_manual, description, materials )
       )
     `)
     .eq('status', 'published')
@@ -414,6 +417,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
               description: l.description ?? undefined,
               videoUrl: l.youtube_url ?? undefined,
               timecodes: Array.isArray(l.timecodes) && l.timecodes.length ? l.timecodes : undefined,
+              files: parseLessonFiles(l.materials),
               scheduledDate: l.scheduled_date ?? undefined,
             }
             // Recording date diverged from the lesson date → split into two nodes:

@@ -14,7 +14,7 @@ import PhraseDecks, {
 } from './PhraseDecks'
 import TrainerShell, {
   RailHero, RailCard, RailModes, RailSegment, RailList, RailToggle, RailStat,
-  Toolbar, SearchPill, StatusTabs, ToolButton, SortMenu, ToolCount,
+  Toolbar, SearchPill, StatusTabs, ToolButton, SortMenu, FilterMenu, ToolCount,
   Tile, TileGrid, TileMeter, TileChip, Empty as ShellEmpty,
 } from './trainer/TrainerShell'
 import { SubjectHero, SubjectPill } from './trainer/SubjectSwitch'
@@ -134,6 +134,8 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const [openSceneId, setOpenSceneId] = usePersistentState<string | null>(`trainer.${lang}.scene`, null)
   const [hideSpoilers, setHideSpoilers] = usePersistentState<boolean>(`trainer.${lang}.spoilers`, true)
   const [sceneShelf, setSceneShelf] = useState('')
+  const [scenePlatforms, setScenePlatforms] = useState<string[]>([])
+  const [sceneTags, setSceneTags] = useState<string[]>([])
 
   const sceneLib = hasScenes(lang)
   const sceneWorks = useMemo(() => worksForLang(lang), [lang])
@@ -270,14 +272,39 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // книгу выбирают по автору и по тому, читал ли её раньше, а уровень стоит уже
   // у сцены. Фильтр «покажи мне B1-книги» отсеял бы «Идиота» целиком из-за
   // одного трудного отрывка.
+  // Платформа и тематика — фильтры строки, а не рейла: полка отвечает на вопрос
+  // «что за литература», а эти два — «где смотрел» и «про что», и их выбирают,
+  // уже глядя на сетку. Списки собираются из самих произведений, а не задаются
+  // константой: добавили сериал на Hulu — Hulu появился в фильтре сам.
+  //
+  // Порядок по числу произведений, а не по алфавиту: наверху меню оказывается
+  // то, что реально что-то покажет, а не «абсурд · 1».
+  const platformOpts = useMemo(() => {
+    const n = new Map<string, number>()
+    for (const w of sceneWorks) if (w.platform) n.set(w.platform, (n.get(w.platform) ?? 0) + 1)
+    return [...n].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([value, count]) => ({ value, label: value, count }))
+  }, [sceneWorks])
+
+  const tagOpts = useMemo(() => {
+    const n = new Map<string, number>()
+    for (const w of sceneWorks) for (const tag of w.tags) n.set(tag, (n.get(tag) ?? 0) + 1)
+    return [...n].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([value, count]) => ({ value, label: value, count }))
+  }, [sceneWorks])
+
+  // Внутри фильтра значения складываются по ИЛИ (Netflix или HBO), между
+  // фильтрами — по И. Иначе «Netflix + комедия» показало бы весь Netflix.
   const visibleWorks = useMemo(() => {
     const q = query.trim().toLowerCase()
     return sceneWorks.filter(w => {
       if (sceneShelf && w.shelf !== sceneShelf) return false
+      if (scenePlatforms.length && !(w.platform && scenePlatforms.includes(w.platform))) return false
+      if (sceneTags.length && !w.tags.some(tag => sceneTags.includes(tag))) return false
       if (q && !`${w.title} ${w.origTitle} ${w.author}`.toLowerCase().includes(q)) return false
       return true
     })
-  }, [sceneWorks, sceneShelf, query])
+  }, [sceneWorks, sceneShelf, scenePlatforms, sceneTags, query])
 
   const sceneGroups = useMemo(
     () => sceneShelves
@@ -906,7 +933,29 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
             <ChevronLeft size={14} /> {t('К полкам')}
           </ToolButton>
         ) : (
-          <SearchPill value={query} onChange={setQuery} placeholder={t('Автор или название…')} />
+          <>
+            <SearchPill value={query} onChange={setQuery} placeholder={t('Автор или название…')} />
+            {/* Платформы показываем, только если они у языка есть: на корейской
+                полке из одних рассказов фильтр «где смотрел» — пустая таблетка. */}
+            {platformOpts.length > 1 && (
+              <FilterMenu
+                label="Платформа"
+                options={platformOpts}
+                value={scenePlatforms}
+                onChange={setScenePlatforms}
+                accent={palette.accent}
+              />
+            )}
+            {tagOpts.length > 1 && (
+              <FilterMenu
+                label="Тематика"
+                options={tagOpts}
+                value={sceneTags}
+                onChange={setSceneTags}
+                accent={palette.accent}
+              />
+            )}
+          </>
         )}
         <ToolCount>
           {openWork

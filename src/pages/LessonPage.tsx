@@ -7,7 +7,8 @@ import {
 } from 'lucide-react'
 import ScrollFade from '../components/ScrollFade'
 import { useDashboard } from '../store/dashboardStore'
-import { activeTimecodeIndex, findLessonById, getLessonDetail, type LessonMaterial, type LessonHomework } from '../data/lessonContent'
+import { activeTimecodeIndex, findLessonById, getLessonDetail, type LessonHomework } from '../data/lessonContent'
+import { downloadLessonFile, formatFileSize, type LessonFile } from '../lib/lessonFiles'
 import { useStudentData } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import LessonVideoPlayer, { PLAYER_MAX_H, PLAYER_MAX_W, type LessonVideoHandle } from '../components/LessonVideoPlayer'
@@ -21,7 +22,13 @@ import { EMOJI_STEPS } from '../components/HomeworkFlow'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
 
-type Tint = 'bw' | 'color'
+/** «1 файл / 2 файла / 5 файлов». */
+function plural(n: number, one: string, few: string, many: string) {
+  const m10 = n % 10, m100 = n % 100
+  if (m10 === 1 && m100 !== 11) return one
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few
+  return many
+}
 
 /** Секунды → «17:05» или «1:03:43». Часы появляются только у длинных записей,
  *  чтобы короткий ролик не выглядел как «0:04:12». */
@@ -205,140 +212,166 @@ function useBigText() {
   return { big, scale: big ? 1.6 : 1, toggle }
 }
 
-// Mock "download": there's no backend yet, so we hand the browser a small
-// generated PDF blob named after the file. Swap this for a real fetch later.
-function downloadFile(filename: string) {
-  const body = `%PDF-1.1\n% ${filename}\n1 0 obj<</Type/Catalog>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF`
-  const url = URL.createObjectURL(new Blob([body], { type: 'application/pdf' }))
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
-  URL.revokeObjectURL(url)
+// ── Плитки файлов урока ──────────────────────────────────────────────────────
+//
+// Файл настоящий: учитель загружает его в Конструкторе, он лежит в бакете
+// lesson-materials, а урок хранит путь (см. lib/lessonFiles). Плитка без файла
+// НЕактивна — приглушена, не нажимается, подписана «файл не прикреплён».
+// Раньше все три плитки всегда выглядели рабочими и по клику отдавали PDF,
+// который тут же генерировался в JS.
+
+/** Цвет значка по расширению — чтобы pdf, doc и картинка различались взглядом. */
+function fileChipGradient(name: string): string {
+  const ext = name.slice(name.lastIndexOf('.') + 1).toLowerCase()
+  if (ext === 'pdf') return 'linear-gradient(135deg, #FF8A8A, #D93A3A)'
+  if (ext === 'doc' || ext === 'docx' || ext === 'txt') return 'linear-gradient(135deg, #6EC6FF, #2D6BE0)'
+  if (ext === 'xls' || ext === 'xlsx' || ext === 'csv') return 'linear-gradient(135deg, #6EE7A0, #1E9E63)'
+  if (ext === 'ppt' || ext === 'pptx') return 'linear-gradient(135deg, #FFB86E, #E07B1E)'
+  if (ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'webp') return 'var(--grad-purple)'
+  return 'linear-gradient(135deg, #A8B0C0, #6B7280)'
 }
 
-// A downloadable-material tile (Рабочая тетрадь / Конспект): icon + title in a
-// single row with a chevron. The chevron opens a glass dropdown with two
-// download actions — ч/б or цвет — each downloading the file in that variant,
-// mirroring the "Материалы" tile so all three line up at one height.
-//
-// Без файла плитка НЕактивна: приглушённые цвета, подпись «файл не прикреплён»,
-// без шеврона и без выпадашки. Раньше она всегда выглядела рабочей и по клику
-// скачивала выдуманный PDF — урок казался укомплектованным, хотя учитель
-// ничего не прикреплял (файлы вообще никуда не сохраняются, см. редактор).
-function DownloadTile({ icon: Icon, label, file }: { icon: typeof NotebookPen; label: string; file?: string }) {
+/** Метка на значке: расширение файла, а не всегда «PDF». */
+function fileChipLabel(name: string): string {
+  const dot = name.lastIndexOf('.')
+  const ext = dot > 0 ? name.slice(dot + 1).toUpperCase() : ''
+  return ext && ext.length <= 4 ? ext : 'ФАЙЛ'
+}
+
+/** Общая коробка плитки: один вид у активной и неактивной, разница — в цвете. */
+function tileStyle(active: boolean, open: boolean): React.CSSProperties {
+  return {
+    gap: 10,
+    padding: '10px 12px',
+    borderRadius: 14,
+    background: active ? 'rgba(var(--glass-rgb), 0.96)' : 'var(--color-bg-2)',
+    border: open ? '1px solid rgba(99,84,207,0.4)' : '1px solid var(--color-border-soft)',
+    boxShadow: active ? '0 2px 12px rgba(0,0,0,0.05)' : 'none',
+    minHeight: 56,
+    cursor: active ? 'pointer' : 'default',
+    opacity: active ? 1 : 0.6,
+  }
+}
+
+/** Выпадашка плитки. Открывается ВВЕРХ: плитки стоят в самом низу урока, и
+ *  список файлов, падающий вниз, уезжал за край страницы. */
+function tileDropdownStyle(): React.CSSProperties {
+  return {
+    position: 'absolute',
+    bottom: 'calc(100% + 8px)',
+    left: 0,
+    right: 0,
+    zIndex: 50,
+    padding: 8,
+    borderRadius: 16,
+    background: 'rgba(var(--glass-rgb), 0.92)',
+    backdropFilter: 'blur(24px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+    border: '1px solid var(--color-border-glass)',
+    boxShadow: '0 12px 40px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.06)',
+  }
+}
+
+/** Строка файла внутри выпадашки: значок с расширением, имя, размер, скачать. */
+function FileRow({ file, onDone }: { file: LessonFile; onDone: () => void }) {
   const t = useT()
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  const active = Boolean(file)
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState(false)
 
-  useEffect(() => {
-    if (!open) return
-    const onDown = (e: PointerEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false)
+  async function click() {
+    if (busy) return
+    setBusy(true); setErr(false)
+    try {
+      await downloadLessonFile(file)
+      onDone()
+    } catch {
+      setErr(true)
+    } finally {
+      setBusy(false)
     }
-    document.addEventListener('pointerdown', onDown)
-    return () => document.removeEventListener('pointerdown', onDown)
-  }, [open])
-
-  const opts: Array<{ id: Tint; label: string }> = [
-    { id: 'bw', label: t('ч/б') },
-    { id: 'color', label: t('цвет') },
-  ]
+  }
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <motion.button
-        whileHover={active ? { y: -2 } : undefined}
-        whileTap={active ? { scale: 0.99 } : undefined}
-        disabled={!active}
-        onClick={() => active && setOpen(o => !o)}
-        className="flex items-center w-full"
+    <button
+      onClick={click}
+      className="flex items-center w-full cursor-pointer"
+      style={{ gap: 10, padding: 10, borderRadius: 12, border: 'none', background: 'transparent', textAlign: 'left', opacity: busy ? 0.6 : 1 }}
+      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg)' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+    >
+      <div
         style={{
-          gap: 10,
-          padding: '10px 12px',
-          borderRadius: 14,
-          background: active ? 'rgba(var(--glass-rgb), 0.96)' : 'var(--color-bg-2)',
-          border: open ? '1px solid rgba(99,84,207,0.4)' : '1px solid var(--color-border-soft)',
-          boxShadow: active ? '0 2px 12px rgba(0,0,0,0.05)' : 'none',
-          minHeight: 56,
-          cursor: active ? 'pointer' : 'default',
-          opacity: active ? 1 : 0.6,
+          width: 32, height: 32, borderRadius: 9, flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: fileChipGradient(file.name), fontSize: 9, fontWeight: 800,
+          letterSpacing: '0.04em', color: '#fff',
         }}
       >
-        <div
-          style={{
-            width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
-            color: active ? 'var(--color-accent)' : 'var(--color-text-4)',
-          }}
-        >
-          <Icon size={16} strokeWidth={1.9} />
-        </div>
-        <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
-          <p style={{ fontSize: 13, fontWeight: 650, color: active ? 'var(--color-text)' : 'var(--color-text-3)', lineHeight: 1.15 }}>{label}</p>
-          <p style={{ fontSize: 11, color: 'var(--color-text-4)', marginTop: 1 }}>
-            {active ? `PDF · ${t('скачать')}` : t('файл не прикреплён')}
-          </p>
-        </div>
-        {active && (
-          <ChevronDown
-            size={15}
-            style={{ color: 'var(--color-text-4)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }}
-          />
+        {fileChipLabel(file.name)}
+      </div>
+      <span className="min-w-0" style={{ flex: 1 }}>
+        <span style={{ display: 'block', fontSize: 13.5, fontWeight: 550, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+        {(err || file.size > 0) && (
+          <span style={{ display: 'block', fontSize: 11, color: err ? 'var(--color-red-text)' : 'var(--color-text-4)' }}>
+            {err ? t('не удалось скачать') : formatFileSize(file.size)}
+          </span>
         )}
-      </motion.button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.98 }}
-            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-            style={{
-              // Вверх, а не вниз: плитки стоят в самом низу урока, и выпадашка
-              // вниз уезжала за край страницы.
-              position: 'absolute',
-              bottom: 'calc(100% + 8px)',
-              left: 0,
-              right: 0,
-              zIndex: 50,
-              padding: 8,
-              borderRadius: 16,
-              background: 'rgba(var(--glass-rgb), 0.92)',
-              backdropFilter: 'blur(24px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-              border: '1px solid var(--color-border-glass)',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.06)',
-            }}
-          >
-            {opts.map(o => (
-              <button
-                key={o.id}
-                onClick={() => { downloadFile(`${label} (${o.label}).pdf`); setOpen(false) }}
-                className="flex items-center w-full cursor-pointer"
-                style={{ gap: 10, padding: 10, borderRadius: 12, border: 'none', background: 'transparent', textAlign: 'left' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-              >
-                <span style={{ flex: 1, fontSize: 13.5, fontWeight: 550, color: 'var(--color-text)' }}>{o.label}</span>
-                <Download size={15} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      </span>
+      <Download size={15} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
+    </button>
   )
 }
 
-// "Материалы" tile with a dropdown of reference files. Без прикреплённых
-// файлов — неактивная плитка (см. DownloadTile).
-function MaterialsTile({ materials }: { materials: LessonMaterial[] }) {
+/** Рабочая тетрадь / Конспект — ровно один файл. Клик скачивает его; без файла
+ *  плитка неактивна. */
+function DownloadTile({ icon: Icon, label, file }: { icon: typeof NotebookPen; label: string; file?: LessonFile }) {
+  const t = useT()
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState(false)
+  const active = Boolean(file)
+
+  async function click() {
+    if (!file || busy) return
+    setBusy(true); setErr(false)
+    try { await downloadLessonFile(file) } catch { setErr(true) } finally { setBusy(false) }
+  }
+
+  return (
+    <motion.button
+      whileHover={active ? { y: -2 } : undefined}
+      whileTap={active ? { scale: 0.99 } : undefined}
+      disabled={!active}
+      onClick={click}
+      className="flex items-center w-full"
+      style={{ ...tileStyle(active, false), opacity: active ? (busy ? 0.7 : 1) : 0.6 }}
+      title={file?.name}
+    >
+      <div
+        style={{
+          width: 30, height: 30, borderRadius: 9, flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
+          color: active ? 'var(--color-accent)' : 'var(--color-text-4)',
+        }}
+      >
+        <Icon size={16} strokeWidth={1.9} />
+      </div>
+      <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
+        <p style={{ fontSize: 13, fontWeight: 650, color: active ? 'var(--color-text)' : 'var(--color-text-3)', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</p>
+        <p style={{ fontSize: 11, color: err ? 'var(--color-red-text)' : 'var(--color-text-4)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {!active ? t('файл не прикреплён')
+            : err ? t('не удалось скачать')
+            : busy ? t('загружаем…')
+            : [fileChipLabel(file!.name), formatFileSize(file!.size), t('скачать')].filter(Boolean).join(' · ')}
+        </p>
+      </div>
+      {active && <Download size={15} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
+    </motion.button>
+  )
+}
+
+/** «Материалы» — список справочных файлов в выпадашке. Без файлов неактивна. */
+function MaterialsTile({ materials }: { materials: LessonFile[] }) {
   const t = useT()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -361,17 +394,7 @@ function MaterialsTile({ materials }: { materials: LessonMaterial[] }) {
         disabled={!active}
         onClick={() => active && setOpen(o => !o)}
         className="flex items-center w-full"
-        style={{
-          gap: 10,
-          padding: '10px 12px',
-          borderRadius: 14,
-          background: active ? 'rgba(var(--glass-rgb), 0.96)' : 'var(--color-bg-2)',
-          border: open ? '1px solid rgba(99,84,207,0.4)' : '1px solid var(--color-border-soft)',
-          boxShadow: active ? '0 2px 12px rgba(0,0,0,0.05)' : 'none',
-          minHeight: 56,
-          cursor: active ? 'pointer' : 'default',
-          opacity: active ? 1 : 0.6,
-        }}
+        style={tileStyle(active, open)}
       >
         <div
           style={{
@@ -386,7 +409,7 @@ function MaterialsTile({ materials }: { materials: LessonMaterial[] }) {
         <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
           <p style={{ fontSize: 13, fontWeight: 650, color: active ? 'var(--color-text)' : 'var(--color-text-3)', lineHeight: 1.15 }}>{t('Материалы')}</p>
           <p style={{ fontSize: 11, color: 'var(--color-text-4)', marginTop: 1 }}>
-            {active ? `${materials.length} ${t('файла')}` : t('файлы не прикреплены')}
+            {active ? `${materials.length} ${plural(materials.length, t('файл'), t('файла'), t('файлов'))}` : t('файлы не прикреплены')}
           </p>
         </div>
         {active && (
@@ -404,46 +427,12 @@ function MaterialsTile({ materials }: { materials: LessonMaterial[] }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-            style={{
-              // Вверх, а не вниз — плитки стоят в самом низу урока.
-              position: 'absolute',
-              bottom: 'calc(100% + 8px)',
-              left: 0,
-              right: 0,
-              zIndex: 50,
-              padding: 8,
-              borderRadius: 16,
-              background: 'rgba(var(--glass-rgb), 0.92)',
-              backdropFilter: 'blur(24px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-              border: '1px solid var(--color-border-glass)',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.06)',
-            }}
+            style={tileDropdownStyle()}
           >
             <ScrollFade maxHeight={300} bg="rgba(var(--glass-rgb), 0.92)" overlayScrollbar>
-            {materials.map(m => (
-              <button
-                key={m.id}
-                onClick={() => { downloadFile(`${m.name}.pdf`); setOpen(false) }}
-                className="flex items-center w-full cursor-pointer"
-                style={{ gap: 10, padding: 10, borderRadius: 12, border: 'none', background: 'transparent', textAlign: 'left' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-              >
-                <div
-                  style={{
-                    width: 32, height: 32, borderRadius: 9, flexShrink: 0,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: m.gradient, fontSize: 9, fontWeight: 800,
-                    letterSpacing: '0.04em', color: '#fff',
-                  }}
-                >
-                  PDF
-                </div>
-                <span style={{ flex: 1, fontSize: 13.5, fontWeight: 550, color: 'var(--color-text)' }}>{m.name}</span>
-                <Download size={15} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
-              </button>
-            ))}
+              {materials.map(m => (
+                <FileRow key={m.id} file={m} onDone={() => setOpen(false)} />
+              ))}
             </ScrollFade>
           </motion.div>
         )}
@@ -1209,14 +1198,9 @@ export default function LessonPage() {
           alignItems: 'start',
         }}
       >
-        {/* Файлов у урока пока нет ни в одной точке: редактор курса и редактор
-            урока держат имена загруженных файлов только в черновике (никуда не
-            сохраняются), в lessons такого поля нет. Поэтому обе плитки-скачки
-            приходят без файла и рисуются неактивными — до тех пор, пока
-            прикрепление не заведено по-настоящему. */}
-        <DownloadTile icon={NotebookPen} label={t('Рабочая тетрадь')} file={detail.workbookFile} />
-        <DownloadTile icon={FileText} label={t('Конспект')} file={detail.notebookFile} />
-        <MaterialsTile materials={detail.materials} />
+        <DownloadTile icon={NotebookPen} label={t('Рабочая тетрадь')} file={detail.files.workbook} />
+        <DownloadTile icon={FileText} label={t('Конспект')} file={detail.files.notebook} />
+        <MaterialsTile materials={detail.files.materials ?? []} />
         {detail.homework && (
           <div style={{ gridColumn: isDesktop ? 'auto' : '1 / -1' }}>
             <HomeworkCard lessonId={lesson.id} homework={detail.homework} onOpen={openHomework} />

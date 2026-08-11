@@ -51,6 +51,7 @@ import { COURSE_SEEDS, seedTooltip, seedCourseId, type CourseSeed } from '../../
 import { AP_LESSON_CONTENT } from '../../data/apChemistryLessons'
 import type { LessonContentData, LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from '../../data/lessonContent'
 import { paragraphsToTheory } from '../../lib/theoryImages'
+import { parseLessonFiles } from '../../lib/lessonFiles'
 import { useTeacher } from '../../store/teacherStore'
 import { useTheme } from '../../store/themeStore'
 import { useT, t } from '../../lib/i18n'
@@ -7684,7 +7685,7 @@ export default function TeacherConstructorPage() {
     if (course.dbCourseId) {
       const { data: dbCourse } = await supabase
         .from('courses')
-        .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, description, kind, test_tasks, content, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, homework)')
+        .select('id, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, description, kind, test_tasks, content, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, homework, materials)')
         .eq('short_id', course.dbCourseId)
         .single()
       if (dbCourse) {
@@ -7709,6 +7710,9 @@ export default function TeacherConstructorPage() {
           videoUrl: l.youtube_url ?? undefined,
           timecodes: Array.isArray(l.timecodes) ? l.timecodes : [],
           description: l.description ?? undefined,
+          // Прикреплённые файлы (lessons.materials). Без обратной сборки
+          // следующее «Сохранить» затёрло бы их пустым объектом.
+          files: parseLessonFiles(l.materials),
           theory: theory.theory || undefined,
           theoryImages: theory.images,
           scheduledDate: l.scheduled_date ?? undefined,

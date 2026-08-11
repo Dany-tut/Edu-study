@@ -821,6 +821,174 @@ export function SortMenu({ options, value, onChange }: {
   )
 }
 
+/**
+ * Фильтр строки — выпадающий список с МНОЖЕСТВЕННЫМ выбором.
+ *
+ * Отличается от SortMenu не только этим: у сортировки всегда выбран ровно один
+ * пункт, поэтому её кнопка показывает его название. Здесь выбранных может быть
+ * ноль или пять, и подставлять их в кнопку нельзя — на двух выбранных надпись
+ * станет вдвое длиннее и таблетка начнёт прыгать по ширине при каждом клике.
+ * Поэтому кнопка всегда показывает НАЗВАНИЕ фильтра, а число выбранных — точкой
+ * со счётчиком справа.
+ *
+ * Меню не закрывается по выбору: фильтры почти всегда ставят пачкой, и закрытие
+ * после первого пункта заставляет открывать список заново на каждый следующий.
+ *
+ * ОТСЮДА ЖЕ ТРЕБОВАНИЕ К onChange: он принимает ОБНОВЛЯЮЩУЮ ФУНКЦИЮ, а не
+ * готовый массив. Раз пункты тыкают пачкой, два клика попадают в один рендер, и
+ * обработчик, собирающий новый массив из пропса `value`, во втором клике видит
+ * ещё старый — первый выбор молча теряется. С `prev => …` этого не бывает.
+ */
+export function FilterMenu({ label, options, value, onChange, accent }: {
+  label: string
+  /** Значение и подпись; count — сколько под него попадает, показывается справа. */
+  options: { value: string; label: string; count?: number }[]
+  value: string[]
+  /** Сеттер из useState: нужен именно он, см. про обновляющую функцию выше. */
+  onChange: React.Dispatch<React.SetStateAction<string[]>>
+  accent?: string
+}) {
+  const t = useT()
+  const [open, setOpen] = useState(false)
+  const [pos, setPos] = useState<{ top: number; left: number; width: number; maxH: number } | null>(null)
+  const btn = useRef<HTMLButtonElement>(null)
+  const menu = useRef<HTMLDivElement>(null)
+  const on = value.length > 0
+  const tint = accent ?? 'var(--color-accent, #7c3aed)'
+
+  useScrollLock(open, menu)
+
+  useEffect(() => {
+    if (!open) return
+    const down = (e: MouseEvent) => {
+      if (menu.current?.contains(e.target as Node)) return
+      if (btn.current?.contains(e.target as Node)) return
+      setOpen(false)
+    }
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    const scroll = () => setOpen(false)
+    window.addEventListener('mousedown', down)
+    window.addEventListener('keydown', key)
+    window.addEventListener('scroll', scroll, true)
+    return () => {
+      window.removeEventListener('mousedown', down)
+      window.removeEventListener('keydown', key)
+      window.removeEventListener('scroll', scroll, true)
+    }
+  }, [open])
+
+  const toggle = (v: string) =>
+    onChange(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v])
+
+  return (
+    <>
+      <button
+        ref={btn}
+        onClick={() => {
+          const r = btn.current?.getBoundingClientRect()
+          if (r) {
+            // Высота — от кнопки до низа окна, а не «60vh»: список тем длинный,
+            // и упереться он должен в край окна, где бы кнопка ни стояла. Ноль
+            // отсекаем: там, где окно ещё не измерено, лучше открыться на 420,
+            // чем схлопнуться в полоску.
+            const room = Math.round(window.innerHeight - r.bottom - 24)
+            setPos({
+              top: r.bottom + 6,
+              left: r.left,
+              width: Math.max(r.width, 200),
+              maxH: room > 160 ? Math.min(room, 420) : 420,
+            })
+          }
+          setOpen(o => !o)
+        }}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: 999,
+          cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: on ? 700 : 500,
+          border: `1px solid ${on ? tint : 'var(--color-border-medium)'}`,
+          background: 'rgba(var(--glass-rgb), 0.88)',
+          color: on ? tint : 'var(--color-text-2)', whiteSpace: 'nowrap',
+        }}
+      >
+        {t(label)}
+        {on && (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999,
+            background: tint, color: '#fff', fontSize: 10, fontWeight: 800,
+            fontVariantNumeric: 'tabular-nums',
+          }}>
+            {value.length}
+          </span>
+        )}
+        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.18 }} style={{ display: 'flex' }}>
+          <ChevronDown size={13} />
+        </motion.span>
+      </button>
+      {createPortal(
+        <AnimatePresence>
+          {open && pos && (
+            <motion.div
+              ref={menu}
+              initial={{ opacity: 0, y: -6, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.96 }}
+              transition={{ duration: 0.15 }}
+              style={{
+                position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 9999,
+                // Список платформ короткий, список тем — нет. Ограничение по высоте
+                // с прокруткой внутри: иначе меню тем уезжает за нижний край окна.
+                maxHeight: pos.maxH, overflowY: 'auto',
+                padding: 6, borderRadius: 14,
+                background: 'var(--color-bg-2)', border: '1px solid var(--color-border)',
+                boxShadow: '0 16px 40px rgba(0,0,0,0.18)',
+              }}
+            >
+              {options.map(o => {
+                const picked = value.includes(o.value)
+                return (
+                  <button
+                    key={o.value}
+                    onClick={() => toggle(o.value)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left',
+                      padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                      fontFamily: 'inherit', fontSize: 13, fontWeight: picked ? 700 : 550,
+                      background: 'transparent', color: picked ? 'var(--color-text)' : 'var(--color-text-2)',
+                    }}
+                  >
+                    <span style={{ flex: 1 }}>{t(o.label)}</span>
+                    {o.count !== undefined && (
+                      <span style={{ fontSize: 11, color: 'var(--color-text-3)', fontVariantNumeric: 'tabular-nums' }}>
+                        {o.count}
+                      </span>
+                    )}
+                    {picked && <Check size={14} style={{ color: tint }} />}
+                  </button>
+                )
+              })}
+              {on && (
+                <button
+                  onClick={() => { onChange([]); setOpen(false) }}
+                  style={{
+                    display: 'block', width: '100%', textAlign: 'left',
+                    marginTop: 4, padding: '8px 10px', borderRadius: 10, cursor: 'pointer',
+                    border: 'none', borderTop: '1px solid var(--color-border-soft)',
+                    fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600,
+                    background: 'transparent', color: 'var(--color-text-3)',
+                  }}
+                >
+                  {t('Сбросить')}
+                </button>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
+    </>
+  )
+}
+
 /** Счётчик, прижатый вправо. */
 export function ToolCount({ children }: { children: React.ReactNode }) {
   return (

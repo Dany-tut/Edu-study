@@ -38,13 +38,13 @@
 // запросу на весь экран (deckStates), а не по запросу на тему: тем 38.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, Layers, Sparkles, Check, Volume2, RotateCcw } from 'lucide-react'
 import type { SurvivalThemeCards, SurvivalBook, Phrase } from '../data/survivalPhrases'
 import { addCards, gradePrompt, isDue, type CardState, type ReviewCard } from '../data/reviewDeck'
 import { vocabImage } from '../data/vocabImages'
 import { INITIAL_SRS } from '../lib/srs'
-import { speechLocale, speechText } from '../lib/speech'
+import { speak, speechText, type SpeechHandle } from '../lib/speech'
 import { useT } from '../lib/i18n'
 import CardDeck, { DECK_CTA, type DeckSource } from './CardDeck'
 import GlossedText from './GlossedText'
@@ -375,12 +375,13 @@ function PhraseList({ phrases, accent, view, lang }: {
   const t = useT()
   const [open, setOpen] = useState<number | null>(null)
 
+  // Речь глохнет при уходе со списка: без этого фраза продолжала говорить уже
+  // на следующем экране. По ручке, а не глобально — чтобы не затыкать чужую.
+  const voiceRef = useRef<SpeechHandle | null>(null)
+  useEffect(() => () => voiceRef.current?.stop(), [])
+
   function say(text: string) {
-    if (typeof window === 'undefined' || !window.speechSynthesis) return
-    const u = new SpeechSynthesisUtterance(speechText(text))
-    u.lang = speechLocale(lang) ?? lang
-    window.speechSynthesis.cancel()
-    window.speechSynthesis.speak(u)
+    voiceRef.current = speak(speechText(text), { lang })
   }
 
   return (

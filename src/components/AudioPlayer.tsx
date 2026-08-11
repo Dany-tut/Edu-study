@@ -2,14 +2,23 @@ import { useEffect, useRef, useState } from 'react'
 import { Play, Pause, Turtle } from 'lucide-react'
 import { getMediaUrl } from '../lib/mediaStorage'
 import { useT } from '../lib/i18n'
-import { speechLocale } from '../lib/speech'
+import { speak, stopSpeech } from '../lib/speech'
 
 // Аудио-стимул для языковых заданий (listenType/listenBank/minimalPair). Источник —
 // либо загруженный файл в Storage (audioUrl = путь, 5A), либо текст для браузерного
 // синтеза (ttsText). Кнопка «черепаха» замедляет воспроизведение, если allowSlow.
 // requestAnimationFrame в превью не работает — прогресс тут не рисуем, только play/stop.
 
-const SLOW_RATE = 0.6
+/** Замедление файла. Ниже 0.75 запись начинает «плыть». */
+const SLOW_RATE = 0.75
+/** Замедление синтеза. На 0.6 браузерный голос перестаёт быть речью, поэтому
+ *  «медленно» здесь — это умеренный темп плюс заметная пауза между репликами:
+ *  на слух текст идёт вдвое спокойнее, а слова остаются словами. */
+const TTS_SLOW_RATE = 0.8
+/** Пауза между репликами: обычная — вдох между строками диалога, медленная —
+ *  время осознать сказанное до следующей. */
+const GAP = 160
+const SLOW_GAP = 650
 
 export default function AudioPlayer({
   audioUrl,
@@ -72,59 +81,43 @@ export default function AudioPlayer({
   notifyRef.current = onPlayingChange
   useEffect(() => { notifyRef.current?.(playing) }, [playing])
 
-  // Stop any TTS still speaking when the player unmounts.
-  useEffect(() => () => { if (usesTts && typeof speechSynthesis !== 'undefined') speechSynthesis.cancel() }, [usesTts])
+  // Речь не должна продолжаться на следующем экране.
+  useEffect(() => () => { if (usesTts) stopSpeech() }, [usesTts])
 
-  /** Счётчик запусков синтеза — см. speak(). */
-  const runRef = useRef(0)
-
-  function stopTts() {
-    runRef.current++
-    if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel()
-    setPlaying(false)
-  }
-
-  function speak(rate: number) {
-    if (typeof speechSynthesis === 'undefined' || !ttsText) return
-    speechSynthesis.cancel()
-    const u = new SpeechSynthesisUtterance(ttsText)
-    u.rate = rate
-    const locale = speechLocale(lang)
-    if (locale) u.lang = locale
-    if (ttsVoice) {
-      const v = speechSynthesis.getVoices().find(x => x.name === ttsVoice)
-      if (v) u.voice = v
-    }
-    // Номер запуска: cancel() выше добивает предыдущую озвучку, и её onend
-    // приходит уже после старта новой. Без сверки номера этот запоздалый onend
-    // сбрасывал бы «играет» у звука, который только что начался.
-    const run = ++runRef.current
-    const done = () => { if (runRef.current === run) setPlaying(false) }
-    u.onend = done
-    u.onerror = done
+  /** Запустить синтез. Текст режется на реплики внутри speak(): длинную сцену
+   *  одним куском Chrome обрывает на пятнадцатой секунде, а таймкоды в начале
+   *  строк он читал вслух («двадцать сорок один»). */
+  function say(isSlow: boolean) {
+    if (!ttsText) return
     setPlaying(true)
-    speechSynthesis.speak(u)
+    // onEnd приходит и когда речь перебили из другого места экрана, так что
+    // индикатор гаснет вместе со звуком, а не остаётся гореть навсегда.
+    speak(ttsText, {
+      lang,
+      voiceName: ttsVoice,
+      rate: isSlow ? TTS_SLOW_RATE : 1,
+      gap: isSlow ? SLOW_GAP : GAP,
+      onEnd: () => setPlaying(false),
+    })
   }
 
   function toggle() {
-    const rate = slow ? SLOW_RATE : 1
     if (usesTts) {
-      if (playing) stopTts()
-      else speak(rate)
+      if (playing) { stopSpeech(); setPlaying(false) }
+      else say(slow)
       return
     }
     const el = audioRef.current
     if (!el) return
     if (playing) { el.pause() }
-    else { el.playbackRate = rate; void el.play() }
+    else { el.playbackRate = slow ? SLOW_RATE : 1; void el.play() }
   }
 
   function toggleSlow() {
     const next = !slow
     setSlow(next)
-    const rate = next ? SLOW_RATE : 1
-    if (usesTts) { if (playing) speak(rate) }
-    else if (audioRef.current) audioRef.current.playbackRate = rate
+    if (usesTts) { if (playing) say(next) }
+    else if (audioRef.current) audioRef.current.playbackRate = next ? SLOW_RATE : 1
   }
 
   const hasSource = usesTts || !!audioUrl

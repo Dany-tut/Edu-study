@@ -3,6 +3,7 @@ import { normalizeTaskType, type PatternItem, type StoredTaskType, type TaskPayl
 import { useStudentData } from '../store/studentDataStore'
 import { AP_LESSON_CONTENT, type ApLessonContent } from './apChemistryLessons'
 import { parseVideoSource, type VideoSource } from '../lib/videoSource'
+import type { LessonFiles } from '../lib/lessonFiles'
 
 // ── Lesson page (screen 2) content ──────────────────────────────────────────
 
@@ -26,7 +27,6 @@ export function activeTimecodeIndex(codes: LessonTimecode[], seconds: number): n
   // «никакая» глава в списке выглядит как потерянная подсветка.
   return best === -1 && codes.length ? 0 : best
 }
-export interface LessonMaterial { id: string; name: string; emoji: string; gradient: string }
 export interface HomeworkQuizOption { id: string; text: string }
 export interface HomeworkQuizQuestion {
   id: string
@@ -196,29 +196,22 @@ export interface LessonDetail {
    *  no recording has been attached yet. */
   videoSource?: VideoSource
   timecodes: LessonTimecode[]
-  /** Рабочая тетрадь / конспект-PDF урока. Пусто, пока файл не прикреплён —
-   *  плитка на экране урока в этом случае неактивна (см. lessonMaterials). */
-  workbookFile?: string
-  notebookFile?: string
-  materials: LessonMaterial[]
+  /** Прикреплённые учителем файлы: рабочая тетрадь, конспект-PDF, материалы.
+   *  Пусто, пока ничего не загружено — плитки на экране урока в этом случае
+   *  неактивны, а не притворяются рабочими. */
+  files: LessonFiles
   /** Body of the lesson's "Конспект" — a handful of paragraphs, with any
    *  reactions from `courseReactions` woven in as their own paragraphs. */
   paragraphs: LessonParagraph[]
   homework?: LessonHomework
 }
 
-/** Файлы урока: рабочая тетрадь, конспект-PDF, справочные материалы.
- *
- *  Пусто у всех уроков, и это правда, а не заглушка: прикрепить файл сейчас
- *  негде — редактор курса и редактор урока держат ИМЕНА выбранных файлов в
- *  черновике (localStorage) и не пишут их ни в lessons, ни в Storage. Плитки на
- *  экране урока читают это поле и рисуются неактивными, пока оно пустое.
- *
- *  Раньше здесь лежал зашитый набор по предметам с фолбэком на химию — и урок
- *  английского предлагал скачать таблицу Менделеева и таблицу растворимостей.
- */
-function lessonMaterials(_lesson: Lesson): LessonMaterial[] {
-  return []
+/** Файлы урока приходят из lessons.materials (см. lib/lessonFiles) — их
+ *  загружает учитель в Конструкторе. Раньше здесь лежал зашитый набор по
+ *  предметам с фолбэком на химию, и урок английского предлагал скачать таблицу
+ *  Менделеева и таблицу растворимостей. */
+function lessonFiles(lesson: Lesson): LessonFiles {
+  return lesson.files ?? {}
 }
 
 const pad2 = (n: number) => String(n).padStart(2, '0')
@@ -257,7 +250,7 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
       date: dateStr,
       videoSource,
       timecodes,
-      materials: lessonMaterials(lesson),
+      files: lessonFiles(lesson),
       paragraphs: ap.paragraphs,
       homework: authoredHw ?? buildApHomework(lesson, dateStr, ap),
     }
@@ -272,7 +265,7 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
     date: dateStr,
     videoSource,
     timecodes,
-    materials: lessonMaterials(lesson),
+    files: lessonFiles(lesson),
     paragraphs: descParagraphs,
     homework: authoredHw ?? undefined,
   }

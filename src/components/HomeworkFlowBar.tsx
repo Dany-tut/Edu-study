@@ -79,26 +79,28 @@ export default function HomeworkFlowBar({
         right: 0,
         zIndex: 100,
         marginBottom: keyboard > 0 ? 0 : 'env(safe-area-inset-bottom, 0px)',
-        background: 'rgba(var(--glass-rgb), 0.97)',
-        backdropFilter: 'blur(18px)',
-        borderTop: '1px solid var(--color-border-soft)',
+        // Ничего сплошного: над заданием висят сами элементы, а не панель.
+        // Плашка во всю ширину отрезала бы низ экрана даже там, где под ней
+        // пусто, — а пусто под ней почти всегда. Фон ловил бы и клики, поэтому
+        // контейнер прозрачен для мыши, а «живут» только сами кнопки.
+        pointerEvents: 'none',
       }}
     >
-      {/* Прогресс-линия по верхнему краю полосы: она и так на экране всегда,
-          отдельная шкала наверху отняла бы у задания вертикаль. */}
-      <div style={{ height: 4, background: 'var(--color-bg-3)' }}>
-        <motion.div
-          initial={false}
-          animate={{ width: `${total > 0 ? Math.min(100, (step / total) * 100) : 0}%` }}
-          transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
-          style={{ height: '100%', background: accent, borderRadius: '0 4px 4px 0' }}
-        />
-      </div>
-
       <div
         className="flex flex-col"
         style={{ gap: 12, padding: '14px 20px 16px', maxWidth: 720, margin: '0 auto' }}
       >
+        {/* Прогресс — тонкая полоска над кнопкой, а не край панели: она и так на
+            экране всегда, отдельная шкала наверху отняла бы у задания вертикаль. */}
+        <div style={{ height: 4, borderRadius: 999, background: 'var(--color-bg-3)', overflow: 'hidden' }}>
+          <motion.div
+            initial={false}
+            animate={{ width: `${total > 0 ? Math.min(100, (step / total) * 100) : 0}%` }}
+            transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+            style={{ height: '100%', background: accent, borderRadius: 999 }}
+          />
+        </div>
+
         {verdict !== 'none' && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
@@ -108,6 +110,10 @@ export default function HomeworkFlowBar({
             style={{
               gap: 10, padding: '11px 14px', borderRadius: 16,
               background: tone.bg, color: tone.fg,
+              // Своя тень у каждого плавающего элемента — иначе вердикт сливается
+              // с заданием, поверх которого он теперь лежит.
+              boxShadow: '0 8px 22px rgba(0,0,0,0.10)',
+              pointerEvents: 'auto',
             }}
           >
             <span style={{ flexShrink: 0, marginTop: 1 }}>
@@ -131,9 +137,17 @@ export default function HomeworkFlowBar({
               onClick={onSkip}
               className="cursor-pointer"
               style={{
-                padding: '12px 14px', borderRadius: 14, border: 'none', background: 'transparent',
+                // Граница — не декор: без панели кнопка ложится то на серый фон
+                // страницы, то на белую карточку задания, и на белом одна тень
+                // её не очерчивает.
+                padding: '12px 16px', borderRadius: 14, border: '1px solid var(--color-border-soft)',
+                // Прозрачной кнопке нужен был фон панели; без панели она читалась
+                // бы поверх текста задания, поэтому у неё своё стекло.
+                background: 'rgba(var(--glass-rgb), 0.86)',
+                backdropFilter: 'blur(14px)',
+                boxShadow: '0 6px 18px rgba(0,0,0,0.10)',
                 color: 'var(--color-muted)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
-                flexShrink: 0,
+                flexShrink: 0, pointerEvents: 'auto',
               }}
             >
               {t('Пропустить')}
@@ -145,12 +159,15 @@ export default function HomeworkFlowBar({
             disabled={disabled}
             className="flex items-center justify-center"
             style={{
-              flex: 1, gap: 8, padding: '15px 22px', borderRadius: 18, border: 'none',
-              background: disabled ? 'var(--color-bg-3)' : accent,
+              flex: 1, gap: 8, padding: '15px 22px', borderRadius: 18,
+              border: disabled ? '1px solid var(--color-border-soft)' : 'none',
+              background: disabled ? 'rgba(var(--glass-rgb), 0.86)' : accent,
+              backdropFilter: disabled ? 'blur(14px)' : undefined,
               color: disabled ? 'var(--color-muted)' : '#fff',
               fontFamily: 'inherit', fontSize: 15, fontWeight: 780,
               cursor: disabled ? 'default' : 'pointer',
-              boxShadow: disabled ? 'none' : '0 10px 24px rgba(0,0,0,0.16)',
+              boxShadow: disabled ? '0 6px 18px rgba(0,0,0,0.08)' : '0 10px 24px rgba(0,0,0,0.16)',
+              pointerEvents: 'auto',
               transition: 'background 0.18s ease, color 0.18s ease',
             }}
           >

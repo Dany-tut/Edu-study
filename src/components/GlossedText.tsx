@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Volume2 } from 'lucide-react'
-import { buildLexicon, type Segment } from '../lib/lexicon'
+import { buildLexicon, wordReading, type Segment } from '../lib/lexicon'
 import { transcribe } from '../lib/translit'
 import type { WordGloss } from '../data/wordGloss'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
 import { hasTiers, tierLabel, tierNote, wordTier } from '../data/coreWords'
+import { speak, type SpeechHandle } from '../lib/speech'
 
 // Текст, в котором переводится каждое слово.
 //
@@ -63,13 +64,25 @@ export function TierChip({ term, lang, accent, style }: {
 /** Ширина карточки перевода. Уже — начинает переносить корейские пометки. */
 const POP_W = 264
 
-export default function GlossedText({ text, lang, extra = [], accent, highlight, style }: {
+export default function GlossedText({ text, lang, extra = [], accent, highlight, ruby, spokenChar, style }: {
   text: string
   /** Код языка: en, ko, ja, pt-BR — им же озвучиваем. */
   lang: string
   /** Глоссарий текста: его значения важнее словарных. */
   extra?: WordGloss[]
   accent: string
+  /**
+   * Транскрипция ПОД КАЖДЫМ СЛОВОМ — режим «партитуры» (см. ScoreReader).
+   * Именно под своим словом, а не строкой под абзацем: строка транскрипции
+   * отдельно от строки текста заставляет глаз каждый раз считать, какое слово
+   * какому соответствует, и на третьем слове чтение разваливается.
+   */
+  ruby?: boolean
+  /**
+   * Позиция символа, до которого дочитал голос: слово, внутри которого он
+   * стоит, подсвечивается (караоке). null — тишина.
+   */
+  spokenChar?: number | null
   /**
    * Слово, выбранное СНАРУЖИ — в словаре текста рядом с читалкой. Все его
    * вхождения заливаются, первое подкручивается в вид.
@@ -84,6 +97,25 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
   const t = useT()
   const lex = useMemo(() => buildLexicon(lang, extra), [lang, extra])
   const segments = useMemo(() => lex.segment(text), [lex, text])
+
+  // Начало каждого куска в строке. По нему караоке находит звучащее слово:
+  // браузер сообщает позицию символа, а не номер слова.
+  const offsets = useMemo(() => {
+    let at = 0
+    return segments.map(s => { const start = at; at += s.text.length; return start })
+  }, [segments])
+
+  // Последнее слово, начавшееся не позже озвученного символа. Именно последнее,
+  // а не «в чей диапазон попали»: часть голосов отдаёт позицию пробела перед
+  // словом или середину предыдущего, и поиск по диапазону в эти моменты гасил
+  // бы подсветку совсем.
+  const spokenIndex = useMemo(() => {
+    if (spokenChar == null) return -1
+    for (let i = segments.length - 1; i >= 0; i--) {
+      if (segments[i].word && offsets[i] <= spokenChar) return i
+    }
+    return -1
+  }, [segments, offsets, spokenChar])
 
   const wrapRef = useRef<HTMLDivElement | null>(null)
   const popRef = useRef<HTMLDivElement | null>(null)
@@ -229,13 +261,16 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
     place(el)
   }
 
-  function speak(word: string) {
-    if (typeof speechSynthesis === 'undefined') return
-    speechSynthesis.cancel()
-    const u = new SpeechSynthesisUtterance(word)
-    u.lang = lang
-    u.rate = 0.85
-    speechSynthesis.speak(u)
+  // Речь этого текста глохнет вместе с ним: без этого слово продолжало
+  // звучать уже на следующем экране. Гасим по ручке, а не глобально: на экране
+  // таких текстов несколько, и уход одного не должен затыкать соседа.
+  const voiceRef = useRef<SpeechHandle | null>(null)
+  useEffect(() => () => voiceRef.current?.stop(), [])
+
+  // Чуть медленнее обычного: слово в подсказке слушают, чтобы расслышать
+  // состав, а не чтобы понять фразу.
+  function say(word: string) {
+    voiceRef.current = speak(word, { lang, rate: 0.85 })
   }
 
   return (
@@ -244,7 +279,8 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
         if (!seg.word) return <span key={i}>{seg.text}</span>
         const on = active?.i === i
         const hit = isHit(seg)
-        return (
+        const said = i === spokenIndex
+        const chip = (
           <span
             key={i}
             role="button"
@@ -279,12 +315,33 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
               borderBottom: hit
                 ? `1px solid ${accent}`
                 : seg.gloss ? `1px dotted ${accent}80` : '1px dotted transparent',
-              background: hit ? `${accent}3d` : on ? `${accent}22` : 'transparent',
-              boxShadow: hit || on ? `0 0 0 2px ${hit ? `${accent}3d` : `${accent}22`}` : 'none',
+              // Звучащее слово держится ярче наведения и слабее выбранного в
+              // словаре: караоке идёт само по себе и не должно спорить с тем,
+              // что ученик спросил руками.
+              background: hit ? `${accent}3d` : said ? `${accent}33` : on ? `${accent}22` : 'transparent',
+              boxShadow: hit || said || on
+                ? `0 0 0 2px ${hit ? `${accent}3d` : said ? `${accent}33` : `${accent}22`}`
+                : 'none',
               transition: 'background 140ms ease',
             }}
           >
             {seg.text}
+          </span>
+        )
+
+        if (!ruby) return chip
+
+        // Слово и его чтение — одна колонка: перенос строки уносит их вместе, и
+        // транскрипция не может оторваться от своего слова.
+        return (
+          <span key={i} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', verticalAlign: 'top' }}>
+            {chip}
+            <span style={{
+              fontSize: '0.6em', lineHeight: 1.4, color: 'var(--color-text-3)',
+              whiteSpace: 'nowrap', letterSpacing: 0.1,
+            }}>
+              {wordReading(seg.text, lang)}
+            </span>
           </span>
         )
       })}
@@ -325,7 +382,7 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
               )}
             </div>
             <button
-              onClick={() => speak(active.seg.text)}
+              onClick={() => say(active.seg.text)}
               title={t('Произнести')}
               aria-label={t('Произнести')}
               style={{

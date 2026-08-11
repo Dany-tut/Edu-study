@@ -41,7 +41,7 @@
 import {
   buildLanguageCourse, courseSummary, allVocab, unitByShortId, moduleOfUnit,
   one, many, fill, wb, order, pairsOf, grid, write, say, readAloud,
-  dictation, dictationBank, minPair, describeImage, drill,
+  dictation, dictationBank, minPair, describeImage, drill, nestTasks,
 } from './languageCourse'
 import { streetMapImage } from './seedImages'
 import { PORTUGUESE_THEORY, PORTUGUESE_VIDEO } from './portugueseCelpeTheory'
@@ -134,6 +134,10 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
         ['mãe', 'мама'],
         ['coração', 'сердце'],
       ]),
+      // Гнездо mão·mãe·mau·mal — те же носовые, но на одном скелете и вместе с
+      // неносовыми соседями: mal на слух совпадает с mau, и различает их только
+      // роль в предложении. Возврат по расписанию — в тренажёре (soundNests.ts).
+      ...nestTasks('pt-mao', 1),
       fill('Впишите пропущенное слово: Eu ___ falo português ainda. (не)', 'não'),
       dictation('Напечатайте услышанное слово.', 'irmão'),
       readAloud('Прочитайте вслух, держа носовое звучание: pão, mão, mãe, irmão, coração, não, bem, sim.',
@@ -177,6 +181,14 @@ export const PORTUGUESE_UNITS: LangUnit[] = [
         ['caro', 'дорогой'],
         ['carro', 'машина'],
       ]),
+      // Два гнезда на две оси юнита: одиночное r против rr и мягкие nh/lh
+      // против обычных n/l. Ноль пар не описка: пары caro–carro, sonho–sono и
+      // vela–velha уже написаны выше руками, и генератор выдал бы их второй
+      // раз подряд. Берём только сцепку со значением — она добавляет то, чего
+      // в юните нет: rato и cara рядом с caro/carro. Различение всего ряда на
+      // слух остаётся за тренажёром, где вариантов сразу четыре.
+      ...nestTasks('pt-caro', 0),
+      ...nestTasks('pt-sonho', 0),
       dictation('Напечатайте услышанное слово.', 'carro'),
       readAloud('Прочитайте вслух парами: avô–avó, caro–carro, sonho–sono, vela–velha.',
         'avô, avó, caro, carro, sonho, sono, vela, velha', 45),

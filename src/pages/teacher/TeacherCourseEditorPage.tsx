@@ -42,6 +42,10 @@ import {
 import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
 import LessonVideoPlayer, { PLAYER_MAX_H, PLAYER_MAX_W, type LessonVideoHandle } from '../../components/LessonVideoPlayer'
 import { parseVideoSource } from '../../lib/videoSource'
+import {
+  uploadLessonFile, deleteLessonFile, parseLessonFiles, formatFileSize,
+  LessonFileTooLargeError, type LessonFile, type LessonFiles,
+} from '../../lib/lessonFiles'
 import { emptyWatch } from '../../lib/videoProgress'
 import { activeTimecodeIndex, type LessonTimecode } from '../../data/lessonContent'
 import { ALL_CHAMO, CHAMO, chamoOf, type ChamoKind } from '../../data/hangul'
@@ -94,9 +98,13 @@ export interface CELesson {
    * base64. Разбор и сборка — в lib/theoryImages.ts.
    */
   theoryImages?: TheoryImage[]
-  notebookFile?: string
-  workbookFile?: string
-  materialFile?: string
+  /**
+   * Прикреплённые файлы урока: рабочая тетрадь, конспект-PDF, материалы.
+   * Едут в lessons.materials, сами файлы — в бакете lesson-materials
+   * (см. lib/lessonFiles). Раньше здесь лежали три строки с ИМЕНАМИ выбранных
+   * файлов: они не уходили ни в Storage, ни в базу, и ученик их не видел.
+   */
+  files?: LessonFiles
   // lesson-level audience (extra students beyond course audience)
   extraStudentIds?: string[]
   extraGroupIds?: string[]
@@ -619,7 +627,7 @@ function CenterCourseAccess({
 }: {
   course: CourseEdData
   setCourse: React.Dispatch<React.SetStateAction<CourseEdData>>
-  groups: Array<{ id: string; name: string }>
+  groups: Array<{ id: string; name: string; isIndividual?: boolean }>
   allStudents: PersonRow[]
   accessModes: Record<string, AccessMode>
   setAccessModes: React.Dispatch<React.SetStateAction<Record<string, AccessMode>>>
@@ -1316,13 +1324,40 @@ function CenterRecording({
 
 // ─── CENTER: Lesson content tab ───────────────────────────────────────────────
 
-type FileField = 'workbookFile' | 'notebookFile' | 'materialFile'
+type FileSlot = 'workbook' | 'notebook' | 'materials'
 
-const FILE_CARDS: Array<{ field: FileField; Icon: React.ElementType; label: string }> = [
-  { field: 'workbookFile', Icon: NotebookPen, label: 'Рабочая тетрадь' },
-  { field: 'notebookFile', Icon: FileText,    label: 'Конспект' },
-  { field: 'materialFile', Icon: FolderOpen,  label: 'Материалы' },
+const FILE_CARDS: Array<{ slot: FileSlot; Icon: React.ElementType; label: string; multiple?: boolean }> = [
+  { slot: 'workbook',  Icon: NotebookPen, label: 'Рабочая тетрадь' },
+  { slot: 'notebook',  Icon: FileText,    label: 'Конспект' },
+  { slot: 'materials', Icon: FolderOpen,  label: 'Материалы', multiple: true },
 ]
+
+/** Файлы слота: у «Материалов» их сколько угодно, у остальных — один. */
+function slotFiles(files: LessonFiles | undefined, slot: FileSlot): LessonFile[] {
+  if (!files) return []
+  if (slot === 'materials') return files.materials ?? []
+  const one = files[slot]
+  return one ? [one] : []
+}
+
+/** Положить файлы в слот. Одиночный слот заменяется, «Материалы» пополняются. */
+function withSlotFiles(files: LessonFiles | undefined, slot: FileSlot, add: LessonFile[]): LessonFiles {
+  const base = files ?? {}
+  if (slot === 'materials') return { ...base, materials: [...(base.materials ?? []), ...add] }
+  return { ...base, [slot]: add[0] }
+}
+
+/** Убрать файл из слота по пути объекта. */
+function withoutSlotFile(files: LessonFiles | undefined, slot: FileSlot, path: string): LessonFiles {
+  const base = { ...(files ?? {}) }
+  if (slot === 'materials') {
+    const rest = (base.materials ?? []).filter(f => f.path !== path)
+    if (rest.length) base.materials = rest; else delete base.materials
+    return base
+  }
+  delete base[slot]
+  return base
+}
 
 /** Кнопка при картинке конспекта: стрелки и крестик. */
 function FigureBtn({ onClick, disabled, title, children }: {
@@ -1583,15 +1618,43 @@ function CenterLesson({
   const refWorkbook = useRef<HTMLInputElement>(null)
   const refNotebook = useRef<HTMLInputElement>(null)
   const refMaterial = useRef<HTMLInputElement>(null)
-  const inputRefs: Record<FileField, React.RefObject<HTMLInputElement | null>> = {
-    workbookFile: refWorkbook,
-    notebookFile: refNotebook,
-    materialFile: refMaterial,
+  const inputRefs: Record<FileSlot, React.RefObject<HTMLInputElement | null>> = {
+    workbook: refWorkbook,
+    notebook: refNotebook,
+    materials: refMaterial,
   }
   const [pastePicker, setPastePicker] = useState<File | null>(null)
+  // Какой слот сейчас заливается и что в нём сломалось. Заливка идёт сразу при
+  // выборе файла — к моменту «Сохранить» в уроке уже лежат пути объектов.
+  const [busySlot, setBusySlot] = useState<FileSlot | null>(null)
+  const [slotErr, setSlotErr] = useState<Partial<Record<FileSlot, string>>>({})
 
-  function applyFile(field: FileField, file: File) {
-    onUpdate({ ...lesson, [field]: file.name })
+  async function applyFiles(slot: FileSlot, picked: File[]) {
+    if (picked.length === 0 || busySlot) return
+    setBusySlot(slot)
+    setSlotErr(e => ({ ...e, [slot]: undefined }))
+    const uploaded: LessonFile[] = []
+    try {
+      // Файлы льём по одному, а урок обновляем ОДИН раз в конце: `lesson` в
+      // замыкании — снимок пропса, и обновление внутри цикла затирало бы
+      // предыдущие файлы (см. «Материалы», куда кладут сразу несколько).
+      for (const f of picked) uploaded.push(await uploadLessonFile(f))
+      onUpdate({ ...lesson, files: withSlotFiles(lesson.files, slot, uploaded) })
+    } catch (err) {
+      // Уже залитое из этой пачки убираем, чтобы в бакете не оставался мусор,
+      // на который никто не ссылается.
+      await Promise.all(uploaded.map(u => deleteLessonFile(u.path)))
+      const msg = err instanceof LessonFileTooLargeError ? err.message
+        : (err as { message?: string })?.message || t('не удалось загрузить')
+      setSlotErr(e => ({ ...e, [slot]: msg }))
+    } finally {
+      setBusySlot(null)
+    }
+  }
+
+  function removeFile(slot: FileSlot, file: LessonFile) {
+    onUpdate({ ...lesson, files: withoutSlotFile(lesson.files, slot, file.path) })
+    void deleteLessonFile(file.path)
   }
 
   useEffect(() => {
@@ -1618,39 +1681,76 @@ function CenterLesson({
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-          {FILE_CARDS.map(({ field, Icon, label }) => {
-            const fileName = lesson[field] as string | undefined
+          {FILE_CARDS.map(({ slot, Icon, label, multiple }) => {
+            const files = slotFiles(lesson.files, slot)
+            const has = files.length > 0
+            const busy = busySlot === slot
+            const err = slotErr[slot]
             return (
-              <div key={field} style={{ position: 'relative' }}>
+              <div key={slot} style={{ position: 'relative' }}>
                 <input
-                  ref={inputRefs[field]}
+                  ref={inputRefs[slot]}
                   type="file"
+                  multiple={multiple}
                   style={{ display: 'none' }}
-                  onChange={e => { const f = e.target.files?.[0]; if (f) applyFile(field, f); e.target.value = '' }}
+                  onChange={e => { void applyFiles(slot, Array.from(e.target.files ?? [])); e.target.value = '' }}
                 />
                 <button
-                  onClick={() => inputRefs[field].current?.click()}
+                  onClick={() => !busy && inputRefs[slot].current?.click()}
                   style={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
                     padding: '16px 12px', borderRadius: 16, width: '100%',
-                    border: fileName ? '1.5px solid var(--color-green-text)' : '1.5px dashed var(--color-border-medium)',
-                    background: fileName ? 'var(--color-green-soft)' : 'transparent',
-                    cursor: 'pointer', fontFamily: 'inherit',
+                    border: err ? '1.5px solid var(--color-red-text)'
+                      : has ? '1.5px solid var(--color-green-text)'
+                      : '1.5px dashed var(--color-border-medium)',
+                    background: has ? 'var(--color-green-soft)' : 'transparent',
+                    cursor: busy ? 'progress' : 'pointer', fontFamily: 'inherit',
+                    opacity: busy ? 0.7 : 1,
                   }}
                 >
                   <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon size={18} style={{ color: 'var(--color-green-text)' }} />
                   </div>
                   <div style={{ textAlign: 'center', width: '100%', minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: fileName ? 'var(--color-green-text)' : 'var(--color-text-2)' }}>{t(label)}</div>
-                    <div style={{ fontSize: 10, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: fileName ? 'var(--color-green-text)' : 'var(--color-muted)' }}>
-                      {fileName ?? t('Загрузить файл')}
+                    <div style={{ fontSize: 12, fontWeight: 700, color: has ? 'var(--color-green-text)' : 'var(--color-text-2)' }}>{t(label)}</div>
+                    <div style={{
+                      fontSize: 10, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      color: err ? 'var(--color-red-text)' : has ? 'var(--color-green-text)' : 'var(--color-muted)',
+                    }}>
+                      {busy ? t('Загружаем…')
+                        : err ? err
+                        : !has ? (multiple ? t('Загрузить файлы') : t('Загрузить файл'))
+                        : multiple && files.length > 1 ? `${files.length} ${t('файлов')}`
+                        : `${files[0].name} · ${formatFileSize(files[0].size)}`}
                     </div>
                   </div>
                 </button>
-                {fileName && (
+
+                {/* Список файлов «Материалов»: имя, размер, крестик. У одиночных
+                    слотов крестик стоит прямо на карточке — списка не нужно. */}
+                {has && multiple && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 6 }}>
+                    {files.map(f => (
+                      <div key={f.path} style={{
+                        display: 'flex', alignItems: 'center', gap: 6, padding: '4px 6px', borderRadius: 8,
+                        background: 'var(--color-bg-2)', fontSize: 10, color: 'var(--color-text-3)',
+                      }}>
+                        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+                        <span style={{ flexShrink: 0, color: 'var(--color-muted)' }}>{formatFileSize(f.size)}</span>
+                        <button
+                          onClick={() => removeFile(slot, f)}
+                          style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-muted)', padding: 0, display: 'flex', flexShrink: 0 }}
+                        >
+                          <X size={10} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {has && !multiple && (
                   <button
-                    onClick={e => { e.stopPropagation(); onUpdate({ ...lesson, [field]: undefined }) }}
+                    onClick={e => { e.stopPropagation(); removeFile(slot, files[0]) }}
                     style={{
                       position: 'absolute', top: 6, right: 6,
                       border: 'none', background: 'var(--color-green-soft)',
@@ -1717,26 +1817,33 @@ function CenterLesson({
               }}>
                 {pastePicker.name}
               </div>
-              {FILE_CARDS.map(({ field, Icon, label }) => (
-                <button key={field}
-                  onClick={() => { applyFile(field, pastePicker); setPastePicker(null) }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '10px 12px', borderRadius: 12,
-                    border: '1.5px solid var(--color-border)',
-                    background: lesson[field] ? 'var(--color-green-soft)' : 'transparent',
-                    cursor: 'pointer', fontFamily: 'inherit',
-                    color: lesson[field] ? 'var(--color-green-text)' : 'var(--color-text)',
-                    fontSize: 13, fontWeight: 600,
-                  }}
-                >
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Icon size={14} style={{ color: 'var(--color-green-text)' }} />
-                  </div>
-                  {t(label)}
-                  {lesson[field] && <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--color-muted)', fontWeight: 400 }}>{t('заменить')}</span>}
-                </button>
-              ))}
+              {FILE_CARDS.map(({ slot, Icon, label, multiple }) => {
+                const taken = slotFiles(lesson.files, slot).length > 0
+                return (
+                  <button key={slot}
+                    onClick={() => { void applyFiles(slot, [pastePicker]); setPastePicker(null) }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '10px 12px', borderRadius: 12,
+                      border: '1.5px solid var(--color-border)',
+                      background: taken ? 'var(--color-green-soft)' : 'transparent',
+                      cursor: 'pointer', fontFamily: 'inherit',
+                      color: taken ? 'var(--color-green-text)' : 'var(--color-text)',
+                      fontSize: 13, fontWeight: 600,
+                    }}
+                  >
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Icon size={14} style={{ color: 'var(--color-green-text)' }} />
+                    </div>
+                    {t(label)}
+                    {taken && (
+                      <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--color-muted)', fontWeight: 400 }}>
+                        {multiple ? t('добавить') : t('заменить')}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
               <button onClick={() => setPastePicker(null)}
                 style={{ padding: '7px', borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-muted)', fontSize: 12, fontFamily: 'inherit', marginTop: 2 }}>
                 {t('Отмена')}
@@ -4680,6 +4787,9 @@ export default function TeacherCourseEditorPage() {
         : {},
       kind: lesson.kind ?? 'lesson',
       test_tasks: lesson.testTasks ?? [],
+      // Файлы урока: сами объекты уже в бакете lesson-materials, здесь — их
+      // пути и метаданные. Отсюда их читает экран урока у ученика.
+      materials: lesson.files ?? {},
       scheduled_date: lesson.scheduledDate ?? null,
       scheduled_time: lesson.scheduledTime ?? null,
       scheduled_duration: lesson.scheduledDuration ?? null,

@@ -691,6 +691,17 @@ function ClockDot({ on, color }: { on: boolean; color: string }) {
   )
 }
 
+/** Знак остановки в кружке — две полосы вместо минут, пока счёт стоит. */
+function PauseMark({ color }: { color: string }) {
+  const t = useT()
+  return (
+    <span aria-label={t('Пауза')} title={t('Пауза')} style={{ display: 'flex', gap: 2.5, opacity: 0.5 }}>
+      <span style={{ width: 3, height: 11, borderRadius: 1.5, background: color, display: 'block' }} />
+      <span style={{ width: 3, height: 11, borderRadius: 1.5, background: color, display: 'block' }} />
+    </span>
+  )
+}
+
 function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
   const t = useT()
   const { dark } = useTheme()
@@ -761,8 +772,16 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             strokeDasharray={`${avatarDash} ${avatarCirc}`} strokeLinecap="round"
             style={{ transition: 'stroke-dasharray 0.6s cubic-bezier(0.22,1,0.36,1)' }} />
         </svg>
-        <span style={{ fontSize: started ? 10.5 : 15, fontWeight: 750, color: palette.text, position: 'relative', lineHeight: 1 }}>
-          {started ? formatShort(todayMs) : (def?.icon ?? '·')}
+        {/* ЦИФРА В КРУЖКЕ — ТОЛЬКО ПОКА ЧАСЫ ИДУТ.
+            Кружок — это живая часть виджета: он пульсирует и растёт на глазах.
+            Замершие на нём «30м» читаются как идущие минуты и врут ровно тем
+            людям, ради которых счётчик и делался. На паузе вместо числа стоит
+            знак остановки, а сегодняшний итог остаётся рядом — в пилюле,
+            подписанной словом «Пауза». */}
+        <span style={{ fontSize: counting && started ? 10.5 : 15, fontWeight: 750, color: palette.text, position: 'relative', lineHeight: 1, display: 'flex', alignItems: 'center' }}>
+          {!started ? (def?.icon ?? '·')
+            : counting ? formatShort(todayMs)
+            : <PauseMark color={palette.text} />}
         </span>
       </div>
 
@@ -786,7 +805,10 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
               // Без среднего ученик на списке наборов видел «Пауза» и читал её
               // как сбой — он же сидит в тренажёре.
               counting ? t('Сейчас идёт') : engaged ? t('Пауза') : t('Не начато'),
-              palette.text, `${accent}26`,
+              // На паузе итог гаснет до служебного цвета: число остаётся
+              // читаемым, но перестаёт выглядеть работающим счётчиком.
+              counting ? palette.text : 'var(--color-text-3)',
+              counting ? `${accent}26` : `${accent}12`,
               <ClockDot on={counting} color={accent} />,
             )}
             {todayCorrect > 0 && pill(

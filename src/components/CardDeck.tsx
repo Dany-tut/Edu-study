@@ -25,7 +25,7 @@ import { subjectAliases, useStudentData } from '../store/studentDataStore'
 import { useTrainerProgress } from '../store/trainerProgressStore'
 import { intervalLabel, review, type ReviewGrade } from '../lib/srs'
 import { haptic } from '../lib/feedback'
-import { speechLocale, speechMs, speechText } from '../lib/speech'
+import { speak, speechMs, speechText, stopSpeech } from '../lib/speech'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
 import { awardDeckSticker, markSeen, stickerLabel, type EarnedSticker } from '../lib/stickers'
@@ -744,7 +744,7 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
   // Карточку смахнули, пока она говорила — звук обрываем: слово уже улетело с
   // экрана. Следующая карточка зазвучать раньше не может, ей нужен клик.
   useEffect(() => () => {
-    if (runRef.current > 0 && typeof window !== 'undefined') window.speechSynthesis?.cancel()
+    if (runRef.current > 0) stopSpeech()
     if (hideRef.current) clearTimeout(hideRef.current)
   }, [])
 
@@ -791,15 +791,13 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
 
   function say(e: React.MouseEvent) {
     e.stopPropagation()
-    if (!lang || typeof window === 'undefined' || !window.speechSynthesis) return
+    if (!lang) return
     // Романизация из «아이 (ai)» в озвучку не идёт: иначе слышно слово и следом
     // его латинскую запись — как будто оно произнеслось дважды.
     const text = speechText(seat.card.prompt)
-    const u = new SpeechSynthesisUtterance(text)
-    u.lang = speechLocale(lang) ?? lang
-    // Номер запуска: cancel() ниже добьёт предыдущую озвучку, и её onend придёт
-    // уже после старта новой. Без сверки номера этот запоздалый onend погасил бы
-    // индикатор слова, которое только что зазвучало.
+    // Номер запуска нужен и здесь: onEnd прошлой озвучки приходит уже после
+    // старта новой, и без сверки он погасил бы индикатор слова, которое только
+    // что зазвучало.
     const run = ++runRef.current
     // Слово смолкло — линию не гасим на полпути, а докатываем до края и уже
     // потом снимаем: прикидка длительности всегда мимо, и обрыв в середине
@@ -811,12 +809,9 @@ function Card({ seat, accent, lang, revealed, binary, onFlip, onSwipe, consumes,
         setSpeaking(cur => (cur?.run === run ? null : cur))
       }, 260)
     }
-    u.onend = done
-    u.onerror = done
     if (hideRef.current) clearTimeout(hideRef.current)
     setSpeaking({ run, ms: speechMs(text) })
-    window.speechSynthesis.cancel()
-    window.speechSynthesis.speak(u)
+    speak(text, { lang, onEnd: done })
   }
 
   return (

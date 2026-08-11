@@ -3,7 +3,7 @@ import { Volume2, ChevronLeft, Check, X, RotateCcw, Ear, Sparkle } from 'lucide-
 import { useT } from '../../lib/i18n'
 import { proseWrap } from '../../lib/typography'
 import { subjectFill } from '../../lib/subjects'
-import { speechLocale, speechText } from '../../lib/speech'
+import { speak, speechText, stopSpeech } from '../../lib/speech'
 import { addCards } from '../../data/reviewDeck'
 import { nestAxisLabel, nestPrompt, type NestWord, type SoundNest } from '../../data/soundNests'
 import { Tile, TileGrid, TileChip, TileMeter } from './TrainerShell'
@@ -26,14 +26,8 @@ import type { MaterialResult } from '../../lib/trainerProgress'
 /** Сколько вопросов в прогоне на одно слово гнезда. */
 const PASSES = 2
 
-function speak(term: string, lang: string, rate = 0.85) {
-  if (typeof speechSynthesis === 'undefined') return
-  speechSynthesis.cancel()
-  const u = new SpeechSynthesisUtterance(speechText(term))
-  const locale = speechLocale(lang)
-  if (locale) u.lang = locale
-  u.rate = rate
-  speechSynthesis.speak(u)
+function say(term: string, lang: string, rate = 0.85) {
+  speak(speechText(term), { lang, rate })
 }
 
 /** Кнопка-динамик. Одна на все места экрана. */
@@ -46,7 +40,7 @@ function SpeakBtn({ term, lang, accent, size = 30 }: {
   const t = useT()
   return (
     <button
-      onClick={e => { e.stopPropagation(); speak(term, lang) }}
+      onClick={e => { e.stopPropagation(); say(term, lang) }}
       title={t('Произнести')}
       aria-label={t('Произнести')}
       style={{
@@ -181,9 +175,10 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
   onBack: () => void
 }) {
   const t = useT()
-  // Омонимы на слух не различаются по определению: спрашивать «какое
-  // прозвучало» у них не имеет верного ответа. Остаётся разбор и колода.
-  const audible = nest.axis !== 'homonym'
+  // Гнездо может не различаться на слух по устройству языка: омонимы совпадают
+  // целиком, ㅐ и ㅔ в корейском слились. Прогон «какое прозвучало» там был бы
+  // вопросом без верного ответа — остаётся разбор и колода.
+  const audible = nest.axis !== 'homonym' && nest.audible !== false
 
   const [run, setRun] = useState<Question[] | null>(null)
   const [idx, setIdx] = useState(0)
@@ -200,11 +195,11 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
   // ответом — лишний клик на ровном месте. Повторить можно кнопкой.
   useEffect(() => {
     if (!q || picked) return
-    const timer = window.setTimeout(() => speak(q.word.term, lang), 220)
+    const timer = window.setTimeout(() => say(q.word.term, lang), 220)
     return () => clearTimeout(timer)
   }, [q, picked, lang])
 
-  useEffect(() => () => { if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel() }, [])
+  useEffect(() => () => stopSpeech(), [])
 
   const cards = useMemo(
     () => nest.words.map(w => ({
@@ -311,7 +306,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
             {t('Какое слово прозвучало?')}
           </div>
           <button
-            onClick={() => speak(q.word.term, lang)}
+            onClick={() => say(q.word.term, lang)}
             style={{
               width: 68, height: 68, borderRadius: '50%', border: 'none', cursor: 'pointer',
               display: 'grid', placeItems: 'center', background: `${accent}22`, color: accent,
@@ -322,7 +317,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
             <Volume2 size={28} />
           </button>
           <button
-            onClick={() => speak(q.word.term, lang, 0.55)}
+            onClick={() => say(q.word.term, lang, 0.55)}
             style={{
               border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit',
               fontSize: 12, fontWeight: 700, color: 'var(--color-muted)',
@@ -452,7 +447,9 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
             fontSize: 12.5, lineHeight: 1.55, color: 'var(--color-muted)', ...proseWrap,
           }}>
             <Sparkle size={15} style={{ flexShrink: 0, marginTop: 1, color: accent }} />
-            {t('Проверки на слух здесь нет и быть не может: слова звучат одинаково. Различает их только фраза, в которой они стоят.')}
+            {nest.axis === 'homonym'
+              ? t('Проверки на слух здесь нет и быть не может: слова звучат одинаково. Различает их только фраза, в которой они стоят.')
+              : t('Проверки на слух здесь нет: эти звуки в современной речи слились, и носители их тоже не различают. Учить надо написание слова целиком.')}
           </div>
         )}
         <button onClick={takeAll} disabled={saving} style={ghostBtn(accent)}>

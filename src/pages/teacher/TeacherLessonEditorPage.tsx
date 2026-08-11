@@ -196,84 +196,36 @@ function TimePickerLesson({ value, onChange, onClose }: { value: string; onChang
 
 // ─── Upload tile (workbook / notes / materials) ────────────────────────────────
 
-function fileExt(name: string) {
-  const dot = name.lastIndexOf('.')
-  const ext = dot >= 0 ? name.slice(dot + 1).toUpperCase() : tGlobal('ФАЙЛ')
-  return ext.length > 4 ? ext.slice(0, 4) : ext
-}
-
-function UploadTile({
-  icon: Icon, label, files, onAddFiles, onRemove, multiple,
-}: {
-  icon: React.ElementType; label: string
-  files: string[]; onAddFiles: (names: string[]) => void; onRemove: (i: number) => void; multiple?: boolean
-}) {
+/**
+ * Плитка файла — НЕактивная.
+ *
+ * Этот экран заводит занятие в расписании (schedule_lessons) и строки в
+ * `lessons` не создаёт, а файл прикрепляется именно к уроку курса: он лежит в
+ * бакете lesson-materials, а путь — в lessons.materials (см. lib/lessonFiles).
+ * Прикреплять здесь было некуда: плитка складывала ИМЕНА выбранных файлов в
+ * черновик браузера, при публикации они пропадали, и ученик их не видел.
+ * Поэтому здесь — только указатель на Конструктор, где загрузка настоящая.
+ */
+function UploadTile({ icon: Icon, label }: { icon: React.ElementType; label: string }) {
   const t = useT()
-  const has = files.length > 0
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  function handlePick(e: React.ChangeEvent<HTMLInputElement>) {
-    const picked = Array.from(e.target.files ?? []).map(f => f.name)
-    if (picked.length) onAddFiles(picked)
-    e.target.value = '' // allow re-picking the same file
-  }
-
   return (
     <div style={{ position: 'relative' }}>
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-        multiple={multiple}
-        onChange={handlePick}
-        style={{ display: 'none' }}
-      />
-      <motion.button
-        whileHover={{ y: -2 }} whileTap={{ scale: 0.99 }}
-        onClick={() => inputRef.current?.click()}
-        style={tileBase(has)}
-      >
+      <div style={{ ...tileBase(false), cursor: 'default', border: '1.5px dashed var(--color-border-medium)', background: 'var(--color-bg-2)', opacity: 0.75 }}>
         <div style={{
           width: 40, height: 40, borderRadius: 12, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: has ? 'var(--color-green-soft)' : 'rgba(74,222,128,0.1)', color: 'var(--color-green-text)',
+          background: 'var(--color-bg-3)', color: 'var(--color-text-4)',
         }}>
           <Icon size={20} strokeWidth={1.9} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.2 }}>{label}</p>
-          <p style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2 }}>
-            {has ? `${files.length} ${t('файлов')}` : t('Загрузить файл')}
+          <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text-3)', lineHeight: 1.2 }}>{label}</p>
+          <p style={{ fontSize: 12, color: 'var(--color-text-4)', marginTop: 2 }}>
+            {t('Прикрепляется в уроке курса')}
           </p>
         </div>
-        {!has && <Upload size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
-        {has && multiple && <Plus size={16} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />}
-      </motion.button>
-
-      {has && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 6 }}>
-          {files.map((f, i) => (
-            <div key={i} style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              padding: '6px 10px', borderRadius: 9, background: 'var(--color-bg)',
-            }}>
-              <div style={{
-                width: 24, height: 24, borderRadius: 7, flexShrink: 0,
-                background: 'var(--grad-green)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 7, fontWeight: 800, color: '#fff',
-              }}>{fileExt(f)}</div>
-              <span style={{ flex: 1, fontSize: 11.5, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f}</span>
-              <button
-                onClick={() => onRemove(i)}
-                style={{ width: 18, height: 18, borderRadius: 5, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
-              >
-                <X size={10} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+        <Upload size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
+      </div>
     </div>
   )
 }
@@ -1179,9 +1131,6 @@ export default function TeacherLessonEditorPage() {
   }, [source])
   const [videoUrl, setVideoUrl] = usePersistentState(`${draftNs}.videoUrl`, '')
   const [timecodes, setTimecodes] = usePersistentState<Timecode[]>(`${draftNs}.timecodes`, [])
-  const [workbook, setWorkbook] = usePersistentState<string[]>(`${draftNs}.workbook`, [])
-  const [notes, setNotes] = usePersistentState<string[]>(`${draftNs}.notes`, [])
-  const [materials, setMaterials] = usePersistentState<string[]>(`${draftNs}.materials`, [])
   const [basicHw, setBasicHw] = usePersistentState<HomeworkTemplate | null>(`${draftNs}.basicHw`, null)
   const [hardHw, setHardHw] = usePersistentState<HomeworkTemplate | null>(`${draftNs}.hardHw`, null)
   const [description, setDescription] = usePersistentState(`${draftNs}.description`, '')
@@ -1429,15 +1378,9 @@ export default function TeacherLessonEditorPage() {
 
             {/* Row 2: materials + homework */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 14, alignItems: 'start' }}>
-              <UploadTile icon={NotebookPen} label={t('Рабочая тетрадь')} files={workbook}
-                onAddFiles={names => setWorkbook(f => [...f, ...names])}
-                onRemove={i => setWorkbook(f => f.filter((_, j) => j !== i))} />
-              <UploadTile icon={FileText} label={t('Конспект')} files={notes}
-                onAddFiles={names => setNotes(f => [...f, ...names])}
-                onRemove={i => setNotes(f => f.filter((_, j) => j !== i))} />
-              <UploadTile icon={FolderOpen} label={t('Материалы')} files={materials} multiple
-                onAddFiles={names => setMaterials(f => [...f, ...names])}
-                onRemove={i => setMaterials(f => f.filter((_, j) => j !== i))} />
+              <UploadTile icon={NotebookPen} label={t('Рабочая тетрадь')} />
+              <UploadTile icon={FileText} label={t('Конспект')} />
+              <UploadTile icon={FolderOpen} label={t('Материалы')} />
               <HomeworkSelectorCard
                 lessonTitle={meta.title}
                 basic={basicHw} hard={hardHw}

@@ -43,7 +43,7 @@
 import {
   buildLanguageCourse, courseSummary, allVocab, unitByShortId, moduleOfUnit,
   one, many, fill, wb, order, pairsOf, grid, write, say, readAloud,
-  dictation, dictationBank, minPair, describeImage, drill,
+  dictation, dictationBank, minPair, describeImage, drill, nestTasks,
 } from './languageCourse'
 import { roomSceneImage } from './seedImages'
 import { JAPANESE_THEORY, JAPANESE_VIDEO } from './japaneseJlptTheory'
@@ -224,6 +224,10 @@ export const JAPANESE_UNITS: LangUnit[] = [
         ['びょういん', 'больница'],
         ['びよういん', 'салон красоты'],
       ]),
+      // Гнездо родственников целиком: пары выше берут тётю с бабушкой, но
+      // дядю с дедушкой юнит не трогал вовсе, а ошибка там та же и такая же
+      // обидная. Возврат по расписанию — в тренажёре (soundNests.ts).
+      ...nestTasks('ja-ojisan', 1),
       dictation('Напечатайте услышанное слово хираганой.', 'がっこう'),
       readAloud('Прочитайте вслух парами, различая долготу: おばさん–おばあさん、きて–きって、ここ–こうこう。',
         'おばさん おばあさん きて きって ここ こうこう', 45),
