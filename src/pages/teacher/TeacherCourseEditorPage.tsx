@@ -18,7 +18,7 @@ import type { Task as BankTask } from '../../data/taskBankData'
 import { courseSubjectOptions, isLanguageSubject } from '../../lib/subjects'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
 import AudioStimulusEditor from '../../components/teacher/AudioStimulusEditor'
-import { useGroups, useAllStudents } from '../../lib/useGroups'
+import { useGroups, useAllStudents, groupStudentsByPerson, type PersonRow } from '../../lib/useGroups'
 import TeacherSaveButton, { teacherSaveStyle, SAVE_ACCENTS } from '../../components/teacher/TeacherSaveButton'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import ScrollFade from '../../components/ScrollFade'
@@ -36,6 +36,7 @@ import { diffAgainstSeed, applySeedChanges, type SeedDiff } from '../../lib/seed
 import SeedSyncDialog from '../../components/teacher/SeedSyncDialog'
 import {
   theoryToParagraphs, appendTheoryImage, removeTheoryImage, orderedTheoryImages,
+  cutTheoryAtFigures, joinTheoryAtFigures, setFigureCaption, moveTheoryFigure,
   type TheoryImage,
 } from '../../lib/theoryImages'
 import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
@@ -439,31 +440,60 @@ function AccessModeSelect({
 // Assign list with a search box on top and a 5-item preview (rest collapsed) so a
 // long roster never dumps the whole list into the editor. Selected items always
 // show regardless of the preview cap so they can be toggled off.
-// Students carry a subject subtitle: one человек with several направления has a
-// separate 1:1 card (= separate student row) per subject, so the bare name alone
-// is ambiguous — the teacher must see which карточка gets the course.
+//
+// Ученик в списке — ЧЕЛОВЕК, а не строка students: у 1:1-ученика отдельная
+// карточка на каждый предмет, и плоский список двоил одного и того же человека.
+// Карточки при этом не исчезают — выбор обязан приземлиться на конкретную (от
+// неё зависит, под какой карточкой копится прогресс и в чьё расписание встают
+// занятия), поэтому у человека с несколькими предметами под именем идут чипсы:
+// активный = карточка, которая получит курс.
+type AssignItem = {
+  /** id группы — для групп; ключ человека (personKey) — для учеников. */
+  id: string
+  name: string
+  subject?: string
+  cards?: Array<{ id: string; subject: string }>
+}
+
 const ASSIGN_PREVIEW = 5
 function AssignPicker({
-  items, selectedIds, onToggle, kind,
+  items, selectedIdOf, onToggle, onPickCard, pickHintId, kind,
 }: {
-  items: Array<{ id: string; name: string; subject?: string }>
-  selectedIds: string[]
-  onToggle: (id: string) => void
+  items: AssignItem[]
+  /** Выбранная карточка элемента (для группы — её же id) либо null. */
+  selectedIdOf: (item: AssignItem) => string | null
+  onToggle: (item: AssignItem) => void
+  onPickCard?: (item: AssignItem, cardId: string) => void
+  /** Человек, которому не удалось выбрать карточку автоматически. */
+  pickHintId?: string | null
   kind: 'group' | 'student'
 }) {
   const t = useT()
   const [q, setQ] = useState('')
   const [expanded, setExpanded] = useState(false)
   const query = q.trim().toLowerCase()
-  const filtered = query
-    ? items.filter(i => `${i.name} ${i.subject ?? ''}`.toLowerCase().includes(query))
-    : items
-  const selectedSet = new Set(selectedIds)
+  const haystack = (i: AssignItem) =>
+    `${i.name} ${i.subject ?? ''} ${(i.cards ?? []).map(c => c.subject).join(' ')}`.toLowerCase()
+  const filtered = query ? items.filter(i => haystack(i).includes(query)) : items
+  const isOn = (i: AssignItem) => selectedIdOf(i) !== null
+  const selectedCount = items.filter(isOn).length
   // Always surface selected items; fill the rest up to the preview cap.
   const shown = (query || expanded)
     ? filtered
-    : [...filtered.filter(i => selectedSet.has(i.id)), ...filtered.filter(i => !selectedSet.has(i.id))].slice(0, Math.max(ASSIGN_PREVIEW, selectedIds.length))
+    : [...filtered.filter(isOn), ...filtered.filter(i => !isOn(i))].slice(0, Math.max(ASSIGN_PREVIEW, selectedCount))
   const hiddenCount = filtered.length - shown.length
+
+  // Один чипс на предмет. Две карточки одного предмета (дубль в данных) не дают
+  // двух неразличимых чипсов: побеждает выбранная, иначе первая.
+  function subjectChips(item: AssignItem, selected: string | null) {
+    const out: Array<{ id: string; subject: string }> = []
+    for (const c of item.cards ?? []) {
+      const twin = out.findIndex(o => o.subject === c.subject)
+      if (twin === -1) out.push(c)
+      else if (c.id === selected) out[twin] = c
+    }
+    return out
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -483,36 +513,76 @@ function AssignPicker({
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
         {shown.map(item => {
-          const on = selectedSet.has(item.id)
+          const selected = selectedIdOf(item)
+          const on = selected !== null
+          const chips = subjectChips(item, selected)
+          // Подпись: у выбранного — карточка, которая получила курс; у остальных
+          // — все его предметы, чтобы человека можно было опознать.
+          const subtitle = chips.length > 0
+            ? (on ? chips.find(c => c.id === selected)?.subject ?? '' : chips.map(c => c.subject).join(' · '))
+            : item.subject ?? ''
+          const needsPick = pickHintId === item.id && !on
           return (
-            <button key={item.id} onClick={() => onToggle(item.id)} style={{
-              display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-              padding: '9px 14px', borderRadius: 12,
-              border: on ? '1.5px solid var(--color-green-text)' : '1.5px solid var(--color-border)',
+            <div key={item.id} style={{
+              borderRadius: 12,
+              border: on ? '1.5px solid var(--color-green-text)'
+                : needsPick ? '1.5px solid var(--color-yellow-text)'
+                : '1.5px solid var(--color-border)',
               background: on ? 'var(--color-green-soft)' : 'transparent',
-              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.14s',
+              transition: 'all 0.14s',
             }}>
-              <div style={{
-                width: 26, height: 26, borderRadius: '50%',
-                background: on ? 'var(--color-green-text)' : 'var(--color-bg-3)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 11, fontWeight: 700,
-                color: on ? '#fff' : 'var(--color-muted)', flexShrink: 0,
+              <button onClick={() => onToggle(item)} style={{
+                display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                padding: '9px 14px', border: 'none', background: 'transparent',
+                cursor: 'pointer', fontFamily: 'inherit',
               }}>
-                {kind === 'group' ? <Users size={13} style={{ color: on ? '#fff' : 'var(--color-muted)' }} /> : item.name.slice(0, 1).toUpperCase()}
-              </div>
-              <span style={{ display: 'flex', flexDirection: 'column', gap: 1, flex: 1, minWidth: 0, textAlign: 'left' }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: on ? 'var(--color-green-text)' : 'var(--color-text)' }}>
-                  {item.name}
-                </span>
-                {item.subject && (
-                  <span style={{ fontSize: 11, fontWeight: 600, color: on ? 'var(--color-green-text)' : 'var(--color-muted)', opacity: on ? 0.75 : 1 }}>
-                    {item.subject}
+                <div style={{
+                  width: 26, height: 26, borderRadius: '50%',
+                  background: on ? 'var(--color-green-text)' : 'var(--color-bg-3)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 11, fontWeight: 700,
+                  color: on ? '#fff' : 'var(--color-muted)', flexShrink: 0,
+                }}>
+                  {kind === 'group' ? <Users size={13} style={{ color: on ? '#fff' : 'var(--color-muted)' }} /> : item.name.slice(0, 1).toUpperCase()}
+                </div>
+                <span style={{ display: 'flex', flexDirection: 'column', gap: 1, flex: 1, minWidth: 0, textAlign: 'left' }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: on ? 'var(--color-green-text)' : 'var(--color-text)', ...oneLine }} title={item.name}>
+                    {item.name}
                   </span>
-                )}
-              </span>
-              {on && <X size={11} style={{ color: 'var(--color-green-text)' }} />}
-            </button>
+                  {subtitle && (
+                    <span style={{ fontSize: 11, fontWeight: 600, color: on ? 'var(--color-green-text)' : 'var(--color-muted)', opacity: on ? 0.75 : 1, ...oneLine }} title={subtitle}>
+                      {subtitle}
+                    </span>
+                  )}
+                </span>
+                {on && <X size={11} style={{ color: 'var(--color-green-text)' }} />}
+              </button>
+
+              {chips.length > 1 && onPickCard && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, padding: '0 14px 9px 48px' }}>
+                  {chips.map(c => {
+                    const active = c.id === selected
+                    return (
+                      <button key={c.id} onClick={() => onPickCard(item, c.id)} style={{
+                        padding: '3px 10px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+                        fontSize: 11, fontWeight: 700,
+                        border: active ? '1px solid var(--color-green-text)' : '1px solid var(--color-border-soft)',
+                        background: active ? 'var(--color-green-text)' : 'var(--color-bg-3)',
+                        color: active ? '#fff' : 'var(--color-text-2)',
+                        transition: 'all 0.14s',
+                      }}>
+                        {c.subject || t('Без предмета')}
+                      </button>
+                    )
+                  })}
+                  {needsPick && (
+                    <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-yellow-text)', alignSelf: 'center' }}>
+                      {t('— выбери, в какую карточку записать курс')}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           )
         })}
         {shown.length === 0 && (
@@ -550,12 +620,15 @@ function CenterCourseAccess({
   course: CourseEdData
   setCourse: React.Dispatch<React.SetStateAction<CourseEdData>>
   groups: Array<{ id: string; name: string }>
-  allStudents: Array<{ id: string; name: string; groupId?: string; subject?: string }>
+  allStudents: PersonRow[]
   accessModes: Record<string, AccessMode>
   setAccessModes: React.Dispatch<React.SetStateAction<Record<string, AccessMode>>>
 }) {
   const t = useT()
   const [assignTab, setAssignTab] = useState<'group' | 'student'>('group')
+  // Человек, у которого нет карточки по предмету курса и несколько карточек на
+  // выбор: клик по имени не может решить за учителя — просим ткнуть в чипс.
+  const [pickHintKey, setPickHintKey] = useState<string | null>(null)
 
   const modeOf = (id: string): AccessMode => accessModes[id] ?? 'by_date'
   const setStudentMode = (id: string, mode: AccessMode) =>
@@ -583,11 +656,49 @@ function CenterCourseAccess({
     }))
   }
 
-  function toggleStudent(id: string) {
+  // ── Ученики: один человек — одна строка ─────────────────────────────────────
+  // В списке человек, в course.studentIds — по-прежнему id карточки: от неё
+  // зависит, под какой карточкой копится прогресс (ownerStudentId в
+  // db.fetchCourseStructure) и в чьё расписание встают занятия курса.
+  const persons = useMemo(() => groupStudentsByPerson(allStudents), [allStudents])
+  const personItems: AssignItem[] = useMemo(
+    () => persons.map(p => ({ id: p.key, name: p.name, cards: p.cards.map(c => ({ id: c.id, subject: c.subject })) })),
+    [persons],
+  )
+  const cardsOf = (item: AssignItem) => item.cards ?? []
+  const selectedCardOf = (item: AssignItem) =>
+    cardsOf(item).find(c => course.studentIds.includes(c.id))?.id ?? null
+  // Карточка по предмету курса; если предмет не совпал ни с одной, но карточка
+  // всего одна — она и есть ответ. Иначе выбирает учитель.
+  const autoCard = (item: AssignItem): string | null => {
+    const want = course.subject.trim().toLowerCase()
+    const bySubject = cardsOf(item).find(c => c.subject.trim().toLowerCase() === want)
+    if (bySubject) return bySubject.id
+    return cardsOf(item).length === 1 ? cardsOf(item)[0].id : null
+  }
+  /** Курс уходит ровно в одну карточку человека — прежние выборы снимаем. */
+  const setPersonCard = (item: AssignItem, cardId: string | null) => {
+    const own = new Set(cardsOf(item).map(c => c.id))
     setCourse(c => ({
       ...c,
-      studentIds: c.studentIds.includes(id) ? c.studentIds.filter(x => x !== id) : [...c.studentIds, id],
+      studentIds: cardId
+        ? [...c.studentIds.filter(id => !own.has(id)), cardId]
+        : c.studentIds.filter(id => !own.has(id)),
     }))
+  }
+
+  function togglePerson(item: AssignItem) {
+    if (selectedCardOf(item)) { setPersonCard(item, null); setPickHintKey(null); return }
+    const pick = autoCard(item)
+    if (!pick) { setPickHintKey(item.id); return }
+    setPickHintKey(null)
+    setPersonCard(item, pick)
+  }
+
+  function pickPersonCard(item: AssignItem, cardId: string) {
+    setPickHintKey(null)
+    // Повторный клик по активному чипсу снимает выбор целиком.
+    setPersonCard(item, selectedCardOf(item) === cardId ? null : cardId)
   }
 
   const assignedGroups = groups.filter(g => course.groupIds.includes(g.id))
@@ -624,17 +735,19 @@ function CenterCourseAccess({
             <AssignPicker
               kind="group"
               items={groups}
-              selectedIds={course.groupIds}
-              onToggle={toggleGroup}
+              selectedIdOf={g => course.groupIds.includes(g.id) ? g.id : null}
+              onToggle={g => toggleGroup(g.id)}
             />
           )}
 
           {assignTab === 'student' && (
             <AssignPicker
               kind="student"
-              items={allStudents}
-              selectedIds={course.studentIds}
-              onToggle={toggleStudent}
+              items={personItems}
+              selectedIdOf={selectedCardOf}
+              onToggle={togglePerson}
+              onPickCard={pickPersonCard}
+              pickHintId={pickHintKey}
             />
           )}
 
@@ -1211,15 +1324,98 @@ const FILE_CARDS: Array<{ field: FileField; Icon: React.ElementType; label: stri
   { field: 'materialFile', Icon: FolderOpen,  label: 'Материалы' },
 ]
 
+/** Кнопка при картинке конспекта: стрелки и крестик. */
+function FigureBtn({ onClick, disabled, title, children }: {
+  onClick: () => void
+  disabled?: boolean
+  title: string
+  children: React.ReactNode
+}) {
+  return (
+    <button onClick={onClick} disabled={disabled} title={title}
+      style={{
+        width: 24, height: 24, borderRadius: 8, border: 'none',
+        background: 'var(--color-bg-3)', color: 'var(--color-text-3)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.35 : 1,
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
 /**
- * Иллюстрации конспекта.
+ * Картинка внутри текста конспекта.
  *
- * Картинка встаёт в конспект строкой-маркером `![подпись](img:N)`: место
- * картинки задаёт текст, а не отдельный список, поэтому схему можно поставить
- * ровно после правила, которое она объясняет. Здесь — только загрузка,
- * превью и удаление; подпись учитель правит прямо в маркере.
+ * Стоит между кусками прозы ровно там, где в тексте её маркер, — так учитель
+ * видит урок так же, как ученик. Подпись правится на месте (подчёркивание, а не
+ * коробка), стрелки двигают картинку на абзац вверх-вниз: строки маркера в
+ * блочном редакторе не видно, и переставить её иначе нечем.
  */
-function TheoryImages({
+function TheoryFigure({
+  src, caption, canUp, canDown, onCaption, onMove, onRemove,
+}: {
+  src: string
+  caption: string
+  canUp: boolean
+  canDown: boolean
+  onCaption: (v: string) => void
+  onMove: (dir: -1 | 1) => void
+  onRemove: () => void
+}) {
+  const t = useT()
+  return (
+    <div style={{
+      display: 'flex', gap: 10, alignItems: 'flex-start',
+      padding: 10, borderRadius: 14,
+      border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)',
+    }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <img src={src} alt="" style={{
+          display: 'block', width: '100%', maxWidth: 340, borderRadius: 10, background: '#fff',
+        }} />
+        <input
+          value={caption}
+          onChange={e => onCaption(e.target.value)}
+          placeholder={t('Подпись к картинке')}
+          style={{
+            marginTop: 8, width: '100%', maxWidth: 340, padding: '3px 0',
+            border: 'none', borderBottom: '1px solid var(--color-border-medium)',
+            background: 'transparent', color: 'var(--color-text)',
+            fontSize: 12, fontFamily: 'inherit', outline: 'none',
+          }}
+        />
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <FigureBtn onClick={() => onMove(-1)} disabled={!canUp} title={t('Выше на абзац')}>
+          <ChevronUp size={13} />
+        </FigureBtn>
+        <FigureBtn onClick={() => onMove(1)} disabled={!canDown} title={t('Ниже на абзац')}>
+          <ChevronDown size={13} />
+        </FigureBtn>
+        <FigureBtn onClick={onRemove} title={t('Убрать картинку')}>
+          <X size={12} />
+        </FigureBtn>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Конспект урока: текст с картинками внутри.
+ *
+ * Место картинки задаёт строка-маркер `![подпись](img:N)` в самом тексте —
+ * поэтому схему можно поставить ровно после правила, которое она объясняет.
+ * Но маркер как строка нечитаем: учитель видит «![Фразы темы в деле](img:1)», а
+ * картинки — отдельной полосой внизу, и собрать урок глазами нельзя. Поэтому
+ * текст режется по маркерам: между кусками прозы стоит сама картинка.
+ *
+ * Куски прозы держим в своём состоянии, а не выводим из `lesson.theory` на
+ * каждый ввод: сборка обратно в строку схлопывает хвостовые переводы строки, и
+ * пустая строка нового абзаца исчезала бы прямо под руками.
+ */
+function TheoryEditor({
   lesson, onUpdate,
 }: {
   lesson: CELesson
@@ -1227,71 +1423,138 @@ function TheoryImages({
 }) {
   const t = useT()
   const fileRef = useRef<HTMLInputElement>(null)
+  const theory = lesson.theory ?? ''
   const images = lesson.theoryImages ?? []
-  // Порядок полосы — порядок картинок в тексте урока, а не порядок загрузки:
-  // маркер можно двигать между абзацами, и список должен читаться как урок.
-  const placed = orderedTheoryImages(lesson.theory ?? '', images)
+  const cut = useMemo(() => cutTheoryAtFigures(theory), [theory])
+  const byKey = useMemo(() => new Map(images.map(img => [img.key, img.src])), [images])
+  // Картинки, чей маркер из текста пропал: нигде не показываются, но и молча
+  // терять их нельзя — учитель их загружал.
+  const orphans = orderedTheoryImages(theory, images).filter(p => p.position === null)
+
+  const [segments, setSegments] = useState<string[]>(cut.segments)
+  /** Текст, который отправили наверх сами: по нему отличаем чужую правку. */
+  const pushed = useRef(theory)
+  useEffect(() => {
+    if (theory !== pushed.current) {
+      pushed.current = theory
+      setSegments(cutTheoryAtFigures(theory).segments)
+    }
+  }, [theory])
+
+  function pushTheory(next: string) {
+    pushed.current = next
+    onUpdate({ ...lesson, theory: next })
+  }
+
+  function editSegment(i: number, v: string) {
+    const next = segments.map((s, idx) => (idx === i ? v : s))
+    setSegments(next)
+    pushTheory(joinTheoryAtFigures({ segments: next, figures: cut.figures }))
+  }
 
   function add(file: File) {
     optimizePhoto(file)
       .then(url => {
-        const next = appendTheoryImage(lesson.theory ?? '', images, url, t('Подпись к картинке'))
+        const next = appendTheoryImage(theory, images, url, '')
+        pushed.current = next.theory
+        setSegments(cutTheoryAtFigures(next.theory).segments)
         onUpdate({ ...lesson, theory: next.theory, theoryImages: next.images })
       })
       .catch(err => { if (err instanceof ImageTooLargeError) window.alert(err.message); else throw err })
   }
 
   function remove(key: string) {
-    const next = removeTheoryImage(lesson.theory ?? '', images, key)
+    const next = removeTheoryImage(theory, images, key)
+    pushed.current = next.theory
+    setSegments(cutTheoryAtFigures(next.theory).segments)
     onUpdate({ ...lesson, theory: next.theory, theoryImages: next.images })
   }
 
+  function move(key: string, dir: -1 | 1) {
+    const next = moveTheoryFigure(theory, key, dir)
+    pushed.current = next
+    setSegments(cutTheoryAtFigures(next).segments)
+    onUpdate({ ...lesson, theory: next })
+  }
+
+  /** Вернуть «потеряшку» в текст — маркером в самый конец. */
+  function restore(key: string) {
+    const next = joinTheoryAtFigures({
+      segments: [...cut.segments, ''],
+      figures: [...cut.figures, { key, caption: '' }],
+    })
+    pushed.current = next
+    setSegments(cutTheoryAtFigures(next).segments)
+    onUpdate({ ...lesson, theory: next })
+  }
+
   return (
-    <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }}
         onChange={e => { const f = e.target.files?.[0]; if (f) add(f); e.target.value = '' }}
       />
-      {placed.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
-          {placed.map(({ image: img, caption, position }) => (
-            <div key={img.key} style={{
-              position: 'relative', padding: 8, borderRadius: 12,
-              border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-2)',
-              opacity: position === null ? 0.55 : 1,
-            }}>
-              {/* Номер по тексту, а не по ключу: ключи не переиспользуются после
-                  удаления, и по img:N порядок в уроке не читается. */}
-              {position !== null && (
-                <div style={{
-                  position: 'absolute', top: 4, left: 4, zIndex: 2, minWidth: 22, height: 22, padding: '0 6px',
-                  borderRadius: 11, background: 'var(--color-bg-3)', color: 'var(--color-text-3)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 11, fontWeight: 700, boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
-                }}>
-                  {position}
-                </div>
-              )}
-              <img src={img.src} alt="" style={{ display: 'block', width: '100%', borderRadius: 8, background: '#fff' }} />
-              <div style={{ marginTop: 6, fontSize: 11, color: 'var(--color-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                <code style={{ fontSize: 10, color: 'var(--color-muted)' }}>img:{img.key}</code>
-                {' · '}{caption || (position === null ? t('нет в тексте конспекта') : t('без подписи'))}
+
+      {segments.map((seg, i) => {
+        const fig = cut.figures[i]
+        const src = fig ? byKey.get(fig.key) : undefined
+        return (
+          <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <AutoTextarea
+              value={seg}
+              onChange={v => editSegment(i, v)}
+              minHeight={i === 0 ? 96 : 56}
+              style={{ lineHeight: 1.7 }}
+              placeholder={i === 0
+                ? t('Объяснение темы, правила, таблицы, разбор ошибок. Пустая строка — новый абзац. Это ученик читает на вкладке «Конспект».')
+                : t('Текст после картинки…')}
+            />
+            {/* Маркер без картинки не рисуем вовсе: пустая рамка на месте схемы
+                читается как поломка урока. */}
+            {fig && src && (
+              <TheoryFigure
+                src={src}
+                caption={fig.caption}
+                canUp={i > 0 || seg.trim().length > 0}
+                canDown={i < cut.figures.length - 1 || segments[i + 1]?.trim().length > 0}
+                onCaption={v => pushTheory(setFigureCaption(theory, fig.key, v))}
+                onMove={dir => move(fig.key, dir)}
+                onRemove={() => remove(fig.key)}
+              />
+            )}
+          </div>
+        )
+      })}
+
+      {orphans.length > 0 && (
+        <div style={{
+          display: 'flex', flexWrap: 'wrap', gap: 8, padding: 8, borderRadius: 12,
+          border: '1px dashed var(--color-border-medium)',
+        }}>
+          <div style={{ width: '100%', fontSize: 11, color: 'var(--color-muted)' }}>
+            {t('Не стоят в тексте — ученик их не увидит')}
+          </div>
+          {orphans.map(({ image }) => (
+            <div key={image.key} style={{ width: 96 }}>
+              <img src={image.src} alt="" style={{ display: 'block', width: '100%', borderRadius: 8, background: '#fff', opacity: 0.55 }} />
+              <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
+                <button onClick={() => restore(image.key)}
+                  style={{
+                    flex: 1, padding: '3px 0', borderRadius: 8, border: 'none',
+                    background: 'var(--color-bg-3)', color: 'var(--color-text-3)',
+                    fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  {t('в текст')}
+                </button>
+                <FigureBtn onClick={() => remove(image.key)} title={t('Убрать картинку')}>
+                  <X size={11} />
+                </FigureBtn>
               </div>
-              {/* zIndex обязателен: без него превью перекрывает крестик и
-                  удалить картинку нельзя — клик уходит в картинку. */}
-              <button onClick={() => remove(img.key)}
-                style={{
-                  position: 'absolute', top: 4, right: 4, zIndex: 2, width: 22, height: 22, borderRadius: '50%',
-                  border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)',
-                  boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
-                }}
-              >
-                <X size={11} />
-              </button>
             </div>
           ))}
         </div>
       )}
+
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <button onClick={() => fileRef.current?.click()}
           style={{
@@ -1303,7 +1566,7 @@ function TheoryImages({
           <Camera size={13} /> {t('Картинка в конспект')}
         </button>
         <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>
-          {t('Картинка встаёт туда, где в тексте стоит её строка ![подпись](img:1) — строку можно двигать между абзацами.')}
+          {t('Картинка встаёт в конец конспекта — стрелками поднимите её к нужному абзацу.')}
         </span>
       </div>
     </div>
@@ -1417,14 +1680,7 @@ function CenterLesson({
 
         <div>
           <Label>{t('Конспект')}</Label>
-          <AutoTextarea
-            value={lesson.theory ?? ''}
-            onChange={v => onUpdate({ ...lesson, theory: v })}
-            minHeight={160}
-            style={{ lineHeight: 1.7 }}
-            placeholder={t('Объяснение темы, правила, таблицы, разбор ошибок. Пустая строка — новый абзац. Это ученик читает на вкладке «Конспект».')}
-          />
-          <TheoryImages lesson={lesson} onUpdate={onUpdate} />
+          <TheoryEditor lesson={lesson} onUpdate={onUpdate} />
         </div>
       </div>
 

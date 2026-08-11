@@ -4529,4 +4529,1110 @@ Comrades, leaving your homes temporarily is a necessary step. Please observe cal
       },
     ],
   },
+
+  // ── Медведь: карточка, наш текст ───────────────────────────────────────────
+  //
+  // bucket: 'inspired'. Заведение и повара наши. От сериала — кухонный
+  // протокол: выкрики, которые обязаны повторять вслух. Он реально существует
+  // и устроен как радиосвязь, поэтому и учится так же.
+  {
+    id: 'sc-bear-1',
+    workId: 'the-bear',
+    lang: 'en', title: 'Как разговаривают на кухне', level: 'B1', minutes: 3,
+    topic: 'Еда', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'На профессиональной кухне говорят отдельным языком, и он не для красоты: люди носят кипяток в узком проходе и не видят, кто у них за спиной. Ниже наша смена в этом протоколе. Правило одно — всё сказанное обязаны повторить вслух, иначе считается, что не услышали. Это ровно та же логика, что у «over» и «copy» в рации.',
+    after: 'Обратите внимание на «86». Так на кухне говорят, что блюдо кончилось: «86 the special» — снимаем спецпредложение. Слово это ушло далеко за пределы кухни и означает «убрать, вычеркнуть, избавиться».',
+    body: `— Six o'clock. Family meal is done, we open in thirty. Board, please.
+
+— On the board: forty covers, two large parties, one at seven and one at eight-thirty. Two allergies, both nuts, both on the seven.
+
+— Heard.
+
+— Chef, we are low on the short rib. I have nine portions.
+
+— Nine. So we 86 it at nine and we do not promise it to anybody at the door. Front of house, hear me?
+
+— Heard, chef.
+
+— Behind. Behind you, Marco. — Corner! — Hot behind, coming through.
+
+— Hands! I need hands on this pass, it is dying under the light.
+
+— Yes, chef.
+
+— Order in: two soup, one salad no dressing, one short rib mid-rare.
+
+— Two soup, one salad no dressing, one rib mid-rare. Heard.
+
+— How long on the rib?
+
+— Six minutes.
+
+— You said six four minutes ago.
+
+— Then two, chef.
+
+— Say two.
+
+— Two, chef.
+
+— Better. Walk it when it is ready, do not shout it. And somebody wipe the pass — we are not sending plates out with thumbprints on them tonight or any night.`,
+    translation: `— Шесть. Персонал поел, открываемся через тридцать. Доску, пожалуйста.
+
+— На доске: сорок посадок, две большие компании — одна в семь, вторая в полдевятого. Две аллергии, обе на орехи, обе в семичасовой.
+
+— Принял.
+
+— Шеф, у нас мало рёбер. Девять порций.
+
+— Девять. Значит, на девятой снимаем и никому у входа не обещаем. Зал, слышите меня?
+
+— Слышим, шеф.
+
+— За спиной. За спиной у тебя, Марко. — Угол! — Горячее за спиной, прохожу.
+
+— Руки! Мне нужны руки на раздаче, там всё умирает под лампой.
+
+— Да, шеф.
+
+— Заказ: два супа, один салат без заправки, одни рёбра средней прожарки.
+
+— Два супа, один салат без заправки, одни рёбра средней. Принял.
+
+— Сколько по рёбрам?
+
+— Шесть минут.
+
+— Ты сказал «шесть» четыре минуты назад.
+
+— Тогда две, шеф.
+
+— Так и говори — две.
+
+— Две, шеф.
+
+— Уже лучше. Как будет готово — донеси, а не кричи. И пусть кто-нибудь протрёт раздачу: мы не отдаём тарелки с отпечатками пальцев ни сегодня, ни вообще.`,
+    glossary: [
+      { term: 'covers', ru: 'посадки, число гостей за вечер' },
+      { term: 'heard', ru: 'принял, услышал (обязательный отклик)' },
+      { term: 'to 86 something', ru: 'снять из меню, кончилось' },
+      { term: 'front of house', ru: 'зал: официанты и хостес' },
+      { term: 'behind', ru: 'я у тебя за спиной — не оборачивайся' },
+      { term: 'corner', ru: 'иду из-за угла' },
+      { term: 'hands', ru: 'нужны руки, чтобы унести готовое' },
+      { term: 'the pass', ru: 'раздача — место, где блюда отдают в зал' },
+      { term: 'mid-rare', ru: 'средней прожарки с кровью' },
+    ],
+    questions: [
+      {
+        q: 'What does a cook mean by shouting "Behind"?',
+        options: [
+          'Come here',
+          'I am passing behind you — do not turn round',
+          'You are late',
+          'The dish is delayed',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "we 86 it at nine" mean?',
+        options: [
+          'We serve it at nine o’clock',
+          'After the ninth portion the dish is off the menu',
+          'We order eighty-six more',
+          'It costs eighty-six',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why must everything be repeated back ("Heard", "Yes, chef")?',
+        options: [
+          'It is politeness',
+          'Without the reply nobody knows the message was received — as on a radio',
+          'It is a tradition from the army',
+          'To make the shift louder',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is the chef annoyed about "six minutes"?',
+        options: [
+          'Six is too long',
+          'The same estimate was given four minutes ago, so it was never real',
+          'The cook mumbled',
+          'The rib is overcooked',
+        ],
+        correct: 1,
+        why: 'На кухне время — обязательство, а не догадка. Поэтому дальше идёт «Say two»: назови настоящую цифру и отвечай за неё.',
+      },
+    ],
+  },
+  {
+    id: 'sc-bear-2',
+    workId: 'the-bear',
+    lang: 'en', title: 'Разбор после смены', level: 'B2', minutes: 3,
+    topic: 'Обратная связь', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Вторая половина сериала — про то, как из ора сделать работающую команду. Ниже наши записи после смены. Это образец обратной связи, устроенной правильно: сначала что произошло, потом что делаем, и отдельно — что было хорошо. Формулировки здесь стоит просто забрать себе, они работают в любой профессии.',
+    after: 'Последний пункт — главный: «критикуем блюдо, а не человека». По-английски разница делается грамматикой: не «you were sloppy», а «the plate went out sloppy». Первое обвиняет, второе описывает.',
+    body: `POST-SHIFT NOTES — SATURDAY
+
+WHAT HAPPENED
+Forty-four covers, nine over what we planned for. Two tickets went out in the wrong order. One dish came back.
+
+THE DISH THAT CAME BACK
+It came back because it was cold, and it was cold because it sat on the pass for four minutes while we looked for hands. That is not the fault of whoever cooked it. That is a staffing decision I made at six o'clock, and I made it wrong.
+
+WHAT WE CHANGE ON MONDAY
+One person stays on the pass from seven. They do nothing else — no prep, no plating, nothing. If that person is standing still for ten minutes, good. That is what the job is.
+
+Call your times honestly. A real eight is better than an optimistic four. Nobody has ever been shouted at here for saying eight.
+
+WHAT WENT WELL, AND I MEAN IT
+The two allergy tickets were handled cleanly and separately, with the board double-checked by two people. That is exactly right and it is the part of the night that could actually have hurt someone.
+
+Marco, second half of service was a different cook from the first half. Whatever you changed, keep it.
+
+Finally: we talk about the plate, not about the person. The plate went out cold. Nobody in this kitchen is cold.`,
+    translation: `ЗАПИСКИ ПОСЛЕ СМЕНЫ — СУББОТА
+
+ЧТО БЫЛО
+Сорок четыре посадки — на девять больше, чем планировали. Два заказа ушли не в том порядке. Одно блюдо вернули.
+
+ПРО ВОЗВРАЩЁННОЕ БЛЮДО
+Его вернули, потому что оно было холодным, а холодным оно было потому, что простояло на раздаче четыре минуты, пока мы искали свободные руки. Это не вина того, кто его готовил. Это моё кадровое решение, принятое в шесть часов, и принял я его неправильно.
+
+ЧТО МЕНЯЕМ С ПОНЕДЕЛЬНИКА
+С семи один человек стоит на раздаче. Больше ничего: ни заготовок, ни выкладки, ничего. Если этот человек десять минут простоял без дела — хорошо. В этом и состоит работа.
+
+Называйте время честно. Настоящие восемь лучше, чем оптимистичные четыре. За «восемь» здесь ещё ни на кого не орали.
+
+ЧТО ВЫШЛО ХОРОШО — И Я ГОВОРЮ ЭТО ВСЕРЬЁЗ
+Два заказа с аллергией провели чисто и отдельно, доску перепроверили вдвоём. Это ровно как надо, и это та часть вечера, где реально можно было навредить человеку.
+
+Марко, во второй половине смены работал уже другой повар, не тот, что в первой. Что бы ты ни поменял — не бросай.
+
+И напоследок: мы говорим о тарелке, а не о человеке. Тарелка ушла холодной. Холодных людей на этой кухне нет.`,
+    glossary: [
+      { term: 'post-shift', ru: 'после смены' },
+      { term: 'ticket', ru: 'заказ, чек с кухонного принтера' },
+      { term: 'to come back (of a dish)', ru: 'быть возвращённым гостем' },
+      { term: 'staffing', ru: 'расстановка людей по местам' },
+      { term: 'prep', ru: 'заготовки до открытия' },
+      { term: 'to call your times', ru: 'называть, сколько осталось до готовности' },
+      { term: 'to handle cleanly', ru: 'провести чисто, без ошибок' },
+      { term: 'and I mean it', ru: 'и я говорю это всерьёз' },
+    ],
+    questions: [
+      {
+        q: 'Who does the chef blame for the cold dish?',
+        options: [
+          'The cook',
+          'Himself — it was his staffing decision',
+          'The waiter',
+          'The guest',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the new rule for the pass?',
+        options: [
+          'Everyone helps when they can',
+          'One person is on the pass from seven and does nothing else',
+          'The pass closes at seven',
+          'Two people share the pass',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the chef praise the handling of the allergy tickets first?',
+        options: [
+          'It was the fastest part of the night',
+          'It was the part where a mistake could actually have harmed someone',
+          'It was the most expensive dish',
+          'The guests complained',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the grammatical point of "the plate went out cold"?',
+        options: [
+          'It is passive and therefore vague',
+          'It describes the result instead of accusing a person',
+          'It is a command',
+          'It is a joke',
+        ],
+        correct: 1,
+        why: 'Сравните: «you were sloppy» и «the plate went out sloppy». Второе можно обсуждать, первое можно только отрицать.',
+      },
+    ],
+  },
+
+  // ── Убийства в одном здании: карточка, наш текст ───────────────────────────
+  {
+    id: 'sc-omitb-1',
+    workId: 'only-murders',
+    lang: 'en', title: 'Сценарий подкаста, первый эпизод', level: 'B1', minutes: 3,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Подкаст — редкий жанр: текст пишут, чтобы он звучал как непринуждённая речь. Отсюда особенности, которых нет ни в письменном, ни в устном английском по отдельности: короткие абзацы, обращение к одному слушателю на «you», паузы, размеченные прямо в тексте. Ниже наш сценарий первого эпизода.',
+    after: 'Приём, ради которого стоит смотреть на этот текст: эпизод начинается с вопроса, а не с представления. Ведущий называет себя только на третьей минуте — сначала нужно, чтобы слушатель захотел узнать ответ.',
+    body: `[COLD OPEN — no music yet]
+
+There are two hundred and six apartments in this building. I have lived in one of them for nineteen years. Until last Thursday I could not have told you the name of a single person in the other two hundred and five.
+
+[BEAT]
+
+I can now. I can tell you all of them.
+
+[THEME — 8 SEC — UNDER]
+
+Hi. I'm your host, and this is Second Floor, Rear — a podcast about one building, one night, and one door that should have been locked.
+
+Now, before we go any further, I have to say the thing my producer wrote on a card and held up in front of my face: we are not the police. Nothing you hear on this show is a legal finding. Everyone we discuss is presumed innocent, including the people I personally find extremely suspicious.
+
+[THEME OUT]
+
+So. Thursday. It rained all day, which matters, and I will explain why it matters in about six minutes.
+
+At 11:40 p.m. the fire alarm in the north stairwell went off. It went off for ninety seconds and then it stopped, which — and I checked this — is not something that alarm has ever done before or since.
+
+Nobody came out of their apartment. Not one person. In a building of two hundred and six apartments, at eleven forty at night, an alarm went off and nobody moved.
+
+That is where this story starts. Not with the body. With the silence.
+
+[MID-ROLL — 60 SEC — READ LIVE]
+
+We'll be right back.`,
+    translation: `[ХОЛОДНОЕ ОТКРЫТИЕ — музыки пока нет]
+
+В этом доме двести шесть квартир. В одной из них я живу девятнадцать лет. До прошлого четверга я не смог бы назвать вам имени ни одного человека из остальных двухсот пяти.
+
+[ПАУЗА]
+
+Теперь смогу. Могу назвать всех.
+
+[ЗАСТАВКА — 8 СЕК — ФОНОМ]
+
+Здравствуйте. Я ваш ведущий, и это «Второй этаж, окна во двор» — подкаст про один дом, одну ночь и одну дверь, которая должна была быть заперта.
+
+Так, прежде чем мы двинемся дальше, я обязан сказать то, что мой продюсер написал на карточке и держит у меня перед лицом: мы не полиция. Ничто из услышанного здесь не является юридическим выводом. Все, о ком мы говорим, считаются невиновными — включая тех, кто лично мне кажется крайне подозрительным.
+
+[ЗАСТАВКА УХОДИТ]
+
+Итак. Четверг. Весь день шёл дождь, и это важно; почему важно — объясню минут через шесть.
+
+В 23:40 в северной лестничной клетке сработала пожарная сигнализация. Она звенела девяносто секунд и умолкла — а такого, я проверял, эта сигнализация не делала ни до, ни после.
+
+Из квартир не вышел никто. Ни один человек. В доме на двести шесть квартир, без двадцати двенадцать ночи, сработала сигнализация — и никто не шелохнулся.
+
+Вот отсюда всё и начинается. Не с тела. С тишины.
+
+[РЕКЛАМА В СЕРЕДИНЕ — 60 СЕК — ЧИТАЮ ЖИВЬЁМ]
+
+Мы скоро вернёмся.`,
+    glossary: [
+      { term: 'cold open', ru: 'начало до заставки' },
+      { term: 'beat', ru: 'короткая пауза (пометка в сценарии)' },
+      { term: 'under', ru: 'фоном, под текстом (о музыке)' },
+      { term: 'I’m your host', ru: 'я ваш ведущий' },
+      { term: 'presumed innocent', ru: 'считается невиновным' },
+      { term: 'to go off (of an alarm)', ru: 'сработать' },
+      { term: 'stairwell', ru: 'лестничная клетка' },
+      { term: 'mid-roll', ru: 'рекламная вставка в середине' },
+      { term: 'we’ll be right back', ru: 'мы скоро вернёмся' },
+    ],
+    questions: [
+      {
+        q: 'Why does the host mention the producer\'s card?',
+        options: [
+          'To show he forgot his script',
+          'To make the legal disclaimer without breaking the informal tone',
+          'To thank the producer',
+          'To fill time',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the host say the story starts with?',
+        options: ['The rain', 'The body', 'The silence after the alarm', 'The locked door'],
+        correct: 2,
+      },
+      {
+        q: '"The fire alarm went off" means…',
+        options: [
+          'It stopped working',
+          'It started ringing',
+          'It was switched off',
+          'It was removed',
+        ],
+        correct: 1,
+        why: 'To go off про сигнализацию, будильник и бомбу значит «сработать», а не «выключиться». Одна из самых частых ловушек.',
+      },
+      {
+        q: 'Why are the paragraphs so short?',
+        options: [
+          'The text is unfinished',
+          'It is written to be spoken — each paragraph is roughly one breath',
+          'It is a poem',
+          'To save space',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-omitb-2',
+    workId: 'only-murders',
+    lang: 'en', title: 'Расшифровка разговора с соседкой', level: 'B1', minutes: 3,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Расшифровка — это живая речь на бумаге, со всеми запинками, обрывами и «ну». Учебники такого не печатают, а слышите вы в жизни именно это. Ниже наша расшифровка разговора с соседкой. Обратите внимание на служебные пометки — [inaudible], [overlapping], [pause], — они стандартные и встречаются в любых стенограммах.',
+    after: 'Самое ценное здесь в конце: свидетельница дважды поправляет саму себя — «я слышала… то есть я подумала, что слышала». По-английски это делается вставками I mean, well, actually, и именно по ним слышно, где человек перестал быть уверен.',
+    body: `TRANSCRIPT — apartment 4B — Tuesday — recorded with permission
+[Speakers: H = host, R = resident]
+
+H: So if you could just — in your own words — what you remember about Thursday night.
+R: Thursday. Okay. Um. I was watching my programme, the one with the — [inaudible] — anyway it finishes at eleven.
+H: And after that?
+R: After that I put the kettle on, which I shouldn't at that hour, but I do.
+H: [laughs] Same.
+R: And that's when the alarm went. And I thought, well —
+H: Sorry, what time roughly?
+R: Twenty to. Twenty to twelve. I know because the kettle hadn't — [pause] — it hadn't gone yet, and it takes about four minutes.
+H: That's actually very helpful.
+R: Is it?
+H: More than you'd think. So the alarm goes. What do you do?
+R: Nothing. [pause] I know. I know how that sounds.
+H: I'm not judging. Nobody came out. Two hundred and six apartments.
+R: Well, that's just it, isn't it. If nobody's running, you assume it's nothing.
+H: Did you hear anything else? Before, after —
+R: I heard — [overlapping] —
+H: — sorry, go on.
+R: I heard someone on the stairs. Going up, not down. And I mean, I thought I heard. I wouldn't want to say it in a court or anything.
+H: You're not in a court.
+R: No. But you're recording.
+H: I am. And I'll play you anything before it goes out.
+R: [pause] Then yes. Going up. Definitely up.`,
+    translation: `РАСШИФРОВКА — квартира 4B — вторник — запись с согласия
+[Говорят: В = ведущий, Ж = жительница]
+
+В: Итак, если можно — своими словами — что вы помните о вечере четверга.
+Ж: Четверг. Так. Э-э. Я смотрела свою передачу, ту, где — [неразборчиво] — в общем, она заканчивается в одиннадцать.
+В: А потом?
+Ж: А потом я поставила чайник, чего в такой час делать не надо, но я делаю.
+В: [смеётся] Я тоже.
+Ж: И тут сработала сигнализация. И я подумала, ну —
+В: Простите, примерно во сколько?
+Ж: Без двадцати. Без двадцати двенадцать. Я знаю, потому что чайник ещё не — [пауза] — ещё не вскипел, а ему нужно минуты четыре.
+В: Это, вообще-то, очень полезно.
+Ж: Правда?
+В: Больше, чем кажется. Итак, сигнализация сработала. Что вы делаете?
+Ж: Ничего. [пауза] Да, я понимаю. Понимаю, как это звучит.
+В: Я не сужу. Не вышел никто. Двести шесть квартир.
+Ж: Так в том-то и дело. Если никто не бежит, значит, решаешь, что ничего не случилось.
+В: Вы слышали что-нибудь ещё? До, после —
+Ж: Я слышала — [говорят одновременно] —
+В: — простите, продолжайте.
+Ж: Я слышала кого-то на лестнице. Шли наверх, а не вниз. И, ну, мне показалось, что слышала. В суде я бы такого говорить не стала.
+В: Вы не в суде.
+Ж: Нет. Но вы записываете.
+В: Записываю. И дам вам послушать всё, прежде чем это выйдет.
+Ж: [пауза] Тогда да. Наверх. Точно наверх.`,
+    glossary: [
+      { term: 'in your own words', ru: 'своими словами' },
+      { term: '[inaudible]', ru: 'неразборчиво (пометка в стенограмме)' },
+      { term: '[overlapping]', ru: 'говорят одновременно' },
+      { term: 'to put the kettle on', ru: 'поставить чайник' },
+      { term: 'twenty to (twelve)', ru: 'без двадцати (двенадцать)' },
+      { term: 'that’s just it', ru: 'вот именно, в том-то и дело' },
+      { term: 'I mean', ru: 'то есть; вставка, которой поправляют сказанное' },
+      { term: 'before it goes out', ru: 'прежде чем это выйдет в эфир' },
+    ],
+    questions: [
+      {
+        q: 'How does the resident fix the time?',
+        options: [
+          'By the clock on the wall',
+          'By the kettle, which takes about four minutes and had not boiled yet',
+          'By her programme',
+          'She does not fix it',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does she say "I heard — I mean, I thought I heard"?',
+        options: [
+          'She is correcting herself and lowering her certainty',
+          'She did not hear the question',
+          'She is joking',
+          'She is repeating for emphasis',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'What does "twenty to twelve" mean?',
+        options: ['12:20', '11:40', '11:20', '12:40'],
+        correct: 1,
+      },
+      {
+        q: 'What makes her willing to confirm it in the end?',
+        options: [
+          'The host promises to let her hear the recording before it is published',
+          'The host insists',
+          'She remembers a detail',
+          'She is shown a photograph',
+        ],
+        correct: 0,
+      },
+    ],
+  },
+
+  // ── Наша планета: карточка, наш текст ──────────────────────────────────────
+  //
+  // bucket: 'inspired'. Закадровый текст здесь наш; вид, место и цифры
+  // вымышлены намеренно, чтобы никто не заучил их как факт. От документалки —
+  // только жанр: настоящее время вместо прошедшего, цифра вместо эпитета.
+  {
+    id: 'sc-planet-1',
+    workId: 'our-planet',
+    lang: 'en', title: 'Закадровый текст: миграция', level: 'B2', minutes: 3,
+    topic: 'Погода и природа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Закадровый текст документалки — самый доступный английский на слух: медленно, внятно, с паузами. Но написан он по жёстким правилам, и их видно только на бумаге: настоящее время вместо прошедшего, цифра вместо прилагательного и один короткий вопрос там, где нужно удержать внимание. Ниже наш текст в этом жанре (вид и цифры вымышлены).',
+    after: 'Сравните первое и последнее предложения. Документалка почти всегда заканчивает тем же образом, с которого начала, — так тридцатисекундная сцена превращается в законченную историю.',
+    body: `At the end of the dry season, the river is a road.
+
+For eight months it has been shrinking. Now it is forty metres across where it was four hundred, and everything that needs to drink comes here, at the same hours, whether or not it wants company.
+
+The herd arrives at dusk. There are perhaps three hundred of them, and about a fifth are calves born this year. They have walked ninety kilometres in five days. They will not all cross.
+
+The crossing is sixty metres. In still water it takes ninety seconds.
+
+The water is not still.
+
+[PAUSE]
+
+The adults go first and form a line facing upstream, breaking the current. Behind that line, the calves swim in the calm water their mothers are making. It is not instinct alone: this herd has crossed here before, and the animals who remember are the ones at the front.
+
+By morning the herd is on the far bank, and it is smaller than it was. But the rains will come within the week, and the river will close behind them.
+
+Next year, at the end of the dry season, it will be a road again.`,
+    translation: `В конце сухого сезона река становится дорогой.
+
+Восемь месяцев она отступала. Теперь там, где было четыреста метров, — сорок, и всё, что нуждается в воде, приходит сюда в одни и те же часы, хочет оно компании или нет.
+
+Стадо приходит в сумерках. Их около трёхсот, и примерно пятая часть — телята этого года. За пять дней они прошли девяносто километров. Переправятся не все.
+
+Ширина переправы — шестьдесят метров. В стоячей воде это полторы минуты.
+
+Вода не стоячая.
+
+[ПАУЗА]
+
+Взрослые идут первыми и выстраиваются в линию против течения, разбивая поток. За этой линией телята плывут по спокойной воде, которую делают для них матери. Дело не в одном инстинкте: это стадо переправлялось здесь раньше, и впереди идут те, кто помнит.
+
+К утру стадо на том берегу, и оно меньше, чем было. Но дожди придут в течение недели, и река сомкнётся у них за спиной.
+
+В следующем году, в конце сухого сезона, она снова станет дорогой.`,
+    glossary: [
+      { term: 'dry season', ru: 'сухой сезон' },
+      { term: 'to shrink', ru: 'уменьшаться, отступать' },
+      { term: 'herd', ru: 'стадо' },
+      { term: 'calf (calves)', ru: 'телёнок (телята)' },
+      { term: 'dusk', ru: 'сумерки' },
+      { term: 'upstream', ru: 'против течения' },
+      { term: 'current', ru: 'течение' },
+      { term: 'still water', ru: 'стоячая вода' },
+      { term: 'the far bank', ru: 'противоположный берег' },
+    ],
+    questions: [
+      {
+        q: 'Why is the river called "a road"?',
+        options: [
+          'There is a bridge',
+          'It has shrunk so much that everything crosses and travels along it',
+          'Cars drive on it',
+          'It is dry',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the effect of the two short lines about the crossing?',
+        options: [
+          'They give a figure, then take it back — the ninety seconds do not apply',
+          'They describe the weather',
+          'They introduce a new animal',
+          'They are a mistake',
+        ],
+        correct: 0,
+        why: '«In still water it takes ninety seconds. The water is not still.» Приём документалок: сначала спокойная цифра, потом одна фраза, которая её отменяет.',
+      },
+      {
+        q: 'Why do the adults face upstream?',
+        options: [
+          'To see better',
+          'To break the current so the calves swim in calmer water',
+          'To rest',
+          'To drink',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is the narration in the present tense?',
+        options: [
+          'It is happening as we speak',
+          'It is the convention of documentary narration — it makes filmed events feel live',
+          'The past tense is not used in English documentaries',
+          'To describe a habit',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-planet-2',
+    workId: 'our-planet',
+    lang: 'en', title: 'Титры в конце серии', level: 'B2', minutes: 2,
+    topic: 'Погода и природа', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Последняя минута серии устроена иначе, чем остальные пятьдесят: тут не рассказывают, а просят. Ниже наш финальный текст (цифры вымышлены). Английский призыва узнаётся по конструкциям: «what is needed is», «it is not too late», «this is not a story about» — и по тому, что просьба всегда конкретна.',
+    after: 'Обратите внимание, чего в тексте нет: ни одного «мы должны» и ни одного «вы обязаны». Английский призыв почти никогда не строится на долженствовании — он строится на выборе, который у слушателя ещё есть.',
+    body: `Everything you have watched in the last fifty minutes takes place inside an area of about nine hundred square kilometres.
+
+Sixty years ago that area was four times larger. In the same period, the number of animals in the herd you followed has fallen by roughly two thirds.
+
+These are not natural fluctuations. They are the result of decisions, most of them taken far from here, and most of them taken for good reasons at the time.
+
+But decisions can be taken again.
+
+What is needed is not complicated, and it is not expensive by the standards of the budgets involved: a corridor of protected land between the river and the hills, wide enough for the herd to move without crossing a road.
+
+Where such corridors have been made, the animals have used them within a single season. Not eventually. Within a season.
+
+This is not a story about an ending. It is a story about a decision that has not yet been made.
+
+It is not too late to make it.`,
+    translation: `Всё, что вы смотрели последние пятьдесят минут, происходит на площади примерно в девятьсот квадратных километров.
+
+Шестьдесят лет назад эта площадь была вчетверо больше. За то же время численность стада, за которым вы следили, сократилась примерно на две трети.
+
+Это не естественные колебания. Это результат решений — по большей части принятых далеко отсюда и по большей части принятых тогда по разумным причинам.
+
+Но решения можно принять заново.
+
+Требуется немногое, и по меркам тех бюджетов, о которых идёт речь, это недорого: коридор охраняемой земли между рекой и холмами, достаточно широкий, чтобы стадо могло идти, не пересекая дорогу.
+
+Там, где такие коридоры создавали, животные начинали ими пользоваться в течение одного сезона. Не когда-нибудь. В течение сезона.
+
+Это рассказ не о конце. Это рассказ о решении, которое пока не принято.
+
+Принять его ещё не поздно.`,
+    glossary: [
+      { term: 'to take place', ru: 'происходить' },
+      { term: 'fluctuation', ru: 'колебание' },
+      { term: 'by the standards of', ru: 'по меркам' },
+      { term: 'corridor', ru: 'коридор — полоса земли для прохода животных' },
+      { term: 'within a single season', ru: 'в течение одного сезона' },
+      { term: 'not eventually', ru: 'не когда-нибудь потом' },
+      { term: 'it is not too late', ru: 'ещё не поздно' },
+    ],
+    questions: [
+      {
+        q: 'What is the concrete thing the film asks for?',
+        options: [
+          'Money for the film-makers',
+          'A protected corridor of land between the river and the hills',
+          'A ban on tourism',
+          'Nothing specific',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the text say "Not eventually. Within a season."?',
+        options: [
+          'To correct an error',
+          'To answer the unspoken objection that such measures take decades',
+          'To describe the weather',
+          'To fill the credits',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does the text describe the decisions that caused the loss?',
+        options: [
+          'As crimes',
+          'As decisions taken far away, mostly for reasons that seemed good then',
+          'As accidents',
+          'As natural change',
+        ],
+        correct: 1,
+        why: 'Ход намеренный: если виноватых не назначать, слушателю не нужно защищаться — и просьбу в конце он слышит.',
+      },
+      {
+        q: 'Which construction is used to make the appeal?',
+        options: [
+          '"We must" and "you have to"',
+          '"What is needed is…" and "it is not too late" — need and choice, not obligation',
+          'Questions only',
+          'Commands',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Ле Фаню, «Кармилла»: подлинник ─────────────────────────────────────────
+  {
+    id: 'sc-carmilla-1',
+    workId: 'lefanu-carmilla',
+    lang: 'en', title: 'Двенадцать лет назад я видела твоё лицо', level: 'B2', minutes: 3,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 1, where: 'Глава 3, «Мы сравниваем впечатления»', size: 'short', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'J. Sheridan Le Fanu, Carmilla · Project Gutenberg',
+    setup: 'Лаура живёт с отцом в замке в Штирии и за всю жизнь не видела ровесниц. Ночью у ворот переворачивается карета; раненую девушку оставляют у них на три месяца. Лаура идёт поздороваться — и узнаёт лицо, которое видела в детстве во сне и боялась двенадцать лет.',
+    after: 'О себе гостья скажет ровно три вещи: имя, что род её древний и знатный и что дом её где-то на западе. Больше за все три месяца Лаура не узнает ничего.',
+    body: `I saw the very face which had visited me in my childhood at night, which remained so fixed in my memory, and on which I had for so many years so often ruminated with horror, when no one suspected of what I was thinking.
+
+It was pretty, even beautiful; and when I first beheld it, wore the same melancholy expression.
+
+But this almost instantly lighted into a strange fixed smile of recognition.
+
+There was a silence of fully a minute, and then at length she spoke; I could not.
+
+“How wonderful!” she exclaimed. “Twelve years ago, I saw your face in a dream, and it has haunted me ever since.”
+
+“Wonderful indeed!” I repeated, overcoming with an effort the horror that had for a time suspended my utterances. “Twelve years ago, in vision or reality, I certainly saw you. I could not forget your face. It has remained before my eyes ever since.”
+
+Her smile had softened. Whatever I had fancied strange in it, was gone, and it and her dimpling cheeks were now delightfully pretty and intelligent.
+
+I felt reassured, and continued more in the vein which hospitality indicated, to bid her welcome, and to tell her how much pleasure her accidental arrival had given us all, and especially what a happiness it was to me.`,
+    translation: `Я увидела то самое лицо, которое приходило ко мне в детстве по ночам, — лицо, так прочно засевшее у меня в памяти, о котором я столько лет так часто размышляла с ужасом, и никто не подозревал, о чём я думаю.
+
+Оно было милое, даже прекрасное; и когда я впервые его увидела, на нём было то же печальное выражение.
+
+Но почти в тот же миг оно осветилось странной застывшей улыбкой узнавания.
+
+Молчание длилось целую минуту, и наконец заговорила она; я не могла.
+
+«Как удивительно! — воскликнула она. — Двенадцать лет назад я видела ваше лицо во сне, и оно преследует меня с тех пор».
+
+«В самом деле удивительно! — повторила я, с усилием одолев ужас, на время отнявший у меня речь. — Двенадцать лет назад, во сне или наяву, я определённо видела вас. Я не могла забыть ваше лицо. Оно так и стоит у меня перед глазами».
+
+Улыбка её смягчилась. Всё, что мне почудилось в ней странным, исчезло, и теперь и улыбка, и ямочки на щеках были прелестны и умны.
+
+Я успокоилась и продолжала уже более в том духе, какого требовало гостеприимство: поздравила её с приездом и сказала, как обрадовал всех нас её нечаянный приезд и каким счастьем он стал для меня.`,
+    glossary: [
+      { term: 'to ruminate on', ru: 'долго размышлять о чём-то' },
+      { term: 'to behold (beheld)', ru: 'узреть, увидеть; книжное' },
+      { term: 'melancholy', ru: 'печальный' },
+      { term: 'recognition', ru: 'узнавание' },
+      { term: 'at length', ru: 'наконец, спустя время' },
+      { term: 'to haunt', ru: 'преследовать, не давать покоя' },
+      { term: 'to fancy', ru: 'вообразить; показаться' },
+      { term: 'dimpling cheeks', ru: 'щёки с ямочками' },
+      { term: 'to bid welcome', ru: 'приветствовать, принять гостя' },
+    ],
+    questions: [
+      {
+        q: 'Why does the narrator recoil when she sees the guest?',
+        options: [
+          'The guest is badly injured',
+          'It is the face from a dream that frightened her as a child',
+          'The guest is a relative she disliked',
+          'The room is too dark to see',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"There was a silence of fully a minute, and then at length she spoke; I could not." What does the last part mean?',
+        options: [
+          'The narrator was not allowed to speak',
+          'The narrator was unable to speak',
+          'The narrator refused to speak',
+          'The narrator spoke very quietly',
+        ],
+        correct: 1,
+        why: 'Эллипсис: I could not [speak]. Английский спокойно бросает глагол, если он только что прозвучал, — по-русски так почти не говорят.',
+      },
+      {
+        q: 'What is strange about the two accounts of the dream?',
+        options: [
+          'They contradict each other',
+          'Each girl saw the other’s face twelve years ago',
+          'Only the guest remembers it',
+          'Neither of them is sure it happened',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-carmilla-2',
+    workId: 'lefanu-carmilla',
+    lang: 'en', title: 'Уклониться, не отказав', level: 'C1', minutes: 4,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 2, where: 'Глава 4, «Её повадки — прогулка»', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'J. Sheridan Le Fanu, Carmilla · Project Gutenberg',
+    setup: 'Гостья живёт в замке уже несколько недель. Лаура исподволь пытается выяснить о ней хоть что-нибудь — и каждый раз получает вместо ответа нежность. Отрывок целиком про то, как уходят от вопроса, не отказывая.',
+    after: 'Через несколько глав в округе начнут умирать деревенские девушки, а Лаура — видеть по ночам зверя у своей постели и просыпаться разбитой.',
+    body: `You are not to suppose that I worried her incessantly on these subjects. I watched opportunity, and rather insinuated than urged my inquiries. Once or twice, indeed, I did attack her more directly. But no matter what my tactics, utter failure was invariably the result. Reproaches and caresses were all lost upon her. But I must add this, that her evasion was conducted with so pretty a melancholy and deprecation, with so many, and even passionate declarations of her liking for me, and trust in my honor, and with so many promises that I should at last know all, that I could not find it in my heart long to be offended with her.
+
+She used to place her pretty arms about my neck, draw me to her, and laying her cheek to mine, murmur with her lips near my ear, “Dearest, your little heart is wounded; think me not cruel because I obey the irresistible law of my strength and weakness; if your dear heart is wounded, my wild heart bleeds with yours. In the rapture of my enormous humiliation I live in your warm life, and you shall die—die, sweetly die—into mine. I cannot help it; as I draw near to you, you, in your turn, will draw near to others, and learn the rapture of that cruelty, which yet is love; so, for a while, seek to know no more of me and mine, but trust me with all your loving spirit.”
+
+Her agitations and her language were unintelligible to me.
+
+From these foolish embraces, which were not of very frequent occurrence, I must allow, I used to wish to extricate myself; but my energies seemed to fail me. Her murmured words sounded like a lullaby in my ear, and soothed my resistance into a trance, from which I only seemed to recover myself when she withdrew her arms.`,
+    translation: `Не подумайте, будто я донимала её этими предметами беспрестанно. Я выжидала случая и скорее заводила расспросы исподволь, чем настаивала. Раза два, правда, я и впрямь спросила прямее. Но какова бы ни была моя тактика, неизменным итогом было полное поражение. Ни упрёки, ни ласки на неё не действовали. Но надо прибавить, что уклонялась она с такой милой печалью и виноватостью, с такими частыми и даже страстными признаниями в приязни ко мне и в доверии к моей чести, с таким множеством обещаний, что рано или поздно я узнаю всё, — что мне не хватало сердца долго на неё сердиться.
+
+Она обвивала мою шею своими красивыми руками, притягивала меня к себе и, прижавшись щекой к щеке, шептала мне у самого уха: «Милая, твоё сердечко ранено; не считай меня жестокой за то, что я подчиняюсь неодолимому закону моей силы и моей слабости; если твоё дорогое сердце ранено, моё дикое сердце кровоточит вместе с ним. В упоении моего безмерного унижения я живу твоей тёплой жизнью, а ты умрёшь — умрёшь сладко — в мою. Я ничего не могу поделать; по мере того как я приближаюсь к тебе, ты, в свой черёд, будешь приближаться к другим и узнаешь упоение той жестокости, которая всё же есть любовь; а пока не ищи знать больше обо мне и моих, но доверься мне всей своей любящей душой».
+
+Её волнение и её слова были мне непонятны.
+
+Из этих нелепых объятий — впрочем, надо признать, не таких уж частых — я всякий раз хотела высвободиться, но силы будто оставляли меня. Её шёпот звучал у меня в ушах колыбельной и убаюкивал моё сопротивление в оцепенение, из которого я приходила в себя, кажется, только когда она разжимала руки.`,
+    glossary: [
+      { term: 'incessantly', ru: 'беспрестанно' },
+      { term: 'to insinuate an inquiry', ru: 'спросить исподволь, вкрадчиво' },
+      { term: 'to urge', ru: 'настаивать' },
+      { term: 'invariably', ru: 'неизменно' },
+      { term: 'reproach', ru: 'упрёк' },
+      { term: 'evasion', ru: 'уклонение от ответа' },
+      { term: 'deprecation', ru: 'виноватость, просьба не сердиться' },
+      { term: 'to extricate oneself', ru: 'высвободиться' },
+      { term: 'to soothe into a trance', ru: 'убаюкать до оцепенения' },
+    ],
+    questions: [
+      {
+        q: 'How does the guest respond to direct questions about her family?',
+        options: [
+          'She answers them briefly',
+          'She avoids them with affection and promises to tell everything later',
+          'She becomes angry',
+          'She leaves the room',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"Reproaches and caresses were all lost upon her." What does "lost upon" mean here?',
+        options: [
+          'They had no effect on her',
+          'She did not hear them',
+          'She lost them',
+          'They made her cry',
+        ],
+        correct: 0,
+        why: 'to be lost upon somebody — «пропасть даром», не произвести никакого действия. Оборот живой и сегодня: the joke was lost on him.',
+      },
+      {
+        q: 'Why does the narrator stop being angry?',
+        options: [
+          'She gets the answers eventually',
+          'The manner of the refusal disarms her',
+          'Her father forbids the questions',
+          'She stops caring',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Уитмен, «Аир»: подлинник ───────────────────────────────────────────────
+  {
+    id: 'sc-whitman-1',
+    workId: 'whitman-calamus',
+    lang: 'en', title: 'Двое', level: 'B2', minutes: 3,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 1, where: 'Calamus, два стихотворения', size: 'flash', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Walt Whitman, Leaves of Grass (Calamus) · Project Gutenberg',
+    setup: 'Два коротких стихотворения из раздела «Аир». Первое — о прохожем, которого больше никогда не увидишь; второе — о двоих, которым не нужен никакой закон, кроме них самих. Верлибр без рифмы и почти без инверсий: читается как проза, набранная столбиком, — с такой поэзии и разумно начинать на чужом языке.',
+    body: `To a Stranger
+
+Passing stranger! you do not know how longingly I look upon you,
+You must be he I was seeking, or she I was seeking, (it comes to me as of a dream,)
+I have somewhere surely lived a life of joy with you,
+All is recall’d as we flit by each other, fluid, affectionate, chaste, matured,
+You grew up with me, were a boy with me or a girl with me,
+I am not to speak to you, I am to think of you when I sit alone or wake at night alone,
+I am to wait, I do not doubt I am to meet you again,
+I am to see to it that I do not lose you.
+
+
+We Two Boys Together Clinging
+
+We two boys together clinging,
+One the other never leaving,
+Up and down the roads going, North and South excursions making,
+Power enjoying, elbows stretching, fingers clutching,
+Arm’d and fearless, eating, drinking, sleeping, loving.
+No law less than ourselves owning, sailing, soldiering, thieving, threatening,
+Misers, menials, priests alarming, air breathing, water drinking, on the turf or the sea-beach dancing,
+Cities wrenching, ease scorning, statutes mocking, feebleness chasing,
+Fulfilling our foray.`,
+    translation: `Незнакомцу
+
+Прохожий незнакомец! ты не знаешь, с какой тоской я смотрю на тебя,
+Ты, должно быть, тот, кого я искал, или та, кого я искал (это приходит ко мне как из сна),
+Я наверняка прожил где-то счастливую жизнь с тобой,
+Всё вспоминается, пока мы мелькаем мимо друг друга — текучие, нежные, целомудренные, зрелые,
+Ты рос вместе со мной, был со мной мальчиком или был со мной девочкой,
+Мне не заговорить с тобой, мне только думать о тебе, когда я сижу один или просыпаюсь ночью один,
+Мне ждать, и я не сомневаюсь, что встречу тебя снова,
+Мне позаботиться о том, чтобы тебя не потерять.
+
+
+Мы двое, мальчишки, вцепившиеся друг в друга
+
+Мы двое, мальчишки, вцепившиеся друг в друга,
+Один другого не покидающий,
+По дорогам туда и сюда идущие, на север и на юг вылазки делающие,
+Силой наслаждающиеся, локти расправляющие, пальцы сжимающие,
+Вооружённые и бесстрашные — едящие, пьющие, спящие, любящие.
+Никакого закона, кроме самих себя, не признающие; плывущие, воюющие, ворующие, угрожающие,
+Скупцов, лакеев, священников пугающие, воздухом дышащие, воду пьющие, на траве или на морском берегу танцующие,
+Города выворачивающие, покой презирающие, уставы высмеивающие, слабость гонящие,
+Свой набег доводящие до конца.`,
+    glossary: [
+      { term: 'longingly', ru: 'с тоской, с томлением' },
+      { term: 'to flit by', ru: 'промелькнуть мимо' },
+      { term: 'chaste', ru: 'целомудренный' },
+      { term: 'I am to wait', ru: 'мне (суждено) ждать; be to о предначертанном' },
+      { term: 'to see to it that…', ru: 'позаботиться о том, чтобы…' },
+      { term: 'to cling', ru: 'цепляться, льнуть' },
+      { term: 'menial', ru: 'слуга, прислужник' },
+      { term: 'to scorn', ru: 'презирать' },
+      { term: 'foray', ru: 'набег, вылазка' },
+    ],
+    questions: [
+      {
+        q: 'In "To a Stranger", what does the speaker decide to do?',
+        options: [
+          'To follow the stranger home',
+          'Not to speak, but to wait and to keep the stranger in mind',
+          'To write the stranger a letter',
+          'To forget the stranger at once',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does Whitman write "he I was seeking, or she I was seeking"?',
+        options: [
+          'He does not remember the person',
+          'The feeling is the same whichever it is — the poem refuses to choose',
+          'He is describing two different people',
+          'It is a printing error',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'The second poem is built almost entirely of -ing forms (clinging, going, enjoying…). What is the effect?',
+        options: [
+          'It sounds like a list of rules',
+          'Nothing ever finishes — the action simply goes on',
+          'It puts everything in the past',
+          'It turns the poem into a question',
+        ],
+        correct: 1,
+        why: 'Причастия без личного глагола: время не задано вовсе, поэтому движение не кончается. Приём, ради которого Уитмена и стоит читать в оригинале.',
+      },
+    ],
+  },
+
+  // ── Simon vs. the Homo Sapiens Agenda: карточка, наш текст ─────────────────
+  {
+    id: 'sc-simon-1',
+    workId: 'albertalli-simon',
+    lang: 'en', title: 'Письмо тому, кого не видел', level: 'B1', minutes: 3,
+    topic: 'Переписка и созвоны', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Половина романа Бекки Альберталли — переписка двух старшеклассников, которые не знают, кто с той стороны. Ниже наш текст в том же жанре: два письма подряд. Это самый полезный письменный регистр английского — между смс и деловым письмом: полные предложения, но свободный ход мысли, скобки и оговорки.',
+    body: `from: bluepages
+subject: re: the cafeteria thing
+
+Okay, first of all: you were not being dramatic. I would have done exactly the same thing and then thought about it for a week, which is basically what I am doing right now.
+
+Second of all — and I have been trying to write this sentence for about twenty minutes — I keep wondering whether I would recognise you if you walked past me. I think I would. I have decided that people write the way they stand.
+
+Anyway. Chemistry was awful. Mr. K spent forty minutes on a slide he had already shown us on Tuesday, and I spent forty minutes not listening.
+
+Talk soon.
+
+—
+
+from: jacques
+subject: re: re: the cafeteria thing
+
+“People write the way they stand.” I am going to be thinking about that all day, thanks a lot.
+
+Here is my problem. I want to know who you are, and I also do not want to know, because right now this is the one thing in my life that nobody else has an opinion about. Once I know, it becomes a thing that happens in corridors. Does that make any sense? It barely makes sense to me.
+
+Not saying no. Just saying not yet.
+
+(Also: everyone hates that slide. My sister had Mr. K four years ago and she says he has been showing it since then.)`,
+    translation: `от: bluepages
+тема: re: та история в столовой
+
+Так, во-первых: ты не драматизировал. Я бы поступил ровно так же, а потом думал бы об этом неделю — чем, собственно, сейчас и занимаюсь.
+
+Во-вторых — и эту фразу я пытаюсь написать минут двадцать — я всё думаю, узнал бы я тебя, если бы ты прошёл мимо. По-моему, узнал бы. Я решил, что люди пишут так же, как стоят.
+
+Ладно. Химия была ужасная. Мистер К. сорок минут разбирал слайд, который уже показывал во вторник, а я сорок минут не слушал.
+
+До скорого.
+
+—
+
+от: jacques
+тема: re: re: та история в столовой
+
+«Люди пишут так же, как стоят». Теперь я буду думать об этом весь день, спасибо большое.
+
+Вот в чём моя беда. Я хочу знать, кто ты, и одновременно не хочу, потому что сейчас это единственное в моей жизни, о чём больше ни у кого нет мнения. Как только я узнаю, это станет тем, что происходит в коридорах. Понятно, о чём я? Мне самому едва понятно.
+
+Я не говорю «нет». Я говорю «пока нет».
+
+(И ещё: этот слайд ненавидят все. У моей сестры мистер К. был четыре года назад, и она говорит, что он показывает его с тех самых пор.)`,
+    glossary: [
+      { term: 'to be dramatic', ru: 'драматизировать, устраивать сцену' },
+      { term: 'first of all / second of all', ru: 'во-первых / во-вторых; разговорное' },
+      { term: 'to keep wondering', ru: 'всё думать, не переставая' },
+      { term: 'I would have done', ru: 'я бы поступил (о прошлом, которого не было)' },
+      { term: 'to have an opinion about', ru: 'иметь мнение о чём-то' },
+      { term: 'corridor', ru: 'коридор; в США чаще hallway' },
+      { term: 'Does that make any sense?', ru: 'понятно, о чём я?' },
+      { term: 'barely', ru: 'едва' },
+      { term: 'Not saying no', ru: 'я не отказываю; смягчённый отказ-отсрочка' },
+    ],
+    questions: [
+      {
+        q: 'Why does the second writer not want to know who the first one is — yet?',
+        options: [
+          'He is afraid of being disappointed',
+          'It is the one part of his life nobody else has an opinion about',
+          'He does not have the time',
+          'He already knows',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"Not saying no. Just saying not yet." What is this?',
+        options: [
+          'A refusal',
+          'An agreement',
+          'A postponement — the answer is kept open',
+          'A question',
+        ],
+        correct: 2,
+        why: 'Самая частая английская формула мягкого «пока нет»: сначала снимают то, чего собеседник боится (not saying no), потом ставят условие времени.',
+      },
+      {
+        q: 'What register are these letters written in?',
+        options: [
+          'Formal business English',
+          'Full sentences, but personal and unplanned — between texting and a formal letter',
+          'Academic English',
+          'Legal English',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── The Song of Achilles: карточка, наш текст ──────────────────────────────
+  {
+    id: 'sc-achilles-1',
+    workId: 'miller-song-achilles',
+    lang: 'en', title: 'Мальчик, которого отдали ко двору', level: 'B2', minutes: 4,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Мадлен Миллер пересказывает «Илиаду» голосом того, кто всю жизнь шёл следом. Ниже — наш текст в том же регистре: простые слова, короткие фразы, античная рамка. Редкий английский, где почти нет длинной лексики и всё держится на порядке слов и на артикле, — поэтому его удобно читать вслух.',
+    body: `My father gave me away in the spring, and did not come to the gate to watch me go.
+
+The palace by the sea was larger than ours and quieter. Boys slept in one long room above the stores, forty of us, sons of men who had promised the king something and had not paid. We were fed. We were not spoken to. In the mornings we were taught to run, and in the afternoons we were taught to hold a spear as if we meant it.
+
+I was the smallest and the slowest, and I had a name nobody used.
+
+On the ninth day the king’s son came up to the long room. He was expected to choose a companion, the way his father had once chosen one, and the men had already told him whom to take: the tall boy from the north, who could throw farther than anyone.
+
+He walked the length of the room without hurrying. He stopped in front of me.
+
+“That one,” he said.
+
+The steward began to explain, politely, that I was of no use.
+
+“I know,” he said. “That one.”
+
+Nobody asked me anything. But that night I slept in a room with a window, and for the first time since the spring I was not cold.`,
+    translation: `Отец отдал меня весной и к воротам провожать не вышел.
+
+Дворец у моря был больше нашего и тише. Мальчики спали в одной длинной комнате над кладовыми — сорок человек, сыновья тех, кто что-то пообещал царю и не отдал. Нас кормили. С нами не разговаривали. По утрам нас учили бегать, а после полудня — держать копьё так, будто мы и правда собираемся им бить.
+
+Я был самый мелкий и самый медленный, и у меня было имя, которым никто не пользовался.
+
+На девятый день в длинную комнату поднялся царский сын. Ему полагалось выбрать себе товарища — как когда-то выбрал его отец, — и старшие уже сказали ему, кого брать: высокого мальчика с севера, который бросал дальше всех.
+
+Он прошёл комнату из конца в конец не торопясь. Он остановился передо мной.
+
+— Вот этого, — сказал он.
+
+Управляющий принялся вежливо объяснять, что от меня никакого проку.
+
+— Знаю, — сказал он. — Вот этого.
+
+Меня никто ни о чём не спросил. Но в ту ночь я спал в комнате с окном и впервые с весны не мёрз.`,
+    glossary: [
+      { term: 'to give away', ru: 'отдать (насовсем)' },
+      { term: 'the stores', ru: 'кладовые, склады' },
+      { term: 'to be spoken to', ru: 'быть тем, с кем разговаривают; пассив' },
+      { term: 'as if he meant it', ru: 'будто всерьёз, будто и правда собирается' },
+      { term: 'companion', ru: 'спутник, товарищ' },
+      { term: 'the length of the room', ru: 'из конца в конец комнаты' },
+      { term: 'steward', ru: 'управляющий' },
+      { term: 'of no use', ru: 'бесполезен, никакого проку' },
+    ],
+    questions: [
+      {
+        q: 'Why are the forty boys living in the palace?',
+        options: [
+          'They are the king’s sons',
+          'Their fathers owed the king something and did not pay',
+          'They are prisoners of war',
+          'They came to be trained as priests',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is unusual about the choice the king’s son makes?',
+        options: [
+          'He chooses the boy everyone expected',
+          'He chooses the least useful boy, and repeats the choice when corrected',
+          'He refuses to choose',
+          'He asks the boy first',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"We were fed. We were not spoken to." Why the passive here?',
+        options: [
+          'To sound polite',
+          'Because who did it does not matter — things were done to them',
+          'Because these verbs have no active form',
+          'To make the sentences longer',
+        ],
+        correct: 1,
+        why: 'Пассив без by — главный приём этого куска: он показывает людей, с которыми что-то делают, а они на это не влияют.',
+      },
+    ],
+  },
 ]

@@ -25,7 +25,7 @@ import { useTaskBank } from '../store/taskBankStore'
 import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../store/taskMetaStore'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
-import { useTrainerProgress, useTrainerClock } from '../store/trainerProgressStore'
+import { useTrainerProgress, useTrainerClock, useTrainerEngaged } from '../store/trainerProgressStore'
 import { subjectTheme, PURPLE } from '../lib/theme'
 import { getSubject, BANK_SUBJECT_IDS, subjectIcon } from '../lib/subjects'
 import LanguageTrainer from '../components/LanguageTrainer'
@@ -1468,6 +1468,13 @@ export default function TaskBankPage() {
     const id = setTimeout(() => setWaitedTooLong(true), 6000)
     return () => clearTimeout(id)
   }, [dataLoaded])
+
+  // Что считать занятием, решает экран работы. У банка это сам список: задание
+  // читается и решается прямо в карточке, отдельного «входа внутрь» нет. У
+  // языкового тренажёра список — витрина (наборы, полки, фильтры), и сигнал
+  // шлёт он сам, изнутри открытого материала (см. LanguageTrainer). Скелетон
+  // занятием не считается: там ещё не видно ни одного задания.
+  useTrainerEngaged(!isLangTrainer && (dataLoaded || waitedTooLong))
 
   // Dual-layout (desktop+mobile оба в DOM) монтирует страницу дважды → дедуп по
   // короткому окну, чтобы одно открытие тренажёра давало одно событие.

@@ -281,7 +281,7 @@ export function getLessonDetail(lesson: Lesson): LessonDetail {
 /** Map one persisted authored task → a homework question. Choice tasks become
  *  auto-graded multiple-choice; the rest become free-text answers (text/fill
  *  auto-check against the эталон, match/whiteboard are teacher-reviewed). */
-function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): HomeworkQuizQuestion {
+export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): HomeworkQuizQuestion {
   const prompt = t.question?.trim() || t.label || `Задание ${i + 1}`
   // ВАЖНО: тип приводим к каноническому. Редактор курса пишет 'single'/'multi'/
   // 'matching'/'tableFill', а раньше здесь проверялись только легаси-написания

@@ -43,7 +43,7 @@ import { hasLexicon, wordReading } from '../lib/lexicon'
 import { usePersistentState } from '../lib/useDraft'
 import { submitTrainerVoice, listTrainerVoice, type VoiceEntry } from '../lib/trainerSpeaking'
 import { ownerStudentIdFor, subjectAliases, useStudentData } from '../store/studentDataStore'
-import { useTrainerProgress } from '../store/trainerProgressStore'
+import { useTrainerProgress, useTrainerEngaged } from '../store/trainerProgressStore'
 
 // Тренажёр для языковых предметов.
 //
@@ -569,6 +569,16 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
       setSeeding(false)
     }
   }
+
+  // ── Часы: занятие или витрина ──────────────────────────────────────────────
+  //
+  // Время идёт, только когда открыт материал: сцена, текст, запись, набор фраз,
+  // гнездо созвучий. Списки наборов, полки и фильтры — это выбор, а не работа,
+  // и раньше они капали минуты наравне со стопкой: ученик стоял на витрине
+  // «Наборы», ничего не делал, а в виджете горело «Сейчас идёт · 27м».
+  //
+  // Стоит ДО ранних возвратов ниже — порядок хуков одинаков на всех экранах.
+  useTrainerEngaged(!!(openScene || openText || openAudio || openItem || openNest))
 
   // Сцена открывается ТОЙ ЖЕ читалкой, что и учебный текст: отличается она
   // только рамкой вокруг — «что вокруг» до чтения и «чем кончилось» после.
@@ -1939,6 +1949,9 @@ function Speaking({ subjectId, subject, accent, palette, themes, query, kindFilt
   const [sendState, setSendState] = useState<'idle' | 'sending' | 'done' | 'error'>('idle')
 
   const owner = useMemo(() => ownerStudentIdFor(subjectId), [subjectId])
+
+  // Занятие в говорении — это открытое задание с диктофоном, а не список.
+  useTrainerEngaged(!!open)
 
   const tasks = useMemo(() => [...bookTasks(themes), ...STORY_TASKS], [themes])
 

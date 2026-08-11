@@ -40,6 +40,17 @@ const GAP = 14
 const CARD_W = 320
 /** Поле карточки-подсказки. Одно число на все стороны — см. вёрстку карточки. */
 const PADDING = 16
+/**
+ * Скругление карточки считается от кнопки, а не подбирается на глаз.
+ *
+ * «Дальше» — таблетка высотой 38, то есть её угол очерчен радиусом 19, и стоит
+ * она в 17 пикселях от края (поле 16 + рамка 1). Чтобы угол карточки шёл
+ * ВРОВЕНЬ с углом кнопки, а не пересекал его, внешний радиус обязан быть суммой:
+ * 17 + 19. Тогда зазор между двумя дугами одинаков по всей дуге — то же правило,
+ * по которому скругляют корпус вокруг экрана.
+ */
+const BTN_R = 19
+const CARD_R = PADDING + 1 + BTN_R
 
 /** Замер цели: где она и с каким скруглением её обводить. */
 interface Box { top: number; left: number; width: number; height: number; radius: number }
@@ -215,13 +226,11 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
 
       {/* Поля со всех сторон одинаковые: кнопка «Дальше» — самый крупный якорь
           в карточке, и разные отступы до правого и до нижнего края видно
-          невооружённым глазом. Скругление держим равным полю + половине
-          крестика (16 + 6): тогда угол карточки идёт вровень с кружком
-          закрытия, а не режет его. */}
+          невооружённым глазом. Радиус — от кнопки, см. CARD_R. */}
       <div
         ref={cardRef}
         style={{
-          position: 'absolute', width: cardW, padding: PADDING, borderRadius: 22,
+          position: 'absolute', width: cardW, padding: PADDING, borderRadius: CARD_R,
           background: 'var(--color-bg-2)', border: '1px solid var(--color-border-strong)',
           boxShadow: 'var(--shadow-lg)', ...cardStyle,
         }}
@@ -230,7 +239,9 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
           onClick={onClose}
           aria-label={t('Закрыть подсказки')}
           style={{
-            position: 'absolute', top: PADDING - 4, right: PADDING - 4, width: 28, height: 28,
+            // Крестик выравнен по полю, как текст, а не задвинут в угол: в углу
+            // он спорил бы с большой дугой карточки.
+            position: 'absolute', top: PADDING, right: PADDING, width: 26, height: 26,
             borderRadius: '50%',
             border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-3)',
             cursor: 'pointer', display: 'grid', placeItems: 'center',

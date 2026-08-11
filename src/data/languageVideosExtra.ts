@@ -231,6 +231,22 @@ export const PTSV_VIDEO: Record<string, string> = {
   'ptsv-39': yt('GPnvU27ZUX0'), // согласие и несогласие — язык переговоров
 }
 
+/**
+ * Корейский: хангыль. Серия Billy Go про письмо ложится на уроки почти
+ * один в один — она и построена по тому же порядку введения букв.
+ */
+export const KOHG_VIDEO: Record<string, string> = {
+  'ko-hangul-1': yt('YzpwHrA_iQQ'), // #3 한글 Part 1 — первые буквы и строение слога
+  'ko-hangul-2': yt('YzpwHrA_iQQ'),
+  'ko-hangul-3': yt('VZLo2lSjCsM'), // #4 Part 2 — новые виды слогов
+  'ko-hangul-4': yt('VZLo2lSjCsM'),
+  'ko-hangul-5': yt('ID4gPRoN5OE'), // #6 Part 4 — слог с патчхимом
+  'ko-hangul-6': yt('J36m4cSl2W4'), // #7 Part 5 — придыхательные и напряжённые
+  'ko-hangul-7': yt('ntyAHtIIw1A'), // #5 Part 3 — й-гласные и ㅐ/ㅔ
+  'ko-hangul-8': yt('J36m4cSl2W4'),
+  'ko-hangul-9': yt('fDj5MBHdEIA'), // #8 Part 6 — дифтонги
+}
+
 /** Все карты разговорников по ключу книги — так их проще подмешать в сборке. */
 export const SURVIVAL_VIDEO: Record<string, Record<string, string>> = {
   ensv: ENSV_VIDEO,

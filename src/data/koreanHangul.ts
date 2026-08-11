@@ -28,15 +28,19 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {
-  CHAMO, HANGUL_LESSONS, chamoOf, confusableWith, syllablesOf,
+  CHAMO, HANGUL_LESSONS, chamoAnswer, chamoOf, confusableWith, joinSyllable, syllablesOf,
   type HangulLesson,
 } from './hangul'
 import {
-  buildLanguageCourse, buildSyl, courseSummary, one, readAloud, traceChamo, wb,
+  buildLanguageCourse, buildSyl, courseSummary, minPair, one, readAloud, traceChamo, wb,
   type LangUnit, type LanguageCourseSpec, type SeedTask, type VocabItem,
 } from './languageCourse'
 import { transcribe } from '../lib/translit'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
+import { KOREAN_HANGUL_FIGURES } from './koreanHangulFigures'
+import { KOHG_VIDEO } from './languageVideosExtra'
+import { KOREAN_HANGUL_EXTRA } from './koreanHangulExtra'
+import { KOREAN_HANGUL_THEORY } from './koreanHangulTheory'
 
 /** Слог урока, на котором показывают сборку: первый со всеми буквами из урока. */
 function pickSyllable(lesson: HangulLesson, known: Set<string>): string | null {
@@ -54,6 +58,17 @@ function pickSyllable(lesson: HangulLesson, known: Set<string>): string | null {
 }
 
 /**
+ * Слог, на котором букву можно УСЛЫШАТЬ.
+ *
+ * Отдельная согласная не звучит вовсе: ㄱ вне слога — это не «к», а беззвучное
+ * смыкание, и синтезатор на такой вход выдаёт либо тишину, либо название буквы.
+ * Поэтому на слух буква всегда проверяется в слоге: согласная — с ㅏ (введена
+ * первым уроком, то есть доступна всегда), гласная — с немой ㅇ.
+ */
+const audibleSyllable = (ch: string): string | null =>
+  CHAMO[ch]?.kind === 'vowel' ? joinSyllable('ㅇ', ch) : joinSyllable(ch, 'ㅏ')
+
+/**
  * Задания одного урока алфавита.
  *
  * `known` — буквы, введённые этим и всеми предыдущими уроками: из них можно
@@ -63,11 +78,11 @@ function pickSyllable(lesson: HangulLesson, known: Set<string>): string | null {
 function unitTasks(lesson: HangulLesson, known: Set<string>): SeedTask[] {
   const tasks: SeedTask[] = []
 
-  for (const ch of lesson.chamo) {
+  lesson.chamo.forEach((ch, i) => {
     const letter = CHAMO[ch]
-    if (!letter) continue
+    if (!letter) return
 
-    // Узнавание: буква на экране — какой это звук. Обманки только из похожих:
+    // Узнавание, направление «вижу → знаю звук». Обманки только из похожих:
     // выбор между ㄴ и ㅠ не тренирует ничего.
     const wrong = confusableWith(ch, 2).map(c => CHAMO[c].sound)
     tasks.push(one(
@@ -76,10 +91,35 @@ function unitTasks(lesson: HangulLesson, known: Set<string>): SeedTask[] {
       0,
     ))
 
-    // Письмо. Отдельным шагом и сразу после звука: рука запоминает форму, пока
-    // звук ещё в голове.
+    // Узнавание, обратное направление: «слышу → узнаю букву».
+    //
+    // ЗАЧЕМ ОБА. Это разные умения, и они расходятся: ㅓ и ㅗ различаются на
+    // письме с первого взгляда и почти не различаются на слух, а ㄴ и ㄷ —
+    // наоборот. Курс, где есть только «какой это звук», выпускает человека,
+    // который читает вывеску и не понимает объявление.
+    //
+    // Пара берётся только из УЖЕ введённых букв: слышать разницу с буквой из
+    // будущего урока — это не задание, а лотерея. Поэтому у самых первых букв
+    // пары может не быть вовсе, и это нормально.
+    const partner = confusableWith(ch, 4).find(c => known.has(c) && c !== ch)
+    const mine = audibleSyllable(ch)
+    const other = partner ? audibleSyllable(partner) : null
+    if (mine && other && mine !== other) {
+      // Сторона верного ответа выводится из номера буквы, а не из случайности:
+      // сид обязан собираться одинаково каждый раз.
+      const meFirst = i % 2 === 0
+      tasks.push(minPair(
+        'Что вы услышали?',
+        meFirst ? mine : other,
+        meFirst ? other : mine,
+        meFirst ? 'A' : 'B',
+      ))
+    }
+
+    // Письмо. Отдельным шагом и сразу после узнавания: рука запоминает форму,
+    // пока звук ещё в голове.
     tasks.push(traceChamo(`Обведите букву ${ch} — ведите от точки, черта за чертой`, ch))
-  }
+  })
 
   // Сборка слога — по одному на урок: смысл не в количестве, а в том, чтобы
   // слог хотя бы раз собрался из букв на глазах у ученика.
@@ -107,9 +147,48 @@ function unitTasks(lesson: HangulLesson, known: Set<string>): SeedTask[] {
   return tasks
 }
 
-/** Словарь урока: слова с чтением — из них строятся карточки знакомства. */
-const unitVocab = (lesson: HangulLesson): VocabItem[] =>
-  lesson.words.map(w => ({ term: w.ko, ru: w.ru, reading: transcribe(w.ko, 'ko') }))
+/**
+ * Словарь урока — он же список карточек знакомства.
+ *
+ * БУКВЫ ИДУТ ПЕРЕД СЛОВАМИ, И ЭТО ГЛАВНОЕ В ЭТОЙ ФУНКЦИИ. Карточки словаря
+ * показываются нулевым шагом домашки (VocabIntro), то есть ДО заданий. Пока
+ * букв здесь не было, алфавитный урок начинался с вопроса «ㅏ — какой это
+ * звук?» о букве, которую ученику ни разу не показали: ровно тот дефект
+ * Duolingo, ради которого затевался весь курс.
+ *
+ * Буква — такой же элемент, как слово: у неё есть запись, чтение (корейское
+ * название) и значение (звук). Поэтому она едет по общей дороге — и в
+ * знакомство, и в карточки повторения, — а не заводит себе отдельную.
+ */
+function unitVocab(lesson: HangulLesson): VocabItem[] {
+  // Русская запись звука у разных букв совпадает: ㅓ и ㅗ обе «о», ㅕ и ㅛ обе
+  // «ё». В таблице это терпимо, а на карточках знакомства — нет: ученик видит
+  // подряд два одинаковых ответа и делает единственный доступный вывод, что
+  // буквы взаимозаменяемы. Поэтому у столкнувшихся добавляется латинская
+  // пометка — та самая, которой их разводят все словари (eo против o).
+  const soundCount = new Map<string, number>()
+  for (const ch of lesson.chamo) {
+    const s = chamoAnswer(ch).main
+    soundCount.set(s, (soundCount.get(s) ?? 0) + 1)
+  }
+
+  const letters: VocabItem[] = lesson.chamo.flatMap(ch => {
+    const letter = CHAMO[ch]
+    if (!letter) return []
+    const { main, alt } = chamoAnswer(ch)
+    const clash = (soundCount.get(main) ?? 0) > 1
+    return [{
+      term: ch,
+      ru: clash ? `${main} (${letter.latin})` : main,
+      reading: letter.name,
+      // Голый звук принимается всегда: пометка нужна глазу на знакомстве, а не
+      // пальцам в поле ответа.
+      alt: clash ? [main, ...alt] : alt,
+    }]
+  })
+  const words = lesson.words.map(w => ({ term: w.ko, ru: w.ru, reading: transcribe(w.ko, 'ko') }))
+  return [...letters, ...words]
+}
 
 /** Конспект урока: буквы таблицей плюс мысль урока. */
 function unitTheory(lesson: HangulLesson): string {
@@ -125,6 +204,9 @@ function unitTheory(lesson: HangulLesson): string {
     .join('\n')
 
   return [
+    // Написанный текст идёт первым, автосписки — под ним: списки собираются из
+    // тех же данных, что и задания, и терять их незачем (см. koreanHangulTheory).
+    KOREAN_HANGUL_THEORY[lesson.id] ?? '',
     lesson.idea ?? '',
     rows.length ? `Буквы урока:\n${rows.join('\n')}` : '',
     `Слова урока:\n${words}`,
@@ -148,8 +230,11 @@ export const HANGUL_UNITS: LangUnit[] = (() => {
       vocabTheme: lesson.words.map(w => w.ru).join(', '),
       artifact: `${lesson.words.length} слов, записанных от руки`,
       theory: unitTheory(lesson),
+      // Видео и доборы живут отдельными картами: здесь — структура урока.
+      videoUrl: KOHG_VIDEO[lesson.id],
       vocab: unitVocab(lesson),
-      tasks: unitTasks(lesson, known),
+      // Письмо и аудирование добраны по итогам аудита (см. koreanHangulExtra.ts).
+      tasks: [...unitTasks(lesson, known), ...(KOREAN_HANGUL_EXTRA[lesson.id] ?? [])],
     }
   })
 })()
@@ -163,14 +248,17 @@ export const KOREAN_HANGUL_COURSE: LanguageCourseSpec = {
   guidedHours: '18–24 часа',
   lessonMinutes: 60,
   scopeNote:
-    'Курс закрывает письмо и чтение: сорок букв, строение слога, патчхим и первые сто слов. '
-    + 'Грамматики в нём почти нет — она начинается в курсе TOPIK I, который продолжает этот.',
+    'Курс закрывает письмо и чтение: сорок букв, строение слога, патчхим и первые сорок слов. '
+    + 'Буква здесь такая же карточка, как слово, — её показывают до заданий и потом повторяют. '
+    + 'Грамматики в нём почти нет: она начинается в курсе TOPIK I, который продолжает этот.',
   modules: [
     { title: 'Гласные и первые согласные', subtitle: 'Слог из двух букв', units: [1, 2, 3, 4] },
     { title: 'Патчхим и придыхание', subtitle: 'Слог из трёх букв', units: [5, 6] },
     { title: 'Остальной алфавит', subtitle: 'Й-гласные, напряжённые, в-гласные', units: [7, 8, 9] },
   ],
   units: HANGUL_UNITS,
+  // Схемы собираются из тех же данных, что и уроки (см. koreanHangulFigures.ts).
+  figures: KOREAN_HANGUL_FIGURES,
 }
 
 /** Сводка курса — по ней реестр сидов сверяет подписи карточки с содержимым. */

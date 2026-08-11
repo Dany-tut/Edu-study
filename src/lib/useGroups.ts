@@ -865,6 +865,52 @@ export function useJournalPending(groupId: string | null, reloadKey = 0) {
   return pending
 }
 
+/** Строка students в том минимуме, которого хватает, чтобы опознать человека. */
+export type PersonRow = {
+  id: string
+  name: string
+  groupId?: string
+  subject?: string
+  personId?: string
+  authUserId?: string
+}
+
+/** Один человек — его карточки (по одной на предмет у 1:1-ученика). */
+export type PersonCards = {
+  key: string
+  name: string
+  cards: Array<{ id: string; subject: string; groupId?: string }>
+}
+
+/**
+ * Ключ человека. person_id (миграция 0031) — источник правды: переживает
+ * переименование и не склеивает тёзок. authUserId и имя — запасные варианты для
+ * строк, которые не успели забэкфиллиться.
+ */
+export function personKey(s: Pick<PersonRow, 'personId' | 'authUserId' | 'name'>): string {
+  return s.personId || s.authUserId || `name:${s.name.trim().toLowerCase()}`
+}
+
+/**
+ * Карточки одного человека под одной записью — для списков, где выбирают
+ * ЧЕЛОВЕКА, а не карточку (кому дать курс). 1:1-ученик живёт отдельной строкой
+ * students на каждый предмет, поэтому в плоском списке он двоится-троится.
+ *
+ * Карточки не схлопываются: выбор всё равно обязан приземлиться на конкретную
+ * строку — от неё зависит, под какой карточкой копится прогресс (ownerStudentId
+ * в db.fetchCourseStructure) и в чьё расписание встают занятия.
+ */
+export function groupStudentsByPerson(students: PersonRow[]): PersonCards[] {
+  const byKey = new Map<string, PersonCards>()
+  for (const s of students) {
+    const key = personKey(s)
+    const entry = byKey.get(key) ?? { key, name: s.name, cards: [] }
+    entry.cards.push({ id: s.id, subject: s.subject ?? '', groupId: s.groupId })
+    byKey.set(key, entry)
+  }
+  return [...byKey.values()]
+}
+
 export function useAllStudents() {
   const [students, setStudents] = useState<Student[]>([])
   useEffect(() => {

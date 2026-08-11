@@ -696,7 +696,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
   const { dark } = useTheme()
   const {
     doneCount, wrongCount, totalCount, todayCorrect, todayWrong,
-    subject, subjectId, kind, todayMs, streak, counting, setOpenModal,
+    subject, subjectId, kind, todayMs, streak, counting, engaged, setOpenModal,
   } = useTrainerProgress()
   // Курсы ещё в пути и предмет тренажёра неизвестен — показывать нечего.
   // Проверяем ОБА условия: на главной ученик мог вообще не открывать тренажёр,
@@ -782,7 +782,10 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
           <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, marginTop: 2 }}>
             {pill(
               'time', formatShort(todayMs),
-              counting ? t('Сейчас идёт') : t('Пауза'),
+              // Три состояния, а не два: «идёт», «стою на витрине» и «отошёл».
+              // Без среднего ученик на списке наборов видел «Пауза» и читал её
+              // как сбой — он же сидит в тренажёре.
+              counting ? t('Сейчас идёт') : engaged ? t('Пауза') : t('Не начато'),
               palette.text, `${accent}26`,
               <ClockDot on={counting} color={accent} />,
             )}
@@ -821,7 +824,12 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
               остановившийся счётчик читается как поломка. */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9.5, color: 'var(--color-text-3)', marginTop: 8 }}>
             <ClockDot on={counting} color={accent} />
-            <span>{counting ? t('Время идёт') : t('Пауза — счёт вернётся с первым действием')}</span>
+            <span>
+              {counting ? t('Время идёт')
+                : engaged ? t('Пауза — счёт вернётся с первым действием')
+                : kind === 'lang' ? t('Счёт идёт, пока открыт набор или текст')
+                : t('Счёт идёт, пока открыты задания')}
+            </span>
           </div>
           {totalCount > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9.5, color: 'var(--color-text-3)', marginTop: 4 }}>

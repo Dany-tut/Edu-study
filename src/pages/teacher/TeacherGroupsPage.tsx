@@ -17,7 +17,7 @@ import GroupStrip, { type TabConfig } from '../../components/teacher/GroupStrip'
 import {
   type Group, type GroupTrack, type Student,
 } from '../../data/teacherMockData'
-import { useGroups, useStudents, useAllStudents, listTeacherCourses, bindGroupToCourse, type GroupCourseOption } from '../../lib/useGroups'
+import { useGroups, useStudents, useAllStudents, listTeacherCourses, bindGroupToCourse, personKey, type GroupCourseOption } from '../../lib/useGroups'
 import { PickStudentModal, PickGroupModal, AddExistingIndividualModal, type PersonLike } from '../../components/teacher/AddToGroupModals'
 import { supabase } from '../../lib/supabase'
 import { usePersistentState, clearDrafts } from '../../lib/useDraft'
@@ -2035,9 +2035,8 @@ export default function TeacherGroupsPage() {
   const activeStudent = activeStudentId ? students.find(s => s.id === activeStudentId) ?? null : null
   const activeStudentGroup = activeStudent ? groups.find(g => g.id === activeStudent.groupId) ?? null : null
 
-  // person_id is the source of truth; authUserId/name are fallbacks for any row
-  // not yet backfilled (migration 0031). Used for sibling cards + the enroll picker.
-  const personKey = (s: Student) => s.personId || s.authUserId || `name:${s.name.trim().toLowerCase()}`
+  // personKey: person_id — источник правды, authUserId/имя — запасные варианты
+  // для незабэкфилленных строк (миграция 0031). Общий с пикером «кому дать курс».
 
   // Other 1:1 cards of the SAME person — matched by person_id (personKey), robust
   // to renames / same-name people. Each 1:1 card is its own individual group.

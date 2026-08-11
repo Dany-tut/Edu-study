@@ -7,8 +7,13 @@
 // Живёт, пока дорабатывается сам режим (docs/LANGUAGE_DRILL_SPEC.md, этапы 2–3).
 import { createRoot } from 'react-dom/client'
 import HomeworkFlow from './components/HomeworkFlow'
-import type { LessonHomework, HomeworkQuizQuestion } from './data/lessonContent'
+import { authoredTaskToQuestion } from './data/lessonContent'
+import type { AuthoredHomeworkTask, LessonHomework, HomeworkQuizQuestion } from './data/lessonContent'
+import { buildKoreanHangulCourse } from './data/koreanHangul'
 import './index.css'
+
+// ?kohg — первый урок настоящего курса хангыля вместо рукодельной домашки.
+const hangulLesson = buildKoreanHangulCourse('stand').lessons[0]
 
 const q = (x: Partial<HomeworkQuizQuestion> & { id: string; prompt: string }): HomeworkQuizQuestion => ({
   options: [], correctOptionId: '', explanation: '', ...x,
@@ -70,13 +75,31 @@ const homework: LessonHomework = {
   ],
 }
 
+// ?kohg — вместо рукодельной домашки берётся первый урок курса хангыля целиком:
+// проверять лестницу «знакомство → узнавание → письмо» надо на настоящих данных,
+// а не на пяти строках, написанных под ожидаемый результат.
+const useHangul = location.search.includes('kohg')
+const shown: LessonHomework = useHangul
+  ? {
+    ...homework,
+    title: hangulLesson.title,
+    levels: homework.levels.map(l =>
+      l.id === 'basic'
+        // Через тот же переводчик, каким задания курса доезжают до ученика:
+        // формат редактора и формат вопроса — разные, и проверять надо тот,
+        // который человек видит на самом деле.
+        ? { ...l, questions: ((hangulLesson.hwTasks ?? []) as AuthoredHomeworkTask[]).map(authoredTaskToQuestion) }
+        : l),
+  }
+  : homework
+
 createRoot(document.getElementById('root')!).render(
   <div style={{ padding: 24, maxWidth: 1100, margin: '0 auto' }}>
     <HomeworkFlow
       lessonId="stand-ko-1"
-      lessonTitle="Еда"
+      lessonTitle={useHangul ? hangulLesson.title : 'Еда'}
       subject="Корейский"
-      homework={homework}
+      homework={shown}
       onBack={() => {}}
     />
   </div>,

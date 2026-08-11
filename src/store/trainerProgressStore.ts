@@ -24,6 +24,13 @@ interface TrainerProgressState {
   streak: number
   /** Идёт ли счёт прямо сейчас — виджет показывает это точкой-пульсом. */
   counting: boolean
+  /**
+   * Открыт ли экран занятия (стопка, текст, запись, задания банка).
+   *
+   * Отдельно от `counting`, потому что у остановленного счёта две разные
+   * причины и разные подписи: «ты выбираешь материал» и «ты отошёл».
+   */
+  engaged: boolean
   lastAnswerAt: number
   openModal: boolean
   update: (p: Partial<Omit<TrainerProgressState, 'update' | 'setOpenModal'>>) => void
@@ -51,6 +58,7 @@ export const useTrainerProgress = create<TrainerProgressState>((set, get) => ({
   sessionMs: 0,
   streak: 0,
   counting: false,
+  engaged: false,
   lastAnswerAt: 0,
   openModal: false,
   update: p => set(s => {
@@ -97,11 +105,64 @@ export const useTrainerProgress = create<TrainerProgressState>((set, get) => ({
   },
 }))
 
+// ── Что считается занятием ───────────────────────────────────────────────────
+//
+// Открытый экран работы: стопка карточек, набор фраз, текст, запись, задание на
+// говорение, список заданий банка. ВИТРИНА ВЫБОРА — НЕ ЗАНЯТИЕ. Раньше часы
+// тикали от одного факта «страница тренажёра смонтирована», и минуты капали,
+// пока ученик листал наборы фраз, выбирал уровень или просто оставил открытым
+// список тем: в виджете горело «Сейчас идёт», хотя не делалось ничего.
+//
+// Считаем экраны, а не флаг: телефонная и десктопная вёрстки обе живут в DOM
+// (см. dual-layout), и одно открытие темы даёт два монтирования.
+let engagedScreens = 0
+/**
+ * Позвать часы прямо сейчас, не дожидаясь своего тика.
+ *
+ * `restart` — начать отрезок заново: время, накопленное с прошлого тика, к
+ * занятию не относится (ученик выбирал материал) и в зачёт не идёт.
+ */
+let flushNow: ((restart?: boolean) => void) | null = null
+
+function syncEngaged() {
+  const on = engagedScreens > 0
+  if (useTrainerProgress.getState().engaged !== on) useTrainerProgress.setState({ engaged: on })
+  // Пересчёт `counting` сразу: остановка должна быть видна в ту же секунду,
+  // иначе точка «время идёт» живёт ещё до пяти секунд после выхода из стопки.
+  if (flushNow) flushNow()
+  else if (!on) useTrainerProgress.setState({ counting: false })
+}
+
+/**
+ * «Занятие идёт» — зовётся с экрана, который И ЕСТЬ работа.
+ *
+ * Живёт рядом с часами намеренно: два места, решающих, что считать занятием,
+ * разойдутся на первой же новой вкладке тренажёра.
+ */
+export function useTrainerEngaged(active: boolean): void {
+  useEffect(() => {
+    if (!active) return
+    // Порядок здесь — не стиль, а честность счёта на границах отрезка.
+    // На входе: обнуляем накопленное ДО увеличения счётчика, иначе последние
+    // секунды витрины достались бы занятию.
+    flushNow?.(true)
+    engagedScreens += 1
+    syncEngaged()
+    return () => {
+      // На выходе: дописываем отработанное, пока экран ещё считается открытым,
+      // иначе терялся бы хвост до пяти секунд на каждом закрытии стопки.
+      flushNow?.()
+      engagedScreens -= 1
+      syncEngaged()
+    }
+  }, [active])
+}
+
 // ── Часы тренажёра ───────────────────────────────────────────────────────────
 //
-// Тикают, пока страница тренажёра смонтирована, вкладка на экране и ученик
-// хоть чем-то шевелит. Без проверки простоя счётчик мерил бы не занятие, а
-// время, на которое забыли закрыть вкладку.
+// Тикают, пока открыт экран занятия (см. выше), вкладка на экране и ученик хоть
+// чем-то шевелит. Без проверки простоя счётчик мерил бы не занятие, а время, на
+// которое забыли закрыть вкладку.
 //
 // ШАГ 5 СЕКУНД, А НЕ 1. Виджет показывает минуты, секундная точность в нём не
 // видна, а лишний ререндер раз в секунду висел бы на всём кабинете.
@@ -141,7 +202,9 @@ export function useTrainerClock(subjectId: string, kind: TrainerKind): void {
       const now = Date.now()
       const delta = now - last
       last = now
-      const active = !document.hidden && now - lastAct <= IDLE_MS
+      // Порядок проверок неважен, важен состав: без `engagedScreens` часы мерили
+      // выбор материала наравне с работой над ним.
+      const active = engagedScreens > 0 && !document.hidden && now - lastAct <= IDLE_MS
       // Виджет обязан показывать, идёт счёт или нет: молчащий счётчик и
       // считающий выглядели одинаково, и «а он вообще работает?» —
       // единственный возможный вопрос к такому виджету.
@@ -153,12 +216,19 @@ export function useTrainerClock(subjectId: string, kind: TrainerKind): void {
     }
 
     const iv = setInterval(flush, TICK_MS)
+    flushNow = restart => {
+      // Открытие материала — это и есть действие: простой обнуляем вместе с
+      // отрезком, иначе первые секунды в стопке считались бы «ученик отошёл».
+      if (restart) { last = Date.now(); lastAct = Date.now() }
+      flush()
+    }
     // Уход со страницы не должен терять последние секунды захода.
     const onHide = () => { if (document.hidden) flush(); else { last = Date.now(); lastAct = Date.now(); flush() } }
     document.addEventListener('visibilitychange', onHide)
 
     return () => {
       flush()
+      flushNow = null
       useTrainerProgress.setState({ counting: false })
       clockOwners -= 1
       clearInterval(iv)

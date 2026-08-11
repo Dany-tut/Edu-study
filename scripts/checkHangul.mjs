@@ -108,5 +108,92 @@ for (const c of ALL_CHAMO) {
   for (const x of d) if (CHAMO[x].kind !== c.kind) fail(`${c.ch}: дистрактор ${x} другого рода`)
 }
 
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Часть 2. Курс, собранный из этих данных
+//
+// ЗАЧЕМ ОТДЕЛЬНО. Данные могут быть безупречны, а курс из них — кривым: две
+// дыры уже были найдены руками, и обе молчали. В курсе не оказалось ни одного
+// задания на слух (звук → буква тренировался только в одну сторону), а буквы
+// не попадали в карточки знакомства — урок начинался с вопроса о букве,
+// которую ученику не показали. Ни то, ни другое не роняет сборку и не видно в
+// типах: заметить это можно, только пересчитав собранный курс.
+//
+// ПОЧЕМУ ЧЕРЕЗ esbuild. koreanHangul.ts тянет за собой картинки, гнёзда
+// созвучий и схемы конспекта — и всё это импортируется без расширений, как
+// принято в Vite. Node такие пути не разрешает, поэтому модуль сначала
+// собирается в один файл, а потом импортируется.
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { build } from 'esbuild'
+import { mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+
+const dir = mkdtempSync(join(tmpdir(), 'hangul-'))
+const bundle = join(dir, 'course.mjs')
+await build({
+  entryPoints: ['src/data/koreanHangul.ts'],
+  bundle: true, format: 'esm', platform: 'node',
+  outfile: bundle, logLevel: 'silent',
+})
+const { buildKoreanHangulCourse } = await import(`file://${bundle}`)
+const course = buildKoreanHangulCourse('check')
+rmSync(dir, { recursive: true, force: true })
+
+console.log('\nКурс «Корейский с нуля: хангыль»')
+const lessons = course.lessons
+console.log('Уроков:', lessons.length)
+
+const introducedSoFar = new Set()
+let mp = 0
+lessons.forEach((lesson, li) => {
+  const tasks = lesson.hwTasks ?? []
+  const cards = tasks.filter(t => t.type === 'flashcard')
+  const introduced = new Set(cards.map(t => t.front))
+  const lessonChamo = HANGUL_LESSONS[li].chamo
+  lessonChamo.forEach(c => introducedSoFar.add(c))
+
+  // 1. Буква урока обязана быть карточкой знакомства — иначе первый вопрос о
+  //    ней задаётся раньше, чем её показали.
+  for (const c of lessonChamo) {
+    if (!introduced.has(c)) fail(`урок ${li + 1}: буква ${c} не введена карточкой`)
+  }
+
+  for (const t of tasks) {
+    // 2. Варианты выбора не должны повторяться: одинаковые «о» и «о», один из
+    //    которых неверен, — это угадайка, а не узнавание.
+    if (t.type === 'single') {
+      const ch = t.choices ?? []
+      if (new Set(ch).size !== ch.length) fail(`урок ${li + 1}: «${t.question}» — одинаковые варианты [${ch.join(', ')}]`)
+    }
+    // 3. Минимальная пара из двух одинаковых слогов не различима в принципе.
+    if (t.type === 'minimalPair') {
+      mp++
+      if (t.pairA === t.pairB) fail(`урок ${li + 1}: минимальная пара из одинаковых слогов ${t.pairA}`)
+      if (!t.ttsText) fail(`урок ${li + 1}: минимальной паре нечего озвучить`)
+    }
+    // 4. Задание не может опираться на букву из будущего урока.
+    const used = [
+      ...(t.chamo ? [t.chamo] : []),
+      ...(t.syllable ? chamoOf(t.syllable) : []),
+    ]
+    for (const c of used) {
+      if (CHAMO[c] && !introducedSoFar.has(c)) fail(`урок ${li + 1}: «${t.question}» опирается на ещё не введённую ${c}`)
+    }
+  }
+})
+
+// 5. Слух должен тренироваться, и не в одном уроке из девяти.
+console.log('Заданий на слух (минимальные пары):', mp)
+if (mp === 0) fail('в курсе нет ни одного задания на слух')
+const withoutEar = lessons.filter((l, i) => i > 0 && !(l.hwTasks ?? []).some(t => t.type === 'minimalPair')).length
+if (withoutEar > 0) fail(`уроков без единого задания на слух: ${withoutEar}`)
+
+const kinds = {}
+lessons.forEach(l => (l.hwTasks ?? []).forEach(t => { kinds[t.type] = (kinds[t.type] ?? 0) + 1 }))
+console.log('Задания по типам:', JSON.stringify(kinds))
+
 console.log(bad === 0 ? '\n✅ всё сходится' : `\n❌ проблем: ${bad}`)
 process.exit(bad === 0 ? 0 : 1)
