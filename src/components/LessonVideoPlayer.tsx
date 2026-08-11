@@ -25,7 +25,7 @@ import { motion } from 'framer-motion'
 import {
   Play, Pause, RotateCcw, RotateCw, Volume2, Volume1, VolumeX,
   Maximize, Minimize, Subtitles, Gauge, Check, Repeat,
-  ChevronsLeft, ChevronsRight, Lock, LockOpen,
+  ChevronLeft, ChevronRight, Lock, LockOpen,
 } from 'lucide-react'
 import type { VideoSource } from '../lib/videoSource'
 import { videoEmbedSrc } from '../lib/videoSource'
@@ -907,41 +907,66 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
             </motion.div>
           )}
 
-          {/* Плашка ускорения с замком: кольцо заполняется, пока ведут вверх. */}
+          {/* Плашка ускорения — прежняя строка, только по центру кадра. Стрелок
+              ровно столько, какая ступень, а замок наливается снизу вверх, туда
+              же, куда ведут палец. */}
           {(gesture === 'ff' || gesture === 'rw') && (
             <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, scale: 0.94 }}
+              animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.16 }}
               style={{
-                position: 'absolute', top: 18, left: '50%', transform: 'translateX(-50%)',
+                position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
                 display: 'flex', alignItems: 'center', gap: 9, padding: '7px 14px',
                 borderRadius: 999, background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(10px)',
                 color: '#fff', pointerEvents: 'none', whiteSpace: 'nowrap',
               }}
             >
-              {gesture === 'ff' ? <ChevronsRight size={18} /> : <ChevronsLeft size={18} />}
+              <div className="flex items-center" style={{ flexDirection: gesture === 'ff' ? 'row' : 'row-reverse' }}>
+                {Array.from({ length: boost }, (_, i) => (
+                  <motion.span
+                    key={i}
+                    animate={{ opacity: [0.22, 1, 0.22] }}
+                    transition={{ duration: 0.9, delay: i * 0.12, repeat: Infinity, ease: 'easeInOut' }}
+                    style={{ display: 'flex', marginLeft: i ? -6 : 0 }}
+                  >
+                    {gesture === 'ff' ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}
+                  </motion.span>
+                ))}
+              </div>
+
               <span style={{ fontSize: 14.5, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{boost}×</span>
-              <span style={{ position: 'relative', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width={26} height={26} style={{ position: 'absolute', inset: 0, transform: 'rotate(-90deg)' }} aria-hidden>
-                  <circle cx={13} cy={13} r={11} fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth={2} />
-                  <circle
-                    cx={13} cy={13} r={11} fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round"
-                    strokeDasharray={69.1}
-                    strokeDashoffset={69.1 * (1 - (boostLocked ? 1 : lockFill))}
-                    style={{ transition: 'stroke-dashoffset 0.08s linear' }}
-                  />
-                </svg>
+
+              {/* Замок: капсула наливается снизу вверх по ходу жеста. */}
+              <motion.span
+                animate={boostLocked ? { scale: [1, 1.16, 1] } : { scale: 1 }}
+                transition={{ duration: 0.34 }}
+                style={{
+                  position: 'relative', width: 34, height: 21, borderRadius: 999, overflow: 'hidden',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'rgba(255,255,255,0.13)',
+                  border: `1px solid ${boostLocked ? 'rgba(167,139,250,0.9)' : 'rgba(255,255,255,0.14)'}`,
+                }}
+              >
+                <span
+                  style={{
+                    position: 'absolute', left: 0, right: 0, bottom: 0,
+                    height: `${(boostLocked ? 1 : lockFill) * 100}%`,
+                    background: 'linear-gradient(180deg, #A78BFA, #7C5CFF)',
+                    transition: 'height 0.08s linear',
+                  }}
+                />
                 <motion.span
-                  animate={boostLocked ? { scale: [1, 1.35, 1] } : { scale: 1 }}
-                  transition={{ duration: 0.34 }}
-                  style={{ display: 'flex' }}
+                  animate={{ rotate: boostLocked ? [0, -9, 0] : 0 }}
+                  transition={{ duration: 0.3 }}
+                  style={{ display: 'flex', position: 'relative' }}
                 >
                   {boostLocked
-                    ? <Lock size={13} />
-                    : <LockOpen size={13} style={{ opacity: 0.35 + lockFill * 0.65 }} />}
+                    ? <Lock size={12} />
+                    : <LockOpen size={12} style={{ opacity: 0.4 + lockFill * 0.6 }} />}
                 </motion.span>
-              </span>
+              </motion.span>
+
               <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>
                 {boostLocked ? t('тап — снять') : t('вверх — зафиксировать')}
               </span>

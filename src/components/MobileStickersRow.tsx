@@ -3,7 +3,7 @@ import { useState } from 'react'
 import MobileHScroll from './MobileHScroll'
 import StickerBadge from './StickerBadge'
 import { StickerCollectionModal } from './StickersWidget'
-import { useStickers } from '../lib/stickers'
+import { useStickers, stickerLabel } from '../lib/stickers'
 import { useT } from '../lib/i18n'
 
 export default function MobileStickersRow() {
@@ -23,7 +23,7 @@ export default function MobileStickersRow() {
       <div style={{ marginLeft: -16, marginRight: -16 }}>
         <MobileHScroll padX={16} gap={10}>
           {stickers.slice(0, 12).map(s => (
-            <StickerBadge key={s.id} score={s.score} label={`${t('задание')} ${s.taskIndex}`}
+            <StickerBadge key={s.id} score={s.score} label={stickerLabel(s, t)}
               stickerId={s.id} emblem={emblems[s.id]} size={72} onClick={() => setOpen(true)} />
           ))}
         </MobileHScroll>

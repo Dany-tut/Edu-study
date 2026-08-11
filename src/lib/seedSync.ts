@@ -14,11 +14,13 @@
 // её проверками. Отдельного пути записи — а значит и отдельного набора багов —
 // не появляется.
 //
-// ГЛАВНОЕ ПРАВИЛО: ПРАВКИ УЧИТЕЛЯ ГЛАВНЕЕ. Поэтому изменения делятся на два
+// ГЛАВНОЕ ПРАВИЛО: ПРАВКИ УЧИТЕЛЯ ГЛАВНЕЕ. Поэтому изменения делятся на три
 // сорта. Добавления (юнит, которого нет; задание, которого нет) ничего не
 // затирают — их предлагаем отмеченными. Перезаписи (конспект разошёлся, поля
 // задания разошлись) могут стереть ручную работу — их показываем, но галку
-// ставит человек. То же соображение, что и в data/seedTheory.ts, где пустой
+// ставит человек. Удаления (сид выбросил задание, которое сам же и клал) —
+// туда же, но отдельной группой: риск у них другой, за ними стоят ответы
+// учеников. То же соображение, что и в data/seedTheory.ts, где пустой
 // конспект добирается сам, а непустой не трогается никогда.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -47,7 +49,7 @@ const OWNED_FIELDS = [
   'image', 'images', 'table', 'sequenceItems', 'pairs',
 ] as const
 
-export type SeedChangeKind = 'lesson' | 'task' | 'task-fields' | 'theory' | 'video'
+export type SeedChangeKind = 'lesson' | 'task' | 'task-gone' | 'task-fields' | 'theory' | 'video'
 
 export interface SeedChange {
   /** Стабильный ключ — по нему UI помнит, что отмечено. */
@@ -100,6 +102,19 @@ function taskKey(id: string | undefined): string {
   return id.match(/^[a-z0-9]+-\d+-(.+)$/)?.[1] ?? id
 }
 
+/**
+ * Пришло ли задание из этого сида.
+ *
+ * ЗАЧЕМ. Удалять можно только то, что сид когда-то и положил. Задание, которое
+ * учитель добавил руками, в сиде отсутствует по определению — если считать его
+ * «пропавшим», сверка предложит стереть как раз ту работу, ради сохранности
+ * которой всё это окно и написано. Различить их просто: сборщик выдаёт id вида
+ * `<ключ сида>-<номер юнита>-<место>`, а редактор — шесть случайных символов
+ * без дефисов (см. uid в TeacherCourseEditorPage).
+ */
+const isSeedTask = (id: string | undefined, seedKey: string): boolean =>
+  !!id && new RegExp(`^${seedKey}-\\d+-`).test(id)
+
 /** Отличаются ли значения поля. Сравниваем по JSON: значения простые либо массивы. */
 function differs(a: unknown, b: unknown): boolean {
   if (a === b) return false
@@ -144,6 +159,7 @@ export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
 
     // ── задания, которых в уроке нет ──
     const mineByKey = new Map(tasksOf(mine).filter(t => t.id).map(t => [taskKey(t.id), t]))
+    const freshKeys = new Set((unit.hwTasks ?? []).map(t => taskKey(t.id)))
     const added = (unit.hwTasks ?? []).filter(t => t.id && !mineByKey.has(taskKey(t.id)))
     if (added.length) {
       changes.push({
@@ -153,6 +169,31 @@ export async function diffAgainstSeed(course: CourseEdData): Promise<SeedDiff> {
         summary: `Новых заданий: ${added.length}`,
         overwrites: false,
         details: added.map(t => `${t.label ?? t.type} — ${String(t.question ?? '').slice(0, 70)}`),
+      })
+    }
+
+    // ── задания, которые сид положил, а потом убрал ──
+    //
+    // ЗАЧЕМ. Сид умеет не только расти. Корейский разговорник давал в урок всю
+    // тему целиком — сорок карточек, из которых десять переводились словом
+    // «спасибо»; теперь в уроке остаётся ядро, по одной фразе на смысл. Без
+    // этой ветки правка доезжала бы только до заново созданных курсов, а живой
+    // курс навсегда оставался бы с прежними сорока.
+    //
+    // Отмечать по умолчанию нельзя: у выброшенных заданий могут быть ответы
+    // учеников. Сами ответы лежат в lesson_progress по id задания и удалением
+    // не затрагиваются — они просто перестают показываться, поэтому решение
+    // обратимо через отмену сверки, но не через «вернуть как было» после
+    // сохранения.
+    const gone = tasksOf(mine).filter(t => isSeedTask(t.id, seed.key) && !freshKeys.has(taskKey(t.id)))
+    if (gone.length) {
+      changes.push({
+        key: `gone:${title}`,
+        kind: 'task-gone',
+        lessonTitle: mine.title,
+        summary: `Заданий убрано из сида: ${gone.length}`,
+        overwrites: true,
+        details: gone.map(t => `${t.label ?? t.type} — ${String(t.question ?? '').slice(0, 70)}`),
       })
     }
 
@@ -241,6 +282,18 @@ export async function applySeedChanges(course: CourseEdData, keys: Set<string>):
       const at = (t: Task) => order.get(taskKey(t.id)) ?? Number.MAX_SAFE_INTEGER
       const merged = [...tasksOf(next), ...(add as Task[])].sort((a, b) => at(a) - at(b))
       next = { ...next, hwTasks: merged as CELesson['hwTasks'] }
+    }
+
+    // Убранное сидом выбрасывается до сверки полей: чинить формулировку
+    // задания, которое в этой же сверке удаляется, незачем.
+    if (keys.has(`gone:${title}`)) {
+      const freshKeys = new Set((unit.hwTasks ?? []).map(t => taskKey(t.id)))
+      next = {
+        ...next,
+        hwTasks: tasksOf(next).filter(
+          t => !isSeedTask(t.id, seed.key) || freshKeys.has(taskKey(t.id)),
+        ) as CELesson['hwTasks'],
+      }
     }
 
     if (keys.has(`fields:${title}`)) {

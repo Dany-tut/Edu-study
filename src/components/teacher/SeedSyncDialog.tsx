@@ -15,7 +15,7 @@
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { AlertTriangle, Check, Plus, RefreshCw, X } from 'lucide-react'
+import { AlertTriangle, Check, Plus, RefreshCw, Trash2, X } from 'lucide-react'
 import type { SeedChange, SeedDiff } from '../../lib/seedSync'
 import { useT } from '../../lib/i18n'
 import Checkbox from '../Checkbox'
@@ -23,6 +23,7 @@ import Checkbox from '../Checkbox'
 const KIND_LABEL: Record<SeedChange['kind'], string> = {
   lesson: 'Новый урок',
   task: 'Новые задания',
+  'task-gone': 'Убраны из готового курса',
   'task-fields': 'Правки в заданиях',
   theory: 'Конспект',
   video: 'Видео урока',
@@ -41,7 +42,13 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
   const [openKey, setOpenKey] = useState<string | null>(null)
 
   const additions = useMemo(() => diff.changes.filter(c => !c.overwrites), [diff])
-  const overwrites = useMemo(() => diff.changes.filter(c => c.overwrites), [diff])
+  // Удаление стоит отдельной группой, а не внутри перезаписей: «перезапишется»
+  // и «исчезнет вместе с ответами учеников» — разный риск, и мерить их одной
+  // жёлтой полосой значит прятать второе за первым.
+  const removals = useMemo(() => diff.changes.filter(c => c.kind === 'task-gone'), [diff])
+  const overwrites = useMemo(
+    () => diff.changes.filter(c => c.overwrites && c.kind !== 'task-gone'), [diff],
+  )
 
   const toggle = (key: string) => setPicked(prev => {
     const next = new Set(prev)
@@ -149,6 +156,11 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
                 t('Перезапишется'),
                 t('Может стереть ваши правки — отметьте только то, что готовы отдать сиду.'),
                 AlertTriangle, overwrites, 'var(--color-yellow-text)',
+              )}
+              {group(
+                t('Удалится'),
+                t('Эти задания убрали из готового курса. Ответы учеников на них останутся в базе, но перестанут показываться.'),
+                Trash2, removals, 'var(--color-red-text)',
               )}
             </>
           )}

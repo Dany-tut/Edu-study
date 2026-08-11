@@ -2702,4 +2702,1048 @@ People keep asking whether this paper is censored. It is. If there is something 
       },
     ],
   },
+
+  // ── Остин, «Гордость и предубеждение» ──────────────────────────────────────
+  //
+  // Английский оригинал: посредника-переводчика здесь нет, это ровно те слова,
+  // которые написала Остин. Текст взят с Project Gutenberg и не правился.
+  {
+    id: 'sc-pride-1',
+    workId: 'austen-pride',
+    lang: 'en', title: 'Холостяк с состоянием обязан хотеть жениться', level: 'B2', minutes: 4,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 1, where: 'Том I, глава 1', size: 'short', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Jane Austen, Pride and Prejudice · Project Gutenberg',
+    setup: 'Самое известное первое предложение английской литературы — и сразу за ним разговор мистера и миссис Беннет. У них пять дочерей, ни одна не замужем, а по закону поместье после смерти отца уйдёт дальнему родственнику-мужчине. Поэтому истерика жены из-за нового соседа — не блажь, а вопрос выживания семьи; муж это знает и всё равно её дразнит.',
+    after: 'Мистер Беннет к Бингли, разумеется, съездит — и не скажет об этом жене несколько дней, чтобы посмотреть, как она мучается. Через две главы Бингли влюбится в старшую дочь, а его друг Дарси скажет про среднюю то, чего ему потом не простят двадцать глав.',
+    body: `It is a truth universally acknowledged, that a single man in possession of a good fortune must be in want of a wife.
+
+However little known the feelings or views of such a man may be on his first entering a neighbourhood, this truth is so well fixed in the minds of the surrounding families, that he is considered as the rightful property of some one or other of their daughters.
+
+“My dear Mr. Bennet,” said his lady to him one day, “have you heard that Netherfield Park is let at last?”
+
+Mr. Bennet replied that he had not.
+
+“But it is,” returned she; “for Mrs. Long has just been here, and she told me all about it.”
+
+Mr. Bennet made no answer.
+
+“Do not you want to know who has taken it?” cried his wife, impatiently.
+
+“You want to tell me, and I have no objection to hearing it.”
+
+This was invitation enough.
+
+“Why, my dear, you must know, Mrs. Long says that Netherfield is taken by a young man of large fortune from the north of England; that he came down on Monday in a chaise and four to see the place, and was so much delighted with it that he agreed with Mr. Morris immediately; that he is to take possession before Michaelmas, and some of his servants are to be in the house by the end of next week.”
+
+“What is his name?”
+
+“Bingley.”
+
+“Is he married or single?”
+
+“Oh, single, my dear, to be sure! A single man of large fortune; four or five thousand a year. What a fine thing for our girls!”
+
+“How so? how can it affect them?”
+
+“My dear Mr. Bennet,” replied his wife, “how can you be so tiresome? You must know that I am thinking of his marrying one of them.”
+
+“Is that his design in settling here?”
+
+“Design? Nonsense, how can you talk so! But it is very likely that he may fall in love with one of them, and therefore you must visit him as soon as he comes.”`,
+    translation: `Общепризнанная истина гласит, что одинокий мужчина, располагающий состоянием, обязан нуждаться в жене.
+
+Как бы мало ни было известно о чувствах и намерениях такого человека, когда он впервые появляется в округе, истина эта столь прочно сидит в умах соседних семейств, что его считают законной собственностью той или иной из их дочерей.
+
+«Дорогой мистер Беннет, — сказала ему однажды супруга, — вы слышали, что Незерфилд-парк наконец сдан?»
+
+Мистер Беннет ответил, что не слышал.
+
+«Однако же сдан, — возразила она, — потому что миссис Лонг только что была здесь и всё мне рассказала».
+
+Мистер Беннет ничего не ответил.
+
+«Разве вам не хочется узнать, кто его снял?» — нетерпеливо воскликнула жена.
+
+«Вам хочется мне об этом сказать, а я не возражаю послушать».
+
+Приглашения было довольно.
+
+«Так вот, дорогой мой, миссис Лонг говорит, что Незерфилд снял молодой человек с большим состоянием с севера Англии; что в понедельник он приезжал смотреть имение в карете четвёркой и остался так доволен, что тут же обо всём условился с мистером Моррисом; что он вступает во владение ещё до Михайлова дня, а часть прислуги будет в доме уже к концу следующей недели».
+
+«А как его зовут?»
+
+«Бингли».
+
+«Женат или холост?»
+
+«О, холост, дорогой мой, разумеется! Холостяк с большим состоянием — четыре или пять тысяч в год. Какая удача для наших девочек!»
+
+«Каким образом? При чём тут они?»
+
+«Дорогой мистер Беннет, — отвечала жена, — ну как можно быть таким несносным? Вы прекрасно понимаете, что я имею в виду его женитьбу на одной из них».
+
+«Так он для этого сюда переезжает?»
+
+«Для этого? Вздор, как вы можете так говорить! Но очень возможно, что он влюбится в одну из них, и потому вы должны съездить к нему, как только он приедет».`,
+    glossary: [
+      { term: 'a truth universally acknowledged', ru: 'общепризнанная истина' },
+      { term: 'to be in want of', ru: 'нуждаться в' },
+      { term: 'to be let', ru: 'быть сданным внаём' },
+      { term: 'a chaise and four', ru: 'карета в четыре лошади (признак больших денег)' },
+      { term: 'to take possession', ru: 'вступить во владение' },
+      { term: 'Michaelmas', ru: 'Михайлов день, 29 сентября — срок расчётов и аренды' },
+      { term: 'tiresome', ru: 'несносный, докучливый' },
+      { term: 'design', ru: 'здесь: замысел, намерение' },
+    ],
+    questions: [
+      {
+        q: 'Who says the first sentence — a character or the narrator?',
+        options: [
+          'Mrs. Bennet',
+          'The narrator, and ironically: it is what the neighbours believe, not what is true',
+          'Mr. Bennet',
+          'Mr. Bingley',
+        ],
+        correct: 1,
+        why: 'Ирония здесь в слове universally: истина «общепризнанная» ровно в том кругу, которому выгодно так считать. Весь роман потом это проверяет.',
+      },
+      {
+        q: 'What does Mr. Bennet mean by "You want to tell me, and I have no objection to hearing it"?',
+        options: [
+          'He is genuinely curious',
+          'He refuses to ask, but lets her speak — he is teasing her',
+          'He did not hear the question',
+          'He forbids the subject',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is Bingley\'s being single "a fine thing for our girls"?',
+        options: [
+          'He can rent them a house',
+          'He might marry one of the daughters',
+          'He will employ them',
+          'He brings servants to the village',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"He is to take possession before Michaelmas" — what does "is to" express?',
+        options: [
+          'A wish',
+          'An arrangement that has been fixed',
+          'A doubt',
+          'The past',
+        ],
+        correct: 1,
+        why: 'Be to do — договорённость или предписание. Та же конструкция, что в регламентах: names are to be given before sundown.',
+      },
+    ],
+  },
+  {
+    id: 'sc-pride-2',
+    workId: 'austen-pride',
+    lang: 'en', title: 'Она недурна, но не настолько', level: 'B2', minutes: 3,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 2, where: 'Том I, глава 3, бал в Меритоне', size: 'flash', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Jane Austen, Pride and Prejudice · Project Gutenberg',
+    setup: 'Первый бал. Бингли танцует и всем доволен; его друг Дарси не танцует ни с кем и уже успел прослыть самым неприятным человеком в округе. Бингли уговаривает его пригласить хоть кого-нибудь и показывает на Элизабет — которая сидит достаточно близко, чтобы всё слышать. Это те самые пять секунд, из которых вырастает весь роман.',
+    after: 'Элизабет не обиделась, а пересказала эту фразу друзьям как анекдот — и именно поэтому Дарси, который будет объясняться ей в любви через двадцать глав, получит отказ. В книге его слова цитируют ему обратно почти дословно.',
+    body: `“Oh, she is the most beautiful creature I ever beheld! But there is one of her sisters sitting down just behind you, who is very pretty, and I dare say very agreeable. Do let me ask my partner to introduce you.”
+
+“Which do you mean?” and turning round, he looked for a moment at Elizabeth, till, catching her eye, he withdrew his own, and coldly said, “She is tolerable: but not handsome enough to tempt me; and I am in no humour at present to give consequence to young ladies who are slighted by other men. You had better return to your partner and enjoy her smiles, for you are wasting your time with me.”
+
+Mr. Bingley followed his advice. Mr. Darcy walked off; and Elizabeth remained with no very cordial feelings towards him. She told the story, however, with great spirit among her friends; for she had a lively, playful disposition, which delighted in anything ridiculous.`,
+    translation: `«О, она прелестнейшее создание, какое я только видел! Но вон одна из её сестёр сидит прямо за вами, и она очень хороша собой и, смею сказать, очень мила. Позвольте, я попрошу мою даму вас представить».
+
+«Которую вы имеете в виду?» — и, обернувшись, он с минуту смотрел на Элизабет, пока не встретился с ней взглядом; тогда он отвёл глаза и холодно сказал: «Она недурна, но не настолько хороша, чтобы соблазнить меня; а я сейчас не расположен придавать значение молодым особам, которыми пренебрегли другие. Вам лучше вернуться к вашей даме и наслаждаться её улыбками, потому что со мной вы тратите время впустую».
+
+Мистер Бингли последовал совету. Мистер Дарси отошёл, а у Элизабет не осталось к нему ни малейшего расположения. Впрочем, она с большим воодушевлением пересказала эту историю подругам, потому что нрав у неё был живой и насмешливый и всё нелепое её забавляло.`,
+    glossary: [
+      { term: 'to behold', ru: 'видеть, лицезреть (книжн.)' },
+      { term: 'agreeable', ru: 'приятная, милая (о человеке)' },
+      { term: 'tolerable', ru: 'сносная, терпимая' },
+      { term: 'to tempt', ru: 'соблазнить, прельстить' },
+      { term: 'in no humour', ru: 'не в настроении, не расположен' },
+      { term: 'to give consequence to', ru: 'придавать значение кому-то' },
+      { term: 'to slight', ru: 'пренебречь, обойти вниманием' },
+      { term: 'disposition', ru: 'нрав, характер' },
+    ],
+    questions: [
+      {
+        q: 'What is wrong with what Darcy says, apart from its content?',
+        options: [
+          'He says it in a foreign language',
+          'Elizabeth is sitting close enough to hear it',
+          'He says it to a stranger',
+          'He whispers, and nobody understands him',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"She is tolerable" is…',
+        options: [
+          'high praise',
+          'faint praise that works as an insult',
+          'a neutral description',
+          'a compliment on her patience',
+        ],
+        correct: 1,
+        why: 'Tolerable — «сносная». По-английски похвала на самом нижнем делении шкалы оскорбительнее прямой грубости, и Остин пользуется этим постоянно.',
+      },
+      {
+        q: 'How does Elizabeth react?',
+        options: [
+          'She cries',
+          'She leaves the ball',
+          'She retells it to her friends as a funny story',
+          'She answers him back',
+        ],
+        correct: 2,
+      },
+      {
+        q: 'What does "young ladies who are slighted by other men" mean?',
+        options: [
+          'women other men have ignored',
+          'women other men have praised',
+          'women who are shorter than others',
+          'women who came late',
+        ],
+        correct: 0,
+      },
+    ],
+  },
+
+  // ── Кэрролл, «Алиса в Стране чудес» ────────────────────────────────────────
+  {
+    id: 'sc-alice-1',
+    workId: 'carroll-alice',
+    lang: 'en', title: 'Кролик достаёт часы из жилетного кармана', level: 'B2', minutes: 3,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 1, where: 'Глава 1, «Вниз по кроличьей норе»', size: 'short', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: "Lewis Carroll, Alice's Adventures in Wonderland · Project Gutenberg",
+    setup: 'Начало книги. Алисе жарко и скучно на берегу реки, и мимо пробегает белый кролик. Обратите внимание, что именно её удивляет: не говорящий кролик — к этому она отнеслась спокойно, — а кролик с часами и жилетным карманом. Кэрролл всю книгу выстраивает так: странное принимается легко, а спотыкается всё на бытовой детали.',
+    after: 'Нора оказывается очень глубокой, и Алиса падает так долго, что успевает вслух поразмышлять о широте и долготе и о том, что будет, если пролететь Землю насквозь. Первая глава кончается запертой дверцей в пятнадцать дюймов и бутылочкой с надписью «выпей меня».',
+    body: `Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do: once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, “and what is the use of a book,” thought Alice “without pictures or conversations?”
+
+So she was considering in her own mind (as well as she could, for the hot day made her feel very sleepy and stupid), whether the pleasure of making a daisy-chain would be worth the trouble of getting up and picking the daisies, when suddenly a White Rabbit with pink eyes ran close by her.
+
+There was nothing so very remarkable in that; nor did Alice think it so very much out of the way to hear the Rabbit say to itself, “Oh dear! Oh dear! I shall be late!” (when she thought it over afterwards, it occurred to her that she ought to have wondered at this, but at the time it all seemed quite natural); but when the Rabbit actually took a watch out of its waistcoat-pocket, and looked at it, and then hurried on, Alice started to her feet, for it flashed across her mind that she had never before seen a rabbit with either a waistcoat-pocket, or a watch to take out of it, and burning with curiosity, she ran across the field after it, and fortunately was just in time to see it pop down a large rabbit-hole under the hedge.
+
+In another moment down went Alice after it, never once considering how in the world she was to get out again.`,
+    translation: `Алисе уже совсем надоело сидеть с сестрой на берегу и ничего не делать: раз или два она заглянула в книжку, которую читала сестра, но там не было ни картинок, ни разговоров. «И какой прок в книжке, — подумала Алиса, — если в ней нет ни картинок, ни разговоров?»
+
+И вот она размышляла про себя (насколько это ей удавалось, потому что от жары её клонило в сон и голова была тяжёлая), стоит ли удовольствие сплести венок из маргариток того, чтобы вставать и их собирать, — как вдруг совсем рядом пробежал Белый Кролик с розовыми глазами.
+
+Ничего особенно замечательного в этом не было; не показалось Алисе чем-то из ряда вон и то, что Кролик проговорил про себя: «Ах, боже мой! Боже мой! Я опоздаю!» (потом, обдумав всё это, она сообразила, что удивиться следовало, но тогда всё выглядело совершенно естественным); однако когда Кролик и вправду вынул из жилетного кармана часы, посмотрел на них и заторопился дальше, Алиса вскочила на ноги, потому что её осенило: никогда прежде она не видела кролика ни с жилетным карманом, ни с часами, которые оттуда можно вынуть, — и, сгорая от любопытства, она побежала за ним через поле и, по счастью, как раз успела заметить, как он юркнул в большую кроличью нору под изгородью.
+
+Ещё мгновение — и Алиса нырнула туда за ним, ни разу не подумав, как же она оттуда выберется.`,
+    glossary: [
+      { term: 'to peep into', ru: 'заглянуть в' },
+      { term: 'what is the use of', ru: 'какой прок в' },
+      { term: 'daisy-chain', ru: 'венок из маргариток' },
+      { term: 'out of the way', ru: 'здесь: из ряда вон, необычно' },
+      { term: 'to start to one’s feet', ru: 'вскочить на ноги' },
+      { term: 'it flashed across her mind', ru: 'её осенило' },
+      { term: 'waistcoat-pocket', ru: 'жилетный карман' },
+      { term: 'to pop down', ru: 'юркнуть, нырнуть вниз' },
+    ],
+    questions: [
+      {
+        q: 'What finally makes Alice jump up?',
+        options: [
+          'The rabbit speaks',
+          'The rabbit takes a watch out of its waistcoat-pocket',
+          'The rabbit is white',
+          'Her sister calls her',
+        ],
+        correct: 1,
+        why: 'Говорящий кролик её не смутил — «it all seemed quite natural». Спотыкается она на жилете с часами, и в этом вся логика книги.',
+      },
+      {
+        q: 'Why does Alice think her sister\'s book is useless?',
+        options: [
+          'It is too long',
+          'It has no pictures and no conversations',
+          'It is in a foreign language',
+          'She has already read it',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"never once considering how in the world she was to get out again" tells us that…',
+        options: [
+          'she had a plan',
+          'she did not think about getting back at all',
+          'she asked her sister first',
+          'the hole was shallow',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "out of the way" mean here?',
+        options: ['far from the road', 'unusual', 'dangerous', 'polite'],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-alice-2',
+    workId: 'carroll-alice',
+    lang: 'en', title: 'Безумное чаепитие', level: 'B1', minutes: 3,
+    topic: 'Еда', skill: 'Чтение',
+    order: 2, where: 'Глава 7, «Безумное чаепитие»', size: 'short', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: "Lewis Carroll, Alice's Adventures in Wonderland · Project Gutenberg",
+    setup: 'Самая известная сцена книги. За столом Мартовский Заяц, Шляпник и спящая Соня, которую двое остальных используют как подушку. Читать это стоит как урок вежливости наоборот: почти каждая реплика — нарушение застольного этикета, и каждое нарушение названо своим словом (civil, personal remarks, rude). Лексика простая, весь юмор в манерах.',
+    after: 'Загадка «чем ворон похож на письменный стол?» так и останется без ответа — Шляпник честно признается, что не имеет ни малейшего представления. Кэрролла спрашивали об этом до конца жизни, и разгадку он придумал только через много лет, задним числом.',
+    body: `There was a table set out under a tree in front of the house, and the March Hare and the Hatter were having tea at it: a Dormouse was sitting between them, fast asleep, and the other two were using it as a cushion, resting their elbows on it, and talking over its head. “Very uncomfortable for the Dormouse,” thought Alice; “only, as it’s asleep, I suppose it doesn’t mind.”
+
+The table was a large one, but the three were all crowded together at one corner of it: “No room! No room!” they cried out when they saw Alice coming. “There’s plenty of room!” said Alice indignantly, and she sat down in a large arm-chair at one end of the table.
+
+“Have some wine,” the March Hare said in an encouraging tone.
+
+Alice looked all round the table, but there was nothing on it but tea. “I don’t see any wine,” she remarked.
+
+“There isn’t any,” said the March Hare.
+
+“Then it wasn’t very civil of you to offer it,” said Alice angrily.
+
+“It wasn’t very civil of you to sit down without being invited,” said the March Hare.
+
+“I didn’t know it was your table,” said Alice; “it’s laid for a great many more than three.”
+
+“Your hair wants cutting,” said the Hatter. He had been looking at Alice for some time with great curiosity, and this was his first speech.
+
+“You should learn not to make personal remarks,” Alice said with some severity; “it’s very rude.”
+
+The Hatter opened his eyes very wide on hearing this; but all he said was, “Why is a raven like a writing-desk?”`,
+    translation: `Перед домом под деревом был накрыт стол, и Мартовский Заяц со Шляпником пили за ним чай; между ними крепко спала Соня, а те двое устроили из неё подушку, положили ей на голову локти и разговаривали поверх неё. «Соне очень неудобно, — подумала Алиса, — но раз она спит, ей, наверное, всё равно».
+
+Стол был большой, но все трое сгрудились в одном его углу. «Мест нет! Мест нет!» — закричали они, увидев Алису. «Мест сколько угодно!» — возмущённо сказала Алиса и села в большое кресло на краю стола.
+
+«Выпейте вина», — ободряюще предложил Мартовский Заяц.
+
+Алиса оглядела весь стол, но, кроме чая, на нём ничего не было. «Я не вижу никакого вина», — заметила она.
+
+«Его и нет», — сказал Мартовский Заяц.
+
+«Тогда не очень-то любезно было его предлагать», — сердито сказала Алиса.
+
+«Не очень-то любезно было садиться за стол без приглашения», — сказал Мартовский Заяц.
+
+«Я не знала, что стол ваш, — сказала Алиса. — Он накрыт куда больше чем на троих».
+
+«Вам пора постричься», — сказал Шляпник. Он уже некоторое время разглядывал Алису с большим любопытством, и это были его первые слова.
+
+«Вам следовало бы научиться не делать замечаний о внешности, — строго сказала Алиса. — Это очень невежливо».
+
+Шляпник широко раскрыл глаза, но сказал только одно: «Чем ворон похож на письменный стол?»`,
+    glossary: [
+      { term: 'fast asleep', ru: 'крепко спит' },
+      { term: 'indignantly', ru: 'возмущённо' },
+      { term: 'civil', ru: 'учтивый, любезный' },
+      { term: 'it is laid for', ru: 'накрыт на (столько-то человек)' },
+      { term: 'your hair wants cutting', ru: 'вам пора постричься (устар. want = need)' },
+      { term: 'personal remarks', ru: 'замечания о внешности или личности' },
+      { term: 'severity', ru: 'строгость' },
+      { term: 'rude', ru: 'невежливый, грубый' },
+    ],
+    questions: [
+      {
+        q: 'Why is Alice angry about the wine?',
+        options: [
+          'She does not drink wine',
+          'There is no wine — offering it was not "civil"',
+          'The wine is warm',
+          'The Hare drank it all',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does the March Hare answer her complaint?',
+        options: [
+          'He apologises',
+          'He points out that she sat down uninvited — an equally uncivil act',
+          'He brings the wine',
+          'He wakes the Dormouse',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'In "Your hair wants cutting", "wants" means…',
+        options: ['wishes', 'needs', 'likes', 'refuses'],
+        correct: 1,
+        why: 'Старое значение want = «нуждаться». Оно же в первом предложении «Гордости и предубеждения»: must be in want of a wife.',
+      },
+      {
+        q: 'What are "personal remarks"?',
+        options: [
+          'private letters',
+          'comments about someone’s appearance or person',
+          'notes in a diary',
+          'compliments',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Стокер, «Дракула» ──────────────────────────────────────────────────────
+  {
+    id: 'sc-dracula-1',
+    workId: 'stoker-dracula',
+    lang: 'en', title: 'Дверь открылась', level: 'B2', minutes: 3,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 1, where: 'Глава 2, дневник Джонатана Харкера', size: 'short', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Bram Stoker, Dracula · Project Gutenberg',
+    setup: 'Молодой лондонский юрист Джонатан Харкер везёт клиенту документы на покупку дома в Англии. Клиент живёт в Карпатах, в замке, куда крестьяне отказались его подвозить, а на прощание совали чеснок и распятие. Харкер стоит у запертых ворот один, ночью, и ведёт дневник — сцена написана от первого лица и в прошедшем времени, как отчёт.',
+    after: 'Дальше будет ужин, любезный разговор до рассвета — и через несколько дней Харкер обнаружит, что в замке нет ни одной двери, которая открывалась бы наружу, и ни одного зеркала.',
+    body: `Just as I had come to this conclusion I heard a heavy step approaching behind the great door, and saw through the chinks the gleam of a coming light. Then there was the sound of rattling chains and the clanking of massive bolts drawn back. A key was turned with the loud grating noise of long disuse, and the great door swung back.
+
+Within, stood a tall old man, clean shaven save for a long white moustache, and clad in black from head to foot, without a single speck of colour about him anywhere. He held in his hand an antique silver lamp, in which the flame burned without chimney or globe of any kind, throwing long quivering shadows as it flickered in the draught of the open door. The old man motioned me in with his right hand with a courtly gesture, saying in excellent English, but with a strange intonation:--
+
+“Welcome to my house! Enter freely and of your own will!” He made no motion of stepping to meet me, but stood like a statue, as though his gesture of welcome had fixed him into stone.`,
+    translation: `Едва я пришёл к этому выводу, как услышал за огромной дверью тяжёлые приближающиеся шаги и увидел сквозь щели отблеск подходящего света. Затем раздался лязг цепей и грохот отодвигаемых массивных засовов. Ключ повернулся с громким скрежетом, какой бывает от долгого бездействия, и огромная дверь распахнулась.
+
+Внутри стоял высокий старик, чисто выбритый, если не считать длинных белых усов, и одетый в чёрное с головы до ног — ни единого цветного пятна на нём нигде. В руке он держал старинную серебряную лампу, в которой пламя горело без всякого стекла или колпака и, колеблясь на сквозняке из открытой двери, отбрасывало длинные дрожащие тени. Старик пригласил меня внутрь движением правой руки, учтивым жестом, и сказал на превосходном английском, но со странной интонацией:
+
+«Добро пожаловать в мой дом! Входите свободно и по собственной воле!» Он не сделал ни шагу навстречу, а стоял как изваяние, будто приветственный жест обратил его в камень.`,
+    glossary: [
+      { term: 'chink', ru: 'щель' },
+      { term: 'bolt', ru: 'засов' },
+      { term: 'grating noise', ru: 'скрежет' },
+      { term: 'of long disuse', ru: 'от долгого бездействия' },
+      { term: 'save for', ru: 'за исключением, кроме' },
+      { term: 'clad in', ru: 'облачённый в' },
+      { term: 'speck', ru: 'пятнышко, крупинка' },
+      { term: 'to motion someone in', ru: 'жестом пригласить войти' },
+      { term: 'of your own will', ru: 'по своей воле' },
+    ],
+    questions: [
+      {
+        q: 'What does the sound of the key tell the reader?',
+        options: [
+          'The door is new',
+          'The lock has not been used for a long time',
+          'Someone is in a hurry',
+          'The door is broken',
+        ],
+        correct: 1,
+        why: '«The loud grating noise of long disuse» — замок скрипит именно потому, что им давно не пользовались. Деталь работает вместо описания замка.',
+      },
+      {
+        q: 'How is the old man dressed?',
+        options: [
+          'In black from head to foot, with no colour anywhere',
+          'In a white shirt and dark coat',
+          'In travelling clothes',
+          'It is not described',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'Why does the host insist on "of your own will"?',
+        options: [
+          'He is being polite in an old-fashioned way',
+          'It is a formality that will matter later — the guest must enter by his own choice',
+          'He does not want to carry the luggage',
+          'It is a local greeting',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"as though his gesture of welcome had fixed him into stone" describes…',
+        options: [
+          'a statue in the hall',
+          'the host standing completely motionless',
+          'the cold weather',
+          'the door',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-dracula-2',
+    workId: 'stoker-dracula',
+    lang: 'en', title: 'Я — Дракула', level: 'B2', minutes: 2,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 2, where: 'Глава 2, дневник Джонатана Харкера', size: 'flash', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Bram Stoker, Dracula · Project Gutenberg',
+    setup: 'Продолжение той же ночи: хозяин наконец называет себя. Обратите внимание на бытовую странность, которую Харкер добросовестно записывает и не осмысляет: граф сам тащит наверх его чемоданы и объясняет это тем, что прислуги нет. В замке действительно нет ни одного слуги — но поймёт это Харкер гораздо позже.',
+    after: 'Ужин будет накрыт на одного. Хозяин просидит с гостем до самого рассвета, не притронувшись к еде, а с первым криком петуха извинится и уйдёт.',
+    body: `“I am Dracula; and I bid you welcome, Mr. Harker, to my house. Come in; the night air is chill, and you must need to eat and rest.” As he was speaking, he put the lamp on a bracket on the wall, and stepping out, took my luggage; he had carried it in before I could forestall him. I protested but he insisted:--
+
+“Nay, sir, you are my guest. It is late, and my people are not available. Let me see to your comfort myself.”`,
+    translation: `«Я — Дракула и приветствую вас, мистер Харкер, в моём доме. Входите; ночной воздух холоден, а вам, должно быть, нужно поесть и отдохнуть». Говоря это, он поставил лампу на настенный кронштейн и, выйдя наружу, взял мой багаж; он внёс его прежде, чем я успел его опередить. Я запротестовал, но он настоял:
+
+«Нет, сударь, вы мой гость. Уже поздно, а моих людей нет на месте. Позвольте мне самому позаботиться о ваших удобствах».`,
+    glossary: [
+      { term: 'to bid someone welcome', ru: 'приветствовать кого-то (книжн.)' },
+      { term: 'chill', ru: 'холодный, промозглый' },
+      { term: 'bracket', ru: 'кронштейн, настенный держатель' },
+      { term: 'to forestall', ru: 'опередить, предупредить действие' },
+      { term: 'nay', ru: 'нет (устар.)' },
+      { term: 'my people', ru: 'здесь: моя прислуга' },
+      { term: 'to see to something', ru: 'позаботиться о чём-то, заняться чем-то' },
+    ],
+    questions: [
+      {
+        q: 'Who carries the luggage?',
+        options: ['A servant', 'The host himself', 'Harker', 'The coachman'],
+        correct: 1,
+      },
+      {
+        q: 'What reason does the host give?',
+        options: [
+          'The luggage is light',
+          'His servants are not available',
+          'It is a local custom',
+          'Harker is unwell',
+        ],
+        correct: 1,
+        why: 'Формально это вежливость. Фактически — в замке нет ни одного слуги, и «my people are not available» здесь единственная возможная правда.',
+      },
+      {
+        q: '"before I could forestall him" means…',
+        options: [
+          'before I could stop him by acting first',
+          'before I could thank him',
+          'before I could see him',
+          'after I had asked him',
+        ],
+        correct: 0,
+      },
+    ],
+  },
+
+  // ── Лондон, «Зов предков» ──────────────────────────────────────────────────
+  {
+    id: 'sc-callwild-1',
+    workId: 'london-call-wild',
+    lang: 'en', title: 'Бак не читал газет', level: 'C1', minutes: 2,
+    topic: 'Путешествия', skill: 'Чтение',
+    order: 1, where: 'Глава 1, начало', size: 'flash', spoiler: 1,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Jack London, The Call of the Wild · Project Gutenberg',
+    setup: 'Первый абзац книги. Главный герой — пёс, живущий в богатой калифорнийской усадьбе, и Лондон с первой же фразы объясняет через него мировую экономику: на Клондайке нашли золото, туда рванули тысячи людей, людям нужны ездовые собаки — значит, крупных собак начнут красть. Приём, ради которого этот абзац стоит разобрать: беда объясняется не чувствами, а логистикой.',
+    after: 'Через несколько страниц садовник продаст Бака за долги человеку в красном свитере, и от Санта-Клары до палубы парохода на север он доберётся в клетке.',
+    body: `Buck did not read the newspapers, or he would have known that trouble was brewing, not alone for himself, but for every tide-water dog, strong of muscle and with warm, long hair, from Puget Sound to San Diego. Because men, groping in the Arctic darkness, had found a yellow metal, and because steamship and transportation companies were booming the find, thousands of men were rushing into the Northland. These men wanted dogs, and the dogs they wanted were heavy dogs, with strong muscles by which to toil, and furry coats to protect them from the frost.`,
+    translation: `Бак не читал газет, а то бы знал, что беда надвигается — и не на него одного, а на всякого крупного пса с сильными мышцами и тёплой длинной шерстью на всём побережье, от Пьюджет-Саунда до Сан-Диего. Потому что люди, шарившие в арктической темноте, нашли жёлтый металл, а пароходные и транспортные компании раструбили об этой находке, — и тысячи людей ринулись на Север. Этим людям нужны были собаки, и нужны им были собаки тяжёлые, с крепкими мышцами, чтобы тянуть, и с косматой шерстью, чтобы не мёрзнуть.`,
+    glossary: [
+      { term: 'trouble was brewing', ru: 'беда назревала' },
+      { term: 'not alone for', ru: 'не только для (книжн. вместо not only)' },
+      { term: 'tide-water', ru: 'приливный, прибрежный' },
+      { term: 'to grope', ru: 'шарить, идти на ощупь' },
+      { term: 'to boom something', ru: 'раструбить, шумно раскрутить' },
+      { term: 'to toil', ru: 'тяжело трудиться' },
+      { term: 'furry coat', ru: 'густая шерсть' },
+      { term: 'frost', ru: 'мороз' },
+    ],
+    questions: [
+      {
+        q: 'Why is Buck in danger?',
+        options: [
+          'He is old',
+          'Gold was found in the north, so big strong dogs are suddenly worth stealing',
+          'His owner is moving away',
+          'There is a disease among dogs',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"Buck did not read the newspapers, or he would have known" — what is this construction?',
+        options: [
+          'A real condition about the future',
+          'An unreal condition: he did not read, so he did not know',
+          'A question',
+          'A command',
+        ],
+        correct: 1,
+        why: 'Or здесь = otherwise, а would have known — нереальное прошлое. Полная форма: if he had read the newspapers, he would have known.',
+      },
+      {
+        q: 'What is "a yellow metal"?',
+        options: ['brass', 'gold', 'copper', 'tin'],
+        correct: 1,
+        why: 'Лондон нарочно не называет золото золотом: для собаки это просто металл, из-за которого сошли с ума люди.',
+      },
+    ],
+  },
+  {
+    id: 'sc-callwild-2',
+    workId: 'london-call-wild',
+    lang: 'en', title: 'Закон дубины и клыка', level: 'C1', minutes: 2,
+    topic: 'Погода и природа', skill: 'Чтение',
+    order: 2, where: 'Глава 2, первый день на Севере', size: 'flash', spoiler: 2,
+    textOrigin: 'verbatim', origin: 'open-corpus',
+    credit: 'Jack London, The Call of the Wild · Project Gutenberg',
+    setup: 'Бака выгрузили на берег в Дайе. За несколько дней он проделал путь из усадьбы с лужайками и фруктовым садом туда, где ни у кого нет ни секунды безопасности. Абзац устроен как перечисление отрицаний — neither peace, nor rest, nor a moment’s safety, — и именно на этом ритме держится вся глава.',
+    after: 'Урок Бак получит не на себе: на его глазах свора разорвёт добродушную Кёрли, которая просто подошла познакомиться. Он запомнит из этого одно правило — упавшая собака не встаёт.',
+    body: `He had been suddenly jerked from the heart of civilization and flung into the heart of things primordial. No lazy, sun-kissed life was this, with nothing to do but loaf and be bored. Here was neither peace, nor rest, nor a moment’s safety. All was confusion and action, and every moment life and limb were in peril. There was imperative need to be constantly alert; for these dogs and men were not town dogs and men. They were savages, all of them, who knew no law but the law of club and fang.`,
+    translation: `Его внезапно выдернули из сердца цивилизации и швырнули в самую сердцевину первобытного. Это была не ленивая, пригретая солнцем жизнь, где нечего делать, кроме как слоняться и скучать. Здесь не было ни покоя, ни отдыха, ни минуты безопасности. Всё было смятением и движением, и каждое мгновение жизнь и целость шкуры были под угрозой. Требовалось неотступно быть настороже, потому что эти собаки и эти люди не были городскими собаками и людьми. Все они были дикарями и не знали иного закона, кроме закона дубины и клыка.`,
+    glossary: [
+      { term: 'to jerk', ru: 'выдернуть рывком' },
+      { term: 'to fling (flung)', ru: 'швырнуть' },
+      { term: 'primordial', ru: 'первобытный, изначальный' },
+      { term: 'to loaf', ru: 'бездельничать, слоняться' },
+      { term: 'life and limb', ru: 'жизнь и здоровье (устойчивое)' },
+      { term: 'in peril', ru: 'в опасности' },
+      { term: 'alert', ru: 'настороже, начеку' },
+      { term: 'fang', ru: 'клык' },
+      { term: 'club', ru: 'дубина' },
+    ],
+    questions: [
+      {
+        q: 'What is the contrast the paragraph is built on?',
+        options: [
+          'Winter and summer',
+          'The lazy sunlit life he had before and the constant danger he has now',
+          'Dogs and wolves',
+          'Rich owners and poor owners',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "the law of club and fang" mean?',
+        options: [
+          'A written rule of the north',
+          'The only rule is force — men beat, dogs bite',
+          'A game played by the drivers',
+          'A hunting method',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does London pile up "neither… nor… nor"?',
+        options: [
+          'To fill the page',
+          'The repetition builds the rhythm of a place with nothing safe left in it',
+          'It is a grammar rule',
+          'To describe the weather',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Друзья: карточка, наш текст ────────────────────────────────────────────
+  //
+  // bucket: 'inspired'. Ни одного персонажа и ни одной реплики сериала: люди,
+  // квартира и кофейня наши. От «Друзей» — жанр и лексический слой: бытовая
+  // речь двадцатилетних в большом городе.
+  {
+    id: 'sc-friends-1',
+    workId: 'friends',
+    lang: 'en', title: 'Объявление: ищем соседа', level: 'A2', minutes: 2,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Вся завязка «Друзей» — это кто с кем живёт и кто за что платит. Ниже наше объявление о поиске соседа с доски в кофейне. Лексика здесь из тех, что нужны в первый же месяц в любом городе: аренда, залог, коммуналка, «включено в стоимость».',
+    after: 'Обратите внимание на последнюю строку: «если вы читаете это в нашей кофейне, вы уже знаете, где мы сидим». В сериале точно так же: половина знакомств происходит не по объявлению, а потому что все всё время в одном месте.',
+    body: `ROOMMATE WANTED — 2 BR APARTMENT, WEST VILLAGE
+
+$780/month + your half of the utilities. Deposit is one month, and you get it back if the fridge survives you.
+
+The room is small but it has a window and a real closet. Furnished if you want it furnished; we can move the desk out if you don't.
+
+ABOUT US
+Two of us, mid-twenties, both work weekdays. One plays guitar (badly, with headphones, after nine). The other cooks and will feed you, which honestly is worth a hundred dollars a month on its own.
+
+ABOUT YOU
+Clean-ish. We are not asking for spotless, we are asking for dishes done the same day.
+No smoking indoors. The fire escape is right there and the view is good.
+Fine with a cat. The cat was here first and is not negotiable.
+
+Available from the first. Come and see it — pictures make it look worse than it is.
+
+If you're reading this in our coffee place, you already know where we sit.`,
+    translation: `ИЩЕМ СОСЕДА — ДВУШКА, ВЕСТ-ВИЛЛИДЖ
+
+780 долларов в месяц плюс твоя половина коммуналки. Залог — месяц, вернём, если холодильник тебя переживёт.
+
+Комната маленькая, но с окном и с настоящим шкафом. С мебелью, если нужна с мебелью; если нет — вынесем стол.
+
+О НАС
+Нас двое, обоим слегка за двадцать, оба работают по будням. Один играет на гитаре (плохо, в наушниках, после девяти). Второй готовит и будет тебя кормить, что само по себе стоит сотни долларов в месяц.
+
+О ТЕБЕ
+Более-менее чистоплотный. Мы не просим стерильности, мы просим мыть посуду в тот же день.
+В квартире не курим. Пожарная лестница вот она, и вид оттуда хороший.
+Нормально относишься к коту. Кот был здесь раньше и обсуждению не подлежит.
+
+Заезд с первого числа. Приходи смотреть — на фотографиях всё выглядит хуже, чем есть.
+
+Если ты читаешь это в нашей кофейне, то уже знаешь, где мы сидим.`,
+    glossary: [
+      { term: 'roommate', ru: 'сосед по квартире (амер.); в Британии flatmate' },
+      { term: '2 BR (two-bedroom)', ru: 'две спальни плюс гостиная' },
+      { term: 'utilities', ru: 'коммунальные платежи' },
+      { term: 'deposit', ru: 'залог' },
+      { term: 'furnished', ru: 'с мебелью' },
+      { term: 'closet', ru: 'встроенный шкаф (амер.)' },
+      { term: 'fire escape', ru: 'пожарная лестница снаружи дома' },
+      { term: 'not negotiable', ru: 'обсуждению не подлежит' },
+      { term: 'available from the first', ru: 'свободно с первого числа' },
+    ],
+    questions: [
+      {
+        q: 'What exactly does the $780 cover?',
+        options: [
+          'Everything including utilities',
+          'The rent only — utilities are split on top',
+          'The deposit',
+          'The first two months',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the deposit?',
+        options: ['One month, returnable', 'Two months', 'There is none', 'Half a month'],
+        correct: 0,
+      },
+      {
+        q: 'What does "the cat is not negotiable" mean?',
+        options: [
+          'The cat is for sale',
+          'The cat stays, and there is nothing to discuss',
+          'The cat belongs to a neighbour',
+          'The cat is difficult',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "clean-ish" tell you?',
+        options: [
+          'Perfectly clean',
+          'Reasonably clean — the suffix -ish softens the demand',
+          'Dirty',
+          'Professionally cleaned',
+        ],
+        correct: 1,
+        why: 'Суффикс -ish («примерно, вроде») цепляется почти к любому слову: five-ish, tired-ish, blue-ish. Очень частый разговорный приём.',
+      },
+    ],
+  },
+  {
+    id: 'sc-friends-2',
+    workId: 'friends',
+    lang: 'en', title: 'Разговор в кофейне', level: 'B1', minutes: 3,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Главное, чему учат «Друзья», — small talk: разговор, в котором почти нет содержания, зато есть весь набор формул. Ниже наш диалог того же устройства. Здесь стоит следить не за смыслом, а за связками: «how have you been», «long story», «no way», «you kidding me» — это то, чем по-английски держат разговор на плаву.',
+    after: 'Обратите внимание, что за весь разговор никто не сказал ничего важного, а договорились они о трёх вещах: увидеться в четверг, познакомить с человеком и вернуть свитер. Small talk именно так и работает — дело делается в последних двух репликах.',
+    body: `— Hey! I haven't seen you in, what, a year?
+— More like two. How have you been?
+— Good! Busy. You know how it is.
+— I don't, actually. Tell me.
+— Okay, so I quit the agency in March.
+— No way. You loved that job.
+— I loved it for about eight months. Then I loved the idea of it.
+— Fair. And now?
+— Now I'm freelancing, which means I work more and explain it to my mother less.
+— Are you kidding me? Your mother still asks?
+— Every Sunday. It's basically a subscription.
+— So how's the money?
+— Long story. Short version: fine in March, terrifying in April, fine again now.
+— Well, you look good on it.
+— Thanks. You too. Are you still with — sorry, is that a thing I can ask?
+— You can ask. No. Since January.
+— Oh. I'm sorry.
+— Don't be. Genuinely. I'm better than I've been in years.
+— Good. In that case, there's someone you should meet.
+— Absolutely not.
+— I haven't said anything yet.
+— You said "someone you should meet". I've heard that sentence before.
+— Thursday. Here. Seven.
+— …Fine. Thursday. And bring back my sweater.
+— I don't have your sweater.
+— You've had my sweater for two years.`,
+    translation: `— Привет! Мы сколько не виделись — год?
+— Скорее два. Ну как ты?
+— Хорошо! Занят. Сам знаешь, как это бывает.
+— Вообще-то не знаю. Расскажи.
+— Ну, в марте я ушёл из агентства.
+— Да ладно. Ты обожал эту работу.
+— Я обожал её месяцев восемь. А потом обожал саму мысль о ней.
+— Справедливо. А теперь?
+— Теперь на фрилансе — то есть работаю больше, а объясняю это маме меньше.
+— Издеваешься? Она до сих пор спрашивает?
+— Каждое воскресенье. Это фактически подписка.
+— И как с деньгами?
+— Долгая история. Если коротко: в марте нормально, в апреле ужас, сейчас снова нормально.
+— Ну, выглядишь ты при этом хорошо.
+— Спасибо. Ты тоже. Ты всё ещё с… прости, об этом можно спрашивать?
+— Спрашивать можно. Нет. С января.
+— Ох. Сочувствую.
+— Не надо. Правда. Мне давно не было так хорошо.
+— Отлично. В таком случае есть человек, с которым тебе надо познакомиться.
+— Ни за что.
+— Я ещё ничего не сказал.
+— Ты сказал «человек, с которым тебе надо познакомиться». Я эту фразу уже слышала.
+— Четверг. Здесь. В семь.
+— …Ладно. Четверг. И верни мой свитер.
+— Нет у меня твоего свитера.
+— Он у тебя уже два года.`,
+    glossary: [
+      { term: 'How have you been?', ru: 'как ты (за то время, что не виделись)' },
+      { term: 'You know how it is', ru: 'ну ты понимаешь' },
+      { term: 'No way', ru: 'да ладно, не может быть' },
+      { term: 'Fair', ru: 'справедливо, принимается' },
+      { term: 'Are you kidding me?', ru: 'ты издеваешься?' },
+      { term: 'Long story', ru: 'долгая история' },
+      { term: 'you look good on it', ru: 'и тебе это идёт (о том, что с тобой происходит)' },
+      { term: 'Genuinely', ru: 'правда, искренне' },
+      { term: 'Absolutely not', ru: 'ни в коем случае' },
+    ],
+    questions: [
+      {
+        q: 'Why does he say "I loved the idea of it"?',
+        options: [
+          'The job got better',
+          'He kept the job after he had stopped enjoying the real thing',
+          'He never worked there',
+          'He is describing another job',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "How have you been?" ask about?',
+        options: [
+          'Where the person is right now',
+          'How life has gone since they last met',
+          'Where the person has travelled',
+          'How old the person is',
+        ],
+        correct: 1,
+        why: 'Present perfect тянет вопрос от последней встречи до сейчас. «How are you?» спрашивает про эту минуту, «How have you been?» — про весь промежуток.',
+      },
+      {
+        q: 'Why does she refuse before he has finished?',
+        options: [
+          'She is busy on Thursday',
+          'She recognises the phrase "someone you should meet" and knows what follows',
+          'She does not like the café',
+          'She is angry with him',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What was actually agreed in this conversation?',
+        options: [
+          'Nothing',
+          'Thursday at seven, an introduction, and the sweater',
+          'A new job',
+          'A trip',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Корона: карточка, наш текст ────────────────────────────────────────────
+  //
+  // bucket: 'inspired'. Ни одного реального лица: страна, обращение и приём
+  // вымышлены. От сериала — официальный британский регистр: речь на публику и
+  // служебная записка о том, как себя вести.
+  {
+    id: 'sc-crown-1',
+    workId: 'the-crown',
+    lang: 'en', title: 'Новогоднее обращение', level: 'C1', minutes: 3,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Половина «Короны» — это речи: на камеру, на приёме, в парламенте. Жанр жёсткий, и по-английски он узнаётся мгновенно: «я» почти нет, зато есть «мы», глаголы вежливые и осторожные, а самое неприятное сообщение прячется в середину. Ниже наше новогоднее обращение вымышленной главы государства.',
+    after: 'Приём, который стоит заметить: единственная плохая новость в тексте («год был труден для многих семей») стоит ровно посередине, между благодарностью и надеждой. Так строят публичные речи до сих пор — и на выступлениях компаний тоже.',
+    body: `Good evening.
+
+At the end of a year, it is customary to look back before we look forward, and I would ask you to do both with me for a few minutes.
+
+This has been a difficult year for a great many families. I am aware that words spoken from a warm room are of limited use to those who have spent it counting what they have left, and I do not intend to pretend otherwise. What I can say is that the difficulty has been borne, in the main, with a patience that has been remarked upon well beyond our borders.
+
+We have also had our better moments, and it would be ungracious not to name them. The harvest was good. The hospitals in the north opened, late but at last. And a great many of you gave time you could not spare to people you had never met.
+
+To those serving away from home tonight, and to the families who are keeping a place at the table for them, we send our thoughts.
+
+Whatever the coming year asks of us, I hope it will find us as it has found us this one: tired, perhaps, but not divided.
+
+I wish you a peaceful new year.`,
+    translation: `Добрый вечер.
+
+В конце года принято оглянуться назад, прежде чем смотреть вперёд, и я прошу вас несколько минут делать и то и другое вместе со мной.
+
+Этот год был труден для очень многих семей. Я понимаю, что слова, произнесённые из тёплой комнаты, мало чем помогут тем, кто провёл его, считая остатки, и делать вид, что это не так, я не намерена. Могу сказать одно: трудность эта была перенесена — в основном — с терпением, которое заметили далеко за нашими границами.
+
+Были у нас и моменты получше, и не назвать их было бы неучтиво. Урожай удался. Больницы на севере открылись — поздно, но открылись. И очень многие из вас отдали время, которого у вас не было, людям, которых вы никогда не видели.
+
+Тем, кто несёт службу вдали от дома этим вечером, и семьям, которые держат для них место за столом, мы шлём свои мысли.
+
+Чего бы ни потребовал от нас наступающий год, я надеюсь, он застанет нас такими же, какими застал этот: уставшими, быть может, но не разобщёнными.
+
+Желаю вам мирного нового года.`,
+    glossary: [
+      { term: 'it is customary to', ru: 'принято, есть обычай' },
+      { term: 'I would ask you to', ru: 'я прошу вас (смягчённое)' },
+      { term: 'to be borne', ru: 'быть перенесённым (to bear — переносить)' },
+      { term: 'in the main', ru: 'в основном' },
+      { term: 'to be remarked upon', ru: 'быть замеченным, отмеченным' },
+      { term: 'ungracious', ru: 'неучтивый, неблагодарный' },
+      { term: 'time you could not spare', ru: 'время, которого у вас не было в запасе' },
+      { term: 'to send our thoughts', ru: 'мысленно быть с кем-то' },
+    ],
+    questions: [
+      {
+        q: 'Where is the bad news placed in the speech?',
+        options: [
+          'At the very beginning',
+          'In the middle, between the greeting and the good news',
+          'At the very end',
+          'There is no bad news',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why "I would ask you" instead of "I ask you"?',
+        options: [
+          'It refers to the past',
+          'It is a softened, more formal request',
+          'It is a condition',
+          'It is a mistake',
+        ],
+        correct: 1,
+        why: 'Would смягчает: I would ask / I would suggest / I would remind you. Тот же приём в деловой переписке, когда просьба на самом деле требование.',
+      },
+      {
+        q: 'What does "words spoken from a warm room" admit?',
+        options: [
+          'The room is cold',
+          'That the speaker is comfortable and the listeners may not be',
+          'That the speech was recorded',
+          'That the speech is short',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Who is "we" in this speech?',
+        options: [
+          'The speaker and the government',
+          'The speaker together with the whole country — the standard "we" of public address',
+          'The family of the speaker',
+          'The audience only',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-crown-2',
+    workId: 'the-crown',
+    lang: 'en', title: 'Записка о протоколе', level: 'B2', minutes: 3,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В сериале постоянно повторяется одно: правила существуют не ради красоты, а чтобы никому не пришлось соображать на месте. Ниже наша служебная записка для тех, кого впервые ведут на официальный приём. Полезна она далеко за пределами дворцов: это и есть английский, на котором пишут инструкции для сотрудников.',
+    after: 'Последний пункт — самый честный: «если вы что-то сделали не так, никто вам об этом не скажет, и это не значит, что не заметили». Английская вежливость устроена ровно так, и знать это полезнее, чем помнить, с какой стороны лежит вилка.',
+    body: `BRIEFING NOTE — FOR GUESTS ATTENDING FOR THE FIRST TIME
+Circulation: internal. Please read before Thursday.
+
+FORMS OF ADDRESS
+On first speaking, use the full form. After that, "sir" or "ma'am" is correct for the rest of the evening. "Ma'am" is pronounced to rhyme with "jam", not with "calm"; this is the single most common error and the easiest to avoid.
+
+WHEN TO STAND
+You stand when the party enters and you remain standing until the guests of honour are seated. If you are in conversation and they approach, finish your sentence — do not stop mid-word. Abruptness is noticed more than lateness.
+
+WHAT NOT TO RAISE
+Do not raise ongoing legal matters, staff changes, or anything you would describe as "just quickly". If you are asked about your own work, answer in three sentences and stop; a fourth sentence is where guests are remembered badly.
+
+QUESTIONS
+Do not open a question. You may answer one at any length that is proportionate to the question.
+
+PHOTOGRAPHS
+None during dinner. The official photographer will be present, and the images will be circulated on Monday.
+
+FINALLY
+If you get something wrong, nobody will tell you. That is not the same as nobody noticing. Should you wish to check afterwards, ask the private secretary, who is paid to be asked and would rather be.`,
+    translation: `СЛУЖЕБНАЯ ЗАПИСКА — ДЛЯ ГОСТЕЙ, ПРИГЛАШЁННЫХ ВПЕРВЫЕ
+Рассылка: внутренняя. Просьба прочесть до четверга.
+
+ФОРМЫ ОБРАЩЕНИЯ
+При первом обращении используется полная форма. Далее весь вечер уместно «sir» или «ma'am». «Ma'am» произносится в рифму к «jam», а не к «calm»; это самая частая ошибка и самая легко устранимая.
+
+КОГДА ВСТАВАТЬ
+Вы встаёте, когда входит кортеж, и остаётесь стоять, пока не сядут почётные гости. Если вы в разговоре и они подходят — договорите фразу, не обрывайте себя на полуслове. Резкость замечают сильнее, чем опоздание.
+
+ЧЕГО НЕ ПОДНИМАТЬ
+Не поднимайте текущих судебных вопросов, кадровых перестановок и всего, что вы сами назвали бы «буквально на минуту». Если спросят о вашей работе, отвечайте тремя предложениями и остановитесь; четвёртое предложение — это то, чем гость и запоминается.
+
+ВОПРОСЫ
+Вопросов не задавайте. Отвечать можно настолько подробно, насколько это соразмерно вопросу.
+
+ФОТОГРАФИИ
+Во время ужина — никаких. Официальный фотограф будет, снимки разошлют в понедельник.
+
+И НАПОСЛЕДОК
+Если вы сделаете что-то не так, вам об этом не скажут. Это не то же самое, что «не заметят». Если захотите потом уточнить, спросите личного секретаря: ему платят за то, чтобы его спрашивали, и он предпочёл бы, чтобы спрашивали.`,
+    glossary: [
+      { term: 'briefing note', ru: 'служебная записка, памятка' },
+      { term: 'forms of address', ru: 'формы обращения' },
+      { term: 'guests of honour', ru: 'почётные гости' },
+      { term: 'abruptness', ru: 'резкость, внезапность' },
+      { term: 'to raise a subject', ru: 'поднять тему' },
+      { term: 'proportionate to', ru: 'соразмерный чему-то' },
+      { term: 'to circulate', ru: 'разослать по кругу адресатов' },
+      { term: 'should you wish to', ru: 'если вы захотите (книжное условие без if)' },
+    ],
+    questions: [
+      {
+        q: 'How is "ma\'am" pronounced, according to the note?',
+        options: [
+          'To rhyme with "calm"',
+          'To rhyme with "jam"',
+          'Like "madam" in full',
+          'It is never said aloud',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What should you do if the party approaches while you are talking?',
+        options: [
+          'Stop immediately',
+          'Finish your sentence, then stand',
+          'Leave the room',
+          'Introduce yourself at once',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why "answer in three sentences and stop"?',
+        options: [
+          'There is no time',
+          'Because the fourth sentence is where a guest starts being remembered badly',
+          'It is a grammar exercise',
+          'Because the answer is recorded',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"Should you wish to check afterwards" is another way of saying…',
+        options: [
+          'You must check afterwards',
+          'If you want to check afterwards',
+          'You should have checked',
+          'Do not check',
+        ],
+        correct: 1,
+        why: 'Инверсия вместо if: should you wish = if you wish. Книжно и очень характерно для инструкций и договоров.',
+      },
+    ],
+  },
 ]

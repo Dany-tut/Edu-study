@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronRight } from 'lucide-react'
 import HoloSticker from './HoloSticker'
 import { tierOf } from '../lib/holo/presets'
-import type { EarnedSticker } from '../lib/stickers'
+import { stickerLabel, type EarnedSticker } from '../lib/stickers'
 import type { StickerEmblem } from '../lib/holo/presets'
 import { useT } from '../lib/i18n'
 
@@ -54,7 +54,7 @@ export default function StickerRevealModal({ items, emblems, onClose }: { items:
                 иначе между ними мелькает пустой квадрат канваса */}
             <HoloSticker
               score={cur.score}
-              label={`${t('задание')} ${cur.taskIndex}`}
+              label={stickerLabel(cur, t)}
               sublabel={cur.lessonTitle.slice(0, 22)}
               stickerId={cur.id}
               emblem={emblems[cur.id]}

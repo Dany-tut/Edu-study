@@ -8,7 +8,7 @@ import { Sparkles, X } from 'lucide-react'
 import StickerBadge from './StickerBadge'
 import HoloSticker from './HoloSticker'
 import { tierOf, STICKER_TIERS, assignEmblems } from '../lib/holo/presets'
-import { useStickers, type EarnedSticker } from '../lib/stickers'
+import { useStickers, stickerCaption, stickerLabel, type EarnedSticker } from '../lib/stickers'
 import { useT } from '../lib/i18n'
 
 export default function StickersWidget({ columns }: { columns: number }) {
@@ -38,13 +38,13 @@ export default function StickersWidget({ columns }: { columns: number }) {
         <div style={{ fontSize: 12.5, color: 'var(--color-muted)' }}>{t('Загрузка…')}</div>
       ) : stickers.length === 0 ? (
         <p style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.5, margin: 0 }}>
-          {t('Сдай сложное задание — учитель примет его и поставит балл, а ты получишь стикер. Балл 5 — голограмма.')}
+          {t('Стикер даётся за принятое сложное задание и за тему разговорника, пройденную без единой ошибки. Балл 5 — голограмма.')}
         </p>
       ) : (
         <>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {top.map(s => (
-              <StickerBadge key={s.id} score={s.score} label={`${t('задание')} ${s.taskIndex}`}
+              <StickerBadge key={s.id} score={s.score} label={stickerLabel(s, t)}
                 stickerId={s.id} emblem={emblems[s.id]} size={wide ? 66 : 56} onClick={() => setOpen(true)} />
             ))}
           </div>
@@ -96,7 +96,7 @@ export function StickerCollectionModal({ stickers, onClose }: { stickers: Earned
 
           <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text)' }}>{t('Мои стикеры')}</div>
           <div style={{ fontSize: 12.5, color: 'var(--color-muted)', marginBottom: 14 }}>
-            {stickers.length} {t('шт. · по одному за каждое принятое задание')}
+            {stickers.length} {t('шт. · за принятые задания и выученные темы')}
           </div>
 
           <div className="stickers-modal-grid" style={{ display: 'grid', gridTemplateColumns: '210px 1fr', gap: 18, alignItems: 'start' }}>
@@ -108,7 +108,7 @@ export function StickerCollectionModal({ stickers, onClose }: { stickers: Earned
                       компонент не размонтируется, и пауза загрузки закрыта бейджем */}
                   <HoloSticker
                     score={sel.score}
-                    label={`${t('задание')} ${sel.taskIndex}`}
+                    label={stickerLabel(sel, t)}
                     sublabel={sel.lessonTitle.slice(0, 22)}
                     stickerId={sel.id}
                     emblem={emblems[sel.id]}
@@ -116,7 +116,7 @@ export function StickerCollectionModal({ stickers, onClose }: { stickers: Earned
                   />
                   <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-text)' }}>«{t(tier!.name)}»</div>
                   <div style={{ fontSize: 12, color: 'var(--color-muted)', textAlign: 'center', lineHeight: 1.4 }}>
-                    {sel.lessonTitle} · {t('задание')} {sel.taskIndex}
+                    {stickerCaption(sel, t)}
                     {sel.at && <><br />{new Date(sel.at).toLocaleDateString('ru-RU')}</>}
                   </div>
                 </>
@@ -128,7 +128,7 @@ export function StickerCollectionModal({ stickers, onClose }: { stickers: Earned
                 <StickerBadge
                   key={s.id}
                   score={s.score}
-                  label={`${t('задание')} ${s.taskIndex}`}
+                  label={stickerLabel(s, t)}
                   stickerId={s.id}
                   emblem={emblems[s.id]}
                   size={78}

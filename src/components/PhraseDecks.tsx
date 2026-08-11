@@ -305,6 +305,9 @@ export function ThemeSession({ book, item, lang, subjectId, accent, owner, view,
     judge: true,
     label: theme.title,
     doneTitle: 'Стопка пройдена',
+    // Стикер за тему. Ключ без направления показа: прямой и обратный прогон —
+    // один и тот же материал, и второй стикер за него был бы фармом.
+    reward: { key: `sv:${book.key}:${theme.id}`, title: theme.title, size: phrases.length },
     // Пустая стопка здесь — не «нечего учить», а «всё стоит в расписании»:
     // формулировка по умолчанию («карточки набираются сами») в этом месте
     // читалась бы как поломка.

@@ -28,8 +28,11 @@ import { haptic } from '../lib/feedback'
 import { speechLocale, speechMs, speechText } from '../lib/speech'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
+import { awardDeckSticker, markSeen, stickerLabel, type EarnedSticker } from '../lib/stickers'
+import { tierOf } from '../lib/holo/presets'
 import Coachmarks, { type CoachStep } from './Coachmarks'
 import DeckDoneMark from './DeckDoneMark'
+import HoloSticker from './HoloSticker'
 import GlossedText from './GlossedText'
 import Skeleton from './Skeleton'
 
@@ -145,6 +148,18 @@ export interface DeckSource {
   emptyTitle?: string
   emptyText?: string
   doneTitle?: string
+  /**
+   * Стопка награждается стикером за ЧИСТЫЙ прогон (см. lib/stickers).
+   *
+   * Задан только там, где стопка = обозримая тема с постоянным составом:
+   * разговорник, слова урока. Колода повторений своей награды не имеет —
+   * её состав меняется каждый день, и «пройти без ошибок» там значит разное.
+   *
+   * size — сколько карточек в теме ЦЕЛИКОМ. Загруженная стопка обычно меньше
+   * (расписание отдаёт только созревшие фразы), и без сверки стикер выдавался
+   * бы за три карточки, доехавшие до повторения сегодня.
+   */
+  reward?: { key: string; title: string; size: number }
 }
 
 /**
@@ -251,6 +266,40 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
   }, [owner?.studentId, owner?.anonName, source, subjects])
 
   const seat = queue && idx < queue.length ? queue[idx] : null
+
+  /**
+   * Стикер за чистый прогон стопки.
+   *
+   * ВЫДАЁМ ЗДЕСЬ, А НЕ В ИСТОЧНИКЕ: «стопка закрыта» знает только сама стопка —
+   * у источника есть onVerdict по карточке, но нет момента, когда очередь
+   * кончилась. Условие строгое: ни одного «не знаю» за сессию, включая те, что
+   * ученик потом отыграл возвратом карточки, — иначе стикер выдавался бы за
+   * умение доскроллить.
+   *
+   * Награду показываем сразу на этом же экране и тут же помечаем просмотренной,
+   * иначе StickerRevealGate покажет её второй раз при заходе на главную.
+   */
+  const [award, setAward] = useState<EarnedSticker | null>(null)
+  const awarded = useRef(false)
+
+  useEffect(() => {
+    if (seat || awarded.current) return
+    const studentId = owner?.studentId
+    const reward = source?.reward
+    if (!reward || !studentId || !queue?.length) return
+    if (stats.wrong > 0 || stats.right < queue.length) return
+    if (queue.length < reward.size) return
+    awarded.current = true
+    awardDeckSticker({
+      studentId, deckKey: reward.key, title: reward.title, subject, cards: queue.length,
+    })
+      .then(sticker => {
+        if (!sticker) return
+        markSeen(studentId, [sticker.id])
+        setAward(sticker)
+      })
+      .catch(e => console.error('deck sticker:', e))
+  }, [seat, queue, stats, owner?.studentId, source, subject])
 
   // Ждём первую карточку на экране: без неё подсвечивать нечего, а на пустой
   // колоде онбординг про жесты не нужен вовсе.
@@ -378,8 +427,14 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
   if (!seat) return (
     <Shell>
       <Empty
-        icon={<DeckDoneMark accent={accent} />}
-        title={source?.doneTitle ? t(source.doneTitle) : t('На сегодня всё повторено')}
+        // Стикер вытесняет знак: два «поздравительных» рисунка на одном экране
+        // спорят, а стикер и есть главное событие этого кадра.
+        icon={award
+          ? <DeckAward sticker={award} />
+          : <DeckDoneMark accent={accent} />}
+        title={award
+          ? t('Стикер за тему')
+          : source?.doneTitle ? t(source.doneTitle) : t('На сегодня всё повторено')}
         text={binary
           ? `${t('Знаю:')} ${stats.right} · ${t('в повторение:')} ${stats.wrong}`
           : `${t('Верно с первого раза:')} ${stats.right} · ${t('ошибок:')} ${stats.wrong}`}
@@ -1186,6 +1241,33 @@ function Empty({ icon, title, text, extra }: {
           justifyContent: 'center', alignItems: 'center', gap: 8,
         }}>{extra}</div>
       )}
+    </div>
+  )
+}
+
+/**
+ * Награда за чистый прогон стопки — тот же голо-стикер, что лежит в коллекции.
+ *
+ * Эмблему НЕ раздаём по коллекции (как это делает StickerRevealModal): всей
+ * коллекции здесь нет, а тянуть её ради одного стикера значит на финале сессии
+ * сходить в базу за всей историей проверок. Эмблема выводится из id и совпадёт
+ * с коллекцией везде, кроме редкого случая, когда хеш столкнулся с уже занятой.
+ */
+function DeckAward({ sticker }: { sticker: EarnedSticker }) {
+  const t = useT()
+  const tier = tierOf(sticker.score)
+
+  return (
+    <div style={{ display: 'grid', justifyItems: 'center', gap: 4 }}>
+      <HoloSticker
+        score={sticker.score}
+        label={stickerLabel(sticker, t)}
+        sublabel={sticker.lessonTitle.slice(0, 22)}
+        stickerId={sticker.id}
+        size={168}
+        reveal
+      />
+      <div style={{ fontSize: 13, fontWeight: 800, color: tier.ink }}>«{t(tier.name)}»</div>
     </div>
   )
 }

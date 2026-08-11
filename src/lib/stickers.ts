@@ -1,27 +1,51 @@
-// Стикеры-оценки: каждое принятое сложное задание с баллом 1–5 превращается
-// в коллекционный голо-стикер.
+// Стикеры-оценки: коллекционный голо-стикер за то, что оценено баллом 1–5.
 //
-// Отдельной таблицы нет — стикеры ВЫВОДИМ из уже существующих данных проверки
-// (lesson_progress.review_attachments → раунды с verdict='completed' и score),
-// поэтому миграция не нужна и история стикеров всегда совпадает с журналом
-// проверки. Локально храним только «просмотрено», чтобы показывать «новый».
+// ДВА ИСТОЧНИКА, ОДНА КОЛЛЕКЦИЯ.
+//   task — принятое учителем сложное задание. Своей таблицы нет: стикеры
+//          ВЫВОДИМ из данных проверки (lesson_progress.review_attachments →
+//          раунды с verdict='completed' и score), поэтому история стикеров
+//          всегда совпадает с журналом проверки.
+//   deck — стопка фраз, закрытая без единого «не знаю». Такого следа в базе
+//          нет (прогон живёт в review_cards как расписание), поэтому под него
+//          заведена deck_stickers — см. миграцию 0055.
+// Локально храним только «просмотрено», чтобы показывать «новый».
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { getStudentSession } from './studentSession'
 import { isNewHard, teacherComments, type HardTaskReviewBlock } from './useHomework'
 import { assignEmblems, type StickerEmblem } from './holo/presets'
 
+/** За что выдан стикер. От этого зависит только подпись — тир общий. */
+export type StickerKind = 'task' | 'deck'
+
 export interface EarnedSticker {
-  /** Стабильный id: строка прогресса + ключ задания */
+  /** Стабильный id: строка прогресса + ключ задания (task) либо `deck:<uuid>` */
   id: string
+  kind: StickerKind
   score: number
-  /** Порядковый номер задания в ДЗ (1-based) */
+  /** Порядковый номер задания в ДЗ (1-based). У стопки — 0. */
   taskIndex: number
+  /** Урок (task) либо ключ стопки (deck) */
   lessonRef: string
+  /** Название урока (task) либо темы (deck) */
   lessonTitle: string
-  /** Когда учитель принял задание */
+  /** Когда учитель принял задание / когда закрыта стопка */
   at: string
   comment: string
+  /** deck: сколько фраз было в стопке — из этого посчитан балл */
+  cards?: number
+}
+
+/** Подпись на самом стикере: «задание 2» / «стопка». */
+export function stickerLabel(s: EarnedSticker, t: (v: string) => string): string {
+  return s.kind === 'deck' ? t('стопка') : `${t('задание')} ${s.taskIndex}`
+}
+
+/** Строка под стикером в коллекции: откуда он пришёл. */
+export function stickerCaption(s: EarnedSticker, t: (v: string) => string): string {
+  return s.kind === 'deck'
+    ? `${s.lessonTitle} · ${s.cards ?? 0} ${t('фраз без ошибок')}`
+    : `${s.lessonTitle} · ${t('задание')} ${s.taskIndex}`
 }
 
 /**
@@ -43,6 +67,7 @@ function stickersFromRow(row: {
     if (!last) return
     out.push({
       id: `${row.id}:${rb.key || i}`,
+      kind: 'task',
       score: last.score as number,
       taskIndex: i + 1,
       lessonRef: row.lesson_ref.endsWith('-hard') ? row.lesson_ref.slice(0, -5) : row.lesson_ref,
@@ -54,8 +79,8 @@ function stickersFromRow(row: {
   return out
 }
 
-/** Все стикеры ученика, свежие сверху. */
-export async function fetchStudentStickers(studentId: string): Promise<EarnedSticker[]> {
+/** Стикеры за задания: строки проверки + подписи уроков. */
+async function fetchTaskStickers(studentId: string): Promise<EarnedSticker[]> {
   const { data: rows } = await supabase
     .from('lesson_progress')
     .select('id, lesson_ref, review_attachments, updated_at')
@@ -71,9 +96,108 @@ export async function fetchStudentStickers(studentId: string): Promise<EarnedSti
   const refs = [...new Set(list.map(s => s.lessonRef))]
   const { data: lessons } = await supabase.from('lessons').select('short_id, title').in('short_id', refs)
   const titles: Record<string, string> = Object.fromEntries((lessons ?? []).map(l => [l.short_id, l.title]))
-  return list
-    .map(s => ({ ...s, lessonTitle: titles[s.lessonRef] ?? s.lessonRef }))
-    .sort((a, b) => (a.at < b.at ? 1 : -1))
+  return list.map(s => ({ ...s, lessonTitle: titles[s.lessonRef] ?? s.lessonRef }))
+}
+
+/** Стикеры за стопки — своя таблица, подписи уже в строке. */
+async function fetchDeckStickers(studentId: string): Promise<EarnedSticker[]> {
+  const { data, error } = await supabase
+    .from('deck_stickers')
+    .select('id, deck_key, deck_title, score, cards, earned_at')
+    .eq('student_id', studentId)
+    .order('earned_at', { ascending: false })
+  if (error) { console.error('deck stickers:', error); return [] }
+  return (data ?? []).map(r => ({
+    id: `deck:${r.id}`,
+    kind: 'deck' as const,
+    score: r.score,
+    taskIndex: 0,
+    lessonRef: r.deck_key,
+    lessonTitle: r.deck_title || r.deck_key,
+    at: r.earned_at ?? '',
+    comment: '',
+    cards: r.cards ?? 0,
+  }))
+}
+
+/**
+ * Все стикеры ученика, свежие сверху.
+ *
+ * Оба источника тянем параллельно и падение одного не роняет другой: у
+ * коллекции нет причин пропадать целиком из-за того, что стопки не ответили.
+ */
+export async function fetchStudentStickers(studentId: string): Promise<EarnedSticker[]> {
+  const [tasks, decks] = await Promise.all([
+    fetchTaskStickers(studentId).catch(e => { console.error('task stickers:', e); return [] as EarnedSticker[] }),
+    fetchDeckStickers(studentId).catch(e => { console.error('deck stickers:', e); return [] as EarnedSticker[] }),
+  ])
+  return [...tasks, ...decks].sort((a, b) => (a.at < b.at ? 1 : -1))
+}
+
+// ── Стикер за стопку ─────────────────────────────────────────────────────────
+
+/**
+ * Балл за чистый прогон считается по РАЗМЕРУ стопки, а не по проценту: процент
+ * тут всегда 100 (иначе стикера нет вовсе), и единственное, чем один чистый
+ * прогон отличается от другого, — сколько фраз удержано подряд.
+ *
+ * Порог в 5 фраз отсекает темы-огрызки: закрыть три карточки без промаха — не
+ * достижение, а стикер такого же тира, как за сорок, обесценил бы коллекцию.
+ */
+const DECK_TIERS: [cards: number, score: number][] = [[26, 5], [18, 4], [12, 3], [8, 2], [5, 1]]
+
+export function deckStickerScore(cards: number): number {
+  return DECK_TIERS.find(([min]) => cards >= min)?.[1] ?? 0
+}
+
+/**
+ * Выдать стикер за стопку. Возвращает стикер, если он выдан ИМЕННО СЕЙЧАС, и
+ * null, если стопка мелкая или тема уже награждена.
+ *
+ * Повтор ловим не проверкой «есть ли уже», а уникальным индексом: между
+ * SELECT и INSERT помещается вторая вкладка, и 23505 здесь — штатный ответ,
+ * а не ошибка.
+ */
+export async function awardDeckSticker(input: {
+  studentId: string
+  deckKey: string
+  title: string
+  subject?: string
+  cards: number
+}): Promise<EarnedSticker | null> {
+  const score = deckStickerScore(input.cards)
+  if (!score || !input.studentId) return null
+
+  const { data, error } = await supabase
+    .from('deck_stickers')
+    .insert({
+      student_id: input.studentId,
+      deck_key: input.deckKey,
+      deck_title: input.title,
+      subject: input.subject ?? null,
+      score,
+      cards: input.cards,
+    })
+    .select('id, earned_at')
+    .maybeSingle()
+
+  if (error) {
+    if (error.code !== '23505') console.error('award deck sticker:', error)
+    return null
+  }
+  if (!data) return null
+
+  return {
+    id: `deck:${data.id}`,
+    kind: 'deck',
+    score,
+    taskIndex: 0,
+    lessonRef: input.deckKey,
+    lessonTitle: input.title,
+    at: data.earned_at ?? new Date().toISOString(),
+    comment: '',
+    cards: input.cards,
+  }
 }
 
 // ── «Новые» стикеры ──────────────────────────────────────────────────────────
