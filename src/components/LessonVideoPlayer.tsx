@@ -25,6 +25,7 @@ import { motion } from 'framer-motion'
 import {
   Play, Pause, RotateCcw, RotateCw, Volume2, Volume1, VolumeX,
   Maximize, Minimize, Subtitles, Gauge, Check, Repeat,
+  ChevronsLeft, ChevronsRight, Lock, LockOpen,
 } from 'lucide-react'
 import type { VideoSource } from '../lib/videoSource'
 import { videoEmbedSrc } from '../lib/videoSource'
@@ -42,6 +43,33 @@ const IDLE_MS = 2600
 const TICK_MS = 250
 /** Как часто прогресс уходит наружу (и в базу). */
 const PERSIST_MS = 10000
+
+// ── Жесты по кадру ──────────────────────────────────────────────────────────
+// Кадр делится на три вертикальные полосы: в центре удержание берёт время
+// (скраб), по краям — гонит вперёд и отматывает назад. Разводить их длиной
+// удержания нельзя — «зажал справа» и «зажал две секунды» это одно и то же
+// нажатие, и жест решался бы уже после того, как ученик начал вести.
+const HOLD_SCRUB_MS = 2000
+const HOLD_BOOST_MS = 400
+/** Сколько секунд укладывается в ширину кадра: обычный шаг и точный. */
+const SCRUB_SPAN = 90
+const SCRUB_SPAN_FINE = 15
+/** Увод вверх, после которого скраб становится точным. */
+const FINE_DY = 60
+/** Шаг ступени ускорения (2× → 3× → …) и увод вверх до защёлки. */
+const BOOST_STEP_PX = 55
+const LOCK_DY = 45
+const MAX_BOOST = 5
+/** Выше этого движки скорость не принимают: YouTube молча игнорирует 3×. */
+const ENGINE_MAX_RATE = 2
+/** Такт скольжения по ролику. Назад движки не играют, а вперёд выше 2× не
+ *  умеют — оба случая берём шагами перемотки. */
+const SKIM_TICK_MS = 120
+/** Пауза перед одиночным тапом: ждём, не станет ли он двойным. */
+const TAP_MS = 220
+const DOUBLE_TAP_MS = 320
+/** Столько пикселей нажатию прощается, прежде чем оно перестанет быть тапом. */
+const TAP_SLOP = 12
 
 /**
  * Размер коробки плеера.
@@ -159,6 +187,18 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
   /** Секунда, с которой плеер стартует. Задаётся до монтирования движка. */
   const [startAt, setStartAt] = useState(0)
 
+  /** Жест, который сейчас держит кадр. */
+  const [gesture, setGesture] = useState<'scrub' | 'ff' | 'rw' | null>(null)
+  /** Ступень ускорения 2…5 и её защёлка. */
+  const [boost, setBoost] = useState(2)
+  const [boostLocked, setBoostLocked] = useState(false)
+  /** 0…1 — насколько закрылся замок, пока ведут вверх. */
+  const [lockFill, setLockFill] = useState(0)
+  /** Секунда, с которой начали скраб, — от неё считается «+1:20». */
+  const [scrubFrom, setScrubFrom] = useState(0)
+  /** Отклик двойного тапа: ±10 секунд с той стороны, где тапнули. */
+  const [skipFlash, setSkipFlash] = useState<{ side: 'left' | 'right'; n: number } | null>(null)
+
   const boxRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
@@ -189,6 +229,23 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
   /** Что мы сами только что отдали наверх: оно вернётся пропом, и принимать его
    *  обратно нельзя — за время круга плеер уже уехал на пару тиков вперёд. */
   const lastEmitted = useRef<VideoWatch | null>(null)
+
+  // Обработчики жеста живут в window-подписках и переживают ре-рендеры, поэтому
+  // всё изменчивое читают из ссылок, а не из замыкания.
+  const currentRef = useRef(0); currentRef.current = current
+  const durationRef = useRef(0); durationRef.current = duration
+  const rateRef = useRef(1); rateRef.current = rate
+  const pausedRef = useRef(false); pausedRef.current = paused
+  const gestureRef = useRef<'scrub' | 'ff' | 'rw' | null>(null)
+  const boostRef = useRef(2)
+  const lockedRef = useRef(false)
+  /** Секунда, которую сейчас «держит» скраб. */
+  const scrubRef = useRef(0)
+  const holdTimer = useRef<number | null>(null)
+  const tapTimer = useRef<number | null>(null)
+  const skimTimer = useRef<number | null>(null)
+  const lastTap = useRef<{ at: number; zone: 'left' | 'center' | 'right' } | null>(null)
+  const flashN = useRef(0)
 
   // Прогресс подъехал из базы (или сменился урок) — принимаем как есть.
   useEffect(() => {
@@ -522,6 +579,162 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
     window.addEventListener('pointerup', up)
   }
 
+  // ── Жесты по кадру ────────────────────────────────────────────────────────
+  const zoneAt = useCallback((clientX: number): 'left' | 'center' | 'right' => {
+    const box = boxRef.current?.getBoundingClientRect()
+    if (!box) return 'center'
+    const r = (clientX - box.left) / box.width
+    return r < 1 / 3 ? 'left' : r > 2 / 3 ? 'right' : 'center'
+  }, [])
+
+  const stopSkim = useCallback(() => {
+    if (skimTimer.current) { window.clearInterval(skimTimer.current); skimTimer.current = null }
+  }, [])
+
+  /** Скольжение шагами перемотки — там, где движок сам так быстро не играет. */
+  const startSkim = useCallback((dir: 1 | -1, mult: number) => {
+    stopSkim()
+    doPause()
+    skimTimer.current = window.setInterval(() => {
+      doSeek(currentRef.current + dir * mult * (SKIM_TICK_MS / 1000))
+    }, SKIM_TICK_MS)
+  }, [doPause, doSeek, stopSkim])
+
+  /** 2× вперёд ещё слышно — его играет сам движок. Всё, что быстрее, и любая
+   *  отмотка назад идут скольжением: со звуком там всё равно делать нечего. */
+  const applyBoost = useCallback((dir: 1 | -1, mult: number) => {
+    boostRef.current = mult
+    setBoost(mult)
+    if (dir === 1 && canRate && mult <= ENGINE_MAX_RATE) {
+      stopSkim()
+      if (source.kind === 'youtube') ytRef.current?.setPlaybackRate(mult)
+      else if (videoRef.current) videoRef.current.playbackRate = mult
+      doPlay()
+    } else {
+      startSkim(dir, mult)
+    }
+  }, [canRate, source.kind, doPlay, startSkim, stopSkim])
+
+  const endBoost = useCallback(() => {
+    stopSkim()
+    boostRef.current = 2
+    lockedRef.current = false
+    gestureRef.current = null
+    setGesture(null); setBoost(2); setBoostLocked(false); setLockFill(0)
+    if (source.kind === 'youtube') ytRef.current?.setPlaybackRate(rateRef.current)
+    else if (videoRef.current) videoRef.current.playbackRate = rateRef.current
+    doPlay()
+    wake()
+  }, [source.kind, doPlay, stopSkim, wake])
+
+  const onFrameTap = useCallback((zone: 'left' | 'center' | 'right') => {
+    const now = Date.now()
+    const prev = lastTap.current
+    if (prev && prev.zone === zone && now - prev.at < DOUBLE_TAP_MS) {
+      // Второй тап отменяет отложенную паузу: одиночный клик ждал именно этого.
+      if (tapTimer.current) { window.clearTimeout(tapTimer.current); tapTimer.current = null }
+      lastTap.current = null
+      wake()
+      if (zone === 'center') { toggleFullscreen(); return }
+      doSeek(currentRef.current + (zone === 'right' ? 10 : -10))
+      const n = flashN.current += 1
+      setSkipFlash({ side: zone, n })
+      window.setTimeout(() => setSkipFlash(f => (f && f.n === n ? null : f)), 520)
+      return
+    }
+    lastTap.current = { at: now, zone }
+    tapTimer.current = window.setTimeout(() => {
+      tapTimer.current = null
+      if (pausedRef.current) doPlay(); else doPause()
+    }, TAP_MS)
+  }, [doPlay, doPause, doSeek, toggleFullscreen, wake])
+
+  const onFrameDown = useCallback((e: React.PointerEvent) => {
+    if (e.button !== 0) return
+    // Зафиксированное ускорение снимается любым касанием кадра.
+    if (lockedRef.current) { endBoost(); return }
+    const zone = zoneAt(e.clientX)
+    const x0 = e.clientX
+    const y0 = e.clientY
+    let lastX = x0
+    let moved = false
+
+    const enterScrub = () => {
+      holdTimer.current = null
+      gestureRef.current = 'scrub'
+      scrubRef.current = currentRef.current
+      setGesture('scrub'); setScrubFrom(currentRef.current); setScrubbing(true); wake()
+    }
+    const enterBoost = () => {
+      holdTimer.current = null
+      const g = zone === 'right' ? 'ff' : 'rw'
+      gestureRef.current = g
+      setGesture(g); wake()
+      applyBoost(g === 'ff' ? 1 : -1, 2)
+    }
+    holdTimer.current = window.setTimeout(
+      zone === 'center' ? enterScrub : enterBoost,
+      zone === 'center' ? HOLD_SCRUB_MS : HOLD_BOOST_MS,
+    )
+
+    const move = (ev: PointerEvent) => {
+      const dx = ev.clientX - x0
+      const dy = ev.clientY - y0
+      const g = gestureRef.current
+      if (!g) {
+        // Уехал раньше, чем удержание сработало, — это уже не тап и не жест.
+        if (Math.abs(dx) > TAP_SLOP || Math.abs(dy) > TAP_SLOP) {
+          moved = true
+          if (holdTimer.current) { window.clearTimeout(holdTimer.current); holdTimer.current = null }
+        }
+        lastX = ev.clientX
+        return
+      }
+      const w = boxRef.current?.getBoundingClientRect().width || 1
+      if (g === 'scrub') {
+        // Считаем приращением, а не расстоянием от точки нажатия: иначе переход
+        // на точный шаг посреди жеста дёргал бы время скачком.
+        const span = dy < -FINE_DY ? SCRUB_SPAN_FINE : SCRUB_SPAN
+        const next = scrubRef.current + ((ev.clientX - lastX) / w) * span
+        scrubRef.current = Math.max(0, Math.min(durationRef.current || next, next))
+        setCurrent(scrubRef.current)
+      } else {
+        const along = g === 'ff' ? dx : -dx
+        const mult = Math.min(MAX_BOOST, 2 + Math.max(0, Math.floor(along / BOOST_STEP_PX)))
+        if (mult !== boostRef.current) applyBoost(g === 'ff' ? 1 : -1, mult)
+        const fill = Math.max(0, Math.min(1, -dy / LOCK_DY))
+        setLockFill(fill)
+        if (fill >= 1 && !lockedRef.current) { lockedRef.current = true; setBoostLocked(true) }
+      }
+      lastX = ev.clientX
+    }
+
+    const up = (ev: PointerEvent) => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+      if (holdTimer.current) { window.clearTimeout(holdTimer.current); holdTimer.current = null }
+      const g = gestureRef.current
+      if (g === 'scrub') {
+        gestureRef.current = null
+        setGesture(null); setScrubbing(false)
+        doSeek(scrubRef.current)
+        return
+      }
+      // Защёлка держит ускорение и без пальца — жест не заканчиваем.
+      if (g) { if (!lockedRef.current) endBoost(); return }
+      if (!moved) onFrameTap(zoneAt(ev.clientX))
+    }
+
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  }, [zoneAt, wake, applyBoost, endBoost, doSeek, onFrameTap])
+
+  useEffect(() => () => {
+    if (holdTimer.current) window.clearTimeout(holdTimer.current)
+    if (tapTimer.current) window.clearTimeout(tapTimer.current)
+    if (skimTimer.current) window.clearInterval(skimTimer.current)
+  }, [])
+
   // Та же функция, что подсвечивает строку в панели «Таймкоды» справа: подпись
   // главы на шкале и подсветка в списке обязаны переключаться одновременно.
   const activeChapter = activeTimecodeIndex(timecodes, current)
@@ -609,20 +822,28 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
       {/* ── Слой управления ── */}
       {started && custom && (
         <>
-          {/* Клик по кадру — пауза/пуск, двойной — полный экран. */}
+          {/* Тап — пауза/пуск, двойной по краю — ±10 с, по центру — полный
+              экран, удержание — скраб и ускорение (см. onFrameDown). */}
           <div
-            onClick={() => (paused ? doPlay() : doPause())}
-            onDoubleClick={toggleFullscreen}
-            style={{ position: 'absolute', inset: 0, cursor: 'pointer' }}
+            onPointerDown={onFrameDown}
+            style={{
+              position: 'absolute', inset: 0, touchAction: 'none',
+              cursor: gesture === 'scrub' ? 'ew-resize' : 'pointer',
+            }}
           />
 
-          {/* Большая кнопка на паузе и в конце ролика. */}
-          {(paused || ended) && (
+          {/* Большая кнопка на паузе и в конце ролика. На паузе она занимает
+              только середину — иначе накрыла бы собой весь слой жестов. */}
+          {(paused || ended) && !gesture && (
             <button
               onClick={() => (ended ? (doSeek(0), doPlay()) : doPlay())}
               aria-label={ended ? t('Смотреть заново') : t('Продолжить')}
-              className="absolute inset-0 flex items-center justify-center cursor-pointer"
-              style={{ border: 'none', background: ended ? 'rgba(0,0,0,0.55)' : 'transparent' }}
+              className={ended
+                ? 'absolute inset-0 flex items-center justify-center cursor-pointer'
+                : 'absolute flex items-center justify-center cursor-pointer'}
+              style={ended
+                ? { border: 'none', background: 'rgba(0,0,0,0.55)' }
+                : { border: 'none', background: 'transparent', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', padding: 0 }}
             >
               <motion.span
                 whileHover={{ scale: 1.08 }}

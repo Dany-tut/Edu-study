@@ -705,7 +705,10 @@ function balanceTitle(name: string): string[] {
   for (let i = 1; i < words.length; i++) {
     const a = words.slice(0, i).join(' ')
     const b = words.slice(i).join(' ')
-    const width = Math.max(a.length, b.length)
+    // +3 второй строке — на хвост «12%», он тоже занимает место.
+    // Штраф за тире в конце первой строки: «IELTS/TOEFL —» / «от 6.0 к 7.5»
+    // читается хуже, чем «IELTS/TOEFL» / «— от 6.0 к 7.5».
+    const width = Math.max(a.length, b.length + 3) + (/[—–-]$/.test(a) ? 4 : 0)
     if (width < bestWidth) { bestWidth = width; best = [a, b] }
   }
   return best

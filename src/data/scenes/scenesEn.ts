@@ -2161,4 +2161,545 @@ Noted. The coffee machine is not relevant. It is, however, being replaced.`,
       },
     ],
   },
+
+  // ── Шерлок: карточка, наш текст ────────────────────────────────────────────
+  //
+  // bucket: 'inspired'. Ни Холмса, ни Ватсона, ни их дел: рассказчик, сосед и
+  // случай придуманы нами. От сериала — британский современный регистр и
+  // грамматика дедукции: must have, can’t have, would have.
+  {
+    id: 'sc-sherlock-1',
+    workId: 'sherlock-bbc',
+    lang: 'en', title: 'Блог очень обычного врача', level: 'B2', minutes: 4,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В сериале дела пересказывает не гений, а врач, который ведёт про него блог, — и это удачное решение: гений говорит быстро и непонятно, а врач медленно и по-человечески. Ниже наш текст в том же жанре и с тем же устройством: обычный рассказчик, необычный сосед и одно наблюдение в конце.',
+    after: 'Приём, на котором держится весь жанр: разгадка объясняется в трёх предложениях и через бытовую деталь — марки куплены одним блоком, номера подряд. Читателю должно быть обидно, что он не заметил сам.',
+    body: `THE BLOG OF A VERY ORDINARY DOCTOR
+Entry 14: The man who was not on holiday
+
+I have been told that a blog needs a title and a photograph. It is getting the title.
+
+Some background, for anyone who has just found this. I am a doctor. Nine months ago I moved into the upstairs flat of a house in Camden because it was cheap, and it was cheap because of the man who lives downstairs. I have never once seen him buy food. He has told me, without being asked, my shoe size, the month my father died and the reason my last job ended.
+
+On Tuesday a woman came to the door and said that her brother had gone on holiday to Portugal three weeks ago and had sent a postcard every single day since.
+
+"Then he is not on holiday," said the man downstairs, before she had taken her coat off.
+
+I asked him afterwards how he could possibly know that from a postcard. He looked genuinely puzzled, the way people look when you ask them how they know it is raining.
+
+"Nobody writes every day," he said. "People on holiday write once, near the end, when they start feeling guilty. Somebody wanted her to believe he was there. And the stamps were bought together — same block, running numbers. Whoever posted them bought three weeks of holiday in a single afternoon."
+
+He was right, of course. He is going to be unbearable about it for a week.`,
+    translation: `БЛОГ ОЧЕНЬ ОБЫЧНОГО ВРАЧА
+Запись 14: человек, которого не было в отпуске
+
+Мне сказали, что блогу нужны заголовок и фотография. Заголовок он получит.
+
+Немного предыстории для тех, кто только сюда попал. Я врач. Девять месяцев назад я снял верхнюю квартиру в доме в Кэмдене, потому что было дёшево, — а дёшево было из-за человека, который живёт этажом ниже. Я ни разу не видел, чтобы он покупал еду. Он сообщил мне, без всякого вопроса с моей стороны, мой размер обуви, месяц смерти моего отца и причину, по которой я ушёл с прошлой работы.
+
+Во вторник пришла женщина и сказала, что её брат три недели назад уехал в отпуск в Португалию и с тех пор каждый день присылает открытку.
+
+«Значит, он не в отпуске», — сказал сосед снизу, прежде чем она успела снять пальто.
+
+Потом я спросил его, как вообще можно это понять по открытке. Он выглядел искренне озадаченным — так люди выглядят, когда их спрашивают, откуда они знают, что идёт дождь.
+
+«Никто не пишет каждый день, — сказал он. — В отпуске пишут один раз, ближе к концу, когда начинает мучить совесть. Кто-то хотел, чтобы она думала, будто он там. И марки куплены разом: один блок, номера подряд. Тот, кто их отправлял, купил три недели отпуска за один день».
+
+Он, разумеется, был прав. И теперь неделю будет невыносим.`,
+    glossary: [
+      { term: 'background', ru: 'предыстория, вводные' },
+      { term: 'flat', ru: 'квартира (брит.); в США apartment' },
+      { term: 'every single day', ru: 'каждый божий день' },
+      { term: 'genuinely', ru: 'искренне, по-настоящему' },
+      { term: 'puzzled', ru: 'озадаченный' },
+      { term: 'running numbers', ru: 'номера подряд' },
+      { term: 'to post', ru: 'отправить почтой (брит.); в США to mail' },
+      { term: 'unbearable', ru: 'невыносимый' },
+    ],
+    questions: [
+      {
+        q: 'Why does the daily postcard prove the brother is not on holiday?',
+        options: [
+          'Portugal has no post on Sundays',
+          'People on holiday do not write every day — someone was building an alibi',
+          'The handwriting was wrong',
+          'Postcards take longer than three weeks',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What do the stamps show?',
+        options: [
+          'They were bought at different post offices',
+          'They came from one block with consecutive numbers, so they were bought at once',
+          'They were forged',
+          'They were Portuguese',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"before she had taken her coat off" tells you that…',
+        options: [
+          'he answered extremely quickly',
+          'she stayed a long time',
+          'the coat was important',
+          'the room was cold',
+        ],
+        correct: 0,
+        why: 'Past perfect здесь ставит одно действие раньше другого: он уже ответил, а она ещё даже не разделась.',
+      },
+      {
+        q: 'What is the narrator\'s attitude to his neighbour?',
+        options: [
+          'Admiration mixed with irritation',
+          'Fear',
+          'Complete indifference',
+          'Open dislike',
+        ],
+        correct: 0,
+      },
+    ],
+  },
+  {
+    id: 'sc-sherlock-2',
+    workId: 'sherlock-bbc',
+    lang: 'en', title: 'Что видно по человеку', level: 'C1', minutes: 4,
+    topic: 'Знакомство', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Самое известное, что есть в «Шерлоке», — монолог-дедукция: от мелочи к выводу за одну фразу. По-английски он целиком собран на модальных глаголах предположения, и это, пожалуй, лучший учебный текст на всю тему: must have decided — «наверняка решил», would have taken — «снял бы, если бы». Ниже наш монолог того же устройства.',
+    after: 'Последний абзац объясняет метод: сначала выслушивают заготовленную версию, потому что настоящая причина всегда лежит внутри неё. Это и есть разница между «догадаться» и «дать человеку договорить».',
+    body: `Sit down. Do not tell me anything about yourself; it is quicker if you don't.
+
+You have come straight from a train, and not a long journey — you would have taken your coat off by now if you had been travelling since morning, and you haven't. Under an hour, then.
+
+You are left-handed. You put your bag down on your right so that your left hand stayed free, which is not something anyone does on purpose.
+
+You have a dog, a large one, and you got it recently. There is hair on the left side of your coat and nowhere else, so the dog walks on your left; and the hair is on the wool rather than in it, which means the coat has not been brushed and then worn again. An owner of some years learns to brush the coat on the way out. You haven't learned yet.
+
+You were not planning to come here today. You must have decided this morning: you are wearing yesterday's shirt with today's jacket, and nobody who has planned a visit does that.
+
+And you are not going to tell me the real reason for another ten minutes, because you have rehearsed a different one. That is fine. I would rather hear the rehearsed one first. People put the true thing in the middle of the false one and never notice they have done it.`,
+    translation: `Садитесь. Не рассказывайте мне о себе ничего — так быстрее.
+
+Вы приехали прямо с поезда, и дорога была недолгой: если бы вы ехали с утра, то к этому времени уже сняли бы пальто, а вы его не сняли. Значит, меньше часа.
+
+Вы левша. Сумку вы поставили справа, чтобы левая рука осталась свободной, — а это никто не делает нарочно.
+
+У вас собака, крупная, и завели вы её недавно. Шерсть на пальто только слева — значит, собака идёт слева; и шерсть лежит на ткани, а не въелась в неё, значит, пальто не чистили и не надевали снова. Тот, у кого собака давно, приучается чистить пальто на выходе. Вы ещё не приучились.
+
+Идти сюда вы сегодня не собирались. Решили наверняка утром: на вас вчерашняя рубашка и сегодняшний пиджак, а так не делает никто, кто планировал визит.
+
+И настоящую причину вы мне не назовёте ещё минут десять, потому что отрепетировали другую. Ничего страшного. Я предпочту сперва выслушать отрепетированную: люди кладут правду в середину выдумки и сами этого не замечают.`,
+    glossary: [
+      { term: 'straight from', ru: 'прямо с, сразу после' },
+      { term: 'you would have taken', ru: 'вы бы сняли (нереальное прошлое)' },
+      { term: 'you must have decided', ru: 'вы наверняка решили (уверенное предположение)' },
+      { term: 'on purpose', ru: 'нарочно' },
+      { term: 'rather than', ru: 'а не; скорее чем' },
+      { term: 'to rehearse', ru: 'отрепетировать' },
+      { term: 'I would rather', ru: 'я предпочёл бы' },
+    ],
+    questions: [
+      {
+        q: 'How does he know the journey was short?',
+        options: [
+          'The visitor said so',
+          'A person travelling since morning would have taken the coat off, and this one has not',
+          'There was no luggage',
+          'The train timetable',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What tells him the dog is new?',
+        options: [
+          'The dog is small',
+          'The hair lies on top of the wool — an experienced owner brushes the coat before going out',
+          'There is no lead',
+          'The visitor smells of a pet shop',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"You must have decided this morning" expresses…',
+        options: [
+          'an obligation',
+          'a confident guess about the past',
+          'a plan',
+          'a polite request',
+        ],
+        correct: 1,
+        why: 'Must have done — «наверняка сделал». Обязанность здесь ни при чём: must + perfect infinitive — это уверенный вывод о прошлом.',
+      },
+      {
+        q: 'Why does he prefer to hear the rehearsed reason first?',
+        options: [
+          'It is shorter',
+          'Because people hide the true thing inside the invented one',
+          'To be polite',
+          'To gain time',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-sherlock-3',
+    workId: 'sherlock-bbc',
+    lang: 'en', title: 'Переписка в половине девятого', level: 'B1', minutes: 2,
+    topic: 'Переписка и созвоны', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сериал первым додумался выводить смс прямо на экран — и половина реплик там короче трёх слов. Ниже наша переписка того же типа. Учит она одному важному: в британской короткой речи вежливость и приказ выражаются почти одинаково, и различать их приходится по глаголу.',
+    after: 'Вся соль в предпоследних строках: «ты сказал, что тебя пригласили» — «я сказал, что за мной послали. Другое слово». To be sent for и to be invited по-русски оба «позвали», а по-английски это разные истории.',
+    body: `20:41  Come now if you can.
+20:41  If you can't, come anyway.
+20:52  I'm at work. I am literally holding someone's hand while they have an injection.
+20:52  Let go of it.
+20:53  That is not how any of this works.
+20:53  Bring your bag. The one with the gloves, not the one with the ties.
+20:54  Where?
+20:54  You'll know the street when you get to it. Everyone will be standing outside a building looking at their phones.
+21:14  I'm outside. There are three police cars.
+21:14  Yes.
+21:15  You said you'd been invited.
+21:15  I said I'd been sent for. Different word. Come in — they've stopped arguing about it.`,
+    translation: `20:41  Приходи сейчас, если можешь.
+20:41  Если не можешь — приходи всё равно.
+20:52  Я на работе. Я буквально держу человека за руку, пока ему делают укол.
+20:52  Отпусти.
+20:53  Это так не работает.
+20:53  Возьми сумку. Ту, что с перчатками, а не ту, что с галстуками.
+20:54  Куда?
+20:54  Ты поймёшь, что улица та, когда дойдёшь. Все будут стоять у здания и смотреть в телефоны.
+21:14  Я на месте. Тут три полицейские машины.
+21:14  Да.
+21:15  Ты сказал, что тебя пригласили.
+21:15  Я сказал, что за мной послали. Другое слово. Заходи — они уже перестали об этом спорить.`,
+    glossary: [
+      { term: 'anyway', ru: 'всё равно, так или иначе' },
+      { term: 'literally', ru: 'буквально' },
+      { term: 'injection', ru: 'укол' },
+      { term: 'to let go of', ru: 'отпустить' },
+      { term: 'to be invited', ru: 'быть приглашённым' },
+      { term: 'to be sent for', ru: 'за кем-то послали; вызвали' },
+      { term: 'you’ll know it when you get to it', ru: 'дойдёшь — поймёшь' },
+    ],
+    questions: [
+      {
+        q: 'What is the difference between "invited" and "sent for"?',
+        options: [
+          'None',
+          '"Invited" is a request you may refuse; "sent for" means someone had you called in',
+          '"Sent for" is politer',
+          '"Invited" is only used in writing',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the second person say "That is not how any of this works"?',
+        options: [
+          'The advice to let go of the patient\'s hand is absurd',
+          'The address was wrong',
+          'The phone is broken',
+          'He does not know the way',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'How will he recognise the street?',
+        options: [
+          'By the number',
+          'By a crowd standing outside a building looking at their phones',
+          'By the police cars only',
+          'He is sent a photograph',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Уэнздей: карточка, наш текст ───────────────────────────────────────────
+  //
+  // bucket: 'inspired'. Школа, соседка и правила придуманы нами; ни одного
+  // персонажа Аддамсов здесь нет. От сериала — интонация: ирония, сказанная
+  // ровным голосом, и запреты, которые звучат как приглашение.
+  {
+    id: 'sc-wed-1',
+    workId: 'wednesday',
+    lang: 'en', title: 'Правила для новых учеников', level: 'B1', minutes: 2,
+    topic: 'Учёба', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Закрытая школа в готических декорациях — место, где всё начинается с правил. Ниже наш свод правил для новичков. Полезен он тем, что в нём подряд стоят все способы сказать «можно» и «нельзя»: must not, may, are allowed to — и один пункт, где правила нет, а работает оно сильнее любого запрета.',
+    after: 'Обратите внимание на шестой пункт: посреди готики и запертых дверей школа спокойно говорит про тоску по дому и предлагает прийти и сказать. Хорошие правила всегда где-то в середине становятся человеческими.',
+    body: `NIGHTSHADE ACADEMY — RULES FOR NEW STUDENTS
+
+Read these once. We will not be reading them to you.
+
+1. Lights out at eleven. The library stays open later, but the library is not a bedroom and the librarian will notice.
+2. You must not go into the woods after dark. You may go into the woods before dark, though we would ask you to consider why you want to.
+3. Pets are allowed if they fit in a cage. Nothing that has to be fed live food may be kept in a shared room.
+4. The uniform is black. There is no rule about this. It is simply what everyone wears, which is a stronger rule.
+5. If you break something in the music room, tell someone. We have a list of what is in there and we check it.
+6. Homesickness is normal in the first two weeks. Come to the office and say so. You will not be the first this term, or this week, or today.
+7. The third-floor door that does not open has not opened for sixty years and is not going to open for you.
+
+Welcome to Nightshade. Most of you will be fine.`,
+    translation: `АКАДЕМИЯ «НАЙТШЕЙД» — ПРАВИЛА ДЛЯ НОВЫХ УЧЕНИКОВ
+
+Прочитайте это один раз. Вслух вам их читать никто не будет.
+
+1. Отбой в одиннадцать. Библиотека работает дольше, но библиотека — не спальня, и библиотекарь это заметит.
+2. В лес после наступления темноты ходить нельзя. До темноты — можно, хотя мы попросили бы вас подумать, зачем вам туда.
+3. Домашние животные разрешены, если помещаются в клетку. Всё, что приходится кормить живым кормом, держать в общей комнате нельзя.
+4. Форма чёрная. Правила об этом нет. Просто так одеваются все, а это правило посильнее.
+5. Если вы что-то сломали в музыкальном классе, скажите об этом. У нас есть список того, что там стоит, и мы его сверяем.
+6. Тоска по дому в первые две недели — это нормально. Придите в канцелярию и скажите. Вы будете не первым в этом семестре, на этой неделе и даже сегодня.
+7. Дверь на третьем этаже, которая не открывается, не открывается шестьдесят лет и для вас тоже не откроется.
+
+Добро пожаловать в «Найтшейд». С большинством из вас всё будет хорошо.`,
+    glossary: [
+      { term: 'lights out', ru: 'отбой' },
+      { term: 'must not', ru: 'нельзя (запрет)' },
+      { term: 'to be allowed to', ru: 'разрешается' },
+      { term: 'shared room', ru: 'общая комната' },
+      { term: 'homesickness', ru: 'тоска по дому' },
+      { term: 'term', ru: 'учебный семестр' },
+      { term: 'to consider', ru: 'подумать, взвесить' },
+    ],
+    questions: [
+      {
+        q: 'Are students allowed in the woods?',
+        options: [
+          'Never',
+          'Yes, but not after dark',
+          'Only with a teacher',
+          'Only in the first two weeks',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does rule 4 say about the black uniform?',
+        options: [
+          'It is compulsory by the rules',
+          'There is no rule — but everyone wears it, which works even better',
+          'It is only for the first year',
+          'It was cancelled',
+        ],
+        correct: 1,
+        why: 'Тут разница между must (правило) и «так делают все». Английский текст показывает вторую силу прямо: «which is a stronger rule».',
+      },
+      {
+        q: 'What is "homesickness"?',
+        options: [
+          'An illness you catch at home',
+          'Missing home and the people there',
+          'Being tired of school',
+          'A holiday',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does rule 6 add "or this week, or today"?',
+        options: [
+          'To fill space',
+          'To tell the student they are not alone or unusual',
+          'To set a deadline',
+          'To say the office is busy',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-wed-2',
+    workId: 'wednesday',
+    lang: 'en', title: 'Письмо домой, неделя первая', level: 'B2', minutes: 3,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Главное в этом сериале — не готика, а интонация: героиня говорит ровно и вежливо, а получается язвительно. По-английски это делается конкретными средствами, и в письме их видно лучше, чем в диалоге. Ниже наше письмо домой из закрытой школы — ровно на этой интонации.',
+    after: 'Обратите внимание на «я не несчастна. Хочу, чтобы это было зафиксировано, — чтобы потом это нельзя было использовать против меня». Признание, оформленное как юридическая оговорка, — самый узнаваемый приём такого героя.',
+    body: `Dear Mother and Father,
+
+You asked me to write every week. This is the letter for week one. I will be numbering them, so that you can tell when one has gone missing.
+
+The school is exactly as described in the brochure, which is the first disappointing thing about it. My room has two beds. The other bed has a person in it. She is relentlessly cheerful, she says good morning as though it were an opinion she holds strongly, and she has hung a poster above my desk. I have not taken it down. I am keeping it as evidence.
+
+The food is fine. I know you will find that suspicious. So do I.
+
+I have been placed in the fencing class, which I did not choose and which I am now not going to leave, because I am better at it than the boy who told me I would not be.
+
+There is a rule here that students may not go into the woods after dark. Nobody has explained the rule. A rule without a reason is an invitation, and I intend to accept it.
+
+Do not send more sweaters. Do send the black envelopes, the small ones.
+
+I am not unhappy. I would like that on the record, so that it cannot be used against me later.
+
+Your daughter,
+who is counting the weeks and will tell you the number when it becomes relevant`,
+    translation: `Дорогие мама и папа,
+
+Вы просили писать каждую неделю. Это письмо за первую. Я буду их нумеровать, чтобы вы понимали, когда какое-то не дошло.
+
+Школа в точности такая, как в буклете, и это первое, что в ней разочаровывает. В комнате две кровати. На второй кровати есть человек. Она неутомимо жизнерадостна, говорит «доброе утро» так, будто это её твёрдое убеждение, и повесила над моим столом плакат. Я его не сняла. Я храню его как улику.
+
+Еда нормальная. Знаю, вам это покажется подозрительным. Мне тоже.
+
+Меня записали в секцию фехтования, которую я не выбирала и из которой теперь не уйду, потому что я в ней лучше того мальчика, который сказал, что не буду.
+
+Здесь есть правило: после наступления темноты в лес ходить нельзя. Правило никто не объяснил. Правило без причины — это приглашение, и я намерена его принять.
+
+Свитеров больше не присылайте. Присылайте чёрные конверты, маленькие.
+
+Я не несчастна. Хочу, чтобы это было зафиксировано — чтобы потом это нельзя было использовать против меня.
+
+Ваша дочь,
+которая считает недели и назовёт число, когда оно будет иметь значение`,
+    glossary: [
+      { term: 'to go missing', ru: 'пропасть, потеряться' },
+      { term: 'relentlessly', ru: 'неутомимо, без передышки' },
+      { term: 'as though it were', ru: 'как будто это (сослагательное)' },
+      { term: 'evidence', ru: 'улика, доказательство' },
+      { term: 'to be placed in', ru: 'быть записанным, определённым куда-то' },
+      { term: 'to intend to', ru: 'намереваться' },
+      { term: 'on the record', ru: 'официально, под запись' },
+      { term: 'to be used against someone', ru: 'быть использованным против кого-то' },
+    ],
+    questions: [
+      {
+        q: 'Why is she numbering the letters?',
+        options: [
+          'To keep them in order for herself',
+          'So that her parents can see if one does not arrive',
+          'Because the school requires it',
+          'To count the weeks left',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does she feel about her roommate?',
+        options: [
+          'She hates her',
+          'She is irritated but has not actually done anything about it',
+          'They are already friends',
+          'She has not met her',
+        ],
+        correct: 1,
+        why: 'Ключ — «I have not taken it down». Сарказм есть, действия нет: она оставила плакат и назвала его уликой.',
+      },
+      {
+        q: 'What does she mean by "a rule without a reason is an invitation"?',
+        options: [
+          'Rules should be explained to guests',
+          'An unexplained ban makes her want to break it',
+          'The rule does not apply to her',
+          'The rule was cancelled',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does she want "I am not unhappy" on the record?',
+        options: [
+          'She is joking about legal language to admit something without softening',
+          'She is writing a formal complaint',
+          'Her parents asked for a report',
+          'It is a school requirement',
+        ],
+        correct: 0,
+      },
+    ],
+  },
+  {
+    id: 'sc-wed-3',
+    workId: 'wednesday',
+    lang: 'en', title: 'Школьная газета', level: 'B2', minutes: 3,
+    topic: 'Учёба', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Школьная газета в таком сериале — единственное место, где ученики говорят сами за себя, и потому её всё время правят сверху. Ниже наш номер: спортивная заметка, объявление, потери и колонка редактора. Английский здесь ровно тот, на котором пишут школьные и студенческие издания, — сдержанный и очень ироничный.',
+    after: 'Колонка редактора в конце — самая честная часть номера: «эту газету цензурируют. Да. Вот адрес, по которому можно принести то, что не напечатают». И приписка, что само это предложение согласовывали две недели.',
+    body: `THE NIGHTSHADE HERALD · Student newspaper · Issue 112
+
+FENCING BEATS ST AUBREY'S FOR THE FIRST TIME IN NINE YEARS
+The final bout went to a single point. The club would like to thank everyone who came to watch, and would like to remind everyone else that the results are on the board and that pretending you were there is transparent.
+
+THE SUGGESTION BOX HAS BEEN REMOVED
+The suggestion box has been removed following a review of the suggestions. A new box will be installed once we have worked out how to lock it in a way that a student cannot unlock, which the caretaker describes as "not a technical problem but a philosophical one".
+
+LOST
+One black umbrella. One glass eye (decorative, not medical). One essay on the Romantic poets, which its author says he does not want back but would like to know the whereabouts of.
+
+FROM THE EDITOR
+People keep asking whether this paper is censored. It is. If there is something you want printed that the school would not print, put it under the door of Room 14 and we will see what can be done. That sentence took two weeks to be approved.`,
+    translation: `«НАЙТШЕЙД ГЕРАЛЬД» · ученическая газета · выпуск 112
+
+ФЕХТОВАЛЬЩИКИ ОБЫГРАЛИ СЕНТ-ОБРИ ВПЕРВЫЕ ЗА ДЕВЯТЬ ЛЕТ
+Последний бой решился одним уколом. Секция благодарит всех, кто пришёл смотреть, и напоминает всем остальным, что результаты висят на доске и что делать вид, будто вы там были, — насквозь видно.
+
+ЯЩИК ДЛЯ ПРЕДЛОЖЕНИЙ УБРАН
+Ящик для предложений убран по итогам изучения предложений. Новый поставят, как только мы придумаем, как запереть его так, чтобы ученик не смог отпереть, — завхоз называет это «не технической задачей, а философской».
+
+ПОТЕРИ
+Один чёрный зонт. Один стеклянный глаз (декоративный, не медицинский). Одно сочинение о поэтах-романтиках: автор говорит, что назад его не хочет, но хотел бы знать, где оно находится.
+
+ОТ РЕДАКЦИИ
+Нас постоянно спрашивают, цензурируют ли эту газету. Цензурируют. Если есть что-то, что вы хотите напечатать, а школа этого не напечатает, — подсуньте под дверь кабинета 14, и мы посмотрим, что можно сделать. Это предложение согласовывали две недели.`,
+    glossary: [
+      { term: 'bout', ru: 'бой, схватка (в фехтовании)' },
+      { term: 'transparent', ru: 'здесь: насквозь видно, шито белыми нитками' },
+      { term: 'suggestion box', ru: 'ящик для предложений' },
+      { term: 'following a review', ru: 'по итогам рассмотрения' },
+      { term: 'caretaker', ru: 'завхоз, смотритель (брит.); в США janitor' },
+      { term: 'whereabouts', ru: 'местонахождение' },
+      { term: 'to be censored', ru: 'подвергаться цензуре' },
+    ],
+    questions: [
+      {
+        q: 'Why was the suggestion box removed?',
+        options: [
+          'It was broken',
+          'Because of what people had put in it',
+          'Nobody used it',
+          'It was moved to Room 14',
+        ],
+        correct: 1,
+        why: '«Following a review of the suggestions» — убрали не ящик, а то, что в нём находили. Формулировка казённая, смысл прозрачный.',
+      },
+      {
+        q: 'What does "pretending you were there is transparent" mean?',
+        options: [
+          'It is easy to see through the pretence',
+          'The hall has glass walls',
+          'Nobody minds',
+          'The results are unclear',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'What does the author of the lost essay want?',
+        options: [
+          'The essay back',
+          'Only to know where it is',
+          'A new mark',
+          'An apology',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the editor admit?',
+        options: [
+          'The paper is not read',
+          'The paper is censored — and the admission itself had to be approved',
+          'The paper will close',
+          'The results were wrong',
+        ],
+        correct: 1,
+      },
+    ],
+  },
 ]

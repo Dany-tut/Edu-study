@@ -211,8 +211,13 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                 )}
 
                 {/* fill / extended — растущее поле ответа (разница только в
-                    подсказке: короткий ответ или развёрнутый) */}
-                {(tp === 'fill' || tp === 'extended') && (
+                    подсказке: короткий ответ или развёрнутый).
+                    Сюда же падает недозаполненная письменность (тип выбран, а
+                    буква или слог не указаны): без этого запаса такое задание
+                    осталось бы вовсе без поля ответа — решить его нельзя. */}
+                {(tp === 'fill' || tp === 'extended'
+                  || (tp === 'trace' && !task.chamo)
+                  || (tp === 'buildSyllable' && !task.syllable)) && (
                   <div style={{ paddingLeft: 36 }}>
                     <GrowTextarea
                       value={(answers[task.id] as string) ?? ''}
