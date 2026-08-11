@@ -16,9 +16,12 @@
 // произношения (te → «чи», de → «джи», -m на конце → носовой) требует разбора
 // фонетики, а не строки в скобках. Вместо этого рядом с фразой стоит озвучка.
 //
-// ГЛУБИНА. Первая редакция: 26 ситуаций по 14–16 фраз. Корейский разговорник
-// глубже (39 тем по 40 фраз) — он писался дольше. Незаполненные темы второго
-// блока на экран не выводятся.
+// ГЛУБИНА. Сетка закрыта целиком: все 43 темы по 14–16 фраз. Первая редакция
+// доходила только до 26-й, и дыра была перекошена по уровню: A1 и A2 стояли
+// заполненными, а из двенадцати тем B1 было четыре, из семи тем B2 — две.
+// Второй блок написан на бразильском материале, а не переведён с английского:
+// вместо поездов — rodoviária и ônibus leito, вместо чека — boleto, вместо
+// залога — fiador и condomínio, и вся бюрократия упирается в CPF и cartório.
 //
 // ЮРИДИЧЕСКОЕ. Все фразы написаны с нуля, чужие учебники не копировались.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1192,6 +1195,54 @@ const PHRASES: SurvivalBook['phrases'] = {
     p('Que horas é a reunião?', 'во сколько совещание?', undefined),
     p('Podemos remarcar?', 'можем перенести?', undefined),
   ],
+  family: [
+    p('Você tem irmãos?', 'у тебя есть братья или сёстры?', undefined,
+      'Irmãos — и «братья», и «братья и сёстры» вместе: отдельного слова, как английское siblings, не нужно.',
+      e('Você tem irmãos? — Tenho dois.', 'У тебя есть братья и сёстры? — Двое.')),
+    p('Tenho um irmão mais velho', 'у меня есть старший брат', undefined,
+      'Старшинство не отдельное слово, а mais velho / mais novo.',
+      e('Tenho um irmão mais velho e uma irmã mais nova.', 'У меня старший брат и младшая сестра.')),
+    p('Sou filho único', 'я единственный ребёнок', undefined,
+      'Женщина говорит filha única — форма меняется по говорящему.',
+      e('Sou filho único, em casa era bem quieto.', 'Я единственный ребёнок, дома было тихо.')),
+    p('Você é casado?', 'вы женаты?', undefined,
+      'Женщине — casada. Спрашивают спокойно и рано.',
+      e('Você é casado? — Sou, faz dez anos.', 'Вы женаты? — Да, уже десять лет.')),
+    p('Sou solteiro', 'я не женат, я не замужем', undefined, undefined,
+      e('Sou solteiro, moro com minha irmã.', 'Я не женат, живу с сестрой.')),
+    p('Esse é meu namorado', 'это мой парень', undefined,
+      'Namorado / namorada — отношения без брака, и слово произносят спокойно в любом возрасте.',
+      e('Esse é meu namorado, o Lucas.', 'Это мой парень, Лукас.')),
+    p('Você tem filhos?', 'у вас есть дети?', undefined,
+      'Спрашивать нормально; спрашивать «почему нет» — нет.',
+      e('Você tem filhos? — Dois, um menino e uma menina.', 'У вас есть дети? — Двое, мальчик и девочка.')),
+    p('Quantos anos eles têm?', 'сколько им лет?', undefined,
+      'О возрасте детей спрашивают свободно, о возрасте взрослых — нет.',
+      e('Quantos anos eles têm agora?', 'Сколько им сейчас?')),
+    p('Meus pais moram na Rússia', 'мои родители живут в России', undefined,
+      'Pais — «родители»; país с ударением на i — «страна». Слова различаются только ударением.',
+      e('Meus pais moram na Rússia, eu visito uma vez por ano.', 'Родители живут в России, я езжу раз в год.')),
+    p('Moro com meus pais', 'я живу с родителями', undefined,
+      'В Бразилии это обычный ответ и в тридцать лет, никого не удивляет.',
+      e('Moro com meus pais enquanto estudo.', 'Живу с родителями, пока учусь.')),
+    p('A gente é muito unido', 'мы очень близки', undefined,
+      'Так говорят о семье. Буквальное «temos boas relações» звучит как отчёт.',
+      e('A gente é muito unido, fala todo dia.', 'Мы очень близки, созваниваемся каждый день.')),
+    p('Essa é uma foto da minha família', 'это фотография моей семьи', undefined, undefined,
+      e('Essa é uma foto da minha família no verão passado.', 'Это моя семья прошлым летом.')),
+    p('Essa é minha avó', 'это моя бабушка', undefined,
+      'Avó — бабушка, avô — дедушка: различаются только значком над о.',
+      e('Essa é minha avó, ela tem noventa anos.', 'Это моя бабушка, ей девяносто.')),
+    p('Ele puxou ao pai', 'он весь в отца', undefined,
+      'Puxar a alguém — быть похожим на родителя, и о внешности, и о характере.',
+      e('Ele puxou ao pai, até o jeito de rir.', 'Он весь в отца, даже смеётся так же.')),
+    p('Estou com saudades deles', 'я по ним скучаю', undefined,
+      'Saudade — тоска по тем, кого нет рядом; точного перевода нет, и слово это бразильцы считают своим. Суше — «sinto falta deles».',
+      e('Estou com saudades deles, principalmente no Natal.', 'Я по ним скучаю, особенно на Рождество.')),
+    p('Manda um abraço para a família', 'передавай привет семье', undefined,
+      'Дословно «передай объятие» — обычная тёплая формула прощания.',
+      e('Manda um abraço para a família!', 'Передавай привет семье!')),
+  ],
   react: [
     p('Sério?', 'серьёзно?', undefined, undefined,
       e('Sério? Eles cancelaram de novo?', 'Серьёзно? Опять отменили?')),
@@ -1327,7 +1378,7 @@ export const PORTUGUESE_SURVIVAL: SurvivalBook = {
   title: 'Португальский: язык выживания',
   subject: 'Португальский',
   lang: 'pt-BR',
-  level: 'С нуля → A2 (бытовой минимум)',
+  level: 'С нуля → B2 (от «bom dia» до визы и аренды)',
   langName: 'португальском',
   spaced: true,
   intro:

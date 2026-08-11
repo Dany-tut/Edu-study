@@ -8,6 +8,7 @@
     "dev:server": "node --watch server/index.js",
     "build": "vite build",
     "check:gloss": "node scripts/checkGloss.mjs",
+    "check:questions": "node scripts/checkQuestionRu.mjs",
     "preview": "vite preview",
     "start": "node server/index.js",
     "seed": "node server/seed.js",

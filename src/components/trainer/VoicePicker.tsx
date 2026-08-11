@@ -76,7 +76,7 @@ export default function VoicePicker({ lang, accent, soft }: {
 
   const current = voices.find(v => v.name === picked)
   const items = [
-    { id: '', label: t('Автоматически'), hint: t('лучший из найденных') },
+    { id: '', label: t('Автовыбор'), hint: t('как сейчас') },
     ...voices.map(v => ({ id: v.name, label: v.name, hint: v.lang })),
   ]
 
@@ -101,7 +101,7 @@ export default function VoicePicker({ lang, accent, soft }: {
       >
         <Mic size={14} style={{ flexShrink: 0 }} />
         <span style={{ flex: 1, minWidth: 0, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {t('Голос')}: {current?.name ?? t('автоматически')}
+          {t('Голос')}: {current?.name ?? t('автовыбор')}
         </span>
         <ChevronDown
           size={14}

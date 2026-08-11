@@ -62,7 +62,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'с нуля → TOPIK I (1급)',
     units: 9,
     vocabCount: 84,
-    taskCount: 182,
+    taskCount: 207,
     guidedHours: '18–24 часа',
     lessonMinutes: 60,
     scopeNote:
@@ -106,7 +106,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'С нуля → JLPT N5 → N4',
     units: 26,
     vocabCount: 260,
-    taskCount: 238,
+    taskCount: 240,
     guidedHours: '250–300',
     lessonMinutes: 90,
     scopeNote:
@@ -158,13 +158,13 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
   },
   ptsv: {
     title: 'Португальский: язык выживания',
-    level: 'С нуля → A2 (бытовой минимум)',
-    units: 29,
-    vocabCount: 412,
-    taskCount: 463,
-    guidedHours: '58',
+    level: 'С нуля → B2 (от «bom dia» до визы и аренды)',
+    units: 43,
+    vocabCount: 636,
+    taskCount: 687,
+    guidedHours: '86',
     lessonMinutes: 60,
     scopeNote:
-      'Разговорник, а не грамматический курс: 412 готовых фраз по 29 ситуациям — по одной фразе на смысл. Юнит — это одна ситуация: десяток фраз, рассчитанных на несколько подходов через интервальные повторения. Грамматика объясняется только там, где без неё фразу нельзя переставить под себя.',
+      'Разговорник, а не грамматический курс: 636 готовых фраз по 43 ситуациям — по одной фразе на смысл. Юнит — это одна ситуация: десяток фраз, рассчитанных на несколько подходов через интервальные повторения. Грамматика объясняется только там, где без неё фразу нельзя переставить под себя.',
   },
 }

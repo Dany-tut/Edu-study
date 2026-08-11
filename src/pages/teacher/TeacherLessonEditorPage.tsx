@@ -1091,6 +1091,9 @@ export default function TeacherLessonEditorPage() {
     // файлы жили в черновике браузера и при публикации пропадали.
     if (lessonRowId) {
       const { error: lessonErr } = await supabase.from('lessons').update({
+        // Название пишем и в урок: иначе переименование здесь жило бы только в
+        // расписании, а следующее сохранение курса вернуло бы старое имя.
+        ...(meta.title.trim() ? { title: meta.title.trim() } : {}),
         youtube_url: videoUrl.trim() || null,
         timecodes,
         description: description.trim() || null,
