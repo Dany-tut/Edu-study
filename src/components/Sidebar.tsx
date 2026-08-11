@@ -11,7 +11,6 @@ import { clearStudentSession, getStudentSession } from '../lib/studentSession'
 import SubjectSwitcher from './SubjectSwitcher'
 import { supabase } from '../lib/supabase'
 import { trackNow } from '../lib/analytics'
-import { canUseFeature } from '../lib/featureFlags'
 import { playTransitionDrop } from '../lib/sound'
 import { tactile, lockSnap, lockRelease, springTopbar } from '../lib/feedback'
 import { useDashboard, type WidgetColumns } from '../store/dashboardStore'
@@ -582,48 +581,27 @@ export default function Sidebar() {
                         {/* Divider */}
                         <div style={{ height: 1, background: 'var(--color-border)', margin: '10px 0' }} />
 
-                        {/* Theme toggle — preview users get the real button; others see a "coming soon" row */}
-                        {canUseFeature('darkTheme') ? (
-                          <motion.button
-                            whileTap={{ scale: 0.985 }}
-                            onClick={toggleTheme}
-                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
-                            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-                            style={{
-                              width: '100%', padding: '9px 8px',
-                              display: 'flex', alignItems: 'center',
-                              gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
-                              background: 'transparent',
-                              color: 'var(--color-text)',
-                              fontSize: 14, fontWeight: 550, transition: 'background 0.15s',
-                            }}
-                          >
-                            {dark
-                              ? <Sun size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-                              : <Moon size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-                            }
-                            <span style={{ flex: 1, textAlign: 'left' }}>{dark ? t('Светлая тема') : t('Тёмная тема')}</span>
-                          </motion.button>
-                        ) : (
-                          <div style={{
+                        {/* Theme toggle */}
+                        <motion.button
+                          whileTap={{ scale: 0.985 }}
+                          onClick={toggleTheme}
+                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                          style={{
                             width: '100%', padding: '9px 8px',
                             display: 'flex', alignItems: 'center',
-                            gap: 10,
-                            color: 'var(--color-muted)',
-                            fontSize: 14, fontWeight: 550,
-                          }}>
-                            <Moon size={17} strokeWidth={1.9} style={{ flexShrink: 0 }} />
-                            <span style={{ flex: 1, textAlign: 'left' }}>{t('Тёмная тема')}</span>
-                            <span style={{
-                              fontSize: 11, fontWeight: 600,
-                              padding: '2px 7px', borderRadius: 20,
-                              background: 'var(--color-purple-soft)',
-                              color: 'var(--color-accent)',
-                              letterSpacing: 0.2,
-                              flexShrink: 0,
-                            }}>{t('скоро')}</span>
-                          </div>
-                        )}
+                            gap: 10, borderRadius: 10, border: 'none', cursor: 'pointer',
+                            background: 'transparent',
+                            color: 'var(--color-text)',
+                            fontSize: 14, fontWeight: 550, transition: 'background 0.15s',
+                          }}
+                        >
+                          {dark
+                            ? <Sun size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                            : <Moon size={17} strokeWidth={1.9} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                          }
+                          <span style={{ flex: 1, textAlign: 'left' }}>{dark ? t('Светлая тема') : t('Тёмная тема')}</span>
+                        </motion.button>
 
                         {/* Opens the list modal — left-aligned like SettingsRow */}
                         <motion.button
