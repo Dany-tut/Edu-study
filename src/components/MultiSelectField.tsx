@@ -5,6 +5,7 @@ import { ChevronDown, Check, X } from 'lucide-react'
 import ScrollFade from './ScrollFade'
 import { useT } from '../lib/i18n'
 import { DROPDOWN_GLASS, dropdownRing, dropdownRow, dropdownRowHover, dropdownSurface } from '../lib/dropdownStyle'
+import { useScrollLock } from '../lib/useScrollLock'
 
 // ── Multi-select combobox ────────────────────────────────────────────────────
 // Telegram-style trigger: selected chips live INSIDE the field, and the search
@@ -15,6 +16,7 @@ import { DROPDOWN_GLASS, dropdownRing, dropdownRow, dropdownRowHover, dropdownSu
 export default function MultiSelectField({
   label, options, values, onChange,
   accent = 'var(--color-purple-text)', accentBg = 'var(--color-purple-soft)', small = false,
+  lockScroll = false,
 }: {
   label: string
   options: string[]
@@ -23,6 +25,16 @@ export default function MultiSelectField({
   accent?: string
   accentBg?: string
   small?: boolean
+  /**
+   * Пока список открыт, фон не скроллится (lib/useScrollLock).
+   *
+   * Включено в тренажёре ученика: там фильтры стоят в рейле рядом с
+   * переключателем предмета, и один дропдаун не может вести себя иначе, чем
+   * соседний. В формах кабинета учителя осталось прежнее поведение — фон едет,
+   * список закрывается (см. onScroll ниже), потому что коробка позиционируется
+   * один раз и за уехавшим полем не следит.
+   */
+  lockScroll?: boolean
 }) {
   const t = useT()
   const [open, setOpen] = useState(false)
@@ -67,6 +79,8 @@ export default function MultiSelectField({
     setQuery('')
     inputRef.current?.focus()
   }
+
+  useScrollLock(lockScroll && open, menuRef)
 
   useEffect(() => {
     if (!open) return

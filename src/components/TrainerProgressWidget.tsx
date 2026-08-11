@@ -12,7 +12,7 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
   const { dark } = useTheme()
   const {
     doneCount, wrongCount, totalCount, favCount, todayCorrect, todayWrong,
-    subject, subjectId, kind, todayMs, weekMs, setOpenModal,
+    subject, subjectId, kind, todayMs, weekMs, counting, setOpenModal,
   } = useTrainerProgress()
   const activePage = useDashboard(s => s.activePage)
 
@@ -118,7 +118,18 @@ export default function TrainerProgressWidget({ columns }: { columns: number }) 
         <span style={{ fontSize: 11, color: 'var(--color-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
           <Clock size={11} /> {t('Сегодня')}
         </span>
-        <span style={{ padding: '3px 9px', borderRadius: 999, background: `${accent}1F`, color: palette.text, fontSize: 11, fontWeight: 700 }}>
+        {/* Та же точка, что в пилюле верхней строки: идёт счёт или пауза. */}
+        <span style={{ padding: '3px 9px', borderRadius: 999, background: `${accent}1F`, color: palette.text, fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <motion.span
+            aria-label={counting ? t('Время идёт') : t('Пауза')}
+            animate={counting ? { opacity: [1, 0.3, 1] } : { opacity: 1 }}
+            transition={counting ? { duration: 1.6, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
+            style={{
+              width: 6, height: 6, borderRadius: '50%', display: 'block', flexShrink: 0,
+              background: counting ? accent : 'transparent',
+              border: counting ? 'none' : '1px solid var(--color-text-3)',
+            }}
+          />
           {formatDur(todayMs)}
         </span>
         {todayCorrect > 0 && (

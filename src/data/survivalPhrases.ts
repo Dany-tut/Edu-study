@@ -797,6 +797,39 @@ const slice = (list: Phrase[], from: number, count: number): Phrase[] =>
   Array.from({ length: Math.min(count, list.length) }, (_, k) => list[(from + k) % list.length])
 
 /**
+ * `count` фраз, разнесённых по всей теме, а не идущих подряд.
+ *
+ * ЗАЧЕМ. Три задания «впишите фразу» брались с шагом в шесть позиций. Пока в
+ * теме было сорок фраз, шаг работал; на ядре из двенадцати шестой и двенадцатый
+ * шаг сходятся в одну точку, и ученик получает одно и то же задание дважды.
+ * Шаг, посчитанный от длины списка, разносит выборку по теме при любой её
+ * длине.
+ */
+const spread = (list: Phrase[], from: number, count: number): Phrase[] => {
+  const step = Math.max(1, Math.floor(list.length / count))
+  return Array.from({ length: Math.min(count, list.length) }, (_, k) => list[(from + k * step) % list.length])
+}
+
+/**
+ * Фразы, чей перевод в теме единственный.
+ *
+ * ЗАЧЕМ. Задания «как сказать …» и «напишите на …» дают русский смысл и ждут
+ * ровно одну фразу. В «Числах» два «два» — 이 китайского счёта и 둘 корейского,
+ * и такой вопрос не имеет единственного верного ответа: ученик пишет корректное
+ * слово и получает ошибку. Обратное направление («что означает …») этим не
+ * страдает: сами фразы уникальны.
+ *
+ * Если однозначных фраз в теме почти не осталось, отдаём список целиком —
+ * вопрос с натяжкой лучше, чем юнит без заданий.
+ */
+function askable(list: Phrase[]): Phrase[] {
+  const times = new Map<string, number>()
+  for (const x of list) times.set(x.ru, (times.get(x.ru) ?? 0) + 1)
+  const out = list.filter(x => times.get(x.ru) === 1)
+  return out.length >= 4 ? out : list
+}
+
+/**
  * Обманки, ни одна из которых не повторяет верный ответ.
  *
  * ЗАЧЕМ. Обманки берутся из той же темы, и в теме легко встречаются две фразы с
@@ -839,13 +872,16 @@ function unitTasks(theme: SurvivalTheme, list: Phrase[], book: SurvivalBook): Se
   tasks.push(pairsOf('Соедините фразу и перевод.',
     slice(list, n + 7, 4).map(x => [x.term, x.ru] as [string, string])))
 
+  // Спрашивают «как сказать» только то, что переводится однозначно (см. askable).
+  const asks = askable(list)
+
   // Выбор из четырёх: русский смысл → фраза. Обманки берутся из этой же темы —
   // выбирать между фразами одной ситуации сложнее и полезнее, чем между
   // фразами из разных уроков.
   for (let k = 0; k < 3; k++) {
     const from = n * 3 + k * 5
-    const target = slice(list, from, 1)[0]
-    const choices = distractors(list, from + 1, 3, target.term, x => x.term)
+    const target = slice(asks, from, 1)[0]
+    const choices = distractors(asks, from + 1, 3, target.term, x => x.term)
     const correct = Math.min((n + k) % 4, choices.length)
     choices.splice(correct, 0, target.term)
     tasks.push(one(`Как сказать: «${target.ru}»?`, choices, correct))
@@ -863,8 +899,7 @@ function unitTasks(theme: SurvivalTheme, list: Phrase[], book: SurvivalBook): Se
   }
 
   // Вписать фразу целиком: единственный тип, где нет подсказки-варианта.
-  for (let k = 0; k < 3; k++) {
-    const target = slice(list, n * 2 + k * 6, 1)[0]
+  for (const target of spread(asks, n * 2, 3)) {
     tasks.push(fill(`Напишите на ${book.langName}: «${target.ru}»`, target.term))
   }
 

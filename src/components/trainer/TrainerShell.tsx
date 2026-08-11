@@ -46,6 +46,7 @@ import { ChevronDown, Search, Check, SlidersHorizontal } from 'lucide-react'
 import { useT } from '../../lib/i18n'
 import { bindShortWords, balancedWrap } from '../../lib/typography'
 import { useFloatingPill } from '../../lib/useFloatingPill'
+import { useScrollLock } from '../../lib/useScrollLock'
 import MobileSheet from '../MobileSheet'
 
 const RAIL_W = 300
@@ -226,8 +227,9 @@ const clamp2: CSSProperties = {
   WebkitBoxOrient: 'vertical',
   WebkitLineClamp: 2,
   overflow: 'hidden',
-  // Хангыль и длинные составные слова иначе распирают колонку вместо переноса.
-  overflowWrap: 'anywhere',
+  // break-word, а не anywhere: последний резал транскрипцию посреди слова
+  // («оджоноджон / хада») ради узкой колонки, хотя колонке есть куда расти.
+  overflowWrap: 'break-word',
 }
 
 /**
@@ -444,13 +446,15 @@ export function RailList({ items, value, onChange, accent, soft }: {
         // текста тянутся до шести десятков знаков («формула перед едой; здесь —
         // „спасибо, поедим с удовольствием“»), и в колонке шириной в треть
         // рейла такой перевод не помещается ни в одну строку, ни в две.
-        // Длинному отдаётся своя строка во всю ширину: там те же две строки
-        // вмещают вдвое больше, и обрезать уже нечего.
-        const wide = (i.hint?.length ?? 0) > 32
+        // Длинному отдаётся своя строка во всю ширину — и третья строка сверх
+        // общего лимита: во всю ширину они вмещают и самый длинный перевод
+        // словарей, то есть резать в этой ветке уже нечего.
+        const wide = (i.hint?.length ?? 0) > 24
         const hintStyle: CSSProperties = {
           fontSize: 11, lineHeight: 1.3, color: on ? accent : 'var(--color-text-3)',
           fontVariantNumeric: 'tabular-nums',
           ...clamp2,
+          ...(wide ? { WebkitLineClamp: 3 } : null),
         }
         return (
           <button
@@ -728,6 +732,10 @@ export function SortMenu({ options, value, onChange }: {
   const btn = useRef<HTMLButtonElement>(null)
   const menu = useRef<HTMLDivElement>(null)
   const current = options.find(o => o.value === value) ?? options[0]
+
+  // Фон на время выбора стоит: меню висит фиксированной коробкой у кнопки, и
+  // уехавшая под ним страница отрывала бы список от своего триггера.
+  useScrollLock(open, menu)
 
   useEffect(() => {
     if (!open) return

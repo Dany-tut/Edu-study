@@ -720,15 +720,15 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
         >
           {levelOpts.length > 1 && (
             <MultiSelectField label={t('Уровень')} options={levelOpts} values={fLevel} onChange={setFLevel}
-              accent={palette.accent} accentBg={palette.soft} />
+              accent={palette.accent} accentBg={palette.soft} lockScroll />
           )}
           {topicOpts.length > 1 && (
             <MultiSelectField label={t('Тема')} options={topicOpts} values={fTopic} onChange={setFTopic}
-              accent={palette.accent} accentBg={palette.soft} />
+              accent={palette.accent} accentBg={palette.soft} lockScroll />
           )}
           {mode === 'reading' && skillOpts.length > 1 && (
             <MultiSelectField label={t('Навык')} options={skillOpts} values={fSkill} onChange={setFSkill}
-              accent={palette.accent} accentBg={palette.soft} />
+              accent={palette.accent} accentBg={palette.soft} lockScroll />
           )}
           <RailSegment options={LENGTHS.map(l => ({ value: l.value, label: l.label }))}
             value={fLen} onChange={setFLen} accent={palette.accent} soft={palette.soft} />
@@ -759,7 +759,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
             />
             {vocabView === 'sets' && setLevelOpts.length > 1 && (
               <MultiSelectField label={t('Уровень')} options={setLevelOpts} values={fLevel} onChange={setFLevel}
-                accent={palette.accent} accentBg={palette.soft} />
+                accent={palette.accent} accentBg={palette.soft} lockScroll />
             )}
             {vocabView === 'sets' && shelves.length > 0 && (
               <RailList

@@ -2309,6 +2309,7 @@ export const KOREAN_SURVIVAL: SurvivalBook = {
     'не мелочь, а грубость.',
   notes: NOTES,
   phrases: withExamples(PHRASES, KO_EXAMPLES),
+  core: CORE,
 }
 
 /** Сводка курса — для карточки готового курса в Конструкторе. */

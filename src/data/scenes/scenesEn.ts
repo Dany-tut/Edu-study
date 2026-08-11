@@ -1576,4 +1576,589 @@ Come armed, come sober and come early. The field holds two thousand and the town
       },
     ],
   },
+
+  // ── Алиса в Пограничье: карточка, наш текст ────────────────────────────────
+  //
+  // bucket: 'inspired'. Сериал японский, но у него есть официальная английская
+  // дорожка, и берём мы у него только жанр: правила игры, объявление, записка.
+  // Игры, город и люди здесь наши. Грамматическая нагрузка — must/may/may not
+  // и страдательное долженствование, то есть ровно то, чем язык правил живёт.
+  {
+    id: 'sc-aib-1',
+    workId: 'alice-borderland-en',
+    lang: 'en', title: 'Карточка правил игры', level: 'B1', minutes: 2,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Каждая серия начинается одинаково: на экране появляются правила, и от того, насколько точно их прочитали, зависит всё остальное. Ниже наша карточка правил вымышленной игры. Читать её надо как читают в сериале — придираясь к каждому слову: разница между must и may здесь стоит жизни, и в этом весь смысл упражнения.',
+    after: 'Обратите внимание на четвёртую строку: «говорить друг с другом можно, трогать друг друга нельзя». В сериале выигрывает не самый сильный, а тот, кто заметил, что именно правилами не запрещено.',
+    body: `GAME: FOUR DOORS
+DIFFICULTY: SIX OF CLUBS
+TYPE: TEAM
+
+RULES
+There are four doors. Behind three of them is the corridor. Behind one of them is not.
+Every player must pass through a door. No player may remain in this room.
+You may not open a door and look. A door that has been opened must be entered within three seconds.
+You may talk to one another. You may not touch one another.
+The game ends when the room is empty.
+
+CLEAR CONDITION
+All surviving players reach the corridor before the timer reaches zero.
+
+FAILURE CONDITION
+The timer reaches zero while one or more players are still in this room.
+
+TIME LIMIT: 04:00
+
+Note: the doors are not marked and will not be marked. Anyone waiting for a clue is spending the time limit on it.`,
+    translation: `ИГРА: ЧЕТЫРЕ ДВЕРИ
+СЛОЖНОСТЬ: ШЕСТЁРКА ТРЕФ
+ТИП: КОМАНДНАЯ
+
+ПРАВИЛА
+Дверей четыре. За тремя из них коридор. За одной — нет.
+Каждый игрок обязан пройти в дверь. Оставаться в этой комнате нельзя никому.
+Открыть дверь и заглянуть нельзя. В открытую дверь нужно войти в течение трёх секунд.
+Разговаривать друг с другом можно. Прикасаться друг к другу нельзя.
+Игра заканчивается, когда комната пуста.
+
+УСЛОВИЕ ПРОХОЖДЕНИЯ
+Все выжившие игроки попадают в коридор до того, как таймер дойдёт до нуля.
+
+УСЛОВИЕ ПРОВАЛА
+Таймер доходит до нуля, пока в этой комнате остаётся хотя бы один игрок.
+
+ОГРАНИЧЕНИЕ ПО ВРЕМЕНИ: 04:00
+
+Примечание: двери не помечены и помечены не будут. Тот, кто ждёт подсказки, тратит на это отведённое время.`,
+    glossary: [
+      { term: 'must', ru: 'обязан' },
+      { term: 'may not', ru: 'нельзя, не разрешается' },
+      { term: 'to remain', ru: 'оставаться' },
+      { term: 'within three seconds', ru: 'в течение трёх секунд' },
+      { term: 'one another', ru: 'друг друга' },
+      { term: 'surviving', ru: 'выживший' },
+      { term: 'clue', ru: 'подсказка, зацепка' },
+      { term: 'time limit', ru: 'отведённое время' },
+    ],
+    questions: [
+      {
+        q: 'Is it allowed to open a door, look inside and step back?',
+        options: [
+          'Yes, once',
+          'No — an opened door must be entered within three seconds',
+          'Yes, if you do not touch it',
+          'Only the first player may do it',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the difference between "must" and "may" in these rules?',
+        options: [
+          'None, they are synonyms here',
+          '"Must" is an obligation, "may" is a permission',
+          '"May" is politer',
+          '"Must" is only for the timer',
+        ],
+        correct: 1,
+        why: 'Must — обязанность, may — разрешение, may not — запрет. В тексте правил это три разные вещи, и путать их нельзя.',
+      },
+      {
+        q: 'What is explicitly allowed?',
+        options: ['Touching', 'Talking', 'Looking behind a door', 'Staying in the room'],
+        correct: 1,
+      },
+      {
+        q: 'What does the note at the bottom tell the players to do?',
+        options: [
+          'Wait for a clue',
+          'Stop waiting: there will be no clue, and waiting costs time',
+          'Mark the doors themselves',
+          'Read the rules again',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-aib-2',
+    workId: 'alice-borderland-en',
+    lang: 'en', title: 'Объявление в пустом городе', level: 'B2', minutes: 2,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В сериале город объясняет свои правила голосом из громкоговорителя — вежливо, спокойно и один раз. Ниже наше объявление в том же жанре. Здесь стоит смотреть на страдательный залог: «визу продлевают», «вас уведомят» — по-английски так говорят, когда действие есть, а ответственного нет. Это главный приём казённой речи, и на нём же держится жуть сериала.',
+    after: 'Последняя строка — «удачи; слово употреблено условно» — приём, ради которого это и написано: сухая формула, а в конце одна фраза, которая её отменяет.',
+    body: `ATTENTION. THIS IS AN AUTOMATED ANNOUNCEMENT. IT WILL NOT BE REPEATED.
+
+Welcome to the city. There is no one here but the players.
+
+Your visa expires at midnight tonight. A visa is extended only by clearing a game. It is extended by the number of days printed on the card of the game you clear, and by nothing else. It cannot be bought, borrowed or transferred.
+
+Games begin at eight. Arenas are the buildings with a red light above the door. You may choose any arena. You may not leave an arena once a game has begun.
+
+If your visa expires while you are inside the city, you will be notified. There is no appeal, and there is no need to look for the office that would hear one.
+
+Water is running in the western districts only. The shops are open and unattended. Take what you need; nobody is counting.
+
+That is all. Good luck. The word is used loosely.`,
+    translation: `ВНИМАНИЕ. ЭТО АВТОМАТИЧЕСКОЕ ОБЪЯВЛЕНИЕ. ПОВТОРЕНО ОНО НЕ БУДЕТ.
+
+Добро пожаловать в город. Здесь нет никого, кроме игроков.
+
+Ваша виза истекает сегодня в полночь. Визу продлевают только за прохождение игры. Её продлевают на столько дней, сколько напечатано на карте пройденной игры, и ни на сколько больше. Её нельзя купить, одолжить или передать.
+
+Игры начинаются в восемь. Арены — здания с красным фонарём над дверью. Выбрать можно любую арену. Покинуть арену после начала игры нельзя.
+
+Если ваша виза истечёт, пока вы в городе, вас уведомят. Обжалованию это не подлежит, и искать инстанцию, где его приняли бы, не нужно.
+
+Вода идёт только в западных районах. Магазины открыты и никем не заняты. Берите, что нужно; никто не считает.
+
+Это всё. Удачи. Слово употреблено условно.`,
+    glossary: [
+      { term: 'to expire', ru: 'истекать (о сроке)' },
+      { term: 'to extend', ru: 'продлевать' },
+      { term: 'to clear a game', ru: 'пройти игру' },
+      { term: 'to transfer', ru: 'передавать другому' },
+      { term: 'you will be notified', ru: 'вас уведомят' },
+      { term: 'appeal', ru: 'обжалование' },
+      { term: 'unattended', ru: 'без присмотра, никем не занятый' },
+      { term: 'loosely', ru: 'условно, приблизительно' },
+    ],
+    questions: [
+      {
+        q: 'How can a visa be extended?',
+        options: [
+          'By buying days',
+          'Only by clearing a game',
+          'By borrowing days from another player',
+          'By waiting in an arena',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What are the arenas?',
+        options: [
+          'The buildings with a red light above the door',
+          'The buildings in the western districts',
+          'The shops',
+          'The stations',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'Why is almost every sentence passive ("is extended", "you will be notified")?',
+        options: [
+          'The English is incorrect',
+          'It hides who does the action — the standard voice of official notices',
+          'It is faster to say',
+          'It makes the text politer',
+        ],
+        correct: 1,
+        why: 'Страдательный залог убирает исполнителя. В объявлении это удобно и звучит нейтрально; здесь на этом и построен эффект — распоряжается никто.',
+      },
+      {
+        q: 'What does the last line mean?',
+        options: [
+          'Good luck is guaranteed',
+          'The speaker admits that "good luck" is not really the right word here',
+          'The word was mispronounced',
+          'Luck can be bought',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-aib-3',
+    workId: 'alice-borderland-en',
+    lang: 'en', title: 'Записка тому, кто придёт после', level: 'B2', minutes: 3,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Человек, проживший в городе девятнадцать дней, оставляет инструкцию следующему — потому что ему самому такой инструкции не оставили. Ниже наш текст в этом жанре. Грамматически он держится на разнице настоящего совершённого и простого прошедшего: «я здесь девятнадцать дней» (и до сих пор) против «я потерял четыре дня» (тогда, и всё).',
+    after: 'Последний абзац написан на случай, который автор записки считает вероятным, и написан в прошедшем времени — «значит, я не прошёл последнюю». Это единственное место, где он говорит о себе прямо.',
+    body: `Whoever finds this —
+
+I have been in the city for nineteen days. I am writing this because the person who was here before me left nothing, and I lost four days working out things he could have told me on one page.
+
+Read it twice, then put it back where you found it.
+
+The card that gives you days is the number. The suit tells you what kind of game it is, and the suit matters more. Clubs are team games. Hearts are games about people. If you are new, take clubs, take diamonds if you must, and stay away from hearts until you have watched one from the outside. I did not, and I am not going to write about it.
+
+Nobody here is your friend on the first day and everybody is your friend on the fourth. That is not because people have become kinder. It is because by the fourth day they have understood that a team game cannot be cleared alone.
+
+There is food in the apartment below this one. The elevator has not worked since I arrived.
+
+If you are reading this and I have not come back for it, then I did not clear the last one. Do not go looking. There is nothing to find, and looking costs a day.`,
+    translation: `Тому, кто это найдёт, —
+
+Я в городе девятнадцать дней. Пишу это потому, что тот, кто был здесь до меня, не оставил ничего, и я потерял четыре дня, выясняя то, что он мог бы уместить на одной странице.
+
+Прочитай дважды и положи обратно туда, где взял.
+
+Дни тебе даёт число на карте. Масть говорит, какая это игра, и масть важнее. Трефы — командные игры. Черви — игры про людей. Если ты новичок, бери трефы, если надо — бубны, и держись подальше от червей, пока не посмотришь одну со стороны. Я не посмотрел и писать об этом не буду.
+
+Здесь никто тебе не друг в первый день и все тебе друзья на четвёртый. Не потому, что люди подобрели. А потому, что к четвёртому дню до них доходит: командную игру в одиночку не пройти.
+
+Еда есть в квартире этажом ниже. Лифт не работает с тех пор, как я сюда попал.
+
+Если ты это читаешь, а я за запиской не вернулся — значит, последнюю я не прошёл. Не ходи искать. Искать нечего, а поиск стоит одного дня.`,
+    glossary: [
+      { term: 'whoever', ru: 'тот, кто; кто бы ни' },
+      { term: 'to work something out', ru: 'выяснить, докопаться' },
+      { term: 'suit', ru: 'масть' },
+      { term: 'clubs / hearts / diamonds', ru: 'трефы / черви / бубны' },
+      { term: 'to stay away from', ru: 'держаться подальше от' },
+      { term: 'from the outside', ru: 'со стороны' },
+      { term: 'to cost', ru: 'стоить (в том числе времени)' },
+    ],
+    questions: [
+      {
+        q: 'Why is the note written at all?',
+        options: [
+          'Because the rules require it',
+          'Because nobody left one for the writer, and he lost days because of that',
+          'To ask for help',
+          'To leave a map',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the writer advise about hearts?',
+        options: [
+          'Play them first, they are easy',
+          'Avoid them until you have seen one from the outside',
+          'Play them only in a team',
+          'They do not exist',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does everybody become friendly by the fourth day?',
+        options: [
+          'People get used to each other',
+          'Because they realise a team game cannot be cleared alone',
+          'Because the games get easier',
+          'Because the visa is longer',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why "I have been in the city for nineteen days" but "I lost four days"?',
+        options: [
+          'It is a mistake',
+          'The first is still true now; the second happened and finished',
+          'The second is more formal',
+          'They are interchangeable',
+        ],
+        correct: 1,
+        why: 'Present perfect тянет действие в настоящее («и до сих пор здесь»), past simple закрывает его в прошлом. Это самая частая пара ошибок у русскоязычных.',
+      },
+    ],
+  },
+
+  // ── Офис: карточка, наш текст ──────────────────────────────────────────────
+  //
+  // bucket: 'inspired'. Компания, отдел и сотрудники здесь наши. От сериала —
+  // жанр и регистр: офисная переписка, повестка и аттестация, где вежливая
+  // формула прикрывает недовольство. Самый практичный текст полки.
+  {
+    id: 'sc-office-1',
+    workId: 'the-office-us',
+    lang: 'en', title: 'Письмо всем сотрудникам про кухню', level: 'B1', minutes: 2,
+    topic: 'Работа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Весь юмор «Офиса» держится на разрыве между тем, что написано, и тем, что имеется в виду. Ниже наше письмо от административного отдела — жанр, который вы точно встретите на настоящей работе. Здесь важно не содержание, а формулы: «just a quick note», «going forward», «thanks in advance» — вежливые прокладки, за которыми лежит требование.',
+    after: 'Ключ к жанру — фраза «a friendly reminder». По-английски «дружеское напоминание» почти всегда означает, что напоминают не в первый раз и уже не по-дружески.',
+    body: `From: Facilities
+To: All Staff
+Subject: A friendly reminder about the kitchen
+
+Hi everyone,
+
+Just a quick note about the kitchen, since a few of you have raised it.
+
+The fridge is cleared out every Friday at 5 p.m. Anything without a name on it goes in the trash. This is not a new policy. It has been the policy since 2011.
+
+Please rinse your mug. The sign above the sink says "your mother does not work here", which is not something I would have written myself, but it was there before my time and I am not going to be the one to take it down.
+
+Whoever is putting fish in the microwave: we know that you exist. We do not know who you are, and honestly at this point that is worse.
+
+Going forward, let's keep the kitchen a space we can all enjoy.
+
+Thanks in advance for your cooperation,
+Facilities`,
+    translation: `От: административный отдел
+Кому: всем сотрудникам
+Тема: дружеское напоминание про кухню
+
+Всем привет,
+
+Пара слов про кухню — раз уж некоторые из вас об этом заговорили.
+
+Холодильник разбирают каждую пятницу в 17:00. Всё, что без подписи, отправляется в мусор. Это не новое правило. Оно действует с 2011 года.
+
+Пожалуйста, ополаскивайте свою кружку. Табличка над раковиной гласит «твоя мама здесь не работает» — сам бы я так не написал, но она висела до меня, и снимать её я не собираюсь.
+
+Тому, кто разогревает рыбу в микроволновке: мы знаем, что вы существуете. Мы не знаем, кто вы, и, честно говоря, на этом этапе это даже хуже.
+
+Впредь давайте поддерживать кухню пространством, которым все мы можем наслаждаться.
+
+Заранее спасибо за содействие,
+административный отдел`,
+    glossary: [
+      { term: 'facilities', ru: 'административно-хозяйственный отдел' },
+      { term: 'just a quick note', ru: 'пара слов; вежливое начало письма' },
+      { term: 'to raise something', ru: 'поднять вопрос' },
+      { term: 'to clear out', ru: 'разобрать, освободить' },
+      { term: 'to rinse', ru: 'ополоснуть' },
+      { term: 'going forward', ru: 'впредь, начиная с этого момента' },
+      { term: 'thanks in advance', ru: 'заранее спасибо' },
+      { term: 'at this point', ru: 'на этом этапе, к настоящему моменту' },
+    ],
+    questions: [
+      {
+        q: 'What happens to food without a name on it?',
+        options: ['It is moved to another shelf', 'It is thrown away on Friday', 'It is labelled by Facilities', 'Nothing'],
+        correct: 1,
+      },
+      {
+        q: 'What does "a friendly reminder" usually signal in an office email?',
+        options: [
+          'The sender is genuinely happy',
+          'The sender is annoyed and is saying so politely',
+          'The message is optional',
+          'The message is for new staff only',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "going forward" mean?',
+        options: ['moving ahead physically', 'from now on', 'in the past', 'quickly'],
+        correct: 1,
+      },
+      {
+        q: 'Why does the writer mention the sign above the sink?',
+        options: [
+          'To take responsibility for it',
+          'To repeat the message without being the one who said it',
+          'To ask for a new sign',
+          'To praise the person who wrote it',
+        ],
+        correct: 1,
+        why: '«Not something I would have written myself» — классический офисный ход: требование передаётся, ответственность за формулировку — нет.',
+      },
+    ],
+  },
+  {
+    id: 'sc-office-2',
+    workId: 'the-office-us',
+    lang: 'en', title: 'Повестка совещания', level: 'B1', minutes: 3,
+    topic: 'Переписка и созвоны', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Совещание в «Офисе» — отдельный жанр: полчаса по плану, полтора по факту. Ниже наша повестка. Она собрана из слов, которые придётся понимать на любой международной работе: sync, action item, offline, EOD, circle back. Каждое из них значит не то, что кажется по словарю.',
+    after: 'Самая полезная строка здесь — «anyone who says „let us circle back“ must say when». Circle back («вернёмся к этому») в офисной речи чаще всего означает «не вернёмся», и правило существует именно поэтому.',
+    body: `QUARTERLY SYNC — AGENDA
+Conference room B, Thursday, 10:00–10:30 (11:15)
+
+10:00 — Welcome and a "quick" round of introductions. There are nine of us and we have all met.
+10:05 — Q3 numbers. The slides will be circulated afterwards, so there is no need to photograph the screen.
+10:12 — Regional targets. We are behind on two of them. We will not be discussing which two, because the person responsible is in the room and this is not that kind of meeting.
+10:20 — Any other business.
+10:25 — Action items and owners.
+
+BEFORE THE MEETING
+Please read the one-page summary. It is one page. It is genuinely one page.
+
+HOUSE RULES
+If you have nothing to add, you may keep your camera off and say nothing. This is allowed and always has been.
+"Let's take that offline" means we will discuss it later and not in front of everyone. It does not mean the subject is closed.
+Anyone who says "let's circle back" must say when.
+
+AFTER THE MEETING
+Action items go out by EOD. If your name is next to one and you disagree, reply to the email — not to me in the corridor.`,
+    translation: `КВАРТАЛЬНАЯ СИНХРОНИЗАЦИЯ — ПОВЕСТКА
+Переговорная Б, четверг, 10:00–10:30 (11:15)
+
+10:00 — Приветствие и «быстрый» круг знакомства. Нас девять, и мы все знакомы.
+10:05 — Показатели третьего квартала. Слайды разошлём после, так что фотографировать экран не нужно.
+10:12 — Региональные планы. По двум мы отстаём. Обсуждать, по каким именно, не будем: ответственный сидит в этой комнате, а совещание не того рода.
+10:20 — Разное.
+10:25 — Задачи и ответственные.
+
+ДО СОВЕЩАНИЯ
+Пожалуйста, прочитайте сводку на одну страницу. Она на одну страницу. Она правда на одну страницу.
+
+ПРАВИЛА
+Если вам нечего добавить, камеру можно не включать и можно молчать. Так можно и всегда было можно.
+«Обсудим это отдельно» значит, что обсудим позже и не при всех. Это не значит, что вопрос закрыт.
+Тот, кто говорит «вернёмся к этому», обязан сказать когда.
+
+ПОСЛЕ СОВЕЩАНИЯ
+Список задач разошлём до конца дня. Если рядом с задачей стоит ваше имя, а вы не согласны, отвечайте на письмо, а не мне в коридоре.`,
+    glossary: [
+      { term: 'sync', ru: 'сверка, короткое регулярное совещание' },
+      { term: 'agenda', ru: 'повестка' },
+      { term: 'to circulate', ru: 'разослать по всем' },
+      { term: 'to be behind on', ru: 'отставать по (плану)' },
+      { term: 'any other business (AOB)', ru: 'разное — последний пункт повестки' },
+      { term: 'action item', ru: 'задача по итогам совещания' },
+      { term: 'to take something offline', ru: 'обсудить отдельно, не при всех' },
+      { term: 'to circle back', ru: 'вернуться к вопросу позже' },
+      { term: 'EOD (end of day)', ru: 'до конца рабочего дня' },
+    ],
+    questions: [
+      {
+        q: 'What does "let\'s take that offline" mean in a meeting?',
+        options: [
+          'Turn off the internet',
+          'We will discuss it separately, not in front of everyone',
+          'The subject is closed',
+          'Write it down',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is there a rule about "let\'s circle back"?',
+        options: [
+          'Because the phrase is rude',
+          'Because without a date it usually means the subject is quietly dropped',
+          'Because it is American slang',
+          'Because it takes too long to say',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the "(11:15)" after the scheduled end time tell you?',
+        options: [
+          'The room is booked until then',
+          'The meeting is expected to overrun',
+          'A second meeting starts then',
+          'It is a typo',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is an "action item"?',
+        options: [
+          'A point on the agenda',
+          'A task with a person responsible for it',
+          'A slide',
+          'A question from the audience',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-office-3',
+    workId: 'the-office-us',
+    lang: 'en', title: 'Аттестация сотрудника', level: 'B2', minutes: 3,
+    topic: 'Обратная связь', skill: 'Чтение',
+    order: 3, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Ежегодная аттестация — то место, где английская вежливость становится техническим языком: у каждой формулировки есть точный смысл и цена. Ниже наш заполненный бланк. «Meets expectations» — это не похвала, а средняя оценка; «areas for improvement» — это раздел, где написано, что не так.',
+    after: 'Ответ сотрудника и реакция руководителя в конце — тоже жанр: возражение принимают («noted»), по существу отклоняют и тут же делают маленькую уступку, чтобы разговор закончился хорошо.',
+    body: `ANNUAL PERFORMANCE REVIEW — SALES
+
+Employee: (name withheld)
+Reviewer: Regional Manager
+Overall rating: Meets expectations
+
+STRENGTHS
+Consistently exceeds his call targets. Clients ask for him by name, which is rare and which we should not take for granted.
+
+AREAS FOR IMPROVEMENT
+Punctuality. Arrived after 9:15 on thirty-one occasions this year and, when asked, gave thirty-one different reasons, none of which was traffic. That is at least creative.
+Paperwork is submitted late and occasionally on the back of other paperwork.
+
+GOALS FOR NEXT YEAR
+1. Submit expense reports within five working days. (This was last year's goal. It has been carried over.)
+2. Train one new member of the team. This is not a punishment. It is because you are good at the part of the job that cannot be written down.
+
+EMPLOYEE COMMENTS
+"I feel that the punctuality section does not reflect the fact that I stay late. I would also like it noted that the coffee machine on our floor has been broken since March and that this is relevant."
+
+REVIEWER RESPONSE
+Noted. The coffee machine is not relevant. It is, however, being replaced.`,
+    translation: `ЕЖЕГОДНАЯ АТТЕСТАЦИЯ — ОТДЕЛ ПРОДАЖ
+
+Сотрудник: (имя не указано)
+Проверяющий: региональный руководитель
+Общая оценка: соответствует ожиданиям
+
+СИЛЬНЫЕ СТОРОНЫ
+Стабильно перевыполняет план по звонкам. Клиенты спрашивают его по имени — это редкость, и принимать её как должное не следует.
+
+ЧТО СЛЕДУЕТ УЛУЧШИТЬ
+Пунктуальность. За год тридцать один раз пришёл позже 9:15 и на вопрос «почему» назвал тридцать одну разную причину, ни одна из которых не была «пробки». Это по меньшей мере изобретательно.
+Документы сдаёт с опозданием, а иногда — на обороте других документов.
+
+ЦЕЛИ НА СЛЕДУЮЩИЙ ГОД
+1. Сдавать авансовые отчёты в течение пяти рабочих дней. (Это была цель прошлого года. Она перенесена.)
+2. Обучить одного новичка. Это не наказание. Это потому, что вы хороши в той части работы, которую нельзя изложить письменно.
+
+КОММЕНТАРИЙ СОТРУДНИКА
+«Считаю, что раздел о пунктуальности не отражает того, что я задерживаюсь по вечерам. Также прошу зафиксировать, что кофемашина на нашем этаже сломана с марта и что это имеет отношение к делу».
+
+ОТВЕТ РУКОВОДИТЕЛЯ
+Принято к сведению. Кофемашина отношения к делу не имеет. Её, впрочем, меняют.`,
+    glossary: [
+      { term: 'performance review', ru: 'аттестация, оценка работы' },
+      { term: 'meets expectations', ru: 'соответствует ожиданиям — средняя оценка' },
+      { term: 'to exceed a target', ru: 'перевыполнить план' },
+      { term: 'to take for granted', ru: 'принимать как должное' },
+      { term: 'areas for improvement', ru: 'что следует улучшить' },
+      { term: 'to carry over', ru: 'перенести на следующий период' },
+      { term: 'expense report', ru: 'авансовый отчёт' },
+      { term: 'noted', ru: 'принято к сведению' },
+    ],
+    questions: [
+      {
+        q: 'Is "meets expectations" praise?',
+        options: [
+          'Yes, it is the highest rating',
+          'No, it is the middle rating — the job is done, nothing more',
+          'It means the employee failed',
+          'It is not a rating at all',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "carried over" tell you about goal 1?',
+        options: [
+          'It is a new goal',
+          'It was set last year and was not achieved',
+          'It has been cancelled',
+          'It was achieved early',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is training a new colleague not a punishment, according to the reviewer?',
+        options: [
+          'Because it is paid extra',
+          'Because the employee is good at the part of the job that cannot be written down',
+          'Because everyone has to do it',
+          'Because it is easy',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the reviewer\'s "Noted." do?',
+        options: [
+          'Accepts the objection',
+          'Records the objection without agreeing with it',
+          'Rejects it rudely',
+          'Asks for more detail',
+        ],
+        correct: 1,
+        why: 'Noted — «принято к сведению». Формально вежливо, по существу ничего не обещает; в переписке это очень частый ответ.',
+      },
+    ],
+  },
 ]

@@ -16,6 +16,7 @@ import {
 } from '../data/taskBankData'
 import MultiSelectField from '../components/MultiSelectField'
 import { copyToClipboard } from '../lib/clipboard'
+import { useScrollLock } from '../lib/useScrollLock'
 import { trackEvent } from '../lib/analytics'
 // Дедуп trainer_open: dual-layout монтирует TaskBankPage дважды.
 let lastTrainerOpen = 0
@@ -108,7 +109,11 @@ function FilterField({ label, options, value, onChange, accent }: {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
   const shown = query ? options.filter(o => o.toLowerCase().includes(query.toLowerCase())) : options
+
+  // Пока список открыт, фон не крутится — сам список скроллится (ScrollFade).
+  useScrollLock(open, menuRef)
 
   return (
     <div style={{ position: 'relative' }}>
@@ -165,6 +170,7 @@ function FilterField({ label, options, value, onChange, accent }: {
 
       {open && (
         <motion.div
+          ref={menuRef}
           initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.12 }}
           style={{
             // Float over the filters below instead of pushing them down — a glass
@@ -1992,8 +1998,8 @@ export default function TaskBankPage() {
         {/* Filters sheet */}
         <MobileSheet open={sheet === 'filters'} onClose={() => setSheet(null)} title={t('Фильтры')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <MultiSelectField label={t('Раздел')} options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} />
-            <MultiSelectField label={t('Тема')} options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} />
+            <MultiSelectField label={t('Раздел')} options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
+            <MultiSelectField label={t('Тема')} options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
             <div style={{ display: 'flex', gap: 8 }}>
               {['1', '2'].map(p => {
                 const active = parts.includes(p)
@@ -2010,7 +2016,7 @@ export default function TaskBankPage() {
                 </button>
               )})}
             </div>
-            <MultiSelectField label={t('Линия')} options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} />
+            <MultiSelectField label={t('Линия')} options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
             <FilterField label={t('Источник')} options={allSources} value={source} onChange={setSource} accent={palette.accent} />
             <MobileStatusTabs value={statusFilter} onChange={setStatusFilter} accent={palette.accent} />
             {/* Always reserve the button's slot so toggling filters doesn't
@@ -2221,7 +2227,7 @@ export default function TaskBankPage() {
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Фильтры')}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <MultiSelectField label={t('Раздел')} options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} />
+            <MultiSelectField label={t('Раздел')} options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
             <AnimatePresence>
               {sections.length > 0 && subject === 'biology' && (
                 <SuggestBox
@@ -2232,7 +2238,7 @@ export default function TaskBankPage() {
                 />
               )}
             </AnimatePresence>
-            <MultiSelectField label={t('Тема')} options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} />
+            <MultiSelectField label={t('Тема')} options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
             <div style={{ display: 'flex', gap: 6 }}>
               {['1', '2'].map(p => {
                 const active = parts.includes(p)
@@ -2250,7 +2256,7 @@ export default function TaskBankPage() {
                 </button>
               )})}
             </div>
-            <MultiSelectField label={t('Линия')} options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} />
+            <MultiSelectField label={t('Линия')} options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
             <FilterField label={t('Источник')} options={allSources}  value={source}  onChange={setSource} accent={palette.accent} />
           </div>
           {hasFilters && (

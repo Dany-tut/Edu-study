@@ -687,6 +687,30 @@ function TrackForSubject({ subject }: { subject: Subject }) {
   )
 }
 
+/**
+ * Название курса → одна или две строки примерно равной длины.
+ *
+ * Делит по словам в месте, где длиннейшая из строк минимальна: «Английский для
+ * дизайнера» + «— от письма до оффера», а не «Английский для дизайнера — от
+ * письма до» + «оффера». Короткие названия остаются одной строкой — вторая
+ * строка ради двух слов делает пилюлю выше без пользы.
+ */
+const TITLE_ONE_LINE = 24
+
+function balanceTitle(name: string): string[] {
+  const words = name.trim().split(/\s+/)
+  if (name.length <= TITLE_ONE_LINE || words.length < 2) return [name]
+  let best = [name]
+  let bestWidth = Infinity
+  for (let i = 1; i < words.length; i++) {
+    const a = words.slice(0, i).join(' ')
+    const b = words.slice(i).join(' ')
+    const width = Math.max(a.length, b.length)
+    if (width < bestWidth) { bestWidth = width; best = [a, b] }
+  }
+  return best
+}
+
 export default function CourseTrack() {
   const t = useT()
   const { activeSubjectId, setActiveSubject } = useDashboard()
@@ -787,28 +811,39 @@ export default function CourseTrack() {
                   строку три-четыре таких курса съедают всю ширину: остальные
                   уезжают за фейд, и переключаться приходится вслепую. Перенос
                   режет ширину пилюли вдвое — на экран влезает вдвое больше
-                  курсов. text-wrap: balance, чтобы строки были одной длины, а не
-                  «длинная плюс одно слово».
+                  курсов.
 
-                  Процент — внутри той же строки текста, а не соседним флекс-
+                  Строки режем сами (balanceTitle), а не браузерным переносом:
+                  автоперенос внутри коробки maxWidth: 200 оставляет коробку
+                  двухсотпиксельной, даже когда обе строки короче — короткое
+                  название висело в левом углу пустой пилюли. Свои nowrap-строки
+                  дают ширину по самой длинной из них, и пилюля обнимает текст.
+
+                  Процент — хвостом последней строки, а не соседним флекс-
                   элементом: отдельный элемент прижимался бы к правому краю
-                  двухсотпиксельной коробки, и у короткого названия между ним и
-                  словом зияла бы дыра в полпилюли. */}
+                  коробки, и у короткого названия между ним и словом зияла бы
+                  дыра в полпилюли. */}
               <span
                 style={{
                   position: 'relative', zIndex: 1,
-                  maxWidth: 200,
-                  textAlign: 'left',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  textAlign: 'center',
                   lineHeight: 1.25,
-                  textWrap: 'balance',
-                  display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2,
-                  overflow: 'hidden',
                 }}
               >
-                {s.name}{' '}
-                <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-purple)', whiteSpace: 'nowrap' }}>
-                  {subjectPct}%
-                </span>
+                {balanceTitle(s.name).map((line, i, lines) => (
+                  <span
+                    key={i}
+                    style={{ whiteSpace: 'nowrap', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis' }}
+                  >
+                    {line}
+                    {i === lines.length - 1 && (
+                      <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-purple)' }}>
+                        {' '}{subjectPct}%
+                      </span>
+                    )}
+                  </span>
+                ))}
               </span>
             </motion.button>
           )
