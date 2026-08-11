@@ -3746,4 +3746,787 @@ If you get something wrong, nobody will tell you. That is not the same as nobody
       },
     ],
   },
+
+  // ── Разделение: карточка, наш текст ────────────────────────────────────────
+  //
+  // bucket: 'inspired'. Компания, устав и отдел здесь наши. От сериала — один
+  // приём: правило, сформулированное как забота о сотруднике.
+  {
+    id: 'sc-sev-1',
+    workId: 'severance',
+    lang: 'en', title: 'Выдержка из устава', level: 'B2', minutes: 3,
+    topic: 'Работа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В сериале у сотрудников есть свод правил, написанный так, будто их любят. Ниже наша выдержка из такого устава. Читать её стоит с одним вопросом к каждому пункту: что здесь сказано на самом деле? Приём везде один — запрет подан как забота, и в английском для этого есть готовые обороты: «we ask that», «at this time», «is not permitted».',
+    after: 'Самый показательный пункт — последний. «Дверь вашего руководителя всегда открыта» и тут же «просьба записаться заранее» — то есть открыта она ровно настолько, насколько закрыта. По-английски это называется velvet no, вежливый отказ.',
+    body: `EMPLOYEE HANDBOOK — SECTION 4: LIFE ON THE FLOOR
+
+4.1 Your wellbeing
+Your wellbeing is our first concern. For this reason we ask that personal items be kept to a single shelf. A tidy desk has been shown to reduce anxiety, and anxiety is not something we wish for you.
+
+4.2 Breaks
+You are entitled to two breaks. Breaks are taken in the break room, which is provided for that purpose and is monitored for your safety. Breaks taken elsewhere cannot be recorded, and unrecorded breaks are treated as absence.
+
+4.3 Questions about your work
+Questions about the nature of your work are natural and welcome. They cannot be answered at this time. This is not a matter of trust; it is a matter of scope.
+
+4.4 Movement between departments
+Movement between departments is not permitted without an escort. This is for your comfort: corridors on this floor are long and are known to be confusing.
+
+4.5 Your supervisor
+Your supervisor's door is always open. Please book a slot in advance so that the time can be given to you properly.
+
+Thank you for reading. Your compliance is appreciated and is, of course, voluntary.`,
+    translation: `ПАМЯТКА СОТРУДНИКА — РАЗДЕЛ 4: ЖИЗНЬ НА ЭТАЖЕ
+
+4.1 Ваше благополучие
+Ваше благополучие — наша первая забота. Поэтому мы просим держать личные вещи в пределах одной полки. Доказано, что порядок на столе снижает тревожность, а тревожности мы вам не желаем.
+
+4.2 Перерывы
+Вам полагаются два перерыва. Перерывы проводятся в комнате отдыха, которая для этого и предусмотрена и за которой ведётся наблюдение — ради вашей безопасности. Перерывы в других местах учесть невозможно, а неучтённый перерыв считается отсутствием.
+
+4.3 Вопросы о вашей работе
+Вопросы о сути вашей работы естественны и приветствуются. Ответить на них в настоящее время нельзя. Дело не в доверии, а в границах полномочий.
+
+4.4 Перемещение между отделами
+Перемещение между отделами без сопровождающего не разрешается. Это ради вашего удобства: коридоры на этом этаже длинные и, как известно, запутанные.
+
+4.5 Ваш руководитель
+Дверь вашего руководителя всегда открыта. Пожалуйста, записывайтесь заранее, чтобы это время могло быть уделено вам как следует.
+
+Спасибо за прочтение. Ваше соблюдение правил ценится и, разумеется, добровольно.`,
+    glossary: [
+      { term: 'wellbeing', ru: 'благополучие, самочувствие' },
+      { term: 'we ask that', ru: 'мы просим (смягчённое требование)' },
+      { term: 'to be entitled to', ru: 'иметь право на' },
+      { term: 'at this time', ru: 'в настоящее время (вежливое «нет»)' },
+      { term: 'scope', ru: 'границы полномочий, охват' },
+      { term: 'is not permitted', ru: 'не разрешается' },
+      { term: 'to book a slot', ru: 'записаться на время' },
+      { term: 'compliance', ru: 'соблюдение правил' },
+    ],
+    questions: [
+      {
+        q: 'What does 4.2 actually establish?',
+        options: [
+          'Two free breaks anywhere',
+          'That a break outside the break room counts as absence',
+          'That breaks are optional',
+          'That breaks are unlimited',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "cannot be answered at this time" really mean?',
+        options: [
+          'The answer is being prepared',
+          'No — phrased so that it does not sound like a refusal',
+          'Ask again tomorrow',
+          'The question was not understood',
+        ],
+        correct: 1,
+        why: 'At this time — вежливая заглушка. В деловой переписке она же: «we are unable to proceed at this time» почти всегда значит «нет».',
+      },
+      {
+        q: 'How is the ban on walking between departments justified?',
+        options: [
+          'By security',
+          'By the employee’s own comfort — the corridors are said to be confusing',
+          'By fire regulations',
+          'It is not justified',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the effect of the last sentence?',
+        options: [
+          'It makes the rules optional',
+          'It calls obedience "voluntary" while the whole text has been giving orders',
+          'It thanks the reader sincerely',
+          'It cancels section 4',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-sev-2',
+    workId: 'severance',
+    lang: 'en', title: 'Поощрение по итогам квартала', level: 'B1', minutes: 2,
+    topic: 'Обратная связь', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Отдельная линия сериала — награды, которые выдают вместо денег и обставляют как большую честь. Ниже наше уведомление о таком поощрении. Лексика тут вполне рабочая и встретится в любой международной компании: in recognition of, eligible, at the discretion of, non-transferable.',
+    after: 'Обратите внимание на сноску мелким шрифтом: награда «не подлежит передаче, обмену и переносу». Настоящий смысл документа всегда лежит в той части, которую набрали кеглем поменьше.',
+    body: `NOTICE OF QUARTERLY RECOGNITION
+
+To: the department
+Re: Q3 performance
+
+In recognition of the department's performance this quarter, management is pleased to announce that the following will be made available on Friday afternoon:
+
+— a fruit platter (seasonal)
+— one (1) hour of music, selected by management
+— an engraved paperweight for the highest individual result
+
+Attendance at the recognition event is not compulsory. It is, however, noted.
+
+Employees are reminded that recognition of this kind is awarded at the discretion of management and does not form part of compensation. The award is non-transferable, cannot be exchanged, and cannot be carried over to a future quarter.
+
+We thank you for a strong quarter and look forward to a stronger one.`,
+    translation: `УВЕДОМЛЕНИЕ О ПООЩРЕНИИ ПО ИТОГАМ КВАРТАЛА
+
+Кому: отделу
+Тема: результаты третьего квартала
+
+В знак признания результатов отдела за этот квартал руководство с удовольствием сообщает, что в пятницу во второй половине дня будут предоставлены:
+
+— фруктовая тарелка (по сезону)
+— один (1) час музыки, выбранной руководством
+— гравированное пресс-папье за лучший индивидуальный результат
+
+Присутствие на мероприятии не обязательно. Однако оно фиксируется.
+
+Напоминаем сотрудникам, что поощрение такого рода назначается по усмотрению руководства и не входит в состав вознаграждения. Награда не подлежит передаче, обмену и переносу на следующий квартал.
+
+Благодарим за сильный квартал и рассчитываем на ещё более сильный.`,
+    glossary: [
+      { term: 'in recognition of', ru: 'в знак признания' },
+      { term: 'to be made available', ru: 'будет предоставлено' },
+      { term: 'compulsory', ru: 'обязательный' },
+      { term: 'it is noted', ru: 'это фиксируется, берётся на заметку' },
+      { term: 'at the discretion of', ru: 'по усмотрению' },
+      { term: 'compensation', ru: 'здесь: совокупное вознаграждение, а не «компенсация»' },
+      { term: 'non-transferable', ru: 'не подлежит передаче' },
+      { term: 'to carry over', ru: 'перенести на следующий период' },
+    ],
+    questions: [
+      {
+        q: 'Is attendance required?',
+        options: [
+          'Yes, it is compulsory',
+          'Formally no — but absence is recorded',
+          'Only for the winner',
+          'The notice does not say',
+        ],
+        correct: 1,
+        why: '«Not compulsory. It is, however, noted» — две фразы, которые вместе означают «приходи». Приём стоит запомнить: он встречается далеко за пределами сериалов.',
+      },
+      {
+        q: 'What does "does not form part of compensation" mean for the employee?',
+        options: [
+          'The award is taxed',
+          'It is not money and does not count as pay',
+          'It replaces the salary',
+          'It is paid separately',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "at the discretion of management" mean?',
+        options: [
+          'Management decides, and does not have to explain',
+          'Management is discreet about it',
+          'The staff vote',
+          'It is automatic',
+        ],
+        correct: 0,
+      },
+    ],
+  },
+
+  // ── Утреннее шоу: карточка, наш текст ──────────────────────────────────────
+  {
+    id: 'sc-tms-1',
+    workId: 'morning-show',
+    lang: 'en', title: 'Суфлёр: первые две минуты эфира', level: 'B2', minutes: 3,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'То, что ведущий произносит гладко и как бы от себя, лежит перед ним на суфлёре — вместе со служебными пометками, которые в эфир не идут. Ниже наш такой текст. Полезен он двойной оптикой: сам эфирный английский (короткие предложения, настоящее время в заголовках) и режиссёрская разметка вокруг него.',
+    after: 'Приём, который стоит заметить: «мы вернёмся к этому после перерыва» — не обещание, а способ уйти от темы, не сказав «не будем это обсуждать». В эфирной речи такие формулы делают всю работу.',
+    body: `[ROLL OPENING TITLES — 12 SEC]
+[CAM 2 — WIDE, THEN PUSH IN]
+
+GOOD MORNING. IT IS TUESDAY THE ELEVENTH, AND HERE IS WHAT WE ARE FOLLOWING TODAY.
+
+THE STORM THAT CLOSED THE COAST ROAD OVERNIGHT IS MOVING INLAND. WE ARE LIVE IN THE HARBOUR IN A MOMENT.
+
+THE TRANSPORT BILL GOES BACK TO COMMITTEE THIS AFTERNOON. WE WILL EXPLAIN, IN PLAIN LANGUAGE, WHAT WOULD ACTUALLY CHANGE FOR YOU.
+
+AND LATER: THE SCHOOL THAT PUT ITS ENTIRE LIBRARY ON A BUS.
+
+[PAUSE — SMILE — DO NOT RUSH THIS]
+
+BUT WE BEGIN WITH THE STORM.
+[TAKE VT — 00:47]
+[BACK TO CAM 1 ON VT OUT]
+
+FOR THOSE OF YOU JUST JOINING US: NO INJURIES HAVE BEEN REPORTED, AND THE ROAD IS EXPECTED TO REOPEN BY MIDDAY.
+
+[FLOOR: guest is not miked yet — HOLD 15 SEC, stretch]
+
+WE WILL HAVE MUCH MORE ON THAT THROUGHOUT THE MORNING. WE WILL ALSO COME BACK, AFTER THE BREAK, TO THE QUESTION EVERYONE HAS BEEN ASKING US SINCE FRIDAY.
+
+[BREAK — 2:30]`,
+    translation: `[ЗАСТАВКА — 12 СЕК]
+[КАМЕРА 2 — ОБЩИЙ, ЗАТЕМ НАЕЗД]
+
+ДОБРОЕ УТРО. СЕГОДНЯ ВТОРНИК, ОДИННАДЦАТОЕ, И ВОТ ЧТО МЫ СЕГОДНЯ ОТСЛЕЖИВАЕМ.
+
+ШТОРМ, ИЗ-ЗА КОТОРОГО НОЧЬЮ ЗАКРЫЛИ ПРИБРЕЖНОЕ ШОССЕ, УХОДИТ ВГЛУБЬ МАТЕРИКА. ЧЕРЕЗ МИНУТУ — ПРЯМОЕ ВКЛЮЧЕНИЕ ИЗ ПОРТА.
+
+ЗАКОНОПРОЕКТ О ТРАНСПОРТЕ СЕГОДНЯ ДНЁМ ВОЗВРАЩАЕТСЯ В КОМИТЕТ. МЫ ОБЪЯСНИМ ПРОСТЫМИ СЛОВАМИ, ЧТО ИЗМЕНИТСЯ ИМЕННО ДЛЯ ВАС.
+
+И ПОЗЖЕ: ШКОЛА, КОТОРАЯ ПЕРЕВЕЗЛА ВСЮ СВОЮ БИБЛИОТЕКУ В АВТОБУС.
+
+[ПАУЗА — УЛЫБКА — НЕ ТОРОПИТЬСЯ]
+
+НО НАЧИНАЕМ МЫ СО ШТОРМА.
+[СЮЖЕТ — 00:47]
+[ПОСЛЕ СЮЖЕТА — КАМЕРА 1]
+
+ДЛЯ ТЕХ, КТО ТОЛЬКО ЧТО К НАМ ПРИСОЕДИНИЛСЯ: О ПОСТРАДАВШИХ НЕ СООБЩАЛОСЬ, ДОРОГУ РАССЧИТЫВАЮТ ОТКРЫТЬ К ПОЛУДНЮ.
+
+[СТУДИЯ: гостю не поставили микрофон — ТЯНЕМ 15 СЕК]
+
+МЫ БУДЕМ ВОЗВРАЩАТЬСЯ К ЭТОМУ В ТЕЧЕНИЕ ВСЕГО УТРА. А ПОСЛЕ ПЕРЕРЫВА ВЕРНЁМСЯ К ВОПРОСУ, КОТОРЫЙ ВЫ ЗАДАЁТЕ НАМ С ПЯТНИЦЫ.
+
+[РЕКЛАМА — 2:30]`,
+    glossary: [
+      { term: 'to push in', ru: 'наезд камеры' },
+      { term: 'to go back to committee', ru: 'вернуться на рассмотрение комитета' },
+      { term: 'in plain language', ru: 'простыми словами' },
+      { term: 'VT (videotape)', ru: 'заранее снятый сюжет' },
+      { term: 'for those of you just joining us', ru: 'для тех, кто только что присоединился' },
+      { term: 'no injuries have been reported', ru: 'о пострадавших не сообщалось' },
+      { term: 'to be miked', ru: 'быть с надетым микрофоном' },
+      { term: 'to stretch', ru: 'тянуть время в эфире' },
+    ],
+    questions: [
+      {
+        q: 'What is the difference between the lines in capitals and the lines in brackets?',
+        options: [
+          'None — it is all read out',
+          'Capitals are spoken on air; brackets are instructions for the studio',
+          'Brackets are read more quietly',
+          'Capitals are the guest’s words',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the script say "HOLD 15 SEC, stretch"?',
+        options: [
+          'The presenter is tired',
+          'The guest has no microphone yet, so the presenter must keep talking',
+          'There is a technical fault in the camera',
+          'The break is early',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"No injuries have been reported" is careful because…',
+        options: [
+          'It says nobody was hurt',
+          'It only says that no injuries have been reported so far — not that there are none',
+          'It is in the past tense',
+          'It names a source',
+        ],
+        correct: 1,
+        why: 'Именно так новости страхуются: сообщают не о факте, а о состоянии сведений. Та же логика в «is expected to reopen».',
+      },
+      {
+        q: 'What does the last line before the break really do?',
+        options: [
+          'Promises an answer',
+          'Postpones an uncomfortable subject while sounding like a promise',
+          'Announces the weather',
+          'Thanks the audience',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-tms-2',
+    workId: 'morning-show',
+    lang: 'en', title: 'Заявление для прессы', level: 'B2', minutes: 3,
+    topic: 'Обратная связь', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Отдельный жанр английского — извинение, в котором никто ни в чём не признаётся. Ниже наше заявление канала. Разбирать его надо по глаголам: где действие названо, а где оно осталось без исполнителя. «Mistakes were made» — самая известная фраза этого жанра, и она построена ровно на этом.',
+    after: 'Сравните два абзаца в конце. Про сотрудника сказано «принял решение уйти» — то есть решил сам; про канал сказано «мы сожалеем о том, как это было воспринято» — то есть сожалеем не о поступке, а о реакции. Оба оборота стоит уметь узнавать.',
+    body: `STATEMENT FROM THE NETWORK
+
+We are aware of the reports published this morning and we take them seriously.
+
+Mistakes were made in how the matter was handled internally, and processes that should have caught it did not. A review has been commissioned and will report before the end of the quarter. We will not be commenting further while that review is ongoing.
+
+We want to be clear that the standards our audience expects of us are the standards we expect of ourselves. Where we have fallen short of them, we regret how that has been experienced by those affected.
+
+The individual concerned has decided to step down in order to focus on personal matters, and we thank them for their years of service.
+
+We will have more to say when we are able to.`,
+    translation: `ЗАЯВЛЕНИЕ ТЕЛЕКАНАЛА
+
+Нам известно о публикациях, вышедших сегодня утром, и мы относимся к ним серьёзно.
+
+При внутреннем разбирательстве были допущены ошибки, а процедуры, которые должны были это выявить, не сработали. Назначена проверка, результаты которой будут представлены до конца квартала. Пока проверка идёт, дальнейших комментариев мы давать не будем.
+
+Мы хотим ясно сказать: те стандарты, которых от нас ждёт зритель, — это те же стандарты, которых мы ждём от себя. Там, где мы им не соответствовали, мы сожалеем о том, как это было пережито затронутыми людьми.
+
+Соответствующий сотрудник принял решение уйти, чтобы сосредоточиться на личных обстоятельствах, и мы благодарим его за годы работы.
+
+Мы скажем больше, когда сможем.`,
+    glossary: [
+      { term: 'mistakes were made', ru: 'были допущены ошибки (без указания кем)' },
+      { term: 'to handle a matter', ru: 'вести, разбирать вопрос' },
+      { term: 'to commission a review', ru: 'назначить проверку' },
+      { term: 'ongoing', ru: 'продолжающийся, идущий' },
+      { term: 'to fall short of', ru: 'не дотягивать до' },
+      { term: 'those affected', ru: 'затронутые, пострадавшие' },
+      { term: 'to step down', ru: 'уйти с должности' },
+      { term: 'the individual concerned', ru: 'соответствующее лицо (безымянно)' },
+    ],
+    questions: [
+      {
+        q: 'Who made the mistakes, according to the statement?',
+        options: [
+          'The management',
+          'Nobody is named — the passive voice removes the actor',
+          'The audience',
+          'The press',
+        ],
+        correct: 1,
+        why: 'Mistakes were made — учебниковый пример «извинения без виноватого». Действие есть, исполнителя нет.',
+      },
+      {
+        q: 'What exactly is the network sorry about?',
+        options: [
+          'What it did',
+          'How what it did was experienced by others',
+          'The publication of the reports',
+          'Nothing at all',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Was the individual dismissed?',
+        options: [
+          'Yes, the statement says so',
+          'The statement says they decided to step down — which is not the same thing',
+          'They were promoted',
+          'They are still in post',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the function of "we will not be commenting while the review is ongoing"?',
+        options: [
+          'It promises transparency',
+          'It provides a reason for answering nothing else, for as long as needed',
+          'It sets a deadline',
+          'It invites questions',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Кремниевая долина: карточка, наш текст ─────────────────────────────────
+  {
+    id: 'sc-sv-1',
+    workId: 'silicon-valley',
+    lang: 'en', title: 'Питч на три минуты', level: 'B2', minutes: 3,
+    topic: 'Работа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Питч — жанр с жёсткой формой: проблема, решение, цифры, деньги, просьба. Ниже наш текст в этой форме, вымышленная компания. Лексика здесь та, которую спросят на любом собеседовании в продукт: traction, runway, churn, unit economics. Ни одно из этих слов не значит того, что подсказывает словарь.',
+    after: 'Обратите внимание на предпоследний абзац: сильный питч сам называет своё слабое место раньше инвестора. По-английски это оформляется как «the honest part» или «what keeps me up at night» — и работает лучше, чем попытка эту дыру спрятать.',
+    body: `Three minutes. I will use two.
+
+The problem. A mid-size logistics company runs about four hundred deliveries a day and knows where roughly three hundred of them are. The remaining hundred are found by phoning drivers. Everybody in this industry does this, and everybody assumes it is normal.
+
+What we built. One line of code in their existing system, and every parcel reports itself. No new hardware, no new app for the driver, nothing for anyone to remember to do.
+
+Traction. Eleven paying customers, up from four in January. Ninety-one thousand in annual recurring revenue. Net churn is negative — our existing customers grew faster than the two we lost.
+
+Unit economics. We spend about eleven hundred to win a customer and we make that back in five months. That number was fourteen months a year ago, and the change is the whole reason I am in this room.
+
+The honest part. We have one customer who is nineteen per cent of revenue. If they leave, this quarter looks very different. We are working on it and I would rather you heard it from me.
+
+The ask. Two million for eighteen months of runway. Half goes to two engineers, half to a sales team of exactly one, because we have proved we can sell it and not that we can market it.
+
+That is two minutes. Questions.`,
+    translation: `Три минуты. Я потрачу две.
+
+Проблема. Логистическая компания средних размеров делает около четырёхсот доставок в день и знает, где находятся примерно триста из них. Оставшуюся сотню ищут, обзванивая водителей. Так делают все в этой отрасли, и все считают, что это нормально.
+
+Что мы сделали. Одна строчка кода в их действующей системе — и каждая посылка сама сообщает, где она. Никакого нового оборудования, никакого нового приложения для водителя, ничего, что кому-то нужно было бы не забыть сделать.
+
+Тяга. Одиннадцать платящих клиентов против четырёх в январе. Девяносто одна тысяча годовой повторяющейся выручки. Отток отрицательный: имеющиеся клиенты выросли быстрее, чем ушли те двое.
+
+Юнит-экономика. На привлечение клиента мы тратим около тысячи ста и возвращаем это за пять месяцев. Год назад этот срок был четырнадцать месяцев, и именно это изменение — причина, по которой я здесь.
+
+Честная часть. У нас есть клиент, дающий девятнадцать процентов выручки. Если он уйдёт, квартал будет выглядеть совсем иначе. Мы над этим работаем, и я предпочту, чтобы вы услышали это от меня.
+
+Запрос. Два миллиона на восемнадцать месяцев жизни. Половина — на двух инженеров, половина — на отдел продаж ровно из одного человека, потому что мы доказали, что умеем это продавать, а не что умеем это продвигать.
+
+Это две минуты. Вопросы.`,
+    glossary: [
+      { term: 'traction', ru: 'тяга: подтверждённый рост спроса' },
+      { term: 'ARR (annual recurring revenue)', ru: 'годовая повторяющаяся выручка' },
+      { term: 'churn', ru: 'отток клиентов' },
+      { term: 'unit economics', ru: 'экономика одного клиента' },
+      { term: 'to win a customer', ru: 'привлечь клиента' },
+      { term: 'runway', ru: 'запас денег до конца — на сколько месяцев хватит' },
+      { term: 'the ask', ru: 'запрос: сколько просим и на что' },
+      { term: 'to sell vs to market', ru: 'продать лично vs продвигать на рынке' },
+    ],
+    questions: [
+      {
+        q: 'What does "runway" mean here?',
+        options: [
+          'A landing strip',
+          'How many months the company can operate on the money it has',
+          'A product roadmap',
+          'A sales channel',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "net churn is negative" mean?',
+        options: [
+          'The company is losing money',
+          'Growth from existing customers is bigger than the revenue lost with those who left',
+          'No customers left',
+          'The figure is an error',
+        ],
+        correct: 1,
+        why: 'Отрицательный отток — сильный показатель: оставшиеся клиенты платят больше, чем унесли ушедшие.',
+      },
+      {
+        q: 'Why does the speaker mention the customer worth nineteen per cent of revenue?',
+        options: [
+          'To boast',
+          'To name the main risk before the investors find it themselves',
+          'To explain the price',
+          'By mistake',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the difference between "we can sell it" and "we can market it"?',
+        options: [
+          'None',
+          'Selling is one-to-one and proved; marketing is reaching a market and is not proved yet',
+          'Marketing is cheaper',
+          'Selling means exporting',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-sv-2',
+    workId: 'silicon-valley',
+    lang: 'en', title: 'Стендап в 9:45', level: 'B1', minutes: 2,
+    topic: 'Переписка и созвоны', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'flash', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Ежедневный стендап — самая частая рабочая ситуация в IT и в продуктовых командах: пятнадцать минут, три вопроса, все стоят. Ниже наши записи такого стендапа. Форма жёсткая, поэтому язык предсказуемый — и выучив его один раз, вы поймёте любой стендап на английском.',
+    after: 'Главное слово здесь — blocker: то, из-за чего человек не может двигаться дальше сам. На стендапе про блокеры говорят вслух, но не решают их — решают после, вдвоём. Именно это имеет в виду последняя строка.',
+    body: `STANDUP — TUE 9:45 — 15 MIN — WE STAND, IT KEEPS IT SHORT
+
+MAYA
+Yesterday: finished the import, wrote the tests.
+Today: the export, same shape.
+Blockers: none.
+
+DEV
+Yesterday: chased the bug from Friday. It is not our bug, it is in the library.
+Today: pin the version, open an issue upstream, move on.
+Blockers: I need someone to approve the pin because it touches the build.
+
+PRIYA
+Yesterday: talked to four users, three said the same thing about the second screen.
+Today: writing that up, then design review at two.
+Blockers: waiting on staging. It has been down since Monday.
+
+TOM
+Yesterday: mostly interviews.
+Today: mostly interviews.
+Blockers: none, unless you count the interviews.
+
+ACTIONS
+— Dev's pin: I will approve it after this.
+— Staging: Maya to look, fifteen minutes, not more.
+— Priya's finding goes on the agenda for Thursday, not now.
+
+Anything else is a two-person conversation. Take it after the call, not during it.`,
+    translation: `СТЕНДАП — ВТ 9:45 — 15 МИН — СТОИМ, ТАК КОРОЧЕ
+
+МАЙЯ
+Вчера: доделала импорт, написала тесты.
+Сегодня: экспорт, та же структура.
+Блокеры: нет.
+
+ДЕВ
+Вчера: догонял баг с пятницы. Баг не наш, он в библиотеке.
+Сегодня: зафиксирую версию, заведу задачу у них, иду дальше.
+Блокеры: нужно, чтобы кто-то согласовал фиксацию версии — она задевает сборку.
+
+ПРИЯ
+Вчера: поговорила с четырьмя пользователями, трое сказали одно и то же про второй экран.
+Сегодня: оформляю это, потом в два — разбор макетов.
+Блокеры: жду стенд. Он лежит с понедельника.
+
+ТОМ
+Вчера: в основном собеседования.
+Сегодня: в основном собеседования.
+Блокеры: нет, если не считать собеседований.
+
+ЧТО ДЕЛАЕМ
+— Фиксация версии у Дева: согласую сразу после стендапа.
+— Стенд: Майя посмотрит, пятнадцать минут, не больше.
+— Находку Приши выносим на четверг, не сейчас.
+
+Всё остальное — разговор на двоих. Обсуждайте после созвона, а не во время.`,
+    glossary: [
+      { term: 'standup', ru: 'короткая ежедневная планёрка' },
+      { term: 'blocker', ru: 'то, из-за чего нельзя двигаться дальше' },
+      { term: 'to chase a bug', ru: 'догонять, вылавливать ошибку' },
+      { term: 'upstream', ru: 'в исходном проекте, у авторов библиотеки' },
+      { term: 'to pin a version', ru: 'зафиксировать версию' },
+      { term: 'staging', ru: 'тестовый стенд, копия боевого' },
+      { term: 'to write something up', ru: 'оформить в виде документа' },
+      { term: 'to be down', ru: 'не работать, лежать (о сервисе)' },
+    ],
+    questions: [
+      {
+        q: 'What are the three things each person reports?',
+        options: [
+          'Mood, plans, holidays',
+          'Yesterday, today, blockers',
+          'Sales, costs, risks',
+          'Bugs, tests, releases',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is Dev\'s blocker?',
+        options: [
+          'The bug itself',
+          'He needs approval because pinning the version affects the build',
+          'He has no computer',
+          'The library is closed',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"Staging has been down since Monday" means…',
+        options: [
+          'The test environment has not worked since Monday',
+          'The stage was taken away',
+          'The team went down a level',
+          'The release was on Monday',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'What is the rule stated in the last line?',
+        options: [
+          'Do not speak at all',
+          'Anything that concerns only two people is discussed after the meeting',
+          'Everything must be decided now',
+          'Write everything down',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Чернобыль: карточка, наш текст ─────────────────────────────────────────
+  //
+  // bucket: 'inspired'. Речь идёт о реальной катастрофе, поэтому здесь особенно
+  // важно: станция, город и цифры вымышлены, реальных лиц и событий в текстах
+  // нет. От сериала — два регистра: технический доклад и успокоительное
+  // объявление, между которыми и лежит вся его суть.
+  {
+    id: 'sc-chern-1',
+    workId: 'chernobyl',
+    lang: 'en', title: 'Донесение с объекта', level: 'B2', minutes: 3,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Первая серия держится на одном: прибор показывает максимум своей шкалы, и это записывают как «максимум прибора», а не как «мы не знаем сколько». Ниже наше донесение в том же жанре, станция вымышленная. Читать стоит ради технического английского — единицы, допуски, «в пределах», «не превышает» — и ради того, как в такой форме прячут незнание.',
+    after: 'Ключ ко всему тексту — пункт 5. Прибор рассчитан на определённый предел; если он показывает предел, это не значит, что там ровно столько, — это значит, что измерять надо другим прибором. Донесение выбирает первое прочтение.',
+    body: `INCIDENT REPORT — 01:47 — SHIFT SUPERVISOR TO DUTY OFFICER
+
+1. At 01:23 a pressure excursion occurred in the secondary circuit of Unit 2. The turbine hall was evacuated within four minutes. All shift personnel are accounted for.
+
+2. Two operators were taken to the medical point with burns. A third reports a metallic taste and has been advised to rest. He has not been withdrawn from duty at this stage.
+
+3. Water supply to the affected circuit has been restored and is being maintained manually. Pressure is stable and has remained within the permitted range for the last twenty minutes.
+
+4. There is damage to the roof of the turbine hall. Debris has been observed on the ground to the north of the building. Personnel have been instructed not to approach it.
+
+5. Radiological measurement: the dosimeter available on shift reads 3.6 roentgen per hour. This is the upper limit of the instrument. A higher-range instrument has been requested from stores and has not yet been located. The figure of 3.6 is therefore reported as measured.
+
+6. In the assessment of this shift, the situation is contained and does not require notification beyond the plant at this time.
+
+Signed, shift supervisor, Unit 2.`,
+    translation: `ДОНЕСЕНИЕ О ПРОИСШЕСТВИИ — 01:47 — НАЧАЛЬНИК СМЕНЫ ДЕЖУРНОМУ
+
+1. В 01:23 во втором контуре блока № 2 произошёл скачок давления. Машинный зал эвакуирован в течение четырёх минут. Весь персонал смены на месте, все учтены.
+
+2. Двое операторов доставлены в медпункт с ожогами. Третий сообщает о металлическом привкусе во рту, ему рекомендован покой. Со смены на данном этапе он не снят.
+
+3. Подача воды в повреждённый контур восстановлена и поддерживается вручную. Давление стабильно и последние двадцать минут остаётся в допустимых пределах.
+
+4. Имеются повреждения кровли машинного зала. К северу от здания на земле замечены обломки. Персоналу указано к ним не приближаться.
+
+5. Радиационные измерения: имеющийся на смене дозиметр показывает 3,6 рентгена в час. Это верхний предел прибора. Прибор с большим диапазоном запрошен со склада и пока не найден. Значение 3,6 приводится как измеренное.
+
+6. По оценке смены, обстановка локализована и не требует оповещения за пределы станции в настоящее время.
+
+Подпись: начальник смены блока № 2.`,
+    glossary: [
+      { term: 'to be accounted for', ru: 'быть учтённым, найденным' },
+      { term: 'to withdraw from duty', ru: 'снять со смены' },
+      { term: 'within the permitted range', ru: 'в допустимых пределах' },
+      { term: 'debris', ru: 'обломки' },
+      { term: 'upper limit of the instrument', ru: 'верхний предел шкалы прибора' },
+      { term: 'higher-range', ru: 'с большим диапазоном измерения' },
+      { term: 'contained', ru: 'локализованный, взятый под контроль' },
+      { term: 'at this time', ru: 'на данный момент (осторожная оговорка)' },
+    ],
+    questions: [
+      {
+        q: 'What does point 5 actually say about the radiation level?',
+        options: [
+          'It is 3.6 roentgen per hour',
+          'It is at least 3.6 — the instrument cannot show more',
+          'It is below normal',
+          'It was not measured',
+        ],
+        correct: 1,
+        why: 'Прибор упёрся в потолок шкалы. «The upper limit of the instrument» — это не результат измерения, а его отсутствие.',
+      },
+      {
+        q: 'Why does the report say "the figure of 3.6 is therefore reported as measured"?',
+        options: [
+          'To confirm accuracy',
+          'To pass on the number without taking responsibility for what it means',
+          'To request a new instrument',
+          'To close the incident',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What happened to the third operator?',
+        options: [
+          'He was sent home',
+          'He reports a metallic taste, was told to rest, and is still on duty',
+          'He was taken to hospital',
+          'He is missing',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "does not require notification beyond the plant" mean?',
+        options: [
+          'Nobody outside the station needs to be told',
+          'The plant will be closed',
+          'The report is confidential',
+          'The shift is over',
+        ],
+        correct: 0,
+      },
+    ],
+  },
+  {
+    id: 'sc-chern-2',
+    workId: 'chernobyl',
+    lang: 'en', title: 'Объявление для жителей', level: 'B1', minutes: 2,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'flash', spoiler: 2,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Второй регистр сериала — тот, которым про то же самое говорят с людьми. Ниже наше объявление об эвакуации вымышленного города. Стоит сравнить его с донесением из первой сцены: те же события, но ни одной цифры, зато три успокоительных оборота и точное указание, что брать с собой.',
+    after: 'Фраза «возьмите документы и вещи на три дня» — самая честная в тексте и одновременно самая обманчивая: она задаёт срок, которого никто не обещал. Три дня названы не потому, что столько продлится, а потому, что столько люди готовы принять спокойно.',
+    body: `ATTENTION, RESIDENTS OF THE TOWN
+
+Comrades, in connection with the accident at the power station, a temporary evacuation of the town is being carried out.
+
+Buses will be provided. They will arrive at the entrances of residential buildings from fourteen hundred hours today. Please be ready by that time.
+
+Take with you documents, essential items and food for three days. It is recommended that you take warm clothing. Do not take furniture, and do not take pets: this is a temporary measure and the animals will be cared for.
+
+Please close your windows, switch off the electricity and lock your apartment.
+
+There is no cause for alarm. The measure is precautionary. Order in the town is being maintained.
+
+Comrades, leaving your homes temporarily is a necessary step. Please observe calm and organisation in this matter, which is temporary.`,
+    translation: `ВНИМАНИЕ, ЖИТЕЛИ ГОРОДА
+
+Товарищи, в связи с аварией на электростанции проводится временная эвакуация города.
+
+Будут поданы автобусы. Они прибудут к подъездам жилых домов начиная с четырнадцати часов сегодняшнего дня. Просьба быть готовыми к этому времени.
+
+Возьмите с собой документы, предметы первой необходимости и питание на три дня. Рекомендуется взять тёплую одежду. Мебель не берите и домашних животных не берите: мера временная, о животных позаботятся.
+
+Просьба закрыть окна, выключить электричество и запереть квартиру.
+
+Оснований для беспокойства нет. Мера предупредительная. Порядок в городе поддерживается.
+
+Товарищи, временный отъезд из домов — необходимый шаг. Просьба соблюдать спокойствие и организованность в этом деле, которое носит временный характер.`,
+    glossary: [
+      { term: 'in connection with', ru: 'в связи с' },
+      { term: 'to be carried out', ru: 'проводится, осуществляется' },
+      { term: 'essential items', ru: 'предметы первой необходимости' },
+      { term: 'precautionary', ru: 'предупредительный, на всякий случай' },
+      { term: 'there is no cause for alarm', ru: 'оснований для беспокойства нет' },
+      { term: 'to observe calm', ru: 'соблюдать спокойствие' },
+      { term: 'temporary', ru: 'временный' },
+    ],
+    questions: [
+      {
+        q: 'How many times does the announcement call the measure "temporary"?',
+        options: ['Once', 'Twice', 'Four times', 'Never'],
+        correct: 2,
+        why: 'Слово повторено в первом абзаце, в абзаце про животных и дважды в последнем. Повтор здесь и есть аргумент: доказательств нет, есть настойчивость.',
+      },
+      {
+        q: 'What are residents told to take?',
+        options: [
+          'Everything they can carry',
+          'Documents, essentials and three days of food',
+          'Only documents',
+          'Furniture and pets',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What information from the incident report is missing here?',
+        options: [
+          'The time of the buses',
+          'Any figure at all — no measurement is mentioned',
+          'The name of the town',
+          'The list of items',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "the measure is precautionary" suggest?',
+        options: [
+          'That there is a real danger',
+          'That this is only a safeguard — nothing has actually happened',
+          'That the buses are late',
+          'That the town is closed for repairs',
+        ],
+        correct: 1,
+      },
+    ],
+  },
 ]

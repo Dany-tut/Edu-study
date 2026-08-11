@@ -1741,7 +1741,14 @@ export default function HomeworkFlow({
   //
   // ПОЧЕМУ РЕЖИМ ГАСНЕТ ПОСЛЕ СДАЧИ. Сданная домашка — это разбор, и вот там
   // список как раз нужен: пройти глазами по всем ошибкам сразу, не листая.
-  const flowMode = isLanguageSubject(subject) && basicQuestions.length > 0 && !state.basicSubmitted
+  //
+  // ВНИМАНИЕ К ПРЕДМЕТУ. `subject` здесь — short_id курса («kohg»), а не слаг
+  // предмета: реестр SUBJECTS о нём не знает и любой курс выглядел бы неязыковым
+  // (режим не включался ни в одной настоящей домашке — только на dev-стенде, где
+  // предмет передают напрямую). Поэтому сначала курс → предмет, как в карточках
+  // повторения ниже.
+  const flowSubject = subjectSlugFor(subject) ?? subject
+  const flowMode = isLanguageSubject(flowSubject) && basicQuestions.length > 0 && !state.basicSubmitted
   /** Есть ли нулевой шаг — знакомство со словами урока. */
   const flowIntro = vocabWords.length > 0
   const flowFirst = flowIntro ? 1 : 0

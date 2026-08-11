@@ -1767,6 +1767,7 @@ const EN: Record<string, string> = {
   "задание": "task",
   "стопка": "deck",
   "Стикер за тему": "Sticker for the topic",
+  "вся тема без ошибок": "the whole topic, no mistakes",
   "фраз без ошибок": "phrases, no mistakes",
   "шт. · за принятые задания и выученные темы": "pcs · for accepted tasks and mastered topics",
   "Стикер даётся за принятое сложное задание и за тему разговорника, пройденную без единой ошибки. Балл 5 — голограмма.": "A sticker comes from an accepted hard task or from a phrasebook topic you clear without a single mistake. Score 5 is a hologram.",

@@ -435,9 +435,14 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
         title={award
           ? t('Стикер за тему')
           : source?.doneTitle ? t(source.doneTitle) : t('На сегодня всё повторено')}
-        text={binary
-          ? `${t('Знаю:')} ${stats.right} · ${t('в повторение:')} ${stats.wrong}`
-          : `${t('Верно с первого раза:')} ${stats.right} · ${t('ошибок:')} ${stats.wrong}`}
+        // Имя тира идёт первой строкой награды: балл нарисован на самом
+        // стикере, а словами он объясняет, чем этот стикер лучше предыдущего.
+        text={[
+          award ? `«${t(tierOf(award.score).name)}» · ${t('вся тема без ошибок')}` : '',
+          binary
+            ? `${t('Знаю:')} ${stats.right} · ${t('в повторение:')} ${stats.wrong}`
+            : `${t('Верно с первого раза:')} ${stats.right} · ${t('ошибок:')} ${stats.wrong}`,
+        ].filter(Boolean).join('\n')}
         // Промах на ПОСЛЕДНЕЙ карточке иначе не отменить: сессия уже закрыта,
         // а кнопка «вернуть» живёт только под стопкой.
         extra={<>
@@ -1255,20 +1260,18 @@ function Empty({ icon, title, text, extra }: {
  */
 function DeckAward({ sticker }: { sticker: EarnedSticker }) {
   const t = useT()
-  const tier = tierOf(sticker.score)
 
+  // Имя тира здесь НЕ печатаем: над заголовком оно читается раньше него
+  // («Безупречно» → «Стикер за тему»), поэтому уехало в строку статистики.
   return (
-    <div style={{ display: 'grid', justifyItems: 'center', gap: 4 }}>
-      <HoloSticker
-        score={sticker.score}
-        label={stickerLabel(sticker, t)}
-        sublabel={sticker.lessonTitle.slice(0, 22)}
-        stickerId={sticker.id}
-        size={168}
-        reveal
-      />
-      <div style={{ fontSize: 13, fontWeight: 800, color: tier.ink }}>«{t(tier.name)}»</div>
-    </div>
+    <HoloSticker
+      score={sticker.score}
+      label={stickerLabel(sticker, t)}
+      sublabel={sticker.lessonTitle.slice(0, 22)}
+      stickerId={sticker.id}
+      size={168}
+      reveal
+    />
   )
 }
 

@@ -115,6 +115,33 @@ function taskKey(id: string | undefined): string {
 const isSeedTask = (id: string | undefined, seedKey: string): boolean =>
   !!id && new RegExp(`^${seedKey}-\\d+-`).test(id)
 
+/**
+ * Значение с ключами объектов в одном и том же порядке.
+ *
+ * ЗАЧЕМ. Задания уезжают в БД в колонку `lessons.homework` типа jsonb, а jsonb
+ * порядок ключей НЕ хранит: он раскладывает их по длине, а при равной длине
+ * побайтово. Подстановка дрилла `{cue, answer, gloss}` возвращается из базы как
+ * `{cue, gloss, answer}`, таблица `{headers, rows, emptyCells}` — как
+ * `{rows, headers, emptyCells}`. Значения при этом те же самые.
+ *
+ * Сравнение по голому JSON.stringify такую перестановку считало расхождением, и
+ * получался вечный двигатель: сверка находила 24 «разошедшихся» задания,
+ * применение записывало в них ровно те же значения, сохранение снова
+ * переставляло ключи, а после перезагрузки кнопка показывала те же 24. Пройти
+ * этот цикл до конца было нельзя ни разу.
+ *
+ * Порядок элементов МАССИВА при этом сохраняется как есть — там он значит
+ * ровно то, что значит: варианты ответа не переставляются.
+ */
+function canon(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canon)
+  if (value && typeof value === 'object') {
+    const src = value as Record<string, unknown>
+    return Object.fromEntries(Object.keys(src).sort().map(k => [k, canon(src[k])]))
+  }
+  return value
+}
+
 /** Отличаются ли значения поля. Сравниваем по JSON: значения простые либо массивы. */
 function differs(a: unknown, b: unknown): boolean {
   if (a === b) return false
@@ -122,7 +149,7 @@ function differs(a: unknown, b: unknown): boolean {
   const empty = (v: unknown) => v === undefined || v === null || v === '' ||
     (Array.isArray(v) && v.length === 0)
   if (empty(a) && empty(b)) return false
-  return JSON.stringify(a) !== JSON.stringify(b)
+  return JSON.stringify(canon(a)) !== JSON.stringify(canon(b))
 }
 
 /**

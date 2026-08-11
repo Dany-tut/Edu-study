@@ -621,7 +621,12 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const speakTotal = countSpeakTasks(allThemes)
 
   const modeCounts: Record<Mode, number | undefined> = {
-    reading: allTexts.length,
+    // «Чтение» — это две половины вкладки, и число у режима должно совпадать с
+    // тем, что открыто сейчас: на «Текстах» — учебные тексты, на «Сценах» —
+    // сцены. Пока сцены едут отдельным чанком, их число неизвестно (undefined),
+    // и бейдж не рисуется вовсе: сумма, прыгающая с 5 на 37 после подгрузки,
+    // читается как ошибка счёта.
+    reading: scenesOn ? scenes?.length : allTexts.length,
     vocab: hasBook ? allThemes.reduce((n, x) => n + x.phrases.length, 0) : undefined,
     listening: audio.length,
     speaking: speakTotal,

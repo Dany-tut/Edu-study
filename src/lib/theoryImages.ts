@@ -146,6 +146,80 @@ export function removeTheoryImage(
   return { theory: kept.join('\n\n'), images: images.filter(img => img.key !== key) }
 }
 
+/**
+ * Конспект, разрезанный по картинкам: проза и картинки вперемешку.
+ *
+ * Редактору мало знать порядок — картинка должна стоять в самом поле ввода
+ * ровно там, где стоит её маркер, иначе учитель пишет вслепую: текст сверху,
+ * картинки отдельной полосой снизу. Поэтому текст режется на куски по
+ * маркерам: между двумя картинками — один кусок прозы, и кусков всегда на один
+ * больше, чем картинок (первый и последний могут быть пустыми).
+ */
+export interface TheoryCut {
+  /** Проза между картинками; length === figures.length + 1. */
+  segments: string[]
+  figures: Array<{ key: string; caption: string }>
+}
+
+/** Разрезать конспект по маркерам картинок. */
+export function cutTheoryAtFigures(theory: string): TheoryCut {
+  const segments: string[] = []
+  const figures: TheoryCut['figures'] = []
+  let buf: string[] = []
+  for (const chunk of theory.split(/\n\s*\n/)) {
+    const text = chunk.trim()
+    const fig = text ? parseFigureLine(text) : null
+    if (fig && fig.ref.startsWith('img:')) {
+      segments.push(buf.join('\n\n'))
+      buf = []
+      figures.push({ key: fig.ref.slice(4), caption: fig.caption })
+      continue
+    }
+    if (text) buf.push(text)
+  }
+  segments.push(buf.join('\n\n'))
+  return { segments, figures }
+}
+
+/** Собрать конспект обратно из прозы и картинок. */
+export function joinTheoryAtFigures({ segments, figures }: TheoryCut): string {
+  const out: string[] = []
+  segments.forEach((seg, i) => {
+    if (seg.trim()) out.push(seg.trim())
+    const fig = figures[i]
+    if (fig) out.push(figureMarker(fig.caption, `img:${fig.key}`))
+  })
+  return out.join('\n\n')
+}
+
+/** Переписать подпись картинки прямо в маркере. */
+export function setFigureCaption(theory: string, key: string, caption: string): string {
+  const cut = cutTheoryAtFigures(theory)
+  return joinTheoryAtFigures({
+    ...cut,
+    figures: cut.figures.map(f => (f.key === key ? { ...f, caption } : f)),
+  })
+}
+
+/**
+ * Подвинуть картинку на один абзац вверх или вниз.
+ *
+ * Когда маркер виден в тексте, его двигают руками; в блочном редакторе строки
+ * маркера нет, и без этого картинку нельзя переставить вообще.
+ */
+export function moveTheoryFigure(theory: string, key: string, dir: -1 | 1): string {
+  const chunks = theory.split(/\n\s*\n/).map(c => c.trim()).filter(Boolean)
+  const at = chunks.findIndex(c => {
+    const fig = parseFigureLine(c)
+    return !!fig && fig.ref === `img:${key}`
+  })
+  const to = at + dir
+  if (at < 0 || to < 0 || to >= chunks.length) return theory
+  const next = [...chunks]
+  ;[next[at], next[to]] = [next[to], next[at]]
+  return next.join('\n\n')
+}
+
 /** Картинка конспекта вместе с её местом в тексте. */
 export interface PlacedTheoryImage {
   image: TheoryImage
