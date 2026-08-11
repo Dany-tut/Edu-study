@@ -46,6 +46,9 @@ export default function VoicePicker({ lang, accent, soft }: {
   // Список голосов в Chrome приходит асинхронно: на первом рендере он пуст, и
   // без подписки на voiceschanged выбор так и остался бы пустым до перезагрузки.
   const [ready, setReady] = useState(0)
+  // Полный список системных голосов: там, где дикторов несколько, он не нужен,
+  // но если ни один из них не устраивает — пусть будет чем перебрать.
+  const [all, setAll] = useState(false)
 
   useEffect(() => {
     if (typeof speechSynthesis === 'undefined') return
@@ -56,7 +59,8 @@ export default function VoicePicker({ lang, accent, soft }: {
 
   useEffect(() => { setPicked(preferredVoice(lang)) }, [lang])
 
-  const voices = listVoices(lang)
+  const voices = listVoices(lang, all)
+  const total = listVoices(lang, true).length
   void ready // список берём заново на каждый рендер, событие только будит его
 
   if (!hasVoiceFor(lang)) {
@@ -107,6 +111,18 @@ export default function VoicePicker({ lang, accent, soft }: {
       {open && (
         <div style={{ marginTop: 4 }}>
           <RailList items={items} value={picked} onChange={choose} accent={accent} soft={soft} />
+          {!all && total > voices.length && (
+            <button
+              onClick={() => setAll(true)}
+              style={{
+                marginTop: 2, padding: '6px 9px', width: '100%', textAlign: 'left',
+                border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit',
+                fontSize: 11.5, fontWeight: 600, color: 'var(--color-text-3)',
+              }}
+            >
+              {t('Показать все голоса системы')} · {total}
+            </button>
+          )}
         </div>
       )}
     </div>

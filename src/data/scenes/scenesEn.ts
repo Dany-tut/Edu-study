@@ -7302,4 +7302,843 @@ My grandmother went back to the pot. Then, not turning round: “You will stand 
       },
     ],
   },
+
+  // ── Половое воспитание: карточка, наш текст ────────────────────────────────
+  //
+  // bucket: 'inspired'. Школа, кабинет и колонка наши. От сериала — ровно одно:
+  // спокойный, точный регистр разговора о теле и границах. Он полезен не только
+  // на уроке английского, и именно поэтому здесь нет ни одной пикантности: весь
+  // смысл в том, что этот язык нейтральный, а не в том, что он «про такое».
+  {
+    id: 'sc-sexed-1',
+    workId: 'sex-education',
+    lang: 'en', title: 'Листовка школьного кабинета', level: 'B1', minutes: 3,
+    topic: 'Здоровье', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Главная мысль сериала: половина бед оттого, что подростку не с кем поговорить нормальными словами. Ниже наша листовка школьного кабинета здоровья. Лексика тут пригодится далеко за пределами школы — confidential, appointment, GP, consent, — а конструкции сплошь смягчающие: «you can», «you do not have to», «nobody will».',
+    after: 'Обратите внимание, что почти каждый пункт написан через «не обязаны»: не обязаны называть имя, знать вопрос заранее, приходить одни. Английский разговор о границах строится именно так — сначала снимают обязательства, потом предлагают помощь.',
+    body: `WELLBEING ROOM — 3B, behind the library
+Open every lunchtime and Thursday after school.
+
+WHAT THIS ROOM IS FOR
+Anything you would rather not ask a teacher. Your body, your head, your relationships, or a question you have already looked up online three times and still do not trust the answer to.
+
+IS IT CONFIDENTIAL?
+Yes. Nothing you say here goes to your teachers, your form tutor or your parents. There is one exception and we will not pretend there isn't: if you or someone else is in danger, we have to tell someone, and we will tell you first, to your face, before we do.
+
+YOU DO NOT HAVE TO
+— give your name
+— know what your question is before you come in
+— come alone (bring a friend; they can wait outside or sit with you)
+— talk at all. Some people come in, take a leaflet and leave. That is a completely normal use of this room.
+
+WE CAN ALSO
+Book you an appointment with a GP, in confidence and outside school hours. Explain what a test involves before you decide whether you want one. Find you the same information in writing, so you do not have to remember it.
+
+ONE THING WORTH SAYING
+Consent means someone actually said yes, and could have said no without anything bad happening to them. If either half of that is missing, it is not consent, whatever else it was.
+
+There is no such thing as a stupid question in this room. We have heard all of them, and most of them twice this term.`,
+    translation: `КАБИНЕТ ЗДОРОВЬЯ — 3B, за библиотекой
+Открыт каждый большой перерыв и по четвергам после уроков.
+
+ЗАЧЕМ ЭТОТ КАБИНЕТ
+Для всего, что не хочется спрашивать у учителя. Тело, голова, отношения — или вопрос, который вы уже три раза искали в интернете и всё ещё не верите ответу.
+
+ЭТО КОНФИДЕНЦИАЛЬНО?
+Да. Ничто сказанное здесь не уходит ни учителям, ни классному руководителю, ни родителям. Есть одно исключение, и делать вид, что его нет, мы не станем: если вам или кому-то ещё угрожает опасность, мы обязаны сообщить — и сначала скажем об этом вам, лично, а уже потом сообщим.
+
+ВЫ НЕ ОБЯЗАНЫ
+— называть своё имя
+— заранее понимать, в чём ваш вопрос
+— приходить одни (возьмите друга: он может подождать снаружи или сидеть рядом)
+— вообще разговаривать. Кто-то заходит, берёт брошюру и уходит. Это совершенно нормальный способ пользоваться этим кабинетом.
+
+МЫ ТАКЖЕ МОЖЕМ
+Записать вас к врачу — конфиденциально и не в учебное время. Объяснить, как проходит обследование, до того, как вы решите, нужно ли оно вам. Найти ту же информацию в письменном виде, чтобы её не приходилось запоминать.
+
+ОДНА ВЕЩЬ, КОТОРУЮ СТОИТ СКАЗАТЬ
+Согласие — это когда человек действительно сказал «да» и при этом мог сказать «нет» без всяких последствий для себя. Если не хватает любой из этих половин, это не согласие — чем бы оно ни было.
+
+Глупых вопросов в этом кабинете не бывает. Мы слышали их все, и большую часть — дважды за эту четверть.`,
+    glossary: [
+      { term: 'wellbeing', ru: 'здоровье и самочувствие в широком смысле' },
+      { term: 'confidential', ru: 'конфиденциальный' },
+      { term: 'form tutor', ru: 'классный руководитель (брит.)' },
+      { term: 'to your face', ru: 'лично, глядя в глаза' },
+      { term: 'GP (general practitioner)', ru: 'участковый врач (брит.)' },
+      { term: 'in confidence', ru: 'конфиденциально' },
+      { term: 'consent', ru: 'согласие' },
+      { term: 'term', ru: 'учебная четверть, семестр' },
+    ],
+    questions: [
+      {
+        q: 'Is the room fully confidential?',
+        options: [
+          'Yes, with no exceptions',
+          'Yes, except where someone is in danger — and you are told first',
+          'No, teachers are informed',
+          'Only if you give your name',
+        ],
+        correct: 1,
+        why: 'Оговорка названа прямо: «we will not pretend there isn’t». Так и надо читать любые обещания конфиденциальности — искать исключение, оно всегда есть.',
+      },
+      {
+        q: 'What is a "GP" in British English?',
+        options: ['a school nurse', 'a family doctor you see first', 'a hospital', 'a counsellor'],
+        correct: 1,
+      },
+      {
+        q: 'According to the leaflet, what are the two halves of consent?',
+        options: [
+          'Saying yes, and being able to say no safely',
+          'Saying yes twice',
+          'Being over sixteen and sober',
+          'Telling a friend and telling an adult',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'Why is the whole "YOU DO NOT HAVE TO" section written in the negative?',
+        options: [
+          'To sound strict',
+          'It removes obligations first, which is how English lowers the cost of asking for help',
+          'It is a translation error',
+          'To make the leaflet shorter',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-sexed-2',
+    workId: 'sex-education',
+    lang: 'en', title: 'Колонка советов в школьной газете', level: 'B1', minutes: 3,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Колонка советов — жанр с очень узнаваемой грамматикой: отвечающий почти никогда не говорит «сделай так». Он говорит «похоже, что», «возможно, стоит», «ты никому не должен». Ниже наша колонка. Эти смягчители — самое переносимое, что здесь есть: на них держится любой английский совет, от школьного до рабочего.',
+    after: 'Сравните два ответа. В первом совет есть, во втором его нет вовсе — и второй ответ от этого не хуже. По-английски «никто не может ответить на это за тебя» — законный и уважительный конец разговора, а не отказ помочь.',
+    body: `ASK 3B — the wellbeing room's page in the school paper. Questions are sent anonymously and printed as received.
+
+Q. Everyone in my year seems to have done more than me and I feel like I'm behind. Is there something wrong with me?
+
+A. No. And I want to be careful here, because "no" on its own sounds like something an adult says to end a conversation.
+
+Here is the longer version. Most people in your year are describing a life slightly better than the one they have. That is not lying exactly — it is what people do at seventeen, and quite a lot of them go on doing it at thirty-seven. So the thing you are measuring yourself against is not real, and losing a race against a thing that is not real is not much of a defeat.
+
+There is also no schedule. Nobody is late. You are not behind, because there is nothing to be behind.
+
+Q. I think I might be gay but I'm not sure, and I don't know how you're supposed to be sure.
+
+A. You are not supposed to be sure. That is the honest answer and I would rather give it than a tidy one.
+
+Some people know very early and never revise it. Others work it out slowly, or find that the answer changes shape over a few years. None of those is the correct version, and none of them requires you to announce anything to anybody, on any timetable, ever.
+
+The only practical thing I would say is this: you do not owe anyone an explanation, and that includes people who are being kind. "I'm still working that out" is a complete sentence, and anyone worth telling will accept it.
+
+Q. How do I tell someone I'm not interested without being horrible?
+
+A. You cannot make it not disappointing, so aim for short, clear and kind, in that order. "I'm flattered, but I don't feel the same way" does all three. Do not soften it into something that sounds like "maybe later" unless you mean maybe later — that is what actually turns into being horrible, three weeks from now.`,
+    translation: `«СПРОСИ 3B» — страница кабинета здоровья в школьной газете. Вопросы присылают анонимно и печатают как есть.
+
+В. Кажется, у всех в моей параллели опыта больше, чем у меня, и я чувствую, что отстаю. Со мной что-то не так?
+
+О. Нет. И тут я хочу быть аккуратным, потому что «нет» само по себе звучит как то, чем взрослый заканчивает разговор.
+
+Теперь длинная версия. Большинство твоих ровесников описывают жизнь чуть лучше той, которая у них есть. Это не то чтобы враньё — так делают в семнадцать, и немалая часть продолжает в тридцать семь. Значит, то, с чем ты себя сравниваешь, не существует, а проиграть гонку несуществующему — так себе поражение.
+
+И никакого графика тоже нет. Никто не опаздывает. Ты не отстаёшь, потому что отставать не от чего.
+
+В. Кажется, я гей, но я не уверен, и я не знаю, как вообще положено быть уверенным.
+
+О. Никак не положено. Это честный ответ, и я лучше дам его, чем аккуратный.
+
+Кто-то понимает очень рано и больше к этому не возвращается. Кто-то разбирается медленно или обнаруживает, что за несколько лет ответ меняет очертания. Ни один из этих вариантов не является правильным, и ни один не обязывает тебя ничего никому объявлять — ни по какому графику и никогда.
+
+Единственное практическое, что я скажу: ты никому не должен объяснений, включая тех, кто относится к тебе хорошо. «Я пока разбираюсь» — это законченное предложение, и всякий, кому стоит рассказывать, его примет.
+
+В. Как сказать человеку, что он мне не интересен, и не быть при этом сволочью?
+
+О. Сделать так, чтобы это не расстроило, не получится, поэтому цельтесь в короткое, ясное и доброе — именно в таком порядке. «Мне приятно, но я не чувствую того же» делает всё три сразу. И не смягчайте это до чего-то похожего на «может быть, потом», если только вы правда не имеете в виду «может быть, потом»: вот из этого через три недели и вырастает настоящая сволочь.`,
+    glossary: [
+      { term: 'year (school)', ru: 'параллель, год обучения' },
+      { term: 'to be behind', ru: 'отставать' },
+      { term: 'to work something out', ru: 'разобраться, понять' },
+      { term: 'to revise', ru: 'здесь: пересматривать (мнение)' },
+      { term: 'to owe someone', ru: 'быть должным кому-то' },
+      { term: 'a complete sentence', ru: 'законченная фраза — можно ничего не добавлять' },
+      { term: 'I’m flattered', ru: 'мне приятно, я польщён' },
+      { term: 'to soften', ru: 'смягчить' },
+    ],
+    questions: [
+      {
+        q: 'Why does the writer add "the longer version" after saying "No"?',
+        options: [
+          'Because the first answer was wrong',
+          'Because a bare "no" sounds like an adult closing the subject',
+          'To fill the column',
+          'Because the question was unclear',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does it mean that "I\'m still working that out" is a complete sentence?',
+        options: [
+          'It is grammatically correct',
+          'You may stop there — no further explanation is owed',
+          'It should be written down',
+          'It needs a follow-up',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the advice about turning someone down?',
+        options: [
+          'Say nothing and wait',
+          'Short, clear and kind — and do not imply "maybe later" unless you mean it',
+          'Be as gentle as possible, even if it is vague',
+          'Ask a friend to do it',
+        ],
+        correct: 1,
+        why: 'Ключ в последней фразе: расплывчатая доброта сегодня — это жестокость через три недели. Очень английская мысль про вежливость.',
+      },
+      {
+        q: 'Which of these does the column deliberately NOT provide?',
+        options: [
+          'A timetable for being sure about yourself',
+          'A definition of consent',
+          'The room number',
+          'An anonymous question',
+        ],
+        correct: 0,
+      },
+    ],
+  },
+
+  // ── Это грех: листовка министерства ────────────────────────────────────────
+  //
+  // bucket: 'inspired'. Второй регистр той же эпохи: письмо домой у этого
+  // произведения уже есть, здесь — то, как о том же говорило государство.
+  {
+    id: 'sc-sin-2',
+    workId: 'its-a-sin',
+    lang: 'en', title: 'Листовка министерства здравоохранения', level: 'B2', minutes: 3,
+    topic: 'Здоровье', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'short', spoiler: 2,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'В сериале рядом живут два языка: домашнее письмо, в котором главного не сказано, и казённая бумага, которой государство разговаривает с людьми, пока само толком ничего не знает. Первое у этого произведения уже есть; ниже второе — наша листовка, вымышленная, но по форме тех лет. Смотреть стоит на осторожные обороты: «there is no evidence that», «it is thought that», «you are advised to».',
+    after: 'Обратите внимание на разрыв между тоном и содержанием: набрано крупно, сказано мало, а самая важная строчка — про то, что сведения будут уточняться, — стоит в самом низу. Так выглядит официальное сообщение, у которого нет ответа.',
+    body: `DEPARTMENT OF HEALTH — PUBLIC INFORMATION
+Leaflet 12. Delivered to every household. Please read it and keep it.
+
+WHAT IS KNOWN
+A serious illness is being reported in a number of countries, including this one. It affects the body's ability to defend itself against infection. It is thought to be passed on through blood and through sexual contact. It is not thought to be passed on through ordinary daily contact.
+
+WHAT THIS MEANS IN PRACTICE
+There is no evidence that you can catch it from a cup, a handshake, a swimming pool, a lavatory seat or a workplace. There is no reason to avoid anyone at their work, at school or in your street.
+
+WHAT YOU ARE ADVISED TO DO
+You are advised to know your partner. You are advised to use a condom. You are advised not to share a needle with anyone, at any time, for any reason.
+
+IF YOU ARE WORRIED
+Speak to your doctor. Conversations with your doctor about this are confidential and will not be reported to your employer.
+
+A NOTE ON LANGUAGE
+This leaflet does not use the phrase "risk group". Illnesses are carried by what people do, not by what people are, and a leaflet that says otherwise will leave some readers feeling safe when they are not.
+
+Information in this leaflet is correct as at the date of printing and will be revised as more becomes known.`,
+    translation: `МИНИСТЕРСТВО ЗДРАВООХРАНЕНИЯ — ОБЩЕСТВЕННАЯ ИНФОРМАЦИЯ
+Листовка № 12. Доставлена в каждый дом. Прочтите и сохраните.
+
+ЧТО ИЗВЕСТНО
+В ряде стран, включая нашу, регистрируется серьёзное заболевание. Оно поражает способность организма защищаться от инфекций. Предполагается, что оно передаётся через кровь и при половом контакте. Передача при обычном бытовом общении не предполагается.
+
+ЧТО ЭТО ЗНАЧИТ НА ПРАКТИКЕ
+Нет данных о том, что заразиться можно через чашку, рукопожатие, бассейн, сиденье унитаза или на рабочем месте. Нет оснований избегать кого-либо на работе, в школе или на своей улице.
+
+ЧТО ВАМ РЕКОМЕНДУЕТСЯ
+Рекомендуется знать своего партнёра. Рекомендуется пользоваться презервативом. Рекомендуется никогда, ни при каких обстоятельствах и ни по какой причине не пользоваться общей иглой.
+
+ЕСЛИ ВЫ ОБЕСПОКОЕНЫ
+Обратитесь к своему врачу. Разговоры с врачом на эту тему конфиденциальны и работодателю не сообщаются.
+
+О СЛОВАХ
+В этой листовке не употребляется выражение «группа риска». Болезни переносятся тем, что люди делают, а не тем, кем они являются, — и листовка, утверждающая обратное, оставит часть читателей в ложном ощущении безопасности.
+
+Сведения в листовке верны на дату печати и будут уточняться по мере поступления новых данных.`,
+    glossary: [
+      { term: 'it is thought that', ru: 'предполагается, что' },
+      { term: 'to be passed on', ru: 'передаваться' },
+      { term: 'there is no evidence that', ru: 'нет данных о том, что' },
+      { term: 'you are advised to', ru: 'вам рекомендуется' },
+      { term: 'lavatory', ru: 'уборная (брит., официальное)' },
+      { term: 'confidential', ru: 'конфиденциальный' },
+      { term: 'as at the date of printing', ru: 'на дату печати' },
+      { term: 'to be revised', ru: 'будет уточняться' },
+    ],
+    questions: [
+      {
+        q: 'What does "there is no evidence that" actually claim?',
+        options: [
+          'That it is impossible',
+          'That nothing has been shown so far — a weaker and more careful statement',
+          'That it is likely',
+          'That the question was never studied',
+        ],
+        correct: 1,
+        why: '«Нет данных» и «этого не бывает» — разные утверждения. Официальные тексты почти всегда выбирают первое, и читать их надо соответственно.',
+      },
+      {
+        q: 'Why does the leaflet refuse the phrase "risk group"?',
+        options: [
+          'It is too long',
+          'Because it ties risk to who people are, which leaves other readers falsely reassured',
+          'It was banned by law',
+          'It is unclear in English',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the last line admit?',
+        options: [
+          'That the leaflet is complete',
+          'That what is written may change as more is learnt',
+          'That the leaflet is a draft',
+          'That the information is secret',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What grammatical form carries almost every instruction here?',
+        options: [
+          'The imperative: "do this"',
+          'The passive: "you are advised to"',
+          'Questions',
+          'The future tense',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Попутчики: карточка, наш текст ─────────────────────────────────────────
+  //
+  // bucket: 'inspired'. Ведомство, анкета и переписка вымышлены. От сериала —
+  // историческая механика пятидесятых: казённый допрос через бумагу и письмо,
+  // в котором нельзя написать ничего прямо.
+  {
+    id: 'sc-ft-1',
+    workId: 'fellow-travelers',
+    lang: 'en', title: 'Анкета для допуска к работе', level: 'B2', minutes: 3,
+    topic: 'Работа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Вашингтон пятидесятых: чтобы работать в ведомстве, надо заполнить анкету, и часть вопросов в ней задана так, что честный ответ и безопасный ответ — разные ответы. Ниже наша анкета. Английский здесь стоит разбирать по одному приёму: чем расплывчатее слово в вопросе, тем шире то, за что потом можно уволить.',
+    after: 'Ключевая формулировка — «conduct which might subject you to pressure». Она не описывает поступок: под неё попадает всё, что кто-нибудь может использовать против вас. Именно из-за таких формулировок анкету и заполняли с ужасом.',
+    body: `FORM 84-B — PERSONNEL SECURITY QUESTIONNAIRE
+To be completed in the applicant's own hand. Do not leave any item blank. Write "none" where applicable.
+
+SECTION IV — ASSOCIATIONS AND CONDUCT
+
+14. List all organisations of which you are or have been a member, including social clubs, and the dates of membership.
+
+15. Have you at any time resided at an address not listed in Section II? If so, state the address, the dates, and the name of any person residing with you.
+
+16. Do you now, or have you at any time, associated with persons known to you to be of doubtful loyalty or reputation? Answer yes or no. If yes, attach a separate sheet.
+
+17. Has any question been raised, formally or informally, concerning your personal habits or moral conduct?
+
+18. Are you aware of any conduct on your part which might subject you to pressure, influence or blackmail by any person?
+
+19. Is there any matter, not covered by the questions above, which the Department would wish to know and which you have not disclosed?
+
+CERTIFICATION
+I certify that the foregoing answers are true and complete. I understand that a false statement, or the omission of a material fact, is grounds for immediate dismissal and may be referred for prosecution.
+
+Signature ______________________  Date ______________
+
+For office use only. An interview will be scheduled. Applicants are reminded that the interview is not an accusation and that no adverse inference is drawn from being called to one.`,
+    translation: `ФОРМА 84-B — АНКЕТА КАДРОВОЙ ПРОВЕРКИ
+Заполняется собственноручно. Пустых граф не оставлять. Где неприменимо, писать «нет».
+
+РАЗДЕЛ IV — СВЯЗИ И ПОВЕДЕНИЕ
+
+14. Перечислите все организации, членом которых вы состоите или состояли, включая клубы по интересам, с указанием сроков членства.
+
+15. Проживали ли вы когда-либо по адресу, не указанному в разделе II? Если да, укажите адрес, даты и имя лица, проживавшего вместе с вами.
+
+16. Общаетесь ли вы сейчас или общались ли когда-либо с лицами, известными вам как сомнительные по лояльности или репутации? Ответьте «да» или «нет». В случае «да» приложите отдельный лист.
+
+17. Поднимался ли когда-либо — официально или в частном порядке — вопрос о ваших личных привычках или нравственном поведении?
+
+18. Известны ли вам какие-либо ваши поступки, которые могли бы сделать вас предметом давления, влияния или шантажа со стороны любого лица?
+
+19. Существует ли какое-либо обстоятельство, не охваченное вышеприведёнными вопросами, о котором ведомству следовало бы знать и о котором вы не сообщили?
+
+ЗАВЕРЕНИЕ
+Подтверждаю, что вышеизложенные ответы правдивы и полны. Мне известно, что ложное заявление или умолчание о существенном факте является основанием для немедленного увольнения и может быть передано для уголовного преследования.
+
+Подпись ______________________ Дата ______________
+
+Для служебного пользования. Будет назначено собеседование. Заявителям напоминают, что собеседование не является обвинением и что сам вызов на него не влечёт никаких неблагоприятных выводов.`,
+    glossary: [
+      { term: 'in the applicant’s own hand', ru: 'собственноручно' },
+      { term: 'where applicable', ru: 'где применимо' },
+      { term: 'to reside', ru: 'проживать (офиц.)' },
+      { term: 'to associate with', ru: 'общаться, водить знакомство' },
+      { term: 'moral conduct', ru: 'нравственное поведение' },
+      { term: 'to subject someone to pressure', ru: 'сделать объектом давления' },
+      { term: 'to disclose', ru: 'сообщить, раскрыть' },
+      { term: 'omission of a material fact', ru: 'умолчание о существенном факте' },
+      { term: 'adverse inference', ru: 'неблагоприятный вывод' },
+    ],
+    questions: [
+      {
+        q: 'Why is question 15 dangerous rather than routine?',
+        options: [
+          'It asks for a date',
+          'It asks who lived with you, at any address you did not list',
+          'It is written in the passive',
+          'It repeats question 14',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does question 18 actually cover?',
+        options: [
+          'Crimes only',
+          'Anything at all that someone could use against you',
+          'Debts',
+          'Political membership',
+        ],
+        correct: 1,
+        why: 'Формулировка описывает не поступок, а его последствие — уязвимость. Поэтому под неё попадает что угодно, и именно так она и задумана.',
+      },
+      {
+        q: 'What is the function of question 19?',
+        options: [
+          'To be polite',
+          'To make silence itself an offence — anything not disclosed becomes an omission',
+          'To collect statistics',
+          'To end the form neatly',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does the closing note claim?',
+        options: [
+          'That the interview is a formality and implies nothing against you',
+          'That the interview is optional',
+          'That the form is confidential',
+          'That answers may be corrected later',
+        ],
+        correct: 0,
+      },
+    ],
+  },
+  {
+    id: 'sc-ft-2',
+    workId: 'fellow-travelers',
+    lang: 'en', title: 'Письмо, в котором нельзя написать прямо', level: 'C1', minutes: 3,
+    topic: 'Переписка и созвоны', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'short', spoiler: 2,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Те же годы, но частная переписка — которую, впрочем, тоже могут прочитать. Ниже наше письмо. Оно целиком построено на импликатуре: сказано одно, понимается другое, и опознаётся это по мелочам — по тому, что вместо имени стоит «our friend», что погода занимает три предложения, а главное — половину одного.',
+    after: 'Самое сильное место — «я позволил себе не написать того, что хотел написать». Автор сообщает не содержание, а факт цензуры над самим собой, и это единственное, что цензура пропустит.',
+    body: `Dear H.,
+
+Thank you for yours of the 14th, which reached me on Tuesday and which I have read more times than is sensible.
+
+Washington is unbearable in August, as you warned me it would be. The office keeps the windows shut because of the noise from the construction on the corner, and by four o'clock the whole floor has the temper of a waiting room. I have taken to walking the long way home, along the water, which adds twenty minutes and is worth every one of them.
+
+Our friend from the department has been transferred. Nobody has said why and nobody will ask. His desk was cleared on the Thursday and by Monday there was a new man at it who does not know that anybody sat there before. I find I mind this more than the transfer itself.
+
+I dined on Sunday with the R.s, who send their regards and who asked after you twice, which I record here so that you know it was noticed.
+
+You asked me a question at the end of your letter. I have started the answer four times. Each time it becomes either less than the truth or more than I can put in an envelope, and there is no third version — I have looked for it. So: I have taken the liberty of not writing what I wanted to write, and I will say it to you in October, in a room, with the door shut, and you may hold me to that.
+
+Until then I am, as always and rather more than that,
+
+Yours,
+T.`,
+    translation: `Дорогой Х.,
+
+Спасибо за твоё письмо от 14-го, оно дошло во вторник, и я перечитал его больше раз, чем разумно.
+
+В августе Вашингтон невыносим — ты меня предупреждал. В конторе держат окна закрытыми из-за стройки на углу, и к четырём весь этаж по нраву напоминает приёмную. Я взял манеру ходить домой длинной дорогой, вдоль воды: выходит на двадцать минут дольше, и каждая из них того стоит.
+
+Нашего друга из ведомства перевели. Почему — никто не сказал и никто не спросит. Стол его освободили в четверг, а к понедельнику за ним сидел новый человек, который не знает, что там кто-то был. Обнаруживаю, что меня это задевает сильнее самого перевода.
+
+В воскресенье обедал у Р., они передают привет и дважды о тебе спрашивали, — записываю это здесь, чтобы ты знал, что это было замечено.
+
+В конце письма ты задал мне вопрос. Я начинал ответ четыре раза. Каждый раз выходит либо меньше правды, либо больше, чем можно вложить в конверт, и третьего варианта нет — я искал. Поэтому: я позволил себе не написать того, что хотел написать, и скажу это тебе в октябре, в комнате, при закрытой двери, и можешь считать это обещанием.
+
+А до тех пор остаюсь, как всегда и несколько более того,
+
+твой
+Т.`,
+    glossary: [
+      { term: 'yours of the 14th', ru: 'ваше письмо от 14-го (эпистолярная формула)' },
+      { term: 'to take to doing something', ru: 'взять привычку что-то делать' },
+      { term: 'to ask after someone', ru: 'справляться о ком-то' },
+      { term: 'to send one’s regards', ru: 'передавать привет' },
+      { term: 'to take the liberty of', ru: 'позволить себе' },
+      { term: 'to hold someone to something', ru: 'поймать на слове, считать обещанием' },
+      { term: 'I find I mind this', ru: 'обнаруживаю, что меня это задевает' },
+    ],
+    questions: [
+      {
+        q: 'What happened to the colleague, as far as the letter says?',
+        options: [
+          'He was promoted',
+          'He was transferred, with no reason given and nobody asking',
+          'He retired',
+          'He moved abroad',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the writer record that the R.s asked after H. twice?',
+        options: [
+          'To pass on a message',
+          'To tell H. that their connection was noticed by others',
+          'To describe the dinner',
+          'To ask for an invitation',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does "I have taken the liberty of not writing what I wanted to write" communicate?',
+        options: [
+          'That he has nothing to say',
+          'That there is an answer, and that it cannot safely go in a letter',
+          'That he lost the letter',
+          'That he will not answer at all',
+        ],
+        correct: 1,
+        why: 'Сообщается не содержание, а факт самоцензуры. Это единственное, что можно доверить бумаге, — и адресат прочтёт остальное.',
+      },
+      {
+        q: 'What is unusual about the sign-off "as always and rather more than that"?',
+        options: [
+          'It is a standard formula',
+          'It bends a standard formula just far enough to say something the letter cannot',
+          'It is a mistake',
+          'It is a quotation',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Красный, белый и королевский синий (фильм): карточка, наш текст ────────
+  //
+  // bucket: 'inspired'. Книга того же названия стоит на полке young adult и
+  // связана с этой карточкой через screenPair; сцена о переписке есть там,
+  // поэтому здесь — вторая половина той же пары регистров, служебная бумага.
+  {
+    id: 'sc-rwrb-film-1',
+    workId: 'rwrb',
+    lang: 'en', title: 'Правки пресс-службы', level: 'B2', minutes: 3,
+    topic: 'Работа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему фильма', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Сюжет начинается с того, что два человека испортили торт на приёме и теперь должны сделать вид, что дружат. Ниже наш документ из такой ситуации: черновик заявления и правки пресс-службы к нему. Читать интересно вдвойне — видно и живую фразу, и то, во что её превращает служебный английский.',
+    after: 'Финальная версия вдвое короче черновика и не содержит ни одного глагола в первом лице. Это и есть работа пресс-службы: убрать человека из текста, оставив извинение.',
+    body: `DRAFT STATEMENT — WITH COMMS EDITS. NOT FOR RELEASE.
+
+DRAFT AS SUBMITTED
+"Look, it was a cake. It was an extremely large cake and it did not survive, and neither of us covered ourselves in glory. I've apologised to him, he's apologised to me, and honestly the only injured party here was the cake. Can we all move on?"
+
+COMMS COMMENTS
+— "Look" — remove. Reads as irritation.
+— "It was a cake" — do not name the object. Naming it keeps it in tomorrow's headlines.
+— "neither of us covered ourselves in glory" — charming, and it concedes fault on behalf of the other party's principal. We cannot concede on their behalf. Remove.
+— "I've apologised to him" — good. Keep the apology, lose the reciprocity: "he's apologised to me" invites the question of what he apologised for.
+— "the only injured party here was the cake" — this is the line that will be quoted. That is the problem with it.
+— "Can we all move on?" — never ask the press a question. They will answer it.
+
+REVISED FOR APPROVAL
+"An accident occurred at Saturday's reception. An apology has been offered and accepted, and both offices consider the matter closed. There will be no further comment."
+
+NOTE TO PRINCIPAL
+We are aware the revised text does not sound like you. That is deliberate and it is temporary. A statement is not a conversation; its job is to end one.`,
+    translation: `ЧЕРНОВИК ЗАЯВЛЕНИЯ — С ПРАВКАМИ ПРЕСС-СЛУЖБЫ. НЕ ДЛЯ ПУБЛИКАЦИИ.
+
+ЧЕРНОВИК В ТОМ ВИДЕ, В КАКОМ ПОДАН
+«Слушайте, это был торт. Это был чрезвычайно большой торт, он не уцелел, и никто из нас двоих себя не украсил. Я перед ним извинился, он извинился передо мной, и, честно говоря, единственной пострадавшей стороной здесь был торт. Может, пойдём дальше?»
+
+ЗАМЕЧАНИЯ ПРЕСС-СЛУЖБЫ
+— «Слушайте» — убрать. Читается как раздражение.
+— «Это был торт» — предмет не называть. Названный, он останется в завтрашних заголовках.
+— «никто из нас двоих себя не украсил» — мило и признаёт вину за доверителя другой стороны. Признавать за них мы не вправе. Убрать.
+— «Я перед ним извинился» — хорошо. Извинение оставляем, взаимность убираем: «он извинился передо мной» напрашивается на вопрос, за что именно.
+— «единственной пострадавшей стороной был торт» — вот эту фразу и процитируют. В этом и беда.
+— «Может, пойдём дальше?» — никогда не задавайте прессе вопросов. Она на них отвечает.
+
+ИСПРАВЛЕННЫЙ ВАРИАНТ НА УТВЕРЖДЕНИЕ
+«На субботнем приёме произошла случайность. Извинения принесены и приняты, обе стороны считают вопрос закрытым. Дальнейших комментариев не будет».
+
+ПРИМЕЧАНИЕ ДОВЕРИТЕЛЮ
+Нам известно, что исправленный текст на вас не похож. Это сделано намеренно и это временно. Заявление — не разговор; его работа в том, чтобы разговор закончить.`,
+    glossary: [
+      { term: 'comms (communications)', ru: 'пресс-служба' },
+      { term: 'not for release', ru: 'не для публикации' },
+      { term: 'to cover oneself in glory', ru: 'покрыть себя славой (обычно с отрицанием, иронично)' },
+      { term: 'injured party', ru: 'пострадавшая сторона' },
+      { term: 'to concede fault', ru: 'признать вину' },
+      { term: 'on someone’s behalf', ru: 'от чьего-либо имени' },
+      { term: 'principal', ru: 'доверитель — тот, от чьего имени работает служба' },
+      { term: 'reciprocity', ru: 'взаимность' },
+    ],
+    questions: [
+      {
+        q: 'Why does comms want the object left unnamed?',
+        options: [
+          'It is a secret',
+          'Naming it keeps the story alive in the headlines',
+          'Nobody knows what it was',
+          'It is legally sensitive',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why is "he\'s apologised to me" removed?',
+        options: [
+          'It is untrue',
+          'It invites the press to ask what the other person apologised for',
+          'It is too formal',
+          'It is repetitive',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the objection to the line about the cake being the only injured party?',
+        options: [
+          'It is not funny',
+          'It is the line that will be quoted — and that is exactly what they do not want',
+          'It is grammatically wrong',
+          'It blames someone',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What changes grammatically between the draft and the revised text?',
+        options: [
+          'Nothing',
+          'The first person disappears: actions become passive and ownerless',
+          'It moves to the future tense',
+          'It becomes a question',
+        ],
+        correct: 1,
+        why: '«An apology has been offered and accepted» — извинение есть, извиняющегося нет. Тот же приём, что в заявлении телеканала: страдательный залог убирает человека.',
+      },
+    ],
+  },
+
+  // ── Поза: карточка, наш текст ──────────────────────────────────────────────
+  //
+  // bucket: 'inspired'. Дом, бал и правила вымышлены. От сериала — словарь
+  // среды: house, category, to walk, to read. Половина этих слов ушла потом в
+  // обычный английский, и знать, откуда они, полезно само по себе.
+  {
+    id: 'sc-pose-1',
+    workId: 'pose',
+    lang: 'en', title: 'Объявление категорий на балу', level: 'B1', minutes: 3,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Бал вог-культуры устроен как соревнование: ведущий объявляет категорию, участники выходят, судьи ставят баллы. Ниже наш текст ведущего. Слова тут знакомые, а значения свои: to walk — «выйти в категории», to read — «разобрать по косточкам вслух», house — не дом, а команда, которая тебе семья.',
+    after: 'Обратите внимание на слово read. В этой среде оно значит «разобрать человека вслух, точно и остроумно», и именно отсюда пошло позднейшее to read someone в обычном английском.',
+    body: `Good evening, and welcome to the floor.
+
+House of Ferrer, House of Aurelio, House of Saint-Cyr — you are all in the book, you are all on time, and one of you is about to be disappointed. That is the whole point of the evening.
+
+The rules have not changed and I will say them once. You walk when your category is called and not before. Judges score from one to ten. A chop is a chop; you leave the floor and you do not argue with the table, because the table has been sitting here since eight o'clock and the table is tired.
+
+Categories tonight.
+
+FIRST CATEGORY: EXECUTIVE REALNESS. You are walking into a building on a Monday morning where nobody has ever seen you before, and nobody looks up. If anyone in this room can tell you do not work there, you are not walking realness, you are walking a costume.
+
+SECOND CATEGORY: BEST DRESSED, WHITE AND GOLD. Read the second half of the category. Every season somebody walks this in silver and every season they are chopped for it.
+
+THIRD CATEGORY: FACE. Just face. No hands, no hair, no performance. Look at the judges and let them look back.
+
+GRAND PRIZE: THE TROPHY, AND YOUR HOUSE NAME ON IT UNTIL NEXT SPRING.
+
+And one word before we start. There is reading, and there is being nasty. Reading is when it is true and you found the words first. Nasty is when you could not find the words. This room has always known the difference and tonight will be no exception.
+
+Music. First category. Let's go.`,
+    translation: `Добрый вечер, и добро пожаловать на паркет.
+
+Дом Феррер, дом Аурелио, дом Сен-Сир — все записаны, все пришли вовремя, и кто-то из вас сейчас будет разочарован. Ради этого вечер и затевается.
+
+Правила не менялись, скажу их один раз. Выходишь, когда объявили твою категорию, и не раньше. Судьи ставят от одного до десяти. Срез есть срез: уходишь с паркета и со столом не споришь, потому что стол сидит здесь с восьми и стол устал.
+
+Категории на сегодня.
+
+ПЕРВАЯ КАТЕГОРИЯ: ДЕЛОВАЯ ДОСТОВЕРНОСТЬ. Ты входишь в понедельник утром в здание, где тебя никогда не видели, — и никто не поднимает головы. Если хоть кто-то в этом зале поймёт, что ты там не работаешь, это не достоверность, это костюм.
+
+ВТОРАЯ КАТЕГОРИЯ: ЛУЧШИЙ НАРЯД, БЕЛОЕ И ЗОЛОТО. Прочитайте вторую половину названия. Каждый сезон кто-нибудь выходит в серебре и каждый сезон бывает за это срезан.
+
+ТРЕТЬЯ КАТЕГОРИЯ: ЛИЦО. Просто лицо. Никаких рук, никаких волос, никакого представления. Смотри на судей и дай им посмотреть на себя.
+
+ГЛАВНЫЙ ПРИЗ: КУБОК И ИМЯ ВАШЕГО ДОМА НА НЁМ ДО СЛЕДУЮЩЕЙ ВЕСНЫ.
+
+И одно слово перед началом. Есть разбор, а есть гадость. Разбор — это когда правда и когда ты нашёл слова первым. Гадость — это когда слов ты не нашёл. Этот зал всегда знал разницу, и сегодня исключением не станет.
+
+Музыку. Первая категория. Поехали.`,
+    glossary: [
+      { term: 'the floor', ru: 'паркет — площадка, по которой выходят' },
+      { term: 'house', ru: 'дом — команда, она же семья по выбору' },
+      { term: 'to walk (a category)', ru: 'выйти, выступить в категории' },
+      { term: 'realness', ru: 'достоверность — умение сойти за своего' },
+      { term: 'a chop', ru: 'срез: судьи останавливают выступление' },
+      { term: 'to read someone', ru: 'разобрать вслух — точно и остроумно' },
+      { term: 'nasty', ru: 'гадкий, злой' },
+      { term: 'trophy', ru: 'кубок' },
+    ],
+    questions: [
+      {
+        q: 'What does "to walk" mean here?',
+        options: [
+          'To leave the room',
+          'To compete in a category',
+          'To move slowly',
+          'To judge',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is "realness"?',
+        options: [
+          'Honesty about yourself',
+          'Being convincing enough that nobody in the imagined setting would look twice',
+          'Wearing real gold',
+          'Telling the truth to the judges',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What is the difference between "reading" and "being nasty"?',
+        options: [
+          'Volume',
+          'Reading is true and well put; nasty is what you say when you could not find the words',
+          'Reading is written, nasty is spoken',
+          'There is none',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the host mention silver in the second category?',
+        options: [
+          'Silver is expensive',
+          'Because the category says white and gold, and people who ignore that get chopped',
+          'Silver is forbidden by law',
+          'It is a joke about the trophy',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+  {
+    id: 'sc-pose-2',
+    workId: 'pose',
+    lang: 'en', title: 'Правила дома', level: 'B1', minutes: 3,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 2, where: 'Наш текст на тему сериала', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Дом в этой среде — не команда, а жильё и семья: тех, кого выгнали из родительского дома, забирает к себе «мать дома». Ниже наши правила такого дома. Жанр знакомый — свод правил, как в закрытой школе из «Уэнздей», — но условия в нём совсем другие, и сравнить эти два текста интересно.',
+    after: 'Последнее правило — про то, что уйти можно и вернуться тоже. Именно этим свод правил дома отличается от школьного: школа выпускает, а дом остаётся открытым.',
+    body: `HOUSE OF AURELIO — HOUSE RULES
+Pinned in the kitchen. If you live here, they are yours.
+
+1. You get a key on your second night, not your first. The first night you are a guest and you sleep.
+
+2. Everyone puts in what they can. If what you can is nothing this month, you say so on the first, out loud, to me, and then it is dealt with and not mentioned again. What you do not do is disappear for three weeks because you are short.
+
+3. Nobody here asks you why you left home. If you want to tell it, tell it once, at this table, and then you never have to tell it again. Anyone who makes you repeat it answers to me.
+
+4. School stays. Work stays. This house does not become the reason you stopped doing the thing that gets you out.
+
+5. You do not walk a category you have not practised. It is not the losing, it is that you make the whole house look unprepared, and there are four other houses waiting for exactly that.
+
+6. Doctor's appointments are not optional and nobody goes alone unless they want to. Somebody in this kitchen will always come with you, sit in the waiting room, and say nothing about it afterwards.
+
+7. Argue in the kitchen, never on the floor. Out there we are one house, whatever we were in here at four in the afternoon.
+
+8. You can leave. People do, and it is allowed, and there is no version of leaving that means you cannot come back. Take the key with you.`,
+    translation: `ДОМ АУРЕЛИО — ПРАВИЛА ДОМА
+Висит на кухне. Живёшь здесь — значит, они твои.
+
+1. Ключ ты получаешь на вторую ночь, а не на первую. В первую ты гость, и ты спишь.
+
+2. Каждый вкладывает сколько может. Если в этом месяце ты можешь нисколько, ты говоришь об этом первого числа, вслух, мне, — и вопрос решается и больше не поднимается. Чего делать нельзя, так это пропадать на три недели, потому что у тебя туго с деньгами.
+
+3. Здесь никто не спрашивает, почему ты ушёл из дома. Захочешь рассказать — расскажи один раз, за этим столом, и больше не придётся никогда. Кто заставит тебя повторять, будет отвечать передо мной.
+
+4. Учёба остаётся. Работа остаётся. Этот дом не становится причиной, по которой ты бросил то, что тебя отсюда вытащит.
+
+5. Не выходишь в категории, которую не отрепетировал. Дело не в проигрыше, а в том, что весь дом выглядит неготовым, — а четыре других дома именно этого и ждут.
+
+6. Приёмы у врача не факультативны, и никто не идёт один, если сам не хочет. Кто-нибудь с этой кухни всегда пойдёт с тобой, посидит в коридоре и потом ничего об этом не скажет.
+
+7. Ссоримся на кухне, никогда на паркете. Там мы один дом — кем бы мы ни были здесь в четыре часа дня.
+
+8. Уйти можно. Люди уходят, это разрешено, и нет такого варианта ухода, после которого нельзя вернуться. Ключ забери с собой.`,
+    glossary: [
+      { term: 'to put in', ru: 'вкладывать (деньги, силы)' },
+      { term: 'to be short', ru: 'быть на мели, не хватать денег' },
+      { term: 'to be dealt with', ru: 'быть улаженным' },
+      { term: 'to answer to someone', ru: 'отвечать перед кем-то' },
+      { term: 'to walk a category', ru: 'выступить в категории' },
+      { term: 'appointment', ru: 'приём, назначенная встреча' },
+      { term: 'the floor', ru: 'паркет — площадка бала' },
+      { term: 'whatever we were', ru: 'кем бы мы ни были' },
+    ],
+    questions: [
+      {
+        q: 'What happens if someone cannot contribute money this month?',
+        options: [
+          'They must leave',
+          'They say so openly on the first, it is settled, and it is not raised again',
+          'They pay double next month',
+          'Nothing is said about it',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'What does rule 3 protect?',
+        options: [
+          'The house’s reputation',
+          'The right to tell your story once and never be made to repeat it',
+          'Privacy from the police',
+          'The kitchen',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why must you not walk an unpractised category?',
+        options: [
+          'You might be injured',
+          'Because the whole house looks unprepared, and rival houses are waiting for that',
+          'The judges charge a fee',
+          'It is against the ball rules',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'How does the last rule differ from a school rulebook?',
+        options: [
+          'It is shorter',
+          'Leaving is allowed and the door stays open — the house does not "graduate" you',
+          'It is stricter',
+          'It has no number',
+        ],
+        correct: 1,
+      },
+    ],
+  },
 ]

@@ -125,6 +125,24 @@ export const ENSV_VIDEO: Record<string, string> = {
   // Последняя тема разговорника — 39-я, а не 26-я: нумерация тем сквозная
   // по общему костяку, и у английского часть тем не заполнена.
   'ensv-39': yt('ekR-PSvPEBk'), // рабочая переписка и просьбы в офисе
+  // Темы 26–43 дописаны позже; ролики переиспользуются по ситуации.
+  'ensv-26': yt('wbIEm5VvHVA'), // что где лежит в магазине
+  'ensv-27': yt('bLlPYnz_Rt4'),
+  'ensv-28': yt('sj8K6CN9XVk'), // касса, оплата, оформление
+  'ensv-29': yt('sj8K6CN9XVk'),
+  'ensv-30': yt('A_xM0rRkQr4'), // дорога и транспорт
+  'ensv-31': yt('qQnOx3N85fc'),
+  'ensv-32': yt('WDLBdV5UdZA'), // бронирование жилья
+  'ensv-33': yt('sj8K6CN9XVk'),
+  'ensv-34': yt('3ZxuzipXEMw'), // документы на границе
+  'ensv-35': yt('3ZxuzipXEMw'),
+  'ensv-36': yt('jji_LimlI2I'), // страховка, здоровье, обращение за помощью
+  'ensv-37': yt('jji_LimlI2I'),
+  'ensv-38': yt('jji_LimlI2I'),
+  'ensv-40': yt('sIPcSP6KmKs'), // разговор о семье
+  'ensv-41': yt('LGW2T-Zy18g'), // живая реакция в разговоре
+  'ensv-42': yt('32v8lH8EWrg'), // согласие, отказ, недовольство
+  'ensv-43': yt('_HPWNOV4xdE'), // оговорки и переспрос
 }
 
 /** Корейский: язык выживания. Billy Go — разговорный курс и базовый. */
@@ -168,6 +186,9 @@ export const KOSV_VIDEO: Record<string, string> = {
   'kosv-37': yt('l-CpnhbA0LI'),
   'kosv-38': yt('-JnnZ97WbXE'),
   'kosv-39': yt('_3n9Piw9Qq0'), // Conversation #9 친구 — общение с коллегами
+  'kosv-41': yt('rX_m0jPd7V4'), // #84 Adding More Emotion — оттенки реакции
+  'kosv-42': yt('IMzWqiVG0gg'), // #58 Asking Permission — согласие и отказ
+  'kosv-43': yt('9m0TeQ40QFc'), // #72 Showing Contrast — оговорки и связки
   'kosv-40': yt('XjDU3u-pB1w'), // #35 Family Tree — родственники
 }
 
@@ -199,6 +220,9 @@ export const JASV_VIDEO: Record<string, string> = {
   'jasv-24': yt('aQsqklA46z0'),
   'jasv-25': yt('xrUMQvdPjLw'), // Can Do #12: погода — опора смолтока
   'jasv-39': yt('mJNsOVYjqjQ'), // деловое кэйго — офис и коллеги
+  'jasv-41': yt('aAlDzXxE8pI'), // Can Do #9: обиходные выражения
+  'jasv-42': yt('dxPfgNA8bqA'), // Can Do #11: согласие и своё мнение
+  'jasv-43': yt('ZKxm8zReoj4'), // Can Do #13: переспрос и оговорки
 }
 
 /** Португальский: язык выживания. PortuguesePod101 — бытовые ситуации. */
@@ -229,6 +253,9 @@ export const PTSV_VIDEO: Record<string, string> = {
   'ptsv-24': yt('lo5NteosgP0'),
   'ptsv-25': yt('QigZ7PZF1us'), // ответы на «как дела» — смолток
   'ptsv-39': yt('GPnvU27ZUX0'), // согласие и несогласие — язык переговоров
+  'ptsv-41': yt('QigZ7PZF1us'), // ответы на «как дела» — живая реакция
+  'ptsv-42': yt('GPnvU27ZUX0'), // согласие и несогласие
+  'ptsv-43': yt('VlEw3XMjCF0'), // 25 обязательных фраз — связки речи
 }
 
 /**

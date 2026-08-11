@@ -2,33 +2,23 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ArrowLeft, Send, Check, ChevronDown, Plus, X, Trash2,
+  ArrowLeft, Send, ChevronDown, Plus, X, Trash2,
   Video, Link2, ListVideo, NotebookPen, FileText, FolderOpen,
-  GraduationCap, Lock, Sparkles, Upload, Calendar, Clock, Search,
+  GraduationCap, Upload, Calendar, Clock, Search,
   ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import { useTeacher } from '../../store/teacherStore'
 import TeacherSaveButton from '../../components/teacher/TeacherSaveButton'
-import type { HomeworkTemplate, Group, Student, ScheduleItem } from '../../data/teacherMockData'
+import type { Group, Student, ScheduleItem } from '../../data/teacherMockData'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
 import { supabase } from '../../lib/supabase'
 import ScrollFade from '../../components/ScrollFade'
 import { useT, t as tGlobal } from '../../lib/i18n'
-
-// ─── Static homework templates (formerly mock data) ────────────────────────────
-
-const HOMEWORK_TEMPLATES: HomeworkTemplate[] = [
-  { id: 't1',  title: 'Гидролиз солей — базовый',          subject: 'Химия',    level: 'basic', topic: 'Гидролиз солей',        taskCount: 8 },
-  { id: 't2',  title: 'Гидролиз: сложные случаи',          subject: 'Химия',    level: 'hard',  topic: 'Гидролиз солей',        taskCount: 5 },
-  { id: 't3',  title: 'Основные оксиды — базовый',         subject: 'Химия',    level: 'basic', topic: 'Оксиды',                taskCount: 10 },
-  { id: 't4',  title: 'Сложные оксиды — продвинутый',      subject: 'Химия',    level: 'hard',  topic: 'Оксиды',                taskCount: 6 },
-  { id: 't5',  title: 'Фотосинтез — схемы',                subject: 'Биология', level: 'basic', topic: 'Фотосинтез',            taskCount: 10 },
-  { id: 't6',  title: 'Фотосинтез и дыхание — задачи C',   subject: 'Биология', level: 'hard',  topic: 'Фотосинтез',            taskCount: 4 },
-  { id: 't7',  title: 'ОВР — базовый',                     subject: 'Химия',    level: 'basic', topic: 'Окислительно',          taskCount: 9 },
-  { id: 't8',  title: 'ОВР — метод электронного баланса',  subject: 'Химия',    level: 'hard',  topic: 'Окислительно',          taskCount: 5 },
-  { id: 't9',  title: 'Периодический закон',               subject: 'Химия',    level: 'basic', topic: 'Периодический',         taskCount: 12 },
-  { id: 't10', title: 'Кислоты: классификация',            subject: 'Химия',    level: 'basic', topic: 'Кислоты',               taskCount: 6 },
-]
+import {
+  uploadLessonFile, deleteLessonFile, parseLessonFiles, formatFileSize,
+  LessonFileTooLargeError, type LessonFile, type LessonFiles,
+} from '../../lib/lessonFiles'
+import { openLessonInCourseEditor } from '../../lib/teacherNav'
 
 // ─── Style helpers ─────────────────────────────────────────────────────────────
 
@@ -196,306 +186,192 @@ function TimePickerLesson({ value, onChange, onClose }: { value: string; onChang
 
 // ─── Upload tile (workbook / notes / materials) ────────────────────────────────
 
+/** Метка на значке файла: расширение из имени. */
+function fileExt(name: string) {
+  const dot = name.lastIndexOf('.')
+  const ext = dot >= 0 ? name.slice(dot + 1).toUpperCase() : tGlobal('ФАЙЛ')
+  return ext.length > 4 ? ext.slice(0, 4) : ext
+}
+
+/** Слот файла урока: тетрадь и конспект — по одному файлу, материалы — сколько угодно. */
+type FileSlot = 'workbook' | 'notebook' | 'materials'
+
+function slotFiles(files: LessonFiles, slot: FileSlot): LessonFile[] {
+  if (slot === 'materials') return files.materials ?? []
+  const one = files[slot]
+  return one ? [one] : []
+}
+
 /**
- * Плитка файла — НЕактивная.
+ * Плитка файла — настоящая загрузка.
  *
- * Этот экран заводит занятие в расписании (schedule_lessons) и строки в
- * `lessons` не создаёт, а файл прикрепляется именно к уроку курса: он лежит в
- * бакете lesson-materials, а путь — в lessons.materials (см. lib/lessonFiles).
- * Прикреплять здесь было некуда: плитка складывала ИМЕНА выбранных файлов в
- * черновик браузера, при публикации они пропадали, и ученик их не видел.
- * Поэтому здесь — только указатель на Конструктор, где загрузка настоящая.
+ * Файл уходит в бакет lesson-materials сразу при выборе, путь и метаданные — в
+ * `lessons.materials` при сохранении (см. lib/lessonFiles). Раньше плитка
+ * складывала ИМЕНА выбранных файлов в черновик браузера: при публикации они
+ * пропадали, и ученик их не видел.
  */
-function UploadTile({ icon: Icon, label }: { icon: React.ElementType; label: string }) {
+function UploadTile({
+  icon: Icon, label, slot, files, onChange,
+}: {
+  icon: React.ElementType; label: string; slot: FileSlot
+  files: LessonFiles; onChange: (next: LessonFiles) => void
+}) {
   const t = useT()
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+  const multiple = slot === 'materials'
+  const mine = slotFiles(files, slot)
+  const has = mine.length > 0
+
+  async function handlePick(e: React.ChangeEvent<HTMLInputElement>) {
+    const picked = Array.from(e.target.files ?? [])
+    e.target.value = '' // чтобы тот же файл можно было выбрать повторно
+    if (picked.length === 0 || busy) return
+    setBusy(true); setErr(null)
+    const uploaded: LessonFile[] = []
+    try {
+      // Обновляем один раз в конце: `files` в замыкании — снимок пропса, и
+      // обновление внутри цикла затирало бы предыдущие файлы пачки.
+      for (const f of picked) uploaded.push(await uploadLessonFile(f))
+      onChange(multiple
+        ? { ...files, materials: [...(files.materials ?? []), ...uploaded] }
+        : { ...files, [slot]: uploaded[0] })
+    } catch (e2) {
+      await Promise.all(uploaded.map(u => deleteLessonFile(u.path)))
+      setErr(e2 instanceof LessonFileTooLargeError ? e2.message
+        : (e2 as { message?: string })?.message || t('не удалось загрузить'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // Убираем файл только из урока: объект в бакете оставляем, иначе закрытая без
+  // сохранения правка оставила бы ученику плитку, которая не скачивается.
+  function remove(path: string) {
+    if (multiple) {
+      const rest = (files.materials ?? []).filter((f: LessonFile) => f.path !== path)
+      const next = { ...files }
+      if (rest.length) next.materials = rest; else delete next.materials
+      onChange(next)
+      return
+    }
+    const next = { ...files }
+    delete next[slot]
+    onChange(next)
+  }
+
   return (
     <div style={{ position: 'relative' }}>
-      <div style={{ ...tileBase(false), cursor: 'default', border: '1.5px dashed var(--color-border-medium)', background: 'var(--color-bg-2)', opacity: 0.75 }}>
+      <input
+        ref={inputRef}
+        type="file"
+        multiple={multiple}
+        onChange={handlePick}
+        style={{ display: 'none' }}
+      />
+      <motion.button
+        whileHover={busy ? undefined : { y: -2 }} whileTap={busy ? undefined : { scale: 0.99 }}
+        onClick={() => !busy && inputRef.current?.click()}
+        style={{ ...tileBase(has), cursor: busy ? 'progress' : 'pointer', opacity: busy ? 0.7 : 1 }}
+      >
         <div style={{
           width: 40, height: 40, borderRadius: 12, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'var(--color-bg-3)', color: 'var(--color-text-4)',
+          background: has ? 'var(--color-green-soft)' : 'rgba(74,222,128,0.1)', color: 'var(--color-green-text)',
         }}>
           <Icon size={20} strokeWidth={1.9} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text-3)', lineHeight: 1.2 }}>{label}</p>
-          <p style={{ fontSize: 12, color: 'var(--color-text-4)', marginTop: 2 }}>
-            {t('Прикрепляется в уроке курса')}
+          <p style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)', lineHeight: 1.2 }}>{label}</p>
+          <p style={{
+            fontSize: 12, marginTop: 2,
+            color: err ? 'var(--color-red-text)' : 'var(--color-text-3)',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {busy ? t('Загружаем…')
+              : err ? err
+              : has ? `${mine.length} ${mine.length === 1 ? t('файл') : t('файлов')}`
+              : multiple ? t('Загрузить файлы') : t('Загрузить файл')}
           </p>
         </div>
-        <Upload size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
-      </div>
+        {!has && <Upload size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
+        {has && multiple && <Plus size={16} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />}
+      </motion.button>
+
+      {has && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 6 }}>
+          {mine.map(f => (
+            <div key={f.path} style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '6px 10px', borderRadius: 9, background: 'var(--color-bg)',
+            }}>
+              <div style={{
+                width: 24, height: 24, borderRadius: 7, flexShrink: 0,
+                background: 'var(--grad-green)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 7, fontWeight: 800, color: '#fff',
+              }}>{fileExt(f.name)}</div>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 11.5, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+              <span style={{ flexShrink: 0, fontSize: 10, color: 'var(--color-muted)' }}>{formatFileSize(f.size)}</span>
+              <button
+                onClick={e => { e.stopPropagation(); remove(f.path) }}
+                style={{ width: 18, height: 18, borderRadius: 5, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+              >
+                <X size={10} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
 
-// ─── Homework template picker dropdown ─────────────────────────────────────────
+// ─── Homework card ────────────────────────────────────────────────────────────
 
-function HwPicker({
-  level, value, suggestions, all, onPick, onCreateNew,
+/**
+ * Домашка занятия — та, что реально лежит у урока (`lessons.homework.hwTasks`),
+ * а не выбор из списка.
+ *
+ * Раньше здесь был выпадающий список из десяти зашитых «шаблонов» («Гидролиз
+ * солей — базовый», 8 заданий): заданий за ними не стояло, выбор никуда не
+ * сохранялся, и ученику ничего не прилетало. Собирают домашку в «Домашках»
+ * урока — туда и ведём.
+ */
+function HomeworkCard({
+  hw, onOpen,
 }: {
-  level: 'basic' | 'hard'
-  value: HomeworkTemplate | null
-  suggestions: HomeworkTemplate[]
-  all: HomeworkTemplate[]
-  onPick: (t: HomeworkTemplate | null) => void
-  onCreateNew: () => void
+  hw: { basic: number; hard: number } | null
+  onOpen: () => void
 }) {
   const t = useT()
-  const [open, setOpen] = useState(false)
-  const [query, setQuery] = useState('')
-  // Scroll-driven fade strength (0–1) for the top & bottom edges. Both start at
-  // 0 so an un-scrolled list shows no fades; they grow as the user scrolls.
-  const [fade, setFade] = useState({ top: 0, bottom: 0 })
-  const ref = useRef<HTMLDivElement>(null)
-  const isBase = level === 'basic'
+  const total = (hw?.basic ?? 0) + (hw?.hard ?? 0)
 
-  // Close the dropdown when clicking outside of it.
-  useEffect(() => {
-    if (!open) return
-    function onDown(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', onDown)
-    return () => document.removeEventListener('mousedown', onDown)
-  }, [open])
-
-  const matches = (t: HomeworkTemplate) => {
-    if (!query.trim()) return true
-    const q = query.toLowerCase()
-    return t.title.toLowerCase().includes(q) || t.subject.toLowerCase().includes(q) || t.topic.toLowerCase().includes(q)
-  }
-
-  const options = all.filter(t => t.level === level && matches(t))
-  const suggested = suggestions.filter(t => t.level === level && matches(t))
-  const suggestedIds = new Set(suggested.map(s => s.id))
-
-  function onScroll(e: React.UIEvent<HTMLDivElement>) {
-    const el = e.currentTarget
-    const top = Math.min(1, el.scrollTop / 24)
-    const bottom = Math.min(1, (el.scrollHeight - el.clientHeight - el.scrollTop) / 24)
-    setFade({ top, bottom })
-  }
-
-  return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button
-        onClick={() => { if (!open) { setQuery(''); setFade({ top: 0, bottom: 0 }) } setOpen(o => !o) }}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-          padding: '10px 12px', borderRadius: 12, border: 'none', cursor: 'pointer',
-          background: value ? 'var(--color-surface)' : 'rgba(255,255,255,0.14)',
-          color: value ? 'var(--color-text)' : '#fff',
-          boxShadow: value ? '0 2px 10px rgba(0,0,0,0.08)' : 'none',
-          fontFamily: 'inherit', textAlign: 'left',
-        }}
-      >
-        {isBase
-          ? <GraduationCap size={18} strokeWidth={1.9} style={{ flexShrink: 0, color: value ? 'var(--color-green-text)' : '#fff' }} />
-          : <Lock size={16} strokeWidth={1.9} style={{ flexShrink: 0, color: value ? '#F59E0B' : '#fff' }} />
-        }
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, lineHeight: 1.2 }}>
-            {isBase ? t('Основная домашка') : t('Сложный уровень')}
-          </div>
-          <div style={{
-            fontSize: 11.5, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            color: value ? 'var(--color-green-text)' : 'rgba(255,255,255,0.8)', fontWeight: value ? 600 : 500,
-          }}>
-            {value ? `${value.title} · ${value.taskCount} ${t('зад.')}` : t('Выбрать из конструктора')}
-          </div>
-        </div>
-        {value && (
-          <button
-            onClick={e => { e.stopPropagation(); onPick(null) }}
-            style={{ width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
-          >
-            <X size={12} />
-          </button>
-        )}
-        <ChevronDown size={15} style={{ flexShrink: 0, color: value ? 'var(--color-text-4)' : '#fff', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s' }} />
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: isBase ? -6 : 6, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: isBase ? -6 : 6, scale: 0.98 }}
-            transition={{ duration: 0.16 }}
-            style={{
-              position: 'absolute',
-              ...(isBase
-                ? { top: 'calc(100% + 6px)' }
-                : { bottom: 'calc(100% + 6px)' }),
-              left: 0, right: 0, zIndex: 60,
-              padding: 8, borderRadius: 14,
-              background: 'rgba(var(--glass-rgb), 0.6)',
-              backdropFilter: 'blur(24px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-              border: '1px solid var(--color-border-glass)',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
-            }}
-          >
-            {/* Search — fixed above the scroll area */}
-            <div style={{ position: 'relative', marginBottom: 6 }}>
-              <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-3)', pointerEvents: 'none' }} />
-              <input
-                autoFocus
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                placeholder={t('Поиск шаблона...')}
-                style={{
-                  width: '100%', boxSizing: 'border-box', padding: `8px ${query ? 30 : 10}px 8px 32px`,
-                  borderRadius: 10, border: '1.5px solid rgba(0,0,0,0.08)',
-                  fontSize: 12.5, color: 'var(--color-text)', background: 'rgba(var(--glass-rgb), 0.7)',
-                  outline: 'none', fontFamily: 'inherit',
-                }}
-              />
-              {query && (
-                <button onClick={() => setQuery('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--color-text-3)', display: 'flex', alignItems: 'center' }}>
-                  <X size={13} />
-                </button>
-              )}
-            </div>
-
-            {/* Scroll area + edge fades. Fades grow with scroll position; both
-                start at 0 so an un-scrolled list shows none. */}
-            <div style={{ position: 'relative', overflow: 'hidden' }}>
-              <div
-                onScroll={onScroll}
-                className="no-scrollbar"
-                style={{ maxHeight: 234, overflowY: 'auto' }}
-              >
-                {suggested.length > 0 && (
-                  <>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px 6px' }}>
-                      <Sparkles size={12} style={{ color: 'var(--color-green-text)' }} />
-                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)', letterSpacing: 0.3 }}>{t('ПОДХОДЯТ К УРОКУ')}</span>
-                    </div>
-                    {suggested.map(t => (
-                      <HwOption key={t.id} t={t} active={value?.id === t.id} suggested onClick={() => { onPick(t); setOpen(false) }} />
-                    ))}
-                    <div style={{ height: 1, background: 'rgba(0,0,0,0.06)', margin: '6px 8px' }} />
-                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.3, padding: '2px 8px 6px' }}>{t('ВСЕ ШАБЛОНЫ')}</div>
-                  </>
-                )}
-                {options.filter(t => !suggestedIds.has(t.id)).map(t => (
-                  <HwOption key={t.id} t={t} active={value?.id === t.id} onClick={() => { onPick(t); setOpen(false) }} />
-                ))}
-                <div style={{ height: 8 }} />
-                {options.length === 0 && suggested.length === 0 && (
-                  <div style={{ padding: '12px 8px', fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>{t('Ничего не найдено')}</div>
-                )}
-                {/* Create new */}
-                <div style={{ height: 1, background: 'rgba(0,0,0,0.06)', margin: '6px 4px' }} />
-                <button
-                  onClick={() => { setOpen(false); onCreateNew() }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-                    padding: '9px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                    background: 'transparent', textAlign: 'left', fontFamily: 'inherit',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-green-soft)' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-                >
-                  <div style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, background: 'var(--color-green-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Plus size={15} style={{ color: 'var(--color-green-text)' }} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--color-green-text)' }}>{t('Создать новую')}</div>
-                    <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Перейти в конструктор')}</div>
-                  </div>
-                </button>
-              </div>
-
-              {/* Top fade */}
-              <div aria-hidden style={{
-                position: 'absolute', top: -2, left: 0, right: 0, height: 30,
-                background: 'linear-gradient(to bottom, var(--color-surface), transparent)',
-                opacity: fade.top, transition: 'opacity 0.2s ease', pointerEvents: 'none',
-              }} />
-              {/* Bottom fade */}
-              <div aria-hidden style={{
-                position: 'absolute', bottom: -2, left: 0, right: 0, height: 30,
-                background: 'linear-gradient(to top, var(--color-surface), transparent)',
-                opacity: fade.bottom, transition: 'opacity 0.2s ease', pointerEvents: 'none',
-              }} />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
-function HwOption({ t, active, suggested, onClick }: {
-  t: HomeworkTemplate; active: boolean; suggested?: boolean; onClick: () => void
-}) {
   return (
     <button
-      onClick={onClick}
+      onClick={onOpen}
       style={{
-        display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-        padding: '9px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
-        background: active ? 'var(--color-green-soft)' : 'transparent', textAlign: 'left', fontFamily: 'inherit',
+        display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 4,
+        padding: 16, borderRadius: 20, minHeight: 92, width: '100%', textAlign: 'left',
+        background: 'var(--grad-green)', border: 'none',
+        boxShadow: '0 12px 28px rgba(74,222,128,0.22)',
+        cursor: 'pointer', fontFamily: 'inherit',
       }}
-      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--color-bg)' }}
-      onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
     >
-      <div style={{
-        width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-        background: t.level === 'hard' ? 'var(--color-yellow-soft)' : 'var(--color-green-soft)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        {t.level === 'hard'
-          ? <Lock size={14} style={{ color: '#F59E0B' }} />
-          : <GraduationCap size={15} style={{ color: 'var(--color-green-text)' }} />}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <GraduationCap size={17} style={{ color: '#fff' }} />
+        <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{t('Домашка')}</span>
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</div>
-        <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>{t.subject} · {t.taskCount} {tGlobal('зад.')}</div>
-      </div>
-      {suggested && <Sparkles size={13} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />}
-      {active && <Check size={15} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />}
+      <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)' }}>
+        {total === 0
+          ? t('Заданий нет — собрать в курсе')
+          : `${hw!.basic} ${t('базовых')} · ${hw!.hard} ${t('сложных')}`}
+      </span>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11.5, fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>
+        {t('Открыть в курсе')} <ChevronRight size={13} />
+      </span>
     </button>
-  )
-}
-
-// ─── Homework selector card (purple, mirrors student HomeworkCard) ─────────────
-
-function HomeworkSelectorCard({
-  lessonTitle, basic, hard, onBasic, onHard, onCreateNew,
-}: {
-  lessonTitle: string
-  basic: HomeworkTemplate | null; hard: HomeworkTemplate | null
-  onBasic: (t: HomeworkTemplate | null) => void
-  onHard: (t: HomeworkTemplate | null) => void
-  onCreateNew: () => void
-}) {
-  // Suggest templates whose topic appears in the lesson title (case-insensitive,
-  // word-stem match). "Основные оксиды" → suggests both Оксиды templates.
-  const suggestions = useMemo(() => {
-    const title = lessonTitle.toLowerCase()
-    if (!title.trim()) return []
-    return HOMEWORK_TEMPLATES.filter(t => {
-      const stem = t.topic.toLowerCase().slice(0, 5)
-      return title.includes(t.topic.toLowerCase()) || title.includes(stem)
-    })
-  }, [lessonTitle])
-
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', gap: 6,
-      padding: 8, borderRadius: 20,
-      background: 'var(--grad-green)',
-      boxShadow: '0 12px 28px rgba(74,222,128,0.22)',
-      minHeight: 92,
-    }}>
-      <HwPicker level="basic" value={basic} suggestions={suggestions} all={HOMEWORK_TEMPLATES} onPick={onBasic} onCreateNew={onCreateNew} />
-      <HwPicker level="hard" value={hard} suggestions={suggestions} all={HOMEWORK_TEMPLATES} onPick={onHard} onCreateNew={onCreateNew} />
-    </div>
   )
 }
 
@@ -1070,8 +946,14 @@ export default function TeacherLessonEditorPage() {
   const editingScheduleId = useTeacher(s => s.editingScheduleId)
 
   const [source, setSource] = useState<ScheduleItem | null>(null)
+  // uuid строки `lessons`, к которой привязано занятие расписания. Есть только
+  // у занятий, порождённых уроком курса (schedule_lessons.lesson_id) — именно
+  // туда сохраняется содержимое: видео, главы, описание, файлы. У занятия,
+  // заведённого прямо здесь, такой строки нет, и содержимое сохранять некуда.
+  const [lessonRowId, setLessonRowId] = useState<string | null>(null)
+  const [lessonHw, setLessonHw] = useState<{ basic: number; hard: number } | null>(null)
   useEffect(() => {
-    if (!editingScheduleId) { setSource(null); return }
+    if (!editingScheduleId) { setSource(null); setLessonRowId(null); return }
     supabase
       .from('schedule_lessons')
       .select('*, groups(name, icon, color, color_soft, subject)')
@@ -1079,6 +961,7 @@ export default function TeacherLessonEditorPage() {
       .single()
       .then(({ data }) => {
         if (!data) return
+        setLessonRowId(data.lesson_id ?? null)
         setSource({
           id: String(data.id),
           groupId: data.group_id ?? null,
@@ -1131,11 +1014,41 @@ export default function TeacherLessonEditorPage() {
   }, [source])
   const [videoUrl, setVideoUrl] = usePersistentState(`${draftNs}.videoUrl`, '')
   const [timecodes, setTimecodes] = usePersistentState<Timecode[]>(`${draftNs}.timecodes`, [])
-  const [basicHw, setBasicHw] = usePersistentState<HomeworkTemplate | null>(`${draftNs}.basicHw`, null)
-  const [hardHw, setHardHw] = usePersistentState<HomeworkTemplate | null>(`${draftNs}.hardHw`, null)
+  const [files, setFiles] = usePersistentState<LessonFiles>(`${draftNs}.files`, {})
   const [description, setDescription] = usePersistentState(`${draftNs}.description`, '')
   const [published, setPublished] = useState(false)
   const [publishErr, setPublishErr] = useState<string | null>(null)
+
+  // Содержимое привязанного урока — из `lessons`, а не из воздуха. Черновик
+  // (несохранённая правка в этой вкладке) старше базы: он и был причиной, по
+  // которой поля вообще переживали перезагрузку, — затирать его загрузкой нельзя.
+  const hadContentDraft = useRef({
+    videoUrl: readDraft(`${draftNs}.videoUrl`) !== null,
+    timecodes: readDraft(`${draftNs}.timecodes`) !== null,
+    files: readDraft(`${draftNs}.files`) !== null,
+    description: readDraft(`${draftNs}.description`) !== null,
+  })
+  useEffect(() => {
+    if (!lessonRowId) { setLessonHw(null); return }
+    supabase
+      .from('lessons')
+      .select('youtube_url, timecodes, description, materials, homework')
+      .eq('id', lessonRowId)
+      .single()
+      .then(({ data }) => {
+        if (!data) return
+        const d = hadContentDraft.current
+        if (!d.videoUrl) setVideoUrl(data.youtube_url ?? '')
+        if (!d.timecodes) setTimecodes(Array.isArray(data.timecodes) ? data.timecodes as Timecode[] : [])
+        if (!d.description) setDescription(data.description ?? '')
+        if (!d.files) setFiles(parseLessonFiles(data.materials))
+        const tasks = (data.homework as { hwTasks?: Array<{ isHard?: boolean }> } | null)?.hwTasks ?? []
+        setLessonHw({
+          basic: tasks.filter(x => !x.isHard).length,
+          hard: tasks.filter(x => x.isHard).length,
+        })
+      })
+  }, [lessonRowId])
 
   // Scroll-driven header dock — same logic as the student lesson/homework pages:
   // a single boolean threshold (scrollTop > 64) flips the rest-state header row
@@ -1144,6 +1057,16 @@ export default function TeacherLessonEditorPage() {
   const [docked, setDocked] = useState(false)
 
   const { groups } = useGroups()
+
+  const openCourseEditor = useTeacher(s => s.openCourseEditor)
+
+  // «Домашка» и правка содержимого целиком — в курсе: открываем тот же урок в
+  // Конструкторе, а не показываем здесь его копию.
+  async function openInCourse() {
+    if (!lessonRowId) return
+    const ok = await openLessonInCourseEditor(lessonRowId, openCourseEditor)
+    if (!ok) setActivePage('constructor')
+  }
 
   function updateMeta(p: Partial<Meta>) { setMeta(m => ({ ...m, ...p })) }
 
@@ -1162,6 +1085,23 @@ export default function TeacherLessonEditorPage() {
     const parts = meta.date.split('.')
     const isoDate = parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : meta.date
     const groupRecipients = meta.recipients.filter(r => r.kind === 'group')
+
+    // Содержимое занятия — в урок курса, из которого оно родилось. Раньше здесь
+    // сохранялись только название, номер, дата и время: видео, главы, описание и
+    // файлы жили в черновике браузера и при публикации пропадали.
+    if (lessonRowId) {
+      const { error: lessonErr } = await supabase.from('lessons').update({
+        youtube_url: videoUrl.trim() || null,
+        timecodes,
+        description: description.trim() || null,
+        materials: files,
+      }).eq('id', lessonRowId)
+      if (lessonErr) {
+        console.error('[lesson-editor] lessons update failed', lessonErr)
+        setPublishErr(t('Не удалось сохранить содержимое урока — попробуйте ещё раз.'))
+        return
+      }
+    }
 
     if (editingScheduleId) {
       await supabase.from('schedule_lessons').update({
@@ -1370,44 +1310,73 @@ export default function TeacherLessonEditorPage() {
           {/* Center */}
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-            {/* Row 1: video + timecodes */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 16, alignItems: 'stretch' }}>
-              <VideoZone url={videoUrl} onChange={setVideoUrl} />
-              <TimecodeEditor codes={timecodes} onChange={setTimecodes} />
-            </div>
+            {/* Содержимое — только у занятия, выросшего из урока курса: видео,
+                главы, файлы и описание живут в строке `lessons`, и без неё их
+                некуда сохранить. Занятие, заведённое прямо здесь, — это запись в
+                расписании; вместо мёртвых полей показываем, где завести урок. */}
+            {lessonRowId ? (
+              <>
+                {/* Row 1: video + timecodes */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 16, alignItems: 'stretch' }}>
+                  <VideoZone url={videoUrl} onChange={setVideoUrl} />
+                  <TimecodeEditor codes={timecodes} onChange={setTimecodes} />
+                </div>
 
-            {/* Row 2: materials + homework */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 14, alignItems: 'start' }}>
-              <UploadTile icon={NotebookPen} label={t('Рабочая тетрадь')} />
-              <UploadTile icon={FileText} label={t('Конспект')} />
-              <UploadTile icon={FolderOpen} label={t('Материалы')} />
-              <HomeworkSelectorCard
-                lessonTitle={meta.title}
-                basic={basicHw} hard={hardHw}
-                onBasic={setBasicHw} onHard={setHardHw}
-                onCreateNew={() => setActivePage('homework-create')}
-              />
-            </div>
+                {/* Row 2: materials + homework */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 14, alignItems: 'start' }}>
+                  <UploadTile icon={NotebookPen} label={t('Рабочая тетрадь')} slot="workbook" files={files} onChange={setFiles} />
+                  <UploadTile icon={FileText} label={t('Конспект')} slot="notebook" files={files} onChange={setFiles} />
+                  <UploadTile icon={FolderOpen} label={t('Материалы')} slot="materials" files={files} onChange={setFiles} />
+                  <HomeworkCard hw={lessonHw} onOpen={openInCourse} />
+                </div>
 
-            {/* Description */}
-            <section style={{
-              display: 'flex', flexDirection: 'column', gap: 12,
-              padding: 24, borderRadius: 24,
-              background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-soft)',
-              boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <FileText size={17} style={{ color: 'var(--color-green-text)' }} />
-                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Описание урока')}</span>
-              </div>
-              <textarea
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                placeholder={t('Краткое содержание урока, что разобрали, ключевые моменты...')}
-                rows={5}
-                style={{ ...inputStyle, resize: 'vertical', minHeight: 120, lineHeight: 1.6, background: 'var(--color-bg-input)' }}
-              />
-            </section>
+                {/* Description */}
+                <section style={{
+                  display: 'flex', flexDirection: 'column', gap: 12,
+                  padding: 24, borderRadius: 24,
+                  background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-soft)',
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <FileText size={17} style={{ color: 'var(--color-green-text)' }} />
+                    <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Описание урока')}</span>
+                  </div>
+                  <textarea
+                    value={description}
+                    onChange={e => setDescription(e.target.value)}
+                    placeholder={t('Краткое содержание урока, что разобрали, ключевые моменты...')}
+                    rows={5}
+                    style={{ ...inputStyle, resize: 'vertical', minHeight: 120, lineHeight: 1.6, background: 'var(--color-bg-input)' }}
+                  />
+                </section>
+              </>
+            ) : (
+              <section style={{
+                display: 'flex', flexDirection: 'column', gap: 10,
+                padding: 24, borderRadius: 24,
+                background: 'rgba(var(--glass-rgb), 0.96)',
+                border: '1.5px dashed var(--color-border-medium)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Video size={17} style={{ color: 'var(--color-text-3)' }} />
+                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Содержимое урока')}</span>
+                </div>
+                <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-3)', margin: 0 }}>
+                  {t('Здесь заводится занятие в расписании: кому, когда и во сколько. Запись, главы, файлы и домашка живут у урока курса — их видит ученик на экране урока.')}
+                </p>
+                <button
+                  onClick={() => setActivePage('constructor')}
+                  style={{
+                    alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '9px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                    background: 'var(--color-green-soft)', color: 'var(--color-green-text)',
+                    fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+                  }}
+                >
+                  {t('Открыть Конструктор')} <ChevronRight size={14} />
+                </button>
+              </section>
+            )}
 
           </div>
         </div>

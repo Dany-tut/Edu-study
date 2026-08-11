@@ -153,7 +153,9 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
   }
 
   const twoCol = isDesktop && showRu
-  const cell = { padding: '9px 14px 9px 0' } as const
+  // Отступы длинной записью: колонки перекрывают их по одной стороне, а смесь
+  // padding и paddingLeft в одном стиле React ругает и применяет непредсказуемо.
+  const cell = { paddingTop: 9, paddingRight: 14, paddingBottom: 9, paddingLeft: 0 } as const
   const ruStyle = {
     fontSize: 13.5, lineHeight: 1.6, color: 'var(--color-text-2)', ...proseWrap,
   } as const

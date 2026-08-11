@@ -50,11 +50,30 @@ export const ACCENT_SOFT = '#ECEAFB'
 export const FONT = "Helvetica, Arial, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Hiragino Sans', 'Yu Gothic', 'Noto Sans CJK KR', 'Noto Sans CJK JP', sans-serif"
 
 /** Общая обёртка: белый лист, заголовок сверху по центру. */
+/**
+ * Ширина строки в пикселях. Иероглиф и хангыль рисуются почти квадратными
+ * (ширина ≈ кегль), латиница с кириллицей — вдвое уже.
+ */
+const WIDE_CHAR = /[\u1100-\u11FF\u2E80-\uA4CF\uA960-\uA97F\uAC00-\uD7FF\uF900-\uFAFF\uFE30-\uFE4F\uFF00-\uFF60]/
+function titleW(text: string, fs: number): number {
+  let w = 0
+  for (const ch of text) w += WIDE_CHAR.test(ch) ? fs : fs * 0.55
+  return w
+}
+
 export function sheet(w: number, h: number, title: string, body: string): string {
+  // Заголовок ужимаем под ширину листа.
+  //
+  // ЗАЧЕМ. Ширину холста генераторы считают по СОДЕРЖИМОМУ — по блокам схемы
+  // или колонкам таблицы. Заголовок в этот расчёт не входит, и длинное название
+  // темы («Живая реакция: да ладно, серьёзно, вот это да») на узком листе
+  // уезжало за оба края. Ужать заголовок дешевле, чем растягивать лист под него:
+  // от ширины листа зависит вся вёрстка внутри.
+  const fs = Math.max(10, Math.min(15, (w - 24) / titleW(title, 1)))
   return `
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" font-family="${FONT}">
     <rect width="${w}" height="${h}" fill="${PAPER}"/>
-    <text x="${w / 2}" y="28" text-anchor="middle" font-size="15" font-weight="700" fill="${INK}">${esc(title)}</text>
+    <text x="${w / 2}" y="28" text-anchor="middle" font-size="${Math.round(fs * 10) / 10}" font-weight="700" fill="${INK}">${esc(title)}</text>
     ${body}
   </svg>`
 }

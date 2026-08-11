@@ -14,6 +14,18 @@ import { formTable, formulaStrip, contrastPair, ladderFigure } from './lessonFig
 import type { CourseFigures } from './languageCourse'
 
 export const IELTS_FIGURES_EXTRA: CourseFigures = {
+  'ielt-20p': [{
+    after: 2,
+    caption: 'Замены, которые слышны как другое слово',
+    src: formTable('Что штрафуют в Pronunciation', ['Подмена', 'Слышится как', 'Почему это дорого'], [
+      ['θ → s', 'think → sink', 'другое слово, а не акцент'],
+      ['ð → z / d', 'they → zey', 'слушатель тратит такт на расшифровку'],
+      ['w → v', 'west → vest', 'смысл меняется целиком'],
+      ['iː → ɪ', 'sheep → ship', 'самая частая пара у русскоязычных'],
+      ['ударение', 'deVElopment', 'сбивает распознавание сильнее звука'],
+    ], { note: 'Штрафуют не за акцент, а за неразборчивость: band 7 требует, чтобы речь понималась без усилия со стороны слушателя', highlight: [4] }),
+  }],
+
   'ielt-02': [{
     after: 2,
     caption: 'Четыре способа перефразировать одно',

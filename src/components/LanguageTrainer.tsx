@@ -3,7 +3,9 @@ import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, 
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
+import { questionRu } from '../data/questionRu'
 import AudioPlayer from './AudioPlayer'
+import VoicePicker from './trainer/VoicePicker'
 import { subjectTheme } from '../lib/theme'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap, balancedWrap } from '../lib/typography'
@@ -1471,6 +1473,7 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
       <RailCard title="Послушать" accent={accent} icon={<Volume2 size={15} />}>
         <div ref={audioRef}>
           <AudioPlayer ttsText={text.body} lang={lang} allowSlow accent={palette.accent} soft={palette.soft} />
+          <VoicePicker lang={lang} accent={palette.accent} soft={palette.soft} />
         </div>
       </RailCard>
 
@@ -1635,6 +1638,7 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
             value={answers[qi]}
             checked={checked}
             accent={accent}
+            lang={lang}
             // Вопрос задан на изучаемом языке, и слова в нём переводятся так же,
             // как в тексте. Варианты ответа оставлены обычными: это кнопки
             // выбора, и подсказка внутри них конфликтует с нажатием.
@@ -1758,13 +1762,26 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
   )
 }
 
-function QuestionCard({ q, index, value, checked, accent, glossLang, glossExtra, onPick }: {
+function QuestionCard({ q, index, value, checked, accent, lang, glossLang, glossExtra, onPick }: {
   q: ReadingQuestion; index: number; value?: number; checked: boolean
   accent: string; onPick: (v: number) => void
+  /** Язык материала — по нему ищется перевод вопроса. */
+  lang: string
   /** Задан — формулировка вопроса тоже переводится по словам. */
   glossLang?: string
   glossExtra?: Gloss[]
 }) {
+  const t = useT()
+  // Перевод вопроса целиком — своей кнопкой у каждого вопроса. Пословная
+  // подсказка отвечает «что значит это слово», но не «что у меня спрашивают»:
+  // в корейском вопросе смысл держится на окончании и порядке слов, и человек,
+  // разобравший все слова по одному, всё равно может не понять вопрос. А не
+  // поняв вопрос, он отвечает наугад — и текст, который он прочитал, засчитан
+  // как непонятый. Поэтому перевод стоит рядом с вопросом, а не после проверки.
+  const ru = questionRu(lang, q)
+  const [showRu, setShowRu] = useState(false)
+  const on = showRu && !!ru
+
   return (
     <div style={{ padding: '15px 17px', borderRadius: 18, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)' }}>
       <div style={{
@@ -1772,9 +1789,28 @@ function QuestionCard({ q, index, value, checked, accent, glossLang, glossExtra,
         color: 'var(--color-text)', marginBottom: 11,
       }}>
         <span style={{ flexShrink: 0 }}>{index + 1}.</span>
-        {glossLang
-          ? <GlossedText text={q.q} lang={glossLang} extra={glossExtra} accent={accent} style={{ flex: 1, minWidth: 0 }} />
-          : <span style={proseWrap}>{bindShortWords(q.q)}</span>}
+        {on
+          ? <span style={{ flex: 1, minWidth: 0, ...proseWrap }}>{bindShortWords(ru!.q)}</span>
+          : glossLang
+            ? <GlossedText text={q.q} lang={glossLang} extra={glossExtra} accent={accent} style={{ flex: 1, minWidth: 0 }} />
+            : <span style={{ flex: 1, minWidth: 0, ...proseWrap }}>{bindShortWords(q.q)}</span>}
+        {ru && (
+          <button
+            onClick={() => setShowRu(v => !v)}
+            title={on ? t('Показать оригинал') : t('Перевести вопрос')}
+            aria-label={on ? t('Показать оригинал') : t('Перевести вопрос')}
+            aria-pressed={on}
+            style={{
+              flexShrink: 0, width: 28, height: 28, borderRadius: 9, cursor: 'pointer',
+              display: 'grid', placeItems: 'center', marginTop: -2,
+              border: `1px solid ${on ? accent : 'var(--color-border-soft)'}`,
+              background: on ? `${accent}1A` : 'transparent',
+              color: on ? accent : 'var(--color-text-3)',
+            }}
+          >
+            <Languages size={14} />
+          </button>
+        )}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
         {q.options.map((opt, oi) => {
@@ -1797,7 +1833,9 @@ function QuestionCard({ q, index, value, checked, accent, glossLang, glossExtra,
             >
               {checked && (showRight ? <CheckCircle2 size={15} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
                 : showWrong ? <XCircle size={15} style={{ color: 'var(--color-red-text)', flexShrink: 0 }} /> : null)}
-              <span style={proseWrap}>{bindShortWords(opt)}</span>
+              {/* Варианты переводятся вместе с вопросом: понятый вопрос и
+                  непонятные ответы — то же угадывание, просто на шаг позже. */}
+              <span style={proseWrap}>{bindShortWords(on ? ru!.options[oi] : opt)}</span>
             </button>
           )
         })}
@@ -1841,6 +1879,7 @@ function Listener({ item, accent, palette, lang, onBack }: {
 
       <RailCard title="Запись" accent={accent} icon={<Volume2 size={15} />}>
         <AudioPlayer ttsText={item.script} lang={lang} allowSlow accent={palette.accent} soft={palette.soft} />
+        <VoicePicker lang={lang} accent={palette.accent} soft={palette.soft} />
         <div style={{ fontSize: 11.5, color: 'var(--color-muted)', lineHeight: 1.5 }}>
           {t('Слушай столько раз, сколько нужно. Расшифровка откроется после ответов.')}
         </div>
@@ -1871,7 +1910,7 @@ function Listener({ item, accent, palette, lang, onBack }: {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {item.questions.map((q, qi) => (
           <QuestionCard
-            key={qi} q={q} index={qi} value={answers[qi]} checked={checked} accent={accent}
+            key={qi} q={q} index={qi} value={answers[qi]} checked={checked} accent={accent} lang={lang}
             onPick={v => !checked && setAnswers(a => ({ ...a, [qi]: v }))}
           />
         ))}

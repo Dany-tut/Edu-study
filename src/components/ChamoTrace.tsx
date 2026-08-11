@@ -14,12 +14,21 @@
 // пунктиру, черта за чертой, и «неправильно» — это не кривая линия, а
 // начатая не с той точки.
 //
-// КАК УСТРОЕНА ПРОВЕРКА. Черта — ломаная из точек (data/hangul.ts). Палец
-// должен пройти её от начала к концу, не отходя дальше TOLERANCE: считаем,
-// сколько подряд идущих опорных точек он «взял». Отпустил на середине — черта
-// сбрасывается и её начинают заново; дошёл до конца — черта фиксируется, и
-// подсвечивается следующая. Никакого «почти правильно»: черта либо пройдена,
-// либо нет.
+// КАК УСТРОЕНА ПРОВЕРКА. Черта — ломаная из точек (data/hangul.ts), сгущённая
+// до шага в пару единиц: по частым точкам видно, что палец действительно прошёл
+// линию, а не срезал угол. Идём по ним по порядку и засчитываем те, к которым
+// палец подошёл ближе TOLERANCE. Дошёл до конца — черта фиксируется и
+// подсвечивается следующая; отпустил раньше — черту начинают заново.
+//
+// ЗА ПАЛЬЦЕМ ТЯНЕТСЯ ЧЕРНИЛЬНЫЙ СЛЕД. Без него обводка немая: линия не
+// шевелится, и непонятно, ведёшь ты или экран тебя не слышит. Рисуем ровно тот
+// путь, который прошёл указатель, — это и обратная связь, и видно, где съехал.
+//
+// СОБЫТИЯ СЛУШАЕМ У ОКНА, А НЕ У SVG. Мышь, зажатая на картинке, для браузера
+// выглядит как протяжка выделения: он честно отдаёт pointercancel, обводка
+// обрывается на середине, а внизу подсвечивается кусок подписи. Поэтому на
+// pointerdown гасим действие по умолчанию, а move/up ловим на window — тогда
+// ведение переживает и выход за края квадрата, и капризы захвата указателя.
 //
 // ПОЧЕМУ ТОЧКИ, А НЕ SVG-ПУТЬ. Расстояние до ломаной считается арифметикой и
 // одинаково работает на мыши и на пальце. Путь пришлось бы сэмплировать через
@@ -36,20 +45,26 @@ import { useT } from '../lib/i18n'
 import AudioPlayer from './AudioPlayer'
 
 /** Насколько далеко от линии можно вести палец (в единицах квадрата 0..100). */
-const TOLERANCE = 15
+const TOLERANCE = 16
 
-/** Сколько опорных точек черты надо взять, чтобы считать её пройденной. */
-const progressOf = (stroke: Stroke, taken: number) => taken / stroke.pts.length
+/** Начать черту можно, попав в этот радиус вокруг стартовой точки. */
+const START_TOLERANCE = 24
 
-/** Расстояние от точки до отрезка. */
-function distToSegment(p: Point, a: Point, b: Point): number {
-  const dx = b[0] - a[0]
-  const dy = b[1] - a[1]
-  const len2 = dx * dx + dy * dy
-  if (len2 === 0) return Math.hypot(p[0] - a[0], p[1] - a[1])
-  let t = ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len2
-  t = Math.max(0, Math.min(1, t))
-  return Math.hypot(p[0] - (a[0] + t * dx), p[1] - (a[1] + t * dy))
+/** Шаг сгущения черты. Мельче — дороже, крупнее — можно срезать угол. */
+const STEP = 2.5
+
+/** Черта, разбитая на частые точки: по ним и считается ход пальца. */
+function densify(s: Stroke): Point[] {
+  const pts = s.closed ? [...s.pts, s.pts[0]] : s.pts
+  if (pts.length < 2) return [...pts]
+  const out: Point[] = [pts[0]]
+  for (let i = 1; i < pts.length; i++) {
+    const [ax, ay] = pts[i - 1]
+    const [bx, by] = pts[i]
+    const steps = Math.max(1, Math.round(Math.hypot(bx - ax, by - ay) / STEP))
+    for (let k = 1; k <= steps; k++) out.push([ax + ((bx - ax) * k) / steps, ay + ((by - ay) * k) / steps])
+  }
+  return out
 }
 
 export default function ChamoTrace({ chamo, value, disabled, onChange }: {
@@ -65,6 +80,12 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
   const svgRef = useRef<SVGSVGElement | null>(null)
   /** Сколько черт уже пройдено целиком. Единственное, что влияет на картинку. */
   const [strokeIndex, setStrokeIndex] = useState(0)
+  /** Ведём прямо сейчас: пока true, движение и отпускание слушает окно. */
+  const [drawing, setDrawing] = useState(false)
+  /** Чернильный след текущего ведения — то, что тянется за пальцем. */
+  const [trail, setTrail] = useState<Point[]>([])
+  /** Толчок стартовой точке, когда начали не с неё: анимация проигрывается заново. */
+  const [nudge, setNudge] = useState(0)
   /**
    * Ход текущей черты живёт в ref, а не в state, и это принципиально: события
    * pointermove приходят пачкой, а состояние обновляется только между
@@ -73,7 +94,6 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
    * точке, и черта не засчитывается никогда.
    */
   const taken = useRef(0)
-  const drawing = useRef(false)
   const done = value === 'done'
 
   const strokes = letter?.strokes ?? []
@@ -85,72 +105,97 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
   }, [done, strokes.length])
 
   const current = strokes[strokeIndex]
+  const dense = useMemo(() => strokes.map(densify), [strokes])
+  const denseCurrent = dense[strokeIndex]
 
   /** Экранные координаты → квадрат буквы 0..100. */
-  const toLocal = (e: React.PointerEvent): Point | null => {
+  const toLocal = (clientX: number, clientY: number): Point | null => {
     const box = svgRef.current?.getBoundingClientRect()
     if (!box || box.width === 0) return null
-    return [((e.clientX - box.left) / box.width) * 100, ((e.clientY - box.top) / box.height) * 100]
+    return [((clientX - box.left) / box.width) * 100, ((clientY - box.top) / box.height) * 100]
   }
 
-  const reset = () => { setStrokeIndex(0); taken.current = 0; drawing.current = false; onChange('') }
+  const reset = () => {
+    setStrokeIndex(0)
+    taken.current = 0
+    setDrawing(false)
+    setTrail([])
+    onChange('')
+  }
 
   const onDown = (e: React.PointerEvent) => {
     if (disabled || done || !current) return
-    const p = toLocal(e)
+    // Иначе браузер примет зажатую мышь за протяжку выделения и оборвёт ведение.
+    e.preventDefault()
+    const p = toLocal(e.clientX, e.clientY)
     if (!p) return
-    // Начинать надо от начала черты — с той точки, где стоит кружок со стрелкой.
-    if (Math.hypot(p[0] - current.pts[0][0], p[1] - current.pts[0][1]) > TOLERANCE * 1.6) return
-    try { e.currentTarget.setPointerCapture(e.pointerId) } catch { /* мышь без захвата — не беда */ }
-    drawing.current = true
+    // Начинать надо от начала черты — с той точки, где пульсирует кружок.
+    if (Math.hypot(p[0] - current.pts[0][0], p[1] - current.pts[0][1]) > START_TOLERANCE) {
+      setNudge(n => n + 1)
+      return
+    }
     taken.current = 1
+    setTrail([current.pts[0], p])
+    setDrawing(true)
   }
 
-  const onMove = (e: React.PointerEvent) => {
-    if (!drawing.current || !current) return
-    const p = toLocal(e)
-    if (!p) return
-    const pts = current.pts
-    // Следующая опорная точка засчитывается, когда палец до неё дошёл; при этом
-    // он не должен уходить от самой линии дальше допуска.
-    let next = taken.current
-    while (next < pts.length && Math.hypot(p[0] - pts[next][0], p[1] - pts[next][1]) < TOLERANCE) next++
-    if (next !== taken.current) {
-      taken.current = next
-      vibrate(6)
-    } else {
-      const a = pts[Math.max(0, taken.current - 1)]
-      const b = pts[Math.min(pts.length - 1, taken.current)]
-      if (distToSegment(p, a, b) > TOLERANCE * 1.4) {
-        // Ушёл с линии — черту начинают заново. Иначе «обвёл» превращается в
-        // «поводил пальцем по экрану».
-        drawing.current = false
-        taken.current = 0
+  // Пока ведут, движение и отпускание слушает окно: так черта не рвётся, если
+  // палец соскользнул за край квадрата или браузер решил не отдавать захват.
+  useEffect(() => {
+    if (!drawing || !current || !denseCurrent) return
+
+    const move = (e: PointerEvent) => {
+      e.preventDefault()
+      const p = toLocal(e.clientX, e.clientY)
+      if (!p) return
+      // След тянется всегда — даже когда съехали с линии: по нему и видно, куда.
+      setTrail(prev => {
+        const last = prev[prev.length - 1]
+        if (last && Math.hypot(p[0] - last[0], p[1] - last[1]) < 0.6) return prev
+        return [...prev, p]
+      })
+      let next = taken.current
+      while (next < denseCurrent.length && Math.hypot(p[0] - denseCurrent[next][0], p[1] - denseCurrent[next][1]) < TOLERANCE) next++
+      if (next !== taken.current) {
+        taken.current = next
+        vibrate(4)
       }
     }
-  }
 
-  const onUp = () => {
-    if (!drawing.current || !current) return
-    drawing.current = false
-    const complete = progressOf(current, taken.current) >= 1
-    taken.current = 0
-    if (!complete) return
-    const next = strokeIndex + 1
-    setStrokeIndex(next)
-    playPop()
-    if (next >= strokes.length) {
-      vibrate([10, 30, 10])
-      onChange('done')
+    const up = () => {
+      setDrawing(false)
+      setTrail([])
+      const complete = taken.current >= denseCurrent.length
+      taken.current = 0
+      if (!complete) return
+      const next = strokeIndex + 1
+      setStrokeIndex(next)
+      playPop()
+      if (next >= strokes.length) {
+        vibrate([10, 30, 10])
+        onChange('done')
+      }
     }
-  }
+
+    window.addEventListener('pointermove', move, { passive: false })
+    window.addEventListener('pointerup', up)
+    window.addEventListener('pointercancel', up)
+    return () => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+      window.removeEventListener('pointercancel', up)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drawing, strokeIndex, denseCurrent, strokes.length])
 
   const paths = useMemo(() => strokes.map(s => strokePath(s)), [strokes])
 
   if (!letter) return null
 
   return (
-    <div className="flex flex-col" style={{ gap: 12 }}>
+    // Выделение текста здесь только мешает: протяжка по букве не должна
+    // подсвечивать подпись под квадратом.
+    <div className="flex flex-col" style={{ gap: 12, userSelect: 'none', WebkitUserSelect: 'none' }}>
       <div className="flex items-center" style={{ gap: 12 }}>
         <AudioPlayer ttsText={letter.ch} lang="ko" compact />
         <div>
@@ -158,7 +203,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
             {letter.ch}
           </div>
           <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>
-            {letter.sound} · {t('черт')}: {strokes.length}
+            {letter.sound}
           </div>
         </div>
         <div style={{ flex: 1 }} />
@@ -182,13 +227,11 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
         ref={svgRef}
         viewBox="0 0 100 100"
         onPointerDown={onDown}
-        onPointerMove={onMove}
-        onPointerUp={onUp}
-        onPointerCancel={onUp}
         style={{
           width: '100%', maxWidth: 300, alignSelf: 'center', aspectRatio: '1',
           borderRadius: 22, background: 'var(--color-bg-3)',
-          touchAction: 'none', cursor: disabled || done ? 'default' : 'crosshair',
+          touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none',
+          cursor: disabled || done ? 'default' : 'crosshair',
           // ВСЁ ВНУТРИ РИСУЕТСЯ ЦВЕТОМ ТЕКСТА, А ЯРКОСТЬ ЗАДАЁТСЯ ПРОЗРАЧНОСТЬЮ.
           //
           // Сначала буква под обводку была нарисована цветом рамки
@@ -224,10 +267,26 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
           />
         ))}
 
-        {/* Точка старта текущей черты — с неё и только с неё начинают вести. */}
-        {current && !done && !disabled && (
+        {/* Чернила: путь, который прошёл указатель. Рисуются поверх пунктира,
+            чтобы линия «вилась» прямо под пальцем, а не появлялась потом. */}
+        {trail.length > 1 && (
+          <polyline
+            points={trail.map(p => `${p[0]},${p[1]}`).join(' ')}
+            fill="none"
+            stroke="var(--color-blue-fill)"
+            strokeWidth={9}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeOpacity={0.85}
+          />
+        )}
+
+        {/* Точка старта текущей черты — с неё и только с неё начинают вести.
+            nudge в ключе перезапускает пульс, когда нажали мимо: подсказка без
+            лишней строки текста. */}
+        {current && !done && !disabled && !drawing && (
           <motion.circle
-            key={strokeIndex}
+            key={`${strokeIndex}-${nudge}`}
             cx={current.pts[0][0]}
             cy={current.pts[0][1]}
             r={7}

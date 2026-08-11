@@ -40,7 +40,7 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
     level: 'B1 → B2 (IELTS Academic)',
     units: 21,
     vocabCount: 210,
-    taskCount: 217,
+    taskCount: 218,
     guidedHours: '120–160',
     lessonMinutes: 90,
     scopeNote:
@@ -48,14 +48,14 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
   },
   ensv: {
     title: 'Английский: язык выживания',
-    level: 'С нуля → A2 (бытовой минимум)',
-    units: 29,
-    vocabCount: 412,
-    taskCount: 464,
-    guidedHours: '58',
+    level: 'С нуля → B2 (от «здравствуйте» до визы и аренды)',
+    units: 43,
+    vocabCount: 636,
+    taskCount: 688,
+    guidedHours: '86',
     lessonMinutes: 60,
     scopeNote:
-      'Разговорник, а не грамматический курс: 412 готовых фраз по 29 ситуациям — по одной фразе на смысл. Юнит — это одна ситуация: десяток фраз, рассчитанных на несколько подходов через интервальные повторения. Грамматика объясняется только там, где без неё фразу нельзя переставить под себя.',
+      'Разговорник, а не грамматический курс: 636 готовых фраз по 43 ситуациям — по одной фразе на смысл. Юнит — это одна ситуация: десяток фраз, рассчитанных на несколько подходов через интервальные повторения. Грамматика объясняется только там, где без неё фразу нельзя переставить под себя.',
   },
   kohg: {
     title: 'Корейский с нуля: хангыль',
@@ -71,9 +71,9 @@ export const SEED_CARDS: Record<string, CourseSummary> = {
   kotp: {
     title: 'Корейский с нуля — до TOPIK I',
     level: 'С нуля → TOPIK I (1급–2급)',
-    units: 30,
-    vocabCount: 300,
-    taskCount: 282,
+    units: 28,
+    vocabCount: 280,
+    taskCount: 260,
     guidedHours: '250–300',
     lessonMinutes: 90,
     scopeNote:

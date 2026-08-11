@@ -190,16 +190,21 @@ export function hasVoiceFor(lang?: string): boolean {
  * характерные голоса Apple): они есть на каждом языке, забивают список и звучат
  * как мультфильм.
  */
-export function listVoices(lang?: string): SpeechSynthesisVoice[] {
+export function listVoices(lang?: string, all = false): SpeechSynthesisVoice[] {
   const locale = speechLocale(lang)
   if (!locale || typeof speechSynthesis === 'undefined') return []
   if (!voices.length) refreshVoices()
   const known = KNOWN_VOICES[langOf(locale)]
   const rank = (v: SpeechSynthesisVoice) =>
     known?.test(v.name.trim()) ? 0 : GOOD_VOICE.test(v.name) ? 1 : 2
-  return voicesFor(locale)
+  const list = voicesFor(locale)
     .filter(v => !characterVoices.has(baseName(v.name)))
     .sort((a, b) => rank(a) - rank(b))
+  // По умолчанию — только дикторы. Полный список на macOS это 26 строк, из
+  // которых 20 — звуковые шутки системы («Пузырьки», «Плохие новости»): выбирать
+  // из такого списка нечего, а найти в нём Саманту трудно.
+  const good = list.filter(v => rank(v) < 2)
+  return all || !good.length ? list : good
 }
 
 // ─── Выбор ученика ───────────────────────────────────────────────────────────

@@ -1117,7 +1117,7 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
                     aria-label={t('Скорость')}
                   >
                     <Gauge size={17} />
-                    <span style={{ fontSize: 12, fontWeight: 700 }}>{rate}×</span>
+                    <span style={{ fontSize: 12, fontWeight: 700 }}>{liveRate}×</span>
                   </button>
                   {rateOpen && (
                     <div
@@ -1131,7 +1131,9 @@ const LessonVideoPlayer = forwardRef<LessonVideoHandle, Props>(function LessonVi
                       {RATES.map(r => (
                         <button
                           key={r}
-                          onClick={() => applyRate(r)}
+                          // Выбор из меню — это уже другая скорость: защёлкнутое
+                          // ускорение снимаем, иначе оно осталось бы поверх.
+                          onClick={() => { if (lockedRef.current) endBoost(); applyRate(r) }}
                           className="flex items-center w-full cursor-pointer"
                           style={{
                             gap: 8, padding: '7px 9px', borderRadius: 9, border: 'none',
