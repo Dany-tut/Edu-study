@@ -5635,4 +5635,537 @@ Nobody asked me anything. But that night I slept in a room with a window, and fo
       },
     ],
   },
+
+  // ── Назови меня своим именем: карточка, наш текст ──────────────────────────
+  {
+    id: 'sc-cmbyn-1',
+    workId: 'aciman-cmbyn',
+    lang: 'en', title: 'Шесть недель и ни одного слова', level: 'C1', minutes: 4,
+    topic: 'Время и планы', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Ачман пишет длинными ветвящимися фразами, и весь роман — про то, чего не сказали вслух. Ниже наш текст в том же регистре. Ради грамматики: это концентрат сослагательного и модальностей прошлого — would have, could have, should have, — то есть ровно тех форм, которыми по-английски говорят о несделанном.',
+    body: `He was to stay six weeks. I counted them the way you count money you have not earned yet.
+
+I could have said something on any of those evenings. I could have said it at the table, when my mother asked him about his book and he answered too quickly, the way people do when they have been thinking about something else. I could have said it on the road back from town, where the wall is low enough to sit on. I said nothing, and then it was July, and then it was the end of July.
+
+What I told myself was that there was time. What I meant was that I was afraid.
+
+Twice I decided I would speak in the morning. Both times the morning came and I went swimming instead, and the water was cold enough at that hour to feel like a decision.
+
+If he had asked me a direct question — any direct question — I would have answered it. He never did. Later I understood that he had been waiting for the same thing, and that we had spent six weeks being careful with each other for no reason at all.
+
+The last week I stopped counting.`,
+    translation: `Он должен был пробыть шесть недель. Я считал их так, как считают деньги, которых ещё не заработал.
+
+Я мог бы что-нибудь сказать в любой из тех вечеров. Мог бы сказать за столом, когда мама спросила его про книгу, а он ответил слишком быстро — как отвечают люди, думавшие в этот момент о другом. Мог бы сказать на дороге из города, там, где стена достаточно низкая, чтобы на ней сидеть. Я не сказал ничего, а потом наступил июль, а потом июль кончился.
+
+Себе я говорил, что время есть. Имел я в виду, что боюсь.
+
+Дважды я решал, что заговорю утром. Оба раза утро приходило, а я шёл вместо этого плавать, и вода в этот час была холодная ровно настолько, чтобы сойти за решение.
+
+Если бы он задал мне прямой вопрос — любой прямой вопрос, — я бы ответил. Он не задал. Позже я понял, что он ждал того же самого и что мы шесть недель были осторожны друг с другом совершенно зря.
+
+В последнюю неделю я перестал считать.`,
+    glossary: [
+      { term: 'he was to stay', ru: 'ему предстояло пробыть; be to о запланированном' },
+      { term: 'I could have said', ru: 'я мог бы сказать (но не сказал)' },
+      { term: 'What I told myself was…', ru: 'себе я говорил, что…' },
+      { term: 'What I meant was…', ru: 'на самом деле я имел в виду…' },
+      { term: 'instead', ru: 'вместо этого' },
+      { term: 'if he had asked, I would have answered', ru: 'если бы спросил, я бы ответил; третий тип условия' },
+      { term: 'to be careful with somebody', ru: 'быть осторожным с кем-то, беречься' },
+      { term: 'for no reason at all', ru: 'совершенно зря, без всякой причины' },
+    ],
+    questions: [
+      {
+        q: 'Why did the narrator never speak?',
+        options: [
+          'There was never an opportunity',
+          'He was afraid, and told himself there was still time',
+          'He did not want to',
+          'The other man asked him not to',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"I could have said it at the table." What does this form mean?',
+        options: [
+          'He said it at the table',
+          'He was able to say it and did',
+          'It was possible, but he did not do it',
+          'He will say it at the table',
+        ],
+        correct: 2,
+        why: 'could have + причастие — «мог бы, но не сделал». Именно на этой форме держится весь отрывок: она называет несделанное, не называя чувства.',
+      },
+      {
+        q: '"If he had asked me a direct question, I would have answered it." What does this tell us?',
+        options: [
+          'He asked and got an answer',
+          'Neither the question nor the answer ever happened',
+          'The question is still open',
+          'He refused to answer',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Они оба умрут в конце: карточка, наш текст ─────────────────────────────
+  {
+    id: 'sc-they-both-die-1',
+    workId: 'silvera-they-both-die',
+    lang: 'en', title: 'Звонок в 00:22', level: 'B1', minutes: 3,
+    topic: 'Технологии и медиа', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'У Сильверы есть служба, которая звонит в полночь и сообщает, что этот день у тебя последний, — и половина книги идёт оповещениями приложения. Ниже наш текст в том же жанре: звонок и экран телефона. Практическая польза — регистр объявлений: настоящее время, безличные конструкции, вежливые формулы службы поддержки, которыми говорят и банк, и авиакомпания.',
+    body: `00:22
+
+“Good morning. This is Herald Services. Am I speaking to the account holder?”
+
+“Yes.”
+
+“I am sorry to have to inform you that today is your End Day. You are receiving this call between midnight and three a.m., as required. Do you understand what I have just told you?”
+
+“Yes.”
+
+“You do not need to do anything right now. Our records are updated automatically. If you would like us to contact someone on your behalf, I can do that while we are on the line.”
+
+“No. Thank you.”
+
+“Of course. I am very sorry. Please take care of yourself today.”
+
+—
+
+LAST FRIEND
+Notifications · now
+
+You have 22 hours and 38 minutes remaining.
+4 people near you are also on their End Day.
+Would you like to be visible to them?
+Being visible cannot be undone.
+
+[ Not now ]   [ Make me visible ]`,
+    translation: `00:22
+
+«Доброе утро. Служба „Геральд“. Я говорю с владельцем аккаунта?»
+
+«Да».
+
+«К сожалению, вынуждены сообщить, что сегодня ваш последний день. Этот звонок совершается между полуночью и тремя часами ночи, как предписано. Вы поняли то, что я сейчас сказал?»
+
+«Да».
+
+«Прямо сейчас от вас ничего не требуется. Наши записи обновляются автоматически. Если хотите, чтобы мы связались с кем-то от вашего имени, я могу сделать это, пока мы на линии».
+
+«Нет. Спасибо».
+
+«Разумеется. Мне очень жаль. Берегите себя сегодня».
+
+—
+
+ПОСЛЕДНИЙ ДРУГ
+Уведомления · только что
+
+У вас осталось 22 часа 38 минут.
+Рядом с вами ещё 4 человека, у которых сегодня последний день.
+Показать вас им?
+Отменить видимость будет нельзя.
+
+[ Не сейчас ]   [ Показать меня ]`,
+    glossary: [
+      { term: 'Am I speaking to…?', ru: 'я говорю с…?; телефонная формула' },
+      { term: 'account holder', ru: 'владелец аккаунта, счёта' },
+      { term: 'I am sorry to have to inform you', ru: 'к сожалению, вынужден сообщить; официальная формула' },
+      { term: 'as required', ru: 'как предписано, согласно требованиям' },
+      { term: 'you do not need to do anything', ru: 'от вас ничего не требуется' },
+      { term: 'on your behalf', ru: 'от вашего имени' },
+      { term: 'while we are on the line', ru: 'пока мы на линии' },
+      { term: 'remaining', ru: 'оставшийся' },
+      { term: 'cannot be undone', ru: 'нельзя отменить, необратимо' },
+    ],
+    questions: [
+      {
+        q: 'Why does the service call between midnight and three a.m.?',
+        options: [
+          'It is cheaper at night',
+          'Because the rules require it',
+          'The person asked them to',
+          'It is a mistake',
+        ],
+        correct: 1,
+      },
+      {
+        q: '"I am sorry to have to inform you…" — what kind of English is this?',
+        options: [
+          'Casual speech',
+          'Formal, impersonal service language',
+          'Legal English only',
+          'Old-fashioned literary English',
+        ],
+        correct: 1,
+        why: 'Та же формула, которой отказывают в визе, сообщают об увольнении и о задержке рейса. Стоит выучить целиком — она узнаётся мгновенно и всегда означает плохую новость.',
+      },
+      {
+        q: 'What does "Being visible cannot be undone" warn about?',
+        options: [
+          'The choice is final',
+          'The app may crash',
+          'Others will not see you',
+          'You must pay for it',
+        ],
+        correct: 0,
+      },
+    ],
+  },
+
+  // ── Аристотель и Данте: карточка, наш текст ────────────────────────────────
+  {
+    id: 'sc-ari-dante-1',
+    workId: 'saenz-ari-dante',
+    lang: 'en', title: 'Про отцов не спрашивают', level: 'A2', minutes: 3,
+    topic: 'Семья и люди', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'У Саэнса самые короткие фразы во всей полке: подлежащее, сказуемое, точка. Ниже наш текст в том же регистре — двое подростков в кузове пикапа. Это лучший на полке текст для уровня A2: длинных слов почти нет, а всё, что происходит, происходит в паузах между репликами.',
+    body: `We lay in the back of his truck and looked at the sky. It was July. The metal was still warm from the day.
+
+“Does your dad talk to you?” I said.
+
+“He talks. He just doesn’t say anything.”
+
+“Mine went to the war,” I said. “He came back. That’s all I know.”
+
+“You never asked?”
+
+“You don’t ask.”
+
+Dante turned his head. “Why not?”
+
+I thought about it. Nobody had ever asked me that before. In my house there were rules that nobody had written down and nobody had ever said out loud, and that was one of them.
+
+“I don’t know,” I said. “You just don’t.”
+
+“That’s a stupid rule.”
+
+“Yeah,” I said. “It is.”
+
+We didn’t say anything for a while. A dog was barking two streets away. Then he said, “You can ask me anything,” and he said it like it was nothing, like it was a normal thing to say to somebody.
+
+I looked at the sky for a long time. I decided I would ask my father a question. Not that night. But I decided.`,
+    translation: `Мы лежали в кузове его пикапа и смотрели в небо. Был июль. Металл ещё был тёплый с дневного солнца.
+
+— Твой отец с тобой разговаривает? — сказал я.
+
+— Разговаривает. Просто ничего не говорит.
+
+— Мой был на войне, — сказал я. — Вернулся. Это всё, что я знаю.
+
+— И ты никогда не спрашивал?
+
+— Не спрашивают.
+
+Данте повернул голову.
+
+— Почему?
+
+Я задумался. Меня никто раньше об этом не спрашивал. У нас в доме были правила, которых никто не записывал и никто вслух не произносил, и это было одно из них.
+
+— Не знаю, — сказал я. — Просто не спрашивают.
+
+— Дурацкое правило.
+
+— Ага, — сказал я. — Дурацкое.
+
+Мы какое-то время молчали. Через две улицы лаяла собака. Потом он сказал: «Меня можешь спрашивать о чём угодно», — и сказал это как ни в чём не бывало, как будто такое вообще говорят людям.
+
+Я долго смотрел в небо. Я решил, что задам отцу вопрос. Не в тот вечер. Но решил.`,
+    glossary: [
+      { term: 'the back of his truck', ru: 'кузов пикапа' },
+      { term: 'He just doesn’t say anything', ru: 'он просто ничего не говорит' },
+      { term: 'You don’t ask', ru: 'не спрашивают; you безличное' },
+      { term: 'to write down', ru: 'записать' },
+      { term: 'out loud', ru: 'вслух' },
+      { term: 'for a while', ru: 'какое-то время' },
+      { term: 'two streets away', ru: 'через две улицы' },
+      { term: 'like it was nothing', ru: 'как ни в чём не бывало, будто это пустяк' },
+    ],
+    questions: [
+      {
+        q: 'What does "He talks. He just doesn’t say anything." mean?',
+        options: [
+          'The father is silent',
+          'The father speaks, but never about anything real',
+          'The father speaks another language',
+          'The father talks too much',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'In "You don’t ask", who is "you"?',
+        options: [
+          'Dante',
+          'Nobody in particular — it means "one does not ask"',
+          'The narrator’s father',
+          'The reader',
+        ],
+        correct: 1,
+        why: 'Безличное you — главный способ по-английски сформулировать правило, которое никто не устанавливал. По-русски это «не спрашивают», без подлежащего вовсе.',
+      },
+      {
+        q: 'What changes for the narrator by the end?',
+        options: [
+          'He asks his father that night',
+          'He decides that one day he will ask',
+          'He decides never to ask',
+          'He forgets about it',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Комната Джованни: карточка, наш текст ──────────────────────────────────
+  {
+    id: 'sc-giovanni-1',
+    workId: 'baldwin-giovanni',
+    lang: 'en', title: 'Последний поезд метро', level: 'C1', minutes: 4,
+    topic: 'Дом и город', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Болдуин пишет от первого лица длинными чистыми периодами, почти без редких слов: трудность его английского не в лексике, а в длине фразы. Ниже наш текст в том же регистре — американец в Париже, ночь, решение, которое он не принимает. Отличный материал, чтобы научиться читать длинное предложение целиком, а не по кускам.',
+    body: `I had been in Paris eleven months and I had learned exactly one useful thing, which was how to be in a city where nobody knew my mother.
+
+The bar was on a street that smelled of bread in the mornings and of nothing at all at night. I sat where I always sat. I had told myself, walking there, that I would have one drink and then go home and write to her and say that the wedding would have to wait until the spring, and that I would explain everything in the spring, and that the spring was not far.
+
+I had been telling myself this since February.
+
+There is a moment, somewhere between the second drink and the last train, when a man decides which of the two lives he is going to live, and the terrible thing is that he does not know he is deciding. He thinks he is only sitting. He thinks the question will be put to him later, formally, with witnesses, and that he will answer it then, when he is ready, when he is older, when the light is better.
+
+I heard the last train go. I did not move.`,
+    translation: `Я прожил в Париже одиннадцать месяцев и научился ровно одной полезной вещи — тому, как жить в городе, где никто не знает мою мать.
+
+Бар стоял на улице, которая по утрам пахла хлебом, а ночью не пахла ничем. Я сел там, где садился всегда. По дороге я говорил себе, что выпью один бокал, потом пойду домой, напишу ей и скажу, что со свадьбой придётся подождать до весны, что весной я всё объясню и что весна уже недалеко.
+
+Я говорил себе это с февраля.
+
+Есть момент — где-то между вторым бокалом и последним поездом, — когда человек решает, какую из двух своих жизней он будет жить, и весь ужас в том, что он не знает, что решает. Ему кажется, что он просто сидит. Ему кажется, что вопрос поставят перед ним позже, официально, при свидетелях, и вот тогда он и ответит: когда будет готов, когда будет постарше, когда свет будет получше.
+
+Я услышал, как ушёл последний поезд. Я не двинулся с места.`,
+    glossary: [
+      { term: 'I had been in Paris eleven months', ru: 'к тому моменту я прожил в Париже одиннадцать месяцев' },
+      { term: 'exactly one useful thing', ru: 'ровно одной полезной вещи' },
+      { term: 'to smell of something', ru: 'пахнуть чем-то' },
+      { term: 'I had told myself', ru: 'я говорил себе (раньше того момента)' },
+      { term: 'would have to wait', ru: 'придётся подождать' },
+      { term: 'the question will be put to him', ru: 'вопрос поставят перед ним; пассив' },
+      { term: 'with witnesses', ru: 'при свидетелях' },
+      { term: 'when the light is better', ru: 'когда свет будет получше; тут — «когда станет яснее»' },
+    ],
+    questions: [
+      {
+        q: 'What has the narrator been promising in his letters since February?',
+        options: [
+          'That he will come home next week',
+          'That he will explain everything in the spring',
+          'That he has found work',
+          'That he is getting married in the summer',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'According to the narrator, why is that moment "terrible"?',
+        options: [
+          'Because the decision is made without the man knowing he is making it',
+          'Because the bar closes',
+          'Because he has no money',
+          'Because someone is watching him',
+        ],
+        correct: 0,
+      },
+      {
+        q: '"I heard the last train go. I did not move." What has happened?',
+        options: [
+          'Nothing — he simply stayed out late',
+          'He has answered the question by not answering it',
+          'He has missed his appointment',
+          'He has decided to go home',
+        ],
+        correct: 1,
+        why: 'Весь абзац до этого объяснил правило, а две короткие фразы его применяют. Приём Болдуина: длинное рассуждение и короткое действие, которое всё решает.',
+      },
+    ],
+  },
+
+  // ── Морис: карточка, наш текст ─────────────────────────────────────────────
+  {
+    id: 'sc-maurice-1',
+    workId: 'forster-maurice',
+    lang: 'en', title: 'Разговор, в котором ничего не названо', level: 'C1', minutes: 4,
+    topic: 'Учёба', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Эдвардианская Англия: то, о чём идёт речь, называть нельзя — за это судили. Форстер строит целые главы на разговорах, где главное слово не произносится ни разу. Ниже наш диалог в том же регистре. Для языка это ценно тем, что показывает английскую вежливую увёртку в чистом виде: I suppose, rather, one does not, don’t you think.',
+    body: `“You have been reading the Greeks, I hear,” said the tutor, without looking up.
+
+“A little. Mr. Risley lent me a translation.”
+
+“Ah. A translation.” He turned a page. “There are passages in the original which we do not read here. You will find them omitted. It is thought better.”
+
+“Better for whom, sir?”
+
+The tutor looked up then, and Hall understood at once that he had asked a question which was not asked.
+
+“You are, I think, a sensible young man,” the tutor said. “Sensible young men go down from here, and take up a profession, and marry, and are perfectly content. I have seen a great many of them do it. I have also seen one or two who did not, and I would not wish that for you.”
+
+“I am not sure I follow, sir.”
+
+“No,” said the tutor. “I did not suppose you would.” He returned to his page. “Do give my regards to your mother.”
+
+Hall walked back across the court in the rain and found that he was shaking, and that he could not have said, if anyone had stopped him and asked, what exactly had been said to him.`,
+    translation: `— Вы, я слышал, взялись за греков, — сказал наставник, не поднимая глаз.
+
+— Немного. Мистер Ризли одолжил мне перевод.
+
+— А. Перевод. — Он перевернул страницу. — В подлиннике есть места, которых мы здесь не читаем. Вы обнаружите, что они опущены. Так считают правильным.
+
+— Правильным для кого, сэр?
+
+Тут наставник поднял глаза, и Холл немедленно понял, что задал вопрос, которого не задают.
+
+— Вы, полагаю, разумный молодой человек, — сказал наставник. — Разумные молодые люди уезжают отсюда, берутся за профессию, женятся и совершенно довольны. Я видел, как это делали очень многие. Я видел и одного-двух, которые не сделали, и вам я такого не пожелал бы.
+
+— Боюсь, я не вполне вас понимаю, сэр.
+
+— Да, — сказал наставник. — Я и не предполагал, что поймёте. — Он вернулся к странице. — Передавайте поклон вашей матушке.
+
+Холл шёл обратно через двор под дождём и обнаружил, что его трясёт и что он не смог бы сказать, если бы его остановили и спросили, что именно ему сейчас сообщили.`,
+    glossary: [
+      { term: 'I hear', ru: 'я слышал, до меня дошло' },
+      { term: 'to lend / lent', ru: 'одолжить (дать)' },
+      { term: 'to omit', ru: 'опустить, пропустить' },
+      { term: 'It is thought better', ru: 'так считают правильным; безличный пассив' },
+      { term: 'sensible', ru: 'разумный, здравомыслящий' },
+      { term: 'to go down (from Oxford/Cambridge)', ru: 'закончить университет и уехать' },
+      { term: 'to take up a profession', ru: 'взяться за профессию' },
+      { term: 'I am not sure I follow', ru: 'боюсь, я не вполне понимаю' },
+      { term: 'to give one’s regards to', ru: 'передавать поклон, привет' },
+    ],
+    questions: [
+      {
+        q: 'What is the tutor actually warning the student about?',
+        options: [
+          'Reading bad translations',
+          'Being one of the "one or two who did not" marry and settle',
+          'Failing his examinations',
+          'Borrowing books from Mr. Risley',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does the tutor say "It is thought better" instead of "I think it is better"?',
+        options: [
+          'It is more polite',
+          'The passive removes the person — the rule seems to come from nowhere and cannot be argued with',
+          'He is quoting someone',
+          'It is a grammatical error',
+        ],
+        correct: 1,
+        why: 'Безличный пассив — главный инструмент этого куска: правило есть, а автора правила нет, поэтому и спорить не с кем.',
+      },
+      {
+        q: 'Why can the student not repeat what was said to him?',
+        options: [
+          'He did not hear it',
+          'Nothing was named directly — the whole conversation is implication',
+          'It was in Greek',
+          'He was told to keep it secret',
+        ],
+        correct: 1,
+      },
+    ],
+  },
+
+  // ── Лишь: карточка, наш текст ──────────────────────────────────────────────
+  {
+    id: 'sc-less-1',
+    workId: 'greer-less',
+    lang: 'en', title: 'Премию вручают не мне', level: 'B2', minutes: 3,
+    topic: 'Путешествия', skill: 'Чтение',
+    order: 1, where: 'Наш текст на тему романа', size: 'short', spoiler: 1,
+    textOrigin: 'ours', origin: 'original',
+    setup: 'Грир пишет комедию про немолодого писателя, который объехал полмира, лишь бы не отвечать на приглашение на свадьбу. Ниже наш текст в том же жанре. Польза чисто практическая: это язык поездок и неловкостей — регистрация, программа, выступление, — то есть ровно те ситуации, в которых английский нужен по-настоящему.',
+    body: `The festival had booked him a room with a view of another room.
+
+At the registration desk a young woman found his name on the third list, which was the list of people who were not on the first two lists. She gave him a badge that said AUTHOR and, underneath, in larger letters, a name that was not his.
+
+“It is close enough,” she said kindly.
+
+The programme said that he would speak at eleven, on a panel called The Future of the Novel, with two other writers and a moderator. At eleven he was taken to a small stage where a man was already talking. At eleven twenty the moderator turned to him and asked, in excellent English, what he had made of the previous speaker’s point.
+
+He had not understood a word of the previous speaker’s point, which had been made in Italian.
+
+“I think,” he said slowly, “that he is right about the difficult part, and that the rest is a matter of what one is willing to give up.”
+
+There was a pause, and then a great deal of nodding. Afterwards two people came up and told him it was the best thing said all morning. One of them asked him to sign the badge with the wrong name on it, and he did.`,
+    translation: `Фестиваль забронировал ему номер с видом на другой номер.
+
+За стойкой регистрации девушка нашла его имя в третьем списке — списке тех, кого не оказалось в первых двух. Она выдала ему бейдж, на котором значилось АВТОР, а ниже, буквами покрупнее, — имя, которое было не его.
+
+— Достаточно похоже, — сказала она доброжелательно.
+
+В программе стояло, что он выступает в одиннадцать, на секции «Будущее романа», с двумя другими писателями и модератором. В одиннадцать его отвели на маленькую сцену, где один человек уже говорил. В одиннадцать двадцать модератор повернулся к нему и спросил на превосходном английском, что он думает о тезисе предыдущего выступавшего.
+
+Из тезиса предыдущего выступавшего он не понял ни слова, потому что тезис был изложен по-итальянски.
+
+— Я думаю, — сказал он медленно, — что в трудной части он прав, а всё остальное зависит от того, чем человек готов поступиться.
+
+Возникла пауза, а затем — очень много кивания. После к нему подошли двое и сказали, что это было лучшее, что прозвучало за всё утро. Один попросил подписать тот самый бейдж с чужим именем, и он подписал.`,
+    glossary: [
+      { term: 'to book a room', ru: 'забронировать номер' },
+      { term: 'registration desk', ru: 'стойка регистрации' },
+      { term: 'badge', ru: 'бейдж' },
+      { term: 'close enough', ru: 'достаточно похоже; сойдёт' },
+      { term: 'panel', ru: 'секция, круглый стол' },
+      { term: 'moderator', ru: 'ведущий дискуссии' },
+      { term: 'to make of something', ru: 'что думать о чём-то: what do you make of it?' },
+      { term: 'to be willing to give up', ru: 'быть готовым поступиться, отказаться от' },
+      { term: 'afterwards', ru: 'после, потом' },
+    ],
+    questions: [
+      {
+        q: 'What is wrong with his badge?',
+        options: [
+          'It has the wrong name on it',
+          'It is the wrong colour',
+          'It has no name at all',
+          'It says he is a moderator',
+        ],
+        correct: 0,
+      },
+      {
+        q: 'Why can he not answer the moderator’s question properly?',
+        options: [
+          'He was not listening',
+          'The previous speaker spoke Italian, which he does not understand',
+          'The microphone was off',
+          'He disagrees with everyone',
+        ],
+        correct: 1,
+      },
+      {
+        q: 'Why does his answer work so well?',
+        options: [
+          'It is very detailed',
+          'It is general enough to fit any argument, and sounds thoughtful',
+          'He quotes the previous speaker',
+          'He speaks Italian',
+        ],
+        correct: 1,
+        why: 'Приём стоит запомнить и всерьёз: «он прав в трудной части, остальное — вопрос того, чем готов поступиться» — универсальная вежливая формула, когда сказать нечего.',
+      },
+    ],
+  },
 ]

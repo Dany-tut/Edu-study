@@ -253,12 +253,14 @@ function tileStyle(active: boolean, open: boolean): React.CSSProperties {
   }
 }
 
-/** Выпадашка плитки. Открывается ВВЕРХ: плитки стоят в самом низу урока, и
- *  список файлов, падающий вниз, уезжал за край страницы. */
-function tileDropdownStyle(): React.CSSProperties {
+/** Выпадашка плитки. По умолчанию открывается ВВЕРХ: плитки стоят в самом низу
+ *  урока, и список файлов, падающий вниз, уезжал за край страницы. Вниз —
+ *  только когда сверху места нет (короткий урок, плитки сразу под шапкой:
+ *  список тогда уезжал ЗА ВЕРХ экрана и был не виден вовсе). */
+function tileDropdownStyle(up: boolean): React.CSSProperties {
   return {
     position: 'absolute',
-    bottom: 'calc(100% + 8px)',
+    ...(up ? { bottom: 'calc(100% + 8px)' } : { top: 'calc(100% + 8px)' }),
     left: 0,
     right: 0,
     zIndex: 50,
@@ -374,6 +376,7 @@ function DownloadTile({ icon: Icon, label, file }: { icon: typeof NotebookPen; l
 function MaterialsTile({ materials }: { materials: LessonFile[] }) {
   const t = useT()
   const [open, setOpen] = useState(false)
+  const [up, setUp] = useState(true)
   const ref = useRef<HTMLDivElement>(null)
   const active = materials.length > 0
 
@@ -386,13 +389,25 @@ function MaterialsTile({ materials }: { materials: LessonFile[] }) {
     return () => document.removeEventListener('pointerdown', onDown)
   }, [open])
 
+  // Куда открывать список: считаем ПЕРЕД показом, по месту над плиткой.
+  function toggle() {
+    if (!active) return
+    if (!open) {
+      const top = ref.current?.getBoundingClientRect().top ?? 0
+      const need = Math.min(300, materials.length * 52 + 16) + 16
+      // 100px — высота плавающей шапки, под неё список тоже прятать нельзя.
+      setUp(top - 100 >= need)
+    }
+    setOpen(o => !o)
+  }
+
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <motion.button
         whileHover={active ? { y: -2 } : undefined}
         whileTap={active ? { scale: 0.99 } : undefined}
         disabled={!active}
-        onClick={() => active && setOpen(o => !o)}
+        onClick={toggle}
         className="flex items-center w-full"
         style={tileStyle(active, open)}
       >
@@ -423,11 +438,11 @@ function MaterialsTile({ materials }: { materials: LessonFile[] }) {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.98 }}
+            initial={{ opacity: 0, y: up ? 8 : -8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.98 }}
+            exit={{ opacity: 0, y: up ? 8 : -8, scale: 0.98 }}
             transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-            style={tileDropdownStyle()}
+            style={tileDropdownStyle(up)}
           >
             <ScrollFade maxHeight={300} bg="rgba(var(--glass-rgb), 0.92)" overlayScrollbar>
               {materials.map(m => (

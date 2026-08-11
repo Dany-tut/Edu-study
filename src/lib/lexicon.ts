@@ -64,6 +64,25 @@ function cls(c: string | undefined): 'd' | 'l' | 'x' {
 }
 
 /**
+ * Класс СОСЕДА совпадения — того символа, что стоит вплотную слева или справа.
+ *
+ * Отличается от cls() ровно в одном: дефис и апостроф склеивают слово, только
+ * когда с другой стороны от них тоже буква (mid-level, I'd). Иначе это тире, а
+ * тире слово не продолжает. Без этой оговорки любое слово, набранное вплотную к
+ * тире («--eram» у Машаду, «слово--слово» у Диккенса), не находилось в словаре
+ * вовсе: проверка границы считала, что совпадение начинается внутри слова.
+ */
+function edge(text: string, i: number, back: boolean): 'd' | 'l' | 'x' {
+  const c = text[i]
+  if (!c) return 'x'
+  if (c === "'" || c === '’' || c === '-') {
+    const beyond = text[back ? i - 1 : i + 1]
+    return beyond && LETTER.test(beyond) && !CJK.test(beyond) ? 'l' : 'x'
+  }
+  return cls(c)
+}
+
+/**
  * Ключ словаря: регистр для латиницы не значим, для остального нейтрален.
  *
  * Апостроф приводится к прямому. Тексты набраны по-разному — в одном didn’t с
@@ -199,8 +218,8 @@ export function buildLexicon(lang: string, extra: WordGloss[] = []): Lexicon {
         // Для латиницы и цифр совпадение обязано лежать на границе слова.
         const head = cls(chunk[0])
         const tail = cls(chunk[chunk.length - 1])
-        if (head !== 'x' && cls(text[i - 1]) === head) continue
-        if (tail !== 'x' && cls(text[i + len]) === tail) continue
+        if (head !== 'x' && edge(text, i - 1, true) === head) continue
+        if (tail !== 'x' && edge(text, i + len, false) === tail) continue
         hit = { len, gloss: g }
         break
       }

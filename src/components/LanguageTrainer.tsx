@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight } from 'lucide-react'
+import { BookOpen, Headphones, Layers, Mic, ChevronLeft, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Sparkle, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3 } from 'lucide-react'
 import { textsForLang, type ReadingText, type ReadingQuestion, type Gloss } from '../data/readingLibrary'
 import { languageTaxonomy } from '../data/languageTaxonomy'
 import { listeningForLang, type ListeningItem } from '../data/listeningLibrary'
@@ -27,6 +27,7 @@ import {
   type Scene, type Work,
 } from '../data/scenes'
 import { WorkGrid, WorkPage } from './trainer/SceneShelf'
+import ScoreReader, { hasReadings } from './trainer/ScoreReader'
 import {
   survivalShelves, survivalLevelLabel, SURVIVAL_LEVELS,
   type SurvivalBook, type SurvivalThemeCards,
@@ -1392,6 +1393,14 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
   // «нет в словаре» — хуже, чем не кликать вовсе.
   const glossed = hasLexicon(lang)
 
+  // Партитура (см. trainer/ScoreReader.tsx) имеет смысл там, где есть что
+  // положить во вторую и третью дорожку: перевод или транскрипция. У текста без
+  // того и другого она была бы той же прозой с лишней кнопкой.
+  const hasScore = !!text.translation || hasReadings(text.body, lang, text.glossary)
+  // Вид держится между текстами: выбравший партитуру выбрал способ читать, а не
+  // способ прочитать один отрывок.
+  const [score, setScore] = usePersistentState(`trainer.${lang}.readerScore`, false)
+
   const steps: CoachStep[] = [
     {
       title: t('Как устроено чтение'),
@@ -1403,6 +1412,10 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
       ref: bodyRef,
       title: t('Перевод любого слова'),
       text: t('Наведи курсор или нажми на слово — рядом появится перевод и грамматическая пометка. Пунктир снизу значит, что слово есть в словаре; у остальных работает озвучка.'),
+    }] : []),
+    ...(hasScore ? [{
+      title: t('Проза и партитура'),
+      text: t('Кнопка вверху меняет вид текста. В партитуре под каждым словом стоит транскрипция, перевод идёт колонкой справа по строкам, а голос ведёт по тексту подсветкой.'),
     }] : []),
     {
       ref: audioRef,
@@ -1502,6 +1515,14 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
       <ToolButton onClick={onBack}>
         <ChevronLeft size={14} /> {t('К списку')}
       </ToolButton>
+      {/* Вид текста — переключатель, а не замена: проза остаётся видом по
+          умолчанию (так текст читается как текст), партитура включается тогда,
+          когда нужно разобрать, как это звучит и что значит. */}
+      {hasScore && (
+        <ToolButton on={score} onClick={() => setScore(v => !v)} accent={accent}>
+          {score ? <Rows3 size={14} /> : <AlignLeft size={14} />} {score ? t('Партитура') : t('Проза')}
+        </ToolButton>
+      )}
       <ToolButton onClick={() => setTour(true)} accent={accent}>
         <HelpCircle size={14} /> {t('Подсказки')}
       </ToolButton>
@@ -1550,6 +1571,19 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
         </div>
       )}
 
+      {hasScore && score ? (
+        <div ref={bodyRef}>
+          <ScoreReader
+            body={text.body}
+            translation={text.translation}
+            lang={lang}
+            glossary={text.glossary}
+            accent={accent}
+            soft={palette.soft}
+            highlight={gloss}
+          />
+        </div>
+      ) : (
       <div ref={bodyRef} style={{
         padding: '20px 22px', borderRadius: 18, background: 'var(--color-bg-2)',
         border: '1px solid var(--color-border-soft)',
@@ -1572,6 +1606,7 @@ function Reader({ text, scene, work, accent, palette, lang, owner, subjectId, on
           </div>
         )}
       </div>
+      )}
 
       <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>
         {t('Вопросы к тексту')}

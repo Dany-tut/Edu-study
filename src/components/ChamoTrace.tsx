@@ -189,27 +189,39 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
           width: '100%', maxWidth: 300, alignSelf: 'center', aspectRatio: '1',
           borderRadius: 22, background: 'var(--color-bg-3)',
           touchAction: 'none', cursor: disabled || done ? 'default' : 'crosshair',
+          // ВСЁ ВНУТРИ РИСУЕТСЯ ЦВЕТОМ ТЕКСТА, А ЯРКОСТЬ ЗАДАЁТСЯ ПРОЗРАЧНОСТЬЮ.
+          //
+          // Сначала буква под обводку была нарисована цветом рамки
+          // (--color-border-strong). В светлой теме это сплошной серый и всё
+          // читается, а в тёмной — белый с прозрачностью 0.15, и поверх него
+          // ложилась ещё и прозрачность самой черты: 0.45 × 0.15 ≈ семь
+          // процентов белого на почти чёрном. Буквы на экране просто не было,
+          // и «обведите» превращалось в «угадайте, где линия».
+          //
+          // Цвет текста флипается вместе с темой сам, поэтому одна и та же
+          // прозрачность честно работает в обеих.
+          color: 'var(--color-text)',
         }}
       >
         {/* Разлиновка: без неё непонятно, где у квадрата середина, и буква
             уезжает в угол. */}
-        <line x1="50" y1="4" x2="50" y2="96" stroke="var(--color-border-soft)" strokeWidth="0.5" strokeDasharray="3 3" />
-        <line x1="4" y1="50" x2="96" y2="50" stroke="var(--color-border-soft)" strokeWidth="0.5" strokeDasharray="3 3" />
+        <line x1="50" y1="4" x2="50" y2="96" stroke="currentColor" strokeOpacity={0.16} strokeWidth="0.5" strokeDasharray="3 3" />
+        <line x1="4" y1="50" x2="96" y2="50" stroke="currentColor" strokeOpacity={0.16} strokeWidth="0.5" strokeDasharray="3 3" />
 
         {paths.map((d, i) => (
-          <g key={i}>
-            {/* Пройденные черты остаются белыми, будущие — тусклый пунктир. */}
-            <path
-              d={d}
-              fill="none"
-              stroke={i < strokeIndex ? 'var(--color-text)' : 'var(--color-border-strong)'}
-              strokeWidth={i < strokeIndex ? 9 : 9}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              opacity={i < strokeIndex ? 1 : i === strokeIndex ? 0.45 : 0.18}
-              strokeDasharray={i === strokeIndex && !done ? '4 5' : undefined}
-            />
-          </g>
+          <path
+            key={i}
+            d={d}
+            fill="none"
+            stroke="currentColor"
+            // Пройденная черта — в полную силу, текущая — заметный пунктир,
+            // будущие — тень, по которой видно, что буква ещё не кончилась.
+            strokeOpacity={i < strokeIndex ? 1 : i === strokeIndex ? 0.42 : 0.16}
+            strokeWidth={9}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeDasharray={i === strokeIndex && !done ? '4 5' : undefined}
+          />
         ))}
 
         {/* Точка старта текущей черты — с неё и только с неё начинают вести. */}

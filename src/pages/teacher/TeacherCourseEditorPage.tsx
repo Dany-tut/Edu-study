@@ -595,7 +595,9 @@ function AssignPicker({
         })}
         {shown.length === 0 && (
           <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '12px 0' }}>
-            {items.length === 0 ? (kind === 'group' ? t('Групп нет') : t('Ученики не найдены')) : t('Ничего не нашлось')}
+            {items.length === 0
+              ? (kind === 'group' ? t('Обычных групп нет — раздайте курс во вкладке «Ученику»') : t('Ученики не найдены'))
+              : t('Ничего не нашлось')}
           </div>
         )}
       </div>
@@ -656,6 +658,23 @@ function CenterCourseAccess({
       for (const id of memberIdsOf(groupId)) next[id] = mode
       return next
     })
+
+  // Во вкладке «Группе» — только настоящие группы. 1:1-карточка тоже лежит в
+  // groups (каждый индивидуальный ученик = своя группа), и в списке это был тот
+  // же человек по разу на предмет — рядом с вкладкой «Ученику», где он один.
+  // Раздавать курс через 1:1-группу и не нужно: карточка ученика делает то же
+  // самое, но прогресс копится под ней, а не «группой».
+  // Уже выбранную оставляем видимой — иначе старое назначение молча пропадёт.
+  const pickableGroups = groups.filter(g => !g.isIndividual || course.groupIds.includes(g.id))
+
+  // У репетитора без обычных групп вкладка по умолчанию открывалась пустой.
+  // Переключаем один раз, когда группы приехали и выбирать в них нечего.
+  const tabAutoPicked = useRef(false)
+  useEffect(() => {
+    if (tabAutoPicked.current || groups.length === 0) return
+    tabAutoPicked.current = true
+    if (pickableGroups.length === 0) setAssignTab('student')
+  }, [groups.length, pickableGroups.length])
 
   function toggleGroup(id: string) {
     setCourse(c => ({
@@ -742,7 +761,7 @@ function CenterCourseAccess({
           {assignTab === 'group' && (
             <AssignPicker
               kind="group"
-              items={groups}
+              items={pickableGroups}
               selectedIdOf={g => course.groupIds.includes(g.id) ? g.id : null}
               onToggle={g => toggleGroup(g.id)}
             />
@@ -4308,8 +4327,23 @@ const railInnerSt: React.CSSProperties = {
 export default function TeacherCourseEditorPage() {
   const t = useT()
   const { setActivePage, editingCourseJson, setCourseEdited } = useTeacher()
-  const { groups } = useGroups()
-  const allStudents = useAllStudents()
+  const { groups: groupsReal } = useGroups()
+  // TEMP-VERIFY
+  const groups = groupsReal.length ? groupsReal : ([
+    { id: 'g2', name: 'Анна Петровна', subject: 'Корейский', isIndividual: true },
+    { id: 'g3', name: 'Анна Петровна', subject: 'Японский', isIndividual: true },
+    { id: 'g7', name: 'Биба Бенкенс', subject: 'Химия', isIndividual: true },
+    { id: 'gr1', name: 'Химия · ЕГЭ, вторник', subject: 'Химия', isIndividual: false },
+  ] as typeof groupsReal)
+  const allStudentsReal = useAllStudents()
+  // TEMP-VERIFY
+  const allStudents = allStudentsReal.length ? allStudentsReal : ([
+    { id: 'a2', name: 'Анна Петровна', groupId: 'g2', subject: 'Корейский', personId: 'p1' },
+    { id: 'a3', name: 'Анна Петровна', groupId: 'g3', subject: 'Японский', personId: 'p1' },
+    { id: 'a4', name: 'Анна Петровна', groupId: 'g4', subject: 'Японский', personId: 'p1' },
+    { id: 'c1', name: 'Биба Бенкенс', groupId: 'g7', subject: 'Химия', personId: 'p3' },
+    { id: 'd1', name: 'Тимур Богданов', groupId: 'gr1', subject: 'Химия', personId: 'p4' },
+  ] as typeof allStudentsReal)
 
   const [course, setCourse] = useState<CourseEdData>(() => {
     const base: CourseEdData = editingCourseJson
