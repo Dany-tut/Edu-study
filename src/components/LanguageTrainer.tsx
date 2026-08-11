@@ -25,7 +25,7 @@ import MultiSelectField from './MultiSelectField'
 import { addCards, deckOwner, dueCount, deckStates, type CardState } from '../data/reviewDeck'
 import { hasSurvivalBook, loadSurvivalBook } from '../data/survivalBooks'
 import {
-  hasScenes, loadScenes, scenesWord, shelvesForLang, worksForLang, workById,
+  hasScenes, loadScenes, sceneCount, scenesWord, shelvesForLang, worksForLang, workById,
   type Scene, type Work,
 } from '../data/scenes'
 import { WorkGrid, WorkPage } from './trainer/SceneShelf'
@@ -150,6 +150,11 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   // предмета старый список сам перестаёт считаться загруженным.
   const [sceneData, setSceneData] = useState<{ lang: string; list: Scene[] } | null>(null)
   const scenes = sceneData?.lang === lang ? sceneData.list : undefined
+
+  // Сколько сцен у языка — независимо от того, приехал чанк или нет: до
+  // загрузки берём число из реестра, после — длину самого списка (реестр может
+  // отстать от файла, список — никогда).
+  const scenesTotal = scenes?.length ?? sceneCount(lang)
 
   useEffect(() => {
     if (!sceneLib || mode !== 'reading' || readingView !== 'scenes' || scenes !== undefined) return
@@ -661,21 +666,18 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
   const speakTotal = countSpeakTasks(allThemes)
 
   const modeCounts: Record<Mode, number | undefined> = {
-    // «Чтение» — ВСЕГДА учебные тексты, независимо от того, какая половина
-    // вкладки открыта.
+    // «Чтение» — ВСЁ, что в этом режиме можно открыть: учебные тексты ПЛЮС
+    // сцены. У корейского это 3 + 6, и «3» в меню при девяти вещах на экране
+    // читалось как потерянная половина раздела.
     //
-    // Раньше число шло за половиной: на «Текстах» — 5, на «Сценах» — 63. Но
-    // половина запоминается и живёт в sessionStorage, а из «Карточек» её не
-    // видно вовсе — и один и тот же пункт меню показывал то 5, то 63 без
-    // единой видимой причины. Число, которое меняется от невидимого
-    // состояния, — это не счётчик, а загадка.
+    // За половиной вкладки число идти не может: половина запоминается в
+    // sessionStorage, а из «Карточек» её не видно вовсе — один и тот же пункт
+    // меню показывал бы то 3, то 6 без единой видимой причины.
     //
-    // Суммой (68) тоже нельзя: сцены едут отдельным чанком (у английского это
-    // 340 КБ), до их загрузки сумма неизвестна, а прыжок с 5 на 68 читается
-    // как ошибка счёта. Возить весь Диккенса ради цифры в бейдже — тем более.
-    // Поэтому у режима стоит то, что известно синхронно и всегда, а число
-    // сцен — на самой вкладке «Сцены» (см. сегмент «Что читаем» ниже).
-    reading: allTexts.length,
+    // Сумма при этом известна сразу: сцены едут отдельным чанком (у английского
+    // это 340 КБ), но их количество лежит в синхронном реестре (SCENE_COUNTS),
+    // так что бейдж не прыгает и весь Диккенс ради цифры не грузится.
+    reading: allTexts.length + (sceneLib ? scenesTotal : 0),
     vocab: hasBook ? allThemes.reduce((n, x) => n + x.phrases.length, 0) : undefined,
     listening: audio.length,
     speaking: speakTotal,
@@ -683,7 +685,7 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
 
   const heroSubtitle =
     mode === 'vocab' && hasBook ? `${allThemes.reduce((n, x) => n + x.phrases.length, 0)} ${t('фраз')} · ${allThemes.length} ${t('ситуаций')}`
-    : scenesOn ? `${sceneWorks.length} ${t('произведений')} · ${scenes?.length ?? 0} ${t(scenesWord(scenes?.length ?? 0))}`
+    : scenesOn ? `${sceneWorks.length} ${t('произведений')} · ${scenesTotal} ${t(scenesWord(scenesTotal))}`
     : mode === 'reading' ? `${allTexts.length} ${t('текстов')}`
     : mode === 'listening' ? `${audio.length} ${t('записей')}`
     : `${speakTotal} ${t('заданий')} · ${speakCounts.sent} ${t('записей')}`
@@ -714,12 +716,12 @@ export default function LanguageTrainer({ lang, subject, subjectId, dark, subjec
               // Подписи короткие: в рейле на сегмент приходится половина его
               // ширины, и «Учебные тексты» обрезались в «Учебные тек…».
               //
-              // Числа стоят здесь, а не у режима: тут у каждого своя подпись, и
-              // «Тексты 5» рядом со «Сцены 63» — два разных счётчика, а не один
-              // прыгающий. У сцен бейдж появляется вместе с чанком: пустое
-              // место до загрузки честнее, чем чужое число.
+              // Числа стоят здесь ещё и по половинам: у режима сумма (сколько
+              // всего можно читать), а тут видно, из чего она сложена. У сцен
+              // число берётся из синхронного реестра, поэтому бейдж стоит и на
+              // половине «Тексты», где чанк ещё не загружали.
               { value: 'texts', label: 'Тексты', badge: allTexts.length },
-              { value: 'scenes', label: 'Сцены', badge: scenes?.length },
+              { value: 'scenes', label: 'Сцены', badge: scenesTotal },
             ]}
             value={readingView}
             onChange={v => v && switchReadingView(v as 'texts' | 'scenes')}
