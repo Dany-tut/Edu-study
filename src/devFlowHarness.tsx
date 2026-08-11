@@ -13,7 +13,8 @@ import { buildKoreanHangulCourse } from './data/koreanHangul'
 import './index.css'
 
 // ?kohg — первый урок настоящего курса хангыля вместо рукодельной домашки.
-const hangulLesson = buildKoreanHangulCourse('stand').lessons[0]
+const hangulLesson = buildKoreanHangulCourse('stand')
+  .lessons[Math.max(0, Number(new URLSearchParams(location.search).get('kohg') || 0))]
 
 const q = (x: Partial<HomeworkQuizQuestion> & { id: string; prompt: string }): HomeworkQuizQuestion => ({
   options: [], correctOptionId: '', explanation: '', ...x,

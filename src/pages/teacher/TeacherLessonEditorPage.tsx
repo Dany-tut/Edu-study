@@ -856,7 +856,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
           style={inputStyle}
         />
         <div style={{ fontSize: 10.5, color: 'var(--color-text-4)', marginTop: 4, lineHeight: 1.4 }}>
-          {t('По названию подберём домашки из конструктора')}
+          {t('Так занятие подписано в расписании и в журнале')}
         </div>
       </div>
 

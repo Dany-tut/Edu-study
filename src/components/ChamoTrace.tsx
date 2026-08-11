@@ -94,6 +94,8 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
    * точке, и черта не засчитывается никогда.
    */
   const taken = useRef(0)
+  /** До какой точки уже отдавали отклик вибрацией. */
+  const buzzed = useRef(0)
   const done = value === 'done'
 
   const strokes = letter?.strokes ?? []
@@ -135,6 +137,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
       return
     }
     taken.current = 1
+    buzzed.current = 0
     setTrail([current.pts[0], p])
     setDrawing(true)
   }
@@ -158,7 +161,12 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
       while (next < denseCurrent.length && Math.hypot(p[0] - denseCurrent[next][0], p[1] - denseCurrent[next][1]) < TOLERANCE) next++
       if (next !== taken.current) {
         taken.current = next
-        vibrate(4)
+        // Точки частые, и отклик на каждую превратился бы в непрерывный зуд:
+        // отмечаем заметный кусок пути, а не каждый шаг сгущения.
+        if (next - buzzed.current >= 10) {
+          buzzed.current = next
+          vibrate(4)
+        }
       }
     }
 

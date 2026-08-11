@@ -64,6 +64,28 @@ export function TierChip({ term, lang, accent, style }: {
 /** Ширина карточки перевода. Уже — начинает переносить корейские пометки. */
 const POP_W = 264
 
+// ── Транскрипция под словом: почему такие странные числа ─────────────────────
+//
+// Колонка «слово + чтение» шириной в более широкую из двух строк, а кириллица
+// шире хангыля почти всегда: 내일까지 — 57.5px, «нэильккаджи» — 66.8px. Значит,
+// колонка раздвигается, и в строке появляются рваные промежутки: где чтение
+// короткое — слова стоят вплотную, где длинное — разъезжаются на полтора
+// пробела. Читается это как ошибка вёрстки, а не как разметка.
+//
+// Лечим тремя числами разом, потому что поодиночке ни одно не работает:
+//   RUBY_SIZE   — чтение мельче обычного (0.52em против 0.6em): кириллица почти
+//                 влезает под своё слово;
+//   RUBY_BLEED  — остаток чтение вывешивает за края колонки (отрицательные поля
+//                 в его собственных em), то есть в межсловный пробел;
+//   RUBY_GUTTER — пробел на этот вынос заранее расширен, и одинаково для всех
+//                 слов. Ключевое здесь — «одинаково»: строка становится чуть
+//                 воздушнее, но ровной, а глазу мешала именно рваность.
+// С этими значениями разброс промежутков в корейском диалоге — 1.2px вместо 11,
+// и соседние транскрипции не слипаются (минимум 3.9px между ними).
+const RUBY_SIZE = '0.52em'
+const RUBY_BLEED = '-0.5em'
+const RUBY_GUTTER = '0.3em'
+
 export default function GlossedText({ text, lang, extra = [], accent, highlight, ruby, spokenChar, style }: {
   text: string
   /** Код языка: en, ko, ja, pt-BR — им же озвучиваем. */
@@ -366,22 +388,37 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
   }
 
   return (
-    <div ref={wrapRef} style={{ position: 'relative', whiteSpace: 'pre-wrap', ...proseWrap, ...style }}>
+    <div
+      ref={wrapRef}
+      style={{
+        position: 'relative', whiteSpace: 'pre-wrap', ...proseWrap,
+        // Расширенный пробел — плата за вынос транскрипции (см. RUBY_GUTTER).
+        ...(rubyUnits ? { wordSpacing: RUBY_GUTTER } : null),
+        ...style,
+      }}
+    >
       {rubyUnits
         // Слово и его чтение — одна колонка: перенос строки уносит их вместе, и
         // транскрипция не может оторваться от своего слова.
         ? rubyUnits.map((u, k) => u.kind === 'space'
           ? <span key={k}>{u.text}</span>
           : (
-            <span key={k} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', verticalAlign: 'top' }}>
+            <span key={k} style={{
+              display: 'inline-flex', flexDirection: 'column', alignItems: 'center',
+              // Внутри колонки пробел обычный: расширен только межсловный.
+              verticalAlign: 'top', wordSpacing: 'normal',
+            }}>
               <span style={{ whiteSpace: 'nowrap' }}>
                 {u.items.map((it, j) => ('seg' in it
                   ? chipFor(segments[it.seg], it.seg)
                   : <span key={`p${j}`}>{it.text}</span>))}
               </span>
               <span style={{
-                fontSize: '0.6em', lineHeight: 1.4, color: 'var(--color-text-3)',
+                fontSize: RUBY_SIZE, lineHeight: 1.4, color: 'var(--color-text-3)',
                 whiteSpace: 'nowrap', letterSpacing: 0.1,
+                // Чтение шире слова вывешивается в пробел, а не раздвигает
+                // колонку: ширину строки задаёт текст, а не его разметка.
+                marginInline: RUBY_BLEED,
               }}>
                 {wordReading(u.text.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ''), lang)}
               </span>

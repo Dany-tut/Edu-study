@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Play, Square, Languages, Type } from 'lucide-react'
+import { Play, Square, Languages, Type, PanelRight, PanelBottom } from 'lucide-react'
 import GlossedText from '../GlossedText'
 import { useT } from '../../lib/i18n'
 import { proseWrap } from '../../lib/typography'
@@ -27,8 +27,9 @@ import type { Gloss } from '../../data/readingLibrary'
 //
 // 2. ПЕРЕВОД — ПО СТРОКЕ И ПО АБЗАЦУ, НЕ ПО СЛОВУ. Пословный перевод корейского
 //    или японского нечитаем из-за порядка слов; читаемая единица — реплика.
-//    Поэтому перевод стоит колонкой справа и начинается на той же высоте, что и
-//    его строка оригинала.
+//    Поэтому перевод встаёт напротив своей строки — колонкой справа или прямо
+//    под ней: сторону выбирает ученик тумблером наверху (колонка держит взгляд
+//    на одной высоте, но сужает оригинал вдвое — на длинных строках это мешает).
 //
 // 3. ЗВУК ВЕДЁТ ГЛАЗ. Голос подсвечивает слово, до которого дочитал. Событие
 //    boundary есть не у всех голосов, поэтому подсветка двухуровневая: строка
@@ -118,15 +119,53 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
   // пытаешься понять сам, и только потом сверяешься.
   const [showRu, setShowRu] = useState(false)
   const [showTr, setShowTr] = useState(true)
+  // Где стоит перевод. Справа — по умолчанию: реплика и её перевод на одной
+  // высоте, глаз ходит поперёк, а не вниз. Но колонка вдвое сужает оригинал, и
+  // на длинных строках это хуже, чем перевод сразу под строкой, — поэтому
+  // выбор оставлен ученику, а не зашит в ширину экрана.
+  const [ruSide, setRuSide] = useState<'right' | 'bottom'>('right')
   // Что звучит: номер реплики и позиция символа внутри неё.
   const [line, setLine] = useState<number | null>(null)
   const [char, setChar] = useState<number | null>(null)
 
+  // Реплика, которую слушают отдельно (номер её первого куска). Отдельная от
+  // playing: строку слушают ПОВЕРХ чтения всего текста — клик по реплике
+  // перебивает общий проход, и шапка должна вернуться в «играть».
+  const [solo, setSolo] = useState<number | null>(null)
+
   const voice = useRef<SpeechHandle | null>(null)
   useEffect(() => () => voice.current?.stop(), [])
 
+  /**
+   * Прочитать одну реплику.
+   *
+   * ЗАЧЕМ ОТДЕЛЬНАЯ КНОПКА У СТРОКИ. Слушать текст целиком имеет смысл один
+   * раз; дальше спотыкаешься на одной строке и хочешь её переслушать — а
+   * приходилось запускать всё сначала и ждать. Повторный клик по той же строке
+   * останавливает: это и есть «переслушал, хватит».
+   */
+  function playRow(row: Row) {
+    const chunks = row.chunks.filter(c => c.line !== null)
+    if (!chunks.length) return
+    const key = chunks[0].line
+    if (solo === key) { voice.current?.stop(); return }
+    setSolo(key)
+    setChar(null)
+    voice.current = speak(chunks.map(c => c.text).join('\n'), {
+      lang,
+      rate: slow ? 0.8 : 1,
+      gap: 240,
+      // Внутри реплики номера кусков свои (0, 1, 2…), а подсветка живёт в
+      // сквозных номерах текста — переводим одно в другое.
+      onLine: i => { setLine(chunks[i]?.line ?? null); setChar(null) },
+      onWord: (i, c) => { setLine(chunks[i]?.line ?? null); setChar(c) },
+      onEnd: () => { setSolo(null); setLine(null); setChar(null) },
+    })
+  }
+
   function play(rate: number) {
     setPlaying(true)
+    setSolo(null)
     setLine(null)
     setChar(null)
     voice.current = speak(body, {
@@ -152,7 +191,10 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
     if (playing) play(next ? 0.8 : 1)
   }
 
-  const twoCol = isDesktop && showRu
+  // Колонка справа возможна не всегда: на телефоне её некуда поставить, а
+  // перевод, не разложившийся по строкам (loose), стоять напротив нечему.
+  const canSide = isDesktop && units.some(u => u.ru)
+  const twoCol = canSide && showRu && ruSide === 'right'
   // Отступы длинной записью: колонки перекрывают их по одной стороне, а смесь
   // padding и paddingLeft в одном стиле React ругает и применяет непредсказуемо.
   const cell = { paddingTop: 9, paddingRight: 14, paddingBottom: 9, paddingLeft: 0 } as const
@@ -203,6 +245,34 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
         </button>
       </div>
 
+      {/* Тумблеры — над текстом, рядом с плеером: включать перевод и
+          транскрипцию ученик решает ДО чтения, а не дочитав до низа карточки. */}
+      {(translation || readings) && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+          padding: '10px 16px', borderBottom: '1px solid var(--color-border-soft)',
+        }}>
+          {translation && (
+            <Toggle on={showRu} onClick={() => setShowRu(v => !v)} accent={accent} soft={soft}>
+              <Languages size={13} /> {t('Перевод')}
+            </Toggle>
+          )}
+          {/* Сторона — только когда перевод включён: пустой выбор «где его
+              показывать» рядом с выключенным переводом ничего не объясняет. */}
+          {translation && showRu && canSide && (
+            <SideSwitch value={ruSide} onChange={setRuSide} accent={accent} soft={soft} />
+          )}
+          {readings && (
+            <Toggle on={showTr} onClick={() => setShowTr(v => !v)} accent={accent} soft={soft}>
+              <Type size={13} /> {t('Транскрипция')}
+            </Toggle>
+          )}
+          <span style={{ marginLeft: 'auto', fontSize: 11.5, color: 'var(--color-text-3)' }}>
+            {t('Нажми на слово — перевод и озвучка')}
+          </span>
+        </div>
+      )}
+
       <div style={{ padding: '14px 16px' }}>
         <div style={{
           display: 'grid',
@@ -239,26 +309,43 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
         )}
       </div>
 
-      {/* Тумблеры — под текстом: сверху уже стоит плеер, и две панели управления
-          в шапке спорили бы друг с другом. */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
-        padding: '10px 16px', borderTop: '1px solid var(--color-border-soft)',
-      }}>
-        {translation && (
-          <Toggle on={showRu} onClick={() => setShowRu(v => !v)} accent={accent} soft={soft}>
-            <Languages size={13} /> {t('Перевод')}
-          </Toggle>
-        )}
-        {readings && (
-          <Toggle on={showTr} onClick={() => setShowTr(v => !v)} accent={accent} soft={soft}>
-            <Type size={13} /> {t('Транскрипция')}
-          </Toggle>
-        )}
-        <span style={{ marginLeft: 'auto', fontSize: 11.5, color: 'var(--color-text-3)' }}>
-          {t('Нажми на слово — перевод и озвучка')}
-        </span>
-      </div>
+    </div>
+  )
+}
+
+/** Где показывать перевод: колонкой справа или строкой под оригиналом. */
+function SideSwitch({ value, onChange, accent, soft }: {
+  value: 'right' | 'bottom'
+  onChange: (v: 'right' | 'bottom') => void
+  accent: string
+  soft: string
+}) {
+  const t = useT()
+  const opt = (v: 'right' | 'bottom', Icon: typeof PanelRight, label: string) => {
+    const on = value === v
+    return (
+      <button
+        onClick={() => onChange(v)}
+        aria-pressed={on}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 5,
+          padding: '7px 11px', border: 'none', cursor: 'pointer',
+          fontFamily: 'inherit', fontSize: 12, fontWeight: on ? 700 : 500,
+          background: on ? soft : 'transparent',
+          color: on ? accent : 'var(--color-text-3)',
+        }}
+      >
+        <Icon size={13} /> {label}
+      </button>
+    )
+  }
+  return (
+    <div style={{
+      display: 'inline-flex', borderRadius: 999, overflow: 'hidden',
+      border: '1px solid var(--color-border-medium)',
+    }}>
+      {opt('right', PanelRight, t('Справа'))}
+      {opt('bottom', PanelBottom, t('Снизу'))}
     </div>
   )
 }

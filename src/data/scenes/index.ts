@@ -1012,12 +1012,35 @@ const LOADERS: Record<string, Loader> = {
   pt: () => import('./scenesPt').then(m => m.PT_SCENES),
 }
 
+/**
+ * Сколько сцен в каждом чанке. Знать это НАДО СИНХРОННО: «Чтение» в меню
+ * режимов считает тексты вместе со сценами, а сам чанк приезжает только когда
+ * откроют половину «Сцены». Без этой таблицы у корейского в меню стояло 3
+ * (учебные тексты) при 3 текстах и 6 сценах на экране.
+ *
+ * Число проставляется руками и потому может разойтись с файлом. Расхождение не
+ * тихое: loadScenes сверяет длину приехавшего списка и ругается в консоль, а на
+ * экране счётчик после загрузки берётся из самого списка (см. LanguageTrainer).
+ */
+export const SCENE_COUNTS: Record<string, number> = {
+  en: 87,
+  ja: 9,
+  ko: 6,
+  pt: 4,
+}
+
 /** Базовый код языка: pt-BR → pt. */
 const base = (lang: string) => lang.split('-')[0].toLowerCase()
 
 /** Есть ли для языка сцены. Синхронно — по этому решается, рисовать ли раздел. */
 export const hasScenes = (lang: string | undefined): boolean =>
   !!lang && (lang in LOADERS || base(lang) in LOADERS)
+
+/** Сколько сцен у языка — синхронно, ещё до загрузки чанка. */
+export function sceneCount(lang: string | undefined): number {
+  if (!lang) return 0
+  return SCENE_COUNTS[lang] ?? SCENE_COUNTS[base(lang)] ?? 0
+}
 
 /** Произведения языка — из синхронного реестра, без загрузки текстов. */
 export function worksForLang(lang: string | undefined): Work[] {
@@ -1043,7 +1066,12 @@ export async function loadScenes(lang: string | undefined): Promise<Scene[]> {
   const load = LOADERS[lang] ?? LOADERS[base(lang)]
   if (!load) return []
   try {
-    return await load()
+    const list = await load()
+    const declared = sceneCount(lang)
+    if (declared !== list.length) {
+      console.warn(`scenes: у «${lang}» в SCENE_COUNTS ${declared}, а в файле ${list.length} — поправь таблицу в data/scenes/index.ts`)
+    }
+    return list
   } catch (e) {
     console.error('loadScenes:', e)
     return []
